@@ -1,0 +1,8 @@
+{
+  "jupyter.lab.shortcuts": [],
+  "title": "simlaw",
+  "description": "simlaw settings.",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}
