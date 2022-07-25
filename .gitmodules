@@ -1,0 +1,3 @@
+[submodule "lib/jupyterlab"]
+	path = lib/jupyterlab
+	url = https://github.com/jupyterlab/jupyterlab.git
