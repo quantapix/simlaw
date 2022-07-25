@@ -1,0 +1,8 @@
+{
+  "name": "nested",
+  "license": "MIT",
+  "version": "0.1.0",
+  "author": "quantapix <quantapix@gmail.com>",
+  "main": "index.js",
+  "private": true
+}

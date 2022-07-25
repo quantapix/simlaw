@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/out-tsc",
+  },
+  "exclude": ["dist", "node_modules", "out-tsc", "scripts", "tools"],
+  "angularCompilerOptions": {
+    "enableIvy": true,
+    "fullTemplateTypeCheck": true,
+    "generateCodeForLibraries": true,
+    "strictTemplates": true,
+    "strictMetadataEmit": true,
+    "strictInjectionParameters": true
+  }
+}

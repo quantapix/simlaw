@@ -1,0 +1,23 @@
+{
+  "name": "grafiq",
+  "version": "0.1.0",
+  "scripts": {
+    "prettier": "prettier --write \"**/*.ts\""
+  },
+  "private": true,
+  "dependencies": {
+    "d3": "",
+    "lodash": ""
+  },
+  "devDependencies": {
+    "@types/assert": "",
+    "@types/d3": "",
+    "@types/jasmine": "",
+    "@types/jasminewd2": "",
+    "@types/lodash": "",
+    "eslint-plugin-jasmine": "",
+    "jasmine": "",
+    "jasmine-core": "",
+    "jasmine-spec-reporter": ""
+  }
+}

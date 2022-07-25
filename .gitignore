@@ -4,3 +4,5 @@
 .runs
 .save
 dev
+out
+node_modules
