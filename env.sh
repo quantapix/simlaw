@@ -9,18 +9,18 @@
 # jupyter nbconvert --to script 
 
 show_usage() {
-    echo "Usage: $(basename "$0") [-c] [-g]"
+    echo "Usage: $(basename "$0") [-c] [-t]"
 }
 
 main() {
     local OPTIND=1
-    local GPU=false
     local CLEAN=false
+    local TEST=false
 
-    while getopts "cgh" opt; do
+    while getopts "cth" opt; do
 	      case $opt in
 	          c) CLEAN=true;;
-            g) GPU=true;;
+            t) TEST=true;;
 	          *) show_usage; return 1;;
 	      esac
     done
@@ -28,14 +28,34 @@ main() {
 
     if "$CLEAN"; then
 	      rm -rf .env
+        (cd lib/jupyterlab
+            git clean -dfxq
+            git reset --hard
+        )
     fi
 
     if [ ! -e .env ]; then
 	      python3.10 -m venv .env
     fi
 
-    .env/bin/pip install -U pip wheel setuptools pytest black
-    .env/bin/pip install -U numpy pandas matplotlib scipy scikit-learn
+    .env/bin/pip install -U pip wheel setuptools
+    # .env/bin/pip install -U pytest black
+    # .env/bin/pip install -U numpy pandas matplotlib scipy scikit-learn
+
+    (cd lib/jupyterlab
+        source ../../.env/bin/activate
+        pip install -e ".[test]"
+        jlpm install
+        jlpm run build
+        jlpm run build:core
+        jupyter lab build
+        if "$TEST"; then
+            jlpm run build:testutils
+            jlpm test
+        fi
+    )
+
+    # .env/bin/pip install -U jupyterlab_server
 }
 
 main "$@"
