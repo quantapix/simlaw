@@ -1,5 +1,5 @@
 {
-  "name": "grafiq",
+  "name": "simnet",
   "version": "0.1.0",
   "scripts": {
     "prettier": "prettier --write \"**/*.ts\""
