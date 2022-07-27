@@ -30,7 +30,7 @@ main() {
 	      rm -rf .env
         (cd lib/jupyterlab
             git clean -dfxq
-            git reset --hard
+            git reset -q --hard
         )
     fi
 
