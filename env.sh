@@ -39,23 +39,24 @@ main() {
     fi
 
     .env/bin/pip install -U pip wheel setuptools
-    # .env/bin/pip install -U pytest black
-    # .env/bin/pip install -U numpy pandas matplotlib scipy scikit-learn
+    .env/bin/pip install -U pytest black
+    .env/bin/pip install -U numpy pandas matplotlib scipy scikit-learn
 
-    (cd lib/jupyterlab
-        source ../../.env/bin/activate
-        pip install -e ".[test]"
-        jlpm install
-        jlpm run build
-        jlpm run build:core
-        jupyter lab build
-        if "$TEST"; then
-            jlpm run build:testutils
-            jlpm test
-        fi
-    )
+    .env/bin/pip install -U jupyterlab jupyterlab_server
 
-    # .env/bin/pip install -U jupyterlab_server
+#    (cd lib/jupyterlab
+#        source ../../.env/bin/activate
+#        pip install -e ".[test]"
+#        jlpm install
+#        jlpm run build
+#        jlpm run build:core
+#        jupyter lab build
+#        if "$TEST"; then
+#            jlpm run build:testutils
+#            jlpm test
+#        fi
+#    )
+
 }
 
 main "$@"

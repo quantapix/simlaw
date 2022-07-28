@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/nx/schemas/workspace-schema.json",
+  "version": 2,
+  "projects": {
+    "nested": "packages/nested",
+    "simlaw": "packages/simlaw",
+    "simlaw-e2e": "packages/simlaw-e2e",
+    "simnet": "packages/simnet"
+  }
+}
