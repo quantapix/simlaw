@@ -1,0 +1,47 @@
+{
+  "name": "qalkit",
+  "author": "qaltum <qaltum.net@gmail.com>",
+  "license": "MIT",
+  "main": "index.js",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "preprep": "git submodule update --init --recursive",
+    "predev": "(cd ..; yarn)",
+    "prep": "(cd ../lib/react; rm package-lock.json; yarn; yarn build react/index,react/jsx,react-dom/index,scheduler --type=NODE)"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "",
+    "@testing-library/react": "",
+    "@testing-library/user-event": "",
+    "@types/jest": "",
+    "@types/node": "",
+    "@types/react-dom": "",
+    "@types/react": "",
+    "@typescript-eslint/eslint-plugin": "",
+    "@typescript-eslint/parser": "",
+    "eslint-config-prettier": "",
+    "eslint-config-react-app": "",
+    "eslint-plugin-import": "",
+    "eslint-plugin-jest": "",
+    "eslint-plugin-jsx-a11y": "",
+    "eslint-plugin-node": "",
+    "eslint-plugin-prettier": "",
+    "eslint-plugin-react-hooks": "",
+    "eslint-plugin-react": "",
+    "eslint-plugin-testing-library": "",
+    "eslint-webpack-plugin": "",
+    "eslint": "",
+    "jest-circus": "",
+    "jest-react": "file:../lib/out/jest-react",
+    "jest-resolve": "",
+    "jest-watch-typeahead": "",
+    "jest": "",
+    "prettier": "",
+    "typescript": "next"
+  },
+  "dependencies": {
+    "react-dom": "file:../lib/out/react-dom",
+    "react": "file:../lib/out/react"
+  }
+}
