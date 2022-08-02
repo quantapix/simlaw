@@ -2,33 +2,28 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { AsProp, BsPrefixRefForwardingComponent } from './helpers';
 
-export type FeedbackType = 'valid' | 'invalid';
+export type Type = 'valid' | 'invalid';
 
-export interface FeedbackProps
-  extends AsProp,
-    React.HTMLAttributes<HTMLElement> {
-  // I think this is because we use BsPrefixRefForwardingComponent below
-  // which includes bsPrefix.
+export interface Props extends AsProp, React.HTMLAttributes<HTMLElement> {
   bsPrefix?: never;
-  type?: FeedbackType;
+  type?: Type;
   tooltip?: boolean;
 }
 
-const Feedback: BsPrefixRefForwardingComponent<'div', FeedbackProps> =
+export const Feedback: BsPrefixRefForwardingComponent<'div', Props> =
   React.forwardRef(
-    // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
     (
       {
         as: Component = 'div',
         className,
         type = 'valid',
         tooltip = false,
-        ...props
+        ...ps
       },
       ref,
     ) => (
       <Component
-        {...props}
+        {...ps}
         ref={ref}
         className={classNames(
           className,
@@ -39,5 +34,3 @@ const Feedback: BsPrefixRefForwardingComponent<'div', FeedbackProps> =
   );
 
 Feedback.displayName = 'Feedback';
-
-export default Feedback;

@@ -1,12 +1,12 @@
 import classNames from 'classnames';
 import { useBootstrapPrefix } from './ThemeProvider';
-import { useCol, ColProps } from './Col';
+import { useCol, Props } from './Col';
 import { Variant } from './types';
 
 export type PlaceholderAnimation = 'glow' | 'wave';
 export type PlaceholderSize = 'xs' | 'sm' | 'lg';
 
-export interface UsePlaceholderProps extends Omit<ColProps, 'as'> {
+export interface UsePlaceholderProps extends Omit<Props, 'as'> {
   animation?: PlaceholderAnimation;
   bg?: Variant;
   size?: PlaceholderSize;

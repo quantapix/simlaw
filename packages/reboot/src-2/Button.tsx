@@ -16,7 +16,7 @@ export type CommonProps = 'href' | 'size' | 'variant' | 'disabled';
 export const Button: BsPrefixRefForwardingComponent<'button', Props> =
   React.forwardRef<HTMLButtonElement, Props>(
     ({ as, bsPrefix, variant, size, active, className, ...ps }, ref) => {
-      const prefix = useBootstrapPrefix(bsPrefix, 'btn');
+      const bs = useBootstrapPrefix(bsPrefix, 'btn');
       const [buttonProps, { tagName }] = useButtonProps({
         tagName: as,
         ...ps,
@@ -29,10 +29,10 @@ export const Button: BsPrefixRefForwardingComponent<'button', Props> =
           ref={ref}
           className={classNames(
             className,
-            prefix,
+            bs,
             active && 'active',
-            variant && `${prefix}-${variant}`,
-            size && `${prefix}-${size}`,
+            variant && `${bs}-${variant}`,
+            size && `${bs}-${size}`,
             ps.href && ps.disabled && 'disabled',
           )}
         />

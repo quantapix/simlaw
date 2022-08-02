@@ -98,7 +98,7 @@ export const Menu: BsPrefixRefForwardingComponent<'div', MenuProps> =
     ) => {
       let alignEnd = false;
       const isNavbar = useContext(NavbarContext);
-      const prefix = useBootstrapPrefix(bsPrefix, 'dropdown-menu');
+      const bs = useBootstrapPrefix(bsPrefix, 'dropdown-menu');
       const { align: contextAlign, drop, isRTL } = useContext(Context);
       align = align || contextAlign;
       const isInputGroup = useContext(InputGroupContext);
@@ -114,7 +114,7 @@ export const Menu: BsPrefixRefForwardingComponent<'div', MenuProps> =
             const brkPoint = keys[0];
             const direction: AlignDirection = align[brkPoint];
             alignEnd = direction === 'start';
-            alignClasses.push(`${prefix}-${brkPoint}-${direction}`);
+            alignClasses.push(`${bs}-${brkPoint}-${direction}`);
           }
         } else if (align === 'end') {
           alignEnd = true;
@@ -160,10 +160,10 @@ export const Menu: BsPrefixRefForwardingComponent<'div', MenuProps> =
           })}
           className={classNames(
             className,
-            prefix,
+            bs,
             show && 'show',
-            alignEnd && `${prefix}-end`,
-            variant && `${prefix}-${variant}`,
+            alignEnd && `${bs}-end`,
+            variant && `${bs}-${variant}`,
             ...alignClasses,
           )}
         />
@@ -314,7 +314,7 @@ export const Dropdown: BsPrefixRefForwardingComponent<'div', Props> =
     } = useUncontrolled(xs, { show: 'onToggle' });
 
     const isInputGroup = useContext(InputGroupContext);
-    const prefix = useBootstrapPrefix(bsPrefix, 'dropdown');
+    const bs = useBootstrapPrefix(bsPrefix, 'dropdown');
     const isRTL = useIsRTL();
 
     const isClosingPermitted = (source: string): boolean => {
@@ -354,7 +354,7 @@ export const Dropdown: BsPrefixRefForwardingComponent<'div', Props> =
           onSelect={onSelect}
           onToggle={handleToggle}
           focusFirstItemOnShow={focusFirstItemOnShow}
-          itemSelector={`.${prefix}-item:not(.disabled):not(:disabled)`}
+          itemSelector={`.${bs}-item:not(.disabled):not(:disabled)`}
         >
           {isInputGroup ? (
             ps.children
@@ -365,7 +365,7 @@ export const Dropdown: BsPrefixRefForwardingComponent<'div', Props> =
               className={classNames(
                 className,
                 show && 'show',
-                (!drop || drop === 'down') && prefix,
+                (!drop || drop === 'down') && bs,
                 drop === 'up' && 'dropup',
                 drop === 'end' && 'dropend',
                 drop === 'start' && 'dropstart',

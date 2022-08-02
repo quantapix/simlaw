@@ -52,7 +52,7 @@ export { CloseButton } from './CloseButton';
 export type { CloseProps as CloseButtonProps } from './CloseButton';
 
 export { default as Col } from './Col';
-export type { ColProps } from './Col';
+export type { Props as ColProps } from './Col';
 
 export { Collapse } from './Collapse';
 export type { Props as CollapseProps } from './Collapse';

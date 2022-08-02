@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import * as React from 'react';
-
 import {
   useBootstrapPrefix,
   useBootstrapBreakpoints,
@@ -30,7 +29,7 @@ type ColSpec =
   | ColSize
   | { span?: ColSize; offset?: NumberAttr; order?: ColOrder };
 
-export interface ColProps extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   xs?: ColSpec;
   sm?: ColSpec;
   md?: ColSpec;
@@ -50,42 +49,34 @@ export function useCol({
   as,
   bsPrefix,
   className,
-  ...props
-}: ColProps): [any, UseColMetadata] {
+  ...ps
+}: Props): [any, UseColMetadata] {
   bsPrefix = useBootstrapPrefix(bsPrefix, 'col');
   const breakpoints = useBootstrapBreakpoints();
   const minBreakpoint = useBootstrapMinBreakpoint();
-
   const spans: string[] = [];
   const classes: string[] = [];
-
-  breakpoints.forEach((brkPoint) => {
-    const propValue = props[brkPoint];
-    delete props[brkPoint];
-
+  breakpoints.forEach((x) => {
+    const propValue = ps[x];
+    delete ps[x];
     let span: ColSize | undefined;
     let offset: NumberAttr | undefined;
     let order: ColOrder | undefined;
-
     if (typeof propValue === 'object' && propValue != null) {
       ({ span, offset, order } = propValue);
     } else {
       span = propValue;
     }
-
-    const infix = brkPoint !== minBreakpoint ? `-${brkPoint}` : '';
-
+    const infix = x !== minBreakpoint ? `-${x}` : '';
     if (span)
       spans.push(
         span === true ? `${bsPrefix}${infix}` : `${bsPrefix}${infix}-${span}`,
       );
-
     if (order != null) classes.push(`order${infix}-${order}`);
     if (offset != null) classes.push(`offset${infix}-${offset}`);
   });
-
   return [
-    { ...props, className: classNames(className, ...spans, ...classes) },
+    { ...ps, className: classNames(className, ...spans, ...classes) },
     {
       as,
       bsPrefix,
@@ -94,27 +85,16 @@ export function useCol({
   ];
 }
 
-const Col: BsPrefixRefForwardingComponent<'div', ColProps> = React.forwardRef<
-  HTMLElement,
-  ColProps
->(
-  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
-  (props, ref) => {
-    const [
-      { className, ...colProps },
-      { as: Component = 'div', bsPrefix, spans },
-    ] = useCol(props);
-
+export const Col: BsPrefixRefForwardingComponent<'div', Props> =
+  React.forwardRef<HTMLElement, Props>((xs, ref) => {
+    const [{ className, ...ps }, { as: Component = 'div', bsPrefix, spans }] =
+      useCol(xs);
     return (
       <Component
-        {...colProps}
+        {...ps}
         ref={ref}
         className={classNames(className, !spans.length && bsPrefix)}
       />
     );
-  },
-);
-
+  });
 Col.displayName = 'Col';
-
-export default Col;

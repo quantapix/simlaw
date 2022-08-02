@@ -5,7 +5,7 @@ import { useUncontrolled } from 'uncontrollable';
 import { useBootstrapPrefix } from './ThemeProvider';
 import { Button, Props as _BProps } from './Button';
 import chainFunction from './createChainedFunction';
-import { map } from './ElementChildren';
+import { map } from './utils';
 import { ButtonGroup, GroupProps as _GProps } from './ButtonGroup';
 import { BsPrefixRefForwardingComponent } from './helpers';
 

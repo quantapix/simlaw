@@ -5,7 +5,7 @@ import useEventCallback from '@restart/hooks/useEventCallback';
 import Anchor from '@restart/ui/Anchor';
 import { useBootstrapPrefix } from './ThemeProvider';
 import { Fade } from './Fade';
-import { CloseButton, Variant as CloseVariant } from './CloseButton';
+import { Close as CloseButton, Variant as CloseVariant } from './Button';
 import { Variant } from './types';
 import divWithClassName from './divWithClassName';
 import createWithBsPrefix from './createWithBsPrefix';
@@ -39,7 +39,7 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
     } = useUncontrolled(xs, {
       show: 'onClose',
     });
-    const prefix = useBootstrapPrefix(bsPrefix, 'alert');
+    const bs = useBootstrapPrefix(bsPrefix, 'alert');
     const handleClose = useEventCallback((e) => {
       if (onClose) {
         onClose(false, e);
@@ -53,9 +53,9 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
         ref={ref}
         className={classNames(
           className,
-          prefix,
-          variant && `${prefix}-${variant}`,
-          dismissible && `${prefix}-dismissible`,
+          bs,
+          variant && `${bs}-${variant}`,
+          dismissible && `${bs}-dismissible`,
         )}
       >
         {dismissible && (

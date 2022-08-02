@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { cloneElement } from 'react';
 import { useBootstrapPrefix } from './ThemeProvider';
-import { map } from './ElementChildren';
+import { map } from './utils';
 import { BsProps } from './helpers';
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {

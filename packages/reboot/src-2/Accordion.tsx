@@ -220,8 +220,8 @@ export const Accordion: BsPrefixRefForwardingComponent<'div', Props> =
     } = useUncontrolled(xs, {
       activeKey: 'onSelect',
     });
-    const prefix = useBootstrapPrefix(bsPrefix, 'accordion');
-    const contextValue = useMemo(
+    const bs = useBootstrapPrefix(bsPrefix, 'accordion');
+    const v = useMemo(
       () => ({
         activeEventKey: activeKey,
         onSelect,
@@ -230,11 +230,11 @@ export const Accordion: BsPrefixRefForwardingComponent<'div', Props> =
       [activeKey, onSelect, alwaysOpen],
     );
     return (
-      <Context.Provider value={contextValue}>
+      <Context.Provider value={v}>
         <Component
           ref={ref}
           {...ps}
-          className={classNames(className, prefix, flush && `${prefix}-flush`)}
+          className={classNames(className, bs, flush && `${bs}-flush`)}
         />
       </Context.Provider>
     );

@@ -59,8 +59,7 @@ export const Pane: BsPrefixRefForwardingComponent<'div', PaneProps> =
         ...xs,
         transition: getTabTransitionComponent(transition),
       } as any);
-
-      const prefix = useBootstrapPrefix(bsPrefix, 'tab-pane');
+      const bs = useBootstrapPrefix(bsPrefix, 'tab-pane');
       return (
         <TabContext.Provider value={null}>
           <SelectableContext.Provider value={null}>
@@ -78,7 +77,7 @@ export const Pane: BsPrefixRefForwardingComponent<'div', PaneProps> =
               <Component
                 {...rest}
                 ref={ref}
-                className={classNames(className, prefix, isActive && 'active')}
+                className={classNames(className, bs, isActive && 'active')}
               />
             </Transition>
           </SelectableContext.Provider>
@@ -102,7 +101,6 @@ export const Tab: React.FC<Props> = () => {
       "It's an abstract component that is only valid as a direct Child of the `Tabs` Component. " +
       'For custom tabs components use TabPane and TabsContainer directly',
   );
-  // Needed otherwise docs error out.
   return <></>;
 };
 

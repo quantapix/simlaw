@@ -1,18 +1,17 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { Image, Props } from './Image';
+import { Image as Base, Props } from './Image';
 import createWithBsPrefix from './createWithBsPrefix';
 
-export const FigureImage = React.forwardRef<HTMLImageElement, Props>(
+export const Image = React.forwardRef<HTMLImageElement, Props>(
   ({ className, ...ps }, ref) => (
-    <Image ref={ref} {...ps} className={classNames(className, 'figure-img')} />
+    <Base ref={ref} {...ps} className={classNames(className, 'figure-img')} />
   ),
 );
+Image.displayName = 'FigureImage';
+Image.defaultProps = { fluid: true };
 
-FigureImage.displayName = 'FigureImage';
-FigureImage.defaultProps = { fluid: true };
-
-export const FigureCaption = createWithBsPrefix('figure-caption', {
+export const Caption = createWithBsPrefix('figure-caption', {
   Component: 'figcaption',
 });
 
@@ -21,6 +20,6 @@ export const Figure = createWithBsPrefix('figure', {
 });
 
 Object.assign(Figure, {
-  Image: FigureImage,
-  Caption: FigureCaption,
+  Image,
+  Caption,
 });

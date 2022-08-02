@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { useContext } from 'react';
 import warning from 'warning';
-import Col, { ColProps } from './Col';
+import Col, { Props } from './Col';
 import { FormContext } from './FormContext';
 import { useBootstrapPrefix } from './ThemeProvider';
 import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
@@ -16,7 +16,7 @@ export interface OwnProps extends Base {
   column?: false;
 }
 
-export interface WithColProps extends Base, ColProps {
+export interface WithColProps extends Base, Props {
   column: true | 'sm' | 'lg';
 }
 

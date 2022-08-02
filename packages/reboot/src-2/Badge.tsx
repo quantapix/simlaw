@@ -16,14 +16,14 @@ export const Badge: BsPrefixRefForwardingComponent<'span', Props> =
       { bsPrefix, bg, pill, text, className, as: Component = 'span', ...ps },
       ref,
     ) => {
-      const prefix = useBootstrapPrefix(bsPrefix, 'badge');
+      const bs = useBootstrapPrefix(bsPrefix, 'badge');
       return (
         <Component
           ref={ref}
           {...ps}
           className={classNames(
             className,
-            prefix,
+            bs,
             pill && `rounded-pill`,
             text && `text-${text}`,
             bg && `bg-${bg}`,

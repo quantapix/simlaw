@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { useContext } from 'react';
 import useEventCallback from '@restart/hooks/useEventCallback';
-import { CloseButton, Variant } from './CloseButton';
+import { Close as CloseButton, Variant as CloseVariant } from './Button';
 import ModalContext from './ModalContext';
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement> {
   closeLabel?: string;
-  closeVariant?: Variant;
+  closeVariant?: CloseVariant;
   closeButton?: boolean;
   onHide?: () => void;
 }

@@ -1,13 +1,13 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useContext, useMemo } from 'react';
-import Feedback, { FeedbackType } from './Feedback';
+import Feedback, { Type } from './Feedback';
 import { FormCheckInput } from './FormCheckInput';
 import { FormCheckLabel } from './FormCheckLabel';
 import { FormContext } from './FormContext';
 import { useBootstrapPrefix } from './ThemeProvider';
 import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
-import { hasChildOfType } from './ElementChildren';
+import { hasChildOfType } from './utils';
 
 export type FormCheckType = 'checkbox' | 'radio' | 'switch';
 
@@ -23,7 +23,7 @@ export interface Props
   isInvalid?: boolean;
   feedbackTooltip?: boolean;
   feedback?: React.ReactNode;
-  feedbackType?: FeedbackType;
+  feedbackType?: Type;
   bsSwitchPrefix?: string;
 }
 

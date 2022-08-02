@@ -5,7 +5,7 @@ import { Nav, Props as _Props } from './Nav';
 import { NavLink } from './NavLink';
 import NavItem from './NavItem';
 import { Content, Pane } from './Tab';
-import { forEach, map } from './ElementChildren';
+import { forEach, map } from './utils';
 import getTabTransitionComponent from './getTabTransitionComponent';
 import { TransitionType } from './helpers';
 

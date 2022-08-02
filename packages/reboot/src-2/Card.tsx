@@ -1,26 +1,82 @@
 import classNames from 'classnames';
 import * as React from 'react';
+import { useMemo } from 'react';
 import { useBootstrapPrefix } from './ThemeProvider';
 import createWithBsPrefix from './createWithBsPrefix';
 import divWithClassName from './divWithClassName';
-import CardImg from './CardImg';
-import CardHeader from './CardHeader';
 import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
 import { Color, Variant } from './types';
 
-const DivStyledAsH5 = divWithClassName('h5');
-const DivStyledAsH6 = divWithClassName('h6');
-const CardBody = createWithBsPrefix('card-body');
-const CardTitle = createWithBsPrefix('card-title', {
-  Component: DivStyledAsH5,
+interface ContextValue {
+  cardHeaderBsPrefix: string;
+}
+
+export const Context = React.createContext<ContextValue | null>(null);
+Context.displayName = 'CardHeaderContext';
+
+export interface HeaderProps
+  extends BsProps,
+    React.HTMLAttributes<HTMLElement> {}
+
+export const Header: BsPrefixRefForwardingComponent<'div', HeaderProps> =
+  React.forwardRef<HTMLElement, HeaderProps>(
+    ({ bsPrefix, className, as: Component = 'div', ...ps }, ref) => {
+      const bs = useBootstrapPrefix(bsPrefix, 'card-header');
+      const contextValue = useMemo(
+        () => ({
+          cardHeaderBsPrefix: bs,
+        }),
+        [bs],
+      );
+      return (
+        <Context.Provider value={contextValue}>
+          <Component ref={ref} {...ps} className={classNames(className, bs)} />
+        </Context.Provider>
+      );
+    },
+  );
+
+Header.displayName = 'CardHeader';
+
+const DivAsH5 = divWithClassName('h5');
+const DivAsH6 = divWithClassName('h6');
+const Body = createWithBsPrefix('card-body');
+const Title = createWithBsPrefix('card-title', {
+  Component: DivAsH5,
 });
-const CardSubtitle = createWithBsPrefix('card-subtitle', {
-  Component: DivStyledAsH6,
+const Subtitle = createWithBsPrefix('card-subtitle', {
+  Component: DivAsH6,
 });
-const CardLink = createWithBsPrefix('card-link', { Component: 'a' });
-const CardText = createWithBsPrefix('card-text', { Component: 'p' });
-const CardFooter = createWithBsPrefix('card-footer');
-const CardImgOverlay = createWithBsPrefix('card-img-overlay');
+const Link = createWithBsPrefix('card-link', { Component: 'a' });
+const Text = createWithBsPrefix('card-text', { Component: 'p' });
+const Footer = createWithBsPrefix('card-footer');
+const ImgOverlay = createWithBsPrefix('card-img-overlay');
+
+export interface ImgProps
+  extends BsProps,
+    React.ImgHTMLAttributes<HTMLImageElement> {
+  variant?: 'top' | 'bottom' | string;
+}
+
+export const Img: BsPrefixRefForwardingComponent<'img', ImgProps> =
+  React.forwardRef(
+    (
+      { bsPrefix, className, variant, as: Component = 'img', ...ps }: ImgProps,
+      ref,
+    ) => {
+      const bs = useBootstrapPrefix(bsPrefix, 'card-img');
+      return (
+        <Component
+          ref={ref}
+          className={classNames(variant ? `${bs}-${variant}` : bs, className)}
+          {...ps}
+        />
+      );
+    },
+  );
+Img.displayName = 'CardImg';
+
+export const Group = createWithBsPrefix('card-group');
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   bg?: Variant;
@@ -45,21 +101,20 @@ export const Card: BsPrefixRefForwardingComponent<'div', Props> =
       },
       ref,
     ) => {
-      const prefix = useBootstrapPrefix(bsPrefix, 'card');
-
+      const bs = useBootstrapPrefix(bsPrefix, 'card');
       return (
         <Component
           ref={ref}
           {...ps}
           className={classNames(
             className,
-            prefix,
+            bs,
             bg && `bg-${bg}`,
             text && `text-${text}`,
             border && `border-${border}`,
           )}
         >
-          {body ? <CardBody>{children}</CardBody> : children}
+          {body ? <Body>{children}</Body> : children}
         </Component>
       );
     },
@@ -71,13 +126,13 @@ Card.defaultProps = {
 };
 
 Object.assign(Card, {
-  Img: CardImg,
-  Title: CardTitle,
-  Subtitle: CardSubtitle,
-  Body: CardBody,
-  Link: CardLink,
-  Text: CardText,
-  Header: CardHeader,
-  Footer: CardFooter,
-  ImgOverlay: CardImgOverlay,
+  Img,
+  Title,
+  Subtitle,
+  Body,
+  Link,
+  Text,
+  Header,
+  Footer,
+  ImgOverlay,
 });

@@ -10,16 +10,13 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
 export const Container: BsPrefixRefForwardingComponent<'div', Props> =
   React.forwardRef<HTMLElement, Props>(
     ({ bsPrefix, fluid, as: Component = 'div', className, ...ps }, ref) => {
-      const prefix = useBootstrapPrefix(bsPrefix, 'container');
-      const suffix = typeof fluid === 'string' ? `-${fluid}` : '-fluid';
+      const bs = useBootstrapPrefix(bsPrefix, 'container');
+      const suff = typeof fluid === 'string' ? `-${fluid}` : '-fluid';
       return (
         <Component
           ref={ref}
           {...ps}
-          className={classNames(
-            className,
-            fluid ? `${prefix}${suffix}` : prefix,
-          )}
+          className={classNames(className, fluid ? `${bs}${suff}` : bs)}
         />
       );
     },

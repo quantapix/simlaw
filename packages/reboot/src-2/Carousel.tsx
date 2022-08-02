@@ -15,7 +15,7 @@ import {
   useState,
 } from 'react';
 import { useUncontrolled } from 'uncontrollable';
-import { map, forEach } from './ElementChildren';
+import { map, forEach } from './utils';
 import { useBootstrapPrefix, useIsRTL } from './ThemeProvider';
 import transitionEndListener from './transitionEndListener';
 import triggerBrowserReflow from './triggerBrowserReflow';
@@ -133,10 +133,8 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
     } = useUncontrolled(xs, {
       activeIndex: 'onSelect',
     });
-
-    const prefix = useBootstrapPrefix(bsPrefix, 'carousel');
+    const bs = useBootstrapPrefix(bsPrefix, 'carousel');
     const isRTL = useIsRTL();
-
     const nextDirectionRef = useRef<string | null>(null);
     const [direction, setDirection] = useState('next');
     const [paused, setPaused] = useState(false);
@@ -144,7 +142,6 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
     const [renderedActiveIndex, setRenderedActiveIndex] = useState<number>(
       activeIndex || 0,
     );
-
     useEffect(() => {
       if (!isSliding && activeIndex !== renderedActiveIndex) {
         if (nextDirectionRef.current) {
@@ -160,46 +157,37 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
         setRenderedActiveIndex(activeIndex || 0);
       }
     }, [activeIndex, isSliding, renderedActiveIndex, slide]);
-
     useEffect(() => {
       if (nextDirectionRef.current) {
         nextDirectionRef.current = null;
       }
     });
-
     let numChildren = 0;
     let activeChildInterval: number | undefined;
-
     forEach(children, (child, index) => {
       ++numChildren;
       if (index === activeIndex) {
         activeChildInterval = child.props.interval as number | undefined;
       }
     });
-
     const activeChildIntervalRef = useCommittedRef(activeChildInterval);
-
     const prev = useCallback(
       (event?) => {
         if (isSliding) {
           return;
         }
-
         let nextActiveIndex = renderedActiveIndex - 1;
         if (nextActiveIndex < 0) {
           if (!wrap) {
             return;
           }
-
           nextActiveIndex = numChildren - 1;
         }
-
         nextDirectionRef.current = 'prev';
         onSelect?.(nextActiveIndex, event);
       },
       [isSliding, renderedActiveIndex, onSelect, wrap, numChildren],
     );
-
     const next = useEventCallback((event?) => {
       if (isSliding) {
         return;
@@ -214,15 +202,12 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
       nextDirectionRef.current = 'next';
       onSelect?.(nextActiveIndex, event);
     });
-
     const elementRef = useRef<HTMLElement>();
-
     useImperativeHandle(ref, () => ({
       element: elementRef.current,
       prev,
       next,
     }));
-
     const nextWhenVisible = useEventCallback(() => {
       if (!document.hidden && isVisible(elementRef.current)) {
         if (isRTL) {
@@ -232,9 +217,7 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
         }
       }
     });
-
     const slideDirection = direction === 'next' ? 'start' : 'end';
-
     useUpdateEffect(() => {
       if (slide) {
         return;
@@ -242,10 +225,8 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
       onSlide?.(renderedActiveIndex, slideDirection);
       onSlid?.(renderedActiveIndex, slideDirection);
     }, [renderedActiveIndex]);
-
-    const orderClassName = `${prefix}-item-${direction}`;
-    const directionalClassName = `${prefix}-item-${slideDirection}`;
-
+    const orderClassName = `${bs}-item-${direction}`;
+    const directionalClassName = `${bs}-item-${slideDirection}`;
     const handleEnter = useCallback(
       (node) => {
         triggerBrowserReflow(node);
@@ -253,12 +234,10 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
       },
       [onSlide, renderedActiveIndex, slideDirection],
     );
-
     const handleEntered = useCallback(() => {
       setIsSliding(false);
       onSlid?.(renderedActiveIndex, slideDirection);
     }, [onSlid, renderedActiveIndex, slideDirection]);
-
     const handleKeyDown = useCallback(
       (event) => {
         if (keyboard && !/input|textarea/i.test(event.target.tagName)) {
@@ -286,7 +265,6 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
       },
       [keyboard, onKeyDown, prev, next, isRTL],
     );
-
     const handleMouseOver = useCallback(
       (event) => {
         if (pause === 'hover') {
@@ -296,7 +274,6 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
       },
       [pause, onMouseOver],
     );
-
     const handleMouseOut = useCallback(
       (event) => {
         setPaused(false);
@@ -304,7 +281,6 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
       },
       [onMouseOut],
     );
-
     const touchStartXRef = useRef(0);
     const touchDeltaXRef = useRef(0);
     const touchUnpauseTimeout = useTimeout();
@@ -405,14 +381,14 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
         onTouchEnd={handleTouchEnd}
         className={classNames(
           className,
-          prefix,
+          bs,
           slide && 'slide',
-          fade && `${prefix}-fade`,
-          variant && `${prefix}-${variant}`,
+          fade && `${bs}-fade`,
+          variant && `${bs}-${variant}`,
         )}
       >
         {indicators && (
-          <div className={`${prefix}-indicators`}>
+          <div className={`${bs}-indicators`}>
             {map(children, (_, index) => (
               <button
                 key={index}
@@ -433,7 +409,7 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
           </div>
         )}
 
-        <div className={`${prefix}-inner`}>
+        <div className={`${bs}-inner`}>
           {map(children, (child, index) => {
             const isActive = index === renderedActiveIndex;
             return slide ? (
@@ -474,7 +450,7 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
         {controls && (
           <>
             {(wrap || activeIndex !== 0) && (
-              <Anchor className={`${prefix}-control-prev`} onClick={prev}>
+              <Anchor className={`${bs}-control-prev`} onClick={prev}>
                 {prevIcon}
                 {prevLabel && (
                   <span className="visually-hidden">{prevLabel}</span>
@@ -482,7 +458,7 @@ export const Carousel: BsPrefixRefForwardingComponent<'div', Props> =
               </Anchor>
             )}
             {(wrap || activeIndex !== numChildren - 1) && (
-              <Anchor className={`${prefix}-control-next`} onClick={next}>
+              <Anchor className={`${bs}-control-next`} onClick={next}>
                 {nextIcon}
                 {nextLabel && (
                   <span className="visually-hidden">{nextLabel}</span>

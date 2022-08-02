@@ -83,14 +83,10 @@ export const Breadcrumb: BsPrefixRefForwardingComponent<'nav', Props> =
       },
       ref,
     ) => {
-      const prefix = useBootstrapPrefix(bsPrefix, 'breadcrumb');
-
+      const bs = useBootstrapPrefix(bsPrefix, 'breadcrumb');
       return (
         <Component aria-label={label} className={className} ref={ref} {...ps}>
-          <ol
-            {...listProps}
-            className={classNames(prefix, listProps?.className)}
-          >
+          <ol {...listProps} className={classNames(bs, listProps?.className)}>
             {children}
           </ol>
         </Component>
