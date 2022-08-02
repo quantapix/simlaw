@@ -3,10 +3,13 @@ export type { Props as AccordionProps } from './Accordion';
 
 export { AccordionContext } from './AccordionContext';
 export { AccordionCollapse } from './AccordionCollapse';
-export type { Props as AccordionCollapseProps } from './AccordionCollapse';
+export type { CollapseProps as AccordionCollapseProps } from './AccordionCollapse';
 
-export { AccordionButton, useAccordionButton } from './AccordionButton';
-export type { Props as AccordionButtonProps } from './AccordionButton';
+export {
+  Button as AccordionButton,
+  useAccordionButton,
+} from './AccordionButton';
+export type { ButtonProps as AccordionButtonProps } from './AccordionButton';
 
 export { Alert } from './Alert';
 export type { Props as AlertProps } from './Alert';
@@ -21,16 +24,16 @@ export { Breadcrumb } from './Breadcrumb';
 export type { Props as BreadcrumbProps } from './Breadcrumb';
 
 export { BreadcrumbItem } from './BreadcrumbItem';
-export type { Props as BreadcrumbItemProps } from './BreadcrumbItem';
+export type { ItemProps as BreadcrumbItemProps } from './BreadcrumbItem';
 
 export { Button } from './Button';
 export type { Props as ButtonProps } from './Button';
 
 export { ButtonGroup } from './ButtonGroup';
-export type { Props as ButtonGroupProps } from './ButtonGroup';
+export type { GroupProps as ButtonGroupProps } from './ButtonGroup';
 
 export { ButtonToolbar } from './ButtonToolbar';
-export type { Props as ButtonToolbarProps } from './ButtonToolbar';
+export type { ToolbarProps as ButtonToolbarProps } from './ButtonToolbar';
 
 export { Card } from './Card';
 export type { Props as CardProps } from './Card';
@@ -43,10 +46,10 @@ export { Carousel } from './Carousel';
 export type { Props as CarouselProps } from './Carousel';
 
 export { default as CarouselItem } from './CarouselItem';
-export type { CarouselItemProps } from './CarouselItem';
+export type { ItemProps as CarouselItemProps } from './CarouselItem';
 
 export { CloseButton } from './CloseButton';
-export type { Props as CloseButtonProps } from './CloseButton';
+export type { CloseProps as CloseButtonProps } from './CloseButton';
 
 export { default as Col } from './Col';
 export type { ColProps } from './Col';
@@ -58,7 +61,7 @@ export { Dropdown } from './Dropdown';
 export type { Props as DropdownProps } from './Dropdown';
 
 export { DropdownButton } from './DropdownButton';
-export type { Props as DropdownButtonProps } from './DropdownButton';
+export type { ButtonProps as DropdownButtonProps } from './DropdownButton';
 
 export { Fade } from './Fade';
 export type { Props as FadeProps } from './Fade';

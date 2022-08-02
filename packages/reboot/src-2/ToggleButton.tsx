@@ -6,7 +6,7 @@ import { useBootstrapPrefix } from './ThemeProvider';
 import { Button, Props as _BProps } from './Button';
 import chainFunction from './createChainedFunction';
 import { map } from './ElementChildren';
-import { ButtonGroup, Props as _GProps } from './ButtonGroup';
+import { ButtonGroup, GroupProps as _GProps } from './ButtonGroup';
 import { BsPrefixRefForwardingComponent } from './helpers';
 
 export type ButtonType = 'checkbox' | 'radio';

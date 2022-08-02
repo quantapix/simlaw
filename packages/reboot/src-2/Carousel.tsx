@@ -15,14 +15,32 @@ import {
   useState,
 } from 'react';
 import { useUncontrolled } from 'uncontrollable';
-import CarouselCaption from './CarouselCaption';
-import CarouselItem from './CarouselItem';
 import { map, forEach } from './ElementChildren';
 import { useBootstrapPrefix, useIsRTL } from './ThemeProvider';
 import transitionEndListener from './transitionEndListener';
 import triggerBrowserReflow from './triggerBrowserReflow';
 import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
 import TransitionWrapper from './TransitionWrapper';
+import createWithBsPrefix from './createWithBsPrefix';
+
+export const Caption = createWithBsPrefix('carousel-caption');
+
+export interface ItemProps extends BsProps, React.HTMLAttributes<HTMLElement> {
+  interval?: number;
+}
+
+export const Item: BsPrefixRefForwardingComponent<'div', ItemProps> =
+  React.forwardRef<HTMLElement, ItemProps>(
+    ({ as: Component = 'div', bsPrefix, className, ...ps }, ref) => {
+      const finalClassName = classNames(
+        className,
+        useBootstrapPrefix(bsPrefix, 'carousel-item'),
+      );
+      return <Component ref={ref} {...ps} className={finalClassName} />;
+    },
+  );
+
+Item.displayName = 'CarouselItem';
 
 export type Variant = 'dark' | string;
 
@@ -497,6 +515,6 @@ Carousel.defaultProps = {
 };
 
 Object.assign(Carousel, {
-  Caption: CarouselCaption,
-  Item: CarouselItem,
+  Caption,
+  Item,
 });
