@@ -1,13 +1,13 @@
 import * as React from 'react';
-import FormCheck, { Props } from './FormCheck';
-import { BsPrefixRefForwardingComponent } from './helpers';
+import FormCheck, { CheckProps } from './FormCheck';
+import { BsRefComponent } from './helpers';
 
-type SwitchProps = Omit<Props, 'type'>;
+type SwitchProps = Omit<CheckProps, 'type'>;
 
-const Switch: BsPrefixRefForwardingComponent<typeof FormCheck, SwitchProps> =
-  React.forwardRef<typeof FormCheck, SwitchProps>((props, ref) => (
-    <FormCheck {...props} ref={ref} type="switch" />
-  ));
+const Switch: BsRefComponent<typeof FormCheck, SwitchProps> = React.forwardRef<
+  typeof FormCheck,
+  SwitchProps
+>((props, ref) => <FormCheck {...props} ref={ref} type="switch" />);
 
 Switch.displayName = 'Switch';
 

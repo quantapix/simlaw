@@ -7,7 +7,7 @@ import { Button, Props as _BProps } from './Button';
 import chainFunction from './createChainedFunction';
 import { map } from './utils';
 import { ButtonGroup, GroupProps as _GProps } from './ButtonGroup';
-import { BsPrefixRefForwardingComponent } from './helpers';
+import { BsRefComponent } from './helpers';
 
 export type ButtonType = 'checkbox' | 'radio';
 
@@ -92,7 +92,7 @@ export interface CheckboxProps<T> extends GProps {
 
 export type GroupProps<T> = RadioProps<T> | CheckboxProps<T>;
 
-export const ToggleButtonGroup: BsPrefixRefForwardingComponent<
+export const ToggleButtonGroup: BsRefComponent<
   'a',
   GroupProps<any>
 > = React.forwardRef<HTMLElement, GroupProps<any>>((xs, ref) => {

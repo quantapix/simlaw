@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useBootstrapPrefix } from './ThemeProvider';
 import createWithBsPrefix from './createWithBsPrefix';
 import divWithClassName from './divWithClassName';
-import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
+import { BsProps, BsRefComponent } from './helpers';
 import { Color, Variant } from './types';
 
 interface ContextValue {
@@ -18,23 +18,23 @@ export interface HeaderProps
   extends BsProps,
     React.HTMLAttributes<HTMLElement> {}
 
-export const Header: BsPrefixRefForwardingComponent<'div', HeaderProps> =
-  React.forwardRef<HTMLElement, HeaderProps>(
-    ({ bsPrefix, className, as: Component = 'div', ...ps }, ref) => {
-      const bs = useBootstrapPrefix(bsPrefix, 'card-header');
-      const contextValue = useMemo(
-        () => ({
-          cardHeaderBsPrefix: bs,
-        }),
-        [bs],
-      );
-      return (
-        <Context.Provider value={contextValue}>
-          <Component ref={ref} {...ps} className={classNames(className, bs)} />
-        </Context.Provider>
-      );
-    },
+export const Header: BsRefComponent<'div', HeaderProps> = React.forwardRef<
+  HTMLElement,
+  HeaderProps
+>(({ bsPrefix, className, as: Component = 'div', ...ps }, ref) => {
+  const bs = useBootstrapPrefix(bsPrefix, 'card-header');
+  const contextValue = useMemo(
+    () => ({
+      cardHeaderBsPrefix: bs,
+    }),
+    [bs],
   );
+  return (
+    <Context.Provider value={contextValue}>
+      <Component ref={ref} {...ps} className={classNames(className, bs)} />
+    </Context.Provider>
+  );
+});
 
 Header.displayName = 'CardHeader';
 
@@ -58,22 +58,21 @@ export interface ImgProps
   variant?: 'top' | 'bottom' | string;
 }
 
-export const Img: BsPrefixRefForwardingComponent<'img', ImgProps> =
-  React.forwardRef(
-    (
-      { bsPrefix, className, variant, as: Component = 'img', ...ps }: ImgProps,
-      ref,
-    ) => {
-      const bs = useBootstrapPrefix(bsPrefix, 'card-img');
-      return (
-        <Component
-          ref={ref}
-          className={classNames(variant ? `${bs}-${variant}` : bs, className)}
-          {...ps}
-        />
-      );
-    },
-  );
+export const Img: BsRefComponent<'img', ImgProps> = React.forwardRef(
+  (
+    { bsPrefix, className, variant, as: Component = 'img', ...ps }: ImgProps,
+    ref,
+  ) => {
+    const bs = useBootstrapPrefix(bsPrefix, 'card-img');
+    return (
+      <Component
+        ref={ref}
+        className={classNames(variant ? `${bs}-${variant}` : bs, className)}
+        {...ps}
+      />
+    );
+  },
+);
 Img.displayName = 'CardImg';
 
 export const Group = createWithBsPrefix('card-group');
@@ -85,40 +84,42 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   body?: boolean;
 }
 
-export const Card: BsPrefixRefForwardingComponent<'div', Props> =
-  React.forwardRef<HTMLElement, Props>(
-    (
-      {
-        bsPrefix,
-        className,
-        bg,
-        text,
-        border,
-        body,
-        children,
-        as: Component = 'div',
-        ...ps
-      },
-      ref,
-    ) => {
-      const bs = useBootstrapPrefix(bsPrefix, 'card');
-      return (
-        <Component
-          ref={ref}
-          {...ps}
-          className={classNames(
-            className,
-            bs,
-            bg && `bg-${bg}`,
-            text && `text-${text}`,
-            border && `border-${border}`,
-          )}
-        >
-          {body ? <Body>{children}</Body> : children}
-        </Component>
-      );
+export const Card: BsRefComponent<'div', Props> = React.forwardRef<
+  HTMLElement,
+  Props
+>(
+  (
+    {
+      bsPrefix,
+      className,
+      bg,
+      text,
+      border,
+      body,
+      children,
+      as: Component = 'div',
+      ...ps
     },
-  );
+    ref,
+  ) => {
+    const bs = useBootstrapPrefix(bsPrefix, 'card');
+    return (
+      <Component
+        ref={ref}
+        {...ps}
+        className={classNames(
+          className,
+          bs,
+          bg && `bg-${bg}`,
+          text && `text-${text}`,
+          border && `border-${border}`,
+        )}
+      >
+        {body ? <Body>{children}</Body> : children}
+      </Component>
+    );
+  },
+);
 
 Card.displayName = 'Card';
 Card.defaultProps = {

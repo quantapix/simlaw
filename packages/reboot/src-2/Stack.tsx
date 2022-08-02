@@ -5,7 +5,7 @@ import {
   useBootstrapBreakpoints,
   useBootstrapMinBreakpoint,
 } from './ThemeProvider';
-import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
+import { BsProps, BsRefComponent } from './helpers';
 import { GapValue } from './types';
 import createUtilityClassName, {
   ResponsiveUtilityValue,
@@ -18,35 +18,37 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   gap?: ResponsiveUtilityValue<GapValue>;
 }
 
-export const Stack: BsPrefixRefForwardingComponent<'span', Props> =
-  React.forwardRef<HTMLElement, Props>(
-    (
-      { as: Component = 'div', bsPrefix, className, direction, gap, ...ps },
-      ref,
-    ) => {
-      bsPrefix = useBootstrapPrefix(
-        bsPrefix,
-        direction === 'horizontal' ? 'hstack' : 'vstack',
-      );
-      const breakpoints = useBootstrapBreakpoints();
-      const minBreakpoint = useBootstrapMinBreakpoint();
+export const Stack: BsRefComponent<'span', Props> = React.forwardRef<
+  HTMLElement,
+  Props
+>(
+  (
+    { as: Component = 'div', bsPrefix, className, direction, gap, ...ps },
+    ref,
+  ) => {
+    bsPrefix = useBootstrapPrefix(
+      bsPrefix,
+      direction === 'horizontal' ? 'hstack' : 'vstack',
+    );
+    const breakpoints = useBootstrapBreakpoints();
+    const minBreakpoint = useBootstrapMinBreakpoint();
 
-      return (
-        <Component
-          {...ps}
-          ref={ref}
-          className={classNames(
-            className,
-            bsPrefix,
-            ...createUtilityClassName({
-              gap,
-              breakpoints,
-              minBreakpoint,
-            }),
-          )}
-        />
-      );
-    },
-  );
+    return (
+      <Component
+        {...ps}
+        ref={ref}
+        className={classNames(
+          className,
+          bsPrefix,
+          ...createUtilityClassName({
+            gap,
+            breakpoints,
+            minBreakpoint,
+          }),
+        )}
+      />
+    );
+  },
+);
 
 Stack.displayName = 'Stack';

@@ -7,7 +7,7 @@ import {
   useBootstrapBreakpoints,
   useBootstrapMinBreakpoint,
 } from './ThemeProvider';
-import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
+import { BsProps, BsRefComponent } from './helpers';
 
 type RowColWidth =
   | number
@@ -36,7 +36,7 @@ export interface RowProps extends BsProps, React.HTMLAttributes<HTMLElement> {
   [key: string]: any;
 }
 
-const Row: BsPrefixRefForwardingComponent<'div', RowProps> = React.forwardRef<
+const Row: BsRefComponent<'div', RowProps> = React.forwardRef<
   HTMLDivElement,
   RowProps
 >(

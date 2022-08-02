@@ -4,9 +4,8 @@ import BaseTabs, { TabsProps as _TabsProps } from '@restart/ui/Tabs';
 import { Nav, Props as _Props } from './Nav';
 import { NavLink } from './NavLink';
 import NavItem from './NavItem';
-import { Content, Pane } from './Tab';
+import { Content, Pane, getTabTransitionComponent } from './Tab';
 import { forEach, map } from './utils';
-import getTabTransitionComponent from './getTabTransitionComponent';
 import { TransitionType } from './helpers';
 
 export interface Props

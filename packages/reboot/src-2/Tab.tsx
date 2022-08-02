@@ -3,17 +3,26 @@ import * as React from 'react';
 import SelectableContext from '@restart/ui/SelectableContext';
 import TabContext from '@restart/ui/TabContext';
 import { useTabPanel } from '@restart/ui/TabPanel';
-import { EventKey, TransitionCallbacks } from '@restart/ui/types';
+import {
+  EventKey,
+  TransitionCallbacks,
+  TransitionComponent,
+} from '@restart/ui/types';
 import Tabs, { TabsProps } from '@restart/ui/Tabs';
+import NoopTransition from '@restart/ui/NoopTransition';
 import { useBootstrapPrefix } from './ThemeProvider';
 import { Fade } from './Fade';
-import getTabTransitionComponent from './getTabTransitionComponent';
-import {
-  BsProps,
-  BsPrefixRefForwardingComponent,
-  TransitionType,
-} from './helpers';
+import { BsProps, BsRefComponent, TransitionType } from './helpers';
 import createWithBsPrefix from './createWithBsPrefix';
+
+export function getTabTransitionComponent(
+  x?: TransitionType,
+): TransitionComponent | undefined {
+  if (typeof x === 'boolean') {
+    return x ? Fade : NoopTransition;
+  }
+  return x;
+}
 
 export interface ContainerProps extends Omit<TabsProps, 'transition'> {
   transition?: TransitionType;
@@ -38,53 +47,53 @@ export interface PaneProps
   unmountOnExit?: boolean;
 }
 
-export const Pane: BsPrefixRefForwardingComponent<'div', PaneProps> =
-  React.forwardRef<HTMLElement, PaneProps>(
-    ({ bsPrefix, transition, ...xs }, ref) => {
-      const [
-        { className, as: Component = 'div', ...rest },
-        {
-          isActive,
-          onEnter,
-          onEntering,
-          onEntered,
-          onExit,
-          onExiting,
-          onExited,
-          mountOnEnter,
-          unmountOnExit,
-          transition: Transition = Fade,
-        },
-      ] = useTabPanel({
-        ...xs,
-        transition: getTabTransitionComponent(transition),
-      } as any);
-      const bs = useBootstrapPrefix(bsPrefix, 'tab-pane');
-      return (
-        <TabContext.Provider value={null}>
-          <SelectableContext.Provider value={null}>
-            <Transition
-              in={isActive}
-              onEnter={onEnter}
-              onEntering={onEntering}
-              onEntered={onEntered}
-              onExit={onExit}
-              onExiting={onExiting}
-              onExited={onExited}
-              mountOnEnter={mountOnEnter}
-              unmountOnExit={unmountOnExit as any}
-            >
-              <Component
-                {...rest}
-                ref={ref}
-                className={classNames(className, bs, isActive && 'active')}
-              />
-            </Transition>
-          </SelectableContext.Provider>
-        </TabContext.Provider>
-      );
+export const Pane: BsRefComponent<'div', PaneProps> = React.forwardRef<
+  HTMLElement,
+  PaneProps
+>(({ bsPrefix, transition, ...xs }, ref) => {
+  const [
+    { className, as: Component = 'div', ...rest },
+    {
+      isActive,
+      onEnter,
+      onEntering,
+      onEntered,
+      onExit,
+      onExiting,
+      onExited,
+      mountOnEnter,
+      unmountOnExit,
+      transition: Transition = Fade,
     },
+  ] = useTabPanel({
+    ...xs,
+    transition: getTabTransitionComponent(transition),
+  } as any);
+  const bs = useBootstrapPrefix(bsPrefix, 'tab-pane');
+  return (
+    <TabContext.Provider value={null}>
+      <SelectableContext.Provider value={null}>
+        <Transition
+          in={isActive}
+          onEnter={onEnter}
+          onEntering={onEntering}
+          onEntered={onEntered}
+          onExit={onExit}
+          onExiting={onExiting}
+          onExited={onExited}
+          mountOnEnter={mountOnEnter}
+          unmountOnExit={unmountOnExit as any}
+        >
+          <Component
+            {...rest}
+            ref={ref}
+            className={classNames(className, bs, isActive && 'active')}
+          />
+        </Transition>
+      </SelectableContext.Provider>
+    </TabContext.Provider>
   );
+});
 
 Pane.displayName = 'TabPane';
 

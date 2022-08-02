@@ -9,11 +9,7 @@ import Transition, {
 } from 'react-transition-group/Transition';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import { useBootstrapPrefix } from './ThemeProvider';
-import {
-  BsOnlyProps,
-  BsProps,
-  BsPrefixRefForwardingComponent,
-} from './helpers';
+import { BsOnlyProps, BsProps, BsRefComponent } from './helpers';
 import { Variant } from './types';
 import { Fade, Props as _Props } from './Fade';
 import { CloseButton, Variant as CloseVariant } from './CloseButton';
@@ -99,80 +95,82 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   bg?: Variant;
 }
 
-export const Toast: BsPrefixRefForwardingComponent<'div', Props> =
-  React.forwardRef<HTMLDivElement, Props>(
-    (
-      {
-        bsPrefix,
-        className,
-        transition: Transition = ToastFade,
-        show = true,
-        animation = true,
-        delay = 5000,
-        autohide = false,
-        onClose,
-        bg,
-        ...ps
-      },
-      ref,
-    ) => {
-      bsPrefix = useBootstrapPrefix(bsPrefix, 'toast');
-      const delayRef = useRef(delay);
-      const onCloseRef = useRef(onClose);
-
-      useEffect(() => {
-        delayRef.current = delay;
-        onCloseRef.current = onClose;
-      }, [delay, onClose]);
-
-      const autohideTimeout = useTimeout();
-      const autohideToast = !!(autohide && show);
-
-      const autohideFunc = useCallback(() => {
-        if (autohideToast) {
-          onCloseRef.current?.();
-        }
-      }, [autohideToast]);
-
-      useEffect(() => {
-        autohideTimeout.set(autohideFunc, delayRef.current);
-      }, [autohideTimeout, autohideFunc]);
-
-      const context = useMemo(
-        () => ({
-          onClose,
-        }),
-        [onClose],
-      );
-      const hasAnimation = !!(Transition && animation);
-      const toast = (
-        <div
-          {...ps}
-          ref={ref}
-          className={classNames(
-            bsPrefix,
-            className,
-            bg && `bg-${bg}`,
-            !hasAnimation && (show ? 'show' : 'hide'),
-          )}
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-        />
-      );
-      return (
-        <Context.Provider value={context}>
-          {hasAnimation && Transition ? (
-            <Transition in={show} unmountOnExit>
-              {toast}
-            </Transition>
-          ) : (
-            toast
-          )}
-        </Context.Provider>
-      );
+export const Toast: BsRefComponent<'div', Props> = React.forwardRef<
+  HTMLDivElement,
+  Props
+>(
+  (
+    {
+      bsPrefix,
+      className,
+      transition: Transition = ToastFade,
+      show = true,
+      animation = true,
+      delay = 5000,
+      autohide = false,
+      onClose,
+      bg,
+      ...ps
     },
-  );
+    ref,
+  ) => {
+    bsPrefix = useBootstrapPrefix(bsPrefix, 'toast');
+    const delayRef = useRef(delay);
+    const onCloseRef = useRef(onClose);
+
+    useEffect(() => {
+      delayRef.current = delay;
+      onCloseRef.current = onClose;
+    }, [delay, onClose]);
+
+    const autohideTimeout = useTimeout();
+    const autohideToast = !!(autohide && show);
+
+    const autohideFunc = useCallback(() => {
+      if (autohideToast) {
+        onCloseRef.current?.();
+      }
+    }, [autohideToast]);
+
+    useEffect(() => {
+      autohideTimeout.set(autohideFunc, delayRef.current);
+    }, [autohideTimeout, autohideFunc]);
+
+    const context = useMemo(
+      () => ({
+        onClose,
+      }),
+      [onClose],
+    );
+    const hasAnimation = !!(Transition && animation);
+    const toast = (
+      <div
+        {...ps}
+        ref={ref}
+        className={classNames(
+          bsPrefix,
+          className,
+          bg && `bg-${bg}`,
+          !hasAnimation && (show ? 'show' : 'hide'),
+        )}
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      />
+    );
+    return (
+      <Context.Provider value={context}>
+        {hasAnimation && Transition ? (
+          <Transition in={show} unmountOnExit>
+            {toast}
+          </Transition>
+        ) : (
+          toast
+        )}
+      </Context.Provider>
+    );
+  },
+);
 
 Toast.displayName = 'Toast';
 
@@ -211,7 +209,7 @@ const positionClasses = {
   'bottom-end': 'bottom-0 end-0',
 };
 
-export const Container: BsPrefixRefForwardingComponent<'div', ContainerProps> =
+export const Container: BsRefComponent<'div', ContainerProps> =
   React.forwardRef<HTMLDivElement, ContainerProps>(
     (
       {

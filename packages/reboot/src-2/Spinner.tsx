@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 
 import { useBootstrapPrefix } from './ThemeProvider';
-import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
+import { BsProps, BsRefComponent } from './helpers';
 import { Variant } from './types';
 
 export interface SpinnerProps
@@ -13,38 +13,40 @@ export interface SpinnerProps
   variant?: Variant;
 }
 
-const Spinner: BsPrefixRefForwardingComponent<'div', SpinnerProps> =
-  React.forwardRef<HTMLElement, SpinnerProps>(
-    (
-      {
-        bsPrefix,
-        variant,
-        animation,
-        size,
-        // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
-        as: Component = 'div',
-        className,
-        ...props
-      },
-      ref,
-    ) => {
-      bsPrefix = useBootstrapPrefix(bsPrefix, 'spinner');
-      const bsSpinnerPrefix = `${bsPrefix}-${animation}`;
-
-      return (
-        <Component
-          ref={ref}
-          {...props}
-          className={classNames(
-            className,
-            bsSpinnerPrefix,
-            size && `${bsSpinnerPrefix}-${size}`,
-            variant && `text-${variant}`,
-          )}
-        />
-      );
+const Spinner: BsRefComponent<'div', SpinnerProps> = React.forwardRef<
+  HTMLElement,
+  SpinnerProps
+>(
+  (
+    {
+      bsPrefix,
+      variant,
+      animation,
+      size,
+      // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+      as: Component = 'div',
+      className,
+      ...props
     },
-  );
+    ref,
+  ) => {
+    bsPrefix = useBootstrapPrefix(bsPrefix, 'spinner');
+    const bsSpinnerPrefix = `${bsPrefix}-${animation}`;
+
+    return (
+      <Component
+        ref={ref}
+        {...props}
+        className={classNames(
+          className,
+          bsSpinnerPrefix,
+          size && `${bsSpinnerPrefix}-${size}`,
+          variant && `text-${variant}`,
+        )}
+      />
+    );
+  },
+);
 
 Spinner.displayName = 'Spinner';
 

@@ -70,27 +70,27 @@ export { Form } from './Form';
 export type { Props as FormProps } from './Form';
 
 export { FormControl } from './FormControl';
-export type { Props as FormControlProps } from './FormControl';
+export type { ControlProps as FormControlProps } from './FormControl';
 
 export { FormCheck } from './FormCheck';
-export type { Props as FormCheckProps } from './FormCheck';
+export type { CheckProps as FormCheckProps } from './FormCheck';
 
 export { default as FormFloating } from './FormFloating';
 
 export { FloatingLabel } from './FloatingLabel';
-export type { Props as FloatingLabelProps } from './FloatingLabel';
+export type { FloatingLabelProps as FloatingLabelProps } from './FloatingLabel';
 
 export { FormGroup } from './FormGroup';
-export type { Props as FormGroupProps } from './FormGroup';
+export type { GroupProps as FormGroupProps } from './FormGroup';
 
 export { FormLabel } from './FormLabel';
-export type { Props as FormLabelProps } from './FormLabel';
+export type { LabelProps as FormLabelProps } from './FormLabel';
 
 export { default as FormText } from './FormText';
-export type { FormTextProps } from './FormText';
+export type { TextProps as FormTextProps } from './FormText';
 
 export { default as FormSelect } from './FormSelect';
-export type { FormSelectProps } from './FormSelect';
+export type { SelectProps as FormSelectProps } from './FormSelect';
 
 export { Container } from './Container';
 export type { Props as ContainerProps } from './Container';
@@ -126,7 +126,7 @@ export { Navbar } from './Navbar';
 export type { Props as NavbarProps } from './Navbar';
 
 export { NavbarBrand } from './NavbarBrand';
-export type { Props as NavbarBrandProps } from './NavbarBrand';
+export type { BrandProps as NavbarBrandProps } from './NavbarBrand';
 
 export { NavDropdown } from './NavDropdown';
 export type { Props as NavDropdownProps } from './NavDropdown';

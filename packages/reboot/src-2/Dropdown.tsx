@@ -23,7 +23,7 @@ import useEventCallback from '@restart/hooks/useEventCallback';
 import { Context as InputGroupContext } from './InputGroup';
 import { useBootstrapPrefix, useIsRTL } from './ThemeProvider';
 import createWithBsPrefix from './createWithBsPrefix';
-import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
+import { BsProps, BsRefComponent } from './helpers';
 import { NavbarContext } from './NavbarContext';
 import useWrappedRefWithWarning from './useWrappedRefWithWarning';
 import { AlignType, AlignDirection, Placement } from './types';
@@ -78,98 +78,100 @@ export function getMenuPlacement(
   return placement;
 }
 
-export const Menu: BsPrefixRefForwardingComponent<'div', MenuProps> =
-  React.forwardRef<HTMLElement, MenuProps>(
-    (
-      {
-        bsPrefix,
-        className,
-        align,
-        rootCloseEvent,
-        flip,
-        show: showProps,
-        renderOnMount,
-        as: Component = 'div',
-        popperConfig,
-        variant,
-        ...ps
-      },
-      ref,
-    ) => {
-      let alignEnd = false;
-      const isNavbar = useContext(NavbarContext);
-      const bs = useBootstrapPrefix(bsPrefix, 'dropdown-menu');
-      const { align: contextAlign, drop, isRTL } = useContext(Context);
-      align = align || contextAlign;
-      const isInputGroup = useContext(InputGroupContext);
-      const alignClasses: string[] = [];
-      if (align) {
-        if (typeof align === 'object') {
-          const keys = Object.keys(align);
-          warning(
-            keys.length === 1,
-            'There should only be 1 breakpoint when passing an object to `align`',
-          );
-          if (keys.length) {
-            const brkPoint = keys[0];
-            const direction: AlignDirection = align[brkPoint];
-            alignEnd = direction === 'start';
-            alignClasses.push(`${bs}-${brkPoint}-${direction}`);
-          }
-        } else if (align === 'end') {
-          alignEnd = true;
-        }
-      }
-      const placement = getMenuPlacement(alignEnd, drop, isRTL);
-      const [menuProps, { hasShown, popper, show, toggle }] = useDropdownMenu({
-        flip,
-        rootCloseEvent,
-        show: showProps,
-        usePopper: !isNavbar && alignClasses.length === 0,
-        offset: [0, 2],
-        popperConfig,
-        placement,
-      });
-      menuProps.ref = useMergedRefs(
-        useWrappedRefWithWarning(ref, 'DropdownMenu'),
-        menuProps.ref,
-      );
-
-      useIsomorphicEffect(() => {
-        if (show) popper?.update();
-      }, [show]);
-
-      if (!hasShown && !renderOnMount && !isInputGroup) return null;
-      if (typeof Component !== 'string') {
-        menuProps.show = show;
-        menuProps.close = () => toggle?.(false);
-        menuProps.align = align;
-      }
-      let style = ps.style;
-      if (popper?.placement) {
-        style = { ...ps.style, ...menuProps.style };
-        ps['x-placement'] = popper.placement;
-      }
-      return (
-        <Component
-          {...ps}
-          {...menuProps}
-          style={style}
-          {...((alignClasses.length || isNavbar) && {
-            'data-bs-popper': 'static',
-          })}
-          className={classNames(
-            className,
-            bs,
-            show && 'show',
-            alignEnd && `${bs}-end`,
-            variant && `${bs}-${variant}`,
-            ...alignClasses,
-          )}
-        />
-      );
+export const Menu: BsRefComponent<'div', MenuProps> = React.forwardRef<
+  HTMLElement,
+  MenuProps
+>(
+  (
+    {
+      bsPrefix,
+      className,
+      align,
+      rootCloseEvent,
+      flip,
+      show: showProps,
+      renderOnMount,
+      as: Component = 'div',
+      popperConfig,
+      variant,
+      ...ps
     },
-  );
+    ref,
+  ) => {
+    let alignEnd = false;
+    const isNavbar = useContext(NavbarContext);
+    const bs = useBootstrapPrefix(bsPrefix, 'dropdown-menu');
+    const { align: contextAlign, drop, isRTL } = useContext(Context);
+    align = align || contextAlign;
+    const isInputGroup = useContext(InputGroupContext);
+    const alignClasses: string[] = [];
+    if (align) {
+      if (typeof align === 'object') {
+        const keys = Object.keys(align);
+        warning(
+          keys.length === 1,
+          'There should only be 1 breakpoint when passing an object to `align`',
+        );
+        if (keys.length) {
+          const brkPoint = keys[0];
+          const direction: AlignDirection = align[brkPoint];
+          alignEnd = direction === 'start';
+          alignClasses.push(`${bs}-${brkPoint}-${direction}`);
+        }
+      } else if (align === 'end') {
+        alignEnd = true;
+      }
+    }
+    const placement = getMenuPlacement(alignEnd, drop, isRTL);
+    const [menuProps, { hasShown, popper, show, toggle }] = useDropdownMenu({
+      flip,
+      rootCloseEvent,
+      show: showProps,
+      usePopper: !isNavbar && alignClasses.length === 0,
+      offset: [0, 2],
+      popperConfig,
+      placement,
+    });
+    menuProps.ref = useMergedRefs(
+      useWrappedRefWithWarning(ref, 'DropdownMenu'),
+      menuProps.ref,
+    );
+
+    useIsomorphicEffect(() => {
+      if (show) popper?.update();
+    }, [show]);
+
+    if (!hasShown && !renderOnMount && !isInputGroup) return null;
+    if (typeof Component !== 'string') {
+      menuProps.show = show;
+      menuProps.close = () => toggle?.(false);
+      menuProps.align = align;
+    }
+    let style = ps.style;
+    if (popper?.placement) {
+      style = { ...ps.style, ...menuProps.style };
+      ps['x-placement'] = popper.placement;
+    }
+    return (
+      <Component
+        {...ps}
+        {...menuProps}
+        style={style}
+        {...((alignClasses.length || isNavbar) && {
+          'data-bs-popper': 'static',
+        })}
+        className={classNames(
+          className,
+          bs,
+          show && 'show',
+          alignEnd && `${bs}-end`,
+          variant && `${bs}-${variant}`,
+          ...alignClasses,
+        )}
+      />
+    );
+  },
+);
 
 Menu.displayName = 'DropdownMenu';
 Menu.defaultProps = {
@@ -182,7 +184,7 @@ export interface ToggleProps extends Omit<_ButtonProps, 'as'> {
   childBsPrefix?: string;
 }
 
-type ToggleComponent = BsPrefixRefForwardingComponent<'button', ToggleProps>;
+type ToggleComponent = BsRefComponent<'button', ToggleProps>;
 
 export type PropsFromToggle = Partial<
   Pick<React.ComponentPropsWithRef<ToggleComponent>, CommonProps>
@@ -241,47 +243,45 @@ const ItemText = createWithBsPrefix('dropdown-item-text', {
 
 export interface ItemProps extends BaseDropdownItemProps, BsProps {}
 
-export const Item: BsPrefixRefForwardingComponent<
-  typeof BaseDropdownItem,
-  ItemProps
-> = React.forwardRef(
-  (
-    {
-      bsPrefix,
-      className,
-      eventKey,
-      disabled = false,
-      onClick,
-      active,
-      as: Component = Anchor,
-      ...ps
-    },
-    ref,
-  ) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'dropdown-item');
-    const [dropdownItemProps, meta] = useDropdownItem({
-      key: eventKey,
-      href: ps.href,
-      disabled,
-      onClick,
-      active,
-    });
+export const Item: BsRefComponent<typeof BaseDropdownItem, ItemProps> =
+  React.forwardRef(
+    (
+      {
+        bsPrefix,
+        className,
+        eventKey,
+        disabled = false,
+        onClick,
+        active,
+        as: Component = Anchor,
+        ...ps
+      },
+      ref,
+    ) => {
+      const bs = useBootstrapPrefix(bsPrefix, 'dropdown-item');
+      const [dropdownItemProps, meta] = useDropdownItem({
+        key: eventKey,
+        href: ps.href,
+        disabled,
+        onClick,
+        active,
+      });
 
-    return (
-      <Component
-        {...ps}
-        {...dropdownItemProps}
-        ref={ref}
-        className={classNames(
-          className,
-          bs,
-          meta.isActive && 'active',
-          disabled && 'disabled',
-        )}
-      />
-    );
-  },
-);
+      return (
+        <Component
+          {...ps}
+          {...dropdownItemProps}
+          ref={ref}
+          className={classNames(
+            className,
+            bs,
+            meta.isActive && 'active',
+            disabled && 'disabled',
+          )}
+        />
+      );
+    },
+  );
 
 Item.displayName = 'DropdownItem';
 
@@ -296,86 +296,88 @@ export interface Props
   autoClose?: boolean | 'outside' | 'inside';
 }
 
-export const Dropdown: BsPrefixRefForwardingComponent<'div', Props> =
-  React.forwardRef<HTMLElement, Props>((xs, ref) => {
-    const {
-      bsPrefix,
-      drop,
-      show,
-      className,
+export const Dropdown: BsRefComponent<'div', Props> = React.forwardRef<
+  HTMLElement,
+  Props
+>((xs, ref) => {
+  const {
+    bsPrefix,
+    drop,
+    show,
+    className,
+    align,
+    onSelect,
+    onToggle,
+    focusFirstItemOnShow,
+    as: Component = 'div',
+    navbar: _4,
+    autoClose,
+    ...ps
+  } = useUncontrolled(xs, { show: 'onToggle' });
+
+  const isInputGroup = useContext(InputGroupContext);
+  const bs = useBootstrapPrefix(bsPrefix, 'dropdown');
+  const isRTL = useIsRTL();
+
+  const isClosingPermitted = (source: string): boolean => {
+    if (autoClose === false) return source === 'click';
+    if (autoClose === 'inside') return source !== 'rootClose';
+    if (autoClose === 'outside') return source !== 'select';
+    return true;
+  };
+
+  const handleToggle = useEventCallback(
+    (nextShow: boolean, meta: ToggleMetadata) => {
+      if (
+        meta.originalEvent!.currentTarget === document &&
+        (meta.source !== 'keydown' ||
+          (meta.originalEvent as any).key === 'Escape')
+      )
+        meta.source = 'rootClose';
+      if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta);
+    },
+  );
+
+  const alignEnd = align === 'end';
+  const placement = getMenuPlacement(alignEnd, drop, isRTL);
+  const contextValue = useMemo(
+    () => ({
       align,
-      onSelect,
-      onToggle,
-      focusFirstItemOnShow,
-      as: Component = 'div',
-      navbar: _4,
-      autoClose,
-      ...ps
-    } = useUncontrolled(xs, { show: 'onToggle' });
-
-    const isInputGroup = useContext(InputGroupContext);
-    const bs = useBootstrapPrefix(bsPrefix, 'dropdown');
-    const isRTL = useIsRTL();
-
-    const isClosingPermitted = (source: string): boolean => {
-      if (autoClose === false) return source === 'click';
-      if (autoClose === 'inside') return source !== 'rootClose';
-      if (autoClose === 'outside') return source !== 'select';
-      return true;
-    };
-
-    const handleToggle = useEventCallback(
-      (nextShow: boolean, meta: ToggleMetadata) => {
-        if (
-          meta.originalEvent!.currentTarget === document &&
-          (meta.source !== 'keydown' ||
-            (meta.originalEvent as any).key === 'Escape')
-        )
-          meta.source = 'rootClose';
-        if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta);
-      },
-    );
-
-    const alignEnd = align === 'end';
-    const placement = getMenuPlacement(alignEnd, drop, isRTL);
-    const contextValue = useMemo(
-      () => ({
-        align,
-        drop,
-        isRTL,
-      }),
-      [align, drop, isRTL],
-    );
-    return (
-      <Context.Provider value={contextValue}>
-        <BaseDropdown
-          placement={placement}
-          show={show}
-          onSelect={onSelect}
-          onToggle={handleToggle}
-          focusFirstItemOnShow={focusFirstItemOnShow}
-          itemSelector={`.${bs}-item:not(.disabled):not(:disabled)`}
-        >
-          {isInputGroup ? (
-            ps.children
-          ) : (
-            <Component
-              {...ps}
-              ref={ref}
-              className={classNames(
-                className,
-                show && 'show',
-                (!drop || drop === 'down') && bs,
-                drop === 'up' && 'dropup',
-                drop === 'end' && 'dropend',
-                drop === 'start' && 'dropstart',
-              )}
-            />
-          )}
-        </BaseDropdown>
-      </Context.Provider>
-    );
-  });
+      drop,
+      isRTL,
+    }),
+    [align, drop, isRTL],
+  );
+  return (
+    <Context.Provider value={contextValue}>
+      <BaseDropdown
+        placement={placement}
+        show={show}
+        onSelect={onSelect}
+        onToggle={handleToggle}
+        focusFirstItemOnShow={focusFirstItemOnShow}
+        itemSelector={`.${bs}-item:not(.disabled):not(:disabled)`}
+      >
+        {isInputGroup ? (
+          ps.children
+        ) : (
+          <Component
+            {...ps}
+            ref={ref}
+            className={classNames(
+              className,
+              show && 'show',
+              (!drop || drop === 'down') && bs,
+              drop === 'up' && 'dropup',
+              drop === 'end' && 'dropend',
+              drop === 'start' && 'dropstart',
+            )}
+          />
+        )}
+      </BaseDropdown>
+    </Context.Provider>
+  );
+});
 
 Dropdown.displayName = 'Dropdown';
 Dropdown.defaultProps = {
@@ -405,49 +407,51 @@ export interface ButtonProps
   flip?: boolean;
 }
 
-export const Button: BsPrefixRefForwardingComponent<'div', ButtonProps> =
-  React.forwardRef<HTMLDivElement, ButtonProps>(
-    (
-      {
-        title,
-        children,
-        bsPrefix,
-        rootCloseEvent,
-        variant,
-        size,
-        menuRole,
-        renderMenuOnMount,
-        disabled,
-        href,
-        id,
-        menuVariant,
-        flip,
-        ...ps
-      },
-      ref,
-    ) => (
-      <Dropdown ref={ref} {...ps}>
-        <Toggle
-          id={id}
-          href={href}
-          size={size}
-          variant={variant}
-          disabled={disabled}
-          childBsPrefix={bsPrefix}
-        >
-          {title}
-        </Toggle>
-        <Menu
-          role={menuRole}
-          renderOnMount={renderMenuOnMount}
-          rootCloseEvent={rootCloseEvent}
-          variant={menuVariant}
-          flip={flip}
-        >
-          {children}
-        </Menu>
-      </Dropdown>
-    ),
-  );
+export const Button: BsRefComponent<'div', ButtonProps> = React.forwardRef<
+  HTMLDivElement,
+  ButtonProps
+>(
+  (
+    {
+      title,
+      children,
+      bsPrefix,
+      rootCloseEvent,
+      variant,
+      size,
+      menuRole,
+      renderMenuOnMount,
+      disabled,
+      href,
+      id,
+      menuVariant,
+      flip,
+      ...ps
+    },
+    ref,
+  ) => (
+    <Dropdown ref={ref} {...ps}>
+      <Toggle
+        id={id}
+        href={href}
+        size={size}
+        variant={variant}
+        disabled={disabled}
+        childBsPrefix={bsPrefix}
+      >
+        {title}
+      </Toggle>
+      <Menu
+        role={menuRole}
+        renderOnMount={renderMenuOnMount}
+        rootCloseEvent={rootCloseEvent}
+        variant={menuVariant}
+        flip={flip}
+      >
+        {children}
+      </Menu>
+    </Dropdown>
+  ),
+);
 
 Button.displayName = 'DropdownButton';

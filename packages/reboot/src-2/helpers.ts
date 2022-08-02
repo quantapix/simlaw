@@ -21,10 +21,7 @@ export interface BsProps<T extends React.ElementType = React.ElementType>
   extends BsOnlyProps,
     AsProp<T> {}
 
-export interface BsPrefixRefForwardingComponent<
-  T0 extends React.ElementType,
-  P = unknown,
-> {
+export interface BsRefComponent<T0 extends React.ElementType, P = unknown> {
   <T extends React.ElementType = T0>(
     props: React.PropsWithChildren<ReplaceProps<T, BsProps<T> & P>>,
     context?: any,
@@ -39,7 +36,7 @@ export class BsComponent<
   P = unknown,
 > extends React.Component<ReplaceProps<T, BsProps<T> & P>> {}
 
-export type BsPrefixComponentClass<
+export type BsComponentClass<
   As extends React.ElementType,
   P = unknown,
 > = React.ComponentClass<ReplaceProps<As, BsProps<As> & P>>;

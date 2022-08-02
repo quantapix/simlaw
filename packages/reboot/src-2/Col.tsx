@@ -5,7 +5,7 @@ import {
   useBootstrapBreakpoints,
   useBootstrapMinBreakpoint,
 } from './ThemeProvider';
-import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
+import { BsProps, BsRefComponent } from './helpers';
 
 type NumberAttr =
   | number
@@ -85,16 +85,18 @@ export function useCol({
   ];
 }
 
-export const Col: BsPrefixRefForwardingComponent<'div', Props> =
-  React.forwardRef<HTMLElement, Props>((xs, ref) => {
-    const [{ className, ...ps }, { as: Component = 'div', bsPrefix, spans }] =
-      useCol(xs);
-    return (
-      <Component
-        {...ps}
-        ref={ref}
-        className={classNames(className, !spans.length && bsPrefix)}
-      />
-    );
-  });
+export const Col: BsRefComponent<'div', Props> = React.forwardRef<
+  HTMLElement,
+  Props
+>((xs, ref) => {
+  const [{ className, ...ps }, { as: Component = 'div', bsPrefix, spans }] =
+    useCol(xs);
+  return (
+    <Component
+      {...ps}
+      ref={ref}
+      className={classNames(className, !spans.length && bsPrefix)}
+    />
+  );
+});
 Col.displayName = 'Col';

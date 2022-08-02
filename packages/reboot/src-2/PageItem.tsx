@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { ReactNode } from 'react';
 import Anchor from '@restart/ui/Anchor';
-import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
+import { BsProps, BsRefComponent } from './helpers';
 
 export interface Props extends React.HTMLAttributes<HTMLElement>, BsProps {
   disabled?: boolean;
@@ -11,37 +11,31 @@ export interface Props extends React.HTMLAttributes<HTMLElement>, BsProps {
   href?: string;
 }
 
-export const PageItem: BsPrefixRefForwardingComponent<'li', Props> =
-  React.forwardRef<HTMLLIElement, Props>(
-    (
-      {
-        active,
-        disabled,
-        className,
-        style,
-        activeLabel,
-        children,
-        ...ps
-      }: Props,
-      ref,
-    ) => {
-      const Component = active || disabled ? 'span' : Anchor;
-      return (
-        <li
-          ref={ref}
-          style={style}
-          className={classNames(className, 'page-item', { active, disabled })}
-        >
-          <Component className="page-link" disabled={disabled} {...ps}>
-            {children}
-            {active && activeLabel && (
-              <span className="visually-hidden">{activeLabel}</span>
-            )}
-          </Component>
-        </li>
-      );
-    },
-  );
+export const PageItem: BsRefComponent<'li', Props> = React.forwardRef<
+  HTMLLIElement,
+  Props
+>(
+  (
+    { active, disabled, className, style, activeLabel, children, ...ps }: Props,
+    ref,
+  ) => {
+    const Component = active || disabled ? 'span' : Anchor;
+    return (
+      <li
+        ref={ref}
+        style={style}
+        className={classNames(className, 'page-item', { active, disabled })}
+      >
+        <Component className="page-link" disabled={disabled} {...ps}>
+          {children}
+          {active && activeLabel && (
+            <span className="visually-hidden">{activeLabel}</span>
+          )}
+        </Component>
+      </li>
+    );
+  },
+);
 
 PageItem.displayName = 'PageItem';
 PageItem.defaultProps = {

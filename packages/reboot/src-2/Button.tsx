@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { useButtonProps, ButtonProps as _Props } from '@restart/ui/Button';
 import { useBootstrapPrefix } from './ThemeProvider';
-import { BsProps, BsPrefixRefForwardingComponent } from './helpers';
+import { BsProps, BsRefComponent } from './helpers';
 import { ButtonVariant } from './types';
 
 export interface Props extends _Props, Omit<BsProps, 'as'> {
@@ -13,32 +13,32 @@ export interface Props extends _Props, Omit<BsProps, 'as'> {
 
 export type CommonProps = 'href' | 'size' | 'variant' | 'disabled';
 
-export const Button: BsPrefixRefForwardingComponent<'button', Props> =
-  React.forwardRef<HTMLButtonElement, Props>(
-    ({ as, bsPrefix, variant, size, active, className, ...ps }, ref) => {
-      const bs = useBootstrapPrefix(bsPrefix, 'btn');
-      const [buttonProps, { tagName }] = useButtonProps({
-        tagName: as,
-        ...ps,
-      });
-      const Component = tagName as React.ElementType;
-      return (
-        <Component
-          {...buttonProps}
-          {...ps}
-          ref={ref}
-          className={classNames(
-            className,
-            bs,
-            active && 'active',
-            variant && `${bs}-${variant}`,
-            size && `${bs}-${size}`,
-            ps.href && ps.disabled && 'disabled',
-          )}
-        />
-      );
-    },
+export const Button: BsRefComponent<'button', Props> = React.forwardRef<
+  HTMLButtonElement,
+  Props
+>(({ as, bsPrefix, variant, size, active, className, ...ps }, ref) => {
+  const bs = useBootstrapPrefix(bsPrefix, 'btn');
+  const [buttonProps, { tagName }] = useButtonProps({
+    tagName: as,
+    ...ps,
+  });
+  const Component = tagName as React.ElementType;
+  return (
+    <Component
+      {...buttonProps}
+      {...ps}
+      ref={ref}
+      className={classNames(
+        className,
+        bs,
+        active && 'active',
+        variant && `${bs}-${variant}`,
+        size && `${bs}-${size}`,
+        ps.href && ps.disabled && 'disabled',
+      )}
+    />
   );
+});
 
 Button.displayName = 'Button';
 Button.defaultProps = {
@@ -79,31 +79,30 @@ export interface GroupProps extends BsProps, React.HTMLAttributes<HTMLElement> {
   vertical?: boolean;
 }
 
-export const Group: BsPrefixRefForwardingComponent<'div', GroupProps> =
-  React.forwardRef(
-    (
-      {
-        bsPrefix,
-        size,
-        vertical,
-        className,
-        as: Component = 'div',
-        ...ps
-      }: GroupProps,
-      ref,
-    ) => {
-      const bs = useBootstrapPrefix(bsPrefix, 'btn-group');
-      let base = bs;
-      if (vertical) base = `${bs}-vertical`;
-      return (
-        <Component
-          {...ps}
-          ref={ref}
-          className={classNames(className, base, size && `${bs}-${size}`)}
-        />
-      );
-    },
-  );
+export const Group: BsRefComponent<'div', GroupProps> = React.forwardRef(
+  (
+    {
+      bsPrefix,
+      size,
+      vertical,
+      className,
+      as: Component = 'div',
+      ...ps
+    }: GroupProps,
+    ref,
+  ) => {
+    const bs = useBootstrapPrefix(bsPrefix, 'btn-group');
+    let base = bs;
+    if (vertical) base = `${bs}-vertical`;
+    return (
+      <Component
+        {...ps}
+        ref={ref}
+        className={classNames(className, base, size && `${bs}-${size}`)}
+      />
+    );
+  },
+);
 
 Group.displayName = 'ButtonGroup';
 Group.defaultProps = {
