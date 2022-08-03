@@ -1,7 +1,7 @@
 import classNames from 'classnames';
+import * as React from 'react';
 import useBreakpoint from '@restart/hooks/useBreakpoint';
 import useEventCallback from '@restart/hooks/useEventCallback';
-import * as React from 'react';
 import {
   useCallback,
   useContext,
@@ -11,27 +11,107 @@ import {
   useState,
 } from 'react';
 import BaseModal, {
-  ModalProps as BaseModalProps,
+  ModalProps as _Props,
   ModalHandle,
 } from '@restart/ui/Modal';
+import Transition, {
+  TransitionStatus,
+  ENTERED,
+  ENTERING,
+  EXITING,
+} from 'react-transition-group/Transition';
+import { TransitionCallbacks } from '@restart/ui/types';
 import { Fade } from './Fade';
-import OffcanvasBody from './OffcanvasBody';
-import { OffcanvasToggling } from './OffcanvasToggling';
-import ModalContext from './ModalContext';
-import { NavbarContext } from './NavbarContext';
-import { OffcanvasHeader } from './OffcanvasHeader';
-import OffcanvasTitle from './OffcanvasTitle';
-import { BsRefComponent } from './helpers';
-import { useBsPrefix } from './ThemeProvider';
-import BootstrapModalManager, {
-  getSharedManager,
-} from './BootstrapModalManager';
+import { AbsHeader, AbsProps as HProps, Context as MContext } from './Modal';
+import { Context as NContext } from './Navbar';
+import { BsOnlyProps, BsRefComponent } from './helpers';
+import { useBsPrefix } from './Theme';
+import { Manager, getSharedManager } from './Manager';
+import withBsPrefix from './createWithBsPrefix';
+import divWithClassName from './divWithClassName';
+import transitionEndListener from './transitionEndListener';
+import { TransitionWrapper } from './TransitionWrapper';
 
-export type OffcanvasPlacement = 'start' | 'end' | 'top' | 'bottom';
+export interface HeaderProps extends HProps, BsOnlyProps {}
+
+export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
+  ({ bsPrefix, className, ...ps }, ref) => {
+    bsPrefix = useBsPrefix(bsPrefix, 'offcanvas-header');
+    return (
+      <AbsHeader
+        ref={ref}
+        {...ps}
+        className={classNames(className, bsPrefix)}
+      />
+    );
+  },
+);
+Header.displayName = 'OffcanvasHeader';
+Header.defaultProps = {
+  closeLabel: 'Close',
+  closeButton: false,
+};
+
+export const Body = withBsPrefix('offcanvas-body');
+const DivAsH5 = divWithClassName('h5');
+export const Title = withBsPrefix('offcanvas-title', {
+  Component: DivAsH5,
+});
+
+export interface TogglingProps extends TransitionCallbacks, BsOnlyProps {
+  className?: string;
+  in?: boolean;
+  mountOnEnter?: boolean;
+  unmountOnExit?: boolean;
+  appear?: boolean;
+  timeout?: number;
+  children: React.ReactElement;
+}
+
+const styles = {
+  [ENTERING]: 'show',
+  [ENTERED]: 'show',
+};
+
+export const Toggling = React.forwardRef<Transition<any>, TogglingProps>(
+  ({ bsPrefix, className, children, ...ps }, ref) => {
+    bsPrefix = useBsPrefix(bsPrefix, 'offcanvas');
+    return (
+      <TransitionWrapper
+        ref={ref}
+        addEndListener={transitionEndListener}
+        {...ps}
+        childRef={(children as any).ref}
+      >
+        {(status: TransitionStatus, innerProps: Record<string, unknown>) =>
+          React.cloneElement(children, {
+            ...innerProps,
+            className: classNames(
+              className,
+              children.props.className,
+              (status === ENTERING || status === EXITING) &&
+                `${bsPrefix}-toggling`,
+              styles[status],
+            ),
+          })
+        }
+      </TransitionWrapper>
+    );
+  },
+);
+Toggling.displayName = 'OffcanvasToggling';
+Toggling.defaultProps = {
+  in: false,
+  mountOnEnter: false,
+  unmountOnExit: false,
+  appear: false,
+};
+
+export type Placement = 'start' | 'end' | 'top' | 'bottom';
 
 export interface Props
   extends Omit<
-    BaseModalProps,
+    _Props,
     | 'role'
     | 'renderBackdrop'
     | 'renderDialog'
@@ -42,13 +122,13 @@ export interface Props
   bsPrefix?: string;
   backdropClassName?: string;
   scroll?: boolean;
-  placement?: OffcanvasPlacement;
+  placement?: Placement;
   responsive?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | string;
   renderStaticNode?: boolean;
 }
 
 function DialogTransition(ps) {
-  return <OffcanvasToggling {...ps} />;
+  return <Toggling {...ps} />;
 }
 
 function BackdropTransition(ps) {
@@ -92,11 +172,10 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
     },
     ref,
   ) => {
-    const modalManager = useRef<BootstrapModalManager>();
+    const modalManager = useRef<Manager>();
     bsPrefix = useBsPrefix(bsPrefix, 'offcanvas');
-    const { onToggle } = useContext(NavbarContext) || {};
+    const { onToggle } = useContext(NContext) || {};
     const [showOffcanvas, setShowOffcanvas] = useState(false);
-
     const hideResponsiveOffcanvas = useBreakpoint(
       (responsive as any) || 'xs',
       'up',
@@ -122,7 +201,7 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
       if (propsManager) return propsManager;
       if (scroll) {
         if (!modalManager.current)
-          modalManager.current = new BootstrapModalManager({
+          modalManager.current = new Manager({
             handleContainerOverflow: false,
           });
         return modalManager.current;
@@ -168,16 +247,10 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
 
     return (
       <>
-        {/* 
-            Only render static elements when offcanvas isn't shown so we 
-            don't duplicate elements.
-
-            TODO: Should follow bootstrap behavior and don't unmount children
-            when show={false} in BaseModal. Will do this next major version.
-          */}
+        {/**/}
         {!showOffcanvas && (responsive || renderStaticNode) && renderDialog({})}
 
-        <ModalContext.Provider value={modalContext}>
+        <MContext.Provider value={modalContext}>
           <BaseModal
             show={showOffcanvas}
             ref={ref}
@@ -203,7 +276,7 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
             renderBackdrop={renderBackdrop}
             renderDialog={renderDialog}
           />
-        </ModalContext.Provider>
+        </MContext.Provider>
       </>
     );
   },
@@ -223,7 +296,7 @@ Offcanvas.defaultProps = {
 };
 
 Object.assign(Offcanvas, {
-  Body: OffcanvasBody,
-  Header: OffcanvasHeader,
-  Title: OffcanvasTitle,
+  Body,
+  Header,
+  Title,
 });

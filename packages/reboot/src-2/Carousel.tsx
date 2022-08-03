@@ -16,7 +16,7 @@ import {
 } from 'react';
 import { useUncontrolled } from 'uncontrollable';
 import { map, forEach, triggerBrowserReflow } from './utils';
-import { useBsPrefix, useIsRTL } from './ThemeProvider';
+import { useBsPrefix, useIsRTL } from './Theme';
 import transitionEndListener from './transitionEndListener';
 import { BsProps, BsRefComponent } from './helpers';
 import TransitionWrapper from './TransitionWrapper';

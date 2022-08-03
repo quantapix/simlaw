@@ -7,7 +7,7 @@ import { useUncontrolled } from 'uncontrollable';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import withBsPrefix from './createWithBsPrefix';
 import { Collapse as CBase, Props as _CProps } from './Collapse';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { BsProps, BsRefComponent } from './helpers';
 import { Offcanvas as OBase, Props as _OProps } from './Offcanvas';
 

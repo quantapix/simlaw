@@ -21,7 +21,7 @@ import { useDropdownToggle } from '@restart/ui/DropdownToggle';
 import { useUncontrolled } from 'uncontrollable';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import { Context as InputGroupContext } from './InputGroup';
-import { useBsPrefix, useIsRTL } from './ThemeProvider';
+import { useBsPrefix, useIsRTL } from './Theme';
 import withBsPrefix from './createWithBsPrefix';
 import { BsProps, BsRefComponent } from './helpers';
 import { Context as NavbarContext } from './Navbar';

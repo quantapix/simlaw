@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { useMemo } from 'react';
 import withBsPrefix from './createWithBsPrefix';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { Input } from './Form';
 import { BsProps, BsRefComponent } from './helpers';
 

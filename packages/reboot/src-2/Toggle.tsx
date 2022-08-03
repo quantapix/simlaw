@@ -2,20 +2,20 @@ import classNames from 'classnames';
 import * as React from 'react';
 import invariant from 'invariant';
 import { useUncontrolled } from 'uncontrollable';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import {
-  Button,
-  Props as _BProps,
-  Group,
-  GroupProps as _GProps,
+  Button as B,
+  Props as BPs,
+  Group as G,
+  GroupProps as GPs,
 } from './Button';
 import { map, createChainedFunction } from './utils';
 import { BsRefComponent } from './helpers';
 
-export type ButtonType = 'checkbox' | 'radio';
+export type Type = 'checkbox' | 'radio';
 
-export interface Props extends Omit<_BProps, 'onChange' | 'type'> {
-  type?: ButtonType;
+export interface Props extends Omit<BPs, 'onChange' | 'type'> {
+  type?: Type;
   name?: string;
   checked?: boolean;
   disabled?: boolean;
@@ -26,7 +26,7 @@ export interface Props extends Omit<_BProps, 'onChange' | 'type'> {
 
 const noop = () => undefined;
 
-export const ToggleButton = React.forwardRef<HTMLLabelElement, Props>(
+export const Button = React.forwardRef<HTMLLabelElement, Props>(
   (
     {
       bsPrefix,
@@ -43,12 +43,11 @@ export const ToggleButton = React.forwardRef<HTMLLabelElement, Props>(
     },
     ref,
   ) => {
-    bsPrefix = useBsPrefix(bsPrefix, 'btn-check');
-
+    const bs = useBsPrefix(bsPrefix, 'btn-check');
     return (
       <>
         <input
-          className={bsPrefix}
+          className={bs}
           name={name}
           type={type}
           value={value}
@@ -59,7 +58,7 @@ export const ToggleButton = React.forwardRef<HTMLLabelElement, Props>(
           onChange={onChange || noop}
           id={id}
         />
-        <Button
+        <B
           {...ps}
           ref={ref}
           className={classNames(className, disabled && 'disabled')}
@@ -72,12 +71,11 @@ export const ToggleButton = React.forwardRef<HTMLLabelElement, Props>(
     );
   },
 );
+Button.displayName = 'ToggleButton';
 
-ToggleButton.displayName = 'ToggleButton';
+type Base = Omit<GPs, 'toggle' | 'defaultValue' | 'onChange'>;
 
-type GProps = Omit<_GProps, 'toggle' | 'defaultValue' | 'onChange'>;
-
-export interface RadioProps<T> extends GProps {
+export interface RadioProps<T> extends Base {
   type?: 'radio';
   name: string;
   value?: T;
@@ -85,7 +83,7 @@ export interface RadioProps<T> extends GProps {
   onChange?: (value: T, event: any) => void;
 }
 
-export interface CheckboxProps<T> extends GProps {
+export interface CheckboxProps<T> extends Base {
   type: 'checkbox';
   name?: string;
   value?: T[];
@@ -95,10 +93,10 @@ export interface CheckboxProps<T> extends GProps {
 
 export type GroupProps<T> = RadioProps<T> | CheckboxProps<T>;
 
-export const ToggleButtonGroup: BsRefComponent<
-  'a',
+export const Group: BsRefComponent<'a', GroupProps<any>> = React.forwardRef<
+  HTMLElement,
   GroupProps<any>
-> = React.forwardRef<HTMLElement, GroupProps<any>>((xs, ref) => {
+>((xs, ref) => {
   const { children, type, name, value, onChange, ...ps } = useUncontrolled(xs, {
     value: 'onChange',
   });
@@ -128,27 +126,26 @@ export const ToggleButtonGroup: BsRefComponent<
       'is set to "radio"',
   );
   return (
-    <Group {...ps} ref={ref as any}>
-      {map(children, (child) => {
-        const values = getValues();
-        const { value: childVal, onChange: childOnChange } = child.props;
+    <G {...ps} ref={ref as any}>
+      {map(children, (x) => {
+        const vs = getValues();
+        const { value: childVal, onChange: childOnChange } = x.props;
         const handler = (e) => handleToggle(childVal, e);
-        return React.cloneElement(child, {
+        return React.cloneElement(x, {
           type,
-          name: (child as any).name || name,
-          checked: values.indexOf(childVal) !== -1,
+          name: (x as any).name || name,
+          checked: vs.indexOf(childVal) !== -1,
           onChange: createChainedFunction(childOnChange, handler),
         });
       })}
-    </Group>
+    </G>
   );
 });
-
-ToggleButtonGroup.defaultProps = {
+Group.defaultProps = {
   type: 'radio',
   vertical: false,
 };
 
-Object.assign(ToggleButtonGroup, {
-  Button: ToggleButton,
+Object.assign(Group, {
+  Button,
 });

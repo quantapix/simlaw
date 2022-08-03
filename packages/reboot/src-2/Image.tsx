@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { BsOnlyProps } from './helpers';
 
 export interface Props

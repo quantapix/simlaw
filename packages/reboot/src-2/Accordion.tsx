@@ -3,24 +3,24 @@ import * as React from 'react';
 import { useContext, useMemo } from 'react';
 import { useUncontrolled } from 'uncontrollable';
 import { Transition } from 'react-transition-group';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { BsProps, BsRefComponent } from './helpers';
-import { Collapse, Props as _Props } from './Collapse';
+import { Collapse as C, Props as _Props } from './Collapse';
 
-export type EventKey = string | string[] | null | undefined;
+export type Key = string | string[] | null | undefined;
 
 export declare type SelectCB = (
-  eventKey: EventKey,
+  eventKey: Key,
   e: React.SyntheticEvent<unknown>,
 ) => void;
 
 export interface ContextValue {
-  activeEventKey?: EventKey;
+  activeEventKey?: Key;
   onSelect?: SelectCB;
   alwaysOpen?: boolean;
 }
 
-export function isItemSelected(active: EventKey, key: string): boolean {
+export function isItemSelected(active: Key, key: string): boolean {
   return Array.isArray(active) ? active.includes(key) : active === key;
 }
 
@@ -45,7 +45,7 @@ type EventHandler = React.EventHandler<React.SyntheticEvent>;
 export function useButton(key: string, onClick?: EventHandler): EventHandler {
   const { activeEventKey, onSelect, alwaysOpen } = useContext(Context);
   return (e) => {
-    let k: EventKey = key === activeEventKey ? null : key;
+    let k: Key = key === activeEventKey ? null : key;
     if (alwaysOpen) {
       if (Array.isArray(activeEventKey)) {
         if (activeEventKey.includes(key)) {
@@ -87,7 +87,6 @@ export const Button: BsRefComponent<'div', ButtonProps> = React.forwardRef<
     />
   );
 });
-
 Button.displayName = 'AccordionButton';
 
 export interface HeaderProps
@@ -110,35 +109,35 @@ export const Header: BsRefComponent<'h2', HeaderProps> = React.forwardRef<
     );
   },
 );
-
 Header.displayName = 'AccordionHeader';
 
 export interface CollapseProps extends BsProps, _Props {
   eventKey: string;
 }
 
-export const AccordionCollapse: BsRefComponent<'div', CollapseProps> =
-  React.forwardRef<Transition<any>, CollapseProps>(
-    (
-      { as: Component = 'div', bsPrefix, className, children, eventKey, ...ps },
-      ref,
-    ) => {
-      const { activeEventKey } = useContext(Context);
-      bsPrefix = useBsPrefix(bsPrefix, 'accordion-collapse');
-      return (
-        <Collapse
-          ref={ref}
-          in={isItemSelected(activeEventKey, eventKey)}
-          {...ps}
-          className={classNames(className, bsPrefix)}
-        >
-          <Component>{React.Children.only(children)}</Component>
-        </Collapse>
-      );
-    },
-  ) as any;
-
-AccordionCollapse.displayName = 'AccordionCollapse';
+export const Collapse: BsRefComponent<'div', CollapseProps> = React.forwardRef<
+  Transition<any>,
+  CollapseProps
+>(
+  (
+    { as: Component = 'div', bsPrefix, className, children, eventKey, ...ps },
+    ref,
+  ) => {
+    const { activeEventKey } = useContext(Context);
+    const bs = useBsPrefix(bsPrefix, 'accordion-collapse');
+    return (
+      <C
+        ref={ref}
+        in={isItemSelected(activeEventKey, eventKey)}
+        {...ps}
+        className={classNames(className, bs)}
+      >
+        <Component>{React.Children.only(children)}</Component>
+      </C>
+    );
+  },
+) as any;
+Collapse.displayName = 'AccordionCollapse';
 
 export interface BodyProps extends BsProps, React.HTMLAttributes<HTMLElement> {}
 
@@ -149,16 +148,15 @@ export const Body: BsRefComponent<'div', BodyProps> = React.forwardRef<
   bsPrefix = useBsPrefix(bsPrefix, 'accordion-body');
   const { eventKey } = useContext(ItemContext);
   return (
-    <AccordionCollapse eventKey={eventKey}>
+    <Collapse eventKey={eventKey}>
       <Component
         ref={ref}
         {...ps}
         className={classNames(className, bsPrefix)}
       />
-    </AccordionCollapse>
+    </Collapse>
   );
 });
-
 Body.displayName = 'AccordionBody';
 
 export interface ItemProps extends BsProps, React.HTMLAttributes<HTMLElement> {
@@ -168,32 +166,27 @@ export interface ItemProps extends BsProps, React.HTMLAttributes<HTMLElement> {
 export const Item: BsRefComponent<'div', ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
->(({ as: Component = 'div', bsPrefix, className, eventKey, ...ps }, ref) => {
+>(({ as: X = 'div', bsPrefix, className, eventKey, ...ps }, ref) => {
   bsPrefix = useBsPrefix(bsPrefix, 'accordion-item');
-  const contextValue = useMemo<ItemContextValue>(
+  const ctx = useMemo<ItemContextValue>(
     () => ({
       eventKey,
     }),
     [eventKey],
   );
   return (
-    <ItemContext.Provider value={contextValue}>
-      <Component
-        ref={ref}
-        {...ps}
-        className={classNames(className, bsPrefix)}
-      />
+    <ItemContext.Provider value={ctx}>
+      <X ref={ref} {...ps} className={classNames(className, bsPrefix)} />
     </ItemContext.Provider>
   );
 });
-
 Item.displayName = 'AccordionItem';
 
 export interface Props
   extends Omit<React.HTMLAttributes<HTMLElement>, 'onSelect'>,
     BsProps {
-  activeKey?: EventKey;
-  defaultActiveKey?: EventKey;
+  activeKey?: Key;
+  defaultActiveKey?: Key;
   onSelect?: SelectCB;
   flush?: boolean;
   alwaysOpen?: boolean;
@@ -204,7 +197,7 @@ export const Accordion: BsRefComponent<'div', Props> = React.forwardRef<
   Props
 >((xs, ref) => {
   const {
-    as: Component = 'div',
+    as: X = 'div',
     activeKey,
     bsPrefix,
     className,
@@ -226,7 +219,7 @@ export const Accordion: BsRefComponent<'div', Props> = React.forwardRef<
   );
   return (
     <Context.Provider value={v}>
-      <Component
+      <X
         ref={ref}
         {...ps}
         className={classNames(className, bs, flush && `${bs}-flush`)}
@@ -239,7 +232,7 @@ Accordion.displayName = 'Accordion';
 
 Object.assign(Accordion, {
   Button,
-  Collapse: AccordionCollapse,
+  Collapse,
   Item,
   Header,
   Body,

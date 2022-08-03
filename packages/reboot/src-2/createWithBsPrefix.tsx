@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import camelize from 'dom-helpers/camelize';
 import * as React from 'react';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { BsRefComponent } from './helpers';
 
 const pascalCase = (str) => str[0].toUpperCase() + camelize(str).slice(1);

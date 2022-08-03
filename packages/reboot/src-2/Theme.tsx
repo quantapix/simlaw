@@ -22,7 +22,7 @@ const Context = React.createContext<ContextValue>({
 });
 export const { Consumer, Provider } = Context;
 
-export function ThemeProvider({
+export function Theme({
   prefixes = {},
   breakpoints = DEFAULT_BREAKPOINTS,
   minBreakpoint = DEFAULT_MIN_BREAKPOINT,

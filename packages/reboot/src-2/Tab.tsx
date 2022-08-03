@@ -10,7 +10,7 @@ import {
 } from '@restart/ui/types';
 import Tabs, { TabsProps } from '@restart/ui/Tabs';
 import NoopTransition from '@restart/ui/NoopTransition';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { Fade } from './Fade';
 import { BsProps, BsRefComponent, TransitionType } from './helpers';
 import withBsPrefix from './createWithBsPrefix';

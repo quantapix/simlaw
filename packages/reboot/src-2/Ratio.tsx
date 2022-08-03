@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { BsProps } from './helpers';
 
 export type AspectRatio = '1x1' | '4x3' | '16x9' | '21x9' | string;

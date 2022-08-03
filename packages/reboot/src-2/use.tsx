@@ -4,7 +4,7 @@ import invariant from 'invariant';
 import useMergedRefs from '@restart/hooks/useMergedRefs';
 import hasClass from 'dom-helpers/hasClass';
 import { Offset, Options } from '@restart/ui/usePopper';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { Popover } from './Popover';
 import { useCol, Props as _Props } from './Col';
 import { Variant } from './types';

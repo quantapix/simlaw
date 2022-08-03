@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { BsProps, BsRefComponent } from './helpers';
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {

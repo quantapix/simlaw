@@ -1,4 +1,4 @@
-import { DEFAULT_BREAKPOINTS, DEFAULT_MIN_BREAKPOINT } from './ThemeProvider';
+import { DEFAULT_BREAKPOINTS, DEFAULT_MIN_BREAKPOINT } from './Theme';
 
 export type ResponsiveUtilityValue<T> =
   | T

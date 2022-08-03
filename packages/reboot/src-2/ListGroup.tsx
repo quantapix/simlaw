@@ -11,7 +11,7 @@ import {
   NavItemProps as BaseNavItemProps,
 } from '@restart/ui/NavItem';
 import { BsProps, BsRefComponent } from './helpers';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { Variant } from './types';
 
 export interface ItemProps extends Omit<BaseNavItemProps, 'onSelect'>, BsProps {

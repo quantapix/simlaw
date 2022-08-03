@@ -27,7 +27,6 @@ export const Placeholder: BsRefComponent<'span', Props> = React.forwardRef<
   const ps = usePlaceholder(xs);
   return <Component {...ps} ref={ref} />;
 });
-
 Placeholder.displayName = 'Placeholder';
 
 Object.assign(Placeholder, {

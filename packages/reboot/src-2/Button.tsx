@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useButtonProps, ButtonProps as _Props } from '@restart/ui/Button';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { BsProps, BsRefComponent } from './helpers';
 import { ButtonVariant } from './types';
 

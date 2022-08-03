@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import * as React from 'react';
 import addEventListener from 'dom-helpers/addEventListener';
 import canUseDOM from 'dom-helpers/canUseDOM';
 import ownerDocument from 'dom-helpers/ownerDocument';
@@ -9,20 +10,144 @@ import useEventCallback from '@restart/hooks/useEventCallback';
 import useMergedRefs from '@restart/hooks/useMergedRefs';
 import useWillUnmount from '@restart/hooks/useWillUnmount';
 import transitionEnd from 'dom-helpers/transitionEnd';
-import * as React from 'react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import BaseModal, { BaseModalProps } from '@restart/ui/Modal';
 import { ModalInstance } from '@restart/ui/ModalManager';
-import { getSharedManager } from './BootstrapModalManager';
+import { getSharedManager } from './Manager';
 import { Fade } from './Fade';
-import ModalBody from './ModalBody';
-import ModalContext from './ModalContext';
-import ModalDialog from './ModalDialog';
-import ModalFooter from './ModalFooter';
-import { ModalHeader } from './ModalHeader';
-import ModalTitle from './ModalTitle';
-import { BsRefComponent } from './helpers';
-import { useBsPrefix, useIsRTL } from './ThemeProvider';
+import { BsOnlyProps, BsProps, BsRefComponent } from './helpers';
+import { useBsPrefix, useIsRTL } from './Theme';
+import { Close as CloseButton, Variant as CloseVariant } from './Button';
+import withBsPrefix from './createWithBsPrefix';
+import divWithClassName from './divWithClassName';
+
+interface ContextType {
+  onHide: () => void;
+}
+
+export const Context = React.createContext<ContextType>({
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onHide() {},
+});
+
+export interface AbsProps extends React.HTMLAttributes<HTMLDivElement> {
+  closeLabel?: string;
+  closeVariant?: CloseVariant;
+  closeButton?: boolean;
+  onHide?: () => void;
+}
+
+export const AbsHeader = React.forwardRef<HTMLDivElement, AbsProps>(
+  ({ closeLabel, closeVariant, closeButton, onHide, children, ...ps }, ref) => {
+    const context = useContext(Context);
+    const handleClick = useEventCallback(() => {
+      context?.onHide();
+      onHide?.();
+    });
+    return (
+      <div ref={ref} {...ps}>
+        {children}
+        {closeButton && (
+          <CloseButton
+            aria-label={closeLabel}
+            variant={closeVariant}
+            onClick={handleClick}
+          />
+        )}
+      </div>
+    );
+  },
+);
+
+AbsHeader.defaultProps = {
+  closeLabel: 'Close',
+  closeButton: false,
+};
+
+export interface HeaderProps extends AbsProps, BsOnlyProps {}
+
+export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
+  ({ bsPrefix, className, ...ps }, ref) => {
+    bsPrefix = useBsPrefix(bsPrefix, 'modal-header');
+    return (
+      <AbsHeader
+        ref={ref}
+        {...ps}
+        className={classNames(className, bsPrefix)}
+      />
+    );
+  },
+);
+Header.displayName = 'ModalHeader';
+Header.defaultProps = {
+  closeLabel: 'Close',
+  closeButton: false,
+};
+
+export const Body = withBsPrefix('modal-body');
+export const Footer = withBsPrefix('modal-footer');
+const DivAsH4 = divWithClassName('h4');
+export const Title = withBsPrefix('modal-title', { Component: DivAsH4 });
+
+export interface DialogProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    BsProps {
+  size?: 'sm' | 'lg' | 'xl';
+  fullscreen?:
+    | true
+    | string
+    | 'sm-down'
+    | 'md-down'
+    | 'lg-down'
+    | 'xl-down'
+    | 'xxl-down';
+  centered?: boolean;
+  scrollable?: boolean;
+  contentClassName?: string;
+}
+
+export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
+  (
+    {
+      bsPrefix,
+      className,
+      contentClassName,
+      centered,
+      size,
+      fullscreen,
+      children,
+      scrollable,
+      ...ps
+    }: DialogProps,
+    ref,
+  ) => {
+    const bs = useBsPrefix(bsPrefix, 'modal');
+    const dialogClass = `${bs}-dialog`;
+    const fullScreenClass =
+      typeof fullscreen === 'string'
+        ? `${bs}-fullscreen-${fullscreen}`
+        : `${bs}-fullscreen`;
+    return (
+      <div
+        {...ps}
+        ref={ref}
+        className={classNames(
+          dialogClass,
+          className,
+          size && `${bs}-${size}`,
+          centered && `${dialogClass}-centered`,
+          scrollable && `${dialogClass}-scrollable`,
+          fullscreen && fullScreenClass,
+        )}
+      >
+        <div className={classNames(`${bs}-content`, contentClassName)}>
+          {children}
+        </div>
+      </div>
+    );
+  },
+);
+Dialog.displayName = 'ModalDialog';
 
 export interface Props
   extends Omit<
@@ -71,7 +196,7 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
       dialogClassName,
       contentClassName,
       children,
-      dialogAs: Dialog,
+      dialogAs: Component,
       'aria-labelledby': ariaLabelledby,
       'aria-describedby': ariaDescribedby,
       'aria-label': ariaLabel,
@@ -108,10 +233,8 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
     const mergedRef = useMergedRefs(ref, setModalRef);
     const handleHide = useEventCallback(onHide);
     const isRTL = useIsRTL();
-
-    bsPrefix = useBsPrefix(bsPrefix, 'modal');
-
-    const modalContext = useMemo(
+    const bs = useBsPrefix(bsPrefix, 'modal');
+    const context = useMemo(
       () => ({
         onHide: handleHide,
       }),
@@ -228,13 +351,13 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
         <div
           {...backdropProps}
           className={classNames(
-            `${bsPrefix}-backdrop`,
+            `${bs}-backdrop`,
             backdropClassName,
             !animation && 'show',
           )}
         />
       ),
-      [animation, backdropClassName, bsPrefix],
+      [animation, backdropClassName, bs],
     );
 
     const baseModalStyle = { ...style, ...modalStyle };
@@ -247,8 +370,8 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
         style={baseModalStyle}
         className={classNames(
           className,
-          bsPrefix,
-          animateStaticModal && `${bsPrefix}-static`,
+          bs,
+          animateStaticModal && `${bs}-static`,
         )}
         onClick={backdrop ? handleClick : undefined}
         onMouseUp={handleMouseUp}
@@ -258,19 +381,19 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
       >
         {/*
         // @ts-ignore */}
-        <Dialog
+        <Component
           {...ps}
           onMouseDown={handleDialogMouseDown}
           className={dialogClassName}
           contentClassName={contentClassName}
         >
           {children}
-        </Dialog>
+        </Component>
       </div>
     );
 
     return (
-      <ModalContext.Provider value={modalContext}>
+      <Context.Provider value={context}>
         <BaseModal
           show={show}
           ref={mergedRef}
@@ -296,7 +419,7 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
           renderBackdrop={renderBackdrop}
           renderDialog={renderDialog}
         />
-      </ModalContext.Provider>
+      </Context.Provider>
     );
   },
 );
@@ -310,15 +433,15 @@ Modal.defaultProps = {
   enforceFocus: true,
   restoreFocus: true,
   animation: true,
-  dialogAs: ModalDialog,
+  dialogAs: Dialog,
 };
 
 Object.assign(Modal, {
-  Body: ModalBody,
-  Header: ModalHeader,
-  Title: ModalTitle,
-  Footer: ModalFooter,
-  Dialog: ModalDialog,
+  Body,
+  Header,
+  Title,
+  Footer,
+  Dialog,
   TRANSITION_DURATION: 300,
   BACKDROP_TRANSITION_DURATION: 150,
 });

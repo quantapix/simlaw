@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { ReactNode } from 'react';
 import Anchor from '@restart/ui/Anchor';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { BsProps, BsRefComponent } from './helpers';
 
 export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {

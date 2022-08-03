@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useMemo } from 'react';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import withBsPrefix from './createWithBsPrefix';
 import divWithClassName from './divWithClassName';
 import { BsProps, BsRefComponent } from './helpers';

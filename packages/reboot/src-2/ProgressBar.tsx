@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { cloneElement } from 'react';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { map } from './utils';
 import { BsProps } from './helpers';
 

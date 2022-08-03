@@ -3,7 +3,7 @@ import * as React from 'react';
 import { useUncontrolled } from 'uncontrollable';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import Anchor from '@restart/ui/Anchor';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { Fade } from './Fade';
 import { Close as CloseButton, Variant as CloseVariant } from './Button';
 import { Variant } from './types';

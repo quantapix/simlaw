@@ -3,7 +3,7 @@ import * as React from 'react';
 import { useContext, useMemo } from 'react';
 import warning from 'warning';
 import Switch from './Switch';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { BsOnlyProps, BsProps, BsRefComponent, AsProp } from './helpers';
 import { Col, Props as _Props } from './Col';
 import { Feedback, Type } from './Feedback';

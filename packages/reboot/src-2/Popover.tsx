@@ -1,13 +1,12 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { OverlayArrowProps } from '@restart/ui/Overlay';
-import { useBsPrefix, useIsRTL } from './ThemeProvider';
+import { useBsPrefix, useIsRTL } from './Theme';
 import { Placement, PopperRef } from './types';
 import { BsProps, getOverlayDirection } from './helpers';
 import withBsPrefix from './createWithBsPrefix';
 
 export const Header = withBsPrefix('popover-header');
-
 export const Body = withBsPrefix('popover-body');
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
@@ -58,7 +57,6 @@ export const Popover = React.forwardRef<HTMLDivElement, Props>(
     );
   },
 );
-
 Popover.defaultProps = {
   placement: 'right',
 };

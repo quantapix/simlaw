@@ -10,7 +10,7 @@ import {
 } from '@restart/ui/NavItem';
 import { makeEventKey } from '@restart/ui/SelectableContext';
 import { EventKey } from '@restart/ui/types';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { Context as NContext } from './Navbar';
 import { HeaderContext as CContext } from './Card';
 import { BsProps, BsRefComponent } from './helpers';

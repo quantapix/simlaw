@@ -1,10 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import {
-  useBsPrefix,
-  useBsBreakpoints,
-  useBsMinBreakpoint,
-} from './ThemeProvider';
+import { useBsPrefix, useBsBreakpoints, useBsMinBreakpoint } from './Theme';
 import { BsProps, BsRefComponent } from './helpers';
 import { GapValue } from './types';
 import createUtilityClassName, {

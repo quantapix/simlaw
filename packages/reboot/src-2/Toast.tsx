@@ -8,7 +8,7 @@ import Transition, {
   EXITING,
 } from 'react-transition-group/Transition';
 import useEventCallback from '@restart/hooks/useEventCallback';
-import { useBsPrefix } from './ThemeProvider';
+import { useBsPrefix } from './Theme';
 import { BsOnlyProps, BsProps, BsRefComponent } from './helpers';
 import { Variant } from './types';
 import { Fade, Props as _Props } from './Fade';

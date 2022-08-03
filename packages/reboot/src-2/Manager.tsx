@@ -13,14 +13,13 @@ const Selector = {
   NAVBAR_TOGGLER: '.navbar-toggler',
 };
 
-class BootstrapModalManager extends ModalManager {
+export class Manager extends ModalManager {
   private adjustAndStore<T extends keyof CSSStyleDeclaration>(
     prop: T,
     element: HTMLElement,
     adjust: number,
   ) {
     const actual = element.style[prop];
-    // TODO: DOMStringMap and CSSStyleDeclaration aren't strictly compatible
     // @ts-ignore
     element.dataset[prop] = actual;
     css(element, {
@@ -41,15 +40,11 @@ class BootstrapModalManager extends ModalManager {
 
   setContainerStyle(containerState: ContainerState) {
     super.setContainerStyle(containerState);
-
     const container = this.getElement();
     addClass(container, 'modal-open');
-
     if (!containerState.scrollBarWidth) return;
-
     const paddingProp = this.isRTL ? 'paddingLeft' : 'paddingRight';
     const marginProp = this.isRTL ? 'marginLeft' : 'marginRight';
-
     qsa(container, Selector.FIXED_CONTENT).forEach((el) =>
       this.adjustAndStore(paddingProp, el, containerState.scrollBarWidth),
     );
@@ -63,13 +58,10 @@ class BootstrapModalManager extends ModalManager {
 
   removeContainerStyle(containerState: ContainerState) {
     super.removeContainerStyle(containerState);
-
     const container = this.getElement();
     removeClass(container, 'modal-open');
-
     const paddingProp = this.isRTL ? 'paddingLeft' : 'paddingRight';
     const marginProp = this.isRTL ? 'marginLeft' : 'marginRight';
-
     qsa(container, Selector.FIXED_CONTENT).forEach((el) =>
       this.restore(paddingProp, el),
     );
@@ -82,10 +74,8 @@ class BootstrapModalManager extends ModalManager {
   }
 }
 
-let sharedManager: BootstrapModalManager | undefined;
+let sharedManager: Manager | undefined;
 export function getSharedManager(options?: ModalManagerOptions) {
-  if (!sharedManager) sharedManager = new BootstrapModalManager(options);
+  if (!sharedManager) sharedManager = new Manager(options);
   return sharedManager;
 }
-
-export default BootstrapModalManager;
