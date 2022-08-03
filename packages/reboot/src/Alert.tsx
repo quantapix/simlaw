@@ -7,17 +7,16 @@ import { useBsPrefix } from './Theme';
 import { Fade } from './Fade';
 import { Close, Variant as CloseVariant } from './Button';
 import { Variant } from './types';
-import divWithClassName from './divWithClassName';
-import withBsPrefix from './createWithBsPrefix';
+import { divAs, withBs } from './utils';
 import { TransitionType } from './helpers';
 
-export const Link = withBsPrefix('alert-link', {
+export const Link = withBs('alert-link', {
   Component: Anchor,
 });
 
-const DivAsH4 = divWithClassName('h4');
+const DivAsH4 = divAs('h4');
 DivAsH4.displayName = 'DivStyledAsH4';
-export const Heading = withBsPrefix('alert-heading', {
+export const Heading = withBs('alert-heading', {
   Component: DivAsH4,
 });
 

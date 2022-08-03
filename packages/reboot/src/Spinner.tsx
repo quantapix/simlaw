@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useBsPrefix } from './Theme';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 import { Variant } from './types';
 
 export interface Props extends React.HTMLAttributes<HTMLElement>, BsProps {
@@ -10,7 +10,7 @@ export interface Props extends React.HTMLAttributes<HTMLElement>, BsProps {
   variant?: Variant;
 }
 
-export const Spinner: BsRefComponent<'div', Props> = React.forwardRef<
+export const Spinner: BsRefComp<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
 >(

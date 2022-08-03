@@ -29,7 +29,7 @@ export function Theme({
   dir,
   children,
 }: Props) {
-  const contextValue = useMemo(
+  const v = useMemo(
     () => ({
       prefixes: { ...prefixes },
       breakpoints,
@@ -38,7 +38,7 @@ export function Theme({
     }),
     [prefixes, breakpoints, minBreakpoint, dir],
   );
-  return <Provider value={contextValue}>{children}</Provider>;
+  return <Provider value={v}>{children}</Provider>;
 }
 
 export function useBsPrefix(
@@ -64,17 +64,17 @@ export function useIsRTL() {
   return dir === 'rtl';
 }
 
-export function createBsComponent(Component, opts) {
-  if (typeof opts === 'string') opts = { prefix: opts };
-  const isClassy = Component.prototype && Component.prototype.isReactComponent;
-  const { prefix, forwardRefAs = isClassy ? 'ref' : 'innerRef' } = opts;
+export function createBsComponent(X, xs) {
+  if (typeof xs === 'string') xs = { prefix: xs };
+  const isClassy = X.prototype && X.prototype.isReactComponent;
+  const { prefix, forwardRefAs = isClassy ? 'ref' : 'innerRef' } = xs;
   const Wrapped = React.forwardRef<any, { bsPrefix?: string }>(
-    ({ ...props }, ref) => {
-      props[forwardRefAs] = ref;
-      const bsPrefix = useBsPrefix((props as any).bsPrefix, prefix);
-      return <Component {...props} bsPrefix={bsPrefix} />;
+    ({ ...ps }, ref) => {
+      ps[forwardRefAs] = ref;
+      const bs = useBsPrefix((ps as any).bsPrefix, prefix);
+      return <X {...ps} bsPrefix={bs} />;
     },
   );
-  Wrapped.displayName = `Bootstrap(${Component.displayName || Component.name})`;
+  Wrapped.displayName = `Bootstrap(${X.displayName || X.name})`;
   return Wrapped;
 }

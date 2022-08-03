@@ -22,8 +22,8 @@ import { useUncontrolled } from 'uncontrollable';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import { Context as InputGroupContext } from './InputGroup';
 import { useBsPrefix, useIsRTL } from './Theme';
-import withBsPrefix from './createWithBsPrefix';
-import { BsProps, BsRefComponent } from './helpers';
+import { withBs } from './utils';
+import { BsProps, BsRefComp } from './helpers';
 import { Context as NavbarContext } from './Navbar';
 import { useWrappedRef } from './use';
 import { AlignType, AlignDirection, Placement } from './types';
@@ -75,7 +75,7 @@ export function getMenuPlacement(
   return placement;
 }
 
-export const Menu: BsRefComponent<'div', MenuProps> = React.forwardRef<
+export const Menu: BsRefComp<'div', MenuProps> = React.forwardRef<
   HTMLElement,
   MenuProps
 >(
@@ -181,7 +181,7 @@ export interface ToggleProps extends Omit<_BProps, 'as'> {
   childBsPrefix?: string;
 }
 
-type ToggleComponent = BsRefComponent<'button', ToggleProps>;
+type ToggleComponent = BsRefComp<'button', ToggleProps>;
 
 export type PropsFromToggle = Partial<
   Pick<React.ComponentPropsWithRef<ToggleComponent>, CommonProps>
@@ -226,20 +226,20 @@ export const Toggle: ToggleComponent = React.forwardRef(
 );
 Toggle.displayName = 'DropdownToggle';
 
-export const Header = withBsPrefix('dropdown-header', {
+export const Header = withBs('dropdown-header', {
   defaultProps: { role: 'heading' },
 });
-export const Divider = withBsPrefix('dropdown-divider', {
+export const Divider = withBs('dropdown-divider', {
   Component: 'hr',
   defaultProps: { role: 'separator' },
 });
-export const ItemText = withBsPrefix('dropdown-item-text', {
+export const ItemText = withBs('dropdown-item-text', {
   Component: 'span',
 });
 
 export interface ItemProps extends BaseDropdownItemProps, BsProps {}
 
-export const Item: BsRefComponent<typeof BaseDropdownItem, ItemProps> =
+export const Item: BsRefComp<typeof BaseDropdownItem, ItemProps> =
   React.forwardRef(
     (
       {
@@ -291,7 +291,7 @@ export interface Props
   autoClose?: boolean | 'outside' | 'inside';
 }
 
-export const Dropdown: BsRefComponent<'div', Props> = React.forwardRef<
+export const Dropdown: BsRefComp<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
 >((xs, ref) => {
@@ -331,7 +331,7 @@ export const Dropdown: BsRefComponent<'div', Props> = React.forwardRef<
   );
   const alignEnd = align === 'end';
   const placement = getMenuPlacement(alignEnd, drop, isRTL);
-  const contextValue = useMemo(
+  const v = useMemo(
     () => ({
       align,
       drop,
@@ -340,7 +340,7 @@ export const Dropdown: BsRefComponent<'div', Props> = React.forwardRef<
     [align, drop, isRTL],
   );
   return (
-    <Context.Provider value={contextValue}>
+    <Context.Provider value={v}>
       <BaseDropdown
         placement={placement}
         show={show}
@@ -388,7 +388,7 @@ export interface ButtonProps
   flip?: boolean;
 }
 
-export const Button: BsRefComponent<'div', ButtonProps> = React.forwardRef<
+export const Button: BsRefComp<'div', ButtonProps> = React.forwardRef<
   HTMLDivElement,
   ButtonProps
 >(
@@ -446,7 +446,7 @@ export interface NavProps extends Omit<Props, 'title'> {
   menuVariant?: Variant;
 }
 
-export const Nav: BsRefComponent<'div', NavProps> = React.forwardRef(
+export const Nav: BsRefComp<'div', NavProps> = React.forwardRef(
   (
     {
       id,

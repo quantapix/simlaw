@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 import { usePlaceholder, Props as _Props } from './use';
 import { Button as B } from './Button';
 import { ButtonVariant } from './types';
@@ -8,7 +8,7 @@ export interface ButtonProps extends Props {
   variant?: ButtonVariant;
 }
 
-export const Button: BsRefComponent<'button', ButtonProps> = React.forwardRef<
+export const Button: BsRefComp<'button', ButtonProps> = React.forwardRef<
   HTMLButtonElement,
   ButtonProps
 >((xs, ref) => {
@@ -20,7 +20,7 @@ Button.displayName = 'PlaceholderButton';
 
 export interface Props extends _Props, BsProps {}
 
-export const Placeholder: BsRefComponent<'span', Props> = React.forwardRef<
+export const Placeholder: BsRefComp<'span', Props> = React.forwardRef<
   HTMLElement,
   Props
 >(({ as: X = 'span', ...xs }, ref) => {

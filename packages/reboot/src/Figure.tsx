@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { Image as X, Props } from './Image';
-import withBsPrefix from './createWithBsPrefix';
+import { withBs } from './utils';
 
 export const Image = React.forwardRef<HTMLImageElement, Props>(
   ({ className, ...ps }, ref) => (
@@ -11,10 +11,10 @@ export const Image = React.forwardRef<HTMLImageElement, Props>(
 Image.displayName = 'FigureImage';
 Image.defaultProps = { fluid: true };
 
-export const Caption = withBsPrefix('figure-caption', {
+export const Caption = withBs('figure-caption', {
   Component: 'figcaption',
 });
 
-export const Figure = withBsPrefix('figure', {
+export const Figure = withBs('figure', {
   Component: 'figure',
 });

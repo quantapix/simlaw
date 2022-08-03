@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useBsPrefix } from './Theme';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 import { Color, Variant } from './types';
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
@@ -10,7 +10,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   text?: Color;
 }
 
-export const Badge: BsRefComponent<'span', Props> = React.forwardRef<
+export const Badge: BsRefComp<'span', Props> = React.forwardRef<
   HTMLElement,
   Props
 >(({ bsPrefix, bg, pill, text, className, as: X = 'span', ...ps }, ref) => {

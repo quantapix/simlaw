@@ -24,11 +24,10 @@ import { TransitionCallbacks } from '@restart/ui/types';
 import { Fade } from './Fade';
 import { AbsHeader, AbsProps as HProps, Context as MContext } from './Modal';
 import { Context as NContext } from './Navbar';
-import { BsOnlyProps, BsRefComponent } from './helpers';
+import { BsOnlyProps, BsRefComp } from './helpers';
 import { useBsPrefix } from './Theme';
 import { Manager, getSharedManager } from './Manager';
-import withBsPrefix from './createWithBsPrefix';
-import divWithClassName from './divWithClassName';
+import { divAs, withBs } from './utils';
 import transitionEndListener from './transitionEndListener';
 import { TransitionWrapper } from './TransitionWrapper';
 
@@ -52,9 +51,9 @@ Header.defaultProps = {
   closeButton: false,
 };
 
-export const Body = withBsPrefix('offcanvas-body');
-const DivAsH5 = divWithClassName('h5');
-export const Title = withBsPrefix('offcanvas-title', {
+export const Body = withBs('offcanvas-body');
+const DivAsH5 = divAs('h5');
+export const Title = withBs('offcanvas-title', {
   Component: DivAsH5,
 });
 
@@ -135,7 +134,7 @@ function BackdropTransition(ps) {
   return <Fade {...ps} />;
 }
 
-export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
+export const Offcanvas: BsRefComp<'div', Props> = React.forwardRef<
   ModalHandle,
   Props
 >(
@@ -190,7 +189,7 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
       onHide?.();
     });
 
-    const modalContext = useMemo(
+    const v = useMemo(
       () => ({
         onHide: handleHide,
       }),
@@ -245,7 +244,7 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
       <>
         {/**/}
         {!showOffcanvas && (responsive || renderStaticNode) && renderDialog({})}
-        <MContext.Provider value={modalContext}>
+        <MContext.Provider value={v}>
           <BaseModal
             show={showOffcanvas}
             ref={ref}

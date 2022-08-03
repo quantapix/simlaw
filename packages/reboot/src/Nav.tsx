@@ -10,8 +10,8 @@ import { EventKey } from '@restart/ui/types';
 import { useBsPrefix } from './Theme';
 import { Context as NContext } from './Navbar';
 import { Context as CContext } from './Card';
-import { BsProps, BsRefComponent } from './helpers';
-import withBsPrefix from './createWithBsPrefix';
+import { BsProps, BsRefComp } from './helpers';
+import { withBs } from './utils';
 
 interface Data {
   role?: string;
@@ -23,11 +23,11 @@ interface Data {
 export const Context = React.createContext<Data | null>(null);
 Context.displayName = 'NavContext';
 
-export const Item = withBsPrefix('nav-item');
+export const Item = withBs('nav-item');
 
 export interface LinkProps extends BsProps, Omit<IPs, 'as'> {}
 
-export const Link: BsRefComponent<'a', LinkProps> = React.forwardRef<
+export const Link: BsRefComp<'a', LinkProps> = React.forwardRef<
   HTMLElement,
   LinkProps
 >(({ bsPrefix, className, as: X = Anchor, active, eventKey, ...ps }, ref) => {
@@ -67,7 +67,7 @@ export interface Props extends BsProps, _Props {
   navbarScroll?: boolean;
 }
 
-export const Nav: BsRefComponent<'div', Props> = React.forwardRef<
+export const Nav: BsRefComp<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
 >((xs, ref) => {

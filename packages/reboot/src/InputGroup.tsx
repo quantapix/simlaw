@@ -1,15 +1,15 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useMemo } from 'react';
-import withBsPrefix from './createWithBsPrefix';
+import { withBs } from './utils';
 import { useBsPrefix } from './Theme';
 import { Input } from './Form';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 
 export const Context = React.createContext<unknown | null>(null);
 Context.displayName = 'InputGroupContext';
 
-export const Text = withBsPrefix('input-group-text', {
+export const Text = withBs('input-group-text', {
   Component: 'span',
 });
 
@@ -30,7 +30,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   hasValidation?: boolean;
 }
 
-export const InputGroup: BsRefComponent<'div', Props> = React.forwardRef<
+export const InputGroup: BsRefComp<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
 >(({ bsPrefix, size, hasValidation, className, as: X = 'div', ...ps }, ref) => {

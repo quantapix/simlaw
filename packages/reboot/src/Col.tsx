@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useBsPrefix, useBsBreakpoints, useBsMinBreakpoint } from './Theme';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 
 type NumberAttr =
   | number
@@ -81,7 +81,7 @@ export function useCol({
   ];
 }
 
-export const Col: BsRefComponent<'div', Props> = React.forwardRef<
+export const Col: BsRefComp<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
 >((xs, ref) => {

@@ -7,7 +7,7 @@ import { EventKey } from '@restart/ui/types';
 import { makeEventKey } from '@restart/ui/SelectableContext';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import { useNavItem, NavItemProps as IPs } from '@restart/ui/NavItem';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 import { useBsPrefix } from './Theme';
 import { Variant } from './types';
 
@@ -17,7 +17,7 @@ export interface ItemProps extends Omit<IPs, 'onSelect'>, BsProps {
   variant?: Variant;
 }
 
-export const Item: BsRefComponent<'a', ItemProps> = React.forwardRef<
+export const Item: BsRefComp<'a', ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
 >(
@@ -82,7 +82,7 @@ export interface Props extends BsProps, BaseNavProps {
   numbered?: boolean;
 }
 
-export const ListGroup: BsRefComponent<'div', Props> = React.forwardRef<
+export const ListGroup: BsRefComp<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
 >((xs, ref) => {

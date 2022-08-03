@@ -3,7 +3,7 @@ import * as React from 'react';
 import { OverlayArrowProps } from '@restart/ui/Overlay';
 import { useBsPrefix, useIsRTL } from './Theme';
 import { Placement, PopperRef } from './types';
-import { BsProps, getOverlayDirection } from './helpers';
+import { BsProps, getDirection } from './helpers';
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
   placement?: Placement;
@@ -30,7 +30,7 @@ export const Tooltip = React.forwardRef<HTMLDivElement, Props>(
     bsPrefix = useBsPrefix(bsPrefix, 'tooltip');
     const isRTL = useIsRTL();
     const [primaryPlacement] = placement?.split('-') || [];
-    const bsDirection = getOverlayDirection(primaryPlacement, isRTL);
+    const bsDirection = getDirection(primaryPlacement, isRTL);
     return (
       <div
         ref={ref}

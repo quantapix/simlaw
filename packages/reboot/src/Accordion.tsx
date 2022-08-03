@@ -4,7 +4,7 @@ import { useContext, useMemo } from 'react';
 import { useUncontrolled } from 'uncontrollable';
 import { Transition } from 'react-transition-group';
 import { useBsPrefix } from './Theme';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 import { Collapse as C, Props as CPs } from './Collapse';
 
 export type Key = string | string[] | null | undefined;
@@ -62,7 +62,7 @@ export function useButton(key: string, onClick?: EventHandler): EventHandler {
   };
 }
 
-export const Button: BsRefComponent<'div', ButtonProps> = React.forwardRef<
+export const Button: BsRefComp<'div', ButtonProps> = React.forwardRef<
   HTMLButtonElement,
   ButtonProps
 >(({ as: X = 'button', bsPrefix, className, onClick, ...ps }, ref) => {
@@ -93,7 +93,7 @@ export interface HeaderProps
   extends BsProps,
     React.HTMLAttributes<HTMLElement> {}
 
-export const Header: BsRefComponent<'h2', HeaderProps> = React.forwardRef<
+export const Header: BsRefComp<'h2', HeaderProps> = React.forwardRef<
   HTMLElement,
   HeaderProps
 >(({ as: X = 'h2', bsPrefix, className, children, onClick, ...ps }, ref) => {
@@ -110,7 +110,7 @@ export interface CollapseProps extends BsProps, CPs {
   eventKey: string;
 }
 
-export const Collapse: BsRefComponent<'div', CollapseProps> = React.forwardRef<
+export const Collapse: BsRefComp<'div', CollapseProps> = React.forwardRef<
   Transition<any>,
   CollapseProps
 >(({ as: X = 'div', bsPrefix, className, children, eventKey, ...ps }, ref) => {
@@ -131,7 +131,7 @@ Collapse.displayName = 'AccordionCollapse';
 
 export interface BodyProps extends BsProps, React.HTMLAttributes<HTMLElement> {}
 
-export const Body: BsRefComponent<'div', BodyProps> = React.forwardRef<
+export const Body: BsRefComp<'div', BodyProps> = React.forwardRef<
   HTMLElement,
   BodyProps
 >(({ as: X = 'div', bsPrefix, className, ...ps }, ref) => {
@@ -149,7 +149,7 @@ export interface ItemProps extends BsProps, React.HTMLAttributes<HTMLElement> {
   eventKey: string;
 }
 
-export const Item: BsRefComponent<'div', ItemProps> = React.forwardRef<
+export const Item: BsRefComp<'div', ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
 >(({ as: X = 'div', bsPrefix, className, eventKey, ...ps }, ref) => {
@@ -178,7 +178,7 @@ export interface Props
   alwaysOpen?: boolean;
 }
 
-export const Accordion: BsRefComponent<'div', Props> = React.forwardRef<
+export const Accordion: BsRefComp<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
 >((xs, ref) => {

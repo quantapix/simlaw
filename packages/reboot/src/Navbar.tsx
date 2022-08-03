@@ -5,10 +5,10 @@ import SelectableContext from '@restart/ui/SelectableContext';
 import { SelectCallback } from '@restart/ui/types';
 import { useUncontrolled } from 'uncontrollable';
 import useEventCallback from '@restart/hooks/useEventCallback';
-import withBsPrefix from './createWithBsPrefix';
+import { withBs } from './utils';
 import { Collapse as CBase, Props as _CProps } from './Collapse';
 import { useBsPrefix } from './Theme';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 import { Offcanvas as OBase, Props as _OProps } from './Offcanvas';
 
 export interface Data {
@@ -21,7 +21,7 @@ export interface Data {
 export const Context = React.createContext<Data | null>(null);
 Context.displayName = 'NavbarContext';
 
-export const Text = withBsPrefix('navbar-text', {
+export const Text = withBs('navbar-text', {
   Component: 'span',
 });
 
@@ -29,7 +29,7 @@ export interface BrandProps extends BsProps, React.HTMLAttributes<HTMLElement> {
   href?: string;
 }
 
-export const Brand: BsRefComponent<'a', BrandProps> = React.forwardRef<
+export const Brand: BsRefComp<'a', BrandProps> = React.forwardRef<
   HTMLElement,
   BrandProps
 >(({ bsPrefix, className, as, ...ps }, ref) => {
@@ -79,7 +79,7 @@ export interface ToggleProps
   label?: string;
 }
 
-export const Toggle: BsRefComponent<'button', ToggleProps> = React.forwardRef<
+export const Toggle: BsRefComp<'button', ToggleProps> = React.forwardRef<
   HTMLElement,
   ToggleProps
 >(
@@ -128,7 +128,7 @@ export interface Props
   expanded?: boolean;
 }
 
-export const Navbar: BsRefComponent<'nav', Props> = React.forwardRef<
+export const Navbar: BsRefComp<'nav', Props> = React.forwardRef<
   HTMLElement,
   Props
 >((xs, ref) => {

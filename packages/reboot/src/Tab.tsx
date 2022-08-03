@@ -12,8 +12,8 @@ import Tabs, { TabsProps } from '@restart/ui/Tabs';
 import NoopTransition from '@restart/ui/NoopTransition';
 import { useBsPrefix } from './Theme';
 import { Fade } from './Fade';
-import { BsProps, BsRefComponent, TransitionType } from './helpers';
-import withBsPrefix from './createWithBsPrefix';
+import { BsProps, BsRefComp, TransitionType } from './helpers';
+import { withBs } from './utils';
 
 export function getTabTransitionComponent(
   x?: TransitionType,
@@ -33,7 +33,7 @@ export const Container = ({ transition, ...props }: ContainerProps) => (
 );
 Container.displayName = 'TabContainer';
 
-export const Content = withBsPrefix('tab-content');
+export const Content = withBs('tab-content');
 
 export interface PaneProps
   extends TransitionCallbacks,
@@ -46,7 +46,7 @@ export interface PaneProps
   unmountOnExit?: boolean;
 }
 
-export const Pane: BsRefComponent<'div', PaneProps> = React.forwardRef<
+export const Pane: BsRefComp<'div', PaneProps> = React.forwardRef<
   HTMLElement,
   PaneProps
 >(({ bsPrefix, transition, ...xs }, ref) => {

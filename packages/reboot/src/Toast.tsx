@@ -9,11 +9,11 @@ import Transition, {
 } from 'react-transition-group/Transition';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import { useBsPrefix } from './Theme';
-import { BsOnlyProps, BsProps, BsRefComponent } from './helpers';
+import { BsOnlyProps, BsProps, BsRefComp } from './helpers';
 import { Variant } from './types';
 import { Fade, Props as _Props } from './Fade';
 import { Close, Variant as CloseVariant } from './Button';
-import withBsPrefix from './createWithBsPrefix';
+import { withBs } from './utils';
 
 export interface Data {
   onClose?: (e?: React.MouseEvent | React.KeyboardEvent) => void;
@@ -71,7 +71,7 @@ Header.defaultProps = {
   closeButton: true,
 };
 
-export const Body = withBsPrefix('toast-body');
+export const Body = withBs('toast-body');
 
 const styles = {
   [ENTERING]: 'showing',
@@ -93,7 +93,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   bg?: Variant;
 }
 
-export const Toast: BsRefComponent<'div', Props> = React.forwardRef<
+export const Toast: BsRefComp<'div', Props> = React.forwardRef<
   HTMLDivElement,
   Props
 >(
@@ -134,7 +134,7 @@ export const Toast: BsRefComponent<'div', Props> = React.forwardRef<
       autohideTimeout.set(autohideFunc, delayRef.current);
     }, [autohideTimeout, autohideFunc]);
 
-    const context = useMemo(
+    const v = useMemo(
       () => ({
         onClose,
       }),
@@ -157,7 +157,7 @@ export const Toast: BsRefComponent<'div', Props> = React.forwardRef<
       />
     );
     return (
-      <Context.Provider value={context}>
+      <Context.Provider value={v}>
         {hasAnimation && X ? (
           <X in={show} unmountOnExit>
             {toast}
@@ -201,35 +201,37 @@ const positionClasses = {
   'bottom-end': 'bottom-0 end-0',
 };
 
-export const Container: BsRefComponent<'div', ContainerProps> =
-  React.forwardRef<HTMLDivElement, ContainerProps>(
-    (
-      {
-        bsPrefix,
-        position,
-        containerPosition = 'absolute',
-        className,
-        as: X = 'div',
-        ...ps
-      },
-      ref,
-    ) => {
-      bsPrefix = useBsPrefix(bsPrefix, 'toast-container');
-      return (
-        <X
-          ref={ref}
-          {...ps}
-          className={classNames(
-            bsPrefix,
-            position && [
-              containerPosition ? `position-${containerPosition}` : null,
-              positionClasses[position],
-            ],
-            className,
-          )}
-        />
-      );
+export const Container: BsRefComp<'div', ContainerProps> = React.forwardRef<
+  HTMLDivElement,
+  ContainerProps
+>(
+  (
+    {
+      bsPrefix,
+      position,
+      containerPosition = 'absolute',
+      className,
+      as: X = 'div',
+      ...ps
     },
-  );
+    ref,
+  ) => {
+    bsPrefix = useBsPrefix(bsPrefix, 'toast-container');
+    return (
+      <X
+        ref={ref}
+        {...ps}
+        className={classNames(
+          bsPrefix,
+          position && [
+            containerPosition ? `position-${containerPosition}` : null,
+            positionClasses[position],
+          ],
+          className,
+        )}
+      />
+    );
+  },
+);
 
 Container.displayName = 'ToastContainer';

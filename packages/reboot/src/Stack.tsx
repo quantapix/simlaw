@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useBsPrefix, useBsBreakpoints, useBsMinBreakpoint } from './Theme';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 import { GapValue } from './types';
 import createUtilityClassName, {
   ResponsiveUtilityValue,
@@ -14,7 +14,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   gap?: ResponsiveUtilityValue<GapValue>;
 }
 
-export const Stack: BsRefComponent<'span', Props> = React.forwardRef<
+export const Stack: BsRefComp<'span', Props> = React.forwardRef<
   HTMLElement,
   Props
 >(({ as: X = 'div', bsPrefix, className, direction, gap, ...ps }, ref) => {

@@ -15,11 +15,10 @@ import BaseModal, { BaseModalProps } from '@restart/ui/Modal';
 import { ModalInstance } from '@restart/ui/ModalManager';
 import { getSharedManager } from './Manager';
 import { Fade } from './Fade';
-import { BsOnlyProps, BsProps, BsRefComponent } from './helpers';
+import { BsOnlyProps, BsProps, BsRefComp } from './helpers';
 import { useBsPrefix, useIsRTL } from './Theme';
-import { Close as CloseButton, Variant as CloseVariant } from './Button';
-import withBsPrefix from './createWithBsPrefix';
-import divWithClassName from './divWithClassName';
+import { Close, Variant as CloseVariant } from './Button';
+import { divAs, withBs } from './utils';
 
 interface Data {
   onHide: () => void;
@@ -48,7 +47,7 @@ export const AbsHeader = React.forwardRef<HTMLDivElement, AbsProps>(
       <div ref={ref} {...ps}>
         {children}
         {closeButton && (
-          <CloseButton
+          <Close
             aria-label={closeLabel}
             variant={closeVariant}
             onClick={handleClick}
@@ -84,10 +83,10 @@ Header.defaultProps = {
   closeButton: false,
 };
 
-export const Body = withBsPrefix('modal-body');
-export const Footer = withBsPrefix('modal-footer');
-const DivAsH4 = divWithClassName('h4');
-export const Title = withBsPrefix('modal-title', { Component: DivAsH4 });
+export const Body = withBs('modal-body');
+export const Footer = withBs('modal-footer');
+const DivAsH4 = divAs('h4');
+export const Title = withBs('modal-title', { Component: DivAsH4 });
 
 export interface DialogProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -187,7 +186,7 @@ function BackdropTransition(ps) {
   return <Fade {...ps} timeout={null} />;
 }
 
-export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
+export const Modal: BsRefComp<'div', Props> = React.forwardRef(
   (
     {
       bsPrefix,
@@ -196,7 +195,7 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
       dialogClassName,
       contentClassName,
       children,
-      dialogAs: Component,
+      dialogAs: X,
       'aria-labelledby': ariaLabelledby,
       'aria-describedby': ariaDescribedby,
       'aria-label': ariaLabel,
@@ -234,7 +233,7 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
     const handleHide = useEventCallback(onHide);
     const isRTL = useIsRTL();
     const bs = useBsPrefix(bsPrefix, 'modal');
-    const context = useMemo(
+    const v = useMemo(
       () => ({
         onHide: handleHide,
       }),
@@ -378,18 +377,18 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
       >
         {/*
         // @ts-ignore */}
-        <Component
+        <X
           {...ps}
           onMouseDown={handleDialogMouseDown}
           className={dialogClassName}
           contentClassName={contentClassName}
         >
           {children}
-        </Component>
+        </X>
       </div>
     );
     return (
-      <Context.Provider value={context}>
+      <Context.Provider value={v}>
         <BaseModal
           show={show}
           ref={mergedRef}

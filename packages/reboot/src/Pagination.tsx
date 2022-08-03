@@ -3,7 +3,7 @@ import * as React from 'react';
 import { ReactNode } from 'react';
 import Anchor from '@restart/ui/Anchor';
 import { useBsPrefix } from './Theme';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 
 export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
   disabled?: boolean;
@@ -12,7 +12,7 @@ export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
   href?: string;
 }
 
-export const Item: BsRefComponent<'li', ItemProps> = React.forwardRef<
+export const Item: BsRefComp<'li', ItemProps> = React.forwardRef<
   HTMLLIElement,
   ItemProps
 >(

@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useBsPrefix, useBsBreakpoints, useBsMinBreakpoint } from './Theme';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 
 type ColWidth =
   | number
@@ -30,7 +30,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   [key: string]: any;
 }
 
-export const Row: BsRefComponent<'div', Props> = React.forwardRef<
+export const Row: BsRefComp<'div', Props> = React.forwardRef<
   HTMLDivElement,
   Props
 >(({ bsPrefix, className, as: X = 'div', ...ps }: Props, ref) => {

@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import Anchor from '@restart/ui/Anchor';
 import { useBsPrefix } from './Theme';
-import { BsProps, BsRefComponent } from './helpers';
+import { BsProps, BsRefComp } from './helpers';
 
 export interface ItemProps
   extends BsProps,
@@ -15,7 +15,7 @@ export interface ItemProps
   linkProps?: Record<string, any>;
 }
 
-export const Item: BsRefComponent<'li', ItemProps> = React.forwardRef<
+export const Item: BsRefComp<'li', ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
 >(
@@ -66,7 +66,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   listProps?: React.OlHTMLAttributes<HTMLOListElement>;
 }
 
-export const Breadcrumb: BsRefComponent<'nav', Props> = React.forwardRef<
+export const Breadcrumb: BsRefComp<'nav', Props> = React.forwardRef<
   HTMLElement,
   Props
 >(

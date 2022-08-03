@@ -3,13 +3,13 @@ import * as React from 'react';
 import { OverlayArrowProps } from '@restart/ui/Overlay';
 import { useBsPrefix, useIsRTL } from './Theme';
 import { Placement, PopperRef } from './types';
-import { BsProps, getOverlayDirection } from './helpers';
-import withBsPrefix from './createWithBsPrefix';
+import { BsProps, getDirection } from './helpers';
+import { withBs } from './utils';
 
 export const POPPER_OFFSET = [0, 8];
 
-export const Header = withBsPrefix('popover-header');
-export const Body = withBsPrefix('popover-body');
+export const Header = withBs('popover-header');
+export const Body = withBs('popover-body');
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
   placement?: Placement;
@@ -39,7 +39,7 @@ export const Popover = React.forwardRef<HTMLDivElement, Props>(
     const decoratedBsPrefix = useBsPrefix(bsPrefix, 'popover');
     const isRTL = useIsRTL();
     const [primaryPlacement] = placement?.split('-') || [];
-    const bsDirection = getOverlayDirection(primaryPlacement, isRTL);
+    const bsDirection = getDirection(primaryPlacement, isRTL);
     return (
       <div
         ref={ref}

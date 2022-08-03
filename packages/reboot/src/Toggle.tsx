@@ -10,7 +10,7 @@ import {
   GroupProps as GPs,
 } from './Button';
 import { map, createChainedFunction } from './utils';
-import { BsRefComponent } from './helpers';
+import { BsRefComp } from './helpers';
 
 export type Type = 'checkbox' | 'radio';
 
@@ -93,7 +93,7 @@ export interface CheckboxProps<T> extends Base {
 
 export type GroupProps<T> = RadioProps<T> | CheckboxProps<T>;
 
-export const Group: BsRefComponent<'a', GroupProps<any>> = React.forwardRef<
+export const Group: BsRefComp<'a', GroupProps<any>> = React.forwardRef<
   HTMLElement,
   GroupProps<any>
 >((xs, ref) => {
