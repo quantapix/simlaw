@@ -1,21 +1,18 @@
 import classNames from 'classnames';
 import * as React from 'react';
-
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { BsProps, BsRefComponent } from './helpers';
 import { Variant } from './types';
 
-export interface SpinnerProps
-  extends React.HTMLAttributes<HTMLElement>,
-    BsProps {
+export interface Props extends React.HTMLAttributes<HTMLElement>, BsProps {
   animation: 'border' | 'grow';
   size?: 'sm';
   variant?: Variant;
 }
 
-const Spinner: BsRefComponent<'div', SpinnerProps> = React.forwardRef<
+export const Spinner: BsRefComponent<'div', Props> = React.forwardRef<
   HTMLElement,
-  SpinnerProps
+  Props
 >(
   (
     {
@@ -23,20 +20,18 @@ const Spinner: BsRefComponent<'div', SpinnerProps> = React.forwardRef<
       variant,
       animation,
       size,
-      // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
       as: Component = 'div',
       className,
-      ...props
+      ...ps
     },
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'spinner');
-    const bsSpinnerPrefix = `${bsPrefix}-${animation}`;
-
+    const bs = useBsPrefix(bsPrefix, 'spinner');
+    const bsSpinnerPrefix = `${bs}-${animation}`;
     return (
       <Component
         ref={ref}
-        {...props}
+        {...ps}
         className={classNames(
           className,
           bsSpinnerPrefix,
@@ -47,7 +42,4 @@ const Spinner: BsRefComponent<'div', SpinnerProps> = React.forwardRef<
     );
   },
 );
-
 Spinner.displayName = 'Spinner';
-
-export default Spinner;

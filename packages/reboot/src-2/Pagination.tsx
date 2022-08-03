@@ -1,27 +1,81 @@
 import classNames from 'classnames';
 import * as React from 'react';
+import { ReactNode } from 'react';
+import Anchor from '@restart/ui/Anchor';
+import { useBsPrefix } from './ThemeProvider';
+import { BsProps, BsRefComponent } from './helpers';
 
-import { useBootstrapPrefix } from './ThemeProvider';
-import PageItem, { Ellipsis, First, Last, Next, Prev } from './PageItem';
-import { BsProps } from './helpers';
+export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
+  disabled?: boolean;
+  active?: boolean;
+  activeLabel?: string;
+  href?: string;
+}
 
-export interface PaginationProps
-  extends BsProps,
-    React.HTMLAttributes<HTMLUListElement> {
+export const Item: BsRefComponent<'li', ItemProps> = React.forwardRef<
+  HTMLLIElement,
+  ItemProps
+>(
+  (
+    {
+      active,
+      disabled,
+      className,
+      style,
+      activeLabel,
+      children,
+      ...ps
+    }: ItemProps,
+    ref,
+  ) => {
+    const Component = active || disabled ? 'span' : Anchor;
+    return (
+      <li
+        ref={ref}
+        style={style}
+        className={classNames(className, 'page-item', { active, disabled })}
+      >
+        <Component className="page-link" disabled={disabled} {...ps}>
+          {children}
+          {active && activeLabel && (
+            <span className="visually-hidden">{activeLabel}</span>
+          )}
+        </Component>
+      </li>
+    );
+  },
+);
+Item.displayName = 'PageItem';
+Item.defaultProps = {
+  active: false,
+  disabled: false,
+  activeLabel: '(current)',
+};
+
+function createButton(name: string, defaultValue: ReactNode, label = name) {
+  const Button = React.forwardRef(({ children, ...props }: ItemProps, ref) => (
+    <Item {...props} ref={ref}>
+      <span aria-hidden="true">{children || defaultValue}</span>
+      <span className="visually-hidden">{label}</span>
+    </Item>
+  ));
+  Button.displayName = name;
+  return Button;
+}
+
+export const First = createButton('First', '«');
+export const Prev = createButton('Prev', '‹', 'Previous');
+export const Ellipsis = createButton('Ellipsis', '…', 'More');
+export const Next = createButton('Next', '›');
+export const Last = createButton('Last', '»');
+
+export interface Props extends BsProps, React.HTMLAttributes<HTMLUListElement> {
   size?: 'sm' | 'lg';
 }
 
-/**
- * @property {PageItem} Item
- * @property {PageItem} First
- * @property {PageItem} Prev
- * @property {PageItem} Ellipsis
- * @property {PageItem} Next
- * @property {PageItem} Last
- */
-const Pagination = React.forwardRef<HTMLUListElement, PaginationProps>(
+export const Pagination = React.forwardRef<HTMLUListElement, Props>(
   ({ bsPrefix, className, size, ...props }, ref) => {
-    const decoratedBsPrefix = useBootstrapPrefix(bsPrefix, 'pagination');
+    const decoratedBsPrefix = useBsPrefix(bsPrefix, 'pagination');
     return (
       <ul
         ref={ref}
@@ -35,14 +89,13 @@ const Pagination = React.forwardRef<HTMLUListElement, PaginationProps>(
     );
   },
 );
-
 Pagination.displayName = 'Pagination';
 
-export default Object.assign(Pagination, {
+Object.assign(Pagination, {
   First,
   Prev,
   Ellipsis,
-  Item: PageItem,
+  Item,
   Next,
   Last,
 });

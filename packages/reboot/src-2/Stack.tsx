@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import {
-  useBootstrapPrefix,
-  useBootstrapBreakpoints,
-  useBootstrapMinBreakpoint,
+  useBsPrefix,
+  useBsBreakpoints,
+  useBsMinBreakpoint,
 } from './ThemeProvider';
 import { BsProps, BsRefComponent } from './helpers';
 import { GapValue } from './types';
@@ -26,13 +26,12 @@ export const Stack: BsRefComponent<'span', Props> = React.forwardRef<
     { as: Component = 'div', bsPrefix, className, direction, gap, ...ps },
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(
+    bsPrefix = useBsPrefix(
       bsPrefix,
       direction === 'horizontal' ? 'hstack' : 'vstack',
     );
-    const breakpoints = useBootstrapBreakpoints();
-    const minBreakpoint = useBootstrapMinBreakpoint();
-
+    const breakpoints = useBsBreakpoints();
+    const minBreakpoint = useBsMinBreakpoint();
     return (
       <Component
         {...ps}
@@ -50,5 +49,4 @@ export const Stack: BsRefComponent<'span', Props> = React.forwardRef<
     );
   },
 );
-
 Stack.displayName = 'Stack';

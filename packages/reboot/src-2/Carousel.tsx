@@ -16,13 +16,13 @@ import {
 } from 'react';
 import { useUncontrolled } from 'uncontrollable';
 import { map, forEach, triggerBrowserReflow } from './utils';
-import { useBootstrapPrefix, useIsRTL } from './ThemeProvider';
+import { useBsPrefix, useIsRTL } from './ThemeProvider';
 import transitionEndListener from './transitionEndListener';
 import { BsProps, BsRefComponent } from './helpers';
 import TransitionWrapper from './TransitionWrapper';
-import createWithBsPrefix from './createWithBsPrefix';
+import withBsPrefix from './createWithBsPrefix';
 
-export const Caption = createWithBsPrefix('carousel-caption');
+export const Caption = withBsPrefix('carousel-caption');
 
 export interface ItemProps extends BsProps, React.HTMLAttributes<HTMLElement> {
   interval?: number;
@@ -34,7 +34,7 @@ export const Item: BsRefComponent<'div', ItemProps> = React.forwardRef<
 >(({ as: Component = 'div', bsPrefix, className, ...ps }, ref) => {
   const finalClassName = classNames(
     className,
-    useBootstrapPrefix(bsPrefix, 'carousel-item'),
+    useBsPrefix(bsPrefix, 'carousel-item'),
   );
   return <Component ref={ref} {...ps} className={finalClassName} />;
 });
@@ -134,7 +134,7 @@ export const Carousel: BsRefComponent<'div', Props> = React.forwardRef<
   } = useUncontrolled(xs, {
     activeIndex: 'onSelect',
   });
-  const bs = useBootstrapPrefix(bsPrefix, 'carousel');
+  const bs = useBsPrefix(bsPrefix, 'carousel');
   const isRTL = useIsRTL();
   const nextDirectionRef = useRef<string | null>(null);
   const [direction, setDirection] = useState('next');

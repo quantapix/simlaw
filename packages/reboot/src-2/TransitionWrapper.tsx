@@ -4,9 +4,9 @@ import Transition, {
   TransitionStatus,
 } from 'react-transition-group/Transition';
 import useMergedRefs from '@restart/hooks/useMergedRefs';
-import safeFindDOMNode from './safeFindDOMNode';
+import { safeFindDOMNode } from './utils';
 
-export type TransitionWrapperProps = TransitionProps & {
+export type Props = TransitionProps & {
   childRef?: React.Ref<unknown>;
   children:
     | React.ReactElement
@@ -16,11 +16,7 @@ export type TransitionWrapperProps = TransitionProps & {
       ) => React.ReactNode);
 };
 
-// Normalizes Transition callbacks when nodeRef is used.
-const TransitionWrapper = React.forwardRef<
-  Transition<any>,
-  TransitionWrapperProps
->(
+export const TransitionWrapper = React.forwardRef<Transition<any>, Props>(
   (
     {
       onEnter,
@@ -32,7 +28,7 @@ const TransitionWrapper = React.forwardRef<
       addEndListener,
       children,
       childRef,
-      ...props
+      ...ps
     },
     ref,
   ) => {
@@ -67,7 +63,7 @@ const TransitionWrapper = React.forwardRef<
     return (
       <Transition
         ref={ref}
-        {...props}
+        {...ps}
         onEnter={handleEnter}
         onEntered={handleEntered}
         onEntering={handleEntering}
@@ -90,5 +86,3 @@ const TransitionWrapper = React.forwardRef<
     );
   },
 );
-
-export default TransitionWrapper;

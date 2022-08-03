@@ -22,7 +22,7 @@ import ModalFooter from './ModalFooter';
 import { ModalHeader } from './ModalHeader';
 import ModalTitle from './ModalTitle';
 import { BsRefComponent } from './helpers';
-import { useBootstrapPrefix, useIsRTL } from './ThemeProvider';
+import { useBsPrefix, useIsRTL } from './ThemeProvider';
 
 export interface Props
   extends Omit<
@@ -109,7 +109,7 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
     const handleHide = useEventCallback(onHide);
     const isRTL = useIsRTL();
 
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'modal');
+    bsPrefix = useBsPrefix(bsPrefix, 'modal');
 
     const modalContext = useMemo(
       () => ({

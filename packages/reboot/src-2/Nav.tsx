@@ -2,16 +2,70 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { useContext } from 'react';
 import { useUncontrolled } from 'uncontrollable';
-import BaseNav, { NavProps as BaseNavProps } from '@restart/ui/Nav';
+import BaseNav, { NavProps as _Props } from '@restart/ui/Nav';
+import Anchor from '@restart/ui/Anchor';
+import {
+  useNavItem,
+  NavItemProps as BaseNavItemProps,
+} from '@restart/ui/NavItem';
+import { makeEventKey } from '@restart/ui/SelectableContext';
 import { EventKey } from '@restart/ui/types';
-import { useBootstrapPrefix } from './ThemeProvider';
-import { NavbarContext } from './NavbarContext';
-import CardHeaderContext from './CardHeaderContext';
-import NavItem from './NavItem';
-import { NavLink } from './NavLink';
+import { useBsPrefix } from './ThemeProvider';
+import { Context as NContext } from './Navbar';
+import { HeaderContext as CContext } from './Card';
 import { BsProps, BsRefComponent } from './helpers';
+import withBsPrefix from './createWithBsPrefix';
 
-export interface Props extends BsProps, BaseNavProps {
+interface ContextType {
+  role?: string;
+  activeKey: EventKey | null;
+  getControlledId: (key: EventKey | null) => string;
+  getControllerId: (key: EventKey | null) => string;
+}
+
+export const Context = React.createContext<ContextType | null>(null);
+Context.displayName = 'NavContext';
+
+export const Item = withBsPrefix('nav-item');
+
+export interface LinkProps extends BsProps, Omit<BaseNavItemProps, 'as'> {}
+
+export const Link: BsRefComponent<'a', LinkProps> = React.forwardRef<
+  HTMLElement,
+  LinkProps
+>(
+  (
+    { bsPrefix, className, as: Component = Anchor, active, eventKey, ...ps },
+    ref,
+  ) => {
+    const bs = useBsPrefix(bsPrefix, 'nav-link');
+    const [navItemProps, meta] = useNavItem({
+      key: makeEventKey(eventKey, ps.href),
+      active,
+      ...ps,
+    });
+
+    return (
+      <Component
+        {...ps}
+        {...navItemProps}
+        ref={ref}
+        className={classNames(
+          className,
+          bs,
+          ps.disabled && 'disabled',
+          meta.isActive && 'active',
+        )}
+      />
+    );
+  },
+);
+Link.displayName = 'NavLink';
+Link.defaultProps = {
+  disabled: false,
+};
+
+export interface Props extends BsProps, _Props {
   navbarBsPrefix?: string;
   cardHeaderBsPrefix?: string;
   variant?: 'tabs' | 'pills' | string;
@@ -38,17 +92,17 @@ export const Nav: BsRefComponent<'div', Props> = React.forwardRef<
     activeKey,
     ...ps
   } = useUncontrolled(xs, { activeKey: 'onSelect' });
-  const bsPrefix = useBootstrapPrefix(initialBsPrefix, 'nav');
+  const bs = useBsPrefix(initialBsPrefix, 'nav');
   let navbarBsPrefix;
   let cardHeaderBsPrefix;
   let isNavbar = false;
-  const navbarContext = useContext(NavbarContext);
-  const cardHeaderContext = useContext(CardHeaderContext);
-  if (navbarContext) {
-    navbarBsPrefix = navbarContext.bsPrefix;
+  const nContext = useContext(NContext);
+  const cContext = useContext(CContext);
+  if (nContext) {
+    navbarBsPrefix = nContext.bsPrefix;
     isNavbar = navbar == null ? true : navbar;
-  } else if (cardHeaderContext) {
-    ({ cardHeaderBsPrefix } = cardHeaderContext);
+  } else if (cContext) {
+    ({ cardHeaderBsPrefix } = cContext);
   }
   return (
     <BaseNav
@@ -56,13 +110,13 @@ export const Nav: BsRefComponent<'div', Props> = React.forwardRef<
       ref={ref}
       activeKey={activeKey}
       className={classNames(className, {
-        [bsPrefix]: !isNavbar,
+        [bs]: !isNavbar,
         [`${navbarBsPrefix}-nav`]: isNavbar,
         [`${navbarBsPrefix}-nav-scroll`]: isNavbar && navbarScroll,
         [`${cardHeaderBsPrefix}-${variant}`]: !!cardHeaderBsPrefix,
-        [`${bsPrefix}-${variant}`]: !!variant,
-        [`${bsPrefix}-fill`]: fill,
-        [`${bsPrefix}-justified`]: justify,
+        [`${bs}-${variant}`]: !!variant,
+        [`${bs}-fill`]: fill,
+        [`${bs}-justified`]: justify,
       })}
       {...ps}
     />
@@ -76,6 +130,6 @@ Nav.defaultProps = {
 };
 
 Object.assign(Nav, {
-  Item: NavItem,
-  Link: NavLink,
+  Item,
+  Link,
 });

@@ -1,15 +1,15 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useMemo } from 'react';
-import createWithBsPrefix from './createWithBsPrefix';
-import { useBootstrapPrefix } from './ThemeProvider';
+import withBsPrefix from './createWithBsPrefix';
+import { useBsPrefix } from './ThemeProvider';
 import { Input } from './Form';
 import { BsProps, BsRefComponent } from './helpers';
 
 export const Context = React.createContext<unknown | null>(null);
 Context.displayName = 'InputGroupContext';
 
-const Text = createWithBsPrefix('input-group-text', {
+const Text = withBsPrefix('input-group-text', {
   Component: 'span',
 });
 
@@ -38,7 +38,7 @@ export const InputGroup: BsRefComponent<'div', Props> = React.forwardRef<
     { bsPrefix, size, hasValidation, className, as: Component = 'div', ...ps },
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'input-group');
+    bsPrefix = useBsPrefix(bsPrefix, 'input-group');
     const contextValue = useMemo(() => ({}), []);
     return (
       <Context.Provider value={contextValue}>

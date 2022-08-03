@@ -6,7 +6,7 @@ import warning from 'warning';
 import { useUncontrolledProp } from 'uncontrollable';
 import useMergedRefs from '@restart/hooks/useMergedRefs';
 import { Children, Overlay, Props as _Props } from './Overlay';
-import safeFindDOMNode from './safeFindDOMNode';
+import { safeFindDOMNode } from './utils';
 
 export type TriggerType = 'hover' | 'click' | 'focus';
 

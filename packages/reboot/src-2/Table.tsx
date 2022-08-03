@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { BsOnlyProps } from './helpers';
 
 export interface Props
@@ -31,7 +31,7 @@ export const Table = React.forwardRef<HTMLTableElement, Props>(
     },
     ref,
   ) => {
-    const decoratedBsPrefix = useBootstrapPrefix(bsPrefix, 'table');
+    const decoratedBsPrefix = useBsPrefix(bsPrefix, 'table');
     const classes = classNames(
       className,
       decoratedBsPrefix,

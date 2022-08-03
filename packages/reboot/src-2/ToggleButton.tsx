@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import invariant from 'invariant';
 import { useUncontrolled } from 'uncontrollable';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import {
   Button,
   Props as _BProps,
@@ -43,7 +43,7 @@ export const ToggleButton = React.forwardRef<HTMLLabelElement, Props>(
     },
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'btn-check');
+    bsPrefix = useBsPrefix(bsPrefix, 'btn-check');
 
     return (
       <>

@@ -5,11 +5,11 @@ import SelectableContext from '@restart/ui/SelectableContext';
 import { SelectCallback } from '@restart/ui/types';
 import { useUncontrolled } from 'uncontrollable';
 import useEventCallback from '@restart/hooks/useEventCallback';
-import createWithBsPrefix from './createWithBsPrefix';
-import { Collapse as Base, Props as _Props } from './Collapse';
-import { useBootstrapPrefix } from './ThemeProvider';
+import withBsPrefix from './createWithBsPrefix';
+import { Collapse as CBase, Props as _CProps } from './Collapse';
+import { useBsPrefix } from './ThemeProvider';
 import { BsProps, BsRefComponent } from './helpers';
-import { Offcanvas, Props as _Props } from './Offcanvas';
+import { Offcanvas as OBase, Props as _OProps } from './Offcanvas';
 
 export interface ContextType {
   onToggle: () => void;
@@ -21,7 +21,7 @@ export interface ContextType {
 export const Context = React.createContext<ContextType | null>(null);
 Context.displayName = 'NavbarContext';
 
-export const Text = createWithBsPrefix('navbar-text', {
+export const Text = withBsPrefix('navbar-text', {
   Component: 'span',
 });
 
@@ -33,7 +33,7 @@ export const Brand: BsRefComponent<'a', BrandProps> = React.forwardRef<
   HTMLElement,
   BrandProps
 >(({ bsPrefix, className, as, ...ps }, ref) => {
-  const bs = useBootstrapPrefix(bsPrefix, 'navbar-brand');
+  const bs = useBsPrefix(bsPrefix, 'navbar-brand');
   const Component = as || (ps.href ? 'a' : 'span');
   return <Component {...ps} ref={ref} className={classNames(className, bs)} />;
 });
@@ -41,42 +41,37 @@ export const Brand: BsRefComponent<'a', BrandProps> = React.forwardRef<
 Brand.displayName = 'NavbarBrand';
 
 export interface CollapseProps
-  extends Omit<_Props, 'children'>,
+  extends Omit<_CProps, 'children'>,
     React.HTMLAttributes<HTMLDivElement>,
     BsProps {}
 
 export const Collapse = React.forwardRef<HTMLDivElement, CollapseProps>(
   ({ children, bsPrefix, ...ps }, ref) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'navbar-collapse');
+    const bs = useBsPrefix(bsPrefix, 'navbar-collapse');
     const context = useContext(Context);
     return (
-      <Base in={!!(context && context.expanded)} {...ps}>
+      <CBase in={!!(context && context.expanded)} {...ps}>
         <div ref={ref} className={bs}>
           {children}
         </div>
-      </Base>
+      </CBase>
     );
   },
 );
 
 Collapse.displayName = 'NavbarCollapse';
 
-export type OffcanvasProps = Omit<_Props, 'show'>;
+export type OffcanvasProps = Omit<_OProps, 'show'>;
 
-export const NavbarOffcanvas = React.forwardRef<HTMLDivElement, OffcanvasProps>(
+export const Offcanvas = React.forwardRef<HTMLDivElement, OffcanvasProps>(
   (ps, ref) => {
     const context = useContext(Context);
     return (
-      <Offcanvas
-        ref={ref}
-        show={!!context?.expanded}
-        {...ps}
-        renderStaticNode
-      />
+      <OBase ref={ref} show={!!context?.expanded} {...ps} renderStaticNode />
     );
   },
 );
-NavbarOffcanvas.displayName = 'NavbarOffcanvas';
+Offcanvas.displayName = 'NavbarOffcanvas';
 
 export interface ToggleProps
   extends BsProps,
@@ -100,7 +95,7 @@ export const Toggle: BsRefComponent<'button', ToggleProps> = React.forwardRef<
     },
     ref,
   ) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'navbar-toggler');
+    const bs = useBsPrefix(bsPrefix, 'navbar-toggler');
     const { onToggle, expanded } = useContext(Context) || {};
     const clickCB = useEventCallback((e) => {
       if (onClick) onClick(e);
@@ -163,7 +158,7 @@ export const Navbar: BsRefComponent<'nav', Props> = React.forwardRef<
   } = useUncontrolled(xs, {
     expanded: 'onToggle',
   });
-  const bsPrefix = useBootstrapPrefix(initialBsPrefix, 'navbar');
+  const bsPrefix = useBsPrefix(initialBsPrefix, 'navbar');
   const handleCollapse = useCallback<SelectCallback>(
     (...args) => {
       onSelect?.(...args);
@@ -218,7 +213,7 @@ Navbar.defaultProps = {
 Object.assign(Navbar, {
   Brand,
   Collapse,
-  Offcanvas: NavbarOffcanvas,
+  Offcanvas,
   Text,
   Toggle,
 });

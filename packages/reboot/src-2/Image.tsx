@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { BsOnlyProps } from './helpers';
 
 export interface Props
@@ -17,7 +17,7 @@ export const Image = React.forwardRef<HTMLImageElement, Props>(
     { bsPrefix, className, fluid, rounded, roundedCircle, thumbnail, ...ps },
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'img');
+    bsPrefix = useBsPrefix(bsPrefix, 'img');
     return (
       <img // eslint-disable-line jsx-a11y/alt-text
         ref={ref}

@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { cloneElement } from 'react';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { map } from './utils';
 import { BsProps } from './helpers';
 
@@ -67,7 +67,7 @@ function renderProgressBar(
 
 export const ProgressBar = React.forwardRef<HTMLDivElement, Props>(
   ({ isChild, ...ps }: Props, ref) => {
-    ps.bsPrefix = useBootstrapPrefix(ps.bsPrefix, 'progress');
+    ps.bsPrefix = useBsPrefix(ps.bsPrefix, 'progress');
     if (isChild) {
       return renderProgressBar(ps, ref);
     }
@@ -111,7 +111,6 @@ export const ProgressBar = React.forwardRef<HTMLDivElement, Props>(
     );
   },
 );
-
 ProgressBar.displayName = 'ProgressBar';
 ProgressBar.defaultProps = {
   min: 0,

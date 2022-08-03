@@ -21,17 +21,14 @@ import { useDropdownToggle } from '@restart/ui/DropdownToggle';
 import { useUncontrolled } from 'uncontrollable';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import { Context as InputGroupContext } from './InputGroup';
-import { useBootstrapPrefix, useIsRTL } from './ThemeProvider';
-import createWithBsPrefix from './createWithBsPrefix';
+import { useBsPrefix, useIsRTL } from './ThemeProvider';
+import withBsPrefix from './createWithBsPrefix';
 import { BsProps, BsRefComponent } from './helpers';
 import { Context as NavbarContext } from './Navbar';
 import { useWrappedRefWithWarning } from './use';
 import { AlignType, AlignDirection, Placement } from './types';
-import {
-  Button as _Button,
-  Props as _ButtonProps,
-  CommonProps,
-} from './Button';
+import { Button as _Button, Props as _BProps, CommonProps } from './Button';
+import { Link as NavLink } from './Nav';
 
 export type Drop = 'up' | 'start' | 'end' | 'down';
 
@@ -100,7 +97,7 @@ export const Menu: BsRefComponent<'div', MenuProps> = React.forwardRef<
   ) => {
     let alignEnd = false;
     const isNavbar = useContext(NavbarContext);
-    const bs = useBootstrapPrefix(bsPrefix, 'dropdown-menu');
+    const bs = useBsPrefix(bsPrefix, 'dropdown-menu');
     const { align: contextAlign, drop, isRTL } = useContext(Context);
     align = align || contextAlign;
     const isInputGroup = useContext(InputGroupContext);
@@ -178,7 +175,7 @@ Menu.defaultProps = {
   flip: true,
 };
 
-export interface ToggleProps extends Omit<_ButtonProps, 'as'> {
+export interface ToggleProps extends Omit<_BProps, 'as'> {
   as?: React.ElementType;
   split?: boolean;
   childBsPrefix?: string;
@@ -202,7 +199,7 @@ export const Toggle: ToggleComponent = React.forwardRef(
     }: ToggleProps,
     ref,
   ) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'dropdown-toggle');
+    const bs = useBsPrefix(bsPrefix, 'dropdown-toggle');
     const context = useContext(Context);
     const isInputGroup = useContext(InputGroupContext);
     if (childBsPrefix !== undefined) {
@@ -230,14 +227,14 @@ export const Toggle: ToggleComponent = React.forwardRef(
 
 Toggle.displayName = 'DropdownToggle';
 
-const Header = createWithBsPrefix('dropdown-header', {
+const Header = withBsPrefix('dropdown-header', {
   defaultProps: { role: 'heading' },
 });
-const Divider = createWithBsPrefix('dropdown-divider', {
+const Divider = withBsPrefix('dropdown-divider', {
   Component: 'hr',
   defaultProps: { role: 'separator' },
 });
-const ItemText = createWithBsPrefix('dropdown-item-text', {
+const ItemText = withBsPrefix('dropdown-item-text', {
   Component: 'span',
 });
 
@@ -258,7 +255,7 @@ export const Item: BsRefComponent<typeof BaseDropdownItem, ItemProps> =
       },
       ref,
     ) => {
-      const bs = useBootstrapPrefix(bsPrefix, 'dropdown-item');
+      const bs = useBsPrefix(bsPrefix, 'dropdown-item');
       const [dropdownItemProps, meta] = useDropdownItem({
         key: eventKey,
         href: ps.href,
@@ -316,7 +313,7 @@ export const Dropdown: BsRefComponent<'div', Props> = React.forwardRef<
   } = useUncontrolled(xs, { show: 'onToggle' });
 
   const isInputGroup = useContext(InputGroupContext);
-  const bs = useBootstrapPrefix(bsPrefix, 'dropdown');
+  const bs = useBsPrefix(bsPrefix, 'dropdown');
   const isRTL = useIsRTL();
 
   const isClosingPermitted = (source: string): boolean => {
@@ -453,5 +450,71 @@ export const Button: BsRefComponent<'div', ButtonProps> = React.forwardRef<
     </Dropdown>
   ),
 );
-
 Button.displayName = 'DropdownButton';
+
+export interface NavProps extends Omit<Props, 'title'> {
+  title: React.ReactNode;
+  disabled?: boolean;
+  active?: boolean;
+  menuRole?: string;
+  renderMenuOnMount?: boolean;
+  rootCloseEvent?: 'click' | 'mousedown';
+  menuVariant?: Variant;
+}
+
+export const Nav: BsRefComponent<'div', NavProps> = React.forwardRef(
+  (
+    {
+      id,
+      title,
+      children,
+      bsPrefix,
+      className,
+      rootCloseEvent,
+      menuRole,
+      disabled,
+      active,
+      renderMenuOnMount,
+      menuVariant,
+      ...ps
+    }: NavProps,
+    ref,
+  ) => {
+    const navItemPrefix = useBsPrefix(undefined, 'nav-item');
+    return (
+      <Dropdown
+        ref={ref}
+        {...ps}
+        className={classNames(className, navItemPrefix)}
+      >
+        <Toggle
+          id={id}
+          eventKey={null}
+          active={active}
+          disabled={disabled}
+          childBsPrefix={bsPrefix}
+          as={NavLink}
+        >
+          {title}
+        </Toggle>
+        <Menu
+          role={menuRole}
+          renderOnMount={renderMenuOnMount}
+          rootCloseEvent={rootCloseEvent}
+          variant={menuVariant}
+        >
+          {children}
+        </Menu>
+      </Dropdown>
+    );
+  },
+);
+
+Nav.displayName = 'NavDropdown';
+
+Object.assign(Nav, {
+  Item,
+  ItemText,
+  Divider,
+  Header,
+});

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import ReactDOM from 'react-dom';
 
 export function map<P = any>(
   xs,
@@ -51,4 +52,13 @@ export function createChainedFunction(...fs) {
 export function triggerBrowserReflow(node: HTMLElement): void {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   node.offsetHeight;
+}
+
+export function safeFindDOMNode(
+  componentOrElement: React.ComponentClass | Element | null | undefined,
+) {
+  if (componentOrElement && 'setState' in componentOrElement) {
+    return ReactDOM.findDOMNode(componentOrElement);
+  }
+  return (componentOrElement ?? null) as Element | Text | null;
 }

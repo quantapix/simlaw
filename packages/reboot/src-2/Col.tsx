@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import {
-  useBootstrapPrefix,
-  useBootstrapBreakpoints,
-  useBootstrapMinBreakpoint,
+  useBsPrefix,
+  useBsBreakpoints,
+  useBsMinBreakpoint,
 } from './ThemeProvider';
 import { BsProps, BsRefComponent } from './helpers';
 
@@ -51,9 +51,9 @@ export function useCol({
   className,
   ...ps
 }: Props): [any, UseColMetadata] {
-  bsPrefix = useBootstrapPrefix(bsPrefix, 'col');
-  const breakpoints = useBootstrapBreakpoints();
-  const minBreakpoint = useBootstrapMinBreakpoint();
+  bsPrefix = useBsPrefix(bsPrefix, 'col');
+  const breakpoints = useBsBreakpoints();
+  const minBreakpoint = useBsMinBreakpoint();
   const spans: string[] = [];
   const classes: string[] = [];
   breakpoints.forEach((x) => {

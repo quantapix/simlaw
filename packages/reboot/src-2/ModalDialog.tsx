@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 
 import { BsProps } from './helpers';
 
@@ -37,7 +37,7 @@ const ModalDialog = React.forwardRef<HTMLDivElement, ModalDialogProps>(
     }: ModalDialogProps,
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'modal');
+    bsPrefix = useBsPrefix(bsPrefix, 'modal');
     const dialogClass = `${bsPrefix}-dialog`;
 
     const fullScreenClass =

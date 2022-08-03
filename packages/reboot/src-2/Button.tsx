@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useButtonProps, ButtonProps as _Props } from '@restart/ui/Button';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { BsProps, BsRefComponent } from './helpers';
 import { ButtonVariant } from './types';
 
@@ -17,7 +17,7 @@ export const Button: BsRefComponent<'button', Props> = React.forwardRef<
   HTMLButtonElement,
   Props
 >(({ as, bsPrefix, variant, size, active, className, ...ps }, ref) => {
-  const bs = useBootstrapPrefix(bsPrefix, 'btn');
+  const bs = useBsPrefix(bsPrefix, 'btn');
   const [buttonProps, { tagName }] = useButtonProps({
     tagName: as,
     ...ps,
@@ -91,7 +91,7 @@ export const Group: BsRefComponent<'div', GroupProps> = React.forwardRef(
     }: GroupProps,
     ref,
   ) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'btn-group');
+    const bs = useBsPrefix(bsPrefix, 'btn-group');
     let base = bs;
     if (vertical) base = `${bs}-vertical`;
     return (
@@ -116,7 +116,7 @@ export interface ToolbarProps
 
 export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'btn-toolbar');
+    const bs = useBsPrefix(bsPrefix, 'btn-toolbar');
     return <div {...ps} ref={ref} className={classNames(className, bs)} />;
   },
 );

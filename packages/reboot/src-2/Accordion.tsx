@@ -3,7 +3,7 @@ import * as React from 'react';
 import { useContext, useMemo } from 'react';
 import { useUncontrolled } from 'uncontrollable';
 import { Transition } from 'react-transition-group';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { BsProps, BsRefComponent } from './helpers';
 import { Collapse, Props as _Props } from './Collapse';
 
@@ -66,7 +66,7 @@ export const Button: BsRefComponent<'div', ButtonProps> = React.forwardRef<
   HTMLButtonElement,
   ButtonProps
 >(({ as: Component = 'button', bsPrefix, className, onClick, ...ps }, ref) => {
-  bsPrefix = useBootstrapPrefix(bsPrefix, 'accordion-button');
+  bsPrefix = useBsPrefix(bsPrefix, 'accordion-button');
   const { eventKey } = useContext(ItemContext);
   const accordionOnClick = useButton(eventKey, onClick);
   const { activeEventKey } = useContext(Context);
@@ -102,7 +102,7 @@ export const Header: BsRefComponent<'h2', HeaderProps> = React.forwardRef<
     { as: Component = 'h2', bsPrefix, className, children, onClick, ...ps },
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'accordion-header');
+    bsPrefix = useBsPrefix(bsPrefix, 'accordion-header');
     return (
       <Component ref={ref} {...ps} className={classNames(className, bsPrefix)}>
         <Button onClick={onClick}>{children}</Button>
@@ -124,7 +124,7 @@ export const AccordionCollapse: BsRefComponent<'div', CollapseProps> =
       ref,
     ) => {
       const { activeEventKey } = useContext(Context);
-      bsPrefix = useBootstrapPrefix(bsPrefix, 'accordion-collapse');
+      bsPrefix = useBsPrefix(bsPrefix, 'accordion-collapse');
       return (
         <Collapse
           ref={ref}
@@ -146,7 +146,7 @@ export const Body: BsRefComponent<'div', BodyProps> = React.forwardRef<
   HTMLElement,
   BodyProps
 >(({ as: Component = 'div', bsPrefix, className, ...ps }, ref) => {
-  bsPrefix = useBootstrapPrefix(bsPrefix, 'accordion-body');
+  bsPrefix = useBsPrefix(bsPrefix, 'accordion-body');
   const { eventKey } = useContext(ItemContext);
   return (
     <AccordionCollapse eventKey={eventKey}>
@@ -169,7 +169,7 @@ export const Item: BsRefComponent<'div', ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
 >(({ as: Component = 'div', bsPrefix, className, eventKey, ...ps }, ref) => {
-  bsPrefix = useBootstrapPrefix(bsPrefix, 'accordion-item');
+  bsPrefix = useBsPrefix(bsPrefix, 'accordion-item');
   const contextValue = useMemo<ItemContextValue>(
     () => ({
       eventKey,
@@ -215,7 +215,7 @@ export const Accordion: BsRefComponent<'div', Props> = React.forwardRef<
   } = useUncontrolled(xs, {
     activeKey: 'onSelect',
   });
-  const bs = useBootstrapPrefix(bsPrefix, 'accordion');
+  const bs = useBsPrefix(bsPrefix, 'accordion');
   const v = useMemo(
     () => ({
       activeEventKey: activeKey,

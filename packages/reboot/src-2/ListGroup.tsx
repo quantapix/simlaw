@@ -11,7 +11,7 @@ import {
   NavItemProps as BaseNavItemProps,
 } from '@restart/ui/NavItem';
 import { BsProps, BsRefComponent } from './helpers';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { Variant } from './types';
 
 export interface ItemProps extends Omit<BaseNavItemProps, 'onSelect'>, BsProps {
@@ -38,7 +38,7 @@ export const Item: BsRefComponent<'a', ItemProps> = React.forwardRef<
     },
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'list-group-item');
+    bsPrefix = useBsPrefix(bsPrefix, 'list-group-item');
     const [navItemProps, meta] = useNavItem({
       key: makeEventKey(eventKey, ps.href),
       active,
@@ -105,7 +105,7 @@ export const ListGroup: BsRefComponent<'div', Props> = React.forwardRef<
     activeKey: 'onSelect',
   });
 
-  const bsPrefix = useBootstrapPrefix(initialBsPrefix, 'list-group');
+  const bsPrefix = useBsPrefix(initialBsPrefix, 'list-group');
 
   let horizontalVariant: string | undefined;
   if (horizontal) {

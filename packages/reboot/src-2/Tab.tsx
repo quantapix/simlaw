@@ -10,10 +10,10 @@ import {
 } from '@restart/ui/types';
 import Tabs, { TabsProps } from '@restart/ui/Tabs';
 import NoopTransition from '@restart/ui/NoopTransition';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { Fade } from './Fade';
 import { BsProps, BsRefComponent, TransitionType } from './helpers';
-import createWithBsPrefix from './createWithBsPrefix';
+import withBsPrefix from './createWithBsPrefix';
 
 export function getTabTransitionComponent(
   x?: TransitionType,
@@ -34,7 +34,7 @@ export const Container = ({ transition, ...props }: ContainerProps) => (
 
 Container.displayName = 'TabContainer';
 
-export const Content = createWithBsPrefix('tab-content');
+export const Content = withBsPrefix('tab-content');
 
 export interface PaneProps
   extends TransitionCallbacks,
@@ -69,7 +69,7 @@ export const Pane: BsRefComponent<'div', PaneProps> = React.forwardRef<
     ...xs,
     transition: getTabTransitionComponent(transition),
   } as any);
-  const bs = useBootstrapPrefix(bsPrefix, 'tab-pane');
+  const bs = useBsPrefix(bsPrefix, 'tab-pane');
   return (
     <TabContext.Provider value={null}>
       <SelectableContext.Provider value={null}>

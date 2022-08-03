@@ -3,12 +3,12 @@ import * as React from 'react';
 import { useContext, useMemo } from 'react';
 import warning from 'warning';
 import Switch from './Switch';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { BsOnlyProps, BsProps, BsRefComponent, AsProp } from './helpers';
 import { Col, Props as _Props } from './Col';
 import { Feedback, Type } from './Feedback';
 import { hasChildOfType } from './utils';
-import createWithBsPrefix from './createWithBsPrefix';
+import withBsPrefix from './createWithBsPrefix';
 
 interface ContextType {
   controlId?: any;
@@ -20,7 +20,7 @@ export interface GroupProps extends React.HTMLAttributes<HTMLElement>, AsProp {
   controlId?: string;
 }
 
-export const Floating = createWithBsPrefix('form-floating');
+export const Floating = withBsPrefix('form-floating');
 
 export const Group: BsRefComponent<'div', GroupProps> = React.forwardRef(
   ({ controlId, as: Component = 'div', ...ps }, ref) => {
@@ -42,7 +42,7 @@ export interface FloatingLabelProps extends _Props, BsProps {
 export const FloatingLabel: BsRefComponent<'div', FloatingLabelProps> =
   React.forwardRef(
     ({ bsPrefix, className, children, controlId, label, ...ps }, ref) => {
-      bsPrefix = useBootstrapPrefix(bsPrefix, 'form-floating');
+      bsPrefix = useBsPrefix(bsPrefix, 'form-floating');
       return (
         <Group
           ref={ref}
@@ -90,7 +90,7 @@ export const Label: BsRefComponent<'label', LabelProps> = React.forwardRef<
     ref,
   ) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBootstrapPrefix(bsPrefix, 'form-label');
+    const bs = useBsPrefix(bsPrefix, 'form-label');
     let columnClass = 'col-form-label';
     if (typeof column === 'string')
       columnClass = `${columnClass} ${columnClass}-${column}`;
@@ -134,7 +134,7 @@ export const Text: BsRefComponent<'small', TextProps> = React.forwardRef<
   HTMLElement,
   TextProps
 >(({ bsPrefix, className, as: Component = 'small', muted, ...ps }, ref) => {
-  const bs = useBootstrapPrefix(bsPrefix, 'form-text');
+  const bs = useBsPrefix(bsPrefix, 'form-text');
   return (
     <Component
       {...ps}
@@ -152,7 +152,7 @@ export interface RangeProps
 export const Range = React.forwardRef<HTMLInputElement, RangeProps>(
   ({ bsPrefix, className, id, ...props }, ref) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBootstrapPrefix(bsPrefix, 'form-range');
+    const bs = useBsPrefix(bsPrefix, 'form-range');
     return (
       <input
         {...props}
@@ -193,7 +193,7 @@ export const Select: BsRefComponent<'select', SelectProps> = React.forwardRef<
     ref,
   ) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBootstrapPrefix(bsPrefix, 'form-select');
+    const bs = useBsPrefix(bsPrefix, 'form-select');
     return (
       <select
         {...ps}
@@ -241,7 +241,7 @@ export const Input: BsRefComponent<'input', InputProps> = React.forwardRef<
     ref,
   ) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBootstrapPrefix(bsPrefix, 'form-check-input');
+    const bs = useBsPrefix(bsPrefix, 'form-check-input');
     return (
       <Component
         {...ps}
@@ -267,7 +267,7 @@ export interface CheckLabelProps
 export const CheckLabel = React.forwardRef<HTMLLabelElement, CheckLabelProps>(
   ({ bsPrefix, className, htmlFor, ...ps }, ref) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBootstrapPrefix(bsPrefix, 'form-check-label');
+    const bs = useBsPrefix(bsPrefix, 'form-check-label');
     return (
       <label // eslint-disable-line jsx-a11y/label-has-associated-control
         {...ps}
@@ -327,8 +327,8 @@ export const Check: BsRefComponent<'input', CheckProps> = React.forwardRef<
     },
     ref,
   ) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'form-check');
-    bsSwitchPrefix = useBootstrapPrefix(bsSwitchPrefix, 'form-switch');
+    const bs = useBsPrefix(bsPrefix, 'form-check');
+    bsSwitchPrefix = useBsPrefix(bsSwitchPrefix, 'form-switch');
     const { controlId } = useContext(FormContext);
     const innerFormContext = useMemo(
       () => ({
@@ -422,7 +422,7 @@ export const Control: BsRefComponent<'input', ControlProps> = React.forwardRef<
     ref,
   ) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBootstrapPrefix(bsPrefix, 'form-control');
+    const bs = useBsPrefix(bsPrefix, 'form-control');
     let classes;
     if (plaintext) {
       classes = { [`${bs}-plaintext`]: true };

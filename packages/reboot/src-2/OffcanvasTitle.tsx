@@ -1,8 +1,8 @@
-import createWithBsPrefix from './createWithBsPrefix';
+import withBsPrefix from './createWithBsPrefix';
 import divWithClassName from './divWithClassName';
 
 const DivStyledAsH5 = divWithClassName('h5');
 
-export default createWithBsPrefix('offcanvas-title', {
+export default withBsPrefix('offcanvas-title', {
   Component: DivStyledAsH5,
 });

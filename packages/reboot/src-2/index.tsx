@@ -129,12 +129,12 @@ export { NavbarBrand } from './NavbarBrand';
 export type { BrandProps as NavbarBrandProps } from './NavbarBrand';
 
 export { NavDropdown } from './NavDropdown';
-export type { Props as NavDropdownProps } from './NavDropdown';
+export type { NavProps as NavDropdownProps } from './NavDropdown';
 
 export { default as NavItem } from './NavItem';
 
 export { NavLink } from './NavLink';
-export type { Props as NavLinkProps } from './NavLink';
+export type { LinkProps as NavLinkProps } from './NavLink';
 
 export { Offcanvas } from './Offcanvas';
 export type { Props as OffcanvasProps } from './Offcanvas';
@@ -150,10 +150,10 @@ export { OverlayTrigger } from './OverlayTrigger';
 export type { Props as OverlayTriggerProps } from './OverlayTrigger';
 
 export { PageItem } from './PageItem';
-export type { Props as PageItemProps } from './PageItem';
+export type { ItemProps as PageItemProps } from './PageItem';
 
 export { default as Pagination } from './Pagination';
-export type { PaginationProps } from './Pagination';
+export type { Props as PaginationProps } from './Pagination';
 
 export { Placeholder, Button as PlaceholderButton } from './Placeholder';
 export type { Props as PlaceholderProps } from './Placeholder';
@@ -171,10 +171,10 @@ export { Ratio } from './Ratio';
 export type { Props as RatioProps } from './Ratio';
 
 export { default as Row } from './Row';
-export type { RowProps } from './Row';
+export type { Props as RowProps } from './Row';
 
 export { default as Spinner } from './Spinner';
-export type { SpinnerProps } from './Spinner';
+export type { Props as SpinnerProps } from './Spinner';
 
 export { SplitButton } from './SplitButton';
 export type { Props as SplitButtonProps } from './SplitButton';

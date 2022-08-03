@@ -8,12 +8,12 @@ import Transition, {
   EXITING,
 } from 'react-transition-group/Transition';
 import useEventCallback from '@restart/hooks/useEventCallback';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { BsOnlyProps, BsProps, BsRefComponent } from './helpers';
 import { Variant } from './types';
 import { Fade, Props as _Props } from './Fade';
 import { CloseButton, Variant as CloseVariant } from './CloseButton';
-import createWithBsPrefix from './createWithBsPrefix';
+import withBsPrefix from './createWithBsPrefix';
 
 export interface ContextType {
   onClose?: (e?: React.MouseEvent | React.KeyboardEvent) => void;
@@ -45,7 +45,7 @@ export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
     }: HeaderProps,
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'toast-header');
+    bsPrefix = useBsPrefix(bsPrefix, 'toast-header');
     const context = useContext(Context);
     const click = useEventCallback((e) => {
       context?.onClose?.(e);
@@ -72,7 +72,7 @@ Header.defaultProps = {
   closeButton: true,
 };
 
-export const Body = createWithBsPrefix('toast-body');
+export const Body = withBsPrefix('toast-body');
 
 const styles = {
   [ENTERING]: 'showing',
@@ -114,7 +114,7 @@ export const Toast: BsRefComponent<'div', Props> = React.forwardRef<
     },
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'toast');
+    bsPrefix = useBsPrefix(bsPrefix, 'toast');
     const delayRef = useRef(delay);
     const onCloseRef = useRef(onClose);
 
@@ -222,7 +222,7 @@ export const Container: BsRefComponent<'div', ContainerProps> =
       },
       ref,
     ) => {
-      bsPrefix = useBootstrapPrefix(bsPrefix, 'toast-container');
+      bsPrefix = useBsPrefix(bsPrefix, 'toast-container');
       return (
         <Component
           ref={ref}

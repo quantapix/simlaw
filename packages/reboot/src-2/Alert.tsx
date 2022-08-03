@@ -3,12 +3,12 @@ import * as React from 'react';
 import { useUncontrolled } from 'uncontrollable';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import Anchor from '@restart/ui/Anchor';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { Fade } from './Fade';
 import { Close as CloseButton, Variant as CloseVariant } from './Button';
 import { Variant } from './types';
 import divWithClassName from './divWithClassName';
-import createWithBsPrefix from './createWithBsPrefix';
+import withBsPrefix from './createWithBsPrefix';
 import { TransitionType } from './helpers';
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement> {
@@ -39,7 +39,7 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
     } = useUncontrolled(xs, {
       show: 'onClose',
     });
-    const bs = useBootstrapPrefix(bsPrefix, 'alert');
+    const bs = useBsPrefix(bsPrefix, 'alert');
     const handleClose = useEventCallback((e) => {
       if (onClose) {
         onClose(false, e);
@@ -89,10 +89,10 @@ const Div = divWithClassName('h4');
 Div.displayName = 'DivStyledAsH4';
 
 Object.assign(Alert, {
-  Link: createWithBsPrefix('alert-link', {
+  Link: withBsPrefix('alert-link', {
     Component: Anchor,
   }),
-  Heading: createWithBsPrefix('alert-heading', {
+  Heading: withBsPrefix('alert-heading', {
     Component: Div,
   }),
 });

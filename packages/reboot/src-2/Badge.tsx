@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { BsProps, BsRefComponent } from './helpers';
 import { Color, Variant } from './types';
 
@@ -18,7 +18,7 @@ export const Badge: BsRefComponent<'span', Props> = React.forwardRef<
     { bsPrefix, bg, pill, text, className, as: Component = 'span', ...ps },
     ref,
   ) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'badge');
+    const bs = useBsPrefix(bsPrefix, 'badge');
     return (
       <Component
         ref={ref}

@@ -1,8 +1,8 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useMemo } from 'react';
-import { useBootstrapPrefix } from './ThemeProvider';
-import createWithBsPrefix from './createWithBsPrefix';
+import { useBsPrefix } from './ThemeProvider';
+import withBsPrefix from './createWithBsPrefix';
 import divWithClassName from './divWithClassName';
 import { BsProps, BsRefComponent } from './helpers';
 import { Color, Variant } from './types';
@@ -22,7 +22,7 @@ export const Header: BsRefComponent<'div', HeaderProps> = React.forwardRef<
   HTMLElement,
   HeaderProps
 >(({ bsPrefix, className, as: Component = 'div', ...ps }, ref) => {
-  const bs = useBootstrapPrefix(bsPrefix, 'card-header');
+  const bs = useBsPrefix(bsPrefix, 'card-header');
   const contextValue = useMemo(
     () => ({
       cardHeaderBsPrefix: bs,
@@ -40,17 +40,17 @@ Header.displayName = 'CardHeader';
 
 const DivAsH5 = divWithClassName('h5');
 const DivAsH6 = divWithClassName('h6');
-const Body = createWithBsPrefix('card-body');
-const Title = createWithBsPrefix('card-title', {
+const Body = withBsPrefix('card-body');
+const Title = withBsPrefix('card-title', {
   Component: DivAsH5,
 });
-const Subtitle = createWithBsPrefix('card-subtitle', {
+const Subtitle = withBsPrefix('card-subtitle', {
   Component: DivAsH6,
 });
-const Link = createWithBsPrefix('card-link', { Component: 'a' });
-const Text = createWithBsPrefix('card-text', { Component: 'p' });
-const Footer = createWithBsPrefix('card-footer');
-const ImgOverlay = createWithBsPrefix('card-img-overlay');
+const Link = withBsPrefix('card-link', { Component: 'a' });
+const Text = withBsPrefix('card-text', { Component: 'p' });
+const Footer = withBsPrefix('card-footer');
+const ImgOverlay = withBsPrefix('card-img-overlay');
 
 export interface ImgProps
   extends BsProps,
@@ -63,7 +63,7 @@ export const Img: BsRefComponent<'img', ImgProps> = React.forwardRef(
     { bsPrefix, className, variant, as: Component = 'img', ...ps }: ImgProps,
     ref,
   ) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'card-img');
+    const bs = useBsPrefix(bsPrefix, 'card-img');
     return (
       <Component
         ref={ref}
@@ -75,7 +75,7 @@ export const Img: BsRefComponent<'img', ImgProps> = React.forwardRef(
 );
 Img.displayName = 'CardImg';
 
-export const Group = createWithBsPrefix('card-group');
+export const Group = withBsPrefix('card-group');
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   bg?: Variant;
@@ -102,7 +102,7 @@ export const Card: BsRefComponent<'div', Props> = React.forwardRef<
     },
     ref,
   ) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'card');
+    const bs = useBsPrefix(bsPrefix, 'card');
     return (
       <Component
         ref={ref}

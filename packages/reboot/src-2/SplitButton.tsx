@@ -1,9 +1,13 @@
 import * as React from 'react';
 import { ButtonType } from '@restart/ui/Button';
-import { Button } from './Button';
-import { ButtonGroup } from './ButtonGroup';
-import { Dropdown, Props as _Props } from './Dropdown';
-import { PropsFromToggle } from './DropdownToggle';
+import { Button, Group } from './Button';
+import {
+  Dropdown,
+  Props as _Props,
+  PropsFromToggle,
+  Toggle,
+  Menu,
+} from './Dropdown';
 import { BsProps } from './helpers';
 
 export interface Props extends Omit<_Props, 'title'>, PropsFromToggle, BsProps {
@@ -35,15 +39,15 @@ export const SplitButton = React.forwardRef<HTMLElement, Props>(
       renderMenuOnMount,
       rootCloseEvent,
       flip,
-      ...props
+      ...ps
     },
     ref,
   ) => (
-    <Dropdown ref={ref} {...props} as={ButtonGroup}>
+    <Dropdown ref={ref} {...ps} as={Group}>
       <Button
         size={size}
         variant={variant}
-        disabled={props.disabled}
+        disabled={ps.disabled}
         bsPrefix={bsPrefix}
         href={href}
         target={target}
@@ -52,29 +56,27 @@ export const SplitButton = React.forwardRef<HTMLElement, Props>(
       >
         {title}
       </Button>
-      <Dropdown.Toggle
+      <Toggle
         split
         id={id}
         size={size}
         variant={variant}
-        disabled={props.disabled}
+        disabled={ps.disabled}
         childBsPrefix={bsPrefix}
       >
         <span className="visually-hidden">{toggleLabel}</span>
-      </Dropdown.Toggle>
-
-      <Dropdown.Menu
+      </Toggle>
+      <Menu
         role={menuRole}
         renderOnMount={renderMenuOnMount}
         rootCloseEvent={rootCloseEvent}
         flip={flip}
       >
         {children}
-      </Dropdown.Menu>
+      </Menu>
     </Dropdown>
   ),
 );
-
 SplitButton.displayName = 'SplitButton';
 SplitButton.defaultProps = {
   toggleLabel: 'Toggle dropdown',

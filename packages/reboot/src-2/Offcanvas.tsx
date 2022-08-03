@@ -22,7 +22,7 @@ import { NavbarContext } from './NavbarContext';
 import { OffcanvasHeader } from './OffcanvasHeader';
 import OffcanvasTitle from './OffcanvasTitle';
 import { BsRefComponent } from './helpers';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import BootstrapModalManager, {
   getSharedManager,
 } from './BootstrapModalManager';
@@ -93,7 +93,7 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
     ref,
   ) => {
     const modalManager = useRef<BootstrapModalManager>();
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'offcanvas');
+    bsPrefix = useBsPrefix(bsPrefix, 'offcanvas');
     const { onToggle } = useContext(NavbarContext) || {};
     const [showOffcanvas, setShowOffcanvas] = useState(false);
 

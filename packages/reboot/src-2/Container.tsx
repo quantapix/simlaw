@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { BsProps, BsRefComponent } from './helpers';
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
@@ -11,7 +11,7 @@ export const Container: BsRefComponent<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
 >(({ bsPrefix, fluid, as: Component = 'div', className, ...ps }, ref) => {
-  const bs = useBootstrapPrefix(bsPrefix, 'container');
+  const bs = useBsPrefix(bsPrefix, 'container');
   const suff = typeof fluid === 'string' ? `-${fluid}` : '-fluid';
   return (
     <Component

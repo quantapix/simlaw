@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { OverlayArrowProps } from '@restart/ui/Overlay';
-import { useBootstrapPrefix, useIsRTL } from './ThemeProvider';
+import { useBsPrefix, useIsRTL } from './ThemeProvider';
 import { Placement, PopperRef } from './types';
 import { BsProps, getOverlayDirection } from './helpers';
 
@@ -27,7 +27,7 @@ export const Tooltip = React.forwardRef<HTMLDivElement, Props>(
     }: Props,
     ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'tooltip');
+    bsPrefix = useBsPrefix(bsPrefix, 'tooltip');
     const isRTL = useIsRTL();
     const [primaryPlacement] = placement?.split('-') || [];
     const bsDirection = getOverlayDirection(primaryPlacement, isRTL);

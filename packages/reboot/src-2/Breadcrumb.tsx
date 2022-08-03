@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import Anchor from '@restart/ui/Anchor';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 import { BsProps, BsRefComponent } from './helpers';
 
 export interface ItemProps
@@ -35,7 +35,7 @@ export const Item: BsRefComponent<'li', ItemProps> = React.forwardRef<
     },
     ref,
   ) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'breadcrumb-item');
+    const bs = useBsPrefix(bsPrefix, 'breadcrumb-item');
     return (
       <Component
         ref={ref}
@@ -87,7 +87,7 @@ export const Breadcrumb: BsRefComponent<'nav', Props> = React.forwardRef<
     },
     ref,
   ) => {
-    const bs = useBootstrapPrefix(bsPrefix, 'breadcrumb');
+    const bs = useBsPrefix(bsPrefix, 'breadcrumb');
     return (
       <Component aria-label={label} className={className} ref={ref} {...ps}>
         <ol {...listProps} className={classNames(bs, listProps?.className)}>

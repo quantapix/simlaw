@@ -10,7 +10,7 @@ import { TransitionCallbacks } from '@restart/ui/types';
 import transitionEndListener from './transitionEndListener';
 import { BsOnlyProps } from './helpers';
 import TransitionWrapper from './TransitionWrapper';
-import { useBootstrapPrefix } from './ThemeProvider';
+import { useBsPrefix } from './ThemeProvider';
 
 export interface Props extends TransitionCallbacks, BsOnlyProps {
   className?: string;
@@ -29,7 +29,7 @@ const transitionStyles = {
 
 export const OffcanvasToggling = React.forwardRef<Transition<any>, Props>(
   ({ bsPrefix, className, children, ...ps }, ref) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, 'offcanvas');
+    bsPrefix = useBsPrefix(bsPrefix, 'offcanvas');
     return (
       <TransitionWrapper
         ref={ref}

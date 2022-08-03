@@ -1,3 +1,3 @@
-import createWithBsPrefix from './createWithBsPrefix';
+import withBsPrefix from './createWithBsPrefix';
 
-export default createWithBsPrefix('offcanvas-body');
+export default withBsPrefix('offcanvas-body');

@@ -1,3 +1,3 @@
-import createWithBsPrefix from './createWithBsPrefix';
+import withBsPrefix from './createWithBsPrefix';
 
-export default createWithBsPrefix('modal-body');
+export default withBsPrefix('modal-body');

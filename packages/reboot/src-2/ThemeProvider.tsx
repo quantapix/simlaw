@@ -41,7 +41,7 @@ export function ThemeProvider({
   return <Provider value={contextValue}>{children}</Provider>;
 }
 
-export function useBootstrapPrefix(
+export function useBsPrefix(
   prefix: string | undefined,
   defaultPrefix: string,
 ): string {
@@ -49,12 +49,12 @@ export function useBootstrapPrefix(
   return prefix || prefixes[defaultPrefix] || defaultPrefix;
 }
 
-export function useBootstrapBreakpoints() {
+export function useBsBreakpoints() {
   const { breakpoints } = useContext(Context);
   return breakpoints;
 }
 
-export function useBootstrapMinBreakpoint() {
+export function useBsMinBreakpoint() {
   const { minBreakpoint } = useContext(Context);
   return minBreakpoint;
 }
@@ -64,14 +64,14 @@ export function useIsRTL() {
   return dir === 'rtl';
 }
 
-export function createBootstrapComponent(Component, opts) {
+export function createBsComponent(Component, opts) {
   if (typeof opts === 'string') opts = { prefix: opts };
   const isClassy = Component.prototype && Component.prototype.isReactComponent;
   const { prefix, forwardRefAs = isClassy ? 'ref' : 'innerRef' } = opts;
   const Wrapped = React.forwardRef<any, { bsPrefix?: string }>(
     ({ ...props }, ref) => {
       props[forwardRefAs] = ref;
-      const bsPrefix = useBootstrapPrefix((props as any).bsPrefix, prefix);
+      const bsPrefix = useBsPrefix((props as any).bsPrefix, prefix);
       return <Component {...props} bsPrefix={bsPrefix} />;
     },
   );

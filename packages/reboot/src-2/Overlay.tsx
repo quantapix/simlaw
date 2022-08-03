@@ -10,11 +10,11 @@ import useCallbackRef from '@restart/hooks/useCallbackRef';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import useIsomorphicEffect from '@restart/hooks/useIsomorphicEffect';
 import useMergedRefs from '@restart/hooks/useMergedRefs';
-import useOverlayOffset from './use';
+import { useOverlayOffset } from './use';
 import { Fade } from './Fade';
 import { TransitionType } from './helpers';
 import { Placement, PopperRef, RootCloseEvent } from './types';
-import safeFindDOMNode from './safeFindDOMNode';
+import { safeFindDOMNode } from './utils';
 
 export interface InjectedProps {
   ref: React.RefCallback<HTMLElement>;
