@@ -1,19 +1,35 @@
-import { AsProp, BsPrefixRefForwardingComponent } from "./utils"
-import * as React from "react"
-import classNames from "classnames"
-export type FeedbackType = "valid" | "invalid"
-export interface FeedbackProps extends AsProp, React.HTMLAttributes<HTMLElement> {
-  bsPrefix?: never
-  type?: FeedbackType
-  tooltip?: boolean
+import classNames from 'classnames';
+import * as React from 'react';
+import { AsProp, BsRefComponent } from './helpers';
+
+export type Type = 'valid' | 'invalid';
+
+export interface Props extends AsProp, React.HTMLAttributes<HTMLElement> {
+  bsPrefix?: never;
+  type?: Type;
+  tooltip?: boolean;
 }
-export const Feedback: BsPrefixRefForwardingComponent<"div", FeedbackProps> = React.forwardRef(
-  ({ as: Component = "div", className, type = "valid", tooltip = false, ...ps }, ref) => (
+
+export const Feedback: BsRefComponent<'div', Props> = React.forwardRef(
+  (
+    {
+      as: Component = 'div',
+      className,
+      type = 'valid',
+      tooltip = false,
+      ...ps
+    },
+    ref,
+  ) => (
     <Component
       {...ps}
       ref={ref}
-      className={classNames(className, `${type}-${tooltip ? "tooltip" : "feedback"}`)}
+      className={classNames(
+        className,
+        `${type}-${tooltip ? 'tooltip' : 'feedback'}`,
+      )}
     />
-  )
-)
-Feedback.displayName = "Feedback"
+  ),
+);
+
+Feedback.displayName = 'Feedback';

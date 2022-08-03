@@ -1,26 +1,28 @@
-import { BsPrefixProps, BsPrefixRefForwardingComponent } from "./utils"
-import { useBootstrapPrefix } from "./ThemeProvider"
-import * as React from "react"
-import classNames from "classnames"
-export interface ContainerProps extends BsPrefixProps, React.HTMLAttributes<HTMLElement> {
-  fluid?: boolean | "sm" | "md" | "lg" | "xl" | "xxl"
+import classNames from 'classnames';
+import * as React from 'react';
+import { useBsPrefix } from './Theme';
+import { BsProps, BsRefComponent } from './helpers';
+
+export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+  fluid?: boolean | string | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 }
-const defaultProps = {
-  fluid: false,
-}
-export const Container: BsPrefixRefForwardingComponent<"div", ContainerProps> = React.forwardRef<
+
+export const Container: BsRefComponent<'div', Props> = React.forwardRef<
   HTMLElement,
-  ContainerProps
->(({ bsPrefix, fluid, as: Component = "div", className, ...ps }, ref) => {
-  const prefix = useBootstrapPrefix(bsPrefix, "container")
-  const suffix = typeof fluid === "string" ? `-${fluid}` : "-fluid"
+  Props
+>(({ bsPrefix, fluid, as: Component = 'div', className, ...ps }, ref) => {
+  const bs = useBsPrefix(bsPrefix, 'container');
+  const suff = typeof fluid === 'string' ? `-${fluid}` : '-fluid';
   return (
     <Component
       ref={ref}
       {...ps}
-      className={classNames(className, fluid ? `${prefix}${suffix}` : prefix)}
+      className={classNames(className, fluid ? `${bs}${suff}` : bs)}
     />
-  )
-})
-Container.displayName = "Container"
-Container.defaultProps = defaultProps
+  );
+});
+
+Container.displayName = 'Container';
+Container.defaultProps = {
+  fluid: false,
+};

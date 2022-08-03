@@ -1,17 +1,21 @@
-import classNames from "classnames"
-import * as React from "react"
-import { useBootstrapPrefix } from "./ThemeProvider"
-import { BsPrefixOnlyProps } from "./utils"
-export interface TableProps extends BsPrefixOnlyProps, React.TableHTMLAttributes<HTMLTableElement> {
-  striped?: boolean
-  bordered?: boolean
-  borderless?: boolean
-  hover?: boolean
-  size?: string
-  variant?: string
-  responsive?: boolean | string
+import classNames from 'classnames';
+import * as React from 'react';
+import { useBsPrefix } from './Theme';
+import { BsOnlyProps } from './helpers';
+
+export interface Props
+  extends BsOnlyProps,
+    React.TableHTMLAttributes<HTMLTableElement> {
+  striped?: boolean | string;
+  bordered?: boolean;
+  borderless?: boolean;
+  hover?: boolean;
+  size?: string;
+  variant?: string;
+  responsive?: boolean | string;
 }
-export const Table = React.forwardRef<HTMLTableElement, TableProps>(
+
+export const Table = React.forwardRef<HTMLTableElement, Props>(
   (
     {
       bsPrefix,
@@ -25,27 +29,30 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(
       responsive,
       ...ps
     },
-    ref
+    ref,
   ) => {
-    const decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "table")
+    const decoratedBsPrefix = useBsPrefix(bsPrefix, 'table');
     const classes = classNames(
       className,
       decoratedBsPrefix,
       variant && `${decoratedBsPrefix}-${variant}`,
       size && `${decoratedBsPrefix}-${size}`,
-      striped && `${decoratedBsPrefix}-striped`,
+      striped &&
+        `${decoratedBsPrefix}-${
+          typeof striped === 'string' ? `striped-${striped}` : 'striped'
+        }`,
       bordered && `${decoratedBsPrefix}-bordered`,
       borderless && `${decoratedBsPrefix}-borderless`,
-      hover && `${decoratedBsPrefix}-hover`
-    )
-    const table = <table {...ps} className={classes} ref={ref} />
+      hover && `${decoratedBsPrefix}-hover`,
+    );
+    const table = <table {...ps} className={classes} ref={ref} />;
     if (responsive) {
-      let responsiveClass = `${decoratedBsPrefix}-responsive`
-      if (typeof responsive === "string") {
-        responsiveClass = `${responsiveClass}-${responsive}`
+      let responsiveClass = `${decoratedBsPrefix}-responsive`;
+      if (typeof responsive === 'string') {
+        responsiveClass = `${responsiveClass}-${responsive}`;
       }
-      return <div className={responsiveClass}>{table}</div>
+      return <div className={responsiveClass}>{table}</div>;
     }
-    return table
-  }
-)
+    return table;
+  },
+);

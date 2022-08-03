@@ -1,175 +1,239 @@
-import { BsPrefixProps, BsPrefixRefForwardingComponent } from "./utils"
-import { SelectCallback } from "./types"
-import { Transition } from "react-transition-group"
-import { useBootstrapPrefix } from "./ThemeProvider"
-import { useContext } from "react"
-import { useMemo } from "react"
-import { useUncontrolled } from "uncontrollable"
-import * as React from "react"
-import classNames from "classnames"
-import Collapse, { CollapseProps } from "./Collapse"
-type EventHandler = React.EventHandler<React.SyntheticEvent>
-export interface AccordionBodyProps extends BsPrefixProps, React.HTMLAttributes<HTMLElement> {}
-export const AccordionBody: BsPrefixRefForwardingComponent<"div", AccordionBodyProps> =
-  React.forwardRef<HTMLElement, AccordionBodyProps>(
-    ({ as: Component = "div", bsPrefix, className, ...ps }, ref) => {
-      bsPrefix = useBootstrapPrefix(bsPrefix, "accordion-body")
-      const { eventKey } = useContext(AccordionItemContext)
-      return (
-        <AccordionCollapse eventKey={eventKey}>
-          <Component ref={ref} {...ps} className={classNames(className, bsPrefix)} />
-        </AccordionCollapse>
-      )
-    }
-  )
-AccordionBody.displayName = "AccordionBody"
-export interface AccordionButtonProps
+import classNames from 'classnames';
+import * as React from 'react';
+import { useContext, useMemo } from 'react';
+import { useUncontrolled } from 'uncontrollable';
+import { Transition } from 'react-transition-group';
+import { useBsPrefix } from './Theme';
+import { BsProps, BsRefComponent } from './helpers';
+import { Collapse as C, Props as _Props } from './Collapse';
+
+export type Key = string | string[] | null | undefined;
+
+export declare type SelectCB = (
+  eventKey: Key,
+  e: React.SyntheticEvent<unknown>,
+) => void;
+
+export interface ContextValue {
+  activeEventKey?: Key;
+  onSelect?: SelectCB;
+  alwaysOpen?: boolean;
+}
+
+export function isItemSelected(active: Key, key: string): boolean {
+  return Array.isArray(active) ? active.includes(key) : active === key;
+}
+
+export const Context = React.createContext<ContextValue>({});
+Context.displayName = 'AccordionContext';
+
+export interface ItemContextValue {
+  eventKey: string;
+}
+
+export const ItemContext = React.createContext<ItemContextValue>({
+  eventKey: '',
+});
+ItemContext.displayName = 'AccordionItemContext';
+
+export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    BsPrefixProps {}
-export function useAccordionButton(eventKey: string, onClick?: EventHandler): EventHandler {
-  const { activeEventKey, onSelect } = useContext(AccordionContext)
-  return e => {
-    const eventKeyPassed = eventKey === activeEventKey ? null : eventKey
-    if (onSelect) onSelect(eventKeyPassed, e)
-    if (onClick) onClick(e)
-  }
-}
-export const AccordionButton: BsPrefixRefForwardingComponent<"div", AccordionButtonProps> =
-  React.forwardRef<HTMLButtonElement, AccordionButtonProps>(
-    ({ as: Component = "button", bsPrefix, className, onClick, ...ps }, ref) => {
-      bsPrefix = useBootstrapPrefix(bsPrefix, "accordion-button")
-      const { eventKey } = useContext(AccordionItemContext)
-      const accordionOnClick = useAccordionButton(eventKey, onClick)
-      const { activeEventKey } = useContext(AccordionContext)
-      if (Component === "button") {
-        ps.type = "button"
+    BsProps {}
+
+type EventHandler = React.EventHandler<React.SyntheticEvent>;
+
+export function useButton(key: string, onClick?: EventHandler): EventHandler {
+  const { activeEventKey, onSelect, alwaysOpen } = useContext(Context);
+  return (e) => {
+    let k: Key = key === activeEventKey ? null : key;
+    if (alwaysOpen) {
+      if (Array.isArray(activeEventKey)) {
+        if (activeEventKey.includes(key)) {
+          k = activeEventKey.filter((x) => x !== key);
+        } else {
+          k = [...activeEventKey, key];
+        }
+      } else {
+        k = [key];
       }
-      return (
-        <Component
-          ref={ref}
-          onClick={accordionOnClick}
-          {...ps}
-          aria-expanded={eventKey === activeEventKey}
-          className={classNames(className, bsPrefix, eventKey !== activeEventKey && "collapsed")}
-        />
-      )
     }
-  )
-AccordionButton.displayName = "AccordionButton"
-export interface AccordionCollapseProps extends BsPrefixProps, CollapseProps {
-  eventKey: string
+    onSelect?.(k, e);
+    onClick?.(e);
+  };
 }
-export const AccordionCollapse: BsPrefixRefForwardingComponent<"div", AccordionCollapseProps> =
-  React.forwardRef<Transition<any>, AccordionCollapseProps>(
-    ({ as: Component = "div", bsPrefix, className, children, eventKey, ...ps }, ref) => {
-      const { activeEventKey } = useContext(AccordionContext)
-      bsPrefix = useBootstrapPrefix(bsPrefix, "accordion-collapse")
-      return (
-        <Collapse
-          ref={ref}
-          in={activeEventKey === eventKey}
-          {...ps}
-          className={classNames(className, bsPrefix)}
-        >
-          <Component>{React.Children.only(children)}</Component>
-        </Collapse>
-      )
-    }
-  ) as any
-AccordionCollapse.displayName = "AccordionCollapse"
-export interface AccordionContextValue {
-  activeEventKey?: string
-  onSelect?: SelectCallback
-}
-export const AccordionContext = React.createContext<AccordionContextValue>({})
-AccordionContext.displayName = "AccordionContext"
-export interface AccordionHeaderProps extends BsPrefixProps, React.HTMLAttributes<HTMLElement> {}
-export const AccordionHeader: BsPrefixRefForwardingComponent<"h2", AccordionHeaderProps> =
-  React.forwardRef<HTMLElement, AccordionHeaderProps>(
-    ({ as: Component = "h2", bsPrefix, className, children, onClick, ...ps }, ref) => {
-      bsPrefix = useBootstrapPrefix(bsPrefix, "accordion-header")
-      return (
-        <Component ref={ref} {...ps} className={classNames(className, bsPrefix)}>
-          <AccordionButton onClick={onClick}>{children}</AccordionButton>
-        </Component>
-      )
-    }
-  )
-AccordionHeader.displayName = "AccordionHeader"
-export interface AccordionItemProps extends BsPrefixProps, React.HTMLAttributes<HTMLElement> {
-  eventKey: string
-}
-export const AccordionItem: BsPrefixRefForwardingComponent<"div", AccordionItemProps> =
-  React.forwardRef<HTMLElement, AccordionItemProps>(
-    ({ as: Component = "div", bsPrefix, className, eventKey, ...ps }, ref) => {
-      bsPrefix = useBootstrapPrefix(bsPrefix, "accordion-item")
-      const contextValue = useMemo<AccordionItemContextValue>(
-        () => ({
-          eventKey,
-        }),
-        [eventKey]
-      )
-      return (
-        <AccordionItemContext.Provider value={contextValue}>
-          <Component ref={ref} {...ps} className={classNames(className, bsPrefix)} />
-        </AccordionItemContext.Provider>
-      )
-    }
-  )
-AccordionItem.displayName = "AccordionItem"
-export interface AccordionItemContextValue {
-  eventKey: string
-}
-export const AccordionItemContext = React.createContext<AccordionItemContextValue>({
-  eventKey: "",
-})
-AccordionItemContext.displayName = "AccordionItemContext"
-export interface AccordionProps
-  extends Omit<React.HTMLAttributes<HTMLElement>, "onSelect">,
-    BsPrefixProps {
-  activeKey?: string
-  defaultActiveKey?: string
-  onSelect?: SelectCallback
-  flush?: boolean
-}
-export const Accordion: BsPrefixRefForwardingComponent<"div", AccordionProps> = React.forwardRef<
+
+export const Button: BsRefComponent<'div', ButtonProps> = React.forwardRef<
+  HTMLButtonElement,
+  ButtonProps
+>(({ as: Component = 'button', bsPrefix, className, onClick, ...ps }, ref) => {
+  bsPrefix = useBsPrefix(bsPrefix, 'accordion-button');
+  const { eventKey } = useContext(ItemContext);
+  const accordionOnClick = useButton(eventKey, onClick);
+  const { activeEventKey } = useContext(Context);
+  if (Component === 'button') {
+    ps.type = 'button';
+  }
+  return (
+    <Component
+      ref={ref}
+      onClick={accordionOnClick}
+      {...ps}
+      aria-expanded={eventKey === activeEventKey}
+      className={classNames(
+        className,
+        bsPrefix,
+        !isItemSelected(activeEventKey, eventKey) && 'collapsed',
+      )}
+    />
+  );
+});
+Button.displayName = 'AccordionButton';
+
+export interface HeaderProps
+  extends BsProps,
+    React.HTMLAttributes<HTMLElement> {}
+
+export const Header: BsRefComponent<'h2', HeaderProps> = React.forwardRef<
   HTMLElement,
-  AccordionProps
->((props, ref) => {
+  HeaderProps
+>(
+  (
+    { as: Component = 'h2', bsPrefix, className, children, onClick, ...ps },
+    ref,
+  ) => {
+    bsPrefix = useBsPrefix(bsPrefix, 'accordion-header');
+    return (
+      <Component ref={ref} {...ps} className={classNames(className, bsPrefix)}>
+        <Button onClick={onClick}>{children}</Button>
+      </Component>
+    );
+  },
+);
+Header.displayName = 'AccordionHeader';
+
+export interface CollapseProps extends BsProps, _Props {
+  eventKey: string;
+}
+
+export const Collapse: BsRefComponent<'div', CollapseProps> = React.forwardRef<
+  Transition<any>,
+  CollapseProps
+>(
+  (
+    { as: Component = 'div', bsPrefix, className, children, eventKey, ...ps },
+    ref,
+  ) => {
+    const { activeEventKey } = useContext(Context);
+    const bs = useBsPrefix(bsPrefix, 'accordion-collapse');
+    return (
+      <C
+        ref={ref}
+        in={isItemSelected(activeEventKey, eventKey)}
+        {...ps}
+        className={classNames(className, bs)}
+      >
+        <Component>{React.Children.only(children)}</Component>
+      </C>
+    );
+  },
+) as any;
+Collapse.displayName = 'AccordionCollapse';
+
+export interface BodyProps extends BsProps, React.HTMLAttributes<HTMLElement> {}
+
+export const Body: BsRefComponent<'div', BodyProps> = React.forwardRef<
+  HTMLElement,
+  BodyProps
+>(({ as: Component = 'div', bsPrefix, className, ...ps }, ref) => {
+  bsPrefix = useBsPrefix(bsPrefix, 'accordion-body');
+  const { eventKey } = useContext(ItemContext);
+  return (
+    <Collapse eventKey={eventKey}>
+      <Component
+        ref={ref}
+        {...ps}
+        className={classNames(className, bsPrefix)}
+      />
+    </Collapse>
+  );
+});
+Body.displayName = 'AccordionBody';
+
+export interface ItemProps extends BsProps, React.HTMLAttributes<HTMLElement> {
+  eventKey: string;
+}
+
+export const Item: BsRefComponent<'div', ItemProps> = React.forwardRef<
+  HTMLElement,
+  ItemProps
+>(({ as: X = 'div', bsPrefix, className, eventKey, ...ps }, ref) => {
+  bsPrefix = useBsPrefix(bsPrefix, 'accordion-item');
+  const ctx = useMemo<ItemContextValue>(
+    () => ({
+      eventKey,
+    }),
+    [eventKey],
+  );
+  return (
+    <ItemContext.Provider value={ctx}>
+      <X ref={ref} {...ps} className={classNames(className, bsPrefix)} />
+    </ItemContext.Provider>
+  );
+});
+Item.displayName = 'AccordionItem';
+
+export interface Props
+  extends Omit<React.HTMLAttributes<HTMLElement>, 'onSelect'>,
+    BsProps {
+  activeKey?: Key;
+  defaultActiveKey?: Key;
+  onSelect?: SelectCB;
+  flush?: boolean;
+  alwaysOpen?: boolean;
+}
+
+export const Accordion: BsRefComponent<'div', Props> = React.forwardRef<
+  HTMLElement,
+  Props
+>((xs, ref) => {
   const {
-    as: Component = "div",
+    as: X = 'div',
     activeKey,
     bsPrefix,
     className,
     onSelect,
     flush,
-    ...controlledProps
-  } = useUncontrolled(props, {
-    activeKey: "onSelect",
-  })
-  const prefix = useBootstrapPrefix(bsPrefix, "accordion")
-  const contextValue = useMemo(
+    alwaysOpen,
+    ...ps
+  } = useUncontrolled(xs, {
+    activeKey: 'onSelect',
+  });
+  const bs = useBsPrefix(bsPrefix, 'accordion');
+  const v = useMemo(
     () => ({
       activeEventKey: activeKey,
       onSelect,
+      alwaysOpen,
     }),
-    [activeKey, onSelect]
-  )
+    [activeKey, onSelect, alwaysOpen],
+  );
   return (
-    <AccordionContext.Provider value={contextValue}>
-      <Component
+    <Context.Provider value={v}>
+      <X
         ref={ref}
-        {...controlledProps}
-        className={classNames(className, prefix, flush && `${prefix}-flush`)}
+        {...ps}
+        className={classNames(className, bs, flush && `${bs}-flush`)}
       />
-    </AccordionContext.Provider>
-  )
-})
-Accordion.displayName = "Accordion"
+    </Context.Provider>
+  );
+});
+
+Accordion.displayName = 'Accordion';
+
 Object.assign(Accordion, {
-  Button: AccordionButton,
-  Collapse: AccordionCollapse,
-  Item: AccordionItem,
-  Header: AccordionHeader,
-  Body: AccordionBody,
-})
+  Button,
+  Collapse,
+  Item,
+  Header,
+  Body,
+});

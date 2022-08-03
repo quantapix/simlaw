@@ -1,23 +1,27 @@
-import * as React from "react"
-import { ButtonType } from "@restart/ui/Button"
-import { Button } from "./Button"
-import { ButtonGroup } from "./ButtonGroup"
-import { Dropdown, DropdownProps } from "./Dropdown"
-import { PropsFromToggle } from "./DropdownToggle"
-import { BsPrefixProps } from "./utils"
-export interface SplitButtonProps
-  extends Omit<DropdownProps, "title">,
-    PropsFromToggle,
-    BsPrefixProps {
-  menuRole?: string
-  renderMenuOnMount?: boolean
-  rootCloseEvent?: "click" | "mousedown"
-  target?: string
-  title: React.ReactNode
-  toggleLabel?: string
-  type?: ButtonType
+import * as React from 'react';
+import { ButtonType } from '@restart/ui/Button';
+import { Button, Group } from './Button';
+import {
+  Dropdown,
+  Props as _Props,
+  PropsFromToggle,
+  Toggle,
+  Menu,
+} from './Dropdown';
+import { BsProps } from './helpers';
+
+export interface Props extends Omit<_Props, 'title'>, PropsFromToggle, BsProps {
+  menuRole?: string;
+  renderMenuOnMount?: boolean;
+  rootCloseEvent?: 'click' | 'mousedown';
+  target?: string;
+  title: React.ReactNode;
+  toggleLabel?: string;
+  type?: ButtonType;
+  flip?: boolean;
 }
-export const SplitButton = React.forwardRef<HTMLElement, SplitButtonProps>(
+
+export const SplitButton = React.forwardRef<HTMLElement, Props>(
   (
     {
       id,
@@ -34,11 +38,12 @@ export const SplitButton = React.forwardRef<HTMLElement, SplitButtonProps>(
       menuRole,
       renderMenuOnMount,
       rootCloseEvent,
+      flip,
       ...ps
     },
-    ref
+    ref,
   ) => (
-    <Dropdown ref={ref} {...ps} as={ButtonGroup}>
+    <Dropdown ref={ref} {...ps} as={Group}>
       <Button
         size={size}
         variant={variant}
@@ -51,7 +56,7 @@ export const SplitButton = React.forwardRef<HTMLElement, SplitButtonProps>(
       >
         {title}
       </Button>
-      <Dropdown.Toggle
+      <Toggle
         split
         id={id}
         size={size}
@@ -60,16 +65,20 @@ export const SplitButton = React.forwardRef<HTMLElement, SplitButtonProps>(
         childBsPrefix={bsPrefix}
       >
         <span className="visually-hidden">{toggleLabel}</span>
-      </Dropdown.Toggle>
-      <Dropdown.Menu
+      </Toggle>
+      <Menu
         role={menuRole}
         renderOnMount={renderMenuOnMount}
         rootCloseEvent={rootCloseEvent}
+        flip={flip}
       >
         {children}
-      </Dropdown.Menu>
+      </Menu>
     </Dropdown>
-  )
-)
-SplitButton.defaultProps = { toggleLabel: "Toggle dropdown", type: "button" }
-SplitButton.displayName = "SplitButton"
+  ),
+);
+SplitButton.displayName = 'SplitButton';
+SplitButton.defaultProps = {
+  toggleLabel: 'Toggle dropdown',
+  type: 'button',
+};

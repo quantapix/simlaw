@@ -1,52 +1,66 @@
-import { BsPrefixProps, BsPrefixRefForwardingComponent } from "./utils"
-import { useBootstrapPrefix } from "./ThemeProvider"
-import { useMemo } from "react"
-import * as React from "react"
-import classNames from "classnames"
-import createWithBsPrefix from "./utils"
-import FormCheckInput from "./Form"
-export const InputGroupContext = React.createContext<unknown | null>(null)
-InputGroupContext.displayName = "InputGroupContext"
+import classNames from 'classnames';
+import * as React from 'react';
+import { useMemo } from 'react';
+import withBsPrefix from './createWithBsPrefix';
+import { useBsPrefix } from './Theme';
+import { Input } from './Form';
+import { BsProps, BsRefComponent } from './helpers';
 
-const InputGroupText = createWithBsPrefix("input-group-text", { Component: "span" })
-const InputGroupCheckbox = ps => (
-  <InputGroupText>
-    <FormCheckInput type="checkbox" {...ps} />
-  </InputGroupText>
-)
-const InputGroupRadio = ps => (
-  <InputGroupText>
-    <FormCheckInput type="radio" {...ps} />
-  </InputGroupText>
-)
-export interface InputGroupProps extends BsPrefixProps, React.HTMLAttributes<HTMLElement> {
-  size?: "sm" | "lg"
-  hasValidation?: boolean
+export const Context = React.createContext<unknown | null>(null);
+Context.displayName = 'InputGroupContext';
+
+const Text = withBsPrefix('input-group-text', {
+  Component: 'span',
+});
+
+const Checkbox = (ps) => (
+  <Text>
+    <Input type="checkbox" {...ps} />
+  </Text>
+);
+
+const Radio = (ps) => (
+  <Text>
+    <Input type="radio" {...ps} />
+  </Text>
+);
+
+export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+  size?: 'sm' | 'lg';
+  hasValidation?: boolean;
 }
-export const InputGroup: BsPrefixRefForwardingComponent<"div", InputGroupProps> = React.forwardRef<
+
+export const InputGroup: BsRefComponent<'div', Props> = React.forwardRef<
   HTMLElement,
-  InputGroupProps
->(({ bsPrefix, size, hasValidation, className, as: Component = "div", ...ps }, ref) => {
-  bsPrefix = useBootstrapPrefix(bsPrefix, "input-group")
-  const contextValue = useMemo(() => ({}), [])
-  return (
-    <InputGroupContext.Provider value={contextValue}>
-      <Component
-        ref={ref}
-        {...ps}
-        className={classNames(
-          className,
-          bsPrefix,
-          size && `${bsPrefix}-${size}`,
-          hasValidation && "has-validation"
-        )}
-      />
-    </InputGroupContext.Provider>
-  )
-})
-InputGroup.displayName = "InputGroup"
+  Props
+>(
+  (
+    { bsPrefix, size, hasValidation, className, as: Component = 'div', ...ps },
+    ref,
+  ) => {
+    bsPrefix = useBsPrefix(bsPrefix, 'input-group');
+    const contextValue = useMemo(() => ({}), []);
+    return (
+      <Context.Provider value={contextValue}>
+        <Component
+          ref={ref}
+          {...ps}
+          className={classNames(
+            className,
+            bsPrefix,
+            size && `${bsPrefix}-${size}`,
+            hasValidation && 'has-validation',
+          )}
+        />
+      </Context.Provider>
+    );
+  },
+);
+
+InputGroup.displayName = 'InputGroup';
+
 Object.assign(InputGroup, {
-  Text: InputGroupText,
-  Radio: InputGroupRadio,
-  Checkbox: InputGroupCheckbox,
-})
+  Text,
+  Radio,
+  Checkbox,
+});

@@ -1,418 +1,112 @@
-import { BsPrefixOnlyProps } from "./utils"
-import { BsPrefixProps } from "./utils"
-import { BsPrefixRefForwardingComponent } from "./utils"
-import { CloseButtonVariant } from "./CloseButton"
-import { dataAttr } from "./DataKey"
-import { getSharedManager } from "./BootstrapModalManager"
-import { ModalInstance } from "@restart/ui/ModalManager"
-import { TransitionCallbacks } from "./types"
-import { useBootstrapPrefix, useIsRTL } from "./ThemeProvider"
-import { useCallback, useMemo, useRef, useState } from "react"
-import { useImperativeHandle, forwardRef, useEffect } from "react"
-import { AbstractModalHeader, AbstractModalHeaderProps } from "./AbstractModalHeader"
-import * as React from "react"
-import activeElement from "dom-helpers/activeElement"
-import addEventListener from "dom-helpers/addEventListener"
-import BaseModal, { ModalProps as BaseModalProps } from "@restart/ui/Modal"
-import canUseDOM from "dom-helpers/canUseDOM"
-import classNames from "classnames"
-import contains from "dom-helpers/contains"
-import createWithBsPrefix from "./createWithBsPrefix"
-import css from "dom-helpers/css"
-import divWithClassName from "./divWithClassName"
-import { Fade } from "./Fade"
-import getBodyScrollbarWidth from "./getScrollbarWidth"
-import getScrollbarSize from "dom-helpers/scrollbarSize"
-import listen from "dom-helpers/listen"
-import ownerDocument from "dom-helpers/ownerDocument"
-import ReactDOM from "react-dom"
-import removeEventListener from "dom-helpers/removeEventListener"
-import transitionEnd from "dom-helpers/transitionEnd"
-import useCallbackRef from "@restart/hooks/useCallbackRef"
-import useEventCallback from "@restart/hooks/useEventCallback"
-import useMergedRefs from "@restart/hooks/useMergedRefs"
-import useMounted from "@restart/hooks/useMounted"
-import usePrevious from "@restart/hooks/usePrevious"
-import useWaitForDOMRef, { DOMContainer } from "./useWaitForDOMRef"
-import useWillUnmount from "@restart/hooks/useWillUnmount"
+import classNames from 'classnames';
+import * as React from 'react';
+import addEventListener from 'dom-helpers/addEventListener';
+import canUseDOM from 'dom-helpers/canUseDOM';
+import ownerDocument from 'dom-helpers/ownerDocument';
+import removeEventListener from 'dom-helpers/removeEventListener';
+import getScrollbarSize from 'dom-helpers/scrollbarSize';
+import useCallbackRef from '@restart/hooks/useCallbackRef';
+import useEventCallback from '@restart/hooks/useEventCallback';
+import useMergedRefs from '@restart/hooks/useMergedRefs';
+import useWillUnmount from '@restart/hooks/useWillUnmount';
+import transitionEnd from 'dom-helpers/transitionEnd';
+import { useCallback, useContext, useMemo, useRef, useState } from 'react';
+import BaseModal, { BaseModalProps } from '@restart/ui/Modal';
+import { ModalInstance } from '@restart/ui/ModalManager';
+import { getSharedManager } from './Manager';
+import { Fade } from './Fade';
+import { BsOnlyProps, BsProps, BsRefComponent } from './helpers';
+import { useBsPrefix, useIsRTL } from './Theme';
+import { Close as CloseButton, Variant as CloseVariant } from './Button';
+import withBsPrefix from './createWithBsPrefix';
+import divWithClassName from './divWithClassName';
 
-export const ModalBody = createWithBsPrefix("modal-body")
-export const ModalFooter = createWithBsPrefix("modal-footer")
-const DivStyledAsH4 = divWithClassName("h4")
-export const ModalTitle = createWithBsPrefix("modal-title", { Component: DivStyledAsH4 })
+interface ContextType {
+  onHide: () => void;
+}
 
-let manager: ModalManager
-export type ModalTransitionComponent = React.ComponentType<
-  {
-    in: boolean
-    appear?: boolean
-    unmountOnExit?: boolean
-  } & TransitionCallbacks
->
-export interface RenderModalDialogProps {
-  style: React.CSSProperties | undefined
-  className: string | undefined
-  tabIndex: number
-  role: string
-  ref: React.RefCallback<Element>
-  "aria-modal": boolean | undefined
-}
-export interface RenderModalBackdropProps {
-  ref: React.RefCallback<Element>
-  onClick: (event: React.SyntheticEvent) => void
-}
-export interface BaseModalProps extends TransitionCallbacks {
-  children?: React.ReactElement
-  role?: string
-  style?: React.CSSProperties
-  className?: string
-  show?: boolean
-  container?: DOMContainer
-  onShow?: () => void
-  onHide?: () => void
-  manager?: ModalManager
-  backdrop?: true | false | "static"
-  renderDialog?: (props: RenderModalDialogProps) => React.ReactNode
-  renderBackdrop?: (props: RenderModalBackdropProps) => React.ReactNode
-  onEscapeKeyDown?: (e: KeyboardEvent) => void
-  onBackdropClick?: (e: React.SyntheticEvent) => void
-  keyboard?: boolean
-  transition?: ModalTransitionComponent
-  backdropTransition?: ModalTransitionComponent
-  autoFocus?: boolean
-  enforceFocus?: boolean
-  restoreFocus?: boolean
-  restoreFocusOptions?: {
-    preventScroll: boolean
-  }
-}
-export interface ModalProps extends BaseModalProps {
-  [k: string]: any
-}
-function getManager() {
-  if (!manager) manager = new ModalManager()
-  return manager
-}
-function useModalManager(provided?: ModalManager) {
-  const modalManager = provided || getManager()
-  const modal = useRef({
-    dialog: null as any as HTMLElement,
-    backdrop: null as any as HTMLElement,
-  })
-  return Object.assign(modal.current, {
-    add: () => modalManager.add(modal.current),
-    remove: () => modalManager.remove(modal.current),
-    isTopModal: () => modalManager.isTopModal(modal.current),
-    setDialogRef: useCallback((ref: HTMLElement | null) => {
-      modal.current.dialog = ref!
-    }, []),
-    setBackdropRef: useCallback((ref: HTMLElement | null) => {
-      modal.current.backdrop = ref!
-    }, []),
-  })
-}
-export interface ModalHandle {
-  dialog: HTMLElement | null
-  backdrop: HTMLElement | null
-}
-export const Modal: React.ForwardRefExoticComponent<ModalProps & React.RefAttributes<ModalHandle>> =
-  forwardRef(
-    (
-      {
-        show = false,
-        role = "dialog",
-        className,
-        style,
-        children,
-        backdrop = true,
-        keyboard = true,
-        onBackdropClick,
-        onEscapeKeyDown,
-        transition,
-        backdropTransition,
-        autoFocus = true,
-        enforceFocus = true,
-        restoreFocus = true,
-        restoreFocusOptions,
-        renderDialog,
-        renderBackdrop = (props: RenderModalBackdropProps) => <div {...props} />,
-        manager: providedManager,
-        container: containerRef,
-        onShow,
-        onHide = () => {},
-        onExit,
-        onExited,
-        onExiting,
-        onEnter,
-        onEntering,
-        onEntered,
-        ...rest
-      }: ModalProps,
-      ref: React.Ref<ModalHandle>
-    ) => {
-      const container = useWaitForDOMRef(containerRef)
-      const modal = useModalManager(providedManager)
-      const isMounted = useMounted()
-      const prevShow = usePrevious(show)
-      const [exited, setExited] = useState(!show)
-      const lastFocusRef = useRef<HTMLElement | null>(null)
-      useImperativeHandle(ref, () => modal, [modal])
-      if (canUseDOM && !prevShow && show) {
-        lastFocusRef.current = activeElement() as HTMLElement
-      }
-      if (!transition && !show && !exited) {
-        setExited(true)
-      } else if (show && exited) {
-        setExited(false)
-      }
-      const handleShow = useEventCallback(() => {
-        modal.add()
-        removeKeydownListenerRef.current = listen(document as any, "keydown", handleDocumentKeyDown)
-        removeFocusListenerRef.current = listen(
-          document as any,
-          "focus",
-          () => setTimeout(handleEnforceFocus),
-          true
-        )
-        if (onShow) {
-          onShow()
-        }
-        if (autoFocus) {
-          const currentActiveElement = activeElement(document) as HTMLElement
-          if (
-            modal.dialog &&
-            currentActiveElement &&
-            !contains(modal.dialog, currentActiveElement)
-          ) {
-            lastFocusRef.current = currentActiveElement
-            modal.dialog.focus()
-          }
-        }
-      })
-      const handleHide = useEventCallback(() => {
-        modal.remove()
-        removeKeydownListenerRef.current?.()
-        removeFocusListenerRef.current?.()
-        if (restoreFocus) {
-          lastFocusRef.current?.focus?.(restoreFocusOptions)
-          lastFocusRef.current = null
-        }
-      })
-      useEffect(() => {
-        if (!show || !container) return
-        handleShow()
-      }, [show, container, handleShow])
-      useEffect(() => {
-        if (!exited) return
-        handleHide()
-      }, [exited, handleHide])
-      useWillUnmount(() => {
-        handleHide()
-      })
-      const handleEnforceFocus = useEventCallback(() => {
-        if (!enforceFocus || !isMounted() || !modal.isTopModal()) {
-          return
-        }
-        const currentActiveElement = activeElement()
-        if (modal.dialog && currentActiveElement && !contains(modal.dialog, currentActiveElement)) {
-          modal.dialog.focus()
-        }
-      })
-      const handleBackdropClick = useEventCallback((e: React.SyntheticEvent) => {
-        if (e.target !== e.currentTarget) {
-          return
-        }
-        onBackdropClick?.(e)
-        if (backdrop === true) {
-          onHide()
-        }
-      })
-      const handleDocumentKeyDown = useEventCallback((e: KeyboardEvent) => {
-        if (keyboard && e.keyCode === 27 && modal.isTopModal()) {
-          onEscapeKeyDown?.(e)
-          if (!e.defaultPrevented) {
-            onHide()
-          }
-        }
-      })
-      const removeFocusListenerRef = useRef<ReturnType<typeof listen> | null>()
-      const removeKeydownListenerRef = useRef<ReturnType<typeof listen> | null>()
-      const handleHidden: TransitionCallbacks["onExited"] = (...args) => {
-        setExited(true)
-        onExited?.(...args)
-      }
-      const Transition = transition
-      if (!container || !(show || (Transition && !exited))) {
-        return null
-      }
-      const dialogProps = {
-        role,
-        ref: modal.setDialogRef,
-        "aria-modal": role === "dialog" ? true : undefined,
-        ...rest,
-        style,
-        className,
-        tabIndex: -1,
-      }
-      let dialog = renderDialog ? (
-        renderDialog(dialogProps)
-      ) : (
-        <div {...dialogProps}>{React.cloneElement(children!, { role: "document" })}</div>
-      )
-      if (Transition) {
-        dialog = (
-          <Transition
-            appear
-            unmountOnExit
-            in={!!show}
-            onExit={onExit}
-            onExiting={onExiting}
-            onExited={handleHidden}
-            onEnter={onEnter}
-            onEntering={onEntering}
-            onEntered={onEntered}
-          >
-            {dialog}
-          </Transition>
-        )
-      }
-      let backdropElement = null
-      if (backdrop) {
-        const BackdropTransition = backdropTransition
-        backdropElement = renderBackdrop({
-          ref: modal.setBackdropRef,
-          onClick: handleBackdropClick,
-        })
-        if (BackdropTransition) {
-          backdropElement = (
-            <BackdropTransition appear in={!!show}>
-              {backdropElement}
-            </BackdropTransition>
-          )
-        }
-      }
-      return (
-        <>
-          {ReactDOM.createPortal(
-            <>
-              {backdropElement}
-              {dialog}
-            </>,
-            container
-          )}
-        </>
-      )
-    }
-  )
-Modal.displayName = "Modal"
-Object.assign(Modal, {
-  Manager: ModalManager,
-})
-export interface ModalInstance {
-  dialog: Element
-  backdrop: Element
-}
-export interface ModalManagerOptions {
-  handleContainerOverflow?: boolean
-  isRTL?: boolean
-}
-export type ContainerState = {
-  scrollBarWidth: number
-  style: Record<string, any>
-  [key: string]: any
-}
-export const OPEN_DATA_ATTRIBUTE = dataAttr("modal-open")
-export class ModalManager {
-  readonly handleContainerOverflow: boolean
-  readonly isRTL: boolean
-  readonly modals: ModalInstance[]
-  private state!: ContainerState
-  constructor({ handleContainerOverflow = true, isRTL = false }: ModalManagerOptions = {}) {
-    this.handleContainerOverflow = handleContainerOverflow
-    this.isRTL = isRTL
-    this.modals = []
-  }
-  getScrollbarWidth() {
-    return getBodyScrollbarWidth()
-  }
-  getElement() {
-    return document.body
-  }
-  setModalAttributes(_modal: ModalInstance) {}
-  removeModalAttributes(_modal: ModalInstance) {}
-  setContainerStyle(containerState: ContainerState) {
-    const style: Partial<CSSStyleDeclaration> = { overflow: "hidden" }
-    const paddingProp = this.isRTL ? "paddingLeft" : "paddingRight"
-    const container = this.getElement()
-    containerState.style = {
-      overflow: container.style.overflow,
-      [paddingProp]: container.style[paddingProp],
-    }
-    if (containerState.scrollBarWidth) {
-      style[paddingProp] = `${
-        parseInt(css(container, paddingProp) || "0", 10) + containerState.scrollBarWidth
-      }px`
-    }
-    container.setAttribute(OPEN_DATA_ATTRIBUTE, "")
-    css(container, style as any)
-  }
-  reset() {
-    ;[...this.modals].forEach(m => this.remove(m))
-  }
-  removeContainerStyle(containerState: ContainerState) {
-    const container = this.getElement()
-    container.removeAttribute(OPEN_DATA_ATTRIBUTE)
-    Object.assign(container.style, containerState.style)
-  }
-  add(modal: ModalInstance) {
-    let modalIdx = this.modals.indexOf(modal)
-    if (modalIdx !== -1) {
-      return modalIdx
-    }
-    modalIdx = this.modals.length
-    this.modals.push(modal)
-    this.setModalAttributes(modal)
-    if (modalIdx !== 0) {
-      return modalIdx
-    }
-    this.state = {
-      scrollBarWidth: this.getScrollbarWidth(),
-      style: {},
-    }
-    if (this.handleContainerOverflow) {
-      this.setContainerStyle(this.state)
-    }
-    return modalIdx
-  }
-  remove(modal: ModalInstance) {
-    const modalIdx = this.modals.indexOf(modal)
-    if (modalIdx === -1) {
-      return
-    }
-    this.modals.splice(modalIdx, 1)
-    if (!this.modals.length && this.handleContainerOverflow) {
-      this.removeContainerStyle(this.state)
-    }
-    this.removeModalAttributes(modal)
-  }
-  isTopModal(modal: ModalInstance) {
-    return !!this.modals.length && this.modals[this.modals.length - 1] === modal
-  }
-}
-interface ModalContextType {
-  onHide: () => void
-}
-export const ModalContext = React.createContext<ModalContextType>({
+export const Context = React.createContext<ContextType>({
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   onHide() {},
-})
-export interface ModalDialogProps extends React.HTMLAttributes<HTMLDivElement>, BsPrefixProps {
-  size?: "sm" | "lg" | "xl"
-  fullscreen?: true | "sm-down" | "md-down" | "lg-down" | "xl-down" | "xxl-down"
-  centered?: boolean
-  scrollable?: boolean
-  contentClassName?: string
+});
+
+export interface AbsProps extends React.HTMLAttributes<HTMLDivElement> {
+  closeLabel?: string;
+  closeVariant?: CloseVariant;
+  closeButton?: boolean;
+  onHide?: () => void;
 }
-export const ModalDialog = React.forwardRef<HTMLDivElement, ModalDialogProps>(
+
+export const AbsHeader = React.forwardRef<HTMLDivElement, AbsProps>(
+  ({ closeLabel, closeVariant, closeButton, onHide, children, ...ps }, ref) => {
+    const context = useContext(Context);
+    const handleClick = useEventCallback(() => {
+      context?.onHide();
+      onHide?.();
+    });
+    return (
+      <div ref={ref} {...ps}>
+        {children}
+        {closeButton && (
+          <CloseButton
+            aria-label={closeLabel}
+            variant={closeVariant}
+            onClick={handleClick}
+          />
+        )}
+      </div>
+    );
+  },
+);
+
+AbsHeader.defaultProps = {
+  closeLabel: 'Close',
+  closeButton: false,
+};
+
+export interface HeaderProps extends AbsProps, BsOnlyProps {}
+
+export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
+  ({ bsPrefix, className, ...ps }, ref) => {
+    bsPrefix = useBsPrefix(bsPrefix, 'modal-header');
+    return (
+      <AbsHeader
+        ref={ref}
+        {...ps}
+        className={classNames(className, bsPrefix)}
+      />
+    );
+  },
+);
+Header.displayName = 'ModalHeader';
+Header.defaultProps = {
+  closeLabel: 'Close',
+  closeButton: false,
+};
+
+export const Body = withBsPrefix('modal-body');
+export const Footer = withBsPrefix('modal-footer');
+const DivAsH4 = divWithClassName('h4');
+export const Title = withBsPrefix('modal-title', { Component: DivAsH4 });
+
+export interface DialogProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    BsProps {
+  size?: 'sm' | 'lg' | 'xl';
+  fullscreen?:
+    | true
+    | string
+    | 'sm-down'
+    | 'md-down'
+    | 'lg-down'
+    | 'xl-down'
+    | 'xxl-down';
+  centered?: boolean;
+  scrollable?: boolean;
+  contentClassName?: string;
+}
+
+export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
   (
     {
       bsPrefix,
@@ -424,15 +118,15 @@ export const ModalDialog = React.forwardRef<HTMLDivElement, ModalDialogProps>(
       children,
       scrollable,
       ...ps
-    }: ModalDialogProps,
-    ref
+    }: DialogProps,
+    ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, "modal")
-    const dialogClass = `${bsPrefix}-dialog`
+    const bs = useBsPrefix(bsPrefix, 'modal');
+    const dialogClass = `${bs}-dialog`;
     const fullScreenClass =
-      typeof fullscreen === "string"
-        ? `${bsPrefix}-fullscreen-${fullscreen}`
-        : `${bsPrefix}-fullscreen`
+      typeof fullscreen === 'string'
+        ? `${bs}-fullscreen-${fullscreen}`
+        : `${bs}-fullscreen`;
     return (
       <div
         {...ps}
@@ -440,51 +134,60 @@ export const ModalDialog = React.forwardRef<HTMLDivElement, ModalDialogProps>(
         className={classNames(
           dialogClass,
           className,
-          size && `${bsPrefix}-${size}`,
+          size && `${bs}-${size}`,
           centered && `${dialogClass}-centered`,
           scrollable && `${dialogClass}-scrollable`,
-          fullscreen && fullScreenClass
+          fullscreen && fullScreenClass,
         )}
       >
-        <div className={classNames(`${bsPrefix}-content`, contentClassName)}>{children}</div>
+        <div className={classNames(`${bs}-content`, contentClassName)}>
+          {children}
+        </div>
       </div>
-    )
-  }
-)
-ModalDialog.displayName = "ModalDialog"
-export interface ModalHeaderProps extends AbstractModalHeaderProps, BsPrefixOnlyProps {}
-export const ModalHeader = React.forwardRef<HTMLDivElement, ModalHeaderProps>(
-  ({ bsPrefix, className, ...ps }, ref) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, "modal-header")
-    return <AbstractModalHeader ref={ref} {...ps} className={classNames(className, bsPrefix)} />
-  }
-)
-ModalHeader.displayName = "ModalHeader"
-ModalHeader.defaultProps = { closeLabel: "Close", closeButton: false }
-export interface ModalProps
+    );
+  },
+);
+Dialog.displayName = 'ModalDialog';
+
+export interface Props
   extends Omit<
     BaseModalProps,
-    "role" | "renderBackdrop" | "renderDialog" | "transition" | "backdropTransition" | "children"
+    | 'role'
+    | 'renderBackdrop'
+    | 'renderDialog'
+    | 'transition'
+    | 'backdropTransition'
+    | 'children'
   > {
-  size?: "sm" | "lg" | "xl"
-  fullscreen?: true | "sm-down" | "md-down" | "lg-down" | "xl-down" | "xxl-down"
-  bsPrefix?: string
-  centered?: boolean
-  backdropClassName?: string
-  animation?: boolean
-  dialogClassName?: string
-  contentClassName?: string
-  dialogAs?: React.ElementType
-  scrollable?: boolean
-  [k: string]: any
+  size?: 'sm' | 'lg' | 'xl';
+  fullscreen?:
+    | true
+    | string
+    | 'sm-down'
+    | 'md-down'
+    | 'lg-down'
+    | 'xl-down'
+    | 'xxl-down';
+  bsPrefix?: string;
+  centered?: boolean;
+  backdropClassName?: string;
+  animation?: boolean;
+  dialogClassName?: string;
+  contentClassName?: string;
+  dialogAs?: React.ElementType;
+  scrollable?: boolean;
+  [other: string]: any;
 }
-function DialogTransition(props) {
-  return <Fade {...props} timeout={null} />
+
+function DialogTransition(ps) {
+  return <Fade {...ps} timeout={null} />;
 }
-function BackdropTransition(props) {
-  return <Fade {...props} timeout={null} />
+
+function BackdropTransition(ps) {
+  return <Fade {...ps} timeout={null} />;
 }
-export const Modal: BsPrefixRefForwardingComponent<"div", ModalProps> = React.forwardRef(
+
+export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
   (
     {
       bsPrefix,
@@ -493,9 +196,10 @@ export const Modal: BsPrefixRefForwardingComponent<"div", ModalProps> = React.fo
       dialogClassName,
       contentClassName,
       children,
-      dialogAs: Dialog,
-      "aria-labelledby": ariaLabelledby,
-      /* BaseModal props */
+      dialogAs: Component,
+      'aria-labelledby': ariaLabelledby,
+      'aria-describedby': ariaDescribedby,
+      'aria-label': ariaLabel,
       show,
       animation,
       backdrop,
@@ -516,153 +220,186 @@ export const Modal: BsPrefixRefForwardingComponent<"div", ModalProps> = React.fo
       onExited,
       backdropClassName,
       manager: propsManager,
-      ...props
+      ...ps
     },
-    ref
+    ref,
   ) => {
-    const [modalStyle, setStyle] = useState({})
-    const [animateStaticModal, setAnimateStaticModal] = useState(false)
-    const waitingForMouseUpRef = useRef(false)
-    const ignoreBackdropClickRef = useRef(false)
-    const removeStaticModalAnimationRef = useRef<(() => void) | null>(null)
-    const [modal, setModalRef] = useCallbackRef<ModalInstance>()
-    const mergedRef = useMergedRefs(ref, setModalRef)
-    const handleHide = useEventCallback(onHide)
-    const isRTL = useIsRTL()
-    bsPrefix = useBootstrapPrefix(bsPrefix, "modal")
-    const modalContext = useMemo(
+    const [modalStyle, setStyle] = useState({});
+    const [animateStaticModal, setAnimateStaticModal] = useState(false);
+    const waitingForMouseUpRef = useRef(false);
+    const ignoreBackdropClickRef = useRef(false);
+    const removeStaticModalAnimationRef = useRef<(() => void) | null>(null);
+    const [modal, setModalRef] = useCallbackRef<ModalInstance>();
+    const mergedRef = useMergedRefs(ref, setModalRef);
+    const handleHide = useEventCallback(onHide);
+    const isRTL = useIsRTL();
+    const bs = useBsPrefix(bsPrefix, 'modal');
+    const context = useMemo(
       () => ({
         onHide: handleHide,
       }),
-      [handleHide]
-    )
+      [handleHide],
+    );
+
     function getModalManager() {
-      if (propsManager) return propsManager
-      return getSharedManager({ isRTL })
+      if (propsManager) return propsManager;
+      return getSharedManager({ isRTL });
     }
+
     function updateDialogStyle(node) {
-      if (!canUseDOM) return
-      const containerIsOverflowing = getModalManager().getScrollbarWidth() > 0
+      if (!canUseDOM) return;
+      const containerIsOverflowing = getModalManager().getScrollbarWidth() > 0;
       const modalIsOverflowing =
-        node.scrollHeight > ownerDocument(node).documentElement.clientHeight
+        node.scrollHeight > ownerDocument(node).documentElement.clientHeight;
       setStyle({
         paddingRight:
-          containerIsOverflowing && !modalIsOverflowing ? getScrollbarSize() : undefined,
-        paddingLeft: !containerIsOverflowing && modalIsOverflowing ? getScrollbarSize() : undefined,
-      })
+          containerIsOverflowing && !modalIsOverflowing
+            ? getScrollbarSize()
+            : undefined,
+        paddingLeft:
+          !containerIsOverflowing && modalIsOverflowing
+            ? getScrollbarSize()
+            : undefined,
+      });
     }
+
     const handleWindowResize = useEventCallback(() => {
       if (modal) {
-        updateDialogStyle(modal.dialog)
+        updateDialogStyle(modal.dialog);
       }
-    })
+    });
+
     useWillUnmount(() => {
-      removeEventListener(window as any, "resize", handleWindowResize)
-      removeStaticModalAnimationRef.current?.()
-    })
+      removeEventListener(window as any, 'resize', handleWindowResize);
+      removeStaticModalAnimationRef.current?.();
+    });
+
     const handleDialogMouseDown = () => {
-      waitingForMouseUpRef.current = true
-    }
-    const handleMouseUp = e => {
+      waitingForMouseUpRef.current = true;
+    };
+
+    const handleMouseUp = (e) => {
       if (waitingForMouseUpRef.current && modal && e.target === modal.dialog) {
-        ignoreBackdropClickRef.current = true
+        ignoreBackdropClickRef.current = true;
       }
-      waitingForMouseUpRef.current = false
-    }
+      waitingForMouseUpRef.current = false;
+    };
+
     const handleStaticModalAnimation = () => {
-      setAnimateStaticModal(true)
-      removeStaticModalAnimationRef.current = transitionEnd(modal!.dialog as any, () => {
-        setAnimateStaticModal(false)
-      })
-    }
-    const handleStaticBackdropClick = e => {
+      setAnimateStaticModal(true);
+      removeStaticModalAnimationRef.current = transitionEnd(
+        modal!.dialog as any,
+        () => {
+          setAnimateStaticModal(false);
+        },
+      );
+    };
+
+    const handleStaticBackdropClick = (e) => {
       if (e.target !== e.currentTarget) {
-        return
+        return;
       }
-      handleStaticModalAnimation()
-    }
-    const handleClick = e => {
-      if (backdrop === "static") {
-        handleStaticBackdropClick(e)
-        return
+      handleStaticModalAnimation();
+    };
+
+    const handleClick = (e) => {
+      if (backdrop === 'static') {
+        handleStaticBackdropClick(e);
+        return;
       }
       if (ignoreBackdropClickRef.current || e.target !== e.currentTarget) {
-        ignoreBackdropClickRef.current = false
-        return
+        ignoreBackdropClickRef.current = false;
+        return;
       }
-      onHide?.()
-    }
-    const handleEscapeKeyDown = e => {
-      if (!keyboard && backdrop === "static") {
-        e.preventDefault()
-        handleStaticModalAnimation()
+      onHide?.();
+    };
+
+    const handleEscapeKeyDown = (e) => {
+      if (!keyboard && backdrop === 'static') {
+        e.preventDefault();
+        handleStaticModalAnimation();
       } else if (keyboard && onEscapeKeyDown) {
-        onEscapeKeyDown(e)
+        onEscapeKeyDown(e);
       }
-    }
+    };
+
     const handleEnter = (node, isAppearing) => {
       if (node) {
-        node.style.display = "block"
-        updateDialogStyle(node)
+        updateDialogStyle(node);
       }
-      onEnter?.(node, isAppearing)
-    }
-    const handleExit = node => {
-      removeStaticModalAnimationRef.current?.()
-      onExit?.(node)
-    }
+      onEnter?.(node, isAppearing);
+    };
+
+    const handleExit = (node) => {
+      removeStaticModalAnimationRef.current?.();
+      onExit?.(node);
+    };
+
     const handleEntering = (node, isAppearing) => {
-      onEntering?.(node, isAppearing)
-      addEventListener(window as any, "resize", handleWindowResize)
-    }
-    const handleExited = node => {
-      if (node) node.style.display = ""
-      onExited?.(node)
-      removeEventListener(window as any, "resize", handleWindowResize)
-    }
+      onEntering?.(node, isAppearing);
+      addEventListener(window as any, 'resize', handleWindowResize);
+    };
+
+    const handleExited = (node) => {
+      if (node) node.style.display = ''; // RHL removes it sometimes
+      onExited?.(node);
+      removeEventListener(window as any, 'resize', handleWindowResize);
+    };
+
     const renderBackdrop = useCallback(
-      backdropProps => (
+      (backdropProps) => (
         <div
           {...backdropProps}
-          className={classNames(`${bsPrefix}-backdrop`, backdropClassName, !animation && "show")}
+          className={classNames(
+            `${bs}-backdrop`,
+            backdropClassName,
+            !animation && 'show',
+          )}
         />
       ),
-      [animation, backdropClassName, bsPrefix]
-    )
-    const baseModalStyle = { ...style, ...modalStyle }
-    if (!animation) {
-      baseModalStyle.display = "block"
-    }
-    const renderDialog = dialogProps => (
+      [animation, backdropClassName, bs],
+    );
+
+    const baseModalStyle = { ...style, ...modalStyle };
+    baseModalStyle.display = 'block';
+
+    const renderDialog = (dialogProps) => (
       <div
         role="dialog"
         {...dialogProps}
         style={baseModalStyle}
-        className={classNames(className, bsPrefix, animateStaticModal && `${bsPrefix}-static`)}
+        className={classNames(
+          className,
+          bs,
+          animateStaticModal && `${bs}-static`,
+        )}
         onClick={backdrop ? handleClick : undefined}
         onMouseUp={handleMouseUp}
+        aria-label={ariaLabel}
         aria-labelledby={ariaLabelledby}
+        aria-describedby={ariaDescribedby}
       >
         {/*
         // @ts-ignore */}
-        <Dialog
-          {...props}
+        <Component
+          {...ps}
           onMouseDown={handleDialogMouseDown}
           className={dialogClassName}
           contentClassName={contentClassName}
         >
           {children}
-        </Dialog>
+        </Component>
       </div>
-    )
+    );
+
     return (
-      <ModalContext.Provider value={modalContext}>
+      <Context.Provider value={context}>
         <BaseModal
           show={show}
           ref={mergedRef}
           backdrop={backdrop}
           container={container}
-          keyboard
+          keyboard // Always set true - see handleEscapeKeyDown
           autoFocus={autoFocus}
           enforceFocus={enforceFocus}
           restoreFocus={restoreFocus}
@@ -682,11 +419,12 @@ export const Modal: BsPrefixRefForwardingComponent<"div", ModalProps> = React.fo
           renderBackdrop={renderBackdrop}
           renderDialog={renderDialog}
         />
-      </ModalContext.Provider>
-    )
-  }
-)
-Modal.displayName = "Modal"
+      </Context.Provider>
+    );
+  },
+);
+
+Modal.displayName = 'Modal';
 Modal.defaultProps = {
   show: false,
   backdrop: true,
@@ -695,14 +433,15 @@ Modal.defaultProps = {
   enforceFocus: true,
   restoreFocus: true,
   animation: true,
-  dialogAs: ModalDialog,
-}
+  dialogAs: Dialog,
+};
+
 Object.assign(Modal, {
-  Body: ModalBody,
-  Header: ModalHeader,
-  Title: ModalTitle,
-  Footer: ModalFooter,
-  Dialog: ModalDialog,
+  Body,
+  Header,
+  Title,
+  Footer,
+  Dialog,
   TRANSITION_DURATION: 300,
   BACKDROP_TRANSITION_DURATION: 150,
-})
+});

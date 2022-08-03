@@ -1,41 +1,41 @@
-import { TransitionCallbacks } from "./types"
-import { useCallback } from "react"
-import * as React from "react"
-import classNames from "classnames"
-import Transition, { TransitionStatus, ENTERED, ENTERING } from "react-transition-group/Transition"
-import transitionEndListener from "./utils"
-import TransitionWrapper from "./TransitionWrapper"
-import triggerBrowserReflow from "./utils"
-export interface FadeProps extends TransitionCallbacks {
-  className?: string
-  in?: boolean
-  mountOnEnter?: boolean
-  unmountOnExit?: boolean
-  appear?: boolean
-  timeout?: number
-  children: React.ReactElement
-  transitionClasses?: Record<string, string>
+import classNames from 'classnames';
+import * as React from 'react';
+import { useCallback } from 'react';
+import Transition, {
+  TransitionStatus,
+  ENTERED,
+  ENTERING,
+} from 'react-transition-group/Transition';
+import { TransitionCallbacks } from '@restart/ui/types';
+import transitionEndListener from './transitionEndListener';
+import { triggerBrowserReflow } from './utils';
+import TransitionWrapper from './TransitionWrapper';
+
+export interface Props extends TransitionCallbacks {
+  className?: string;
+  in?: boolean;
+  mountOnEnter?: boolean;
+  unmountOnExit?: boolean;
+  appear?: boolean;
+  timeout?: number;
+  children: React.ReactElement;
+  transitionClasses?: Record<string, string>;
 }
-const defaultProps = {
-  in: false,
-  timeout: 300,
-  mountOnEnter: false,
-  unmountOnExit: false,
-  appear: false,
-}
+
 const fadeStyles = {
-  [ENTERING]: "show",
-  [ENTERED]: "show",
-}
-export const Fade = React.forwardRef<Transition<any>, FadeProps>(
+  [ENTERING]: 'show',
+  [ENTERED]: 'show',
+};
+
+export const Fade = React.forwardRef<Transition<any>, Props>(
   ({ className, children, transitionClasses = {}, ...ps }, ref) => {
     const handleEnter = useCallback(
       (node, isAppearing) => {
-        triggerBrowserReflow(node)
-        ps.onEnter?.(node, isAppearing)
+        triggerBrowserReflow(node);
+        ps.onEnter?.(node, isAppearing);
       },
-      [ps]
-    )
+      [ps],
+    );
     return (
       <TransitionWrapper
         ref={ref}
@@ -48,17 +48,24 @@ export const Fade = React.forwardRef<Transition<any>, FadeProps>(
           React.cloneElement(children, {
             ...innerProps,
             className: classNames(
-              "fade",
+              'fade',
               className,
               children.props.className,
               fadeStyles[status],
-              transitionClasses[status]
+              transitionClasses[status],
             ),
           })
         }
       </TransitionWrapper>
-    )
-  }
-)
-Fade.defaultProps = defaultProps
-Fade.displayName = "Fade"
+    );
+  },
+);
+
+Fade.displayName = 'Fade';
+Fade.defaultProps = {
+  in: false,
+  timeout: 300,
+  mountOnEnter: false,
+  unmountOnExit: false,
+  appear: false,
+};

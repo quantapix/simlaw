@@ -1,22 +1,34 @@
-import { BsPrefixProps, BsPrefixRefForwardingComponent } from "./utils"
-import { ButtonVariant } from "./types"
-import * as React from "react"
-import Button from "./Button"
-import usePlaceholder, { UsePlaceholderProps } from "./usePlaceholder"
-export interface PlaceholderButtonProps extends UsePlaceholderProps {
-  variant?: ButtonVariant
+import * as React from 'react';
+import { BsProps, BsRefComponent } from './helpers';
+import { usePlaceholder, Props as _Props } from './use';
+import { Button as Base } from './Button';
+import { ButtonVariant } from './types';
+
+export interface ButtonProps extends Props {
+  variant?: ButtonVariant;
 }
-export const PlaceholderButton: BsPrefixRefForwardingComponent<"button", PlaceholderButtonProps> =
-  React.forwardRef<HTMLButtonElement, PlaceholderButtonProps>((ps, ref) => {
-    const ys = usePlaceholder(ps)
-    return <Button {...ys} ref={ref} disabled tabIndex={-1} />
-  })
-PlaceholderButton.displayName = "PlaceholderButton"
-export interface PlaceholderProps extends UsePlaceholderProps, BsPrefixProps {}
-export const Placeholder: BsPrefixRefForwardingComponent<"span", PlaceholderProps> =
-  React.forwardRef<HTMLElement, PlaceholderProps>(({ as: Component = "span", ...props }, ref) => {
-    const placeholderProps = usePlaceholder(props)
-    return <Component {...placeholderProps} ref={ref} />
-  })
-Placeholder.displayName = "Placeholder"
-Object.assign(Placeholder, { Button: PlaceholderButton })
+
+export const Button: BsRefComponent<'button', ButtonProps> = React.forwardRef<
+  HTMLButtonElement,
+  ButtonProps
+>((xs, ref) => {
+  const ps = usePlaceholder(xs);
+  return <Base {...ps} ref={ref} disabled tabIndex={-1} />;
+});
+
+Button.displayName = 'PlaceholderButton';
+
+export interface Props extends _Props, BsProps {}
+
+export const Placeholder: BsRefComponent<'span', Props> = React.forwardRef<
+  HTMLElement,
+  Props
+>(({ as: Component = 'span', ...xs }, ref) => {
+  const ps = usePlaceholder(xs);
+  return <Component {...ps} ref={ref} />;
+});
+Placeholder.displayName = 'Placeholder';
+
+Object.assign(Placeholder, {
+  Button,
+});

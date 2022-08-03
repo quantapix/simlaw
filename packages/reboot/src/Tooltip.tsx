@@ -1,16 +1,18 @@
-import classNames from "classnames"
-import * as React from "react"
-import { OverlayArrowProps } from "@restart/ui/Overlay"
-import { useBootstrapPrefix, useIsRTL } from "./ThemeProvider"
-import { Placement } from "./types"
-import { BsPrefixProps, getOverlayDirection } from "./utils"
-export interface TooltipProps extends React.HTMLAttributes<HTMLDivElement>, BsPrefixProps {
-  placement?: Placement
-  arrowProps?: Partial<OverlayArrowProps>
-  show?: boolean
-  popper?: any
+import classNames from 'classnames';
+import * as React from 'react';
+import { OverlayArrowProps } from '@restart/ui/Overlay';
+import { useBsPrefix, useIsRTL } from './Theme';
+import { Placement, PopperRef } from './types';
+import { BsProps, getOverlayDirection } from './helpers';
+
+export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
+  placement?: Placement;
+  arrowProps?: Partial<OverlayArrowProps>;
+  show?: boolean;
+  popper?: PopperRef;
 }
-export const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
+
+export const Tooltip = React.forwardRef<HTMLDivElement, Props>(
   (
     {
       bsPrefix,
@@ -21,14 +23,14 @@ export const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
       arrowProps,
       popper: _,
       show: _2,
-      ...props
-    }: TooltipProps,
-    ref
+      ...ps
+    }: Props,
+    ref,
   ) => {
-    bsPrefix = useBootstrapPrefix(bsPrefix, "tooltip")
-    const isRTL = useIsRTL()
-    const [primaryPlacement] = placement?.split("-") || []
-    const bsDirection = getOverlayDirection(primaryPlacement, isRTL)
+    bsPrefix = useBsPrefix(bsPrefix, 'tooltip');
+    const isRTL = useIsRTL();
+    const [primaryPlacement] = placement?.split('-') || [];
+    const bsDirection = getOverlayDirection(primaryPlacement, isRTL);
     return (
       <div
         ref={ref}
@@ -36,13 +38,15 @@ export const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
         role="tooltip"
         x-placement={primaryPlacement}
         className={classNames(className, bsPrefix, `bs-tooltip-${bsDirection}`)}
-        {...props}
+        {...ps}
       >
         <div className="tooltip-arrow" {...arrowProps} />
         <div className={`${bsPrefix}-inner`}>{children}</div>
       </div>
-    )
-  }
-)
-Tooltip.defaultProps = { placement: "right" }
-Tooltip.displayName = "Tooltip"
+    );
+  },
+);
+Tooltip.displayName = 'Tooltip';
+Tooltip.defaultProps = {
+  placement: 'right',
+};

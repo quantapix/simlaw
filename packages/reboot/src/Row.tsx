@@ -1,49 +1,62 @@
-import { BsPrefixProps, BsPrefixRefForwardingComponent } from "./utils"
-import { useBootstrapPrefix } from "./ThemeProvider"
-import * as React from "react"
-import classNames from "classnames"
-type RowColWidth =
+import classNames from 'classnames';
+import * as React from 'react';
+import { useBsPrefix, useBsBreakpoints, useBsMinBreakpoint } from './Theme';
+import { BsProps, BsRefComponent } from './helpers';
+
+type ColWidth =
   | number
-  | "1"
-  | "2"
-  | "3"
-  | "4"
-  | "5"
-  | "6"
-  | "7"
-  | "8"
-  | "9"
-  | "10"
-  | "11"
-  | "12"
-  | "auto"
-type RowColumns = RowColWidth | { cols?: RowColWidth }
-export interface RowProps extends BsPrefixProps, React.HTMLAttributes<HTMLElement> {
-  xs?: RowColumns
-  sm?: RowColumns
-  md?: RowColumns
-  lg?: RowColumns
-  xl?: RowColumns
-  xxl?: RowColumns
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9'
+  | '10'
+  | '11'
+  | '12'
+  | 'auto';
+type Columns = ColWidth | { cols?: ColWidth };
+
+export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+  xs?: Columns;
+  sm?: Columns;
+  md?: Columns;
+  lg?: Columns;
+  xl?: Columns;
+  xxl?: Columns;
+  [key: string]: any;
 }
-const DEVICE_SIZES = ["xxl", "xl", "lg", "md", "sm", "xs"] as const
-export const Row: BsPrefixRefForwardingComponent<"div", RowProps> = React.forwardRef<
+
+export const Row: BsRefComponent<'div', Props> = React.forwardRef<
   HTMLDivElement,
-  RowProps
->(({ bsPrefix, className, as: Component = "div", ...ps }: RowProps, ref) => {
-  const decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "row")
-  const sizePrefix = `${decoratedBsPrefix}-cols`
-  const cs: string[] = []
-  DEVICE_SIZES.forEach(x => {
-    const v = ps[x]
-    delete ps[x]
-    let cols
-    if (v != null && typeof v === "object") {
-      ;({ cols } = v)
-    } else cols = v
-    const infix = x !== "xs" ? `-${x}` : ""
-    if (cols != null) cs.push(`${sizePrefix}${infix}-${cols}`)
-  })
-  return <Component ref={ref} {...ps} className={classNames(className, decoratedBsPrefix, ...cs)} />
-})
-Row.displayName = "Row"
+  Props
+>(({ bsPrefix, className, as: Component = 'div', ...ps }: Props, ref) => {
+  const decoratedBsPrefix = useBsPrefix(bsPrefix, 'row');
+  const breakpoints = useBsBreakpoints();
+  const minBreakpoint = useBsMinBreakpoint();
+  const sizePrefix = `${decoratedBsPrefix}-cols`;
+  const classes: string[] = [];
+  breakpoints.forEach((brkPoint) => {
+    const propValue = ps[brkPoint];
+    delete ps[brkPoint];
+    let cols;
+    if (propValue != null && typeof propValue === 'object') {
+      ({ cols } = propValue);
+    } else {
+      cols = propValue;
+    }
+    const infix = brkPoint !== minBreakpoint ? `-${brkPoint}` : '';
+    if (cols != null) classes.push(`${sizePrefix}${infix}-${cols}`);
+  });
+  return (
+    <Component
+      ref={ref}
+      {...ps}
+      className={classNames(className, decoratedBsPrefix, ...classes)}
+    />
+  );
+});
+Row.displayName = 'Row';
