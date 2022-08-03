@@ -33,7 +33,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
 export const Row: BsRefComponent<'div', Props> = React.forwardRef<
   HTMLDivElement,
   Props
->(({ bsPrefix, className, as: Component = 'div', ...ps }: Props, ref) => {
+>(({ bsPrefix, className, as: X = 'div', ...ps }: Props, ref) => {
   const decoratedBsPrefix = useBsPrefix(bsPrefix, 'row');
   const breakpoints = useBsBreakpoints();
   const minBreakpoint = useBsMinBreakpoint();
@@ -52,7 +52,7 @@ export const Row: BsRefComponent<'div', Props> = React.forwardRef<
     if (cols != null) classes.push(`${sizePrefix}${infix}-${cols}`);
   });
   return (
-    <Component
+    <X
       ref={ref}
       {...ps}
       className={classNames(className, decoratedBsPrefix, ...classes)}

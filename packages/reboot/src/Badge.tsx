@@ -13,27 +13,22 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
 export const Badge: BsRefComponent<'span', Props> = React.forwardRef<
   HTMLElement,
   Props
->(
-  (
-    { bsPrefix, bg, pill, text, className, as: Component = 'span', ...ps },
-    ref,
-  ) => {
-    const bs = useBsPrefix(bsPrefix, 'badge');
-    return (
-      <Component
-        ref={ref}
-        {...ps}
-        className={classNames(
-          className,
-          bs,
-          pill && `rounded-pill`,
-          text && `text-${text}`,
-          bg && `bg-${bg}`,
-        )}
-      />
-    );
-  },
-);
+>(({ bsPrefix, bg, pill, text, className, as: X = 'span', ...ps }, ref) => {
+  const bs = useBsPrefix(bsPrefix, 'badge');
+  return (
+    <X
+      ref={ref}
+      {...ps}
+      className={classNames(
+        className,
+        bs,
+        pill && `rounded-pill`,
+        text && `text-${text}`,
+        bg && `bg-${bg}`,
+      )}
+    />
+  );
+});
 
 Badge.displayName = 'Badge';
 Badge.defaultProps = {

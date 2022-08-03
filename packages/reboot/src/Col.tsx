@@ -85,10 +85,9 @@ export const Col: BsRefComponent<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
 >((xs, ref) => {
-  const [{ className, ...ps }, { as: Component = 'div', bsPrefix, spans }] =
-    useCol(xs);
+  const [{ className, ...ps }, { as: X = 'div', bsPrefix, spans }] = useCol(xs);
   return (
-    <Component
+    <X
       {...ps}
       ref={ref}
       className={classNames(className, !spans.length && bsPrefix)}

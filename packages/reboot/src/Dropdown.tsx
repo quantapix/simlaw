@@ -25,20 +25,20 @@ import { useBsPrefix, useIsRTL } from './Theme';
 import withBsPrefix from './createWithBsPrefix';
 import { BsProps, BsRefComponent } from './helpers';
 import { Context as NavbarContext } from './Navbar';
-import { useWrappedRefWithWarning } from './use';
+import { useWrappedRef } from './use';
 import { AlignType, AlignDirection, Placement } from './types';
 import { Button as _Button, Props as _BProps, CommonProps } from './Button';
 import { Link as NavLink } from './Nav';
 
 export type Drop = 'up' | 'start' | 'end' | 'down';
 
-export type ContextValue = {
+export type Data = {
   align?: AlignType;
   drop?: Drop;
   isRTL?: boolean;
 };
 
-export const Context = React.createContext<ContextValue>({});
+export const Context = React.createContext<Data>({});
 Context.displayName = 'DropdownContext';
 
 export type Variant = 'dark' | string;
@@ -88,7 +88,7 @@ export const Menu: BsRefComponent<'div', MenuProps> = React.forwardRef<
       flip,
       show: showProps,
       renderOnMount,
-      as: Component = 'div',
+      as: X = 'div',
       popperConfig,
       variant,
       ...ps
@@ -130,7 +130,7 @@ export const Menu: BsRefComponent<'div', MenuProps> = React.forwardRef<
       placement,
     });
     menuProps.ref = useMergedRefs(
-      useWrappedRefWithWarning(ref, 'DropdownMenu'),
+      useWrappedRef(ref, 'DropdownMenu'),
       menuProps.ref,
     );
 
@@ -139,7 +139,7 @@ export const Menu: BsRefComponent<'div', MenuProps> = React.forwardRef<
     }, [show]);
 
     if (!hasShown && !renderOnMount && !isInputGroup) return null;
-    if (typeof Component !== 'string') {
+    if (typeof X !== 'string') {
       menuProps.show = show;
       menuProps.close = () => toggle?.(false);
       menuProps.align = align;
@@ -150,7 +150,7 @@ export const Menu: BsRefComponent<'div', MenuProps> = React.forwardRef<
       ps['x-placement'] = popper.placement;
     }
     return (
-      <Component
+      <X
         {...ps}
         {...menuProps}
         style={style}
@@ -194,7 +194,7 @@ export const Toggle: ToggleComponent = React.forwardRef(
       split,
       className,
       childBsPrefix,
-      as: Component = _Button,
+      as: X = _Button,
       ...ps
     }: ToggleProps,
     ref,
@@ -208,10 +208,10 @@ export const Toggle: ToggleComponent = React.forwardRef(
     const [toggleProps] = useDropdownToggle();
     toggleProps.ref = useMergedRefs(
       toggleProps.ref,
-      useWrappedRefWithWarning(ref, 'DropdownToggle'),
+      useWrappedRef(ref, 'DropdownToggle'),
     );
     return (
-      <Component
+      <X
         className={classNames(
           className,
           bs,
@@ -224,17 +224,16 @@ export const Toggle: ToggleComponent = React.forwardRef(
     );
   },
 );
-
 Toggle.displayName = 'DropdownToggle';
 
-const Header = withBsPrefix('dropdown-header', {
+export const Header = withBsPrefix('dropdown-header', {
   defaultProps: { role: 'heading' },
 });
-const Divider = withBsPrefix('dropdown-divider', {
+export const Divider = withBsPrefix('dropdown-divider', {
   Component: 'hr',
   defaultProps: { role: 'separator' },
 });
-const ItemText = withBsPrefix('dropdown-item-text', {
+export const ItemText = withBsPrefix('dropdown-item-text', {
   Component: 'span',
 });
 
@@ -250,7 +249,7 @@ export const Item: BsRefComponent<typeof BaseDropdownItem, ItemProps> =
         disabled = false,
         onClick,
         active,
-        as: Component = Anchor,
+        as: X = Anchor,
         ...ps
       },
       ref,
@@ -265,7 +264,7 @@ export const Item: BsRefComponent<typeof BaseDropdownItem, ItemProps> =
       });
 
       return (
-        <Component
+        <X
           {...ps}
           {...dropdownItemProps}
           ref={ref}
@@ -279,7 +278,6 @@ export const Item: BsRefComponent<typeof BaseDropdownItem, ItemProps> =
       );
     },
   );
-
 Item.displayName = 'DropdownItem';
 
 export interface Props
@@ -306,23 +304,20 @@ export const Dropdown: BsRefComponent<'div', Props> = React.forwardRef<
     onSelect,
     onToggle,
     focusFirstItemOnShow,
-    as: Component = 'div',
+    as: X = 'div',
     navbar: _4,
     autoClose,
     ...ps
   } = useUncontrolled(xs, { show: 'onToggle' });
-
   const isInputGroup = useContext(InputGroupContext);
   const bs = useBsPrefix(bsPrefix, 'dropdown');
   const isRTL = useIsRTL();
-
   const isClosingPermitted = (source: string): boolean => {
     if (autoClose === false) return source === 'click';
     if (autoClose === 'inside') return source !== 'rootClose';
     if (autoClose === 'outside') return source !== 'select';
     return true;
   };
-
   const handleToggle = useEventCallback(
     (nextShow: boolean, meta: ToggleMetadata) => {
       if (
@@ -334,7 +329,6 @@ export const Dropdown: BsRefComponent<'div', Props> = React.forwardRef<
       if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta);
     },
   );
-
   const alignEnd = align === 'end';
   const placement = getMenuPlacement(alignEnd, drop, isRTL);
   const contextValue = useMemo(
@@ -358,7 +352,7 @@ export const Dropdown: BsRefComponent<'div', Props> = React.forwardRef<
         {isInputGroup ? (
           ps.children
         ) : (
-          <Component
+          <X
             {...ps}
             ref={ref}
             className={classNames(
@@ -375,22 +369,12 @@ export const Dropdown: BsRefComponent<'div', Props> = React.forwardRef<
     </Context.Provider>
   );
 });
-
 Dropdown.displayName = 'Dropdown';
 Dropdown.defaultProps = {
   navbar: false,
   align: 'start',
   autoClose: true,
 };
-
-Object.assign(Dropdown, {
-  Toggle,
-  Menu,
-  Item,
-  ItemText,
-  Divider,
-  Header,
-});
 
 export interface ButtonProps
   extends Omit<Props, 'title'>,
@@ -480,13 +464,9 @@ export const Nav: BsRefComponent<'div', NavProps> = React.forwardRef(
     }: NavProps,
     ref,
   ) => {
-    const navItemPrefix = useBsPrefix(undefined, 'nav-item');
+    const pre = useBsPrefix(undefined, 'nav-item');
     return (
-      <Dropdown
-        ref={ref}
-        {...ps}
-        className={classNames(className, navItemPrefix)}
-      >
+      <Dropdown ref={ref} {...ps} className={classNames(className, pre)}>
         <Toggle
           id={id}
           eventKey={null}
@@ -509,12 +489,4 @@ export const Nav: BsRefComponent<'div', NavProps> = React.forwardRef(
     );
   },
 );
-
 Nav.displayName = 'NavDropdown';
-
-Object.assign(Nav, {
-  Item,
-  ItemText,
-  Divider,
-  Header,
-});

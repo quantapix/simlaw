@@ -5,11 +5,11 @@ import useMergedRefs from '@restart/hooks/useMergedRefs';
 import hasClass from 'dom-helpers/hasClass';
 import { Offset, Options } from '@restart/ui/usePopper';
 import { useBsPrefix } from './Theme';
-import { Popover } from './Popover';
+import { POPPER_OFFSET } from './Popover';
 import { useCol, Props as _Props } from './Col';
 import { Variant } from './types';
 
-export function useOverlayOffset(
+export function useOffset(
   customOffset?: Offset,
 ): [React.RefObject<HTMLElement>, Options['modifiers']] {
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -23,7 +23,7 @@ export function useOverlayOffset(
             overlayRef.current &&
             hasClass(overlayRef.current, popoverClass)
           ) {
-            return customOffset || Popover.POPPER_OFFSET;
+            return customOffset || POPPER_OFFSET;
           }
           return customOffset || [0, 0];
         },
@@ -64,7 +64,7 @@ export function usePlaceholder({
   };
 }
 
-export function useWrappedRefWithWarning(ref, componentName) {
+export function useWrappedRef(ref, componentName) {
   // @ts-ignore
   if (!__DEV__) return ref;
   // eslint-disable-next-line react-hooks/rules-of-hooks

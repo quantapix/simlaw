@@ -81,21 +81,14 @@ export interface GroupProps extends BsProps, React.HTMLAttributes<HTMLElement> {
 
 export const Group: BsRefComponent<'div', GroupProps> = React.forwardRef(
   (
-    {
-      bsPrefix,
-      size,
-      vertical,
-      className,
-      as: Component = 'div',
-      ...ps
-    }: GroupProps,
+    { bsPrefix, size, vertical, className, as: X = 'div', ...ps }: GroupProps,
     ref,
   ) => {
     const bs = useBsPrefix(bsPrefix, 'btn-group');
     let base = bs;
     if (vertical) base = `${bs}-vertical`;
     return (
-      <Component
+      <X
         {...ps}
         ref={ref}
         className={classNames(className, base, size && `${bs}-${size}`)}

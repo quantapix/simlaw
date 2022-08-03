@@ -7,11 +7,11 @@ import divWithClassName from './divWithClassName';
 import { BsProps, BsRefComponent } from './helpers';
 import { Color, Variant } from './types';
 
-interface ContextValue {
+interface Data {
   cardHeaderBsPrefix: string;
 }
 
-export const Context = React.createContext<ContextValue | null>(null);
+export const Context = React.createContext<Data | null>(null);
 Context.displayName = 'CardHeaderContext';
 
 export interface HeaderProps
@@ -21,36 +21,35 @@ export interface HeaderProps
 export const Header: BsRefComponent<'div', HeaderProps> = React.forwardRef<
   HTMLElement,
   HeaderProps
->(({ bsPrefix, className, as: Component = 'div', ...ps }, ref) => {
+>(({ bsPrefix, className, as: X = 'div', ...ps }, ref) => {
   const bs = useBsPrefix(bsPrefix, 'card-header');
-  const contextValue = useMemo(
+  const v = useMemo(
     () => ({
       cardHeaderBsPrefix: bs,
     }),
     [bs],
   );
   return (
-    <Context.Provider value={contextValue}>
-      <Component ref={ref} {...ps} className={classNames(className, bs)} />
+    <Context.Provider value={v}>
+      <X ref={ref} {...ps} className={classNames(className, bs)} />
     </Context.Provider>
   );
 });
-
 Header.displayName = 'CardHeader';
 
+export const Body = withBsPrefix('card-body');
 const DivAsH5 = divWithClassName('h5');
-const DivAsH6 = divWithClassName('h6');
-const Body = withBsPrefix('card-body');
-const Title = withBsPrefix('card-title', {
+export const Title = withBsPrefix('card-title', {
   Component: DivAsH5,
 });
-const Subtitle = withBsPrefix('card-subtitle', {
+const DivAsH6 = divWithClassName('h6');
+export const Subtitle = withBsPrefix('card-subtitle', {
   Component: DivAsH6,
 });
-const Link = withBsPrefix('card-link', { Component: 'a' });
-const Text = withBsPrefix('card-text', { Component: 'p' });
-const Footer = withBsPrefix('card-footer');
-const ImgOverlay = withBsPrefix('card-img-overlay');
+export const Link = withBsPrefix('card-link', { Component: 'a' });
+export const Text = withBsPrefix('card-text', { Component: 'p' });
+export const Footer = withBsPrefix('card-footer');
+export const ImgOverlay = withBsPrefix('card-img-overlay');
 
 export interface ImgProps
   extends BsProps,
@@ -59,13 +58,10 @@ export interface ImgProps
 }
 
 export const Img: BsRefComponent<'img', ImgProps> = React.forwardRef(
-  (
-    { bsPrefix, className, variant, as: Component = 'img', ...ps }: ImgProps,
-    ref,
-  ) => {
+  ({ bsPrefix, className, variant, as: X = 'img', ...ps }: ImgProps, ref) => {
     const bs = useBsPrefix(bsPrefix, 'card-img');
     return (
-      <Component
+      <X
         ref={ref}
         className={classNames(variant ? `${bs}-${variant}` : bs, className)}
         {...ps}
@@ -97,14 +93,14 @@ export const Card: BsRefComponent<'div', Props> = React.forwardRef<
       border,
       body,
       children,
-      as: Component = 'div',
+      as: X = 'div',
       ...ps
     },
     ref,
   ) => {
     const bs = useBsPrefix(bsPrefix, 'card');
     return (
-      <Component
+      <X
         ref={ref}
         {...ps}
         className={classNames(
@@ -116,7 +112,7 @@ export const Card: BsRefComponent<'div', Props> = React.forwardRef<
         )}
       >
         {body ? <Body>{children}</Body> : children}
-      </Component>
+      </X>
     );
   },
 );
@@ -125,15 +121,3 @@ Card.displayName = 'Card';
 Card.defaultProps = {
   body: false,
 };
-
-Object.assign(Card, {
-  Img,
-  Title,
-  Subtitle,
-  Body,
-  Link,
-  Text,
-  Header,
-  Footer,
-  ImgOverlay,
-});

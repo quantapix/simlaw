@@ -12,14 +12,14 @@ import { useBsPrefix } from './Theme';
 import { BsOnlyProps, BsProps, BsRefComponent } from './helpers';
 import { Variant } from './types';
 import { Fade, Props as _Props } from './Fade';
-import { CloseButton, Variant as CloseVariant } from './CloseButton';
+import { Close, Variant as CloseVariant } from './Button';
 import withBsPrefix from './createWithBsPrefix';
 
-export interface ContextType {
+export interface Data {
   onClose?: (e?: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
-export const Context = React.createContext<ContextType>({
+export const Context = React.createContext<Data>({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onClose() {},
 });
@@ -54,7 +54,7 @@ export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
       <div ref={ref} {...ps} className={classNames(bsPrefix, className)}>
         {children}
         {closeButton && (
-          <CloseButton
+          <Close
             aria-label={closeLabel}
             variant={closeVariant}
             onClick={click}
@@ -65,7 +65,6 @@ export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
     );
   },
 );
-
 Header.displayName = 'ToastHeader';
 Header.defaultProps = {
   closeLabel: 'Close',
@@ -82,7 +81,6 @@ const styles = {
 export const ToastFade = React.forwardRef<Transition<any>, _Props>(
   (ps, ref) => <Fade {...ps} ref={ref} transitionClasses={styles} />,
 );
-
 ToastFade.displayName = 'ToastFade';
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
@@ -103,7 +101,7 @@ export const Toast: BsRefComponent<'div', Props> = React.forwardRef<
     {
       bsPrefix,
       className,
-      transition: Transition = ToastFade,
+      transition: X = ToastFade,
       show = true,
       animation = true,
       delay = 5000,
@@ -142,7 +140,7 @@ export const Toast: BsRefComponent<'div', Props> = React.forwardRef<
       }),
       [onClose],
     );
-    const hasAnimation = !!(Transition && animation);
+    const hasAnimation = !!(X && animation);
     const toast = (
       <div
         {...ps}
@@ -160,10 +158,10 @@ export const Toast: BsRefComponent<'div', Props> = React.forwardRef<
     );
     return (
       <Context.Provider value={context}>
-        {hasAnimation && Transition ? (
-          <Transition in={show} unmountOnExit>
+        {hasAnimation && X ? (
+          <X in={show} unmountOnExit>
             {toast}
-          </Transition>
+          </X>
         ) : (
           toast
         )}
@@ -171,13 +169,7 @@ export const Toast: BsRefComponent<'div', Props> = React.forwardRef<
     );
   },
 );
-
 Toast.displayName = 'Toast';
-
-Object.assign(Toast, {
-  Body,
-  Header,
-});
 
 export type Position =
   | 'top-start'
@@ -217,14 +209,14 @@ export const Container: BsRefComponent<'div', ContainerProps> =
         position,
         containerPosition = 'absolute',
         className,
-        as: Component = 'div',
+        as: X = 'div',
         ...ps
       },
       ref,
     ) => {
       bsPrefix = useBsPrefix(bsPrefix, 'toast-container');
       return (
-        <Component
+        <X
           ref={ref}
           {...ps}
           className={classNames(

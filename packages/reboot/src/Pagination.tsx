@@ -28,19 +28,19 @@ export const Item: BsRefComponent<'li', ItemProps> = React.forwardRef<
     }: ItemProps,
     ref,
   ) => {
-    const Component = active || disabled ? 'span' : Anchor;
+    const X = active || disabled ? 'span' : Anchor;
     return (
       <li
         ref={ref}
         style={style}
         className={classNames(className, 'page-item', { active, disabled })}
       >
-        <Component className="page-link" disabled={disabled} {...ps}>
+        <X className="page-link" disabled={disabled} {...ps}>
           {children}
           {active && activeLabel && (
             <span className="visually-hidden">{activeLabel}</span>
           )}
-        </Component>
+        </X>
       </li>
     );
   },
@@ -90,12 +90,3 @@ export const Pagination = React.forwardRef<HTMLUListElement, Props>(
   },
 );
 Pagination.displayName = 'Pagination';
-
-Object.assign(Pagination, {
-  First,
-  Prev,
-  Ellipsis,
-  Item,
-  Next,
-  Last,
-});

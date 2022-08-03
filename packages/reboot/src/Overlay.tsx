@@ -14,7 +14,7 @@ import useMergedRefs from '@restart/hooks/useMergedRefs';
 import useTimeout from '@restart/hooks/useTimeout';
 import warning from 'warning';
 import { useUncontrolledProp } from 'uncontrollable';
-import { useOverlayOffset } from './use';
+import { useOffset } from './use';
 import { Fade } from './Fade';
 import { TransitionType } from './helpers';
 import { Placement, PopperRef, RootCloseEvent } from './types';
@@ -58,7 +58,7 @@ export const Overlay = React.forwardRef<HTMLElement, Props>(
   ) => {
     const popperRef = useRef<Partial<PopperRef>>({});
     const [firstRenderedState, setFirstRenderedState] = useCallbackRef<State>();
-    const [ref, modifiers] = useOverlayOffset(outerProps.offset);
+    const [ref, modifiers] = useOffset(outerProps.offset);
     const mergedRef = useMergedRefs(outerRef, ref);
     const actualTransition =
       transition === true ? Fade : transition || undefined;

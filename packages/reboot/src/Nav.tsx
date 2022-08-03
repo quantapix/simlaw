@@ -4,62 +4,53 @@ import { useContext } from 'react';
 import { useUncontrolled } from 'uncontrollable';
 import BaseNav, { NavProps as _Props } from '@restart/ui/Nav';
 import Anchor from '@restart/ui/Anchor';
-import {
-  useNavItem,
-  NavItemProps as BaseNavItemProps,
-} from '@restart/ui/NavItem';
+import { useNavItem, NavItemProps as IPs } from '@restart/ui/NavItem';
 import { makeEventKey } from '@restart/ui/SelectableContext';
 import { EventKey } from '@restart/ui/types';
 import { useBsPrefix } from './Theme';
 import { Context as NContext } from './Navbar';
-import { HeaderContext as CContext } from './Card';
+import { Context as CContext } from './Card';
 import { BsProps, BsRefComponent } from './helpers';
 import withBsPrefix from './createWithBsPrefix';
 
-interface ContextType {
+interface Data {
   role?: string;
   activeKey: EventKey | null;
   getControlledId: (key: EventKey | null) => string;
   getControllerId: (key: EventKey | null) => string;
 }
 
-export const Context = React.createContext<ContextType | null>(null);
+export const Context = React.createContext<Data | null>(null);
 Context.displayName = 'NavContext';
 
 export const Item = withBsPrefix('nav-item');
 
-export interface LinkProps extends BsProps, Omit<BaseNavItemProps, 'as'> {}
+export interface LinkProps extends BsProps, Omit<IPs, 'as'> {}
 
 export const Link: BsRefComponent<'a', LinkProps> = React.forwardRef<
   HTMLElement,
   LinkProps
->(
-  (
-    { bsPrefix, className, as: Component = Anchor, active, eventKey, ...ps },
-    ref,
-  ) => {
-    const bs = useBsPrefix(bsPrefix, 'nav-link');
-    const [navItemProps, meta] = useNavItem({
-      key: makeEventKey(eventKey, ps.href),
-      active,
-      ...ps,
-    });
-
-    return (
-      <Component
-        {...ps}
-        {...navItemProps}
-        ref={ref}
-        className={classNames(
-          className,
-          bs,
-          ps.disabled && 'disabled',
-          meta.isActive && 'active',
-        )}
-      />
-    );
-  },
-);
+>(({ bsPrefix, className, as: X = Anchor, active, eventKey, ...ps }, ref) => {
+  const bs = useBsPrefix(bsPrefix, 'nav-link');
+  const [navItemProps, meta] = useNavItem({
+    key: makeEventKey(eventKey, ps.href),
+    active,
+    ...ps,
+  });
+  return (
+    <X
+      {...ps}
+      {...navItemProps}
+      ref={ref}
+      className={classNames(
+        className,
+        bs,
+        ps.disabled && 'disabled',
+        meta.isActive && 'active',
+      )}
+    />
+  );
+});
 Link.displayName = 'NavLink';
 Link.defaultProps = {
   disabled: false,
@@ -122,14 +113,8 @@ export const Nav: BsRefComponent<'div', Props> = React.forwardRef<
     />
   );
 });
-
 Nav.displayName = 'Nav';
 Nav.defaultProps = {
   justify: false,
   fill: false,
 };
-
-Object.assign(Nav, {
-  Item,
-  Link,
-});

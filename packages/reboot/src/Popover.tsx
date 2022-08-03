@@ -6,6 +6,8 @@ import { Placement, PopperRef } from './types';
 import { BsProps, getOverlayDirection } from './helpers';
 import withBsPrefix from './createWithBsPrefix';
 
+export const POPPER_OFFSET = [0, 8];
+
 export const Header = withBsPrefix('popover-header');
 export const Body = withBsPrefix('popover-body');
 
@@ -60,9 +62,3 @@ export const Popover = React.forwardRef<HTMLDivElement, Props>(
 Popover.defaultProps = {
   placement: 'right',
 };
-
-Object.assign(Popover, {
-  Header,
-  Body,
-  POPPER_OFFSET: [0, 8] as const,
-});

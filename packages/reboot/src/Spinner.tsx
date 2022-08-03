@@ -15,21 +15,13 @@ export const Spinner: BsRefComponent<'div', Props> = React.forwardRef<
   Props
 >(
   (
-    {
-      bsPrefix,
-      variant,
-      animation,
-      size,
-      as: Component = 'div',
-      className,
-      ...ps
-    },
+    { bsPrefix, variant, animation, size, as: X = 'div', className, ...ps },
     ref,
   ) => {
     const bs = useBsPrefix(bsPrefix, 'spinner');
     const bsSpinnerPrefix = `${bs}-${animation}`;
     return (
-      <Component
+      <X
         ref={ref}
         {...ps}
         className={classNames(

@@ -12,16 +12,10 @@ export interface Props extends AsProp, React.HTMLAttributes<HTMLElement> {
 
 export const Feedback: BsRefComponent<'div', Props> = React.forwardRef(
   (
-    {
-      as: Component = 'div',
-      className,
-      type = 'valid',
-      tooltip = false,
-      ...ps
-    },
+    { as: X = 'div', className, type = 'valid', tooltip = false, ...ps },
     ref,
   ) => (
-    <Component
+    <X
       {...ps}
       ref={ref}
       className={classNames(

@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { useContext, useMemo } from 'react';
 import warning from 'warning';
-import Switch from './Switch';
 import { useBsPrefix } from './Theme';
 import { BsOnlyProps, BsProps, BsRefComponent, AsProp } from './helpers';
 import { Col, Props as _Props } from './Col';
@@ -10,11 +9,11 @@ import { Feedback, Type } from './Feedback';
 import { hasChildOfType } from './utils';
 import withBsPrefix from './createWithBsPrefix';
 
-interface ContextType {
+interface Data {
   controlId?: any;
 }
 
-export const FormContext = React.createContext<ContextType>({});
+export const FormContext = React.createContext<Data>({});
 
 export interface GroupProps extends React.HTMLAttributes<HTMLElement>, AsProp {
   controlId?: string;
@@ -23,11 +22,11 @@ export interface GroupProps extends React.HTMLAttributes<HTMLElement>, AsProp {
 export const Floating = withBsPrefix('form-floating');
 
 export const Group: BsRefComponent<'div', GroupProps> = React.forwardRef(
-  ({ controlId, as: Component = 'div', ...ps }, ref) => {
+  ({ controlId, as: X = 'div', ...ps }, ref) => {
     const context = useMemo(() => ({ controlId }), [controlId]);
     return (
       <FormContext.Provider value={context}>
-        <Component {...ps} ref={ref} />
+        <X {...ps} ref={ref} />
       </FormContext.Provider>
     );
   },
@@ -79,7 +78,7 @@ export const Label: BsRefComponent<'label', LabelProps> = React.forwardRef<
 >(
   (
     {
-      as: Component = 'label',
+      as: X = 'label',
       bsPrefix,
       column,
       visuallyHidden,
@@ -115,9 +114,7 @@ export const Label: BsRefComponent<'label', LabelProps> = React.forwardRef<
           {...ps}
         />
       );
-    return (
-      <Component ref={ref} className={classes} htmlFor={htmlFor} {...ps} />
-    );
+    return <X ref={ref} className={classes} htmlFor={htmlFor} {...ps} />;
   },
 );
 Label.displayName = 'FormLabel';
@@ -133,10 +130,10 @@ export interface TextProps extends BsProps, React.HTMLAttributes<HTMLElement> {
 export const Text: BsRefComponent<'small', TextProps> = React.forwardRef<
   HTMLElement,
   TextProps
->(({ bsPrefix, className, as: Component = 'small', muted, ...ps }, ref) => {
+>(({ bsPrefix, className, as: X = 'small', muted, ...ps }, ref) => {
   const bs = useBsPrefix(bsPrefix, 'form-text');
   return (
-    <Component
+    <X
       {...ps}
       ref={ref}
       className={classNames(className, bs, muted && 'text-muted')}
@@ -235,7 +232,7 @@ export const Input: BsRefComponent<'input', InputProps> = React.forwardRef<
       type = 'checkbox',
       isValid = false,
       isInvalid = false,
-      as: Component = 'input',
+      as: X = 'input',
       ...ps
     },
     ref,
@@ -243,7 +240,7 @@ export const Input: BsRefComponent<'input', InputProps> = React.forwardRef<
     const { controlId } = useContext(FormContext);
     const bs = useBsPrefix(bsPrefix, 'form-check-input');
     return (
-      <Component
+      <X
         {...ps}
         ref={ref}
         type={type}
@@ -380,10 +377,13 @@ export const Check: BsRefComponent<'input', CheckProps> = React.forwardRef<
 );
 Check.displayName = 'FormCheck';
 
-Object.assign(Check, {
-  Input,
-  Label: CheckLabel,
-});
+export type SwitchProps = Omit<CheckProps, 'type'>;
+
+export const Switch: BsRefComponent<typeof Check, SwitchProps> =
+  React.forwardRef<typeof Check, SwitchProps>((ps, ref) => (
+    <Check {...ps} ref={ref} type="switch" />
+  ));
+Switch.displayName = 'Switch';
 
 type Element = HTMLInputElement | HTMLTextAreaElement;
 
@@ -416,7 +416,7 @@ export const Control: BsRefComponent<'input', ControlProps> = React.forwardRef<
       isInvalid = false,
       plaintext,
       readOnly,
-      as: Component = 'input',
+      as: X = 'input',
       ...ps
     },
     ref,
@@ -437,7 +437,7 @@ export const Control: BsRefComponent<'input', ControlProps> = React.forwardRef<
       '`controlId` is ignored on `<FormControl>` when `id` is specified.',
     );
     return (
-      <Component
+      <X
         {...ps}
         type={type}
         size={htmlSize}
@@ -457,8 +457,6 @@ export const Control: BsRefComponent<'input', ControlProps> = React.forwardRef<
 );
 Control.displayName = 'FormControl';
 
-Object.assign(Control, { Feedback });
-
 export interface Props
   extends React.FormHTMLAttributes<HTMLFormElement>,
     AsProp {
@@ -468,8 +466,8 @@ export interface Props
 export const Form: BsRefComponent<'form', Props> = React.forwardRef<
   HTMLFormElement,
   Props
->(({ className, validated, as: Component = 'form', ...props }, ref) => (
-  <Component
+>(({ className, validated, as: X = 'form', ...props }, ref) => (
+  <X
     {...props}
     ref={ref}
     className={classNames(className, validated && 'was-validated')}
@@ -477,16 +475,3 @@ export const Form: BsRefComponent<'form', Props> = React.forwardRef<
 ));
 
 Form.displayName = 'Form';
-
-Object.assign(Form, {
-  Group,
-  Control,
-  Floating,
-  Check,
-  Switch,
-  Label,
-  Text,
-  Range,
-  Select,
-  FloatingLabel,
-});

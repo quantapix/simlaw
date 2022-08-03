@@ -23,12 +23,12 @@ export default function withBsPrefix<As extends React.ElementType = 'div'>(
 ): BsRefComponent<As> {
   const y = React.forwardRef(
     (
-      { className, bsPrefix, as: Tag = Component || 'div', ...props }: any,
+      { className, bsPrefix, as: X = Component || 'div', ...props }: any,
       ref,
     ) => {
       const resolvedPrefix = useBsPrefix(bsPrefix, prefix);
       return (
-        <Tag
+        <X
           ref={ref}
           className={classNames(className, resolvedPrefix)}
           {...props}

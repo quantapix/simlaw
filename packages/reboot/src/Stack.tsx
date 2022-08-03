@@ -17,32 +17,27 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
 export const Stack: BsRefComponent<'span', Props> = React.forwardRef<
   HTMLElement,
   Props
->(
-  (
-    { as: Component = 'div', bsPrefix, className, direction, gap, ...ps },
-    ref,
-  ) => {
-    bsPrefix = useBsPrefix(
-      bsPrefix,
-      direction === 'horizontal' ? 'hstack' : 'vstack',
-    );
-    const breakpoints = useBsBreakpoints();
-    const minBreakpoint = useBsMinBreakpoint();
-    return (
-      <Component
-        {...ps}
-        ref={ref}
-        className={classNames(
-          className,
-          bsPrefix,
-          ...createUtilityClassName({
-            gap,
-            breakpoints,
-            minBreakpoint,
-          }),
-        )}
-      />
-    );
-  },
-);
+>(({ as: X = 'div', bsPrefix, className, direction, gap, ...ps }, ref) => {
+  bsPrefix = useBsPrefix(
+    bsPrefix,
+    direction === 'horizontal' ? 'hstack' : 'vstack',
+  );
+  const breakpoints = useBsBreakpoints();
+  const minBreakpoint = useBsMinBreakpoint();
+  return (
+    <X
+      {...ps}
+      ref={ref}
+      className={classNames(
+        className,
+        bsPrefix,
+        ...createUtilityClassName({
+          gap,
+          breakpoints,
+          minBreakpoint,
+        }),
+      )}
+    />
+  );
+});
 Stack.displayName = 'Stack';

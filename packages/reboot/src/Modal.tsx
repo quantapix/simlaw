@@ -21,11 +21,11 @@ import { Close as CloseButton, Variant as CloseVariant } from './Button';
 import withBsPrefix from './createWithBsPrefix';
 import divWithClassName from './divWithClassName';
 
-interface ContextType {
+interface Data {
   onHide: () => void;
 }
 
-export const Context = React.createContext<ContextType>({
+export const Context = React.createContext<Data>({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onHide() {},
 });
@@ -345,7 +345,6 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
       onExited?.(node);
       removeEventListener(window as any, 'resize', handleWindowResize);
     };
-
     const renderBackdrop = useCallback(
       (backdropProps) => (
         <div
@@ -359,10 +358,8 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
       ),
       [animation, backdropClassName, bs],
     );
-
     const baseModalStyle = { ...style, ...modalStyle };
     baseModalStyle.display = 'block';
-
     const renderDialog = (dialogProps) => (
       <div
         role="dialog"
@@ -391,7 +388,6 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
         </Component>
       </div>
     );
-
     return (
       <Context.Provider value={context}>
         <BaseModal
@@ -423,7 +419,6 @@ export const Modal: BsRefComponent<'div', Props> = React.forwardRef(
     );
   },
 );
-
 Modal.displayName = 'Modal';
 Modal.defaultProps = {
   show: false,
@@ -436,12 +431,5 @@ Modal.defaultProps = {
   dialogAs: Dialog,
 };
 
-Object.assign(Modal, {
-  Body,
-  Header,
-  Title,
-  Footer,
-  Dialog,
-  TRANSITION_DURATION: 300,
-  BACKDROP_TRANSITION_DURATION: 150,
-});
+export const TRANSITION_DURATION = 300;
+export const BACKDROP_TRANSITION_DURATION = 150;

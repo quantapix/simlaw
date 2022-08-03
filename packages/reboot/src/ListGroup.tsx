@@ -6,15 +6,12 @@ import BaseNav, { NavProps as BaseNavProps } from '@restart/ui/Nav';
 import { EventKey } from '@restart/ui/types';
 import { makeEventKey } from '@restart/ui/SelectableContext';
 import useEventCallback from '@restart/hooks/useEventCallback';
-import {
-  useNavItem,
-  NavItemProps as BaseNavItemProps,
-} from '@restart/ui/NavItem';
+import { useNavItem, NavItemProps as IPs } from '@restart/ui/NavItem';
 import { BsProps, BsRefComponent } from './helpers';
 import { useBsPrefix } from './Theme';
 import { Variant } from './types';
 
-export interface ItemProps extends Omit<BaseNavItemProps, 'onSelect'>, BsProps {
+export interface ItemProps extends Omit<IPs, 'onSelect'>, BsProps {
   action?: boolean;
   onClick?: React.MouseEventHandler;
   variant?: Variant;
@@ -44,25 +41,22 @@ export const Item: BsRefComponent<'a', ItemProps> = React.forwardRef<
       active,
       ...ps,
     });
-
-    const handleClick = useEventCallback((event) => {
+    const handleClick = useEventCallback((e) => {
       if (disabled) {
-        event.preventDefault();
-        event.stopPropagation();
+        e.preventDefault();
+        e.stopPropagation();
         return;
       }
-
-      navItemProps.onClick(event);
+      navItemProps.onClick(e);
     });
-
     if (disabled && ps.tabIndex === undefined) {
       ps.tabIndex = -1;
       ps['aria-disabled'] = true;
     }
     // eslint-disable-next-line no-nested-ternary
-    const Component = as || (action ? (ps.href ? 'a' : 'button') : 'div');
+    const X = as || (action ? (ps.href ? 'a' : 'button') : 'div');
     return (
-      <Component
+      <X
         ref={ref}
         {...ps}
         {...navItemProps}
@@ -79,7 +73,6 @@ export const Item: BsRefComponent<'a', ItemProps> = React.forwardRef<
     );
   },
 );
-
 Item.displayName = 'ListGroupItem';
 
 export interface Props extends BsProps, BaseNavProps {
@@ -104,20 +97,16 @@ export const ListGroup: BsRefComponent<'div', Props> = React.forwardRef<
   } = useUncontrolled(xs, {
     activeKey: 'onSelect',
   });
-
-  const bsPrefix = useBsPrefix(initialBsPrefix, 'list-group');
-
+  const bs = useBsPrefix(initialBsPrefix, 'list-group');
   let horizontalVariant: string | undefined;
   if (horizontal) {
     horizontalVariant =
       horizontal === true ? 'horizontal' : `horizontal-${horizontal}`;
   }
-
   warning(
     !(horizontal && variant === 'flush'),
     '`variant="flush"` and `horizontal` should not be used together.',
   );
-
   return (
     <BaseNav
       ref={ref}
@@ -125,17 +114,12 @@ export const ListGroup: BsRefComponent<'div', Props> = React.forwardRef<
       as={as}
       className={classNames(
         className,
-        bsPrefix,
-        variant && `${bsPrefix}-${variant}`,
-        horizontalVariant && `${bsPrefix}-${horizontalVariant}`,
-        numbered && `${bsPrefix}-numbered`,
+        bs,
+        variant && `${bs}-${variant}`,
+        horizontalVariant && `${bs}-${horizontalVariant}`,
+        numbered && `${bs}-numbered`,
       )}
     />
   );
 });
-
 ListGroup.displayName = 'ListGroup';
-
-Object.assign(ListGroup, {
-  Item,
-});

@@ -25,8 +25,8 @@ export const Item: BsRefComponent<'li', ItemProps> = React.forwardRef<
       active,
       children,
       className,
-      as: Component = 'li',
-      linkAs: LinkComponent = Anchor,
+      as: X = 'li',
+      linkAs: Y = Anchor,
       linkProps,
       href,
       title,
@@ -37,7 +37,7 @@ export const Item: BsRefComponent<'li', ItemProps> = React.forwardRef<
   ) => {
     const bs = useBsPrefix(bsPrefix, 'breadcrumb-item');
     return (
-      <Component
+      <X
         ref={ref}
         {...ps}
         className={classNames(bs, className, { active })}
@@ -46,16 +46,11 @@ export const Item: BsRefComponent<'li', ItemProps> = React.forwardRef<
         {active ? (
           children
         ) : (
-          <LinkComponent
-            {...linkProps}
-            href={href}
-            title={title}
-            target={target}
-          >
+          <Y {...linkProps} href={href} title={title} target={target}>
             {children}
-          </LinkComponent>
+          </Y>
         )}
-      </Component>
+      </X>
     );
   },
 );
@@ -76,24 +71,16 @@ export const Breadcrumb: BsRefComponent<'nav', Props> = React.forwardRef<
   Props
 >(
   (
-    {
-      bsPrefix,
-      className,
-      listProps,
-      children,
-      label,
-      as: Component = 'nav',
-      ...ps
-    },
+    { bsPrefix, className, listProps, children, label, as: X = 'nav', ...ps },
     ref,
   ) => {
     const bs = useBsPrefix(bsPrefix, 'breadcrumb');
     return (
-      <Component aria-label={label} className={className} ref={ref} {...ps}>
+      <X aria-label={label} className={className} ref={ref} {...ps}>
         <ol {...listProps} className={classNames(bs, listProps?.className)}>
           {children}
         </ol>
-      </Component>
+      </X>
     );
   },
 );
@@ -103,7 +90,3 @@ Breadcrumb.defaultProps = {
   label: 'breadcrumb',
   listProps: {},
 };
-
-Object.assign(Breadcrumb, {
-  Item,
-});

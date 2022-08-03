@@ -11,14 +11,14 @@ import { useBsPrefix } from './Theme';
 import { BsProps, BsRefComponent } from './helpers';
 import { Offcanvas as OBase, Props as _OProps } from './Offcanvas';
 
-export interface ContextType {
+export interface Data {
   onToggle: () => void;
   bsPrefix?: string;
   expanded: boolean;
   expand?: boolean | string | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 }
 
-export const Context = React.createContext<ContextType | null>(null);
+export const Context = React.createContext<Data | null>(null);
 Context.displayName = 'NavbarContext';
 
 export const Text = withBsPrefix('navbar-text', {
@@ -34,8 +34,8 @@ export const Brand: BsRefComponent<'a', BrandProps> = React.forwardRef<
   BrandProps
 >(({ bsPrefix, className, as, ...ps }, ref) => {
   const bs = useBsPrefix(bsPrefix, 'navbar-brand');
-  const Component = as || (ps.href ? 'a' : 'span');
-  return <Component {...ps} ref={ref} className={classNames(className, bs)} />;
+  const X = as || (ps.href ? 'a' : 'span');
+  return <X {...ps} ref={ref} className={classNames(className, bs)} />;
 });
 
 Brand.displayName = 'NavbarBrand';
@@ -84,15 +84,7 @@ export const Toggle: BsRefComponent<'button', ToggleProps> = React.forwardRef<
   ToggleProps
 >(
   (
-    {
-      bsPrefix,
-      className,
-      children,
-      label,
-      as: Component = 'button',
-      onClick,
-      ...ps
-    },
+    { bsPrefix, className, children, label, as: X = 'button', onClick, ...ps },
     ref,
   ) => {
     const bs = useBsPrefix(bsPrefix, 'navbar-toggler');
@@ -101,11 +93,11 @@ export const Toggle: BsRefComponent<'button', ToggleProps> = React.forwardRef<
       if (onClick) onClick(e);
       if (onToggle) onToggle();
     });
-    if (Component === 'button') {
+    if (X === 'button') {
       (ps as any).type = 'button';
     }
     return (
-      <Component
+      <X
         {...ps}
         ref={ref}
         onClick={clickCB}
@@ -113,11 +105,10 @@ export const Toggle: BsRefComponent<'button', ToggleProps> = React.forwardRef<
         className={classNames(className, bs, !expanded && 'collapsed')}
       >
         {children || <span className={`${bs}-icon`} />}
-      </Component>
+      </X>
     );
   },
 );
-
 Toggle.displayName = 'NavbarToggle';
 Toggle.defaultProps = {
   label: 'Toggle navigation',
@@ -149,7 +140,7 @@ export const Navbar: BsRefComponent<'nav', Props> = React.forwardRef<
     fixed,
     sticky,
     className,
-    as: Component = 'nav',
+    as: X = 'nav',
     expanded,
     onToggle,
     onSelect,
@@ -168,12 +159,12 @@ export const Navbar: BsRefComponent<'nav', Props> = React.forwardRef<
     },
     [onSelect, collapseOnSelect, expanded, onToggle],
   );
-  if (ps.role === undefined && Component !== 'nav') {
+  if (ps.role === undefined && X !== 'nav') {
     ps.role = 'navigation';
   }
   let expandClass = `${bsPrefix}-expand`;
   if (typeof expand === 'string') expandClass = `${expandClass}-${expand}`;
-  const navbarContext = useMemo<ContextType>(
+  const navbarContext = useMemo<Data>(
     () => ({
       onToggle: () => onToggle?.(!expanded),
       bsPrefix,
@@ -185,7 +176,7 @@ export const Navbar: BsRefComponent<'nav', Props> = React.forwardRef<
   return (
     <Context.Provider value={navbarContext}>
       <SelectableContext.Provider value={handleCollapse}>
-        <Component
+        <X
           ref={ref}
           {...ps}
           className={classNames(
@@ -202,18 +193,9 @@ export const Navbar: BsRefComponent<'nav', Props> = React.forwardRef<
     </Context.Provider>
   );
 });
-
 Navbar.displayName = 'Navbar';
 Navbar.defaultProps = {
   expand: true,
   variant: 'light' as const,
   collapseOnSelect: false,
 };
-
-Object.assign(Navbar, {
-  Brand,
-  Collapse,
-  Offcanvas,
-  Text,
-  Toggle,
-});

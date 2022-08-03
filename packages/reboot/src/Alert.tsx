@@ -5,11 +5,21 @@ import useEventCallback from '@restart/hooks/useEventCallback';
 import Anchor from '@restart/ui/Anchor';
 import { useBsPrefix } from './Theme';
 import { Fade } from './Fade';
-import { Close as CloseButton, Variant as CloseVariant } from './Button';
+import { Close, Variant as CloseVariant } from './Button';
 import { Variant } from './types';
 import divWithClassName from './divWithClassName';
 import withBsPrefix from './createWithBsPrefix';
 import { TransitionType } from './helpers';
+
+export const Link = withBsPrefix('alert-link', {
+  Component: Anchor,
+});
+
+const DivAsH4 = divWithClassName('h4');
+DivAsH4.displayName = 'DivStyledAsH4';
+export const Heading = withBsPrefix('alert-heading', {
+  Component: DivAsH4,
+});
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement> {
   bsPrefix?: string;
@@ -45,11 +55,11 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
         onClose(false, e);
       }
     });
-    const Transition = transition === true ? Fade : transition;
+    const X = transition === true ? Fade : transition;
     const alert = (
       <div
         role="alert"
-        {...(!Transition ? ps : undefined)}
+        {...(!X ? ps : undefined)}
         ref={ref}
         className={classNames(
           className,
@@ -59,7 +69,7 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
         )}
       >
         {dismissible && (
-          <CloseButton
+          <Close
             onClick={handleClose}
             aria-label={closeLabel}
             variant={closeVariant}
@@ -68,11 +78,11 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
         {children}
       </div>
     );
-    if (!Transition) return show ? alert : null;
+    if (!X) return show ? alert : null;
     return (
-      <Transition unmountOnExit {...ps} ref={undefined} in={show}>
+      <X unmountOnExit {...ps} ref={undefined} in={show}>
         {alert}
-      </Transition>
+      </X>
     );
   },
 );
@@ -84,15 +94,3 @@ Alert.defaultProps = {
   transition: Fade,
   closeLabel: 'Close alert',
 };
-
-const Div = divWithClassName('h4');
-Div.displayName = 'DivStyledAsH4';
-
-Object.assign(Alert, {
-  Link: withBsPrefix('alert-link', {
-    Component: Anchor,
-  }),
-  Heading: withBsPrefix('alert-heading', {
-    Component: Div,
-  }),
-});

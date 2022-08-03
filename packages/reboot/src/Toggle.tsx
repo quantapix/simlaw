@@ -145,7 +145,3 @@ Group.defaultProps = {
   type: 'radio',
   vertical: false,
 };
-
-Object.assign(Group, {
-  Button,
-});

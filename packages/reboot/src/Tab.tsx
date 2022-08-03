@@ -31,7 +31,6 @@ export interface ContainerProps extends Omit<TabsProps, 'transition'> {
 export const Container = ({ transition, ...props }: ContainerProps) => (
   <Tabs {...props} transition={getTabTransitionComponent(transition)} />
 );
-
 Container.displayName = 'TabContainer';
 
 export const Content = withBsPrefix('tab-content');
@@ -52,7 +51,7 @@ export const Pane: BsRefComponent<'div', PaneProps> = React.forwardRef<
   PaneProps
 >(({ bsPrefix, transition, ...xs }, ref) => {
   const [
-    { className, as: Component = 'div', ...rest },
+    { className, as: X = 'div', ...rest },
     {
       isActive,
       onEnter,
@@ -84,7 +83,7 @@ export const Pane: BsRefComponent<'div', PaneProps> = React.forwardRef<
           mountOnEnter={mountOnEnter}
           unmountOnExit={unmountOnExit as any}
         >
-          <Component
+          <X
             {...rest}
             ref={ref}
             className={classNames(className, bs, isActive && 'active')}
@@ -94,7 +93,6 @@ export const Pane: BsRefComponent<'div', PaneProps> = React.forwardRef<
     </TabContext.Provider>
   );
 });
-
 Pane.displayName = 'TabPane';
 
 export interface Props extends Omit<PaneProps, 'title'> {
@@ -112,9 +110,3 @@ export const Tab: React.FC<Props> = () => {
   );
   return <></>;
 };
-
-Object.assign(Tab, {
-  Container,
-  Content,
-  Pane,
-});

@@ -206,7 +206,6 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
           });
         return modalManager.current;
       }
-
       return getSharedManager();
     }
 
@@ -219,7 +218,6 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
       if (node) node.style.visibility = '';
       onExited?.(...args);
     };
-
     const renderBackdrop = useCallback(
       (backdropProps) => (
         <div
@@ -229,7 +227,6 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
       ),
       [backdropClassName, bsPrefix],
     );
-
     const renderDialog = (dialogProps) => (
       <div
         {...dialogProps}
@@ -244,12 +241,10 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
         {children}
       </div>
     );
-
     return (
       <>
         {/**/}
         {!showOffcanvas && (responsive || renderStaticNode) && renderDialog({})}
-
         <MContext.Provider value={modalContext}>
           <BaseModal
             show={showOffcanvas}
@@ -281,7 +276,6 @@ export const Offcanvas: BsRefComponent<'div', Props> = React.forwardRef<
     );
   },
 );
-
 Offcanvas.displayName = 'Offcanvas';
 Offcanvas.defaultProps = {
   show: false,
@@ -294,9 +288,3 @@ Offcanvas.defaultProps = {
   placement: 'start',
   renderStaticNode: false,
 };
-
-Object.assign(Offcanvas, {
-  Body,
-  Header,
-  Title,
-});

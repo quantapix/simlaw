@@ -9,17 +9,17 @@ import { BsProps, BsRefComponent } from './helpers';
 export const Context = React.createContext<unknown | null>(null);
 Context.displayName = 'InputGroupContext';
 
-const Text = withBsPrefix('input-group-text', {
+export const Text = withBsPrefix('input-group-text', {
   Component: 'span',
 });
 
-const Checkbox = (ps) => (
+export const Checkbox = (ps) => (
   <Text>
     <Input type="checkbox" {...ps} />
   </Text>
 );
 
-const Radio = (ps) => (
+export const Radio = (ps) => (
   <Text>
     <Input type="radio" {...ps} />
   </Text>
@@ -33,34 +33,22 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
 export const InputGroup: BsRefComponent<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
->(
-  (
-    { bsPrefix, size, hasValidation, className, as: Component = 'div', ...ps },
-    ref,
-  ) => {
-    bsPrefix = useBsPrefix(bsPrefix, 'input-group');
-    const contextValue = useMemo(() => ({}), []);
-    return (
-      <Context.Provider value={contextValue}>
-        <Component
-          ref={ref}
-          {...ps}
-          className={classNames(
-            className,
-            bsPrefix,
-            size && `${bsPrefix}-${size}`,
-            hasValidation && 'has-validation',
-          )}
-        />
-      </Context.Provider>
-    );
-  },
-);
-
-InputGroup.displayName = 'InputGroup';
-
-Object.assign(InputGroup, {
-  Text,
-  Radio,
-  Checkbox,
+>(({ bsPrefix, size, hasValidation, className, as: X = 'div', ...ps }, ref) => {
+  const bs = useBsPrefix(bsPrefix, 'input-group');
+  const v = useMemo(() => ({}), []);
+  return (
+    <Context.Provider value={v}>
+      <X
+        ref={ref}
+        {...ps}
+        className={classNames(
+          className,
+          bs,
+          size && `${bs}-${size}`,
+          hasValidation && 'has-validation',
+        )}
+      />
+    </Context.Provider>
+  );
 });
+InputGroup.displayName = 'InputGroup';

@@ -4,18 +4,18 @@ import { useContext, useMemo } from 'react';
 export const DEFAULT_BREAKPOINTS = ['xxl', 'xl', 'lg', 'md', 'sm', 'xs'];
 export const DEFAULT_MIN_BREAKPOINT = 'xs';
 
-export interface ContextValue {
+export interface Data {
   prefixes: Record<string, string>;
   breakpoints: string[];
   minBreakpoint?: string;
   dir?: string;
 }
 
-export interface Props extends Partial<ContextValue> {
+export interface Props extends Partial<Data> {
   children: React.ReactNode;
 }
 
-const Context = React.createContext<ContextValue>({
+const Context = React.createContext<Data>({
   prefixes: {},
   breakpoints: DEFAULT_BREAKPOINTS,
   minBreakpoint: DEFAULT_MIN_BREAKPOINT,
