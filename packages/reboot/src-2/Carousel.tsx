@@ -1,11 +1,11 @@
+import classNames from 'classnames';
+import * as React from 'react';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import useUpdateEffect from '@restart/hooks/useUpdateEffect';
 import useCommittedRef from '@restart/hooks/useCommittedRef';
 import useTimeout from '@restart/hooks/useTimeout';
 import Anchor from '@restart/ui/Anchor';
-import classNames from 'classnames';
 import { TransitionStatus } from 'react-transition-group/Transition';
-import * as React from 'react';
 import {
   useCallback,
   useEffect,
@@ -15,10 +15,9 @@ import {
   useState,
 } from 'react';
 import { useUncontrolled } from 'uncontrollable';
-import { map, forEach } from './utils';
+import { map, forEach, triggerBrowserReflow } from './utils';
 import { useBootstrapPrefix, useIsRTL } from './ThemeProvider';
 import transitionEndListener from './transitionEndListener';
-import triggerBrowserReflow from './triggerBrowserReflow';
 import { BsProps, BsRefComponent } from './helpers';
 import TransitionWrapper from './TransitionWrapper';
 import createWithBsPrefix from './createWithBsPrefix';

@@ -155,7 +155,7 @@ export type { Props as PageItemProps } from './PageItem';
 export { default as Pagination } from './Pagination';
 export type { PaginationProps } from './Pagination';
 
-export { Placeholder, PlaceholderButton } from './Placeholder';
+export { Placeholder, Button as PlaceholderButton } from './Placeholder';
 export type { Props as PlaceholderProps } from './Placeholder';
 export type { ButtonProps as PlaceholderButtonProps } from './Placeholder';
 
@@ -200,7 +200,7 @@ export { Tabs } from './Tabs';
 export type { Props as TabsProps } from './Tabs';
 
 export { default as ThemeProvider } from './ThemeProvider';
-export type { ThemeProviderProps } from './ThemeProvider';
+export type { Props as ThemeProviderProps } from './ThemeProvider';
 
 export { Header as ToastHeader, Body as ToastBody, Toast } from './Toast';
 export { Container as ToastContainer } from './Toast';

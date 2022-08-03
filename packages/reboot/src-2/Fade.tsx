@@ -8,7 +8,7 @@ import Transition, {
 } from 'react-transition-group/Transition';
 import { TransitionCallbacks } from '@restart/ui/types';
 import transitionEndListener from './transitionEndListener';
-import triggerBrowserReflow from './triggerBrowserReflow';
+import { triggerBrowserReflow } from './utils';
 import TransitionWrapper from './TransitionWrapper';
 
 export interface Props extends TransitionCallbacks {

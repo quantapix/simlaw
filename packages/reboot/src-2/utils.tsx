@@ -28,3 +28,27 @@ export function hasChildOfType<P = any>(
     (x) => React.isValidElement(x) && x.type === type,
   );
 }
+
+export function createChainedFunction(...fs) {
+  return fs
+    .filter((f) => f != null)
+    .reduce((acc, f) => {
+      if (typeof f !== 'function') {
+        throw new Error(
+          'Invalid Argument Type, must only provide functions, undefined, or null.',
+        );
+      }
+      if (acc === null) return f;
+      return function chainedFunction(...xs) {
+        // @ts-ignore
+        acc.apply(this, xs);
+        // @ts-ignore
+        f.apply(this, xs);
+      };
+    }, null);
+}
+
+export function triggerBrowserReflow(node: HTMLElement): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  node.offsetHeight;
+}

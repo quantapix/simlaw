@@ -1,22 +1,24 @@
 import * as React from 'react';
 import { BsProps, BsRefComponent } from './helpers';
-import usePlaceholder, { UsePlaceholderProps } from './usePlaceholder';
-import { Button } from './Button';
+import { usePlaceholder, Props as _Props } from './use';
+import { Button as Base } from './Button';
 import { ButtonVariant } from './types';
 
-export interface ButtonProps extends UsePlaceholderProps {
+export interface ButtonProps extends Props {
   variant?: ButtonVariant;
 }
 
-export const PlaceholderButton: BsRefComponent<'button', ButtonProps> =
-  React.forwardRef<HTMLButtonElement, ButtonProps>((xs, ref) => {
-    const ps = usePlaceholder(xs);
-    return <Button {...ps} ref={ref} disabled tabIndex={-1} />;
-  });
+export const Button: BsRefComponent<'button', ButtonProps> = React.forwardRef<
+  HTMLButtonElement,
+  ButtonProps
+>((xs, ref) => {
+  const ps = usePlaceholder(xs);
+  return <Base {...ps} ref={ref} disabled tabIndex={-1} />;
+});
 
-PlaceholderButton.displayName = 'PlaceholderButton';
+Button.displayName = 'PlaceholderButton';
 
-export interface Props extends UsePlaceholderProps, BsProps {}
+export interface Props extends _Props, BsProps {}
 
 export const Placeholder: BsRefComponent<'span', Props> = React.forwardRef<
   HTMLElement,
@@ -29,5 +31,5 @@ export const Placeholder: BsRefComponent<'span', Props> = React.forwardRef<
 Placeholder.displayName = 'Placeholder';
 
 Object.assign(Placeholder, {
-  Button: PlaceholderButton,
+  Button,
 });

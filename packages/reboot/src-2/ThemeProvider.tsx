@@ -4,31 +4,31 @@ import { useContext, useMemo } from 'react';
 export const DEFAULT_BREAKPOINTS = ['xxl', 'xl', 'lg', 'md', 'sm', 'xs'];
 export const DEFAULT_MIN_BREAKPOINT = 'xs';
 
-export interface ThemeContextValue {
+export interface ContextValue {
   prefixes: Record<string, string>;
   breakpoints: string[];
   minBreakpoint?: string;
   dir?: string;
 }
 
-export interface ThemeProviderProps extends Partial<ThemeContextValue> {
+export interface Props extends Partial<ContextValue> {
   children: React.ReactNode;
 }
 
-const ThemeContext = React.createContext<ThemeContextValue>({
+const Context = React.createContext<ContextValue>({
   prefixes: {},
   breakpoints: DEFAULT_BREAKPOINTS,
   minBreakpoint: DEFAULT_MIN_BREAKPOINT,
 });
-const { Consumer, Provider } = ThemeContext;
+export const { Consumer, Provider } = Context;
 
-function ThemeProvider({
+export function ThemeProvider({
   prefixes = {},
   breakpoints = DEFAULT_BREAKPOINTS,
   minBreakpoint = DEFAULT_MIN_BREAKPOINT,
   dir,
   children,
-}: ThemeProviderProps) {
+}: Props) {
   const contextValue = useMemo(
     () => ({
       prefixes: { ...prefixes },
@@ -38,7 +38,6 @@ function ThemeProvider({
     }),
     [prefixes, breakpoints, minBreakpoint, dir],
   );
-
   return <Provider value={contextValue}>{children}</Provider>;
 }
 
@@ -46,31 +45,29 @@ export function useBootstrapPrefix(
   prefix: string | undefined,
   defaultPrefix: string,
 ): string {
-  const { prefixes } = useContext(ThemeContext);
+  const { prefixes } = useContext(Context);
   return prefix || prefixes[defaultPrefix] || defaultPrefix;
 }
 
 export function useBootstrapBreakpoints() {
-  const { breakpoints } = useContext(ThemeContext);
+  const { breakpoints } = useContext(Context);
   return breakpoints;
 }
 
 export function useBootstrapMinBreakpoint() {
-  const { minBreakpoint } = useContext(ThemeContext);
+  const { minBreakpoint } = useContext(Context);
   return minBreakpoint;
 }
 
 export function useIsRTL() {
-  const { dir } = useContext(ThemeContext);
+  const { dir } = useContext(Context);
   return dir === 'rtl';
 }
 
-function createBootstrapComponent(Component, opts) {
+export function createBootstrapComponent(Component, opts) {
   if (typeof opts === 'string') opts = { prefix: opts };
   const isClassy = Component.prototype && Component.prototype.isReactComponent;
-  // If it's a functional component make sure we don't break it with a ref
   const { prefix, forwardRefAs = isClassy ? 'ref' : 'innerRef' } = opts;
-
   const Wrapped = React.forwardRef<any, { bsPrefix?: string }>(
     ({ ...props }, ref) => {
       props[forwardRefAs] = ref;
@@ -78,10 +75,6 @@ function createBootstrapComponent(Component, opts) {
       return <Component {...props} bsPrefix={bsPrefix} />;
     },
   );
-
   Wrapped.displayName = `Bootstrap(${Component.displayName || Component.name})`;
   return Wrapped;
 }
-
-export { createBootstrapComponent, Consumer as ThemeConsumer };
-export default ThemeProvider;

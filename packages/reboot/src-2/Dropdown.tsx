@@ -24,8 +24,8 @@ import { Context as InputGroupContext } from './InputGroup';
 import { useBootstrapPrefix, useIsRTL } from './ThemeProvider';
 import createWithBsPrefix from './createWithBsPrefix';
 import { BsProps, BsRefComponent } from './helpers';
-import { NavbarContext } from './NavbarContext';
-import useWrappedRefWithWarning from './useWrappedRefWithWarning';
+import { Context as NavbarContext } from './Navbar';
+import { useWrappedRefWithWarning } from './use';
 import { AlignType, AlignDirection, Placement } from './types';
 import {
   Button as _Button,

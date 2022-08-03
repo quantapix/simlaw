@@ -3,10 +3,13 @@ import * as React from 'react';
 import invariant from 'invariant';
 import { useUncontrolled } from 'uncontrollable';
 import { useBootstrapPrefix } from './ThemeProvider';
-import { Button, Props as _BProps } from './Button';
-import chainFunction from './createChainedFunction';
-import { map } from './utils';
-import { ButtonGroup, GroupProps as _GProps } from './ButtonGroup';
+import {
+  Button,
+  Props as _BProps,
+  Group,
+  GroupProps as _GProps,
+} from './Button';
+import { map, createChainedFunction } from './utils';
 import { BsRefComponent } from './helpers';
 
 export type ButtonType = 'checkbox' | 'radio';
@@ -125,7 +128,7 @@ export const ToggleButtonGroup: BsRefComponent<
       'is set to "radio"',
   );
   return (
-    <ButtonGroup {...ps} ref={ref as any}>
+    <Group {...ps} ref={ref as any}>
       {map(children, (child) => {
         const values = getValues();
         const { value: childVal, onChange: childOnChange } = child.props;
@@ -134,10 +137,10 @@ export const ToggleButtonGroup: BsRefComponent<
           type,
           name: (child as any).name || name,
           checked: values.indexOf(childVal) !== -1,
-          onChange: chainFunction(childOnChange, handler),
+          onChange: createChainedFunction(childOnChange, handler),
         });
       })}
-    </ButtonGroup>
+    </Group>
   );
 });
 

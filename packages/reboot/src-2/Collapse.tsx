@@ -1,6 +1,7 @@
 import classNames from 'classnames';
+import * as React from 'react';
 import css from 'dom-helpers/css';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import Transition, {
   TransitionStatus,
   ENTERED,
@@ -10,8 +11,7 @@ import Transition, {
 } from 'react-transition-group/Transition';
 import { TransitionCallbacks } from '@restart/ui/types';
 import transitionEndListener from './transitionEndListener';
-import createChainedFunction from './createChainedFunction';
-import triggerBrowserReflow from './triggerBrowserReflow';
+import { triggerBrowserReflow, createChainedFunction } from './utils';
 import TransitionWrapper from './TransitionWrapper';
 
 type Dimension = 'height' | 'width';
