@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { BsProps } from './helpers';
 
 export type AspectRatio = '1x1' | '4x3' | '16x9' | '21x9' | string;
@@ -18,7 +18,7 @@ function toPercent(num: number): string {
 
 export const Ratio = React.forwardRef<HTMLDivElement, Props>(
   ({ bsPrefix, className, children, aspectRatio, style, ...ps }, ref) => {
-    const bs = useBsPrefix(bsPrefix, 'ratio');
+    const bs = useBs(bsPrefix, 'ratio');
     const isCustomRatio = typeof aspectRatio === 'number';
     return (
       <div

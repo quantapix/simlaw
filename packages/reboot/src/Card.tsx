@@ -1,13 +1,13 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useMemo } from 'react';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { divAs, withBs } from './utils';
 import { BsProps, BsRefComp } from './helpers';
 import { Color, Variant } from './types';
 
 interface Data {
-  cardHeaderBsPrefix: string;
+  headerBs: string;
 }
 
 export const Context = React.createContext<Data | null>(null);
@@ -21,10 +21,10 @@ export const Header: BsRefComp<'div', HeaderProps> = React.forwardRef<
   HTMLElement,
   HeaderProps
 >(({ bsPrefix, className, as: X = 'div', ...ps }, ref) => {
-  const bs = useBsPrefix(bsPrefix, 'card-header');
+  const bs = useBs(bsPrefix, 'card-header');
   const v = useMemo(
     () => ({
-      cardHeaderBsPrefix: bs,
+      headerBs: bs,
     }),
     [bs],
   );
@@ -58,7 +58,7 @@ export interface ImgProps
 
 export const Img: BsRefComp<'img', ImgProps> = React.forwardRef(
   ({ bsPrefix, className, variant, as: X = 'img', ...ps }: ImgProps, ref) => {
-    const bs = useBsPrefix(bsPrefix, 'card-img');
+    const bs = useBs(bsPrefix, 'card-img');
     return (
       <X
         ref={ref}
@@ -97,7 +97,7 @@ export const Card: BsRefComp<'div', Props> = React.forwardRef<
     },
     ref,
   ) => {
-    const bs = useBsPrefix(bsPrefix, 'card');
+    const bs = useBs(bsPrefix, 'card');
     return (
       <X
         ref={ref}
@@ -115,7 +115,6 @@ export const Card: BsRefComp<'div', Props> = React.forwardRef<
     );
   },
 );
-
 Card.displayName = 'Card';
 Card.defaultProps = {
   body: false,

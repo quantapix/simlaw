@@ -4,7 +4,7 @@ import invariant from 'invariant';
 import useMergedRefs from '@restart/hooks/useMergedRefs';
 import hasClass from 'dom-helpers/hasClass';
 import { Offset, Options } from '@restart/ui/usePopper';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { POPPER_OFFSET } from './Popover';
 import { useCol, Props as _Props } from './Col';
 import { Variant } from './types';
@@ -13,7 +13,7 @@ export function useOffset(
   customOffset?: Offset,
 ): [React.RefObject<HTMLElement>, Options['modifiers']] {
   const overlayRef = useRef<HTMLDivElement | null>(null);
-  const popoverClass = useBsPrefix(undefined, 'popover');
+  const popoverClass = useBs(undefined, 'popover');
   const offset = useMemo(
     () => ({
       name: 'offset',
@@ -50,7 +50,7 @@ export function usePlaceholder({
   size,
   ...ps
 }: Props) {
-  const bs = useBsPrefix(bsPrefix, 'placeholder');
+  const bs = useBs(bsPrefix, 'placeholder');
   const [{ className, ...colProps }] = useCol(ps);
 
   return {

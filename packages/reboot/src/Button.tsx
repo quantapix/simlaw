@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { useButtonProps, ButtonProps as _Props } from '@restart/ui/Button';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { BsProps, BsRefComp } from './helpers';
 import { ButtonVariant } from './types';
 
@@ -17,7 +17,7 @@ export const Button: BsRefComp<'button', Props> = React.forwardRef<
   HTMLButtonElement,
   Props
 >(({ as, bsPrefix, variant, size, active, className, ...ps }, ref) => {
-  const bs = useBsPrefix(bsPrefix, 'btn');
+  const bs = useBs(bsPrefix, 'btn');
   const [buttonProps, { tagName }] = useButtonProps({
     tagName: as,
     ...ps,
@@ -39,7 +39,6 @@ export const Button: BsRefComp<'button', Props> = React.forwardRef<
     />
   );
 });
-
 Button.displayName = 'Button';
 Button.defaultProps = {
   variant: 'primary',
@@ -68,7 +67,6 @@ export const Close = React.forwardRef<HTMLButtonElement, CloseProps>(
     />
   ),
 );
-
 Close.displayName = 'CloseButton';
 Close.defaultProps = {
   'aria-label': 'Close',
@@ -84,7 +82,7 @@ export const Group: BsRefComp<'div', GroupProps> = React.forwardRef(
     { bsPrefix, size, vertical, className, as: X = 'div', ...ps }: GroupProps,
     ref,
   ) => {
-    const bs = useBsPrefix(bsPrefix, 'btn-group');
+    const bs = useBs(bsPrefix, 'btn-group');
     let base = bs;
     if (vertical) base = `${bs}-vertical`;
     return (
@@ -96,7 +94,6 @@ export const Group: BsRefComp<'div', GroupProps> = React.forwardRef(
     );
   },
 );
-
 Group.displayName = 'ButtonGroup';
 Group.defaultProps = {
   vertical: false,
@@ -109,11 +106,10 @@ export interface ToolbarProps
 
 export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
-    const bs = useBsPrefix(bsPrefix, 'btn-toolbar');
+    const bs = useBs(bsPrefix, 'btn-toolbar');
     return <div {...ps} ref={ref} className={classNames(className, bs)} />;
   },
 );
-
 Toolbar.displayName = 'ButtonToolbar';
 Toolbar.defaultProps = {
   role: 'toolbar',

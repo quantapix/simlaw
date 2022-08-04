@@ -16,7 +16,7 @@ export type Props = TransitionProps & {
       ) => React.ReactNode);
 };
 
-export const TransitionWrapper = React.forwardRef<Transition<any>, Props>(
+export const Wrapper = React.forwardRef<Transition<any>, Props>(
   (
     {
       onEnter,
@@ -34,43 +34,39 @@ export const TransitionWrapper = React.forwardRef<Transition<any>, Props>(
   ) => {
     const nodeRef = useRef<HTMLElement>(null);
     const mergedRef = useMergedRefs(nodeRef, childRef);
-
     const attachRef = (
       r: React.ComponentClass | Element | null | undefined,
     ) => {
       mergedRef(safeFindDOMNode(r));
     };
-
     const normalize =
       (callback?: (node: HTMLElement, param: any) => void) => (param: any) => {
         if (callback && nodeRef.current) {
           callback(nodeRef.current, param);
         }
       };
-
     /* eslint-disable react-hooks/exhaustive-deps */
-    const handleEnter = useCallback(normalize(onEnter), [onEnter]);
-    const handleEntering = useCallback(normalize(onEntering), [onEntering]);
-    const handleEntered = useCallback(normalize(onEntered), [onEntered]);
-    const handleExit = useCallback(normalize(onExit), [onExit]);
-    const handleExiting = useCallback(normalize(onExiting), [onExiting]);
-    const handleExited = useCallback(normalize(onExited), [onExited]);
-    const handleAddEndListener = useCallback(normalize(addEndListener), [
+    const enter = useCallback(normalize(onEnter), [onEnter]);
+    const entering = useCallback(normalize(onEntering), [onEntering]);
+    const entered = useCallback(normalize(onEntered), [onEntered]);
+    const exit = useCallback(normalize(onExit), [onExit]);
+    const exiting = useCallback(normalize(onExiting), [onExiting]);
+    const exited = useCallback(normalize(onExited), [onExited]);
+    const addListener = useCallback(normalize(addEndListener), [
       addEndListener,
     ]);
     /* eslint-enable react-hooks/exhaustive-deps */
-
     return (
       <Transition
         ref={ref}
         {...ps}
-        onEnter={handleEnter}
-        onEntered={handleEntered}
-        onEntering={handleEntering}
-        onExit={handleExit}
-        onExited={handleExited}
-        onExiting={handleExiting}
-        addEndListener={handleAddEndListener}
+        onEnter={enter}
+        onEntered={entered}
+        onEntering={entering}
+        onExit={exit}
+        onExited={exited}
+        onExiting={exiting}
+        addEndListener={addListener}
         nodeRef={nodeRef}
       >
         {typeof children === 'function'

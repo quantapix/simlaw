@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { cloneElement } from 'react';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { map } from './utils';
 import { BsProps } from './helpers';
 
@@ -67,7 +67,7 @@ function renderProgressBar(
 
 export const ProgressBar = React.forwardRef<HTMLDivElement, Props>(
   ({ isChild, ...ps }: Props, ref) => {
-    ps.bsPrefix = useBsPrefix(ps.bsPrefix, 'progress');
+    ps.bsPrefix = useBs(ps.bsPrefix, 'progress');
     if (isChild) {
       return renderProgressBar(ps, ref);
     }

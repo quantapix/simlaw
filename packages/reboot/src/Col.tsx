@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBsPrefix, useBsBreakpoints, useBsMinBreakpoint } from './Theme';
+import { useBs, useBreakpoints, useMinBreakpoint } from './Theme';
 import { BsProps, BsRefComp } from './helpers';
 
 type NumberAttr =
@@ -18,8 +18,8 @@ type NumberAttr =
   | '11'
   | '12';
 
-type ColOrderNumber = number | '1' | '2' | '3' | '4' | '5';
-type ColOrder = ColOrderNumber | 'first' | 'last';
+type OrderNumber = number | '1' | '2' | '3' | '4' | '5';
+type ColOrder = OrderNumber | 'first' | 'last';
 type ColSize = boolean | 'auto' | NumberAttr;
 type ColSpec =
   | ColSize
@@ -47,9 +47,9 @@ export function useCol({
   className,
   ...ps
 }: Props): [any, UseColMetadata] {
-  bsPrefix = useBsPrefix(bsPrefix, 'col');
-  const breakpoints = useBsBreakpoints();
-  const minBreakpoint = useBsMinBreakpoint();
+  bsPrefix = useBs(bsPrefix, 'col');
+  const breakpoints = useBreakpoints();
+  const minBreakpoint = useMinBreakpoint();
   const spans: string[] = [];
   const classes: string[] = [];
   breakpoints.forEach((x) => {

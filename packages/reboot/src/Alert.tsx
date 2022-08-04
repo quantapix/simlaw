@@ -3,7 +3,7 @@ import * as React from 'react';
 import { useUncontrolled } from 'uncontrollable';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import Anchor from '@restart/ui/Anchor';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { Fade } from './Fade';
 import { Close, Variant as CloseVariant } from './Button';
 import { Variant } from './types';
@@ -48,8 +48,8 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
     } = useUncontrolled(xs, {
       show: 'onClose',
     });
-    const bs = useBsPrefix(bsPrefix, 'alert');
-    const handleClose = useEventCallback((e) => {
+    const bs = useBs(bsPrefix, 'alert');
+    const onClick = useEventCallback((e) => {
       if (onClose) {
         onClose(false, e);
       }
@@ -69,7 +69,7 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
       >
         {dismissible && (
           <Close
-            onClick={handleClose}
+            onClick={onClick}
             aria-label={closeLabel}
             variant={closeVariant}
           />
@@ -85,7 +85,6 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
     );
   },
 );
-
 Alert.displayName = 'Alert';
 Alert.defaultProps = {
   variant: 'primary',

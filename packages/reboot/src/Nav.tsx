@@ -7,7 +7,7 @@ import Anchor from '@restart/ui/Anchor';
 import { useNavItem, NavItemProps as IPs } from '@restart/ui/NavItem';
 import { makeEventKey } from '@restart/ui/SelectableContext';
 import { EventKey } from '@restart/ui/types';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { Context as NContext } from './Navbar';
 import { Context as CContext } from './Card';
 import { BsProps, BsRefComp } from './helpers';
@@ -31,7 +31,7 @@ export const Link: BsRefComp<'a', LinkProps> = React.forwardRef<
   HTMLElement,
   LinkProps
 >(({ bsPrefix, className, as: X = Anchor, active, eventKey, ...ps }, ref) => {
-  const bs = useBsPrefix(bsPrefix, 'nav-link');
+  const bs = useBs(bsPrefix, 'nav-link');
   const [navItemProps, meta] = useNavItem({
     key: makeEventKey(eventKey, ps.href),
     active,
@@ -83,7 +83,7 @@ export const Nav: BsRefComp<'div', Props> = React.forwardRef<
     activeKey,
     ...ps
   } = useUncontrolled(xs, { activeKey: 'onSelect' });
-  const bs = useBsPrefix(initialBsPrefix, 'nav');
+  const bs = useBs(initialBsPrefix, 'nav');
   let navbarBsPrefix;
   let cardHeaderBsPrefix;
   let isNavbar = false;
@@ -93,7 +93,7 @@ export const Nav: BsRefComp<'div', Props> = React.forwardRef<
     navbarBsPrefix = nContext.bsPrefix;
     isNavbar = navbar == null ? true : navbar;
   } else if (cContext) {
-    ({ cardHeaderBsPrefix } = cContext);
+    ({ headerBs: cardHeaderBsPrefix } = cContext);
   }
   return (
     <BaseNav

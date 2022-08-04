@@ -16,7 +16,7 @@ import { ModalInstance } from '@restart/ui/ModalManager';
 import { getSharedManager } from './Manager';
 import { Fade } from './Fade';
 import { BsOnlyProps, BsProps, BsRefComp } from './helpers';
-import { useBsPrefix, useIsRTL } from './Theme';
+import { useBs, useIsRTL } from './Theme';
 import { Close, Variant as CloseVariant } from './Button';
 import { divAs, withBs } from './utils';
 
@@ -39,7 +39,7 @@ export interface AbsProps extends React.HTMLAttributes<HTMLDivElement> {
 export const AbsHeader = React.forwardRef<HTMLDivElement, AbsProps>(
   ({ closeLabel, closeVariant, closeButton, onHide, children, ...ps }, ref) => {
     const context = useContext(Context);
-    const handleClick = useEventCallback(() => {
+    const click = useEventCallback(() => {
       context?.onHide();
       onHide?.();
     });
@@ -50,7 +50,7 @@ export const AbsHeader = React.forwardRef<HTMLDivElement, AbsProps>(
           <Close
             aria-label={closeLabel}
             variant={closeVariant}
-            onClick={handleClick}
+            onClick={click}
           />
         )}
       </div>
@@ -67,7 +67,7 @@ export interface HeaderProps extends AbsProps, BsOnlyProps {}
 
 export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
-    bsPrefix = useBsPrefix(bsPrefix, 'modal-header');
+    bsPrefix = useBs(bsPrefix, 'modal-header');
     return (
       <AbsHeader
         ref={ref}
@@ -120,7 +120,7 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
     }: DialogProps,
     ref,
   ) => {
-    const bs = useBsPrefix(bsPrefix, 'modal');
+    const bs = useBs(bsPrefix, 'modal');
     const dialogClass = `${bs}-dialog`;
     const fullScreenClass =
       typeof fullscreen === 'string'
@@ -230,24 +230,22 @@ export const Modal: BsRefComp<'div', Props> = React.forwardRef(
     const removeStaticModalAnimationRef = useRef<(() => void) | null>(null);
     const [modal, setModalRef] = useCallbackRef<ModalInstance>();
     const mergedRef = useMergedRefs(ref, setModalRef);
-    const handleHide = useEventCallback(onHide);
+    const hide = useEventCallback(onHide);
     const isRTL = useIsRTL();
-    const bs = useBsPrefix(bsPrefix, 'modal');
+    const bs = useBs(bsPrefix, 'modal');
     const v = useMemo(
       () => ({
-        onHide: handleHide,
+        onHide: hide,
       }),
-      [handleHide],
+      [hide],
     );
-
-    function getModalManager() {
+    function getManager() {
       if (propsManager) return propsManager;
       return getSharedManager({ isRTL });
     }
-
     function updateDialogStyle(node) {
       if (!canUseDOM) return;
-      const containerIsOverflowing = getModalManager().getScrollbarWidth() > 0;
+      const containerIsOverflowing = getManager().getScrollbarWidth() > 0;
       const modalIsOverflowing =
         node.scrollHeight > ownerDocument(node).documentElement.clientHeight;
       setStyle({
@@ -261,30 +259,25 @@ export const Modal: BsRefComp<'div', Props> = React.forwardRef(
             : undefined,
       });
     }
-
-    const handleWindowResize = useEventCallback(() => {
+    const windowResize = useEventCallback(() => {
       if (modal) {
         updateDialogStyle(modal.dialog);
       }
     });
-
     useWillUnmount(() => {
-      removeEventListener(window as any, 'resize', handleWindowResize);
+      removeEventListener(window as any, 'resize', windowResize);
       removeStaticModalAnimationRef.current?.();
     });
-
-    const handleDialogMouseDown = () => {
+    const dialogMouseDown = () => {
       waitingForMouseUpRef.current = true;
     };
-
-    const handleMouseUp = (e) => {
+    const mouseUp = (e) => {
       if (waitingForMouseUpRef.current && modal && e.target === modal.dialog) {
         ignoreBackdropClickRef.current = true;
       }
       waitingForMouseUpRef.current = false;
     };
-
-    const handleStaticModalAnimation = () => {
+    const staticModalAnimation = () => {
       setAnimateStaticModal(true);
       removeStaticModalAnimationRef.current = transitionEnd(
         modal!.dialog as any,
@@ -293,17 +286,15 @@ export const Modal: BsRefComp<'div', Props> = React.forwardRef(
         },
       );
     };
-
-    const handleStaticBackdropClick = (e) => {
+    const staticBackdropClick = (e) => {
       if (e.target !== e.currentTarget) {
         return;
       }
-      handleStaticModalAnimation();
+      staticModalAnimation();
     };
-
-    const handleClick = (e) => {
+    const click = (e) => {
       if (backdrop === 'static') {
-        handleStaticBackdropClick(e);
+        staticBackdropClick(e);
         return;
       }
       if (ignoreBackdropClickRef.current || e.target !== e.currentTarget) {
@@ -312,37 +303,32 @@ export const Modal: BsRefComp<'div', Props> = React.forwardRef(
       }
       onHide?.();
     };
-
-    const handleEscapeKeyDown = (e) => {
+    const escapeKeyDown = (e) => {
       if (!keyboard && backdrop === 'static') {
         e.preventDefault();
-        handleStaticModalAnimation();
+        staticModalAnimation();
       } else if (keyboard && onEscapeKeyDown) {
         onEscapeKeyDown(e);
       }
     };
-
-    const handleEnter = (node, isAppearing) => {
+    const enter = (node, isAppearing) => {
       if (node) {
         updateDialogStyle(node);
       }
       onEnter?.(node, isAppearing);
     };
-
-    const handleExit = (node) => {
+    const exit = (node) => {
       removeStaticModalAnimationRef.current?.();
       onExit?.(node);
     };
-
-    const handleEntering = (node, isAppearing) => {
+    const entering = (node, isAppearing) => {
       onEntering?.(node, isAppearing);
-      addEventListener(window as any, 'resize', handleWindowResize);
+      addEventListener(window as any, 'resize', windowResize);
     };
-
-    const handleExited = (node) => {
+    const exited = (node) => {
       if (node) node.style.display = ''; // RHL removes it sometimes
       onExited?.(node);
-      removeEventListener(window as any, 'resize', handleWindowResize);
+      removeEventListener(window as any, 'resize', windowResize);
     };
     const renderBackdrop = useCallback(
       (backdropProps) => (
@@ -369,8 +355,8 @@ export const Modal: BsRefComp<'div', Props> = React.forwardRef(
           bs,
           animateStaticModal && `${bs}-static`,
         )}
-        onClick={backdrop ? handleClick : undefined}
-        onMouseUp={handleMouseUp}
+        onClick={backdrop ? click : undefined}
+        onMouseUp={mouseUp}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledby}
         aria-describedby={ariaDescribedby}
@@ -379,7 +365,7 @@ export const Modal: BsRefComp<'div', Props> = React.forwardRef(
         // @ts-ignore */}
         <X
           {...ps}
-          onMouseDown={handleDialogMouseDown}
+          onMouseDown={dialogMouseDown}
           className={dialogClassName}
           contentClassName={contentClassName}
         >
@@ -399,16 +385,16 @@ export const Modal: BsRefComp<'div', Props> = React.forwardRef(
           enforceFocus={enforceFocus}
           restoreFocus={restoreFocus}
           restoreFocusOptions={restoreFocusOptions}
-          onEscapeKeyDown={handleEscapeKeyDown}
+          onEscapeKeyDown={escapeKeyDown}
           onShow={onShow}
           onHide={onHide}
-          onEnter={handleEnter}
-          onEntering={handleEntering}
+          onEnter={enter}
+          onEntering={entering}
           onEntered={onEntered}
-          onExit={handleExit}
+          onExit={exit}
           onExiting={onExiting}
-          onExited={handleExited}
-          manager={getModalManager()}
+          onExited={exited}
+          manager={getManager()}
           transition={animation ? DialogTransition : undefined}
           backdropTransition={animation ? BackdropTransition : undefined}
           renderBackdrop={renderBackdrop}

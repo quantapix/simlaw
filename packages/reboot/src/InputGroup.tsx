@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { useMemo } from 'react';
 import { withBs } from './utils';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { Input } from './Form';
 import { BsProps, BsRefComp } from './helpers';
 
@@ -34,7 +34,7 @@ export const InputGroup: BsRefComp<'div', Props> = React.forwardRef<
   HTMLElement,
   Props
 >(({ bsPrefix, size, hasValidation, className, as: X = 'div', ...ps }, ref) => {
-  const bs = useBsPrefix(bsPrefix, 'input-group');
+  const bs = useBs(bsPrefix, 'input-group');
   const v = useMemo(() => ({}), []);
   return (
     <Context.Provider value={v}>

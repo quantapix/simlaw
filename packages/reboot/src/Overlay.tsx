@@ -62,7 +62,7 @@ export const Overlay = React.forwardRef<HTMLElement, Props>(
     const mergedRef = useMergedRefs(outerRef, ref);
     const actualTransition =
       transition === true ? Fade : transition || undefined;
-    const handleFirstUpdate = useEventCallback((state) => {
+    const firstUpdate = useEventCallback((state) => {
       setFirstRenderedState(state);
       popperConfig?.onFirstUpdate?.(state);
     });
@@ -78,7 +78,7 @@ export const Overlay = React.forwardRef<HTMLElement, Props>(
         popperConfig={{
           ...popperConfig,
           modifiers: modifiers.concat(popperConfig.modifiers || []),
-          onFirstUpdate: handleFirstUpdate,
+          onFirstUpdate: firstUpdate,
         }}
         transition={actualTransition}
       >
@@ -162,7 +162,7 @@ function normalizeDelay(delay?: Delay) {
       };
 }
 
-function handleMouseOverOut(
+function mouseOverOut(
   handler: (...xs: [React.MouseEvent, ...any[]]) => any,
   args: [React.MouseEvent, ...any[]],
   relatedNative: 'fromElement' | 'toElement',
@@ -195,7 +195,11 @@ export const Trigger = ({
   );
   const timeout = useTimeout();
   const hoverStateRef = useRef<string>('');
-  const [show, setShow] = useUncontrolledProp(propsShow, defaultShow, onToggle);
+  const [isShow, setShow] = useUncontrolledProp(
+    propsShow,
+    defaultShow,
+    onToggle,
+  );
   const delay = normalizeDelay(propsDelay);
   const { onFocus, onBlur, onClick } =
     typeof children !== 'function'
@@ -204,7 +208,7 @@ export const Trigger = ({
   const attachRef = (r: React.ComponentClass | Element | null | undefined) => {
     mergedRef(safeFindDOMNode(r));
   };
-  const handleShow = useCallback(() => {
+  const show = useCallback(() => {
     timeout.clear();
     hoverStateRef.current = 'show';
     if (!delay.show) {
@@ -215,7 +219,7 @@ export const Trigger = ({
       if (hoverStateRef.current === 'show') setShow(true);
     }, delay.show);
   }, [delay.show, setShow, timeout]);
-  const handleHide = useCallback(() => {
+  const hide = useCallback(() => {
     timeout.clear();
     hoverStateRef.current = 'hide';
     if (!delay.hide) {
@@ -226,57 +230,57 @@ export const Trigger = ({
       if (hoverStateRef.current === 'hide') setShow(false);
     }, delay.hide);
   }, [delay.hide, setShow, timeout]);
-  const handleFocus = useCallback(
+  const focus = useCallback(
     (...args: any[]) => {
-      handleShow();
+      show();
       onFocus?.(...args);
     },
-    [handleShow, onFocus],
+    [show, onFocus],
   );
-  const handleBlur = useCallback(
+  const blur = useCallback(
     (...args: any[]) => {
-      handleHide();
+      hide();
       onBlur?.(...args);
     },
-    [handleHide, onBlur],
+    [hide, onBlur],
   );
-  const handleClick = useCallback(
+  const click = useCallback(
     (...args: any[]) => {
-      setShow(!show);
+      setShow(!isShow);
       onClick?.(...args);
     },
-    [onClick, setShow, show],
+    [onClick, setShow, isShow],
   );
-  const handleMouseOver = useCallback(
+  const mouseOver = useCallback(
     (...args: [React.MouseEvent, ...any[]]) => {
-      handleMouseOverOut(handleShow, args, 'fromElement');
+      mouseOverOut(show, args, 'fromElement');
     },
-    [handleShow],
+    [show],
   );
-  const handleMouseOut = useCallback(
+  const mouseOut = useCallback(
     (...args: [React.MouseEvent, ...any[]]) => {
-      handleMouseOverOut(handleHide, args, 'toElement');
+      mouseOverOut(hide, args, 'toElement');
     },
-    [handleHide],
+    [hide],
   );
   const triggers: string[] = trigger == null ? [] : [].concat(trigger as any);
   const triggerProps: any = {
     ref: attachRef,
   };
   if (triggers.indexOf('click') !== -1) {
-    triggerProps.onClick = handleClick;
+    triggerProps.onClick = click;
   }
   if (triggers.indexOf('focus') !== -1) {
-    triggerProps.onFocus = handleFocus;
-    triggerProps.onBlur = handleBlur;
+    triggerProps.onFocus = focus;
+    triggerProps.onBlur = blur;
   }
   if (triggers.indexOf('hover') !== -1) {
     warning(
       triggers.length > 1,
       '[react-bootstrap] Specifying only the `"hover"` trigger limits the visibility of the overlay to just mouse users. Consider also including the `"focus"` trigger so that touch and keyboard only users can see the overlay as well.',
     );
-    triggerProps.onMouseOver = handleMouseOver;
-    triggerProps.onMouseOut = handleMouseOut;
+    triggerProps.onMouseOver = mouseOver;
+    triggerProps.onMouseOut = mouseOut;
   }
   return (
     <>
@@ -285,8 +289,8 @@ export const Trigger = ({
         : cloneElement(children, triggerProps)}
       <Overlay
         {...ps}
-        show={show}
-        onHide={handleHide}
+        show={isShow}
+        onHide={hide}
         flip={flip}
         placement={placement}
         popperConfig={popperConfig}

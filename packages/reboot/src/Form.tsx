@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { useContext, useMemo } from 'react';
 import warning from 'warning';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { BsOnlyProps, BsProps, BsRefComp, AsProp } from './helpers';
 import { Col, Props as _Props } from './Col';
 import { Feedback, Type } from './Feedback';
@@ -40,7 +40,7 @@ export interface FloatingLabelProps extends _Props, BsProps {
 export const FloatingLabel: BsRefComp<'div', FloatingLabelProps> =
   React.forwardRef(
     ({ bsPrefix, className, children, controlId, label, ...ps }, ref) => {
-      bsPrefix = useBsPrefix(bsPrefix, 'form-floating');
+      bsPrefix = useBs(bsPrefix, 'form-floating');
       return (
         <Group
           ref={ref}
@@ -88,7 +88,7 @@ export const Label: BsRefComp<'label', LabelProps> = React.forwardRef<
     ref,
   ) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBsPrefix(bsPrefix, 'form-label');
+    const bs = useBs(bsPrefix, 'form-label');
     let columnClass = 'col-form-label';
     if (typeof column === 'string')
       columnClass = `${columnClass} ${columnClass}-${column}`;
@@ -130,7 +130,7 @@ export const Text: BsRefComp<'small', TextProps> = React.forwardRef<
   HTMLElement,
   TextProps
 >(({ bsPrefix, className, as: X = 'small', muted, ...ps }, ref) => {
-  const bs = useBsPrefix(bsPrefix, 'form-text');
+  const bs = useBs(bsPrefix, 'form-text');
   return (
     <X
       {...ps}
@@ -148,7 +148,7 @@ export interface RangeProps
 export const Range = React.forwardRef<HTMLInputElement, RangeProps>(
   ({ bsPrefix, className, id, ...props }, ref) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBsPrefix(bsPrefix, 'form-range');
+    const bs = useBs(bsPrefix, 'form-range');
     return (
       <input
         {...props}
@@ -189,7 +189,7 @@ export const Select: BsRefComp<'select', SelectProps> = React.forwardRef<
     ref,
   ) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBsPrefix(bsPrefix, 'form-select');
+    const bs = useBs(bsPrefix, 'form-select');
     return (
       <select
         {...ps}
@@ -237,7 +237,7 @@ export const Input: BsRefComp<'input', InputProps> = React.forwardRef<
     ref,
   ) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBsPrefix(bsPrefix, 'form-check-input');
+    const bs = useBs(bsPrefix, 'form-check-input');
     return (
       <X
         {...ps}
@@ -263,7 +263,7 @@ export interface CheckLabelProps
 export const CheckLabel = React.forwardRef<HTMLLabelElement, CheckLabelProps>(
   ({ bsPrefix, className, htmlFor, ...ps }, ref) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBsPrefix(bsPrefix, 'form-check-label');
+    const bs = useBs(bsPrefix, 'form-check-label');
     return (
       <label // eslint-disable-line jsx-a11y/label-has-associated-control
         {...ps}
@@ -323,8 +323,8 @@ export const Check: BsRefComp<'input', CheckProps> = React.forwardRef<
     },
     ref,
   ) => {
-    const bs = useBsPrefix(bsPrefix, 'form-check');
-    bsSwitchPrefix = useBsPrefix(bsSwitchPrefix, 'form-switch');
+    const bs = useBs(bsPrefix, 'form-check');
+    bsSwitchPrefix = useBs(bsSwitchPrefix, 'form-switch');
     const { controlId } = useContext(FormContext);
     const v = useMemo(
       () => ({
@@ -421,7 +421,7 @@ export const Control: BsRefComp<'input', ControlProps> = React.forwardRef<
     ref,
   ) => {
     const { controlId } = useContext(FormContext);
-    const bs = useBsPrefix(bsPrefix, 'form-control');
+    const bs = useBs(bsPrefix, 'form-control');
     let classes;
     if (plaintext) {
       classes = { [`${bs}-plaintext`]: true };

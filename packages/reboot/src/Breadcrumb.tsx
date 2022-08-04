@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import Anchor from '@restart/ui/Anchor';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { BsProps, BsRefComp } from './helpers';
 
 export interface ItemProps
@@ -35,7 +35,7 @@ export const Item: BsRefComp<'li', ItemProps> = React.forwardRef<
     },
     ref,
   ) => {
-    const bs = useBsPrefix(bsPrefix, 'breadcrumb-item');
+    const bs = useBs(bsPrefix, 'breadcrumb-item');
     return (
       <X
         ref={ref}
@@ -74,7 +74,7 @@ export const Breadcrumb: BsRefComp<'nav', Props> = React.forwardRef<
     { bsPrefix, className, listProps, children, label, as: X = 'nav', ...ps },
     ref,
   ) => {
-    const bs = useBsPrefix(bsPrefix, 'breadcrumb');
+    const bs = useBs(bsPrefix, 'breadcrumb');
     return (
       <X aria-label={label} className={className} ref={ref} {...ps}>
         <ol {...listProps} className={classNames(bs, listProps?.className)}>
@@ -84,7 +84,6 @@ export const Breadcrumb: BsRefComp<'nav', Props> = React.forwardRef<
     );
   },
 );
-
 Breadcrumb.displayName = 'Breadcrumb';
 Breadcrumb.defaultProps = {
   label: 'breadcrumb',

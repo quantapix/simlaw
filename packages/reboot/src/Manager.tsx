@@ -45,14 +45,14 @@ export class Manager extends ModalManager {
     if (!containerState.scrollBarWidth) return;
     const paddingProp = this.isRTL ? 'paddingLeft' : 'paddingRight';
     const marginProp = this.isRTL ? 'marginLeft' : 'marginRight';
-    qsa(container, Selector.FIXED_CONTENT).forEach((el) =>
-      this.adjustAndStore(paddingProp, el, containerState.scrollBarWidth),
+    qsa(container, Selector.FIXED_CONTENT).forEach((x) =>
+      this.adjustAndStore(paddingProp, x, containerState.scrollBarWidth),
     );
-    qsa(container, Selector.STICKY_CONTENT).forEach((el) =>
-      this.adjustAndStore(marginProp, el, -containerState.scrollBarWidth),
+    qsa(container, Selector.STICKY_CONTENT).forEach((x) =>
+      this.adjustAndStore(marginProp, x, -containerState.scrollBarWidth),
     );
-    qsa(container, Selector.NAVBAR_TOGGLER).forEach((el) =>
-      this.adjustAndStore(marginProp, el, containerState.scrollBarWidth),
+    qsa(container, Selector.NAVBAR_TOGGLER).forEach((x) =>
+      this.adjustAndStore(marginProp, x, containerState.scrollBarWidth),
     );
   }
 
@@ -62,14 +62,14 @@ export class Manager extends ModalManager {
     removeClass(container, 'modal-open');
     const paddingProp = this.isRTL ? 'paddingLeft' : 'paddingRight';
     const marginProp = this.isRTL ? 'marginLeft' : 'marginRight';
-    qsa(container, Selector.FIXED_CONTENT).forEach((el) =>
-      this.restore(paddingProp, el),
+    qsa(container, Selector.FIXED_CONTENT).forEach((x) =>
+      this.restore(paddingProp, x),
     );
-    qsa(container, Selector.STICKY_CONTENT).forEach((el) =>
-      this.restore(marginProp, el),
+    qsa(container, Selector.STICKY_CONTENT).forEach((x) =>
+      this.restore(marginProp, x),
     );
-    qsa(container, Selector.NAVBAR_TOGGLER).forEach((el) =>
-      this.restore(marginProp, el),
+    qsa(container, Selector.NAVBAR_TOGGLER).forEach((x) =>
+      this.restore(marginProp, x),
     );
   }
 }

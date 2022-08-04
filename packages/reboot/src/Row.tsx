@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBsPrefix, useBsBreakpoints, useBsMinBreakpoint } from './Theme';
+import { useBs, useBreakpoints, useMinBreakpoint } from './Theme';
 import { BsProps, BsRefComp } from './helpers';
 
 type ColWidth =
@@ -34,21 +34,21 @@ export const Row: BsRefComp<'div', Props> = React.forwardRef<
   HTMLDivElement,
   Props
 >(({ bsPrefix, className, as: X = 'div', ...ps }: Props, ref) => {
-  const decoratedBsPrefix = useBsPrefix(bsPrefix, 'row');
-  const breakpoints = useBsBreakpoints();
-  const minBreakpoint = useBsMinBreakpoint();
+  const decoratedBsPrefix = useBs(bsPrefix, 'row');
+  const breakpoints = useBreakpoints();
+  const minBreakpoint = useMinBreakpoint();
   const sizePrefix = `${decoratedBsPrefix}-cols`;
   const classes: string[] = [];
-  breakpoints.forEach((brkPoint) => {
-    const propValue = ps[brkPoint];
-    delete ps[brkPoint];
+  breakpoints.forEach((x) => {
+    const propValue = ps[x];
+    delete ps[x];
     let cols;
     if (propValue != null && typeof propValue === 'object') {
       ({ cols } = propValue);
     } else {
       cols = propValue;
     }
-    const infix = brkPoint !== minBreakpoint ? `-${brkPoint}` : '';
+    const infix = x !== minBreakpoint ? `-${x}` : '';
     if (cols != null) classes.push(`${sizePrefix}${infix}-${cols}`);
   });
   return (

@@ -1,36 +1,71 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBsPrefix, useBsBreakpoints, useBsMinBreakpoint } from './Theme';
+import {
+  BREAKPOINTS,
+  MIN_BREAKPOINT,
+  useBs,
+  useBreakpoints,
+  useMinBreakpoint,
+} from './Theme';
 import { BsProps, BsRefComp } from './helpers';
 import { GapValue } from './types';
-import createUtilityClassName, {
-  ResponsiveUtilityValue,
-} from './createUtilityClasses';
+
+export type Utility<T> =
+  | T
+  | {
+      xs?: T;
+      sm?: T;
+      md?: T;
+      lg?: T;
+      xl?: T;
+      xxl?: T;
+    };
+
+export function createUtilityClassName(
+  utilityValues: Record<string, Utility<unknown>>,
+  breakpoints = BREAKPOINTS,
+  minBreakpoint = MIN_BREAKPOINT,
+) {
+  const classes: string[] = [];
+  Object.entries(utilityValues).forEach(([n, v]) => {
+    if (v != null) {
+      if (typeof v === 'object') {
+        breakpoints.forEach((x) => {
+          const bp = v![x];
+          if (bp != null) {
+            const infix = x !== minBreakpoint ? `-${x}` : '';
+            classes.push(`${n}${infix}-${bp}`);
+          }
+        });
+      } else {
+        classes.push(`${n}-${v}`);
+      }
+    }
+  });
+  return classes;
+}
 
 export type Direction = 'horizontal' | 'vertical';
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   direction?: Direction;
-  gap?: ResponsiveUtilityValue<GapValue>;
+  gap?: Utility<GapValue>;
 }
 
 export const Stack: BsRefComp<'span', Props> = React.forwardRef<
   HTMLElement,
   Props
 >(({ as: X = 'div', bsPrefix, className, direction, gap, ...ps }, ref) => {
-  bsPrefix = useBsPrefix(
-    bsPrefix,
-    direction === 'horizontal' ? 'hstack' : 'vstack',
-  );
-  const breakpoints = useBsBreakpoints();
-  const minBreakpoint = useBsMinBreakpoint();
+  const bs = useBs(bsPrefix, direction === 'horizontal' ? 'hstack' : 'vstack');
+  const breakpoints = useBreakpoints();
+  const minBreakpoint = useMinBreakpoint();
   return (
     <X
       {...ps}
       ref={ref}
       className={classNames(
         className,
-        bsPrefix,
+        bs,
         ...createUtilityClassName({
           gap,
           breakpoints,

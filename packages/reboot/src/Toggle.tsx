@@ -2,14 +2,14 @@ import classNames from 'classnames';
 import * as React from 'react';
 import invariant from 'invariant';
 import { useUncontrolled } from 'uncontrollable';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import {
   Button as B,
   Props as BPs,
   Group as G,
   GroupProps as GPs,
 } from './Button';
-import { map, createChainedFunction } from './utils';
+import { map, createChained } from './utils';
 import { BsRefComp } from './helpers';
 
 export type Type = 'checkbox' | 'radio';
@@ -43,7 +43,7 @@ export const Button = React.forwardRef<HTMLLabelElement, Props>(
     },
     ref,
   ) => {
-    const bs = useBsPrefix(bsPrefix, 'btn-check');
+    const bs = useBs(bsPrefix, 'btn-check');
     return (
       <>
         <input
@@ -101,7 +101,7 @@ export const Group: BsRefComp<'a', GroupProps<any>> = React.forwardRef<
     value: 'onChange',
   });
   const getValues: () => any[] = () => (value == null ? [] : [].concat(value));
-  const handleToggle = (x: any, e: any) => {
+  const toggle = (x: any, e: any) => {
     if (!onChange) {
       return;
     }
@@ -130,12 +130,12 @@ export const Group: BsRefComp<'a', GroupProps<any>> = React.forwardRef<
       {map(children, (x) => {
         const vs = getValues();
         const { value: childVal, onChange: childOnChange } = x.props;
-        const handler = (e) => handleToggle(childVal, e);
+        const handler = (e) => toggle(childVal, e);
         return React.cloneElement(x, {
           type,
           name: (x as any).name || name,
           checked: vs.indexOf(childVal) !== -1,
-          onChange: createChainedFunction(childOnChange, handler),
+          onChange: createChained(childOnChange, handler),
         });
       })}
     </G>

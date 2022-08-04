@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { ReactNode } from 'react';
 import Anchor from '@restart/ui/Anchor';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { BsProps, BsRefComp } from './helpers';
 
 export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
@@ -75,7 +75,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLUListElement> {
 
 export const Pagination = React.forwardRef<HTMLUListElement, Props>(
   ({ bsPrefix, className, size, ...props }, ref) => {
-    const decoratedBsPrefix = useBsPrefix(bsPrefix, 'pagination');
+    const decoratedBsPrefix = useBs(bsPrefix, 'pagination');
     return (
       <ul
         ref={ref}

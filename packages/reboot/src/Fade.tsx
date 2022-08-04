@@ -7,9 +7,8 @@ import Transition, {
   ENTERING,
 } from 'react-transition-group/Transition';
 import { TransitionCallbacks } from '@restart/ui/types';
-import transitionEndListener from './transitionEndListener';
-import { triggerBrowserReflow } from './utils';
-import TransitionWrapper from './TransitionWrapper';
+import { triggerReflow, endListener } from './utils';
+import { Wrapper } from './Transition';
 
 export interface Props extends TransitionCallbacks {
   className?: string;
@@ -29,19 +28,19 @@ const fadeStyles = {
 
 export const Fade = React.forwardRef<Transition<any>, Props>(
   ({ className, children, transitionClasses = {}, ...ps }, ref) => {
-    const handleEnter = useCallback(
+    const enter = useCallback(
       (node, isAppearing) => {
-        triggerBrowserReflow(node);
+        triggerReflow(node);
         ps.onEnter?.(node, isAppearing);
       },
       [ps],
     );
     return (
-      <TransitionWrapper
+      <Wrapper
         ref={ref}
-        addEndListener={transitionEndListener}
+        addEndListener={endListener}
         {...ps}
-        onEnter={handleEnter}
+        onEnter={enter}
         childRef={(children as any).ref}
       >
         {(status: TransitionStatus, innerProps: Record<string, unknown>) =>
@@ -56,11 +55,10 @@ export const Fade = React.forwardRef<Transition<any>, Props>(
             ),
           })
         }
-      </TransitionWrapper>
+      </Wrapper>
     );
   },
 );
-
 Fade.displayName = 'Fade';
 Fade.defaultProps = {
   in: false,

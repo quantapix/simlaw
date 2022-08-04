@@ -15,11 +15,10 @@ import {
   useState,
 } from 'react';
 import { useUncontrolled } from 'uncontrollable';
-import { map, forEach, triggerBrowserReflow, withBs } from './utils';
-import { useBsPrefix, useIsRTL } from './Theme';
-import transitionEndListener from './transitionEndListener';
+import { map, forEach, triggerReflow, withBs, endListener } from './utils';
+import { useBs, useIsRTL } from './Theme';
 import { BsProps, BsRefComp } from './helpers';
-import { TransitionWrapper } from './TransitionWrapper';
+import { Wrapper } from './Transition';
 
 export const Caption = withBs('carousel-caption');
 
@@ -31,13 +30,9 @@ export const Item: BsRefComp<'div', ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
 >(({ as: X = 'div', bsPrefix, className, ...ps }, ref) => {
-  const finalClassName = classNames(
-    className,
-    useBsPrefix(bsPrefix, 'carousel-item'),
-  );
-  return <X ref={ref} {...ps} className={finalClassName} />;
+  const n = classNames(className, useBs(bsPrefix, 'carousel-item'));
+  return <X ref={ref} {...ps} className={n} />;
 });
-
 Item.displayName = 'CarouselItem';
 
 export type Variant = 'dark' | string;
@@ -76,22 +71,15 @@ export interface Props
 
 const SWIPE_THRESHOLD = 40;
 
-function isVisible(element) {
-  if (
-    !element ||
-    !element.style ||
-    !element.parentNode ||
-    !element.parentNode.style
-  ) {
+function isVisible(x) {
+  if (!x || !x.style || !x.parentNode || !x.parentNode.style) {
     return false;
   }
-
-  const elementStyle = getComputedStyle(element);
-
+  const s = getComputedStyle(x);
   return (
-    elementStyle.display !== 'none' &&
-    elementStyle.visibility !== 'hidden' &&
-    getComputedStyle(element.parentNode).display !== 'none'
+    s.display !== 'none' &&
+    s.visibility !== 'hidden' &&
+    getComputedStyle(x.parentNode).display !== 'none'
   );
 }
 
@@ -131,33 +119,29 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
     } = useUncontrolled(xs, {
       activeIndex: 'onSelect',
     });
-    const bs = useBsPrefix(bsPrefix, 'carousel');
+    const bs = useBs(bsPrefix, 'carousel');
     const isRTL = useIsRTL();
-    const nextDirectionRef = useRef<string | null>(null);
+    const nextRef = useRef<string | null>(null);
     const [direction, setDirection] = useState('next');
     const [paused, setPaused] = useState(false);
     const [isSliding, setIsSliding] = useState(false);
-    const [renderedActiveIndex, setRenderedActiveIndex] = useState<number>(
-      activeIndex || 0,
-    );
+    const [renderedIdx, setRenderedIdx] = useState<number>(activeIndex || 0);
     useEffect(() => {
-      if (!isSliding && activeIndex !== renderedActiveIndex) {
-        if (nextDirectionRef.current) {
-          setDirection(nextDirectionRef.current);
+      if (!isSliding && activeIndex !== renderedIdx) {
+        if (nextRef.current) {
+          setDirection(nextRef.current);
         } else {
-          setDirection(
-            (activeIndex || 0) > renderedActiveIndex ? 'next' : 'prev',
-          );
+          setDirection((activeIndex || 0) > renderedIdx ? 'next' : 'prev');
         }
         if (slide) {
           setIsSliding(true);
         }
-        setRenderedActiveIndex(activeIndex || 0);
+        setRenderedIdx(activeIndex || 0);
       }
-    }, [activeIndex, isSliding, renderedActiveIndex, slide]);
+    }, [activeIndex, isSliding, renderedIdx, slide]);
     useEffect(() => {
-      if (nextDirectionRef.current) {
-        nextDirectionRef.current = null;
+      if (nextRef.current) {
+        nextRef.current = null;
       }
     });
     let numChildren = 0;
@@ -174,30 +158,30 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
         if (isSliding) {
           return;
         }
-        let nextActiveIndex = renderedActiveIndex - 1;
+        let nextActiveIndex = renderedIdx - 1;
         if (nextActiveIndex < 0) {
           if (!wrap) {
             return;
           }
           nextActiveIndex = numChildren - 1;
         }
-        nextDirectionRef.current = 'prev';
+        nextRef.current = 'prev';
         onSelect?.(nextActiveIndex, event);
       },
-      [isSliding, renderedActiveIndex, onSelect, wrap, numChildren],
+      [isSliding, renderedIdx, onSelect, wrap, numChildren],
     );
     const next = useEventCallback((event?) => {
       if (isSliding) {
         return;
       }
-      let nextActiveIndex = renderedActiveIndex + 1;
+      let nextActiveIndex = renderedIdx + 1;
       if (nextActiveIndex >= numChildren) {
         if (!wrap) {
           return;
         }
         nextActiveIndex = 0;
       }
-      nextDirectionRef.current = 'next';
+      nextRef.current = 'next';
       onSelect?.(nextActiveIndex, event);
     });
     const elementRef = useRef<HTMLElement>();
@@ -220,23 +204,23 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
       if (slide) {
         return;
       }
-      onSlide?.(renderedActiveIndex, slideDirection);
-      onSlid?.(renderedActiveIndex, slideDirection);
-    }, [renderedActiveIndex]);
+      onSlide?.(renderedIdx, slideDirection);
+      onSlid?.(renderedIdx, slideDirection);
+    }, [renderedIdx]);
     const orderClassName = `${bs}-item-${direction}`;
     const directionalClassName = `${bs}-item-${slideDirection}`;
-    const handleEnter = useCallback(
+    const enter = useCallback(
       (node) => {
-        triggerBrowserReflow(node);
-        onSlide?.(renderedActiveIndex, slideDirection);
+        triggerReflow(node);
+        onSlide?.(renderedIdx, slideDirection);
       },
-      [onSlide, renderedActiveIndex, slideDirection],
+      [onSlide, renderedIdx, slideDirection],
     );
-    const handleEntered = useCallback(() => {
+    const entered = useCallback(() => {
       setIsSliding(false);
-      onSlid?.(renderedActiveIndex, slideDirection);
-    }, [onSlid, renderedActiveIndex, slideDirection]);
-    const handleKeyDown = useCallback(
+      onSlid?.(renderedIdx, slideDirection);
+    }, [onSlid, renderedIdx, slideDirection]);
+    const keyDown = useCallback(
       (event) => {
         if (keyboard && !/input|textarea/i.test(event.target.tagName)) {
           switch (event.key) {
@@ -263,7 +247,7 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
       },
       [keyboard, onKeyDown, prev, next, isRTL],
     );
-    const handleMouseOver = useCallback(
+    const mouseOver = useCallback(
       (e) => {
         if (pause === 'hover') {
           setPaused(true);
@@ -272,7 +256,7 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
       },
       [pause, onMouseOver],
     );
-    const handleMouseOut = useCallback(
+    const mouseOut = useCallback(
       (e) => {
         setPaused(false);
         onMouseOut?.(e);
@@ -282,7 +266,7 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
     const touchStartXRef = useRef(0);
     const touchDeltaXRef = useRef(0);
     const touchUnpauseTimeout = useTimeout();
-    const handleTouchStart = useCallback(
+    const touchStart = useCallback(
       (e) => {
         touchStartXRef.current = e.touches[0].clientX;
         touchDeltaXRef.current = 0;
@@ -293,7 +277,7 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
       },
       [pause, onTouchStart],
     );
-    const handleTouchMove = useCallback(
+    const touchMove = useCallback(
       (e) => {
         if (e.touches && e.touches.length > 1) {
           touchDeltaXRef.current = 0;
@@ -305,7 +289,7 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
       },
       [onTouchMove],
     );
-    const handleTouchEnd = useCallback(
+    const touchEnd = useCallback(
       (e) => {
         if (touch) {
           const touchDeltaX = touchDeltaXRef.current;
@@ -363,12 +347,12 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
       <X
         ref={elementRef}
         {...ps}
-        onKeyDown={handleKeyDown}
-        onMouseOver={handleMouseOver}
-        onMouseOut={handleMouseOut}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onKeyDown={keyDown}
+        onMouseOver={mouseOver}
+        onMouseOut={mouseOut}
+        onTouchStart={touchStart}
+        onTouchMove={touchMove}
+        onTouchEnd={touchEnd}
         className={classNames(
           className,
           bs,
@@ -389,22 +373,22 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
                     ? indicatorLabels[i]
                     : `Slide ${i + 1}`
                 }
-                className={i === renderedActiveIndex ? 'active' : undefined}
+                className={i === renderedIdx ? 'active' : undefined}
                 onClick={onClicks ? onClicks[i] : undefined}
-                aria-current={i === renderedActiveIndex}
+                aria-current={i === renderedIdx}
               />
             ))}
           </div>
         )}
         <div className={`${bs}-inner`}>
           {map(children, (x, i) => {
-            const isActive = i === renderedActiveIndex;
+            const isActive = i === renderedIdx;
             return slide ? (
-              <TransitionWrapper
+              <Wrapper
                 in={isActive}
-                onEnter={isActive ? handleEnter : undefined}
-                onEntered={isActive ? handleEntered : undefined}
-                addEndListener={transitionEndListener}
+                onEnter={isActive ? enter : undefined}
+                onEntered={isActive ? entered : undefined}
+                addEndListener={endListener}
               >
                 {(
                   status: TransitionStatus,
@@ -422,7 +406,7 @@ export const Carousel: BsRefComp<'div', Props> = React.forwardRef<Ref, Props>(
                     ),
                   })
                 }
-              </TransitionWrapper>
+              </Wrapper>
             ) : (
               React.cloneElement(x, {
                 className: classNames(x.props.className, isActive && 'active'),

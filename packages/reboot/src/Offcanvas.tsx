@@ -25,17 +25,16 @@ import { Fade } from './Fade';
 import { AbsHeader, AbsProps as HProps, Context as MContext } from './Modal';
 import { Context as NContext } from './Navbar';
 import { BsOnlyProps, BsRefComp } from './helpers';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { Manager, getSharedManager } from './Manager';
-import { divAs, withBs } from './utils';
-import transitionEndListener from './transitionEndListener';
-import { TransitionWrapper } from './TransitionWrapper';
+import { divAs, withBs, endListener } from './utils';
+import { Wrapper } from './Transition';
 
 export interface HeaderProps extends HProps, BsOnlyProps {}
 
 export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
-    bsPrefix = useBsPrefix(bsPrefix, 'offcanvas-header');
+    bsPrefix = useBs(bsPrefix, 'offcanvas-header');
     return (
       <AbsHeader
         ref={ref}
@@ -74,11 +73,11 @@ const styles = {
 
 export const Toggling = React.forwardRef<Transition<any>, TogglingProps>(
   ({ bsPrefix, className, children, ...ps }, ref) => {
-    bsPrefix = useBsPrefix(bsPrefix, 'offcanvas');
+    bsPrefix = useBs(bsPrefix, 'offcanvas');
     return (
-      <TransitionWrapper
+      <Wrapper
         ref={ref}
-        addEndListener={transitionEndListener}
+        addEndListener={endListener}
         {...ps}
         childRef={(children as any).ref}
       >
@@ -94,7 +93,7 @@ export const Toggling = React.forwardRef<Transition<any>, TogglingProps>(
             ),
           })
         }
-      </TransitionWrapper>
+      </Wrapper>
     );
   },
 );
@@ -171,49 +170,43 @@ export const Offcanvas: BsRefComp<'div', Props> = React.forwardRef<
     },
     ref,
   ) => {
-    const modalManager = useRef<Manager>();
-    bsPrefix = useBsPrefix(bsPrefix, 'offcanvas');
+    const manager = useRef<Manager>();
+    bsPrefix = useBs(bsPrefix, 'offcanvas');
     const { onToggle } = useContext(NContext) || {};
     const [showOffcanvas, setShowOffcanvas] = useState(false);
     const hideResponsiveOffcanvas = useBreakpoint(
       (responsive as any) || 'xs',
       'up',
     );
-
     useEffect(() => {
       setShowOffcanvas(responsive ? show && !hideResponsiveOffcanvas : show);
     }, [show, responsive, hideResponsiveOffcanvas]);
-
-    const handleHide = useEventCallback(() => {
+    const hide = useEventCallback(() => {
       onToggle?.();
       onHide?.();
     });
-
     const v = useMemo(
       () => ({
-        onHide: handleHide,
+        onHide: hide,
       }),
-      [handleHide],
+      [hide],
     );
-
-    function getModalManager() {
+    function getManager() {
       if (propsManager) return propsManager;
       if (scroll) {
-        if (!modalManager.current)
-          modalManager.current = new Manager({
+        if (!manager.current)
+          manager.current = new Manager({
             handleContainerOverflow: false,
           });
-        return modalManager.current;
+        return manager.current;
       }
       return getSharedManager();
     }
-
-    const handleEnter = (node, ...args) => {
+    const enter = (node, ...args) => {
       if (node) node.style.visibility = 'visible';
       onEnter?.(node, ...args);
     };
-
-    const handleExited = (node, ...args) => {
+    const exited = (node, ...args) => {
       if (node) node.style.visibility = '';
       onExited?.(...args);
     };
@@ -257,14 +250,14 @@ export const Offcanvas: BsRefComp<'div', Props> = React.forwardRef<
             restoreFocusOptions={restoreFocusOptions}
             onEscapeKeyDown={onEscapeKeyDown}
             onShow={onShow}
-            onHide={handleHide}
-            onEnter={handleEnter}
+            onHide={hide}
+            onEnter={enter}
             onEntering={onEntering}
             onEntered={onEntered}
             onExit={onExit}
             onExiting={onExiting}
-            onExited={handleExited}
-            manager={getModalManager()}
+            onExited={exited}
+            manager={getManager()}
             transition={DialogTransition}
             backdropTransition={BackdropTransition}
             renderBackdrop={renderBackdrop}
@@ -287,3 +280,20 @@ Offcanvas.defaultProps = {
   placement: 'start',
   renderStaticNode: false,
 };
+
+export type NavbarProps = Omit<Props, 'show'>;
+
+export const Navbar = React.forwardRef<HTMLDivElement, NavbarProps>(
+  (ps, ref) => {
+    const context = useContext(NContext);
+    return (
+      <Offcanvas
+        ref={ref}
+        show={!!context?.expanded}
+        {...ps}
+        renderStaticNode
+      />
+    );
+  },
+);
+Navbar.displayName = 'NavbarOffcanvas';

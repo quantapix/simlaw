@@ -10,7 +10,7 @@ import {
 } from '@restart/ui/types';
 import Tabs, { TabsProps } from '@restart/ui/Tabs';
 import NoopTransition from '@restart/ui/NoopTransition';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { Fade } from './Fade';
 import { BsProps, BsRefComp, TransitionType } from './helpers';
 import { withBs } from './utils';
@@ -68,7 +68,7 @@ export const Pane: BsRefComp<'div', PaneProps> = React.forwardRef<
     ...xs,
     transition: getTabTransitionComponent(transition),
   } as any);
-  const bs = useBsPrefix(bsPrefix, 'tab-pane');
+  const bs = useBs(bsPrefix, 'tab-pane');
   return (
     <TabContext.Provider value={null}>
       <SelectableContext.Provider value={null}>

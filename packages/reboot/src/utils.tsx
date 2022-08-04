@@ -1,8 +1,10 @@
+import classNames from 'classnames';
 import * as React from 'react';
 import ReactDOM from 'react-dom';
-import classNames from 'classnames';
+import css from 'dom-helpers/css';
 import camelize from 'dom-helpers/camelize';
-import { useBsPrefix } from './Theme';
+import transitionEnd from 'dom-helpers/transitionEnd';
+import { useBs } from './Theme';
 import { BsRefComp } from './helpers';
 
 export function map<P = any>(
@@ -34,7 +36,7 @@ export function hasChildOfType<P = any>(
   );
 }
 
-export function createChainedFunction(...fs) {
+export function createChained(...fs) {
   return fs
     .filter((f) => f != null)
     .reduce((acc, f) => {
@@ -53,7 +55,7 @@ export function createChainedFunction(...fs) {
     }, null);
 }
 
-export function triggerBrowserReflow(node: HTMLElement): void {
+export function triggerReflow(node: HTMLElement): void {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   node.offsetHeight;
 }
@@ -97,7 +99,7 @@ export function withBs<As extends React.ElementType = 'div'>(
       { className, bsPrefix, as: X = Component || 'div', ...props }: any,
       ref,
     ) => {
-      const resolvedPrefix = useBsPrefix(bsPrefix, prefix);
+      const resolvedPrefix = useBs(bsPrefix, prefix);
       return (
         <X
           ref={ref}
@@ -110,4 +112,31 @@ export function withBs<As extends React.ElementType = 'div'>(
   y.defaultProps = defaultProps as any;
   y.displayName = displayName;
   return y as any;
+}
+
+function parseDuration(
+  node: HTMLElement,
+  property: 'transitionDuration' | 'transitionDelay',
+) {
+  const str = css(node, property) || '';
+  const mult = str.indexOf('ms') === -1 ? 1000 : 1;
+  return parseFloat(str) * mult;
+}
+
+export function endListener(
+  element: HTMLElement,
+  handler: (e: TransitionEvent) => void,
+) {
+  const duration = parseDuration(element, 'transitionDuration');
+  const delay = parseDuration(element, 'transitionDelay');
+  const remove = transitionEnd(
+    element,
+    (e) => {
+      if (e.target === element) {
+        remove();
+        handler(e);
+      }
+    },
+    duration + delay,
+  );
 }

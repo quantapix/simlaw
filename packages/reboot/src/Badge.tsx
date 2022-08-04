@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { BsProps, BsRefComp } from './helpers';
 import { Color, Variant } from './types';
 
@@ -14,7 +14,7 @@ export const Badge: BsRefComp<'span', Props> = React.forwardRef<
   HTMLElement,
   Props
 >(({ bsPrefix, bg, pill, text, className, as: X = 'span', ...ps }, ref) => {
-  const bs = useBsPrefix(bsPrefix, 'badge');
+  const bs = useBs(bsPrefix, 'badge');
   return (
     <X
       ref={ref}
@@ -29,7 +29,6 @@ export const Badge: BsRefComp<'span', Props> = React.forwardRef<
     />
   );
 });
-
 Badge.displayName = 'Badge';
 Badge.defaultProps = {
   bg: 'primary',

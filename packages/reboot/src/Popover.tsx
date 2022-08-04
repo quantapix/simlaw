@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import { OverlayArrowProps } from '@restart/ui/Overlay';
-import { useBsPrefix, useIsRTL } from './Theme';
+import { useBs, useIsRTL } from './Theme';
 import { Placement, PopperRef } from './types';
 import { BsProps, getDirection } from './helpers';
 import { withBs } from './utils';
@@ -36,7 +36,7 @@ export const Popover = React.forwardRef<HTMLDivElement, Props>(
     },
     ref,
   ) => {
-    const decoratedBsPrefix = useBsPrefix(bsPrefix, 'popover');
+    const decoratedBsPrefix = useBs(bsPrefix, 'popover');
     const isRTL = useIsRTL();
     const [primaryPlacement] = placement?.split('-') || [];
     const bsDirection = getDirection(primaryPlacement, isRTL);

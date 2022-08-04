@@ -8,7 +8,7 @@ import Transition, {
   EXITING,
 } from 'react-transition-group/Transition';
 import useEventCallback from '@restart/hooks/useEventCallback';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { BsOnlyProps, BsProps, BsRefComp } from './helpers';
 import { Variant } from './types';
 import { Fade, Props as _Props } from './Fade';
@@ -45,7 +45,7 @@ export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
     }: HeaderProps,
     ref,
   ) => {
-    bsPrefix = useBsPrefix(bsPrefix, 'toast-header');
+    bsPrefix = useBs(bsPrefix, 'toast-header');
     const context = useContext(Context);
     const click = useEventCallback((e) => {
       context?.onClose?.(e);
@@ -112,7 +112,7 @@ export const Toast: BsRefComp<'div', Props> = React.forwardRef<
     },
     ref,
   ) => {
-    bsPrefix = useBsPrefix(bsPrefix, 'toast');
+    bsPrefix = useBs(bsPrefix, 'toast');
     const delayRef = useRef(delay);
     const onCloseRef = useRef(onClose);
 
@@ -216,7 +216,7 @@ export const Container: BsRefComp<'div', ContainerProps> = React.forwardRef<
     },
     ref,
   ) => {
-    bsPrefix = useBsPrefix(bsPrefix, 'toast-container');
+    bsPrefix = useBs(bsPrefix, 'toast-container');
     return (
       <X
         ref={ref}

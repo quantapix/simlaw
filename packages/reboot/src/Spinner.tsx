@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { BsProps, BsRefComp } from './helpers';
 import { Variant } from './types';
 
@@ -18,7 +18,7 @@ export const Spinner: BsRefComp<'div', Props> = React.forwardRef<
     { bsPrefix, variant, animation, size, as: X = 'div', className, ...ps },
     ref,
   ) => {
-    const bs = useBsPrefix(bsPrefix, 'spinner');
+    const bs = useBs(bsPrefix, 'spinner');
     const bsSpinnerPrefix = `${bs}-${animation}`;
     return (
       <X

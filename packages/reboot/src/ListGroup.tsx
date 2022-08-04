@@ -8,7 +8,7 @@ import { makeEventKey } from '@restart/ui/SelectableContext';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import { useNavItem, NavItemProps as IPs } from '@restart/ui/NavItem';
 import { BsProps, BsRefComp } from './helpers';
-import { useBsPrefix } from './Theme';
+import { useBs } from './Theme';
 import { Variant } from './types';
 
 export interface ItemProps extends Omit<IPs, 'onSelect'>, BsProps {
@@ -35,13 +35,13 @@ export const Item: BsRefComp<'a', ItemProps> = React.forwardRef<
     },
     ref,
   ) => {
-    bsPrefix = useBsPrefix(bsPrefix, 'list-group-item');
+    bsPrefix = useBs(bsPrefix, 'list-group-item');
     const [navItemProps, meta] = useNavItem({
       key: makeEventKey(eventKey, ps.href),
       active,
       ...ps,
     });
-    const handleClick = useEventCallback((e) => {
+    const click = useEventCallback((e) => {
       if (disabled) {
         e.preventDefault();
         e.stopPropagation();
@@ -60,7 +60,7 @@ export const Item: BsRefComp<'a', ItemProps> = React.forwardRef<
         ref={ref}
         {...ps}
         {...navItemProps}
-        onClick={handleClick}
+        onClick={click}
         className={classNames(
           className,
           bsPrefix,
@@ -97,11 +97,10 @@ export const ListGroup: BsRefComp<'div', Props> = React.forwardRef<
   } = useUncontrolled(xs, {
     activeKey: 'onSelect',
   });
-  const bs = useBsPrefix(initialBsPrefix, 'list-group');
-  let horizontalVariant: string | undefined;
+  const bs = useBs(initialBsPrefix, 'list-group');
+  let h: string | undefined;
   if (horizontal) {
-    horizontalVariant =
-      horizontal === true ? 'horizontal' : `horizontal-${horizontal}`;
+    h = horizontal === true ? 'horizontal' : `horizontal-${horizontal}`;
   }
   warning(
     !(horizontal && variant === 'flush'),
@@ -116,7 +115,7 @@ export const ListGroup: BsRefComp<'div', Props> = React.forwardRef<
         className,
         bs,
         variant && `${bs}-${variant}`,
-        horizontalVariant && `${bs}-${horizontalVariant}`,
+        h && `${bs}-${h}`,
         numbered && `${bs}-numbered`,
       )}
     />

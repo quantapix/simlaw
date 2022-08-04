@@ -21,7 +21,7 @@ import { useDropdownToggle } from '@restart/ui/DropdownToggle';
 import { useUncontrolled } from 'uncontrollable';
 import useEventCallback from '@restart/hooks/useEventCallback';
 import { Context as InputGroupContext } from './InputGroup';
-import { useBsPrefix, useIsRTL } from './Theme';
+import { useBs, useIsRTL } from './Theme';
 import { withBs } from './utils';
 import { BsProps, BsRefComp } from './helpers';
 import { Context as NavbarContext } from './Navbar';
@@ -53,7 +53,7 @@ export interface MenuProps extends BsProps, React.HTMLAttributes<HTMLElement> {
   variant?: Variant;
 }
 
-export function getMenuPlacement(
+export function getPlacement(
   alignEnd: boolean,
   dropDirection?: Drop,
   isRTL?: boolean,
@@ -66,13 +66,11 @@ export function getMenuPlacement(
   const leftEnd = isRTL ? 'right-end' : 'left-end';
   const rightStart = isRTL ? 'left-start' : 'right-start';
   const rightEnd = isRTL ? 'left-end' : 'right-end';
-  let placement: Placement = alignEnd ? bottomEnd : bottomStart;
-  if (dropDirection === 'up') placement = alignEnd ? topEnd : topStart;
-  else if (dropDirection === 'end')
-    placement = alignEnd ? rightEnd : rightStart;
-  else if (dropDirection === 'start')
-    placement = alignEnd ? leftEnd : leftStart;
-  return placement;
+  let y: Placement = alignEnd ? bottomEnd : bottomStart;
+  if (dropDirection === 'up') y = alignEnd ? topEnd : topStart;
+  else if (dropDirection === 'end') y = alignEnd ? rightEnd : rightStart;
+  else if (dropDirection === 'start') y = alignEnd ? leftEnd : leftStart;
+  return y;
 }
 
 export const Menu: BsRefComp<'div', MenuProps> = React.forwardRef<
@@ -97,7 +95,7 @@ export const Menu: BsRefComp<'div', MenuProps> = React.forwardRef<
   ) => {
     let alignEnd = false;
     const isNavbar = useContext(NavbarContext);
-    const bs = useBsPrefix(bsPrefix, 'dropdown-menu');
+    const bs = useBs(bsPrefix, 'dropdown-menu');
     const { align: contextAlign, drop, isRTL } = useContext(Context);
     align = align || contextAlign;
     const isInputGroup = useContext(InputGroupContext);
@@ -119,7 +117,7 @@ export const Menu: BsRefComp<'div', MenuProps> = React.forwardRef<
         alignEnd = true;
       }
     }
-    const placement = getMenuPlacement(alignEnd, drop, isRTL);
+    const placement = getPlacement(alignEnd, drop, isRTL);
     const [menuProps, { hasShown, popper, show, toggle }] = useDropdownMenu({
       flip,
       rootCloseEvent,
@@ -133,11 +131,9 @@ export const Menu: BsRefComp<'div', MenuProps> = React.forwardRef<
       useWrappedRef(ref, 'DropdownMenu'),
       menuProps.ref,
     );
-
     useIsomorphicEffect(() => {
       if (show) popper?.update();
     }, [show]);
-
     if (!hasShown && !renderOnMount && !isInputGroup) return null;
     if (typeof X !== 'string') {
       menuProps.show = show;
@@ -169,7 +165,6 @@ export const Menu: BsRefComp<'div', MenuProps> = React.forwardRef<
     );
   },
 );
-
 Menu.displayName = 'DropdownMenu';
 Menu.defaultProps = {
   flip: true,
@@ -199,7 +194,7 @@ export const Toggle: ToggleComponent = React.forwardRef(
     }: ToggleProps,
     ref,
   ) => {
-    const bs = useBsPrefix(bsPrefix, 'dropdown-toggle');
+    const bs = useBs(bsPrefix, 'dropdown-toggle');
     const context = useContext(Context);
     const isInputGroup = useContext(InputGroupContext);
     if (childBsPrefix !== undefined) {
@@ -254,7 +249,7 @@ export const Item: BsRefComp<typeof BaseDropdownItem, ItemProps> =
       },
       ref,
     ) => {
-      const bs = useBsPrefix(bsPrefix, 'dropdown-item');
+      const bs = useBs(bsPrefix, 'dropdown-item');
       const [dropdownItemProps, meta] = useDropdownItem({
         key: eventKey,
         href: ps.href,
@@ -262,7 +257,6 @@ export const Item: BsRefComp<typeof BaseDropdownItem, ItemProps> =
         onClick,
         active,
       });
-
       return (
         <X
           {...ps}
@@ -310,7 +304,7 @@ export const Dropdown: BsRefComp<'div', Props> = React.forwardRef<
     ...ps
   } = useUncontrolled(xs, { show: 'onToggle' });
   const isInputGroup = useContext(InputGroupContext);
-  const bs = useBsPrefix(bsPrefix, 'dropdown');
+  const bs = useBs(bsPrefix, 'dropdown');
   const isRTL = useIsRTL();
   const isClosingPermitted = (source: string): boolean => {
     if (autoClose === false) return source === 'click';
@@ -318,19 +312,17 @@ export const Dropdown: BsRefComp<'div', Props> = React.forwardRef<
     if (autoClose === 'outside') return source !== 'select';
     return true;
   };
-  const handleToggle = useEventCallback(
-    (nextShow: boolean, meta: ToggleMetadata) => {
-      if (
-        meta.originalEvent!.currentTarget === document &&
-        (meta.source !== 'keydown' ||
-          (meta.originalEvent as any).key === 'Escape')
-      )
-        meta.source = 'rootClose';
-      if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta);
-    },
-  );
+  const toggle = useEventCallback((nextShow: boolean, meta: ToggleMetadata) => {
+    if (
+      meta.originalEvent!.currentTarget === document &&
+      (meta.source !== 'keydown' ||
+        (meta.originalEvent as any).key === 'Escape')
+    )
+      meta.source = 'rootClose';
+    if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta);
+  });
   const alignEnd = align === 'end';
-  const placement = getMenuPlacement(alignEnd, drop, isRTL);
+  const placement = getPlacement(alignEnd, drop, isRTL);
   const v = useMemo(
     () => ({
       align,
@@ -345,7 +337,7 @@ export const Dropdown: BsRefComp<'div', Props> = React.forwardRef<
         placement={placement}
         show={show}
         onSelect={onSelect}
-        onToggle={handleToggle}
+        onToggle={toggle}
         focusFirstItemOnShow={focusFirstItemOnShow}
         itemSelector={`.${bs}-item:not(.disabled):not(:disabled)`}
       >
@@ -464,7 +456,7 @@ export const Nav: BsRefComp<'div', NavProps> = React.forwardRef(
     }: NavProps,
     ref,
   ) => {
-    const pre = useBsPrefix(undefined, 'nav-item');
+    const pre = useBs(undefined, 'nav-item');
     return (
       <Dropdown ref={ref} {...ps} className={classNames(className, pre)}>
         <Toggle

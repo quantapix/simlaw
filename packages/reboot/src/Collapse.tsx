@@ -10,9 +10,8 @@ import Transition, {
   EXITING,
 } from 'react-transition-group/Transition';
 import { TransitionCallbacks } from '@restart/ui/types';
-import transitionEndListener from './transitionEndListener';
-import { triggerBrowserReflow, createChainedFunction } from './utils';
-import TransitionWrapper from './TransitionWrapper';
+import { triggerReflow, createChained, endListener } from './utils';
+import { Wrapper } from './Transition';
 
 type Dimension = 'height' | 'width';
 
@@ -42,7 +41,6 @@ function getDefaultDimensionValue(
   const offset = `offset${dimension[0].toUpperCase()}${dimension.slice(1)}`;
   const value = elem[offset];
   const margins = MARGINS[dimension];
-
   return (
     value +
     // @ts-ignore
@@ -71,65 +69,59 @@ export const Collapse = React.forwardRef<Transition<any>, Props>(
       children,
       dimension = 'height',
       getDimensionValue = getDefaultDimensionValue,
-      ...props
+      ...ps
     },
     ref,
   ) => {
-    const computedDimension =
-      typeof dimension === 'function' ? dimension() : dimension;
-    const handleEnter = useMemo(
+    const dim = typeof dimension === 'function' ? dimension() : dimension;
+    const enter = useMemo(
       () =>
-        createChainedFunction((elem) => {
-          elem.style[computedDimension] = '0';
+        createChained((x) => {
+          x.style[dim] = '0';
         }, onEnter),
-      [computedDimension, onEnter],
+      [dim, onEnter],
     );
-    const handleEntering = useMemo(
+    const entering = useMemo(
       () =>
-        createChainedFunction((elem) => {
-          const scroll = `scroll${computedDimension[0].toUpperCase()}${computedDimension.slice(
-            1,
-          )}`;
-          elem.style[computedDimension] = `${elem[scroll]}px`;
+        createChained((x) => {
+          const scroll = `scroll${dim[0].toUpperCase()}${dim.slice(1)}`;
+          x.style[dim] = `${x[scroll]}px`;
         }, onEntering),
-      [computedDimension, onEntering],
+      [dim, onEntering],
     );
-    const handleEntered = useMemo(
+    const entered = useMemo(
       () =>
-        createChainedFunction((elem) => {
-          elem.style[computedDimension] = null;
+        createChained((x) => {
+          x.style[dim] = null;
         }, onEntered),
-      [computedDimension, onEntered],
+      [dim, onEntered],
     );
-    const handleExit = useMemo(
+    const exit = useMemo(
       () =>
-        createChainedFunction((elem) => {
-          elem.style[computedDimension] = `${getDimensionValue(
-            computedDimension,
-            elem,
-          )}px`;
-          triggerBrowserReflow(elem);
+        createChained((x) => {
+          x.style[dim] = `${getDimensionValue(dim, x)}px`;
+          triggerReflow(x);
         }, onExit),
-      [onExit, getDimensionValue, computedDimension],
+      [onExit, getDimensionValue, dim],
     );
-    const handleExiting = useMemo(
+    const exiting = useMemo(
       () =>
-        createChainedFunction((elem) => {
-          elem.style[computedDimension] = null;
+        createChained((x) => {
+          x.style[dim] = null;
         }, onExiting),
-      [computedDimension, onExiting],
+      [dim, onExiting],
     );
     return (
-      <TransitionWrapper
+      <Wrapper
         ref={ref}
-        addEndListener={transitionEndListener}
-        {...props}
-        aria-expanded={props.role ? props.in : null}
-        onEnter={handleEnter}
-        onEntering={handleEntering}
-        onEntered={handleEntered}
-        onExit={handleExit}
-        onExiting={handleExiting}
+        addEndListener={endListener}
+        {...ps}
+        aria-expanded={ps.role ? ps.in : null}
+        onEnter={enter}
+        onEntering={entering}
+        onEntered={entered}
+        onExit={exit}
+        onExiting={exiting}
         childRef={(children as any).ref}
       >
         {(state: TransitionStatus, innerProps: Record<string, unknown>) =>
@@ -139,15 +131,14 @@ export const Collapse = React.forwardRef<Transition<any>, Props>(
               className,
               children.props.className,
               collapseStyles[state],
-              computedDimension === 'width' && 'collapse-horizontal',
+              dim === 'width' && 'collapse-horizontal',
             ),
           })
         }
-      </TransitionWrapper>
+      </Wrapper>
     );
   },
 );
-
 Collapse.defaultProps = {
   in: false,
   timeout: 300,
