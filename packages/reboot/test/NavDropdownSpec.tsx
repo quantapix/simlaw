@@ -1,100 +1,90 @@
 import { render } from '@testing-library/react';
-
-import DropdownItem from '../src/DropdownItem';
+import Item from '../src/Item';
 import Nav from '../src/Nav';
 import Navbar from '../src/Navbar';
-import NavDropdown from '../src/NavDropdown';
+import Dropdown from '../src/Dropdown';
 
-describe('<NavDropdown>', () => {
+describe('<Dropdown>', () => {
   it('Should render li when in nav', () => {
     const { getByTestId } = render(
-      <NavDropdown
+      <Dropdown
         defaultShow
         title="Title"
         className="test-class"
         id="nav-test"
         data-testid="test"
       >
-        <DropdownItem eventKey="1">DropdownItem 1 content</DropdownItem>
-        <DropdownItem eventKey="2">DropdownItem 2 content</DropdownItem>
-      </NavDropdown>,
+        <Item eventKey="1">Item 1 content</Item>
+        <Item eventKey="2">Item 2 content</Item>
+      </Dropdown>,
     );
-    const navDropdownElem = getByTestId('test');
-    navDropdownElem.classList.contains('dropdown').should.be.true;
-    navDropdownElem.classList.contains('test-class').should.be.true;
-
-    navDropdownElem.firstElementChild!.classList.contains('nav-link').should.be
+    const DropdownElem = getByTestId('test');
+    DropdownElem.classList.contains('dropdown').should.be.true;
+    DropdownElem.classList.contains('test-class').should.be.true;
+    DropdownElem.firstElementChild!.classList.contains('nav-link').should.be
       .true;
-    navDropdownElem.firstElementChild!.textContent!.should.equal('Title');
+    DropdownElem.firstElementChild!.textContent!.should.equal('Title');
   });
-
   it('renders active toggle', () => {
     const { getByTestId } = render(
-      <NavDropdown
+      <Dropdown
         defaultShow
         active
         title="Title"
         id="nav-test"
         data-testid="test"
       >
-        <DropdownItem eventKey="1">DropdownItem 1 content</DropdownItem>
-        <DropdownItem eventKey="2">DropdownItem 2 content</DropdownItem>
-      </NavDropdown>,
+        <Item eventKey="1">Item 1 content</Item>
+        <Item eventKey="2">Item 2 content</Item>
+      </Dropdown>,
     );
-    const navDropdownElem = getByTestId('test');
-    navDropdownElem.firstElementChild!.classList.contains('active').should.be
-      .true;
+    const DropdownElem = getByTestId('test');
+    DropdownElem.firstElementChild!.classList.contains('active').should.be.true;
   });
-
   it('should handle child active state', () => {
     const { getByTestId } = render(
       <Nav defaultActiveKey="2">
-        <NavDropdown defaultShow id="test-id" title="title">
-          <DropdownItem eventKey="1">DropdownItem 1 content</DropdownItem>
-          <DropdownItem eventKey="2" data-testid="test">
-            DropdownItem 2 content
-          </DropdownItem>
-          <DropdownItem eventKey="3">DropdownItem 3 content</DropdownItem>
-        </NavDropdown>
+        <Dropdown defaultShow id="test-id" title="title">
+          <Item eventKey="1">Item 1 content</Item>
+          <Item eventKey="2" data-testid="test">
+            Item 2 content
+          </Item>
+          <Item eventKey="3">Item 3 content</Item>
+        </Dropdown>
       </Nav>,
     );
-
-    getByTestId('test').textContent!.should.equal('DropdownItem 2 content');
+    getByTestId('test').textContent!.should.equal('Item 2 content');
   });
-
   it('should pass the id to the NavLink element', () => {
     const { getByTestId } = render(
-      <NavDropdown id="test-id" title="title" data-testid="test">
-        <DropdownItem eventKey="1">DropdownItem 1 content</DropdownItem>
-      </NavDropdown>,
+      <Dropdown id="test-id" title="title" data-testid="test">
+        <Item eventKey="1">Item 1 content</Item>
+      </Dropdown>,
     );
     getByTestId('test').firstElementChild!.id.should.equal('test-id');
   });
-
   it('should support as as prop', () => {
     const { getByTestId } = render(
-      <NavDropdown as="li" id="test-id" title="title" data-testid="test">
-        <DropdownItem eventKey="1">Item 1</DropdownItem>
-      </NavDropdown>,
+      <Dropdown as="li" id="test-id" title="title" data-testid="test">
+        <Item eventKey="1">Item 1</Item>
+      </Dropdown>,
     );
     getByTestId('test').tagName.toLowerCase().should.equal('li');
   });
-
   it('passes menuVariant to dropdown menu', () => {
     render(
-      <NavDropdown renderMenuOnMount title="blah" menuVariant="dark" id="test">
-        <DropdownItem>Item 1</DropdownItem>
-      </NavDropdown>,
+      <Dropdown renderMenuOnMount title="blah" menuVariant="dark" id="test">
+        <Item>Item 1</Item>
+      </Dropdown>,
     );
     document.querySelector('.dropdown-menu-dark')!.should.exist;
   });
-
   it('sets data-bs-popper attribute on dropdown menu', () => {
     render(
       <Navbar>
-        <NavDropdown renderMenuOnMount id="test-id" title="title">
-          <DropdownItem>Item 1</DropdownItem>
-        </NavDropdown>
+        <Dropdown renderMenuOnMount id="test-id" title="title">
+          <Item>Item 1</Item>
+        </Dropdown>
       </Navbar>,
     );
     document

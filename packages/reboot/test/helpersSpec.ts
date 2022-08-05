@@ -1,21 +1,21 @@
-import { getOverlayDirection } from '../src/helpers';
+import { getDirection } from '../src/helpers';
 
 describe('Helpers', () => {
-  describe('getOverlayDirection', () => {
+  describe('getDirection', () => {
     it('should return start for left', () => {
-      getOverlayDirection('left', false).should.equal('start');
+      getDirection('left', false).should.equal('start');
     });
 
     it('should return end for left in RTL', () => {
-      getOverlayDirection('left', true).should.equal('end');
+      getDirection('left', true).should.equal('end');
     });
 
     it('should return end for right', () => {
-      getOverlayDirection('right', false).should.equal('end');
+      getDirection('right', false).should.equal('end');
     });
 
     it('should return start for right in RTL', () => {
-      getOverlayDirection('right', true).should.equal('start');
+      getDirection('right', true).should.equal('start');
     });
   });
 });
