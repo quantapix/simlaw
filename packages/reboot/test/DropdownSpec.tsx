@@ -28,14 +28,11 @@ describe('<Dropdown>', () => {
       <Item>Item 4</Item>
     </Menu>,
   ];
-
   const simpleDropdown = <Dropdown>{dropdownChildren}</Dropdown>;
-
   it('renders div with dropdown class', () => {
     const { container } = render(simpleDropdown);
     container.firstElementChild!.classList.should.contain(['dropdown']);
   });
-
   ['up', 'end', 'start'].forEach((dir: Drop) => {
     it(`renders div with drop${dir} class`, () => {
       const { container } = render(
@@ -43,61 +40,48 @@ describe('<Dropdown>', () => {
           {dropdownChildren}
         </Dropdown>,
       );
-
       container.firstElementChild!.classList.should.not.contain(['dropdown']);
       container.firstElementChild!.classList.should.contain([`drop${dir}`]);
     });
   });
-
   it('renders toggle with Toggle', () => {
     const { getByText } = render(simpleDropdown);
-
     const toggle = getByText('Child Title');
     toggle.getAttribute('aria-expanded')!.should.equal('false');
     toggle.id.should.be.ok;
   });
-
   it('forwards align="end" to menu', () => {
     const X = React.forwardRef<any, any>(
       ({ show: _, close: _1, align, ...props }, ref) => (
         <div {...props} data-align={align} ref={ref} />
       ),
     );
-
     const { container } = render(
       <Dropdown align="end" show>
         <Toggle id="test-id" key="toggle">
           Child Title
         </Toggle>
-
         <X key="menu" as={Menu}>
           <Item>Item 1</Item>
         </X>
       </Dropdown>,
     );
-
     container.querySelector('[data-align="end"]')!.should.exist;
   });
-
   it('toggles open/closed when clicked', () => {
     const { container, getByText, getByTestId } = render(simpleDropdown);
     const dropdown = container.firstElementChild!;
     const toggle = getByText('Child Title');
-
     dropdown.classList.should.not.contain(['show']);
     fireEvent.click(toggle);
     dropdown.classList.should.contain(['show']);
-
     getByTestId('menu').classList.should.contain(['dropdown-menu', 'show']);
-
     fireEvent.click(toggle);
     dropdown.classList.should.not.contain(['show']);
     toggle.getAttribute('aria-expanded')!.should.equal('false');
   });
-
   it('closes when child Item is selected', () => {
     const onToggleSpy = sinon.spy();
-
     const { container, getByTestId } = render(
       <Dropdown show onToggle={onToggleSpy}>
         <Toggle id="test-id" key="toggle">
@@ -111,13 +95,10 @@ describe('<Dropdown>', () => {
         </Menu>
       </Dropdown>,
     );
-
     container.firstElementChild!.classList.should.contain(['show']);
-
     fireEvent.click(getByTestId('item1'));
     onToggleSpy.should.have.been.calledWith(false);
   });
-
   it('has aria-labelledby same id as toggle button', () => {
     const { getByTestId } = render(
       <Dropdown show>
@@ -127,29 +108,23 @@ describe('<Dropdown>', () => {
         </Menu>
       </Dropdown>,
     );
-
     getByTestId('toggle').id.should.equal(
       getByTestId('menu').getAttribute('aria-labelledby'),
     );
   });
-
   describe('DOM event and source passed to onToggle', () => {
     it('passes open, event, and source correctly when opened with click', () => {
       const onToggleSpy = sinon.spy();
       const { getByText } = render(
         <Dropdown onToggle={onToggleSpy}>{dropdownChildren}</Dropdown>,
       );
-
       onToggleSpy.should.not.have.been.called;
-
       fireEvent.click(getByText('Child Title'));
-
       onToggleSpy.should.have.been.calledOnce;
       onToggleSpy.getCall(0).args.length.should.equal(2);
       onToggleSpy.getCall(0).args[0].should.equal(true);
       onToggleSpy.getCall(0).args[1].source.should.equal('click');
     });
-
     it('passes open, event, and source correctly when closed with click', () => {
       const onToggleSpy = sinon.spy();
       const { getByText } = render(
@@ -157,18 +132,13 @@ describe('<Dropdown>', () => {
           {dropdownChildren}
         </Dropdown>,
       );
-
       const toggle = getByText('Child Title');
-
       onToggleSpy.should.not.have.been.called;
-
       fireEvent.click(toggle);
-
       onToggleSpy.getCall(0).args.length.should.equal(2);
       onToggleSpy.getCall(0).args[0].should.equal(false);
       onToggleSpy.getCall(0).args[1].source.should.equal('click');
     });
-
     it('passes open, event, and source correctly when child selected', () => {
       const onToggleSpy = sinon.spy();
       const { getByTestId } = render(
@@ -181,19 +151,14 @@ describe('<Dropdown>', () => {
           </Menu>
         </Dropdown>,
       );
-
       fireEvent.click(getByTestId('toggle'));
-
       onToggleSpy.should.have.been.called;
-
       fireEvent.click(getByTestId('item1'));
-
       onToggleSpy.should.have.been.calledTwice;
       onToggleSpy.getCall(1).args.length.should.equal(2);
       onToggleSpy.getCall(1).args[0].should.equal(false);
       onToggleSpy.getCall(1).args[1].source.should.equal('select');
     });
-
     it('passes open, event, and source correctly when opened with keydown', () => {
       const onToggleSpy = sinon.spy();
       const { getByTestId } = render(
@@ -206,16 +171,13 @@ describe('<Dropdown>', () => {
           </Menu>
         </Dropdown>,
       );
-
       fireEvent.keyDown(getByTestId('toggle'), { key: 'ArrowDown' });
-
       onToggleSpy.should.have.been.calledOnce;
       onToggleSpy.getCall(0).args.length.should.equal(2);
       onToggleSpy.getCall(0).args[0].should.equal(true);
       onToggleSpy.getCall(0).args[1].source.should.equal('keydown');
     });
   });
-
   it('should use each components bsPrefix', () => {
     const { getByTestId } = render(
       <Dropdown defaultShow bsPrefix="my-dropdown" data-testid="dropdown">
@@ -227,12 +189,10 @@ describe('<Dropdown>', () => {
         </Menu>
       </Dropdown>,
     );
-
     getByTestId('dropdown').classList.should.contain(['show', 'my-dropdown']);
     getByTestId('toggle').classList.should.contain(['my-toggle']);
     getByTestId('menu').classList.should.contain(['my-menu']);
   });
-
   it('Should have div as default component', () => {
     const { getByTestId } = render(
       <Dropdown defaultShow bsPrefix="my-dropdown" data-testid="dropdown">
@@ -244,10 +204,8 @@ describe('<Dropdown>', () => {
         </Menu>
       </Dropdown>,
     );
-
     getByTestId('dropdown').tagName.should.equal('DIV');
   });
-
   it('Should also accept a custom component', () => {
     const customComponent = React.forwardRef<any, any>(
       (
@@ -266,10 +224,8 @@ describe('<Dropdown>', () => {
         <Item>Example Item</Item>
       </Menu>,
     );
-
     getByTestId('menu').id.should.equal('custom-component');
   });
-
   describe('InputGroup Dropdowns', () => {
     it('should not render a .dropdown element when inside input group', () => {
       const { queryByTestId } = render(
@@ -277,26 +233,21 @@ describe('<Dropdown>', () => {
           <Dropdown data-testid="dropdown">{dropdownChildren}</Dropdown>
         </InputGroup>,
       );
-
       expect(queryByTestId('dropdown')!).not.to.exist;
     });
-
     it('should render .show on the dropdown toggle', () => {
       const { getByText } = render(
         <InputGroup>
           <Dropdown show>{dropdownChildren}</Dropdown>
         </InputGroup>,
       );
-
       getByText('Child Title').classList.contains('show').should.be.true;
     });
   });
-
   describe('autoClose behaviour', () => {
     describe('autoClose="true"', () => {
       it('should close on outer click', () => {
         const onToggleSpy = sinon.spy();
-
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose>
             <Toggle>Toggle</Toggle>
@@ -305,17 +256,13 @@ describe('<Dropdown>', () => {
             </Menu>
           </Dropdown>,
         );
-
         fireEvent.click(document.body);
-
         onToggleSpy.should.have.been.calledWith(false);
       });
     });
-
     describe('autoClose="inside"', () => {
       it('should close on child selection', () => {
         const onToggleSpy = sinon.spy();
-
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="inside">
             <Toggle>Toggle</Toggle>
@@ -324,15 +271,11 @@ describe('<Dropdown>', () => {
             </Menu>
           </Dropdown>,
         );
-
         fireEvent.click(getByTestId('item1'));
-
         onToggleSpy.should.have.been.calledWith(false);
       });
-
       it('should not close on outer click', () => {
         const onToggleSpy = sinon.spy();
-
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="inside">
             <Toggle>Toggle</Toggle>
@@ -341,17 +284,13 @@ describe('<Dropdown>', () => {
             </Menu>
           </Dropdown>,
         );
-
         fireEvent.click(document.body);
-
         onToggleSpy.should.not.have.been.called;
       });
     });
-
     describe('autoClose="outside"', () => {
       it('should not close on child selection', () => {
         const onToggleSpy = sinon.spy();
-
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="outside">
             <Toggle>Toggle</Toggle>
@@ -360,15 +299,11 @@ describe('<Dropdown>', () => {
             </Menu>
           </Dropdown>,
         );
-
         fireEvent.click(getByTestId('item1'));
-
         onToggleSpy.should.not.have.been.called;
       });
-
       it('should close on outer click', () => {
         const onToggleSpy = sinon.spy();
-
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="outside">
             <Toggle>Toggle</Toggle>
@@ -377,17 +312,13 @@ describe('<Dropdown>', () => {
             </Menu>
           </Dropdown>,
         );
-
         fireEvent.click(document.body);
-
         onToggleSpy.should.be.calledWith(false);
       });
     });
-
     describe('autoClose="false"', () => {
       it('should not close on child selection', () => {
         const onToggleSpy = sinon.spy();
-
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose={false}>
             <Toggle>Toggle</Toggle>
@@ -396,15 +327,11 @@ describe('<Dropdown>', () => {
             </Menu>
           </Dropdown>,
         );
-
         fireEvent.click(getByTestId('item1'));
-
         onToggleSpy.should.not.have.been.called;
       });
-
       it('should not close on outer click', () => {
         const onToggleSpy = sinon.spy();
-
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose={false}>
             <Toggle>Toggle</Toggle>
@@ -413,15 +340,12 @@ describe('<Dropdown>', () => {
             </Menu>
           </Dropdown>,
         );
-
         fireEvent.click(document.body);
-
         onToggleSpy.should.not.have.been.called;
       });
     });
   });
 });
-
 describe('<Button>', () => {
   it('renders a toggle with the title prop', () => {
     const { getByTestId } = render(
@@ -434,7 +358,6 @@ describe('<Button>', () => {
     );
     getByTestId('test-id').textContent!.should.equal('Simple Dropdown');
   });
-
   it('renders single Item child', () => {
     const { getByText } = render(
       <Button defaultShow title="Single child">
@@ -443,44 +366,36 @@ describe('<Button>', () => {
     );
     getByText('Item 1');
   });
-
   it('forwards align="end" to the Dropdown', () => {
     const { container } = render(
       <Button defaultShow align="end" title="blah">
         <Item>Item 1</Item>
       </Button>,
     );
-
     const menu = container.querySelector('div[x-placement]');
     menu!.classList.contains('dropdown-menu-end').should.be.true;
   });
-
   it('passes variant and size to the toggle', () => {
     const { getByTestId } = render(
       <Button title="blah" size="sm" variant="success" data-testid="test-id">
         <Item>Item 1</Item>
       </Button>,
     );
-
     const button = getByTestId('test-id').firstElementChild!;
     button.classList.contains('btn-success').should.be.true;
     button.classList.contains('btn-sm').should.be.true;
   });
-
   it('passes menuVariant to dropdown menu', () => {
     const { container } = render(
       <Button defaultShow title="blah" menuVariant="dark">
         <Item>Item 1</Item>
       </Button>,
     );
-
     const menu = container.querySelector('div[x-placement]');
     menu!.classList.contains('dropdown-menu-dark').should.be.true;
   });
-
   it('forwards onSelect handler to Items', () => {
     const onSelectSpy = sinon.spy();
-
     const { getByTestId } = render(
       <Button defaultShow title="Simple Dropdown" onSelect={onSelectSpy}>
         <Item eventKey="1" data-testid="key1">
@@ -494,20 +409,16 @@ describe('<Button>', () => {
         </Item>
       </Button>,
     );
-
     fireEvent.click(getByTestId('key1'));
     onSelectSpy.should.be.calledWith('1');
     fireEvent.click(getByTestId('key2'));
     onSelectSpy.should.be.calledWith('2');
     fireEvent.click(getByTestId('key3'));
     onSelectSpy.should.be.calledWith('3');
-
     onSelectSpy.should.be.calledThrice;
   });
-
   it('does not close when onToggle is controlled', () => {
     const onSelectSpy = sinon.spy();
-
     const { container, getByTestId } = render(
       <Button
         show
@@ -520,15 +431,12 @@ describe('<Button>', () => {
         </Item>
       </Button>,
     );
-
     fireEvent.click(getByTestId('test-id').firstElementChild!);
     fireEvent.click(getByTestId('key1'));
-
     onSelectSpy.should.have.been.calledWith(false);
     const menu = container.querySelector('div[x-placement]');
     menu!.should.exist;
   });
-
   it('Should pass disabled to button', () => {
     const { container } = render(
       <Button disabled title="Title">
@@ -536,101 +444,80 @@ describe('<Button>', () => {
         <Item eventKey="2">Item 2</Item>
       </Button>,
     );
-
     container.querySelector('button[disabled]')!.should.exist;
   });
-
   it('should pass bsPrefix to the button', () => {
     const { getByTestId } = render(
       <Button title="title" data-testid="test-id" bsPrefix="my-button">
         <Item eventKey="1">Item 1</Item>
       </Button>,
     );
-
     const button = getByTestId('test-id').firstElementChild!;
     button.classList.contains('my-button-primary').should.be.true;
   });
 });
-
 describe('<Item>', () => {
   it('renders divider', () => {
     const { getByRole } = render(<Divider />);
     getByRole('separator');
   });
-
   it('renders divider className and style', () => {
     const { getByRole } = render(
       <Divider className="foo bar" style={{ height: '100px' }} />,
     );
-
     const node = getByRole('separator');
     node.className.should.match(/\bfoo bar dropdown-divider\b/);
     node.style.height.should.equal('100px');
   });
-
   it('renders header', () => {
     const { getByRole } = render(<Header>Header text</Header>);
-
     getByRole('heading').textContent!.should.equal('Header text');
   });
-
   it('renders header className and style', () => {
     const { getByText } = render(
       <Header className="foo bar" style={{ height: '100px' }}>
         Header text
       </Header>,
     );
-
     const node = getByText('Header text');
     node.className.should.match(/\bfoo bar dropdown-header\b/);
   });
-
   it('renders ItemText', () => {
     const { getByText } = render(<ItemText>My text</ItemText>);
-
     getByText('My text').className.should.equal('dropdown-item-text');
   });
-
   it('renders ItemText className and style', () => {
     const { getByText } = render(
       <ItemText className="foo bar" style={{ height: '100px' }}>
         My text
       </ItemText>,
     );
-
     const node = getByText('My text');
     node.className.should.match(/\bfoo bar dropdown-item-text\b/);
     node.style.height.should.equal('100px');
   });
-
   it('renders menu item link', () => {
     const onKeyDownSpy = sinon.spy();
-
     const { getByText } = render(
       <Item onKeyDown={onKeyDownSpy} href="/herpa-derpa">
         Item
       </Item>,
     );
-
     const node = getByText('Item');
     node.getAttribute('href')!.should.equal('/herpa-derpa');
-
     fireEvent.keyDown(node, { key: 'a' });
     onKeyDownSpy.should.be.called;
   });
-
   it('should render as a button when set', () => {
     const { getByTestId } = render(
       <Item as={Button} variant="success" data-testid="item" />,
     );
-
     getByTestId('item').classList.should.contain([
       'dropdown-item',
       'btn',
       'btn-success',
     ]);
   });
-
   it('should pass through props', () => {
     const { getByText } = render(
       <Item
@@ -642,20 +529,17 @@ describe('<Item>', () => {
         Title
       </Item>,
     );
-
     const node = getByText('Title');
     node.className.should.match(/\btest-class\b/);
     node.style.height.should.equal('100px');
     node.getAttribute('href')!.should.equal('#hi-mom!');
     node.getAttribute('title')!.should.equal('hi mom!');
   });
-
   it('Should set target attribute on anchor', () => {
     const { getByText } = render(<Item target="_blank">Title</Item>);
     getByText('Title').getAttribute('target')!.should.equal('_blank');
   });
 });
-
 describe('<Dropdown.Menu>', () => {
   it('renders div with dropdown-menu class', () => {
     const { container } = render(
@@ -666,54 +550,44 @@ describe('<Dropdown.Menu>', () => {
         <Item eventKey="4">Item 4</Item>
       </Menu>,
     );
-
     container.firstElementChild!.classList.contains('dropdown-menu').should.be
       .true;
   });
-
   it('Should pass props to dropdown', () => {
     const { container } = render(
       <Menu show className="new-fancy-class">
         <Item eventKey="1">Item 1 content</Item>
       </Menu>,
     );
-
     container.firstElementChild!.classList.contains('new-fancy-class').should.be
       .true;
   });
-
   it('applies align="end"', () => {
     const { container } = render(
       <Menu show align="end">
         <Item>Item</Item>
       </Menu>,
     );
-
     container.firstElementChild!.classList.contains('dropdown-menu-end').should
       .be.true;
   });
-
   it('renders on mount with prop', () => {
     const { container } = render(
       <Menu renderOnMount>
         <Item>Item</Item>
       </Menu>,
     );
-
     container.firstElementChild!.classList.contains('dropdown-menu').should.be
       .true;
   });
-
   it('does not add any extra classes when align="start"', () => {
     const { container } = render(
       <Menu show align="start">
         <Item>Item</Item>
       </Menu>,
     );
-
     container.firstElementChild!.className.should.equal('dropdown-menu show');
   });
-
   it('adds responsive start alignment classes', () => {
     const { container } = render(
       <Menu show align={{ lg: 'start' }}>
@@ -725,119 +599,96 @@ describe('<Dropdown.Menu>', () => {
     container.firstElementChild!.classList.contains('dropdown-menu-lg-start')
       .should.be.true;
   });
-
   it('adds responsive end alignment classes', () => {
     const { container } = render(
       <Menu show align={{ lg: 'end' }}>
         <Item>Item</Item>
       </Menu>,
     );
-
     container.firstElementChild!.classList.contains('dropdown-menu-lg-end')
       .should.be.true;
     container.querySelector('[data-bs-popper="static"]')!.should.exist;
   });
-
   it('allows custom responsive alignment classes', () => {
     const { container } = render(
       <Menu show align={{ custom: 'end' }}>
         <Item>Item</Item>
       </Menu>,
     );
-
     container.firstElementChild!.classList.contains('dropdown-menu-custom-end')
       .should.be.true;
   });
-
   it('should render variant', () => {
     const { container } = render(
       <Menu show variant="dark">
         <Item>Item</Item>
       </Menu>,
     );
-
     container.firstElementChild!.classList.contains('dropdown-menu-dark').should
       .be.true;
   });
-
   describe('getPlacement', () => {
     it('should return top placement', () => {
       getPlacement(false, 'up', false).should.equal('top-start');
       getPlacement(true, 'up', false).should.equal('top-end');
     });
-
     it('should return top placement for RTL', () => {
       getPlacement(false, 'up', true).should.equal('top-end');
       getPlacement(true, 'up', true).should.equal('top-start');
     });
-
     it('should return end placement', () => {
       getPlacement(false, 'end', false).should.equal('right-start');
       getPlacement(true, 'end', false).should.equal('right-end');
     });
-
     it('should return end placement for RTL', () => {
       getPlacement(false, 'end', true).should.equal('left-start');
       getPlacement(true, 'end', true).should.equal('left-end');
     });
-
     it('should return bottom placement', () => {
       getPlacement(false, 'down', false).should.equal('bottom-start');
       getPlacement(true, 'down', false).should.equal('bottom-end');
     });
-
     it('should return bottom placement for RTL', () => {
       getPlacement(false, 'down', true).should.equal('bottom-end');
       getPlacement(true, 'down', true).should.equal('bottom-start');
     });
-
     it('should return start placement', () => {
       getPlacement(false, 'start', false).should.equal('left-start');
       getPlacement(true, 'start', false).should.equal('left-end');
     });
-
     it('should return start placement for RTL', () => {
       getPlacement(false, 'start', true).should.equal('right-start');
       getPlacement(true, 'start', true).should.equal('right-end');
     });
   });
 });
-
 describe('<Toggle>', () => {
   it('renders toggle button', () => {
     const { getByText } = render(<Toggle id="test-id">herpa derpa</Toggle>);
-
     const toggle = getByText('herpa derpa');
     toggle.getAttribute('aria-expanded')!.should.equal('false');
     toggle.classList.should.contain(['dropdown-toggle', 'btn', 'btn-primary']);
   });
-
   it('renders children', () => {
     const { getByText } = render(
       <Toggle id="test-id">
         <h3>herpa derpa</h3>
       </Toggle>,
     );
-
     getByText('herpa derpa').should.exist;
   });
-
   it('forwards onClick handler', () => {
     const onClickSpy = sinon.spy();
-
     const { container } = render(
       <Toggle id="test-id" title="click forwards" onClick={onClickSpy} />,
     );
-
     fireEvent.click(container.firstElementChild!);
     onClickSpy.should.be.called;
   });
-
   it('forwards id', () => {
     const { container } = render(<Toggle id="testid" />);
     container.firstElementChild!.id.should.equal('testid');
   });
-
   it('does not forward bsPrefix', () => {
     const { container } = render(
       <Toggle bsPrefix="my-custom-bsPrefix" title="bsClass" id="test-id" />,
