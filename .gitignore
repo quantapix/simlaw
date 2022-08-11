@@ -4,11 +4,6 @@
 .runs
 .save
 dev
-out
-node_modules
-yarn.lock
-
-# See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # compiled output
 /dist
@@ -17,6 +12,7 @@ yarn.lock
 
 # dependencies
 node_modules
+yarn.lock
 
 # IDEs and editors
 /.idea

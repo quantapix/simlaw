@@ -1,5 +1,44 @@
 {
   "name": "@simlaw/simsrc",
   "version": "0.0.1",
-  "type": "commonjs"
+  "type": "commonjs",
+  "dependencies": {
+    "content-disposition": "",
+    "cookies": "",
+    "http-assert": "",
+    "keygrip": "",
+    "parseurl": "",
+    "supertest": ""
+  },
+  "devDependencies": {
+    "@types/content-disposition": "",
+    "@types/content-type": "",
+    "@types/cookies": "",
+    "@types/fresh": "",
+    "@types/http-assert": "",
+    "@types/http-errors": "",
+    "@types/keygrip": "",
+    "@types/methods": "",
+    "@types/mime-types": "",
+    "@types/on-finished": "",
+    "@types/parseurl": "",
+    "@types/statuses": "",
+    "@types/supertest": "",
+    "@types/type-is": "",
+    "@types/vary": ""
+  },
+  "devDependencies2": {
+    "@babel/core": "",
+    "@babel/eslint-parser": "",
+    "babel-jest": "",
+    "babel-loader": "",
+    "babel-plugin-named-asset-import": "",
+    "babel-preset-react-app": "",
+    "postcss-flexbugs-fixes": "",
+    "postcss-loader": "",
+    "postcss-normalize": "",
+    "postcss-preset-env": "",
+    "postcss-safe-parser": "",
+    "prettier": ""
+  }
 }
