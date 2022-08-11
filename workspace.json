@@ -5,6 +5,7 @@
     "nested": "packages/nested",
     "simlaw": "packages/simlaw",
     "simlaw-e2e": "packages/simlaw-e2e",
-    "simnet": "packages/simnet"
+    "simnet": "packages/simnet",
+    "simsrc": "packages/simsrc"
   }
 }
