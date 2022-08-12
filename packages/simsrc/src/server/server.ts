@@ -70,7 +70,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
     inp: http.IncomingMessage | Http2ServerRequest,
     out: http.ServerResponse | Http2ServerResponse
   ) {
-    const origUrl = inp.url
+    const origUrl = inp.url ?? ""
     const state: S = {} as S
     let ctx: qt.Context<S, C>
     let req: qt.Request
@@ -500,7 +500,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           res.set(e.headers!)
           res.type = "text"
           let s = e.status || e.statusCode
-          if (e.code === "ENOENT") s = 404
+          if (e["code"] === "ENOENT") s = 404
           if (typeof s !== "number" || !Status.code[s]) s = 500
           const m = e.expose ? x.message : Status.message[s] || ""
           res.status = e.status = s
@@ -563,7 +563,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
     if ("HEAD" === req.method) {
       if (!out.headersSent && !res.has("Content-Length")) {
         const { length } = res
-        if (Number.isInteger(length)) res.length = length!
+        if (Number.isInteger(length)) res.length = length
       }
       return out.end()
     }

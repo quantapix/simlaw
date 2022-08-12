@@ -38,7 +38,6 @@
     "postcss-loader": "",
     "postcss-normalize": "",
     "postcss-preset-env": "",
-    "postcss-safe-parser": "",
-    "prettier": ""
+    "postcss-safe-parser": ""
   }
 }
