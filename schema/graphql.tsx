@@ -1,4 +1,4 @@
-import { gql } from "apollo-server"
+import { gql } from "graphql-tag"
 
 export const typeDefs = gql`
   type Query {
@@ -75,7 +75,7 @@ export const typeDefs = gql`
     comment: String
     url: String!
     date: String!
-    step: Step
+    step: String!
   }
   input Step {
     id: ID!

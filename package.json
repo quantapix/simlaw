@@ -2,7 +2,10 @@
   "name": "simlaw",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "gen": "graphql-codegen --config ./graphql.yml",
+    "gen-watch": "graphql-codegen --config ./graphql.yml --watch"
+  },
   "private": true,
   "dependencies": {
     "core-js": "^3.6.5",

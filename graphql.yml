@@ -1,17 +1,17 @@
 overwrite: true
-schema: "./src/schema.tsx"
+schema: "./schema/graphql.tsx"
 hooks:
   afterOneFileWrite:
     - prettier --write
 generates:
-  ./server/graphql.gen.ts:
+  ./packages/simsrc/src/graphql.gen.ts:
     plugins:
       - typescript
       - typescript-resolvers
-  ./schema.gen.json:
+  ./schema/graphql.gen.json:
     plugins:
       - introspection
-  ./src/graphql.gen.ts:
+  ./packages/simlaw/src/graphql.gen.ts:
     plugins:
       - typescript
       - typescript-operations
