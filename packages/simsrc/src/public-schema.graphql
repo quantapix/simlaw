@@ -1,0 +1,34 @@
+type Query {
+  ping: String!
+  getFeedback: [Feedback!]!
+}
+
+type Feedback {
+  id: ID!
+  rating: Int!
+  comment: String
+  originUrl: String!
+  date: String!
+  status: FeedbackStatus
+}
+
+type Mutation {
+  submitFeedback(input: FeedbackWidgetInput): String!
+  updateFeedback(input: FeedbackStatusInput): Feedback!
+}
+
+input FeedbackWidgetInput {
+  rating: Int!
+  comment: String
+  originUrl: String!
+}
+
+input FeedbackStatusInput {
+  id: ID!
+  status: FeedbackStatus!
+}
+
+enum FeedbackStatus {
+  OPEN
+  CLOSED
+}
