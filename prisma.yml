@@ -1,0 +1,8 @@
+endpoint: ""
+datamodel: ./meta/sql.prisma
+generate:
+  - generator: javascript-client
+    output: ./packages/simsrc/src/sql.gen
+hooks:
+  post-deploy:
+    - prisma generate

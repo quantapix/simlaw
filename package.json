@@ -1,17 +1,20 @@
 {
   "name": "simlaw",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
     "gen": "graphql-codegen --config ./gql.yml",
-    "gen-watch": "graphql-codegen --config ./gql.yml --watch"
+    "gen-watch": "graphql-codegen --config ./gql.yml --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "",
     "core-js": "^3.6.5",
     "graphql": "",
+    "graphql-yoga": "",
+    "@prisma/client": "",
     "react-dom": "",
     "react-router-dom": "",
     "react": "",
@@ -71,6 +74,7 @@
     "jest": "",
     "nx": "14.5.4",
     "prettier": "^2.6.2",
+    "prisma": "",
     "react-test-renderer": "18.2.0",
     "ts-jest": "",
     "ts-node": "~10.8.0",

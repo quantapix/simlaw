@@ -1,5 +1,5 @@
 overwrite: true
-schema: ./schema/gql.tsx
+schema: ./meta/gql.tsx
 emitLegacyCommonJSImports: false
 hooks:
   afterOneFileWrite:
@@ -16,6 +16,6 @@ generates:
       - typescript-react-query
       - typescript-document-nodes
       - fragment-matcher
-  ./schema/gql.gen.json:
+  ./meta/gql.gen.json:
     plugins:
       - introspection

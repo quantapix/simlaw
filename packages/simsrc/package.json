@@ -1,7 +1,9 @@
 {
   "name": "@simlaw/simsrc",
   "version": "0.0.1",
-  "type": "commonjs",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
   "dependencies": {
     "content-disposition": "",
     "cookies": "",
