@@ -1,6 +1,6 @@
 import { gql } from "graphql-tag"
 
-export const typeDefs = gql`
+export default gql`
   type Query {
     funds(batch: Int, after: String): Funds!
     fund(id: ID!): Fund

@@ -2,12 +2,14 @@
   "name": "simlaw",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {
-    "gen": "graphql-codegen --config ./graphql.yml",
-    "gen-watch": "graphql-codegen --config ./graphql.yml --watch"
-  },
   "private": true,
+  "type": "module",
+  "scripts": {
+    "gen": "graphql-codegen --config ./gql.yml",
+    "gen-watch": "graphql-codegen --config ./gql.yml --watch"
+  },
   "dependencies": {
+    "@graphql-typed-document-node/core": "",
     "core-js": "^3.6.5",
     "graphql": "",
     "react-dom": "",
@@ -20,9 +22,11 @@
     "@babel/core": "",
     "@graphql-codegen/cli": "",
     "@graphql-codegen/fragment-matcher": "",
+    "@graphql-codegen/gql-tag-operations-preset": "",
     "@graphql-codegen/introspection": "",
     "@graphql-codegen/typescript-document-nodes": "",
     "@graphql-codegen/typescript-operations": "",
+    "@graphql-codegen/typescript-react-query": "",
     "@graphql-codegen/typescript-resolvers": "",
     "@graphql-codegen/typescript": "",
     "@nrwl/cli": "14.5.4",
@@ -60,6 +64,7 @@
     "eslint-plugin-testing-library": "",
     "eslint-webpack-plugin": "",
     "eslint": "~8.15.0",
+    "graphql-tag": "",
     "jest-circus": "",
     "jest-resolve": "",
     "jest-watch-typeahead": "",
