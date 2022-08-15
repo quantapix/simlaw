@@ -3,6 +3,6 @@
   "compilerOptions": {
     "outDir": "../../dist/out-tsc"
   },
-  "include": ["**/*.ts", "src/graphql.tsx"],
+  "include": ["prisma/*.ts"],
   "exclude": ["jest.config.ts", "**/*.spec.ts", "**/*.test.ts"]
 }

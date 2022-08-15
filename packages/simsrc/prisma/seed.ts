@@ -5,15 +5,15 @@ const prisma = new PrismaClient()
 const xs: Prisma.QNodeCreateInput[] = [
   {
     name: { create: { val: "A" } },
-    size: {},
+    size: { create: { val: 2 } },
   },
   {
     name: { create: { val: "B" } },
-    size: {},
+    size: { create: { val: 2 } },
   },
   {
     name: { create: { val: "C" } },
-    size: {},
+    size: { create: { val: 2 } },
   },
 ]
 

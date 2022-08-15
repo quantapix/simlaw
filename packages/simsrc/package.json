@@ -5,6 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "format": "npx prisma format",
+    "init": "npx prisma migrate dev --name init",
     "dev": "ts-node src/index.ts"
   },
   "dependencies": {
@@ -56,6 +58,6 @@
     "postcss-safe-parser": ""
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "node --loader ts-node/esm prisma/seed.ts"
   }
 }
