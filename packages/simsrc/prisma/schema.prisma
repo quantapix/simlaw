@@ -7,59 +7,59 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Name {
-  id    Int    @id @default(autoincrement())
+model QName {
+  id    Int     @id @default(autoincrement())
   val   String
-  nodes Node[]
-  edges Edge[]
+  nodes QNode[]
+  edges QEdge[]
 }
 
-model Size {
-  id    Int    @id @default(autoincrement())
-  val   Int    @default(0)
+model QSize {
+  id    Int     @id @default(autoincrement())
+  val   Int     @default(0)
   min   Int?
   max   Int?
-  nodes Node[]
-  edges Edge[]
+  nodes QNode[]
+  edges QEdge[]
 }
 
-model Node {
+model QNode {
+  id     Int     @id @default(autoincrement())
+  name   QName?  @relation(fields: [nameId], references: [id])
+  nameId Int?
+  size   QSize   @relation(fields: [sizeId], references: [id])
+  sizeId Int
+  ins    QEdge[] @relation("out")
+  outs   QEdge[] @relation("in")
+  asPack QPack?  @relation("asPack")
+  packs  QPack[]
+  asPort QPort?  @relation("asPort")
+}
+
+model QEdge {
   id     Int    @id @default(autoincrement())
-  name   Name?  @relation(fields: [nameId], references: [id])
+  name   QName? @relation(fields: [nameId], references: [id])
   nameId Int?
-  size   Size   @relation(fields: [sizeId], references: [id])
+  size   QSize  @relation(fields: [sizeId], references: [id])
   sizeId Int
-  ins    Edge[] @relation("out")
-  outs   Edge[] @relation("in")
-  asPack Pack?  @relation("asPack")
-  packs  Pack[]
-  asPort Port?  @relation("asPort")
-}
-
-model Edge {
-  id     Int   @id @default(autoincrement())
-  name   Name? @relation(fields: [nameId], references: [id])
-  nameId Int?
-  size   Size  @relation(fields: [sizeId], references: [id])
-  sizeId Int
-  in     Node  @relation("in", fields: [inId], references: [id])
+  in     QNode  @relation("in", fields: [inId], references: [id])
   inId   Int
-  out    Node  @relation("out", fields: [outId], references: [id])
+  out    QNode  @relation("out", fields: [outId], references: [id])
   outId  Int
 }
 
-model Pack {
-  id     Int    @id @default(autoincrement())
-  base   Node   @relation("asPack", fields: [baseId], references: [id])
-  baseId Int    @unique
-  nodes  Node[]
-  ports  Port[]
+model QPack {
+  id     Int     @id @default(autoincrement())
+  base   QNode   @relation("asPack", fields: [baseId], references: [id])
+  baseId Int     @unique
+  nodes  QNode[]
+  ports  QPort[]
 }
 
-model Port {
-  id     Int  @id @default(autoincrement())
-  base   Node @relation("asPort", fields: [baseId], references: [id])
-  baseId Int  @unique
-  pack   Pack @relation(fields: [packId], references: [id])
-  packId Int  @unique
+model QPort {
+  id     Int   @id @default(autoincrement())
+  base   QNode @relation("asPort", fields: [baseId], references: [id])
+  baseId Int   @unique
+  pack   QPack @relation(fields: [packId], references: [id])
+  packId Int   @unique
 }
