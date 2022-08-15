@@ -1,5 +1,5 @@
 tmp-resolvers
 migrations
-experimental/**/*.db
-dev.db
+*.db
+*.db-journal
 *.env*

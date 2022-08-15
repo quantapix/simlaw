@@ -54,5 +54,8 @@
     "postcss-normalize": "",
     "postcss-preset-env": "",
     "postcss-safe-parser": ""
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
