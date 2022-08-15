@@ -4,7 +4,14 @@
   "license": "MIT",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "ts-node src/index.ts"
+  },
   "dependencies": {
+    "@koa/router": "",
+    "@prisma/client": "",
+    "koa": "",
+    "koa-body": "",
     "content-disposition": "",
     "cookies": "",
     "http-assert": "",
@@ -13,6 +20,12 @@
     "supertest": ""
   },
   "devDependencies": {
+    "@types/koa": "",
+    "@types/koa__router": "",
+    "@types/node": "",
+    "prisma": "",
+    "ts-node": "",
+    "typescript": "",
     "@types/content-disposition": "",
     "@types/content-type": "",
     "@types/cookies": "",
