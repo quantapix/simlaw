@@ -1,0 +1,21 @@
+overwrite: true
+schema: ./gql/schema.tsx
+emitLegacyCommonJSImports: false
+hooks:
+  afterOneFileWrite:
+    - prettier --write
+generates:
+  ./packages/simsrc/src/gql.ts:
+    plugins:
+      - typescript
+      - typescript-resolvers
+  ./packages/simlaw/src/gql.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-query
+      - typescript-document-nodes
+      - fragment-matcher
+  ./gql/schema.json:
+    plugins:
+      - introspection

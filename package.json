@@ -5,8 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "gen": "graphql-codegen --config ./graphql.yml",
-    "gen-watch": "graphql-codegen --config ./graphql.yml --watch",
+    "gen": "graphql-codegen --config ./gql.yml",
+    "gen-watch": "graphql-codegen --config ./gql.yml --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

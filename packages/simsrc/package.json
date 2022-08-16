@@ -7,13 +7,26 @@
   "scripts": {
     "format": "npx prisma format",
     "init": "npx prisma migrate dev --name init",
-    "dev": "ts-node src/index.ts"
+    "gen": "graphql-codegen --config ./gql.yml",
+    "dev": "ts-node src/index.ts",
+    "dev2": "ts-node-dev --no-notify --respawn --transpile-only src/server",
+    "start": "node dist/server",
+    "clean": "rm -rf dist",
+    "build": "npm -s run clean && npm -s run generate && tsc",
+    "generate": "npm -s run generate:prisma && npm -s run generate:nexus",
+    "generate:prisma": "prisma generate",
+    "generate:nexus": "ts-node --transpile-only src/schema"
   },
   "dependencies": {
     "@koa/router": "",
     "@prisma/client": "",
     "koa": "",
     "koa-body": "",
+    "express": "",
+    "express-graphql": "",
+    "graphql": "",
+    "graphql-scalars": "",
+    "nexus": "",
     "content-disposition": "",
     "cookies": "",
     "http-assert": "",
@@ -22,11 +35,13 @@
     "supertest": ""
   },
   "devDependencies": {
+    "@types/express": "",
     "@types/koa": "",
     "@types/koa__router": "",
     "@types/node": "",
     "prisma": "",
     "ts-node": "",
+    "ts-node-dev": "",
     "typescript": "",
     "@types/content-disposition": "",
     "@types/content-type": "",
@@ -43,19 +58,6 @@
     "@types/supertest": "",
     "@types/type-is": "",
     "@types/vary": ""
-  },
-  "devDependencies2": {
-    "@babel/core": "",
-    "@babel/eslint-parser": "",
-    "babel-jest": "",
-    "babel-loader": "",
-    "babel-plugin-named-asset-import": "",
-    "babel-preset-react-app": "",
-    "postcss-flexbugs-fixes": "",
-    "postcss-loader": "",
-    "postcss-normalize": "",
-    "postcss-preset-env": "",
-    "postcss-safe-parser": ""
   },
   "prisma": {
     "seed": "node --loader ts-node/esm prisma/seed.ts"
