@@ -4,6 +4,14 @@
   "license": "MIT",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./types/index.d.ts",
+        "default": "./index.js"
+      }
+    }
+  },
   "scripts": {
     "format": "npx prisma format",
     "init": "npx prisma migrate dev --name init",
@@ -42,7 +50,6 @@
     "prisma": "",
     "ts-node": "",
     "ts-node-dev": "",
-    "typescript": "",
     "@types/content-disposition": "",
     "@types/content-type": "",
     "@types/cookies": "",

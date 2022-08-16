@@ -37,8 +37,7 @@
     "jest-resolve": "",
     "jest-watch-typeahead": "",
     "jest": "",
-    "prettier": "",
-    "typescript": "next"
+    "prettier": ""
   },
   "dependencies": {
     "react-dom": "file:../lib/out/react-dom",
