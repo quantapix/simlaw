@@ -25,8 +25,8 @@ model QSize {
 
 model QNode {
   id     Int     @id @default(autoincrement())
-  name   QName?  @relation(fields: [nameId], references: [id])
-  nameId Int?
+  name   QName  @relation(fields: [nameId], references: [id])
+  nameId Int
   size   QSize   @relation(fields: [sizeId], references: [id])
   sizeId Int
   ins    QEdge[] @relation("out")

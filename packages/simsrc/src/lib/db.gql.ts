@@ -17,38 +17,19 @@ export type Scalars = {
   Boolean: boolean
   Int: number
   Float: number
-  DateTime: any
 }
 
 export type AuthPayload = {
   __typename?: "AuthPayload"
   token?: Maybe<Scalars["String"]>
-  user?: Maybe<User>
-}
-
-export type Feed = {
-  __typename?: "Feed"
-  count: Scalars["Int"]
-  links: Array<Link>
 }
 
 export type Link = {
   __typename?: "Link"
-  createdAt: Scalars["DateTime"]
   description: Scalars["String"]
   id: Scalars["ID"]
-  postedBy?: Maybe<User>
   url: Scalars["String"]
   votes: Array<Vote>
-}
-
-export enum LinkOrderByInput {
-  CreatedAtAsc = "createdAt_ASC",
-  CreatedAtDesc = "createdAt_DESC",
-  DescriptionAsc = "description_ASC",
-  DescriptionDesc = "description_DESC",
-  UrlAsc = "url_ASC",
-  UrlDesc = "url_DESC",
 }
 
 export type Mutation = {
@@ -79,17 +60,60 @@ export type MutationVoteArgs = {
   linkId: Scalars["ID"]
 }
 
-export type Query = {
-  __typename?: "Query"
-  feed: Feed
-  info: Scalars["String"]
+export type QEdge = {
+  __typename?: "QEdge"
+  id: Scalars["ID"]
+  in: QNode
+  name: Scalars["String"]
+  out: QNode
+  size: Scalars["Int"]
 }
 
-export type QueryFeedArgs = {
-  filter?: InputMaybe<Scalars["String"]>
-  first?: InputMaybe<Scalars["Int"]>
-  orderBy?: InputMaybe<LinkOrderByInput>
-  skip?: InputMaybe<Scalars["Int"]>
+export type QEdges = {
+  __typename?: "QEdges"
+  cursor: Scalars["String"]
+  edges: Array<Maybe<QEdge>>
+  more: Scalars["Boolean"]
+}
+
+export type QNode = {
+  __typename?: "QNode"
+  id: Scalars["ID"]
+  name: Scalars["String"]
+  size: Scalars["Int"]
+}
+
+export type QNodes = {
+  __typename?: "QNodes"
+  cursor: Scalars["String"]
+  more: Scalars["Boolean"]
+  nodes: Array<Maybe<QNode>>
+}
+
+export type Query = {
+  __typename?: "Query"
+  edge?: Maybe<QEdge>
+  edges: QEdges
+  node?: Maybe<QNode>
+  nodes: QNodes
+}
+
+export type QueryEdgeArgs = {
+  id: Scalars["ID"]
+}
+
+export type QueryEdgesArgs = {
+  after?: InputMaybe<Scalars["String"]>
+  batch?: InputMaybe<Scalars["Int"]>
+}
+
+export type QueryNodeArgs = {
+  id: Scalars["ID"]
+}
+
+export type QueryNodesArgs = {
+  after?: InputMaybe<Scalars["String"]>
+  batch?: InputMaybe<Scalars["Int"]>
 }
 
 export type Subscription = {
@@ -98,19 +122,10 @@ export type Subscription = {
   newVote?: Maybe<Vote>
 }
 
-export type User = {
-  __typename?: "User"
-  email: Scalars["String"]
-  id: Scalars["ID"]
-  links: Array<Link>
-  name: Scalars["String"]
-}
-
 export type Vote = {
   __typename?: "Vote"
   id: Scalars["ID"]
   link: Link
-  user: User
 }
 
 export interface PossibleTypesResultData {

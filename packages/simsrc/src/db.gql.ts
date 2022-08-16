@@ -1,8 +1,4 @@
-import {
-  GraphQLResolveInfo,
-  GraphQLScalarType,
-  GraphQLScalarTypeConfig,
-} from "graphql"
+import { GraphQLResolveInfo } from "graphql"
 export type Maybe<T> = T | null
 export type InputMaybe<T> = Maybe<T>
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -24,38 +20,19 @@ export type Scalars = {
   Boolean: boolean
   Int: number
   Float: number
-  DateTime: any
 }
 
 export type AuthPayload = {
   __typename?: "AuthPayload"
   token?: Maybe<Scalars["String"]>
-  user?: Maybe<User>
-}
-
-export type Feed = {
-  __typename?: "Feed"
-  count: Scalars["Int"]
-  links: Array<Link>
 }
 
 export type Link = {
   __typename?: "Link"
-  createdAt: Scalars["DateTime"]
   description: Scalars["String"]
   id: Scalars["ID"]
-  postedBy?: Maybe<User>
   url: Scalars["String"]
   votes: Array<Vote>
-}
-
-export enum LinkOrderByInput {
-  CreatedAtAsc = "createdAt_ASC",
-  CreatedAtDesc = "createdAt_DESC",
-  DescriptionAsc = "description_ASC",
-  DescriptionDesc = "description_DESC",
-  UrlAsc = "url_ASC",
-  UrlDesc = "url_DESC",
 }
 
 export type Mutation = {
@@ -86,17 +63,60 @@ export type MutationVoteArgs = {
   linkId: Scalars["ID"]
 }
 
-export type Query = {
-  __typename?: "Query"
-  feed: Feed
-  info: Scalars["String"]
+export type QEdge = {
+  __typename?: "QEdge"
+  id: Scalars["ID"]
+  in: QNode
+  name: Scalars["String"]
+  out: QNode
+  size: Scalars["Int"]
 }
 
-export type QueryFeedArgs = {
-  filter?: InputMaybe<Scalars["String"]>
-  first?: InputMaybe<Scalars["Int"]>
-  orderBy?: InputMaybe<LinkOrderByInput>
-  skip?: InputMaybe<Scalars["Int"]>
+export type QEdges = {
+  __typename?: "QEdges"
+  cursor: Scalars["String"]
+  edges: Array<Maybe<QEdge>>
+  more: Scalars["Boolean"]
+}
+
+export type QNode = {
+  __typename?: "QNode"
+  id: Scalars["ID"]
+  name: Scalars["String"]
+  size: Scalars["Int"]
+}
+
+export type QNodes = {
+  __typename?: "QNodes"
+  cursor: Scalars["String"]
+  more: Scalars["Boolean"]
+  nodes: Array<Maybe<QNode>>
+}
+
+export type Query = {
+  __typename?: "Query"
+  edge?: Maybe<QEdge>
+  edges: QEdges
+  node?: Maybe<QNode>
+  nodes: QNodes
+}
+
+export type QueryEdgeArgs = {
+  id: Scalars["ID"]
+}
+
+export type QueryEdgesArgs = {
+  after?: InputMaybe<Scalars["String"]>
+  batch?: InputMaybe<Scalars["Int"]>
+}
+
+export type QueryNodeArgs = {
+  id: Scalars["ID"]
+}
+
+export type QueryNodesArgs = {
+  after?: InputMaybe<Scalars["String"]>
+  batch?: InputMaybe<Scalars["Int"]>
 }
 
 export type Subscription = {
@@ -105,19 +125,10 @@ export type Subscription = {
   newVote?: Maybe<Vote>
 }
 
-export type User = {
-  __typename?: "User"
-  email: Scalars["String"]
-  id: Scalars["ID"]
-  links: Array<Link>
-  name: Scalars["String"]
-}
-
 export type Vote = {
   __typename?: "Vote"
   id: Scalars["ID"]
   link: Link
-  user: User
 }
 
 export type ResolverTypeWrapper<T> = Promise<T> | T
@@ -229,17 +240,17 @@ export type DirectiveResolverFn<
 export type ResolversTypes = {
   AuthPayload: ResolverTypeWrapper<AuthPayload>
   Boolean: ResolverTypeWrapper<Scalars["Boolean"]>
-  DateTime: ResolverTypeWrapper<Scalars["DateTime"]>
-  Feed: ResolverTypeWrapper<Feed>
   ID: ResolverTypeWrapper<Scalars["ID"]>
   Int: ResolverTypeWrapper<Scalars["Int"]>
   Link: ResolverTypeWrapper<Link>
-  LinkOrderByInput: LinkOrderByInput
   Mutation: ResolverTypeWrapper<{}>
+  QEdge: ResolverTypeWrapper<QEdge>
+  QEdges: ResolverTypeWrapper<QEdges>
+  QNode: ResolverTypeWrapper<QNode>
+  QNodes: ResolverTypeWrapper<QNodes>
   Query: ResolverTypeWrapper<{}>
   String: ResolverTypeWrapper<Scalars["String"]>
   Subscription: ResolverTypeWrapper<{}>
-  User: ResolverTypeWrapper<User>
   Vote: ResolverTypeWrapper<Vote>
 }
 
@@ -247,16 +258,17 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   AuthPayload: AuthPayload
   Boolean: Scalars["Boolean"]
-  DateTime: Scalars["DateTime"]
-  Feed: Feed
   ID: Scalars["ID"]
   Int: Scalars["Int"]
   Link: Link
   Mutation: {}
+  QEdge: QEdge
+  QEdges: QEdges
+  QNode: QNode
+  QNodes: QNodes
   Query: {}
   String: Scalars["String"]
   Subscription: {}
-  User: User
   Vote: Vote
 }
 
@@ -265,21 +277,6 @@ export type AuthPayloadResolvers<
   ParentType extends ResolversParentTypes["AuthPayload"] = ResolversParentTypes["AuthPayload"]
 > = {
   token?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>
-  user?: Resolver<Maybe<ResolversTypes["User"]>, ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
-export interface DateTimeScalarConfig
-  extends GraphQLScalarTypeConfig<ResolversTypes["DateTime"], any> {
-  name: "DateTime"
-}
-
-export type FeedResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes["Feed"] = ResolversParentTypes["Feed"]
-> = {
-  count?: Resolver<ResolversTypes["Int"], ParentType, ContextType>
-  links?: Resolver<Array<ResolversTypes["Link"]>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
@@ -287,10 +284,8 @@ export type LinkResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["Link"] = ResolversParentTypes["Link"]
 > = {
-  createdAt?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>
   description?: Resolver<ResolversTypes["String"], ParentType, ContextType>
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>
-  postedBy?: Resolver<Maybe<ResolversTypes["User"]>, ParentType, ContextType>
   url?: Resolver<ResolversTypes["String"], ParentType, ContextType>
   votes?: Resolver<Array<ResolversTypes["Vote"]>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
@@ -326,17 +321,84 @@ export type MutationResolvers<
   >
 }
 
+export type QEdgeResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["QEdge"] = ResolversParentTypes["QEdge"]
+> = {
+  id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>
+  in?: Resolver<ResolversTypes["QNode"], ParentType, ContextType>
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>
+  out?: Resolver<ResolversTypes["QNode"], ParentType, ContextType>
+  size?: Resolver<ResolversTypes["Int"], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type QEdgesResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["QEdges"] = ResolversParentTypes["QEdges"]
+> = {
+  cursor?: Resolver<ResolversTypes["String"], ParentType, ContextType>
+  edges?: Resolver<
+    Array<Maybe<ResolversTypes["QEdge"]>>,
+    ParentType,
+    ContextType
+  >
+  more?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type QNodeResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["QNode"] = ResolversParentTypes["QNode"]
+> = {
+  id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>
+  size?: Resolver<ResolversTypes["Int"], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type QNodesResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["QNodes"] = ResolversParentTypes["QNodes"]
+> = {
+  cursor?: Resolver<ResolversTypes["String"], ParentType, ContextType>
+  more?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>
+  nodes?: Resolver<
+    Array<Maybe<ResolversTypes["QNode"]>>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
 export type QueryResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["Query"] = ResolversParentTypes["Query"]
 > = {
-  feed?: Resolver<
-    ResolversTypes["Feed"],
+  edge?: Resolver<
+    Maybe<ResolversTypes["QEdge"]>,
     ParentType,
     ContextType,
-    Partial<QueryFeedArgs>
+    RequireFields<QueryEdgeArgs, "id">
   >
-  info?: Resolver<ResolversTypes["String"], ParentType, ContextType>
+  edges?: Resolver<
+    ResolversTypes["QEdges"],
+    ParentType,
+    ContextType,
+    Partial<QueryEdgesArgs>
+  >
+  node?: Resolver<
+    Maybe<ResolversTypes["QNode"]>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryNodeArgs, "id">
+  >
+  nodes?: Resolver<
+    ResolversTypes["QNodes"],
+    ParentType,
+    ContextType,
+    Partial<QueryNodesArgs>
+  >
 }
 
 export type SubscriptionResolvers<
@@ -357,35 +419,24 @@ export type SubscriptionResolvers<
   >
 }
 
-export type UserResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes["User"] = ResolversParentTypes["User"]
-> = {
-  email?: Resolver<ResolversTypes["String"], ParentType, ContextType>
-  id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>
-  links?: Resolver<Array<ResolversTypes["Link"]>, ParentType, ContextType>
-  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
 export type VoteResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["Vote"] = ResolversParentTypes["Vote"]
 > = {
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>
   link?: Resolver<ResolversTypes["Link"], ParentType, ContextType>
-  user?: Resolver<ResolversTypes["User"], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
 export type Resolvers<ContextType = any> = {
   AuthPayload?: AuthPayloadResolvers<ContextType>
-  DateTime?: GraphQLScalarType
-  Feed?: FeedResolvers<ContextType>
   Link?: LinkResolvers<ContextType>
   Mutation?: MutationResolvers<ContextType>
+  QEdge?: QEdgeResolvers<ContextType>
+  QEdges?: QEdgesResolvers<ContextType>
+  QNode?: QNodeResolvers<ContextType>
+  QNodes?: QNodesResolvers<ContextType>
   Query?: QueryResolvers<ContextType>
   Subscription?: SubscriptionResolvers<ContextType>
-  User?: UserResolvers<ContextType>
   Vote?: VoteResolvers<ContextType>
 }

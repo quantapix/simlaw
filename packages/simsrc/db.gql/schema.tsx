@@ -1,68 +1,55 @@
 import { gql } from "graphql-tag"
 
 export default gql`
-  scalar DateTime
-
   type Query {
-    info: String!
-    feed(
-      filter: String
-      skip: Int
-      first: Int
-      orderBy: LinkOrderByInput
-    ): Feed!
+    nodes(batch: Int, after: String): QNodes!
+    node(id: ID!): QNode
+    edges(batch: Int, after: String): QEdges!
+    edge(id: ID!): QEdge
   }
-
-  enum LinkOrderByInput {
-    description_ASC
-    description_DESC
-    url_ASC
-    url_DESC
-    createdAt_ASC
-    createdAt_DESC
+  type QNodes {
+    cursor: String!
+    more: Boolean!
+    nodes: [QNode]!
   }
-
-  type Feed {
-    links: [Link!]!
-    count: Int!
+  type QNode {
+    id: ID!
+    name: String!
+    size: Int!
   }
-
+  type QEdges {
+    cursor: String!
+    more: Boolean!
+    edges: [QEdge]!
+  }
+  type QEdge {
+    id: ID!
+    name: String!
+    size: Int!
+    in: QNode!
+    out: QNode!
+  }
   type Mutation {
     post(url: String!, description: String!): Link!
     signup(email: String!, password: String!, name: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload
     vote(linkId: ID!): Vote!
   }
-
   type Subscription {
     newLink: Link
     newVote: Vote
   }
-
   type AuthPayload {
     token: String
-    user: User
   }
-
-  type User {
-    id: ID!
-    name: String!
-    email: String!
-    links: [Link!]!
-  }
-
   type Link {
     id: ID!
-    createdAt: DateTime!
     description: String!
     url: String!
-    postedBy: User
     votes: [Vote!]!
   }
-
   type Vote {
     id: ID!
     link: Link!
-    user: User!
   }
 `
