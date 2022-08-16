@@ -49,17 +49,15 @@ model QEdge {
 }
 
 model QPack {
-  id     Int     @id @default(autoincrement())
-  base   QNode   @relation("asPack", fields: [baseId], references: [id])
-  baseId Int     @unique
+  id     Int     @id
+  asNode QNode   @relation("asPack", fields: [id], references: [id])
   nodes  QNode[]
   ports  QPort[]
 }
 
 model QPort {
-  id     Int   @id @default(autoincrement())
-  base   QNode @relation("asPort", fields: [baseId], references: [id])
-  baseId Int   @unique
+  id     Int   @id
+  asNode QNode @relation("asPort", fields: [id], references: [id])
   pack   QPack @relation(fields: [packId], references: [id])
   packId Int   @unique
 }
