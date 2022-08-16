@@ -6,9 +6,9 @@
 dev
 
 # compiled output
-/dist
-/tmp
-/out-tsc
+dist
+tmp
+out
 
 # dependencies
 node_modules
