@@ -88,5 +88,8 @@
       "@simlaw/simnet": ["packages/simnet/src/index.ts"],
       "@simlaw/simsrc": ["packages/simsrc/src/index.ts"]
     }
-  }
+  },
+  "files": [],
+  "include": [],
+  "exclude": []
 }

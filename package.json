@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "clean": "rm -rf ./out",
     "gen": "graphql-codegen --config ./gql.yml",
     "gen-watch": "graphql-codegen --config ./gql.yml --watch",
     "test": "echo \"Error: no test specified\" && exit 1"

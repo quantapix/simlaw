@@ -5,6 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "../../node_modules/.bin/tsc -b",
+    "clean": "../../node_modules/.bin/tsc -b --clean",
     "test": "node --experimental-vm-modules ../../node_modules/.bin/jest"
   }
 }
