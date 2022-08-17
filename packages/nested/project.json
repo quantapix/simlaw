@@ -9,7 +9,7 @@
       "options": {
         "outputPath": "dist/packages/nested",
         "main": "packages/nested/src/index.ts",
-        "tsConfig": "packages/nested/tsconfig.lib.json",
+        "tsConfig": "packages/nested/tsconfig.base.json",
         "assets": ["packages/nested/*.md"]
       }
     },

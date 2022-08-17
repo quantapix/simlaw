@@ -1,4 +1,4 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "python.formatting.provider": "black",
+  "python.formatting.provider": "black"
 }

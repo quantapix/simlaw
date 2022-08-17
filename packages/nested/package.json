@@ -1,5 +1,10 @@
 {
   "name": "@simlaw/nested",
   "version": "0.0.1",
-  "type": "module"
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules ../../node_modules/.bin/jest"
+  }
 }
