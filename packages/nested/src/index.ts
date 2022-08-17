@@ -1,1 +1,1 @@
-export * from './lib/nested';
+export * from "./nested.js"

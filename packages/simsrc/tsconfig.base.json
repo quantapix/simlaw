@@ -1,9 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "allowJs": true,
-    "types": ["cypress", "node"]
+    "composite": true,
+    "types": ["node"]
   },
-  "include": ["src/**/*.*"],
+  "include": ["prisma/*.*", "src/**/*.*"],
   "exclude": ["src/**/*.test.*"]
 }

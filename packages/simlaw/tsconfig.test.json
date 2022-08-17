@@ -4,5 +4,9 @@
     "composite": true,
     "types": ["jest", "node"]
   },
+  "files": [
+    "../../node_modules/@nrwl/react/typings/cssmodule.d.ts",
+    "../../node_modules/@nrwl/react/typings/image.d.ts"
+  ],
   "include": ["jest.config.*", "src/**/*.*", "src/**/*.test.*"]
 }

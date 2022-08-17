@@ -1,7 +1,6 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "allowJs": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "alwaysStrict": true,
@@ -33,6 +32,7 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "outDir": "./out",
     "preserveConstEnums": true,
     "pretty": true,
     "rootDir": "./",
@@ -47,6 +47,7 @@
     "target": "es2022",
     "typeRoots": ["node_modules/@types"],
     "types": [],
+    // "allowJs": true,
     // "allowSyntheticDefaultImports": true,             /* Allow 'import x from y' when a module doesn't have a default export. */
     // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
     // "declarationDir": "./",                           /* Specify the output directory for generated declaration files. */
@@ -87,6 +88,5 @@
       "@simlaw/simnet": ["packages/simnet/src/index.ts"],
       "@simlaw/simsrc": ["packages/simsrc/src/index.ts"]
     }
-  },
-  "exclude": ["node_modules", "tmp"]
+  }
 }
