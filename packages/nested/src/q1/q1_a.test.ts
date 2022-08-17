@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { A, B, C, Nodes } from "./q1_a.js"
 import type * as qt from "../q0/q0_b.js"
 beforeAll(() => {})

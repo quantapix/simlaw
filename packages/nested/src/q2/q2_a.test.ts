@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
+import { Kind } from "../q0/q0_b.js"
 import * as q1 from "../q1/index.js"
 import * as q2 from "./q2_a.js"
 import type * as qt from "../q0/q0_b.js"
@@ -18,7 +20,7 @@ describe("modc", () => {
     expect(qf.is.kind(q1.B)).toBeFalsy
     expect(qf.is.kind(q1.B, a)).toBeFalsy
     expect(qf.is.kind(q1.B, b)).toBeTruthy
-    expect(qf.is.a(qt.Kind.A)).toBeTruthy
+    expect(qf.is.a(Kind.A)).toBeTruthy
     expect(qf.is.a(a)).toBeTruthy
     expect(qf.is.a(b)).toBeFalsy
     expect(qf.is.b(a)).toBeFalsy

@@ -33,7 +33,7 @@ export class Nodes<T extends qt.Nobj = qt.Nobj>
 }
 export class A extends Nobj implements qt.A {
   static readonly k = Kind.A
-  k!: Kind.A
+  declare k: Kind.A
   a1 = 0
   update(a1: number) {
     this.a1 = a1
@@ -43,7 +43,7 @@ export class A extends Nobj implements qt.A {
 A.prototype.k = A.k
 export class B extends Nobj implements qt.B {
   static readonly k = Kind.B
-  k!: Kind.B
+  declare k: Kind.B
   readonly b1 = 567
   b2!: qt.A
   update(b2: qt.A) {
@@ -54,7 +54,7 @@ export class B extends Nobj implements qt.B {
 B.prototype.k = B.k
 export class C extends Nobj implements qt.C {
   static readonly k = Kind.C
-  k!: Kind.C
+  declare k: Kind.C
   c1?: number
   c2?: qt.Nodes<qt.B>
   update(c2: B[]) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 import type { Ctr } from "./q1_a.js"
 import { Kind } from "../q0/q0_b.js"
 import * as q1 from "./q1_a.js"

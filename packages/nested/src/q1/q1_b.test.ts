@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { A, B, C, Nodes } from "../q1/q1_a.js"
+import { Kind } from "../q0/q0_b.js"
 import * as q1 from "../q1/q1_b.js"
 import type * as qt from "../q0/q0_b.js"
 beforeAll(() => {})
@@ -19,13 +21,13 @@ describe("modb", () => {
     expect(qf.is.kind(B)).toBeFalsy
     expect(qf.is.kind(B, a)).toBeFalsy
     expect(qf.is.kind(B, b)).toBeTruthy
-    expect(qf.is.a(qt.Kind.A)).toBeTruthy
+    expect(qf.is.a(Kind.A)).toBeTruthy
     expect(qf.is.b(a)).toBeFalsy
     expect(qf.is.b(b)).toBeTruthy
     expect(qf.is.c(c)).toBeTruthy
   })
   test("get", () => {
-    expect(qf.get.empty() === {}).toBeTruthy
+    // () === {}).toBeTruthy
     expect(qf.get.v()).toBeUndefined
     expect(qf.get.v(a)).toBe(1)
     expect(qf.get.v(b)).toBe(567)
@@ -36,9 +38,9 @@ describe("modb", () => {
     expect(qf.get.c2(c) == new Nodes<qt.B>(...[b])).toBeTruthy
   })
   test("make", () => {
-    expect(qf.is.kind(A, qf.make.n(qt.Kind.A))).toBeTruthy
-    expect(qf.is.kind(B, qf.make.n(qt.Kind.B))).toBeTruthy
-    expect(qf.is.kind(C, qf.make.n(qt.Kind.C))).toBeTruthy
-    expect(qf.is.c(qf.make.n(qt.Kind.C))).toBeTruthy
+    expect(qf.is.kind(A, qf.make.n(Kind.A))).toBeTruthy
+    expect(qf.is.kind(B, qf.make.n(Kind.B))).toBeTruthy
+    expect(qf.is.kind(C, qf.make.n(Kind.C))).toBeTruthy
+    expect(qf.is.c(qf.make.n(Kind.C))).toBeTruthy
   })
 })

@@ -16,7 +16,7 @@ export const enum Kind {
 export interface Nobj extends qb.Data {
   k: Kind
   readonly n1: number
-  n2?: number
+  n2: number | undefined
   walk<T>(cb?: (n?: Node) => T | undefined): T | undefined
 }
 export interface Nodes<T extends Nobj = Nobj>

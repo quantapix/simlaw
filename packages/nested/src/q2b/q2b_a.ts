@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 import * as qb from "../q0/q0_a.js"
 import type * as qt from "../q0/q0_b.js"
 import * as q2 from "../q2/index.js"
@@ -62,7 +63,7 @@ function newX(f: q2.Frame) {
     class _F {}
     qb.addMixins(_F, [prev(qf).xx])
     return new (class extends _F {
-      xxx = xxx(this)
+      override xxx = xxx(this)
       g(n: qt.Node) {
         if (qf.is.b(n)) return false
         this.xxx.f(n)
@@ -77,7 +78,7 @@ function newX(f: q2.Frame) {
     class _F {}
     qb.addMixins(_F, [prev(qf)])
     return new (class extends _F {
-      xx = xx(this)
+      override xx = xx(this)
       g(n: qt.Node) {
         if (qf.is.a(n)) return false
         this.xx.f(n)

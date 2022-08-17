@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 import * as qb from "../q0/q0_a.js"
 import { Kind } from "../q0/q0_b.js"
 import type * as qt from "../q0/q0_b.js"
@@ -11,11 +12,11 @@ export function newIs(f: q1.Frame) {
   class _Fis {}
   qb.addMixins(_Fis, [q1.newIs(qf)])
   return (qf.is = new (class extends _Fis {
-    a(k: qt.Kind): boolean
-    a(n: qt.Node): n is qt.A
-    a(x: qt.Kind | qt.Node) {
+    override a(k: qt.Kind): boolean
+    override a(n: qt.Node): n is qt.A
+    override a(x: qt.Kind | qt.Node) {
       x = typeof x === "object" ? x.k : x
-      return x === qt.Kind.A
+      return x === Kind.A
     }
   })())
 }

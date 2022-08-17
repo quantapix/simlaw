@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import type * as qt from "../q0/q0_b.js"
 import * as q1 from "../q1/index.js"
 import * as q3 from "./q3_a.js"

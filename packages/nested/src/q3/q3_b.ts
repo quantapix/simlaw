@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 import * as qb from "../q0/q0_a.js"
 import { Kind } from "../q0/q0_b.js"
 import * as q2 from "../q2/index.js"
@@ -20,9 +21,9 @@ export function newNode(f: q2.Frame) {
         return n.k === Kind.BC
       }
     })()
-    is: Base["_is"] & _Fis
+    override is: Base["_is"] & _Fis
     _get2 = new (class extends Base {})()
-    get: Base["_get"] & _Fget
+    override get: Base["_get"] & _Fget
     constructor() {
       super()
       this.is = this._is as Base["is"]
