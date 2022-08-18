@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
-import invariant from "invariant"
 import { useUncontrolled } from "./use.jsx"
 import { useBs } from "./Theme.jsx"
 import {
@@ -10,7 +9,7 @@ import {
   GroupProps as GPs,
 } from "./Button.jsx"
 import { map, createChained } from "./utils.jsx"
-import { classNames, BsRef } from "./helpers.js"
+import { classNames, invariant, BsRef } from "./helpers.js"
 
 export type Type = "checkbox" | "radio"
 

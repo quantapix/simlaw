@@ -4,7 +4,7 @@ import Transition, {
   TransitionProps,
   TransitionStatus,
 } from "react-transition-group/Transition"
-import { useMergedRefs } from "@restart/hooks"
+import useMergedRefs from "@restart/hooks/esm/useMergedRefs.js"
 import { safeFindDOMNode } from "./utils.jsx"
 
 export type Props = TransitionProps & {

@@ -92,3 +92,25 @@ export function classNames(...xs: Array<Arg>): string {
   }
   return ys.join(" ")
 }
+
+export function invariant(condition: any, format: string, ...args: any[]) {
+  if (!condition) {
+    let e: Error
+    if (format === undefined) {
+      e = new Error(
+        "Minified exception occurred; use the non-minified dev environment " +
+          "for the full error message and additional helpful warnings."
+      )
+    } else {
+      let i = 0
+      e = new Error(
+        format.replace(/%s/g, function () {
+          return args[i++]
+        })
+      )
+      e.name = "Invariant Violation"
+    }
+    e.framesToPop = 1
+    throw e
+  }
+}

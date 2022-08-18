@@ -5,12 +5,9 @@ import canUseDOM from "dom-helpers/canUseDOM"
 import ownerDocument from "dom-helpers/ownerDocument"
 import removeEventListener from "dom-helpers/removeEventListener"
 import getScrollbarSize from "dom-helpers/scrollbarSize"
-import {
-  useCallbackRef,
-  useEventCallback,
-  useMergedRefs,
-  useWillUnmount,
-} from "@restart/hooks"
+import { useCallbackRef, useEventCallback } from "@restart/hooks"
+import useMergedRefs from "@restart/hooks/esm/useMergedRefs.js"
+import useWillUnmount from "@restart/hooks/esm/useWillUnmount.js"
 import transitionEnd from "dom-helpers/transitionEnd"
 import { useCallback, useContext, useMemo, useRef, useState } from "react"
 import BaseModal, { BaseModalProps } from "@restart/ui/esm/Modal.jsx"
