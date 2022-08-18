@@ -1,15 +1,14 @@
-import classNames from "classnames"
 import * as React from "react"
 import warning from "warning"
-import { useUncontrolled } from "uncontrollable"
+import { useUncontrolled } from "./use.jsx"
 import BaseNav, { NavProps as BaseNavProps } from "@restart/ui/Nav"
 import { EventKey } from "@restart/ui/types"
 import { makeEventKey } from "@restart/ui/SelectableContext"
 import useEventCallback from "@restart/hooks/useEventCallback"
 import { useNavItem, NavItemProps as IPs } from "@restart/ui/NavItem"
-import { BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
-import { Variant } from "./types.jsx"
+import type { Variant } from "./types.jsx"
 
 export interface ItemProps extends Omit<IPs, "onSelect">, BsProps {
   action?: boolean

@@ -1,9 +1,8 @@
-import classNames from "classnames"
 import * as React from "react"
 import { cloneElement } from "react"
 import { useBs } from "./Theme.jsx"
 import { map } from "./utils.jsx"
-import { BsProps } from "./helpers.js"
+import { classNames, BsProps } from "./helpers.js"
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
   min?: number

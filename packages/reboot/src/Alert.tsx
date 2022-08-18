@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useUncontrolled } from "uncontrollable"
+import { useUncontrolled } from "./use.jsx"
 import useEventCallback from "@restart/hooks/useEventCallback"
 import Anchor from "@restart/ui/Anchor"
 import { useBs } from "./Theme.jsx"

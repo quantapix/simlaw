@@ -1,9 +1,8 @@
-import classNames from "classnames"
 import * as React from "react"
 import { OverlayArrowProps } from "@restart/ui/Overlay"
 import { useBs, useIsRTL } from "./Theme.jsx"
-import { Placement, PopperRef } from "./types.jsx"
-import { BsProps, getDirection } from "./helpers.js"
+import type { Placement, PopperRef } from "./types.jsx"
+import { classNames, BsProps, getDirection } from "./helpers.js"
 import { withBs } from "./utils.jsx"
 
 export const POPPER_OFFSET = [0, 8]

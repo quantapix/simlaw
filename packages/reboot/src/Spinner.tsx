@@ -1,8 +1,7 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useBs } from "./Theme.jsx"
-import { BsProps, BsRefComp } from "./helpers.js"
-import { Variant } from "./types.jsx"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import type { Variant } from "./types.jsx"
 
 export interface Props extends React.HTMLAttributes<HTMLElement>, BsProps {
   animation: "border" | "grow"

@@ -1,14 +1,13 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useCallback, useContext, useMemo } from "react"
 import SelectableContext from "@restart/ui/SelectableContext"
 import { SelectCallback } from "@restart/ui/types"
-import { useUncontrolled } from "uncontrollable"
+import { useUncontrolled } from "./use.jsx"
 import useEventCallback from "@restart/hooks/useEventCallback"
 import { withBs } from "./utils.jsx"
 import { Collapse as C, Props as CPs } from "./Collapse.jsx"
 import { useBs } from "./Theme.jsx"
-import { BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
 
 export interface Data {
   onToggle: () => void

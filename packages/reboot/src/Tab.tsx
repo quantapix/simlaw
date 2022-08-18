@@ -1,4 +1,3 @@
-import classNames from "classnames"
 import * as React from "react"
 import SelectableContext from "@restart/ui/SelectableContext"
 import TabContext from "@restart/ui/TabContext"
@@ -12,7 +11,7 @@ import Tabs, { TabsProps } from "@restart/ui/Tabs"
 import NoopTransition from "@restart/ui/NoopTransition"
 import { useBs } from "./Theme.jsx"
 import { Fade } from "./Fade.jsx"
-import { BsProps, BsRefComp, TransitionType } from "./helpers.js"
+import { classNames, BsProps, BsRefComp, TransitionType } from "./helpers.js"
 import { withBs } from "./utils.jsx"
 
 export function getTabTransitionComponent(

@@ -1,7 +1,6 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useBs } from "./Theme.jsx"
-import type { BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
 import type { Color, Variant } from "./types.jsx"
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {

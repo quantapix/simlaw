@@ -1,9 +1,8 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useButtonProps, ButtonProps as _Props } from "@restart/ui/Button"
 import { useBs } from "./Theme.jsx"
-import { BsProps, BsRefComp } from "./helpers.js"
-import { ButtonVariant } from "./types.jsx"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import type { ButtonVariant } from "./types.jsx"
 
 export interface Props extends _Props, Omit<BsProps, "as"> {
   active?: boolean

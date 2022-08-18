@@ -1,7 +1,6 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useBs } from "./Theme.jsx"
-import { BsProps } from "./helpers.js"
+import { classNames, BsProps } from "./helpers.js"
 
 export type AspectRatio = "1x1" | "4x3" | "16x9" | "21x9" | string
 

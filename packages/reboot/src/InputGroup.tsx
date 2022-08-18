@@ -1,10 +1,9 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useMemo } from "react"
 import { withBs } from "./utils.jsx"
 import { useBs } from "./Theme.jsx"
-import { Input } from "./Form"
-import { BsProps, BsRefComp } from "./helpers.js"
+import { Input } from "./Form.jsx"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
 
 export const Context = React.createContext<unknown | null>(null)
 Context.displayName = "InputGroupContext"

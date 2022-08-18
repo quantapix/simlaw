@@ -1,7 +1,6 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useBs } from "./Theme.jsx"
-import { BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   fluid?: boolean | string | "sm" | "md" | "lg" | "xl" | "xxl"

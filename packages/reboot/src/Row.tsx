@@ -1,7 +1,6 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
-import { BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
 
 type ColWidth =
   | number

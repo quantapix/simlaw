@@ -1,8 +1,8 @@
 import * as React from "react"
-import { BsProps, BsRefComp } from "./helpers.js"
-import { usePlaceholder, Props as _Props } from "./use"
+import type { BsProps, BsRefComp } from "./helpers.js"
+import { usePlaceholder, Props as _Props } from "./use.jsx"
 import { Button as B } from "./Button.jsx"
-import { ButtonVariant } from "./types.jsx"
+import type { ButtonVariant } from "./types.jsx"
 
 export interface ButtonProps extends Props {
   variant?: ButtonVariant

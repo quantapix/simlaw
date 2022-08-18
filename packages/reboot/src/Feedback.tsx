@@ -1,6 +1,5 @@
-import classNames from "classnames"
 import * as React from "react"
-import { AsProp, BsRefComp } from "./helpers.js"
+import { classNames, AsProp, BsRefComp } from "./helpers.js"
 
 export type Type = "valid" | "invalid"
 

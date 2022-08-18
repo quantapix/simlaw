@@ -1,12 +1,10 @@
 import * as React from "react"
-import { useUncontrolled } from "uncontrollable"
+import { useUncontrolled } from "./use.jsx"
 import BaseTabs, { TabsProps as _TabsProps } from "@restart/ui/Tabs"
-import { Nav, Props as _Props } from "./Nav"
-import { NavLink } from "./NavLink"
-import NavItem from "./NavItem"
-import { Content, Pane, getTabTransitionComponent } from "./Tab"
+import { Item, Link, Nav, Props as _Props } from "./Nav.jsx"
+import { Content, Pane, getTabTransitionComponent } from "./Tab.jsx"
 import { forEach, map } from "./utils.jsx"
-import { TransitionType } from "./helpers.js"
+import type { TransitionType } from "./helpers.js"
 
 export interface Props
   extends Omit<_TabsProps, "transition">,
@@ -31,8 +29,8 @@ function renderTab(x) {
     return null
   }
   return (
-    <NavItem as="li" role="presentation">
-      <NavLink
+    <Item as="li" role="presentation">
+      <Link
         as="button"
         type="button"
         eventKey={eventKey}
@@ -42,8 +40,8 @@ function renderTab(x) {
         {...tabAttrs}
       >
         {title}
-      </NavLink>
-    </NavItem>
+      </Link>
+    </Item>
   )
 }
 

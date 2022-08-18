@@ -1,4 +1,3 @@
-import classNames from "classnames"
 import * as React from "react"
 import {
   BREAKPOINTS,
@@ -7,8 +6,8 @@ import {
   useBreakpoints,
   useMinBreakpoint,
 } from "./Theme.jsx"
-import { BsProps, BsRefComp } from "./helpers.js"
-import { GapValue } from "./types.jsx"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import type { GapValue } from "./types.jsx"
 
 export type Utility<T> =
   | T

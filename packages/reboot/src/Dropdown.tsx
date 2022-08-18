@@ -1,4 +1,3 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useContext, useMemo } from "react"
 import warning from "warning"
@@ -18,17 +17,16 @@ import {
   UseDropdownMenuOptions,
 } from "@restart/ui/DropdownMenu"
 import { useDropdownToggle } from "@restart/ui/DropdownToggle"
-import { useUncontrolled } from "uncontrollable"
+import { useUncontrolled, useWrappedRef } from "./use.jsx"
 import useEventCallback from "@restart/hooks/useEventCallback"
-import { Context as InputGroupContext } from "./InputGroup"
+import { Context as InputGroupContext } from "./InputGroup.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
-import { BsProps, BsRefComp } from "./helpers.js"
-import { Context as NavbarContext } from "./Navbar"
-import { useWrappedRef } from "./use"
-import { AlignType, AlignDirection, Placement } from "./types.jsx"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { Context as NavbarContext } from "./Navbar.jsx"
+import type { AlignType, AlignDirection, Placement } from "./types.jsx"
 import { Button as _Button, Props as _BProps, CommonProps } from "./Button.jsx"
-import { Link as NavLink } from "./Nav"
+import { Link as NavLink } from "./Nav.jsx"
 
 export type Drop = "up" | "start" | "end" | "down"
 

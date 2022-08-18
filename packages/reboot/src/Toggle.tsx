@@ -1,7 +1,6 @@
-import classNames from "classnames"
 import * as React from "react"
 import invariant from "invariant"
-import { useUncontrolled } from "uncontrollable"
+import { useUncontrolled } from "./use.jsx"
 import { useBs } from "./Theme.jsx"
 import {
   Button as B,
@@ -10,7 +9,7 @@ import {
   GroupProps as GPs,
 } from "./Button.jsx"
 import { map, createChained } from "./utils.jsx"
-import { BsRefComp } from "./helpers.js"
+import { classNames, BsRefComp } from "./helpers.js"
 
 export type Type = "checkbox" | "radio"
 

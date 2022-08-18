@@ -1,11 +1,11 @@
-import classNames from "classnames"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import ReactDOM from "react-dom"
 import css from "dom-helpers/css"
 import camelize from "dom-helpers/camelize"
 import transitionEnd from "dom-helpers/transitionEnd"
 import { useBs } from "./Theme.jsx"
-import { BsRefComp } from "./helpers.js"
+import { classNames, BsRefComp } from "./helpers.js"
 
 export function map<P = any>(
   xs,
@@ -47,9 +47,7 @@ export function createChained(...fs) {
       }
       if (acc === null) return f
       return function chainedFunction(...xs) {
-        // @ts-ignore
         acc.apply(this, xs)
-        // @ts-ignore
         f.apply(this, xs)
       }
     }, null)

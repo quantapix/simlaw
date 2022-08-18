@@ -1,10 +1,9 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useContext, useMemo } from "react"
-import { useUncontrolled } from "uncontrollable"
+import { useUncontrolled } from "./use.jsx"
 import { Transition } from "react-transition-group"
 import { useBs } from "./Theme.jsx"
-import type { BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
 import { Collapse as C, Props as CPs } from "./Collapse.jsx"
 
 export type Key = string | string[] | null | undefined

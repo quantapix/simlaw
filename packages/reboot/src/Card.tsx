@@ -1,10 +1,9 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useMemo } from "react"
 import { useBs } from "./Theme.jsx"
 import { divAs, withBs } from "./utils.jsx"
-import { BsProps, BsRefComp } from "./helpers.js"
-import { Color, Variant } from "./types.jsx"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import type { Color, Variant } from "./types.jsx"
 
 interface Data {
   headerBs: string

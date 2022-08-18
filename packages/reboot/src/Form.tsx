@@ -1,10 +1,15 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useContext, useMemo } from "react"
 import warning from "warning"
 import { useBs } from "./Theme.jsx"
-import { BsOnlyProps, BsProps, BsRefComp, AsProp } from "./helpers.js"
-import { Col, Props as _Props } from "./Col"
+import {
+  classNames,
+  BsOnlyProps,
+  BsProps,
+  BsRefComp,
+  AsProp,
+} from "./helpers.js"
+import { Col, Props as _Props } from "./Col.jsx"
 import { Feedback, Type } from "./Feedback"
 import { hasChildOfType, withBs } from "./utils.jsx"
 

@@ -7,8 +7,8 @@ import {
   PropsFromToggle,
   Toggle,
   Menu,
-} from "./Dropdown"
-import { BsProps } from "./helpers.js"
+} from "./Dropdown.jsx"
+import type { BsProps } from "./helpers.js"
 
 export interface Props extends Omit<_Props, "title">, PropsFromToggle, BsProps {
   menuRole?: string

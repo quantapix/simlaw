@@ -1,7 +1,6 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useBs } from "./Theme.jsx"
-import { BsOnlyProps } from "./helpers.js"
+import { classNames, BsOnlyProps } from "./helpers.js"
 
 export interface Props
   extends BsOnlyProps,
@@ -19,7 +18,7 @@ export const Image = React.forwardRef<HTMLImageElement, Props>(
   ) => {
     bsPrefix = useBs(bsPrefix, "img")
     return (
-      <img // eslint-disable-line jsx-a11y/alt-text
+      <img
         ref={ref}
         {...ps}
         className={classNames(

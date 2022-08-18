@@ -1,4 +1,3 @@
-import classNames from "classnames"
 import * as React from "react"
 import useBreakpoint from "@restart/hooks/useBreakpoint"
 import useEventCallback from "@restart/hooks/useEventCallback"
@@ -19,13 +18,13 @@ import Transition, {
 } from "react-transition-group/Transition"
 import { TransitionCallbacks } from "@restart/ui/types"
 import { Fade } from "./Fade.jsx"
-import { AbsHeader, AbsProps as HProps, Context as MContext } from "./Modal"
-import { Context as NContext } from "./Navbar"
-import { BsOnlyProps, BsRefComp } from "./helpers.js"
+import { AbsHeader, AbsProps as HProps, Context as MContext } from "./Modal.jsx"
+import { Context as NContext } from "./Navbar.jsx"
+import { classNames, BsOnlyProps, BsRefComp } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
-import { Manager, getSharedManager } from "./Manager"
+import { Manager, getSharedManager } from "./Manager.jsx"
 import { divAs, withBs, endListener } from "./utils.jsx"
-import { Wrapper } from "./Transition"
+import { Wrapper } from "./Transition.jsx"
 
 export interface HeaderProps extends HProps, BsOnlyProps {}
 

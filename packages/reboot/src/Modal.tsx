@@ -1,4 +1,3 @@
-import classNames from "classnames"
 import * as React from "react"
 import addEventListener from "dom-helpers/addEventListener"
 import canUseDOM from "dom-helpers/canUseDOM"
@@ -13,9 +12,9 @@ import transitionEnd from "dom-helpers/transitionEnd"
 import { useCallback, useContext, useMemo, useRef, useState } from "react"
 import BaseModal, { BaseModalProps } from "@restart/ui/Modal"
 import { ModalInstance } from "@restart/ui/ModalManager"
-import { getSharedManager } from "./Manager"
+import { getSharedManager } from "./Manager.jsx"
 import { Fade } from "./Fade.jsx"
-import { BsOnlyProps, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsOnlyProps, BsProps, BsRefComp } from "./helpers.js"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import { Close, Variant as CloseVariant } from "./Button.jsx"
 import { divAs, withBs } from "./utils.jsx"
@@ -361,8 +360,7 @@ export const Modal: BsRefComp<"div", Props> = React.forwardRef(
         aria-labelledby={ariaLabelledby}
         aria-describedby={ariaDescribedby}
       >
-        {/*
-        // @ts-ignore */}
+        {}
         <X
           {...ps}
           onMouseDown={dialogMouseDown}

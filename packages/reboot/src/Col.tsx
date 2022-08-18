@@ -1,7 +1,7 @@
-import classNames from "classnames"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
-import { BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
 
 type NumberAttr =
   | number

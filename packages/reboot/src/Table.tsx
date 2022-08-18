@@ -1,7 +1,6 @@
-import classNames from "classnames"
 import * as React from "react"
 import { useBs } from "./Theme.jsx"
-import { BsOnlyProps } from "./helpers.js"
+import { classNames, BsOnlyProps } from "./helpers.js"
 
 export interface Props
   extends BsOnlyProps,

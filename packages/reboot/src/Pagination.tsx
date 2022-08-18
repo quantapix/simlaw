@@ -1,9 +1,8 @@
-import classNames from "classnames"
 import * as React from "react"
-import { ReactNode } from "react"
+import type { ReactNode } from "react"
 import Anchor from "@restart/ui/Anchor"
 import { useBs } from "./Theme.jsx"
-import { BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRefComp } from "./helpers.js"
 
 export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
   disabled?: boolean
