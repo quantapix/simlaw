@@ -1,34 +1,34 @@
-import * as React from 'react';
-import { useUncontrolled } from 'uncontrollable';
-import BaseTabs, { TabsProps as _TabsProps } from '@restart/ui/Tabs';
-import { Nav, Props as _Props } from './Nav';
-import { NavLink } from './NavLink';
-import NavItem from './NavItem';
-import { Content, Pane, getTabTransitionComponent } from './Tab';
-import { forEach, map } from './utils';
-import { TransitionType } from './helpers';
+import * as React from "react"
+import { useUncontrolled } from "uncontrollable"
+import BaseTabs, { TabsProps as _TabsProps } from "@restart/ui/Tabs"
+import { Nav, Props as _Props } from "./Nav"
+import { NavLink } from "./NavLink"
+import NavItem from "./NavItem"
+import { Content, Pane, getTabTransitionComponent } from "./Tab"
+import { forEach, map } from "./utils.jsx"
+import { TransitionType } from "./helpers.js"
 
 export interface Props
-  extends Omit<_TabsProps, 'transition'>,
-    Omit<React.HTMLAttributes<HTMLElement>, 'onSelect'>,
+  extends Omit<_TabsProps, "transition">,
+    Omit<React.HTMLAttributes<HTMLElement>, "onSelect">,
     _Props {
-  transition?: TransitionType;
+  transition?: TransitionType
 }
 
 function getDefaultActiveKey(xs) {
-  let key;
-  forEach(xs, (x) => {
+  let key
+  forEach(xs, x => {
     if (key == null) {
-      key = x.props.eventKey;
+      key = x.props.eventKey
     }
-  });
-  return key;
+  })
+  return key
 }
 
 function renderTab(x) {
-  const { title, eventKey, disabled, tabClassName, tabAttrs, id } = x.props;
+  const { title, eventKey, disabled, tabClassName, tabAttrs, id } = x.props
   if (title == null) {
-    return null;
+    return null
   }
   return (
     <NavItem as="li" role="presentation">
@@ -44,7 +44,7 @@ function renderTab(x) {
         {title}
       </NavLink>
     </NavItem>
-  );
+  )
 }
 
 export const Tabs = (xs: Props) => {
@@ -58,8 +58,8 @@ export const Tabs = (xs: Props) => {
     activeKey = getDefaultActiveKey(children),
     ...ps
   } = useUncontrolled(xs, {
-    activeKey: 'onSelect',
-  });
+    activeKey: "onSelect",
+  })
 
   return (
     <BaseTabs
@@ -74,22 +74,22 @@ export const Tabs = (xs: Props) => {
         {map(children, renderTab)}
       </Nav>
       <Content>
-        {map(children, (child) => {
-          const childProps = { ...child.props };
-          delete childProps.title;
-          delete childProps.disabled;
-          delete childProps.tabClassName;
-          delete childProps.tabAttrs;
-          return <Pane {...childProps} />;
+        {map(children, child => {
+          const childProps = { ...child.props }
+          delete childProps.title
+          delete childProps.disabled
+          delete childProps.tabClassName
+          delete childProps.tabAttrs
+          return <Pane {...childProps} />
         })}
       </Content>
     </BaseTabs>
-  );
-};
+  )
+}
 
-Tabs.displayName = 'Tabs';
+Tabs.displayName = "Tabs"
 Tabs.defaultProps = {
-  variant: 'tabs',
+  variant: "tabs",
   mountOnEnter: false,
   unmountOnExit: false,
-};
+}

@@ -1,24 +1,24 @@
-import * as React from 'react';
-import { ButtonType } from '@restart/ui/Button';
-import { Button, Group } from './Button';
+import * as React from "react"
+import { ButtonType } from "@restart/ui/Button"
+import { Button, Group } from "./Button.jsx"
 import {
   Dropdown,
   Props as _Props,
   PropsFromToggle,
   Toggle,
   Menu,
-} from './Dropdown';
-import { BsProps } from './helpers';
+} from "./Dropdown"
+import { BsProps } from "./helpers.js"
 
-export interface Props extends Omit<_Props, 'title'>, PropsFromToggle, BsProps {
-  menuRole?: string;
-  renderMenuOnMount?: boolean;
-  rootCloseEvent?: 'click' | 'mousedown';
-  target?: string;
-  title: React.ReactNode;
-  toggleLabel?: string;
-  type?: ButtonType;
-  flip?: boolean;
+export interface Props extends Omit<_Props, "title">, PropsFromToggle, BsProps {
+  menuRole?: string
+  renderMenuOnMount?: boolean
+  rootCloseEvent?: "click" | "mousedown"
+  target?: string
+  title: React.ReactNode
+  toggleLabel?: string
+  type?: ButtonType
+  flip?: boolean
 }
 
 export const SplitButton = React.forwardRef<HTMLElement, Props>(
@@ -41,7 +41,7 @@ export const SplitButton = React.forwardRef<HTMLElement, Props>(
       flip,
       ...ps
     },
-    ref,
+    ref
   ) => (
     <Dropdown ref={ref} {...ps} as={Group}>
       <Button
@@ -75,10 +75,10 @@ export const SplitButton = React.forwardRef<HTMLElement, Props>(
         {children}
       </Menu>
     </Dropdown>
-  ),
-);
-SplitButton.displayName = 'SplitButton';
+  )
+)
+SplitButton.displayName = "SplitButton"
 SplitButton.defaultProps = {
-  toggleLabel: 'Toggle dropdown',
-  type: 'button',
-};
+  toggleLabel: "Toggle dropdown",
+  type: "button",
+}

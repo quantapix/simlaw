@@ -1,18 +1,18 @@
-import classNames from 'classnames';
-import * as React from 'react';
-import { ReactNode } from 'react';
-import Anchor from '@restart/ui/Anchor';
-import { useBs } from './Theme';
-import { BsProps, BsRefComp } from './helpers';
+import classNames from "classnames"
+import * as React from "react"
+import { ReactNode } from "react"
+import Anchor from "@restart/ui/Anchor"
+import { useBs } from "./Theme.jsx"
+import { BsProps, BsRefComp } from "./helpers.js"
 
 export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
-  disabled?: boolean;
-  active?: boolean;
-  activeLabel?: string;
-  href?: string;
+  disabled?: boolean
+  active?: boolean
+  activeLabel?: string
+  href?: string
 }
 
-export const Item: BsRefComp<'li', ItemProps> = React.forwardRef<
+export const Item: BsRefComp<"li", ItemProps> = React.forwardRef<
   HTMLLIElement,
   ItemProps
 >(
@@ -26,14 +26,14 @@ export const Item: BsRefComp<'li', ItemProps> = React.forwardRef<
       children,
       ...ps
     }: ItemProps,
-    ref,
+    ref
   ) => {
-    const X = active || disabled ? 'span' : Anchor;
+    const X = active || disabled ? "span" : Anchor
     return (
       <li
         ref={ref}
         style={style}
-        className={classNames(className, 'page-item', { active, disabled })}
+        className={classNames(className, "page-item", { active, disabled })}
       >
         <X className="page-link" disabled={disabled} {...ps}>
           {children}
@@ -42,15 +42,15 @@ export const Item: BsRefComp<'li', ItemProps> = React.forwardRef<
           )}
         </X>
       </li>
-    );
-  },
-);
-Item.displayName = 'PageItem';
+    )
+  }
+)
+Item.displayName = "PageItem"
 Item.defaultProps = {
   active: false,
   disabled: false,
-  activeLabel: '(current)',
-};
+  activeLabel: "(current)",
+}
 
 function createButton(name: string, defaultValue: ReactNode, label = name) {
   const Button = React.forwardRef(({ children, ...props }: ItemProps, ref) => (
@@ -58,24 +58,24 @@ function createButton(name: string, defaultValue: ReactNode, label = name) {
       <span aria-hidden="true">{children || defaultValue}</span>
       <span className="visually-hidden">{label}</span>
     </Item>
-  ));
-  Button.displayName = name;
-  return Button;
+  ))
+  Button.displayName = name
+  return Button
 }
 
-export const First = createButton('First', '«');
-export const Prev = createButton('Prev', '‹', 'Previous');
-export const Ellipsis = createButton('Ellipsis', '…', 'More');
-export const Next = createButton('Next', '›');
-export const Last = createButton('Last', '»');
+export const First = createButton("First", "«")
+export const Prev = createButton("Prev", "‹", "Previous")
+export const Ellipsis = createButton("Ellipsis", "…", "More")
+export const Next = createButton("Next", "›")
+export const Last = createButton("Last", "»")
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLUListElement> {
-  size?: 'sm' | 'lg';
+  size?: "sm" | "lg"
 }
 
 export const Pagination = React.forwardRef<HTMLUListElement, Props>(
   ({ bsPrefix, className, size, ...props }, ref) => {
-    const decoratedBsPrefix = useBs(bsPrefix, 'pagination');
+    const decoratedBsPrefix = useBs(bsPrefix, "pagination")
     return (
       <ul
         ref={ref}
@@ -83,10 +83,10 @@ export const Pagination = React.forwardRef<HTMLUListElement, Props>(
         className={classNames(
           className,
           decoratedBsPrefix,
-          size && `${decoratedBsPrefix}-${size}`,
+          size && `${decoratedBsPrefix}-${size}`
         )}
       />
-    );
-  },
-);
-Pagination.displayName = 'Pagination';
+    )
+  }
+)
+Pagination.displayName = "Pagination"

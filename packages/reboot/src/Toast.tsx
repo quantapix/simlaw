@@ -1,35 +1,35 @@
-import classNames from 'classnames';
-import * as React from 'react';
-import { useContext, useEffect, useMemo, useRef, useCallback } from 'react';
-import useTimeout from '@restart/hooks/useTimeout';
-import { TransitionComponent } from '@restart/ui/types';
+import classNames from "classnames"
+import * as React from "react"
+import { useContext, useEffect, useMemo, useRef, useCallback } from "react"
+import useTimeout from "@restart/hooks/useTimeout"
+import { TransitionComponent } from "@restart/ui/types"
 import Transition, {
   ENTERING,
   EXITING,
-} from 'react-transition-group/Transition';
-import useEventCallback from '@restart/hooks/useEventCallback';
-import { useBs } from './Theme';
-import { BsOnlyProps, BsProps, BsRefComp } from './helpers';
-import { Variant } from './types';
-import { Fade, Props as _Props } from './Fade';
-import { Close, Variant as CloseVariant } from './Button';
-import { withBs } from './utils';
+} from "react-transition-group/Transition"
+import useEventCallback from "@restart/hooks/useEventCallback"
+import { useBs } from "./Theme.jsx"
+import { BsOnlyProps, BsProps, BsRefComp } from "./helpers.js"
+import { Variant } from "./types.jsx"
+import { Fade, Props as _Props } from "./Fade.jsx"
+import { Close, Variant as CloseVariant } from "./Button.jsx"
+import { withBs } from "./utils.jsx"
 
 export interface Data {
-  onClose?: (e?: React.MouseEvent | React.KeyboardEvent) => void;
+  onClose?: (e?: React.MouseEvent | React.KeyboardEvent) => void
 }
 
 export const Context = React.createContext<Data>({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onClose() {},
-});
+})
 
 export interface HeaderProps
   extends BsOnlyProps,
     React.HTMLAttributes<HTMLDivElement> {
-  closeLabel?: string;
-  closeVariant?: CloseVariant;
-  closeButton?: boolean;
+  closeLabel?: string
+  closeVariant?: CloseVariant
+  closeButton?: boolean
 }
 
 export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
@@ -43,13 +43,13 @@ export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
       children,
       ...ps
     }: HeaderProps,
-    ref,
+    ref
   ) => {
-    bsPrefix = useBs(bsPrefix, 'toast-header');
-    const context = useContext(Context);
-    const click = useEventCallback((e) => {
-      context?.onClose?.(e);
-    });
+    bsPrefix = useBs(bsPrefix, "toast-header")
+    const context = useContext(Context)
+    const click = useEventCallback(e => {
+      context?.onClose?.(e)
+    })
     return (
       <div ref={ref} {...ps} className={classNames(bsPrefix, className)}>
         {children}
@@ -62,38 +62,38 @@ export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
           />
         )}
       </div>
-    );
-  },
-);
-Header.displayName = 'ToastHeader';
+    )
+  }
+)
+Header.displayName = "ToastHeader"
 Header.defaultProps = {
-  closeLabel: 'Close',
+  closeLabel: "Close",
   closeButton: true,
-};
-
-export const Body = withBs('toast-body');
-
-const styles = {
-  [ENTERING]: 'showing',
-  [EXITING]: 'showing show',
-};
-
-export const ToastFade = React.forwardRef<Transition<any>, _Props>(
-  (ps, ref) => <Fade {...ps} ref={ref} transitionClasses={styles} />,
-);
-ToastFade.displayName = 'ToastFade';
-
-export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
-  animation?: boolean;
-  autohide?: boolean;
-  delay?: number;
-  onClose?: (e?: React.MouseEvent | React.KeyboardEvent) => void;
-  show?: boolean;
-  transition?: TransitionComponent;
-  bg?: Variant;
 }
 
-export const Toast: BsRefComp<'div', Props> = React.forwardRef<
+export const Body = withBs("toast-body")
+
+const styles = {
+  [ENTERING]: "showing",
+  [EXITING]: "showing show",
+}
+
+export const ToastFade = React.forwardRef<Transition<any>, _Props>(
+  (ps, ref) => <Fade {...ps} ref={ref} transitionClasses={styles} />
+)
+ToastFade.displayName = "ToastFade"
+
+export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+  animation?: boolean
+  autohide?: boolean
+  delay?: number
+  onClose?: (e?: React.MouseEvent | React.KeyboardEvent) => void
+  show?: boolean
+  transition?: TransitionComponent
+  bg?: Variant
+}
+
+export const Toast: BsRefComp<"div", Props> = React.forwardRef<
   HTMLDivElement,
   Props
 >(
@@ -110,37 +110,37 @@ export const Toast: BsRefComp<'div', Props> = React.forwardRef<
       bg,
       ...ps
     },
-    ref,
+    ref
   ) => {
-    bsPrefix = useBs(bsPrefix, 'toast');
-    const delayRef = useRef(delay);
-    const onCloseRef = useRef(onClose);
+    bsPrefix = useBs(bsPrefix, "toast")
+    const delayRef = useRef(delay)
+    const onCloseRef = useRef(onClose)
 
     useEffect(() => {
-      delayRef.current = delay;
-      onCloseRef.current = onClose;
-    }, [delay, onClose]);
+      delayRef.current = delay
+      onCloseRef.current = onClose
+    }, [delay, onClose])
 
-    const autohideTimeout = useTimeout();
-    const autohideToast = !!(autohide && show);
+    const autohideTimeout = useTimeout()
+    const autohideToast = !!(autohide && show)
 
     const autohideFunc = useCallback(() => {
       if (autohideToast) {
-        onCloseRef.current?.();
+        onCloseRef.current?.()
       }
-    }, [autohideToast]);
+    }, [autohideToast])
 
     useEffect(() => {
-      autohideTimeout.set(autohideFunc, delayRef.current);
-    }, [autohideTimeout, autohideFunc]);
+      autohideTimeout.set(autohideFunc, delayRef.current)
+    }, [autohideTimeout, autohideFunc])
 
     const v = useMemo(
       () => ({
         onClose,
       }),
-      [onClose],
-    );
-    const hasAnimation = !!(X && animation);
+      [onClose]
+    )
+    const hasAnimation = !!(X && animation)
     const toast = (
       <div
         {...ps}
@@ -149,13 +149,13 @@ export const Toast: BsRefComp<'div', Props> = React.forwardRef<
           bsPrefix,
           className,
           bg && `bg-${bg}`,
-          !hasAnimation && (show ? 'show' : 'hide'),
+          !hasAnimation && (show ? "show" : "hide")
         )}
         role="alert"
         aria-live="assertive"
         aria-atomic="true"
       />
-    );
+    )
     return (
       <Context.Provider value={v}>
         {hasAnimation && X ? (
@@ -166,42 +166,42 @@ export const Toast: BsRefComp<'div', Props> = React.forwardRef<
           toast
         )}
       </Context.Provider>
-    );
-  },
-);
-Toast.displayName = 'Toast';
+    )
+  }
+)
+Toast.displayName = "Toast"
 
 export type Position =
-  | 'top-start'
-  | 'top-center'
-  | 'top-end'
-  | 'middle-start'
-  | 'middle-center'
-  | 'middle-end'
-  | 'bottom-start'
-  | 'bottom-center'
-  | 'bottom-end';
+  | "top-start"
+  | "top-center"
+  | "top-end"
+  | "middle-start"
+  | "middle-center"
+  | "middle-end"
+  | "bottom-start"
+  | "bottom-center"
+  | "bottom-end"
 
 export interface ContainerProps
   extends BsProps,
     React.HTMLAttributes<HTMLElement> {
-  position?: Position;
-  containerPosition?: string;
+  position?: Position
+  containerPosition?: string
 }
 
 const positionClasses = {
-  'top-start': 'top-0 start-0',
-  'top-center': 'top-0 start-50 translate-middle-x',
-  'top-end': 'top-0 end-0',
-  'middle-start': 'top-50 start-0 translate-middle-y',
-  'middle-center': 'top-50 start-50 translate-middle',
-  'middle-end': 'top-50 end-0 translate-middle-y',
-  'bottom-start': 'bottom-0 start-0',
-  'bottom-center': 'bottom-0 start-50 translate-middle-x',
-  'bottom-end': 'bottom-0 end-0',
-};
+  "top-start": "top-0 start-0",
+  "top-center": "top-0 start-50 translate-middle-x",
+  "top-end": "top-0 end-0",
+  "middle-start": "top-50 start-0 translate-middle-y",
+  "middle-center": "top-50 start-50 translate-middle",
+  "middle-end": "top-50 end-0 translate-middle-y",
+  "bottom-start": "bottom-0 start-0",
+  "bottom-center": "bottom-0 start-50 translate-middle-x",
+  "bottom-end": "bottom-0 end-0",
+}
 
-export const Container: BsRefComp<'div', ContainerProps> = React.forwardRef<
+export const Container: BsRefComp<"div", ContainerProps> = React.forwardRef<
   HTMLDivElement,
   ContainerProps
 >(
@@ -209,14 +209,14 @@ export const Container: BsRefComp<'div', ContainerProps> = React.forwardRef<
     {
       bsPrefix,
       position,
-      containerPosition = 'absolute',
+      containerPosition = "absolute",
       className,
-      as: X = 'div',
+      as: X = "div",
       ...ps
     },
-    ref,
+    ref
   ) => {
-    bsPrefix = useBs(bsPrefix, 'toast-container');
+    bsPrefix = useBs(bsPrefix, "toast-container")
     return (
       <X
         ref={ref}
@@ -227,11 +227,11 @@ export const Container: BsRefComp<'div', ContainerProps> = React.forwardRef<
             containerPosition ? `position-${containerPosition}` : null,
             positionClasses[position],
           ],
-          className,
+          className
         )}
       />
-    );
-  },
-);
+    )
+  }
+)
 
-Container.displayName = 'ToastContainer';
+Container.displayName = "ToastContainer"

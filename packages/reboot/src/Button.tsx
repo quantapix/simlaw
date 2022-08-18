@@ -1,28 +1,28 @@
-import classNames from 'classnames';
-import * as React from 'react';
-import { useButtonProps, ButtonProps as _Props } from '@restart/ui/Button';
-import { useBs } from './Theme';
-import { BsProps, BsRefComp } from './helpers';
-import { ButtonVariant } from './types';
+import classNames from "classnames"
+import * as React from "react"
+import { useButtonProps, ButtonProps as _Props } from "@restart/ui/Button"
+import { useBs } from "./Theme.jsx"
+import { BsProps, BsRefComp } from "./helpers.js"
+import { ButtonVariant } from "./types.jsx"
 
-export interface Props extends _Props, Omit<BsProps, 'as'> {
-  active?: boolean;
-  variant?: ButtonVariant;
-  size?: 'sm' | 'lg';
+export interface Props extends _Props, Omit<BsProps, "as"> {
+  active?: boolean
+  variant?: ButtonVariant
+  size?: "sm" | "lg"
 }
 
-export type CommonProps = 'href' | 'size' | 'variant' | 'disabled';
+export type CommonProps = "href" | "size" | "variant" | "disabled"
 
-export const Button: BsRefComp<'button', Props> = React.forwardRef<
+export const Button: BsRefComp<"button", Props> = React.forwardRef<
   HTMLButtonElement,
   Props
 >(({ as, bsPrefix, variant, size, active, className, ...ps }, ref) => {
-  const bs = useBs(bsPrefix, 'btn');
+  const bs = useBs(bsPrefix, "btn")
   const [buttonProps, { tagName }] = useButtonProps({
     tagName: as,
     ...ps,
-  });
-  const X = tagName as React.ElementType;
+  })
+  const X = tagName as React.ElementType
   return (
     <X
       {...buttonProps}
@@ -31,26 +31,26 @@ export const Button: BsRefComp<'button', Props> = React.forwardRef<
       className={classNames(
         className,
         bs,
-        active && 'active',
+        active && "active",
         variant && `${bs}-${variant}`,
         size && `${bs}-${size}`,
-        ps.href && ps.disabled && 'disabled',
+        ps.href && ps.disabled && "disabled"
       )}
     />
-  );
-});
-Button.displayName = 'Button';
+  )
+})
+Button.displayName = "Button"
 Button.defaultProps = {
-  variant: 'primary',
+  variant: "primary",
   active: false,
   disabled: false,
-};
+}
 
-export type Variant = 'white' | string;
+export type Variant = "white" | string
 
 export interface CloseProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
+  variant?: Variant
 }
 
 export const Close = React.forwardRef<HTMLButtonElement, CloseProps>(
@@ -59,46 +59,46 @@ export const Close = React.forwardRef<HTMLButtonElement, CloseProps>(
       ref={ref}
       type="button"
       className={classNames(
-        'btn-close',
+        "btn-close",
         variant && `btn-close-${variant}`,
-        className,
+        className
       )}
       {...ps}
     />
-  ),
-);
-Close.displayName = 'CloseButton';
+  )
+)
+Close.displayName = "CloseButton"
 Close.defaultProps = {
-  'aria-label': 'Close',
-};
-
-export interface GroupProps extends BsProps, React.HTMLAttributes<HTMLElement> {
-  size?: 'sm' | 'lg';
-  vertical?: boolean;
+  "aria-label": "Close",
 }
 
-export const Group: BsRefComp<'div', GroupProps> = React.forwardRef(
+export interface GroupProps extends BsProps, React.HTMLAttributes<HTMLElement> {
+  size?: "sm" | "lg"
+  vertical?: boolean
+}
+
+export const Group: BsRefComp<"div", GroupProps> = React.forwardRef(
   (
-    { bsPrefix, size, vertical, className, as: X = 'div', ...ps }: GroupProps,
-    ref,
+    { bsPrefix, size, vertical, className, as: X = "div", ...ps }: GroupProps,
+    ref
   ) => {
-    const bs = useBs(bsPrefix, 'btn-group');
-    let base = bs;
-    if (vertical) base = `${bs}-vertical`;
+    const bs = useBs(bsPrefix, "btn-group")
+    let base = bs
+    if (vertical) base = `${bs}-vertical`
     return (
       <X
         {...ps}
         ref={ref}
         className={classNames(className, base, size && `${bs}-${size}`)}
       />
-    );
-  },
-);
-Group.displayName = 'ButtonGroup';
+    )
+  }
+)
+Group.displayName = "ButtonGroup"
 Group.defaultProps = {
   vertical: false,
-  role: 'group',
-};
+  role: "group",
+}
 
 export interface ToolbarProps
   extends BsProps,
@@ -106,11 +106,11 @@ export interface ToolbarProps
 
 export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
-    const bs = useBs(bsPrefix, 'btn-toolbar');
-    return <div {...ps} ref={ref} className={classNames(className, bs)} />;
-  },
-);
-Toolbar.displayName = 'ButtonToolbar';
+    const bs = useBs(bsPrefix, "btn-toolbar")
+    return <div {...ps} ref={ref} className={classNames(className, bs)} />
+  }
+)
+Toolbar.displayName = "ButtonToolbar"
 Toolbar.defaultProps = {
-  role: 'toolbar',
-};
+  role: "toolbar",
+}

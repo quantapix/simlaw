@@ -1,15 +1,15 @@
-import classNames from 'classnames';
-import * as React from 'react';
-import { OverlayArrowProps } from '@restart/ui/Overlay';
-import { useBs, useIsRTL } from './Theme';
-import { Placement, PopperRef } from './types';
-import { BsProps, getDirection } from './helpers';
+import classNames from "classnames"
+import * as React from "react"
+import { OverlayArrowProps } from "@restart/ui/Overlay"
+import { useBs, useIsRTL } from "./Theme.jsx"
+import { Placement, PopperRef } from "./types.jsx"
+import { BsProps, getDirection } from "./helpers.js"
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
-  placement?: Placement;
-  arrowProps?: Partial<OverlayArrowProps>;
-  show?: boolean;
-  popper?: PopperRef;
+  placement?: Placement
+  arrowProps?: Partial<OverlayArrowProps>
+  show?: boolean
+  popper?: PopperRef
 }
 
 export const Tooltip = React.forwardRef<HTMLDivElement, Props>(
@@ -25,12 +25,12 @@ export const Tooltip = React.forwardRef<HTMLDivElement, Props>(
       show: _2,
       ...ps
     }: Props,
-    ref,
+    ref
   ) => {
-    bsPrefix = useBs(bsPrefix, 'tooltip');
-    const isRTL = useIsRTL();
-    const [primaryPlacement] = placement?.split('-') || [];
-    const bsDirection = getDirection(primaryPlacement, isRTL);
+    bsPrefix = useBs(bsPrefix, "tooltip")
+    const isRTL = useIsRTL()
+    const [primaryPlacement] = placement?.split("-") || []
+    const bsDirection = getDirection(primaryPlacement, isRTL)
     return (
       <div
         ref={ref}
@@ -43,10 +43,10 @@ export const Tooltip = React.forwardRef<HTMLDivElement, Props>(
         <div className="tooltip-arrow" {...arrowProps} />
         <div className={`${bsPrefix}-inner`}>{children}</div>
       </div>
-    );
-  },
-);
-Tooltip.displayName = 'Tooltip';
+    )
+  }
+)
+Tooltip.displayName = "Tooltip"
 Tooltip.defaultProps = {
-  placement: 'right',
-};
+  placement: "right",
+}

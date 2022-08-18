@@ -1,25 +1,25 @@
-import classNames from 'classnames';
-import * as React from 'react';
-import { useBs } from './Theme';
-import { BsProps, BsRefComp } from './helpers';
-import { Variant } from './types';
+import classNames from "classnames"
+import * as React from "react"
+import { useBs } from "./Theme.jsx"
+import { BsProps, BsRefComp } from "./helpers.js"
+import { Variant } from "./types.jsx"
 
 export interface Props extends React.HTMLAttributes<HTMLElement>, BsProps {
-  animation: 'border' | 'grow';
-  size?: 'sm';
-  variant?: Variant;
+  animation: "border" | "grow"
+  size?: "sm"
+  variant?: Variant
 }
 
-export const Spinner: BsRefComp<'div', Props> = React.forwardRef<
+export const Spinner: BsRefComp<"div", Props> = React.forwardRef<
   HTMLElement,
   Props
 >(
   (
-    { bsPrefix, variant, animation, size, as: X = 'div', className, ...ps },
-    ref,
+    { bsPrefix, variant, animation, size, as: X = "div", className, ...ps },
+    ref
   ) => {
-    const bs = useBs(bsPrefix, 'spinner');
-    const bsSpinnerPrefix = `${bs}-${animation}`;
+    const bs = useBs(bsPrefix, "spinner")
+    const bsSpinnerPrefix = `${bs}-${animation}`
     return (
       <X
         ref={ref}
@@ -28,10 +28,10 @@ export const Spinner: BsRefComp<'div', Props> = React.forwardRef<
           className,
           bsSpinnerPrefix,
           size && `${bsSpinnerPrefix}-${size}`,
-          variant && `text-${variant}`,
+          variant && `text-${variant}`
         )}
       />
-    );
-  },
-);
-Spinner.displayName = 'Spinner';
+    )
+  }
+)
+Spinner.displayName = "Spinner"

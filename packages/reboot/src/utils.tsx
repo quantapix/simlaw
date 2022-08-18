@@ -1,142 +1,142 @@
-import classNames from 'classnames';
-import * as React from 'react';
-import ReactDOM from 'react-dom';
-import css from 'dom-helpers/css';
-import camelize from 'dom-helpers/camelize';
-import transitionEnd from 'dom-helpers/transitionEnd';
-import { useBs } from './Theme';
-import { BsRefComp } from './helpers';
+import classNames from "classnames"
+import * as React from "react"
+import ReactDOM from "react-dom"
+import css from "dom-helpers/css"
+import camelize from "dom-helpers/camelize"
+import transitionEnd from "dom-helpers/transitionEnd"
+import { useBs } from "./Theme.jsx"
+import { BsRefComp } from "./helpers.js"
 
 export function map<P = any>(
   xs,
-  f: (el: React.ReactElement<P>, i: number) => any,
+  f: (el: React.ReactElement<P>, i: number) => any
 ) {
-  let i = 0;
-  return React.Children.map(xs, (x) =>
-    React.isValidElement<P>(x) ? f(x, i++) : x,
-  );
+  let i = 0
+  return React.Children.map(xs, x =>
+    React.isValidElement<P>(x) ? f(x, i++) : x
+  )
 }
 
 export function forEach<P = any>(
   xs,
-  f: (el: React.ReactElement<P>, i: number) => void,
+  f: (el: React.ReactElement<P>, i: number) => void
 ) {
-  let i = 0;
-  React.Children.forEach(xs, (x) => {
-    if (React.isValidElement<P>(x)) f(x, i++);
-  });
+  let i = 0
+  React.Children.forEach(xs, x => {
+    if (React.isValidElement<P>(x)) f(x, i++)
+  })
 }
 
 export function hasChildOfType<P = any>(
   xs: React.ReactNode,
-  type: string | React.JSXElementConstructor<P>,
+  type: string | React.JSXElementConstructor<P>
 ): boolean {
   return React.Children.toArray(xs).some(
-    (x) => React.isValidElement(x) && x.type === type,
-  );
+    x => React.isValidElement(x) && x.type === type
+  )
 }
 
 export function createChained(...fs) {
   return fs
-    .filter((f) => f != null)
+    .filter(f => f != null)
     .reduce((acc, f) => {
-      if (typeof f !== 'function') {
+      if (typeof f !== "function") {
         throw new Error(
-          'Invalid Argument Type, must only provide functions, undefined, or null.',
-        );
+          "Invalid Argument Type, must only provide functions, undefined, or null."
+        )
       }
-      if (acc === null) return f;
+      if (acc === null) return f
       return function chainedFunction(...xs) {
         // @ts-ignore
-        acc.apply(this, xs);
+        acc.apply(this, xs)
         // @ts-ignore
-        f.apply(this, xs);
-      };
-    }, null);
+        f.apply(this, xs)
+      }
+    }, null)
 }
 
 export function triggerReflow(node: HTMLElement): void {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  node.offsetHeight;
+  node.offsetHeight
 }
 
 export function safeFindDOMNode(
-  componentOrElement: React.ComponentClass | Element | null | undefined,
+  componentOrElement: React.ComponentClass | Element | null | undefined
 ) {
-  if (componentOrElement && 'setState' in componentOrElement) {
-    return ReactDOM.findDOMNode(componentOrElement);
+  if (componentOrElement && "setState" in componentOrElement) {
+    return ReactDOM.findDOMNode(componentOrElement)
   }
-  return (componentOrElement ?? null) as Element | Text | null;
+  return (componentOrElement ?? null) as Element | Text | null
 }
 
 export const divAs = (className: string) =>
-  React.forwardRef<HTMLDivElement, React.ComponentProps<'div'>>((p, ref) => (
+  React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>((p, ref) => (
     <div
       {...p}
       ref={ref}
       className={classNames((p as any).className, className)}
     />
-  ));
+  ))
 
-const pascalCase = (str) => str[0].toUpperCase() + camelize(str).slice(1);
+const pascalCase = str => str[0].toUpperCase() + camelize(str).slice(1)
 
-interface BsOptions<As extends React.ElementType = 'div'> {
-  displayName?: string;
-  Component?: As;
-  defaultProps?: Partial<React.ComponentProps<As>>;
+interface BsOptions<As extends React.ElementType = "div"> {
+  displayName?: string
+  Component?: As
+  defaultProps?: Partial<React.ComponentProps<As>>
 }
 
-export function withBs<As extends React.ElementType = 'div'>(
+export function withBs<As extends React.ElementType = "div">(
   prefix: string,
   {
     displayName = pascalCase(prefix),
     Component,
     defaultProps,
-  }: BsOptions<As> = {},
+  }: BsOptions<As> = {}
 ): BsRefComp<As> {
   const y = React.forwardRef(
     (
-      { className, bsPrefix, as: X = Component || 'div', ...props }: any,
-      ref,
+      { className, bsPrefix, as: X = Component || "div", ...props }: any,
+      ref
     ) => {
-      const resolvedPrefix = useBs(bsPrefix, prefix);
+      const resolvedPrefix = useBs(bsPrefix, prefix)
       return (
         <X
           ref={ref}
           className={classNames(className, resolvedPrefix)}
           {...props}
         />
-      );
-    },
-  );
-  y.defaultProps = defaultProps as any;
-  y.displayName = displayName;
-  return y as any;
+      )
+    }
+  )
+  y.defaultProps = defaultProps as any
+  y.displayName = displayName
+  return y as any
 }
 
 function parseDuration(
   node: HTMLElement,
-  property: 'transitionDuration' | 'transitionDelay',
+  property: "transitionDuration" | "transitionDelay"
 ) {
-  const str = css(node, property) || '';
-  const mult = str.indexOf('ms') === -1 ? 1000 : 1;
-  return parseFloat(str) * mult;
+  const str = css(node, property) || ""
+  const mult = str.indexOf("ms") === -1 ? 1000 : 1
+  return parseFloat(str) * mult
 }
 
 export function endListener(
   element: HTMLElement,
-  handler: (e: TransitionEvent) => void,
+  handler: (e: TransitionEvent) => void
 ) {
-  const duration = parseDuration(element, 'transitionDuration');
-  const delay = parseDuration(element, 'transitionDelay');
+  const duration = parseDuration(element, "transitionDuration")
+  const delay = parseDuration(element, "transitionDelay")
   const remove = transitionEnd(
     element,
-    (e) => {
+    e => {
       if (e.target === element) {
-        remove();
-        handler(e);
+        remove()
+        handler(e)
       }
     },
-    duration + delay,
-  );
+    duration + delay
+  )
 }

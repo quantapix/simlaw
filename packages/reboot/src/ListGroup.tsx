@@ -1,23 +1,23 @@
-import classNames from 'classnames';
-import * as React from 'react';
-import warning from 'warning';
-import { useUncontrolled } from 'uncontrollable';
-import BaseNav, { NavProps as BaseNavProps } from '@restart/ui/Nav';
-import { EventKey } from '@restart/ui/types';
-import { makeEventKey } from '@restart/ui/SelectableContext';
-import useEventCallback from '@restart/hooks/useEventCallback';
-import { useNavItem, NavItemProps as IPs } from '@restart/ui/NavItem';
-import { BsProps, BsRefComp } from './helpers';
-import { useBs } from './Theme';
-import { Variant } from './types';
+import classNames from "classnames"
+import * as React from "react"
+import warning from "warning"
+import { useUncontrolled } from "uncontrollable"
+import BaseNav, { NavProps as BaseNavProps } from "@restart/ui/Nav"
+import { EventKey } from "@restart/ui/types"
+import { makeEventKey } from "@restart/ui/SelectableContext"
+import useEventCallback from "@restart/hooks/useEventCallback"
+import { useNavItem, NavItemProps as IPs } from "@restart/ui/NavItem"
+import { BsProps, BsRefComp } from "./helpers.js"
+import { useBs } from "./Theme.jsx"
+import { Variant } from "./types.jsx"
 
-export interface ItemProps extends Omit<IPs, 'onSelect'>, BsProps {
-  action?: boolean;
-  onClick?: React.MouseEventHandler;
-  variant?: Variant;
+export interface ItemProps extends Omit<IPs, "onSelect">, BsProps {
+  action?: boolean
+  onClick?: React.MouseEventHandler
+  variant?: Variant
 }
 
-export const Item: BsRefComp<'a', ItemProps> = React.forwardRef<
+export const Item: BsRefComp<"a", ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
 >(
@@ -33,28 +33,28 @@ export const Item: BsRefComp<'a', ItemProps> = React.forwardRef<
       as,
       ...ps
     },
-    ref,
+    ref
   ) => {
-    bsPrefix = useBs(bsPrefix, 'list-group-item');
+    bsPrefix = useBs(bsPrefix, "list-group-item")
     const [navItemProps, meta] = useNavItem({
       key: makeEventKey(eventKey, ps.href),
       active,
       ...ps,
-    });
-    const click = useEventCallback((e) => {
+    })
+    const click = useEventCallback(e => {
       if (disabled) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
+        e.preventDefault()
+        e.stopPropagation()
+        return
       }
-      navItemProps.onClick(e);
-    });
+      navItemProps.onClick(e)
+    })
     if (disabled && ps.tabIndex === undefined) {
-      ps.tabIndex = -1;
-      ps['aria-disabled'] = true;
+      ps.tabIndex = -1
+      ps["aria-disabled"] = true
     }
     // eslint-disable-next-line no-nested-ternary
-    const X = as || (action ? (ps.href ? 'a' : 'button') : 'div');
+    const X = as || (action ? (ps.href ? "a" : "button") : "div")
     return (
       <X
         ref={ref}
@@ -64,25 +64,25 @@ export const Item: BsRefComp<'a', ItemProps> = React.forwardRef<
         className={classNames(
           className,
           bsPrefix,
-          meta.isActive && 'active',
-          disabled && 'disabled',
+          meta.isActive && "active",
+          disabled && "disabled",
           variant && `${bsPrefix}-${variant}`,
-          action && `${bsPrefix}-action`,
+          action && `${bsPrefix}-action`
         )}
       />
-    );
-  },
-);
-Item.displayName = 'ListGroupItem';
+    )
+  }
+)
+Item.displayName = "ListGroupItem"
 
 export interface Props extends BsProps, BaseNavProps {
-  variant?: 'flush' | string;
-  horizontal?: boolean | string | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
-  defaultActiveKey?: EventKey;
-  numbered?: boolean;
+  variant?: "flush" | string
+  horizontal?: boolean | string | "sm" | "md" | "lg" | "xl" | "xxl"
+  defaultActiveKey?: EventKey
+  numbered?: boolean
 }
 
-export const ListGroup: BsRefComp<'div', Props> = React.forwardRef<
+export const ListGroup: BsRefComp<"div", Props> = React.forwardRef<
   HTMLElement,
   Props
 >((xs, ref) => {
@@ -92,20 +92,20 @@ export const ListGroup: BsRefComp<'div', Props> = React.forwardRef<
     variant,
     horizontal,
     numbered,
-    as = 'div',
+    as = "div",
     ...ps
   } = useUncontrolled(xs, {
-    activeKey: 'onSelect',
-  });
-  const bs = useBs(initialBsPrefix, 'list-group');
-  let h: string | undefined;
+    activeKey: "onSelect",
+  })
+  const bs = useBs(initialBsPrefix, "list-group")
+  let h: string | undefined
   if (horizontal) {
-    h = horizontal === true ? 'horizontal' : `horizontal-${horizontal}`;
+    h = horizontal === true ? "horizontal" : `horizontal-${horizontal}`
   }
   warning(
-    !(horizontal && variant === 'flush'),
-    '`variant="flush"` and `horizontal` should not be used together.',
-  );
+    !(horizontal && variant === "flush"),
+    '`variant="flush"` and `horizontal` should not be used together.'
+  )
   return (
     <BaseNav
       ref={ref}
@@ -116,9 +116,9 @@ export const ListGroup: BsRefComp<'div', Props> = React.forwardRef<
         bs,
         variant && `${bs}-${variant}`,
         h && `${bs}-${h}`,
-        numbered && `${bs}-numbered`,
+        numbered && `${bs}-numbered`
       )}
     />
-  );
-});
-ListGroup.displayName = 'ListGroup';
+  )
+})
+ListGroup.displayName = "ListGroup"

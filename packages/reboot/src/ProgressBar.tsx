@@ -1,27 +1,27 @@
-import classNames from 'classnames';
-import * as React from 'react';
-import { cloneElement } from 'react';
-import { useBs } from './Theme';
-import { map } from './utils';
-import { BsProps } from './helpers';
+import classNames from "classnames"
+import * as React from "react"
+import { cloneElement } from "react"
+import { useBs } from "./Theme.jsx"
+import { map } from "./utils.jsx"
+import { BsProps } from "./helpers.js"
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
-  min?: number;
-  now?: number;
-  max?: number;
-  label?: React.ReactNode;
-  visuallyHidden?: boolean;
-  striped?: boolean;
-  animated?: boolean;
-  variant?: 'success' | 'danger' | 'warning' | 'info' | string;
-  isChild?: boolean;
+  min?: number
+  now?: number
+  max?: number
+  label?: React.ReactNode
+  visuallyHidden?: boolean
+  striped?: boolean
+  animated?: boolean
+  variant?: "success" | "danger" | "warning" | "info" | string
+  isChild?: boolean
 }
 
-const ROUND_PRECISION = 1000;
+const ROUND_PRECISION = 1000
 
 function getPercentage(now, min, max) {
-  const percentage = ((now - min) / (max - min)) * 100;
-  return Math.round(percentage * ROUND_PRECISION) / ROUND_PRECISION;
+  const percentage = ((now - min) / (max - min)) * 100
+  return Math.round(percentage * ROUND_PRECISION) / ROUND_PRECISION
 }
 
 function renderProgressBar(
@@ -39,7 +39,7 @@ function renderProgressBar(
     bsPrefix,
     ...ps
   }: Props,
-  ref,
+  ref
 ) {
   return (
     <div
@@ -62,14 +62,14 @@ function renderProgressBar(
         label
       )}
     </div>
-  );
+  )
 }
 
 export const ProgressBar = React.forwardRef<HTMLDivElement, Props>(
   ({ isChild, ...ps }: Props, ref) => {
-    ps.bsPrefix = useBs(ps.bsPrefix, 'progress');
+    ps.bsPrefix = useBs(ps.bsPrefix, "progress")
     if (isChild) {
-      return renderProgressBar(ps, ref);
+      return renderProgressBar(ps, ref)
     }
     const {
       min,
@@ -84,7 +84,7 @@ export const ProgressBar = React.forwardRef<HTMLDivElement, Props>(
       className,
       children,
       ...wrapperProps
-    } = ps;
+    } = ps
     return (
       <div
         ref={ref}
@@ -92,7 +92,7 @@ export const ProgressBar = React.forwardRef<HTMLDivElement, Props>(
         className={classNames(className, bsPrefix)}
       >
         {children
-          ? map(children, (child) => cloneElement(child, { isChild: true }))
+          ? map(children, child => cloneElement(child, { isChild: true }))
           : renderProgressBar(
               {
                 min,
@@ -105,13 +105,13 @@ export const ProgressBar = React.forwardRef<HTMLDivElement, Props>(
                 bsPrefix,
                 variant,
               },
-              ref,
+              ref
             )}
       </div>
-    );
-  },
-);
-ProgressBar.displayName = 'ProgressBar';
+    )
+  }
+)
+ProgressBar.displayName = "ProgressBar"
 ProgressBar.defaultProps = {
   min: 0,
   max: 100,
@@ -119,4 +119,4 @@ ProgressBar.defaultProps = {
   isChild: false,
   visuallyHidden: false,
   striped: false,
-};
+}

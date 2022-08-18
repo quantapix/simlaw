@@ -1,7 +1,7 @@
-import classNames from 'classnames';
-import * as React from 'react';
-import useBreakpoint from '@restart/hooks/useBreakpoint';
-import useEventCallback from '@restart/hooks/useEventCallback';
+import classNames from "classnames"
+import * as React from "react"
+import useBreakpoint from "@restart/hooks/useBreakpoint"
+import useEventCallback from "@restart/hooks/useEventCallback"
 import {
   useCallback,
   useContext,
@@ -9,71 +9,68 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react';
-import BaseModal, {
-  ModalProps as _Props,
-  ModalHandle,
-} from '@restart/ui/Modal';
+} from "react"
+import BaseModal, { ModalProps as _Props, ModalHandle } from "@restart/ui/Modal"
 import Transition, {
   TransitionStatus,
   ENTERED,
   ENTERING,
   EXITING,
-} from 'react-transition-group/Transition';
-import { TransitionCallbacks } from '@restart/ui/types';
-import { Fade } from './Fade';
-import { AbsHeader, AbsProps as HProps, Context as MContext } from './Modal';
-import { Context as NContext } from './Navbar';
-import { BsOnlyProps, BsRefComp } from './helpers';
-import { useBs } from './Theme';
-import { Manager, getSharedManager } from './Manager';
-import { divAs, withBs, endListener } from './utils';
-import { Wrapper } from './Transition';
+} from "react-transition-group/Transition"
+import { TransitionCallbacks } from "@restart/ui/types"
+import { Fade } from "./Fade.jsx"
+import { AbsHeader, AbsProps as HProps, Context as MContext } from "./Modal"
+import { Context as NContext } from "./Navbar"
+import { BsOnlyProps, BsRefComp } from "./helpers.js"
+import { useBs } from "./Theme.jsx"
+import { Manager, getSharedManager } from "./Manager"
+import { divAs, withBs, endListener } from "./utils.jsx"
+import { Wrapper } from "./Transition"
 
 export interface HeaderProps extends HProps, BsOnlyProps {}
 
 export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
-    bsPrefix = useBs(bsPrefix, 'offcanvas-header');
+    bsPrefix = useBs(bsPrefix, "offcanvas-header")
     return (
       <AbsHeader
         ref={ref}
         {...ps}
         className={classNames(className, bsPrefix)}
       />
-    );
-  },
-);
-Header.displayName = 'OffcanvasHeader';
+    )
+  }
+)
+Header.displayName = "OffcanvasHeader"
 Header.defaultProps = {
-  closeLabel: 'Close',
+  closeLabel: "Close",
   closeButton: false,
-};
+}
 
-export const Body = withBs('offcanvas-body');
-const DivAsH5 = divAs('h5');
-export const Title = withBs('offcanvas-title', {
+export const Body = withBs("offcanvas-body")
+const DivAsH5 = divAs("h5")
+export const Title = withBs("offcanvas-title", {
   Component: DivAsH5,
-});
+})
 
 export interface TogglingProps extends TransitionCallbacks, BsOnlyProps {
-  className?: string;
-  in?: boolean;
-  mountOnEnter?: boolean;
-  unmountOnExit?: boolean;
-  appear?: boolean;
-  timeout?: number;
-  children: React.ReactElement;
+  className?: string
+  in?: boolean
+  mountOnEnter?: boolean
+  unmountOnExit?: boolean
+  appear?: boolean
+  timeout?: number
+  children: React.ReactElement
 }
 
 const styles = {
-  [ENTERING]: 'show',
-  [ENTERED]: 'show',
-};
+  [ENTERING]: "show",
+  [ENTERED]: "show",
+}
 
 export const Toggling = React.forwardRef<Transition<any>, TogglingProps>(
   ({ bsPrefix, className, children, ...ps }, ref) => {
-    bsPrefix = useBs(bsPrefix, 'offcanvas');
+    bsPrefix = useBs(bsPrefix, "offcanvas")
     return (
       <Wrapper
         ref={ref}
@@ -89,51 +86,51 @@ export const Toggling = React.forwardRef<Transition<any>, TogglingProps>(
               children.props.className,
               (status === ENTERING || status === EXITING) &&
                 `${bsPrefix}-toggling`,
-              styles[status],
+              styles[status]
             ),
           })
         }
       </Wrapper>
-    );
-  },
-);
-Toggling.displayName = 'OffcanvasToggling';
+    )
+  }
+)
+Toggling.displayName = "OffcanvasToggling"
 Toggling.defaultProps = {
   in: false,
   mountOnEnter: false,
   unmountOnExit: false,
   appear: false,
-};
+}
 
-export type Placement = 'start' | 'end' | 'top' | 'bottom';
+export type Placement = "start" | "end" | "top" | "bottom"
 
 export interface Props
   extends Omit<
     _Props,
-    | 'role'
-    | 'renderBackdrop'
-    | 'renderDialog'
-    | 'transition'
-    | 'backdrop'
-    | 'backdropTransition'
+    | "role"
+    | "renderBackdrop"
+    | "renderDialog"
+    | "transition"
+    | "backdrop"
+    | "backdropTransition"
   > {
-  bsPrefix?: string;
-  backdropClassName?: string;
-  scroll?: boolean;
-  placement?: Placement;
-  responsive?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | string;
-  renderStaticNode?: boolean;
+  bsPrefix?: string
+  backdropClassName?: string
+  scroll?: boolean
+  placement?: Placement
+  responsive?: "sm" | "md" | "lg" | "xl" | "xxl" | string
+  renderStaticNode?: boolean
 }
 
 function DialogTransition(ps) {
-  return <Toggling {...ps} />;
+  return <Toggling {...ps} />
 }
 
 function BackdropTransition(ps) {
-  return <Fade {...ps} />;
+  return <Fade {...ps} />
 }
 
-export const Offcanvas: BsRefComp<'div', Props> = React.forwardRef<
+export const Offcanvas: BsRefComp<"div", Props> = React.forwardRef<
   ModalHandle,
   Props
 >(
@@ -142,7 +139,7 @@ export const Offcanvas: BsRefComp<'div', Props> = React.forwardRef<
       bsPrefix,
       className,
       children,
-      'aria-labelledby': ariaLabelledby,
+      "aria-labelledby": ariaLabelledby,
       placement,
       responsive,
       show,
@@ -168,71 +165,71 @@ export const Offcanvas: BsRefComp<'div', Props> = React.forwardRef<
       renderStaticNode,
       ...ps
     },
-    ref,
+    ref
   ) => {
-    const manager = useRef<Manager>();
-    bsPrefix = useBs(bsPrefix, 'offcanvas');
-    const { onToggle } = useContext(NContext) || {};
-    const [showOffcanvas, setShowOffcanvas] = useState(false);
+    const manager = useRef<Manager>()
+    bsPrefix = useBs(bsPrefix, "offcanvas")
+    const { onToggle } = useContext(NContext) || {}
+    const [showOffcanvas, setShowOffcanvas] = useState(false)
     const hideResponsiveOffcanvas = useBreakpoint(
-      (responsive as any) || 'xs',
-      'up',
-    );
+      (responsive as any) || "xs",
+      "up"
+    )
     useEffect(() => {
-      setShowOffcanvas(responsive ? show && !hideResponsiveOffcanvas : show);
-    }, [show, responsive, hideResponsiveOffcanvas]);
+      setShowOffcanvas(responsive ? show && !hideResponsiveOffcanvas : show)
+    }, [show, responsive, hideResponsiveOffcanvas])
     const hide = useEventCallback(() => {
-      onToggle?.();
-      onHide?.();
-    });
+      onToggle?.()
+      onHide?.()
+    })
     const v = useMemo(
       () => ({
         onHide: hide,
       }),
-      [hide],
-    );
+      [hide]
+    )
     function getManager() {
-      if (propsManager) return propsManager;
+      if (propsManager) return propsManager
       if (scroll) {
         if (!manager.current)
           manager.current = new Manager({
             handleContainerOverflow: false,
-          });
-        return manager.current;
+          })
+        return manager.current
       }
-      return getSharedManager();
+      return getSharedManager()
     }
     const enter = (node, ...args) => {
-      if (node) node.style.visibility = 'visible';
-      onEnter?.(node, ...args);
-    };
+      if (node) node.style.visibility = "visible"
+      onEnter?.(node, ...args)
+    }
     const exited = (node, ...args) => {
-      if (node) node.style.visibility = '';
-      onExited?.(...args);
-    };
+      if (node) node.style.visibility = ""
+      onExited?.(...args)
+    }
     const renderBackdrop = useCallback(
-      (backdropProps) => (
+      backdropProps => (
         <div
           {...backdropProps}
           className={classNames(`${bsPrefix}-backdrop`, backdropClassName)}
         />
       ),
-      [backdropClassName, bsPrefix],
-    );
-    const renderDialog = (dialogProps) => (
+      [backdropClassName, bsPrefix]
+    )
+    const renderDialog = dialogProps => (
       <div
         {...dialogProps}
         {...ps}
         className={classNames(
           className,
           responsive ? `${bsPrefix}-${responsive}` : bsPrefix,
-          `${bsPrefix}-${placement}`,
+          `${bsPrefix}-${placement}`
         )}
         aria-labelledby={ariaLabelledby}
       >
         {children}
       </div>
-    );
+    )
     return (
       <>
         {/**/}
@@ -265,10 +262,10 @@ export const Offcanvas: BsRefComp<'div', Props> = React.forwardRef<
           />
         </MContext.Provider>
       </>
-    );
-  },
-);
-Offcanvas.displayName = 'Offcanvas';
+    )
+  }
+)
+Offcanvas.displayName = "Offcanvas"
 Offcanvas.defaultProps = {
   show: false,
   backdrop: true,
@@ -277,15 +274,15 @@ Offcanvas.defaultProps = {
   autoFocus: true,
   enforceFocus: true,
   restoreFocus: true,
-  placement: 'start',
+  placement: "start",
   renderStaticNode: false,
-};
+}
 
-export type NavbarProps = Omit<Props, 'show'>;
+export type NavbarProps = Omit<Props, "show">
 
 export const Navbar = React.forwardRef<HTMLDivElement, NavbarProps>(
   (ps, ref) => {
-    const context = useContext(NContext);
+    const context = useContext(NContext)
     return (
       <Offcanvas
         ref={ref}
@@ -293,7 +290,7 @@ export const Navbar = React.forwardRef<HTMLDivElement, NavbarProps>(
         {...ps}
         renderStaticNode
       />
-    );
-  },
-);
-Navbar.displayName = 'NavbarOffcanvas';
+    )
+  }
+)
+Navbar.displayName = "NavbarOffcanvas"

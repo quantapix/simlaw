@@ -1,30 +1,30 @@
-import classNames from 'classnames';
-import * as React from 'react';
-import invariant from 'invariant';
-import { useUncontrolled } from 'uncontrollable';
-import { useBs } from './Theme';
+import classNames from "classnames"
+import * as React from "react"
+import invariant from "invariant"
+import { useUncontrolled } from "uncontrollable"
+import { useBs } from "./Theme.jsx"
 import {
   Button as B,
   Props as BPs,
   Group as G,
   GroupProps as GPs,
-} from './Button';
-import { map, createChained } from './utils';
-import { BsRefComp } from './helpers';
+} from "./Button.jsx"
+import { map, createChained } from "./utils.jsx"
+import { BsRefComp } from "./helpers.js"
 
-export type Type = 'checkbox' | 'radio';
+export type Type = "checkbox" | "radio"
 
-export interface Props extends Omit<BPs, 'onChange' | 'type'> {
-  type?: Type;
-  name?: string;
-  checked?: boolean;
-  disabled?: boolean;
-  onChange?: React.ChangeEventHandler<HTMLInputElement>;
-  value: string | ReadonlyArray<string> | number;
-  inputRef?: React.Ref<HTMLInputElement>;
+export interface Props extends Omit<BPs, "onChange" | "type"> {
+  type?: Type
+  name?: string
+  checked?: boolean
+  disabled?: boolean
+  onChange?: React.ChangeEventHandler<HTMLInputElement>
+  value: string | ReadonlyArray<string> | number
+  inputRef?: React.Ref<HTMLInputElement>
 }
 
-const noop = () => undefined;
+const noop = () => undefined
 
 export const Button = React.forwardRef<HTMLLabelElement, Props>(
   (
@@ -41,9 +41,9 @@ export const Button = React.forwardRef<HTMLLabelElement, Props>(
       inputRef,
       ...ps
     },
-    ref,
+    ref
   ) => {
-    const bs = useBs(bsPrefix, 'btn-check');
+    const bs = useBs(bsPrefix, "btn-check")
     return (
       <>
         <input
@@ -61,87 +61,87 @@ export const Button = React.forwardRef<HTMLLabelElement, Props>(
         <B
           {...ps}
           ref={ref}
-          className={classNames(className, disabled && 'disabled')}
+          className={classNames(className, disabled && "disabled")}
           type={undefined}
           role={undefined}
           as="label"
           htmlFor={id}
         />
       </>
-    );
-  },
-);
-Button.displayName = 'ToggleButton';
+    )
+  }
+)
+Button.displayName = "ToggleButton"
 
-type Base = Omit<GPs, 'toggle' | 'defaultValue' | 'onChange'>;
+type Base = Omit<GPs, "toggle" | "defaultValue" | "onChange">
 
 export interface RadioProps<T> extends Base {
-  type?: 'radio';
-  name: string;
-  value?: T;
-  defaultValue?: T;
-  onChange?: (value: T, event: any) => void;
+  type?: "radio"
+  name: string
+  value?: T
+  defaultValue?: T
+  onChange?: (value: T, event: any) => void
 }
 
 export interface CheckboxProps<T> extends Base {
-  type: 'checkbox';
-  name?: string;
-  value?: T[];
-  defaultValue?: T[];
-  onChange?: (value: T[]) => void;
+  type: "checkbox"
+  name?: string
+  value?: T[]
+  defaultValue?: T[]
+  onChange?: (value: T[]) => void
 }
 
-export type GroupProps<T> = RadioProps<T> | CheckboxProps<T>;
+export type GroupProps<T> = RadioProps<T> | CheckboxProps<T>
 
-export const Group: BsRefComp<'a', GroupProps<any>> = React.forwardRef<
+export const Group: BsRefComp<"a", GroupProps<any>> = React.forwardRef<
   HTMLElement,
   GroupProps<any>
 >((xs, ref) => {
   const { children, type, name, value, onChange, ...ps } = useUncontrolled(xs, {
-    value: 'onChange',
-  });
-  const getValues: () => any[] = () => (value == null ? [] : [].concat(value));
+    value: "onChange",
+  })
+  const getValues: () => any[] = () => (value == null ? [] : [].concat(value))
   const toggle = (x: any, e: any) => {
     if (!onChange) {
-      return;
+      return
     }
-    const values = getValues();
-    const isActive = values.indexOf(x) !== -1;
-    if (type === 'radio') {
-      if (!isActive) onChange(x, e);
-      return;
+    const values = getValues()
+    const isActive = values.indexOf(x) !== -1
+    if (type === "radio") {
+      if (!isActive) onChange(x, e)
+      return
     }
     if (isActive) {
       onChange(
-        values.filter((n) => n !== x),
-        e,
-      );
+        values.filter(n => n !== x),
+        e
+      )
     } else {
-      onChange([...values, x], e);
+      onChange([...values, x], e)
     }
-  };
+  }
   invariant(
-    type !== 'radio' || !!name,
-    'A `name` is required to group the toggle buttons when the `type` ' +
-      'is set to "radio"',
-  );
+    type !== "radio" || !!name,
+    "A `name` is required to group the toggle buttons when the `type` " +
+      'is set to "radio"'
+  )
   return (
     <G {...ps} ref={ref as any}>
-      {map(children, (x) => {
-        const vs = getValues();
-        const { value: childVal, onChange: childOnChange } = x.props;
-        const handler = (e) => toggle(childVal, e);
+      {map(children, x => {
+        const vs = getValues()
+        const { value: childVal, onChange: childOnChange } = x.props
+        const handler = e => toggle(childVal, e)
         return React.cloneElement(x, {
           type,
           name: (x as any).name || name,
           checked: vs.indexOf(childVal) !== -1,
           onChange: createChained(childOnChange, handler),
-        });
+        })
       })}
     </G>
-  );
-});
+  )
+})
 Group.defaultProps = {
-  type: 'radio',
+  type: "radio",
   vertical: false,
-};
+}
