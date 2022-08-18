@@ -15,8 +15,8 @@ export declare type SelectCB = (
 
 export interface Data {
   activeEventKey?: Key
-  onSelect?: SelectCB
-  alwaysOpen?: boolean
+  onSelect?: SelectCB | undefined
+  alwaysOpen?: boolean | undefined
 }
 
 export function isItemSelected(active: Key, key: string): boolean {

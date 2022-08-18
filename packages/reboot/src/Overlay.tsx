@@ -1,16 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { cloneElement, useCallback, useRef } from "react"
 import contains from "dom-helpers/contains"
 import BaseOverlay, {
   OverlayProps as _Props,
   OverlayArrowProps,
-} from "@restart/ui/Overlay"
-import { State } from "@restart/ui/usePopper"
-import useCallbackRef from "@restart/hooks/useCallbackRef"
-import useEventCallback from "@restart/hooks/useEventCallback"
-import useIsomorphicEffect from "@restart/hooks/useIsomorphicEffect"
-import useMergedRefs from "@restart/hooks/useMergedRefs"
-import useTimeout from "@restart/hooks/useTimeout"
+} from "@restart/ui/esm/Overlay.jsx"
+import type { State } from "@restart/ui/esm/usePopper.jsx"
+import {
+  useCallbackRef,
+  useEventCallback,
+  useIsomorphicEffect,
+  useMergedRefs,
+  useTimeout,
+} from "@restart/hooks"
 import warning from "warning"
 import { useOffset, useUncontrolledProp } from "./use.jsx"
 import { Fade } from "./Fade.jsx"

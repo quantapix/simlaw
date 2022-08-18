@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from "react"
-import { OverlayArrowProps } from "@restart/ui/Overlay"
+import type { OverlayArrowProps } from "@restart/ui/esm/Overlay.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import type { Placement, PopperRef } from "./types.jsx"
 import { classNames, BsProps, getDirection } from "./helpers.js"

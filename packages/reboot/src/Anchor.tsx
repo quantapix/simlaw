@@ -1,4 +1,4 @@
-import Anchor, { AnchorProps } from '@restart/ui/Anchor';
+import Anchor, { AnchorProps } from "@restart/ui/esm/Anchor.js"
 
-export type { AnchorProps };
-export default Anchor;
+export type { AnchorProps }
+export default Anchor

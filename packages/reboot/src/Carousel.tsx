@@ -1,9 +1,11 @@
 import * as React from "react"
-import useEventCallback from "@restart/hooks/useEventCallback"
-import useUpdateEffect from "@restart/hooks/useUpdateEffect"
-import useCommittedRef from "@restart/hooks/useCommittedRef"
-import useTimeout from "@restart/hooks/useTimeout"
-import Anchor from "@restart/ui/Anchor"
+import {
+  useEventCallback,
+  useUpdateEffect,
+  useCommittedRef,
+  useTimeout,
+} from "@restart/hooks"
+import Anchor from "@restart/ui/esm/Anchor.js"
 import { TransitionStatus } from "react-transition-group/Transition"
 import {
   useCallback,

@@ -1,5 +1,5 @@
 import * as React from "react"
-import Anchor from "@restart/ui/Anchor"
+import Anchor from "@restart/ui/esm/Anchor.js"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRefComp } from "./helpers.js"
 

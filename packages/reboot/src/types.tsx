@@ -1,41 +1,41 @@
-import { State } from '@restart/ui/usePopper';
+import type { State } from "@restart/ui/usePopper.jsx"
 
 export type Variant =
-  | 'primary'
-  | 'secondary'
-  | 'success'
-  | 'danger'
-  | 'warning'
-  | 'info'
-  | 'dark'
-  | 'light'
-  | string;
+  | "primary"
+  | "secondary"
+  | "success"
+  | "danger"
+  | "warning"
+  | "info"
+  | "dark"
+  | "light"
+  | string
 export type ButtonVariant =
   | Variant
-  | 'link'
-  | 'outline-primary'
-  | 'outline-secondary'
-  | 'outline-success'
-  | 'outline-danger'
-  | 'outline-warning'
-  | 'outline-info'
-  | 'outline-dark'
-  | 'outline-light';
+  | "link"
+  | "outline-primary"
+  | "outline-secondary"
+  | "outline-success"
+  | "outline-danger"
+  | "outline-warning"
+  | "outline-info"
+  | "outline-dark"
+  | "outline-light"
 export type Color =
-  | 'primary'
-  | 'secondary'
-  | 'success'
-  | 'danger'
-  | 'warning'
-  | 'info'
-  | 'dark'
-  | 'light'
-  | 'white'
-  | 'muted';
+  | "primary"
+  | "secondary"
+  | "success"
+  | "danger"
+  | "warning"
+  | "info"
+  | "dark"
+  | "light"
+  | "white"
+  | "muted"
 
-export type Placement = import('@restart/ui/usePopper').Placement;
+export type Placement = import("@restart/ui/usePopper").Placement
 
-export type AlignDirection = 'start' | 'end';
+export type AlignDirection = "start" | "end"
 
 export type ResponsiveAlignProp =
   | { sm: AlignDirection }
@@ -43,17 +43,17 @@ export type ResponsiveAlignProp =
   | { lg: AlignDirection }
   | { xl: AlignDirection }
   | { xxl: AlignDirection }
-  | Record<string, AlignDirection>;
+  | Record<string, AlignDirection>
 
-export type AlignType = AlignDirection | ResponsiveAlignProp;
+export type AlignType = AlignDirection | ResponsiveAlignProp
 
-export type RootCloseEvent = 'click' | 'mousedown';
+export type RootCloseEvent = "click" | "mousedown"
 
-export type GapValue = 0 | 1 | 2 | 3 | 4 | 5;
+export type GapValue = 0 | 1 | 2 | 3 | 4 | 5
 
 export interface PopperRef {
-  state: State | undefined;
-  outOfBoundaries: boolean;
-  placement: Placement | undefined;
-  scheduleUpdate?: () => void;
+  state: State | undefined
+  outOfBoundaries: boolean
+  placement: Placement | undefined
+  scheduleUpdate?: () => void
 }

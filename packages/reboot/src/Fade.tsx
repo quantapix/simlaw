@@ -6,7 +6,7 @@ import Transition, {
   ENTERED,
   ENTERING,
 } from "react-transition-group/Transition"
-import { TransitionCallbacks } from "@restart/ui/types"
+import type { TransitionCallbacks } from "@restart/ui/esm/types.jsx"
 import { triggerReflow, endListener } from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
 

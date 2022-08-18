@@ -270,7 +270,7 @@ export const CheckLabel = React.forwardRef<HTMLLabelElement, CheckLabelProps>(
     const { controlId } = useContext(FormContext)
     const bs = useBs(bsPrefix, "form-check-label")
     return (
-      <label // eslint-disable-line jsx-a11y/label-has-associated-control
+      <label
         {...ps}
         ref={ref}
         htmlFor={htmlFor || controlId}

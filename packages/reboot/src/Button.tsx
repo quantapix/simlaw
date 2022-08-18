@@ -1,12 +1,15 @@
 import * as React from "react"
-import { useButtonProps, ButtonProps as _Props } from "@restart/ui/Button"
+import {
+  useButtonProps,
+  ButtonProps as _Props,
+} from "@restart/ui/esm/Button.js"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRefComp } from "./helpers.js"
 import type { ButtonVariant } from "./types.jsx"
 
 export interface Props extends _Props, Omit<BsProps, "as"> {
-  active?: boolean
-  variant?: ButtonVariant
+  active?: boolean | undefined
+  variant?: ButtonVariant | undefined
   size?: "sm" | "lg"
 }
 
@@ -49,7 +52,7 @@ export type Variant = "white" | string
 
 export interface CloseProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant
+  variant?: Variant | undefined
 }
 
 export const Close = React.forwardRef<HTMLButtonElement, CloseProps>(

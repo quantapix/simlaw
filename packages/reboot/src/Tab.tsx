@@ -1,14 +1,14 @@
 import * as React from "react"
-import SelectableContext from "@restart/ui/SelectableContext"
-import TabContext from "@restart/ui/TabContext"
-import { useTabPanel } from "@restart/ui/TabPanel"
-import {
+import SelectableContext from "@restart/ui/esm/SelectableContext.jsx"
+import TabContext from "@restart/ui/esm/TabContext.jsx"
+import { useTabPanel } from "@restart/ui/esm/TabPanel.jsx"
+import type {
   EventKey,
   TransitionCallbacks,
   TransitionComponent,
-} from "@restart/ui/types"
-import Tabs, { TabsProps } from "@restart/ui/Tabs"
-import NoopTransition from "@restart/ui/NoopTransition"
+} from "@restart/ui/esm/types.jsx"
+import Tabs, { TabsProps } from "@restart/ui/esm/Tabs.jsx"
+import NoopTransition from "@restart/ui/esm/NoopTransition.jsx"
 import { useBs } from "./Theme.jsx"
 import { Fade } from "./Fade.jsx"
 import { classNames, BsProps, BsRefComp, TransitionType } from "./helpers.js"

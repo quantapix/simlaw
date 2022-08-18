@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { ReactNode } from "react"
-import Anchor from "@restart/ui/Anchor"
+import Anchor from "@restart/ui/esm/Anchor.jsx"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRefComp } from "./helpers.js"
 

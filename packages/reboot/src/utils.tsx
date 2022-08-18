@@ -54,7 +54,6 @@ export function createChained(...fs) {
 }
 
 export function triggerReflow(node: HTMLElement): void {
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   node.offsetHeight
 }
 

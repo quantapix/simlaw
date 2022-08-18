@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useCallback, useRef } from "react"
 import Transition, {
   TransitionProps,
   TransitionStatus,
 } from "react-transition-group/Transition"
-import useMergedRefs from "@restart/hooks/useMergedRefs"
+import { useMergedRefs } from "@restart/hooks"
 import { safeFindDOMNode } from "./utils.jsx"
 
 export type Props = TransitionProps & {

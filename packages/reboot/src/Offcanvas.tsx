@@ -1,6 +1,5 @@
 import * as React from "react"
-import useBreakpoint from "@restart/hooks/useBreakpoint"
-import useEventCallback from "@restart/hooks/useEventCallback"
+import { useBreakpoint, useEventCallback } from "@restart/hooks"
 import {
   useCallback,
   useContext,
@@ -9,14 +8,17 @@ import {
   useRef,
   useState,
 } from "react"
-import BaseModal, { ModalProps as _Props, ModalHandle } from "@restart/ui/Modal"
+import BaseModal, {
+  ModalProps as _Props,
+  ModalHandle,
+} from "@restart/ui/esm/Modal.jsx"
 import Transition, {
   TransitionStatus,
   ENTERED,
   ENTERING,
   EXITING,
 } from "react-transition-group/Transition"
-import { TransitionCallbacks } from "@restart/ui/types"
+import type { TransitionCallbacks } from "@restart/ui/esm/types.jsx"
 import { Fade } from "./Fade.jsx"
 import { AbsHeader, AbsProps as HProps, Context as MContext } from "./Modal.jsx"
 import { Context as NContext } from "./Navbar.jsx"

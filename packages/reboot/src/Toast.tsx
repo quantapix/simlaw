@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useContext, useEffect, useMemo, useRef, useCallback } from "react"
 import useTimeout from "@restart/hooks/useTimeout"
-import { TransitionComponent } from "@restart/ui/types"
+import { TransitionComponent } from "@restart/ui/esm/types"
 import Transition, {
   ENTERING,
   EXITING,

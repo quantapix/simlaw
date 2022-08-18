@@ -1,24 +1,26 @@
 import * as React from "react"
 import { useContext, useMemo } from "react"
 import warning from "warning"
-import useIsomorphicEffect from "@restart/hooks/useIsomorphicEffect"
-import useMergedRefs from "@restart/hooks/useMergedRefs"
-import Anchor from "@restart/ui/Anchor"
+import {
+  useEventCallback,
+  useIsomorphicEffect,
+  useMergedRefs,
+} from "@restart/hooks"
+import Anchor from "@restart/ui/esm/Anchor.js"
 import BaseDropdown, {
   DropdownProps as _Props,
   ToggleMetadata,
-} from "@restart/ui/Dropdown"
+} from "@restart/ui/esm/Dropdown.js"
 import BaseDropdownItem, {
   useDropdownItem,
   DropdownItemProps as BaseDropdownItemProps,
-} from "@restart/ui/DropdownItem"
+} from "@restart/ui/esm/DropdownItem.js"
 import {
   useDropdownMenu,
   UseDropdownMenuOptions,
-} from "@restart/ui/DropdownMenu"
-import { useDropdownToggle } from "@restart/ui/DropdownToggle"
+} from "@restart/ui/esm/DropdownMenu.js"
+import { useDropdownToggle } from "@restart/ui/esm/DropdownToggle.js"
 import { useUncontrolled, useWrappedRef } from "./use.jsx"
-import useEventCallback from "@restart/hooks/useEventCallback"
 import { Context as InputGroupContext } from "./InputGroup.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"

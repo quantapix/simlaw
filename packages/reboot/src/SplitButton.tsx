@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ButtonType } from "@restart/ui/Button"
+import type { ButtonType } from "@restart/ui/esm/Button.jsx"
 import { Button, Group } from "./Button.jsx"
 import {
   Dropdown,

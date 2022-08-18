@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
-import { TransitionComponent } from "@restart/ui/types"
+import type { TransitionComponent } from "@restart/ui/esm/types.js"
 
 export type Omit<T, U> = Pick<T, Exclude<keyof T, keyof U>>
 
@@ -27,8 +28,8 @@ export interface BsRefComp<T0 extends React.ElementType, P = unknown> {
     context?: any
   ): React.ReactElement | null
   contextTypes?: any
-  defaultProps?: Partial<P>
-  displayName?: string
+  defaultProps?: Partial<P> | undefined
+  displayName?: string | undefined
 }
 
 export class BsComponent<

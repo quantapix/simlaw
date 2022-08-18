@@ -9,7 +9,7 @@ import Transition, {
   EXITED,
   EXITING,
 } from "react-transition-group/Transition"
-import { TransitionCallbacks } from "@restart/ui/types"
+import type { TransitionCallbacks } from "@restart/ui/esm/types.jsx"
 import { triggerReflow, createChained, endListener } from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
 

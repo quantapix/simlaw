@@ -1,5 +1,4 @@
-export { SSRProvider } from "@restart/ui/ssr"
-export type { SSRProviderProps } from "@restart/ui/ssr"
+export { SSRProvider, SSRProviderProps } from "@restart/ui/esm/ssr.jsx"
 
 export { Accordion } from "./Accordion.jsx"
 export type { Props as AccordionProps } from "./Accordion.jsx"

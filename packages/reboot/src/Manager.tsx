@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import addClass from "dom-helpers/addClass"
 import css from "dom-helpers/css"
 import qsa from "dom-helpers/querySelectorAll"
@@ -5,7 +6,7 @@ import removeClass from "dom-helpers/removeClass"
 import ModalManager, {
   ContainerState,
   ModalManagerOptions,
-} from "@restart/ui/ModalManager"
+} from "@restart/ui/esm/ModalManager.jsx"
 
 const Selector = {
   FIXED_CONTENT: ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top",
