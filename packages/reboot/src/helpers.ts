@@ -22,7 +22,7 @@ export interface BsProps<T extends React.ElementType = React.ElementType>
   extends BsOnlyProps,
     AsProp<T> {}
 
-export interface BsRefComp<T0 extends React.ElementType, P = unknown> {
+export interface BsRef<T0 extends React.ElementType, P = unknown> {
   <T extends React.ElementType = T0>(
     props: React.PropsWithChildren<ReplaceProps<T, BsProps<T> & P>>,
     context?: any
@@ -32,7 +32,7 @@ export interface BsRefComp<T0 extends React.ElementType, P = unknown> {
   displayName?: string | undefined
 }
 
-export class BsComponent<
+export class BsComp<
   T extends React.ElementType,
   P = unknown
 > extends React.Component<ReplaceProps<T, BsProps<T> & P>> {}

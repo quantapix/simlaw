@@ -24,7 +24,7 @@ import { useUncontrolled, useWrappedRef } from "./use.jsx"
 import { Context as InputGroupContext } from "./InputGroup.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Context as NavbarContext } from "./Navbar.jsx"
 import type { AlignType, AlignDirection, Placement } from "./types.jsx"
 import { Button as _Button, Props as _BProps, CommonProps } from "./Button.jsx"
@@ -73,7 +73,7 @@ export function getPlacement(
   return y
 }
 
-export const Menu: BsRefComp<"div", MenuProps> = React.forwardRef<
+export const Menu: BsRef<"div", MenuProps> = React.forwardRef<
   HTMLElement,
   MenuProps
 >(
@@ -176,7 +176,7 @@ export interface ToggleProps extends Omit<_BProps, "as"> {
   childBsPrefix?: string
 }
 
-type ToggleComponent = BsRefComp<"button", ToggleProps>
+type ToggleComponent = BsRef<"button", ToggleProps>
 
 export type PropsFromToggle = Partial<
   Pick<React.ComponentPropsWithRef<ToggleComponent>, CommonProps>
@@ -234,44 +234,43 @@ export const ItemText = withBs("dropdown-item-text", {
 
 export interface ItemProps extends BaseDropdownItemProps, BsProps {}
 
-export const Item: BsRefComp<typeof BaseDropdownItem, ItemProps> =
-  React.forwardRef(
-    (
-      {
-        bsPrefix,
-        className,
-        eventKey,
-        disabled = false,
-        onClick,
-        active,
-        as: X = Anchor,
-        ...ps
-      },
-      ref
-    ) => {
-      const bs = useBs(bsPrefix, "dropdown-item")
-      const [dropdownItemProps, meta] = useDropdownItem({
-        key: eventKey,
-        href: ps.href,
-        disabled,
-        onClick,
-        active,
-      })
-      return (
-        <X
-          {...ps}
-          {...dropdownItemProps}
-          ref={ref}
-          className={classNames(
-            className,
-            bs,
-            meta.isActive && "active",
-            disabled && "disabled"
-          )}
-        />
-      )
-    }
-  )
+export const Item: BsRef<typeof BaseDropdownItem, ItemProps> = React.forwardRef(
+  (
+    {
+      bsPrefix,
+      className,
+      eventKey,
+      disabled = false,
+      onClick,
+      active,
+      as: X = Anchor,
+      ...ps
+    },
+    ref
+  ) => {
+    const bs = useBs(bsPrefix, "dropdown-item")
+    const [dropdownItemProps, meta] = useDropdownItem({
+      key: eventKey,
+      href: ps.href,
+      disabled,
+      onClick,
+      active,
+    })
+    return (
+      <X
+        {...ps}
+        {...dropdownItemProps}
+        ref={ref}
+        className={classNames(
+          className,
+          bs,
+          meta.isActive && "active",
+          disabled && "disabled"
+        )}
+      />
+    )
+  }
+)
 Item.displayName = "DropdownItem"
 
 export interface Props
@@ -285,7 +284,7 @@ export interface Props
   autoClose?: boolean | "outside" | "inside"
 }
 
-export const Dropdown: BsRefComp<"div", Props> = React.forwardRef<
+export const Dropdown: BsRef<"div", Props> = React.forwardRef<
   HTMLElement,
   Props
 >((xs, ref) => {
@@ -380,7 +379,7 @@ export interface ButtonProps
   flip?: boolean
 }
 
-export const Button: BsRefComp<"div", ButtonProps> = React.forwardRef<
+export const Button: BsRef<"div", ButtonProps> = React.forwardRef<
   HTMLDivElement,
   ButtonProps
 >(
@@ -438,7 +437,7 @@ export interface NavProps extends Omit<Props, "title"> {
   menuVariant?: Variant
 }
 
-export const Nav: BsRefComp<"div", NavProps> = React.forwardRef(
+export const Nav: BsRef<"div", NavProps> = React.forwardRef(
   (
     {
       id,

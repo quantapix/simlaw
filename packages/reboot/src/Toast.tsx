@@ -1,15 +1,15 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useContext, useEffect, useMemo, useRef, useCallback } from "react"
-import useTimeout from "@restart/hooks/useTimeout"
-import { TransitionComponent } from "@restart/ui/esm/types"
+import { useEventCallback, useTimeout } from "@restart/hooks"
+import type { TransitionComponent } from "@restart/ui/esm/types.jsx"
 import Transition, {
   ENTERING,
   EXITING,
 } from "react-transition-group/Transition"
-import useEventCallback from "@restart/hooks/useEventCallback"
 import { useBs } from "./Theme.jsx"
-import { classNames, BsOnlyProps, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsOnlyProps, BsProps, BsRef } from "./helpers.js"
 import type { Variant } from "./types.jsx"
 import { Fade, Props as _Props } from "./Fade.jsx"
 import { Close, Variant as CloseVariant } from "./Button.jsx"
@@ -20,7 +20,6 @@ export interface Data {
 }
 
 export const Context = React.createContext<Data>({
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   onClose() {},
 })
 
@@ -93,7 +92,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   bg?: Variant
 }
 
-export const Toast: BsRefComp<"div", Props> = React.forwardRef<
+export const Toast: BsRef<"div", Props> = React.forwardRef<
   HTMLDivElement,
   Props
 >(
@@ -201,7 +200,7 @@ const positionClasses = {
   "bottom-end": "bottom-0 end-0",
 }
 
-export const Container: BsRefComp<"div", ContainerProps> = React.forwardRef<
+export const Container: BsRef<"div", ContainerProps> = React.forwardRef<
   HTMLDivElement,
   ContainerProps
 >(

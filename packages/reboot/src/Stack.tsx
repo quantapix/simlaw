@@ -6,7 +6,7 @@ import {
   useBreakpoints,
   useMinBreakpoint,
 } from "./Theme.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 import type { GapValue } from "./types.jsx"
 
 export type Utility<T> =
@@ -51,27 +51,26 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   gap?: Utility<GapValue>
 }
 
-export const Stack: BsRefComp<"span", Props> = React.forwardRef<
-  HTMLElement,
-  Props
->(({ as: X = "div", bsPrefix, className, direction, gap, ...ps }, ref) => {
-  const bs = useBs(bsPrefix, direction === "horizontal" ? "hstack" : "vstack")
-  const breakpoints = useBreakpoints()
-  const minBreakpoint = useMinBreakpoint()
-  return (
-    <X
-      {...ps}
-      ref={ref}
-      className={classNames(
-        className,
-        bs,
-        ...createUtilityClassName({
-          gap,
-          breakpoints,
-          minBreakpoint,
-        })
-      )}
-    />
-  )
-})
+export const Stack: BsRef<"span", Props> = React.forwardRef<HTMLElement, Props>(
+  ({ as: X = "div", bsPrefix, className, direction, gap, ...ps }, ref) => {
+    const bs = useBs(bsPrefix, direction === "horizontal" ? "hstack" : "vstack")
+    const breakpoints = useBreakpoints()
+    const minBreakpoint = useMinBreakpoint()
+    return (
+      <X
+        {...ps}
+        ref={ref}
+        className={classNames(
+          className,
+          bs,
+          ...createUtilityClassName({
+            gap,
+            breakpoints,
+            minBreakpoint,
+          })
+        )}
+      />
+    )
+  }
+)
 Stack.displayName = "Stack"

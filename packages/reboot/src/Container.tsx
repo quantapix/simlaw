@@ -1,12 +1,12 @@
 import * as React from "react"
 import { useBs } from "./Theme.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 
 export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   fluid?: boolean | string | "sm" | "md" | "lg" | "xl" | "xxl"
 }
 
-export const Container: BsRefComp<"div", Props> = React.forwardRef<
+export const Container: BsRef<"div", Props> = React.forwardRef<
   HTMLElement,
   Props
 >(({ bsPrefix, fluid, as: X = "div", className, ...ps }, ref) => {

@@ -22,7 +22,7 @@ import type { TransitionCallbacks } from "@restart/ui/esm/types.jsx"
 import { Fade } from "./Fade.jsx"
 import { AbsHeader, AbsProps as HProps, Context as MContext } from "./Modal.jsx"
 import { Context as NContext } from "./Navbar.jsx"
-import { classNames, BsOnlyProps, BsRefComp } from "./helpers.js"
+import { classNames, BsOnlyProps, BsRef } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
 import { Manager, getSharedManager } from "./Manager.jsx"
 import { divAs, withBs, endListener } from "./utils.jsx"
@@ -131,7 +131,7 @@ function BackdropTransition(ps) {
   return <Fade {...ps} />
 }
 
-export const Offcanvas: BsRefComp<"div", Props> = React.forwardRef<
+export const Offcanvas: BsRef<"div", Props> = React.forwardRef<
   ModalHandle,
   Props
 >(

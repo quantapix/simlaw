@@ -3,7 +3,7 @@ import { useMemo } from "react"
 import { withBs } from "./utils.jsx"
 import { useBs } from "./Theme.jsx"
 import { Input } from "./Form.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 
 export const Context = React.createContext<unknown | null>(null)
 Context.displayName = "InputGroupContext"
@@ -29,7 +29,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   hasValidation?: boolean
 }
 
-export const InputGroup: BsRefComp<"div", Props> = React.forwardRef<
+export const InputGroup: BsRef<"div", Props> = React.forwardRef<
   HTMLElement,
   Props
 >(({ bsPrefix, size, hasValidation, className, as: X = "div", ...ps }, ref) => {

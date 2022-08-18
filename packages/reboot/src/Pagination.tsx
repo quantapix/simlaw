@@ -2,7 +2,7 @@ import * as React from "react"
 import type { ReactNode } from "react"
 import Anchor from "@restart/ui/esm/Anchor.jsx"
 import { useBs } from "./Theme.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 
 export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
   disabled?: boolean
@@ -11,7 +11,7 @@ export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
   href?: string
 }
 
-export const Item: BsRefComp<"li", ItemProps> = React.forwardRef<
+export const Item: BsRef<"li", ItemProps> = React.forwardRef<
   HTMLLIElement,
   ItemProps
 >(

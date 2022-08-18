@@ -9,7 +9,7 @@ import type { EventKey } from "@restart/ui/esm/types.jsx"
 import { useBs } from "./Theme.jsx"
 import { Context as NContext } from "./Navbar.jsx"
 import { Context as CContext } from "./Card.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 import { withBs } from "./utils.jsx"
 
 interface Data {
@@ -26,7 +26,7 @@ export const Item = withBs("nav-item")
 
 export interface LinkProps extends BsProps, Omit<IPs, "as"> {}
 
-export const Link: BsRefComp<"a", LinkProps> = React.forwardRef<
+export const Link: BsRef<"a", LinkProps> = React.forwardRef<
   HTMLElement,
   LinkProps
 >(({ bsPrefix, className, as: X = Anchor, active, eventKey, ...ps }, ref) => {
@@ -66,52 +66,51 @@ export interface Props extends BsProps, _Props {
   navbarScroll?: boolean
 }
 
-export const Nav: BsRefComp<"div", Props> = React.forwardRef<
-  HTMLElement,
-  Props
->((xs, ref) => {
-  const {
-    as = "div",
-    bsPrefix: initialBsPrefix,
-    variant,
-    fill,
-    justify,
-    navbar,
-    navbarScroll,
-    className,
-    activeKey,
-    ...ps
-  } = useUncontrolled(xs, { activeKey: "onSelect" })
-  const bs = useBs(initialBsPrefix, "nav")
-  let navbarBsPrefix
-  let cardHeaderBsPrefix
-  let isNavbar = false
-  const nContext = useContext(NContext)
-  const cContext = useContext(CContext)
-  if (nContext) {
-    navbarBsPrefix = nContext.bsPrefix
-    isNavbar = navbar == null ? true : navbar
-  } else if (cContext) {
-    ;({ headerBs: cardHeaderBsPrefix } = cContext)
+export const Nav: BsRef<"div", Props> = React.forwardRef<HTMLElement, Props>(
+  (xs, ref) => {
+    const {
+      as = "div",
+      bsPrefix: initialBsPrefix,
+      variant,
+      fill,
+      justify,
+      navbar,
+      navbarScroll,
+      className,
+      activeKey,
+      ...ps
+    } = useUncontrolled(xs, { activeKey: "onSelect" })
+    const bs = useBs(initialBsPrefix, "nav")
+    let navbarBsPrefix
+    let cardHeaderBsPrefix
+    let isNavbar = false
+    const nContext = useContext(NContext)
+    const cContext = useContext(CContext)
+    if (nContext) {
+      navbarBsPrefix = nContext.bsPrefix
+      isNavbar = navbar == null ? true : navbar
+    } else if (cContext) {
+      ;({ headerBs: cardHeaderBsPrefix } = cContext)
+    }
+    return (
+      <BaseNav
+        as={as}
+        ref={ref}
+        activeKey={activeKey}
+        className={classNames(className, {
+          [bs]: !isNavbar,
+          [`${navbarBsPrefix}-nav`]: isNavbar,
+          [`${navbarBsPrefix}-nav-scroll`]: isNavbar && navbarScroll,
+          [`${cardHeaderBsPrefix}-${variant}`]: !!cardHeaderBsPrefix,
+          [`${bs}-${variant}`]: !!variant,
+          [`${bs}-fill`]: fill,
+          [`${bs}-justified`]: justify,
+        })}
+        {...ps}
+      />
+    )
   }
-  return (
-    <BaseNav
-      as={as}
-      ref={ref}
-      activeKey={activeKey}
-      className={classNames(className, {
-        [bs]: !isNavbar,
-        [`${navbarBsPrefix}-nav`]: isNavbar,
-        [`${navbarBsPrefix}-nav-scroll`]: isNavbar && navbarScroll,
-        [`${cardHeaderBsPrefix}-${variant}`]: !!cardHeaderBsPrefix,
-        [`${bs}-${variant}`]: !!variant,
-        [`${bs}-fill`]: fill,
-        [`${bs}-justified`]: justify,
-      })}
-      {...ps}
-    />
-  )
-})
+)
 Nav.displayName = "Nav"
 Nav.defaultProps = {
   justify: false,

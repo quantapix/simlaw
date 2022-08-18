@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 
 type NumberAttr =
   | number
@@ -81,17 +81,17 @@ export function useCol({
   ]
 }
 
-export const Col: BsRefComp<"div", Props> = React.forwardRef<
-  HTMLElement,
-  Props
->((xs, ref) => {
-  const [{ className, ...ps }, { as: X = "div", bsPrefix, spans }] = useCol(xs)
-  return (
-    <X
-      {...ps}
-      ref={ref}
-      className={classNames(className, !spans.length && bsPrefix)}
-    />
-  )
-})
+export const Col: BsRef<"div", Props> = React.forwardRef<HTMLElement, Props>(
+  (xs, ref) => {
+    const [{ className, ...ps }, { as: X = "div", bsPrefix, spans }] =
+      useCol(xs)
+    return (
+      <X
+        {...ps}
+        ref={ref}
+        className={classNames(className, !spans.length && bsPrefix)}
+      />
+    )
+  }
+)
 Col.displayName = "Col"

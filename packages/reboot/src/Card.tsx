@@ -2,7 +2,7 @@ import * as React from "react"
 import { useMemo } from "react"
 import { useBs } from "./Theme.jsx"
 import { divAs, withBs } from "./utils.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 import type { Color, Variant } from "./types.jsx"
 
 interface Data {
@@ -16,7 +16,7 @@ export interface HeaderProps
   extends BsProps,
     React.HTMLAttributes<HTMLElement> {}
 
-export const Header: BsRefComp<"div", HeaderProps> = React.forwardRef<
+export const Header: BsRef<"div", HeaderProps> = React.forwardRef<
   HTMLElement,
   HeaderProps
 >(({ bsPrefix, className, as: X = "div", ...ps }, ref) => {
@@ -55,7 +55,7 @@ export interface ImgProps
   variant?: "top" | "bottom" | string
 }
 
-export const Img: BsRefComp<"img", ImgProps> = React.forwardRef(
+export const Img: BsRef<"img", ImgProps> = React.forwardRef(
   ({ bsPrefix, className, variant, as: X = "img", ...ps }: ImgProps, ref) => {
     const bs = useBs(bsPrefix, "card-img")
     return (
@@ -78,10 +78,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   body?: boolean
 }
 
-export const Card: BsRefComp<"div", Props> = React.forwardRef<
-  HTMLElement,
-  Props
->(
+export const Card: BsRef<"div", Props> = React.forwardRef<HTMLElement, Props>(
   (
     {
       bsPrefix,

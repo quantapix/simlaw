@@ -11,7 +11,7 @@ import Tabs, { TabsProps } from "@restart/ui/esm/Tabs.jsx"
 import NoopTransition from "@restart/ui/esm/NoopTransition.jsx"
 import { useBs } from "./Theme.jsx"
 import { Fade } from "./Fade.jsx"
-import { classNames, BsProps, BsRefComp, TransitionType } from "./helpers.js"
+import { classNames, BsProps, BsRef, TransitionType } from "./helpers.js"
 import { withBs } from "./utils.jsx"
 
 export function getTabTransitionComponent(
@@ -45,7 +45,7 @@ export interface PaneProps
   unmountOnExit?: boolean
 }
 
-export const Pane: BsRefComp<"div", PaneProps> = React.forwardRef<
+export const Pane: BsRef<"div", PaneProps> = React.forwardRef<
   HTMLElement,
   PaneProps
 >(({ bsPrefix, transition, ...xs }, ref) => {

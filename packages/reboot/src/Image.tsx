@@ -32,7 +32,6 @@ export const Image = React.forwardRef<HTMLImageElement, Props>(
     )
   }
 )
-
 Image.displayName = "Image"
 Image.defaultProps = {
   fluid: false,

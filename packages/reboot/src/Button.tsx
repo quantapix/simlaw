@@ -4,7 +4,7 @@ import {
   ButtonProps as _Props,
 } from "@restart/ui/esm/Button.js"
 import { useBs } from "./Theme.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 import type { ButtonVariant } from "./types.jsx"
 
 export interface Props extends _Props, Omit<BsProps, "as"> {
@@ -15,7 +15,7 @@ export interface Props extends _Props, Omit<BsProps, "as"> {
 
 export type CommonProps = "href" | "size" | "variant" | "disabled"
 
-export const Button: BsRefComp<"button", Props> = React.forwardRef<
+export const Button: BsRef<"button", Props> = React.forwardRef<
   HTMLButtonElement,
   Props
 >(({ as, bsPrefix, variant, size, active, className, ...ps }, ref) => {
@@ -79,7 +79,7 @@ export interface GroupProps extends BsProps, React.HTMLAttributes<HTMLElement> {
   vertical?: boolean
 }
 
-export const Group: BsRefComp<"div", GroupProps> = React.forwardRef(
+export const Group: BsRef<"div", GroupProps> = React.forwardRef(
   (
     { bsPrefix, size, vertical, className, as: X = "div", ...ps }: GroupProps,
     ref

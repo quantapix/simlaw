@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import addEventListener from "dom-helpers/addEventListener"
 import canUseDOM from "dom-helpers/canUseDOM"
@@ -16,7 +17,7 @@ import BaseModal, { BaseModalProps } from "@restart/ui/esm/Modal.jsx"
 import type { ModalInstance } from "@restart/ui/esm/ModalManager.jsx"
 import { getSharedManager } from "./Manager.jsx"
 import { Fade } from "./Fade.jsx"
-import { classNames, BsOnlyProps, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsOnlyProps, BsProps, BsRef } from "./helpers.js"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import { Close, Variant as CloseVariant } from "./Button.jsx"
 import { divAs, withBs } from "./utils.jsx"
@@ -187,7 +188,7 @@ function BackdropTransition(ps) {
   return <Fade {...ps} timeout={null} />
 }
 
-export const Modal: BsRefComp<"div", Props> = React.forwardRef(
+export const Modal: BsRef<"div", Props> = React.forwardRef(
   (
     {
       bsPrefix,

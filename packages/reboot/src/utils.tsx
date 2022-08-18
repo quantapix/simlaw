@@ -5,7 +5,7 @@ import css from "dom-helpers/css"
 import camelize from "dom-helpers/camelize"
 import transitionEnd from "dom-helpers/transitionEnd"
 import { useBs } from "./Theme.jsx"
-import { classNames, BsRefComp } from "./helpers.js"
+import { classNames, BsRef } from "./helpers.js"
 
 export function map<P = any>(
   xs,
@@ -90,7 +90,7 @@ export function withBs<As extends React.ElementType = "div">(
     Component,
     defaultProps,
   }: BsOptions<As> = {}
-): BsRefComp<As> {
+): BsRef<As> {
   const y = React.forwardRef(
     (
       { className, bsPrefix, as: X = Component || "div", ...props }: any,

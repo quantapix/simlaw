@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useCallback, useContext, useMemo } from "react"
-import SelectableContext from "@restart/ui/esm/SelectableContext"
-import { SelectCallback } from "@restart/ui/esm/types"
+import SelectableContext from "@restart/ui/esm/SelectableContext.jsx"
+import type { SelectCallback } from "@restart/ui/esm/types.jsx"
 import { useUncontrolled } from "./use.jsx"
-import useEventCallback from "@restart/hooks/useEventCallback"
+import { useEventCallback } from "@restart/hooks"
 import { withBs } from "./utils.jsx"
 import { Collapse as C, Props as CPs } from "./Collapse.jsx"
 import { useBs } from "./Theme.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 
 export interface Data {
   onToggle: () => void
@@ -27,7 +28,7 @@ export interface BrandProps extends BsProps, React.HTMLAttributes<HTMLElement> {
   href?: string
 }
 
-export const Brand: BsRefComp<"a", BrandProps> = React.forwardRef<
+export const Brand: BsRef<"a", BrandProps> = React.forwardRef<
   HTMLElement,
   BrandProps
 >(({ bsPrefix, className, as, ...ps }, ref) => {
@@ -65,7 +66,7 @@ export interface ToggleProps
   label?: string
 }
 
-export const Toggle: BsRefComp<"button", ToggleProps> = React.forwardRef<
+export const Toggle: BsRef<"button", ToggleProps> = React.forwardRef<
   HTMLElement,
   ToggleProps
 >(
@@ -114,71 +115,70 @@ export interface Props
   expanded?: boolean
 }
 
-export const Navbar: BsRefComp<"nav", Props> = React.forwardRef<
-  HTMLElement,
-  Props
->((xs, ref) => {
-  const {
-    bsPrefix: initialBsPrefix,
-    expand,
-    variant,
-    bg,
-    fixed,
-    sticky,
-    className,
-    as: X = "nav",
-    expanded,
-    onToggle,
-    onSelect,
-    collapseOnSelect,
-    ...ps
-  } = useUncontrolled(xs, {
-    expanded: "onToggle",
-  })
-  const bsPrefix = useBs(initialBsPrefix, "navbar")
-  const collapse = useCallback<SelectCallback>(
-    (...args) => {
-      onSelect?.(...args)
-      if (collapseOnSelect && expanded) {
-        onToggle?.(false)
-      }
-    },
-    [onSelect, collapseOnSelect, expanded, onToggle]
-  )
-  if (ps.role === undefined && X !== "nav") {
-    ps.role = "navigation"
-  }
-  let expandClass = `${bsPrefix}-expand`
-  if (typeof expand === "string") expandClass = `${expandClass}-${expand}`
-  const v = useMemo<Data>(
-    () => ({
-      onToggle: () => onToggle?.(!expanded),
-      bsPrefix,
-      expanded: !!expanded,
+export const Navbar: BsRef<"nav", Props> = React.forwardRef<HTMLElement, Props>(
+  (xs, ref) => {
+    const {
+      bsPrefix: initialBsPrefix,
       expand,
-    }),
-    [bsPrefix, expanded, expand, onToggle]
-  )
-  return (
-    <Context.Provider value={v}>
-      <SelectableContext.Provider value={collapse}>
-        <X
-          ref={ref}
-          {...ps}
-          className={classNames(
-            className,
-            bsPrefix,
-            expand && expandClass,
-            variant && `${bsPrefix}-${variant}`,
-            bg && `bg-${bg}`,
-            sticky && `sticky-${sticky}`,
-            fixed && `fixed-${fixed}`
-          )}
-        />
-      </SelectableContext.Provider>
-    </Context.Provider>
-  )
-})
+      variant,
+      bg,
+      fixed,
+      sticky,
+      className,
+      as: X = "nav",
+      expanded,
+      onToggle,
+      onSelect,
+      collapseOnSelect,
+      ...ps
+    } = useUncontrolled(xs, {
+      expanded: "onToggle",
+    })
+    const bsPrefix = useBs(initialBsPrefix, "navbar")
+    const collapse = useCallback<SelectCallback>(
+      (...args) => {
+        onSelect?.(...args)
+        if (collapseOnSelect && expanded) {
+          onToggle?.(false)
+        }
+      },
+      [onSelect, collapseOnSelect, expanded, onToggle]
+    )
+    if (ps.role === undefined && X !== "nav") {
+      ps.role = "navigation"
+    }
+    let expandClass = `${bsPrefix}-expand`
+    if (typeof expand === "string") expandClass = `${expandClass}-${expand}`
+    const v = useMemo<Data>(
+      () => ({
+        onToggle: () => onToggle?.(!expanded),
+        bsPrefix,
+        expanded: !!expanded,
+        expand,
+      }),
+      [bsPrefix, expanded, expand, onToggle]
+    )
+    return (
+      <Context.Provider value={v}>
+        <SelectableContext.Provider value={collapse}>
+          <X
+            ref={ref}
+            {...ps}
+            className={classNames(
+              className,
+              bsPrefix,
+              expand && expandClass,
+              variant && `${bsPrefix}-${variant}`,
+              bg && `bg-${bg}`,
+              sticky && `sticky-${sticky}`,
+              fixed && `fixed-${fixed}`
+            )}
+          />
+        </SelectableContext.Provider>
+      </Context.Provider>
+    )
+  }
+)
 Navbar.displayName = "Navbar"
 Navbar.defaultProps = {
   expand: true,

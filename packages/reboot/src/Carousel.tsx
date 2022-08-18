@@ -18,7 +18,7 @@ import {
 import { useUncontrolled } from "./use.jsx"
 import { map, forEach, triggerReflow, withBs, endListener } from "./utils.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Wrapper } from "./Transition.jsx"
 
 export const Caption = withBs("carousel-caption")
@@ -27,7 +27,7 @@ export interface ItemProps extends BsProps, React.HTMLAttributes<HTMLElement> {
   interval?: number
 }
 
-export const Item: BsRefComp<"div", ItemProps> = React.forwardRef<
+export const Item: BsRef<"div", ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
 >(({ as: X = "div", bsPrefix, className, ...ps }, ref) => {
@@ -84,7 +84,7 @@ function isVisible(x) {
   )
 }
 
-export const Carousel: BsRefComp<"div", Props> = React.forwardRef<Ref, Props>(
+export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
   (xs, ref) => {
     const {
       as: X = "div",

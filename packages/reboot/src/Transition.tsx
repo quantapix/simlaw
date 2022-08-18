@@ -46,7 +46,6 @@ export const Wrapper = React.forwardRef<Transition<any>, Props>(
           callback(nodeRef.current, param)
         }
       }
-    /* eslint-disable react-hooks/exhaustive-deps */
     const enter = useCallback(normalize(onEnter), [onEnter])
     const entering = useCallback(normalize(onEntering), [onEntering])
     const entered = useCallback(normalize(onEntered), [onEntered])
@@ -54,7 +53,6 @@ export const Wrapper = React.forwardRef<Transition<any>, Props>(
     const exiting = useCallback(normalize(onExiting), [onExiting])
     const exited = useCallback(normalize(onExited), [onExited])
     const addListener = useCallback(normalize(addEndListener), [addEndListener])
-    /* eslint-enable react-hooks/exhaustive-deps */
     return (
       <Transition
         ref={ref}

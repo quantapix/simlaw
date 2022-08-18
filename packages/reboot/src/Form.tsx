@@ -1,16 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useContext, useMemo } from "react"
 import warning from "warning"
 import { useBs } from "./Theme.jsx"
-import {
-  classNames,
-  BsOnlyProps,
-  BsProps,
-  BsRefComp,
-  AsProp,
-} from "./helpers.js"
+import { classNames, BsOnlyProps, BsProps, BsRef, AsProp } from "./helpers.js"
 import { Col, Props as _Props } from "./Col.jsx"
-import { Feedback, Type } from "./Feedback"
+import { Feedback, Type } from "./Feedback.jsx"
 import { hasChildOfType, withBs } from "./utils.jsx"
 
 interface Data {
@@ -20,12 +15,12 @@ interface Data {
 export const FormContext = React.createContext<Data>({})
 
 export interface GroupProps extends React.HTMLAttributes<HTMLElement>, AsProp {
-  controlId?: string
+  controlId?: string | undefined
 }
 
 export const Floating = withBs("form-floating")
 
-export const Group: BsRefComp<"div", GroupProps> = React.forwardRef(
+export const Group: BsRef<"div", GroupProps> = React.forwardRef(
   ({ controlId, as: X = "div", ...ps }, ref) => {
     const v = useMemo(() => ({ controlId }), [controlId])
     return (
@@ -42,23 +37,22 @@ export interface FloatingLabelProps extends _Props, BsProps {
   label: React.ReactNode
 }
 
-export const FloatingLabel: BsRefComp<"div", FloatingLabelProps> =
-  React.forwardRef(
-    ({ bsPrefix, className, children, controlId, label, ...ps }, ref) => {
-      bsPrefix = useBs(bsPrefix, "form-floating")
-      return (
-        <Group
-          ref={ref}
-          className={classNames(className, bsPrefix)}
-          controlId={controlId}
-          {...ps}
-        >
-          {children}
-          <label htmlFor={controlId}>{label}</label>
-        </Group>
-      )
-    }
-  )
+export const FloatingLabel: BsRef<"div", FloatingLabelProps> = React.forwardRef(
+  ({ bsPrefix, className, children, controlId, label, ...ps }, ref) => {
+    bsPrefix = useBs(bsPrefix, "form-floating")
+    return (
+      <Group
+        ref={ref}
+        className={classNames(className, bsPrefix)}
+        controlId={controlId}
+        {...ps}
+      >
+        {children}
+        <label htmlFor={controlId}>{label}</label>
+      </Group>
+    )
+  }
+)
 FloatingLabel.displayName = "FloatingLabel"
 
 interface Base extends BsProps, React.HTMLAttributes<HTMLElement> {
@@ -76,7 +70,7 @@ export interface WithColProps extends Base, _Props {
 
 export type LabelProps = WithColProps | OwnProps
 
-export const Label: BsRefComp<"label", LabelProps> = React.forwardRef<
+export const Label: BsRef<"label", LabelProps> = React.forwardRef<
   HTMLElement,
   LabelProps
 >(
@@ -131,7 +125,7 @@ export interface TextProps extends BsProps, React.HTMLAttributes<HTMLElement> {
   muted?: boolean
 }
 
-export const Text: BsRefComp<"small", TextProps> = React.forwardRef<
+export const Text: BsRef<"small", TextProps> = React.forwardRef<
   HTMLElement,
   TextProps
 >(({ bsPrefix, className, as: X = "small", muted, ...ps }, ref) => {
@@ -176,7 +170,7 @@ export interface SelectProps
   isInvalid?: boolean
 }
 
-export const Select: BsRefComp<"select", SelectProps> = React.forwardRef<
+export const Select: BsRef<"select", SelectProps> = React.forwardRef<
   HTMLSelectElement,
   SelectProps
 >(
@@ -224,7 +218,7 @@ export interface InputProps
   isInvalid?: boolean
 }
 
-export const Input: BsRefComp<"input", InputProps> = React.forwardRef<
+export const Input: BsRef<"input", InputProps> = React.forwardRef<
   HTMLInputElement,
   InputProps
 >(
@@ -300,7 +294,7 @@ export interface CheckProps
   bsSwitchPrefix?: string
 }
 
-export const Check: BsRefComp<"input", CheckProps> = React.forwardRef<
+export const Check: BsRef<"input", CheckProps> = React.forwardRef<
   HTMLInputElement,
   CheckProps
 >(
@@ -383,7 +377,7 @@ Check.displayName = "FormCheck"
 
 export type SwitchProps = Omit<CheckProps, "type">
 
-export const Switch: BsRefComp<typeof Check, SwitchProps> = React.forwardRef<
+export const Switch: BsRef<typeof Check, SwitchProps> = React.forwardRef<
   typeof Check,
   SwitchProps
 >((ps, ref) => <Check {...ps} ref={ref} type="switch" />)
@@ -404,7 +398,7 @@ export interface ControlProps extends BsProps, React.HTMLAttributes<Element> {
   isInvalid?: boolean
 }
 
-export const Control: BsRefComp<"input", ControlProps> = React.forwardRef<
+export const Control: BsRef<"input", ControlProps> = React.forwardRef<
   Element,
   ControlProps
 >(
@@ -467,7 +461,7 @@ export interface Props
   validated?: boolean
 }
 
-export const Form: BsRefComp<"form", Props> = React.forwardRef<
+export const Form: BsRef<"form", Props> = React.forwardRef<
   HTMLFormElement,
   Props
 >(({ className, validated, as: X = "form", ...props }, ref) => (

@@ -1,7 +1,7 @@
 import * as React from "react"
 import Anchor from "@restart/ui/esm/Anchor.js"
 import { useBs } from "./Theme.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 
 export interface ItemProps
   extends BsProps,
@@ -14,7 +14,7 @@ export interface ItemProps
   linkProps?: Record<string, any>
 }
 
-export const Item: BsRefComp<"li", ItemProps> = React.forwardRef<
+export const Item: BsRef<"li", ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
 >(
@@ -65,7 +65,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   listProps?: React.OlHTMLAttributes<HTMLOListElement>
 }
 
-export const Breadcrumb: BsRefComp<"nav", Props> = React.forwardRef<
+export const Breadcrumb: BsRef<"nav", Props> = React.forwardRef<
   HTMLElement,
   Props
 >(

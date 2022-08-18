@@ -6,7 +6,7 @@ import type { EventKey } from "@restart/ui/esm/types.jsx"
 import { makeEventKey } from "@restart/ui/esm/SelectableContext.jsx"
 import { useEventCallback } from "@restart/hooks"
 import { useNavItem, NavItemProps as IPs } from "@restart/ui/esm/NavItem.jsx"
-import { classNames, BsProps, BsRefComp } from "./helpers.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
 import type { Variant } from "./types.jsx"
 
@@ -16,7 +16,7 @@ export interface ItemProps extends Omit<IPs, "onSelect">, BsProps {
   variant?: Variant
 }
 
-export const Item: BsRefComp<"a", ItemProps> = React.forwardRef<
+export const Item: BsRef<"a", ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
 >(
@@ -81,7 +81,7 @@ export interface Props extends BsProps, BaseNavProps {
   numbered?: boolean
 }
 
-export const ListGroup: BsRefComp<"div", Props> = React.forwardRef<
+export const ListGroup: BsRef<"div", Props> = React.forwardRef<
   HTMLElement,
   Props
 >((xs, ref) => {
