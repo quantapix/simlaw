@@ -1,9 +1,9 @@
 import * as React from "react"
 import { useMemo } from "react"
-import { useBs } from "./Theme.jsx"
-import { divAs, withBs } from "./utils.jsx"
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import type { Color, Variant } from "./types.jsx"
+import { classNames, BsProps, BsRef } from "./helpers.js"
+import { divAs, withBs } from "./utils.jsx"
+import { useBs } from "./Theme.jsx"
 
 interface Data {
   headerBs: string

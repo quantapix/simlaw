@@ -1,8 +1,6 @@
 import * as React from "react"
-import {
-  useButtonProps,
-  ButtonProps as _Props,
-} from "@restart/ui/esm/Button.js"
+import type { ButtonProps as _Props } from "@restart/ui"
+import { useButtonProps } from "@restart/ui/esm/Button.js"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
 import type { ButtonVariant } from "./types.jsx"

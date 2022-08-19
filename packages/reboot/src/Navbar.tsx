@@ -136,8 +136,8 @@ export const Navbar: BsRef<"nav", Props> = React.forwardRef<HTMLElement, Props>(
     })
     const bsPrefix = useBs(initialBsPrefix, "navbar")
     const collapse = useCallback<SelectCallback>(
-      (...args) => {
-        onSelect?.(...args)
+      (...xs) => {
+        onSelect?.(...xs)
         if (collapseOnSelect && expanded) {
           onToggle?.(false)
         }

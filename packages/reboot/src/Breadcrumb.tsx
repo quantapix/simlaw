@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import Anchor from "@restart/ui/esm/Anchor.js"
 import { useBs } from "./Theme.jsx"

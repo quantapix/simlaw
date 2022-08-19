@@ -1,9 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
-import { useEventCallback, useCommittedRef } from "@restart/hooks"
-import useTimeout from "@restart/hooks/esm/useTimeout.js"
-import useUpdateEffect from "@restart/hooks/esm/useUpdateEffect.js"
-import Anchor from "@restart/ui/esm/Anchor.js"
-import type { TransitionStatus } from "react-transition-group"
 import {
   useCallback,
   useEffect,
@@ -12,6 +8,11 @@ import {
   useRef,
   useState,
 } from "react"
+import { useEventCallback, useCommittedRef } from "@restart/hooks"
+import useTimeout from "@restart/hooks/esm/useTimeout.js"
+import useUpdateEffect from "@restart/hooks/esm/useUpdateEffect.js"
+import Anchor from "@restart/ui/esm/Anchor.js"
+import type { TransitionStatus } from "react-transition-group"
 import { useUncontrolled } from "./use.jsx"
 import { map, forEach, triggerReflow, withBs, endListener } from "./utils.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"
@@ -63,7 +64,7 @@ export interface Props
   prevLabel?: React.ReactNode
   nextIcon?: React.ReactNode
   nextLabel?: React.ReactNode
-  ref?: React.Ref<Ref>
+  ref?: React.Ref<Ref> | undefined
   variant?: Variant
 }
 
@@ -152,7 +153,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
     })
     const activeChildIntervalRef = useCommittedRef(activeChildInterval)
     const prev = useCallback(
-      (event?) => {
+      (e: any) => {
         if (isSliding) {
           return
         }
@@ -164,11 +165,11 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
           nextActiveIndex = numChildren - 1
         }
         nextRef.current = "prev"
-        onSelect?.(nextActiveIndex, event)
+        onSelect?.(nextActiveIndex, e)
       },
       [isSliding, renderedIdx, onSelect, wrap, numChildren]
     )
-    const next = useEventCallback((event?) => {
+    const next = useEventCallback((e?) => {
       if (isSliding) {
         return
       }
@@ -180,7 +181,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
         nextActiveIndex = 0
       }
       nextRef.current = "next"
-      onSelect?.(nextActiveIndex, event)
+      onSelect?.(nextActiveIndex, e)
     })
     const elementRef = useRef<HTMLElement>()
     useImperativeHandle(ref, () => ({
@@ -208,8 +209,8 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
     const orderClassName = `${bs}-item-${direction}`
     const directionalClassName = `${bs}-item-${slideDirection}`
     const enter = useCallback(
-      node => {
-        triggerReflow(node)
+      (x: HTMLElement) => {
+        triggerReflow(x)
         onSlide?.(renderedIdx, slideDirection)
       },
       [onSlide, renderedIdx, slideDirection]
@@ -219,34 +220,34 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       onSlid?.(renderedIdx, slideDirection)
     }, [onSlid, renderedIdx, slideDirection])
     const keyDown = useCallback(
-      event => {
-        if (keyboard && !/input|textarea/i.test(event.target.tagName)) {
-          switch (event.key) {
+      (e: any) => {
+        if (keyboard && !/input|textarea/i.test(e.target.tagName)) {
+          switch (e.key) {
             case "ArrowLeft":
-              event.preventDefault()
+              e.preventDefault()
               if (isRTL) {
-                next(event)
+                next(e)
               } else {
-                prev(event)
+                prev(e)
               }
               return
             case "ArrowRight":
-              event.preventDefault()
+              e.preventDefault()
               if (isRTL) {
-                prev(event)
+                prev(e)
               } else {
-                next(event)
+                next(e)
               }
               return
             default:
           }
         }
-        onKeyDown?.(event)
+        onKeyDown?.(e)
       },
       [keyboard, onKeyDown, prev, next, isRTL]
     )
     const mouseOver = useCallback(
-      e => {
+      (e: any) => {
         if (pause === "hover") {
           setPaused(true)
         }
@@ -255,7 +256,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       [pause, onMouseOver]
     )
     const mouseOut = useCallback(
-      e => {
+      (e: any) => {
         setPaused(false)
         onMouseOut?.(e)
       },
@@ -265,7 +266,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
     const touchDeltaXRef = useRef(0)
     const touchUnpauseTimeout = useTimeout()
     const touchStart = useCallback(
-      e => {
+      (e: any) => {
         touchStartXRef.current = e.touches[0].clientX
         touchDeltaXRef.current = 0
         if (pause === "hover") {
@@ -276,7 +277,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       [pause, onTouchStart]
     )
     const touchMove = useCallback(
-      e => {
+      (e: any) => {
         if (e.touches && e.touches.length > 1) {
           touchDeltaXRef.current = 0
         } else {
@@ -287,7 +288,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       [onTouchMove]
     )
     const touchEnd = useCallback(
-      e => {
+      (e: any) => {
         if (touch) {
           const touchDeltaX = touchDeltaXRef.current
           if (Math.abs(touchDeltaX) > SWIPE_THRESHOLD) {

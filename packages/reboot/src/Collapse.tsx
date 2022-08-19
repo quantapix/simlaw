@@ -95,7 +95,7 @@ export const Collapse = React.forwardRef<Transition<any>, Props>(
     )
     const exit = useMemo(
       () =>
-        createChained(x => {
+        createChained((x: HTMLElement) => {
           x.style[dim] = `${getDimensionValue(dim, x)}px`
           triggerReflow(x)
         }, onExit),

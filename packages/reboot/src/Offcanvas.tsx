@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useEventCallback } from "@restart/hooks"
 import {
@@ -200,26 +201,26 @@ export const Offcanvas: BsRef<"div", Props> = React.forwardRef<
       }
       return getSharedManager()
     }
-    const enter = (node, ...args) => {
+    const enter = (node, ...xs: any) => {
       if (node) node.style.visibility = "visible"
-      onEnter?.(node, ...args)
+      onEnter?.(node, ...xs)
     }
-    const exited = (node, ...args) => {
+    const exited = (node, ...xs: any) => {
       if (node) node.style.visibility = ""
-      onExited?.(...args)
+      onExited?.(...xs)
     }
     const renderBackdrop = useCallback(
-      backdropProps => (
+      (xs: any) => (
         <div
-          {...backdropProps}
+          {...xs}
           className={classNames(`${bsPrefix}-backdrop`, backdropClassName)}
         />
       ),
       [backdropClassName, bsPrefix]
     )
-    const renderDialog = dialogProps => (
+    const renderDialog = (xs: any) => (
       <div
-        {...dialogProps}
+        {...xs}
         {...ps}
         className={classNames(
           className,

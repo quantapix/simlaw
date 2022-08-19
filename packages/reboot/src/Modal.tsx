@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
+import { useCallback, useContext, useMemo, useRef, useState } from "react"
+import { useCallbackRef, useEventCallback } from "@restart/hooks"
+import useMergedRefs from "@restart/hooks/esm/useMergedRefs.js"
+import useWillUnmount from "@restart/hooks/esm/useWillUnmount.js"
+import transitionEnd from "dom-helpers/esm/transitionEnd.js"
 import addEventListener from "dom-helpers/esm/addEventListener.js"
 import canUseDOM from "dom-helpers/esm/canUseDOM.js"
 import ownerDocument from "dom-helpers/esm/ownerDocument.js"
 import removeEventListener from "dom-helpers/esm/removeEventListener.js"
 import getScrollbarSize from "dom-helpers/esm/scrollbarSize.js"
-import { useCallbackRef, useEventCallback } from "@restart/hooks"
-import useMergedRefs from "@restart/hooks/esm/useMergedRefs.js"
-import useWillUnmount from "@restart/hooks/esm/useWillUnmount.js"
-import transitionEnd from "dom-helpers/esm/transitionEnd.js"
-import { useCallback, useContext, useMemo, useRef, useState } from "react"
 import BaseModal, { BaseModalProps } from "@restart/ui/esm/Modal.jsx"
 import type { ModalInstance } from "@restart/ui/esm/ModalManager.jsx"
 import { getSharedManager } from "./Manager.jsx"
@@ -177,11 +177,11 @@ export interface Props
   [other: string]: any
 }
 
-function DialogTransition(ps) {
+function DialogTransition(ps: any) {
   return <Fade {...ps} timeout={null} />
 }
 
-function BackdropTransition(ps) {
+function BackdropTransition(ps: any) {
   return <Fade {...ps} timeout={null} />
 }
 

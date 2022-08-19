@@ -1,15 +1,15 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import ReactDOM from "react-dom"
 import css from "dom-helpers/esm/css.js"
-import camelize from "dom-helpers/esm/camelize.js"
 import transitionEnd from "dom-helpers/esm/transitionEnd.js"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsRef } from "./helpers.js"
 
 export function map<P = any>(
-  xs,
-  f: (el: React.ReactElement<P>, i: number) => any
+  xs: any,
+  f: (x: React.ReactElement<P>, i: number) => any
 ) {
   let i = 0
   return React.Children.map(xs, x =>
@@ -18,7 +18,7 @@ export function map<P = any>(
 }
 
 export function forEach<P = any>(
-  xs,
+  xs: any,
   f: (el: React.ReactElement<P>, i: number) => void
 ) {
   let i = 0
@@ -28,33 +28,33 @@ export function forEach<P = any>(
 }
 
 export function hasChildOfType<P = any>(
-  xs: React.ReactNode,
+  x: React.ReactNode,
   type: string | React.JSXElementConstructor<P>
 ): boolean {
-  return React.Children.toArray(xs).some(
+  return React.Children.toArray(x).some(
     x => React.isValidElement(x) && x.type === type
   )
 }
 
 export function createChained(...fs) {
   return fs
-    .filter(f => f != null)
-    .reduce((acc, f) => {
-      if (typeof f !== "function") {
+    .filter(x => x != null)
+    .reduce((y, x) => {
+      if (typeof x !== "function") {
         throw new Error(
           "Invalid Argument Type, must only provide functions, undefined, or null."
         )
       }
-      if (acc === null) return f
+      if (y === null) return x
       return function chainedFunction(...xs) {
-        acc.apply(this, xs)
-        f.apply(this, xs)
+        y.apply(this, xs)
+        x.apply(this, xs)
       }
     }, null)
 }
 
-export function triggerReflow(node: HTMLElement): void {
-  node.offsetHeight
+export function triggerReflow(x: HTMLElement): void {
+  x.offsetHeight
 }
 
 export function safeFindDOMNode(
@@ -75,7 +75,14 @@ export const divAs = (className: string) =>
     />
   ))
 
-const pascalCase = str => str[0].toUpperCase() + camelize(str).slice(1)
+function pascalCase(x: string) {
+  if (!x) return x
+  const rHyphen = /-(.)/g
+  function camelize(x: string): string {
+    return x.replace(rHyphen, (_, c) => c.toUpperCase())
+  }
+  return x[0]!.toUpperCase() + camelize(x).slice(1)
+}
 
 interface BsOptions<As extends React.ElementType = "div"> {
   displayName?: string

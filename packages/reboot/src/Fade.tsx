@@ -29,9 +29,9 @@ const fadeStyles = {
 export const Fade = React.forwardRef<Transition<any>, Props>(
   ({ className, children, transitionClasses = {}, ...ps }, ref) => {
     const enter = useCallback(
-      (node, isAppearing) => {
-        triggerReflow(node)
-        ps.onEnter?.(node, isAppearing)
+      (x: HTMLElement, isAppearing: boolean) => {
+        triggerReflow(x)
+        ps.onEnter?.(x, isAppearing)
       },
       [ps]
     )

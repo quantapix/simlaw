@@ -229,35 +229,35 @@ export const Trigger = ({
     }, delay.hide)
   }, [delay.hide, setShow, timeout])
   const focus = useCallback(
-    (...args: any[]) => {
+    (...xs: any[]) => {
       show()
-      onFocus?.(...args)
+      onFocus?.(...xs)
     },
     [show, onFocus]
   )
   const blur = useCallback(
-    (...args: any[]) => {
+    (...xs: any[]) => {
       hide()
-      onBlur?.(...args)
+      onBlur?.(...xs)
     },
     [hide, onBlur]
   )
   const click = useCallback(
-    (...args: any[]) => {
+    (...xs: any[]) => {
       setShow(!isShow)
-      onClick?.(...args)
+      onClick?.(...xs)
     },
     [onClick, setShow, isShow]
   )
   const mouseOver = useCallback(
-    (...args: [React.MouseEvent, ...any[]]) => {
-      mouseOverOut(show, args, "fromElement")
+    (...xs: [React.MouseEvent, ...any[]]) => {
+      mouseOverOut(show, xs, "fromElement")
     },
     [show]
   )
   const mouseOut = useCallback(
-    (...args: [React.MouseEvent, ...any[]]) => {
-      mouseOverOut(hide, args, "toElement")
+    (...xs: [React.MouseEvent, ...any[]]) => {
+      mouseOverOut(hide, xs, "toElement")
     },
     [hide]
   )
