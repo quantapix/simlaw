@@ -3,7 +3,7 @@ import { classNames } from "./helpers.js"
 import * as React from "react"
 import { useCallback } from "react"
 import type { TransitionStatus, Transition } from "react-transition-group"
-import type { TransitionCallbacks } from "@restart/ui/esm/types.jsx"
+import type { TransitionCallbacks } from "./base/types.jsx"
 import { triggerReflow, endListener } from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
 

@@ -13,9 +13,6 @@
     "test": "node --experimental-vm-modules ../../node_modules/.bin/jest"
   },
   "dependencies": {
-    "@restart/context": "",
-    "@restart/hooks": "",
-    "@restart/ui": "",
     "dom-helpers": "",
     "react-transition-group": ""
   },

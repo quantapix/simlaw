@@ -1,27 +1,128 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
-import type { ButtonProps as _Props } from "@restart/ui"
-import { useButtonProps } from "@restart/ui/esm/Button.js"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
 import type { ButtonVariant } from "./types.jsx"
 
-export interface Props extends _Props, Omit<BsProps, "as"> {
+export type Type = "button" | "reset" | "submit"
+
+export interface Opts {
+  href?: string | undefined
+  rel?: string | undefined
+  target?: string | undefined
+}
+
+export interface PropsOpts extends Opts {
+  type?: Type | undefined
+  disabled?: boolean | undefined
+  onClick?:
+    | React.EventHandler<React.MouseEvent | React.KeyboardEvent>
+    | undefined
+  tabIndex?: number | undefined
+  tagName?: keyof JSX.IntrinsicElements | undefined
+  role?: React.AriaRole | undefined
+}
+
+export function isTrivialHref(href?: string) {
+  return !href || href.trim() === "#"
+}
+
+export interface AriaProps {
+  type?: Type | undefined
+  disabled: boolean | undefined
+  role?: React.AriaRole
+  tabIndex?: number | undefined
+  href?: string | undefined
+  target?: string | undefined
+  rel?: string | undefined
+  "aria-disabled"?: true | undefined
+  onClick?: (event: React.MouseEvent | React.KeyboardEvent) => void
+  onKeyDown?: (event: React.KeyboardEvent) => void
+}
+
+export interface PropsMeta {
+  tagName: React.ElementType
+}
+
+export function useButtonProps({
+  tagName,
+  disabled,
+  href,
+  target,
+  rel,
+  role,
+  onClick,
+  tabIndex = 0,
+  type,
+}: PropsOpts): [AriaProps, PropsMeta] {
+  if (!tagName) {
+    if (href != null || target != null || rel != null) {
+      tagName = "a"
+    } else {
+      tagName = "button"
+    }
+  }
+  const meta: PropsMeta = { tagName }
+  if (tagName === "button") {
+    return [{ type: (type as any) || "button", disabled }, meta]
+  }
+  const click = (event: React.MouseEvent | React.KeyboardEvent) => {
+    if (disabled || (tagName === "a" && isTrivialHref(href))) {
+      event.preventDefault()
+    }
+    if (disabled) {
+      event.stopPropagation()
+      return
+    }
+    onClick?.(event)
+  }
+  const keyDown = (event: React.KeyboardEvent) => {
+    if (event.key === " ") {
+      event.preventDefault()
+      click(event)
+    }
+  }
+  if (tagName === "a") {
+    href ||= "#"
+    if (disabled) {
+      href = undefined
+    }
+  }
+  return [
+    {
+      role: role ?? "button",
+      disabled: undefined,
+      tabIndex: disabled ? undefined : tabIndex,
+      href,
+      target: tagName === "a" ? target : undefined,
+      "aria-disabled": !disabled ? undefined : disabled,
+      rel: tagName === "a" ? rel : undefined,
+      onClick: click,
+      onKeyDown: keyDown,
+    },
+    meta,
+  ]
+}
+
+export interface Props
+  extends React.ComponentPropsWithoutRef<"button">,
+    Omit<BsProps, "as"> {
+  as?: keyof JSX.IntrinsicElements | undefined
+  disabled?: boolean | undefined
+  href?: string | undefined
+  target?: string | undefined
+  rel?: string | undefined
   active?: boolean | undefined
   variant?: ButtonVariant | undefined
   size?: "sm" | "lg"
 }
-
-export type CommonProps = "href" | "size" | "variant" | "disabled"
 
 export const Button: BsRef<"button", Props> = React.forwardRef<
   HTMLButtonElement,
   Props
 >(({ as, bsPrefix, variant, size, active, className, ...ps }, ref) => {
   const bs = useBs(bsPrefix, "btn")
-  const [buttonProps, { tagName }] = useButtonProps({
-    tagName: as,
-    ...ps,
-  })
+  const [buttonProps, { tagName }] = useButtonProps({ tagName: as, ...ps })
   const X = tagName as React.ElementType
   return (
     <X

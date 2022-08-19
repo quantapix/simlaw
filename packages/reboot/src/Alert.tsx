@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useUncontrolled } from "./use.jsx"
-import { useEventCallback } from "@restart/hooks"
-import Anchor from "@restart/ui/esm/Anchor.js"
+import { useEventCallback } from "./hooks"
+import { Anchor } from "./base/Anchor.jsx"
 import { useBs } from "./Theme.jsx"
 import { Fade } from "./Fade.jsx"
 import { Close, Variant as CloseVariant } from "./Button.jsx"

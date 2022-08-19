@@ -8,10 +8,10 @@ import {
   useRef,
   useState,
 } from "react"
-import { useEventCallback, useCommittedRef } from "@restart/hooks"
-import useTimeout from "@restart/hooks/esm/useTimeout.js"
-import useUpdateEffect from "@restart/hooks/esm/useUpdateEffect.js"
-import Anchor from "@restart/ui/esm/Anchor.js"
+import { useEventCallback, useCommittedRef } from "./hooks"
+import useTimeout from "./hooks/esm/useTimeout.js"
+import useUpdateEffect from "./hooks/esm/useUpdateEffect.js"
+import { Anchor } from "./base/Anchor.jsx"
 import type { TransitionStatus } from "react-transition-group"
 import { useUncontrolled } from "./use.jsx"
 import { map, forEach, triggerReflow, withBs, endListener } from "./utils.jsx"

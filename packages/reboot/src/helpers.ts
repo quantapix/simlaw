@@ -1,12 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
-import type { TransitionComponent } from "@restart/ui/esm/types.js"
+import type { TransitionComponent } from "./base/types.js"
 
 export type Omit<T, U> = Pick<T, Exclude<keyof T, keyof U>>
-
-export interface AsProp<T extends React.ElementType = React.ElementType> {
-  as?: T
-}
 
 export type ReplaceProps<T extends React.ElementType, P> = Omit<
   React.ComponentPropsWithRef<T>,
@@ -16,6 +12,10 @@ export type ReplaceProps<T extends React.ElementType, P> = Omit<
 
 export interface BsOnlyProps {
   bsPrefix?: string
+}
+
+export interface AsProp<T extends React.ElementType = React.ElementType> {
+  as?: T
 }
 
 export interface BsProps<T extends React.ElementType = React.ElementType>
@@ -113,4 +113,16 @@ export function invariant(condition: any, format: string, ...args: any[]) {
     e.framesToPop = 1
     throw e
   }
+}
+
+export const ATTRIBUTE_PREFIX = `data-rr-ui-` as const
+
+export const PROPERTY_PREFIX = `rrUi` as const
+
+export function dataAttr<T extends string>(x: T) {
+  return `${ATTRIBUTE_PREFIX}${x}` as const
+}
+
+export function dataProp<T extends string>(x: T) {
+  return `${PROPERTY_PREFIX}${x}` as const
 }

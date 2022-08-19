@@ -3,7 +3,7 @@ import * as React from "react"
 import css from "dom-helpers/esm/css.js"
 import { useMemo } from "react"
 import type { Transition, TransitionStatus } from "react-transition-group"
-import type { TransitionCallbacks } from "@restart/ui/esm/types.jsx"
+import type { TransitionCallbacks } from "./base/types.jsx"
 import { triggerReflow, createChained, endListener } from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
 

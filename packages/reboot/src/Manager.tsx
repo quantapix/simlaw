@@ -6,7 +6,7 @@ import removeClass from "dom-helpers/esm/removeClass.js"
 import ModalManager, {
   ContainerState,
   ModalManagerOptions,
-} from "@restart/ui/esm/ModalManager.jsx"
+} from "./base/ModalManager.jsx"
 
 const Selector = {
   FIXED_CONTENT: ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top",

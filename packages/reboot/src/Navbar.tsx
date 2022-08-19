@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useCallback, useContext, useMemo } from "react"
-import SelectableContext from "@restart/ui/esm/SelectableContext.jsx"
-import type { SelectCallback } from "@restart/ui/esm/types.jsx"
+import SelectableContext from "./base/SelectableContext.jsx"
+import type { SelectCallback } from "./base/types.jsx"
 import { useUncontrolled } from "./use.jsx"
-import { useEventCallback } from "@restart/hooks"
+import { useEventCallback } from "./hooks"
 import { withBs } from "./utils.jsx"
 import { Collapse as C, Props as CPs } from "./Collapse.jsx"
 import { useBs } from "./Theme.jsx"

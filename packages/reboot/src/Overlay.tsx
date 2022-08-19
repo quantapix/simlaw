@@ -5,12 +5,12 @@ import contains from "dom-helpers/esm/contains.js"
 import BaseOverlay, {
   OverlayProps as _Props,
   OverlayArrowProps,
-} from "@restart/ui/esm/Overlay.jsx"
-import type { State } from "@restart/ui/esm/usePopper.jsx"
-import { useCallbackRef, useEventCallback } from "@restart/hooks"
-import useIsomorphicEffect from "@restart/hooks/esm/useIsomorphicEffect.js"
-import useMergedRefs from "@restart/hooks/esm/useMergedRefs.js"
-import useTimeout from "@restart/hooks/esm/useTimeout.js"
+} from "./base/Overlay.jsx"
+import type { State } from "./base/usePopper.jsx"
+import { useCallbackRef, useEventCallback } from "./hooks"
+import useIsomorphicEffect from "./hooks/esm/useIsomorphicEffect.js"
+import useMergedRefs from "./hooks/esm/useMergedRefs.js"
+import useTimeout from "./hooks/esm/useTimeout.js"
 import warning from "warning"
 import { useOffset, useUncontrolledProp } from "./use.jsx"
 import { Fade } from "./Fade.jsx"

@@ -1,4 +1,4 @@
-export { SSRProvider, SSRProviderProps } from "@restart/ui/esm/ssr.jsx"
+export { SSRProvider, SSRProviderProps } from "./base/ssr.jsx"
 
 export { Accordion } from "./Accordion.jsx"
 export type { Props as AccordionProps } from "./Accordion.jsx"
@@ -11,8 +11,8 @@ export type { ButtonProps as AccordionButtonProps } from "./Accordion.jsx"
 export { Alert } from "./Alert.jsx"
 export type { Props as AlertProps } from "./Alert.jsx"
 
-export { Anchor } from "./Anchor.jsx"
-export type { Props as AnchorProps } from "./Anchor.jsx"
+export { Anchor } from "./base/Anchor.jsx"
+export type { Props as AnchorProps } from "./base/Anchor.jsx"
 
 export { Badge } from "./Badge.jsx"
 export type { Props as BadgeProps } from "./Badge.jsx"

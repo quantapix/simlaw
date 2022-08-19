@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
-import { useEventCallback } from "@restart/hooks"
+import { useEventCallback } from "./hooks"
 import {
   useCallback,
   useContext,
@@ -9,13 +9,10 @@ import {
   useRef,
   useState,
 } from "react"
-import BaseModal, {
-  ModalProps as _Props,
-  ModalHandle,
-} from "@restart/ui/esm/Modal.jsx"
+import BaseModal, { ModalProps as _Props, ModalHandle } from "./base/Modal.jsx"
 import type { Transition, TransitionStatus } from "react-transition-group"
-import type { TransitionCallbacks } from "@restart/ui/esm/types.jsx"
-import useBreakpoint from "@restart/hooks/esm/useBreakpoint.js"
+import type { TransitionCallbacks } from "./base/types.jsx"
+import useBreakpoint from "./hooks/esm/useBreakpoint.js"
 import { Fade } from "./Fade.jsx"
 import { AbsHeader, AbsProps as HProps, Context as MContext } from "./Modal.jsx"
 import { Context as NContext } from "./Navbar.jsx"

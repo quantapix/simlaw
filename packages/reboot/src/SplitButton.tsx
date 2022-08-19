@@ -1,5 +1,5 @@
 import * as React from "react"
-import type { ButtonType } from "@restart/ui/esm/Button.jsx"
+import type { Type } from "./Button.jsx"
 import { Button, Group } from "./Button.jsx"
 import {
   Dropdown,
@@ -17,7 +17,7 @@ export interface Props extends Omit<_Props, "title">, PropsFromToggle, BsProps {
   target?: string
   title: React.ReactNode
   toggleLabel?: string
-  type?: ButtonType
+  type?: Type
   flip?: boolean
 }
 

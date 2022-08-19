@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { classNames, invariant } from "./helpers.js"
 import { useCallback, useMemo, useRef, useState } from "react"
-import useMergedRefs from "@restart/hooks/esm/useMergedRefs.js"
+import useMergedRefs from "./hooks/esm/useMergedRefs.js"
 import hasClass from "dom-helpers/esm/hasClass.js"
-import type { Offset, Options } from "@restart/ui/esm/usePopper.jsx"
+import type { Offset, Options } from "./base/usePopper.jsx"
 import { useBs } from "./Theme.jsx"
 import { POPPER_OFFSET } from "./Popover.jsx"
 import { useCol, Props as _Props } from "./Col.jsx"

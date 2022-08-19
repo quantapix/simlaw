@@ -1,23 +1,17 @@
 import * as React from "react"
 import { useContext, useMemo } from "react"
 import warning from "warning"
-import { useEventCallback } from "@restart/hooks"
-import useMergedRefs from "@restart/hooks/esm/useMergedRefs.js"
-import useIsomorphicEffect from "@restart/hooks/esm/useIsomorphicEffect.js"
-import Anchor from "@restart/ui/esm/Anchor.js"
+import { useEventCallback } from "./hooks"
+import useMergedRefs from "./hooks/esm/useMergedRefs.js"
+import useIsomorphicEffect from "./hooks/esm/useIsomorphicEffect.js"
+import { Anchor } from "./base/Anchor.jsx"
 import BaseDropdown, {
   DropdownProps as _Props,
   ToggleMetadata,
-} from "@restart/ui/esm/Dropdown.js"
-import BaseDropdownItem, {
-  useDropdownItem,
-  DropdownItemProps as BaseDropdownItemProps,
-} from "@restart/ui/esm/DropdownItem.js"
-import {
-  useDropdownMenu,
-  UseDropdownMenuOptions,
-} from "@restart/ui/esm/DropdownMenu.js"
-import { useDropdownToggle } from "@restart/ui/esm/DropdownToggle.js"
+} from "./base/Dropdown.js"
+import BaseDropdownItem, { useDropdownItem } from "./base/DropdownItem.js"
+import { useDropdownMenu, UseDropdownMenuOptions } from "./base/DropdownMenu.js"
+import { useDropdownToggle } from "./base/DropdownToggle.js"
 import { useUncontrolled, useWrappedRef } from "./use.jsx"
 import { Context as InputGroupContext } from "./InputGroup.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"
@@ -25,10 +19,12 @@ import { withBs } from "./utils.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Context as NavbarContext } from "./Navbar.jsx"
 import type { AlignType, AlignDirection, Placement } from "./types.jsx"
-import { Button as _Button, Props as _BProps, CommonProps } from "./Button.jsx"
+import { Button as _Button, Props as _BProps } from "./Button.jsx"
 import { Link as NavLink } from "./Nav.jsx"
 
 export type Drop = "up" | "start" | "end" | "down"
+
+type CommonProps = "href" | "size" | "variant" | "disabled"
 
 export type Data = {
   align?: AlignType
@@ -230,7 +226,13 @@ export const ItemText = withBs("dropdown-item-text", {
   Component: "span",
 })
 
-export interface ItemProps extends BaseDropdownItemProps, BsProps {}
+export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
+  as?: React.ElementType
+  active?: boolean
+  disabled?: boolean
+  eventKey?: EventKey
+  href?: string
+}
 
 export const Item: BsRef<typeof BaseDropdownItem, ItemProps> = React.forwardRef(
   (

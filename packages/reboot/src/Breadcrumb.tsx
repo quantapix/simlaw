@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
-import Anchor from "@restart/ui/esm/Anchor.js"
+import { Anchor } from "./base/Anchor.jsx"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
 
