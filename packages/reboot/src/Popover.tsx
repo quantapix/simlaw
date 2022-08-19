@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from "react"
 import type { OverlayArrowProps } from "./base/Overlay.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"

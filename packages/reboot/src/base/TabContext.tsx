@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import type { EventKey, SelectCallback, TransitionComponent } from "./types.js"
 

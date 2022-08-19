@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useCallback, useContext, useMemo } from "react"
 import { SelectableContext } from "./base/SelectableContext.jsx"

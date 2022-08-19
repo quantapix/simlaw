@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { classNames } from "./helpers.js"
 import * as React from "react"
 import { useCallback } from "react"

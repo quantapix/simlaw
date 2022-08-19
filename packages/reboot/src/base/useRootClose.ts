@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import { listen, ownerDocument } from "./utils.js"
 import { useEffect } from "react"
 import { useEventCallback } from "../hooks.js"

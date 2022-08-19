@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { Anchor } from "./base/Anchor.jsx"
 import { useBs } from "./Theme.jsx"

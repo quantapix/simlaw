@@ -1,4 +1,3 @@
-/* eslint-disable no-new-func */
 import { createChained } from "../src/utils.jsx"
 
 describe("createChained", () => {

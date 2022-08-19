@@ -52,7 +52,6 @@ export const Item: BsRef<"a", ItemProps> = React.forwardRef<
       ps.tabIndex = -1
       ps["aria-disabled"] = true
     }
-    // eslint-disable-next-line no-nested-ternary
     const X = as || (action ? (ps.href ? "a" : "button") : "div")
     return (
       <X

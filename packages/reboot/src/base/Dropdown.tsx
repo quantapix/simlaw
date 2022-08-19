@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { qsa, addEventListener } from "./utils.js"
 import { useCallback, useRef, useEffect, useMemo, useContext } from "react"
 import * as React from "react"

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"

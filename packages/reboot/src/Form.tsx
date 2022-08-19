@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useContext, useMemo } from "react"
 import warning from "warning"

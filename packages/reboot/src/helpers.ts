@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import type { TransitionComponent } from "./base/types.js"
 
@@ -79,7 +78,6 @@ export function classNames(...xs: Array<Arg>): string {
     } else if (typeof x === "object") {
       if (x.toString === Object.prototype.toString) {
         const hasOwn = {}.hasOwnProperty
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         for (const k in x as any) {
           if (hasOwn.call(x, k) && x[k]) {
             ys.push(k)

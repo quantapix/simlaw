@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { activeElement, contains, canUseDOM, listen } from "./utils.js"
 import {
   useState,

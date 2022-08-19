@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 
 export type ButtonType = "button" | "reset" | "submit"

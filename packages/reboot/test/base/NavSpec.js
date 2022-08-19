@@ -1,24 +1,22 @@
-/* eslint-disable mocha/no-hooks-for-single-case */
+import { mount } from "enzyme"
+import Tabs from "../src/Tabs"
+import Nav from "../src/Nav"
+import NavItem from "../src/NavItem"
 
-import { mount } from 'enzyme';
-import Tabs from '../src/Tabs';
-import Nav from '../src/Nav';
-import NavItem from '../src/NavItem';
-
-describe('<Nav>', () => {
-  let focusableContainer;
+describe("<Nav>", () => {
+  let focusableContainer
 
   beforeEach(() => {
-    focusableContainer = document.createElement('div');
-    document.body.appendChild(focusableContainer);
-  });
+    focusableContainer = document.createElement("div")
+    document.body.appendChild(focusableContainer)
+  })
 
   afterEach(() => {
-    document.body.removeChild(focusableContainer);
-    focusableContainer = null;
-  });
+    document.body.removeChild(focusableContainer)
+    focusableContainer = null
+  })
 
-  it('When Arrow key is pressed and a nom NavItem element is the activeElement, then the activeElement keeps the same element', () => {
+  it("When Arrow key is pressed and a nom NavItem element is the activeElement, then the activeElement keeps the same element", () => {
     const wrapper = mount(
       <Tabs defaultActiveKey="1">
         <Nav>
@@ -27,9 +25,9 @@ describe('<Nav>', () => {
           <input type="text" autoFocus />
         </Nav>
       </Tabs>,
-      { attachTo: focusableContainer },
-    );
-    wrapper.find(NavItem).at(0).simulate('keydown', { key: 'ArrowRight' });
-    expect(document.activeElement).to.equal(wrapper.find('input').getDOMNode());
-  });
-});
+      { attachTo: focusableContainer }
+    )
+    wrapper.find(NavItem).at(0).simulate("keydown", { key: "ArrowRight" })
+    expect(document.activeElement).to.equal(wrapper.find("input").getDOMNode())
+  })
+})

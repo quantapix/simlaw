@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useContext } from "react"
 import TabContext from "./TabContext.jsx"

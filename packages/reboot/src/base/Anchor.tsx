@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from "react"
 import { useEventCallback } from "../hooks.js"
 import { useButtonProps } from "../Button.jsx"

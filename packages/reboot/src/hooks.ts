@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { useCallback, useRef, useEffect, useState, EffectCallback } from "react"
 import type { DependencyList } from "react"
 import type React from "react"

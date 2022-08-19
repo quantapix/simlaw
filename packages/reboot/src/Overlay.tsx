@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { cloneElement, useCallback, useRef } from "react"
 import { contains } from "./base/utils.js"

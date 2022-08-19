@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import ReactDOM from "react-dom"
 import { css, transitionEnd } from "./base/utils.js"

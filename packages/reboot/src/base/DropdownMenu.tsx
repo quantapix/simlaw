@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useContext, useRef } from "react"
 import * as React from "react"
 import { useCallbackRef } from "../hooks.js"

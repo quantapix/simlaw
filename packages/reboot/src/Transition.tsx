@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useCallback, useRef } from "react"
 import { Transition, TransitionStatus } from "react-transition-group"
 import type { TransitionProps } from "react-transition-group/Transition.js"

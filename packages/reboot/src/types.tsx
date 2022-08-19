@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { State } from "./base/usePopper.js"
 
 export type Variant =

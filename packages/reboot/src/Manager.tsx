@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { addClass, css, qsa, removeClass } from "./base/utils.js"
 import ModalManager, {
   ContainerState,

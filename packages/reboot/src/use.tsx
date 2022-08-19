@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { classNames, invariant } from "./helpers.js"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { useMergedRefs } from "./hooks.js"

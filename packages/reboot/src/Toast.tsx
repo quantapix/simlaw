@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useContext, useEffect, useMemo, useRef, useCallback } from "react"
 import { useEventCallback, useTimeout } from "./hooks.js"

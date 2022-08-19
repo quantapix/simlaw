@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-empty */
 import type * as CSS from "csstype"
 export const canUseDOM = !!(
   typeof window !== "undefined" &&

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { act } from "react-dom/test-utils"
 import { ReactWrapper, mount } from "enzyme"
 //import { renderHook, act } from "@testing-library/react-hooks"
