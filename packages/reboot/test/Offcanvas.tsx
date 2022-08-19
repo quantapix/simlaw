@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useEffect } from "react"
-import ModalManager from "@restart/ui/ModalManager"
+import ModalManager from "../src/base/ModalManager.js"
 import { fireEvent, render } from "@testing-library/react"
 import { Header, Offcanvas, Title } from "../src/Offcanvas.jsx"
 

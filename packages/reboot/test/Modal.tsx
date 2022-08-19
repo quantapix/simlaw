@@ -1,6 +1,6 @@
 import * as React from "react"
 import { fireEvent, render } from "@testing-library/react"
-import ModalManager from "@restart/ui/ModalManager"
+import ModalManager from "../src/base/ModalManager.js"
 import { Body, Header, Footer, Modal, Props, Title } from "../src/Modal.jsx"
 
 describe("<Modal>", () => {

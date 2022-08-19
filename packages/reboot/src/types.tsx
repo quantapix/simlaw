@@ -123,7 +123,7 @@ export type Color =
   | "white"
   | "muted"
 
-export type Placement = import("@restart/ui/esm/usePopper.js").Placement
+export type Placement = import(".base/usePopper.js").Placement
 
 export type AlignDirection = "start" | "end"
 
