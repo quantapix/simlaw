@@ -11,8 +11,8 @@ export type { ButtonProps as AccordionButtonProps } from "./Accordion.jsx"
 export { Alert } from "./Alert.jsx"
 export type { Props as AlertProps } from "./Alert.jsx"
 
-export { default as Anchor } from "./Anchor.jsx"
-export type { AnchorProps } from "./Anchor.jsx"
+export { Anchor } from "./Anchor.jsx"
+export type { Props as AnchorProps } from "./Anchor.jsx"
 
 export { Badge } from "./Badge.jsx"
 export type { Props as BadgeProps } from "./Badge.jsx"
