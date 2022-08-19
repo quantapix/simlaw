@@ -14,7 +14,7 @@ export declare type SelectCB = (
 ) => void
 
 export interface Data {
-  activeEventKey?: Key
+  activeKey?: Key
   onSelect?: SelectCB | undefined
   alwaysOpen?: boolean | undefined
 }
@@ -39,18 +39,18 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     BsProps {}
 
-type EventHandler = React.EventHandler<React.SyntheticEvent>
+type Handler = React.EventHandler<React.SyntheticEvent>
 
-export function useButton(key: string, onClick?: EventHandler): EventHandler {
-  const { activeEventKey, onSelect, alwaysOpen } = useContext(Context)
+export function useButton(key: string, onClick?: Handler): Handler {
+  const { activeKey, onSelect, alwaysOpen } = useContext(Context)
   return e => {
-    let k: Key = key === activeEventKey ? null : key
+    let k: Key = key === activeKey ? null : key
     if (alwaysOpen) {
-      if (Array.isArray(activeEventKey)) {
-        if (activeEventKey.includes(key)) {
-          k = activeEventKey.filter(x => x !== key)
+      if (Array.isArray(activeKey)) {
+        if (activeKey.includes(key)) {
+          k = activeKey.filter(x => x !== key)
         } else {
-          k = [...activeEventKey, key]
+          k = [...activeKey, key]
         }
       } else {
         k = [key]
@@ -65,23 +65,23 @@ export const Button: BsRef<"div", ButtonProps> = React.forwardRef<
   HTMLButtonElement,
   ButtonProps
 >(({ as: X = "button", bsPrefix, className, onClick, ...ps }, ref) => {
-  bsPrefix = useBs(bsPrefix, "accordion-button")
+  const bs = useBs(bsPrefix, "accordion-button")
   const { eventKey } = useContext(ItemContext)
-  const accordionOnClick = useButton(eventKey, onClick)
-  const { activeEventKey } = useContext(Context)
+  const click = useButton(eventKey, onClick)
+  const { activeKey } = useContext(Context)
   if (X === "button") {
     ps.type = "button"
   }
   return (
     <X
       ref={ref}
-      onClick={accordionOnClick}
+      onClick={click}
       {...ps}
-      aria-expanded={eventKey === activeEventKey}
+      aria-expanded={eventKey === activeKey}
       className={classNames(
         className,
-        bsPrefix,
-        !isItemSelected(activeEventKey, eventKey) && "collapsed"
+        bs,
+        !isItemSelected(activeKey, eventKey) && "collapsed"
       )}
     />
   )
@@ -96,16 +96,16 @@ export const Header: BsRef<"h2", HeaderProps> = React.forwardRef<
   HTMLElement,
   HeaderProps
 >(({ as: X = "h2", bsPrefix, className, children, onClick, ...ps }, ref) => {
-  bsPrefix = useBs(bsPrefix, "accordion-header")
+  const bs = useBs(bsPrefix, "accordion-header")
   return (
-    <X ref={ref} {...ps} className={classNames(className, bsPrefix)}>
+    <X ref={ref} {...ps} className={classNames(className, bs)}>
       <Button onClick={onClick}>{children}</Button>
     </X>
   )
 })
 Header.displayName = "AccordionHeader"
 
-export interface CollapseProps extends BsProps, CPs {
+export interface CollapseProps extends CPs, BsProps {
   eventKey: string
 }
 
@@ -113,19 +113,19 @@ export const Collapse: BsRef<"div", CollapseProps> = React.forwardRef<
   Transition<any>,
   CollapseProps
 >(({ as: X = "div", bsPrefix, className, children, eventKey, ...ps }, ref) => {
-  const { activeEventKey } = useContext(Context)
+  const { activeKey } = useContext(Context)
   const bs = useBs(bsPrefix, "accordion-collapse")
   return (
     <C
       ref={ref}
-      in={isItemSelected(activeEventKey, eventKey)}
+      in={isItemSelected(activeKey, eventKey)}
       {...ps}
       className={classNames(className, bs)}
     >
       <X>{React.Children.only(children)}</X>
     </C>
   )
-}) as any
+})
 Collapse.displayName = "AccordionCollapse"
 
 export interface BodyProps extends BsProps, React.HTMLAttributes<HTMLElement> {}
@@ -134,11 +134,11 @@ export const Body: BsRef<"div", BodyProps> = React.forwardRef<
   HTMLElement,
   BodyProps
 >(({ as: X = "div", bsPrefix, className, ...ps }, ref) => {
-  bsPrefix = useBs(bsPrefix, "accordion-body")
+  const bs = useBs(bsPrefix, "accordion-body")
   const { eventKey } = useContext(ItemContext)
   return (
     <Collapse eventKey={eventKey}>
-      <X ref={ref} {...ps} className={classNames(className, bsPrefix)} />
+      <X ref={ref} {...ps} className={classNames(className, bs)} />
     </Collapse>
   )
 })
@@ -152,7 +152,7 @@ export const Item: BsRef<"div", ItemProps> = React.forwardRef<
   HTMLElement,
   ItemProps
 >(({ as: X = "div", bsPrefix, className, eventKey, ...ps }, ref) => {
-  bsPrefix = useBs(bsPrefix, "accordion-item")
+  const bs = useBs(bsPrefix, "accordion-item")
   const ctx = useMemo<ItemData>(
     () => ({
       eventKey,
@@ -161,7 +161,7 @@ export const Item: BsRef<"div", ItemProps> = React.forwardRef<
   )
   return (
     <ItemContext.Provider value={ctx}>
-      <X ref={ref} {...ps} className={classNames(className, bsPrefix)} />
+      <X ref={ref} {...ps} className={classNames(className, bs)} />
     </ItemContext.Provider>
   )
 })
@@ -196,7 +196,7 @@ export const Accordion: BsRef<"div", Props> = React.forwardRef<
   const bs = useBs(bsPrefix, "accordion")
   const v = useMemo(
     () => ({
-      activeEventKey: activeKey,
+      activeKey: activeKey,
       onSelect,
       alwaysOpen,
     }),

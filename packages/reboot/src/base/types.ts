@@ -70,16 +70,16 @@ export type SelectCallback = (
 ) => void
 
 export interface TransitionCallbacks {
-  onEnter?(node: HTMLElement, isAppearing: boolean): any
-  onEntering?(node: HTMLElement, isAppearing: boolean): any
-  onEntered?(node: HTMLElement, isAppearing: boolean): any
-  onExit?(node: HTMLElement): any
-  onExiting?(node: HTMLElement): any
-  onExited?(node: HTMLElement): any
+  onEnter?(x: HTMLElement, isAppearing: boolean): any
+  onEntering?(x: HTMLElement, isAppearing: boolean): any
+  onEntered?(x: HTMLElement, isAppearing: boolean): any
+  onExit?(x: HTMLElement): any
+  onExiting?(x: HTMLElement): any
+  onExited?(x: HTMLElement): any
 }
 
 export interface TransitionProps extends TransitionCallbacks {
-  in?: boolean
+  in?: boolean | undefined
   appear?: boolean
   children: React.ReactElement
   mountOnEnter?: boolean

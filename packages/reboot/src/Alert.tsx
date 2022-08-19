@@ -44,11 +44,9 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
       dismissible,
       transition,
       ...ps
-    } = useUncontrolled(xs, {
-      show: "onClose",
-    })
+    } = useUncontrolled(xs, { show: "onClose" })
     const bs = useBs(bsPrefix, "alert")
-    const onClick = useEventCallback(e => {
+    const click = useEventCallback(e => {
       if (onClose) {
         onClose(false, e)
       }
@@ -68,7 +66,7 @@ export const Alert = React.forwardRef<HTMLDivElement, Props>(
       >
         {dismissible && (
           <Close
-            onClick={onClick}
+            onClick={click}
             aria-label={closeLabel}
             variant={closeVariant}
           />

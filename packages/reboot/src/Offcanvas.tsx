@@ -17,12 +17,8 @@ import { Context as NContext } from "./Navbar.jsx"
 import { classNames, BsOnlyProps, BsRef } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
 import { Manager, getSharedManager } from "./Manager.jsx"
-import { divAs, withBs, endListener } from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
-
-const ENTERING = "entering"
-const ENTERED = "entered"
-const EXITING = "exiting"
+import * as qu from "./utils.jsx"
 
 export interface HeaderProps extends HProps, BsOnlyProps {}
 
@@ -44,9 +40,9 @@ Header.defaultProps = {
   closeButton: false,
 }
 
-export const Body = withBs("offcanvas-body")
-const DivAsH5 = divAs("h5")
-export const Title = withBs("offcanvas-title", {
+export const Body = qu.withBs("offcanvas-body")
+const DivAsH5 = qu.divAs("h5")
+export const Title = qu.withBs("offcanvas-title", {
   Component: DivAsH5,
 })
 
@@ -61,17 +57,20 @@ export interface TogglingProps extends TransitionCallbacks, BsOnlyProps {
 }
 
 const styles = {
-  [ENTERING]: "show",
-  [ENTERED]: "show",
+  [qu.ENTERING]: "show",
+  [qu.ENTERED]: "show",
+  [qu.EXITING]: "",
+  [qu.EXITED]: "",
+  [qu.UNMOUNTED]: "",
 }
 
 export const Toggling = React.forwardRef<Transition<any>, TogglingProps>(
   ({ bsPrefix, className, children, ...ps }, ref) => {
-    bsPrefix = useBs(bsPrefix, "offcanvas")
+    const bs = useBs(bsPrefix, "offcanvas")
     return (
       <Wrapper
         ref={ref}
-        addEndListener={endListener}
+        addEndListener={qu.endListener}
         {...ps}
         childRef={(children as any).ref}
       >
@@ -81,8 +80,8 @@ export const Toggling = React.forwardRef<Transition<any>, TogglingProps>(
             className: classNames(
               className,
               children.props.className,
-              (status === ENTERING || status === EXITING) &&
-                `${bsPrefix}-toggling`,
+              (status === qu.ENTERING || status === qu.EXITING) &&
+                `${bs}-toggling`,
               styles[status]
             ),
           })
@@ -119,11 +118,11 @@ export interface Props
   renderStaticNode?: boolean
 }
 
-function DialogTransition(ps) {
+function DialogTransition(ps: any) {
   return <Toggling {...ps} />
 }
 
-function BackdropTransition(ps) {
+function BackdropTransition(ps: any) {
   return <Fade {...ps} />
 }
 
@@ -165,16 +164,13 @@ export const Offcanvas: BsRef<"div", Props> = React.forwardRef<
     ref
   ) => {
     const manager = useRef<Manager>()
-    bsPrefix = useBs(bsPrefix, "offcanvas")
+    const bs = useBs(bsPrefix, "offcanvas")
     const { onToggle } = useContext(NContext) || {}
     const [showOffcanvas, setShowOffcanvas] = useState(false)
-    const hideResponsiveOffcanvas = useBreakpoint(
-      (responsive as any) || "xs",
-      "up"
-    )
+    const hideOffcanvas = useBreakpoint((responsive as any) || "xs", "up")
     useEffect(() => {
-      setShowOffcanvas(responsive ? show && !hideResponsiveOffcanvas : show)
-    }, [show, responsive, hideResponsiveOffcanvas])
+      setShowOffcanvas(responsive ? show && !hideOffcanvas : show)
+    }, [show, responsive, hideOffcanvas])
     const hide = useEventCallback(() => {
       onToggle?.()
       onHide?.()
@@ -196,22 +192,22 @@ export const Offcanvas: BsRef<"div", Props> = React.forwardRef<
       }
       return getSharedManager()
     }
-    const enter = (node, ...xs: any) => {
-      if (node) node.style.visibility = "visible"
-      onEnter?.(node, ...xs)
+    const enter = (x: any, ...xs: any) => {
+      if (x) x.style.visibility = "visible"
+      onEnter?.(x, ...xs)
     }
-    const exited = (node, ...xs: any) => {
-      if (node) node.style.visibility = ""
+    const exited = (x: any, ...xs: any) => {
+      if (x) x.style.visibility = ""
       onExited?.(...xs)
     }
     const renderBackdrop = useCallback(
       (xs: any) => (
         <div
           {...xs}
-          className={classNames(`${bsPrefix}-backdrop`, backdropClassName)}
+          className={classNames(`${bs}-backdrop`, backdropClassName)}
         />
       ),
-      [backdropClassName, bsPrefix]
+      [backdropClassName, bs]
     )
     const renderDialog = (xs: any) => (
       <div
@@ -219,8 +215,8 @@ export const Offcanvas: BsRef<"div", Props> = React.forwardRef<
         {...ps}
         className={classNames(
           className,
-          responsive ? `${bsPrefix}-${responsive}` : bsPrefix,
-          `${bsPrefix}-${placement}`
+          responsive ? `${bs}-${responsive}` : bs,
+          `${bs}-${placement}`
         )}
         aria-labelledby={ariaLabelledby}
       >

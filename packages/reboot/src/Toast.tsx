@@ -8,13 +8,10 @@ import { classNames, BsOnlyProps, BsProps, BsRef } from "./helpers.js"
 import type { Variant } from "./types.jsx"
 import { Fade, Props as _Props } from "./Fade.jsx"
 import { Close, Variant as CloseVariant } from "./Button.jsx"
-import { withBs } from "./utils.jsx"
-
-const ENTERING = "entering"
-const EXITING = "exiting"
+import * as qu from "./utils.jsx"
 
 export interface Data {
-  onClose?: (e?: React.MouseEvent | React.KeyboardEvent) => void
+  onClose?: ((e?: React.MouseEvent | React.KeyboardEvent) => void) | undefined
 }
 
 export const Context = React.createContext<Data>({
@@ -68,11 +65,14 @@ Header.defaultProps = {
   closeButton: true,
 }
 
-export const Body = withBs("toast-body")
+export const Body = qu.withBs("toast-body")
 
 const styles = {
-  [ENTERING]: "showing",
-  [EXITING]: "showing show",
+  [qu.ENTERING]: "showing",
+  [qu.ENTERED]: "",
+  [qu.EXITING]: "showing show",
+  [qu.EXITED]: "",
+  [qu.UNMOUNTED]: "",
 }
 
 export const ToastFade = React.forwardRef<Transition<any>, _Props>(
@@ -109,28 +109,23 @@ export const Toast: BsRef<"div", Props> = React.forwardRef<
     },
     ref
   ) => {
-    bsPrefix = useBs(bsPrefix, "toast")
+    const bs = useBs(bsPrefix, "toast")
     const delayRef = useRef(delay)
     const onCloseRef = useRef(onClose)
-
     useEffect(() => {
       delayRef.current = delay
       onCloseRef.current = onClose
     }, [delay, onClose])
-
     const autohideTimeout = useTimeout()
     const autohideToast = !!(autohide && show)
-
     const autohideFunc = useCallback(() => {
       if (autohideToast) {
         onCloseRef.current?.()
       }
     }, [autohideToast])
-
     useEffect(() => {
       autohideTimeout.set(autohideFunc, delayRef.current)
     }, [autohideTimeout, autohideFunc])
-
     const v = useMemo(
       () => ({
         onClose,
@@ -143,7 +138,7 @@ export const Toast: BsRef<"div", Props> = React.forwardRef<
         {...ps}
         ref={ref}
         className={classNames(
-          bsPrefix,
+          bs,
           className,
           bg && `bg-${bg}`,
           !hasAnimation && (show ? "show" : "hide")

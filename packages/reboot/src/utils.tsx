@@ -4,6 +4,12 @@ import { css, transitionEnd } from "./base/utils.js"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsRef } from "./helpers.js"
 
+export const ENTERING = "entering"
+export const ENTERED = "entered"
+export const EXITING = "exiting"
+export const EXITED = "exited"
+export const UNMOUNTED = "unmounted"
+
 export function map<P = any>(
   xs: any,
   f: (x: React.ReactElement<P>, i: number) => any

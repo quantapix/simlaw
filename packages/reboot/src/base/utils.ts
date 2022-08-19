@@ -1,4 +1,8 @@
 import type * as CSS from "csstype"
+
+export function isTrivialHref(x?: string) {
+  return !x || x.trim() === "#"
+}
 export const canUseDOM = !!(
   typeof window !== "undefined" &&
   window.document &&

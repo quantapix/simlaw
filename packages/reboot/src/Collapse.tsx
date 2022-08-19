@@ -4,13 +4,8 @@ import { css } from "./base/utils.js"
 import { useMemo } from "react"
 import type { Transition, TransitionStatus } from "react-transition-group"
 import type { TransitionCallbacks } from "./base/types.jsx"
-import { triggerReflow, createChained, endListener } from "./utils.jsx"
+import * as qu from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
-
-const EXITED = "exited"
-const ENTERING = "entering"
-const ENTERED = "entered"
-const EXITING = "exiting"
 
 type Dimension = "height" | "width"
 
@@ -47,11 +42,12 @@ function getDefaultDimensionValue(
   )
 }
 
-const collapseStyles = {
-  [EXITED]: "collapse",
-  [EXITING]: "collapsing",
-  [ENTERING]: "collapsing",
-  [ENTERED]: "collapse show",
+const styles = {
+  [qu.EXITED]: "collapse",
+  [qu.EXITING]: "collapsing",
+  [qu.ENTERING]: "collapsing",
+  [qu.ENTERED]: "collapse show",
+  [qu.UNMOUNTED]: "",
 }
 
 export const Collapse = React.forwardRef<Transition<any>, Props>(
@@ -73,37 +69,37 @@ export const Collapse = React.forwardRef<Transition<any>, Props>(
     const dim = typeof dimension === "function" ? dimension() : dimension
     const enter = useMemo(
       () =>
-        createChained(x => {
+        qu.createChained(x => {
           x.style[dim] = "0"
         }, onEnter),
       [dim, onEnter]
     )
     const entering = useMemo(
       () =>
-        createChained(x => {
-          const scroll = `scroll${dim[0].toUpperCase()}${dim.slice(1)}`
+        qu.createChained(x => {
+          const scroll = `scroll${dim[0]!.toUpperCase()}${dim.slice(1)}`
           x.style[dim] = `${x[scroll]}px`
         }, onEntering),
       [dim, onEntering]
     )
     const entered = useMemo(
       () =>
-        createChained(x => {
+        qu.createChained(x => {
           x.style[dim] = null
         }, onEntered),
       [dim, onEntered]
     )
     const exit = useMemo(
       () =>
-        createChained((x: HTMLElement) => {
+        qu.createChained((x: HTMLElement) => {
           x.style[dim] = `${getDimensionValue(dim, x)}px`
-          triggerReflow(x)
+          qu.triggerReflow(x)
         }, onExit),
       [onExit, getDimensionValue, dim]
     )
     const exiting = useMemo(
       () =>
-        createChained(x => {
+        qu.createChained(x => {
           x.style[dim] = null
         }, onExiting),
       [dim, onExiting]
@@ -111,7 +107,7 @@ export const Collapse = React.forwardRef<Transition<any>, Props>(
     return (
       <Wrapper
         ref={ref}
-        addEndListener={endListener}
+        addEndListener={qu.endListener}
         {...ps}
         aria-expanded={ps.role ? ps.in : null}
         onEnter={enter}
@@ -127,7 +123,7 @@ export const Collapse = React.forwardRef<Transition<any>, Props>(
             className: classNames(
               className,
               children.props.className,
-              collapseStyles[state],
+              styles[state],
               dim === "width" && "collapse-horizontal"
             ),
           })

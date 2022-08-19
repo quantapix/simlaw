@@ -3,15 +3,12 @@ import * as React from "react"
 import { useCallback } from "react"
 import type { TransitionStatus, Transition } from "react-transition-group"
 import type { TransitionCallbacks } from "./base/types.jsx"
-import { triggerReflow, endListener } from "./utils.jsx"
+import * as qu from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
-
-const ENTERING = "entering"
-const ENTERED = "entered"
 
 export interface Props extends TransitionCallbacks {
   className?: string
-  in?: boolean
+  in?: boolean | undefined
   mountOnEnter?: boolean
   unmountOnExit?: boolean
   appear?: boolean
@@ -20,16 +17,19 @@ export interface Props extends TransitionCallbacks {
   transitionClasses?: Record<string, string>
 }
 
-const fadeStyles = {
-  [ENTERING]: "show",
-  [ENTERED]: "show",
+const styles = {
+  [qu.ENTERING]: "show",
+  [qu.ENTERED]: "show",
+  [qu.EXITING]: "",
+  [qu.EXITED]: "",
+  [qu.UNMOUNTED]: "",
 }
 
 export const Fade = React.forwardRef<Transition<any>, Props>(
   ({ className, children, transitionClasses = {}, ...ps }, ref) => {
     const enter = useCallback(
       (x: HTMLElement, isAppearing: boolean) => {
-        triggerReflow(x)
+        qu.triggerReflow(x)
         ps.onEnter?.(x, isAppearing)
       },
       [ps]
@@ -37,19 +37,19 @@ export const Fade = React.forwardRef<Transition<any>, Props>(
     return (
       <Wrapper
         ref={ref}
-        addEndListener={endListener}
+        addEndListener={qu.endListener}
         {...ps}
         onEnter={enter}
         childRef={(children as any).ref}
       >
-        {(status: TransitionStatus, innerProps: Record<string, unknown>) =>
+        {(status: TransitionStatus, ps2: Record<string, unknown>) =>
           React.cloneElement(children, {
-            ...innerProps,
+            ...ps2,
             className: classNames(
               "fade",
               className,
               children.props.className,
-              fadeStyles[status],
+              styles[status],
               transitionClasses[status]
             ),
           })
