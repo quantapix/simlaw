@@ -5,16 +5,16 @@ import { useContext, useEffect, useMemo, useRef, useCallback } from "react"
 import { useEventCallback } from "@restart/hooks"
 import useTimeout from "@restart/hooks/esm/useTimeout.js"
 import type { TransitionComponent } from "@restart/ui/esm/types.jsx"
-import Transition, {
-  ENTERING,
-  EXITING,
-} from "react-transition-group/Transition"
+import type { Transition } from "react-transition-group"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsOnlyProps, BsProps, BsRef } from "./helpers.js"
 import type { Variant } from "./types.jsx"
 import { Fade, Props as _Props } from "./Fade.jsx"
 import { Close, Variant as CloseVariant } from "./Button.jsx"
 import { withBs } from "./utils.jsx"
+
+const ENTERING = "entering"
+const EXITING = "exiting"
 
 export interface Data {
   onClose?: (e?: React.MouseEvent | React.KeyboardEvent) => void

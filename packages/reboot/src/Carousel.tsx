@@ -3,7 +3,7 @@ import { useEventCallback, useCommittedRef } from "@restart/hooks"
 import useTimeout from "@restart/hooks/esm/useTimeout.js"
 import useUpdateEffect from "@restart/hooks/esm/useUpdateEffect.js"
 import Anchor from "@restart/ui/esm/Anchor.js"
-import { TransitionStatus } from "react-transition-group/Transition"
+import type { TransitionStatus } from "react-transition-group"
 import {
   useCallback,
   useEffect,

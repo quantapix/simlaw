@@ -12,12 +12,7 @@ import BaseModal, {
   ModalProps as _Props,
   ModalHandle,
 } from "@restart/ui/esm/Modal.jsx"
-import Transition, {
-  TransitionStatus,
-  ENTERED,
-  ENTERING,
-  EXITING,
-} from "react-transition-group/Transition"
+import type { Transition, TransitionStatus } from "react-transition-group"
 import type { TransitionCallbacks } from "@restart/ui/esm/types.jsx"
 import useBreakpoint from "@restart/hooks/esm/useBreakpoint.js"
 import { Fade } from "./Fade.jsx"
@@ -28,6 +23,10 @@ import { useBs } from "./Theme.jsx"
 import { Manager, getSharedManager } from "./Manager.jsx"
 import { divAs, withBs, endListener } from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
+
+const ENTERING = "entering"
+const ENTERED = "entered"
+const EXITING = "exiting"
 
 export interface HeaderProps extends HProps, BsOnlyProps {}
 

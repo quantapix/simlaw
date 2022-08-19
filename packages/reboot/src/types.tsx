@@ -1,4 +1,4 @@
-import type { State } from "@restart/ui/usePopper.jsx"
+import type { State } from "@restart/ui/esm/usePopper.js"
 
 export type Variant =
   | "primary"
@@ -33,7 +33,7 @@ export type Color =
   | "white"
   | "muted"
 
-export type Placement = import("@restart/ui/usePopper").Placement
+export type Placement = import("@restart/ui/esm/usePopper.js").Placement
 
 export type AlignDirection = "start" | "end"
 

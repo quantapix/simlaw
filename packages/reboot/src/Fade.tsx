@@ -1,14 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { classNames } from "./helpers.js"
 import * as React from "react"
 import { useCallback } from "react"
-import Transition, {
-  TransitionStatus,
-  ENTERED,
-  ENTERING,
-} from "react-transition-group/Transition"
+import type { TransitionStatus, Transition } from "react-transition-group"
 import type { TransitionCallbacks } from "@restart/ui/esm/types.jsx"
 import { triggerReflow, endListener } from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
+
+const ENTERING = "entering"
+const ENTERED = "entered"
 
 export interface Props extends TransitionCallbacks {
   className?: string

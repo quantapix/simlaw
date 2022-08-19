@@ -2,7 +2,7 @@
 import * as React from "react"
 import { useContext, useMemo } from "react"
 import { useUncontrolled } from "./use.jsx"
-import { Transition } from "react-transition-group"
+import type { Transition } from "react-transition-group"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Collapse as C, Props as CPs } from "./Collapse.jsx"

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import addClass from "dom-helpers/addClass"
-import css from "dom-helpers/css"
-import qsa from "dom-helpers/querySelectorAll"
-import removeClass from "dom-helpers/removeClass"
+import addClass from "dom-helpers/esm/addClass.js"
+import css from "dom-helpers/esm/css.js"
+import qsa from "dom-helpers/esm/querySelectorAll.js"
+import removeClass from "dom-helpers/esm/removeClass.js"
 import ModalManager, {
   ContainerState,
   ModalManagerOptions,

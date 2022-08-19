@@ -1,17 +1,16 @@
 import { classNames } from "./helpers.js"
 import * as React from "react"
-import css from "dom-helpers/css"
+import css from "dom-helpers/esm/css.js"
 import { useMemo } from "react"
-import Transition, {
-  TransitionStatus,
-  ENTERED,
-  ENTERING,
-  EXITED,
-  EXITING,
-} from "react-transition-group/Transition"
+import type { Transition, TransitionStatus } from "react-transition-group"
 import type { TransitionCallbacks } from "@restart/ui/esm/types.jsx"
 import { triggerReflow, createChained, endListener } from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
+
+const EXITED = "exited"
+const ENTERING = "entering"
+const ENTERED = "entered"
+const EXITING = "exiting"
 
 type Dimension = "height" | "width"
 

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { cloneElement, useCallback, useRef } from "react"
-import contains from "dom-helpers/contains"
+import contains from "dom-helpers/esm/contains.js"
 import BaseOverlay, {
   OverlayProps as _Props,
   OverlayArrowProps,

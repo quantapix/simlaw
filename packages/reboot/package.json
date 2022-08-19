@@ -15,6 +15,11 @@
   "dependencies": {
     "@restart/context": "",
     "@restart/hooks": "",
-    "@restart/ui": ""
+    "@restart/ui": "",
+    "dom-helpers": "",
+    "react-transition-group": ""
+  },
+  "devDependencies": {
+    "@types/react-transition-group": ""
   }
 }

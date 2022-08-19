@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import ReactDOM from "react-dom"
-import css from "dom-helpers/css"
-import camelize from "dom-helpers/camelize"
-import transitionEnd from "dom-helpers/transitionEnd"
+import css from "dom-helpers/esm/css.js"
+import camelize from "dom-helpers/esm/camelize.js"
+import transitionEnd from "dom-helpers/esm/transitionEnd.js"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsRef } from "./helpers.js"
 
