@@ -20,6 +20,8 @@
     "react-transition-group": ""
   },
   "devDependencies": {
-    "@types/react-transition-group": ""
+    "@types/react-transition-group": "",
+    "@types/jest": "",
+    "jest": ""
   }
 }
