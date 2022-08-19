@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import contains from "dom-helpers/contains"
 import listen from "dom-helpers/listen"
 import ownerDocument from "dom-helpers/ownerDocument"
 import { useCallback, useEffect, useRef } from "react"
-
-import useEventCallback from "../hooks/useEventCallback.js"
+import { useEventCallback } from "../hooks.js"
 import warning from "warning"
 
 const noop = () => {}

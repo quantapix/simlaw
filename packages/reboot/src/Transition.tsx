@@ -2,7 +2,7 @@
 import React, { useCallback, useRef } from "react"
 import { Transition, TransitionStatus } from "react-transition-group"
 import type { TransitionProps } from "react-transition-group/Transition.js"
-import useMergedRefs from "./hooks/esm/useMergedRefs.js"
+import { useMergedRefs } from "./hooks.js"
 import { safeFindDOMNode } from "./utils.jsx"
 
 export type Props = TransitionProps & {

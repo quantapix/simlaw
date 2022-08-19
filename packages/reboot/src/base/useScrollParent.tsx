@@ -1,4 +1,4 @@
-import useIsomorphicEffect from "../hooks/useIsomorphicEffect.js"
+import { useIsomorphicEffect } from "../hooks.js"
 import getScrollParent from "dom-helpers/scrollParent"
 import { useState } from "react"
 

@@ -1,5 +1,4 @@
-import useEventCallback from "../hooks/useEventCallback.js"
-import useIntersectionObserver from "../hooks/useIntersectionObserver.js"
+import { useEventCallback, useIntersectionObserver } from "../hooks.js"
 import { useMemo, useRef } from "react"
 import getScrollParent from "dom-helpers/scrollParent"
 

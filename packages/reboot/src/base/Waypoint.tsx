@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import useCallbackRef from "../hooks/use.js"
+import { useCallbackRef } from "../hooks.js"
 import * as React from "react"
-
-import useWaypoint, {
+import {
+  useWaypoint,
   WaypointOptions,
   WaypointEvent,
   Position,

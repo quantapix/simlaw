@@ -8,9 +8,12 @@ import {
   useRef,
   useState,
 } from "react"
-import { useEventCallback, useCommittedRef } from "./hooks"
-import useTimeout from "./hooks/esm/useTimeout.js"
-import useUpdateEffect from "./hooks/esm/useUpdateEffect.js"
+import {
+  useEventCallback,
+  useCommittedRef,
+  useTimeout,
+  useUpdateEffect,
+} from "./hooks.js"
 import { Anchor } from "./base/Anchor.jsx"
 import type { TransitionStatus } from "react-transition-group"
 import { useUncontrolled } from "./use.jsx"

@@ -1,10 +1,10 @@
 import * as React from "react"
 import { useContext } from "react"
-import useEventCallback from "../hooks/useEventCallback.js"
+import { useEventCallback } from "../hooks.js"
 import NavContext from "./NavContext.jsx"
 import { SelectableContext, makeEventKey } from "./SelectableContext.jsx"
 import type { EventKey, DynamicRefForwardingComponent } from "./types.js"
-import Button from "./Button.jsx"
+import { Button } from "./Button.jsx"
 import { dataAttr } from "./DataKey"
 import { TabContext } from "./TabContext.jsx"
 

@@ -1,9 +1,11 @@
 import * as React from "react"
 import { useContext, useMemo } from "react"
 import warning from "warning"
-import { useEventCallback } from "./hooks"
-import useMergedRefs from "./hooks/esm/useMergedRefs.js"
-import useIsomorphicEffect from "./hooks/esm/useIsomorphicEffect.js"
+import {
+  useEventCallback,
+  useMergedRefs,
+  useIsomorphicEffect,
+} from "./hooks.js"
 import { Anchor } from "./base/Anchor.jsx"
 import BaseDropdown, {
   DropdownProps as _Props,

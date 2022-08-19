@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useCallback, useContext, useMemo, useRef, useState } from "react"
-import { useCallbackRef, useEventCallback } from "./hooks"
-import useMergedRefs from "./hooks/esm/useMergedRefs.js"
-import useWillUnmount from "./hooks/esm/useWillUnmount.js"
+import {
+  useCallbackRef,
+  useEventCallback,
+  useMergedRefs,
+  useWillUnmount,
+} from "./hooks.js"
 import transitionEnd from "dom-helpers/esm/transitionEnd.js"
 import addEventListener from "dom-helpers/esm/addEventListener.js"
 import canUseDOM from "dom-helpers/esm/canUseDOM.js"

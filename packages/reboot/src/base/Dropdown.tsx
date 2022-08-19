@@ -4,13 +4,16 @@ import addEventListener from "dom-helpers/addEventListener"
 import { useCallback, useRef, useEffect, useMemo, useContext } from "react"
 import * as React from "react"
 import { useUncontrolledProp } from "uncontrollable"
-import usePrevious from "../hooks/usePrevious.js"
-import useForceUpdate from "../hooks/useForceUpdate.js"
-import useEventListener from "../hooks/useEventListener.js"
-import useEventCallback from "../hooks/useEventCallback.js"
+import {
+  usePrevious,
+  useForceUpdate,
+  useEventListener,
+  useEventCallback,
+} from "../hooks.js"
 
 import DropdownContext from "./DropdownContext.jsx"
-import DropdownMenu, {
+import {
+  DropdownMenu,
   DropdownMenuProps,
   UseDropdownMenuMetadata,
   UseDropdownMenuOptions,

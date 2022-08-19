@@ -9,12 +9,482 @@ import { MutableRefObject, useMemo } from "react"
 import type { SyntheticEvent } from "react"
 import type { Dispatch, SetStateAction } from "react"
 import { dequal } from "dequal"
+import { useDebugValue } from "react"
+
+interface Window {
+  ResizeObserver: ResizeObserver
+}
+
+interface ResizeObserver {
+  new (callback: ResizeObserverCallback)
+  observe: (target: Element) => void
+  unobserve: (target: Element) => void
+  disconnect: () => void
+}
+
+interface ResizeObserverCallback {
+  (entries: ResizeObserverEntry[], observer: ResizeObserver): void
+}
+
+interface ResizeObserverEntry {
+  new (target: Element)
+  readonly target: Element
+  readonly contentRect: DOMRectReadOnly
+}
+
+interface DOMRectReadOnly {
+  fromRect(other: DOMRectInit | undefined): DOMRectReadOnly
+  readonly x: number
+  readonly y: number
+  readonly width: number
+  readonly height: number
+  readonly top: number
+  readonly right: number
+  readonly bottom: number
+  readonly left: number
+  toJSON: () => any
+}
+
+export interface UseAnimationFrameReturn {
+  cancel(): void
+  request(callback: FrameRequestCallback): void
+  request(cancelPrevious: boolean, callback: FrameRequestCallback): void
+}
+
+export function useAnimationFrame(): UseAnimationFrameReturn {
+  const isMounted = useMounted()
+  const handle = useRef<number | undefined>()
+  const cancel = () => {
+    if (handle.current != null) {
+      cancelAnimationFrame(handle.current)
+    }
+  }
+  useWillUnmount(cancel)
+  return useStableMemo(
+    () => ({
+      request(
+        cancelPrevious: boolean | FrameRequestCallback,
+        fn?: FrameRequestCallback
+      ) {
+        if (!isMounted()) return
+        if (cancelPrevious) cancel()
+        handle.current = requestAnimationFrame(
+          fn || (cancelPrevious as FrameRequestCallback)
+        )
+      },
+      cancel,
+    }),
+    []
+  )
+}
+
+export type BreakpointDirection = "up" | "down" | true
+
+export type BreakpointMap<TKey extends string> = Partial<
+  Record<TKey, BreakpointDirection>
+>
+
+export function createBreakpointHook<TKey extends string>(
+  breakpointValues: Record<TKey, string | number>
+) {
+  const names = Object.keys(breakpointValues) as TKey[]
+  function and(query: string, next: string) {
+    if (query === next) {
+      return next
+    }
+    return query ? `${query} and ${next}` : next
+  }
+  function getNext(breakpoint: TKey) {
+    return names[Math.min(names.indexOf(breakpoint) + 1, names.length - 1)]
+  }
+  function getMaxQuery(breakpoint: TKey) {
+    const next = getNext(breakpoint)
+    let value = breakpointValues[next]
+    if (typeof value === "number") value = `${value - 0.2}px`
+    else value = `calc(${value} - 0.2px)`
+
+    return `(max-width: ${value})`
+  }
+  function getMinQuery(breakpoint: TKey) {
+    let value = breakpointValues[breakpoint]
+    if (typeof value === "number") {
+      value = `${value}px`
+    }
+    return `(min-width: ${value})`
+  }
+  function useBreakpoint(
+    breakpointMap: BreakpointMap<TKey>,
+    window?: Window
+  ): boolean
+  function useBreakpoint(
+    breakpoint: TKey,
+    direction?: BreakpointDirection,
+    window?: Window
+  ): boolean
+  function useBreakpoint(
+    breakpointOrMap: TKey | BreakpointMap<TKey>,
+    direction?: BreakpointDirection | Window,
+    window?: Window
+  ): boolean {
+    let breakpointMap: BreakpointMap<TKey>
+    if (typeof breakpointOrMap === "object") {
+      breakpointMap = breakpointOrMap
+      window = direction as Window
+      direction = true
+    } else {
+      direction = direction || true
+      breakpointMap = { [breakpointOrMap]: direction } as Record<
+        TKey,
+        BreakpointDirection
+      >
+    }
+    const query = useMemo(
+      () =>
+        Object.entries(breakpointMap).reduce(
+          (query, [key, direction]: [TKey, BreakpointDirection]) => {
+            if (direction === "up" || direction === true) {
+              query = and(query, getMinQuery(key))
+            }
+            if (direction === "down" || direction === true) {
+              query = and(query, getMaxQuery(key))
+            }
+
+            return query
+          },
+          ""
+        ),
+      [JSON.stringify(breakpointMap)]
+    )
+    return useMediaQuery(query, window)
+  }
+  return useBreakpoint
+}
+
+export type DefaultBreakpoints = "xs" | "sm" | "md" | "lg" | "xl" | "xxl"
+export type DefaultBreakpointMap = BreakpointMap<DefaultBreakpoints>
+
+export const useBreakpoint = createBreakpointHook<DefaultBreakpoints>({
+  xs: 0,
+  sm: 576,
+  md: 768,
+  lg: 992,
+  xl: 1200,
+  xxl: 1400,
+})
 
 export function useCallbackRef<TValue = unknown>(): [
   TValue | null,
   (ref: TValue | null) => void
 ] {
   return useState<TValue | null>(null)
+}
+
+export function useCommittedRef<TValue>(
+  value: TValue
+): React.MutableRefObject<TValue> {
+  const ref = useRef(value)
+  useEffect(() => {
+    ref.current = value
+  }, [value])
+  return ref
+}
+
+export type EffectHook = (effect: EffectCallback, deps?: DependencyList) => void
+
+export type IsEqual<TDeps extends DependencyList> = (
+  nextDeps: TDeps,
+  prevDeps: TDeps
+) => boolean
+
+export type CustomEffectOptions<TDeps extends DependencyList> = {
+  isEqual: IsEqual<TDeps>
+  effectHook?: EffectHook
+}
+
+type CleanUp = {
+  (): void
+  cleanup?: ReturnType<EffectCallback>
+}
+
+export function useCustomEffect<TDeps extends DependencyList = DependencyList>(
+  effect: EffectCallback,
+  dependencies: TDeps,
+  isEqual: IsEqual<TDeps>
+): void
+export function useCustomEffect<TDeps extends DependencyList = DependencyList>(
+  effect: EffectCallback,
+  dependencies: TDeps,
+  options: CustomEffectOptions<TDeps>
+): void
+export function useCustomEffect<TDeps extends DependencyList = DependencyList>(
+  effect: EffectCallback,
+  dependencies: TDeps,
+  isEqualOrOptions: IsEqual<TDeps> | CustomEffectOptions<TDeps>
+) {
+  const isMounted = useMounted()
+  const { isEqual, effectHook = useEffect } =
+    typeof isEqualOrOptions === "function"
+      ? { isEqual: isEqualOrOptions }
+      : isEqualOrOptions
+  const dependenciesRef = useRef<TDeps>()
+  dependenciesRef.current = dependencies
+  const cleanupRef = useRef<CleanUp | null>(null)
+  effectHook(() => {
+    if (cleanupRef.current === null) {
+      const cleanup = effect()
+      cleanupRef.current = () => {
+        if (isMounted() && isEqual(dependenciesRef.current!, dependencies)) {
+          return
+        }
+        cleanupRef.current = null
+        if (cleanup) cleanup()
+      }
+    }
+    return cleanupRef.current
+  })
+  useDebugValue(effect)
+}
+
+export function useDebouncedCallback<TCallback extends (...args: any[]) => any>(
+  fn: TCallback,
+  delay: number
+): TCallback {
+  const timeout = useTimeout()
+  return useCallback(
+    (...args: any[]) => {
+      timeout.set(() => {
+        fn(...args)
+      }, delay)
+    },
+    [fn, delay]
+  ) as any
+}
+
+export function useDebouncedState<T>(
+  initialState: T,
+  delay: number
+): [T, Dispatch<SetStateAction<T>>] {
+  const [state, setState] = useState(initialState)
+  const debouncedSetState = useDebouncedCallback<Dispatch<SetStateAction<T>>>(
+    setState,
+    delay
+  )
+  return [state, debouncedSetState]
+}
+
+export function useDebouncedValue<TValue>(
+  value: TValue,
+  delayMs = 500
+): TValue {
+  const [debouncedValue, setDebouncedValue] = useDebouncedState(value, delayMs)
+  useDebugValue(debouncedValue)
+  useEffect(() => {
+    setDebouncedValue(value)
+  }, [value, delayMs])
+  return debouncedValue
+}
+
+export function useEventCallback<TCallback extends (...args: any[]) => any>(
+  fn?: TCallback | null
+): TCallback {
+  const ref = useCommittedRef(fn)
+  return useCallback(
+    function (...args: any[]) {
+      return ref.current && ref.current(...args)
+    },
+    [ref]
+  ) as any
+}
+
+type EventHandler<T, K extends keyof DocumentEventMap> = (
+  this: T,
+  ev: DocumentEventMap[K]
+) => any
+
+export function useEventListener<
+  T extends Element | Document | Window,
+  K extends keyof DocumentEventMap
+>(
+  eventTarget: T | (() => T),
+  event: K,
+  listener: EventHandler<T, K>,
+  capture: boolean | AddEventListenerOptions = false
+) {
+  const handler = useEventCallback(listener)
+  useEffect(() => {
+    const target =
+      typeof eventTarget === "function" ? eventTarget() : eventTarget
+    target.addEventListener(event, handler, capture)
+    return () => target.removeEventListener(event, handler, capture)
+  }, [eventTarget])
+}
+
+export interface FocusManagerOptions {
+  willHandle?(focused: boolean, event: React.FocusEvent): boolean | void
+  didHandle?(focused: boolean, event: React.FocusEvent): void
+  onChange?(focused: boolean, event: React.FocusEvent): void
+  isDisabled: () => boolean
+}
+
+export interface FocusController {
+  onBlur: (event: any) => void
+  onFocus: (event: any) => void
+}
+
+export function useFocusManager(opts: FocusManagerOptions): FocusController {
+  const isMounted = useMounted()
+  const lastFocused = useRef<boolean | undefined>()
+  const handle = useRef<number | undefined>()
+  const willHandle = useEventCallback(opts.willHandle)
+  const didHandle = useEventCallback(opts.didHandle)
+  const onChange = useEventCallback(opts.onChange)
+  const isDisabled = useEventCallback(opts.isDisabled)
+  const handleFocusChange = useCallback(
+    (focused: boolean, event: React.FocusEvent) => {
+      if (event && event.persist) event.persist()
+      if (willHandle && willHandle(focused, event) === false) return
+      clearTimeout(handle.current)
+      handle.current = window.setTimeout(() => {
+        if (focused !== lastFocused.current) {
+          if (didHandle) didHandle(focused, event)
+          if (isMounted() || !focused) {
+            lastFocused.current = focused
+            onChange && onChange(focused, event)
+          }
+        }
+      })
+    },
+    [isMounted, willHandle, didHandle, onChange, lastFocused]
+  )
+  const handleBlur = useCallback(
+    (event: any) => {
+      if (!isDisabled()) handleFocusChange(false, event)
+    },
+    [handleFocusChange, isDisabled]
+  )
+  const handleFocus = useCallback(
+    (event: any) => {
+      if (!isDisabled()) handleFocusChange(true, event)
+    },
+    [handleFocusChange, isDisabled]
+  )
+  return useMemo(
+    () => ({
+      onBlur: handleBlur,
+      onFocus: handleFocus,
+    }),
+    [handleBlur, handleFocus]
+  )
+}
+
+export function useForceUpdate(): () => void {
+  const [, dispatch] = useReducer((state: boolean) => !state, false)
+  return dispatch as () => void
+}
+
+type DocumentEventHandler<K extends keyof DocumentEventMap> = (
+  this: Document,
+  ev: DocumentEventMap[K]
+) => any
+
+export function useGlobalListener<K extends keyof DocumentEventMap>(
+  event: K,
+  handler: DocumentEventHandler<K>,
+  capture: boolean | AddEventListenerOptions = false
+) {
+  const documentTarget = useCallback(() => document, [])
+  return useEventListener(documentTarget, event, handler, capture)
+}
+
+type State = {
+  image: HTMLImageElement | null
+  error: unknown | null
+}
+
+export function useImage(
+  imageOrUrl?: string | HTMLImageElement | null | undefined,
+  crossOrigin?: "anonymous" | "use-credentials" | string
+) {
+  const [state, setState] = useState<State>({
+    image: null,
+    error: null,
+  })
+  useEffect(() => {
+    if (!imageOrUrl) return undefined
+    let image: HTMLImageElement
+    if (typeof imageOrUrl === "string") {
+      image = new Image()
+      if (crossOrigin) image.crossOrigin = crossOrigin
+      image.src = imageOrUrl
+    } else {
+      image = imageOrUrl
+      if (image.complete && image.naturalHeight > 0) {
+        setState({ image, error: null })
+        return
+      }
+    }
+    function onLoad() {
+      setState({ image, error: null })
+    }
+    function onError(error: ErrorEvent) {
+      setState({ image, error })
+    }
+    image.addEventListener("load", onLoad)
+    image.addEventListener("error", onError)
+    return () => {
+      image.removeEventListener("load", onLoad)
+      image.removeEventListener("error", onError)
+    }
+  }, [imageOrUrl, crossOrigin])
+
+  return state
+}
+
+export function useIntersectionObserver<TElement extends Element>(
+  element: TElement | null | undefined,
+  options?: IntersectionObserverInit
+): IntersectionObserverEntry[]
+export function useIntersectionObserver<TElement extends Element>(
+  element: TElement | null | undefined,
+  callback: IntersectionObserverCallback,
+  options?: IntersectionObserverInit
+): void
+export function useIntersectionObserver<TElement extends Element>(
+  element: TElement | null | undefined,
+  callbackOrOptions?: IntersectionObserverCallback | IntersectionObserverInit,
+  maybeOptions?: IntersectionObserverInit
+): void | IntersectionObserverEntry[] {
+  let callback: IntersectionObserverCallback | undefined
+  let options: IntersectionObserverInit
+  if (typeof callbackOrOptions === "function") {
+    callback = callbackOrOptions
+    options = maybeOptions || {}
+  } else {
+    options = callbackOrOptions || {}
+  }
+  const { threshold, root, rootMargin } = options
+  const [entries, setEntry] = useState<IntersectionObserverEntry[] | null>(null)
+  const handler = useEventCallback(callback || setEntry)
+  const observer = useStableMemo(
+    () =>
+      root !== null &&
+      typeof IntersectionObserver !== "undefined" &&
+      new IntersectionObserver(handler, {
+        threshold,
+        root,
+        rootMargin,
+      }),
+
+    [handler, root, rootMargin, threshold && JSON.stringify(threshold)]
+  )
+  useIsomorphicEffect(() => {
+    if (!element || !observer) return
+    observer.observe(element)
+    return () => {
+      observer.unobserve(element)
+    }
+  }, [observer, element])
+  return callback ? undefined : entries || []
 }
 
 export function useInterval(fn: () => void, ms: number): void
@@ -270,7 +740,7 @@ export function useMutationObserver(
     [element, config],
     {
       isEqual: isDepsEqual,
-      effectHook: useImmediateUpdateEffect,
+      effectHook: useUpdateImmediateEffect,
     }
   )
   return callback ? void 0 : records || []

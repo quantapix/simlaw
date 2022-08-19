@@ -1,9 +1,9 @@
 import listen from "dom-helpers/listen"
 import ownerDocument from "dom-helpers/ownerDocument"
 import { useEffect } from "react"
-
-import useEventCallback from "../hooks/useEventCallback.js"
-import useClickOutside, {
+import { useEventCallback } from "../hooks.js"
+import {
+  useClickOutside,
   ClickOutsideOptions,
   getRefTarget,
 } from "./useClickOutside.js"

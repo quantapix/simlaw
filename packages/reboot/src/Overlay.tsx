@@ -7,10 +7,13 @@ import BaseOverlay, {
   OverlayArrowProps,
 } from "./base/Overlay.jsx"
 import type { State } from "./base/usePopper.jsx"
-import { useCallbackRef, useEventCallback } from "./hooks"
-import useIsomorphicEffect from "./hooks/esm/useIsomorphicEffect.js"
-import useMergedRefs from "./hooks/esm/useMergedRefs.js"
-import useTimeout from "./hooks/esm/useTimeout.js"
+import {
+  useIsomorphicEffect,
+  useCallbackRef,
+  useEventCallback,
+  useMergedRefs,
+  useTimeout,
+} from "./hooks.js"
 import warning from "warning"
 import { useOffset, useUncontrolledProp } from "./use.jsx"
 import { Fade } from "./Fade.jsx"
