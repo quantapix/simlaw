@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import ReactDOM from "react-dom"
-import useCallbackRef from "../hooks/useCallbackRef.js"
+import useCallbackRef from "../hooks/use.js"
 import useMergedRefs from "../hooks/useMergedRefs.js"
 import { useState } from "react"
 import usePopper, {
