@@ -5,7 +5,7 @@ import { SelectableContext, makeEventKey } from "./SelectableContext.jsx"
 import NavContext from "./NavContext.jsx"
 import type { EventKey, DynamicRefForwardingComponent } from "./types.js"
 import { Button } from "./Button.jsx"
-import { dataAttr } from "./DataKey.js"
+import { dataAttr } from "./types.js"
 
 export interface DropdownItemProps extends React.HTMLAttributes<HTMLElement> {
   as?: React.ElementType

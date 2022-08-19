@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react"
-import canUseDOM from "dom-helpers/canUseDOM"
+import { canUseDOM } from "./utils.js"
 
 const Context = createContext(canUseDOM ? window : undefined)
 

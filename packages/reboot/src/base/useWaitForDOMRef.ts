@@ -1,5 +1,4 @@
-import ownerDocument from "dom-helpers/ownerDocument"
-import canUseDOM from "dom-helpers/canUseDOM"
+import { ownerDocument, canUseDOM } from "./utils.js"
 import { useState, useEffect } from "react"
 import { useWindow } from "./useWindow.js"
 

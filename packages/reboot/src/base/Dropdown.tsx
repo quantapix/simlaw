@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import qsa from "dom-helpers/querySelectorAll"
-import addEventListener from "dom-helpers/addEventListener"
+import { qsa, addEventListener } from "./utils.js"
 import { useCallback, useRef, useEffect, useMemo, useContext } from "react"
 import * as React from "react"
 import { useUncontrolledProp } from "uncontrollable"
@@ -26,7 +25,7 @@ import DropdownToggle, {
 import DropdownItem, { DropdownItemProps } from "./DropdownItem.jsx"
 import { SelectableContext } from "./SelectableContext.jsx"
 import type { SelectCallback } from "./types.js"
-import { dataAttr } from "./DataKey"
+import { dataAttr } from "./types.js"
 import type { Placement } from "./usePopper.js"
 import { useWindow } from "./useWindow.js"
 

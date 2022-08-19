@@ -1,6 +1,6 @@
 import { classNames } from "./helpers.js"
 import * as React from "react"
-import css from "dom-helpers/esm/css.js"
+import { css } from "./base/utils.js"
 import { useMemo } from "react"
 import type { Transition, TransitionStatus } from "react-transition-group"
 import type { TransitionCallbacks } from "./base/types.jsx"

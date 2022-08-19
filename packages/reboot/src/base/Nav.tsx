@@ -1,4 +1,4 @@
-import qsa from "dom-helpers/querySelectorAll"
+import { qsa } from "./utils.js"
 import * as React from "react"
 import { useContext, useEffect, useRef } from "react"
 import { useForceUpdate, useMergedRefs } from "../hooks.js"
@@ -10,7 +10,7 @@ import type {
   DynamicRefForwardingComponent,
   SelectCallback,
 } from "./types.js"
-import { dataAttr, dataProp } from "./DataKey.js"
+import { dataAttr, dataProp } from "./types.js"
 import { NavItem, UseNavItemOptions, NavItemProps } from "./NavItem.jsx"
 
 export type { UseNavItemOptions, NavItemProps }

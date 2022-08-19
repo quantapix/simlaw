@@ -2,8 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import ReactDOM from "react-dom"
-import css from "dom-helpers/esm/css.js"
-import transitionEnd from "dom-helpers/esm/transitionEnd.js"
+import { css, transitionEnd } from "./base/utils.js"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsRef } from "./helpers.js"
 

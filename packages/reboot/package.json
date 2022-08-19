@@ -13,7 +13,6 @@
     "test": "node --experimental-vm-modules ../../node_modules/.bin/jest"
   },
   "dependencies": {
-    "dom-helpers": "",
     "react-transition-group": ""
   },
   "devDependencies": {

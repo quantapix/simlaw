@@ -2,7 +2,7 @@
 import { classNames, invariant } from "./helpers.js"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { useMergedRefs } from "./hooks.js"
-import hasClass from "dom-helpers/esm/hasClass.js"
+import { hasClass } from "./base/utils.js"
 import type { Offset, Options } from "./base/usePopper.jsx"
 import { useBs } from "./Theme.jsx"
 import { POPPER_OFFSET } from "./Popover.jsx"

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { useCallback, useContext, useMemo, useRef, useState } from "react"
@@ -7,12 +8,14 @@ import {
   useMergedRefs,
   useWillUnmount,
 } from "./hooks.js"
-import transitionEnd from "dom-helpers/esm/transitionEnd.js"
-import addEventListener from "dom-helpers/esm/addEventListener.js"
-import canUseDOM from "dom-helpers/esm/canUseDOM.js"
-import ownerDocument from "dom-helpers/esm/ownerDocument.js"
-import removeEventListener from "dom-helpers/esm/removeEventListener.js"
-import getScrollbarSize from "dom-helpers/esm/scrollbarSize.js"
+import {
+  addEventListener,
+  canUseDOM,
+  ownerDocument,
+  removeEventListener,
+  getScrollbarSize,
+  transitionEnd,
+} from "./base/utils.js"
 import BaseModal, { BaseModalProps } from "./base/Modal.jsx"
 import type { ModalInstance } from "./base/ModalManager.jsx"
 import { getSharedManager } from "./Manager.jsx"
@@ -27,7 +30,6 @@ interface Data {
 }
 
 export const Context = React.createContext<Data>({
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   onHide() {},
 })
 

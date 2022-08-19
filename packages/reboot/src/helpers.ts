@@ -114,15 +114,3 @@ export function invariant(condition: any, format: string, ...args: any[]) {
     throw e
   }
 }
-
-export const ATTRIBUTE_PREFIX = `data-rr-ui-` as const
-
-export const PROPERTY_PREFIX = `rrUi` as const
-
-export function dataAttr<T extends string>(x: T) {
-  return `${ATTRIBUTE_PREFIX}${x}` as const
-}
-
-export function dataProp<T extends string>(x: T) {
-  return `${PROPERTY_PREFIX}${x}` as const
-}

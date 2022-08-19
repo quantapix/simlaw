@@ -60,7 +60,6 @@ export class DynamicComponent<
   P = unknown
 > extends React.Component<AssignPropsWithRef<As, { as?: As } & P>> {}
 
-// Need to use this instead of typeof Component to get proper type checking.
 export type DynamicComponentClass<
   As extends string | React.ComponentType<any>,
   P = unknown
@@ -72,29 +71,11 @@ export type SelectCallback = (
 ) => void
 
 export interface TransitionCallbacks {
-  /**
-   * Callback fired before the component transitions in
-   */
   onEnter?(node: HTMLElement, isAppearing: boolean): any
-  /**
-   * Callback fired as the component begins to transition in
-   */
   onEntering?(node: HTMLElement, isAppearing: boolean): any
-  /**
-   * Callback fired after the component finishes transitioning in
-   */
   onEntered?(node: HTMLElement, isAppearing: boolean): any
-  /**
-   * Callback fired right before the component transitions out
-   */
   onExit?(node: HTMLElement): any
-  /**
-   * Callback fired as the component begins to transition out
-   */
   onExiting?(node: HTMLElement): any
-  /**
-   * Callback fired after the component finishes transitioning out
-   */
   onExited?(node: HTMLElement): any
 }
 
@@ -107,3 +88,15 @@ export interface TransitionProps extends TransitionCallbacks {
 }
 
 export type TransitionComponent = React.ComponentType<TransitionProps>
+
+export const ATTRIBUTE_PREFIX = `data-rr-ui-` as const
+
+export const PROPERTY_PREFIX = `rrUi` as const
+
+export function dataAttr<T extends string>(x: T) {
+  return `${ATTRIBUTE_PREFIX}${x}` as const
+}
+
+export function dataProp<T extends string>(x: T) {
+  return `${PROPERTY_PREFIX}${x}` as const
+}

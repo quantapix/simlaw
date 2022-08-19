@@ -1,6 +1,6 @@
 import { useEventCallback, useIntersectionObserver } from "../hooks.js"
 import { useMemo, useRef } from "react"
-import getScrollParent from "dom-helpers/scrollParent"
+import { getScrollParent } from "./utils.js"
 
 export interface WaypointEvent {
   position: Position

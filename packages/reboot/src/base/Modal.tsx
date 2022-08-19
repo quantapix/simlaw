@@ -1,8 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import activeElement from "dom-helpers/activeElement"
-import contains from "dom-helpers/contains"
-import canUseDOM from "dom-helpers/canUseDOM"
-import listen from "dom-helpers/listen"
+import { activeElement, contains, canUseDOM, listen } from "./utils.js"
 import {
   useState,
   useRef,
