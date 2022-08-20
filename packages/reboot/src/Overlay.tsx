@@ -12,9 +12,10 @@ import {
   useEventCallback,
   useMergedRefs,
   useTimeout,
+  useUncontrolledProp,
 } from "./hooks.js"
-import warning from "warning"
-import { useOffset, useUncontrolledProp } from "./use.jsx"
+import { warning } from "./base/utils.js"
+import { useOffset } from "./use.jsx"
 import { Fade } from "./Fade.jsx"
 import { classNames, TransitionType } from "./helpers.js"
 import type { Placement, PopperRef, RootCloseEvent } from "./types.jsx"

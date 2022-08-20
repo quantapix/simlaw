@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useUncontrolled } from "./use.jsx"
+import { useUncontrolled } from "./hooks.js"
 import { useBs } from "./Theme.jsx"
 import {
   Button as B,

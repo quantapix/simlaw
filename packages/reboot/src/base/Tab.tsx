@@ -1,16 +1,28 @@
 import * as React from "react"
 import { useContext } from "react"
-import TabContext from "./TabContext.jsx"
-import SelectableContext, { makeEventKey } from "./SelectableContext.jsx"
+import { SelectableContext, makeEventKey } from "./SelectableContext.jsx"
 import type {
   EventKey,
   DynamicRefForwardingComponent,
   TransitionCallbacks,
   TransitionComponent,
+  SelectCallback,
 } from "./types.js"
-import NoopTransition from "./NoopTransition.jsx"
+import { NoopTransition } from "./NoopTransition.jsx"
 
-export interface TabPanelProps
+export interface Data {
+  onSelect: SelectCallback
+  activeKey?: EventKey
+  transition?: TransitionComponent
+  mountOnEnter: boolean
+  unmountOnExit: boolean
+  getControlledId: (key: EventKey) => any
+  getControllerId: (key: EventKey) => any
+}
+
+export const Context = React.createContext<Data | null>(null)
+
+export interface Props
   extends TransitionCallbacks,
     React.HTMLAttributes<HTMLElement> {
   as?: React.ElementType
@@ -21,12 +33,12 @@ export interface TabPanelProps
   unmountOnExit?: boolean
 }
 
-export interface TabPanelMetadata extends TransitionCallbacks {
-  eventKey?: EventKey
-  isActive?: boolean
-  transition?: TransitionComponent
-  mountOnEnter?: boolean
-  unmountOnExit?: boolean
+export interface Meta extends TransitionCallbacks {
+  eventKey?: EventKey | undefined
+  isActive?: boolean | undefined
+  transition?: TransitionComponent | undefined
+  mountOnEnter?: boolean | undefined
+  unmountOnExit?: boolean | undefined
 }
 
 export function useTabPanel({
@@ -43,9 +55,8 @@ export function useTabPanel({
   onExiting,
   onExited,
   ...props
-}: TabPanelProps): [any, TabPanelMetadata] {
-  const context = useContext(TabContext)
-
+}: Props): [any, Meta] {
+  const context = useContext(Context)
   if (!context)
     return [
       {
@@ -66,10 +77,8 @@ export function useTabPanel({
         onExited,
       },
     ]
-
   const { activeKey, getControlledId, getControllerId, ...rest } = context
   const key = makeEventKey(eventKey)
-
   return [
     {
       ...props,
@@ -96,9 +105,9 @@ export function useTabPanel({
   ]
 }
 
-export const TabPanel: DynamicRefForwardingComponent<"div", TabPanelProps> =
-  React.forwardRef<HTMLElement, TabPanelProps>(
-    ({ as: Component = "div", ...props }, ref) => {
+export const Panel: DynamicRefForwardingComponent<"div", Props> =
+  React.forwardRef<HTMLElement, Props>(
+    ({ as: Component = "div", ...ps }, ref) => {
       const [
         tabPanelProps,
         {
@@ -113,9 +122,9 @@ export const TabPanel: DynamicRefForwardingComponent<"div", TabPanelProps> =
           unmountOnExit,
           transition: Transition = NoopTransition,
         },
-      ] = useTabPanel(props)
+      ] = useTabPanel(ps)
       return (
-        <TabContext.Provider value={null}>
+        <Context.Provider value={null}>
           <SelectableContext.Provider value={null}>
             <Transition
               in={isActive}
@@ -136,8 +145,8 @@ export const TabPanel: DynamicRefForwardingComponent<"div", TabPanelProps> =
               />
             </Transition>
           </SelectableContext.Provider>
-        </TabContext.Provider>
+        </Context.Provider>
       )
     }
   )
-TabPanel.displayName = "TabPanel"
+Panel.displayName = "TabPanel"

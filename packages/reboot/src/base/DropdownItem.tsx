@@ -2,11 +2,10 @@ import * as React from "react"
 import { useContext } from "react"
 import { useEventCallback } from "../hooks.js"
 import { SelectableContext, makeEventKey } from "./SelectableContext.jsx"
-import NavContext from "./NavContext.jsx"
+import { Context } from "./NavContext.jsx"
 import type { EventKey, DynamicRefForwardingComponent } from "./types.js"
 import { Button } from "./Button.jsx"
 import { dataAttr } from "./types.js"
-
 export interface DropdownItemProps extends React.HTMLAttributes<HTMLElement> {
   as?: React.ElementType
   active?: boolean
@@ -14,7 +13,6 @@ export interface DropdownItemProps extends React.HTMLAttributes<HTMLElement> {
   eventKey?: EventKey
   href?: string
 }
-
 interface UseDropdownItemOptions {
   key?: EventKey | null
   href?: string
@@ -22,7 +20,6 @@ interface UseDropdownItemOptions {
   disabled?: boolean
   onClick?: React.MouseEventHandler
 }
-
 export function useDropdownItem({
   key,
   href,
@@ -31,26 +28,20 @@ export function useDropdownItem({
   onClick,
 }: UseDropdownItemOptions) {
   const onSelectCtx = useContext(SelectableContext)
-  const navContext = useContext(NavContext)
-
+  const navContext = useContext(Context)
   const { activeKey } = navContext || {}
   const eventKey = makeEventKey(key, href)
-
   const isActive =
     active == null && key != null
       ? makeEventKey(activeKey) === eventKey
       : active
-
   const handleClick = useEventCallback(event => {
     if (disabled) return
-
     onClick?.(event)
-
     if (onSelectCtx && !event.isPropagationStopped()) {
       onSelectCtx(eventKey, event)
     }
   })
-
   return [
     {
       onClick: handleClick,
@@ -61,8 +52,7 @@ export function useDropdownItem({
     { isActive },
   ] as const
 }
-
-const DropdownItem: DynamicRefForwardingComponent<
+export const DropdownItem: DynamicRefForwardingComponent<
   typeof Button,
   DropdownItemProps
 > = React.forwardRef(
@@ -84,11 +74,7 @@ const DropdownItem: DynamicRefForwardingComponent<
       onClick,
       active,
     })
-
     return <Component {...props} ref={ref} {...dropdownItemProps} />
   }
 )
-
 DropdownItem.displayName = "DropdownItem"
-
-export default DropdownItem

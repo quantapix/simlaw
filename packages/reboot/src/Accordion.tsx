@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useContext, useMemo } from "react"
-import { useUncontrolled } from "./use.jsx"
+import { useUncontrolled } from "./hooks.js"
 import type { Transition } from "react-transition-group"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"

@@ -1,6 +1,5 @@
 import * as React from "react"
-import { useUncontrolled } from "./use.jsx"
-import { useEventCallback } from "./hooks.js"
+import { useEventCallback, useUncontrolled } from "./hooks.js"
 import { Anchor } from "./base/Anchor.jsx"
 import { useBs } from "./Theme.jsx"
 import { Fade } from "./Fade.jsx"

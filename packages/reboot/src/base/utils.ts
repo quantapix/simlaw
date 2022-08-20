@@ -1,5 +1,33 @@
 import type * as CSS from "csstype"
 
+function printWarning(format: any, ...xs: any[]) {
+  let i = 0
+  const m =
+    "Warning: " +
+    format.replace(/%s/g, function () {
+      return xs[i++]
+    })
+  if (typeof console !== "undefined") {
+    console.error(m)
+  }
+  try {
+    throw new Error(m)
+  } catch (x) {}
+}
+export function warning(cond: any, format: any, ...xs: any[]) {
+  if (format === undefined) {
+    throw new Error(
+      "`warning(condition, format, ...args)` requires a warning message argument"
+    )
+  }
+  if (!cond) {
+    printWarning(format, ...xs)
+  }
+}
+export function getBodyScrollbarWidth(x = document) {
+  const window = x.defaultView!
+  return Math.abs(window.innerWidth - x.documentElement.clientWidth)
+}
 export function isTrivialHref(x?: string) {
   return !x || x.trim() === "#"
 }

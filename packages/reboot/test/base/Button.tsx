@@ -70,7 +70,6 @@ describe("<Button>", () => {
     fireEvent.click(anchor)
     expect(clickSpy).to.have.not.been.called
   })
-  // eslint-disable-next-line mocha/no-setup-in-describe
   ;["#", ""].forEach(href => {
     it(`should prevent default on trivial href="${href}" clicks`, () => {
       const clickSpy = sinon.spy()

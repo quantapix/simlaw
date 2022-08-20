@@ -12,10 +12,10 @@ import {
   useCommittedRef,
   useTimeout,
   useUpdateEffect,
+  useUncontrolled,
 } from "./hooks.js"
 import { Anchor } from "./base/Anchor.jsx"
 import type { TransitionStatus } from "react-transition-group"
-import { useUncontrolled } from "./use.jsx"
 import { map, forEach, triggerReflow, withBs, endListener } from "./utils.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"

@@ -1,14 +1,12 @@
 import * as React from "react"
 import { useMemo } from "react"
-import { useUncontrolledProp } from "uncontrollable"
+import { useUncontrolledProp } from "../hooks.js"
 import { useSSRSafeId } from "./ssr.jsx"
-import TabContext, { TabContextType } from "./TabContext.jsx"
-import SelectableContext from "./SelectableContext.jsx"
+import { Context, Data } from "./Tab.jsx"
+import { SelectableContext } from "./SelectableContext.jsx"
 import type { EventKey, SelectCallback, TransitionComponent } from "./types.js"
-import TabPanel, { TabPanelProps } from "./TabPanel.jsx"
 
-export type { TabPanelProps }
-export interface TabsProps extends React.PropsWithChildren<unknown> {
+export interface Props extends React.PropsWithChildren<unknown> {
   id?: string
   transition?: TransitionComponent
   mountOnEnter?: boolean
@@ -19,7 +17,7 @@ export interface TabsProps extends React.PropsWithChildren<unknown> {
   defaultActiveKey?: EventKey
 }
 
-export const Tabs = (props: TabsProps) => {
+export const Tabs = (props: Props) => {
   const {
     id: userId,
     generateChildId: generateCustomChildId,
@@ -31,23 +29,19 @@ export const Tabs = (props: TabsProps) => {
     unmountOnExit,
     children,
   } = props
-
   const [activeKey, onSelect] = useUncontrolledProp(
     propsActiveKey,
     defaultActiveKey,
     propsOnSelect
   )
-
   const id = useSSRSafeId(userId)
-
   const generateChildId = useMemo(
     () =>
       generateCustomChildId ||
       ((key: EventKey, type: string) => (id ? `${id}-${type}-${key}` : null)),
     [id, generateCustomChildId]
   )
-
-  const tabContext: TabContextType = useMemo(
+  const v: Data = useMemo(
     () => ({
       onSelect,
       activeKey,
@@ -66,14 +60,11 @@ export const Tabs = (props: TabsProps) => {
       generateChildId,
     ]
   )
-
   return (
-    <TabContext.Provider value={tabContext}>
+    <Context.Provider value={v}>
       <SelectableContext.Provider value={onSelect || null}>
         {children}
       </SelectableContext.Provider>
-    </TabContext.Provider>
+    </Context.Provider>
   )
 }
-Tabs.Panel = TabPanel
-export default Tabs

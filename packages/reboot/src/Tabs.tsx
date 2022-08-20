@@ -1,6 +1,6 @@
 import * as React from "react"
-import { useUncontrolled } from "./use.jsx"
-import BaseTabs, { TabsProps as _TabsProps } from "./base/Tabs.jsx"
+import { useUncontrolled } from "./hooks.js"
+import BaseTabs, { Props as _TabsProps } from "./base/Tabs.jsx"
 import { Item, Link, Nav, Props as _Props } from "./Nav.jsx"
 import { Content, Pane, getTabTransitionComponent } from "./Tab.jsx"
 import { forEach, map } from "./utils.jsx"

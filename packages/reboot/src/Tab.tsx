@@ -1,14 +1,13 @@
 import * as React from "react"
-import SelectableContext from "./base/SelectableContext.jsx"
-import TabContext from "./base/TabContext.jsx"
-import { useTabPanel } from "./base/TabPanel.jsx"
+import { SelectableContext } from "./base/SelectableContext.jsx"
+import { Context, useTabPanel } from "./base/Tab.jsx"
 import type {
   EventKey,
   TransitionCallbacks,
   TransitionComponent,
 } from "./base/types.jsx"
-import Tabs, { TabsProps } from "./base/Tabs.jsx"
-import NoopTransition from "./base/NoopTransition.jsx"
+import { Tabs, Props } from "./base/Tabs.jsx"
+import { NoopTransition } from "./base/NoopTransition.jsx"
 import { useBs } from "./Theme.jsx"
 import { Fade } from "./Fade.jsx"
 import { classNames, BsProps, BsRef, TransitionType } from "./helpers.js"
@@ -23,7 +22,7 @@ export function getTabTransitionComponent(
   return x
 }
 
-export interface ContainerProps extends Omit<TabsProps, "transition"> {
+export interface ContainerProps extends Omit<Props, "transition"> {
   transition?: TransitionType
 }
 
@@ -69,7 +68,7 @@ export const Pane: BsRef<"div", PaneProps> = React.forwardRef<
   } as any)
   const bs = useBs(bsPrefix, "tab-pane")
   return (
-    <TabContext.Provider value={null}>
+    <Context.Provider value={null}>
       <SelectableContext.Provider value={null}>
         <Transition
           in={isActive}
@@ -89,7 +88,7 @@ export const Pane: BsRef<"div", PaneProps> = React.forwardRef<
           />
         </Transition>
       </SelectableContext.Provider>
-    </TabContext.Provider>
+    </Context.Provider>
   )
 })
 Pane.displayName = "TabPane"

@@ -93,7 +93,6 @@ describe("<Nav>", () => {
   test("should call onSelect when a Link is selected", () => {
     const onSelectSpy = sinon.spy()
     const { getByTestId } = render(
-      // eslint-disable-next-line react/jsx-no-bind
       <Nav onSelect={onSelectSpy} data-testid="test">
         <Link eventKey={1}>Tab 1 content</Link>
         <Link eventKey={2}>

@@ -8,8 +8,12 @@ import usePopper, {
   UsePopperOptions,
   UsePopperState,
 } from "./usePopper.js"
-import { useRootClose, RootCloseOptions } from "./useRootClose.js"
-import useWaitForDOMRef, { DOMContainer } from "./useWaitForDOMRef.js"
+import {
+  DOMContainer,
+  useRootClose,
+  useWaitForDOMRef,
+  RootCloseOptions,
+} from "./use.js"
 import type { TransitionCallbacks } from "./types.js"
 import mergeOptionsWithPopperConfig from "./mergeOptionsWithPopperConfig.js"
 

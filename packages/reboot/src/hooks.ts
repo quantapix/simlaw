@@ -796,24 +796,24 @@ export interface Rect {
   y?: number
 }
 
-type Handler = (contentRect: Rect) => void
+type Actor = (x: Rect) => void
 
-const targetMap = new WeakMap<Element, Handler>()
+const targetMap = new WeakMap<Element, Actor>()
 let resizeObserver: ResizeObserver
 
 function getResizeObserver() {
   return (resizeObserver =
     resizeObserver ||
-    new window.ResizeObserver((entries: ResizeObserverEntry[]) => {
-      entries.forEach(entry => {
-        const handler = targetMap.get(entry.target)
-        if (handler) handler(entry.contentRect)
+    new window.ResizeObserver((xs: ResizeObserverEntry[]) => {
+      xs.forEach(x => {
+        const a = targetMap.get(x.target)
+        if (a) a(x.contentRect)
       })
     }))
 }
 
-export function useResizeObserver<TElement extends Element>(
-  element: TElement | null | undefined
+export function useResizeObserver<E extends Element>(
+  element: E | null | undefined
 ): Rect | null {
   const [rect, setRect] = useState<Rect | null>(null)
   useEffect(() => {
@@ -1055,6 +1055,80 @@ export function useToggleState(initialState = false) {
   ) as [boolean, (value?: boolean) => void]
 }
 
+export type Handler = (...xs: any[]) => any
+
+export function useUncontrolledProp<P, H extends Handler = Handler>(
+  propValue: P | undefined,
+  defaultValue: P,
+  handler?: H
+): readonly [P, H]
+export function useUncontrolledProp<P, H extends Handler = Handler>(
+  propValue: P | undefined,
+  defaultValue?: P | undefined,
+  handler?: H
+): readonly [P | undefined, H]
+export function useUncontrolledProp<P, H extends Handler = Handler>(
+  propValue: P | undefined,
+  defaultValue: P | undefined,
+  handler?: H
+) {
+  const wasPropRef = useRef<boolean>(propValue !== undefined)
+  const [stateValue, setState] = useState<P | undefined>(defaultValue)
+  const isProp = propValue !== undefined
+  const wasProp = wasPropRef.current
+  wasPropRef.current = isProp
+  if (!isProp && wasProp && stateValue !== defaultValue) {
+    setState(defaultValue)
+  }
+  return [
+    isProp ? propValue : stateValue,
+    useCallback(
+      (value: P, ...xs: any[]) => {
+        if (handler) handler(value, ...xs)
+        setState(value)
+      },
+      [handler]
+    ) as H,
+  ] as const
+}
+
+type FilterFlags<Base, Condition> = {
+  [Key in keyof Base]: NonNullable<Base[Key]> extends Condition ? Key : never
+}
+type AllowedNames<Base, Condition> = FilterFlags<Base, Condition>[keyof Base]
+
+type ConfigMap<TProps extends object> = {
+  [p in keyof TProps]?: AllowedNames<TProps, Function>
+}
+
+export function useUncontrolled<
+  TProps extends object,
+  TDefaults extends string = never
+>(props: TProps, config: ConfigMap<TProps>): Omit<TProps, TDefaults> {
+  return Object.keys(config).reduce((result: TProps, fieldName: string) => {
+    const {
+      [defaultKey(fieldName)]: defaultValue,
+      [fieldName]: propsValue,
+      ...rest
+    } = result as any
+    const handlerName = config[fieldName]
+    const [value, handler] = useUncontrolledProp(
+      propsValue,
+      defaultValue,
+      props[handlerName]
+    )
+    return {
+      ...rest,
+      [fieldName]: value,
+      [handlerName]: handler,
+    }
+  }, props)
+}
+
+export function defaultKey(key: string) {
+  return "default" + key.charAt(0).toUpperCase() + key.substr(1)
+}
+
 export function useUpdatedRef<T>(value: T) {
   const valueRef = useRef<T>(value)
   valueRef.current = value
@@ -1105,7 +1179,7 @@ export function useUpdateLayoutEffect(
   }, deps)
 }
 
-export default function useWillUnmount(fn: () => void) {
+export function useWillUnmount(fn: () => void) {
   const onUnmount = useUpdatedRef(fn)
   useEffect(() => () => onUnmount.current(), [])
 }

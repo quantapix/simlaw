@@ -1,41 +1,39 @@
-import { UsePopperOptions, Offset, Placement, Modifiers } from './usePopper';
-
+import type {
+  UsePopperOptions,
+  Offset,
+  Placement,
+  Modifiers,
+} from "./usePopper.js"
 export type Config = {
-  flip?: boolean;
-  fixed?: boolean;
-  alignEnd?: boolean;
-  enabled?: boolean;
-  containerPadding?: number;
-  arrowElement?: Element | null;
-  enableEvents?: boolean;
-  offset?: Offset;
-  placement?: Placement;
-  popperConfig?: UsePopperOptions;
-};
-
+  flip?: boolean
+  fixed?: boolean
+  alignEnd?: boolean
+  enabled?: boolean
+  containerPadding?: number
+  arrowElement?: Element | null
+  enableEvents?: boolean
+  offset?: Offset
+  placement?: Placement
+  popperConfig?: UsePopperOptions
+}
 export function toModifierMap(modifiers: Modifiers | undefined) {
-  const result: Modifiers = {};
-
+  const result: Modifiers = {}
   if (!Array.isArray(modifiers)) {
-    return modifiers || result;
+    return modifiers || result
   }
-
-  // eslint-disable-next-line no-unused-expressions
-  modifiers?.forEach((m) => {
-    result[m.name!] = m;
-  });
-  return result;
+  modifiers?.forEach(m => {
+    result[m.name!] = m
+  })
+  return result
 }
-
 export function toModifierArray(map: Modifiers | undefined = {}) {
-  if (Array.isArray(map)) return map;
-  return Object.keys(map).map((k) => {
-    map[k].name = k;
-    return map[k];
-  });
+  if (Array.isArray(map)) return map
+  return Object.keys(map).map(k => {
+    map[k].name = k
+    return map[k]
+  })
 }
-
-export default function mergeOptionsWithPopperConfig({
+export function mergeOptionsWithPopperConfig({
   enabled,
   enableEvents,
   placement,
@@ -46,13 +44,12 @@ export default function mergeOptionsWithPopperConfig({
   arrowElement,
   popperConfig = {},
 }: Config): UsePopperOptions {
-  const modifiers = toModifierMap(popperConfig.modifiers);
-
+  const modifiers = toModifierMap(popperConfig.modifiers)
   return {
     ...popperConfig,
     placement,
     enabled,
-    strategy: fixed ? 'fixed' : popperConfig.strategy,
+    strategy: fixed ? "fixed" : popperConfig.strategy,
     modifiers: toModifierArray({
       ...modifiers,
       eventListeners: {
@@ -86,5 +83,5 @@ export default function mergeOptionsWithPopperConfig({
         ...modifiers.flip,
       },
     }),
-  };
+  }
 }

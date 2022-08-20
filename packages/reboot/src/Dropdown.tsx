@@ -1,10 +1,11 @@
 import * as React from "react"
 import { useContext, useMemo } from "react"
-import warning from "warning"
+import { warning } from "./base/utils.js"
 import {
   useEventCallback,
   useMergedRefs,
   useIsomorphicEffect,
+  useUncontrolled,
 } from "./hooks.js"
 import { Anchor } from "./base/Anchor.jsx"
 import BaseDropdown, {
@@ -14,7 +15,7 @@ import BaseDropdown, {
 import BaseDropdownItem, { useDropdownItem } from "./base/DropdownItem.js"
 import { useDropdownMenu, UseDropdownMenuOptions } from "./base/DropdownMenu.js"
 import { useDropdownToggle } from "./base/DropdownToggle.js"
-import { useUncontrolled, useWrappedRef } from "./use.jsx"
+import { useWrappedRef } from "./use.jsx"
 import { Context as InputGroupContext } from "./InputGroup.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"

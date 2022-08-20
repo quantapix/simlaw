@@ -1,11 +1,6 @@
 import { useCallbackRef } from "../hooks.js"
 import * as React from "react"
-import {
-  useWaypoint,
-  WaypointOptions,
-  WaypointEvent,
-  Position,
-} from "./useWaypoint.jsx"
+import { useWaypoint, WaypointOptions, WaypointEvent, Position } from "./use.js"
 
 export { Position }
 export type { WaypointEvent }

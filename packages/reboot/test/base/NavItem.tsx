@@ -1,6 +1,6 @@
 import * as React from "react"
 import { render, fireEvent } from "@testing-library/react"
-import NavContext from "../../src/base/NavContext.jsx"
+import Context from "../../src/base/NavContext.jsx"
 import NavItem from "../../src/base/NavItem.jsx"
 import SelectableContext from "../../src/base/SelectableContext.jsx"
 describe("<NavItem>", () => {
@@ -14,7 +14,7 @@ describe("<NavItem>", () => {
   })
   it("should set role to tab if inside nav context", () => {
     const { getByRole } = render(
-      <NavContext.Provider
+      <Context.Provider
         value={{
           role: "tablist",
           activeKey: "key",
@@ -23,13 +23,13 @@ describe("<NavItem>", () => {
         }}
       >
         <NavItem>test</NavItem>
-      </NavContext.Provider>
+      </Context.Provider>
     )
     getByRole("tab").should.exist
   })
   it("should not override custom role if inside nav context", () => {
     const { getByRole } = render(
-      <NavContext.Provider
+      <Context.Provider
         value={{
           role: "tablist",
           activeKey: "key",
@@ -38,13 +38,13 @@ describe("<NavItem>", () => {
         }}
       >
         <NavItem role="abc">test</NavItem>
-      </NavContext.Provider>
+      </Context.Provider>
     )
     getByRole("abc").should.exist
   })
   it("should use active from nav context", () => {
     const { getByText } = render(
-      <NavContext.Provider
+      <Context.Provider
         value={{
           role: "tablist",
           activeKey: "key",
@@ -53,7 +53,7 @@ describe("<NavItem>", () => {
         }}
       >
         <NavItem eventKey="key">test</NavItem>
-      </NavContext.Provider>
+      </Context.Provider>
     )
     expect(getByText("test").getAttribute("data-rr-ui-active")).to.equal("true")
   })

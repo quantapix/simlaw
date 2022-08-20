@@ -11,7 +11,6 @@ const disabledApplyStylesModifier = {
   fn: () => undefined,
 }
 
-// until docjs supports type exports...
 export type Modifier<Name, Options> = Popper.Modifier<Name, Options>
 export type Options = Popper.Options
 export type Instance = Popper.Instance
@@ -89,22 +88,8 @@ const ariaDescribedByModifier: Modifier<"ariaDescribedBy", undefined> = {
 }
 
 const EMPTY_MODIFIERS = [] as any
-/**
- * Position an element relative some reference element using Popper.js
- *
- * @param referenceElement
- * @param popperElement
- * @param {object}      options
- * @param {object=}     options.modifiers Popper.js modifiers
- * @param {boolean=}    options.enabled toggle the popper functionality on/off
- * @param {string=}     options.placement The popper element placement relative to the reference element
- * @param {string=}     options.strategy the positioning strategy
- * @param {function=}   options.onCreate called when the popper is created
- * @param {function=}   options.onUpdate called when the popper is updated
- *
- * @returns {UsePopperState} The popper state
- */
-function usePopper(
+
+export function usePopper(
   referenceElement: VirtualElement | null | undefined,
   popperElement: HTMLElement | null | undefined,
   {
@@ -212,11 +197,7 @@ function usePopper(
         }))
       }
     }
-    // This is only run once to _create_ the popper
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, referenceElement, popperElement])
 
   return popperState
 }
-
-export default usePopper

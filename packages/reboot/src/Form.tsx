@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useContext, useMemo } from "react"
-import warning from "warning"
+import warning from "./base/utils.js"
 import { useBs } from "./Theme.jsx"
 import { classNames, BsOnlyProps, BsProps, BsRef, AsProp } from "./helpers.js"
 import { Col, Props as _Props } from "./Col.jsx"

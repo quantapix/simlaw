@@ -207,7 +207,6 @@ describe("<Modal>", () => {
       return <div className="custom-dialog" tabIndex={-1} />
     }
     render(
-      // eslint-disable-next-line react/jsx-no-bind
       <Modal show dialogAs={CustomDialog}>
         <strong>Message</strong>
       </Modal>

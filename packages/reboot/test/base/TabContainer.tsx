@@ -1,7 +1,7 @@
 import { render, fireEvent } from "@testing-library/react"
 import Nav from "../../src/base/Nav.jsx"
 import NavItem from "../../src/base/NavItem.jsx"
-import TabPanel from "../../src/base/TabPanel.jsx"
+import TabPanel from "../../src/base/Tab.jsx"
 import Tabs from "../../src/base/Tabs,jsx"
 describe("<Tabs>", () => {
   it("should not propagate context past TabPanels", () => {

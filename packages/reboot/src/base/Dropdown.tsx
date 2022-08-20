@@ -1,15 +1,14 @@
 import { qsa, addEventListener } from "./utils.js"
 import { useCallback, useRef, useEffect, useMemo, useContext } from "react"
 import * as React from "react"
-import { useUncontrolledProp } from "uncontrollable"
+import { useUncontrolledProp } from "../hooks.js"
 import {
   usePrevious,
   useForceUpdate,
   useEventListener,
   useEventCallback,
 } from "../hooks.js"
-
-import DropdownContext from "./DropdownContext.jsx"
+import { Context } from "./DropdownContext.jsx"
 import {
   DropdownMenu,
   DropdownMenuProps,
@@ -26,8 +25,7 @@ import { SelectableContext } from "./SelectableContext.jsx"
 import type { SelectCallback } from "./types.js"
 import { dataAttr } from "./types.js"
 import type { Placement } from "./usePopper.js"
-import { useWindow } from "./useWindow.js"
-
+import { useWindow } from "./use.js"
 export type {
   DropdownMenuProps,
   UseDropdownMenuMetadata,
@@ -36,18 +34,14 @@ export type {
   UseDropdownToggleMetadata,
   DropdownItemProps,
 }
-
 export interface DropdownInjectedProps {
   onKeyDown: React.KeyboardEventHandler
 }
-
 export type ToggleEvent = React.SyntheticEvent | KeyboardEvent | MouseEvent
-
 export interface ToggleMetadata {
   source: string | undefined
   originalEvent: ToggleEvent | undefined
 }
-
 export interface DropdownProps {
   placement?: Placement
   defaultShow?: boolean
@@ -58,22 +52,19 @@ export interface DropdownProps {
   focusFirstItemOnShow?: boolean | "keyboard"
   children: React.ReactNode
 }
-
 function useRefWithUpdate() {
   const forceUpdate = useForceUpdate()
   const ref = useRef<HTMLElement | null>(null)
   const attachRef = useCallback(
     (element: null | HTMLElement) => {
       ref.current = element
-      // ensure that a menu set triggers an update for consumers
       forceUpdate()
     },
     [forceUpdate]
   )
   return [ref, attachRef] as const
 }
-
-function Dropdown({
+export function Dropdown({
   defaultShow,
   show: rawShow,
   onSelect,
@@ -91,15 +82,12 @@ function Dropdown({
   )
   const [menuRef, setMenu] = useRefWithUpdate()
   const menuElement = menuRef.current
-
   const [toggleRef, setToggle] = useRefWithUpdate()
   const toggleElement = toggleRef.current
-
   const lastShow = usePrevious(show)
   const lastSourceEvent = useRef<string | null>(null)
   const focusInDropdown = useRef(false)
   const onSelectCtx = useContext(SelectableContext)
-
   const toggle = useCallback(
     (
       nextShow: boolean,
@@ -110,18 +98,15 @@ function Dropdown({
     },
     [onToggle]
   )
-
   const handleSelect = useEventCallback(
     (key: string | null, event: React.SyntheticEvent) => {
       onSelect?.(key, event)
       toggle(false, event, "select")
-
       if (!event.isPropagationStopped()) {
         onSelectCtx?.(key, event)
       }
     }
   )
-
   const context = useMemo(
     () => ({
       toggle,
@@ -134,75 +119,57 @@ function Dropdown({
     }),
     [toggle, placement, show, menuElement, toggleElement, setMenu, setToggle]
   )
-
   if (menuElement && lastShow && !show) {
     focusInDropdown.current = menuElement.contains(
       menuElement.ownerDocument.activeElement
     )
   }
-
   const focusToggle = useEventCallback(() => {
     if (toggleElement && toggleElement.focus) {
       toggleElement.focus()
     }
   })
-
   const maybeFocusFirst = useEventCallback(() => {
     const type = lastSourceEvent.current
     let focusType = focusFirstItemOnShow
-
     if (focusType == null) {
       focusType =
         menuRef.current && isRoleMenu(menuRef.current) ? "keyboard" : false
     }
-
     if (
       focusType === false ||
       (focusType === "keyboard" && !/^key.+$/.test(type!))
     ) {
       return
     }
-
     const first = qsa(menuRef.current!, itemSelector)[0]
     if (first && first.focus) first.focus()
   })
-
   useEffect(() => {
     if (show) maybeFocusFirst()
     else if (focusInDropdown.current) {
       focusInDropdown.current = false
       focusToggle()
     }
-    // only `show` should be changing
   }, [show, focusInDropdown, focusToggle, maybeFocusFirst])
-
   useEffect(() => {
     lastSourceEvent.current = null
   })
-
   const getNextFocusedChild = (current: HTMLElement, offset: number) => {
     if (!menuRef.current) return null
-
     const items = qsa(menuRef.current, itemSelector)
-
     let index = items.indexOf(current) + offset
     index = Math.max(0, Math.min(index, items.length))
-
     return items[index]
   }
-
   useEventListener(
     useCallback(() => window!.document, [window]),
     "keydown",
     (event: KeyboardEvent) => {
       const { key } = event
       const target = event.target as HTMLElement
-
       const fromMenu = menuRef.current?.contains(target)
       const fromToggle = toggleRef.current?.contains(target)
-
-      // Second only to https://github.com/twbs/bootstrap/blob/8cfbf6933b8a0146ac3fbc369f19e520bd1ebdac/js/src/dropdown.js#L400
-      // in inscrutability
       const isInput = /input|textarea/i.test(target.tagName)
       if (
         isInput &&
@@ -212,15 +179,12 @@ function Dropdown({
       ) {
         return
       }
-
       if (!fromMenu && !fromToggle) {
         return
       }
-
       if (key === "Tab" && (!menuRef.current || !show)) {
         return
       }
-
       lastSourceEvent.current = event.type
       const meta = { originalEvent: event, source: event.type }
       switch (key) {
@@ -228,7 +192,6 @@ function Dropdown({
           const next = getNextFocusedChild(target, -1)
           if (next && next.focus) next.focus()
           event.preventDefault()
-
           return
         }
         case "ArrowDown":
@@ -241,10 +204,6 @@ function Dropdown({
           }
           return
         case "Tab":
-          // on keydown the target is the element being tabbed FROM, we need that
-          // to know if this event is relevant to this dropdown (e.g. in this menu).
-          // On `keyup` the target is the element being tagged TO which we use to check
-          // if focus has left the menu
           addEventListener(
             target.ownerDocument as any,
             "keyup",
@@ -264,27 +223,19 @@ function Dropdown({
             event.preventDefault()
             event.stopPropagation()
           }
-
           onToggle(false, meta)
           break
         default:
       }
     }
   )
-
   return (
     <SelectableContext.Provider value={handleSelect}>
-      <DropdownContext.Provider value={context}>
-        {children}
-      </DropdownContext.Provider>
+      <Context.Provider value={context}>{children}</Context.Provider>
     </SelectableContext.Provider>
   )
 }
-
 Dropdown.displayName = "Dropdown"
-
 Dropdown.Menu = DropdownMenu
 Dropdown.Toggle = DropdownToggle
 Dropdown.Item = DropdownItem
-
-export default Dropdown

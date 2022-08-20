@@ -4,7 +4,6 @@ import ModalManager from "../src/base/ModalManager.js"
 import { fireEvent, render } from "@testing-library/react"
 import { Header, Offcanvas, Title } from "../src/Offcanvas.jsx"
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {}
 describe("<Offcanvas>", () => {
   test("Should render the modal content", () => {

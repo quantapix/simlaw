@@ -1,14 +1,14 @@
 import { useContext, useRef } from "react"
 import * as React from "react"
 import { useCallbackRef } from "../hooks.js"
-import DropdownContext, { DropdownContextValue } from "./DropdownContext.jsx"
+import Context, { Data } from "./DropdownContext.jsx"
 import usePopper, {
   UsePopperOptions,
   Placement,
   Offset,
   UsePopperState,
 } from "./usePopper.js"
-import { useClickOutside, ClickOutsideOptions } from "./useClickOutside.js"
+import { useClickOutside, ClickOutsideOptions } from "./use.js"
 import mergeOptionsWithPopperConfig from "./mergeOptionsWithPopperConfig.js"
 
 export interface UseDropdownMenuOptions {
@@ -38,7 +38,7 @@ export interface UseDropdownMenuMetadata {
   show: boolean
   placement?: Placement
   hasShown: boolean
-  toggle?: DropdownContextValue["toggle"]
+  toggle?: Data["toggle"]
   popper: UsePopperState | null
   arrowProps: Partial<UserDropdownMenuArrowProps>
 }
@@ -46,7 +46,7 @@ export interface UseDropdownMenuMetadata {
 const noop: any = () => {}
 
 export function useDropdownMenu(options: UseDropdownMenuOptions = {}) {
-  const context = useContext(DropdownContext)
+  const context = useContext(Context)
 
   const [arrowElement, attachArrowRef] = useCallbackRef<Element>()
 

@@ -2,7 +2,7 @@ import React from "react"
 import { fireEvent, render, waitFor } from "@testing-library/react"
 import Transition from "react-transition-group/Transition"
 import TabContext from "../../src/base/TabContext.jsx"
-import TabPanel, { useTabPanel } from "../../src/base/TabPanel.jsx"
+import TabPanel, { useTabPanel } from "../../src/base/Tab.jsx"
 import { Button, Nav, Tabs, useNavItem } from "../../src/base"
 describe("<TabPanel>", () => {
   it("should render a TabPanel", () => {

@@ -206,16 +206,9 @@ describe("<Dropdown>", () => {
   })
   test("Should also accept a custom component", () => {
     const customComponent = React.forwardRef<any, any>(
-      (
-        {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          show,
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          close,
-          ...props
-        },
-        ref
-      ) => <div ref={ref} id="custom-component" {...props} />
+      ({ show, close, ...props }, ref) => (
+        <div ref={ref} id="custom-component" {...props} />
+      )
     )
     const { getByTestId } = render(
       <Menu data-testid="menu" show as={customComponent}>
