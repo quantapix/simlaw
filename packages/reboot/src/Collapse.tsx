@@ -3,14 +3,14 @@ import * as React from "react"
 import { css } from "./base/utils.js"
 import { useMemo } from "react"
 import type { Transition, TransitionStatus } from "react-transition-group"
-import type { TransitionCallbacks } from "./base/types.jsx"
+import type { TransitionCBs } from "./base/types.jsx"
 import * as qu from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
 
 type Dimension = "height" | "width"
 
 export interface Props
-  extends TransitionCallbacks,
+  extends TransitionCBs,
     Pick<React.HTMLAttributes<HTMLElement>, "role"> {
   className?: string
   in?: boolean

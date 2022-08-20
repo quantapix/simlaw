@@ -1,5 +1,5 @@
 import { css, getBodyScrollbarWidth } from "./utils.js"
-import { dataAttr } from "./types.js"
+import * as qt from "./types.js"
 
 export interface Instance {
   dialog: Element
@@ -18,7 +18,7 @@ export type State = {
   [key: string]: any
 }
 
-export const OPEN_DATA_ATTRIBUTE = dataAttr("modal-open")
+export const OPEN_DATA_ATTRIBUTE = qt.dataAttr("modal-open")
 
 export class Manager {
   readonly handleContainerOverflow: boolean

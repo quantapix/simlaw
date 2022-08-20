@@ -1,43 +1,31 @@
-import { qsa } from "./utils.js"
-import * as React from "react"
-import { useContext, useEffect, useRef } from "react"
-import {
-  noop,
-  useEventCallback,
-  useForceUpdate,
-  useMergedRefs,
-} from "../hooks.js"
-import { SelectableContext, makeEventKey } from "./SelectableContext.jsx"
-import { TabContext } from "./Tab.jsx"
-import type {
-  EventKey,
-  DynamicRefForwardingComponent,
-  SelectCallback,
-} from "./types.js"
-import { dataAttr, dataProp } from "./types.js"
 import { Button } from "./Button.jsx"
+import { Context as TabContext } from "./Tab.jsx"
+import { qsa } from "./utils.js"
+import * as qh from "../hooks.js"
+import * as qr from "react"
+import * as qt from "./types.js"
 
 interface Data {
   role?: string
-  activeKey: EventKey | null
-  getControlledId: (key: EventKey | null) => string
-  getControllerId: (key: EventKey | null) => string
+  activeKey: qt.EventKey | null
+  getControlledId: (key: qt.EventKey | null) => string
+  getControllerId: (key: qt.EventKey | null) => string
 }
 
-export const Context = React.createContext<Data | null>(null)
+export const Context = qr.createContext<Data | null>(null)
 Context.displayName = "NavContext"
 
-export interface ItemProps extends React.HTMLAttributes<HTMLElement> {
+export interface ItemProps extends qr.HTMLAttributes<HTMLElement> {
   active?: boolean
-  as?: React.ElementType
+  as?: qr.ElementType
   disabled?: boolean
-  eventKey?: EventKey
+  eventKey?: qt.EventKey
   href?: string
 }
 
 export interface ItemOpts {
   key?: string | null
-  onClick?: React.MouseEventHandler
+  onClick?: qr.MouseEventHandler
   active?: boolean
   disabled?: boolean
   id?: string
@@ -52,16 +40,16 @@ export function useNavItem({
   role,
   disabled,
 }: ItemOpts) {
-  const parentOnSelect = useContext(SelectableContext)
-  const navContext = useContext(Context)
-  const tabContext = useContext(TabContext)
+  const parentOnSelect = qr.useContext(qt.Selectable)
+  const navContext = qr.useContext(Context)
+  const tabContext = qr.useContext(TabContext)
   let isActive = active
   const props = { role } as any
   if (navContext) {
     if (!role && navContext.role === "tablist") props.role = "tab"
     const contextControllerId = navContext.getControllerId(key ?? null)
     const contextControlledId = navContext.getControlledId(key ?? null)
-    props[dataAttr("event-key")] = key
+    props[qt.dataAttr("event-key")] = key
     props.id = contextControllerId || id
     isActive =
       active == null && key != null ? navContext.activeKey === key : active
@@ -78,7 +66,7 @@ export function useNavItem({
       props["aria-disabled"] = true
     }
   }
-  props.onClick = useEventCallback((e: React.MouseEvent) => {
+  props.onClick = qh.useEventCallback((e: qr.MouseEvent) => {
     if (disabled) return
     onClick?.(e)
     if (key == null) {
@@ -91,38 +79,39 @@ export function useNavItem({
   return [props, { isActive }] as const
 }
 
-export const Item: DynamicRefForwardingComponent<typeof Button, ItemProps> =
-  React.forwardRef<HTMLElement, ItemProps>(
+export const Item: qt.DynamicRefForwardingComponent<typeof Button, ItemProps> =
+  qr.forwardRef<HTMLElement, ItemProps>(
     ({ as: Component = Button, active, eventKey, ...options }, ref) => {
       const [props, meta] = useNavItem({
-        key: makeEventKey(eventKey, options.href),
+        key: qt.makeEventKey(eventKey, options.href),
         active,
         ...options,
       })
-      props[dataAttr("active")] = meta.isActive
+      props[qt.dataAttr("active")] = meta.isActive
       return <Component {...options} {...props} ref={ref} />
     }
   )
 Item.displayName = "NavItem"
 
 export interface Props
-  extends Omit<React.HTMLAttributes<HTMLElement>, "onSelect"> {
-  activeKey?: EventKey
-  as?: React.ElementType
-  onSelect?: SelectCallback
+  extends Omit<qr.HTMLAttributes<HTMLElement>, "onSelect"> {
+  activeKey?: qt.EventKey
+  as?: qr.ElementType
+  onSelect?: qt.SelectCB
 }
 
-const EVENT_KEY_ATTR = dataAttr("event-key")
-export const Nav: DynamicRefForwardingComponent<"div", Props> =
-  React.forwardRef<HTMLElement, Props>(
+const EVENT_KEY_ATTR = qt.dataAttr("event-key")
+
+export const Nav: qt.DynamicRefForwardingComponent<"div", Props> =
+  qr.forwardRef<HTMLElement, Props>(
     (
       { as: Component = "div", onSelect, activeKey, role, onKeyDown, ...props },
       ref
     ) => {
-      const forceUpdate = useForceUpdate()
-      const needsRefocusRef = useRef(false)
-      const parentOnSelect = useContext(SelectableContext)
-      const tabContext = useContext(TabContext)
+      const forceUpdate = qh.useForceUpdate()
+      const needsRefocusRef = qr.useRef(false)
+      const parentOnSelect = qr.useContext(qt.Selectable)
+      const tabContext = qr.useContext(TabContext)
       let getControlledId, getControllerId
       if (tabContext) {
         role = role || "tablist"
@@ -130,7 +119,7 @@ export const Nav: DynamicRefForwardingComponent<"div", Props> =
         getControlledId = tabContext.getControlledId
         getControllerId = tabContext.getControllerId
       }
-      const listNode = useRef<HTMLElement>(null)
+      const listNode = qr.useRef<HTMLElement>(null)
       const getNextActiveTab = (offset: number) => {
         const currentListNode = listNode.current
         if (!currentListNode) return null
@@ -149,15 +138,12 @@ export const Nav: DynamicRefForwardingComponent<"div", Props> =
         if (nextIndex < 0) nextIndex = items.length - 1
         return items[nextIndex]
       }
-      const handleSelect = (
-        key: string | null,
-        event: React.SyntheticEvent
-      ) => {
+      const handleSelect = (key: string | null, event: qr.SyntheticEvent) => {
         if (key == null) return
         onSelect?.(key, event)
         parentOnSelect?.(key, event)
       }
-      const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+      const handleKeyDown = (event: qr.KeyboardEvent<HTMLElement>) => {
         onKeyDown?.(event)
         if (!tabContext) {
           return
@@ -178,13 +164,13 @@ export const Nav: DynamicRefForwardingComponent<"div", Props> =
         if (!nextActiveChild) return
         event.preventDefault()
         handleSelect(
-          nextActiveChild.dataset[dataProp("EventKey")] || null,
+          nextActiveChild.dataset[qt.dataProp("EventKey")] || null,
           event
         )
         needsRefocusRef.current = true
         forceUpdate()
       }
-      useEffect(() => {
+      qr.useEffect(() => {
         if (listNode.current && needsRefocusRef.current) {
           const activeChild = listNode.current.querySelector<HTMLElement>(
             `[${EVENT_KEY_ATTR}][aria-selected=true]`
@@ -193,15 +179,15 @@ export const Nav: DynamicRefForwardingComponent<"div", Props> =
         }
         needsRefocusRef.current = false
       })
-      const mergedRef = useMergedRefs(ref, listNode)
+      const mergedRef = qh.useMergedRefs(ref, listNode)
       return (
-        <SelectableContext.Provider value={handleSelect}>
+        <qt.Selectable.Provider value={handleSelect}>
           <Context.Provider
             value={{
               role,
-              activeKey: makeEventKey(activeKey),
-              getControlledId: getControlledId || noop,
-              getControllerId: getControllerId || noop,
+              activeKey: qt.makeEventKey(activeKey),
+              getControlledId: getControlledId || qh.noop,
+              getControllerId: getControllerId || qh.noop,
             }}
           >
             <Component
@@ -211,7 +197,7 @@ export const Nav: DynamicRefForwardingComponent<"div", Props> =
               role={role}
             />
           </Context.Provider>
-        </SelectableContext.Provider>
+        </qt.Selectable.Provider>
       )
     }
   )

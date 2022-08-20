@@ -10,7 +10,7 @@ import {
 } from "react"
 import BaseModal, { Props as _Props, Handle } from "./base/Modal.jsx"
 import type { Transition, TransitionStatus } from "react-transition-group"
-import type { TransitionCallbacks } from "./base/types.jsx"
+import type { TransitionCBs } from "./base/types.jsx"
 import { Fade } from "./Fade.jsx"
 import { AbsHeader, AbsProps as HProps, Context as MContext } from "./Modal.jsx"
 import { Context as NContext } from "./Navbar.jsx"
@@ -46,7 +46,7 @@ export const Title = qu.withBs("offcanvas-title", {
   Component: DivAsH5,
 })
 
-export interface TogglingProps extends TransitionCallbacks, BsOnlyProps {
+export interface TogglingProps extends TransitionCBs, BsOnlyProps {
   className?: string
   in?: boolean
   mountOnEnter?: boolean

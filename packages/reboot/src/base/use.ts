@@ -1,44 +1,24 @@
-import {} from "react"
-import {
-  canUseDOM,
-  contains,
-  listen,
-  ownerDocument,
-  warning,
-  getScrollParent,
-} from "./utils.js"
-import {
-  createContext,
-  useContext,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
-import {
-  noop,
-  useEventCallback,
-  useIsomorphicEffect,
-  useIntersectionObserver,
-} from "../hooks.js"
+import * as qh from "../hooks.js"
+import * as qr from "react"
+import * as qu from "./utils.js"
 
-const Context = createContext(canUseDOM ? window : undefined)
+const Context = qr.createContext(qu.canUseDOM ? window : undefined)
 export const WindowProvider = Context.Provider
 export function useWindow() {
-  return useContext(Context)
+  return qr.useContext(Context)
 }
 export type DOMContainer<T extends HTMLElement = HTMLElement> =
   | T
-  | React.RefObject<T>
+  | qr.RefObject<T>
   | null
-  | (() => T | React.RefObject<T> | null)
+  | (() => T | qr.RefObject<T> | null)
 export const resolveContainerRef = <T extends HTMLElement>(
   ref: DOMContainer<T> | undefined,
   document?: Document
 ): T | HTMLBodyElement | null => {
-  if (!canUseDOM) return null
-  if (ref == null) return (document || ownerDocument()).body as HTMLBodyElement
+  if (!qu.canUseDOM) return null
+  if (ref == null)
+    return (document || qu.ownerDocument()).body as HTMLBodyElement
   if (typeof ref === "function") ref = ref()
   if (ref && "current" in ref) ref = ref.current
   if (ref?.nodeType) return ref || null
@@ -49,19 +29,19 @@ export function useWaitForDOMRef<T extends HTMLElement = HTMLElement>(
   onResolved?: (element: T | HTMLBodyElement) => void
 ) {
   const window = useWindow()
-  const [resolvedRef, setRef] = useState(() =>
+  const [resolvedRef, setRef] = qr.useState(() =>
     resolveContainerRef(ref, window?.document)
   )
   if (!resolvedRef) {
     const earlyRef = resolveContainerRef(ref)
     if (earlyRef) setRef(earlyRef)
   }
-  useEffect(() => {
+  qr.useEffect(() => {
     if (onResolved && resolvedRef) {
       onResolved(resolvedRef)
     }
   }, [onResolved, resolvedRef])
-  useEffect(() => {
+  qr.useEffect(() => {
     const nextRef = resolveContainerRef(ref)
     if (nextRef !== resolvedRef) {
       setRef(nextRef)
@@ -69,7 +49,6 @@ export function useWaitForDOMRef<T extends HTMLElement = HTMLElement>(
   }, [ref, resolvedRef])
   return resolvedRef
 }
-
 export type MouseEvents = {
   [K in keyof GlobalEventHandlersEventMap]: GlobalEventHandlersEventMap[K] extends MouseEvent
     ? K
@@ -82,7 +61,7 @@ function isModifiedEvent(event: MouseEvent) {
   return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey)
 }
 export const getRefTarget = (
-  ref: React.RefObject<Element> | Element | null | undefined
+  ref: qr.RefObject<Element> | Element | null | undefined
 ) => ref && ("current" in ref ? ref.current : ref)
 export interface ClickOutsideOptions {
   disabled?: boolean
@@ -94,16 +73,16 @@ const InitialTriggerEvents: Partial<Record<MouseEvents, MouseEvents>> = {
   pointerup: "pointerdown",
 }
 export function useClickOutside(
-  ref: React.RefObject<Element> | Element | null | undefined,
-  onClickOutside: (e: Event) => void = noop,
+  ref: qr.RefObject<Element> | Element | null | undefined,
+  onClickOutside: (e: Event) => void = qh.noop,
   { disabled, clickTrigger = "click" }: ClickOutsideOptions = {}
 ) {
-  const preventMouseClickOutsideRef = useRef(false)
-  const waitingForTrigger = useRef(false)
-  const handleMouseCapture = useCallback(
-    e => {
+  const preventMouseClickOutsideRef = qr.useRef(false)
+  const waitingForTrigger = qr.useRef(false)
+  const handleMouseCapture = qr.useCallback(
+    (e: any) => {
       const currentTarget = getRefTarget(ref)
-      warning(
+      qu.warning(
         !!currentTarget,
         "ClickOutside captured a close event but does not have a ref to compare it to. " +
           "useClickOutside(), should be passed a ref that resolves to a DOM node"
@@ -112,43 +91,43 @@ export function useClickOutside(
         !currentTarget ||
         isModifiedEvent(e) ||
         !isLeftClickEvent(e) ||
-        !!contains(currentTarget, e.target) ||
+        !!qu.contains(currentTarget, e.target) ||
         waitingForTrigger.current
       waitingForTrigger.current = false
     },
     [ref]
   )
-  const handleInitialMouse = useEventCallback((e: MouseEvent) => {
+  const handleInitialMouse = qh.useEventCallback((e: MouseEvent) => {
     const currentTarget = getRefTarget(ref)
-    if (currentTarget && contains(currentTarget, e.target as any)) {
+    if (currentTarget && qu.contains(currentTarget, e.target as any)) {
       waitingForTrigger.current = true
     }
   })
-  const handleMouse = useEventCallback((e: MouseEvent) => {
+  const handleMouse = qh.useEventCallback((e: MouseEvent) => {
     if (!preventMouseClickOutsideRef.current) {
       onClickOutside(e)
     }
   })
-  useEffect(() => {
+  qr.useEffect(() => {
     if (disabled || ref == null) return undefined
-    const doc = ownerDocument(getRefTarget(ref)!)
+    const doc = qu.ownerDocument(getRefTarget(ref)!)
     let currentEvent = (doc.defaultView || window).event
     let removeInitialTriggerListener: (() => void) | null = null
     if (InitialTriggerEvents[clickTrigger]) {
-      removeInitialTriggerListener = listen(
+      removeInitialTriggerListener = qu.listen(
         doc as any,
         InitialTriggerEvents[clickTrigger]!,
         handleInitialMouse,
         true
       )
     }
-    const removeMouseCaptureListener = listen(
+    const removeMouseCaptureListener = qu.listen(
       doc as any,
       clickTrigger,
       handleMouseCapture,
       true
     )
-    const removeMouseListener = listen(doc as any, clickTrigger, e => {
+    const removeMouseListener = qu.listen(doc as any, clickTrigger, e => {
       if (e === currentEvent) {
         currentEvent = undefined
         return
@@ -159,7 +138,7 @@ export function useClickOutside(
     if ("ontouchstart" in doc.documentElement) {
       mobileSafariHackListeners = [].slice
         .call(doc.body.children)
-        .map(el => listen(el, "mousemove", noop))
+        .map(el => qu.listen(el, "mousemove", qh.noop))
     }
     return () => {
       removeInitialTriggerListener?.()
@@ -181,22 +160,22 @@ export interface RootCloseOptions extends ClickOutsideOptions {
   disabled?: boolean
 }
 export function useRootClose(
-  ref: React.RefObject<Element> | Element | null | undefined,
+  ref: qr.RefObject<Element> | Element | null | undefined,
   onRootClose: (e: Event) => void,
   { disabled, clickTrigger }: RootCloseOptions = {}
 ) {
-  const onClose = onRootClose || noop
+  const onClose = onRootClose || qh.noop
   useClickOutside(ref, onClose, { disabled, clickTrigger })
-  const handleKeyUp = useEventCallback((e: KeyboardEvent) => {
+  const handleKeyUp = qh.useEventCallback((e: KeyboardEvent) => {
     if (e.keyCode === escapeKeyCode) {
       onClose(e)
     }
   })
-  useEffect(() => {
+  qr.useEffect(() => {
     if (disabled || ref == null) return undefined
-    const doc = ownerDocument(getRefTarget(ref)!)
+    const doc = qu.ownerDocument(getRefTarget(ref)!)
     let currentEvent = (doc.defaultView || window).event
-    const removeKeyupListener = listen(doc as any, "keyup", e => {
+    const removeKeyupListener = qu.listen(doc as any, "keyup", e => {
       if (e === currentEvent) {
         currentEvent = undefined
         return
@@ -209,12 +188,12 @@ export function useRootClose(
   }, [ref, disabled, handleKeyUp])
 }
 export function useScrollParent(element: null | Element) {
-  const [parent, setParent] = useState<Element | Document | null | undefined>(
-    null
-  )
-  useIsomorphicEffect(() => {
+  const [parent, setParent] = qr.useState<
+    Element | Document | null | undefined
+  >(null)
+  qh.useIsomorphicEffect(() => {
     if (element) {
-      setParent(getScrollParent(element as any, true))
+      setParent(qu.getScrollParent(element as any, true))
     }
   }, [element])
   return parent
@@ -252,7 +231,7 @@ function toCss(margin?: string | Rect) {
   const { top = 0, right = 0, bottom = 0, left = 0 } = margin
   return `${top}px ${right}px ${bottom}px ${left}px`
 }
-const findRoot = (el: Element) => getScrollParent(el as HTMLElement, true)
+const findRoot = (el: Element) => qu.getScrollParent(el as HTMLElement, true)
 export function useWaypoint(
   element: Element | null,
   callback: WaypointCallback,
@@ -260,12 +239,12 @@ export function useWaypoint(
 ): void {
   const { rootMargin, threshold, scrollDirection = "vertical" } = options
   let { root } = options
-  const handler = useEventCallback(callback)
-  const prevPositionRef = useRef<Position | null>(null)
+  const handler = qh.useEventCallback(callback)
+  const prevPositionRef = qr.useRef<Position | null>(null)
   if (root === "scrollParent") {
     root = findRoot
   }
-  const scrollParent = useMemo(
+  const scrollParent = qr.useMemo(
     () => (element && typeof root === "function" ? root(element) : null),
     [element, root]
   )
@@ -273,7 +252,7 @@ export function useWaypoint(
   if (realRoot && realRoot.nodeType === document.DOCUMENT_NODE) {
     realRoot = undefined
   }
-  useIntersectionObserver(
+  qh.useIntersectionObserver(
     element,
     ([entry], observer) => {
       if (!entry) return

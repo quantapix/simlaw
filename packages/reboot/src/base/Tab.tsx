@@ -1,6 +1,5 @@
-import { SelectableContext, makeEventKey } from "./SelectableContext.jsx"
 import * as qr from "react"
-import type * as qt from "./types.js"
+import * as qt from "./types.js"
 
 export function NoopTransition({
   children,
@@ -23,7 +22,7 @@ export function NoopTransition({
 }
 
 export interface Data {
-  onSelect: qt.SelectCallback
+  onSelect: qt.SelectCB
   activeKey?: qt.EventKey
   transition?: qt.TransitionComponent
   mountOnEnter: boolean
@@ -35,7 +34,7 @@ export interface Data {
 export const Context = qr.createContext<Data | null>(null)
 
 export interface Props
-  extends qt.TransitionCallbacks,
+  extends qt.TransitionCBs,
     qr.HTMLAttributes<HTMLElement> {
   as?: qr.ElementType
   eventKey?: qt.EventKey
@@ -45,7 +44,7 @@ export interface Props
   unmountOnExit?: boolean
 }
 
-export interface Meta extends qt.TransitionCallbacks {
+export interface Meta extends qt.TransitionCBs {
   eventKey?: qt.EventKey | undefined
   isActive?: boolean | undefined
   transition?: qt.TransitionComponent | undefined
@@ -90,7 +89,7 @@ export function useTabPanel({
       },
     ]
   const { activeKey, getControlledId, getControllerId, ...rest } = context
-  const key = makeEventKey(eventKey)
+  const key = qt.makeEventKey(eventKey)
   return [
     {
       ...props,
@@ -102,7 +101,7 @@ export function useTabPanel({
       eventKey,
       isActive:
         active == null && key != null
-          ? makeEventKey(activeKey) === key
+          ? qt.makeEventKey(activeKey) === key
           : active,
       transition: transition || rest.transition,
       mountOnEnter: mountOnEnter != null ? mountOnEnter : rest.mountOnEnter,
@@ -136,7 +135,7 @@ export const Panel: qt.DynamicRefForwardingComponent<"div", Props> =
     ] = useTabPanel(ps)
     return (
       <Context.Provider value={null}>
-        <SelectableContext.Provider value={null}>
+        <qt.Selectable.Provider value={null}>
           <Transition
             in={isActive}
             onEnter={onEnter}
@@ -155,7 +154,7 @@ export const Panel: qt.DynamicRefForwardingComponent<"div", Props> =
               aria-hidden={!isActive}
             />
           </Transition>
-        </SelectableContext.Provider>
+        </qt.Selectable.Provider>
       </Context.Provider>
     )
   })

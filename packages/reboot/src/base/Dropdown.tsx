@@ -1,57 +1,39 @@
-import { qsa, addEventListener } from "./utils.js"
-import { useCallback, useRef, useEffect, useMemo, useContext } from "react"
-import * as React from "react"
-import { noop, useCallbackRef, useUncontrolledProp } from "../hooks.js"
-import {
-  usePrevious,
-  useForceUpdate,
-  useEventListener,
-  useEventCallback,
-} from "../hooks.js"
-import type { SelectCallback } from "./types.js"
-import { dataAttr } from "./types.js"
-import { useWindow } from "./use.js"
-import { SelectableContext, makeEventKey } from "./SelectableContext.jsx"
-import { NavContext } from "./Nav.jsx"
-import type { EventKey, DynamicRefForwardingComponent } from "./types.js"
 import { Button } from "./Button.jsx"
-import {
-  usePopper,
-  UsePopperOptions,
-  Placement,
-  Offset,
-  UsePopperState,
-  mergeOptsWithPopper,
-} from "./popper.js"
-import { useClickOutside, ClickOutsideOptions } from "./use.js"
+import { Context as NavContext } from "./Nav.jsx"
+import { qsa, addEventListener } from "./utils.js"
 import { useSSRSafeId } from "@react-aria/ssr"
+import * as qh from "../hooks.js"
+import * as qp from "./popper.js"
+import * as qr from "react"
+import * as qt from "./types.js"
+import * as qu from "./use.js"
 
 export type Data = {
-  toggle: (nextShow: boolean, event?: React.SyntheticEvent | Event) => void
+  toggle: (nextShow: boolean, event?: qr.SyntheticEvent | Event) => void
   menuElement: HTMLElement | null
   toggleElement: HTMLElement | null
   setMenu: (ref: HTMLElement | null) => void
   setToggle: (ref: HTMLElement | null) => void
   show: boolean
-  placement?: Placement
+  placement?: qp.Placement
 }
 
-export const Context = React.createContext<Data | null>(null)
+export const Context = qr.createContext<Data | null>(null)
 
-export interface ItemProps extends React.HTMLAttributes<HTMLElement> {
-  as?: React.ElementType
+export interface ItemProps extends qr.HTMLAttributes<HTMLElement> {
+  as?: qr.ElementType
   active?: boolean
   disabled?: boolean
-  eventKey?: EventKey
+  eventKey?: qt.EventKey
   href?: string
 }
 
 interface ItemOpts {
-  key?: EventKey | null
+  key?: qt.EventKey | null
   href?: string
   active?: boolean
   disabled?: boolean
-  onClick?: React.MouseEventHandler
+  onClick?: qr.MouseEventHandler
 }
 
 export function useDropdownItem({
@@ -61,15 +43,15 @@ export function useDropdownItem({
   disabled,
   onClick,
 }: ItemOpts) {
-  const onSelectCtx = useContext(SelectableContext)
-  const navContext = useContext(NavContext)
+  const onSelectCtx = qr.useContext(qt.Selectable)
+  const navContext = qr.useContext(NavContext)
   const { activeKey } = navContext || {}
-  const eventKey = makeEventKey(key, href)
+  const eventKey = qt.makeEventKey(key, href)
   const isActive =
     active == null && key != null
-      ? makeEventKey(activeKey) === eventKey
+      ? qt.makeEventKey(activeKey) === eventKey
       : active
-  const handleClick = useEventCallback(event => {
+  const handleClick = qh.useEventCallback(event => {
     if (disabled) return
     onClick?.(event)
     if (onSelectCtx && !event.isPropagationStopped()) {
@@ -81,14 +63,14 @@ export function useDropdownItem({
       onClick: handleClick,
       "aria-disabled": disabled || undefined,
       "aria-selected": isActive,
-      [dataAttr("dropdown-item")]: "",
+      [qt.dataAttr("dropdown-item")]: "",
     },
     { isActive },
   ] as const
 }
 
-export const Item: DynamicRefForwardingComponent<typeof Button, ItemProps> =
-  React.forwardRef(
+export const Item: qt.DynamicRefForwardingComponent<typeof Button, ItemProps> =
+  qr.forwardRef(
     (
       {
         eventKey,
@@ -116,38 +98,38 @@ export interface MenuOpts {
   flip?: boolean
   show?: boolean
   fixed?: boolean
-  placement?: Placement
+  placement?: qp.Placement
   usePopper?: boolean
   enableEventListeners?: boolean
-  offset?: Offset
-  rootCloseEvent?: ClickOutsideOptions["clickTrigger"]
-  popperConfig?: Omit<UsePopperOptions, "enabled" | "placement">
+  offset?: qp.Offset
+  rootCloseEvent?: qu.ClickOutsideOptions["clickTrigger"]
+  popperConfig?: Omit<qp.UseOptions, "enabled" | "placement">
 }
 
 export type UserDropdownMenuProps = Record<string, any> & {
-  ref: React.RefCallback<HTMLElement>
-  style?: React.CSSProperties
+  ref: qr.RefCallback<HTMLElement>
+  style?: qr.CSSProperties
   "aria-labelledby"?: string
 }
 
 export type ArrowProps = Record<string, any> & {
-  ref: React.RefCallback<HTMLElement>
-  style: React.CSSProperties
+  ref: qr.RefCallback<HTMLElement>
+  style: qr.CSSProperties
 }
 
 export interface MenuMeta {
   show: boolean
-  placement?: Placement
+  placement?: qp.Placement
   hasShown: boolean
   toggle?: Data["toggle"]
-  popper: UsePopperState | null
+  popper: qp.UseState | null
   arrowProps: Partial<ArrowProps>
 }
 
 export function useDropdownMenu(options: MenuOpts = {}) {
-  const context = useContext(Context)
-  const [arrowElement, attachArrowRef] = useCallbackRef<Element>()
-  const hasShownRef = useRef(false)
+  const context = qr.useContext(Context)
+  const [arrowElement, attachArrowRef] = qh.useCallbackRef<Element>()
+  const hasShownRef = qr.useRef(false)
   const {
     flip,
     offset,
@@ -162,14 +144,14 @@ export function useDropdownMenu(options: MenuOpts = {}) {
   if (show && !hasShownRef.current) {
     hasShownRef.current = true
   }
-  const handleClose = (e: React.SyntheticEvent | Event) => {
+  const handleClose = (e: qr.SyntheticEvent | Event) => {
     context?.toggle(false, e)
   }
   const { placement, setMenu, menuElement, toggleElement } = context || {}
-  const popper = usePopper(
+  const popper = qp.usePopper(
     toggleElement,
     menuElement,
-    mergeOptsWithPopper({
+    qp.mergeOptsWithPopper({
       placement: placementOverride || placement || "bottom-start",
       enabled: shouldUsePopper,
       enableEvents: enableEventListeners == null ? show : enableEventListeners,
@@ -181,7 +163,7 @@ export function useDropdownMenu(options: MenuOpts = {}) {
     })
   )
   const menuProps: UserDropdownMenuProps = {
-    ref: setMenu || noop,
+    ref: setMenu || qh.noop,
     "aria-labelledby": toggleElement?.id,
     ...popper.attributes.popper,
     style: popper.styles.popper as any,
@@ -200,7 +182,7 @@ export function useDropdownMenu(options: MenuOpts = {}) {
         }
       : {},
   }
-  useClickOutside(menuElement, handleClose, {
+  qu.useClickOutside(menuElement, handleClose, {
     clickTrigger: rootCloseEvent,
     disabled: !show,
   })
@@ -208,7 +190,7 @@ export function useDropdownMenu(options: MenuOpts = {}) {
 }
 
 export interface MenuProps extends MenuOpts {
-  children: (props: UserDropdownMenuProps, meta: MenuMeta) => React.ReactNode
+  children: (props: UserDropdownMenuProps, meta: MenuMeta) => qr.ReactNode
 }
 
 export function Menu({ children, ...options }: MenuProps) {
@@ -226,7 +208,7 @@ export const isRoleMenu = (el: HTMLElement) =>
 export interface UseToggleProps {
   id: string
   ref: Data["setToggle"]
-  onClick: React.MouseEventHandler
+  onClick: qr.MouseEventHandler
   "aria-expanded": boolean
   "aria-haspopup"?: true
 }
@@ -240,11 +222,11 @@ export function useDropdownToggle(): [UseToggleProps, ToggleMeta] {
   const id = useSSRSafeId()
   const {
     show = false,
-    toggle = noop,
+    toggle = qh.noop,
     setToggle,
     menuElement,
-  } = useContext(Context) || {}
-  const handleClick = useCallback(
+  } = qr.useContext(Context) || {}
+  const handleClick = qr.useCallback(
     e => {
       toggle(!show, e)
     },
@@ -252,7 +234,7 @@ export function useDropdownToggle(): [UseToggleProps, ToggleMeta] {
   )
   const props: UseToggleProps = {
     id,
-    ref: setToggle || noop,
+    ref: setToggle || qh.noop,
     onClick: handleClick,
     "aria-expanded": !!show,
   }
@@ -263,7 +245,7 @@ export function useDropdownToggle(): [UseToggleProps, ToggleMeta] {
 }
 
 export interface ToggleProps {
-  children: (props: UseToggleProps, meta: ToggleMeta) => React.ReactNode
+  children: (props: UseToggleProps, meta: ToggleMeta) => qr.ReactNode
 }
 
 export function Toggle({ children }: ToggleProps) {
@@ -273,10 +255,10 @@ export function Toggle({ children }: ToggleProps) {
 Toggle.displayName = "DropdownToggle"
 
 export interface InjectedProps {
-  onKeyDown: React.KeyboardEventHandler
+  onKeyDown: qr.KeyboardEventHandler
 }
 
-export type ToggleEvent = React.SyntheticEvent | KeyboardEvent | MouseEvent
+export type ToggleEvent = qr.SyntheticEvent | KeyboardEvent | MouseEvent
 
 export interface ToggleMetadata {
   source: string | undefined
@@ -284,20 +266,20 @@ export interface ToggleMetadata {
 }
 
 export interface Props {
-  placement?: Placement
+  placement?: qp.Placement
   defaultShow?: boolean
   show?: boolean
-  onSelect?: SelectCallback
+  onSelect?: qt.SelectCB
   onToggle?: (nextShow: boolean, meta: ToggleMetadata) => void
   itemSelector?: string
   focusFirstItemOnShow?: boolean | "keyboard"
-  children: React.ReactNode
+  children: qr.ReactNode
 }
 
 function useRefWithUpdate() {
-  const forceUpdate = useForceUpdate()
-  const ref = useRef<HTMLElement | null>(null)
-  const attachRef = useCallback(
+  const forceUpdate = qh.useForceUpdate()
+  const ref = qr.useRef<HTMLElement | null>(null)
+  const attachRef = qr.useCallback(
     (element: null | HTMLElement) => {
       ref.current = element
       forceUpdate()
@@ -312,13 +294,13 @@ export function Dropdown({
   show: rawShow,
   onSelect,
   onToggle: rawOnToggle,
-  itemSelector = `* [${dataAttr("dropdown-item")}]`,
+  itemSelector = `* [${qt.dataAttr("dropdown-item")}]`,
   focusFirstItemOnShow,
   placement = "bottom-start",
   children,
 }: Props) {
-  const window = useWindow()
-  const [show, onToggle] = useUncontrolledProp(
+  const window = qu.useWindow()
+  const [show, onToggle] = qh.useUncontrolledProp(
     rawShow,
     defaultShow!,
     rawOnToggle
@@ -327,11 +309,11 @@ export function Dropdown({
   const menuElement = menuRef.current
   const [toggleRef, setToggle] = useRefWithUpdate()
   const toggleElement = toggleRef.current
-  const lastShow = usePrevious(show)
-  const lastSourceEvent = useRef<string | null>(null)
-  const focusInDropdown = useRef(false)
-  const onSelectCtx = useContext(SelectableContext)
-  const toggle = useCallback(
+  const lastShow = qh.usePrevious(show)
+  const lastSourceEvent = qr.useRef<string | null>(null)
+  const focusInDropdown = qr.useRef(false)
+  const onSelectCtx = qr.useContext(qt.Selectable)
+  const toggle = qr.useCallback(
     (
       nextShow: boolean,
       event: ToggleEvent | undefined,
@@ -341,8 +323,8 @@ export function Dropdown({
     },
     [onToggle]
   )
-  const handleSelect = useEventCallback(
-    (key: string | null, event: React.SyntheticEvent) => {
+  const handleSelect = qh.useEventCallback(
+    (key: string | null, event: qr.SyntheticEvent) => {
       onSelect?.(key, event)
       toggle(false, event, "select")
       if (!event.isPropagationStopped()) {
@@ -350,7 +332,7 @@ export function Dropdown({
       }
     }
   )
-  const context = useMemo(
+  const context = qr.useMemo(
     () => ({
       toggle,
       placement,
@@ -367,12 +349,12 @@ export function Dropdown({
       menuElement.ownerDocument.activeElement
     )
   }
-  const focusToggle = useEventCallback(() => {
+  const focusToggle = qh.useEventCallback(() => {
     if (toggleElement && toggleElement.focus) {
       toggleElement.focus()
     }
   })
-  const maybeFocusFirst = useEventCallback(() => {
+  const maybeFocusFirst = qh.useEventCallback(() => {
     const type = lastSourceEvent.current
     let focusType = focusFirstItemOnShow
     if (focusType == null) {
@@ -388,14 +370,14 @@ export function Dropdown({
     const first = qsa(menuRef.current!, itemSelector)[0]
     if (first && first.focus) first.focus()
   })
-  useEffect(() => {
+  qr.useEffect(() => {
     if (show) maybeFocusFirst()
     else if (focusInDropdown.current) {
       focusInDropdown.current = false
       focusToggle()
     }
   }, [show, focusInDropdown, focusToggle, maybeFocusFirst])
-  useEffect(() => {
+  qr.useEffect(() => {
     lastSourceEvent.current = null
   })
   const getNextFocusedChild = (current: HTMLElement, offset: number) => {
@@ -405,8 +387,8 @@ export function Dropdown({
     index = Math.max(0, Math.min(index, items.length))
     return items[index]
   }
-  useEventListener(
-    useCallback(() => window!.document, [window]),
+  qh.useEventListener(
+    qr.useCallback(() => window!.document, [window]),
     "keydown",
     (event: KeyboardEvent) => {
       const { key } = event
@@ -473,9 +455,9 @@ export function Dropdown({
     }
   )
   return (
-    <SelectableContext.Provider value={handleSelect}>
+    <qt.Selectable.Provider value={handleSelect}>
       <Context.Provider value={context}>{children}</Context.Provider>
-    </SelectableContext.Provider>
+    </qt.Selectable.Provider>
   )
 }
 Dropdown.displayName = "Dropdown"

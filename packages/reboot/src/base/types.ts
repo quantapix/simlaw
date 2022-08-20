@@ -2,6 +2,14 @@ import * as qr from "react"
 
 export type EventKey = string | number
 
+export function makeEventKey(
+  eventKey?: EventKey | null,
+  href: string | null = null
+): string | null {
+  if (eventKey != null) return String(eventKey)
+  return href || null
+}
+
 export type IntrinsicElementTypes = keyof JSX.IntrinsicElements
 
 export type AssignPropsWithRef<
@@ -62,12 +70,14 @@ export type DynamicComponentClass<
   P = unknown
 > = qr.ComponentClass<AssignPropsWithRef<As, { as?: As } & P>>
 
-export type SelectCallback = (
+export type SelectCB = (
   eventKey: string | null,
   e: qr.SyntheticEvent<unknown>
 ) => void
 
-export interface TransitionCallbacks {
+export const Selectable = qr.createContext<SelectCB | null>(null)
+
+export interface TransitionCBs {
   onEnter?(x: HTMLElement, isAppearing: boolean): any
   onEntering?(x: HTMLElement, isAppearing: boolean): any
   onEntered?(x: HTMLElement, isAppearing: boolean): any
@@ -76,7 +86,7 @@ export interface TransitionCallbacks {
   onExited?(x: HTMLElement): any
 }
 
-export interface TransitionProps extends TransitionCallbacks {
+export interface TransitionProps extends TransitionCBs {
   in?: boolean | undefined
   appear?: boolean
   children: qr.ReactElement

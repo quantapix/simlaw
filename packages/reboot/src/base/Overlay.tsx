@@ -1,152 +1,128 @@
-import * as React from "react"
+import * as qh from "../hooks.js"
+import * as qp from "./popper.js"
+import * as qr from "react"
+import * as qu from "./use.js"
 import ReactDOM from "react-dom"
-import { useCallbackRef, useMergedRefs } from "../hooks.js"
-import { useState } from "react"
-import {
-  usePopper,
-  Offset,
-  Placement,
-  UsePopperOptions,
-  UsePopperState,
-  mergeOptsWithPopper,
-} from "./popper.js"
-import {
-  DOMContainer,
-  useRootClose,
-  useWaitForDOMRef,
-  RootCloseOptions,
-} from "./use.js"
-import type { TransitionCallbacks } from "./types.js"
+import type * as qt from "./types.js"
 
 export interface OverlayArrowProps extends Record<string, any> {
-  ref: React.RefCallback<HTMLElement>
-  style: React.CSSProperties
+  ref: qr.RefCallback<HTMLElement>
+  style: qr.CSSProperties
 }
 
 export interface OverlayMetadata {
   show: boolean
-  placement: Placement | undefined
-  popper: UsePopperState | null
+  placement: qp.Placement | undefined
+  popper: qp.UseState | null
   arrowProps: Partial<OverlayArrowProps>
 }
 
 export interface OverlayInjectedProps extends Record<string, any> {
-  ref: React.RefCallback<HTMLElement>
-  style: React.CSSProperties
+  ref: qr.RefCallback<HTMLElement>
+  style: qr.CSSProperties
   "aria-labelledby"?: string
 }
 
-export interface OverlayProps extends TransitionCallbacks {
+export interface OverlayProps extends qt.TransitionCBs {
   flip?: boolean
-  placement?: Placement
-  offset?: Offset
+  placement?: qp.Placement
+  offset?: qp.Offset
   containerPadding?: number
-  popperConfig?: Omit<UsePopperOptions, "placement">
-  container?: DOMContainer
-  target: DOMContainer
+  popperConfig?: Omit<qp.UseOptions, "placement">
+  container?: qu.DOMContainer
+  target: qu.DOMContainer
   show?: boolean
-  transition?: React.ComponentType<
-    { in?: boolean; appear?: boolean } & TransitionCallbacks
+  transition?: qr.ComponentType<
+    { in?: boolean; appear?: boolean } & qt.TransitionCBs
   >
   onHide?: (e: Event) => void
   rootClose?: boolean
   rootCloseDisabled?: boolean
-  rootCloseEvent?: RootCloseOptions["clickTrigger"]
-  children: (
-    props: OverlayInjectedProps,
-    meta: OverlayMetadata
-  ) => React.ReactNode
+  rootCloseEvent?: qu.RootCloseOptions["clickTrigger"]
+  children: (props: OverlayInjectedProps, meta: OverlayMetadata) => qr.ReactNode
 }
 
-export const Overlay = React.forwardRef<HTMLElement, OverlayProps>(
-  (props, outerRef) => {
-    const {
+export const Overlay = qr.forwardRef<HTMLElement, OverlayProps>((ps, ref) => {
+  const {
+    flip,
+    offset,
+    placement,
+    containerPadding,
+    popperConfig = {},
+    transition: Transition,
+  } = ps
+  const [root, attachRef] = qh.useCallbackRef<HTMLElement>()
+  const [arrow, attachArrowRef] = qh.useCallbackRef<Element>()
+  const mergedRef = qh.useMergedRefs<HTMLElement | null>(attachRef, ref)
+  const container = qu.useWaitForDOMRef(ps.container)
+  const target = qu.useWaitForDOMRef(ps.target)
+  const [exited, setExited] = qr.useState(!ps.show)
+  const popper = qp.usePopper(
+    target,
+    root,
+    qp.mergeOptsWithPopper({
+      placement,
+      enableEvents: !!ps.show,
+      containerPadding: containerPadding || 5,
       flip,
       offset,
-      placement,
-      containerPadding,
-      popperConfig = {},
-      transition: Transition,
-    } = props
-
-    const [rootElement, attachRef] = useCallbackRef<HTMLElement>()
-    const [arrowElement, attachArrowRef] = useCallbackRef<Element>()
-    const mergedRef = useMergedRefs<HTMLElement | null>(attachRef, outerRef)
-
-    const container = useWaitForDOMRef(props.container)
-    const target = useWaitForDOMRef(props.target)
-
-    const [exited, setExited] = useState(!props.show)
-
-    const popper = usePopper(
-      target,
-      rootElement,
-      mergeOptsWithPopper({
-        placement,
-        enableEvents: !!props.show,
-        containerPadding: containerPadding || 5,
-        flip,
-        offset,
-        arrowElement,
-        popperConfig,
-      })
-    )
-    if (props.show) {
-      if (exited) setExited(false)
-    } else if (!props.transition && !exited) {
-      setExited(true)
-    }
-    const handleHidden: TransitionCallbacks["onExited"] = (...args) => {
-      setExited(true)
-
-      if (props.onExited) {
-        props.onExited(...args)
-      }
-    }
-    const mountOverlay = props.show || (Transition && !exited)
-    useRootClose(rootElement, props.onHide!, {
-      disabled: !props.rootClose || props.rootCloseDisabled,
-      clickTrigger: props.rootCloseEvent,
+      arrowElement: arrow,
+      popperConfig,
     })
-    if (!mountOverlay) {
-      return null
-    }
-    let child = props.children(
-      {
-        ...popper.attributes.popper,
-        style: popper.styles.popper as any,
-        ref: mergedRef,
-      },
-      {
-        popper,
-        placement,
-        show: !!props.show,
-        arrowProps: {
-          ...popper.attributes.arrow,
-          style: popper.styles.arrow as any,
-          ref: attachArrowRef,
-        },
-      }
-    )
-    if (Transition) {
-      const { onExit, onExiting, onEnter, onEntering, onEntered } = props
-      child = (
-        <Transition
-          in={props.show}
-          appear
-          onExit={onExit}
-          onExiting={onExiting}
-          onExited={handleHidden}
-          onEnter={onEnter}
-          onEntering={onEntering}
-          onEntered={onEntered}
-        >
-          {child}
-        </Transition>
-      )
-    }
-
-    return container ? ReactDOM.createPortal(child, container) : null
+  )
+  if (ps.show) {
+    if (exited) setExited(false)
+  } else if (!ps.transition && !exited) {
+    setExited(true)
   }
-)
+  const handleHidden: qt.TransitionCBs["onExited"] = (...args) => {
+    setExited(true)
+    if (ps.onExited) {
+      ps.onExited(...args)
+    }
+  }
+  const mountOverlay = ps.show || (Transition && !exited)
+  qu.useRootClose(root, ps.onHide!, {
+    disabled: !ps.rootClose || ps.rootCloseDisabled,
+    clickTrigger: ps.rootCloseEvent,
+  })
+  if (!mountOverlay) {
+    return null
+  }
+  let child = ps.children(
+    {
+      ...popper.attributes.popper,
+      style: popper.styles.popper as any,
+      ref: mergedRef,
+    },
+    {
+      popper,
+      placement,
+      show: !!ps.show,
+      arrowProps: {
+        ...popper.attributes.arrow,
+        style: popper.styles.arrow as any,
+        ref: attachArrowRef,
+      },
+    }
+  )
+  if (Transition) {
+    const { onExit, onExiting, onEnter, onEntering, onEntered } = ps
+    child = (
+      <Transition
+        in={ps.show}
+        appear
+        onExit={onExit}
+        onExiting={onExiting}
+        onExited={handleHidden}
+        onEnter={onEnter}
+        onEntering={onEntering}
+        onEntered={onEntered}
+      >
+        {child}
+      </Transition>
+    )
+  }
+  return container ? ReactDOM.createPortal(child, container) : null
+})
 Overlay.displayName = "Overlay"

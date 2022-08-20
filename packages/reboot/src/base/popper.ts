@@ -1,12 +1,12 @@
-import * as qp from "@popperjs/core"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { dequal } from "dequal"
-import { useSafeState } from "../hooks.js"
 import { placements } from "@popperjs/core"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useSafeState } from "../hooks.js"
+import * as qp from "@popperjs/core"
 
 export { placements }
 
-export const createPopper = qp.popperGenerator({
+export const create = qp.popperGenerator({
   defaultModifiers: [
     qp.hide,
     qp.popperOffsets,
@@ -43,7 +43,8 @@ export type ModifierMap = Record<string, Partial<Modifier<any, any>>>
 export type Modifiers =
   | qp.Options["modifiers"]
   | Record<string, Partial<Modifier<any, any>>>
-export type UsePopperOptions = Omit<
+
+export type UseOptions = Omit<
   Options,
   "modifiers" | "placement" | "strategy"
 > & {
@@ -52,7 +53,8 @@ export type UsePopperOptions = Omit<
   strategy?: Options["strategy"]
   modifiers?: Options["modifiers"]
 }
-export interface UsePopperState {
+
+export interface UseState {
   placement: Placement
   update: () => void
   forceUpdate: () => void
@@ -60,6 +62,7 @@ export interface UsePopperState {
   styles: Record<string, Partial<CSSStyleDeclaration>>
   state?: State
 }
+
 const ariaDescribedByModifier: Modifier<"ariaDescribedBy", undefined> = {
   name: "ariaDescribedBy",
   enabled: true,
@@ -91,7 +94,9 @@ const ariaDescribedByModifier: Modifier<"ariaDescribedBy", undefined> = {
     }
   },
 }
+
 const EMPTY_MODIFIERS = [] as any
+
 export function usePopper(
   referenceElement: VirtualElement | null | undefined,
   popperElement: HTMLElement | null | undefined,
@@ -101,9 +106,9 @@ export function usePopper(
     strategy = "absolute",
     modifiers = EMPTY_MODIFIERS,
     ...config
-  }: UsePopperOptions = {}
-): UsePopperState {
-  const prevModifiers = useRef<UsePopperOptions["modifiers"]>(modifiers)
+  }: UseOptions = {}
+): UseState {
+  const prevModifiers = useRef<UseOptions["modifiers"]>(modifiers)
   const popperInstanceRef = useRef<Instance>()
   const update = useCallback(() => {
     popperInstanceRef.current?.update()
@@ -112,7 +117,7 @@ export function usePopper(
     popperInstanceRef.current?.forceUpdate()
   }, [])
   const [popperState, setState] = useSafeState(
-    useState<UsePopperState>({
+    useState<UseState>({
       placement,
       update,
       forceUpdate,
@@ -130,8 +135,8 @@ export function usePopper(
       phase: "write",
       requires: ["computeStyles"],
       fn: ({ state }) => {
-        const styles: UsePopperState["styles"] = {}
-        const attributes: UsePopperState["attributes"] = {}
+        const styles: UseState["styles"] = {}
+        const attributes: UseState["attributes"] = {}
         Object.keys(state.elements).forEach(element => {
           styles[element] = state.styles[element]
           attributes[element] = state.attributes[element]
@@ -170,7 +175,7 @@ export function usePopper(
     if (!enabled || referenceElement == null || popperElement == null) {
       return undefined
     }
-    popperInstanceRef.current = createPopper(referenceElement, popperElement, {
+    popperInstanceRef.current = create(referenceElement, popperElement, {
       ...config,
       placement,
       strategy,
@@ -190,6 +195,7 @@ export function usePopper(
   }, [enabled, referenceElement, popperElement])
   return popperState
 }
+
 export type Config = {
   flip?: boolean
   fixed?: boolean
@@ -200,8 +206,9 @@ export type Config = {
   enableEvents?: boolean
   offset?: Offset
   placement?: Placement
-  popperConfig?: UsePopperOptions
+  popperConfig?: UseOptions
 }
+
 export function toModifierMap(modifiers: Modifiers | undefined) {
   const result: Modifiers = {}
   if (!Array.isArray(modifiers)) {
@@ -212,6 +219,7 @@ export function toModifierMap(modifiers: Modifiers | undefined) {
   })
   return result
 }
+
 export function toModifierArray(map: Modifiers | undefined = {}) {
   if (Array.isArray(map)) return map
   return Object.keys(map).map(k => {
@@ -219,6 +227,7 @@ export function toModifierArray(map: Modifiers | undefined = {}) {
     return map[k]
   })
 }
+
 export function mergeOptsWithPopper({
   enabled,
   enableEvents,
@@ -229,7 +238,7 @@ export function mergeOptsWithPopper({
   containerPadding,
   arrowElement,
   popperConfig = {},
-}: Config): UsePopperOptions {
+}: Config): UseOptions {
   const modifiers = toModifierMap(popperConfig.modifiers)
   return {
     ...popperConfig,

@@ -2,11 +2,11 @@ import { classNames } from "./helpers.js"
 import * as React from "react"
 import { useCallback } from "react"
 import type { TransitionStatus, Transition } from "react-transition-group"
-import type { TransitionCallbacks } from "./base/types.jsx"
+import type { TransitionCBs } from "./base/types.jsx"
 import * as qu from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
 
-export interface Props extends TransitionCallbacks {
+export interface Props extends TransitionCBs {
   className?: string
   in?: boolean | undefined
   mountOnEnter?: boolean

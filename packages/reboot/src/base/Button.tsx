@@ -1,5 +1,5 @@
-import * as React from "react"
 import { isTrivialHref } from "./utils.js"
+import * as qr from "react"
 
 export type Type = "button" | "reset" | "submit"
 
@@ -12,29 +12,27 @@ export interface AnchorOpts {
 export interface Opts extends AnchorOpts {
   type?: Type | undefined
   disabled?: boolean | undefined
-  onClick?:
-    | React.EventHandler<React.MouseEvent | React.KeyboardEvent>
-    | undefined
+  onClick?: qr.EventHandler<qr.MouseEvent | qr.KeyboardEvent> | undefined
   tabIndex?: number | undefined
   tagName?: keyof JSX.IntrinsicElements | undefined
-  role?: React.AriaRole | undefined
+  role?: qr.AriaRole | undefined
 }
 
 export interface AriaProps {
   type?: Type | undefined
   disabled: boolean | undefined
-  role?: React.AriaRole
+  role?: qr.AriaRole
   tabIndex?: number | undefined
   href?: string | undefined
   target?: string | undefined
   rel?: string | undefined
   "aria-disabled"?: true | undefined
-  onClick?: (event: React.MouseEvent | React.KeyboardEvent) => void
-  onKeyDown?: (event: React.KeyboardEvent) => void
+  onClick?: (event: qr.MouseEvent | qr.KeyboardEvent) => void
+  onKeyDown?: (event: qr.KeyboardEvent) => void
 }
 
 export interface Meta {
-  tagName: React.ElementType
+  tagName: qr.ElementType
 }
 
 export function useButtonProps({
@@ -59,7 +57,7 @@ export function useButtonProps({
   if (tagName === "button") {
     return [{ type: (type as any) || "button", disabled }, meta]
   }
-  const click = (e: React.MouseEvent | React.KeyboardEvent) => {
+  const click = (e: qr.MouseEvent | qr.KeyboardEvent) => {
     if (disabled || (tagName === "a" && isTrivialHref(href))) {
       e.preventDefault()
     }
@@ -69,7 +67,7 @@ export function useButtonProps({
     }
     onClick?.(e)
   }
-  const keyDown = (e: React.KeyboardEvent) => {
+  const keyDown = (e: qr.KeyboardEvent) => {
     if (e.key === " ") {
       e.preventDefault()
       click(e)
@@ -107,9 +105,9 @@ export interface BaseProps {
 
 export interface Props
   extends BaseProps,
-    React.ComponentPropsWithoutRef<"button"> {}
+    qr.ComponentPropsWithoutRef<"button"> {}
 
-export const Button = React.forwardRef<HTMLElement, Props>(
+export const Button = qr.forwardRef<HTMLElement, Props>(
   ({ as, disabled, ...ps }, ref) => {
     const [bps, { tagName: Component }] = useButtonProps({
       tagName: as,

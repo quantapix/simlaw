@@ -1,10 +1,10 @@
 import { activeElement, contains, canUseDOM, listen } from "./utils.js"
-import { DOMContainer, useWaitForDOMRef, useWindow } from "./use.js"
 import { Manager } from "./Manager.js"
 import * as qh from "../hooks.js"
 import * as qr from "react"
+import * as qu from "./use.js"
 import ReactDOM from "react-dom"
-import type { TransitionCallbacks } from "./types.js"
+import type * as qt from "./types.js"
 
 let manager: Manager
 
@@ -13,7 +13,7 @@ export type ModalTransitionComponent = qr.ComponentType<
     in: boolean
     appear?: boolean
     unmountOnExit?: boolean
-  } & TransitionCallbacks
+  } & qt.TransitionCBs
 >
 
 export interface RenderModalDialogProps {
@@ -30,13 +30,13 @@ export interface RenderModalBackdropProps {
   onClick: (event: qr.SyntheticEvent) => void
 }
 
-export interface BaseProps extends TransitionCallbacks {
+export interface BaseProps extends qt.TransitionCBs {
   children?: qr.ReactElement
   role?: string
   style?: qr.CSSProperties
   className?: string
   show?: boolean
-  container?: DOMContainer
+  container?: qu.DOMContainer
   onShow?: () => void
   onHide?: () => void
   manager?: Manager
@@ -66,7 +66,7 @@ function getManager(window?: Window) {
 }
 
 function useModalManager(provided?: Manager) {
-  const window = useWindow()
+  const window = qu.useWindow()
   const modalManager = provided || getManager(window)
   const modal = qr.useRef({
     dialog: null as any as HTMLElement,
@@ -126,7 +126,7 @@ export const Modal: qr.ForwardRefExoticComponent<
     }: Props,
     ref: qr.Ref<Handle>
   ) => {
-    const container = useWaitForDOMRef(containerRef)
+    const container = qu.useWaitForDOMRef(containerRef)
     const modal = useModalManager(providedManager)
     const isMounted = qh.useMounted()
     const prevShow = qh.usePrevious(show)
@@ -223,7 +223,7 @@ export const Modal: qr.ForwardRefExoticComponent<
     const removeKeydownListenerRef = qr.useRef<ReturnType<
       typeof listen
     > | null>()
-    const handleHidden: TransitionCallbacks["onExited"] = (...args) => {
+    const handleHidden: qt.TransitionCBs["onExited"] = (...args) => {
       setExited(true)
       onExited?.(...args)
     }

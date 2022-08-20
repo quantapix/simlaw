@@ -1,19 +1,19 @@
-import * as React from "react"
-import { useEventCallback } from "../hooks.js"
-import { useButtonProps } from "../Button.jsx"
 import { isTrivialHref } from "./utils.js"
+import { useButtonProps } from "./Button.jsx"
+import * as qh from "../hooks.js"
+import * as qr from "react"
 
-export interface Props extends React.HTMLAttributes<HTMLElement> {
+export interface Props extends qr.HTMLAttributes<HTMLElement> {
   href?: string
   disabled?: boolean
   role?: string
   tabIndex?: number
 }
 
-export const Anchor = React.forwardRef<HTMLAnchorElement, Props>(
+export const Anchor = qr.forwardRef<HTMLAnchorElement, Props>(
   ({ onKeyDown, ...ps }, ref) => {
     const [bps] = useButtonProps({ tagName: "a", ...ps })
-    const keyDown = useEventCallback((e: React.KeyboardEvent<HTMLElement>) => {
+    const keyDown = qh.useEventCallback((e: qr.KeyboardEvent<HTMLElement>) => {
       bps.onKeyDown!(e)
       onKeyDown?.(e)
     })

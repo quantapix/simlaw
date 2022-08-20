@@ -1,7 +1,7 @@
 import { classNames, BsProps, BsRef, TransitionType } from "./helpers.js"
 import { Context, useTabPanel, NoopTransition } from "./base/Tab.jsx"
 import { Fade } from "./Fade.jsx"
-import { SelectableContext } from "./base/SelectableContext.jsx"
+import { Selectable } from "./base/SelectableContext.jsx"
 import { Tabs, Props } from "./base/Tabs.jsx"
 import { useBs } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
@@ -29,7 +29,7 @@ Container.displayName = "TabContainer"
 export const Content = withBs("tab-content")
 
 export interface PaneProps
-  extends qt.TransitionCallbacks,
+  extends qt.TransitionCBs,
     BsProps,
     qr.HTMLAttributes<HTMLElement> {
   eventKey?: qt.EventKey
@@ -64,7 +64,7 @@ export const Pane: BsRef<"div", PaneProps> = qr.forwardRef<
   const bs = useBs(bsPrefix, "tab-pane")
   return (
     <Context.Provider value={null}>
-      <SelectableContext.Provider value={null}>
+      <Selectable.Provider value={null}>
         <Transition
           in={isActive}
           onEnter={onEnter}
@@ -82,7 +82,7 @@ export const Pane: BsRef<"div", PaneProps> = qr.forwardRef<
             className={classNames(className, bs, isActive && "active")}
           />
         </Transition>
-      </SelectableContext.Provider>
+      </Selectable.Provider>
     </Context.Provider>
   )
 })

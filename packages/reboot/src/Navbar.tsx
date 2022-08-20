@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useCallback, useContext, useMemo } from "react"
-import { SelectableContext } from "./base/SelectableContext.jsx"
-import type { SelectCallback } from "./base/types.jsx"
+import { Selectable } from "./base/SelectableContext.jsx"
+import type { SelectCB } from "./base/types.jsx"
 import { useEventCallback, useUncontrolled } from "./hooks.js"
 import { withBs } from "./utils.jsx"
 import { Collapse as C, Props as CPs } from "./Collapse.jsx"
@@ -108,7 +108,7 @@ export interface Props
   fixed?: "top" | "bottom"
   sticky?: "top"
   onToggle?: (expanded: boolean) => void
-  onSelect?: SelectCallback
+  onSelect?: SelectCB
   collapseOnSelect?: boolean
   expanded?: boolean
 }
@@ -133,7 +133,7 @@ export const Navbar: BsRef<"nav", Props> = React.forwardRef<HTMLElement, Props>(
       expanded: "onToggle",
     })
     const bsPrefix = useBs(initialBsPrefix, "navbar")
-    const collapse = useCallback<SelectCallback>(
+    const collapse = useCallback<SelectCB>(
       (...xs) => {
         onSelect?.(...xs)
         if (collapseOnSelect && expanded) {
@@ -158,7 +158,7 @@ export const Navbar: BsRef<"nav", Props> = React.forwardRef<HTMLElement, Props>(
     )
     return (
       <Context.Provider value={v}>
-        <SelectableContext.Provider value={collapse}>
+        <Selectable.Provider value={collapse}>
           <X
             ref={ref}
             {...ps}
@@ -172,7 +172,7 @@ export const Navbar: BsRef<"nav", Props> = React.forwardRef<HTMLElement, Props>(
               fixed && `fixed-${fixed}`
             )}
           />
-        </SelectableContext.Provider>
+        </Selectable.Provider>
       </Context.Provider>
     )
   }

@@ -1,11 +1,13 @@
-import * as React from "react"
-import { useContext } from "react"
-import { useUncontrolled } from "./hooks.js"
-import BaseNav, { Props as _Props } from "./base/Nav.jsx"
+import * as qr from "react"
+import * as qh from "./hooks.js"
 import { Anchor } from "./base/Anchor.jsx"
-import { useNavItem, NavItemProps as IPs } from "./base/NavItem.jsx"
-import { makeEventKey } from "./base/SelectableContext.jsx"
-import type { EventKey } from "./base/types.jsx"
+import {
+  Nav as Base,
+  Props as _Props,
+  useNavItem,
+  ItemProps as IPs,
+} from "./base/Nav.jsx"
+import { EventKey, makeEventKey } from "./base/types.js"
 import { useBs } from "./Theme.jsx"
 import { Context as NContext } from "./Navbar.jsx"
 import { Context as CContext } from "./Card.jsx"
@@ -19,14 +21,14 @@ interface Data {
   getControllerId: (key: EventKey | null) => string
 }
 
-export const Context = React.createContext<Data | null>(null)
+export const Context = qr.createContext<Data | null>(null)
 Context.displayName = "NavContext"
 
 export const Item = withBs("nav-item")
 
 export interface LinkProps extends BsProps, Omit<IPs, "as"> {}
 
-export const Link: BsRef<"a", LinkProps> = React.forwardRef<
+export const Link: BsRef<"a", LinkProps> = qr.forwardRef<
   HTMLElement,
   LinkProps
 >(({ bsPrefix, className, as: X = Anchor, active, eventKey, ...ps }, ref) => {
@@ -66,7 +68,7 @@ export interface Props extends BsProps, _Props {
   navbarScroll?: boolean
 }
 
-export const Nav: BsRef<"div", Props> = React.forwardRef<HTMLElement, Props>(
+export const Nav: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
   (xs, ref) => {
     const {
       as = "div",
@@ -79,13 +81,13 @@ export const Nav: BsRef<"div", Props> = React.forwardRef<HTMLElement, Props>(
       className,
       activeKey,
       ...ps
-    } = useUncontrolled(xs, { activeKey: "onSelect" })
+    } = qh.useUncontrolled(xs, { activeKey: "onSelect" })
     const bs = useBs(initialBsPrefix, "nav")
     let navbarBsPrefix
     let cardHeaderBsPrefix
     let isNavbar = false
-    const nContext = useContext(NContext)
-    const cContext = useContext(CContext)
+    const nContext = qr.useContext(NContext)
+    const cContext = qr.useContext(CContext)
     if (nContext) {
       navbarBsPrefix = nContext.bsPrefix
       isNavbar = navbar == null ? true : navbar
@@ -93,7 +95,7 @@ export const Nav: BsRef<"div", Props> = React.forwardRef<HTMLElement, Props>(
       ;({ headerBs: cardHeaderBsPrefix } = cContext)
     }
     return (
-      <BaseNav
+      <Base
         as={as}
         ref={ref}
         activeKey={activeKey}

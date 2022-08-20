@@ -252,6 +252,7 @@ export function attribute(
       node.setAttribute(attr, String(val))
     }
   }
+  return
 }
 const rHyphen = /-(.)/g
 export function camelize(string: string): string {
