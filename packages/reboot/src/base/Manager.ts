@@ -1,31 +1,36 @@
 import { css, getBodyScrollbarWidth } from "./utils.js"
 import { dataAttr } from "./types.js"
-export interface ModalInstance {
+
+export interface Instance {
   dialog: Element
   backdrop: Element
 }
-export interface ModalManagerOptions {
+
+export interface Opts {
   ownerDocument?: Document
   handleContainerOverflow?: boolean
   isRTL?: boolean
 }
-export type ContainerState = {
+
+export type State = {
   scrollBarWidth: number
   style: Record<string, any>
   [key: string]: any
 }
+
 export const OPEN_DATA_ATTRIBUTE = dataAttr("modal-open")
-export class ModalManager {
+
+export class Manager {
   readonly handleContainerOverflow: boolean
   readonly isRTL: boolean
-  readonly modals: ModalInstance[]
-  protected state!: ContainerState
+  readonly modals: Instance[]
+  protected state!: State
   protected ownerDocument: Document | undefined
   constructor({
     ownerDocument,
     handleContainerOverflow = true,
     isRTL = false,
-  }: ModalManagerOptions = {}) {
+  }: Opts = {}) {
     this.handleContainerOverflow = handleContainerOverflow
     this.isRTL = isRTL
     this.modals = []
@@ -37,51 +42,42 @@ export class ModalManager {
   getElement() {
     return (this.ownerDocument || document).body
   }
-  setModalAttributes(_modal: ModalInstance) {
-    // For overriding
-  }
-  removeModalAttributes(_modal: ModalInstance) {
-    // For overriding
-  }
-  setContainerStyle(containerState: ContainerState) {
+  setModalAttributes(_: Instance) {}
+  removeModalAttributes(_: Instance) {}
+  setContainerStyle(s: State) {
     const style: Partial<CSSStyleDeclaration> = { overflow: "hidden" }
-    // we are only interested in the actual `style` here
-    // because we will override it
     const paddingProp = this.isRTL ? "paddingLeft" : "paddingRight"
     const container = this.getElement()
-    containerState.style = {
+    s.style = {
       overflow: container.style.overflow,
       [paddingProp]: container.style[paddingProp],
     }
-    if (containerState.scrollBarWidth) {
-      // use computed style, here to get the real padding
-      // to add our scrollbar width
+    if (s.scrollBarWidth) {
       style[paddingProp] = `${
-        parseInt(css(container, paddingProp) || "0", 10) +
-        containerState.scrollBarWidth
+        parseInt(css(container, paddingProp) || "0", 10) + s.scrollBarWidth
       }px`
     }
     container.setAttribute(OPEN_DATA_ATTRIBUTE, "")
     css(container, style as any)
   }
   reset() {
-    ;[...this.modals].forEach(m => this.remove(m))
+    ;[...this.modals].forEach(x => this.remove(x))
   }
-  removeContainerStyle(containerState: ContainerState) {
+  removeContainerStyle(s: State) {
     const container = this.getElement()
     container.removeAttribute(OPEN_DATA_ATTRIBUTE)
-    Object.assign(container.style, containerState.style)
+    Object.assign(container.style, s.style)
   }
-  add(modal: ModalInstance) {
-    let modalIdx = this.modals.indexOf(modal)
-    if (modalIdx !== -1) {
-      return modalIdx
+  add(x: Instance) {
+    let i = this.modals.indexOf(x)
+    if (i !== -1) {
+      return i
     }
-    modalIdx = this.modals.length
-    this.modals.push(modal)
-    this.setModalAttributes(modal)
-    if (modalIdx !== 0) {
-      return modalIdx
+    i = this.modals.length
+    this.modals.push(x)
+    this.setModalAttributes(x)
+    if (i !== 0) {
+      return i
     }
     this.state = {
       scrollBarWidth: this.getScrollbarWidth(),
@@ -90,20 +86,20 @@ export class ModalManager {
     if (this.handleContainerOverflow) {
       this.setContainerStyle(this.state)
     }
-    return modalIdx
+    return i
   }
-  remove(modal: ModalInstance) {
-    const modalIdx = this.modals.indexOf(modal)
-    if (modalIdx === -1) {
+  remove(x: Instance) {
+    const i = this.modals.indexOf(x)
+    if (i === -1) {
       return
     }
-    this.modals.splice(modalIdx, 1)
+    this.modals.splice(i, 1)
     if (!this.modals.length && this.handleContainerOverflow) {
       this.removeContainerStyle(this.state)
     }
-    this.removeModalAttributes(modal)
+    this.removeModalAttributes(x)
   }
-  isTopModal(modal: ModalInstance) {
-    return !!this.modals.length && this.modals[this.modals.length - 1] === modal
+  isTopModal(x: Instance) {
+    return !!this.modals.length && this.modals[this.modals.length - 1] === x
   }
 }

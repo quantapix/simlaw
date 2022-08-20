@@ -1,4 +1,4 @@
-import type { State } from "./base/usePopper.js"
+import type { State } from "./base/popper.js"
 
 export type Variant =
   | "primary"

@@ -9,6 +9,8 @@ import type { Dispatch, SetStateAction } from "react"
 import { dequal } from "dequal"
 import { useDebugValue } from "react"
 
+export const noop = () => {}
+
 interface Window {
   ResizeObserver: ResizeObserver
 }

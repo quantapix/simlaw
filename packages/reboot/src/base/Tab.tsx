@@ -1,42 +1,54 @@
-import * as React from "react"
-import { useContext } from "react"
 import { SelectableContext, makeEventKey } from "./SelectableContext.jsx"
-import type {
-  EventKey,
-  DynamicRefForwardingComponent,
-  TransitionCallbacks,
-  TransitionComponent,
-  SelectCallback,
-} from "./types.js"
-import { NoopTransition } from "./NoopTransition.jsx"
+import * as qr from "react"
+import type * as qt from "./types.js"
 
-export interface Data {
-  onSelect: SelectCallback
-  activeKey?: EventKey
-  transition?: TransitionComponent
-  mountOnEnter: boolean
-  unmountOnExit: boolean
-  getControlledId: (key: EventKey) => any
-  getControllerId: (key: EventKey) => any
+export function NoopTransition({
+  children,
+  in: inProp,
+  mountOnEnter,
+  unmountOnExit,
+}: qt.TransitionProps) {
+  const hasEnteredRef = qr.useRef(inProp)
+  qr.useEffect(() => {
+    if (inProp) hasEnteredRef.current = true
+  }, [inProp])
+  if (inProp) return children
+  if (unmountOnExit) {
+    return null
+  }
+  if (!hasEnteredRef.current && mountOnEnter) {
+    return null
+  }
+  return children
 }
 
-export const Context = React.createContext<Data | null>(null)
+export interface Data {
+  onSelect: qt.SelectCallback
+  activeKey?: qt.EventKey
+  transition?: qt.TransitionComponent
+  mountOnEnter: boolean
+  unmountOnExit: boolean
+  getControlledId: (key: qt.EventKey) => any
+  getControllerId: (key: qt.EventKey) => any
+}
+
+export const Context = qr.createContext<Data | null>(null)
 
 export interface Props
-  extends TransitionCallbacks,
-    React.HTMLAttributes<HTMLElement> {
-  as?: React.ElementType
-  eventKey?: EventKey
+  extends qt.TransitionCallbacks,
+    qr.HTMLAttributes<HTMLElement> {
+  as?: qr.ElementType
+  eventKey?: qt.EventKey
   active?: boolean
-  transition?: TransitionComponent
+  transition?: qt.TransitionComponent
   mountOnEnter?: boolean
   unmountOnExit?: boolean
 }
 
-export interface Meta extends TransitionCallbacks {
-  eventKey?: EventKey | undefined
+export interface Meta extends qt.TransitionCallbacks {
+  eventKey?: qt.EventKey | undefined
   isActive?: boolean | undefined
-  transition?: TransitionComponent | undefined
+  transition?: qt.TransitionComponent | undefined
   mountOnEnter?: boolean | undefined
   unmountOnExit?: boolean | undefined
 }
@@ -56,7 +68,7 @@ export function useTabPanel({
   onExited,
   ...props
 }: Props): [any, Meta] {
-  const context = useContext(Context)
+  const context = qr.useContext(Context)
   if (!context)
     return [
       {
@@ -105,48 +117,46 @@ export function useTabPanel({
   ]
 }
 
-export const Panel: DynamicRefForwardingComponent<"div", Props> =
-  React.forwardRef<HTMLElement, Props>(
-    ({ as: Component = "div", ...ps }, ref) => {
-      const [
-        tabPanelProps,
-        {
-          isActive,
-          onEnter,
-          onEntering,
-          onEntered,
-          onExit,
-          onExiting,
-          onExited,
-          mountOnEnter,
-          unmountOnExit,
-          transition: Transition = NoopTransition,
-        },
-      ] = useTabPanel(ps)
-      return (
-        <Context.Provider value={null}>
-          <SelectableContext.Provider value={null}>
-            <Transition
-              in={isActive}
-              onEnter={onEnter}
-              onEntering={onEntering}
-              onEntered={onEntered}
-              onExit={onExit}
-              onExiting={onExiting}
-              onExited={onExited}
-              mountOnEnter={mountOnEnter}
-              unmountOnExit={unmountOnExit}
-            >
-              <Component
-                {...tabPanelProps}
-                ref={ref}
-                hidden={!isActive}
-                aria-hidden={!isActive}
-              />
-            </Transition>
-          </SelectableContext.Provider>
-        </Context.Provider>
-      )
-    }
-  )
+export const Panel: qt.DynamicRefForwardingComponent<"div", Props> =
+  qr.forwardRef<HTMLElement, Props>(({ as: Component = "div", ...ps }, ref) => {
+    const [
+      tabPanelProps,
+      {
+        isActive,
+        onEnter,
+        onEntering,
+        onEntered,
+        onExit,
+        onExiting,
+        onExited,
+        mountOnEnter,
+        unmountOnExit,
+        transition: Transition = NoopTransition,
+      },
+    ] = useTabPanel(ps)
+    return (
+      <Context.Provider value={null}>
+        <SelectableContext.Provider value={null}>
+          <Transition
+            in={isActive}
+            onEnter={onEnter}
+            onEntering={onEntering}
+            onEntered={onEntered}
+            onExit={onExit}
+            onExiting={onExiting}
+            onExited={onExited}
+            mountOnEnter={mountOnEnter}
+            unmountOnExit={unmountOnExit}
+          >
+            <Component
+              {...tabPanelProps}
+              ref={ref}
+              hidden={!isActive}
+              aria-hidden={!isActive}
+            />
+          </Transition>
+        </SelectableContext.Provider>
+      </Context.Provider>
+    )
+  })
 Panel.displayName = "TabPanel"

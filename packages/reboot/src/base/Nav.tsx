@@ -1,7 +1,12 @@
 import { qsa } from "./utils.js"
 import * as React from "react"
 import { useContext, useEffect, useRef } from "react"
-import { useEventCallback, useForceUpdate, useMergedRefs } from "../hooks.js"
+import {
+  noop,
+  useEventCallback,
+  useForceUpdate,
+  useMergedRefs,
+} from "../hooks.js"
 import { SelectableContext, makeEventKey } from "./SelectableContext.jsx"
 import { TabContext } from "./Tab.jsx"
 import type {
@@ -99,8 +104,6 @@ export const Item: DynamicRefForwardingComponent<typeof Button, ItemProps> =
     }
   )
 Item.displayName = "NavItem"
-
-const noop = () => {}
 
 export interface Props
   extends Omit<React.HTMLAttributes<HTMLElement>, "onSelect"> {

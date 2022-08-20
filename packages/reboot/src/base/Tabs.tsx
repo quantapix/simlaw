@@ -1,12 +1,11 @@
-import * as React from "react"
-import { useMemo } from "react"
-import { useUncontrolledProp } from "../hooks.js"
-import { useSSRSafeId } from "./ssr.jsx"
+import * as qr from "react"
+import * as qh from "../hooks.js"
+import { useSSRSafeId } from "@react-aria/ssr"
 import { Context, Data } from "./Tab.jsx"
 import { SelectableContext } from "./SelectableContext.jsx"
 import type { EventKey, SelectCallback, TransitionComponent } from "./types.js"
 
-export interface Props extends React.PropsWithChildren<unknown> {
+export interface Props extends qr.PropsWithChildren<unknown> {
   id?: string
   transition?: TransitionComponent
   mountOnEnter?: boolean
@@ -29,19 +28,19 @@ export const Tabs = (props: Props) => {
     unmountOnExit,
     children,
   } = props
-  const [activeKey, onSelect] = useUncontrolledProp(
+  const [activeKey, onSelect] = qh.useUncontrolledProp(
     propsActiveKey,
     defaultActiveKey,
     propsOnSelect
   )
   const id = useSSRSafeId(userId)
-  const generateChildId = useMemo(
+  const generateChildId = qr.useMemo(
     () =>
       generateCustomChildId ||
       ((key: EventKey, type: string) => (id ? `${id}-${type}-${key}` : null)),
     [id, generateCustomChildId]
   )
-  const v: Data = useMemo(
+  const v: Data = qr.useMemo(
     () => ({
       onSelect,
       activeKey,

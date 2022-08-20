@@ -2,12 +2,14 @@ import * as React from "react"
 import ReactDOM from "react-dom"
 import { useCallbackRef, useMergedRefs } from "../hooks.js"
 import { useState } from "react"
-import usePopper, {
+import {
+  usePopper,
   Offset,
   Placement,
   UsePopperOptions,
   UsePopperState,
-} from "./usePopper.js"
+  mergeOptsWithPopper,
+} from "./popper.js"
 import {
   DOMContainer,
   useRootClose,
@@ -15,7 +17,6 @@ import {
   RootCloseOptions,
 } from "./use.js"
 import type { TransitionCallbacks } from "./types.js"
-import mergeOptionsWithPopperConfig from "./mergeOptionsWithPopperConfig.js"
 
 export interface OverlayArrowProps extends Record<string, any> {
   ref: React.RefCallback<HTMLElement>
@@ -80,7 +81,7 @@ export const Overlay = React.forwardRef<HTMLElement, OverlayProps>(
     const popper = usePopper(
       target,
       rootElement,
-      mergeOptionsWithPopperConfig({
+      mergeOptsWithPopper({
         placement,
         enableEvents: !!props.show,
         containerPadding: containerPadding || 5,

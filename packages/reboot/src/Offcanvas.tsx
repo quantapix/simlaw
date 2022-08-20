@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react"
-import BaseModal, { ModalProps as _Props, ModalHandle } from "./base/Modal.jsx"
+import BaseModal, { Props as _Props, Handle } from "./base/Modal.jsx"
 import type { Transition, TransitionStatus } from "react-transition-group"
 import type { TransitionCallbacks } from "./base/types.jsx"
 import { Fade } from "./Fade.jsx"
@@ -126,10 +126,7 @@ function BackdropTransition(ps: any) {
   return <Fade {...ps} />
 }
 
-export const Offcanvas: BsRef<"div", Props> = React.forwardRef<
-  ModalHandle,
-  Props
->(
+export const Offcanvas: BsRef<"div", Props> = React.forwardRef<Handle, Props>(
   (
     {
       bsPrefix,

@@ -5,7 +5,7 @@ import BaseOverlay, {
   OverlayProps as _Props,
   OverlayArrowProps,
 } from "./base/Overlay.jsx"
-import type { State } from "./base/usePopper.jsx"
+import type { State } from "./base/popper.js"
 import {
   useIsomorphicEffect,
   useCallbackRef,

@@ -13,6 +13,9 @@
     "test": "node --experimental-vm-modules ../../node_modules/.bin/jest"
   },
   "dependencies": {
+    "@popperjs/core": "",
+    "dequal": "",
+    "react-aria": "",
     "react-transition-group": ""
   },
   "devDependencies": {

@@ -17,6 +17,7 @@ import {
   useState,
 } from "react"
 import {
+  noop,
   useEventCallback,
   useIsomorphicEffect,
   useIntersectionObserver,
@@ -69,7 +70,6 @@ export function useWaitForDOMRef<T extends HTMLElement = HTMLElement>(
   return resolvedRef
 }
 
-const noop = () => {}
 export type MouseEvents = {
   [K in keyof GlobalEventHandlersEventMap]: GlobalEventHandlersEventMap[K] extends MouseEvent
     ? K

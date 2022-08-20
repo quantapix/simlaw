@@ -14,8 +14,8 @@ import {
   getScrollbarSize,
   transitionEnd,
 } from "./base/utils.js"
-import BaseModal, { BaseModalProps } from "./base/Modal.jsx"
-import type { ModalInstance } from "./base/ModalManager.jsx"
+import BaseModal, { BaseProps } from "./base/Modal.jsx"
+import type { Instance } from "./base/Manager.js"
 import { getSharedManager } from "./Manager.jsx"
 import { Fade } from "./Fade.jsx"
 import { classNames, BsOnlyProps, BsProps, BsRef } from "./helpers.js"
@@ -152,7 +152,7 @@ Dialog.displayName = "ModalDialog"
 
 export interface Props
   extends Omit<
-    BaseModalProps,
+    BaseProps,
     | "role"
     | "renderBackdrop"
     | "renderDialog"
@@ -230,7 +230,7 @@ export const Modal: BsRef<"div", Props> = React.forwardRef(
     const waitingForMouseUpRef = useRef(false)
     const ignoreBackdropClickRef = useRef(false)
     const removeStaticModalAnimationRef = useRef<(() => void) | null>(null)
-    const [modal, setModalRef] = useCallbackRef<ModalInstance>()
+    const [modal, setModalRef] = useCallbackRef<Instance>()
     const mergedRef = useMergedRefs(ref, setModalRef)
     const hide = useEventCallback(onHide)
     const isRTL = useIsRTL()

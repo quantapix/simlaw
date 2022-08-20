@@ -1,21 +1,16 @@
-import * as React from "react"
-import { SelectableContext } from "./base/SelectableContext.jsx"
-import { Context, useTabPanel } from "./base/Tab.jsx"
-import type {
-  EventKey,
-  TransitionCallbacks,
-  TransitionComponent,
-} from "./base/types.jsx"
-import { Tabs, Props } from "./base/Tabs.jsx"
-import { NoopTransition } from "./base/NoopTransition.jsx"
-import { useBs } from "./Theme.jsx"
-import { Fade } from "./Fade.jsx"
 import { classNames, BsProps, BsRef, TransitionType } from "./helpers.js"
+import { Context, useTabPanel, NoopTransition } from "./base/Tab.jsx"
+import { Fade } from "./Fade.jsx"
+import { SelectableContext } from "./base/SelectableContext.jsx"
+import { Tabs, Props } from "./base/Tabs.jsx"
+import { useBs } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
+import * as qr from "react"
+import type * as qt from "./base/types.jsx"
 
 export function getTabTransitionComponent(
   x?: TransitionType
-): TransitionComponent | undefined {
+): qt.TransitionComponent | undefined {
   if (typeof x === "boolean") {
     return x ? Fade : NoopTransition
   }
@@ -34,17 +29,17 @@ Container.displayName = "TabContainer"
 export const Content = withBs("tab-content")
 
 export interface PaneProps
-  extends TransitionCallbacks,
+  extends qt.TransitionCallbacks,
     BsProps,
-    React.HTMLAttributes<HTMLElement> {
-  eventKey?: EventKey
+    qr.HTMLAttributes<HTMLElement> {
+  eventKey?: qt.EventKey
   active?: boolean
   transition?: TransitionType
   mountOnEnter?: boolean
   unmountOnExit?: boolean
 }
 
-export const Pane: BsRef<"div", PaneProps> = React.forwardRef<
+export const Pane: BsRef<"div", PaneProps> = qr.forwardRef<
   HTMLElement,
   PaneProps
 >(({ bsPrefix, transition, ...xs }, ref) => {
@@ -94,13 +89,13 @@ export const Pane: BsRef<"div", PaneProps> = React.forwardRef<
 Pane.displayName = "TabPane"
 
 export interface Props extends Omit<PaneProps, "title"> {
-  title: React.ReactNode
+  title: qr.ReactNode
   disabled?: boolean
   tabClassName?: string
   tabAttrs?: Record<string, any>
 }
 
-export const Tab: React.FC<Props> = () => {
+export const Tab: qr.FC<Props> = () => {
   throw new Error(
     "ReactBootstrap: The `Tab` component is not meant to be rendered! " +
       "It's an abstract component that is only valid as a direct Child of the `Tabs` Component. " +

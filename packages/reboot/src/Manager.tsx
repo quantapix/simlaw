@@ -1,8 +1,5 @@
 import { addClass, css, qsa, removeClass } from "./base/utils.js"
-import ModalManager, {
-  ContainerState,
-  ModalManagerOptions,
-} from "./base/ModalManager.jsx"
+import { Manager as Base, State, Opts } from "./base/Manager.js"
 
 const Selector = {
   FIXED_CONTENT: ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top",
@@ -10,7 +7,7 @@ const Selector = {
   NAVBAR_TOGGLER: ".navbar-toggler",
 }
 
-export class Manager extends ModalManager {
+export class Manager extends Base {
   private adjustAndStore<T extends keyof CSSStyleDeclaration>(
     prop: T,
     element: HTMLElement,
@@ -22,7 +19,6 @@ export class Manager extends ModalManager {
       [prop]: `${parseFloat(css(element, prop as any)) + adjust}px`,
     })
   }
-
   private restore<T extends keyof CSSStyleDeclaration>(
     prop: T,
     element: HTMLElement
@@ -33,45 +29,43 @@ export class Manager extends ModalManager {
       css(element, { [prop]: value })
     }
   }
-
-  setContainerStyle(containerState: ContainerState) {
-    super.setContainerStyle(containerState)
+  override setContainerStyle(s: State) {
+    super.setContainerStyle(s)
     const container = this.getElement()
     addClass(container, "modal-open")
-    if (!containerState.scrollBarWidth) return
+    if (!s.scrollBarWidth) return
     const paddingProp = this.isRTL ? "paddingLeft" : "paddingRight"
     const marginProp = this.isRTL ? "marginLeft" : "marginRight"
     qsa(container, Selector.FIXED_CONTENT).forEach(x =>
-      this.adjustAndStore(paddingProp, x, containerState.scrollBarWidth)
+      this.adjustAndStore(paddingProp, x, s.scrollBarWidth)
     )
     qsa(container, Selector.STICKY_CONTENT).forEach(x =>
-      this.adjustAndStore(marginProp, x, -containerState.scrollBarWidth)
+      this.adjustAndStore(marginProp, x, -s.scrollBarWidth)
     )
     qsa(container, Selector.NAVBAR_TOGGLER).forEach(x =>
-      this.adjustAndStore(marginProp, x, containerState.scrollBarWidth)
+      this.adjustAndStore(marginProp, x, s.scrollBarWidth)
     )
   }
-
-  removeContainerStyle(containerState: ContainerState) {
-    super.removeContainerStyle(containerState)
+  override removeContainerStyle(s: State) {
+    super.removeContainerStyle(s)
     const container = this.getElement()
     removeClass(container, "modal-open")
-    const paddingProp = this.isRTL ? "paddingLeft" : "paddingRight"
-    const marginProp = this.isRTL ? "marginLeft" : "marginRight"
+    const padding = this.isRTL ? "paddingLeft" : "paddingRight"
+    const margin = this.isRTL ? "marginLeft" : "marginRight"
     qsa(container, Selector.FIXED_CONTENT).forEach(x =>
-      this.restore(paddingProp, x)
+      this.restore(padding, x)
     )
     qsa(container, Selector.STICKY_CONTENT).forEach(x =>
-      this.restore(marginProp, x)
+      this.restore(margin, x)
     )
     qsa(container, Selector.NAVBAR_TOGGLER).forEach(x =>
-      this.restore(marginProp, x)
+      this.restore(margin, x)
     )
   }
 }
 
 let sharedManager: Manager | undefined
-export function getSharedManager(options?: ModalManagerOptions) {
-  if (!sharedManager) sharedManager = new Manager(options)
+export function getSharedManager(xs?: Opts) {
+  if (!sharedManager) sharedManager = new Manager(xs)
   return sharedManager
 }

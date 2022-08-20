@@ -1,58 +1,50 @@
 import { activeElement, contains, canUseDOM, listen } from "./utils.js"
-import {
-  useState,
-  useRef,
-  useCallback,
-  useImperativeHandle,
-  forwardRef,
-  useEffect,
-} from "react"
-import * as React from "react"
-import ReactDOM from "react-dom"
-import {
-  useMounted,
-  useWillUnmount,
-  usePrevious,
-  useEventCallback,
-} from "../hooks.js"
-import ModalManager from "./ModalManager.jsx"
-import type { TransitionCallbacks } from "./types.js"
 import { DOMContainer, useWaitForDOMRef, useWindow } from "./use.js"
-let manager: ModalManager
-export type ModalTransitionComponent = React.ComponentType<
+import { Manager } from "./Manager.js"
+import * as qh from "../hooks.js"
+import * as qr from "react"
+import ReactDOM from "react-dom"
+import type { TransitionCallbacks } from "./types.js"
+
+let manager: Manager
+
+export type ModalTransitionComponent = qr.ComponentType<
   {
     in: boolean
     appear?: boolean
     unmountOnExit?: boolean
   } & TransitionCallbacks
 >
+
 export interface RenderModalDialogProps {
-  style: React.CSSProperties | undefined
+  style: qr.CSSProperties | undefined
   className: string | undefined
   tabIndex: number
   role: string
-  ref: React.RefCallback<Element>
+  ref: qr.RefCallback<Element>
   "aria-modal": boolean | undefined
 }
+
 export interface RenderModalBackdropProps {
-  ref: React.RefCallback<Element>
-  onClick: (event: React.SyntheticEvent) => void
+  ref: qr.RefCallback<Element>
+  onClick: (event: qr.SyntheticEvent) => void
 }
-export interface BaseModalProps extends TransitionCallbacks {
-  children?: React.ReactElement
+
+export interface BaseProps extends TransitionCallbacks {
+  children?: qr.ReactElement
   role?: string
-  style?: React.CSSProperties
+  style?: qr.CSSProperties
   className?: string
   show?: boolean
   container?: DOMContainer
   onShow?: () => void
   onHide?: () => void
-  manager?: ModalManager
+  manager?: Manager
   backdrop?: true | false | "static"
-  renderDialog?: (props: RenderModalDialogProps) => React.ReactNode
-  renderBackdrop?: (props: RenderModalBackdropProps) => React.ReactNode
+  renderDialog?: (props: RenderModalDialogProps) => qr.ReactNode
+  renderBackdrop?: (props: RenderModalBackdropProps) => qr.ReactNode
   onEscapeKeyDown?: (e: KeyboardEvent) => void
-  onBackdropClick?: (e: React.SyntheticEvent) => void
+  onBackdropClick?: (e: qr.SyntheticEvent) => void
   keyboard?: boolean
   transition?: ModalTransitionComponent
   backdropTransition?: ModalTransitionComponent
@@ -63,17 +55,20 @@ export interface BaseModalProps extends TransitionCallbacks {
     preventScroll: boolean
   }
 }
-export interface ModalProps extends BaseModalProps {
+
+export interface Props extends BaseProps {
   [other: string]: any
 }
+
 function getManager(window?: Window) {
-  if (!manager) manager = new ModalManager({ ownerDocument: window?.document })
+  if (!manager) manager = new Manager({ ownerDocument: window?.document })
   return manager
 }
-function useModalManager(provided?: ModalManager) {
+
+function useModalManager(provided?: Manager) {
   const window = useWindow()
   const modalManager = provided || getManager(window)
-  const modal = useRef({
+  const modal = qr.useRef({
     dialog: null as any as HTMLElement,
     backdrop: null as any as HTMLElement,
   })
@@ -81,21 +76,23 @@ function useModalManager(provided?: ModalManager) {
     add: () => modalManager.add(modal.current),
     remove: () => modalManager.remove(modal.current),
     isTopModal: () => modalManager.isTopModal(modal.current),
-    setDialogRef: useCallback((ref: HTMLElement | null) => {
+    setDialogRef: qr.useCallback((ref: HTMLElement | null) => {
       modal.current.dialog = ref!
     }, []),
-    setBackdropRef: useCallback((ref: HTMLElement | null) => {
+    setBackdropRef: qr.useCallback((ref: HTMLElement | null) => {
       modal.current.backdrop = ref!
     }, []),
   })
 }
-export interface ModalHandle {
+
+export interface Handle {
   dialog: HTMLElement | null
   backdrop: HTMLElement | null
 }
-export const Modal: React.ForwardRefExoticComponent<
-  ModalProps & React.RefAttributes<ModalHandle>
-> = forwardRef(
+
+export const Modal: qr.ForwardRefExoticComponent<
+  Props & qr.RefAttributes<Handle>
+> = qr.forwardRef(
   (
     {
       show = false,
@@ -114,7 +111,7 @@ export const Modal: React.ForwardRefExoticComponent<
       restoreFocus = true,
       restoreFocusOptions,
       renderDialog,
-      renderBackdrop = (props: RenderModalBackdropProps) => <div {...props} />,
+      renderBackdrop = (xs: RenderModalBackdropProps) => <div {...xs} />,
       manager: providedManager,
       container: containerRef,
       onShow,
@@ -125,17 +122,17 @@ export const Modal: React.ForwardRefExoticComponent<
       onEnter,
       onEntering,
       onEntered,
-      ...rest
-    }: ModalProps,
-    ref: React.Ref<ModalHandle>
+      ...ps
+    }: Props,
+    ref: qr.Ref<Handle>
   ) => {
     const container = useWaitForDOMRef(containerRef)
     const modal = useModalManager(providedManager)
-    const isMounted = useMounted()
-    const prevShow = usePrevious(show)
-    const [exited, setExited] = useState(!show)
-    const lastFocusRef = useRef<HTMLElement | null>(null)
-    useImperativeHandle(ref, () => modal, [modal])
+    const isMounted = qh.useMounted()
+    const prevShow = qh.usePrevious(show)
+    const [exited, setExited] = qr.useState(!show)
+    const lastFocusRef = qr.useRef<HTMLElement | null>(null)
+    qr.useImperativeHandle(ref, () => modal, [modal])
     if (canUseDOM && !prevShow && show) {
       lastFocusRef.current = activeElement() as HTMLElement
     }
@@ -144,7 +141,7 @@ export const Modal: React.ForwardRefExoticComponent<
     } else if (show && exited) {
       setExited(false)
     }
-    const handleShow = useEventCallback(() => {
+    const handleShow = qh.useEventCallback(() => {
       modal.add()
       removeKeydownListenerRef.current = listen(
         document as any,
@@ -172,7 +169,7 @@ export const Modal: React.ForwardRefExoticComponent<
         }
       }
     })
-    const handleHide = useEventCallback(() => {
+    const handleHide = qh.useEventCallback(() => {
       modal.remove()
       removeKeydownListenerRef.current?.()
       removeFocusListenerRef.current?.()
@@ -181,18 +178,18 @@ export const Modal: React.ForwardRefExoticComponent<
         lastFocusRef.current = null
       }
     })
-    useEffect(() => {
+    qr.useEffect(() => {
       if (!show || !container) return
       handleShow()
     }, [show, container, handleShow])
-    useEffect(() => {
+    qr.useEffect(() => {
       if (!exited) return
       handleHide()
     }, [exited, handleHide])
-    useWillUnmount(() => {
+    qh.useWillUnmount(() => {
       handleHide()
     })
-    const handleEnforceFocus = useEventCallback(() => {
+    const handleEnforceFocus = qh.useEventCallback(() => {
       if (!enforceFocus || !isMounted() || !modal.isTopModal()) {
         return
       }
@@ -205,7 +202,7 @@ export const Modal: React.ForwardRefExoticComponent<
         modal.dialog.focus()
       }
     })
-    const handleBackdropClick = useEventCallback((e: React.SyntheticEvent) => {
+    const handleBackdropClick = qh.useEventCallback((e: qr.SyntheticEvent) => {
       if (e.target !== e.currentTarget) {
         return
       }
@@ -214,7 +211,7 @@ export const Modal: React.ForwardRefExoticComponent<
         onHide()
       }
     })
-    const handleDocumentKeyDown = useEventCallback((e: KeyboardEvent) => {
+    const handleDocumentKeyDown = qh.useEventCallback((e: KeyboardEvent) => {
       if (keyboard && e.keyCode === 27 && modal.isTopModal()) {
         onEscapeKeyDown?.(e)
         if (!e.defaultPrevented) {
@@ -222,8 +219,10 @@ export const Modal: React.ForwardRefExoticComponent<
         }
       }
     })
-    const removeFocusListenerRef = useRef<ReturnType<typeof listen> | null>()
-    const removeKeydownListenerRef = useRef<ReturnType<typeof listen> | null>()
+    const removeFocusListenerRef = qr.useRef<ReturnType<typeof listen> | null>()
+    const removeKeydownListenerRef = qr.useRef<ReturnType<
+      typeof listen
+    > | null>()
     const handleHidden: TransitionCallbacks["onExited"] = (...args) => {
       setExited(true)
       onExited?.(...args)
@@ -236,7 +235,7 @@ export const Modal: React.ForwardRefExoticComponent<
       role,
       ref: modal.setDialogRef,
       "aria-modal": role === "dialog" ? true : undefined,
-      ...rest,
+      ...ps,
       style,
       className,
       tabIndex: -1,
@@ -245,7 +244,7 @@ export const Modal: React.ForwardRefExoticComponent<
       renderDialog(dialogProps)
     ) : (
       <div {...dialogProps}>
-        {React.cloneElement(children!, { role: "document" })}
+        {qr.cloneElement(children!, { role: "document" })}
       </div>
     )
     if (Transition) {

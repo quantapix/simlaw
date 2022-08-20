@@ -9,7 +9,7 @@ import {
 } from "./hooks.js"
 import { Anchor } from "./base/Anchor.jsx"
 import BaseDropdown, {
-  DropdownProps as _Props,
+  Props as _Props,
   ToggleMetadata,
 } from "./base/Dropdown.js"
 import BaseDropdownItem, { useDropdownItem } from "./base/DropdownItem.js"

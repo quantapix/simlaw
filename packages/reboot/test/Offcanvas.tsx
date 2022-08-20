@@ -1,10 +1,10 @@
 import * as React from "react"
 import { useEffect } from "react"
-import ModalManager from "../src/base/ModalManager.js"
+import { Manager } from "../src/base/Manager.js"
 import { fireEvent, render } from "@testing-library/react"
 import { Header, Offcanvas, Title } from "../src/Offcanvas.jsx"
+import { noop } from "../src/hooks.js"
 
-const noop = () => {}
 describe("<Offcanvas>", () => {
   test("Should render the modal content", () => {
     const { getByTestId } = render(
@@ -203,7 +203,7 @@ describe("<Offcanvas>", () => {
     onEscapeKeyDownSpy.should.not.have.been.called
   })
   test("Should use custom props manager if specified", done => {
-    class MyModalManager extends ModalManager {
+    class MyModalManager extends Manager {
       add() {
         done()
         return 0

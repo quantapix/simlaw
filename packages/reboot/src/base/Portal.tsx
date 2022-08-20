@@ -1,12 +1,14 @@
-import ReactDOM from "react-dom"
-import * as React from "react"
 import { useWaitForDOMRef, DOMContainer } from "./use.js"
-export interface PortalProps {
-  children: React.ReactElement
+import ReactDOM from "react-dom"
+import type * as qr from "react"
+
+export interface Props {
+  children: qr.ReactElement
   container: DOMContainer
-  onRendered?: (element: any) => void
+  onRendered?: (x: any) => void
 }
-export const Portal = ({ container, children, onRendered }: PortalProps) => {
+
+export const Portal = ({ container, children, onRendered }: Props) => {
   const resolvedContainer = useWaitForDOMRef(container, onRendered)
   return resolvedContainer ? (
     <>{ReactDOM.createPortal(children, resolvedContainer)}</>

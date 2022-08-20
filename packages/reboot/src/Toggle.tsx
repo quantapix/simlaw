@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useUncontrolled } from "./hooks.js"
+import { noop, useUncontrolled } from "./hooks.js"
 import { useBs } from "./Theme.jsx"
 import {
   Button as B,
@@ -21,8 +21,6 @@ export interface Props extends Omit<BPs, "onChange" | "type"> {
   value: string | ReadonlyArray<string> | number
   inputRef?: React.Ref<HTMLInputElement>
 }
-
-const noop = () => undefined
 
 export const Button = React.forwardRef<HTMLLabelElement, Props>(
   (
