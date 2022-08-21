@@ -1,20 +1,20 @@
-import * as React from "react"
-import { useUncontrolled } from "./hooks.js"
-import BaseTabs, { Props as _TabsProps } from "./base/Tabs.jsx"
-import { Item, Link, Nav, Props as _Props } from "./Nav.jsx"
 import { Content, Pane, getTabTransitionComponent } from "./Tab.jsx"
 import { forEach, map } from "./utils.jsx"
+import { Item, Link, Nav, Props as NProps } from "./Nav.jsx"
+import { Tabs as Base, Props as BaseProps } from "./base/Tabs.jsx"
+import * as qh from "./hooks.js"
 import type { TransitionType } from "./helpers.js"
+import type * as qr from "react"
 
 export interface Props
-  extends Omit<_TabsProps, "transition">,
-    Omit<React.HTMLAttributes<HTMLElement>, "onSelect">,
-    _Props {
+  extends Omit<BaseProps, "transition">,
+    Omit<qr.HTMLAttributes<HTMLElement>, "onSelect">,
+    NProps {
   transition?: TransitionType
 }
 
-function getDefaultActiveKey(xs) {
-  let key
+function getDefaultActiveKey(xs: any) {
+  let key: any
   forEach(xs, x => {
     if (key == null) {
       key = x.props.eventKey
@@ -55,12 +55,11 @@ export const Tabs = (xs: Props) => {
     children,
     activeKey = getDefaultActiveKey(children),
     ...ps
-  } = useUncontrolled(xs, {
+  } = qh.useUncontrolled(xs, {
     activeKey: "onSelect",
   })
-
   return (
-    <BaseTabs
+    <Base
       id={id}
       activeKey={activeKey}
       onSelect={onSelect}
@@ -81,10 +80,9 @@ export const Tabs = (xs: Props) => {
           return <Pane {...childProps} />
         })}
       </Content>
-    </BaseTabs>
+    </Base>
   )
 }
-
 Tabs.displayName = "Tabs"
 Tabs.defaultProps = {
   variant: "tabs",

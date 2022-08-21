@@ -10,7 +10,7 @@ export type ReplaceProps<T extends qr.ElementType, P> = Omit<
   P
 
 export interface BsOnlyProps {
-  bsPrefix?: string
+  bsPrefix?: string | undefined
 }
 
 export interface AsProp<T extends qr.ElementType = qr.ElementType> {

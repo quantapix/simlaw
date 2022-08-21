@@ -1,10 +1,10 @@
-import * as React from "react"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsOnlyProps } from "./helpers.js"
+import { useBs } from "./Theme.jsx"
+import * as qr from "react"
 
 export interface Props
   extends BsOnlyProps,
-    React.TableHTMLAttributes<HTMLTableElement> {
+    qr.TableHTMLAttributes<HTMLTableElement> {
   striped?: boolean | string
   bordered?: boolean
   borderless?: boolean
@@ -14,7 +14,7 @@ export interface Props
   responsive?: boolean | string
 }
 
-export const Table = React.forwardRef<HTMLTableElement, Props>(
+export const Table = qr.forwardRef<HTMLTableElement, Props>(
   (
     {
       bsPrefix,

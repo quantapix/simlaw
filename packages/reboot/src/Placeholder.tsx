@@ -1,14 +1,14 @@
-import * as React from "react"
-import type { BsProps, BsRef } from "./helpers.js"
-import { usePlaceholder, Props as _Props } from "./use.jsx"
 import { Button as B } from "./Button.jsx"
+import { usePlaceholder, Props as _Props } from "./use.jsx"
+import * as qr from "react"
+import type { BsProps, BsRef } from "./helpers.js"
 import type { ButtonVariant } from "./types.jsx"
 
 export interface ButtonProps extends Props {
   variant?: ButtonVariant
 }
 
-export const Button: BsRef<"button", ButtonProps> = React.forwardRef<
+export const Button: BsRef<"button", ButtonProps> = qr.forwardRef<
   HTMLButtonElement,
   ButtonProps
 >((xs, ref) => {
@@ -20,7 +20,7 @@ Button.displayName = "PlaceholderButton"
 
 export interface Props extends _Props, BsProps {}
 
-export const Placeholder: BsRef<"span", Props> = React.forwardRef<
+export const Placeholder: BsRef<"span", Props> = qr.forwardRef<
   HTMLElement,
   Props
 >(({ as: X = "span", ...xs }, ref) => {

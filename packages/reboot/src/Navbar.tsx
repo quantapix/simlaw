@@ -1,32 +1,30 @@
-import * as React from "react"
-import { useCallback, useContext, useMemo } from "react"
-import { Selectable } from "./base/SelectableContext.jsx"
-import type { SelectCB } from "./base/types.jsx"
-import { useEventCallback, useUncontrolled } from "./hooks.js"
-import { withBs } from "./utils.jsx"
-import { Collapse as C, Props as CPs } from "./Collapse.jsx"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
+import { Collapse as C, Props as CPs } from "./Collapse.jsx"
+import { Selectable, SelectCB } from "./base/types.jsx"
+import { useBs } from "./Theme.jsx"
+import { withBs } from "./utils.jsx"
+import * as qh from "./hooks.js"
+import * as qr from "react"
 
 export interface Data {
   onToggle: () => void
   bsPrefix?: string
   expanded: boolean
-  expand?: boolean | string | "sm" | "md" | "lg" | "xl" | "xxl"
+  expand?: boolean | string | "sm" | "md" | "lg" | "xl" | "xxl" | undefined
 }
 
-export const Context = React.createContext<Data | null>(null)
+export const Context = qr.createContext<Data | null>(null)
 Context.displayName = "NavbarContext"
 
 export const Text = withBs("navbar-text", {
   Component: "span",
 })
 
-export interface BrandProps extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface BrandProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
   href?: string
 }
 
-export const Brand: BsRef<"a", BrandProps> = React.forwardRef<
+export const Brand: BsRef<"a", BrandProps> = qr.forwardRef<
   HTMLElement,
   BrandProps
 >(({ bsPrefix, className, as, ...ps }, ref) => {
@@ -34,18 +32,17 @@ export const Brand: BsRef<"a", BrandProps> = React.forwardRef<
   const X = as || (ps.href ? "a" : "span")
   return <X {...ps} ref={ref} className={classNames(className, bs)} />
 })
-
 Brand.displayName = "NavbarBrand"
 
 export interface CollapseProps
   extends Omit<CPs, "children">,
-    React.HTMLAttributes<HTMLDivElement>,
+    qr.HTMLAttributes<HTMLDivElement>,
     BsProps {}
 
-export const Collapse = React.forwardRef<HTMLDivElement, CollapseProps>(
+export const Collapse = qr.forwardRef<HTMLDivElement, CollapseProps>(
   ({ children, bsPrefix, ...ps }, ref) => {
     const bs = useBs(bsPrefix, "navbar-collapse")
-    const context = useContext(Context)
+    const context = qr.useContext(Context)
     return (
       <C in={!!(context && context.expanded)} {...ps}>
         <div ref={ref} className={bs}>
@@ -55,16 +52,13 @@ export const Collapse = React.forwardRef<HTMLDivElement, CollapseProps>(
     )
   }
 )
-
 Collapse.displayName = "NavbarCollapse"
 
-export interface ToggleProps
-  extends BsProps,
-    React.HTMLAttributes<HTMLElement> {
+export interface ToggleProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
   label?: string
 }
 
-export const Toggle: BsRef<"button", ToggleProps> = React.forwardRef<
+export const Toggle: BsRef<"button", ToggleProps> = qr.forwardRef<
   HTMLElement,
   ToggleProps
 >(
@@ -73,8 +67,8 @@ export const Toggle: BsRef<"button", ToggleProps> = React.forwardRef<
     ref
   ) => {
     const bs = useBs(bsPrefix, "navbar-toggler")
-    const { onToggle, expanded } = useContext(Context) || {}
-    const clickCB = useEventCallback(e => {
+    const { onToggle, expanded } = qr.useContext(Context) || {}
+    const clickCB = qh.useEventCallback(e => {
       if (onClick) onClick(e)
       if (onToggle) onToggle()
     })
@@ -101,7 +95,7 @@ Toggle.defaultProps = {
 
 export interface Props
   extends BsProps,
-    Omit<React.HTMLAttributes<HTMLElement>, "onSelect"> {
+    Omit<qr.HTMLAttributes<HTMLElement>, "onSelect"> {
   variant?: "light" | "dark" | string
   expand?: boolean | string | "sm" | "md" | "lg" | "xl" | "xxl"
   bg?: string
@@ -113,7 +107,7 @@ export interface Props
   expanded?: boolean
 }
 
-export const Navbar: BsRef<"nav", Props> = React.forwardRef<HTMLElement, Props>(
+export const Navbar: BsRef<"nav", Props> = qr.forwardRef<HTMLElement, Props>(
   (xs, ref) => {
     const {
       bsPrefix: initialBsPrefix,
@@ -129,11 +123,11 @@ export const Navbar: BsRef<"nav", Props> = React.forwardRef<HTMLElement, Props>(
       onSelect,
       collapseOnSelect,
       ...ps
-    } = useUncontrolled(xs, {
+    } = qh.useUncontrolled(xs, {
       expanded: "onToggle",
     })
     const bsPrefix = useBs(initialBsPrefix, "navbar")
-    const collapse = useCallback<SelectCB>(
+    const collapse = qr.useCallback<SelectCB>(
       (...xs) => {
         onSelect?.(...xs)
         if (collapseOnSelect && expanded) {
@@ -147,7 +141,7 @@ export const Navbar: BsRef<"nav", Props> = React.forwardRef<HTMLElement, Props>(
     }
     let expandClass = `${bsPrefix}-expand`
     if (typeof expand === "string") expandClass = `${expandClass}-${expand}`
-    const v = useMemo<Data>(
+    const v = qr.useMemo<Data>(
       () => ({
         onToggle: () => onToggle?.(!expanded),
         bsPrefix,

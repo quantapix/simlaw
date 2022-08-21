@@ -1,8 +1,8 @@
-import * as React from "react"
-import ReactDOM from "react-dom"
+import { classNames, BsRef } from "./helpers.js"
 import { css, transitionEnd } from "./base/utils.js"
 import { useBs } from "./Theme.jsx"
-import { classNames, BsRef } from "./helpers.js"
+import * as qr from "react"
+import ReactDOM from "react-dom"
 
 export const ENTERING = "entering"
 export const ENTERED = "entered"
@@ -12,30 +12,28 @@ export const UNMOUNTED = "unmounted"
 
 export function map<P = any>(
   xs: any,
-  f: (x: React.ReactElement<P>, i: number) => any
+  f: (x: qr.ReactElement<P>, i: number) => any
 ) {
   let i = 0
-  return React.Children.map(xs, x =>
-    React.isValidElement<P>(x) ? f(x, i++) : x
-  )
+  return qr.Children.map(xs, x => (qr.isValidElement<P>(x) ? f(x, i++) : x))
 }
 
 export function forEach<P = any>(
   xs: any,
-  f: (el: React.ReactElement<P>, i: number) => void
+  f: (el: qr.ReactElement<P>, i: number) => void
 ) {
   let i = 0
-  React.Children.forEach(xs, x => {
-    if (React.isValidElement<P>(x)) f(x, i++)
+  qr.Children.forEach(xs, x => {
+    if (qr.isValidElement<P>(x)) f(x, i++)
   })
 }
 
 export function hasChildOfType<P = any>(
-  x: React.ReactNode,
-  type: string | React.JSXElementConstructor<P>
+  x: qr.ReactNode,
+  type: string | qr.JSXElementConstructor<P>
 ): boolean {
-  return React.Children.toArray(x).some(
-    x => React.isValidElement(x) && x.type === type
+  return qr.Children.toArray(x).some(
+    x => qr.isValidElement(x) && x.type === type
   )
 }
 
@@ -61,7 +59,7 @@ export function triggerReflow(x: HTMLElement): void {
 }
 
 export function safeFindDOMNode(
-  componentOrElement: React.ComponentClass | Element | null | undefined
+  componentOrElement: qr.ComponentClass | Element | null | undefined
 ) {
   if (componentOrElement && "setState" in componentOrElement) {
     return ReactDOM.findDOMNode(componentOrElement)
@@ -70,7 +68,7 @@ export function safeFindDOMNode(
 }
 
 export const divAs = (className: string) =>
-  React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>((p, ref) => (
+  qr.forwardRef<HTMLDivElement, qr.ComponentProps<"div">>((p, ref) => (
     <div
       {...p}
       ref={ref}
@@ -87,13 +85,13 @@ function pascalCase(x: string) {
   return x[0]!.toUpperCase() + camelize(x).slice(1)
 }
 
-interface BsOptions<As extends React.ElementType = "div"> {
+interface BsOptions<As extends qr.ElementType = "div"> {
   displayName?: string
   Component?: As
-  defaultProps?: Partial<React.ComponentProps<As>>
+  defaultProps?: Partial<qr.ComponentProps<As>>
 }
 
-export function withBs<As extends React.ElementType = "div">(
+export function withBs<As extends qr.ElementType = "div">(
   prefix: string,
   {
     displayName = pascalCase(prefix),
@@ -101,7 +99,7 @@ export function withBs<As extends React.ElementType = "div">(
     defaultProps,
   }: BsOptions<As> = {}
 ): BsRef<As> {
-  const y = React.forwardRef(
+  const y = qr.forwardRef(
     (
       { className, bsPrefix, as: X = Component || "div", ...props }: any,
       ref

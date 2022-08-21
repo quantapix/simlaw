@@ -1,14 +1,14 @@
-import * as React from "react"
-import { noop, useUncontrolled } from "./hooks.js"
+import { classNames, invariant, BsRef } from "./helpers.js"
+import { map, createChained } from "./utils.jsx"
 import { useBs } from "./Theme.jsx"
+import * as qh from "./hooks.js"
+import * as qr from "react"
 import {
   Button as B,
   Props as BPs,
   Group as G,
   GroupProps as GPs,
 } from "./Button.jsx"
-import { map, createChained } from "./utils.jsx"
-import { classNames, invariant, BsRef } from "./helpers.js"
 
 export type Type = "checkbox" | "radio"
 
@@ -17,12 +17,12 @@ export interface Props extends Omit<BPs, "onChange" | "type"> {
   name?: string
   checked?: boolean
   disabled?: boolean
-  onChange?: React.ChangeEventHandler<HTMLInputElement>
+  onChange?: qr.ChangeEventHandler<HTMLInputElement>
   value: string | ReadonlyArray<string> | number
-  inputRef?: React.Ref<HTMLInputElement>
+  inputRef?: qr.Ref<HTMLInputElement>
 }
 
-export const Button = React.forwardRef<HTMLLabelElement, Props>(
+export const Button = qr.forwardRef<HTMLLabelElement, Props>(
   (
     {
       bsPrefix,
@@ -51,7 +51,7 @@ export const Button = React.forwardRef<HTMLLabelElement, Props>(
           autoComplete="off"
           checked={!!checked}
           disabled={!!disabled}
-          onChange={onChange || noop}
+          onChange={onChange || qh.noop}
           id={id}
         />
         <B
@@ -89,13 +89,16 @@ export interface CheckboxProps<T> extends Base {
 
 export type GroupProps<T> = RadioProps<T> | CheckboxProps<T>
 
-export const Group: BsRef<"a", GroupProps<any>> = React.forwardRef<
+export const Group: BsRef<"a", GroupProps<any>> = qr.forwardRef<
   HTMLElement,
   GroupProps<any>
 >((xs, ref) => {
-  const { children, type, name, value, onChange, ...ps } = useUncontrolled(xs, {
-    value: "onChange",
-  })
+  const { children, type, name, value, onChange, ...ps } = qh.useUncontrolled(
+    xs,
+    {
+      value: "onChange",
+    }
+  )
   const getValues: () => any[] = () => (value == null ? [] : [].concat(value))
   const toggle = (x: any, e: any) => {
     if (!onChange) {
@@ -126,8 +129,8 @@ export const Group: BsRef<"a", GroupProps<any>> = React.forwardRef<
       {map(children, x => {
         const vs = getValues()
         const { value: childVal, onChange: childOnChange } = x.props
-        const handler = e => toggle(childVal, e)
-        return React.cloneElement(x, {
+        const handler = (e: any) => toggle(childVal, e)
+        return qr.cloneElement(x, {
           type,
           name: (x as any).name || name,
           checked: vs.indexOf(childVal) !== -1,

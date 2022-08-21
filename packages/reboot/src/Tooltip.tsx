@@ -1,17 +1,17 @@
-import * as React from "react"
-import type { OverlayArrowProps } from "./base/Overlay.jsx"
-import { useBs, useIsRTL } from "./Theme.jsx"
-import type { Placement, PopperRef } from "./types.jsx"
 import { classNames, BsProps, getDirection } from "./helpers.js"
+import { useBs, useIsRTL } from "./Theme.jsx"
+import * as qr from "react"
+import type { OverlayArrowProps } from "./base/Overlay.jsx"
+import type { Placement, PopperRef } from "./types.jsx"
 
-export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
+export interface Props extends qr.HTMLAttributes<HTMLDivElement>, BsProps {
   placement?: Placement
   arrowProps?: Partial<OverlayArrowProps>
   show?: boolean
   popper?: PopperRef
 }
 
-export const Tooltip = React.forwardRef<HTMLDivElement, Props>(
+export const Tooltip = qr.forwardRef<HTMLDivElement, Props>(
   (
     {
       bsPrefix,

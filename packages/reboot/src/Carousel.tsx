@@ -1,7 +1,7 @@
 import { Anchor } from "./base/Anchor.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
 import { useBs, useIsRTL } from "./Theme.jsx"
-import { Wrapper } from "./Transition.jsx"
+import { Wrapper } from "./Wrapper.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
 import * as qu from "./utils.jsx"
@@ -376,12 +376,9 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
                 onEntered={isActive ? entered : undefined}
                 addEndListener={qu.endListener}
               >
-                {(
-                  status: TransitionStatus,
-                  innerProps: Record<string, unknown>
-                ) =>
+                {(status: TransitionStatus, ps2: Record<string, unknown>) =>
                   qr.cloneElement(x, {
-                    ...innerProps,
+                    ...ps2,
                     className: classNames(
                       x.props.className,
                       isActive && status !== "entered" && orderClassName,

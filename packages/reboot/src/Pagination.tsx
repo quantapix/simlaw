@@ -1,17 +1,16 @@
-import * as React from "react"
-import type { ReactNode } from "react"
 import { Anchor } from "./base/Anchor.jsx"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
+import { useBs } from "./Theme.jsx"
+import * as qr from "react"
 
-export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
+export interface ItemProps extends qr.HTMLAttributes<HTMLElement>, BsProps {
   disabled?: boolean
   active?: boolean
   activeLabel?: string
   href?: string
 }
 
-export const Item: BsRef<"li", ItemProps> = React.forwardRef<
+export const Item: BsRef<"li", ItemProps> = qr.forwardRef<
   HTMLLIElement,
   ItemProps
 >(
@@ -51,8 +50,8 @@ Item.defaultProps = {
   activeLabel: "(current)",
 }
 
-function createButton(name: string, defaultValue: ReactNode, label = name) {
-  const Button = React.forwardRef(({ children, ...props }: ItemProps, ref) => (
+function createButton(name: string, defaultValue: qr.ReactNode, label = name) {
+  const Button = qr.forwardRef(({ children, ...props }: ItemProps, ref) => (
     <Item {...props} ref={ref}>
       <span aria-hidden="true">{children || defaultValue}</span>
       <span className="visually-hidden">{label}</span>
@@ -68,11 +67,11 @@ export const Ellipsis = createButton("Ellipsis", "…", "More")
 export const Next = createButton("Next", "›")
 export const Last = createButton("Last", "»")
 
-export interface Props extends BsProps, React.HTMLAttributes<HTMLUListElement> {
+export interface Props extends BsProps, qr.HTMLAttributes<HTMLUListElement> {
   size?: "sm" | "lg"
 }
 
-export const Pagination = React.forwardRef<HTMLUListElement, Props>(
+export const Pagination = qr.forwardRef<HTMLUListElement, Props>(
   ({ bsPrefix, className, size, ...props }, ref) => {
     const decoratedBsPrefix = useBs(bsPrefix, "pagination")
     return (

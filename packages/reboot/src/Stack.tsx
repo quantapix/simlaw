@@ -1,4 +1,6 @@
-import * as React from "react"
+import { classNames, BsProps, BsRef } from "./helpers.js"
+import * as qr from "react"
+import type { GapValue } from "./types.jsx"
 import {
   BREAKPOINTS,
   MIN_BREAKPOINT,
@@ -6,8 +8,6 @@ import {
   useBreakpoints,
   useMinBreakpoint,
 } from "./Theme.jsx"
-import { classNames, BsProps, BsRef } from "./helpers.js"
-import type { GapValue } from "./types.jsx"
 
 export type Utility<T> =
   | T
@@ -30,7 +30,7 @@ export function createUtilityClassName(
     if (v != null) {
       if (typeof v === "object") {
         breakpoints.forEach(x => {
-          const bp = v![x]
+          const bp = v[x]
           if (bp != null) {
             const infix = x !== minBreakpoint ? `-${x}` : ""
             classes.push(`${n}${infix}-${bp}`)
@@ -46,12 +46,12 @@ export function createUtilityClassName(
 
 export type Direction = "horizontal" | "vertical"
 
-export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
   direction?: Direction
   gap?: Utility<GapValue>
 }
 
-export const Stack: BsRef<"span", Props> = React.forwardRef<HTMLElement, Props>(
+export const Stack: BsRef<"span", Props> = qr.forwardRef<HTMLElement, Props>(
   ({ as: X = "div", bsPrefix, className, direction, gap, ...ps }, ref) => {
     const bs = useBs(bsPrefix, direction === "horizontal" ? "hstack" : "vstack")
     const breakpoints = useBreakpoints()

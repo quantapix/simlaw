@@ -1,32 +1,31 @@
-import * as React from "react"
-import { useContext, useEffect, useMemo, useRef, useCallback } from "react"
-import { useEventCallback, useTimeout } from "./hooks.js"
-import type { TransitionComponent } from "./base/types.jsx"
-import type { Transition } from "react-transition-group"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsOnlyProps, BsProps, BsRef } from "./helpers.js"
-import type { Variant } from "./types.jsx"
-import { Fade, Props as _Props } from "./Fade.jsx"
 import { Close, Variant as CloseVariant } from "./Button.jsx"
+import { Fade, Props as _Props } from "./Fade.jsx"
+import { useBs } from "./Theme.jsx"
+import * as qh from "./hooks.js"
+import * as qr from "react"
 import * as qu from "./utils.jsx"
+import type { Transition } from "react-transition-group"
+import type { TransitionComponent } from "./base/types.jsx"
+import type { Variant } from "./types.jsx"
 
 export interface Data {
-  onClose?: ((e?: React.MouseEvent | React.KeyboardEvent) => void) | undefined
+  onClose?: ((e?: qr.MouseEvent | qr.KeyboardEvent) => void) | undefined
 }
 
-export const Context = React.createContext<Data>({
+export const Context = qr.createContext<Data>({
   onClose() {},
 })
 
 export interface HeaderProps
   extends BsOnlyProps,
-    React.HTMLAttributes<HTMLDivElement> {
+    qr.HTMLAttributes<HTMLDivElement> {
   closeLabel?: string
   closeVariant?: CloseVariant
   closeButton?: boolean
 }
 
-export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
+export const Header = qr.forwardRef<HTMLDivElement, HeaderProps>(
   (
     {
       bsPrefix,
@@ -40,8 +39,8 @@ export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
     ref
   ) => {
     bsPrefix = useBs(bsPrefix, "toast-header")
-    const context = useContext(Context)
-    const click = useEventCallback(e => {
+    const context = qr.useContext(Context)
+    const click = qh.useEventCallback(e => {
       context?.onClose?.(e)
     })
     return (
@@ -75,25 +74,22 @@ const styles = {
   [qu.UNMOUNTED]: "",
 }
 
-export const ToastFade = React.forwardRef<Transition<any>, _Props>(
-  (ps, ref) => <Fade {...ps} ref={ref} transitionClasses={styles} />
-)
+export const ToastFade = qr.forwardRef<Transition<any>, _Props>((ps, ref) => (
+  <Fade {...ps} ref={ref} transitionClasses={styles} />
+))
 ToastFade.displayName = "ToastFade"
 
-export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
   animation?: boolean
   autohide?: boolean
   delay?: number
-  onClose?: (e?: React.MouseEvent | React.KeyboardEvent) => void
+  onClose?: (e?: qr.MouseEvent | qr.KeyboardEvent) => void
   show?: boolean
   transition?: TransitionComponent
   bg?: Variant
 }
 
-export const Toast: BsRef<"div", Props> = React.forwardRef<
-  HTMLDivElement,
-  Props
->(
+export const Toast: BsRef<"div", Props> = qr.forwardRef<HTMLDivElement, Props>(
   (
     {
       bsPrefix,
@@ -110,23 +106,23 @@ export const Toast: BsRef<"div", Props> = React.forwardRef<
     ref
   ) => {
     const bs = useBs(bsPrefix, "toast")
-    const delayRef = useRef(delay)
-    const onCloseRef = useRef(onClose)
-    useEffect(() => {
+    const delayRef = qr.useRef(delay)
+    const onCloseRef = qr.useRef(onClose)
+    qr.useEffect(() => {
       delayRef.current = delay
       onCloseRef.current = onClose
     }, [delay, onClose])
-    const autohideTimeout = useTimeout()
+    const autohideTimeout = qh.useTimeout()
     const autohideToast = !!(autohide && show)
-    const autohideFunc = useCallback(() => {
+    const autohideFunc = qr.useCallback(() => {
       if (autohideToast) {
         onCloseRef.current?.()
       }
     }, [autohideToast])
-    useEffect(() => {
+    qr.useEffect(() => {
       autohideTimeout.set(autohideFunc, delayRef.current)
     }, [autohideTimeout, autohideFunc])
-    const v = useMemo(
+    const v = qr.useMemo(
       () => ({
         onClose,
       }),
@@ -176,7 +172,7 @@ export type Position =
 
 export interface ContainerProps
   extends BsProps,
-    React.HTMLAttributes<HTMLElement> {
+    qr.HTMLAttributes<HTMLElement> {
   position?: Position
   containerPosition?: string
 }
@@ -193,7 +189,7 @@ const positionClasses = {
   "bottom-end": "bottom-0 end-0",
 }
 
-export const Container: BsRef<"div", ContainerProps> = React.forwardRef<
+export const Container: BsRef<"div", ContainerProps> = qr.forwardRef<
   HTMLDivElement,
   ContainerProps
 >(
@@ -208,13 +204,13 @@ export const Container: BsRef<"div", ContainerProps> = React.forwardRef<
     },
     ref
   ) => {
-    bsPrefix = useBs(bsPrefix, "toast-container")
+    const bs = useBs(bsPrefix, "toast-container")
     return (
       <X
         ref={ref}
         {...ps}
         className={classNames(
-          bsPrefix,
+          bs,
           position && [
             containerPosition ? `position-${containerPosition}` : null,
             positionClasses[position],
@@ -225,5 +221,4 @@ export const Container: BsRef<"div", ContainerProps> = React.forwardRef<
     )
   }
 )
-
 Container.displayName = "ToastContainer"

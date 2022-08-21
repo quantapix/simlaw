@@ -1,5 +1,5 @@
 import { classNames } from "./helpers.js"
-import { Wrapper } from "./Transition.jsx"
+import { Wrapper } from "./Wrapper.jsx"
 import * as qr from "react"
 import * as qu from "./utils.jsx"
 import type { TransitionCBs } from "./base/types.jsx"

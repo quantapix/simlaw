@@ -1,24 +1,23 @@
-import * as React from "react"
-import { cloneElement } from "react"
-import { useBs } from "./Theme.jsx"
-import { map } from "./utils.jsx"
 import { classNames, BsProps } from "./helpers.js"
+import { map } from "./utils.jsx"
+import { useBs } from "./Theme.jsx"
+import * as qr from "react"
 
-export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
-  min?: number
-  now?: number
-  max?: number
-  label?: React.ReactNode
-  visuallyHidden?: boolean
-  striped?: boolean
-  animated?: boolean
-  variant?: "success" | "danger" | "warning" | "info" | string
+export interface Props extends qr.HTMLAttributes<HTMLDivElement>, BsProps {
+  min?: number | undefined
+  now?: number | undefined
+  max?: number | undefined
+  label?: qr.ReactNode
+  visuallyHidden?: boolean | undefined
+  striped?: boolean | undefined
+  animated?: boolean | undefined
+  variant?: "success" | "danger" | "warning" | "info" | string | undefined
   isChild?: boolean
 }
 
 const ROUND_PRECISION = 1000
 
-function getPercentage(now, min, max) {
+function getPercentage(now: number, min: number, max: number) {
   const percentage = ((now - min) / (max - min)) * 100
   return Math.round(percentage * ROUND_PRECISION) / ROUND_PRECISION
 }
@@ -38,7 +37,7 @@ function renderProgressBar(
     bsPrefix,
     ...ps
   }: Props,
-  ref
+  ref: any
 ) {
   return (
     <div
@@ -64,7 +63,7 @@ function renderProgressBar(
   )
 }
 
-export const ProgressBar = React.forwardRef<HTMLDivElement, Props>(
+export const ProgressBar = qr.forwardRef<HTMLDivElement, Props>(
   ({ isChild, ...ps }: Props, ref) => {
     ps.bsPrefix = useBs(ps.bsPrefix, "progress")
     if (isChild) {
@@ -91,7 +90,7 @@ export const ProgressBar = React.forwardRef<HTMLDivElement, Props>(
         className={classNames(className, bsPrefix)}
       >
         {children
-          ? map(children, child => cloneElement(child, { isChild: true }))
+          ? map(children, child => qr.cloneElement(child, { isChild: true }))
           : renderProgressBar(
               {
                 min,

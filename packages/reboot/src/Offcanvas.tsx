@@ -1,28 +1,20 @@
-import * as React from "react"
-import { useEventCallback, useBreakpoint } from "./hooks.js"
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
-import BaseModal, { Props as _Props, Handle } from "./base/Modal.jsx"
+import { AbsHeader, AbsProps, Context as MContext } from "./Modal.jsx"
+import { classNames, BsOnlyProps, BsRef } from "./helpers.js"
+import { Context as NContext } from "./Navbar.jsx"
+import { Fade } from "./Fade.jsx"
+import { Manager, getSharedManager } from "./Manager.jsx"
+import { Modal, Props as MProps, Handle } from "./base/Modal.jsx"
+import { useBs } from "./Theme.jsx"
+import { Wrapper } from "./Wrapper.jsx"
+import * as qh from "./hooks.js"
+import * as qr from "react"
+import * as qu from "./utils.jsx"
 import type { Transition, TransitionStatus } from "react-transition-group"
 import type { TransitionCBs } from "./base/types.jsx"
-import { Fade } from "./Fade.jsx"
-import { AbsHeader, AbsProps as HProps, Context as MContext } from "./Modal.jsx"
-import { Context as NContext } from "./Navbar.jsx"
-import { classNames, BsOnlyProps, BsRef } from "./helpers.js"
-import { useBs } from "./Theme.jsx"
-import { Manager, getSharedManager } from "./Manager.jsx"
-import { Wrapper } from "./Transition.jsx"
-import * as qu from "./utils.jsx"
 
-export interface HeaderProps extends HProps, BsOnlyProps {}
+export interface HeaderProps extends AbsProps, BsOnlyProps {}
 
-export const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
+export const Header = qr.forwardRef<HTMLDivElement, HeaderProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
     bsPrefix = useBs(bsPrefix, "offcanvas-header")
     return (
@@ -53,7 +45,7 @@ export interface TogglingProps extends TransitionCBs, BsOnlyProps {
   unmountOnExit?: boolean
   appear?: boolean
   timeout?: number
-  children: React.ReactElement
+  children: qr.ReactElement
 }
 
 const styles = {
@@ -64,7 +56,7 @@ const styles = {
   [qu.UNMOUNTED]: "",
 }
 
-export const Toggling = React.forwardRef<Transition<any>, TogglingProps>(
+export const Toggling = qr.forwardRef<Transition<any>, TogglingProps>(
   ({ bsPrefix, className, children, ...ps }, ref) => {
     const bs = useBs(bsPrefix, "offcanvas")
     return (
@@ -74,9 +66,9 @@ export const Toggling = React.forwardRef<Transition<any>, TogglingProps>(
         {...ps}
         childRef={(children as any).ref}
       >
-        {(status: TransitionStatus, innerProps: Record<string, unknown>) =>
-          React.cloneElement(children, {
-            ...innerProps,
+        {(status: TransitionStatus, ps2: Record<string, unknown>) =>
+          qr.cloneElement(children, {
+            ...ps2,
             className: classNames(
               className,
               children.props.className,
@@ -102,7 +94,7 @@ export type Placement = "start" | "end" | "top" | "bottom"
 
 export interface Props
   extends Omit<
-    _Props,
+    MProps,
     | "role"
     | "renderBackdrop"
     | "renderDialog"
@@ -126,7 +118,7 @@ function BackdropTransition(ps: any) {
   return <Fade {...ps} />
 }
 
-export const Offcanvas: BsRef<"div", Props> = React.forwardRef<Handle, Props>(
+export const Offcanvas: BsRef<"div", Props> = qr.forwardRef<Handle, Props>(
   (
     {
       bsPrefix,
@@ -160,19 +152,19 @@ export const Offcanvas: BsRef<"div", Props> = React.forwardRef<Handle, Props>(
     },
     ref
   ) => {
-    const manager = useRef<Manager>()
+    const manager = qr.useRef<Manager>()
     const bs = useBs(bsPrefix, "offcanvas")
-    const { onToggle } = useContext(NContext) || {}
-    const [showOffcanvas, setShowOffcanvas] = useState(false)
-    const hideOffcanvas = useBreakpoint((responsive as any) || "xs", "up")
-    useEffect(() => {
+    const { onToggle } = qr.useContext(NContext) || {}
+    const [showOffcanvas, setShowOffcanvas] = qr.useState(false)
+    const hideOffcanvas = qh.useBreakpoint((responsive as any) || "xs", "up")
+    qr.useEffect(() => {
       setShowOffcanvas(responsive ? show && !hideOffcanvas : show)
     }, [show, responsive, hideOffcanvas])
-    const hide = useEventCallback(() => {
+    const hide = qh.useEventCallback(() => {
       onToggle?.()
       onHide?.()
     })
-    const v = useMemo(
+    const v = qr.useMemo(
       () => ({
         onHide: hide,
       }),
@@ -197,7 +189,7 @@ export const Offcanvas: BsRef<"div", Props> = React.forwardRef<Handle, Props>(
       if (x) x.style.visibility = ""
       onExited?.(...xs)
     }
-    const renderBackdrop = useCallback(
+    const renderBackdrop = qr.useCallback(
       (xs: any) => (
         <div
           {...xs}
@@ -225,7 +217,7 @@ export const Offcanvas: BsRef<"div", Props> = React.forwardRef<Handle, Props>(
         {/**/}
         {!showOffcanvas && (responsive || renderStaticNode) && renderDialog({})}
         <MContext.Provider value={v}>
-          <BaseModal
+          <Modal
             show={showOffcanvas}
             ref={ref}
             backdrop={backdrop}
@@ -270,17 +262,10 @@ Offcanvas.defaultProps = {
 
 export type NavbarProps = Omit<Props, "show">
 
-export const Navbar = React.forwardRef<HTMLDivElement, NavbarProps>(
-  (ps, ref) => {
-    const context = useContext(NContext)
-    return (
-      <Offcanvas
-        ref={ref}
-        show={!!context?.expanded}
-        {...ps}
-        renderStaticNode
-      />
-    )
-  }
-)
+export const Navbar = qr.forwardRef<HTMLDivElement, NavbarProps>((ps, ref) => {
+  const context = qr.useContext(NContext)
+  return (
+    <Offcanvas ref={ref} show={!!context?.expanded} {...ps} renderStaticNode />
+  )
+})
 Navbar.displayName = "NavbarOffcanvas"

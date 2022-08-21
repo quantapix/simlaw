@@ -1,11 +1,11 @@
-import * as React from "react"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsProps } from "./helpers.js"
+import { useBs } from "./Theme.jsx"
+import * as qr from "react"
 
 export type AspectRatio = "1x1" | "4x3" | "16x9" | "21x9" | string
 
-export interface Props extends BsProps, React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactChild
+export interface Props extends BsProps, qr.HTMLAttributes<HTMLDivElement> {
+  children: qr.ReactChild
   aspectRatio?: AspectRatio | number
 }
 
@@ -15,7 +15,7 @@ function toPercent(num: number): string {
   return `${num}%`
 }
 
-export const Ratio = React.forwardRef<HTMLDivElement, Props>(
+export const Ratio = qr.forwardRef<HTMLDivElement, Props>(
   ({ bsPrefix, className, children, aspectRatio, style, ...ps }, ref) => {
     const bs = useBs(bsPrefix, "ratio")
     const isCustomRatio = typeof aspectRatio === "number"
@@ -35,7 +35,7 @@ export const Ratio = React.forwardRef<HTMLDivElement, Props>(
           !isCustomRatio && `${bs}-${aspectRatio}`
         )}
       >
-        {React.Children.only(children)}
+        {qr.Children.only(children)}
       </div>
     )
   }

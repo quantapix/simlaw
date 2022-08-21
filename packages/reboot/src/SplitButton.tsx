@@ -1,27 +1,30 @@
-import * as React from "react"
-import type { Type } from "./Button.jsx"
 import { Button, Group } from "./Button.jsx"
+import * as qr from "react"
+import type { BsProps } from "./helpers.js"
+import type { Type } from "./base/Button.jsx"
 import {
   Dropdown,
-  Props as _Props,
+  Props as BaseProps,
   PropsFromToggle,
   Toggle,
   Menu,
 } from "./Dropdown.jsx"
-import type { BsProps } from "./helpers.js"
 
-export interface Props extends Omit<_Props, "title">, PropsFromToggle, BsProps {
+export interface Props
+  extends Omit<BaseProps, "title">,
+    PropsFromToggle,
+    BsProps {
   menuRole?: string
   renderMenuOnMount?: boolean
   rootCloseEvent?: "click" | "mousedown"
   target?: string
-  title: React.ReactNode
+  title: qr.ReactNode
   toggleLabel?: string
   type?: Type
   flip?: boolean
 }
 
-export const SplitButton = React.forwardRef<HTMLElement, Props>(
+export const SplitButton = qr.forwardRef<HTMLElement, Props>(
   (
     {
       id,

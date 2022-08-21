@@ -1,18 +1,15 @@
-import * as React from "react"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
+import { useBs } from "./Theme.jsx"
+import * as qr from "react"
 import type { Variant } from "./types.jsx"
 
-export interface Props extends React.HTMLAttributes<HTMLElement>, BsProps {
+export interface Props extends qr.HTMLAttributes<HTMLElement>, BsProps {
   animation: "border" | "grow"
   size?: "sm"
   variant?: Variant
 }
 
-export const Spinner: BsRef<"div", Props> = React.forwardRef<
-  HTMLElement,
-  Props
->(
+export const Spinner: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
   (
     { bsPrefix, variant, animation, size, as: X = "div", className, ...ps },
     ref

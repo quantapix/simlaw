@@ -1,29 +1,22 @@
-import * as React from "react"
-import { cloneElement, useCallback, useRef } from "react"
+import { classNames, TransitionType } from "./helpers.js"
 import { contains } from "./base/utils.js"
-import BaseOverlay, {
-  OverlayProps as _Props,
-  OverlayArrowProps,
-} from "./base/Overlay.jsx"
+import { Fade } from "./Fade.jsx"
+import { safeFindDOMNode } from "./utils.jsx"
+import { useOffset } from "./use.jsx"
+import { warning } from "./base/utils.js"
+import * as qh from "./hooks.js"
+import * as qr from "react"
+import type { Placement, PopperRef, RootCloseEvent } from "./types.jsx"
 import type { State } from "./base/popper.js"
 import {
-  useIsomorphicEffect,
-  useCallbackRef,
-  useEventCallback,
-  useMergedRefs,
-  useTimeout,
-  useUncontrolledProp,
-} from "./hooks.js"
-import { warning } from "./base/utils.js"
-import { useOffset } from "./use.jsx"
-import { Fade } from "./Fade.jsx"
-import { classNames, TransitionType } from "./helpers.js"
-import type { Placement, PopperRef, RootCloseEvent } from "./types.jsx"
-import { safeFindDOMNode } from "./utils.jsx"
+  Overlay as Base,
+  OverlayProps as BaseProps,
+  OverlayArrowProps,
+} from "./base/Overlay.jsx"
 
 export interface InjectedProps {
-  ref: React.RefCallback<HTMLElement>
-  style: React.CSSProperties
+  ref: qr.RefCallback<HTMLElement>
+  style: qr.CSSProperties
   "aria-labelledby"?: string
   arrowProps: Partial<OverlayArrowProps>
   show: boolean
@@ -33,48 +26,46 @@ export interface InjectedProps {
 }
 
 export type Children =
-  | React.ReactElement<InjectedProps>
-  | ((injected: InjectedProps) => React.ReactNode)
+  | qr.ReactElement<InjectedProps>
+  | ((injected: InjectedProps) => qr.ReactNode)
 
 export interface Props
-  extends Omit<_Props, "children" | "transition" | "rootCloseEvent"> {
+  extends Omit<BaseProps, "children" | "transition" | "rootCloseEvent"> {
   children: Children
   transition?: TransitionType
   placement?: Placement
   rootCloseEvent?: RootCloseEvent
 }
 
-function wrapRefs(props, arrowProps) {
-  const { ref } = props
-  const { ref: aRef } = arrowProps
-  props.ref = ref.__wrapped || (ref.__wrapped = r => ref(safeFindDOMNode(r)))
-  arrowProps.ref =
+function wrapRefs(ps: any, arrowPs: any) {
+  const { ref } = ps
+  const { ref: aRef } = arrowPs
+  ps.ref = ref.__wrapped || (ref.__wrapped = r => ref(safeFindDOMNode(r)))
+  arrowPs.ref =
     aRef.__wrapped || (aRef.__wrapped = r => aRef(safeFindDOMNode(r)))
 }
 
-export const Overlay = React.forwardRef<HTMLElement, Props>(
-  (
-    { children: overlay, transition, popperConfig = {}, ...outerProps },
-    outerRef
-  ) => {
-    const popperRef = useRef<Partial<PopperRef>>({})
-    const [firstRenderedState, setFirstRenderedState] = useCallbackRef<State>()
-    const [ref, modifiers] = useOffset(outerProps.offset)
-    const mergedRef = useMergedRefs(outerRef, ref)
+export const Overlay = qr.forwardRef<HTMLElement, Props>(
+  ({ children: overlay, transition, popperConfig = {}, ...ps }, outerRef) => {
+    const popperRef = qr.useRef<Partial<PopperRef>>({})
+    const [firstRenderedState, setFirstRenderedState] =
+      qh.useCallbackRef<State>()
+    const [ref, modifiers] = useOffset(ps.offset)
+    const mergedRef = qh.useMergedRefs(outerRef, ref)
     const actualTransition =
       transition === true ? Fade : transition || undefined
-    const firstUpdate = useEventCallback(state => {
+    const firstUpdate = qh.useEventCallback(state => {
       setFirstRenderedState(state)
       popperConfig?.onFirstUpdate?.(state)
     })
-    useIsomorphicEffect(() => {
+    qh.useIsomorphicEffect(() => {
       if (firstRenderedState) {
         popperRef.current.scheduleUpdate?.()
       }
     }, [firstRenderedState])
     return (
-      <BaseOverlay
-        {...outerProps}
+      <Base
+        {...ps}
         ref={mergedRef}
         popperConfig={{
           ...popperConfig,
@@ -102,22 +93,22 @@ export const Overlay = React.forwardRef<HTMLElement, Props>(
               popper,
               arrowProps,
             })
-          return React.cloneElement(overlay as React.ReactElement, {
+          return qr.cloneElement(overlay as qr.ReactElement, {
             ...overlayProps,
             placement: updatedPlacement,
             arrowProps,
             popper,
             className: classNames(
-              (overlay as React.ReactElement).props.className,
+              (overlay as qr.ReactElement).props.className,
               !transition && show && "show"
             ),
             style: {
-              ...(overlay as React.ReactElement).props.style,
+              ...(overlay as qr.ReactElement).props.style,
               ...overlayProps.style,
             },
           })
         }}
-      </BaseOverlay>
+      </Base>
     )
   }
 )
@@ -138,11 +129,11 @@ export type InjProps = {
 }
 
 export type RenderProps = InjProps & {
-  ref: React.Ref<any>
+  ref: qr.Ref<any>
 }
 
 export interface TriggerProps extends Omit<Props, "children" | "target"> {
-  children: React.ReactElement | ((ps: RenderProps) => React.ReactNode)
+  children: qr.ReactElement | ((ps: RenderProps) => qr.ReactNode)
   trigger?: Type | Type[]
   delay?: Delay
   show?: boolean
@@ -164,8 +155,8 @@ function normalizeDelay(delay?: Delay) {
 }
 
 function mouseOverOut(
-  handler: (...xs: [React.MouseEvent, ...any[]]) => any,
-  args: [React.MouseEvent, ...any[]],
+  handler: (...xs: [qr.MouseEvent, ...any[]]) => any,
+  args: [qr.MouseEvent, ...any[]],
   relatedNative: "fromElement" | "toElement"
 ) {
   const [e] = args
@@ -189,14 +180,14 @@ export const Trigger = ({
   flip = placement && placement.indexOf("auto") !== -1,
   ...ps
 }: TriggerProps) => {
-  const triggerNodeRef = useRef(null)
-  const mergedRef = useMergedRefs<unknown>(
+  const triggerNodeRef = qr.useRef(null)
+  const mergedRef = qh.useMergedRefs<unknown>(
     triggerNodeRef,
     (children as any).ref
   )
-  const timeout = useTimeout()
-  const hoverStateRef = useRef<string>("")
-  const [isShow, setShow] = useUncontrolledProp(
+  const timeout = qh.useTimeout()
+  const hoverStateRef = qr.useRef<string>("")
+  const [isShow, setShow] = qh.useUncontrolledProp(
     propsShow,
     defaultShow,
     onToggle
@@ -204,12 +195,12 @@ export const Trigger = ({
   const delay = normalizeDelay(propsDelay)
   const { onFocus, onBlur, onClick } =
     typeof children !== "function"
-      ? React.Children.only(children).props
+      ? qr.Children.only(children).props
       : ({} as any)
-  const attachRef = (r: React.ComponentClass | Element | null | undefined) => {
+  const attachRef = (r: qr.ComponentClass | Element | null | undefined) => {
     mergedRef(safeFindDOMNode(r))
   }
-  const show = useCallback(() => {
+  const show = qr.useCallback(() => {
     timeout.clear()
     hoverStateRef.current = "show"
     if (!delay.show) {
@@ -220,7 +211,7 @@ export const Trigger = ({
       if (hoverStateRef.current === "show") setShow(true)
     }, delay.show)
   }, [delay.show, setShow, timeout])
-  const hide = useCallback(() => {
+  const hide = qr.useCallback(() => {
     timeout.clear()
     hoverStateRef.current = "hide"
     if (!delay.hide) {
@@ -231,35 +222,35 @@ export const Trigger = ({
       if (hoverStateRef.current === "hide") setShow(false)
     }, delay.hide)
   }, [delay.hide, setShow, timeout])
-  const focus = useCallback(
+  const focus = qr.useCallback(
     (...xs: any[]) => {
       show()
       onFocus?.(...xs)
     },
     [show, onFocus]
   )
-  const blur = useCallback(
+  const blur = qr.useCallback(
     (...xs: any[]) => {
       hide()
       onBlur?.(...xs)
     },
     [hide, onBlur]
   )
-  const click = useCallback(
+  const click = qr.useCallback(
     (...xs: any[]) => {
       setShow(!isShow)
       onClick?.(...xs)
     },
     [onClick, setShow, isShow]
   )
-  const mouseOver = useCallback(
-    (...xs: [React.MouseEvent, ...any[]]) => {
+  const mouseOver = qr.useCallback(
+    (...xs: [qr.MouseEvent, ...any[]]) => {
       mouseOverOut(show, xs, "fromElement")
     },
     [show]
   )
-  const mouseOut = useCallback(
-    (...xs: [React.MouseEvent, ...any[]]) => {
+  const mouseOut = qr.useCallback(
+    (...xs: [qr.MouseEvent, ...any[]]) => {
       mouseOverOut(hide, xs, "toElement")
     },
     [hide]
@@ -287,7 +278,7 @@ export const Trigger = ({
     <>
       {typeof children === "function"
         ? children(triggerProps)
-        : cloneElement(children, triggerProps)}
+        : qr.cloneElement(children, triggerProps)}
       <Overlay
         {...ps}
         show={isShow}

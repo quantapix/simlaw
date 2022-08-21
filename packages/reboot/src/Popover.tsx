@@ -1,16 +1,16 @@
-import * as React from "react"
-import type { OverlayArrowProps } from "./base/Overlay.jsx"
-import { useBs, useIsRTL } from "./Theme.jsx"
-import type { Placement, PopperRef } from "./types.jsx"
 import { classNames, BsProps, getDirection } from "./helpers.js"
+import { useBs, useIsRTL } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
+import * as qr from "react"
+import type { OverlayArrowProps } from "./base/Overlay.jsx"
+import type { Placement, PopperRef } from "./types.jsx"
 
 export const POPPER_OFFSET = [0, 8]
 
 export const Header = withBs("popover-header")
 export const Body = withBs("popover-body")
 
-export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
+export interface Props extends qr.HTMLAttributes<HTMLDivElement>, BsProps {
   placement?: Placement
   title?: string
   arrowProps?: Partial<OverlayArrowProps>
@@ -19,7 +19,7 @@ export interface Props extends React.HTMLAttributes<HTMLDivElement>, BsProps {
   show?: boolean
 }
 
-export const Popover = React.forwardRef<HTMLDivElement, Props>(
+export const Popover = qr.forwardRef<HTMLDivElement, Props>(
   (
     {
       bsPrefix,

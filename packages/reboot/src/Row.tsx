@@ -1,6 +1,6 @@
-import * as React from "react"
-import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
+import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
+import * as qr from "react"
 
 type ColWidth =
   | number
@@ -19,7 +19,7 @@ type ColWidth =
   | "auto"
 type Columns = ColWidth | { cols?: ColWidth }
 
-export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
   xs?: Columns
   sm?: Columns
   md?: Columns
@@ -29,7 +29,7 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   [key: string]: any
 }
 
-export const Row: BsRef<"div", Props> = React.forwardRef<HTMLDivElement, Props>(
+export const Row: BsRef<"div", Props> = qr.forwardRef<HTMLDivElement, Props>(
   ({ bsPrefix, className, as: X = "div", ...ps }: Props, ref) => {
     const decoratedBsPrefix = useBs(bsPrefix, "row")
     const breakpoints = useBreakpoints()
