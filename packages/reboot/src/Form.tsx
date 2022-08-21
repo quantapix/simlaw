@@ -1,27 +1,26 @@
-import * as React from "react"
-import { useContext, useMemo } from "react"
-import warning from "./base/utils.js"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsOnlyProps, BsProps, BsRef, AsProp } from "./helpers.js"
 import { Col, Props as _Props } from "./Col.jsx"
 import { Feedback, Type } from "./Feedback.jsx"
 import { hasChildOfType, withBs } from "./utils.jsx"
+import { useBs } from "./Theme.jsx"
+import { warning } from "./base/utils.js"
+import * as qr from "react"
 
 interface Data {
   controlId?: any
 }
 
-export const FormContext = React.createContext<Data>({})
+export const FormContext = qr.createContext<Data>({})
 
-export interface GroupProps extends React.HTMLAttributes<HTMLElement>, AsProp {
+export interface GroupProps extends qr.HTMLAttributes<HTMLElement>, AsProp {
   controlId?: string | undefined
 }
 
 export const Floating = withBs("form-floating")
 
-export const Group: BsRef<"div", GroupProps> = React.forwardRef(
+export const Group: BsRef<"div", GroupProps> = qr.forwardRef(
   ({ controlId, as: X = "div", ...ps }, ref) => {
-    const v = useMemo(() => ({ controlId }), [controlId])
+    const v = qr.useMemo(() => ({ controlId }), [controlId])
     return (
       <FormContext.Provider value={v}>
         <X {...ps} ref={ref} />
@@ -33,10 +32,10 @@ Group.displayName = "FormGroup"
 
 export interface FloatingLabelProps extends _Props, BsProps {
   controlId?: string
-  label: React.ReactNode
+  label: qr.ReactNode
 }
 
-export const FloatingLabel: BsRef<"div", FloatingLabelProps> = React.forwardRef(
+export const FloatingLabel: BsRef<"div", FloatingLabelProps> = qr.forwardRef(
   ({ bsPrefix, className, children, controlId, label, ...ps }, ref) => {
     bsPrefix = useBs(bsPrefix, "form-floating")
     return (
@@ -54,7 +53,7 @@ export const FloatingLabel: BsRef<"div", FloatingLabelProps> = React.forwardRef(
 )
 FloatingLabel.displayName = "FloatingLabel"
 
-interface Base extends BsProps, React.HTMLAttributes<HTMLElement> {
+interface Base extends BsProps, qr.HTMLAttributes<HTMLElement> {
   htmlFor?: string
   visuallyHidden?: boolean
 }
@@ -69,7 +68,7 @@ export interface WithColProps extends Base, _Props {
 
 export type LabelProps = WithColProps | OwnProps
 
-export const Label: BsRef<"label", LabelProps> = React.forwardRef<
+export const Label: BsRef<"label", LabelProps> = qr.forwardRef<
   HTMLElement,
   LabelProps
 >(
@@ -85,7 +84,7 @@ export const Label: BsRef<"label", LabelProps> = React.forwardRef<
     },
     ref
   ) => {
-    const { controlId } = useContext(FormContext)
+    const { controlId } = qr.useContext(FormContext)
     const bs = useBs(bsPrefix, "form-label")
     let columnClass = "col-form-label"
     if (typeof column === "string")
@@ -104,7 +103,7 @@ export const Label: BsRef<"label", LabelProps> = React.forwardRef<
     if (column)
       return (
         <Col
-          ref={ref as React.ForwardedRef<HTMLLabelElement>}
+          ref={ref as qr.ForwardedRef<HTMLLabelElement>}
           as="label"
           className={classes}
           htmlFor={htmlFor}
@@ -120,11 +119,11 @@ Label.defaultProps = {
   visuallyHidden: false,
 }
 
-export interface TextProps extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface TextProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
   muted?: boolean
 }
 
-export const Text: BsRef<"small", TextProps> = React.forwardRef<
+export const Text: BsRef<"small", TextProps> = qr.forwardRef<
   HTMLElement,
   TextProps
 >(({ bsPrefix, className, as: X = "small", muted, ...ps }, ref) => {
@@ -141,11 +140,11 @@ Text.displayName = "FormText"
 
 export interface RangeProps
   extends BsOnlyProps,
-    Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {}
+    Omit<qr.InputHTMLAttributes<HTMLInputElement>, "type"> {}
 
-export const Range = React.forwardRef<HTMLInputElement, RangeProps>(
+export const Range = qr.forwardRef<HTMLInputElement, RangeProps>(
   ({ bsPrefix, className, id, ...props }, ref) => {
-    const { controlId } = useContext(FormContext)
+    const { controlId } = qr.useContext(FormContext)
     const bs = useBs(bsPrefix, "form-range")
     return (
       <input
@@ -162,14 +161,14 @@ Range.displayName = "FormRange"
 
 export interface SelectProps
   extends BsOnlyProps,
-    Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "size"> {
+    Omit<qr.SelectHTMLAttributes<HTMLSelectElement>, "size"> {
   htmlSize?: number
   size?: "sm" | "lg"
   isValid?: boolean
   isInvalid?: boolean
 }
 
-export const Select: BsRef<"select", SelectProps> = React.forwardRef<
+export const Select: BsRef<"select", SelectProps> = qr.forwardRef<
   HTMLSelectElement,
   SelectProps
 >(
@@ -186,7 +185,7 @@ export const Select: BsRef<"select", SelectProps> = React.forwardRef<
     },
     ref
   ) => {
-    const { controlId } = useContext(FormContext)
+    const { controlId } = qr.useContext(FormContext)
     const bs = useBs(bsPrefix, "form-select")
     return (
       <select
@@ -211,13 +210,13 @@ type InputType = "checkbox" | "radio"
 
 export interface InputProps
   extends BsProps,
-    React.InputHTMLAttributes<HTMLInputElement> {
+    qr.InputHTMLAttributes<HTMLInputElement> {
   type?: InputType
   isValid?: boolean
   isInvalid?: boolean
 }
 
-export const Input: BsRef<"input", InputProps> = React.forwardRef<
+export const Input: BsRef<"input", InputProps> = qr.forwardRef<
   HTMLInputElement,
   InputProps
 >(
@@ -234,7 +233,7 @@ export const Input: BsRef<"input", InputProps> = React.forwardRef<
     },
     ref
   ) => {
-    const { controlId } = useContext(FormContext)
+    const { controlId } = qr.useContext(FormContext)
     const bs = useBs(bsPrefix, "form-check-input")
     return (
       <X
@@ -255,12 +254,12 @@ export const Input: BsRef<"input", InputProps> = React.forwardRef<
 Input.displayName = "FormCheckInput"
 
 export interface CheckLabelProps
-  extends React.LabelHTMLAttributes<HTMLLabelElement>,
+  extends qr.LabelHTMLAttributes<HTMLLabelElement>,
     BsProps {}
 
-export const CheckLabel = React.forwardRef<HTMLLabelElement, CheckLabelProps>(
+export const CheckLabel = qr.forwardRef<HTMLLabelElement, CheckLabelProps>(
   ({ bsPrefix, className, htmlFor, ...ps }, ref) => {
-    const { controlId } = useContext(FormContext)
+    const { controlId } = qr.useContext(FormContext)
     const bs = useBs(bsPrefix, "form-check-label")
     return (
       <label
@@ -279,21 +278,21 @@ export type CheckType = "checkbox" | "radio" | "switch"
 
 export interface CheckProps
   extends BsProps,
-    React.InputHTMLAttributes<HTMLInputElement> {
+    qr.InputHTMLAttributes<HTMLInputElement> {
   inline?: boolean
   reverse?: boolean
   disabled?: boolean
-  label?: React.ReactNode
+  label?: qr.ReactNode
   type?: CheckType
   isValid?: boolean
   isInvalid?: boolean
   feedbackTooltip?: boolean
-  feedback?: React.ReactNode
+  feedback?: qr.ReactNode
   feedbackType?: Type
   bsSwitchPrefix?: string
 }
 
-export const Check: BsRef<"input", CheckProps> = React.forwardRef<
+export const Check: BsRef<"input", CheckProps> = qr.forwardRef<
   HTMLInputElement,
   CheckProps
 >(
@@ -323,8 +322,8 @@ export const Check: BsRef<"input", CheckProps> = React.forwardRef<
   ) => {
     const bs = useBs(bsPrefix, "form-check")
     bsSwitchPrefix = useBs(bsSwitchPrefix, "form-switch")
-    const { controlId } = useContext(FormContext)
-    const v = useMemo(
+    const { controlId } = qr.useContext(FormContext)
+    const v = qr.useMemo(
       () => ({
         controlId: id || controlId,
       }),
@@ -376,7 +375,7 @@ Check.displayName = "FormCheck"
 
 export type SwitchProps = Omit<CheckProps, "type">
 
-export const Switch: BsRef<typeof Check, SwitchProps> = React.forwardRef<
+export const Switch: BsRef<typeof Check, SwitchProps> = qr.forwardRef<
   typeof Check,
   SwitchProps
 >((ps, ref) => <Check {...ps} ref={ref} type="switch" />)
@@ -384,20 +383,20 @@ Switch.displayName = "Switch"
 
 type Element = HTMLInputElement | HTMLTextAreaElement
 
-export interface ControlProps extends BsProps, React.HTMLAttributes<Element> {
+export interface ControlProps extends BsProps, qr.HTMLAttributes<Element> {
   htmlSize?: number
   size?: "sm" | "lg"
   plaintext?: boolean
   readOnly?: boolean
   disabled?: boolean
   value?: string | string[] | number
-  onChange?: React.ChangeEventHandler<Element>
+  onChange?: qr.ChangeEventHandler<Element>
   type?: string
   isValid?: boolean
   isInvalid?: boolean
 }
 
-export const Control: BsRef<"input", ControlProps> = React.forwardRef<
+export const Control: BsRef<"input", ControlProps> = qr.forwardRef<
   Element,
   ControlProps
 >(
@@ -418,7 +417,7 @@ export const Control: BsRef<"input", ControlProps> = React.forwardRef<
     },
     ref
   ) => {
-    const { controlId } = useContext(FormContext)
+    const { controlId } = qr.useContext(FormContext)
     const bs = useBs(bsPrefix, "form-control")
     let classes
     if (plaintext) {
@@ -454,21 +453,17 @@ export const Control: BsRef<"input", ControlProps> = React.forwardRef<
 )
 Control.displayName = "FormControl"
 
-export interface Props
-  extends React.FormHTMLAttributes<HTMLFormElement>,
-    AsProp {
+export interface Props extends qr.FormHTMLAttributes<HTMLFormElement>, AsProp {
   validated?: boolean
 }
 
-export const Form: BsRef<"form", Props> = React.forwardRef<
-  HTMLFormElement,
-  Props
->(({ className, validated, as: X = "form", ...props }, ref) => (
-  <X
-    {...props}
-    ref={ref}
-    className={classNames(className, validated && "was-validated")}
-  />
-))
-
+export const Form: BsRef<"form", Props> = qr.forwardRef<HTMLFormElement, Props>(
+  ({ className, validated, as: X = "form", ...props }, ref) => (
+    <X
+      {...props}
+      ref={ref}
+      className={classNames(className, validated && "was-validated")}
+    />
+  )
+)
 Form.displayName = "Form"

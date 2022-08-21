@@ -1,29 +1,26 @@
-import * as React from "react"
-import { useContext, useMemo } from "react"
-import { warning } from "./base/utils.js"
-import {
-  useEventCallback,
-  useMergedRefs,
-  useIsomorphicEffect,
-  useUncontrolled,
-} from "./hooks.js"
 import { Anchor } from "./base/Anchor.jsx"
-import BaseDropdown, {
-  Props as _Props,
-  ToggleMetadata,
-} from "./base/Dropdown.js"
-import BaseDropdownItem, { useDropdownItem } from "./base/DropdownItem.js"
-import { useDropdownMenu, UseDropdownMenuOptions } from "./base/DropdownMenu.js"
-import { useDropdownToggle } from "./base/DropdownToggle.js"
-import { useWrappedRef } from "./use.jsx"
-import { Context as InputGroupContext } from "./InputGroup.jsx"
-import { useBs, useIsRTL } from "./Theme.jsx"
-import { withBs } from "./utils.jsx"
-import { classNames, BsProps, BsRef } from "./helpers.js"
-import { Context as NavbarContext } from "./Navbar.jsx"
-import type { AlignType, AlignDirection, Placement } from "./types.jsx"
 import { Button as _Button, Props as _BProps } from "./Button.jsx"
+import { classNames, BsProps, BsRef } from "./helpers.js"
+import { Context as InputGroupContext } from "./InputGroup.jsx"
+import { Context as NavbarContext } from "./Navbar.jsx"
 import { Link as NavLink } from "./Nav.jsx"
+import { useBs, useIsRTL } from "./Theme.jsx"
+import { useWrappedRef } from "./use.jsx"
+import { warning } from "./base/utils.js"
+import { withBs } from "./utils.jsx"
+import * as qh from "./hooks.js"
+import * as qr from "react"
+import type { AlignType, AlignDirection, Placement } from "./types.jsx"
+import {
+  Dropdown as Base,
+  Props as BaseProps,
+  ToggleMetadata,
+  Item as BaseItem,
+  useItem,
+  useMenu,
+  useToggle,
+  MenuOpts,
+} from "./base/Dropdown.jsx"
 
 export type Drop = "up" | "start" | "end" | "down"
 
@@ -35,18 +32,18 @@ export type Data = {
   isRTL?: boolean
 }
 
-export const Context = React.createContext<Data>({})
+export const Context = qr.createContext<Data>({})
 Context.displayName = "DropdownContext"
 
 export type Variant = "dark" | string
 
-export interface MenuProps extends BsProps, React.HTMLAttributes<HTMLElement> {
-  show?: boolean
+export interface MenuProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
+  show?: boolean | undefined
   renderOnMount?: boolean
-  flip?: boolean
+  flip?: boolean | undefined
   align?: AlignType
   rootCloseEvent?: "click" | "mousedown"
-  popperConfig?: UseDropdownMenuOptions["popperConfig"]
+  popperConfig?: MenuOpts["popperConfig"]
   variant?: Variant
 }
 
@@ -70,7 +67,7 @@ export function getPlacement(
   return y
 }
 
-export const Menu: BsRef<"div", MenuProps> = React.forwardRef<
+export const Menu: BsRef<"div", MenuProps> = qr.forwardRef<
   HTMLElement,
   MenuProps
 >(
@@ -91,11 +88,11 @@ export const Menu: BsRef<"div", MenuProps> = React.forwardRef<
     ref
   ) => {
     let alignEnd = false
-    const isNavbar = useContext(NavbarContext)
+    const isNavbar = qr.useContext(NavbarContext)
     const bs = useBs(bsPrefix, "dropdown-menu")
-    const { align: contextAlign, drop, isRTL } = useContext(Context)
+    const { align: contextAlign, drop, isRTL } = qr.useContext(Context)
     align = align || contextAlign
-    const isInputGroup = useContext(InputGroupContext)
+    const isInputGroup = qr.useContext(InputGroupContext)
     const alignClasses: string[] = []
     if (align) {
       if (typeof align === "object") {
@@ -105,8 +102,8 @@ export const Menu: BsRef<"div", MenuProps> = React.forwardRef<
           "There should only be 1 breakpoint when passing an object to `align`"
         )
         if (keys.length) {
-          const brkPoint = keys[0]
-          const direction: AlignDirection = align[brkPoint]
+          const brkPoint = keys[0]!
+          const direction: AlignDirection = align[brkPoint]!
           alignEnd = direction === "start"
           alignClasses.push(`${bs}-${brkPoint}-${direction}`)
         }
@@ -115,7 +112,7 @@ export const Menu: BsRef<"div", MenuProps> = React.forwardRef<
       }
     }
     const placement = getPlacement(alignEnd, drop, isRTL)
-    const [menuProps, { hasShown, popper, show, toggle }] = useDropdownMenu({
+    const [menuProps, { hasShown, popper, show, toggle }] = useMenu({
       flip,
       rootCloseEvent,
       show: showProps,
@@ -124,11 +121,11 @@ export const Menu: BsRef<"div", MenuProps> = React.forwardRef<
       popperConfig,
       placement,
     })
-    menuProps.ref = useMergedRefs(
+    menuProps.ref = qh.useMergedRefs(
       useWrappedRef(ref, "DropdownMenu"),
       menuProps.ref
     )
-    useIsomorphicEffect(() => {
+    qh.useIsomorphicEffect(() => {
       if (show) popper?.update()
     }, [show])
     if (!hasShown && !renderOnMount && !isInputGroup) return null
@@ -168,7 +165,7 @@ Menu.defaultProps = {
 }
 
 export interface ToggleProps extends Omit<_BProps, "as"> {
-  as?: React.ElementType
+  as?: qr.ElementType
   split?: boolean
   childBsPrefix?: string
 }
@@ -176,10 +173,10 @@ export interface ToggleProps extends Omit<_BProps, "as"> {
 type ToggleComponent = BsRef<"button", ToggleProps>
 
 export type PropsFromToggle = Partial<
-  Pick<React.ComponentPropsWithRef<ToggleComponent>, CommonProps>
+  Pick<qr.ComponentPropsWithRef<ToggleComponent>, CommonProps>
 >
 
-export const Toggle: ToggleComponent = React.forwardRef(
+export const Toggle: ToggleComponent = qr.forwardRef(
   (
     {
       bsPrefix,
@@ -192,13 +189,13 @@ export const Toggle: ToggleComponent = React.forwardRef(
     ref
   ) => {
     const bs = useBs(bsPrefix, "dropdown-toggle")
-    const context = useContext(Context)
-    const isInputGroup = useContext(InputGroupContext)
+    const context = qr.useContext(Context)
+    const isInputGroup = qr.useContext(InputGroupContext)
     if (childBsPrefix !== undefined) {
       ;(ps as any).bsPrefix = childBsPrefix
     }
-    const [toggleProps] = useDropdownToggle()
-    toggleProps.ref = useMergedRefs(
+    const [toggleProps] = useToggle()
+    toggleProps.ref = qh.useMergedRefs(
       toggleProps.ref,
       useWrappedRef(ref, "DropdownToggle")
     )
@@ -229,15 +226,15 @@ export const ItemText = withBs("dropdown-item-text", {
   Component: "span",
 })
 
-export interface ItemProps extends React.HTMLAttributes<HTMLElement>, BsProps {
-  as?: React.ElementType
+export interface ItemProps extends qr.HTMLAttributes<HTMLElement>, BsProps {
+  as?: qr.ElementType
   active?: boolean
   disabled?: boolean
   eventKey?: EventKey
   href?: string
 }
 
-export const Item: BsRef<typeof BaseDropdownItem, ItemProps> = React.forwardRef(
+export const Item: BsRef<typeof BaseItem, ItemProps> = qr.forwardRef(
   (
     {
       bsPrefix,
@@ -252,7 +249,7 @@ export const Item: BsRef<typeof BaseDropdownItem, ItemProps> = React.forwardRef(
     ref
   ) => {
     const bs = useBs(bsPrefix, "dropdown-item")
-    const [dropdownItemProps, meta] = useDropdownItem({
+    const [dropdownItemProps, meta] = useItem({
       key: eventKey,
       href: ps.href,
       disabled,
@@ -277,9 +274,9 @@ export const Item: BsRef<typeof BaseDropdownItem, ItemProps> = React.forwardRef(
 Item.displayName = "DropdownItem"
 
 export interface Props
-  extends _Props,
+  extends BaseProps,
     BsProps,
-    Omit<React.HTMLAttributes<HTMLElement>, "onSelect" | "children"> {
+    Omit<qr.HTMLAttributes<HTMLElement>, "onSelect" | "children"> {
   drop?: Drop
   align?: AlignType
   focusFirstItemOnShow?: boolean | "keyboard"
@@ -287,82 +284,83 @@ export interface Props
   autoClose?: boolean | "outside" | "inside"
 }
 
-export const Dropdown: BsRef<"div", Props> = React.forwardRef<
-  HTMLElement,
-  Props
->((xs, ref) => {
-  const {
-    bsPrefix,
-    drop,
-    show,
-    className,
-    align,
-    onSelect,
-    onToggle,
-    focusFirstItemOnShow,
-    as: X = "div",
-    navbar: _4,
-    autoClose,
-    ...ps
-  } = useUncontrolled(xs, { show: "onToggle" })
-  const isInputGroup = useContext(InputGroupContext)
-  const bs = useBs(bsPrefix, "dropdown")
-  const isRTL = useIsRTL()
-  const isClosingPermitted = (source: string): boolean => {
-    if (autoClose === false) return source === "click"
-    if (autoClose === "inside") return source !== "rootClose"
-    if (autoClose === "outside") return source !== "select"
-    return true
-  }
-  const toggle = useEventCallback((nextShow: boolean, meta: ToggleMetadata) => {
-    if (
-      meta.originalEvent!.currentTarget === document &&
-      (meta.source !== "keydown" ||
-        (meta.originalEvent as any).key === "Escape")
-    )
-      meta.source = "rootClose"
-    if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta)
-  })
-  const alignEnd = align === "end"
-  const placement = getPlacement(alignEnd, drop, isRTL)
-  const v = useMemo(
-    () => ({
-      align,
+export const Dropdown: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
+  (xs, ref) => {
+    const {
+      bsPrefix,
       drop,
-      isRTL,
-    }),
-    [align, drop, isRTL]
-  )
-  return (
-    <Context.Provider value={v}>
-      <BaseDropdown
-        placement={placement}
-        show={show}
-        onSelect={onSelect}
-        onToggle={toggle}
-        focusFirstItemOnShow={focusFirstItemOnShow}
-        itemSelector={`.${bs}-item:not(.disabled):not(:disabled)`}
-      >
-        {isInputGroup ? (
-          ps.children
-        ) : (
-          <X
-            {...ps}
-            ref={ref}
-            className={classNames(
-              className,
-              show && "show",
-              (!drop || drop === "down") && bs,
-              drop === "up" && "dropup",
-              drop === "end" && "dropend",
-              drop === "start" && "dropstart"
-            )}
-          />
-        )}
-      </BaseDropdown>
-    </Context.Provider>
-  )
-})
+      show,
+      className,
+      align,
+      onSelect,
+      onToggle,
+      focusFirstItemOnShow,
+      as: X = "div",
+      navbar: _4,
+      autoClose,
+      ...ps
+    } = qh.useUncontrolled(xs, { show: "onToggle" })
+    const isInputGroup = qr.useContext(InputGroupContext)
+    const bs = useBs(bsPrefix, "dropdown")
+    const isRTL = useIsRTL()
+    const isClosingPermitted = (source: string): boolean => {
+      if (autoClose === false) return source === "click"
+      if (autoClose === "inside") return source !== "rootClose"
+      if (autoClose === "outside") return source !== "select"
+      return true
+    }
+    const toggle = qh.useEventCallback(
+      (nextShow: boolean, meta: ToggleMetadata) => {
+        if (
+          meta.originalEvent!.currentTarget === document &&
+          (meta.source !== "keydown" ||
+            (meta.originalEvent as any).key === "Escape")
+        )
+          meta.source = "rootClose"
+        if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta)
+      }
+    )
+    const alignEnd = align === "end"
+    const placement = getPlacement(alignEnd, drop, isRTL)
+    const v = qr.useMemo(
+      () => ({
+        align,
+        drop,
+        isRTL,
+      }),
+      [align, drop, isRTL]
+    )
+    return (
+      <Context.Provider value={v}>
+        <Base
+          placement={placement}
+          show={show}
+          onSelect={onSelect}
+          onToggle={toggle}
+          focusFirstItemOnShow={focusFirstItemOnShow}
+          itemSelector={`.${bs}-item:not(.disabled):not(:disabled)`}
+        >
+          {isInputGroup ? (
+            ps.children
+          ) : (
+            <X
+              {...ps}
+              ref={ref}
+              className={classNames(
+                className,
+                show && "show",
+                (!drop || drop === "down") && bs,
+                drop === "up" && "dropup",
+                drop === "end" && "dropend",
+                drop === "start" && "dropstart"
+              )}
+            />
+          )}
+        </Base>
+      </Context.Provider>
+    )
+  }
+)
 Dropdown.displayName = "Dropdown"
 Dropdown.defaultProps = {
   navbar: false,
@@ -374,7 +372,7 @@ export interface ButtonProps
   extends Omit<Props, "title">,
     PropsFromToggle,
     BsProps {
-  title: React.ReactNode
+  title: qr.ReactNode
   menuRole?: string
   renderMenuOnMount?: boolean
   rootCloseEvent?: "click" | "mousedown"
@@ -382,7 +380,7 @@ export interface ButtonProps
   flip?: boolean
 }
 
-export const Button: BsRef<"div", ButtonProps> = React.forwardRef<
+export const Button: BsRef<"div", ButtonProps> = qr.forwardRef<
   HTMLDivElement,
   ButtonProps
 >(
@@ -431,7 +429,7 @@ export const Button: BsRef<"div", ButtonProps> = React.forwardRef<
 Button.displayName = "DropdownButton"
 
 export interface NavProps extends Omit<Props, "title"> {
-  title: React.ReactNode
+  title: qr.ReactNode
   disabled?: boolean
   active?: boolean
   menuRole?: string
@@ -440,7 +438,7 @@ export interface NavProps extends Omit<Props, "title"> {
   menuVariant?: Variant
 }
 
-export const Nav: BsRef<"div", NavProps> = React.forwardRef(
+export const Nav: BsRef<"div", NavProps> = qr.forwardRef(
   (
     {
       id,

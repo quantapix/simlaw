@@ -1,5 +1,9 @@
 import type * as CSS from "csstype"
 
+export type HyphenProp = keyof CSS.PropertiesHyphen
+export type CamelProp = keyof CSS.Properties
+export type Property = HyphenProp | CamelProp
+
 function printWarning(format: any, ...xs: any[]) {
   let i = 0
   const m =
@@ -114,9 +118,9 @@ type AnimateProperties = Record<Property | TransformValue, string>
 interface Options {
   node: HTMLElement
   properties: AnimateProperties
-  duration?: number
-  easing?: string
-  callback?: EventHandler<"transitionend">
+  duration?: number | undefined
+  easing?: string | undefined
+  callback?: EventHandler<"transitionend"> | undefined
 }
 interface Cancel {
   cancel(): void
@@ -222,7 +226,7 @@ const vendors = ["", "webkit", "moz", "o", "ms"] as Vendor[]
 let cancelMethod = "clearTimeout"
 let rafImpl: RequestAnimationFrame = fallback
 const getKey = (vendor: Vendor, k: string) =>
-  `${vendor + (!vendor ? k : k[0].toUpperCase() + k.substr(1))}AnimationFrame`
+  `${vendor + (!vendor ? k : k[0]!.toUpperCase() + k.substr(1))}AnimationFrame`
 if (canUseDOM) {
   vendors.some(vendor => {
     const rafMethod = getKey(vendor, "request")
@@ -261,8 +265,8 @@ export function camelize(string: string): string {
 const msPattern = /^-ms-/
 export function camelizeStyleName<T extends string = Property>(
   string: T
-): CamelProperty {
-  return camelize(string.replace(msPattern, "ms-")) as CamelProperty
+): CamelProp {
+  return camelize(string.replace(msPattern, "ms-")) as CamelProp
 }
 export function childElements(node: Element | null): Element[] {
   return node ? Array.from(node.children) : []
@@ -341,11 +345,11 @@ export function css(
   node: HTMLElement,
   property: Partial<Record<Property, string>>
 ): void
-export function css<T extends HyphenProperty>(
+export function css<T extends HyphenProp>(
   node: HTMLElement,
   property: T
 ): CSS.PropertiesHyphen[T]
-export function css<T extends CamelProperty>(
+export function css<T extends CamelProp>(
   node: HTMLElement,
   property: T
 ): CSS.Properties[T]
@@ -431,7 +435,7 @@ export function hyphenate(string: string) {
 }
 const msPattern2 = /^ms-/
 export function hyphenateStyleName(string: Property): Property {
-  return hyphenate(string).replace(msPattern2, "-ms-") as HyphenProperty
+  return hyphenate(string).replace(msPattern2, "-ms-") as HyphenProp
 }
 export function insertAfter(
   node: Node | null,
@@ -550,15 +554,15 @@ export function getOffsetParent(node: HTMLElement): HTMLElement {
   }
   return (parent || doc.documentElement) as HTMLElement
 }
-export function ownerDocument(node?: Element) {
-  return (node && node.ownerDocument) || document
+export function ownerDocument(x?: Element) {
+  return (x && x.ownerDocument) || document
 }
-export function ownerWindow(node?: Element): Window {
-  const doc = ownerDocument(node)
+export function ownerWindow(x?: Element): Window {
+  const doc = ownerDocument(x)
   return (doc && doc.defaultView) || window
 }
-export function parents(node: Element | null): Element[] {
-  return collectElements(node, "parentElement")
+export function parents(x: Element | null): Element[] {
+  return collectElements(x, "parentElement")
 }
 const nodeName = (node: Element) => node.nodeName && node.nodeName.toLowerCase()
 export function position(node: HTMLElement, offsetParent?: HTMLElement) {
@@ -584,30 +588,30 @@ export function position(node: HTMLElement, offsetParent?: HTMLElement) {
   }
 }
 export function prepend(
-  node: Element | null,
+  x: Element | null,
   parent: Element | null
 ): Element | null {
-  if (node && parent) {
+  if (x && parent) {
     if (parent.firstElementChild) {
-      parent.insertBefore(node, parent.firstElementChild)
+      parent.insertBefore(x, parent.firstElementChild)
     } else {
-      parent.appendChild(node)
+      parent.appendChild(x)
     }
-    return node
+    return x
   }
   return null
 }
-const toArray = Function.prototype.bind.call(Function.prototype.call, [].slice)
+const toArray2 = Function.prototype.bind.call(Function.prototype.call, [].slice)
 export function qsa(
   element: HTMLElement | Document,
   selector: string
 ): HTMLElement[] {
-  return toArray(element.querySelectorAll(selector))
+  return toArray2(element.querySelectorAll(selector))
 }
-export function remove(node: Node | null): Node | null {
-  if (node && node.parentNode) {
-    node.parentNode.removeChild(node)
-    return node
+export function remove(x: Node | null): Node | null {
+  if (x && x.parentNode) {
+    x.parentNode.removeChild(x)
+    return x
   }
   return null
 }
@@ -617,55 +621,49 @@ function replaceClassName(origClass: string, classToRemove: string) {
     .replace(/\s+/g, " ")
     .replace(/^\s*|\s*$/g, "")
 }
-export function removeClass(element: Element | SVGElement, className: string) {
-  if (element.classList) {
-    element.classList.remove(className)
-  } else if (typeof element.className === "string") {
-    ;(element as Element).className = replaceClassName(
-      element.className,
-      className
-    )
+export function removeClass(x: Element | SVGElement, className: string) {
+  if (x.classList) {
+    x.classList.remove(className)
+  } else if (typeof x.className === "string") {
+    ;(x as Element).className = replaceClassName(x.className, className)
   } else {
-    element.setAttribute(
+    x.setAttribute(
       "class",
-      replaceClassName(
-        (element.className && element.className.baseVal) || "",
-        className
-      )
+      replaceClassName((x.className && x.className.baseVal) || "", className)
     )
   }
 }
 export function removeEventListener<K extends keyof HTMLElementEventMap>(
-  node: HTMLElement,
+  x: HTMLElement,
   eventName: K,
   handler: TaggedEventHandler<K>,
   options?: boolean | EventListenerOptions
 ) {
   const capture =
     options && typeof options !== "boolean" ? options.capture : options
-  node.removeEventListener(eventName, handler, capture)
+  x.removeEventListener(eventName, handler, capture)
   if (handler.__once) {
-    node.removeEventListener(eventName, handler.__once, capture)
+    x.removeEventListener(eventName, handler.__once, capture)
   }
 }
 export const scrollLeft = getScrollAccessor("pageXOffset")
-export function getScrollParent(element: HTMLElement, firstPossible?: boolean) {
-  const position = css(element, "position")
+export function getScrollParent(x: HTMLElement, firstPossible?: boolean) {
+  const position = css(x, "position")
   const excludeStatic = position === "absolute"
-  const ownerDoc = element.ownerDocument
+  const ownerDoc = x.ownerDocument
   if (position === "fixed") return ownerDoc || document
-  while ((element = element.parentNode) && !isDocument(element)) {
-    const isStatic = excludeStatic && css(element, "position") === "static"
+  while ((x = x.parentNode) && !isDocument(x)) {
+    const isStatic = excludeStatic && css(x, "position") === "static"
     const style =
-      (css(element, "overflow") || "") +
-      (css(element, "overflow-y") || "") +
-      css(element, "overflow-x")
+      (css(x, "overflow") || "") +
+      (css(x, "overflow-y") || "") +
+      css(x, "overflow-x")
     if (isStatic) continue
     if (
       /(auto|scroll)/.test(style) &&
-      (firstPossible || height(element) < element!.scrollHeight)
+      (firstPossible || height(x) < x!.scrollHeight)
     ) {
-      return element
+      return x
     }
   }
   return ownerDoc || document
@@ -804,10 +802,6 @@ export function triggerEvent<K extends keyof HTMLElementEventMap>(
     node.dispatchEvent(event)
   }
 }
-type Styles = keyof CSSStyleDeclaration
-export type HyphenProperty = keyof CSS.PropertiesHyphen
-export type CamelProperty = keyof CSS.Properties
-export type Property = HyphenProperty | CamelProperty
 export function getWidth(node: HTMLElement, client?: boolean) {
   const win = isWindow(node)
   return win

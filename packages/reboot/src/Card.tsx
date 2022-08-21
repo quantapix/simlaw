@@ -1,27 +1,24 @@
-import * as React from "react"
-import { useMemo } from "react"
-import type { Color, Variant } from "./types.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
 import { divAs, withBs } from "./utils.jsx"
 import { useBs } from "./Theme.jsx"
+import * as qr from "react"
+import type { Color, Variant } from "./types.jsx"
 
 interface Data {
   headerBs: string
 }
 
-export const Context = React.createContext<Data | null>(null)
+export const Context = qr.createContext<Data | null>(null)
 Context.displayName = "CardHeaderContext"
 
-export interface HeaderProps
-  extends BsProps,
-    React.HTMLAttributes<HTMLElement> {}
+export interface HeaderProps extends BsProps, qr.HTMLAttributes<HTMLElement> {}
 
-export const Header: BsRef<"div", HeaderProps> = React.forwardRef<
+export const Header: BsRef<"div", HeaderProps> = qr.forwardRef<
   HTMLElement,
   HeaderProps
 >(({ bsPrefix, className, as: X = "div", ...ps }, ref) => {
   const bs = useBs(bsPrefix, "card-header")
-  const v = useMemo(
+  const v = qr.useMemo(
     () => ({
       headerBs: bs,
     }),
@@ -36,14 +33,17 @@ export const Header: BsRef<"div", HeaderProps> = React.forwardRef<
 Header.displayName = "CardHeader"
 
 export const Body = withBs("card-body")
+
 const DivAsH5 = divAs("h5")
 export const Title = withBs("card-title", {
   Component: DivAsH5,
 })
+
 const DivAsH6 = divAs("h6")
 export const Subtitle = withBs("card-subtitle", {
   Component: DivAsH6,
 })
+
 export const Link = withBs("card-link", { Component: "a" })
 export const Text = withBs("card-text", { Component: "p" })
 export const Footer = withBs("card-footer")
@@ -51,11 +51,11 @@ export const ImgOverlay = withBs("card-img-overlay")
 
 export interface ImgProps
   extends BsProps,
-    React.ImgHTMLAttributes<HTMLImageElement> {
+    qr.ImgHTMLAttributes<HTMLImageElement> {
   variant?: "top" | "bottom" | string
 }
 
-export const Img: BsRef<"img", ImgProps> = React.forwardRef(
+export const Img: BsRef<"img", ImgProps> = qr.forwardRef(
   ({ bsPrefix, className, variant, as: X = "img", ...ps }: ImgProps, ref) => {
     const bs = useBs(bsPrefix, "card-img")
     return (
@@ -71,14 +71,14 @@ Img.displayName = "CardImg"
 
 export const Group = withBs("card-group")
 
-export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
   bg?: Variant
   text?: Color
   border?: Variant
   body?: boolean
 }
 
-export const Card: BsRef<"div", Props> = React.forwardRef<HTMLElement, Props>(
+export const Card: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
   (
     {
       bsPrefix,

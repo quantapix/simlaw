@@ -1,33 +1,19 @@
-import * as React from "react"
-import {
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
-import {
-  useEventCallback,
-  useCommittedRef,
-  useTimeout,
-  useUpdateEffect,
-  useUncontrolled,
-} from "./hooks.js"
 import { Anchor } from "./base/Anchor.jsx"
-import type { TransitionStatus } from "react-transition-group"
-import { map, forEach, triggerReflow, withBs, endListener } from "./utils.jsx"
-import { useBs, useIsRTL } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
+import { useBs, useIsRTL } from "./Theme.jsx"
 import { Wrapper } from "./Transition.jsx"
+import * as qh from "./hooks.js"
+import * as qr from "react"
+import * as qu from "./utils.jsx"
+import type { TransitionStatus } from "react-transition-group"
 
-export const Caption = withBs("carousel-caption")
+export const Caption = qu.withBs("carousel-caption")
 
-export interface ItemProps extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface ItemProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
   interval?: number
 }
 
-export const Item: BsRef<"div", ItemProps> = React.forwardRef<
+export const Item: BsRef<"div", ItemProps> = qr.forwardRef<
   HTMLElement,
   ItemProps
 >(({ as: X = "div", bsPrefix, className, ...ps }, ref) => {
@@ -39,14 +25,14 @@ Item.displayName = "CarouselItem"
 export type Variant = "dark" | string
 
 export interface Ref {
-  element?: HTMLElement
-  prev: (e?: React.SyntheticEvent) => void
-  next: (e?: React.SyntheticEvent) => void
+  element?: HTMLElement | undefined
+  prev: (e?: qr.SyntheticEvent) => void
+  next: (e?: qr.SyntheticEvent) => void
 }
 
 export interface Props
   extends BsProps,
-    Omit<React.HTMLAttributes<HTMLElement>, "onSelect"> {
+    Omit<qr.HTMLAttributes<HTMLElement>, "onSelect"> {
   slide?: boolean
   fade?: boolean
   controls?: boolean
@@ -59,20 +45,20 @@ export interface Props
   onSlid?: (eventKey: number, direction: "start" | "end") => void
   interval?: number | null
   keyboard?: boolean
-  pause?: "hover" | false
+  pause?: "hover" | false | undefined
   wrap?: boolean
   touch?: boolean
-  prevIcon?: React.ReactNode
-  prevLabel?: React.ReactNode
-  nextIcon?: React.ReactNode
-  nextLabel?: React.ReactNode
-  ref?: React.Ref<Ref> | undefined
+  prevIcon?: qr.ReactNode
+  prevLabel?: qr.ReactNode
+  nextIcon?: qr.ReactNode
+  nextLabel?: qr.ReactNode
+  ref?: qr.Ref<Ref> | undefined
   variant?: Variant
 }
 
 const SWIPE_THRESHOLD = 40
 
-function isVisible(x) {
+function isVisible(x: any) {
   if (!x || !x.style || !x.parentNode || !x.parentNode.style) {
     return false
   }
@@ -84,7 +70,7 @@ function isVisible(x) {
   )
 }
 
-export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
+export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
   (xs, ref) => {
     const {
       as: X = "div",
@@ -117,17 +103,17 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       className,
       children,
       ...ps
-    } = useUncontrolled(xs, {
+    } = qh.useUncontrolled(xs, {
       activeIndex: "onSelect",
     })
     const bs = useBs(bsPrefix, "carousel")
     const isRTL = useIsRTL()
-    const nextRef = useRef<string | null>(null)
-    const [direction, setDirection] = useState("next")
-    const [paused, setPaused] = useState(false)
-    const [isSliding, setIsSliding] = useState(false)
-    const [renderedIdx, setRenderedIdx] = useState<number>(activeIndex || 0)
-    useEffect(() => {
+    const nextRef = qr.useRef<string | null>(null)
+    const [direction, setDirection] = qr.useState("next")
+    const [paused, setPaused] = qr.useState(false)
+    const [isSliding, setIsSliding] = qr.useState(false)
+    const [renderedIdx, setRenderedIdx] = qr.useState<number>(activeIndex || 0)
+    qr.useEffect(() => {
       if (!isSliding && activeIndex !== renderedIdx) {
         if (nextRef.current) {
           setDirection(nextRef.current)
@@ -140,58 +126,58 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
         setRenderedIdx(activeIndex || 0)
       }
     }, [activeIndex, isSliding, renderedIdx, slide])
-    useEffect(() => {
+    qr.useEffect(() => {
       if (nextRef.current) {
         nextRef.current = null
       }
     })
-    let numChildren = 0
-    let activeChildInterval: number | undefined
-    forEach(children, (x, i) => {
-      ++numChildren
+    let n = 0
+    let activeInterval: number | undefined
+    qu.forEach(children, (x, i) => {
+      ++n
       if (i === activeIndex) {
-        activeChildInterval = x.props.interval as number | undefined
+        activeInterval = x.props.interval as number | undefined
       }
     })
-    const activeChildIntervalRef = useCommittedRef(activeChildInterval)
-    const prev = useCallback(
-      (e: any) => {
+    const activeChildIntervalRef = qh.useCommittedRef(activeInterval)
+    const prev = qr.useCallback(
+      (e?: any) => {
         if (isSliding) {
           return
         }
-        let nextActiveIndex = renderedIdx - 1
-        if (nextActiveIndex < 0) {
+        let i = renderedIdx - 1
+        if (i < 0) {
           if (!wrap) {
             return
           }
-          nextActiveIndex = numChildren - 1
+          i = n - 1
         }
         nextRef.current = "prev"
-        onSelect?.(nextActiveIndex, e)
+        onSelect?.(i, e)
       },
-      [isSliding, renderedIdx, onSelect, wrap, numChildren]
+      [isSliding, renderedIdx, onSelect, wrap, n]
     )
-    const next = useEventCallback((e?) => {
+    const next = qh.useEventCallback((e?) => {
       if (isSliding) {
         return
       }
-      let nextActiveIndex = renderedIdx + 1
-      if (nextActiveIndex >= numChildren) {
+      let i = renderedIdx + 1
+      if (i >= n) {
         if (!wrap) {
           return
         }
-        nextActiveIndex = 0
+        i = 0
       }
       nextRef.current = "next"
-      onSelect?.(nextActiveIndex, e)
+      onSelect?.(i, e)
     })
-    const elementRef = useRef<HTMLElement>()
-    useImperativeHandle(ref, () => ({
+    const elementRef = qr.useRef<HTMLElement>()
+    qr.useImperativeHandle(ref, () => ({
       element: elementRef.current,
       prev,
       next,
     }))
-    const nextWhenVisible = useEventCallback(() => {
+    const nextWhenVisible = qh.useEventCallback(() => {
       if (!document.hidden && isVisible(elementRef.current)) {
         if (isRTL) {
           prev()
@@ -201,7 +187,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       }
     })
     const slideDirection = direction === "next" ? "start" : "end"
-    useUpdateEffect(() => {
+    qh.useUpdateEffect(() => {
       if (slide) {
         return
       }
@@ -210,18 +196,18 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
     }, [renderedIdx])
     const orderClassName = `${bs}-item-${direction}`
     const directionalClassName = `${bs}-item-${slideDirection}`
-    const enter = useCallback(
+    const enter = qr.useCallback(
       (x: HTMLElement) => {
-        triggerReflow(x)
+        qu.triggerReflow(x)
         onSlide?.(renderedIdx, slideDirection)
       },
       [onSlide, renderedIdx, slideDirection]
     )
-    const entered = useCallback(() => {
+    const entered = qr.useCallback(() => {
       setIsSliding(false)
       onSlid?.(renderedIdx, slideDirection)
     }, [onSlid, renderedIdx, slideDirection])
-    const keyDown = useCallback(
+    const keyDown = qr.useCallback(
       (e: any) => {
         if (keyboard && !/input|textarea/i.test(e.target.tagName)) {
           switch (e.key) {
@@ -248,7 +234,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       },
       [keyboard, onKeyDown, prev, next, isRTL]
     )
-    const mouseOver = useCallback(
+    const mouseOver = qr.useCallback(
       (e: any) => {
         if (pause === "hover") {
           setPaused(true)
@@ -257,17 +243,17 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       },
       [pause, onMouseOver]
     )
-    const mouseOut = useCallback(
+    const mouseOut = qr.useCallback(
       (e: any) => {
         setPaused(false)
         onMouseOut?.(e)
       },
       [onMouseOut]
     )
-    const touchStartXRef = useRef(0)
-    const touchDeltaXRef = useRef(0)
-    const touchUnpauseTimeout = useTimeout()
-    const touchStart = useCallback(
+    const touchStartXRef = qr.useRef(0)
+    const touchDeltaXRef = qr.useRef(0)
+    const touchUnpauseTimeout = qh.useTimeout()
+    const touchStart = qr.useCallback(
       (e: any) => {
         touchStartXRef.current = e.touches[0].clientX
         touchDeltaXRef.current = 0
@@ -278,7 +264,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       },
       [pause, onTouchStart]
     )
-    const touchMove = useCallback(
+    const touchMove = qr.useCallback(
       (e: any) => {
         if (e.touches && e.touches.length > 1) {
           touchDeltaXRef.current = 0
@@ -289,7 +275,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       },
       [onTouchMove]
     )
-    const touchEnd = useCallback(
+    const touchEnd = qr.useCallback(
       (e: any) => {
         if (touch) {
           const touchDeltaX = touchDeltaXRef.current
@@ -311,8 +297,8 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       [touch, pause, prev, next, touchUnpauseTimeout, interval, onTouchEnd]
     )
     const shouldPlay = interval != null && !paused && !isSliding
-    const intervalHandleRef = useRef<number | null>()
-    useEffect(() => {
+    const intervalHandleRef = qr.useRef<number | null>()
+    qr.useEffect(() => {
       if (!shouldPlay) {
         return undefined
       }
@@ -335,13 +321,13 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       nextWhenVisible,
       isRTL,
     ])
-    const onClicks = useMemo(
+    const onClicks = qr.useMemo(
       () =>
         indicators &&
-        Array.from({ length: numChildren }, (_, index) => event => {
-          onSelect?.(index, event)
+        Array.from({ length: n }, (_, index) => (e: any) => {
+          onSelect?.(index, e)
         }),
-      [indicators, numChildren, onSelect]
+      [indicators, n, onSelect]
     )
     return (
       <X
@@ -363,7 +349,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
       >
         {indicators && (
           <div className={`${bs}-indicators`}>
-            {map(children, (_, i) => (
+            {qu.map(children, (_, i) => (
               <button
                 key={i}
                 type="button"
@@ -381,20 +367,20 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
           </div>
         )}
         <div className={`${bs}-inner`}>
-          {map(children, (x, i) => {
+          {qu.map(children, (x, i) => {
             const isActive = i === renderedIdx
             return slide ? (
               <Wrapper
                 in={isActive}
                 onEnter={isActive ? enter : undefined}
                 onEntered={isActive ? entered : undefined}
-                addEndListener={endListener}
+                addEndListener={qu.endListener}
               >
                 {(
                   status: TransitionStatus,
                   innerProps: Record<string, unknown>
                 ) =>
-                  React.cloneElement(x, {
+                  qr.cloneElement(x, {
                     ...innerProps,
                     className: classNames(
                       x.props.className,
@@ -408,7 +394,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
                 }
               </Wrapper>
             ) : (
-              React.cloneElement(x, {
+              qr.cloneElement(x, {
                 className: classNames(x.props.className, isActive && "active"),
               })
             )
@@ -424,7 +410,7 @@ export const Carousel: BsRef<"div", Props> = React.forwardRef<Ref, Props>(
                 )}
               </Anchor>
             )}
-            {(wrap || activeIndex !== numChildren - 1) && (
+            {(wrap || activeIndex !== n - 1) && (
               <Anchor className={`${bs}-control-next`} onClick={next}>
                 {nextIcon}
                 {nextLabel && (

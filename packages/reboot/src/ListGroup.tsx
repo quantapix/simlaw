@@ -1,16 +1,16 @@
-import * as qr from "react"
-import { warning } from "./base/utils.js"
+import { classNames, BsProps, BsRef } from "./helpers.js"
 import { EventKey, makeEventKey } from "./base/types.js"
+import { useBs } from "./Theme.jsx"
 import { useEventCallback, useUncontrolled } from "./hooks.js"
+import { warning } from "./base/utils.js"
+import * as qr from "react"
+import type { Variant } from "./types.jsx"
 import {
   Nav as Base,
   Props as BaseProps,
   useNavItem,
   ItemProps as IPs,
 } from "./base/Nav.jsx"
-import { classNames, BsProps, BsRef } from "./helpers.js"
-import { useBs } from "./Theme.jsx"
-import type { Variant } from "./types.jsx"
 
 export interface ItemProps extends Omit<IPs, "onSelect">, BsProps {
   action?: boolean

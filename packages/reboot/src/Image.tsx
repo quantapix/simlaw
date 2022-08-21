@@ -1,32 +1,32 @@
-import * as React from "react"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsOnlyProps } from "./helpers.js"
+import { useBs } from "./Theme.jsx"
+import * as qr from "react"
 
 export interface Props
   extends BsOnlyProps,
-    React.ImgHTMLAttributes<HTMLImageElement> {
+    qr.ImgHTMLAttributes<HTMLImageElement> {
   fluid?: boolean
   rounded?: boolean
   roundedCircle?: boolean
   thumbnail?: boolean
 }
 
-export const Image = React.forwardRef<HTMLImageElement, Props>(
+export const Image = qr.forwardRef<HTMLImageElement, Props>(
   (
     { bsPrefix, className, fluid, rounded, roundedCircle, thumbnail, ...ps },
     ref
   ) => {
-    bsPrefix = useBs(bsPrefix, "img")
+    const bs = useBs(bsPrefix, "img")
     return (
       <img
         ref={ref}
         {...ps}
         className={classNames(
           className,
-          fluid && `${bsPrefix}-fluid`,
+          fluid && `${bs}-fluid`,
           rounded && `rounded`,
           roundedCircle && `rounded-circle`,
-          thumbnail && `${bsPrefix}-thumbnail`
+          thumbnail && `${bs}-thumbnail`
         )}
       />
     )

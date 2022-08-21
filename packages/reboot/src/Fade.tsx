@@ -1,10 +1,9 @@
 import { classNames } from "./helpers.js"
-import * as React from "react"
-import { useCallback } from "react"
-import type { TransitionStatus, Transition } from "react-transition-group"
-import type { TransitionCBs } from "./base/types.jsx"
-import * as qu from "./utils.jsx"
 import { Wrapper } from "./Transition.jsx"
+import * as qr from "react"
+import * as qu from "./utils.jsx"
+import type { TransitionCBs } from "./base/types.jsx"
+import type { TransitionStatus, Transition } from "react-transition-group"
 
 export interface Props extends TransitionCBs {
   className?: string
@@ -13,7 +12,7 @@ export interface Props extends TransitionCBs {
   unmountOnExit?: boolean
   appear?: boolean
   timeout?: number
-  children: React.ReactElement
+  children: qr.ReactElement
   transitionClasses?: Record<string, string>
 }
 
@@ -25,9 +24,9 @@ const styles = {
   [qu.UNMOUNTED]: "",
 }
 
-export const Fade = React.forwardRef<Transition<any>, Props>(
+export const Fade = qr.forwardRef<Transition<any>, Props>(
   ({ className, children, transitionClasses = {}, ...ps }, ref) => {
-    const enter = useCallback(
+    const enter = qr.useCallback(
       (x: HTMLElement, isAppearing: boolean) => {
         qu.triggerReflow(x)
         ps.onEnter?.(x, isAppearing)
@@ -43,7 +42,7 @@ export const Fade = React.forwardRef<Transition<any>, Props>(
         childRef={(children as any).ref}
       >
         {(status: TransitionStatus, ps2: Record<string, unknown>) =>
-          React.cloneElement(children, {
+          qr.cloneElement(children, {
             ...ps2,
             className: classNames(
               "fade",

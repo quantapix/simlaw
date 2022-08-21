@@ -1,10 +1,10 @@
-import * as React from "react"
 import type { TransitionComponent } from "./base/types.js"
+import * as qr from "react"
 
 export type Omit<T, U> = Pick<T, Exclude<keyof T, keyof U>>
 
-export type ReplaceProps<T extends React.ElementType, P> = Omit<
-  React.ComponentPropsWithRef<T>,
+export type ReplaceProps<T extends qr.ElementType, P> = Omit<
+  qr.ComponentPropsWithRef<T>,
   P
 > &
   P
@@ -13,33 +13,32 @@ export interface BsOnlyProps {
   bsPrefix?: string
 }
 
-export interface AsProp<T extends React.ElementType = React.ElementType> {
+export interface AsProp<T extends qr.ElementType = qr.ElementType> {
   as?: T
 }
 
-export interface BsProps<T extends React.ElementType = React.ElementType>
+export interface BsProps<T extends qr.ElementType = qr.ElementType>
   extends BsOnlyProps,
     AsProp<T> {}
 
-export interface BsRef<T0 extends React.ElementType, P = unknown> {
-  <T extends React.ElementType = T0>(
-    props: React.PropsWithChildren<ReplaceProps<T, BsProps<T> & P>>,
+export interface BsRef<T0 extends qr.ElementType, P = unknown> {
+  <T extends qr.ElementType = T0>(
+    props: qr.PropsWithChildren<ReplaceProps<T, BsProps<T> & P>>,
     context?: any
-  ): React.ReactElement | null
+  ): qr.ReactElement | null
   contextTypes?: any
   defaultProps?: Partial<P> | undefined
   displayName?: string | undefined
 }
 
-export class BsComp<
-  T extends React.ElementType,
-  P = unknown
-> extends React.Component<ReplaceProps<T, BsProps<T> & P>> {}
+export class BsComp<T extends qr.ElementType, P = unknown> extends qr.Component<
+  ReplaceProps<T, BsProps<T> & P>
+> {}
 
 export type BsCompClass<
-  As extends React.ElementType,
+  As extends qr.ElementType,
   P = unknown
-> = React.ComponentClass<ReplaceProps<As, BsProps<As> & P>>
+> = qr.ComponentClass<ReplaceProps<As, BsProps<As> & P>>
 
 export type TransitionType = boolean | TransitionComponent
 

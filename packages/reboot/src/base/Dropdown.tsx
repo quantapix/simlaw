@@ -29,20 +29,14 @@ export interface ItemProps extends qr.HTMLAttributes<HTMLElement> {
 }
 
 interface ItemOpts {
-  key?: qt.EventKey | null
-  href?: string
-  active?: boolean
-  disabled?: boolean
-  onClick?: qr.MouseEventHandler
+  key?: qt.EventKey | null | undefined
+  href?: string | undefined
+  active?: boolean | undefined
+  disabled?: boolean | undefined
+  onClick?: qr.MouseEventHandler | undefined
 }
 
-export function useDropdownItem({
-  key,
-  href,
-  active,
-  disabled,
-  onClick,
-}: ItemOpts) {
+export function useItem({ key, href, active, disabled, onClick }: ItemOpts) {
   const onSelectCtx = qr.useContext(qt.Selectable)
   const navContext = qr.useContext(NavContext)
   const { activeKey } = navContext || {}
@@ -82,7 +76,7 @@ export const Item: qt.DynamicRefForwardingComponent<typeof Button, ItemProps> =
       }: ItemProps,
       ref
     ) => {
-      const [dropdownItemProps] = useDropdownItem({
+      const [dropdownItemProps] = useItem({
         key: eventKey,
         href: props.href,
         disabled,
@@ -95,18 +89,18 @@ export const Item: qt.DynamicRefForwardingComponent<typeof Button, ItemProps> =
 Item.displayName = "DropdownItem"
 
 export interface MenuOpts {
-  flip?: boolean
+  flip?: boolean | undefined
   show?: boolean
   fixed?: boolean
   placement?: qp.Placement
   usePopper?: boolean
   enableEventListeners?: boolean
-  offset?: qp.Offset
+  offset?: qp.Offset | undefined
   rootCloseEvent?: qu.ClickOutsideOptions["clickTrigger"]
   popperConfig?: Omit<qp.UseOptions, "enabled" | "placement">
 }
 
-export type UserDropdownMenuProps = Record<string, any> & {
+export type UseMenuProps = Record<string, any> & {
   ref: qr.RefCallback<HTMLElement>
   style?: qr.CSSProperties
   "aria-labelledby"?: string
@@ -126,7 +120,7 @@ export interface MenuMeta {
   arrowProps: Partial<ArrowProps>
 }
 
-export function useDropdownMenu(options: MenuOpts = {}) {
+export function useMenu(options: MenuOpts = {}) {
   const context = qr.useContext(Context)
   const [arrowElement, attachArrowRef] = qh.useCallbackRef<Element>()
   const hasShownRef = qr.useRef(false)
@@ -162,7 +156,7 @@ export function useDropdownMenu(options: MenuOpts = {}) {
       popperConfig,
     })
   )
-  const menuProps: UserDropdownMenuProps = {
+  const menuProps: UseMenuProps = {
     ref: setMenu || qh.noop,
     "aria-labelledby": toggleElement?.id,
     ...popper.attributes.popper,
@@ -190,11 +184,11 @@ export function useDropdownMenu(options: MenuOpts = {}) {
 }
 
 export interface MenuProps extends MenuOpts {
-  children: (props: UserDropdownMenuProps, meta: MenuMeta) => qr.ReactNode
+  children: (props: UseMenuProps, meta: MenuMeta) => qr.ReactNode
 }
 
 export function Menu({ children, ...options }: MenuProps) {
-  const [props, meta] = useDropdownMenu(options)
+  const [props, meta] = useMenu(options)
   return <>{children(props, meta)}</>
 }
 Menu.displayName = "DropdownMenu"
@@ -218,7 +212,7 @@ export interface ToggleMeta {
   toggle: Data["toggle"]
 }
 
-export function useDropdownToggle(): [UseToggleProps, ToggleMeta] {
+export function useToggle(): [UseToggleProps, ToggleMeta] {
   const id = useSSRSafeId()
   const {
     show = false,
@@ -249,7 +243,7 @@ export interface ToggleProps {
 }
 
 export function Toggle({ children }: ToggleProps) {
-  const [props, meta] = useDropdownToggle()
+  const [props, meta] = useToggle()
   return <>{children(props, meta)}</>
 }
 Toggle.displayName = "DropdownToggle"

@@ -1,8 +1,8 @@
-import * as React from "react"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
-import type { ButtonVariant } from "./types.jsx"
 import { Props as BaseProps, useButtonProps } from "./base/Button.jsx"
+import { useBs } from "./Theme.jsx"
+import * as qr from "react"
+import type { ButtonVariant } from "./types.jsx"
 
 export interface Props extends BaseProps, Omit<BsProps, "as"> {
   active?: boolean | undefined
@@ -10,13 +10,13 @@ export interface Props extends BaseProps, Omit<BsProps, "as"> {
   size?: "sm" | "lg"
 }
 
-export const Button: BsRef<"button", Props> = React.forwardRef<
+export const Button: BsRef<"button", Props> = qr.forwardRef<
   HTMLButtonElement,
   Props
 >(({ as, bsPrefix, variant, size, active, className, ...ps }, ref) => {
   const bs = useBs(bsPrefix, "btn")
   const [bps, { tagName }] = useButtonProps({ tagName: as, ...ps })
-  const X = tagName as React.ElementType
+  const X = tagName as qr.ElementType
   return (
     <X
       {...bps}
@@ -42,12 +42,11 @@ Button.defaultProps = {
 
 export type Variant = "white" | string
 
-export interface CloseProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface CloseProps extends qr.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant | undefined
 }
 
-export const Close = React.forwardRef<HTMLButtonElement, CloseProps>(
+export const Close = qr.forwardRef<HTMLButtonElement, CloseProps>(
   ({ className, variant, ...ps }, ref) => (
     <button
       ref={ref}
@@ -66,12 +65,12 @@ Close.defaultProps = {
   "aria-label": "Close",
 }
 
-export interface GroupProps extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface GroupProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
   size?: "sm" | "lg"
   vertical?: boolean
 }
 
-export const Group: BsRef<"div", GroupProps> = React.forwardRef(
+export const Group: BsRef<"div", GroupProps> = qr.forwardRef(
   (
     { bsPrefix, size, vertical, className, as: X = "div", ...ps }: GroupProps,
     ref
@@ -94,11 +93,9 @@ Group.defaultProps = {
   role: "group",
 }
 
-export interface ToolbarProps
-  extends BsProps,
-    React.HTMLAttributes<HTMLElement> {}
+export interface ToolbarProps extends BsProps, qr.HTMLAttributes<HTMLElement> {}
 
-export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
+export const Toolbar = qr.forwardRef<HTMLDivElement, ToolbarProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
     const bs = useBs(bsPrefix, "btn-toolbar")
     return <div {...ps} ref={ref} className={classNames(className, bs)} />

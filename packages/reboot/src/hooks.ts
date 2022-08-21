@@ -1,13 +1,5 @@
-import { useCallback, useRef, useEffect, useState, EffectCallback } from "react"
-import type { DependencyList } from "react"
-import type React from "react"
-import { useLayoutEffect } from "react"
-import { useReducer, Reducer } from "react"
-import { MutableRefObject, useMemo } from "react"
-import type { SyntheticEvent } from "react"
-import type { Dispatch, SetStateAction } from "react"
 import { dequal } from "dequal"
-import { useDebugValue } from "react"
+import * as qr from "react"
 
 export const noop = () => {}
 
@@ -53,7 +45,7 @@ export interface UseAnimationFrameReturn {
 
 export function useAnimationFrame(): UseAnimationFrameReturn {
   const isMounted = useMounted()
-  const handle = useRef<number | undefined>()
+  const handle = qr.useRef<number | undefined>()
   const cancel = () => {
     if (handle.current != null) {
       cancelAnimationFrame(handle.current)
@@ -138,7 +130,7 @@ export function createBreakpointHook<TKey extends string>(
         BreakpointDirection
       >
     }
-    const query = useMemo(
+    const query = qr.useMemo(
       () =>
         Object.entries(breakpointMap).reduce(
           (query, [key, direction]: [TKey, BreakpointDirection]) => {
@@ -176,59 +168,64 @@ export function useCallbackRef<TValue = unknown>(): [
   TValue | null,
   (ref: TValue | null) => void
 ] {
-  return useState<TValue | null>(null)
+  return qr.useState<TValue | null>(null)
 }
 
 export function useCommittedRef<TValue>(
   value: TValue
-): React.MutableRefObject<TValue> {
-  const ref = useRef(value)
-  useEffect(() => {
+): qr.MutableRefObject<TValue> {
+  const ref = qr.useRef(value)
+  qr.useEffect(() => {
     ref.current = value
   }, [value])
   return ref
 }
 
-export type EffectHook = (effect: EffectCallback, deps?: DependencyList) => void
+export type EffectHook = (
+  effect: qr.EffectCallback,
+  deps?: qr.DependencyList
+) => void
 
-export type IsEqual<TDeps extends DependencyList> = (
+export type IsEqual<TDeps extends qr.DependencyList> = (
   nextDeps: TDeps,
   prevDeps: TDeps
 ) => boolean
 
-export type CustomEffectOptions<TDeps extends DependencyList> = {
+export type CustomEffectOptions<TDeps extends qr.DependencyList> = {
   isEqual: IsEqual<TDeps>
   effectHook?: EffectHook
 }
 
 type CleanUp = {
   (): void
-  cleanup?: ReturnType<EffectCallback>
+  cleanup?: ReturnType<qr.EffectCallback>
 }
 
-export function useCustomEffect<TDeps extends DependencyList = DependencyList>(
-  effect: EffectCallback,
-  dependencies: TDeps,
-  isEqual: IsEqual<TDeps>
-): void
-export function useCustomEffect<TDeps extends DependencyList = DependencyList>(
-  effect: EffectCallback,
+export function useCustomEffect<
+  TDeps extends qr.DependencyList = qr.DependencyList
+>(effect: qr.EffectCallback, dependencies: TDeps, isEqual: IsEqual<TDeps>): void
+export function useCustomEffect<
+  TDeps extends qr.DependencyList = qr.DependencyList
+>(
+  effect: qr.EffectCallback,
   dependencies: TDeps,
   options: CustomEffectOptions<TDeps>
 ): void
-export function useCustomEffect<TDeps extends DependencyList = DependencyList>(
-  effect: EffectCallback,
+export function useCustomEffect<
+  TDeps extends qr.DependencyList = qr.DependencyList
+>(
+  effect: qr.EffectCallback,
   dependencies: TDeps,
   isEqualOrOptions: IsEqual<TDeps> | CustomEffectOptions<TDeps>
 ) {
   const isMounted = useMounted()
-  const { isEqual, effectHook = useEffect } =
+  const { isEqual, effectHook = qr.useEffect } =
     typeof isEqualOrOptions === "function"
       ? { isEqual: isEqualOrOptions }
       : isEqualOrOptions
-  const dependenciesRef = useRef<TDeps>()
+  const dependenciesRef = qr.useRef<TDeps>()
   dependenciesRef.current = dependencies
-  const cleanupRef = useRef<CleanUp | null>(null)
+  const cleanupRef = qr.useRef<CleanUp | null>(null)
   effectHook(() => {
     if (cleanupRef.current === null) {
       const cleanup = effect()
@@ -242,7 +239,7 @@ export function useCustomEffect<TDeps extends DependencyList = DependencyList>(
     }
     return cleanupRef.current
   })
-  useDebugValue(effect)
+  qr.useDebugValue(effect)
 }
 
 export function useDebouncedCallback<TCallback extends (...args: any[]) => any>(
@@ -250,7 +247,7 @@ export function useDebouncedCallback<TCallback extends (...args: any[]) => any>(
   delay: number
 ): TCallback {
   const timeout = useTimeout()
-  return useCallback(
+  return qr.useCallback(
     (...args: any[]) => {
       timeout.set(() => {
         fn(...args)
@@ -263,12 +260,11 @@ export function useDebouncedCallback<TCallback extends (...args: any[]) => any>(
 export function useDebouncedState<T>(
   initialState: T,
   delay: number
-): [T, Dispatch<SetStateAction<T>>] {
-  const [state, setState] = useState(initialState)
-  const debouncedSetState = useDebouncedCallback<Dispatch<SetStateAction<T>>>(
-    setState,
-    delay
-  )
+): [T, qr.Dispatch<qr.SetStateAction<T>>] {
+  const [state, setState] = qr.useState(initialState)
+  const debouncedSetState = useDebouncedCallback<
+    qr.Dispatch<qr.SetStateAction<T>>
+  >(setState, delay)
   return [state, debouncedSetState]
 }
 
@@ -277,8 +273,8 @@ export function useDebouncedValue<TValue>(
   delayMs = 500
 ): TValue {
   const [debouncedValue, setDebouncedValue] = useDebouncedState(value, delayMs)
-  useDebugValue(debouncedValue)
-  useEffect(() => {
+  qr.useDebugValue(debouncedValue)
+  qr.useEffect(() => {
     setDebouncedValue(value)
   }, [value, delayMs])
   return debouncedValue
@@ -288,7 +284,7 @@ export function useEventCallback<TCallback extends (...args: any[]) => any>(
   fn?: TCallback | null
 ): TCallback {
   const ref = useCommittedRef(fn)
-  return useCallback(
+  return qr.useCallback(
     function (...args: any[]) {
       return ref.current && ref.current(...args)
     },
@@ -311,7 +307,7 @@ export function useEventListener<
   capture: boolean | AddEventListenerOptions = false
 ) {
   const handler = useEventCallback(listener)
-  useEffect(() => {
+  qr.useEffect(() => {
     const target =
       typeof eventTarget === "function" ? eventTarget() : eventTarget
     target.addEventListener(event, handler, capture)
@@ -320,9 +316,9 @@ export function useEventListener<
 }
 
 export interface FocusManagerOptions {
-  willHandle?(focused: boolean, event: React.FocusEvent): boolean | void
-  didHandle?(focused: boolean, event: React.FocusEvent): void
-  onChange?(focused: boolean, event: React.FocusEvent): void
+  willHandle?(focused: boolean, event: qr.FocusEvent): boolean | void
+  didHandle?(focused: boolean, event: qr.FocusEvent): void
+  onChange?(focused: boolean, event: qr.FocusEvent): void
   isDisabled: () => boolean
 }
 
@@ -333,14 +329,14 @@ export interface FocusController {
 
 export function useFocusManager(opts: FocusManagerOptions): FocusController {
   const isMounted = useMounted()
-  const lastFocused = useRef<boolean | undefined>()
-  const handle = useRef<number | undefined>()
+  const lastFocused = qr.useRef<boolean | undefined>()
+  const handle = qr.useRef<number | undefined>()
   const willHandle = useEventCallback(opts.willHandle)
   const didHandle = useEventCallback(opts.didHandle)
   const onChange = useEventCallback(opts.onChange)
   const isDisabled = useEventCallback(opts.isDisabled)
-  const handleFocusChange = useCallback(
-    (focused: boolean, event: React.FocusEvent) => {
+  const handleFocusChange = qr.useCallback(
+    (focused: boolean, event: qr.FocusEvent) => {
       if (event && event.persist) event.persist()
       if (willHandle && willHandle(focused, event) === false) return
       clearTimeout(handle.current)
@@ -356,19 +352,19 @@ export function useFocusManager(opts: FocusManagerOptions): FocusController {
     },
     [isMounted, willHandle, didHandle, onChange, lastFocused]
   )
-  const handleBlur = useCallback(
+  const handleBlur = qr.useCallback(
     (event: any) => {
       if (!isDisabled()) handleFocusChange(false, event)
     },
     [handleFocusChange, isDisabled]
   )
-  const handleFocus = useCallback(
+  const handleFocus = qr.useCallback(
     (event: any) => {
       if (!isDisabled()) handleFocusChange(true, event)
     },
     [handleFocusChange, isDisabled]
   )
-  return useMemo(
+  return qr.useMemo(
     () => ({
       onBlur: handleBlur,
       onFocus: handleFocus,
@@ -378,7 +374,7 @@ export function useFocusManager(opts: FocusManagerOptions): FocusController {
 }
 
 export function useForceUpdate(): () => void {
-  const [, dispatch] = useReducer((state: boolean) => !state, false)
+  const [, dispatch] = qr.useReducer((state: boolean) => !state, false)
   return dispatch as () => void
 }
 
@@ -392,7 +388,7 @@ export function useGlobalListener<K extends keyof DocumentEventMap>(
   handler: DocumentEventHandler<K>,
   capture: boolean | AddEventListenerOptions = false
 ) {
-  const documentTarget = useCallback(() => document, [])
+  const documentTarget = qr.useCallback(() => document, [])
   return useEventListener(documentTarget, event, handler, capture)
 }
 
@@ -405,11 +401,11 @@ export function useImage(
   imageOrUrl?: string | HTMLImageElement | null | undefined,
   crossOrigin?: "anonymous" | "use-credentials" | string
 ) {
-  const [state, setState] = useState<State>({
+  const [state, setState] = qr.useState<State>({
     image: null,
     error: null,
   })
-  useEffect(() => {
+  qr.useEffect(() => {
     if (!imageOrUrl) return undefined
     let image: HTMLImageElement
     if (typeof imageOrUrl === "string") {
@@ -463,7 +459,9 @@ export function useIntersectionObserver<TElement extends Element>(
     options = callbackOrOptions || {}
   }
   const { threshold, root, rootMargin } = options
-  const [entries, setEntry] = useState<IntersectionObserverEntry[] | null>(null)
+  const [entries, setEntry] = qr.useState<IntersectionObserverEntry[] | null>(
+    null
+  )
   const handler = useEventCallback(callback || setEntry)
   const observer = useStableMemo(
     () =>
@@ -513,7 +511,7 @@ export function useInterval(
     clearTimeout(handle)
     handle = setTimeout(tick, ms) as any
   }
-  useEffect(() => {
+  qr.useEffect(() => {
     if (runImmediately) {
       tick()
     } else {
@@ -531,7 +529,7 @@ const isReactNative =
 const isDOM = typeof document !== "undefined"
 
 export const useIsomorphicEffect =
-  isDOM || isReactNative ? useLayoutEffect : useEffect
+  isDOM || isReactNative ? qr.useLayoutEffect : qr.useEffect
 
 export class ObservableMap<K, V> extends Map<K, V> {
   private readonly listener: (map: ObservableMap<K, V>) => void
@@ -596,8 +594,8 @@ export function useMediaQuery(
     : window
 ) {
   const mql = getMatcher(query, targetWindow)
-  const [matches, setMatches] = useState(() => (mql ? mql.matches : false))
-  useEffect(() => {
+  const [matches, setMatches] = qr.useState(() => (mql ? mql.matches : false))
+  qr.useEffect(() => {
     let mql = getMatcher(query, targetWindow)
     if (!mql) {
       return setMatches(false)
@@ -622,7 +620,7 @@ export function useMediaQuery(
 }
 
 type CallbackRef<T> = (ref: T | null) => void
-type Ref<T> = React.MutableRefObject<T> | CallbackRef<T>
+type Ref<T> = qr.MutableRefObject<T> | CallbackRef<T>
 
 const toFnRef = <T>(ref?: Ref<T> | null) =>
   !ref || typeof ref === "function"
@@ -641,7 +639,7 @@ export function mergeRefs<T>(refA?: Ref<T> | null, refB?: Ref<T> | null) {
 }
 
 export function useMergedRefs<T>(refA?: Ref<T> | null, refB?: Ref<T> | null) {
-  return useMemo(() => mergeRefs(refA, refB), [refA, refB])
+  return qr.useMemo(() => mergeRefs(refA, refB), [refA, refB])
 }
 
 type Updater<TState> = (state: TState) => Partial<TState> | null
@@ -653,8 +651,8 @@ export type MergeStateSetter<TState> = (
 export function useMergeState<TState extends {}>(
   initialState: TState | (() => TState)
 ): [TState, MergeStateSetter<TState>] {
-  const [state, setState] = useState<TState>(initialState)
-  const updater = useCallback(
+  const [state, setState] = qr.useState<TState>(initialState)
+  const updater = qr.useCallback(
     (update: Updater<TState> | Partial<TState> | null) => {
       if (update === null) return
       if (typeof update === "function") {
@@ -688,9 +686,9 @@ export function useMergeStateFromProps<TProps, TState>(
 }
 
 export function useMounted(): () => boolean {
-  const mounted = useRef(true)
-  const isMounted = useRef(() => mounted.current)
-  useEffect(() => {
+  const mounted = qr.useRef(true)
+  const isMounted = qr.useRef(() => mounted.current)
+  qr.useEffect(() => {
     mounted.current = true
     return () => {
       mounted.current = false
@@ -699,8 +697,8 @@ export function useMounted(): () => boolean {
   return isMounted.current
 }
 
-export function useMountEffect(effect: EffectCallback) {
-  return useEffect(effect, [])
+export function useMountEffect(effect: qr.EffectCallback) {
+  return qr.useEffect(effect, [])
 }
 
 type Deps = [Element | null | undefined, MutationObserverInit]
@@ -726,7 +724,7 @@ export function useMutationObserver(
   config: MutationObserverInit,
   callback?: MutationCallback
 ): MutationRecord[] | void {
-  const [records, setRecords] = useState<MutationRecord[] | null>(null)
+  const [records, setRecords] = qr.useState<MutationRecord[] | null>(null)
   const handler = useEventCallback(callback || setRecords)
   useCustomEffect(
     () => {
@@ -747,8 +745,8 @@ export function useMutationObserver(
 }
 
 export function usePrevious<T>(value: T): T | null {
-  const ref = useRef<T | null>(null)
-  useEffect(() => {
+  const ref = qr.useRef<T | null>(null)
+  qr.useEffect(() => {
     ref.current = value
   })
   return ref.current
@@ -775,7 +773,7 @@ export function useRafInterval(
     cancelAnimationFrame(handle)
     handle = requestAnimationFrame(loop)
   }
-  useEffect(() => {
+  qr.useEffect(() => {
     handle = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(handle)
   }, [])
@@ -784,7 +782,7 @@ export function useRafInterval(
 const dft: any = Symbol("default value sigil")
 
 export function useRefWithInitialValueFactory<T>(initialValueFactory: () => T) {
-  const ref = useRef<T>(dft)
+  const ref = qr.useRef<T>(dft)
   if (ref.current === dft) {
     ref.current = initialValueFactory()
   }
@@ -817,8 +815,8 @@ function getResizeObserver() {
 export function useResizeObserver<E extends Element>(
   element: E | null | undefined
 ): Rect | null {
-  const [rect, setRect] = useState<Rect | null>(null)
-  useEffect(() => {
+  const [rect, setRect] = qr.useState<Rect | null>(null)
+  qr.useEffect(() => {
     if (!element) return
     getResizeObserver().observe(element)
     setRect(element.getBoundingClientRect())
@@ -832,11 +830,11 @@ export function useResizeObserver<E extends Element>(
   return rect
 }
 
-type StateSetter<TState> = Dispatch<SetStateAction<TState>>
+type StateSetter<TState> = qr.Dispatch<qr.SetStateAction<TState>>
 
 export function useSafeState<TState>(
   state: [TState, AsyncSetState<TState>]
-): [TState, (stateUpdate: React.SetStateAction<TState>) => Promise<void>]
+): [TState, (stateUpdate: qr.SetStateAction<TState>) => Promise<void>]
 export function useSafeState<TState>(
   state: [TState, StateSetter<TState>]
 ): [TState, StateSetter<TState>]
@@ -846,8 +844,8 @@ export function useSafeState<TState>(
   const isMounted = useMounted()
   return [
     state[0],
-    useCallback(
-      (nextState: SetStateAction<TState>) => {
+    qr.useCallback(
+      (nextState: qr.SetStateAction<TState>) => {
         if (!isMounted()) return
         return state[1](nextState)
       },
@@ -883,7 +881,7 @@ export function useSet<V>(init?: Iterable<V>): ObservableSet<V> {
   return useStableMemo(() => new ObservableSet<V>(forceUpdate, init), [])
 }
 
-function isEqual(a: DependencyList, b: DependencyList) {
+function isEqual(a: qr.DependencyList, b: qr.DependencyList) {
   if (a.length !== b.length) return false
 
   for (let i = 0; i < a.length; i++) {
@@ -895,13 +893,16 @@ function isEqual(a: DependencyList, b: DependencyList) {
 }
 
 type DepsCache<T> = {
-  deps?: DependencyList
+  deps?: qr.DependencyList
   result: T
 }
 
-export function useStableMemo<T>(factory: () => T, deps?: DependencyList): T {
+export function useStableMemo<T>(
+  factory: () => T,
+  deps?: qr.DependencyList
+): T {
   let isValid: boolean = true
-  const valueRef = useRef<DepsCache<T>>()
+  const valueRef = qr.useRef<DepsCache<T>>()
   if (!valueRef.current) {
     valueRef.current = {
       deps,
@@ -922,19 +923,19 @@ export function useStableMemo<T>(factory: () => T, deps?: DependencyList): T {
 type Updater<TState> = (state: TState) => TState
 
 export type AsyncSetState<TState> = (
-  stateUpdate: React.SetStateAction<TState>
+  stateUpdate: qr.SetStateAction<TState>
 ) => Promise<TState>
 
 export function useStateAsync<TState>(
   initialState: TState | (() => TState)
 ): [TState, AsyncSetState<TState>] {
-  const [state, setState] = useState(initialState)
-  const resolvers = useRef<((state: TState) => void)[]>([])
-  useEffect(() => {
+  const [state, setState] = qr.useState(initialState)
+  const resolvers = qr.useRef<((state: TState) => void)[]>([])
+  qr.useEffect(() => {
     resolvers.current.forEach(resolve => resolve(state))
     resolvers.current.length = 0
   }, [state])
-  const setStateAsync = useCallback(
+  const setStateAsync = qr.useCallback(
     (update: Updater<TState> | TState) => {
       return new Promise<TState>((resolve, reject) => {
         setState(prevState => {
@@ -963,19 +964,19 @@ export function useStateAsync<TState>(
   return [state, setStateAsync]
 }
 
-const isSyntheticEvent = (event: any): event is SyntheticEvent =>
+const isSyntheticEvent = (event: any): event is qr.SyntheticEvent =>
   typeof event.persist === "function"
 
 export type ThrottledHandler<TEvent> = ((event: TEvent) => void) & {
   clear(): void
 }
 
-export function useThrottledEventHandler<TEvent = SyntheticEvent>(
+export function useThrottledEventHandler<TEvent = qr.SyntheticEvent>(
   handler: (event: TEvent) => void
 ): ThrottledHandler<TEvent> {
   const isMounted = useMounted()
   const eventHandler = useEventCallback(handler)
-  const nextEventInfoRef = useRef<{
+  const nextEventInfoRef = qr.useRef<{
     event: TEvent | null
     handle: null | number
   }>({
@@ -1017,7 +1018,7 @@ export function useThrottledEventHandler<TEvent = SyntheticEvent>(
 const MAX_DELAY_MS = 2 ** 31 - 1
 
 function setChainedTimeout(
-  handleRef: MutableRefObject<any>,
+  handleRef: qr.MutableRefObject<any>,
   fn: () => void,
   timeoutAtMs: number
 ) {
@@ -1033,9 +1034,9 @@ function setChainedTimeout(
 
 export function useTimeout() {
   const isMounted = useMounted()
-  const handleRef = useRef<any>()
+  const handleRef = qr.useRef<any>()
   useWillUnmount(() => clearTimeout(handleRef.current))
-  return useMemo(() => {
+  return qr.useMemo(() => {
     const clear = () => clearTimeout(handleRef.current)
     function set(fn: () => void, delayMs = 0): void {
       if (!isMounted()) return
@@ -1051,7 +1052,7 @@ export function useTimeout() {
 }
 
 export function useToggleState(initialState = false) {
-  return useReducer<Reducer<boolean, boolean | undefined>>(
+  return qr.useReducer<qr.Reducer<boolean, boolean | undefined>>(
     (state: boolean, action?: boolean) => (action == null ? !state : action),
     initialState
   ) as [boolean, (value?: boolean) => void]
@@ -1074,8 +1075,8 @@ export function useUncontrolledProp<P, H extends Handler = Handler>(
   defaultValue: P | undefined,
   handler?: H
 ) {
-  const wasPropRef = useRef<boolean>(propValue !== undefined)
-  const [stateValue, setState] = useState<P | undefined>(defaultValue)
+  const wasPropRef = qr.useRef<boolean>(propValue !== undefined)
+  const [stateValue, setState] = qr.useState<P | undefined>(defaultValue)
   const isProp = propValue !== undefined
   const wasProp = wasPropRef.current
   wasPropRef.current = isProp
@@ -1084,7 +1085,7 @@ export function useUncontrolledProp<P, H extends Handler = Handler>(
   }
   return [
     isProp ? propValue : stateValue,
-    useCallback(
+    qr.useCallback(
       (value: P, ...xs: any[]) => {
         if (handler) handler(value, ...xs)
         setState(value)
@@ -1132,14 +1133,17 @@ export function defaultKey(key: string) {
 }
 
 export function useUpdatedRef<T>(value: T) {
-  const valueRef = useRef<T>(value)
+  const valueRef = qr.useRef<T>(value)
   valueRef.current = value
   return valueRef
 }
 
-export function useUpdateEffect(fn: EffectCallback, deps: DependencyList) {
-  const isFirst = useRef(true)
-  useEffect(() => {
+export function useUpdateEffect(
+  fn: qr.EffectCallback,
+  deps: qr.DependencyList
+) {
+  const isFirst = qr.useRef(true)
+  qr.useEffect(() => {
     if (isFirst.current) {
       isFirst.current = false
       return
@@ -1149,11 +1153,11 @@ export function useUpdateEffect(fn: EffectCallback, deps: DependencyList) {
 }
 
 export function useUpdateImmediateEffect(
-  effect: EffectCallback,
-  deps: DependencyList
+  effect: qr.EffectCallback,
+  deps: qr.DependencyList
 ) {
-  const firstRef = useRef(true)
-  const tearDown = useRef<ReturnType<EffectCallback>>()
+  const firstRef = qr.useRef(true)
+  const tearDown = qr.useRef<ReturnType<qr.EffectCallback>>()
   useWillUnmount(() => {
     if (tearDown.current) tearDown.current()
   })
@@ -1168,11 +1172,11 @@ export function useUpdateImmediateEffect(
 }
 
 export function useUpdateLayoutEffect(
-  fn: EffectCallback,
-  deps: DependencyList
+  fn: qr.EffectCallback,
+  deps: qr.DependencyList
 ) {
-  const isFirst = useRef(true)
-  useLayoutEffect(() => {
+  const isFirst = qr.useRef(true)
+  qr.useLayoutEffect(() => {
     if (isFirst.current) {
       isFirst.current = false
       return
@@ -1183,5 +1187,5 @@ export function useUpdateLayoutEffect(
 
 export function useWillUnmount(fn: () => void) {
   const onUnmount = useUpdatedRef(fn)
-  useEffect(() => () => onUnmount.current(), [])
+  qr.useEffect(() => () => onUnmount.current(), [])
 }

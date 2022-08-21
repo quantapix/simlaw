@@ -1,20 +1,20 @@
-import * as React from "react"
 import { Anchor } from "./base/Anchor.jsx"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
+import { useBs } from "./Theme.jsx"
+import * as qr from "react"
 
 export interface ItemProps
   extends BsProps,
-    Omit<React.HTMLAttributes<HTMLElement>, "title"> {
+    Omit<qr.HTMLAttributes<HTMLElement>, "title"> {
   active?: boolean
   href?: string
-  linkAs?: React.ElementType
+  linkAs?: qr.ElementType
   target?: string
-  title?: React.ReactNode
+  title?: qr.ReactNode
   linkProps?: Record<string, any>
 }
 
-export const Item: BsRef<"li", ItemProps> = React.forwardRef<
+export const Item: BsRef<"li", ItemProps> = qr.forwardRef<
   HTMLElement,
   ItemProps
 >(
@@ -53,19 +53,18 @@ export const Item: BsRef<"li", ItemProps> = React.forwardRef<
     )
   }
 )
-
 Item.displayName = "BreadcrumbItem"
 Item.defaultProps = {
   active: false,
   linkProps: {},
 }
 
-export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
   label?: string
-  listProps?: React.OlHTMLAttributes<HTMLOListElement>
+  listProps?: qr.OlHTMLAttributes<HTMLOListElement>
 }
 
-export const Breadcrumb: BsRef<"nav", Props> = React.forwardRef<
+export const Breadcrumb: BsRef<"nav", Props> = qr.forwardRef<
   HTMLElement,
   Props
 >(

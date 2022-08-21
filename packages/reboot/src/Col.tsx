@@ -1,6 +1,6 @@
-import * as React from "react"
-import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
+import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
+import * as qr from "react"
 
 type NumberAttr =
   | number
@@ -24,7 +24,7 @@ type ColSpec =
   | ColSize
   | { span?: ColSize; offset?: NumberAttr; order?: ColOrder }
 
-export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
   xs?: ColSpec
   sm?: ColSpec
   md?: ColSpec
@@ -34,19 +34,14 @@ export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
   [key: string]: any
 }
 
-export interface UseColMetadata {
-  as?: React.ElementType
+export interface Meta {
+  as?: qr.ElementType | undefined
   bsPrefix: string
   spans: string[]
 }
 
-export function useCol({
-  as,
-  bsPrefix,
-  className,
-  ...ps
-}: Props): [any, UseColMetadata] {
-  bsPrefix = useBs(bsPrefix, "col")
+export function useCol({ as, bsPrefix, className, ...ps }: Props): [any, Meta] {
+  const bs = useBs(bsPrefix, "col")
   const breakpoints = useBreakpoints()
   const minBreakpoint = useMinBreakpoint()
   const spans: string[] = []
@@ -64,9 +59,7 @@ export function useCol({
     }
     const infix = x !== minBreakpoint ? `-${x}` : ""
     if (span)
-      spans.push(
-        span === true ? `${bsPrefix}${infix}` : `${bsPrefix}${infix}-${span}`
-      )
+      spans.push(span === true ? `${bs}${infix}` : `${bs}${infix}-${span}`)
     if (order != null) classes.push(`order${infix}-${order}`)
     if (offset != null) classes.push(`offset${infix}-${offset}`)
   })
@@ -74,13 +67,13 @@ export function useCol({
     { ...ps, className: classNames(className, ...spans, ...classes) },
     {
       as,
-      bsPrefix,
+      bsPrefix: bs,
       spans,
     },
   ]
 }
 
-export const Col: BsRef<"div", Props> = React.forwardRef<HTMLElement, Props>(
+export const Col: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
   (xs, ref) => {
     const [{ className, ...ps }, { as: X = "div", bsPrefix, spans }] =
       useCol(xs)

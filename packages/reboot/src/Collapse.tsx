@@ -1,17 +1,16 @@
 import { classNames } from "./helpers.js"
-import * as React from "react"
 import { css } from "./base/utils.js"
-import { useMemo } from "react"
+import { Wrapper } from "./Transition.jsx"
+import * as qr from "react"
+import * as qu from "./utils.jsx"
 import type { Transition, TransitionStatus } from "react-transition-group"
 import type { TransitionCBs } from "./base/types.jsx"
-import * as qu from "./utils.jsx"
-import { Wrapper } from "./Transition.jsx"
 
 type Dimension = "height" | "width"
 
 export interface Props
   extends TransitionCBs,
-    Pick<React.HTMLAttributes<HTMLElement>, "role"> {
+    Pick<qr.HTMLAttributes<HTMLElement>, "role"> {
   className?: string
   in?: boolean
   mountOnEnter?: boolean
@@ -20,7 +19,7 @@ export interface Props
   timeout?: number
   dimension?: Dimension | (() => Dimension)
   getDimensionValue?: (dimension: Dimension, element: HTMLElement) => number
-  children: React.ReactElement
+  children: qr.ReactElement
 }
 
 const MARGINS: { [d in Dimension]: string[] } = {
@@ -32,7 +31,7 @@ function getDefaultDimensionValue(
   dimension: Dimension,
   elem: HTMLElement
 ): number {
-  const offset = `offset${dimension[0].toUpperCase()}${dimension.slice(1)}`
+  const offset = `offset${dimension[0]!.toUpperCase()}${dimension.slice(1)}`
   const value = elem[offset]
   const margins = MARGINS[dimension]
   return (
@@ -50,7 +49,7 @@ const styles = {
   [qu.UNMOUNTED]: "",
 }
 
-export const Collapse = React.forwardRef<Transition<any>, Props>(
+export const Collapse = qr.forwardRef<Transition<any>, Props>(
   (
     {
       onEnter,
@@ -67,29 +66,29 @@ export const Collapse = React.forwardRef<Transition<any>, Props>(
     ref
   ) => {
     const dim = typeof dimension === "function" ? dimension() : dimension
-    const enter = useMemo(
+    const enter = qr.useMemo(
       () =>
-        qu.createChained(x => {
+        qu.createChained((x: any) => {
           x.style[dim] = "0"
         }, onEnter),
       [dim, onEnter]
     )
-    const entering = useMemo(
+    const entering = qr.useMemo(
       () =>
-        qu.createChained(x => {
+        qu.createChained((x: any) => {
           const scroll = `scroll${dim[0]!.toUpperCase()}${dim.slice(1)}`
           x.style[dim] = `${x[scroll]}px`
         }, onEntering),
       [dim, onEntering]
     )
-    const entered = useMemo(
+    const entered = qr.useMemo(
       () =>
-        qu.createChained(x => {
+        qu.createChained((x: any) => {
           x.style[dim] = null
         }, onEntered),
       [dim, onEntered]
     )
-    const exit = useMemo(
+    const exit = qr.useMemo(
       () =>
         qu.createChained((x: HTMLElement) => {
           x.style[dim] = `${getDimensionValue(dim, x)}px`
@@ -97,9 +96,9 @@ export const Collapse = React.forwardRef<Transition<any>, Props>(
         }, onExit),
       [onExit, getDimensionValue, dim]
     )
-    const exiting = useMemo(
+    const exiting = qr.useMemo(
       () =>
-        qu.createChained(x => {
+        qu.createChained((x: any) => {
           x.style[dim] = null
         }, onExiting),
       [dim, onExiting]
@@ -118,7 +117,7 @@ export const Collapse = React.forwardRef<Transition<any>, Props>(
         childRef={(children as any).ref}
       >
         {(state: TransitionStatus, innerProps: Record<string, unknown>) =>
-          React.cloneElement(children, {
+          qr.cloneElement(children, {
             ...innerProps,
             className: classNames(
               className,

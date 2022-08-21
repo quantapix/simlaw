@@ -1,15 +1,15 @@
-import * as React from "react"
-import { useBs } from "./Theme.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
+import { useBs } from "./Theme.jsx"
+import * as qr from "react"
 import type { Color, Variant } from "./types.jsx"
 
-export interface Props extends BsProps, React.HTMLAttributes<HTMLElement> {
+export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
   bg?: Variant
   pill?: boolean
   text?: Color
 }
 
-export const Badge: BsRef<"span", Props> = React.forwardRef<HTMLElement, Props>(
+export const Badge: BsRef<"span", Props> = qr.forwardRef<HTMLElement, Props>(
   ({ bsPrefix, bg, pill, text, className, as: X = "span", ...ps }, ref) => {
     const bs = useBs(bsPrefix, "badge")
     return (

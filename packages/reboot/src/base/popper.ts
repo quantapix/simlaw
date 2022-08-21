@@ -197,14 +197,14 @@ export function usePopper(
 }
 
 export type Config = {
-  flip?: boolean
+  flip?: boolean | undefined
   fixed?: boolean
   alignEnd?: boolean
   enabled?: boolean
   containerPadding?: number
   arrowElement?: Element | null
   enableEvents?: boolean
-  offset?: Offset
+  offset?: Offset | undefined
   placement?: Placement
   popperConfig?: UseOptions
 }
