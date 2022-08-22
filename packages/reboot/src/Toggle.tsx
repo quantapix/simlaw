@@ -92,12 +92,10 @@ export type GroupProps<T> = RadioProps<T> | CheckboxProps<T>
 export const Group: BsRef<"a", GroupProps<any>> = qr.forwardRef<
   HTMLElement,
   GroupProps<any>
->((xs, ref) => {
+>((xs: GroupProps<any>, ref) => {
   const { children, type, name, value, onChange, ...ps } = qh.useUncontrolled(
     xs,
-    {
-      value: "onChange",
-    }
+    { value: "onChange" }
   )
   const getValues: () => any[] = () => (value == null ? [] : [].concat(value))
   const toggle = (x: any, e: any) => {

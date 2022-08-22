@@ -173,10 +173,10 @@ export const Trigger = ({
   overlay,
   children,
   popperConfig = {},
-  show: propsShow,
+  show: _show,
   defaultShow = false,
   onToggle,
-  delay: propsDelay,
+  delay: _delay,
   placement,
   flip = placement && placement.indexOf("auto") !== -1,
   ...ps
@@ -188,12 +188,8 @@ export const Trigger = ({
   )
   const timeout = qh.useTimeout()
   const hoverStateRef = qr.useRef<string>("")
-  const [isShow, setShow] = qh.useUncontrolledProp(
-    propsShow,
-    defaultShow,
-    onToggle
-  )
-  const delay = normalizeDelay(propsDelay)
+  const [isShow, setShow] = qh.useUncontrolledVal(_show, defaultShow, onToggle)
+  const delay = normalizeDelay(_delay)
   const { onFocus, onBlur, onClick } =
     typeof children !== "function"
       ? qr.Children.only(children).props

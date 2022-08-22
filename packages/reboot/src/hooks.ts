@@ -1060,73 +1060,74 @@ export function useToggleState(initialState = false) {
 
 export type Handler = (...xs: any[]) => any
 
-export function useUncontrolledProp<P, H extends Handler = Handler>(
-  propValue: P | undefined,
-  defaultValue: P,
+export function useUncontrolledVal<V, H extends Handler = Handler>(
+  v: V | undefined,
+  v0: V,
   handler?: H
-): readonly [P, H]
-export function useUncontrolledProp<P, H extends Handler = Handler>(
-  propValue: P | undefined,
-  defaultValue?: P | undefined,
+): readonly [V, H]
+export function useUncontrolledVal<V, H extends Handler = Handler>(
+  v: V | undefined,
+  v0?: V,
   handler?: H
-): readonly [P | undefined, H]
-export function useUncontrolledProp<P, H extends Handler = Handler>(
-  propValue: P | undefined,
-  defaultValue: P | undefined,
+): readonly [V | undefined, H]
+export function useUncontrolledVal<V, H extends Handler = Handler>(
+  v?: V,
+  v0?: V,
   handler?: H
 ) {
-  const wasPropRef = qr.useRef<boolean>(propValue !== undefined)
-  const [stateValue, setState] = qr.useState<P | undefined>(defaultValue)
-  const isProp = propValue !== undefined
-  const wasProp = wasPropRef.current
-  wasPropRef.current = isProp
-  if (!isProp && wasProp && stateValue !== defaultValue) {
-    setState(defaultValue)
+  const wasRef = qr.useRef<boolean>(v !== undefined)
+  const [state, setState] = qr.useState<V | undefined>(v0)
+  const isProp = v !== undefined
+  const wasProp = wasRef.current
+  wasRef.current = isProp
+  if (!isProp && wasProp && state !== v0) {
+    setState(v0)
   }
   return [
-    isProp ? propValue : stateValue,
+    isProp ? v : state,
     qr.useCallback(
-      (value: P, ...xs: any[]) => {
-        if (handler) handler(value, ...xs)
-        setState(value)
+      (x: V, ...xs: any[]) => {
+        if (handler) handler(x, ...xs)
+        setState(x)
       },
       [handler]
     ) as H,
   ] as const
 }
 
-type FilterFlags<T, Condition> = {
-  [K in keyof T]: NonNullable<T[K]> extends Condition ? K : never
+type FilterFlags<P, Condition> = {
+  [k in keyof P]: NonNullable<P[k]> extends Condition ? k : never
 }
-type AllowedNames<T, Condition> = FilterFlags<T, Condition>[keyof T]
+type AllowedNames<P, Condition> = FilterFlags<P, Condition>[keyof P]
 
-type ConfigMap<T extends object> = {
-  [p in keyof T]?: AllowedNames<T, Function>
+type ConfigMap<P extends object> = {
+  [k in keyof P]?: AllowedNames<P, Handler>
 }
 
-export function useUncontrolled<T extends object, T0 extends string = never>(
-  xs: T,
-  m: ConfigMap<T>
-): Omit<T, T0> {
-  return Object.keys(m).reduce((x: T, field: string) => {
-    const { [defaultKey(field)]: v0, [field]: v, ...xs2 } = x as any
-    const name = m[field]
-    const [value, handler] = useUncontrolledProp(v, v0, xs[name])
+export function useUncontrolled<P extends object, P0 extends string = never>(
+  p: P,
+  m: ConfigMap<P>
+): Omit<P, P0> {
+  type K = keyof P
+  return Object.keys(m).reduce((x: P, k: string) => {
+    const { [defaultKey(k)]: v0, [k]: v, ...xs2 } = x as any
+    const h = m[k as K]
+    const [value, handler] = useUncontrolledVal(v, v0, p[h as K] as Handler)
     return {
       ...xs2,
-      [field]: value,
-      [name]: handler,
+      [k]: value,
+      [h as string]: handler,
     }
-  }, xs)
+  }, p)
 }
 
 export function defaultKey(key: string) {
   return "default" + key.charAt(0).toUpperCase() + key.substr(1)
 }
 
-export function useUpdatedRef<T>(value: T) {
-  const valueRef = qr.useRef<T>(value)
-  valueRef.current = value
+export function useUpdatedRef<T>(x: T) {
+  const valueRef = qr.useRef<T>(x)
+  valueRef.current = x
   return valueRef
 }
 

@@ -47,17 +47,15 @@ function renderTab(x: any) {
 
 export const Tabs = (xs: Props) => {
   const {
-    id,
-    onSelect,
-    transition,
-    mountOnEnter,
-    unmountOnExit,
     children,
     activeKey = getDefaultActiveKey(children),
+    id,
+    mountOnEnter,
+    onSelect,
+    transition,
+    unmountOnExit,
     ...ps
-  } = qh.useUncontrolled(xs, {
-    activeKey: "onSelect",
-  })
+  } = qh.useUncontrolled(xs, { activeKey: "onSelect" })
   return (
     <Base
       id={id}

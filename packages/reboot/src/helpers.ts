@@ -1,9 +1,9 @@
 import type { TransitionComponent } from "./base/types.js"
 import * as qr from "react"
 
-export type Omit<T, U> = Pick<T, Exclude<keyof T, keyof U>>
+export type Omit2<T, U> = Pick<T, Exclude<keyof T, keyof U>>
 
-export type ReplaceProps<T extends qr.ElementType, P> = Omit<
+export type ReplaceProps<T extends qr.ElementType, P> = Omit2<
   qr.ComponentPropsWithRef<T>,
   P
 > &

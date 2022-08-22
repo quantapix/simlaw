@@ -3,10 +3,10 @@ import * as qr from "react"
 export type EventKey = string | number
 
 export function makeEventKey(
-  eventKey?: EventKey | null,
+  key?: EventKey | null,
   href: string | null = null
 ): string | null {
-  if (eventKey != null) return String(eventKey)
+  if (key != null) return String(key)
   return href || null
 }
 

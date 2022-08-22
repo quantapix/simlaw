@@ -1,8 +1,8 @@
 import { classNames, BsProps, BsRef } from "./helpers.js"
 import { EventKey, makeEventKey } from "./base/types.js"
 import { useBs } from "./Theme.jsx"
-import { useEventCallback, useUncontrolled } from "./hooks.js"
 import { warning } from "./base/utils.js"
+import * as qh from "./hooks.js"
 import * as qr from "react"
 import type { Variant } from "./types.jsx"
 import {
@@ -42,7 +42,7 @@ export const Item: BsRef<"a", ItemProps> = qr.forwardRef<
       active,
       ...ps,
     })
-    const click = useEventCallback(e => {
+    const click = qh.useEventCallback(e => {
       if (disabled) {
         e.preventDefault()
         e.stopPropagation()
@@ -83,19 +83,17 @@ export interface Props extends BsProps, BaseProps {
 }
 
 export const ListGroup: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
-  (xs, ref) => {
+  (xs: Props, ref) => {
     const {
+      as = "div",
+      bsPrefix,
       className,
-      bsPrefix: initialBsPrefix,
-      variant,
       horizontal,
       numbered,
-      as = "div",
+      variant,
       ...ps
-    } = useUncontrolled(xs, {
-      activeKey: "onSelect",
-    })
-    const bs = useBs(initialBsPrefix, "list-group")
+    } = qh.useUncontrolled(xs, { activeKey: "onSelect" })
+    const bs = useBs(bsPrefix, "list-group")
     let h: string | undefined
     if (horizontal) {
       h = horizontal === true ? "horizontal" : `horizontal-${horizontal}`

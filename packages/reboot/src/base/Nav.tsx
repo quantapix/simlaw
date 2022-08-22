@@ -25,11 +25,11 @@ export interface ItemProps extends qr.HTMLAttributes<HTMLElement> {
 
 export interface ItemOpts {
   key?: string | null
-  onClick?: qr.MouseEventHandler
-  active?: boolean
+  onClick?: qr.MouseEventHandler | undefined
+  active?: boolean | undefined
   disabled?: boolean
-  id?: string
-  role?: string
+  id?: string | undefined
+  role?: string | undefined
 }
 
 export function useNavItem({

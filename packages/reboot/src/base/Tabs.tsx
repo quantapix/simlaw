@@ -17,28 +17,27 @@ export interface Props extends qr.PropsWithChildren<unknown> {
 
 export const Tabs = (ps: Props) => {
   const {
-    id: userId,
-    generateChildId: generateCustomChildId,
-    onSelect: propsOnSelect,
-    activeKey: propsActiveKey,
-    defaultActiveKey,
-    transition,
-    mountOnEnter,
-    unmountOnExit,
+    activeKey: _activeKey,
     children,
-  } = ps
-  const [activeKey, onSelect] = qh.useUncontrolledProp(
-    propsActiveKey,
     defaultActiveKey,
-    propsOnSelect
+    generateChildId: _generateChildId,
+    id: _id,
+    mountOnEnter,
+    onSelect: _onSelect,
+    transition,
+    unmountOnExit,
+  } = ps
+  const [activeKey, onSelect] = qh.useUncontrolledVal(
+    _activeKey,
+    defaultActiveKey,
+    _onSelect
   )
-  const id = useSSRSafeId(userId)
+  const id = useSSRSafeId(_id)
   const genId = qr.useMemo(
     () =>
-      generateCustomChildId ||
-      ((key: qt.EventKey, type: string) =>
-        id ? `${id}-${type}-${key}` : null),
-    [id, generateCustomChildId]
+      _generateChildId ||
+      ((k: qt.EventKey, type: string) => (id ? `${id}-${type}-${k}` : null)),
+    [id, _generateChildId]
   )
   const v: Data = qr.useMemo(
     () => ({

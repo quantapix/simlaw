@@ -175,19 +175,17 @@ export interface Props
 }
 
 export const Accordion: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
-  (xs, ref) => {
+  (xs: Props, ref) => {
     const {
-      as: X = "div",
       activeKey,
+      alwaysOpen,
+      as: X = "div",
       bsPrefix,
       className,
-      onSelect,
       flush,
-      alwaysOpen,
+      onSelect,
       ...ps
-    } = qh.useUncontrolled(xs, {
-      activeKey: "onSelect",
-    })
+    } = qh.useUncontrolled(xs, { activeKey: "onSelect" })
     const bs = useBs(bsPrefix, "accordion")
     const v = qr.useMemo(
       () => ({

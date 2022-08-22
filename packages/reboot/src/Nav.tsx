@@ -69,20 +69,20 @@ export interface Props extends BsProps, BaseProps {
 }
 
 export const Nav: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
-  (xs, ref) => {
+  (xs: Props, ref) => {
     const {
+      activeKey,
       as = "div",
-      bsPrefix: initialBsPrefix,
-      variant,
+      bsPrefix,
+      className,
       fill,
       justify,
       navbar,
       navbarScroll,
-      className,
-      activeKey,
+      variant,
       ...ps
     } = qh.useUncontrolled(xs, { activeKey: "onSelect" })
-    const bs = useBs(initialBsPrefix, "nav")
+    const bs = useBs(bsPrefix, "nav")
     let navbarBsPrefix
     let cardHeaderBsPrefix
     let isNavbar = false

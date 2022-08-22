@@ -71,41 +71,39 @@ function isVisible(x: any) {
 }
 
 export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
-  (xs, ref) => {
+  (xs: Props, ref) => {
     const {
+      activeIndex,
       as: X = "div",
       bsPrefix,
-      slide,
-      fade,
+      children,
+      className,
       controls,
-      indicators,
+      fade,
       indicatorLabels,
-      activeIndex,
-      onSelect,
-      onSlide,
-      onSlid,
+      indicators,
       interval,
       keyboard,
-      onKeyDown,
-      pause,
-      onMouseOver,
-      onMouseOut,
-      wrap,
-      touch,
-      onTouchStart,
-      onTouchMove,
-      onTouchEnd,
-      prevIcon,
-      prevLabel,
       nextIcon,
       nextLabel,
+      onKeyDown,
+      onMouseOut,
+      onMouseOver,
+      onSelect,
+      onSlid,
+      onSlide,
+      onTouchEnd,
+      onTouchMove,
+      onTouchStart,
+      pause,
+      prevIcon,
+      prevLabel,
+      slide,
+      touch,
       variant,
-      className,
-      children,
+      wrap,
       ...ps
-    } = qh.useUncontrolled(xs, {
-      activeIndex: "onSelect",
-    })
+    } = qh.useUncontrolled(xs, { activeIndex: "onSelect" })
     const bs = useBs(bsPrefix, "carousel")
     const isRTL = useIsRTL()
     const nextRef = qr.useRef<string | null>(null)

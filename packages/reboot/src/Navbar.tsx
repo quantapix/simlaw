@@ -108,28 +108,26 @@ export interface Props
 }
 
 export const Navbar: BsRef<"nav", Props> = qr.forwardRef<HTMLElement, Props>(
-  (xs, ref) => {
+  (xs: Props, ref) => {
     const {
-      bsPrefix: initialBsPrefix,
-      expand,
-      variant,
-      bg,
-      fixed,
-      sticky,
-      className,
       as: X = "nav",
-      expanded,
-      onToggle,
-      onSelect,
+      bg,
+      bsPrefix,
+      className,
       collapseOnSelect,
+      expand,
+      expanded,
+      fixed,
+      onSelect,
+      onToggle,
+      sticky,
+      variant,
       ...ps
-    } = qh.useUncontrolled(xs, {
-      expanded: "onToggle",
-    })
-    const bsPrefix = useBs(initialBsPrefix, "navbar")
+    } = qh.useUncontrolled(xs, { expanded: "onToggle" })
+    const bs = useBs(bsPrefix, "navbar")
     const collapse = qr.useCallback<SelectCB>(
-      (...xs) => {
-        onSelect?.(...xs)
+      (...xs2) => {
+        onSelect?.(...xs2)
         if (collapseOnSelect && expanded) {
           onToggle?.(false)
         }
@@ -139,16 +137,16 @@ export const Navbar: BsRef<"nav", Props> = qr.forwardRef<HTMLElement, Props>(
     if (ps.role === undefined && X !== "nav") {
       ps.role = "navigation"
     }
-    let expandClass = `${bsPrefix}-expand`
+    let expandClass = `${bs}-expand`
     if (typeof expand === "string") expandClass = `${expandClass}-${expand}`
     const v = qr.useMemo<Data>(
       () => ({
         onToggle: () => onToggle?.(!expanded),
-        bsPrefix,
+        bsPrefix: bs,
         expanded: !!expanded,
         expand,
       }),
-      [bsPrefix, expanded, expand, onToggle]
+      [bs, expanded, expand, onToggle]
     )
     return (
       <Context.Provider value={v}>
@@ -158,9 +156,9 @@ export const Navbar: BsRef<"nav", Props> = qr.forwardRef<HTMLElement, Props>(
             {...ps}
             className={classNames(
               className,
-              bsPrefix,
+              bs,
               expand && expandClass,
-              variant && `${bsPrefix}-${variant}`,
+              variant && `${bs}-${variant}`,
               bg && `bg-${bg}`,
               sticky && `sticky-${sticky}`,
               fixed && `fixed-${fixed}`

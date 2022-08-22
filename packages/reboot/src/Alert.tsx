@@ -32,15 +32,15 @@ export interface Props extends qr.HTMLAttributes<HTMLDivElement> {
 export const Alert = qr.forwardRef<HTMLDivElement, Props>((xs: Props, ref) => {
   const {
     bsPrefix,
-    show,
+    children,
+    className,
     closeLabel,
     closeVariant,
-    className,
-    children,
-    variant,
-    onClose,
     dismissible,
+    onClose,
+    show,
     transition,
+    variant,
     ...ps
   } = qh.useUncontrolled(xs, { show: "onClose" })
   const bs = useBs(bsPrefix, "alert")

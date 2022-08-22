@@ -286,19 +286,19 @@ export interface Props
 }
 
 export const Dropdown: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
-  (xs, ref) => {
+  (xs: Props, ref) => {
     const {
-      bsPrefix,
-      drop,
-      show,
-      className,
       align,
+      as: X = "div",
+      autoClose,
+      bsPrefix,
+      className,
+      drop,
+      focusFirstItemOnShow,
+      navbar,
       onSelect,
       onToggle,
-      focusFirstItemOnShow,
-      as: X = "div",
-      navbar: _4,
-      autoClose,
+      show,
       ...ps
     } = qh.useUncontrolled(xs, { show: "onToggle" })
     const isInputGroup = qr.useContext(IContext)

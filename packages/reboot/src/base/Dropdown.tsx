@@ -283,21 +283,17 @@ function useRefWithUpdate() {
 }
 
 export function Dropdown({
-  defaultShow,
-  show: rawShow,
-  onSelect,
-  onToggle: rawOnToggle,
-  itemSelector = `* [${qt.dataAttr("dropdown-item")}]`,
-  focusFirstItemOnShow,
-  placement = "bottom-start",
   children,
+  defaultShow,
+  focusFirstItemOnShow,
+  itemSelector = `* [${qt.dataAttr("dropdown-item")}]`,
+  onSelect,
+  onToggle: _onToggle,
+  placement = "bottom-start",
+  show: _show,
 }: Props) {
   const window = qu.useWindow()
-  const [show, onToggle] = qh.useUncontrolledProp(
-    rawShow,
-    defaultShow!,
-    rawOnToggle
-  )
+  const [show, onToggle] = qh.useUncontrolledVal(_show, defaultShow, _onToggle)
   const [menuRef, setMenu] = useRefWithUpdate()
   const menuElement = menuRef.current
   const [toggleRef, setToggle] = useRefWithUpdate()
