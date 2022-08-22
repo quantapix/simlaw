@@ -7,7 +7,7 @@ export interface Data {
   prefixes: Record<string, string>
   breakpoints: string[]
   minBreakpoint?: string
-  dir?: string
+  dir?: string | undefined
 }
 
 export interface Props extends Partial<Data> {

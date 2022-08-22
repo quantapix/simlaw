@@ -37,17 +37,17 @@ export function hasChildOfType<P = any>(
   )
 }
 
-export function createChained(...fs) {
+export function createChained(...fs: any) {
   return fs
-    .filter(x => x != null)
-    .reduce((y, x) => {
+    .filter((x: any) => x != null)
+    .reduce((y: any, x: any) => {
       if (typeof x !== "function") {
         throw new Error(
           "Invalid Argument Type, must only provide functions, undefined, or null."
         )
       }
       if (y === null) return x
-      return function chainedFunction(...xs) {
+      return function chainedFunction(...xs: any) {
         y.apply(this, xs)
         x.apply(this, xs)
       }

@@ -27,13 +27,10 @@ const MARGINS: { [d in Dimension]: string[] } = {
   width: ["marginLeft", "marginRight"],
 }
 
-function getDefaultDimensionValue(
-  dimension: Dimension,
-  elem: HTMLElement
-): number {
-  const offset = `offset${dimension[0]!.toUpperCase()}${dimension.slice(1)}`
+function getDefaultDimValue(dim: Dimension, elem: HTMLElement): number {
+  const offset = `offset${dim[0]!.toUpperCase()}${dim.slice(1)}`
   const value = elem[offset]
-  const margins = MARGINS[dimension]
+  const margins = MARGINS[dim]
   return (
     value +
     parseInt(css(elem, margins[0]), 10) +
@@ -60,7 +57,7 @@ export const Collapse = qr.forwardRef<Transition<any>, Props>(
       className,
       children,
       dimension = "height",
-      getDimensionValue = getDefaultDimensionValue,
+      getDimensionValue = getDefaultDimValue,
       ...ps
     },
     ref
@@ -137,5 +134,5 @@ Collapse.defaultProps = {
   mountOnEnter: false,
   unmountOnExit: false,
   appear: false,
-  getDimensionValue: getDefaultDimensionValue,
+  getDimensionValue: getDefaultDimValue,
 }

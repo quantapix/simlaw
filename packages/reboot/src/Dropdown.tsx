@@ -28,8 +28,8 @@ export type Drop = "up" | "start" | "end" | "down"
 type CommonProps = "href" | "size" | "variant" | "disabled"
 
 export interface Data {
-  align?: AlignType
-  drop?: Drop
+  align?: AlignType | undefined
+  drop?: Drop | undefined
   isRTL?: boolean
 }
 

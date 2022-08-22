@@ -279,9 +279,9 @@ export function useWaypoint(
       prevPositionRef.current = position
     },
     {
-      threshold,
-      root: realRoot,
-      rootMargin: toCss(rootMargin),
+      threshold: threshold!,
+      root: realRoot!,
+      rootMargin: toCss(rootMargin)!,
     }
   )
 }
