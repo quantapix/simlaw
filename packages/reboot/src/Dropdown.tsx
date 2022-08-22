@@ -11,6 +11,7 @@ import { withBs } from "./utils.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
 import type { AlignType, AlignDirection, Placement } from "./types.jsx"
+import type { EventKey } from "./base/types.js"
 import {
   Dropdown as Base,
   Props as BaseProps,
@@ -26,7 +27,7 @@ export type Drop = "up" | "start" | "end" | "down"
 
 type CommonProps = "href" | "size" | "variant" | "disabled"
 
-export type Data = {
+export interface Data {
   align?: AlignType
   drop?: Drop
   isRTL?: boolean
@@ -44,7 +45,7 @@ export interface MenuProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
   align?: AlignType
   rootCloseEvent?: "click" | "mousedown" | undefined
   popperConfig?: MenuOpts["popperConfig"]
-  variant?: Variant
+  variant?: Variant | undefined
 }
 
 export function getPlacement(
@@ -130,9 +131,9 @@ export const Menu: BsRef<"div", MenuProps> = qr.forwardRef<
     }, [show])
     if (!hasShown && !renderOnMount && !isInputGroup) return null
     if (typeof X !== "string") {
-      menuProps.show = show
-      menuProps.close = () => toggle?.(false)
-      menuProps.align = align
+      menuProps["show"] = show
+      menuProps["close"] = () => toggle?.(false)
+      menuProps["align"] = align
     }
     let style = ps.style
     if (popper?.placement) {

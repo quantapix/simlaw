@@ -89,20 +89,20 @@ Item.displayName = "DropdownItem"
 
 export interface MenuOpts {
   flip?: boolean | undefined
-  show?: boolean
+  show?: boolean | undefined
   fixed?: boolean
   placement?: qp.Placement
   usePopper?: boolean
   enableEventListeners?: boolean
   offset?: qp.Offset | undefined
   rootCloseEvent?: qu.ClickOutsideOptions["clickTrigger"]
-  popperConfig?: Omit<qp.UseOptions, "enabled" | "placement">
+  popperConfig?: Omit<qp.UseOptions, "enabled" | "placement"> | undefined
 }
 
 export type UseMenuProps = Record<string, any> & {
   ref: qr.RefCallback<HTMLElement>
   style?: qr.CSSProperties
-  "aria-labelledby"?: string
+  "aria-labelledby"?: string | undefined
 }
 
 export type ArrowProps = Record<string, any> & {
@@ -112,9 +112,9 @@ export type ArrowProps = Record<string, any> & {
 
 export interface MenuMeta {
   show: boolean
-  placement?: qp.Placement
+  placement?: qp.Placement | undefined
   hasShown: boolean
-  toggle?: Data["toggle"]
+  toggle?: Data["toggle"] | undefined
   popper: qp.UseState | null
   arrowProps: Partial<ArrowProps>
 }
@@ -158,8 +158,8 @@ export function useMenu(options: MenuOpts = {}) {
   const menuProps: UseMenuProps = {
     ref: setMenu || qh.noop,
     "aria-labelledby": toggleElement?.id,
-    ...popper.attributes.popper,
-    style: popper.styles.popper as any,
+    ...popper.attributes["popper"],
+    style: popper.styles["popper"] as any,
   }
   const meta: MenuMeta = {
     show,
@@ -170,8 +170,8 @@ export function useMenu(options: MenuOpts = {}) {
     arrowProps: shouldUsePopper
       ? {
           ref: attachArrowRef,
-          ...popper.attributes.arrow,
-          style: popper.styles.arrow as any,
+          ...popper.attributes["arrow"],
+          style: popper.styles["arrow"] as any,
         }
       : {},
   }
@@ -220,7 +220,7 @@ export function useToggle(): [UseToggleProps, ToggleMeta] {
     menuElement,
   } = qr.useContext(Context) || {}
   const handleClick = qr.useCallback(
-    e => {
+    (e: any) => {
       toggle(!show, e)
     },
     [show, toggle]
@@ -261,11 +261,11 @@ export interface ToggleMetadata {
 export interface Props {
   placement?: qp.Placement
   defaultShow?: boolean
-  show?: boolean
-  onSelect?: qt.SelectCB
+  show?: boolean | undefined
+  onSelect?: qt.SelectCB | undefined
   onToggle?: (nextShow: boolean, meta: ToggleMetadata) => void
   itemSelector?: string
-  focusFirstItemOnShow?: boolean | "keyboard"
+  focusFirstItemOnShow?: boolean | "keyboard" | undefined
   children: qr.ReactNode
 }
 

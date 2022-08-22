@@ -1095,37 +1095,29 @@ export function useUncontrolledProp<P, H extends Handler = Handler>(
   ] as const
 }
 
-type FilterFlags<Base, Condition> = {
-  [Key in keyof Base]: NonNullable<Base[Key]> extends Condition ? Key : never
+type FilterFlags<T, Condition> = {
+  [K in keyof T]: NonNullable<T[K]> extends Condition ? K : never
 }
-type AllowedNames<Base, Condition> = FilterFlags<Base, Condition>[keyof Base]
+type AllowedNames<T, Condition> = FilterFlags<T, Condition>[keyof T]
 
-type ConfigMap<TProps extends object> = {
-  [p in keyof TProps]?: AllowedNames<TProps, Function>
+type ConfigMap<T extends object> = {
+  [p in keyof T]?: AllowedNames<T, Function>
 }
 
-export function useUncontrolled<
-  TProps extends object,
-  TDefaults extends string = never
->(props: TProps, config: ConfigMap<TProps>): Omit<TProps, TDefaults> {
-  return Object.keys(config).reduce((result: TProps, fieldName: string) => {
-    const {
-      [defaultKey(fieldName)]: defaultValue,
-      [fieldName]: propsValue,
-      ...rest
-    } = result as any
-    const handlerName = config[fieldName]
-    const [value, handler] = useUncontrolledProp(
-      propsValue,
-      defaultValue,
-      props[handlerName]
-    )
+export function useUncontrolled<T extends object, T0 extends string = never>(
+  xs: T,
+  m: ConfigMap<T>
+): Omit<T, T0> {
+  return Object.keys(m).reduce((x: T, field: string) => {
+    const { [defaultKey(field)]: v0, [field]: v, ...xs2 } = x as any
+    const name = m[field]
+    const [value, handler] = useUncontrolledProp(v, v0, xs[name])
     return {
-      ...rest,
-      [fieldName]: value,
-      [handlerName]: handler,
+      ...xs2,
+      [field]: value,
+      [name]: handler,
     }
-  }, props)
+  }, xs)
 }
 
 export function defaultKey(key: string) {
