@@ -141,7 +141,7 @@ export const Modal: qr.ForwardRefExoticComponent<
     } else if (show && exited) {
       setExited(false)
     }
-    const handleShow = qh.useEventCallback(() => {
+    const handleShow = qh.useEventCB(() => {
       modal.add()
       removeKeydownListenerRef.current = listen(
         document as any,
@@ -169,7 +169,7 @@ export const Modal: qr.ForwardRefExoticComponent<
         }
       }
     })
-    const handleHide = qh.useEventCallback(() => {
+    const handleHide = qh.useEventCB(() => {
       modal.remove()
       removeKeydownListenerRef.current?.()
       removeFocusListenerRef.current?.()
@@ -189,7 +189,7 @@ export const Modal: qr.ForwardRefExoticComponent<
     qh.useWillUnmount(() => {
       handleHide()
     })
-    const handleEnforceFocus = qh.useEventCallback(() => {
+    const handleEnforceFocus = qh.useEventCB(() => {
       if (!enforceFocus || !isMounted() || !modal.isTopModal()) {
         return
       }
@@ -202,7 +202,7 @@ export const Modal: qr.ForwardRefExoticComponent<
         modal.dialog.focus()
       }
     })
-    const handleBackdropClick = qh.useEventCallback((e: qr.SyntheticEvent) => {
+    const handleBackdropClick = qh.useEventCB((e: qr.SyntheticEvent) => {
       if (e.target !== e.currentTarget) {
         return
       }
@@ -211,7 +211,7 @@ export const Modal: qr.ForwardRefExoticComponent<
         onHide()
       }
     })
-    const handleDocumentKeyDown = qh.useEventCallback((e: KeyboardEvent) => {
+    const handleDocumentKeyDown = qh.useEventCB((e: KeyboardEvent) => {
       if (keyboard && e.keyCode === 27 && modal.isTopModal()) {
         onEscapeKeyDown?.(e)
         if (!e.defaultPrevented) {

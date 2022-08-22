@@ -68,7 +68,7 @@ export const Toggle: BsRef<"button", ToggleProps> = qr.forwardRef<
   ) => {
     const bs = useBs(bsPrefix, "navbar-toggler")
     const { onToggle, expanded } = qr.useContext(Context) || {}
-    const clickCB = qh.useEventCallback(e => {
+    const clickCB = qh.useEventCB(e => {
       if (onClick) onClick(e)
       if (onToggle) onToggle()
     })

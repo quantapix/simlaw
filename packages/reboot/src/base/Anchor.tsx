@@ -13,7 +13,7 @@ export interface Props extends qr.HTMLAttributes<HTMLElement> {
 export const Anchor = qr.forwardRef<HTMLAnchorElement, Props>(
   ({ onKeyDown, ...ps }, ref) => {
     const [bps] = useButtonProps({ tagName: "a", ...ps })
-    const keyDown = qh.useEventCallback((e: qr.KeyboardEvent<HTMLElement>) => {
+    const keyDown = qh.useEventCB((e: qr.KeyboardEvent<HTMLElement>) => {
       bps.onKeyDown!(e)
       onKeyDown?.(e)
     })

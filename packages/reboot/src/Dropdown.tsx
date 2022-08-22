@@ -310,17 +310,15 @@ export const Dropdown: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
       if (autoClose === "outside") return source !== "select"
       return true
     }
-    const toggle = qh.useEventCallback(
-      (nextShow: boolean, meta: ToggleMetadata) => {
-        if (
-          meta.originalEvent!.currentTarget === document &&
-          (meta.source !== "keydown" ||
-            (meta.originalEvent as any).key === "Escape")
-        )
-          meta.source = "rootClose"
-        if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta)
-      }
-    )
+    const toggle = qh.useEventCB((nextShow: boolean, meta: ToggleMetadata) => {
+      if (
+        meta.originalEvent!.currentTarget === document &&
+        (meta.source !== "keydown" ||
+          (meta.originalEvent as any).key === "Escape")
+      )
+        meta.source = "rootClose"
+      if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta)
+    })
     const alignEnd = align === "end"
     const placement = getPlacement(alignEnd, drop, isRTL)
     const v = qr.useMemo(

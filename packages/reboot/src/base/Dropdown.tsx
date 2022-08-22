@@ -45,7 +45,7 @@ export function useItem({ key, href, active, disabled, onClick }: ItemOpts) {
     active == null && key != null
       ? qt.makeEventKey(activeKey) === eventKey
       : active
-  const handleClick = qh.useEventCallback(event => {
+  const handleClick = qh.useEventCB(event => {
     if (disabled) return
     onClick?.(event)
     if (onSelectCtx && !event.isPropagationStopped()) {
@@ -312,7 +312,7 @@ export function Dropdown({
     },
     [onToggle]
   )
-  const handleSelect = qh.useEventCallback(
+  const handleSelect = qh.useEventCB(
     (key: string | null, event: qr.SyntheticEvent) => {
       onSelect?.(key, event)
       toggle(false, event, "select")
@@ -338,12 +338,12 @@ export function Dropdown({
       menuElement.ownerDocument.activeElement
     )
   }
-  const focusToggle = qh.useEventCallback(() => {
+  const focusToggle = qh.useEventCB(() => {
     if (toggleElement && toggleElement.focus) {
       toggleElement.focus()
     }
   })
-  const maybeFocusFirst = qh.useEventCallback(() => {
+  const maybeFocusFirst = qh.useEventCB(() => {
     const type = lastSourceEvent.current
     let focusType = focusFirstItemOnShow
     if (focusType == null) {

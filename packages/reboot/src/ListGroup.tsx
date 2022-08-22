@@ -42,7 +42,7 @@ export const Item: BsRef<"a", ItemProps> = qr.forwardRef<
       active,
       ...ps,
     })
-    const click = qh.useEventCallback(e => {
+    const click = qh.useEventCB(e => {
       if (disabled) {
         e.preventDefault()
         e.stopPropagation()

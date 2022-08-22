@@ -40,7 +40,7 @@ export const Header = qr.forwardRef<HTMLDivElement, HeaderProps>(
   ) => {
     bsPrefix = useBs(bsPrefix, "toast-header")
     const context = qr.useContext(Context)
-    const click = qh.useEventCallback(e => {
+    const click = qh.useEventCB(e => {
       context?.onClose?.(e)
     })
     return (

@@ -155,7 +155,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
       },
       [isSliding, renderedIdx, onSelect, wrap, n]
     )
-    const next = qh.useEventCallback((e?) => {
+    const next = qh.useEventCB((e?) => {
       if (isSliding) {
         return
       }
@@ -175,7 +175,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
       prev,
       next,
     }))
-    const nextWhenVisible = qh.useEventCallback(() => {
+    const nextWhenVisible = qh.useEventCB(() => {
       if (!document.hidden && isVisible(elementRef.current)) {
         if (isRTL) {
           prev()

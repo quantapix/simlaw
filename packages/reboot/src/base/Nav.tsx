@@ -66,7 +66,7 @@ export function useNavItem({
       props["aria-disabled"] = true
     }
   }
-  props.onClick = qh.useEventCallback((e: qr.MouseEvent) => {
+  props.onClick = qh.useEventCB((e: qr.MouseEvent) => {
     if (disabled) return
     onClick?.(e)
     if (key == null) {

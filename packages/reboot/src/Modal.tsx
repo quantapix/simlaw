@@ -28,7 +28,7 @@ export interface AbsProps extends qr.HTMLAttributes<HTMLDivElement> {
 export const AbsHeader = qr.forwardRef<HTMLDivElement, AbsProps>(
   ({ closeLabel, closeVariant, closeButton, onHide, children, ...ps }, ref) => {
     const context = qr.useContext(Context)
-    const click = qh.useEventCallback(() => {
+    const click = qh.useEventCB(() => {
       context?.onHide()
       onHide?.()
     })
@@ -219,7 +219,7 @@ export const Modal: BsRef<"div", Props> = qr.forwardRef(
     const removeStaticModalAnimationRef = qr.useRef<(() => void) | null>(null)
     const [modal, setModalRef] = qh.useCallbackRef<Instance>()
     const mergedRef = qh.useMergedRefs(ref, setModalRef)
-    const hide = qh.useEventCallback(onHide)
+    const hide = qh.useEventCB(onHide)
     const isRTL = useIsRTL()
     const bs = useBs(bsPrefix, "modal")
     const v = qr.useMemo(
@@ -248,7 +248,7 @@ export const Modal: BsRef<"div", Props> = qr.forwardRef(
             : undefined,
       })
     }
-    const windowResize = qh.useEventCallback(() => {
+    const windowResize = qh.useEventCB(() => {
       if (modal) {
         updateDialogStyle(modal.dialog)
       }

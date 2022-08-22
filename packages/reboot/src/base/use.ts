@@ -97,13 +97,13 @@ export function useClickOutside(
     },
     [ref]
   )
-  const handleInitialMouse = qh.useEventCallback((e: MouseEvent) => {
+  const handleInitialMouse = qh.useEventCB((e: MouseEvent) => {
     const currentTarget = getRefTarget(ref)
     if (currentTarget && qu.contains(currentTarget, e.target as any)) {
       waitingForTrigger.current = true
     }
   })
-  const handleMouse = qh.useEventCallback((e: MouseEvent) => {
+  const handleMouse = qh.useEventCB((e: MouseEvent) => {
     if (!preventMouseClickOutsideRef.current) {
       onClickOutside(e)
     }
@@ -166,7 +166,7 @@ export function useRootClose(
 ) {
   const onClose = onRootClose || qh.noop
   useClickOutside(ref, onClose, { disabled, clickTrigger })
-  const handleKeyUp = qh.useEventCallback((e: KeyboardEvent) => {
+  const handleKeyUp = qh.useEventCB((e: KeyboardEvent) => {
     if (e.keyCode === escapeKeyCode) {
       onClose(e)
     }
@@ -239,7 +239,7 @@ export function useWaypoint(
 ): void {
   const { rootMargin, threshold, scrollDirection = "vertical" } = options
   let { root } = options
-  const handler = qh.useEventCallback(callback)
+  const handler = qh.useEventCB(callback)
   const prevPositionRef = qr.useRef<Position | null>(null)
   if (root === "scrollParent") {
     root = findRoot

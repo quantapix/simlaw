@@ -44,7 +44,7 @@ export const Alert = qr.forwardRef<HTMLDivElement, Props>((xs: Props, ref) => {
     ...ps
   } = qh.useUncontrolled(xs, { show: "onClose" })
   const bs = useBs(bsPrefix, "alert")
-  const click = qh.useEventCallback(e => {
+  const click = qh.useEventCB(e => {
     if (onClose) {
       onClose(false, e)
     }

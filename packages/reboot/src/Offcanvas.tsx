@@ -160,7 +160,7 @@ export const Offcanvas: BsRef<"div", Props> = qr.forwardRef<Handle, Props>(
     qr.useEffect(() => {
       setShowOffcanvas(responsive ? show && !hideOffcanvas : show)
     }, [show, responsive, hideOffcanvas])
-    const hide = qh.useEventCallback(() => {
+    const hide = qh.useEventCB(() => {
       onToggle?.()
       onHide?.()
     })

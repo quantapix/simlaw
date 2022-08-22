@@ -55,7 +55,7 @@ export const Overlay = qr.forwardRef<HTMLElement, Props>(
     const mergedRef = qh.useMergedRefs(ref, ref2)
     const actualTransition =
       transition === true ? Fade : transition || undefined
-    const firstUpdate = qh.useEventCallback(state => {
+    const firstUpdate = qh.useEventCB(state => {
       setFirstRenderedState(state)
       popperConfig?.onFirstUpdate?.(state)
     })
