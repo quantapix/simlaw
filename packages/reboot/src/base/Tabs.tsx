@@ -5,17 +5,17 @@ import * as qr from "react"
 import * as qt from "./types.js"
 
 export interface Props extends qr.PropsWithChildren<unknown> {
-  id?: string
-  transition?: qt.TransitionComponent
-  mountOnEnter?: boolean
-  unmountOnExit?: boolean
-  generateChildId?: (eventKey: qt.EventKey, type: "tab" | "pane") => string
-  onSelect?: qt.SelectCB
+  id?: string | undefined
+  transition?: qt.TransitionComponent | undefined
+  mountOnEnter?: boolean | undefined
+  unmountOnExit?: boolean | undefined
+  generateChildId?: (key: qt.EventKey, type: "tab" | "pane") => string
+  onSelect?: qt.SelectCB | undefined
   activeKey?: qt.EventKey
   defaultActiveKey?: qt.EventKey
 }
 
-export const Tabs = (props: Props) => {
+export const Tabs = (ps: Props) => {
   const {
     id: userId,
     generateChildId: generateCustomChildId,
@@ -26,14 +26,14 @@ export const Tabs = (props: Props) => {
     mountOnEnter,
     unmountOnExit,
     children,
-  } = props
+  } = ps
   const [activeKey, onSelect] = qh.useUncontrolledProp(
     propsActiveKey,
     defaultActiveKey,
     propsOnSelect
   )
   const id = useSSRSafeId(userId)
-  const generateChildId = qr.useMemo(
+  const genId = qr.useMemo(
     () =>
       generateCustomChildId ||
       ((key: qt.EventKey, type: string) =>
@@ -47,17 +47,10 @@ export const Tabs = (props: Props) => {
       transition,
       mountOnEnter: mountOnEnter || false,
       unmountOnExit: unmountOnExit || false,
-      getControlledId: (key: qt.EventKey) => generateChildId(key, "tabpane"),
-      getControllerId: (key: qt.EventKey) => generateChildId(key, "tab"),
+      getControlledId: (key: qt.EventKey) => genId(key, "pane"),
+      getControllerId: (key: qt.EventKey) => genId(key, "tab"),
     }),
-    [
-      onSelect,
-      activeKey,
-      transition,
-      mountOnEnter,
-      unmountOnExit,
-      generateChildId,
-    ]
+    [onSelect, activeKey, transition, mountOnEnter, unmountOnExit, genId]
   )
   return (
     <Context.Provider value={v}>

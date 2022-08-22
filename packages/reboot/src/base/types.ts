@@ -10,65 +10,60 @@ export function makeEventKey(
   return href || null
 }
 
-export type IntrinsicElementTypes = keyof JSX.IntrinsicElements
+export type IntrinsicTypes = keyof JSX.IntrinsicElements
 
-export type AssignPropsWithRef<
-  Inner extends string | qr.ComponentType<any>,
-  P
-> = Omit<
-  qr.ComponentPropsWithRef<Inner extends qr.ElementType ? Inner : never>,
+export type AssignProps<T extends string | qr.ComponentType<any>, P> = Omit<
+  qr.ComponentPropsWithRef<T extends qr.ElementType ? T : never>,
   keyof P
 > &
   P
 
-export type { AssignPropsWithRef as AssignProps }
-
-export type AssignPropsWithoutRef<
-  Inner extends string | qr.ComponentType<any>,
+export type AssignPropsNoRef<
+  T extends string | qr.ComponentType<any>,
   P
 > = Omit<
-  qr.ComponentPropsWithoutRef<Inner extends qr.ElementType ? Inner : never>,
+  qr.ComponentPropsWithoutRef<T extends qr.ElementType ? T : never>,
   keyof P
 > &
   P
 
-export interface DynamicRefForwardingComponent<
-  TInitial extends string | qr.ComponentType<any>,
+export interface DynRef<
+  T0 extends string | qr.ComponentType<any>,
   P = { children?: qr.ReactNode }
 > {
-  <As extends string | qr.ComponentType<any> = TInitial>(
-    props: AssignPropsWithRef<As, { as?: As } & P>,
+  <As extends string | qr.ComponentType<any> = T0>(
+    props: AssignProps<As, { as?: As } & P>,
     context?: any
   ): qr.ReactElement | null
   propTypes?: any
   contextTypes?: any
-  defaultProps?: Partial<P>
-  displayName?: string
+  defaultProps?: Partial<P> | undefined
+  displayName?: string | undefined
 }
 
-export interface DynamicFunctionComponent<
-  TInitial extends string | qr.ComponentType<any>,
+export interface DynFun<
+  T0 extends string | qr.ComponentType<any>,
   P = { children?: qr.ReactNode }
 > {
-  <As extends string | qr.ComponentType<any> = TInitial>(
-    props: AssignPropsWithoutRef<As, { as?: As } & P>,
+  <As extends string | qr.ComponentType<any> = T0>(
+    props: AssignPropsNoRef<As, { as?: As } & P>,
     context?: any
   ): qr.ReactElement | null
   propTypes?: any
   contextTypes?: any
-  defaultProps?: Partial<P>
-  displayName?: string
+  defaultProps?: Partial<P> | undefined
+  displayName?: string | undefined
 }
 
-export class DynamicComponent<
+export class DynComp<
   As extends string | qr.ComponentType<any>,
   P = unknown
-> extends qr.Component<AssignPropsWithRef<As, { as?: As } & P>> {}
+> extends qr.Component<AssignProps<As, { as?: As } & P>> {}
 
-export type DynamicComponentClass<
+export type DynCompClass<
   As extends string | qr.ComponentType<any>,
   P = unknown
-> = qr.ComponentClass<AssignPropsWithRef<As, { as?: As } & P>>
+> = qr.ComponentClass<AssignProps<As, { as?: As } & P>>
 
 export type SelectCB = (
   eventKey: string | null,
@@ -90,8 +85,8 @@ export interface TransitionProps extends TransitionCBs {
   in?: boolean | undefined
   appear?: boolean
   children: qr.ReactElement
-  mountOnEnter?: boolean
-  unmountOnExit?: boolean
+  mountOnEnter?: boolean | undefined
+  unmountOnExit?: boolean | undefined
 }
 
 export type TransitionComponent = qr.ComponentType<TransitionProps>

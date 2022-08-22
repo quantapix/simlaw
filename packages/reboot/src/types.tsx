@@ -55,5 +55,5 @@ export interface PopperRef {
   state: State | undefined
   outOfBoundaries: boolean
   placement: Placement | undefined
-  scheduleUpdate?: () => void
+  scheduleUpdate?: (() => void) | undefined
 }

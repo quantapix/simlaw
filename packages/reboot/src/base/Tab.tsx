@@ -23,8 +23,8 @@ export function NoopTransition({
 
 export interface Data {
   onSelect: qt.SelectCB
-  activeKey?: qt.EventKey
-  transition?: qt.TransitionComponent
+  activeKey?: qt.EventKey | undefined
+  transition?: qt.TransitionComponent | undefined
   mountOnEnter: boolean
   unmountOnExit: boolean
   getControlledId: (key: qt.EventKey) => any
@@ -65,13 +65,13 @@ export function useTabPanel({
   onExit,
   onExiting,
   onExited,
-  ...props
+  ...ps
 }: Props): [any, Meta] {
   const context = qr.useContext(Context)
   if (!context)
     return [
       {
-        ...props,
+        ...ps,
         role,
       },
       {
@@ -92,7 +92,7 @@ export function useTabPanel({
   const key = qt.makeEventKey(eventKey)
   return [
     {
-      ...props,
+      ...ps,
       role,
       id: getControlledId(eventKey!),
       "aria-labelledby": getControllerId(eventKey!),
@@ -116,8 +116,8 @@ export function useTabPanel({
   ]
 }
 
-export const Panel: qt.DynamicRefForwardingComponent<"div", Props> =
-  qr.forwardRef<HTMLElement, Props>(({ as: Component = "div", ...ps }, ref) => {
+export const Panel: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
+  ({ as: Component = "div", ...ps }, ref) => {
     const [
       tabPanelProps,
       {
@@ -157,5 +157,6 @@ export const Panel: qt.DynamicRefForwardingComponent<"div", Props> =
         </qt.Selectable.Provider>
       </Context.Provider>
     )
-  })
+  }
+)
 Panel.displayName = "TabPanel"

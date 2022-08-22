@@ -7,7 +7,7 @@ import type { ButtonVariant } from "./types.jsx"
 export interface Props extends BaseProps, Omit<BsProps, "as"> {
   active?: boolean | undefined
   variant?: ButtonVariant | undefined
-  size?: "sm" | "lg"
+  size?: "sm" | "lg" | undefined
 }
 
 export const Button: BsRef<"button", Props> = qr.forwardRef<

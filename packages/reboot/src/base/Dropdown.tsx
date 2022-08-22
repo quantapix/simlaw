@@ -63,29 +63,28 @@ export function useItem({ key, href, active, disabled, onClick }: ItemOpts) {
   ] as const
 }
 
-export const Item: qt.DynamicRefForwardingComponent<typeof Button, ItemProps> =
-  qr.forwardRef(
-    (
-      {
-        eventKey,
-        disabled,
-        onClick,
-        active,
-        as: Component = Button,
-        ...props
-      }: ItemProps,
-      ref
-    ) => {
-      const [dropdownItemProps] = useItem({
-        key: eventKey,
-        href: props.href,
-        disabled,
-        onClick,
-        active,
-      })
-      return <Component {...props} ref={ref} {...dropdownItemProps} />
-    }
-  )
+export const Item: qt.DynRef<typeof Button, ItemProps> = qr.forwardRef(
+  (
+    {
+      eventKey,
+      disabled,
+      onClick,
+      active,
+      as: Component = Button,
+      ...props
+    }: ItemProps,
+    ref
+  ) => {
+    const [dropdownItemProps] = useItem({
+      key: eventKey,
+      href: props.href,
+      disabled,
+      onClick,
+      active,
+    })
+    return <Component {...props} ref={ref} {...dropdownItemProps} />
+  }
+)
 Item.displayName = "DropdownItem"
 
 export interface MenuOpts {

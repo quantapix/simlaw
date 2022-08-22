@@ -8,7 +8,7 @@ import type * as qt from "./types.js"
 
 let manager: Manager
 
-export type ModalTransitionComponent = qr.ComponentType<
+export type Transition = qr.ComponentType<
   {
     in: boolean
     appear?: boolean
@@ -16,7 +16,7 @@ export type ModalTransitionComponent = qr.ComponentType<
   } & qt.TransitionCBs
 >
 
-export interface RenderModalDialogProps {
+export interface DialogProps {
   style: qr.CSSProperties | undefined
   className: string | undefined
   tabIndex: number
@@ -25,9 +25,9 @@ export interface RenderModalDialogProps {
   "aria-modal": boolean | undefined
 }
 
-export interface RenderModalBackdropProps {
+export interface BackdropProps {
   ref: qr.RefCallback<Element>
-  onClick: (event: qr.SyntheticEvent) => void
+  onClick: (e: qr.SyntheticEvent) => void
 }
 
 export interface BaseProps extends qt.TransitionCBs {
@@ -41,13 +41,13 @@ export interface BaseProps extends qt.TransitionCBs {
   onHide?: () => void
   manager?: Manager
   backdrop?: true | false | "static"
-  renderDialog?: (props: RenderModalDialogProps) => qr.ReactNode
-  renderBackdrop?: (props: RenderModalBackdropProps) => qr.ReactNode
+  renderDialog?: (props: DialogProps) => qr.ReactNode
+  renderBackdrop?: (props: BackdropProps) => qr.ReactNode
   onEscapeKeyDown?: (e: KeyboardEvent) => void
   onBackdropClick?: (e: qr.SyntheticEvent) => void
   keyboard?: boolean
-  transition?: ModalTransitionComponent
-  backdropTransition?: ModalTransitionComponent
+  transition?: Transition
+  backdropTransition?: Transition
   autoFocus?: boolean
   enforceFocus?: boolean
   restoreFocus?: boolean
@@ -60,8 +60,8 @@ export interface Props extends BaseProps {
   [other: string]: any
 }
 
-function getManager(window?: Window) {
-  if (!manager) manager = new Manager({ ownerDocument: window?.document })
+function getManager(x?: Window) {
+  if (!manager) manager = new Manager({ ownerDocument: x?.document })
   return manager
 }
 
@@ -111,7 +111,7 @@ export const Modal: qr.ForwardRefExoticComponent<
       restoreFocus = true,
       restoreFocusOptions,
       renderDialog,
-      renderBackdrop = (xs: RenderModalBackdropProps) => <div {...xs} />,
+      renderBackdrop = (xs: BackdropProps) => <div {...xs} />,
       manager: providedManager,
       container: containerRef,
       onShow,
@@ -227,8 +227,8 @@ export const Modal: qr.ForwardRefExoticComponent<
       setExited(true)
       onExited?.(...args)
     }
-    const Transition = transition
-    if (!container || !(show || (Transition && !exited))) {
+    const T = transition
+    if (!container || !(show || (T && !exited))) {
       return null
     }
     const dialogProps = {
@@ -247,9 +247,9 @@ export const Modal: qr.ForwardRefExoticComponent<
         {qr.cloneElement(children!, { role: "document" })}
       </div>
     )
-    if (Transition) {
+    if (T) {
       dialog = (
-        <Transition
+        <T
           appear
           unmountOnExit
           in={!!show}
@@ -261,21 +261,21 @@ export const Modal: qr.ForwardRefExoticComponent<
           onEntered={onEntered}
         >
           {dialog}
-        </Transition>
+        </T>
       )
     }
-    let backdropElement = null
+    let elem = null
     if (backdrop) {
-      const BackdropTransition = backdropTransition
-      backdropElement = renderBackdrop({
+      const B = backdropTransition
+      elem = renderBackdrop({
         ref: modal.setBackdropRef,
         onClick: handleBackdropClick,
       })
-      if (BackdropTransition) {
-        backdropElement = (
-          <BackdropTransition appear in={!!show}>
-            {backdropElement}
-          </BackdropTransition>
+      if (B) {
+        elem = (
+          <B appear in={!!show}>
+            {elem}
+          </B>
         )
       }
     }
@@ -283,7 +283,7 @@ export const Modal: qr.ForwardRefExoticComponent<
       <>
         {ReactDOM.createPortal(
           <>
-            {backdropElement}
+            {elem}
             {dialog}
           </>,
           container

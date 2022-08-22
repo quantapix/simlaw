@@ -40,18 +40,19 @@ export interface Props
 function wrapRefs(ps: any, arrowPs: any) {
   const { ref } = ps
   const { ref: aRef } = arrowPs
-  ps.ref = ref.__wrapped || (ref.__wrapped = r => ref(safeFindDOMNode(r)))
+  ps.ref =
+    ref.__wrapped || (ref.__wrapped = (x: any) => ref(safeFindDOMNode(x)))
   arrowPs.ref =
-    aRef.__wrapped || (aRef.__wrapped = r => aRef(safeFindDOMNode(r)))
+    aRef.__wrapped || (aRef.__wrapped = (x: any) => aRef(safeFindDOMNode(x)))
 }
 
 export const Overlay = qr.forwardRef<HTMLElement, Props>(
-  ({ children: overlay, transition, popperConfig = {}, ...ps }, outerRef) => {
+  ({ children: overlay, transition, popperConfig = {}, ...ps }, ref) => {
     const popperRef = qr.useRef<Partial<PopperRef>>({})
     const [firstRenderedState, setFirstRenderedState] =
       qh.useCallbackRef<State>()
-    const [ref, modifiers] = useOffset(ps.offset)
-    const mergedRef = qh.useMergedRefs(outerRef, ref)
+    const [ref2, modifiers] = useOffset(ps.offset)
+    const mergedRef = qh.useMergedRefs(ref, ref2)
     const actualTransition =
       transition === true ? Fade : transition || undefined
     const firstUpdate = qh.useEventCallback(state => {
@@ -161,7 +162,7 @@ function mouseOverOut(
 ) {
   const [e] = args
   const target = e.currentTarget
-  const related = e.relatedTarget || e.nativeEvent[relatedNative]
+  const related = e.relatedTarget || (e.nativeEvent as any)[relatedNative]
   if ((!related || related !== target) && !contains(target, related)) {
     handler(...args)
   }

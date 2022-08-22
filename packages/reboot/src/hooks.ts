@@ -901,7 +901,7 @@ export function useStableMemo<T>(
   factory: () => T,
   deps?: qr.DependencyList
 ): T {
-  let isValid: boolean = true
+  let isValid = true
   const valueRef = qr.useRef<DepsCache<T>>()
   if (!valueRef.current) {
     valueRef.current = {
@@ -920,7 +920,7 @@ export function useStableMemo<T>(
   return cache.result
 }
 
-type Updater<TState> = (state: TState) => TState
+type Updater2<TState> = (state: TState) => TState
 
 export type AsyncSetState<TState> = (
   stateUpdate: qr.SetStateAction<TState>
@@ -936,7 +936,7 @@ export function useStateAsync<TState>(
     resolvers.current.length = 0
   }, [state])
   const setStateAsync = qr.useCallback(
-    (update: Updater<TState> | TState) => {
+    (update: Updater2<TState> | TState) => {
       return new Promise<TState>((resolve, reject) => {
         setState(prevState => {
           try {

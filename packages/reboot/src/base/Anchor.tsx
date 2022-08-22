@@ -5,9 +5,9 @@ import * as qr from "react"
 
 export interface Props extends qr.HTMLAttributes<HTMLElement> {
   href?: string
-  disabled?: boolean
-  role?: string
-  tabIndex?: number
+  disabled?: boolean | undefined
+  role?: string | undefined
+  tabIndex?: number | undefined
 }
 
 export const Anchor = qr.forwardRef<HTMLAnchorElement, Props>(

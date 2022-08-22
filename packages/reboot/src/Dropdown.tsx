@@ -1,9 +1,9 @@
 import { Anchor } from "./base/Anchor.jsx"
-import { Button as _Button, Props as _BProps } from "./Button.jsx"
+import { Button as _Button, Props as BProps } from "./Button.jsx"
 import { classNames, BsProps, BsRef } from "./helpers.js"
-import { Context as InputGroupContext } from "./InputGroup.jsx"
-import { Context as NavbarContext } from "./Navbar.jsx"
-import { Link as NavLink } from "./Nav.jsx"
+import { Context as IContext } from "./InputGroup.jsx"
+import { Context as NContext } from "./Navbar.jsx"
+import { Link as NLink } from "./Nav.jsx"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import { useWrappedRef } from "./use.jsx"
 import { warning } from "./base/utils.js"
@@ -39,10 +39,10 @@ export type Variant = "dark" | string
 
 export interface MenuProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
   show?: boolean | undefined
-  renderOnMount?: boolean
+  renderOnMount?: boolean | undefined
   flip?: boolean | undefined
   align?: AlignType
-  rootCloseEvent?: "click" | "mousedown"
+  rootCloseEvent?: "click" | "mousedown" | undefined
   popperConfig?: MenuOpts["popperConfig"]
   variant?: Variant
 }
@@ -88,11 +88,11 @@ export const Menu: BsRef<"div", MenuProps> = qr.forwardRef<
     ref
   ) => {
     let alignEnd = false
-    const isNavbar = qr.useContext(NavbarContext)
+    const isNavbar = qr.useContext(NContext)
     const bs = useBs(bsPrefix, "dropdown-menu")
     const { align: contextAlign, drop, isRTL } = qr.useContext(Context)
     align = align || contextAlign
-    const isInputGroup = qr.useContext(InputGroupContext)
+    const isInputGroup = qr.useContext(IContext)
     const alignClasses: string[] = []
     if (align) {
       if (typeof align === "object") {
@@ -164,10 +164,10 @@ Menu.defaultProps = {
   flip: true,
 }
 
-export interface ToggleProps extends Omit<_BProps, "as"> {
+export interface ToggleProps extends Omit<BProps, "as"> {
   as?: qr.ElementType
   split?: boolean
-  childBsPrefix?: string
+  childBsPrefix?: string | undefined
 }
 
 type ToggleComponent = BsRef<"button", ToggleProps>
@@ -190,7 +190,7 @@ export const Toggle: ToggleComponent = qr.forwardRef(
   ) => {
     const bs = useBs(bsPrefix, "dropdown-toggle")
     const context = qr.useContext(Context)
-    const isInputGroup = qr.useContext(InputGroupContext)
+    const isInputGroup = qr.useContext(IContext)
     if (childBsPrefix !== undefined) {
       ;(ps as any).bsPrefix = childBsPrefix
     }
@@ -300,7 +300,7 @@ export const Dropdown: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
       autoClose,
       ...ps
     } = qh.useUncontrolled(xs, { show: "onToggle" })
-    const isInputGroup = qr.useContext(InputGroupContext)
+    const isInputGroup = qr.useContext(IContext)
     const bs = useBs(bsPrefix, "dropdown")
     const isRTL = useIsRTL()
     const isClosingPermitted = (source: string): boolean => {
@@ -465,7 +465,7 @@ export const Nav: BsRef<"div", NavProps> = qr.forwardRef(
           active={active}
           disabled={disabled}
           childBsPrefix={bsPrefix}
-          as={NavLink}
+          as={NLink}
         >
           {title}
         </Toggle>

@@ -1,12 +1,11 @@
 import { classNames, BsProps, BsRef, TransitionType } from "./helpers.js"
 import { Context, useTabPanel, NoopTransition } from "./base/Tab.jsx"
 import { Fade } from "./Fade.jsx"
-import { Selectable } from "./base/SelectableContext.jsx"
-import { Tabs, Props } from "./base/Tabs.jsx"
+import { Tabs, Props as TabsProps } from "./base/Tabs.jsx"
 import { useBs } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
 import * as qr from "react"
-import type * as qt from "./base/types.jsx"
+import * as qt from "./base/types.jsx"
 
 export function getTabTransitionComponent(
   x?: TransitionType
@@ -17,7 +16,7 @@ export function getTabTransitionComponent(
   return x
 }
 
-export interface ContainerProps extends Omit<Props, "transition"> {
+export interface ContainerProps extends Omit<TabsProps, "transition"> {
   transition?: TransitionType
 }
 
@@ -55,7 +54,7 @@ export const Pane: BsRef<"div", PaneProps> = qr.forwardRef<
       onExited,
       mountOnEnter,
       unmountOnExit,
-      transition: Transition = Fade,
+      transition: Y = Fade,
     },
   ] = useTabPanel({
     ...xs,
@@ -64,8 +63,8 @@ export const Pane: BsRef<"div", PaneProps> = qr.forwardRef<
   const bs = useBs(bsPrefix, "tab-pane")
   return (
     <Context.Provider value={null}>
-      <Selectable.Provider value={null}>
-        <Transition
+      <qt.Selectable.Provider value={null}>
+        <Y
           in={isActive}
           onEnter={onEnter}
           onEntering={onEntering}
@@ -81,8 +80,8 @@ export const Pane: BsRef<"div", PaneProps> = qr.forwardRef<
             ref={ref}
             className={classNames(className, bs, isActive && "active")}
           />
-        </Transition>
-      </Selectable.Provider>
+        </Y>
+      </qt.Selectable.Provider>
     </Context.Provider>
   )
 })
@@ -101,5 +100,4 @@ export const Tab: qr.FC<Props> = () => {
       "It's an abstract component that is only valid as a direct Child of the `Tabs` Component. " +
       "For custom tabs components use TabPane and TabsContainer directly"
   )
-  return <></>
 }

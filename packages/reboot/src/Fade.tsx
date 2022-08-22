@@ -8,8 +8,8 @@ import type { TransitionStatus, Transition } from "react-transition-group"
 export interface Props extends TransitionCBs {
   className?: string
   in?: boolean | undefined
-  mountOnEnter?: boolean
-  unmountOnExit?: boolean
+  mountOnEnter?: boolean | undefined
+  unmountOnExit?: boolean | undefined
   appear?: boolean
   timeout?: number
   children: qr.ReactElement

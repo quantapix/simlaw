@@ -1,8 +1,8 @@
 import { dequal } from "dequal"
 import { placements } from "@popperjs/core"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useSafeState } from "../hooks.js"
+import * as qh from "../hooks.js"
 import * as qp from "@popperjs/core"
+import * as qr from "react"
 
 export { placements }
 
@@ -108,16 +108,16 @@ export function usePopper(
     ...config
   }: UseOptions = {}
 ): UseState {
-  const prevModifiers = useRef<UseOptions["modifiers"]>(modifiers)
-  const popperInstanceRef = useRef<Instance>()
-  const update = useCallback(() => {
+  const prevModifiers = qr.useRef<UseOptions["modifiers"]>(modifiers)
+  const popperInstanceRef = qr.useRef<Instance>()
+  const update = qr.useCallback(() => {
     popperInstanceRef.current?.update()
   }, [])
-  const forceUpdate = useCallback(() => {
+  const forceUpdate = qr.useCallback(() => {
     popperInstanceRef.current?.forceUpdate()
   }, [])
-  const [popperState, setState] = useSafeState(
-    useState<UseState>({
+  const [popperState, setState] = qh.useSafeState(
+    qr.useState<UseState>({
       placement,
       update,
       forceUpdate,
@@ -128,7 +128,7 @@ export function usePopper(
       },
     })
   )
-  const updateModifier = useMemo<Modifier<"updateStateModifier", any>>(
+  const updateModifier = qr.useMemo<Modifier<"updateStateModifier", any>>(
     () => ({
       name: "updateStateModifier",
       enabled: true,
@@ -153,13 +153,13 @@ export function usePopper(
     }),
     [update, forceUpdate, setState]
   )
-  const nextModifiers = useMemo(() => {
+  const nextModifiers = qr.useMemo(() => {
     if (!dequal(prevModifiers.current, modifiers)) {
       prevModifiers.current = modifiers
     }
     return prevModifiers.current!
   }, [modifiers])
-  useEffect(() => {
+  qr.useEffect(() => {
     if (!popperInstanceRef.current || !enabled) return
     popperInstanceRef.current.setOptions({
       placement,
@@ -171,7 +171,7 @@ export function usePopper(
       ],
     })
   }, [strategy, placement, updateModifier, enabled, nextModifiers])
-  useEffect(() => {
+  qr.useEffect(() => {
     if (!enabled || referenceElement == null || popperElement == null) {
       return undefined
     }
@@ -205,7 +205,7 @@ export type Config = {
   arrowElement?: Element | null
   enableEvents?: boolean
   offset?: Offset | undefined
-  placement?: Placement
+  placement?: Placement | undefined
   popperConfig?: UseOptions
 }
 
@@ -223,7 +223,7 @@ export function toModifierMap(modifiers: Modifiers | undefined) {
 export function toModifierArray(map: Modifiers | undefined = {}) {
   if (Array.isArray(map)) return map
   return Object.keys(map).map(k => {
-    map[k].name = k
+    map[k]!.name = k
     return map[k]
   })
 }

@@ -49,7 +49,7 @@ function renderProgressBar(
         [`${bsPrefix}-bar-animated`]: animated,
         [`${bsPrefix}-bar-striped`]: animated || striped,
       })}
-      style={{ width: `${getPercentage(now, min, max)}%`, ...style }}
+      style={{ width: `${getPercentage(now!, min!, max!)}%`, ...style }}
       aria-valuenow={now}
       aria-valuemin={min}
       aria-valuemax={max}

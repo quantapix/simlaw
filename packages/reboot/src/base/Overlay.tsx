@@ -91,8 +91,8 @@ export const Overlay = qr.forwardRef<HTMLElement, OverlayProps>((ps, ref) => {
   }
   let child = ps.children(
     {
-      ...popper.attributes.popper,
-      style: popper.styles.popper as any,
+      ...popper.attributes["popper"],
+      style: popper.styles["popper"] as any,
       ref: mergedRef,
     },
     {
@@ -100,8 +100,8 @@ export const Overlay = qr.forwardRef<HTMLElement, OverlayProps>((ps, ref) => {
       placement,
       show: !!ps.show,
       arrowProps: {
-        ...popper.attributes.arrow,
-        style: popper.styles.arrow as any,
+        ...popper.attributes["arrow"],
+        style: popper.styles["arrow"] as any,
         ref: attachArrowRef,
       },
     }

@@ -1,18 +1,18 @@
-import * as qr from "react"
-import * as qh from "./hooks.js"
 import { Anchor } from "./base/Anchor.jsx"
+import { classNames, BsProps, BsRef } from "./helpers.js"
+import { Context as CContext } from "./Card.jsx"
+import { Context as NContext } from "./Navbar.jsx"
+import { EventKey, makeEventKey } from "./base/types.js"
+import { useBs } from "./Theme.jsx"
+import { withBs } from "./utils.jsx"
+import * as qh from "./hooks.js"
+import * as qr from "react"
 import {
   Nav as Base,
-  Props as _Props,
+  Props as BaseProps,
   useNavItem,
   ItemProps as IPs,
 } from "./base/Nav.jsx"
-import { EventKey, makeEventKey } from "./base/types.js"
-import { useBs } from "./Theme.jsx"
-import { Context as NContext } from "./Navbar.jsx"
-import { Context as CContext } from "./Card.jsx"
-import { classNames, BsProps, BsRef } from "./helpers.js"
-import { withBs } from "./utils.jsx"
 
 interface Data {
   role?: string
@@ -57,7 +57,7 @@ Link.defaultProps = {
   disabled: false,
 }
 
-export interface Props extends BsProps, _Props {
+export interface Props extends BsProps, BaseProps {
   navbarBsPrefix?: string
   cardHeaderBsPrefix?: string
   variant?: "tabs" | "pills" | string

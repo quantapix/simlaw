@@ -64,8 +64,8 @@ export const getRefTarget = (
   ref: qr.RefObject<Element> | Element | null | undefined
 ) => ref && ("current" in ref ? ref.current : ref)
 export interface ClickOutsideOptions {
-  disabled?: boolean
-  clickTrigger?: MouseEvents
+  disabled?: boolean | undefined
+  clickTrigger?: MouseEvents | undefined
 }
 const InitialTriggerEvents: Partial<Record<MouseEvents, MouseEvents>> = {
   click: "mousedown",
@@ -157,7 +157,7 @@ export function useClickOutside(
 }
 const escapeKeyCode = 27
 export interface RootCloseOptions extends ClickOutsideOptions {
-  disabled?: boolean
+  disabled?: boolean | undefined
 }
 export function useRootClose(
   ref: qr.RefObject<Element> | Element | null | undefined,

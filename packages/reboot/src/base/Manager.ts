@@ -7,7 +7,7 @@ export interface Instance {
 }
 
 export interface Opts {
-  ownerDocument?: Document
+  ownerDocument?: Document | undefined
   handleContainerOverflow?: boolean
   isRTL?: boolean
 }

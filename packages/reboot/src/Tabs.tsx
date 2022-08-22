@@ -23,7 +23,7 @@ function getDefaultActiveKey(xs: any) {
   return key
 }
 
-function renderTab(x) {
+function renderTab(x: any) {
   const { title, eventKey, disabled, tabClassName, tabAttrs, id } = x.props
   if (title == null) {
     return null

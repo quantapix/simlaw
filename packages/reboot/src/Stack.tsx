@@ -30,7 +30,7 @@ export function createUtilityClassName(
     if (v != null) {
       if (typeof v === "object") {
         breakpoints.forEach(x => {
-          const bp = v[x]
+          const bp = (v as any)[x]
           if (bp != null) {
             const infix = x !== minBreakpoint ? `-${x}` : ""
             classes.push(`${n}${infix}-${bp}`)

@@ -1,19 +1,19 @@
 import { classNames, invariant } from "./helpers.js"
-import { useCallback, useMemo, useRef, useState } from "react"
-import { useMergedRefs } from "./hooks.js"
 import { hasClass } from "./base/utils.js"
-import type { Offset, Options } from "./base/popper.js"
-import { useBs } from "./Theme.jsx"
 import { POPPER_OFFSET } from "./Popover.jsx"
+import { useBs } from "./Theme.jsx"
 import { useCol, Props as _Props } from "./Col.jsx"
+import * as qh from "./hooks.js"
+import * as qr from "react"
+import type { Offset, Options } from "./base/popper.js"
 import type { Variant } from "./types.jsx"
 
 export function useOffset(
   customOffset?: Offset
 ): [React.RefObject<HTMLElement>, Options["modifiers"]] {
-  const overlayRef = useRef<HTMLDivElement | null>(null)
+  const overlayRef = qr.useRef<HTMLDivElement | null>(null)
   const popoverClass = useBs(undefined, "popover")
-  const offset = useMemo(
+  const offset = qr.useMemo(
     () => ({
       name: "offset",
       options: {
@@ -63,9 +63,9 @@ export function usePlaceholder({
   }
 }
 
-export function useWrappedRef(ref, componentName) {
-  if (!__DEV__) return ref
-  const warningRef = useCallback(
+export function useWrappedRef(ref: any, componentName: any) {
+  // if (!__DEV__) return ref
+  const warningRef = qr.useCallback(
     (x: any) => {
       invariant(
         x == null || !x.isReactComponent,
@@ -75,5 +75,5 @@ export function useWrappedRef(ref, componentName) {
     },
     [componentName]
   )
-  return useMergedRefs(warningRef, ref)
+  return qh.useMergedRefs(warningRef, ref)
 }
