@@ -1,9 +1,9 @@
 import * as qr from "react"
 
-export type EventKey = string | number
+export type EventKey = string | number | null
 
 export function makeEventKey(
-  key?: EventKey | null,
+  key?: EventKey,
   href: string | null = null
 ): string | null {
   if (key != null) return String(key)
@@ -65,10 +65,7 @@ export type DynCompClass<
   P = unknown
 > = qr.ComponentClass<AssignProps<As, { as?: As } & P>>
 
-export type SelectCB = (
-  eventKey: string | null,
-  e: qr.SyntheticEvent<unknown>
-) => void
+export type SelectCB = (eventKey: string, e: qr.SyntheticEvent<Element>) => void
 
 export const Selectable = qr.createContext<SelectCB | null>(null)
 

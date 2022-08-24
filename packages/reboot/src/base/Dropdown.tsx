@@ -29,7 +29,7 @@ export interface ItemProps extends qr.HTMLAttributes<HTMLElement> {
 }
 
 interface ItemOpts {
-  key?: qt.EventKey | null | undefined
+  key?: qt.EventKey | undefined
   href?: string | undefined
   active?: boolean | undefined
   disabled?: boolean | undefined
@@ -49,7 +49,7 @@ export function useItem({ key, href, active, disabled, onClick }: ItemOpts) {
     if (disabled) return
     onClick?.(e)
     if (onSelectCtx && !e.isPropagationStopped()) {
-      onSelectCtx(eventKey, e)
+      if (eventKey) onSelectCtx(eventKey, e)
     }
   })
   return [
@@ -305,7 +305,7 @@ export function Dropdown({
     },
     [onToggle]
   )
-  const doSelect = qh.useEventCB((key: string | null, e: qr.SyntheticEvent) => {
+  const doSelect = qh.useEventCB((key: string, e: qr.SyntheticEvent) => {
     onSelect?.(key, e)
     doToggle(false, e, "select")
     if (!e.isPropagationStopped()) {

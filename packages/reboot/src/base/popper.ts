@@ -1,10 +1,17 @@
 import { dequal } from "dequal"
-import { placements } from "@popperjs/core"
 import * as qh from "../hooks.js"
 import * as qp from "@popperjs/core"
 import * as qr from "react"
 
-export { placements }
+export type {
+  Instance,
+  Modifier,
+  Options,
+  Placement,
+  placements,
+  State,
+  VirtualElement,
+} from "@popperjs/core"
 
 export const create = qp.popperGenerator({
   defaultModifiers: [
@@ -26,44 +33,38 @@ const disabledApplyStylesModifier = {
   fn: () => undefined,
 }
 
-export type Modifier<Name, Options> = qp.Modifier<Name, Options>
-export type Options = qp.Options
-export type Instance = qp.Instance
-export type Placement = qp.Placement
-export type VirtualElement = qp.VirtualElement
-export type State = qp.State
 export type OffsetValue = [number | null | undefined, number | null | undefined]
 export type OffsetFunction = (details: {
   popper: qp.Rect
   reference: qp.Rect
-  placement: Placement
+  placement: qp.Placement
 }) => OffsetValue
 export type Offset = OffsetFunction | OffsetValue
-export type ModifierMap = Record<string, Partial<Modifier<any, any>>>
+export type ModifierMap = Record<string, Partial<qp.Modifier<any, any>>>
 export type Modifiers =
-  | qp.Options["modifiers"]
-  | Record<string, Partial<Modifier<any, any>>>
+  | Array<Partial<qp.Modifier<any, any>> | undefined>
+  | ModifierMap
 
 export type UseOptions = Omit<
-  Options,
+  qp.Options,
   "modifiers" | "placement" | "strategy"
 > & {
-  enabled?: boolean
-  placement?: Options["placement"]
-  strategy?: Options["strategy"]
-  modifiers?: Options["modifiers"]
+  enabled?: boolean | undefined
+  modifiers?: Array<Partial<qp.Modifier<any, any>> | undefined>
+  placement?: qp.Placement | undefined
+  strategy?: qp.PositioningStrategy | undefined
 }
 
 export interface UseState {
-  placement: Placement
-  update: () => void
-  forceUpdate: () => void
   attributes: Record<string, Record<string, any>>
+  forceUpdate: () => void
+  placement: qp.Placement
+  state?: qp.State
   styles: Record<string, Partial<CSSStyleDeclaration>>
-  state?: State
+  update: () => void
 }
 
-const ariaDescribedByModifier: Modifier<"ariaDescribedBy", undefined> = {
+const ariaDescribedByModifier: qp.Modifier<"ariaDescribedBy", undefined> = {
   name: "ariaDescribedBy",
   enabled: true,
   phase: "afterWrite",
@@ -98,7 +99,7 @@ const ariaDescribedByModifier: Modifier<"ariaDescribedBy", undefined> = {
 const EMPTY_MODIFIERS = [] as any
 
 export function usePopper(
-  referenceElement: VirtualElement | null | undefined,
+  referenceElement: qp.VirtualElement | null | undefined,
   popperElement: HTMLElement | null | undefined,
   {
     enabled = true,
@@ -108,15 +109,15 @@ export function usePopper(
     ...config
   }: UseOptions = {}
 ): UseState {
-  const prevModifiers = qr.useRef<UseOptions["modifiers"]>(modifiers)
-  const popperInstanceRef = qr.useRef<Instance>()
+  const prevMods = qr.useRef<UseOptions["modifiers"]>(modifiers)
+  const ref = qr.useRef<qp.Instance>()
   const update = qr.useCallback(() => {
-    popperInstanceRef.current?.update()
+    ref.current?.update()
   }, [])
   const forceUpdate = qr.useCallback(() => {
-    popperInstanceRef.current?.forceUpdate()
+    ref.current?.forceUpdate()
   }, [])
-  const [popperState, setState] = qh.useSafeState(
+  const [state, setState] = qh.useSafeState(
     qr.useState<UseState>({
       placement,
       update,
@@ -128,7 +129,7 @@ export function usePopper(
       },
     })
   )
-  const updateModifier = qr.useMemo<Modifier<"updateStateModifier", any>>(
+  const updateMod = qr.useMemo<qp.Modifier<"updateStateModifier", any>>(
     () => ({
       name: "updateStateModifier",
       enabled: true,
@@ -137,9 +138,9 @@ export function usePopper(
       fn: ({ state }) => {
         const styles: UseState["styles"] = {}
         const attributes: UseState["attributes"] = {}
-        Object.keys(state.elements).forEach(element => {
-          styles[element] = state.styles[element]
-          attributes[element] = state.attributes[element]
+        Object.keys(state.elements).forEach(e => {
+          styles[e] = state.styles[e]!
+          attributes[e] = state.attributes[e]!
         })
         setState({
           state,
@@ -153,38 +154,34 @@ export function usePopper(
     }),
     [update, forceUpdate, setState]
   )
-  const nextModifiers = qr.useMemo(() => {
-    if (!dequal(prevModifiers.current, modifiers)) {
-      prevModifiers.current = modifiers
+  const nextMods = qr.useMemo(() => {
+    if (!dequal(prevMods.current, modifiers)) {
+      prevMods.current = modifiers
     }
-    return prevModifiers.current!
+    return prevMods.current!
   }, [modifiers])
   qr.useEffect(() => {
-    if (!popperInstanceRef.current || !enabled) return
-    popperInstanceRef.current.setOptions({
+    if (!ref.current || !enabled) return
+    ref.current.setOptions({
       placement,
       strategy,
-      modifiers: [
-        ...nextModifiers,
-        updateModifier,
-        disabledApplyStylesModifier,
-      ],
+      modifiers: [...nextMods, updateMod, disabledApplyStylesModifier],
     })
-  }, [strategy, placement, updateModifier, enabled, nextModifiers])
+  }, [strategy, placement, updateMod, enabled, nextMods])
   qr.useEffect(() => {
     if (!enabled || referenceElement == null || popperElement == null) {
       return undefined
     }
-    popperInstanceRef.current = create(referenceElement, popperElement, {
+    ref.current = create(referenceElement, popperElement, {
       ...config,
       placement,
       strategy,
-      modifiers: [...nextModifiers, ariaDescribedByModifier, updateModifier],
+      modifiers: [...nextMods, ariaDescribedByModifier, updateMod],
     })
     return () => {
-      if (popperInstanceRef.current != null) {
-        popperInstanceRef.current.destroy()
-        popperInstanceRef.current = undefined
+      if (ref.current != null) {
+        ref.current.destroy()
+        ref.current = undefined
         setState(s => ({
           ...s,
           attributes: {},
@@ -193,50 +190,52 @@ export function usePopper(
       }
     }
   }, [enabled, referenceElement, popperElement])
-  return popperState
+  return state
 }
 
-export type Config = {
-  flip?: boolean | undefined
-  fixed?: boolean
+export interface Config {
   alignEnd?: boolean
-  enabled?: boolean
-  containerPadding?: number
   arrowElement?: Element | null
-  enableEvents?: boolean
+  containerPadding?: number | undefined
+  enabled?: boolean | undefined
+  enableEvents?: boolean | undefined
+  fixed?: boolean
+  flip?: boolean | undefined
   offset?: Offset | undefined
-  placement?: Placement | undefined
+  placement?: qp.Placement | undefined
   popperConfig?: UseOptions
 }
 
-export function toModifierMap(modifiers: Modifiers | undefined) {
-  const result: Modifiers = {}
-  if (!Array.isArray(modifiers)) {
-    return modifiers || result
+export function toModifierMap(xs?: Modifiers) {
+  const y: Modifiers = {}
+  if (!Array.isArray(xs)) {
+    return xs || y
   }
-  modifiers?.forEach(m => {
-    result[m.name!] = m
+  xs?.forEach(x => {
+    if (x) {
+      y[x.name] = x
+    }
   })
-  return result
+  return y
 }
 
-export function toModifierArray(map: Modifiers | undefined = {}) {
-  if (Array.isArray(map)) return map
-  return Object.keys(map).map(k => {
-    map[k]!.name = k
-    return map[k]
+export function toModifierArray(m: Modifiers = {}) {
+  if (Array.isArray(m)) return m
+  return Object.keys(m).map(k => {
+    m[k]!.name = k
+    return m[k]
   })
 }
 
 export function mergeOptsWithPopper({
+  arrowElement,
+  containerPadding,
   enabled,
   enableEvents,
-  placement,
+  fixed,
   flip,
   offset,
-  fixed,
-  containerPadding,
-  arrowElement,
+  placement,
   popperConfig = {},
 }: Config): UseOptions {
   const modifiers = toModifierMap(popperConfig.modifiers)
@@ -247,6 +246,25 @@ export function mergeOptsWithPopper({
     strategy: fixed ? "fixed" : popperConfig.strategy,
     modifiers: toModifierArray({
       ...modifiers,
+      offset: {
+        options: {
+          offset,
+          ...modifiers["offset"]?.options,
+        },
+      },
+      arrow: {
+        ...modifiers["arrow"],
+        enabled: !!arrowElement,
+        options: {
+          ...modifiers["arrow"]?.options,
+          element: arrowElement,
+        },
+      },
+      flip: {
+        enabled: !!flip,
+        ...modifiers["flip"],
+      },
+      /*
       eventListeners: {
         enabled: enableEvents,
       },
@@ -259,24 +277,7 @@ export function mergeOptsWithPopper({
             }
           : modifiers.preventOverflow?.options,
       },
-      offset: {
-        options: {
-          offset,
-          ...modifiers.offset?.options,
-        },
-      },
-      arrow: {
-        ...modifiers.arrow,
-        enabled: !!arrowElement,
-        options: {
-          ...modifiers.arrow?.options,
-          element: arrowElement,
-        },
-      },
-      flip: {
-        enabled: !!flip,
-        ...modifiers.flip,
-      },
+      */
     }),
   }
 }

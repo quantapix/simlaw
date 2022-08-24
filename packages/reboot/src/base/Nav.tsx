@@ -6,10 +6,10 @@ import * as qr from "react"
 import * as qt from "./types.js"
 
 interface Data {
-  role?: string
-  activeKey: qt.EventKey | null
-  getControlledId: (key: qt.EventKey | null) => string
-  getControllerId: (key: qt.EventKey | null) => string
+  role?: string | undefined
+  activeKey: qt.EventKey
+  getControlledId: (key: qt.EventKey) => string
+  getControllerId: (key: qt.EventKey) => string
 }
 
 export const Context = qr.createContext<Data | null>(null)
@@ -82,14 +82,14 @@ export function useNavItem({
 export const Item: qt.DynRef<typeof Button, ItemProps> = qr.forwardRef<
   HTMLElement,
   ItemProps
->(({ as: Component = Button, active, eventKey, ...xs }, ref) => {
+>(({ as: B = Button, active, eventKey, ...xs }, ref) => {
   const [ps, meta] = useNavItem({
     key: qt.makeEventKey(eventKey, xs.href),
     active,
     ...xs,
   })
   ps[qt.dataAttr("active")] = meta.isActive
-  return <Component {...xs} {...ps} ref={ref} />
+  return <B {...xs} {...ps} ref={ref} />
 })
 Item.displayName = "NavItem"
 
@@ -103,10 +103,7 @@ export interface Props
 const EVENT_KEY_ATTR = qt.dataAttr("event-key")
 
 export const Nav: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
-  (
-    { as: Component = "div", onSelect, activeKey, role, onKeyDown, ...ps },
-    ref
-  ) => {
+  ({ as: D = "div", onSelect, activeKey, role, onKeyDown, ...ps }, ref) => {
     const forceUpdate = qh.useForceUpdate()
     const needsRefocusRef = qr.useRef(false)
     const parentOnSelect = qr.useContext(qt.Selectable)
@@ -186,12 +183,7 @@ export const Nav: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
             getControllerId: getControllerId || qh.noop,
           }}
         >
-          <Component
-            {...ps}
-            onKeyDown={doKeyDown}
-            ref={mergedRef}
-            role={role}
-          />
+          <D {...ps} onKeyDown={doKeyDown} ref={mergedRef} role={role} />
         </Context.Provider>
       </qt.Selectable.Provider>
     )
