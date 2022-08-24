@@ -298,15 +298,15 @@ export function useEventListener<
 }
 
 export interface FocusManagerOptions {
-  willHandle?(focused: boolean, event: qr.FocusEvent): boolean | void
-  didHandle?(focused: boolean, event: qr.FocusEvent): void
-  onChange?(focused: boolean, event: qr.FocusEvent): void
+  willHandle?(focused: boolean, e: qr.FocusEvent): boolean | void
+  didHandle?(focused: boolean, e: qr.FocusEvent): void
+  onChange?(focused: boolean, e: qr.FocusEvent): void
   isDisabled: () => boolean
 }
 
 export interface FocusController {
-  onBlur: (event: any) => void
-  onFocus: (event: any) => void
+  onBlur: (e: any) => void
+  onFocus: (e: any) => void
 }
 
 export function useFocusManager(opts: FocusManagerOptions): FocusController {
@@ -932,20 +932,20 @@ export function useStateAsync<TState>(
   return [state, cb]
 }
 
-const isSyntheticEvent = (event: any): event is qr.SyntheticEvent =>
-  typeof event.persist === "function"
+const isSyntheticEvent = (e: any): e is qr.SyntheticEvent =>
+  typeof e.persist === "function"
 
-export type ThrottledHandler<TEvent> = ((event: TEvent) => void) & {
+export type ThrottledHandler<E> = ((e: E) => void) & {
   clear(): void
 }
 
-export function useThrottledEventHandler<TEvent = qr.SyntheticEvent>(
-  handler: (event: TEvent) => void
-): ThrottledHandler<TEvent> {
+export function useThrottledEventHandler<E = qr.SyntheticEvent>(
+  handler: (e: E) => void
+): ThrottledHandler<E> {
   const isMounted = useMounted()
   const eventHandler = useEventCB(handler)
   const nextEventInfoRef = qr.useRef<{
-    event: TEvent | null
+    event: E | null
     handle: null | number
   }>({
     event: null,
@@ -965,14 +965,14 @@ export function useThrottledEventHandler<TEvent = qr.SyntheticEvent>(
     }
     next.event = null
   }
-  const throttledHandler = (event: TEvent) => {
+  const throttledHandler = (e: E) => {
     if (!isMounted()) return
-    if (isSyntheticEvent(event)) {
-      event.persist()
-    } else if ("evt" in event) {
-      event = { ...event }
+    if (isSyntheticEvent(e)) {
+      e.persist()
+    } else if ("evt" in e) {
+      e = { ...e }
     }
-    nextEventInfoRef.current.event = event
+    nextEventInfoRef.current.event = e
     if (!nextEventInfoRef.current.handle) {
       nextEventInfoRef.current.handle = requestAnimationFrame(
         doPointerMoveAnimation

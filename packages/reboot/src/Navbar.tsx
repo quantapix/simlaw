@@ -1,10 +1,10 @@
 import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Collapse as C, Props as CPs } from "./Collapse.jsx"
-import { Selectable, SelectCB } from "./base/types.jsx"
 import { useBs } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
+import * as qt from "./base/types.js"
 
 export interface Data {
   onToggle: () => void
@@ -102,7 +102,7 @@ export interface Props
   fixed?: "top" | "bottom"
   sticky?: "top"
   onToggle?: (expanded: boolean) => void
-  onSelect?: SelectCB
+  onSelect?: qt.SelectCB
   collapseOnSelect?: boolean
   expanded?: boolean
 }
@@ -125,7 +125,7 @@ export const Navbar: BsRef<"nav", Props> = qr.forwardRef<HTMLElement, Props>(
       ...ps
     } = qh.useUncontrolled(xs, { expanded: "onToggle" })
     const bs = useBs(bsPrefix, "navbar")
-    const collapse = qr.useCallback<SelectCB>(
+    const collapse = qr.useCallback<qt.SelectCB>(
       (...xs2) => {
         onSelect?.(...xs2)
         if (collapseOnSelect && expanded) {
@@ -150,7 +150,7 @@ export const Navbar: BsRef<"nav", Props> = qr.forwardRef<HTMLElement, Props>(
     )
     return (
       <Context.Provider value={v}>
-        <Selectable.Provider value={collapse}>
+        <qt.Selectable.Provider value={collapse}>
           <X
             ref={ref}
             {...ps}
@@ -164,7 +164,7 @@ export const Navbar: BsRef<"nav", Props> = qr.forwardRef<HTMLElement, Props>(
               fixed && `fixed-${fixed}`
             )}
           />
-        </Selectable.Provider>
+        </qt.Selectable.Provider>
       </Context.Provider>
     )
   }

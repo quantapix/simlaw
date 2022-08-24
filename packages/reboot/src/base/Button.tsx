@@ -27,8 +27,8 @@ export interface AriaProps {
   target?: string | undefined
   rel?: string | undefined
   "aria-disabled"?: true | undefined
-  onClick?: (event: qr.MouseEvent | qr.KeyboardEvent) => void
-  onKeyDown?: (event: qr.KeyboardEvent) => void
+  onClick?: (e: qr.MouseEvent | qr.KeyboardEvent) => void
+  onKeyDown?: (e: qr.KeyboardEvent) => void
 }
 
 export interface Meta {

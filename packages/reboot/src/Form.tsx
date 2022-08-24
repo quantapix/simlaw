@@ -143,12 +143,12 @@ export interface RangeProps
     Omit<qr.InputHTMLAttributes<HTMLInputElement>, "type"> {}
 
 export const Range = qr.forwardRef<HTMLInputElement, RangeProps>(
-  ({ bsPrefix, className, id, ...props }, ref) => {
+  ({ bsPrefix, className, id, ...ps }, ref) => {
     const { controlId } = qr.useContext(FormContext)
     const bs = useBs(bsPrefix, "form-range")
     return (
       <input
-        {...props}
+        {...ps}
         type="range"
         ref={ref}
         className={classNames(className, bs)}
@@ -458,9 +458,9 @@ export interface Props extends qr.FormHTMLAttributes<HTMLFormElement>, AsProp {
 }
 
 export const Form: BsRef<"form", Props> = qr.forwardRef<HTMLFormElement, Props>(
-  ({ className, validated, as: X = "form", ...props }, ref) => (
+  ({ className, validated, as: X = "form", ...ps }, ref) => (
     <X
-      {...props}
+      {...ps}
       ref={ref}
       className={classNames(className, validated && "was-validated")}
     />

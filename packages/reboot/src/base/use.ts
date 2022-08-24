@@ -54,11 +54,11 @@ export type MouseEvents = {
     ? K
     : never
 }[keyof GlobalEventHandlersEventMap]
-function isLeftClickEvent(event: MouseEvent) {
-  return event.button === 0
+function isLeftClickEvent(e: MouseEvent) {
+  return e.button === 0
 }
-function isModifiedEvent(event: MouseEvent) {
-  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey)
+function isModifiedEvent(e: MouseEvent) {
+  return !!(e.metaKey || e.altKey || e.ctrlKey || e.shiftKey)
 }
 export const getRefTarget = (
   ref: qr.RefObject<Element> | Element | null | undefined

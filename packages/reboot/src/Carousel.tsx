@@ -39,7 +39,7 @@ export interface Props
   indicators?: boolean
   indicatorLabels?: string[]
   activeIndex?: number
-  onSelect?: (eventKey: number, event: Record<string, unknown> | null) => void
+  onSelect?: (eventKey: number, e: Record<string, unknown> | null) => void
   defaultActiveIndex?: number
   onSlide?: (eventKey: number, direction: "start" | "end") => void
   onSlid?: (eventKey: number, direction: "start" | "end") => void

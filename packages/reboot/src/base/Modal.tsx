@@ -17,6 +17,14 @@ export type Transition = qr.ComponentType<
   {
     in: boolean
     appear?: boolean
+    children?:
+      | string
+      | number
+      | boolean
+      | qr.ReactFragment
+      | JSX.Element
+      | null
+      | undefined
     unmountOnExit?: boolean
   } & qt.TransitionCBs
 >

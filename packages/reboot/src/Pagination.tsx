@@ -51,8 +51,8 @@ Item.defaultProps = {
 }
 
 function createButton(name: string, defaultValue: qr.ReactNode, label = name) {
-  const Button = qr.forwardRef(({ children, ...props }: ItemProps, ref) => (
-    <Item {...props} ref={ref}>
+  const Button = qr.forwardRef(({ children, ...ps }: ItemProps, ref) => (
+    <Item {...ps} ref={ref}>
       <span aria-hidden="true">{children || defaultValue}</span>
       <span className="visually-hidden">{label}</span>
     </Item>
@@ -72,17 +72,13 @@ export interface Props extends BsProps, qr.HTMLAttributes<HTMLUListElement> {
 }
 
 export const Pagination = qr.forwardRef<HTMLUListElement, Props>(
-  ({ bsPrefix, className, size, ...props }, ref) => {
-    const decoratedBsPrefix = useBs(bsPrefix, "pagination")
+  ({ bsPrefix, className, size, ...ps }, ref) => {
+    const bs = useBs(bsPrefix, "pagination")
     return (
       <ul
         ref={ref}
-        {...props}
-        className={classNames(
-          className,
-          decoratedBsPrefix,
-          size && `${decoratedBsPrefix}-${size}`
-        )}
+        {...ps}
+        className={classNames(className, bs, size && `${bs}-${size}`)}
       />
     )
   }

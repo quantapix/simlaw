@@ -147,10 +147,10 @@ function _animate({
     cssValues.transform = transforms
     cssProperties.push("transform")
   }
-  function done(this: HTMLElement, event: TransitionEvent) {
-    if (event.target !== event.currentTarget) return
+  function done(this: HTMLElement, e: TransitionEvent) {
+    if (e.target !== e.currentTarget) return
     css(node, reset)
-    if (callback) callback.call(this, event)
+    if (callback) callback.call(this, e)
   }
   if (duration > 0) {
     cssValues.transition = cssProperties.join(", ")
@@ -232,13 +232,14 @@ if (canUseDOM) {
     const rafMethod = getKey(vendor, "request")
     if (rafMethod in window) {
       cancelMethod = getKey(vendor, "cancel")
-      rafImpl = cb => window[rafMethod](cb)
+      rafImpl = cb => (window as any)[rafMethod](cb)
     }
     return !!rafImpl
   })
 }
 export const cancel = (id: number) => {
-  if (typeof window[cancelMethod] === "function") window[cancelMethod](id)
+  const w = window as any
+  if (typeof w[cancelMethod] === "function") w[cancelMethod](id)
 }
 export const request = rafImpl
 export function attribute(
@@ -336,10 +337,11 @@ export function collectSiblings(
 
   return siblings
 }
-export function contains(context: Element, node: Element) {
-  if (context.contains) return context.contains(node)
+export function contains(context: Element, x: Element) {
+  if (context.contains) return context.contains(x)
   if (context.compareDocumentPosition)
-    return context === node || !!(context.compareDocumentPosition(node) & 16)
+    return context === x || !!(context.compareDocumentPosition(x) & 16)
+  return
 }
 export function css(
   node: HTMLElement,
@@ -379,6 +381,7 @@ export function css<T extends Property>(
     css += `transform: ${transforms};`
   }
   node.style.cssText += `;${css}`
+  return
 }
 export function filterEvents<K extends keyof HTMLElementEventMap>(
   selector: string,
@@ -397,18 +400,19 @@ export function getComputedStyle(node: HTMLElement, psuedoElement?: string) {
 export function getScrollAccessor(offset: "pageXOffset" | "pageYOffset") {
   const prop: "scrollLeft" | "scrollTop" =
     offset === "pageXOffset" ? "scrollLeft" : "scrollTop"
-  function scrollAccessor(node: Element): number
-  function scrollAccessor(node: Element, val: number): undefined
-  function scrollAccessor(node: Element, val?: number) {
-    const win = isWindow(node)
+  function scrollAccessor(x: Element): number
+  function scrollAccessor(x: Element, val: number): undefined
+  function scrollAccessor(x: Element, val?: number) {
+    const win = isWindow(x)
     if (val === undefined) {
-      return win ? win[offset] : node[prop]
+      return win ? win[offset] : x[prop]
     }
     if (win) {
       win.scrollTo(win[offset], val)
     } else {
-      node[prop] = val
+      x[prop] = val
     }
+    return
   }
   return scrollAccessor
 }
@@ -684,11 +688,11 @@ export function scrollTo(selected: HTMLElement, scrollParent?: HTMLElement) {
     width: offset.width,
   }
   const selectedHeight = offset.height
-  const selectedTop = offset.top + (isWin ? 0 : listScrollTop)
-  const bottom = selectedTop + selectedHeight
+  const top = offset.top + (isWin ? 0 : listScrollTop)
+  const bottom = top + selectedHeight
   listScrollTop =
-    listScrollTop > selectedTop
-      ? selectedTop
+    listScrollTop > top
+      ? top
       : bottom > listScrollTop + listHeight
       ? bottom - listHeight
       : listScrollTop

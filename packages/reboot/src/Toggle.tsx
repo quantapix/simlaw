@@ -76,7 +76,7 @@ export interface RadioProps<T> extends Base {
   name: string
   value?: T
   defaultValue?: T
-  onChange?: (value: T, event: any) => void
+  onChange?: (value: T, e: any) => void
 }
 
 export interface CheckboxProps<T> extends Base {

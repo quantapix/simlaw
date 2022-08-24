@@ -9,7 +9,7 @@ import * as qt from "./types.js"
 import * as qu from "./use.js"
 
 export type Data = {
-  toggle: (nextShow: boolean, event?: qr.SyntheticEvent | Event) => void
+  toggle: (nextShow: boolean, e?: qr.SyntheticEvent | Event) => void
   menuElement: HTMLElement | null
   toggleElement: HTMLElement | null
   setMenu: (ref: HTMLElement | null) => void
@@ -65,24 +65,17 @@ export function useItem({ key, href, active, disabled, onClick }: ItemOpts) {
 
 export const Item: qt.DynRef<typeof Button, ItemProps> = qr.forwardRef(
   (
-    {
-      eventKey,
-      disabled,
-      onClick,
-      active,
-      as: Component = Button,
-      ...props
-    }: ItemProps,
+    { eventKey, disabled, onClick, active, as: B = Button, ...ps }: ItemProps,
     ref
   ) => {
-    const [dropdownItemProps] = useItem({
+    const [itemProps] = useItem({
       key: eventKey,
-      href: props.href,
+      href: ps.href,
       disabled,
       onClick,
       active,
     })
-    return <Component {...props} ref={ref} {...dropdownItemProps} />
+    return <B {...ps} ref={ref} {...itemProps} />
   }
 )
 Item.displayName = "DropdownItem"
@@ -305,22 +298,20 @@ export function Dropdown({
   const doToggle = qr.useCallback(
     (
       nextShow: boolean,
-      event: ToggleEvent | undefined,
-      source: string | undefined = event?.type
+      e: ToggleEvent | undefined,
+      source: string | undefined = e?.type
     ) => {
-      onToggle(nextShow, { originalEvent: event, source })
+      onToggle(nextShow, { originalEvent: e, source })
     },
     [onToggle]
   )
-  const doSelect = qh.useEventCB(
-    (key: string | null, event: qr.SyntheticEvent) => {
-      onSelect?.(key, event)
-      doToggle(false, event, "select")
-      if (!event.isPropagationStopped()) {
-        onSelectCtx?.(key, event)
-      }
+  const doSelect = qh.useEventCB((key: string | null, e: qr.SyntheticEvent) => {
+    onSelect?.(key, e)
+    doToggle(false, e, "select")
+    if (!e.isPropagationStopped()) {
+      onSelectCtx?.(key, e)
     }
-  )
+  })
   const context = qr.useMemo(
     () => ({
       toggle: doToggle,
@@ -369,19 +360,19 @@ export function Dropdown({
   qr.useEffect(() => {
     lastSourceEvent.current = null
   })
-  const getNextFocusedChild = (current: HTMLElement, offset: number) => {
+  const getNextFocusedChild = (x: HTMLElement, offset: number) => {
     if (!menuRef.current) return null
     const items = qsa(menuRef.current, itemSelector)
-    let index = items.indexOf(current) + offset
-    index = Math.max(0, Math.min(index, items.length))
-    return items[index]
+    let i = items.indexOf(x) + offset
+    i = Math.max(0, Math.min(i, items.length))
+    return items[i]
   }
   qh.useEventListener(
     qr.useCallback(() => window!.document, [window]),
     "keydown",
-    (event: KeyboardEvent) => {
-      const { key } = event
-      const target = event.target as HTMLElement
+    (e: KeyboardEvent) => {
+      const { key } = e
+      const target = e.target as HTMLElement
       const fromMenu = menuRef.current?.contains(target)
       const fromToggle = toggleRef.current?.contains(target)
       const isInput = /input|textarea/i.test(target.tagName)
@@ -399,17 +390,17 @@ export function Dropdown({
       if (key === "Tab" && (!menuRef.current || !show)) {
         return
       }
-      lastSourceEvent.current = event.type
-      const meta = { originalEvent: event, source: event.type }
+      lastSourceEvent.current = e.type
+      const meta = { originalEvent: e, source: e.type }
       switch (key) {
         case "ArrowUp": {
           const next = getNextFocusedChild(target, -1)
           if (next && next.focus) next.focus()
-          event.preventDefault()
+          e.preventDefault()
           return
         }
         case "ArrowDown":
-          event.preventDefault()
+          e.preventDefault()
           if (!show) {
             onToggle(true, meta)
           } else {
@@ -434,8 +425,8 @@ export function Dropdown({
           break
         case "Escape":
           if (key === "Escape") {
-            event.preventDefault()
-            event.stopPropagation()
+            e.preventDefault()
+            e.stopPropagation()
           }
           onToggle(false, meta)
           break

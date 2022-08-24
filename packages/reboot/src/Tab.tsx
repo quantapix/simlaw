@@ -20,8 +20,8 @@ export interface ContainerProps extends Omit<TabsProps, "transition"> {
   transition?: TransitionType
 }
 
-export const Container = ({ transition, ...props }: ContainerProps) => (
-  <Tabs {...props} transition={getTabTransitionComponent(transition)} />
+export const Container = ({ transition, ...ps }: ContainerProps) => (
+  <Tabs {...ps} transition={getTabTransitionComponent(transition)} />
 )
 Container.displayName = "TabContainer"
 

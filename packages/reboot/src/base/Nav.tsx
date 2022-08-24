@@ -82,14 +82,14 @@ export function useNavItem({
 export const Item: qt.DynRef<typeof Button, ItemProps> = qr.forwardRef<
   HTMLElement,
   ItemProps
->(({ as: Component = Button, active, eventKey, ...options }, ref) => {
-  const [props, meta] = useNavItem({
-    key: qt.makeEventKey(eventKey, options.href),
+>(({ as: Component = Button, active, eventKey, ...xs }, ref) => {
+  const [ps, meta] = useNavItem({
+    key: qt.makeEventKey(eventKey, xs.href),
     active,
-    ...options,
+    ...xs,
   })
-  props[qt.dataAttr("active")] = meta.isActive
-  return <Component {...options} {...props} ref={ref} />
+  ps[qt.dataAttr("active")] = meta.isActive
+  return <Component {...xs} {...ps} ref={ref} />
 })
 Item.displayName = "NavItem"
 
@@ -104,7 +104,7 @@ const EVENT_KEY_ATTR = qt.dataAttr("event-key")
 
 export const Nav: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
   (
-    { as: Component = "div", onSelect, activeKey, role, onKeyDown, ...props },
+    { as: Component = "div", onSelect, activeKey, role, onKeyDown, ...ps },
     ref
   ) => {
     const forceUpdate = qh.useForceUpdate()
@@ -137,18 +137,18 @@ export const Nav: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
       if (nextIndex < 0) nextIndex = items.length - 1
       return items[nextIndex]
     }
-    const doSelect = (key: string | null, event: qr.SyntheticEvent) => {
+    const doSelect = (key: string | null, e: qr.SyntheticEvent) => {
       if (key == null) return
-      onSelect?.(key, event)
-      parentOnSelect?.(key, event)
+      onSelect?.(key, e)
+      parentOnSelect?.(key, e)
     }
-    const doKeyDown = (event: qr.KeyboardEvent<HTMLElement>) => {
-      onKeyDown?.(event)
+    const doKeyDown = (e: qr.KeyboardEvent<HTMLElement>) => {
+      onKeyDown?.(e)
       if (!tabContext) {
         return
       }
       let nextActiveChild
-      switch (event.key) {
+      switch (e.key) {
         case "ArrowLeft":
         case "ArrowUp":
           nextActiveChild = getNextActiveTab(-1)
@@ -161,8 +161,8 @@ export const Nav: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
           return
       }
       if (!nextActiveChild) return
-      event.preventDefault()
-      doSelect(nextActiveChild.dataset[qt.dataProp("EventKey")] || null, event)
+      e.preventDefault()
+      doSelect(nextActiveChild.dataset[qt.dataProp("EventKey")] || null, e)
       needsRefocusRef.current = true
       forceUpdate()
     }
@@ -187,7 +187,7 @@ export const Nav: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
           }}
         >
           <Component
-            {...props}
+            {...ps}
             onKeyDown={doKeyDown}
             ref={mergedRef}
             role={role}

@@ -100,16 +100,13 @@ export function withBs<As extends qr.ElementType = "div">(
   }: BsOptions<As> = {}
 ): BsRef<As> {
   const y = qr.forwardRef(
-    (
-      { className, bsPrefix, as: X = Component || "div", ...props }: any,
-      ref
-    ) => {
+    ({ className, bsPrefix, as: X = Component || "div", ...ps }: any, ref) => {
       const resolvedPrefix = useBs(bsPrefix, prefix)
       return (
         <X
           ref={ref}
           className={classNames(className, resolvedPrefix)}
-          {...props}
+          {...ps}
         />
       )
     }
