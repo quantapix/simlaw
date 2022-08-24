@@ -160,15 +160,15 @@ export const Offcanvas: BsRef<"div", Props> = qr.forwardRef<Handle, Props>(
     qr.useEffect(() => {
       setShowOffcanvas(responsive ? show && !hideOffcanvas : show)
     }, [show, responsive, hideOffcanvas])
-    const hide = qh.useEventCB(() => {
+    const doHide = qh.useEventCB(() => {
       onToggle?.()
       onHide?.()
     })
     const v = qr.useMemo(
       () => ({
-        onHide: hide,
+        onHide: doHide,
       }),
-      [hide]
+      [doHide]
     )
     function getManager() {
       if (propsManager) return propsManager
@@ -181,11 +181,11 @@ export const Offcanvas: BsRef<"div", Props> = qr.forwardRef<Handle, Props>(
       }
       return getSharedManager()
     }
-    const enter = (x: any, ...xs: any) => {
+    const doEnter = (x: any, ...xs: any) => {
       if (x) x.style.visibility = "visible"
       onEnter?.(x, ...xs)
     }
-    const exited = (x: any, ...xs: any) => {
+    const doExited = (x: any, ...xs: any) => {
       if (x) x.style.visibility = ""
       onExited?.(...xs)
     }
@@ -229,13 +229,13 @@ export const Offcanvas: BsRef<"div", Props> = qr.forwardRef<Handle, Props>(
             restoreFocusOptions={restoreFocusOptions}
             onEscapeKeyDown={onEscapeKeyDown}
             onShow={onShow}
-            onHide={hide}
-            onEnter={enter}
+            onHide={doHide}
+            onEnter={doEnter}
             onEntering={onEntering}
             onEntered={onEntered}
             onExit={onExit}
             onExiting={onExiting}
-            onExited={exited}
+            onExited={doExited}
             manager={getManager()}
             transition={DialogTransition}
             backdropTransition={BackdropTransition}

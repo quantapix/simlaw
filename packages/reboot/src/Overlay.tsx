@@ -55,7 +55,7 @@ export const Overlay = qr.forwardRef<HTMLElement, Props>(
     const mergedRef = qh.useMergedRefs(ref, ref2)
     const actualTransition =
       transition === true ? Fade : transition || undefined
-    const firstUpdate = qh.useEventCB(state => {
+    const doFirstUpdate = qh.useEventCB(state => {
       setFirstRenderedState(state)
       popperConfig?.onFirstUpdate?.(state)
     })
@@ -71,7 +71,7 @@ export const Overlay = qr.forwardRef<HTMLElement, Props>(
         popperConfig={{
           ...popperConfig,
           modifiers: modifiers.concat(popperConfig.modifiers || []),
-          onFirstUpdate: firstUpdate,
+          onFirstUpdate: doFirstUpdate,
         }}
         transition={actualTransition}
       >
@@ -197,7 +197,7 @@ export const Trigger = ({
   const attachRef = (r: qr.ComponentClass | Element | null | undefined) => {
     mergedRef(safeFindDOMNode(r))
   }
-  const show = qr.useCallback(() => {
+  const doShow = qr.useCallback(() => {
     timeout.clear()
     hoverStateRef.current = "show"
     if (!delay.show) {
@@ -208,7 +208,7 @@ export const Trigger = ({
       if (hoverStateRef.current === "show") setShow(true)
     }, delay.show)
   }, [delay.show, setShow, timeout])
-  const hide = qr.useCallback(() => {
+  const doHide = qr.useCallback(() => {
     timeout.clear()
     hoverStateRef.current = "hide"
     if (!delay.hide) {
@@ -219,57 +219,57 @@ export const Trigger = ({
       if (hoverStateRef.current === "hide") setShow(false)
     }, delay.hide)
   }, [delay.hide, setShow, timeout])
-  const focus = qr.useCallback(
+  const doFocus = qr.useCallback(
     (...xs: any[]) => {
-      show()
+      doShow()
       onFocus?.(...xs)
     },
-    [show, onFocus]
+    [doShow, onFocus]
   )
-  const blur = qr.useCallback(
+  const doBlur = qr.useCallback(
     (...xs: any[]) => {
-      hide()
+      doHide()
       onBlur?.(...xs)
     },
-    [hide, onBlur]
+    [doHide, onBlur]
   )
-  const click = qr.useCallback(
+  const doClick = qr.useCallback(
     (...xs: any[]) => {
       setShow(!isShow)
       onClick?.(...xs)
     },
     [onClick, setShow, isShow]
   )
-  const mouseOver = qr.useCallback(
+  const doMouseOver = qr.useCallback(
     (...xs: [qr.MouseEvent, ...any[]]) => {
-      mouseOverOut(show, xs, "fromElement")
+      mouseOverOut(doShow, xs, "fromElement")
     },
-    [show]
+    [doShow]
   )
-  const mouseOut = qr.useCallback(
+  const doMouseOut = qr.useCallback(
     (...xs: [qr.MouseEvent, ...any[]]) => {
-      mouseOverOut(hide, xs, "toElement")
+      mouseOverOut(doHide, xs, "toElement")
     },
-    [hide]
+    [doHide]
   )
   const triggers: string[] = trigger == null ? [] : [].concat(trigger as any)
   const triggerProps: any = {
     ref: attachRef,
   }
   if (triggers.indexOf("click") !== -1) {
-    triggerProps.onClick = click
+    triggerProps.onClick = doClick
   }
   if (triggers.indexOf("focus") !== -1) {
-    triggerProps.onFocus = focus
-    triggerProps.onBlur = blur
+    triggerProps.onFocus = doFocus
+    triggerProps.onBlur = doBlur
   }
   if (triggers.indexOf("hover") !== -1) {
     warning(
       triggers.length > 1,
       '[react-bootstrap] Specifying only the `"hover"` trigger limits the visibility of the overlay to just mouse users. Consider also including the `"focus"` trigger so that touch and keyboard only users can see the overlay as well.'
     )
-    triggerProps.onMouseOver = mouseOver
-    triggerProps.onMouseOut = mouseOut
+    triggerProps.onMouseOver = doMouseOver
+    triggerProps.onMouseOut = doMouseOut
   }
   return (
     <>
@@ -279,7 +279,7 @@ export const Trigger = ({
       <Overlay
         {...ps}
         show={isShow}
-        onHide={hide}
+        onHide={doHide}
         flip={flip}
         placement={placement}
         popperConfig={popperConfig}

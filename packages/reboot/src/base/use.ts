@@ -79,7 +79,7 @@ export function useClickOutside(
 ) {
   const preventMouseClickOutsideRef = qr.useRef(false)
   const waitingForTrigger = qr.useRef(false)
-  const handleMouseCapture = qr.useCallback(
+  const doMouseCapture = qr.useCallback(
     (e: any) => {
       const currentTarget = getRefTarget(ref)
       qu.warning(
@@ -97,13 +97,13 @@ export function useClickOutside(
     },
     [ref]
   )
-  const handleInitialMouse = qh.useEventCB((e: MouseEvent) => {
+  const doInitialMouse = qh.useEventCB((e: MouseEvent) => {
     const currentTarget = getRefTarget(ref)
     if (currentTarget && qu.contains(currentTarget, e.target as any)) {
       waitingForTrigger.current = true
     }
   })
-  const handleMouse = qh.useEventCB((e: MouseEvent) => {
+  const doMouse = qh.useEventCB((e: MouseEvent) => {
     if (!preventMouseClickOutsideRef.current) {
       onClickOutside(e)
     }
@@ -117,14 +117,14 @@ export function useClickOutside(
       removeInitialTriggerListener = qu.listen(
         doc as any,
         InitialTriggerEvents[clickTrigger]!,
-        handleInitialMouse,
+        doInitialMouse,
         true
       )
     }
     const removeMouseCaptureListener = qu.listen(
       doc as any,
       clickTrigger,
-      handleMouseCapture,
+      doMouseCapture,
       true
     )
     const removeMouseListener = qu.listen(doc as any, clickTrigger, e => {
@@ -132,7 +132,7 @@ export function useClickOutside(
         currentEvent = undefined
         return
       }
-      handleMouse(e)
+      doMouse(e)
     })
     let mobileSafariHackListeners = [] as Array<() => void>
     if ("ontouchstart" in doc.documentElement) {
@@ -146,14 +146,7 @@ export function useClickOutside(
       removeMouseListener()
       mobileSafariHackListeners.forEach(remove => remove())
     }
-  }, [
-    ref,
-    disabled,
-    clickTrigger,
-    handleMouseCapture,
-    handleInitialMouse,
-    handleMouse,
-  ])
+  }, [ref, disabled, clickTrigger, doMouseCapture, doInitialMouse, doMouse])
 }
 const escapeKeyCode = 27
 export interface RootCloseOptions extends ClickOutsideOptions {
@@ -166,7 +159,7 @@ export function useRootClose(
 ) {
   const onClose = onRootClose || qh.noop
   useClickOutside(ref, onClose, { disabled, clickTrigger })
-  const handleKeyUp = qh.useEventCB((e: KeyboardEvent) => {
+  const doKeyUp = qh.useEventCB((e: KeyboardEvent) => {
     if (e.keyCode === escapeKeyCode) {
       onClose(e)
     }
@@ -180,12 +173,12 @@ export function useRootClose(
         currentEvent = undefined
         return
       }
-      handleKeyUp(e)
+      doKeyUp(e)
     })
     return () => {
       removeKeyupListener()
     }
-  }, [ref, disabled, handleKeyUp])
+  }, [ref, disabled, doKeyUp])
 }
 export function useScrollParent(element: null | Element) {
   const [parent, setParent] = qr.useState<
@@ -239,7 +232,7 @@ export function useWaypoint(
 ): void {
   const { rootMargin, threshold, scrollDirection = "vertical" } = options
   let { root } = options
-  const handler = qh.useEventCB(callback)
+  const cb = qh.useEventCB(callback)
   const prevPositionRef = qr.useRef<Position | null>(null)
   if (root === "scrollParent") {
     root = findRoot
@@ -275,7 +268,7 @@ export function useWaypoint(
       if (previousPosition === position) {
         return
       }
-      handler({ position, previousPosition }, entry, observer)
+      cb({ position, previousPosition }, entry, observer)
       prevPositionRef.current = position
     },
     {

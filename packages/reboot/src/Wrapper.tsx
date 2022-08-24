@@ -38,26 +38,24 @@ export const Wrapper = qr.forwardRef<Transition<any>, Props>(
           callback(nodeRef.current, param)
         }
       }
-    const enter = qr.useCallback(normalize(onEnter), [onEnter])
-    const entering = qr.useCallback(normalize(onEntering), [onEntering])
-    const entered = qr.useCallback(normalize(onEntered), [onEntered])
-    const exit = qr.useCallback(normalize(onExit), [onExit])
-    const exiting = qr.useCallback(normalize(onExiting), [onExiting])
-    const exited = qr.useCallback(normalize(onExited), [onExited])
-    const addListener = qr.useCallback(normalize(addEndListener), [
-      addEndListener,
-    ])
+    const doEnter = qr.useCallback(normalize(onEnter), [onEnter])
+    const doEntering = qr.useCallback(normalize(onEntering), [onEntering])
+    const doEntered = qr.useCallback(normalize(onEntered), [onEntered])
+    const doExit = qr.useCallback(normalize(onExit), [onExit])
+    const doExiting = qr.useCallback(normalize(onExiting), [onExiting])
+    const doExited = qr.useCallback(normalize(onExited), [onExited])
+    const cb = qr.useCallback(normalize(addEndListener), [addEndListener])
     return (
       <Transition
         ref={ref}
         {...ps}
-        onEnter={enter}
-        onEntered={entered}
-        onEntering={entering}
-        onExit={exit}
-        onExited={exited}
-        onExiting={exiting}
-        addEndListener={addListener}
+        onEnter={doEnter}
+        onEntered={doEntered}
+        onEntering={doEntering}
+        onExit={doExit}
+        onExited={doExited}
+        onExiting={doExiting}
+        addEndListener={cb}
         nodeRef={nodeRef}
       >
         {typeof children === "function"

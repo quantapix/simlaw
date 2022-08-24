@@ -68,7 +68,7 @@ export const Toggle: BsRef<"button", ToggleProps> = qr.forwardRef<
   ) => {
     const bs = useBs(bsPrefix, "navbar-toggler")
     const { onToggle, expanded } = qr.useContext(Context) || {}
-    const clickCB = qh.useEventCB(e => {
+    const doClick = qh.useEventCB(e => {
       if (onClick) onClick(e)
       if (onToggle) onToggle()
     })
@@ -79,7 +79,7 @@ export const Toggle: BsRef<"button", ToggleProps> = qr.forwardRef<
       <X
         {...ps}
         ref={ref}
-        onClick={clickCB}
+        onClick={doClick}
         aria-label={label}
         className={classNames(className, bs, !expanded && "collapsed")}
       >

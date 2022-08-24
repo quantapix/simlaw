@@ -126,13 +126,13 @@ export const Group: BsRef<"a", GroupProps<any>> = qr.forwardRef<
     <G {...ps} ref={ref as any}>
       {map(children, x => {
         const vs = getValues()
-        const { value: childVal, onChange: childOnChange } = x.props
-        const handler = (e: any) => toggle(childVal, e)
+        const { value: v, onChange: cb } = x.props
+        const cb2 = (e: any) => toggle(v, e)
         return qr.cloneElement(x, {
           type,
           name: (x as any).name || name,
-          checked: vs.indexOf(childVal) !== -1,
-          onChange: createChained(childOnChange, handler),
+          checked: vs.indexOf(v) !== -1,
+          onChange: createChained(cb, cb2),
         })
       })}
     </G>

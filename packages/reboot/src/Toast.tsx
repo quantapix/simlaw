@@ -40,7 +40,7 @@ export const Header = qr.forwardRef<HTMLDivElement, HeaderProps>(
   ) => {
     bsPrefix = useBs(bsPrefix, "toast-header")
     const context = qr.useContext(Context)
-    const click = qh.useEventCB(e => {
+    const doClick = qh.useEventCB(e => {
       context?.onClose?.(e)
     })
     return (
@@ -50,7 +50,7 @@ export const Header = qr.forwardRef<HTMLDivElement, HeaderProps>(
           <Close
             aria-label={closeLabel}
             variant={closeVariant}
-            onClick={click}
+            onClick={doClick}
             data-dismiss="toast"
           />
         )}
@@ -114,14 +114,14 @@ export const Toast: BsRef<"div", Props> = qr.forwardRef<HTMLDivElement, Props>(
     }, [delay, onClose])
     const autohideTimeout = qh.useTimeout()
     const autohideToast = !!(autohide && show)
-    const autohideFunc = qr.useCallback(() => {
+    const cb = qr.useCallback(() => {
       if (autohideToast) {
         onCloseRef.current?.()
       }
     }, [autohideToast])
     qr.useEffect(() => {
-      autohideTimeout.set(autohideFunc, delayRef.current)
-    }, [autohideTimeout, autohideFunc])
+      autohideTimeout.set(cb, delayRef.current)
+    }, [autohideTimeout, cb])
     const v = qr.useMemo(
       () => ({
         onClose,

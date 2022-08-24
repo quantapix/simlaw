@@ -42,7 +42,7 @@ export const Item: BsRef<"a", ItemProps> = qr.forwardRef<
       active,
       ...ps,
     })
-    const click = qh.useEventCB(e => {
+    const doClick = qh.useEventCB(e => {
       if (disabled) {
         e.preventDefault()
         e.stopPropagation()
@@ -60,7 +60,7 @@ export const Item: BsRef<"a", ItemProps> = qr.forwardRef<
         ref={ref}
         {...ps}
         {...navItemProps}
-        onClick={click}
+        onClick={doClick}
         className={classNames(
           className,
           bsPrefix,

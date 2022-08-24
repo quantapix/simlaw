@@ -8,6 +8,11 @@ import type * as qt from "./types.js"
 
 let manager: Manager
 
+function getManager(x?: Window) {
+  if (!manager) manager = new Manager({ ownerDocument: x?.document })
+  return manager
+}
+
 export type Transition = qr.ComponentType<
   {
     in: boolean
@@ -41,8 +46,8 @@ export interface BaseProps extends qt.TransitionCBs {
   onHide?: () => void
   manager?: Manager
   backdrop?: true | false | "static"
-  renderDialog?: (props: DialogProps) => qr.ReactNode
-  renderBackdrop?: (props: BackdropProps) => qr.ReactNode
+  renderDialog?: (ps: DialogProps) => qr.ReactNode
+  renderBackdrop?: (ps: BackdropProps) => qr.ReactNode
   onEscapeKeyDown?: (e: KeyboardEvent) => void
   onBackdropClick?: (e: qr.SyntheticEvent) => void
   keyboard?: boolean
@@ -60,27 +65,22 @@ export interface Props extends BaseProps {
   [other: string]: any
 }
 
-function getManager(x?: Window) {
-  if (!manager) manager = new Manager({ ownerDocument: x?.document })
-  return manager
-}
-
-function useModalManager(provided?: Manager) {
+function useModalManager(x?: Manager) {
   const window = qu.useWindow()
-  const modalManager = provided || getManager(window)
+  const m = x || getManager(window)
   const modal = qr.useRef({
     dialog: null as any as HTMLElement,
     backdrop: null as any as HTMLElement,
   })
   return Object.assign(modal.current, {
-    add: () => modalManager.add(modal.current),
-    remove: () => modalManager.remove(modal.current),
-    isTopModal: () => modalManager.isTopModal(modal.current),
-    setDialogRef: qr.useCallback((ref: HTMLElement | null) => {
-      modal.current.dialog = ref!
+    add: () => m.add(modal.current),
+    remove: () => m.remove(modal.current),
+    isTopModal: () => m.isTopModal(modal.current),
+    setDialogRef: qr.useCallback((e: HTMLElement | null) => {
+      modal.current.dialog = e!
     }, []),
-    setBackdropRef: qr.useCallback((ref: HTMLElement | null) => {
-      modal.current.backdrop = ref!
+    setBackdropRef: qr.useCallback((e: HTMLElement | null) => {
+      modal.current.backdrop = e!
     }, []),
   })
 }
@@ -112,8 +112,8 @@ export const Modal: qr.ForwardRefExoticComponent<
       restoreFocusOptions,
       renderDialog,
       renderBackdrop = (xs: BackdropProps) => <div {...xs} />,
-      manager: providedManager,
-      container: containerRef,
+      manager: _manager,
+      container: _container,
       onShow,
       onHide = () => {},
       onExit,
@@ -126,8 +126,8 @@ export const Modal: qr.ForwardRefExoticComponent<
     }: Props,
     ref: qr.Ref<Handle>
   ) => {
-    const container = qu.useWaitForDOMRef(containerRef)
-    const modal = useModalManager(providedManager)
+    const container = qu.useWaitForDOMRef(_container)
+    const modal = useModalManager(_manager)
     const isMounted = qh.useMounted()
     const prevShow = qh.usePrevious(show)
     const [exited, setExited] = qr.useState(!show)
@@ -141,17 +141,17 @@ export const Modal: qr.ForwardRefExoticComponent<
     } else if (show && exited) {
       setExited(false)
     }
-    const handleShow = qh.useEventCB(() => {
+    const doShow = qh.useEventCB(() => {
       modal.add()
       removeKeydownListenerRef.current = listen(
         document as any,
         "keydown",
-        handleDocumentKeyDown
+        doDocumentKeyDown
       )
       removeFocusListenerRef.current = listen(
         document as any,
         "focus",
-        () => setTimeout(handleEnforceFocus),
+        () => setTimeout(doEnforceFocus),
         true
       )
       if (onShow) {
@@ -169,7 +169,7 @@ export const Modal: qr.ForwardRefExoticComponent<
         }
       }
     })
-    const handleHide = qh.useEventCB(() => {
+    const doHide = qh.useEventCB(() => {
       modal.remove()
       removeKeydownListenerRef.current?.()
       removeFocusListenerRef.current?.()
@@ -180,29 +180,25 @@ export const Modal: qr.ForwardRefExoticComponent<
     })
     qr.useEffect(() => {
       if (!show || !container) return
-      handleShow()
-    }, [show, container, handleShow])
+      doShow()
+    }, [show, container, doShow])
     qr.useEffect(() => {
       if (!exited) return
-      handleHide()
-    }, [exited, handleHide])
+      doHide()
+    }, [exited, doHide])
     qh.useWillUnmount(() => {
-      handleHide()
+      doHide()
     })
-    const handleEnforceFocus = qh.useEventCB(() => {
+    const doEnforceFocus = qh.useEventCB(() => {
       if (!enforceFocus || !isMounted() || !modal.isTopModal()) {
         return
       }
-      const currentActiveElement = activeElement()
-      if (
-        modal.dialog &&
-        currentActiveElement &&
-        !contains(modal.dialog, currentActiveElement)
-      ) {
+      const e = activeElement()
+      if (modal.dialog && e && !contains(modal.dialog, e)) {
         modal.dialog.focus()
       }
     })
-    const handleBackdropClick = qh.useEventCB((e: qr.SyntheticEvent) => {
+    const doBackdropClick = qh.useEventCB((e: qr.SyntheticEvent) => {
       if (e.target !== e.currentTarget) {
         return
       }
@@ -211,7 +207,7 @@ export const Modal: qr.ForwardRefExoticComponent<
         onHide()
       }
     })
-    const handleDocumentKeyDown = qh.useEventCB((e: KeyboardEvent) => {
+    const doDocumentKeyDown = qh.useEventCB((e: KeyboardEvent) => {
       if (keyboard && e.keyCode === 27 && modal.isTopModal()) {
         onEscapeKeyDown?.(e)
         if (!e.defaultPrevented) {
@@ -223,7 +219,7 @@ export const Modal: qr.ForwardRefExoticComponent<
     const removeKeydownListenerRef = qr.useRef<ReturnType<
       typeof listen
     > | null>()
-    const handleHidden: qt.TransitionCBs["onExited"] = (...args) => {
+    const doHidden: qt.TransitionCBs["onExited"] = (...args) => {
       setExited(true)
       onExited?.(...args)
     }
@@ -255,7 +251,7 @@ export const Modal: qr.ForwardRefExoticComponent<
           in={!!show}
           onExit={onExit}
           onExiting={onExiting}
-          onExited={handleHidden}
+          onExited={doHidden}
           onEnter={onEnter}
           onEntering={onEntering}
           onEntered={onEntered}
@@ -269,7 +265,7 @@ export const Modal: qr.ForwardRefExoticComponent<
       const B = backdropTransition
       elem = renderBackdrop({
         ref: modal.setBackdropRef,
-        onClick: handleBackdropClick,
+        onClick: doBackdropClick,
       })
       if (B) {
         elem = (

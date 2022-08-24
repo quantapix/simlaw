@@ -75,7 +75,7 @@ export const Overlay = qr.forwardRef<HTMLElement, OverlayProps>((ps, ref) => {
   } else if (!ps.transition && !exited) {
     setExited(true)
   }
-  const handleHidden: qt.TransitionCBs["onExited"] = (...args) => {
+  const doHidden: qt.TransitionCBs["onExited"] = (...args) => {
     setExited(true)
     if (ps.onExited) {
       ps.onExited(...args)
@@ -114,7 +114,7 @@ export const Overlay = qr.forwardRef<HTMLElement, OverlayProps>((ps, ref) => {
         appear
         onExit={onExit}
         onExiting={onExiting}
-        onExited={handleHidden}
+        onExited={doHidden}
         onEnter={onEnter}
         onEntering={onEntering}
         onEntered={onEntered}

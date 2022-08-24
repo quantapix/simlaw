@@ -138,7 +138,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
       }
     })
     const activeChildIntervalRef = qh.useCommittedRef(activeInterval)
-    const prev = qr.useCallback(
+    const doPrev = qr.useCallback(
       (e?: any) => {
         if (isSliding) {
           return
@@ -155,7 +155,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
       },
       [isSliding, renderedIdx, onSelect, wrap, n]
     )
-    const next = qh.useEventCB((e?) => {
+    const doNext = qh.useEventCB((e?) => {
       if (isSliding) {
         return
       }
@@ -172,15 +172,15 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
     const elementRef = qr.useRef<HTMLElement>()
     qr.useImperativeHandle(ref, () => ({
       element: elementRef.current,
-      prev,
-      next,
+      prev: doPrev,
+      next: doNext,
     }))
-    const nextWhenVisible = qh.useEventCB(() => {
+    const doNextWhenVisible = qh.useEventCB(() => {
       if (!document.hidden && isVisible(elementRef.current)) {
         if (isRTL) {
-          prev()
+          doPrev()
         } else {
-          next()
+          doNext()
         }
       }
     })
@@ -194,35 +194,35 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
     }, [renderedIdx])
     const orderClassName = `${bs}-item-${direction}`
     const directionalClassName = `${bs}-item-${slideDirection}`
-    const enter = qr.useCallback(
+    const doEnter = qr.useCallback(
       (x: HTMLElement) => {
         qu.triggerReflow(x)
         onSlide?.(renderedIdx, slideDirection)
       },
       [onSlide, renderedIdx, slideDirection]
     )
-    const entered = qr.useCallback(() => {
+    const doEntered = qr.useCallback(() => {
       setIsSliding(false)
       onSlid?.(renderedIdx, slideDirection)
     }, [onSlid, renderedIdx, slideDirection])
-    const keyDown = qr.useCallback(
+    const doKeyDown = qr.useCallback(
       (e: any) => {
         if (keyboard && !/input|textarea/i.test(e.target.tagName)) {
           switch (e.key) {
             case "ArrowLeft":
               e.preventDefault()
               if (isRTL) {
-                next(e)
+                doNext(e)
               } else {
-                prev(e)
+                doPrev(e)
               }
               return
             case "ArrowRight":
               e.preventDefault()
               if (isRTL) {
-                prev(e)
+                doPrev(e)
               } else {
-                next(e)
+                doNext(e)
               }
               return
             default:
@@ -230,9 +230,9 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
         }
         onKeyDown?.(e)
       },
-      [keyboard, onKeyDown, prev, next, isRTL]
+      [keyboard, onKeyDown, doPrev, doNext, isRTL]
     )
-    const mouseOver = qr.useCallback(
+    const doMouseOver = qr.useCallback(
       (e: any) => {
         if (pause === "hover") {
           setPaused(true)
@@ -241,7 +241,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
       },
       [pause, onMouseOver]
     )
-    const mouseOut = qr.useCallback(
+    const doMouseOut = qr.useCallback(
       (e: any) => {
         setPaused(false)
         onMouseOut?.(e)
@@ -251,7 +251,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
     const touchStartXRef = qr.useRef(0)
     const touchDeltaXRef = qr.useRef(0)
     const touchUnpauseTimeout = qh.useTimeout()
-    const touchStart = qr.useCallback(
+    const doTouchStart = qr.useCallback(
       (e: any) => {
         touchStartXRef.current = e.touches[0].clientX
         touchDeltaXRef.current = 0
@@ -262,7 +262,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
       },
       [pause, onTouchStart]
     )
-    const touchMove = qr.useCallback(
+    const doTouchMove = qr.useCallback(
       (e: any) => {
         if (e.touches && e.touches.length > 1) {
           touchDeltaXRef.current = 0
@@ -273,15 +273,15 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
       },
       [onTouchMove]
     )
-    const touchEnd = qr.useCallback(
+    const doTouchEnd = qr.useCallback(
       (e: any) => {
         if (touch) {
           const touchDeltaX = touchDeltaXRef.current
           if (Math.abs(touchDeltaX) > SWIPE_THRESHOLD) {
             if (touchDeltaX > 0) {
-              prev(e)
+              doPrev(e)
             } else {
-              next(e)
+              doNext(e)
             }
           }
         }
@@ -292,7 +292,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
         }
         onTouchEnd?.(e)
       },
-      [touch, pause, prev, next, touchUnpauseTimeout, interval, onTouchEnd]
+      [touch, pause, doPrev, doNext, touchUnpauseTimeout, interval, onTouchEnd]
     )
     const shouldPlay = interval != null && !paused && !isSliding
     const intervalHandleRef = qr.useRef<number | null>()
@@ -300,9 +300,9 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
       if (!shouldPlay) {
         return undefined
       }
-      const nextFunc = isRTL ? prev : next
+      const nextFunc = isRTL ? doPrev : doNext
       intervalHandleRef.current = window.setInterval(
-        document.visibilityState ? nextWhenVisible : nextFunc,
+        document.visibilityState ? doNextWhenVisible : nextFunc,
         activeChildIntervalRef.current ?? interval ?? undefined
       )
       return () => {
@@ -312,11 +312,11 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
       }
     }, [
       shouldPlay,
-      prev,
-      next,
+      doPrev,
+      doNext,
       activeChildIntervalRef,
       interval,
-      nextWhenVisible,
+      doNextWhenVisible,
       isRTL,
     ])
     const onClicks = qr.useMemo(
@@ -331,12 +331,12 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
       <X
         ref={elementRef}
         {...ps}
-        onKeyDown={keyDown}
-        onMouseOver={mouseOver}
-        onMouseOut={mouseOut}
-        onTouchStart={touchStart}
-        onTouchMove={touchMove}
-        onTouchEnd={touchEnd}
+        onKeyDown={doKeyDown}
+        onMouseOver={doMouseOver}
+        onMouseOut={doMouseOut}
+        onTouchStart={doTouchStart}
+        onTouchMove={doTouchMove}
+        onTouchEnd={doTouchEnd}
         className={classNames(
           className,
           bs,
@@ -370,8 +370,8 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
             return slide ? (
               <Wrapper
                 in={isActive}
-                onEnter={isActive ? enter : undefined}
-                onEntered={isActive ? entered : undefined}
+                onEnter={isActive ? doEnter : undefined}
+                onEntered={isActive ? doEntered : undefined}
                 addEndListener={qu.endListener}
               >
                 {(status: TransitionStatus, ps2: Record<string, unknown>) =>
@@ -398,7 +398,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
         {controls && (
           <>
             {(wrap || activeIndex !== 0) && (
-              <Anchor className={`${bs}-control-prev`} onClick={prev}>
+              <Anchor className={`${bs}-control-prev`} onClick={doPrev}>
                 {prevIcon}
                 {prevLabel && (
                   <span className="visually-hidden">{prevLabel}</span>
@@ -406,7 +406,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
               </Anchor>
             )}
             {(wrap || activeIndex !== n - 1) && (
-              <Anchor className={`${bs}-control-next`} onClick={next}>
+              <Anchor className={`${bs}-control-next`} onClick={doNext}>
                 {nextIcon}
                 {nextLabel && (
                   <span className="visually-hidden">{nextLabel}</span>

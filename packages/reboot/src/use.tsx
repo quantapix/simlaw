@@ -65,7 +65,7 @@ export function usePlaceholder({
 
 export function useWrappedRef(ref: any, componentName: any) {
   // if (!__DEV__) return ref
-  const warningRef = qr.useCallback(
+  const cb = qr.useCallback(
     (x: any) => {
       invariant(
         x == null || !x.isReactComponent,
@@ -75,5 +75,5 @@ export function useWrappedRef(ref: any, componentName: any) {
     },
     [componentName]
   )
-  return qh.useMergedRefs(warningRef, ref)
+  return qh.useMergedRefs(cb, ref)
 }

@@ -288,12 +288,12 @@ export function useEventListener<
   listener: EventHandler<T, K>,
   capture: boolean | AddEventListenerOptions = false
 ) {
-  const handler = useEventCB(listener)
+  const cb = useEventCB(listener)
   qr.useEffect(() => {
     const target =
       typeof eventTarget === "function" ? eventTarget() : eventTarget
-    target.addEventListener(event, handler, capture)
-    return () => target.removeEventListener(event, handler, capture)
+    target.addEventListener(event, cb, capture)
+    return () => target.removeEventListener(event, cb, capture)
   }, [eventTarget])
 }
 
@@ -367,8 +367,8 @@ export function useGlobalListener<K extends keyof DocumentEventMap>(
   handler: DocumentEventHandler<K>,
   capture: boolean | AddEventListenerOptions = false
 ) {
-  const documentTarget = qr.useCallback(() => document, [])
-  return useEventListener(documentTarget, event, handler, capture)
+  const cb = qr.useCallback(() => document, [])
+  return useEventListener(cb, event, handler, capture)
 }
 
 type State = {
@@ -574,14 +574,14 @@ export function useMediaQuery(
       return setMatches(false)
     }
     const matchers = matchersByWindow.get(targetWindow!)
-    const handleChange = () => {
+    const doChange = () => {
       setMatches(mql!.matches)
     }
     mql.refCount++
-    mql.addListener(handleChange)
-    handleChange()
+    mql.addListener(doChange)
+    doChange()
     return () => {
-      mql!.removeListener(handleChange)
+      mql!.removeListener(doChange)
       mql!.refCount--
       if (mql!.refCount <= 0) {
         matchers?.delete(mql!.media)
@@ -903,7 +903,7 @@ export function useStateAsync<TState>(
     resolvers.current.forEach(resolve => resolve(state))
     resolvers.current.length = 0
   }, [state])
-  const setStateAsync = qr.useCallback(
+  const cb = qr.useCallback(
     (update: Updater2<TState> | TState) => {
       return new Promise<TState>((resolve, reject) => {
         setState(prevState => {
@@ -929,7 +929,7 @@ export function useStateAsync<TState>(
     },
     [setState]
   )
-  return [state, setStateAsync]
+  return [state, cb]
 }
 
 const isSyntheticEvent = (event: any): event is qr.SyntheticEvent =>
@@ -955,7 +955,7 @@ export function useThrottledEventHandler<TEvent = qr.SyntheticEvent>(
     cancelAnimationFrame(nextEventInfoRef.current.handle!)
     nextEventInfoRef.current.handle = null
   }
-  const handlePointerMoveAnimation = () => {
+  const doPointerMoveAnimation = () => {
     const { current: next } = nextEventInfoRef
     if (next.handle && next.event) {
       if (isMounted()) {
@@ -975,7 +975,7 @@ export function useThrottledEventHandler<TEvent = qr.SyntheticEvent>(
     nextEventInfoRef.current.event = event
     if (!nextEventInfoRef.current.handle) {
       nextEventInfoRef.current.handle = requestAnimationFrame(
-        handlePointerMoveAnimation
+        doPointerMoveAnimation
       )
     }
   }

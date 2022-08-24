@@ -28,7 +28,7 @@ export interface AbsProps extends qr.HTMLAttributes<HTMLDivElement> {
 export const AbsHeader = qr.forwardRef<HTMLDivElement, AbsProps>(
   ({ closeLabel, closeVariant, closeButton, onHide, children, ...ps }, ref) => {
     const context = qr.useContext(Context)
-    const click = qh.useEventCB(() => {
+    const doClick = qh.useEventCB(() => {
       context?.onHide()
       onHide?.()
     })
@@ -39,7 +39,7 @@ export const AbsHeader = qr.forwardRef<HTMLDivElement, AbsProps>(
           <Close
             aria-label={closeLabel}
             variant={closeVariant}
-            onClick={click}
+            onClick={doClick}
           />
         )}
       </div>
@@ -219,14 +219,14 @@ export const Modal: BsRef<"div", Props> = qr.forwardRef(
     const removeStaticModalAnimationRef = qr.useRef<(() => void) | null>(null)
     const [modal, setModalRef] = qh.useCallbackRef<Instance>()
     const mergedRef = qh.useMergedRefs(ref, setModalRef)
-    const hide = qh.useEventCB(onHide)
+    const doHide = qh.useEventCB(onHide)
     const isRTL = useIsRTL()
     const bs = useBs(bsPrefix, "modal")
     const v = qr.useMemo(
       () => ({
-        onHide: hide,
+        onHide: doHide,
       }),
-      [hide]
+      [doHide]
     )
     function getManager() {
       if (propsManager) return propsManager
@@ -248,13 +248,13 @@ export const Modal: BsRef<"div", Props> = qr.forwardRef(
             : undefined,
       })
     }
-    const windowResize = qh.useEventCB(() => {
+    const doWindowResize = qh.useEventCB(() => {
       if (modal) {
         updateDialogStyle(modal.dialog)
       }
     })
     qh.useWillUnmount(() => {
-      qu.removeEventListener(window as any, "resize", windowResize)
+      qu.removeEventListener(window as any, "resize", doWindowResize)
       removeStaticModalAnimationRef.current?.()
     })
     const dialogMouseDown = () => {
@@ -312,12 +312,12 @@ export const Modal: BsRef<"div", Props> = qr.forwardRef(
     }
     const entering = (x: any, isAppearing: any) => {
       onEntering?.(x, isAppearing)
-      qu.addEventListener(window as any, "resize", windowResize)
+      qu.addEventListener(window as any, "resize", doWindowResize)
     }
     const exited = (x: any) => {
       if (x) x.style.display = ""
       onExited?.(x)
-      qu.removeEventListener(window as any, "resize", windowResize)
+      qu.removeEventListener(window as any, "resize", doWindowResize)
     }
     const renderBackdrop = qr.useCallback(
       (backdropProps: any) => (

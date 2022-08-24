@@ -45,16 +45,16 @@ export function useItem({ key, href, active, disabled, onClick }: ItemOpts) {
     active == null && key != null
       ? qt.makeEventKey(activeKey) === eventKey
       : active
-  const handleClick = qh.useEventCB(event => {
+  const doClick = qh.useEventCB(e => {
     if (disabled) return
-    onClick?.(event)
-    if (onSelectCtx && !event.isPropagationStopped()) {
-      onSelectCtx(eventKey, event)
+    onClick?.(e)
+    if (onSelectCtx && !e.isPropagationStopped()) {
+      onSelectCtx(eventKey, e)
     }
   })
   return [
     {
-      onClick: handleClick,
+      onClick: doClick,
       "aria-disabled": disabled || undefined,
       "aria-selected": isActive,
       [qt.dataAttr("dropdown-item")]: "",
@@ -137,7 +137,7 @@ export function useMenu(options: MenuOpts = {}) {
   if (show && !hasShownRef.current) {
     hasShownRef.current = true
   }
-  const handleClose = (e: qr.SyntheticEvent | Event) => {
+  const doClose = (e: qr.SyntheticEvent | Event) => {
     context?.toggle(false, e)
   }
   const { placement, setMenu, menuElement, toggleElement } = context || {}
@@ -175,7 +175,7 @@ export function useMenu(options: MenuOpts = {}) {
         }
       : {},
   }
-  qu.useClickOutside(menuElement, handleClose, {
+  qu.useClickOutside(menuElement, doClose, {
     clickTrigger: rootCloseEvent,
     disabled: !show,
   })
@@ -219,7 +219,7 @@ export function useToggle(): [UseToggleProps, ToggleMeta] {
     setToggle,
     menuElement,
   } = qr.useContext(Context) || {}
-  const handleClick = qr.useCallback(
+  const doClick = qr.useCallback(
     (e: any) => {
       toggle(!show, e)
     },
@@ -228,7 +228,7 @@ export function useToggle(): [UseToggleProps, ToggleMeta] {
   const props: UseToggleProps = {
     id,
     ref: setToggle || qh.noop,
-    onClick: handleClick,
+    onClick: doClick,
     "aria-expanded": !!show,
   }
   if (menuElement && isRoleMenu(menuElement)) {
@@ -272,14 +272,14 @@ export interface Props {
 function useRefWithUpdate() {
   const forceUpdate = qh.useForceUpdate()
   const ref = qr.useRef<HTMLElement | null>(null)
-  const attachRef = qr.useCallback(
+  const cb = qr.useCallback(
     (element: null | HTMLElement) => {
       ref.current = element
       forceUpdate()
     },
     [forceUpdate]
   )
-  return [ref, attachRef] as const
+  return [ref, cb] as const
 }
 
 export function Dropdown({
@@ -302,7 +302,7 @@ export function Dropdown({
   const lastSourceEvent = qr.useRef<string | null>(null)
   const focusInDropdown = qr.useRef(false)
   const onSelectCtx = qr.useContext(qt.Selectable)
-  const toggle = qr.useCallback(
+  const doToggle = qr.useCallback(
     (
       nextShow: boolean,
       event: ToggleEvent | undefined,
@@ -312,10 +312,10 @@ export function Dropdown({
     },
     [onToggle]
   )
-  const handleSelect = qh.useEventCB(
+  const doSelect = qh.useEventCB(
     (key: string | null, event: qr.SyntheticEvent) => {
       onSelect?.(key, event)
-      toggle(false, event, "select")
+      doToggle(false, event, "select")
       if (!event.isPropagationStopped()) {
         onSelectCtx?.(key, event)
       }
@@ -323,7 +323,7 @@ export function Dropdown({
   )
   const context = qr.useMemo(
     () => ({
-      toggle,
+      toggle: doToggle,
       placement,
       show,
       menuElement,
@@ -331,19 +331,19 @@ export function Dropdown({
       setMenu,
       setToggle,
     }),
-    [toggle, placement, show, menuElement, toggleElement, setMenu, setToggle]
+    [doToggle, placement, show, menuElement, toggleElement, setMenu, setToggle]
   )
   if (menuElement && lastShow && !show) {
     focusInDropdown.current = menuElement.contains(
       menuElement.ownerDocument.activeElement
     )
   }
-  const focusToggle = qh.useEventCB(() => {
+  const doFocusToggle = qh.useEventCB(() => {
     if (toggleElement && toggleElement.focus) {
       toggleElement.focus()
     }
   })
-  const maybeFocusFirst = qh.useEventCB(() => {
+  const doMaybeFocusFirst = qh.useEventCB(() => {
     const type = lastSourceEvent.current
     let focusType = focusFirstItemOnShow
     if (focusType == null) {
@@ -360,12 +360,12 @@ export function Dropdown({
     if (first && first.focus) first.focus()
   })
   qr.useEffect(() => {
-    if (show) maybeFocusFirst()
+    if (show) doMaybeFocusFirst()
     else if (focusInDropdown.current) {
       focusInDropdown.current = false
-      focusToggle()
+      doFocusToggle()
     }
-  }, [show, focusInDropdown, focusToggle, maybeFocusFirst])
+  }, [show, focusInDropdown, doFocusToggle, doMaybeFocusFirst])
   qr.useEffect(() => {
     lastSourceEvent.current = null
   })
@@ -444,7 +444,7 @@ export function Dropdown({
     }
   )
   return (
-    <qt.Selectable.Provider value={handleSelect}>
+    <qt.Selectable.Provider value={doSelect}>
       <Context.Provider value={context}>{children}</Context.Provider>
     </qt.Selectable.Provider>
   )

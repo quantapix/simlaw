@@ -137,12 +137,12 @@ export const Nav: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
       if (nextIndex < 0) nextIndex = items.length - 1
       return items[nextIndex]
     }
-    const handleSelect = (key: string | null, event: qr.SyntheticEvent) => {
+    const doSelect = (key: string | null, event: qr.SyntheticEvent) => {
       if (key == null) return
       onSelect?.(key, event)
       parentOnSelect?.(key, event)
     }
-    const handleKeyDown = (event: qr.KeyboardEvent<HTMLElement>) => {
+    const doKeyDown = (event: qr.KeyboardEvent<HTMLElement>) => {
       onKeyDown?.(event)
       if (!tabContext) {
         return
@@ -162,10 +162,7 @@ export const Nav: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
       }
       if (!nextActiveChild) return
       event.preventDefault()
-      handleSelect(
-        nextActiveChild.dataset[qt.dataProp("EventKey")] || null,
-        event
-      )
+      doSelect(nextActiveChild.dataset[qt.dataProp("EventKey")] || null, event)
       needsRefocusRef.current = true
       forceUpdate()
     }
@@ -180,7 +177,7 @@ export const Nav: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
     })
     const mergedRef = qh.useMergedRefs(ref, listNode)
     return (
-      <qt.Selectable.Provider value={handleSelect}>
+      <qt.Selectable.Provider value={doSelect}>
         <Context.Provider
           value={{
             role,
@@ -191,7 +188,7 @@ export const Nav: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
         >
           <Component
             {...props}
-            onKeyDown={handleKeyDown}
+            onKeyDown={doKeyDown}
             ref={mergedRef}
             role={role}
           />

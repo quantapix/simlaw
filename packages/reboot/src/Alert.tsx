@@ -44,7 +44,7 @@ export const Alert = qr.forwardRef<HTMLDivElement, Props>((xs: Props, ref) => {
     ...ps
   } = qh.useUncontrolled(xs, { show: "onClose" })
   const bs = useBs(bsPrefix, "alert")
-  const click = qh.useEventCB(e => {
+  const doClick = qh.useEventCB(e => {
     if (onClose) {
       onClose(false, e)
     }
@@ -63,7 +63,11 @@ export const Alert = qr.forwardRef<HTMLDivElement, Props>((xs: Props, ref) => {
       )}
     >
       {dismissible && (
-        <Close onClick={click} aria-label={closeLabel} variant={closeVariant} />
+        <Close
+          onClick={doClick}
+          aria-label={closeLabel}
+          variant={closeVariant}
+        />
       )}
       {children}
     </div>

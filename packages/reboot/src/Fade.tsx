@@ -26,7 +26,7 @@ const styles = {
 
 export const Fade = qr.forwardRef<Transition<any>, Props>(
   ({ className, children, transitionClasses = {}, ...ps }, ref) => {
-    const enter = qr.useCallback(
+    const doEnter = qr.useCallback(
       (x: HTMLElement, isAppearing: boolean) => {
         qu.triggerReflow(x)
         ps.onEnter?.(x, isAppearing)
@@ -38,7 +38,7 @@ export const Fade = qr.forwardRef<Transition<any>, Props>(
         ref={ref}
         addEndListener={qu.endListener}
         {...ps}
-        onEnter={enter}
+        onEnter={doEnter}
         childRef={(children as any).ref}
       >
         {(status: TransitionStatus, ps2: Record<string, unknown>) =>
