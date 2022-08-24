@@ -6,8 +6,8 @@ import * as qh from "./hooks.js"
 import * as qr from "react"
 import * as qu from "./utils.jsx"
 import type { Transition } from "react-transition-group"
-import type { TransitionComponent } from "./base/types.jsx"
 import type { Variant } from "./types.jsx"
+import type * as qt from "./base/types.jsx"
 
 export interface Data {
   onClose?: ((e?: qr.MouseEvent | qr.KeyboardEvent) => void) | undefined
@@ -85,7 +85,7 @@ export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
   delay?: number
   onClose?: (e?: qr.MouseEvent | qr.KeyboardEvent) => void
   show?: boolean
-  transition?: TransitionComponent
+  transition?: qt.Transition
   bg?: Variant
 }
 

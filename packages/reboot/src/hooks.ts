@@ -592,17 +592,14 @@ export function useMediaQuery(
   return matches
 }
 
-type CallbackRef<T> = (x: T | null) => void
-type Ref<T> = qr.MutableRefObject<T> | CallbackRef<T>
-
-const toFnRef = <T>(ref?: Ref<T> | null) =>
-  !ref || typeof ref === "function"
-    ? ref
+const toFnRef = <T>(x?: qr.ForwardedRef<T>) =>
+  !x || typeof x === "function"
+    ? x
     : (v: T) => {
-        ref.current = v
+        x.current = v
       }
 
-export function mergeRefs<T>(x?: Ref<T> | null, y?: Ref<T> | null) {
+export function mergeRefs<T>(x?: qr.ForwardedRef<T>, y?: qr.ForwardedRef<T>) {
   const a = toFnRef(x)
   const b = toFnRef(y)
   return (v: T | null) => {
@@ -611,7 +608,10 @@ export function mergeRefs<T>(x?: Ref<T> | null, y?: Ref<T> | null) {
   }
 }
 
-export function useMergedRefs<T>(x?: Ref<T> | null, y?: Ref<T> | null) {
+export function useMergedRefs<T>(
+  x?: qr.ForwardedRef<T>,
+  y?: qr.ForwardedRef<T>
+) {
   return qr.useMemo(() => mergeRefs(x, y), [x, y])
 }
 

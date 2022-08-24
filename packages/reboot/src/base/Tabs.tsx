@@ -6,7 +6,7 @@ import * as qt from "./types.js"
 
 export interface Props extends qr.PropsWithChildren<unknown> {
   id?: string | undefined
-  transition?: qt.TransitionComponent | undefined
+  transition?: qt.Transition | undefined
   mountOnEnter?: boolean | undefined
   unmountOnExit?: boolean | undefined
   generateChildId?: (key: qt.EventKey, type: "tab" | "pane") => string

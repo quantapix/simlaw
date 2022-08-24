@@ -1,5 +1,5 @@
-import type { TransitionComponent } from "./base/types.js"
 import * as qr from "react"
+import type * as qt from "./base/types.js"
 
 export type Omit2<T, U> = Pick<T, Exclude<keyof T, keyof U>>
 
@@ -40,7 +40,7 @@ export type BsCompClass<
   P = unknown
 > = qr.ComponentClass<ReplaceProps<As, BsProps<As> & P>>
 
-export type TransitionType = boolean | TransitionComponent
+export type Transition = boolean | qt.Transition
 
 export function getDirection(placement: string, isRTL?: boolean) {
   let bsDirection = placement
@@ -90,24 +90,21 @@ export function classNames(...xs: Array<Arg>): string {
   return ys.join(" ")
 }
 
-export function invariant(condition: any, format: string, ...args: any[]) {
-  if (!condition) {
+export function invariant(cond: any, format: string, ...xs: any[]) {
+  if (!cond) {
     let e: Error
     if (format === undefined) {
-      e = new Error(
-        "Minified exception occurred; use the non-minified dev environment " +
-          "for the full error message and additional helpful warnings."
-      )
+      e = new Error("Minified exception occurred")
     } else {
       let i = 0
       e = new Error(
         format.replace(/%s/g, function () {
-          return args[i++]
+          return xs[i++]
         })
       )
       e.name = "Invariant Violation"
     }
-    e.framesToPop = 1
+    // e.framesToPop = 1
     throw e
   }
 }

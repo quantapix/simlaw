@@ -1,5 +1,5 @@
 import { Anchor } from "./base/Anchor.jsx"
-import { classNames, TransitionType } from "./helpers.js"
+import { classNames, Transition } from "./helpers.js"
 import { Close, Variant as CloseVariant } from "./Button.jsx"
 import { divAs, withBs } from "./utils.jsx"
 import { Fade } from "./Fade.jsx"
@@ -26,7 +26,7 @@ export interface Props extends qr.HTMLAttributes<HTMLDivElement> {
   onClose?: (a: any, b: any) => void
   closeLabel?: string
   closeVariant?: CloseVariant
-  transition?: TransitionType
+  transition?: Transition
 }
 
 export const Alert = qr.forwardRef<HTMLDivElement, Props>((xs: Props, ref) => {

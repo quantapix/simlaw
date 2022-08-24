@@ -1,4 +1,4 @@
-import { classNames, TransitionType } from "./helpers.js"
+import { classNames, Transition } from "./helpers.js"
 import { contains } from "./base/utils.js"
 import { Fade } from "./Fade.jsx"
 import { safeFindDOMNode } from "./utils.jsx"
@@ -10,29 +10,29 @@ import type { Placement, PopperRef, RootCloseEvent } from "./types.jsx"
 import type { State } from "./base/popper.js"
 import {
   Overlay as Base,
-  OverlayProps as BaseProps,
-  OverlayArrowProps,
+  Props as BaseProps,
+  ArrowProps,
 } from "./base/Overlay.jsx"
 
 export interface InjectedProps {
   ref: qr.RefCallback<HTMLElement>
   style: qr.CSSProperties
   "aria-labelledby"?: string
-  arrowProps: Partial<OverlayArrowProps>
+  arrowProps: Partial<ArrowProps>
   show: boolean
   placement: Placement | undefined
   popper: PopperRef
-  [prop: string]: any
+  [k: string]: any
 }
 
 export type Children =
   | qr.ReactElement<InjectedProps>
-  | ((injected: InjectedProps) => qr.ReactNode)
+  | ((ps: InjectedProps) => qr.ReactNode)
 
 export interface Props
   extends Omit<BaseProps, "children" | "transition" | "rootCloseEvent"> {
   children: Children
-  transition?: TransitionType
+  transition?: Transition
   placement?: Placement
   rootCloseEvent?: RootCloseEvent
 }
@@ -48,47 +48,45 @@ function wrapRefs(ps: any, arrowPs: any) {
 
 export const Overlay = qr.forwardRef<HTMLElement, Props>(
   ({ children: overlay, transition, popperConfig = {}, ...ps }, ref) => {
-    const popperRef = qr.useRef<Partial<PopperRef>>({})
-    const [firstRenderedState, setFirstRenderedState] =
-      qh.useCallbackRef<State>()
+    const pRef = qr.useRef<Partial<PopperRef>>({})
+    const [firstState, setFirstState] = qh.useCallbackRef<State>()
     const [ref2, modifiers] = useOffset(ps.offset)
-    const mergedRef = qh.useMergedRefs(ref, ref2)
-    const actualTransition =
-      transition === true ? Fade : transition || undefined
+    const mRef = qh.useMergedRefs(ref, ref2)
+    const actual = transition === true ? Fade : transition || undefined
     const doFirstUpdate = qh.useEventCB(state => {
-      setFirstRenderedState(state)
+      setFirstState(state)
       popperConfig?.onFirstUpdate?.(state)
     })
     qh.useIsomorphicEffect(() => {
-      if (firstRenderedState) {
-        popperRef.current.scheduleUpdate?.()
+      if (firstState) {
+        pRef.current.scheduleUpdate?.()
       }
-    }, [firstRenderedState])
+    }, [firstState])
     return (
       <Base
         {...ps}
-        ref={mergedRef}
+        ref={mRef}
         popperConfig={{
           ...popperConfig,
           modifiers: modifiers.concat(popperConfig.modifiers || []),
           onFirstUpdate: doFirstUpdate,
         }}
-        transition={actualTransition}
+        transition={actual}
       >
-        {(overlayProps, { arrowProps, popper: popperObj, show }) => {
+        {(overlayProps, { arrowProps, popper: _popper, show }) => {
           wrapRefs(overlayProps, arrowProps)
-          const updatedPlacement = popperObj?.placement
-          const popper = Object.assign(popperRef.current, {
-            state: popperObj?.state,
-            scheduleUpdate: popperObj?.update,
-            placement: updatedPlacement,
+          const placement = _popper?.placement
+          const popper = Object.assign(pRef.current, {
+            state: _popper?.state,
+            scheduleUpdate: _popper?.update,
+            placement,
             outOfBoundaries:
-              popperObj?.state?.modifiersData.hide?.isReferenceHidden || false,
+              _popper?.state?.modifiersData.hide?.isReferenceHidden || false,
           })
           if (typeof overlay === "function")
             return overlay({
               ...overlayProps,
-              placement: updatedPlacement,
+              placement,
               show,
               ...(!transition && show && { className: "show" }),
               popper,
@@ -96,7 +94,7 @@ export const Overlay = qr.forwardRef<HTMLElement, Props>(
             })
           return qr.cloneElement(overlay as qr.ReactElement, {
             ...overlayProps,
-            placement: updatedPlacement,
+            placement,
             arrowProps,
             popper,
             className: classNames(
@@ -126,7 +124,7 @@ export type Type = "hover" | "click" | "focus"
 export type Delay = number | { show: number; hide: number }
 
 export type InjProps = {
-  onFocus?: (...args: any[]) => any
+  onFocus?: (...xs: any[]) => any
 }
 
 export type RenderProps = InjProps & {

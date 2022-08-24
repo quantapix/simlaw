@@ -89,7 +89,7 @@ export interface TransitionProps extends TransitionCBs {
   unmountOnExit?: boolean | undefined
 }
 
-export type TransitionComponent = qr.ComponentType<TransitionProps>
+export type Transition = qr.ComponentType<TransitionProps>
 
 export const ATTRIBUTE_PREFIX = `data-rr-ui-` as const
 

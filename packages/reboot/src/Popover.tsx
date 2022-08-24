@@ -2,7 +2,7 @@ import { classNames, BsProps, getDirection } from "./helpers.js"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
 import * as qr from "react"
-import type { OverlayArrowProps } from "./base/Overlay.jsx"
+import type { ArrowProps } from "./base/Overlay.jsx"
 import type { Placement, PopperRef } from "./types.jsx"
 
 export const POPPER_OFFSET = [0, 8]
@@ -13,7 +13,7 @@ export const Body = withBs("popover-body")
 export interface Props extends qr.HTMLAttributes<HTMLDivElement>, BsProps {
   placement?: Placement
   title?: string
-  arrowProps?: Partial<OverlayArrowProps>
+  arrowProps?: Partial<ArrowProps>
   body?: boolean
   popper?: PopperRef
   show?: boolean

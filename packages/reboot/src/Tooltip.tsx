@@ -1,12 +1,12 @@
 import { classNames, BsProps, getDirection } from "./helpers.js"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import * as qr from "react"
-import type { OverlayArrowProps } from "./base/Overlay.jsx"
+import type { ArrowProps } from "./base/Overlay.jsx"
 import type { Placement, PopperRef } from "./types.jsx"
 
 export interface Props extends qr.HTMLAttributes<HTMLDivElement>, BsProps {
   placement?: Placement
-  arrowProps?: Partial<OverlayArrowProps>
+  arrowProps?: Partial<ArrowProps>
   show?: boolean
   popper?: PopperRef
 }

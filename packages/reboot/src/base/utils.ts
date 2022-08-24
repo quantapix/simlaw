@@ -20,9 +20,7 @@ function printWarning(format: any, ...xs: any[]) {
 }
 export function warning(cond: any, format: any, ...xs: any[]) {
   if (format === undefined) {
-    throw new Error(
-      "`warning(condition, format, ...args)` requires a warning message argument"
-    )
+    throw new Error("warning requires a message argument")
   }
   if (!cond) {
     printWarning(format, ...xs)

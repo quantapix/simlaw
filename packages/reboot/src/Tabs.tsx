@@ -1,16 +1,16 @@
-import { Content, Pane, getTabTransitionComponent } from "./Tab.jsx"
+import { Content, Pane, getTabTransition } from "./Tab.jsx"
 import { forEach, map } from "./utils.jsx"
 import { Item, Link, Nav, Props as NProps } from "./Nav.jsx"
 import { Tabs as Base, Props as BaseProps } from "./base/Tabs.jsx"
 import * as qh from "./hooks.js"
-import type { TransitionType } from "./helpers.js"
+import type { Transition } from "./helpers.js"
 import type * as qr from "react"
 
 export interface Props
   extends Omit<BaseProps, "transition">,
     Omit<qr.HTMLAttributes<HTMLElement>, "onSelect">,
     NProps {
-  transition?: TransitionType
+  transition?: Transition
 }
 
 function getDefaultActiveKey(xs: any) {
@@ -61,7 +61,7 @@ export const Tabs = (xs: Props) => {
       id={id}
       activeKey={activeKey}
       onSelect={onSelect}
-      transition={getTabTransitionComponent(transition)}
+      transition={getTabTransition(transition)}
       mountOnEnter={mountOnEnter}
       unmountOnExit={unmountOnExit}
     >

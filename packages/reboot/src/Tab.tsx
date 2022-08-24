@@ -1,4 +1,4 @@
-import { classNames, BsProps, BsRef, TransitionType } from "./helpers.js"
+import { classNames, BsProps, BsRef, Transition } from "./helpers.js"
 import { Context, useTabPanel, NoopTransition } from "./base/Tab.jsx"
 import { Fade } from "./Fade.jsx"
 import { Tabs, Props as TabsProps } from "./base/Tabs.jsx"
@@ -7,9 +7,7 @@ import { withBs } from "./utils.jsx"
 import * as qr from "react"
 import * as qt from "./base/types.jsx"
 
-export function getTabTransitionComponent(
-  x?: TransitionType
-): qt.TransitionComponent | undefined {
+export function getTabTransition(x?: Transition): qt.Transition | undefined {
   if (typeof x === "boolean") {
     return x ? Fade : NoopTransition
   }
@@ -17,11 +15,11 @@ export function getTabTransitionComponent(
 }
 
 export interface ContainerProps extends Omit<TabsProps, "transition"> {
-  transition?: TransitionType
+  transition?: Transition
 }
 
 export const Container = ({ transition, ...ps }: ContainerProps) => (
-  <Tabs {...ps} transition={getTabTransitionComponent(transition)} />
+  <Tabs {...ps} transition={getTabTransition(transition)} />
 )
 Container.displayName = "TabContainer"
 
@@ -33,7 +31,7 @@ export interface PaneProps
     qr.HTMLAttributes<HTMLElement> {
   eventKey?: qt.EventKey
   active?: boolean
-  transition?: TransitionType
+  transition?: Transition
   mountOnEnter?: boolean
   unmountOnExit?: boolean
 }
@@ -58,7 +56,7 @@ export const Pane: BsRef<"div", PaneProps> = qr.forwardRef<
     },
   ] = useTabPanel({
     ...xs,
-    transition: getTabTransitionComponent(transition),
+    transition: getTabTransition(transition),
   } as any)
   const bs = useBs(bsPrefix, "tab-pane")
   return (

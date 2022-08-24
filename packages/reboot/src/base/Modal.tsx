@@ -227,9 +227,9 @@ export const Modal: qr.ForwardRefExoticComponent<
     const removeKeydownListenerRef = qr.useRef<ReturnType<
       typeof listen
     > | null>()
-    const doHidden: qt.TransitionCBs["onExited"] = (...args) => {
+    const doHidden: qt.TransitionCBs["onExited"] = (...xs) => {
       setExited(true)
-      onExited?.(...args)
+      onExited?.(...xs)
     }
     const T = transition
     if (!container || !(show || (T && !exited))) {

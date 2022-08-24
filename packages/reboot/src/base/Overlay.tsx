@@ -5,25 +5,33 @@ import * as qu from "./use.js"
 import ReactDOM from "react-dom"
 import type * as qt from "./types.js"
 
-export interface OverlayArrowProps extends Record<string, any> {
+export interface ArrowProps extends Record<string, any> {
   ref: qr.RefCallback<HTMLElement>
   style: qr.CSSProperties
 }
 
-export interface OverlayMetadata {
+export interface Meta {
   show: boolean
   placement: qp.Placement | undefined
   popper: qp.UseState | null
-  arrowProps: Partial<OverlayArrowProps>
+  arrowProps: Partial<ArrowProps>
 }
 
-export interface OverlayInjectedProps extends Record<string, any> {
+export interface InjectedProps extends Record<string, any> {
   ref: qr.RefCallback<HTMLElement>
   style: qr.CSSProperties
   "aria-labelledby"?: string
 }
 
-export interface OverlayProps extends qt.TransitionCBs {
+type Transition = qr.ComponentType<
+  {
+    in?: boolean | undefined
+    appear?: boolean
+    children: qr.ReactNode
+  } & qt.TransitionCBs
+>
+
+export interface Props extends qt.TransitionCBs {
   flip?: boolean
   placement?: qp.Placement
   offset?: qp.Offset
@@ -32,24 +40,22 @@ export interface OverlayProps extends qt.TransitionCBs {
   container?: qu.DOMContainer
   target: qu.DOMContainer
   show?: boolean
-  transition?: qr.ComponentType<
-    { in?: boolean; appear?: boolean } & qt.TransitionCBs
-  >
+  transition?: Transition | undefined
   onHide?: (e: Event) => void
   rootClose?: boolean
   rootCloseDisabled?: boolean
   rootCloseEvent?: qu.RootCloseOptions["clickTrigger"]
-  children: (props: OverlayInjectedProps, meta: OverlayMetadata) => qr.ReactNode
+  children: (ps: InjectedProps, meta: Meta) => qr.ReactNode
 }
 
-export const Overlay = qr.forwardRef<HTMLElement, OverlayProps>((ps, ref) => {
+export const Overlay = qr.forwardRef<HTMLElement, Props>((ps, ref) => {
   const {
     flip,
     offset,
     placement,
     containerPadding,
     popperConfig = {},
-    transition: Transition,
+    transition: T,
   } = ps
   const [root, attachRef] = qh.useCallbackRef<HTMLElement>()
   const [arrow, attachArrowRef] = qh.useCallbackRef<Element>()
@@ -75,13 +81,13 @@ export const Overlay = qr.forwardRef<HTMLElement, OverlayProps>((ps, ref) => {
   } else if (!ps.transition && !exited) {
     setExited(true)
   }
-  const doHidden: qt.TransitionCBs["onExited"] = (...args) => {
+  const doHidden: qt.TransitionCBs["onExited"] = (...xs) => {
     setExited(true)
     if (ps.onExited) {
-      ps.onExited(...args)
+      ps.onExited(...xs)
     }
   }
-  const mountOverlay = ps.show || (Transition && !exited)
+  const mountOverlay = ps.show || (T && !exited)
   qu.useRootClose(root, ps.onHide!, {
     disabled: !ps.rootClose || ps.rootCloseDisabled,
     clickTrigger: ps.rootCloseEvent,
@@ -106,10 +112,10 @@ export const Overlay = qr.forwardRef<HTMLElement, OverlayProps>((ps, ref) => {
       },
     }
   )
-  if (Transition) {
+  if (T) {
     const { onExit, onExiting, onEnter, onEntering, onEntered } = ps
     child = (
-      <Transition
+      <T
         in={ps.show}
         appear
         onExit={onExit}
@@ -120,7 +126,7 @@ export const Overlay = qr.forwardRef<HTMLElement, OverlayProps>((ps, ref) => {
         onEntered={onEntered}
       >
         {child}
-      </Transition>
+      </T>
     )
   }
   return container ? ReactDOM.createPortal(child, container) : null

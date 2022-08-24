@@ -24,7 +24,7 @@ export function NoopTransition({
 export interface Data {
   onSelect: qt.SelectCB
   activeKey?: qt.EventKey | undefined
-  transition?: qt.TransitionComponent | undefined
+  transition?: qt.Transition | undefined
   mountOnEnter: boolean
   unmountOnExit: boolean
   getControlledId: (key: qt.EventKey) => any
@@ -39,7 +39,7 @@ export interface Props
   as?: qr.ElementType
   eventKey?: qt.EventKey
   active?: boolean
-  transition?: qt.TransitionComponent
+  transition?: qt.Transition
   mountOnEnter?: boolean
   unmountOnExit?: boolean
 }
@@ -47,7 +47,7 @@ export interface Props
 export interface Meta extends qt.TransitionCBs {
   eventKey?: qt.EventKey | undefined
   isActive?: boolean | undefined
-  transition?: qt.TransitionComponent | undefined
+  transition?: qt.Transition | undefined
   mountOnEnter?: boolean | undefined
   unmountOnExit?: boolean | undefined
 }
@@ -88,7 +88,7 @@ export function useTabPanel({
         onExited,
       },
     ]
-  const { activeKey, getControlledId, getControllerId, ...rest } = context
+  const { activeKey, getControlledId, getControllerId, ...xs } = context
   const key = qt.makeEventKey(eventKey)
   return [
     {
@@ -103,9 +103,9 @@ export function useTabPanel({
         active == null && key != null
           ? qt.makeEventKey(activeKey) === key
           : active,
-      transition: transition || rest.transition,
-      mountOnEnter: mountOnEnter != null ? mountOnEnter : rest.mountOnEnter,
-      unmountOnExit: unmountOnExit != null ? unmountOnExit : rest.unmountOnExit,
+      transition: transition || xs.transition,
+      mountOnEnter: mountOnEnter != null ? mountOnEnter : xs.mountOnEnter,
+      unmountOnExit: unmountOnExit != null ? unmountOnExit : xs.unmountOnExit,
       onEnter,
       onEntering,
       onEntered,
@@ -117,9 +117,9 @@ export function useTabPanel({
 }
 
 export const Panel: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
-  ({ as: Component = "div", ...ps }, ref) => {
+  ({ as: Div = "div", ...xs }, ref) => {
     const [
-      tabPanelProps,
+      ps,
       {
         isActive,
         onEnter,
@@ -130,13 +130,13 @@ export const Panel: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
         onExited,
         mountOnEnter,
         unmountOnExit,
-        transition: Transition = NoopTransition,
+        transition: T = NoopTransition,
       },
-    ] = useTabPanel(ps)
+    ] = useTabPanel(xs)
     return (
       <Context.Provider value={null}>
         <qt.Selectable.Provider value={null}>
-          <Transition
+          <T
             in={isActive}
             onEnter={onEnter}
             onEntering={onEntering}
@@ -147,13 +147,8 @@ export const Panel: qt.DynRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
             mountOnEnter={mountOnEnter}
             unmountOnExit={unmountOnExit}
           >
-            <Component
-              {...tabPanelProps}
-              ref={ref}
-              hidden={!isActive}
-              aria-hidden={!isActive}
-            />
-          </Transition>
+            <Div {...ps} ref={ref} hidden={!isActive} aria-hidden={!isActive} />
+          </T>
         </qt.Selectable.Provider>
       </Context.Provider>
     )
