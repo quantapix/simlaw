@@ -5,7 +5,7 @@ import { useSSRSafeId } from "@react-aria/ssr"
 import * as qh from "../hooks.js"
 import * as qp from "./popper.js"
 import * as qr from "react"
-import * as qt from "./types.js"
+import * as qt from "./types.jsx"
 import * as qu from "./use.js"
 
 export type Data = {

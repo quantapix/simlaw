@@ -1,5 +1,5 @@
 import * as qr from "react"
-import * as qt from "./types.js"
+import * as qt from "./types.jsx"
 
 export function NoopTransition({
   children,

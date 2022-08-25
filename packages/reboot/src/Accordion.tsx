@@ -2,7 +2,7 @@ import { Collapse as C, Props as CProps } from "./Collapse.jsx"
 import { useBs } from "./Theme.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.js"
+import * as qt from "./types.jsx"
 import type { Transition } from "react-transition-group"
 
 export type Key = string | string[] | null | undefined

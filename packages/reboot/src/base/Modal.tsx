@@ -4,7 +4,7 @@ import * as qh from "../hooks.js"
 import * as qr from "react"
 import * as qu from "./use.js"
 import ReactDOM from "react-dom"
-import type * as qt from "./types.js"
+import type * as qt from "./types.jsx"
 
 let manager: Manager
 

@@ -1,5 +1,5 @@
 import { css, getBodyScrollbarWidth } from "./utils.js"
-import * as qt from "./types.js"
+import * as qt from "./types.jsx"
 
 export interface Instance {
   dialog: Element

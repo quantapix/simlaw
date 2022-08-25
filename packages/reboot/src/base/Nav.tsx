@@ -3,7 +3,7 @@ import { Context as TabContext } from "./Tab.jsx"
 import { qsa } from "./utils.js"
 import * as qh from "../hooks.js"
 import * as qr from "react"
-import * as qt from "./types.js"
+import * as qt from "./types.jsx"
 
 interface Data {
   role?: string | undefined
