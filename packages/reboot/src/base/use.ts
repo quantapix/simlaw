@@ -201,7 +201,7 @@ export interface Rect {
   left?: number
   right?: number
 }
-export type WaypointCallback = (
+export type WaypointCB = (
   details: WaypointEvent,
   entry: IntersectionObserverEntry,
   observer: IntersectionObserver
@@ -227,7 +227,7 @@ function toCss(margin?: string | Rect) {
 const findRoot = (el: Element) => qu.getScrollParent(el as HTMLElement, true)
 export function useWaypoint(
   element: Element | null,
-  callback: WaypointCallback,
+  callback: WaypointCB,
   options: WaypointOptions = {}
 ): void {
   const { rootMargin, threshold, scrollDirection = "vertical" } = options

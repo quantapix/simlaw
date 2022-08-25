@@ -3,23 +3,24 @@ import * as qr from "react"
 
 export const noop = () => {}
 
+/*
 interface Window {
   ResizeObserver: ResizeObserver
 }
 
 interface ResizeObserver {
-  new (callback: ResizeObserverCallback): any
-  observe: (target: Element) => void
-  unobserve: (target: Element) => void
+  new (callback: ResizeObserverCB): any
+  observe: (x: Element) => void
+  unobserve: (x: Element) => void
   disconnect: () => void
 }
 
-interface ResizeObserverCallback {
-  (entries: ResizeObserverEntry[], observer: ResizeObserver): void
+interface ResizeObserverCB {
+  (es: ResizeObserverEntry[], o: ResizeObserver): void
 }
 
 interface ResizeObserverEntry {
-  new (target: Element): any
+  new (x: Element): any
   readonly target: Element
   readonly contentRect: DOMRectReadOnly
 }
@@ -36,6 +37,7 @@ interface DOMRectReadOnly {
   readonly left: number
   toJSON: () => any
 }
+*/
 
 export interface AnimationFrame {
   cancel(): void
@@ -72,80 +74,69 @@ export function useAnimationFrame(): AnimationFrame {
 
 export type BreakpointDirection = "up" | "down" | true
 
-export type BreakpointMap<TKey extends string> = Partial<
-  Record<TKey, BreakpointDirection>
+export type BreakpointMap<K extends string> = Partial<
+  Record<K, BreakpointDirection>
 >
 
-export function createBreakpointHook<TKey extends string>(
-  breakpointValues: Record<TKey, string | number>
+export function createBreakpointHook<K extends string>(
+  xs: Record<K, string | number>
 ) {
-  const names = Object.keys(breakpointValues) as TKey[]
+  const names = Object.keys(xs) as K[]
   function and(query: string, next: string) {
     if (query === next) {
       return next
     }
     return query ? `${query} and ${next}` : next
   }
-  function getNext(breakpoint: TKey) {
-    return names[Math.min(names.indexOf(breakpoint) + 1, names.length - 1)]
+  function getNext(key: K) {
+    return names[Math.min(names.indexOf(key) + 1, names.length - 1)]
   }
-  function getMaxQuery(breakpoint: TKey) {
-    const next = getNext(breakpoint)
-    let value = breakpointValues[next]
-    if (typeof value === "number") value = `${value - 0.2}px`
-    else value = `calc(${value} - 0.2px)`
-
-    return `(max-width: ${value})`
+  function getMaxQuery(key: K) {
+    const next = getNext(key)!
+    let v = xs[next]
+    if (typeof v === "number") v = `${v - 0.2}px`
+    else v = `calc(${v} - 0.2px)`
+    return `(max-width: ${v})`
   }
-  function getMinQuery(breakpoint: TKey) {
-    let value = breakpointValues[breakpoint]
-    if (typeof value === "number") {
-      value = `${value}px`
+  function getMinQuery(key: K) {
+    let v = xs[key]
+    if (typeof v === "number") {
+      v = `${v}px`
     }
-    return `(min-width: ${value})`
+    return `(min-width: ${v})`
   }
+  function useBreakpoint(m: BreakpointMap<K>, window?: Window): boolean
   function useBreakpoint(
-    breakpointMap: BreakpointMap<TKey>,
-    window?: Window
-  ): boolean
-  function useBreakpoint(
-    breakpoint: TKey,
+    key: K,
     direction?: BreakpointDirection,
     window?: Window
   ): boolean
   function useBreakpoint(
-    breakpointOrMap: TKey | BreakpointMap<TKey>,
+    x: K | BreakpointMap<K>,
     direction?: BreakpointDirection | Window,
     window?: Window
   ): boolean {
-    let breakpointMap: BreakpointMap<TKey>
-    if (typeof breakpointOrMap === "object") {
-      breakpointMap = breakpointOrMap
+    let m: BreakpointMap<K>
+    if (typeof x === "object") {
+      m = x
       window = direction as Window
       direction = true
     } else {
       direction = direction || true
-      breakpointMap = { [breakpointOrMap]: direction } as Record<
-        TKey,
-        BreakpointDirection
-      >
+      m = { [x]: direction } as Record<K, BreakpointDirection>
     }
     const query = qr.useMemo(
       () =>
-        Object.entries(breakpointMap).reduce(
-          (query, [key, direction]: [TKey, BreakpointDirection]) => {
-            if (direction === "up" || direction === true) {
-              query = and(query, getMinQuery(key))
-            }
-            if (direction === "down" || direction === true) {
-              query = and(query, getMaxQuery(key))
-            }
-
-            return query
-          },
-          ""
-        ),
-      [JSON.stringify(breakpointMap)]
+        Object.entries(m).reduce((query, [key, direction]) => {
+          if (direction === "up" || direction === true) {
+            query = and(query, getMinQuery(key as K))
+          }
+          if (direction === "down" || direction === true) {
+            query = and(query, getMaxQuery(key as K))
+          }
+          return query
+        }, ""),
+      [JSON.stringify(m)]
     )
     return useMediaQuery(query, window)
   }
@@ -189,8 +180,8 @@ export type IsEqual<Ds extends qr.DependencyList> = (
   prev: Ds
 ) => boolean
 
-export type CustomEffectOptions<TDeps extends qr.DependencyList> = {
-  isEqual: IsEqual<TDeps>
+export type CustomEffectOptions<Ds extends qr.DependencyList> = {
+  isEqual: IsEqual<Ds>
   effectHook?: EffectHook
 }
 
@@ -283,21 +274,20 @@ export function useEventListener<
   T extends Element | Document | Window,
   K extends keyof DocumentEventMap
 >(
-  eventTarget: T | (() => T),
-  event: K,
+  x: T | (() => T),
+  key: K,
   listener: EventHandler<T, K>,
   capture: boolean | AddEventListenerOptions = false
 ) {
   const cb = useEventCB(listener)
   qr.useEffect(() => {
-    const target =
-      typeof eventTarget === "function" ? eventTarget() : eventTarget
-    target.addEventListener(event, cb, capture)
-    return () => target.removeEventListener(event, cb, capture)
-  }, [eventTarget])
+    const target = typeof x === "function" ? x() : x
+    target.addEventListener(key, cb, capture)
+    return () => target.removeEventListener(key, cb, capture)
+  }, [x])
 }
 
-export interface FocusManagerOptions {
+export interface FocusManagerOpts {
   willHandle?(focused: boolean, e: qr.FocusEvent): boolean | void
   didHandle?(focused: boolean, e: qr.FocusEvent): void
   onChange?(focused: boolean, e: qr.FocusEvent): void
@@ -309,7 +299,7 @@ export interface FocusController {
   onFocus: (e: any) => void
 }
 
-export function useFocusManager(opts: FocusManagerOptions): FocusController {
+export function useFocusManager(opts: FocusManagerOpts): FocusController {
   const isMounted = useMounted()
   const focus = qr.useRef<boolean | undefined>()
   const handle = qr.useRef<number | undefined>()
@@ -357,14 +347,14 @@ export function useForceUpdate(): () => void {
   return dispatch as () => void
 }
 
-type DocumentEventHandler<K extends keyof DocumentEventMap> = (
+type DocEventHandler<K extends keyof DocumentEventMap> = (
   this: Document,
   ev: DocumentEventMap[K]
 ) => any
 
 export function useGlobalListener<K extends keyof DocumentEventMap>(
   event: K,
-  handler: DocumentEventHandler<K>,
+  handler: DocEventHandler<K>,
   capture: boolean | AddEventListenerOptions = false
 ) {
   const cb = qr.useCallback(() => document, [])
@@ -377,7 +367,7 @@ type State = {
 }
 
 export function useImage(
-  imageOrUrl?: string | HTMLImageElement | null | undefined,
+  url?: string | HTMLImageElement | null | undefined,
   crossOrigin?: "anonymous" | "use-credentials" | string
 ) {
   const [state, setState] = qr.useState<State>({
@@ -385,14 +375,14 @@ export function useImage(
     error: null,
   })
   qr.useEffect(() => {
-    if (!imageOrUrl) return undefined
+    if (!url) return undefined
     let image: HTMLImageElement
-    if (typeof imageOrUrl === "string") {
+    if (typeof url === "string") {
       image = new Image()
       if (crossOrigin) image.crossOrigin = crossOrigin
-      image.src = imageOrUrl
+      image.src = url
     } else {
-      image = imageOrUrl
+      image = url
       if (image.complete && image.naturalHeight > 0) {
         setState({ image, error: null })
         return
@@ -410,7 +400,7 @@ export function useImage(
       image.removeEventListener("load", onLoad)
       image.removeEventListener("error", onError)
     }
-  }, [imageOrUrl, crossOrigin])
+  }, [url, crossOrigin])
 
   return state
 }
@@ -491,11 +481,8 @@ export function useInterval(
     handle = setTimeout(tick, ms) as any
   }
   qr.useEffect(() => {
-    if (runImmediately) {
-      tick()
-    } else {
-      schedule()
-    }
+    if (runImmediately) tick()
+    else schedule()
     return () => clearTimeout(handle)
   }, [paused, runImmediately])
 }
@@ -505,9 +492,9 @@ const isDOM = typeof document !== "undefined"
 export const useIsomorphicEffect = isDOM ? qr.useLayoutEffect : qr.useEffect
 
 export class ObservableMap<K, V> extends Map<K, V> {
-  private readonly listener: (map: ObservableMap<K, V>) => void
+  private readonly listener: (m: ObservableMap<K, V>) => void
   constructor(
-    listener: (map: ObservableMap<K, V>) => void,
+    listener: (m: ObservableMap<K, V>) => void,
     init?: Iterable<Readonly<[K, V]>>
   ) {
     super(init as any)
@@ -544,49 +531,46 @@ const matchersByWindow = new WeakMap<
 
 const getMatcher = (
   query: string | null,
-  targetWindow?: Window
+  w?: Window
 ): RefCountedMediaQueryList | undefined => {
-  if (!query || !targetWindow) return undefined
+  if (!query || !w) return undefined
   const matchers =
-    matchersByWindow.get(targetWindow) ||
-    new Map<string, RefCountedMediaQueryList>()
-  matchersByWindow.set(targetWindow, matchers)
-  let mql = matchers.get(query)
-  if (!mql) {
-    mql = targetWindow.matchMedia(query) as RefCountedMediaQueryList
-    mql.refCount = 0
-    matchers.set(mql.media, mql)
+    matchersByWindow.get(w) || new Map<string, RefCountedMediaQueryList>()
+  matchersByWindow.set(w, matchers)
+  let ys = matchers.get(query)
+  if (!ys) {
+    ys = w.matchMedia(query) as RefCountedMediaQueryList
+    ys.refCount = 0
+    matchers.set(ys.media, ys)
   }
-  return mql
+  return ys
 }
 
 export function useMediaQuery(
   query: string | null,
-  targetWindow: Window | undefined = typeof window === "undefined"
-    ? undefined
-    : window
+  w: Window | undefined = typeof window === "undefined" ? undefined : window
 ) {
-  const mql = getMatcher(query, targetWindow)
+  const mql = getMatcher(query, w)
   const [matches, setMatches] = qr.useState(() => (mql ? mql.matches : false))
   qr.useEffect(() => {
-    let mql = getMatcher(query, targetWindow)
-    if (!mql) {
+    let ys = getMatcher(query, w)
+    if (!ys) {
       return setMatches(false)
     }
-    const matchers = matchersByWindow.get(targetWindow!)
+    const ms = matchersByWindow.get(w!)
     const doChange = () => {
-      setMatches(mql!.matches)
+      setMatches(ys!.matches)
     }
-    mql.refCount++
-    mql.addListener(doChange)
+    ys.refCount++
+    ys.addListener(doChange)
     doChange()
     return () => {
-      mql!.removeListener(doChange)
-      mql!.refCount--
-      if (mql!.refCount <= 0) {
-        matchers?.delete(mql!.media)
+      ys!.removeListener(doChange)
+      ys!.refCount--
+      if (ys!.refCount <= 0) {
+        ms?.delete(ys!.media)
       }
-      mql = undefined
+      ys = undefined
     }
   }, [query])
   return matches
@@ -697,10 +681,10 @@ export function useMutationObserver(
   useCustomEffect(
     () => {
       if (!e) return
-      const observer = new MutationObserver(cb2)
-      observer.observe(e, init)
+      const o = new MutationObserver(cb2)
+      o.observe(e, init)
       return () => {
-        observer.disconnect()
+        o.disconnect()
       }
     },
     [e, init],
@@ -851,11 +835,8 @@ export function useSet<V>(init?: Iterable<V>): ObservableSet<V> {
 
 function isEqual(a: qr.DependencyList, b: qr.DependencyList) {
   if (a.length !== b.length) return false
-
   for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
-      return false
-    }
+    if (a[i] !== b[i]) return false
   }
   return true
 }
@@ -870,58 +851,52 @@ export function useStableMemo<T>(
   deps?: qr.DependencyList
 ): T {
   let isValid = true
-  const valueRef = qr.useRef<DepsCache<T>>()
-  if (!valueRef.current) {
-    valueRef.current = {
+  const ref = qr.useRef<DepsCache<T>>()
+  if (!ref.current) {
+    ref.current = {
       deps,
       result: factory(),
     }
   } else {
-    isValid = !!(
-      deps &&
-      valueRef.current.deps &&
-      isEqual(deps, valueRef.current.deps)
-    )
+    isValid = !!(deps && ref.current.deps && isEqual(deps, ref.current.deps))
   }
-  const cache = isValid ? valueRef.current : { deps, result: factory() }
-  valueRef.current = cache
+  const cache = isValid ? ref.current : { deps, result: factory() }
+  ref.current = cache
   return cache.result
 }
 
-type Updater2<TState> = (state: TState) => TState
+type Updater2<S> = (state: S) => S
 
-export type AsyncSetState<TState> = (
-  stateUpdate: qr.SetStateAction<TState>
-) => Promise<TState>
+export type AsyncSetState<S> = (stateUpdate: qr.SetStateAction<S>) => Promise<S>
 
-export function useStateAsync<TState>(
-  initialState: TState | (() => TState)
-): [TState, AsyncSetState<TState>] {
+export function useStateAsync<S>(
+  initialState: S | (() => S)
+): [S, AsyncSetState<S>] {
   const [state, setState] = qr.useState(initialState)
-  const resolvers = qr.useRef<((state: TState) => void)[]>([])
+  const ref = qr.useRef<((state: S) => void)[]>([])
   qr.useEffect(() => {
-    resolvers.current.forEach(resolve => resolve(state))
-    resolvers.current.length = 0
+    ref.current.forEach(resolve => resolve(state))
+    ref.current.length = 0
   }, [state])
   const cb = qr.useCallback(
-    (update: Updater2<TState> | TState) => {
-      return new Promise<TState>((resolve, reject) => {
-        setState(prevState => {
+    (update: Updater2<S> | S) => {
+      return new Promise<S>((res, rej) => {
+        setState(prev => {
           try {
-            let nextState: TState
+            let next: S
             if (update instanceof Function) {
-              nextState = update(prevState)
+              next = update(prev)
             } else {
-              nextState = update
+              next = update
             }
-            if (!resolvers.current.length && Object.is(nextState, prevState)) {
-              resolve(nextState)
+            if (!ref.current.length && Object.is(next, prev)) {
+              res(next)
             } else {
-              resolvers.current.push(resolve)
+              ref.current.push(res)
             }
-            return nextState
+            return next
           } catch (e) {
-            reject(e)
+            rej(e)
             throw e
           }
         })
@@ -944,7 +919,7 @@ export function useThrottledEventHandler<E = qr.SyntheticEvent>(
 ): ThrottledHandler<E> {
   const isMounted = useMounted()
   const eventHandler = useEventCB(handler)
-  const nextEventInfoRef = qr.useRef<{
+  const ref = qr.useRef<{
     event: E | null
     handle: null | number
   }>({
@@ -952,11 +927,11 @@ export function useThrottledEventHandler<E = qr.SyntheticEvent>(
     handle: null,
   })
   const clear = () => {
-    cancelAnimationFrame(nextEventInfoRef.current.handle!)
-    nextEventInfoRef.current.handle = null
+    cancelAnimationFrame(ref.current.handle!)
+    ref.current.handle = null
   }
   const doPointerMoveAnimation = () => {
-    const { current: next } = nextEventInfoRef
+    const { current: next } = ref
     if (next.handle && next.event) {
       if (isMounted()) {
         next.handle = null
@@ -972,11 +947,9 @@ export function useThrottledEventHandler<E = qr.SyntheticEvent>(
     } else if ("evt" in e) {
       e = { ...e }
     }
-    nextEventInfoRef.current.event = e
-    if (!nextEventInfoRef.current.handle) {
-      nextEventInfoRef.current.handle = requestAnimationFrame(
-        doPointerMoveAnimation
-      )
+    ref.current.event = e
+    if (!ref.current.handle) {
+      ref.current.handle = requestAnimationFrame(doPointerMoveAnimation)
     }
   }
   throttledHandler.clear = clear
@@ -1006,13 +979,13 @@ export function useTimeout() {
   useWillUnmount(() => clearTimeout(handleRef.current))
   return qr.useMemo(() => {
     const clear = () => clearTimeout(handleRef.current)
-    function set(fn: () => void, delayMs = 0): void {
+    function set(fn: () => void, delay = 0): void {
       if (!isMounted()) return
       clear()
-      if (delayMs <= MAX_DELAY_MS) {
-        handleRef.current = setTimeout(fn, delayMs)
+      if (delay <= MAX_DELAY_MS) {
+        handleRef.current = setTimeout(fn, delay)
       } else {
-        setChainedTimeout(handleRef, fn, Date.now() + delayMs)
+        setChainedTimeout(handleRef, fn, Date.now() + delay)
       }
     }
     return { set, clear }
