@@ -47,11 +47,8 @@ export function useButtonProps({
   type,
 }: Opts): [AriaProps, Meta] {
   if (!tagName) {
-    if (href != null || target != null || rel != null) {
-      tagName = "a"
-    } else {
-      tagName = "button"
-    }
+    if (href != null || target != null || rel != null) tagName = "a"
+    else tagName = "button"
   }
   const meta: Meta = { tagName }
   if (tagName === "button") {
@@ -75,9 +72,7 @@ export function useButtonProps({
   }
   if (tagName === "a") {
     href ||= "#"
-    if (disabled) {
-      href = undefined
-    }
+    if (disabled) href = undefined
   }
   return [
     {
@@ -109,12 +104,12 @@ export interface Props
 
 export const Button = qr.forwardRef<HTMLElement, Props>(
   ({ as, disabled, ...ps }, ref) => {
-    const [bps, { tagName: Component }] = useButtonProps({
+    const [bps, { tagName: X }] = useButtonProps({
       tagName: as,
       disabled,
       ...ps,
     })
-    return <Component {...ps} {...bps} ref={ref} />
+    return <X {...ps} {...bps} ref={ref} />
   }
 )
 Button.displayName = "Button"

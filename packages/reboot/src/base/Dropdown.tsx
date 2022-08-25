@@ -8,13 +8,15 @@ import * as qr from "react"
 import * as qt from "./types.jsx"
 import * as qu from "./use.js"
 
+export type ToggleEvent = Event | qr.SyntheticEvent // | KeyboardEvent | MouseEvent
+
 export type Data = {
-  toggle: (nextShow: boolean, e?: qr.SyntheticEvent | Event) => void
+  toggle: (nextShow: boolean, e?: ToggleEvent) => void
   menuElement: HTMLElement | null
   toggleElement: HTMLElement | null
   setMenu: (ref: HTMLElement | null) => void
   setToggle: (ref: HTMLElement | null) => void
-  show: boolean
+  show: boolean | undefined
   placement?: qp.Placement
 }
 
@@ -65,7 +67,7 @@ export function useItem({ key, href, active, disabled, onClick }: ItemOpts) {
 
 export const Item: qt.DynRef<typeof Button, ItemProps> = qr.forwardRef(
   (
-    { eventKey, disabled, onClick, active, as: B = Button, ...ps }: ItemProps,
+    { eventKey, disabled, onClick, active, as: X = Button, ...ps }: ItemProps,
     ref
   ) => {
     const [itemProps] = useItem({
@@ -75,7 +77,7 @@ export const Item: qt.DynRef<typeof Button, ItemProps> = qr.forwardRef(
       onClick,
       active,
     })
-    return <B {...ps} ref={ref} {...itemProps} />
+    return <X {...ps} ref={ref} {...itemProps} />
   }
 )
 Item.displayName = "DropdownItem"
@@ -244,8 +246,6 @@ export interface InjectedProps {
   onKeyDown: qr.KeyboardEventHandler
 }
 
-export type ToggleEvent = qr.SyntheticEvent | KeyboardEvent | MouseEvent
-
 export interface ToggleMetadata {
   source: string | undefined
   originalEvent: ToggleEvent | undefined
@@ -287,12 +287,12 @@ export function Dropdown({
 }: Props) {
   const window = qu.useWindow()
   const [show, onToggle] = qh.useUncontrolledVal(_show, defaultShow, _onToggle)
-  const [menuRef, setMenu] = useRefWithUpdate()
-  const menuElement = menuRef.current
-  const [toggleRef, setToggle] = useRefWithUpdate()
-  const toggleElement = toggleRef.current
+  const [menu, setMenu] = useRefWithUpdate()
+  const menuElement = menu.current
+  const [toggle, setToggle] = useRefWithUpdate()
+  const toggleElement = toggle.current
   const lastShow = qh.usePrevious(show)
-  const lastSourceEvent = qr.useRef<string | null>(null)
+  const last = qr.useRef<string | null>(null)
   const focusInDropdown = qr.useRef(false)
   const onSelectCtx = qr.useContext(qt.Selectable)
   const doToggle = qr.useCallback(
@@ -335,11 +335,10 @@ export function Dropdown({
     }
   })
   const doMaybeFocusFirst = qh.useEventCB(() => {
-    const type = lastSourceEvent.current
+    const type = last.current
     let focusType = focusFirstItemOnShow
     if (focusType == null) {
-      focusType =
-        menuRef.current && isRoleMenu(menuRef.current) ? "keyboard" : false
+      focusType = menu.current && isRoleMenu(menu.current) ? "keyboard" : false
     }
     if (
       focusType === false ||
@@ -347,7 +346,7 @@ export function Dropdown({
     ) {
       return
     }
-    const first = qsa(menuRef.current!, itemSelector)[0]
+    const first = qsa(menu.current!, itemSelector)[0]
     if (first && first.focus) first.focus()
   })
   qr.useEffect(() => {
@@ -358,11 +357,11 @@ export function Dropdown({
     }
   }, [show, focusInDropdown, doFocusToggle, doMaybeFocusFirst])
   qr.useEffect(() => {
-    lastSourceEvent.current = null
+    last.current = null
   })
   const getNextFocusedChild = (x: HTMLElement, offset: number) => {
-    if (!menuRef.current) return null
-    const items = qsa(menuRef.current, itemSelector)
+    if (!menu.current) return null
+    const items = qsa(menu.current, itemSelector)
     let i = items.indexOf(x) + offset
     i = Math.max(0, Math.min(i, items.length))
     return items[i]
@@ -373,8 +372,8 @@ export function Dropdown({
     (e: KeyboardEvent) => {
       const { key } = e
       const target = e.target as HTMLElement
-      const fromMenu = menuRef.current?.contains(target)
-      const fromToggle = toggleRef.current?.contains(target)
+      const fromMenu = menu.current?.contains(target)
+      const fromToggle = toggle.current?.contains(target)
       const isInput = /input|textarea/i.test(target.tagName)
       if (
         isInput &&
@@ -384,13 +383,9 @@ export function Dropdown({
       ) {
         return
       }
-      if (!fromMenu && !fromToggle) {
-        return
-      }
-      if (key === "Tab" && (!menuRef.current || !show)) {
-        return
-      }
-      lastSourceEvent.current = e.type
+      if (!fromMenu && !fromToggle) return
+      if (key === "Tab" && (!menu.current || !show)) return
+      last.current = e.type
       const meta = { originalEvent: e, source: e.type }
       switch (key) {
         case "ArrowUp": {
@@ -401,9 +396,8 @@ export function Dropdown({
         }
         case "ArrowDown":
           e.preventDefault()
-          if (!show) {
-            onToggle(true, meta)
-          } else {
+          if (!show) onToggle(true, meta)
+          else {
             const next = getNextFocusedChild(target, 1)
             if (next && next.focus) next.focus()
           }
@@ -415,7 +409,7 @@ export function Dropdown({
             e => {
               if (
                 (e.key === "Tab" && !e.target) ||
-                !menuRef.current?.contains(e.target as HTMLElement)
+                !menu.current?.contains(e.target as HTMLElement)
               ) {
                 onToggle(false, meta)
               }

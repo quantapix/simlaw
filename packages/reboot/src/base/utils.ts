@@ -133,11 +133,11 @@ function _animate({
   const cssProperties = [] as Property[]
   const cssValues: Partial<Record<Property, string>> = {}
   let transforms = ""
-  Object.keys(properties).forEach((key: Property) => {
-    const value = properties[key]
+  Object.keys(properties).forEach(key => {
+    const value = properties[key as Property]
     if (isTransform(key)) transforms += `${key}(${value}) `
     else {
-      cssValues[key] = value
+      cssValues[key as Property] = value
       cssProperties.push(hyphenate(key) as Property)
     }
   })
@@ -365,8 +365,8 @@ export function css<T extends Property>(
       getComputedStyle(node).getPropertyValue(hyphenate(property))
     )
   }
-  Object.keys(property).forEach((key: Property) => {
-    const value = property[key]
+  Object.keys(property).forEach(key => {
+    const value = property[key as Property]
     if (!value && value !== 0) {
       node.style.removeProperty(hyphenate(key))
     } else if (isTransform(key)) {
@@ -654,7 +654,7 @@ export function getScrollParent(x: HTMLElement, firstPossible?: boolean) {
   const excludeStatic = position === "absolute"
   const ownerDoc = x.ownerDocument
   if (position === "fixed") return ownerDoc || document
-  while ((x = x.parentNode) && !isDocument(x)) {
+  while ((x = x.parentNode as HTMLElement) && !isDocument(x)) {
     const isStatic = excludeStatic && css(x, "position") === "static"
     const style =
       (css(x, "overflow") || "") +

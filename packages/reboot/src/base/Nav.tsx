@@ -82,14 +82,14 @@ export function useNavItem({
 export const Item: qt.DynRef<typeof Button, ItemProps> = qr.forwardRef<
   HTMLElement,
   ItemProps
->(({ as: B = Button, active, eventKey, ...xs }, ref) => {
+>(({ as: X = Button, active, eventKey, ...xs }, ref) => {
   const [ps, meta] = useNavItem({
     key: qt.makeEventKey(eventKey, xs.href),
     active,
     ...xs,
   })
   ps[qt.dataAttr("active")] = meta.isActive
-  return <B {...xs} {...ps} ref={ref} />
+  return <X {...xs} {...ps} ref={ref} />
 })
 Item.displayName = "NavItem"
 

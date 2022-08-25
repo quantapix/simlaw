@@ -64,7 +64,7 @@ export interface UseState {
   update: () => void
 }
 
-const ariaDescribedByModifier: qp.Modifier<"ariaDescribedBy", undefined> = {
+const ariaDescribedByModifier: qp.Modifier<"ariaDescribedBy", qp.Obj> = {
   name: "ariaDescribedBy",
   enabled: true,
   phase: "afterWrite",
@@ -176,7 +176,9 @@ export function usePopper(
       ...config,
       placement,
       strategy,
-      modifiers: [...nextMods, ariaDescribedByModifier, updateMod],
+      modifiers: [...nextMods, ariaDescribedByModifier, updateMod] as Partial<
+        qp.Modifier<any, any>
+      >[],
     })
     return () => {
       if (ref.current != null) {
