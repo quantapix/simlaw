@@ -25,7 +25,7 @@ export interface Props extends qr.HTMLAttributes<HTMLDivElement> {
   onClose?: (a: any, b: any) => void
   closeLabel?: string
   closeVariant?: CloseVariant
-  transition?: qt.Transition
+  transition?: qt.Transition2
 }
 
 export const Alert = qr.forwardRef<HTMLDivElement, Props>((xs: Props, ref) => {

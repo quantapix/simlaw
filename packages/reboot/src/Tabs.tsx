@@ -10,7 +10,7 @@ export interface Props
   extends Omit<BaseProps, "transition">,
     Omit<qr.HTMLAttributes<HTMLElement>, "onSelect">,
     NProps {
-  transition?: qt.Transition
+  transition?: qt.Transition2
 }
 
 function getDefaultActiveKey(xs: any) {

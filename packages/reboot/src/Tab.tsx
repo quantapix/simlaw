@@ -6,7 +6,9 @@ import { withBs } from "./utils.jsx"
 import * as qr from "react"
 import * as qt from "./types.jsx"
 
-export function getTabTransition(x?: qt.Transition): qt.Transition | undefined {
+export function getTabTransition(
+  x?: qt.Transition2
+): qt.Transition | undefined {
   if (typeof x === "boolean") {
     return x ? Fade : NoopTransition
   }
@@ -14,7 +16,7 @@ export function getTabTransition(x?: qt.Transition): qt.Transition | undefined {
 }
 
 export interface ContainerProps extends Omit<TabsProps, "transition"> {
-  transition?: qt.Transition
+  transition?: qt.Transition2
 }
 
 export const Container = ({ transition, ...ps }: ContainerProps) => (
@@ -30,7 +32,7 @@ export interface PaneProps
     qr.HTMLAttributes<HTMLElement> {
   eventKey?: qt.EventKey
   active?: boolean
-  transition?: qt.Transition
+  transition?: qt.Transition2
   mountOnEnter?: boolean
   unmountOnExit?: boolean
 }

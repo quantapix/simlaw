@@ -43,7 +43,7 @@ export type BsCompClass<
   P = unknown
 > = qr.ComponentClass<ReplaceProps<As, BsProps<As> & P>>
 
-export type Transition = boolean | qt.Transition
+export type Transition2 = boolean | qt.Transition
 
 export function getDirection(placement: string, isRTL?: boolean) {
   let bsDirection = placement

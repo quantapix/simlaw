@@ -33,7 +33,7 @@ export const Wrapper = qr.forwardRef<Transition<any>, Props>(
       mergedRef(safeFindDOMNode(r))
     }
     const normalize =
-      (callback?: (node: HTMLElement, param: any) => void) => (param: any) => {
+      (callback?: (x: HTMLElement, param: any) => void) => (param: any) => {
         if (callback && nodeRef.current) {
           callback(nodeRef.current, param)
         }

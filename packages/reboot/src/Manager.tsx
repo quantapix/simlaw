@@ -13,8 +13,8 @@ export class Manager extends Base {
     element: HTMLElement,
     adjust: number
   ) {
-    const actual = element.style[prop]
-    element.dataset[prop] = actual
+    const actual = element.style[prop]!
+    element.dataset[prop as string] = actual as string
     css(element, {
       [prop]: `${parseFloat(css(element, prop as any)) + adjust}px`,
     })
@@ -23,9 +23,9 @@ export class Manager extends Base {
     prop: T,
     element: HTMLElement
   ) {
-    const value = element.dataset[prop]
+    const value = element.dataset[prop as string]
     if (value !== undefined) {
-      delete element.dataset[prop]
+      delete element.dataset[prop as string]
       css(element, { [prop]: value })
     }
   }

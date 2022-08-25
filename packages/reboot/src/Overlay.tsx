@@ -31,7 +31,7 @@ export type Children =
 export interface Props
   extends Omit<BaseProps, "children" | "transition" | "rootCloseEvent"> {
   children: Children
-  transition?: qt.Transition
+  transition?: qt.Transition2
   placement?: Placement | undefined
   rootCloseEvent?: qt.RootCloseEvent
 }

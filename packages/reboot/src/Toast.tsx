@@ -83,7 +83,7 @@ export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   delay?: number
   onClose?: (e?: qr.MouseEvent | qr.KeyboardEvent) => void
   show?: boolean
-  transition?: qt.Transition
+  transition?: qt.Transition2
   bg?: qt.Variant
 }
 

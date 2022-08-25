@@ -341,34 +341,32 @@ export function contains(context: Element, x: Element) {
     return context === x || !!(context.compareDocumentPosition(x) & 16)
   return
 }
-export function css(
-  node: HTMLElement,
-  property: Partial<Record<Property, string>>
-): void
+
+export function css(x: HTMLElement, p: Partial<Record<Property, string>>): void
 export function css<T extends HyphenProp>(
-  node: HTMLElement,
-  property: T
+  x: HTMLElement,
+  p: T
 ): CSS.PropertiesHyphen[T]
 export function css<T extends CamelProp>(
-  node: HTMLElement,
-  property: T
+  x: HTMLElement,
+  p: T
 ): CSS.Properties[T]
 export function css<T extends Property>(
-  node: HTMLElement,
-  property: T | Record<Property, string | number>
+  x: HTMLElement,
+  p: T | Record<Property, string | number>
 ) {
   let css = ""
   let transforms = ""
-  if (typeof property === "string") {
+  if (typeof p === "string") {
     return (
-      node.style.getPropertyValue(hyphenate(property)) ||
-      getComputedStyle(node).getPropertyValue(hyphenate(property))
+      x.style.getPropertyValue(hyphenate(p)) ||
+      getComputedStyle(x).getPropertyValue(hyphenate(p))
     )
   }
-  Object.keys(property).forEach(key => {
-    const value = property[key as Property]
+  Object.keys(p).forEach(key => {
+    const value = p[key as Property]
     if (!value && value !== 0) {
-      node.style.removeProperty(hyphenate(key))
+      x.style.removeProperty(hyphenate(key))
     } else if (isTransform(key)) {
       transforms += `${key}(${value}) `
     } else {
@@ -378,9 +376,10 @@ export function css<T extends Property>(
   if (transforms) {
     css += `transform: ${transforms};`
   }
-  node.style.cssText += `;${css}`
+  x.style.cssText += `;${css}`
   return
 }
+
 export function filterEvents<K extends keyof HTMLElementEventMap>(
   selector: string,
   handler: EventHandler<K>

@@ -1,4 +1,4 @@
-import { css } from "./base/utils.js"
+//import { css } from "./base/utils.js"
 import { Wrapper } from "./Wrapper.jsx"
 import * as qr from "react"
 import * as qt from "./types.jsx"
@@ -21,20 +21,18 @@ export interface Props
   children: qr.ReactElement
 }
 
-const MARGINS: { [d in Dimension]: string[] } = {
+export const MARGINS: { [d in Dimension]: string[] } = {
   height: ["marginTop", "marginBottom"],
   width: ["marginLeft", "marginRight"],
 }
 
 function getDefaultDimValue(dim: Dimension, elem: HTMLElement): number {
   const offset = `offset${dim[0]!.toUpperCase()}${dim.slice(1)}`
-  const value = elem[offset]
-  const margins = MARGINS[dim]
-  return (
-    value +
-    parseInt(css(elem, margins[0]), 10) +
-    parseInt(css(elem, margins[1]), 10)
-  )
+  const value = (elem as any)[offset]
+  // const margins = MARGINS[dim]
+  return value // +
+  // parseInt(css(elem, margins[0]), 10) +
+  // parseInt(css(elem, margins[1]), 10)
 }
 
 const styles = {

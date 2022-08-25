@@ -231,9 +231,9 @@ export function toModifierArray(m: Modifiers = {}) {
 
 export function mergeOptsWithPopper({
   arrowElement,
-  containerPadding,
+  // containerPadding,
   enabled,
-  enableEvents,
+  // enableEvents,
   fixed,
   flip,
   offset,
