@@ -1,10 +1,10 @@
-import { classNames, BsProps } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 
 export type AspectRatio = "1x1" | "4x3" | "16x9" | "21x9" | string
 
-export interface Props extends BsProps, qr.HTMLAttributes<HTMLDivElement> {
+export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLDivElement> {
   children: qr.ReactChild
   aspectRatio?: AspectRatio | number
 }
@@ -29,7 +29,7 @@ export const Ratio = qr.forwardRef<HTMLDivElement, Props>(
             "--bs-aspect-ratio": toPercent(aspectRatio as number),
           }),
         }}
-        className={classNames(
+        className={qt.classNames(
           bs,
           className,
           !isCustomRatio && `${bs}-${aspectRatio}`

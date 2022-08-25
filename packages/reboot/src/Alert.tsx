@@ -1,12 +1,11 @@
 import { Anchor } from "./base/Anchor.jsx"
-import { classNames, Transition } from "./helpers.js"
 import { Close, Variant as CloseVariant } from "./Button.jsx"
 import { divAs, withBs } from "./utils.jsx"
 import { Fade } from "./Fade.jsx"
 import { useBs } from "./Theme.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import type { Variant } from "./types.jsx"
+import * as qt from "./types.jsx"
 
 export const Link = withBs("alert-link", {
   Component: Anchor,
@@ -20,13 +19,13 @@ export const Heading = withBs("alert-heading", {
 
 export interface Props extends qr.HTMLAttributes<HTMLDivElement> {
   bsPrefix?: string
-  variant?: Variant
+  variant?: qt.Variant
   dismissible?: boolean
   show?: boolean
   onClose?: (a: any, b: any) => void
   closeLabel?: string
   closeVariant?: CloseVariant
-  transition?: Transition
+  transition?: qt.Transition
 }
 
 export const Alert = qr.forwardRef<HTMLDivElement, Props>((xs: Props, ref) => {
@@ -55,7 +54,7 @@ export const Alert = qr.forwardRef<HTMLDivElement, Props>((xs: Props, ref) => {
       role="alert"
       {...(!X ? ps : undefined)}
       ref={ref}
-      className={classNames(
+      className={qt.classNames(
         className,
         bs,
         variant && `${bs}-${variant}`,

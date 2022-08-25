@@ -1,7 +1,7 @@
-import { classNames, BsRef } from "./helpers.js"
 import { css, transitionEnd } from "./base/utils.js"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 import ReactDOM from "react-dom"
 
 export const ENTERING = "entering"
@@ -72,7 +72,7 @@ export const divAs = (className: string) =>
     <div
       {...p}
       ref={ref}
-      className={classNames((p as any).className, className)}
+      className={qt.classNames((p as any).className, className)}
     />
   ))
 
@@ -98,14 +98,14 @@ export function withBs<As extends qr.ElementType = "div">(
     Component,
     defaultProps,
   }: BsOptions<As> = {}
-): BsRef<As> {
+): qt.BsRef<As> {
   const y = qr.forwardRef(
     ({ className, bsPrefix, as: X = Component || "div", ...ps }: any, ref) => {
       const resolvedPrefix = useBs(bsPrefix, prefix)
       return (
         <X
           ref={ref}
-          className={classNames(className, resolvedPrefix)}
+          className={qt.classNames(className, resolvedPrefix)}
           {...ps}
         />
       )

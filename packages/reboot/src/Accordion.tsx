@@ -1,8 +1,8 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Collapse as C, Props as CProps } from "./Collapse.jsx"
 import { useBs } from "./Theme.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
+import * as qt from "./types.js"
 import type { Transition } from "react-transition-group"
 
 export type Key = string | string[] | null | undefined
@@ -36,7 +36,7 @@ ItemContext.displayName = "AccordionItemContext"
 
 export interface ButtonProps
   extends qr.ButtonHTMLAttributes<HTMLButtonElement>,
-    BsProps {}
+    qt.BsProps {}
 
 type Handler = qr.EventHandler<qr.SyntheticEvent>
 
@@ -60,7 +60,7 @@ export function useButton(key: string, onClick?: Handler): Handler {
   }
 }
 
-export const Button: BsRef<"div", ButtonProps> = qr.forwardRef<
+export const Button: qt.BsRef<"div", ButtonProps> = qr.forwardRef<
   HTMLButtonElement,
   ButtonProps
 >(({ as: X = "button", bsPrefix, className, onClick, ...ps }, ref) => {
@@ -77,7 +77,7 @@ export const Button: BsRef<"div", ButtonProps> = qr.forwardRef<
       onClick={click}
       {...ps}
       aria-expanded={eventKey === activeKey}
-      className={classNames(
+      className={qt.classNames(
         className,
         bs,
         !isItemSelected(activeKey, eventKey) && "collapsed"
@@ -87,26 +87,28 @@ export const Button: BsRef<"div", ButtonProps> = qr.forwardRef<
 })
 Button.displayName = "AccordionButton"
 
-export interface HeaderProps extends BsProps, qr.HTMLAttributes<HTMLElement> {}
+export interface HeaderProps
+  extends qt.BsProps,
+    qr.HTMLAttributes<HTMLElement> {}
 
-export const Header: BsRef<"h2", HeaderProps> = qr.forwardRef<
+export const Header: qt.BsRef<"h2", HeaderProps> = qr.forwardRef<
   HTMLElement,
   HeaderProps
 >(({ as: X = "h2", bsPrefix, className, children, onClick, ...ps }, ref) => {
   const bs = useBs(bsPrefix, "accordion-header")
   return (
-    <X ref={ref} {...ps} className={classNames(className, bs)}>
+    <X ref={ref} {...ps} className={qt.classNames(className, bs)}>
       <Button onClick={onClick}>{children}</Button>
     </X>
   )
 })
 Header.displayName = "AccordionHeader"
 
-export interface CollapseProps extends CProps, BsProps {
+export interface CollapseProps extends CProps, qt.BsProps {
   eventKey: string
 }
 
-export const Collapse: BsRef<"div", CollapseProps> = qr.forwardRef<
+export const Collapse: qt.BsRef<"div", CollapseProps> = qr.forwardRef<
   Transition<any>,
   CollapseProps
 >(({ as: X = "div", bsPrefix, className, children, eventKey, ...ps }, ref) => {
@@ -117,7 +119,7 @@ export const Collapse: BsRef<"div", CollapseProps> = qr.forwardRef<
       ref={ref}
       in={isItemSelected(activeKey, eventKey)}
       {...ps}
-      className={classNames(className, bs)}
+      className={qt.classNames(className, bs)}
     >
       <X>{qr.Children.only(children)}</X>
     </C>
@@ -125,9 +127,9 @@ export const Collapse: BsRef<"div", CollapseProps> = qr.forwardRef<
 })
 Collapse.displayName = "AccordionCollapse"
 
-export interface BodyProps extends BsProps, qr.HTMLAttributes<HTMLElement> {}
+export interface BodyProps extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {}
 
-export const Body: BsRef<"div", BodyProps> = qr.forwardRef<
+export const Body: qt.BsRef<"div", BodyProps> = qr.forwardRef<
   HTMLElement,
   BodyProps
 >(({ as: X = "div", bsPrefix, className, ...ps }, ref) => {
@@ -135,17 +137,17 @@ export const Body: BsRef<"div", BodyProps> = qr.forwardRef<
   const { eventKey } = qr.useContext(ItemContext)
   return (
     <Collapse eventKey={eventKey}>
-      <X ref={ref} {...ps} className={classNames(className, bs)} />
+      <X ref={ref} {...ps} className={qt.classNames(className, bs)} />
     </Collapse>
   )
 })
 Body.displayName = "AccordionBody"
 
-export interface ItemProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface ItemProps extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   eventKey: string
 }
 
-export const Item: BsRef<"div", ItemProps> = qr.forwardRef<
+export const Item: qt.BsRef<"div", ItemProps> = qr.forwardRef<
   HTMLElement,
   ItemProps
 >(({ as: X = "div", bsPrefix, className, eventKey, ...ps }, ref) => {
@@ -158,7 +160,7 @@ export const Item: BsRef<"div", ItemProps> = qr.forwardRef<
   )
   return (
     <ItemContext.Provider value={ctx}>
-      <X ref={ref} {...ps} className={classNames(className, bs)} />
+      <X ref={ref} {...ps} className={qt.classNames(className, bs)} />
     </ItemContext.Provider>
   )
 })
@@ -166,7 +168,7 @@ Item.displayName = "AccordionItem"
 
 export interface Props
   extends Omit<qr.HTMLAttributes<HTMLElement>, "onSelect">,
-    BsProps {
+    qt.BsProps {
   activeKey?: Key
   defaultActiveKey?: Key
   onSelect?: SelectCB
@@ -174,36 +176,37 @@ export interface Props
   alwaysOpen?: boolean
 }
 
-export const Accordion: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
-  (xs: Props, ref) => {
-    const {
-      activeKey,
-      alwaysOpen,
-      as: X = "div",
-      bsPrefix,
-      className,
-      flush,
+export const Accordion: qt.BsRef<"div", Props> = qr.forwardRef<
+  HTMLElement,
+  Props
+>((xs: Props, ref) => {
+  const {
+    activeKey,
+    alwaysOpen,
+    as: X = "div",
+    bsPrefix,
+    className,
+    flush,
+    onSelect,
+    ...ps
+  } = qh.useUncontrolled(xs, { activeKey: "onSelect" })
+  const bs = useBs(bsPrefix, "accordion")
+  const v = qr.useMemo(
+    () => ({
+      activeKey: activeKey,
       onSelect,
-      ...ps
-    } = qh.useUncontrolled(xs, { activeKey: "onSelect" })
-    const bs = useBs(bsPrefix, "accordion")
-    const v = qr.useMemo(
-      () => ({
-        activeKey: activeKey,
-        onSelect,
-        alwaysOpen,
-      }),
-      [activeKey, onSelect, alwaysOpen]
-    )
-    return (
-      <Context.Provider value={v}>
-        <X
-          ref={ref}
-          {...ps}
-          className={classNames(className, bs, flush && `${bs}-flush`)}
-        />
-      </Context.Provider>
-    )
-  }
-)
+      alwaysOpen,
+    }),
+    [activeKey, onSelect, alwaysOpen]
+  )
+  return (
+    <Context.Provider value={v}>
+      <X
+        ref={ref}
+        {...ps}
+        className={qt.classNames(className, bs, flush && `${bs}-flush`)}
+      />
+    </Context.Provider>
+  )
+})
 Accordion.displayName = "Accordion"

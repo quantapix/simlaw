@@ -3,14 +3,14 @@ import { forEach, map } from "./utils.jsx"
 import { Item, Link, Nav, Props as NProps } from "./Nav.jsx"
 import { Tabs as Base, Props as BaseProps } from "./base/Tabs.jsx"
 import * as qh from "./hooks.js"
-import type { Transition } from "./helpers.js"
 import type * as qr from "react"
+import type * as qt from "./types.jsx"
 
 export interface Props
   extends Omit<BaseProps, "transition">,
     Omit<qr.HTMLAttributes<HTMLElement>, "onSelect">,
     NProps {
-  transition?: Transition
+  transition?: qt.Transition
 }
 
 function getDefaultActiveKey(xs: any) {

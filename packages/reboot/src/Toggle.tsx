@@ -1,8 +1,8 @@
-import { classNames, invariant, BsRef } from "./helpers.js"
 import { map, createChained } from "./utils.jsx"
 import { useBs } from "./Theme.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 import {
   Button as B,
   Props as BPs,
@@ -57,7 +57,7 @@ export const Button = qr.forwardRef<HTMLLabelElement, Props>(
         <B
           {...ps}
           ref={ref}
-          className={classNames(className, disabled && "disabled")}
+          className={qt.classNames(className, disabled && "disabled")}
           type={undefined}
           role={undefined}
           as="label"
@@ -89,7 +89,7 @@ export interface CheckboxProps<T> extends Base {
 
 export type GroupProps<T> = RadioProps<T> | CheckboxProps<T>
 
-export const Group: BsRef<"a", GroupProps<any>> = qr.forwardRef<
+export const Group: qt.BsRef<"a", GroupProps<any>> = qr.forwardRef<
   HTMLElement,
   GroupProps<any>
 >((xs: GroupProps<any>, ref) => {
@@ -117,7 +117,7 @@ export const Group: BsRef<"a", GroupProps<any>> = qr.forwardRef<
       onChange([...values, x], e)
     }
   }
-  invariant(
+  qt.invariant(
     type !== "radio" || !!name,
     "A `name` is required to group the toggle buttons when the `type` " +
       'is set to "radio"'

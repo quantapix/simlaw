@@ -1,9 +1,9 @@
-import { classNames, BsOnlyProps } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 
 export interface Props
-  extends BsOnlyProps,
+  extends qt.BsOnlyProps,
     qr.TableHTMLAttributes<HTMLTableElement> {
   striped?: boolean | string
   bordered?: boolean
@@ -31,7 +31,7 @@ export const Table = qr.forwardRef<HTMLTableElement, Props>(
     ref
   ) => {
     const decoratedBsPrefix = useBs(bsPrefix, "table")
-    const classes = classNames(
+    const classes = qt.classNames(
       className,
       decoratedBsPrefix,
       variant && `${decoratedBsPrefix}-${variant}`,

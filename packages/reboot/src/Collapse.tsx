@@ -1,15 +1,14 @@
-import { classNames } from "./helpers.js"
 import { css } from "./base/utils.js"
 import { Wrapper } from "./Wrapper.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 import * as qu from "./utils.jsx"
 import type { Transition, TransitionStatus } from "react-transition-group"
-import type { TransitionCBs } from "./base/types.jsx"
 
 type Dimension = "height" | "width"
 
 export interface Props
-  extends TransitionCBs,
+  extends qt.TransitionCBs,
     Pick<qr.HTMLAttributes<HTMLElement>, "role"> {
   className?: string
   in?: boolean
@@ -116,7 +115,7 @@ export const Collapse = qr.forwardRef<Transition<any>, Props>(
         {(state: TransitionStatus, ps2: Record<string, unknown>) =>
           qr.cloneElement(children, {
             ...ps2,
-            className: classNames(
+            className: qt.classNames(
               className,
               children.props.className,
               styles[state],

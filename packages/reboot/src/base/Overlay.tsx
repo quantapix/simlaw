@@ -32,8 +32,8 @@ type Transition = qr.ComponentType<
 >
 
 export interface Props extends qt.TransitionCBs {
-  flip?: boolean
-  placement?: qp.Placement
+  flip?: boolean | undefined
+  placement?: qp.Placement | undefined
   offset?: qp.Offset
   containerPadding?: number
   popperConfig?: Omit<qp.UseOptions, "placement">

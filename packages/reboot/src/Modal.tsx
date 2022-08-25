@@ -1,14 +1,14 @@
-import * as qr from "react"
-import * as qh from "./hooks.js"
-import * as qu from "./base/utils.js"
-import { Modal as Base, Props as BaseProps } from "./base/Modal.jsx"
-import type { Instance } from "./base/Manager.js"
-import { getSharedManager } from "./Manager.jsx"
-import { Fade } from "./Fade.jsx"
-import { classNames, BsOnlyProps, BsProps, BsRef } from "./helpers.js"
-import { useBs, useIsRTL } from "./Theme.jsx"
 import { Close, Variant as CloseVariant } from "./Button.jsx"
 import { divAs, withBs } from "./utils.jsx"
+import { Fade } from "./Fade.jsx"
+import { getSharedManager } from "./Manager.jsx"
+import { Modal as Base, Props as BaseProps } from "./base/Modal.jsx"
+import { useBs, useIsRTL } from "./Theme.jsx"
+import * as qh from "./hooks.js"
+import * as qr from "react"
+import * as qt from "./types.jsx"
+import * as qu from "./base/utils.js"
+import type { Instance } from "./base/Manager.js"
 
 interface Data {
   onHide: () => void
@@ -52,7 +52,7 @@ AbsHeader.defaultProps = {
   closeButton: false,
 }
 
-export interface HeaderProps extends AbsProps, BsOnlyProps {}
+export interface HeaderProps extends AbsProps, qt.BsOnlyProps {}
 
 export const Header = qr.forwardRef<HTMLDivElement, HeaderProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
@@ -61,7 +61,7 @@ export const Header = qr.forwardRef<HTMLDivElement, HeaderProps>(
       <AbsHeader
         ref={ref}
         {...ps}
-        className={classNames(className, bsPrefix)}
+        className={qt.classNames(className, bsPrefix)}
       />
     )
   }
@@ -79,7 +79,7 @@ export const Title = withBs("modal-title", { Component: DivAsH4 })
 
 export interface DialogProps
   extends qr.HTMLAttributes<HTMLDivElement>,
-    BsProps {
+    qt.BsProps {
   size?: "sm" | "lg" | "xl"
   fullscreen?:
     | true
@@ -119,7 +119,7 @@ export const Dialog = qr.forwardRef<HTMLDivElement, DialogProps>(
       <div
         {...ps}
         ref={ref}
-        className={classNames(
+        className={qt.classNames(
           dialogClass,
           className,
           size && `${bs}-${size}`,
@@ -128,7 +128,7 @@ export const Dialog = qr.forwardRef<HTMLDivElement, DialogProps>(
           fullscreen && fullScreenClass
         )}
       >
-        <div className={classNames(`${bs}-content`, contentClassName)}>
+        <div className={qt.classNames(`${bs}-content`, contentClassName)}>
           {children}
         </div>
       </div>
@@ -175,7 +175,7 @@ function BackdropTransition(ps: any) {
   return <Fade {...ps} timeout={null} />
 }
 
-export const Modal: BsRef<"div", Props> = qr.forwardRef(
+export const Modal: qt.BsRef<"div", Props> = qr.forwardRef(
   (
     {
       bsPrefix,
@@ -323,7 +323,7 @@ export const Modal: BsRef<"div", Props> = qr.forwardRef(
       (backdropProps: any) => (
         <div
           {...backdropProps}
-          className={classNames(
+          className={qt.classNames(
             `${bs}-backdrop`,
             backdropClassName,
             !animation && "show"
@@ -339,7 +339,7 @@ export const Modal: BsRef<"div", Props> = qr.forwardRef(
         role="dialog"
         {...dialogProps}
         style={baseModalStyle}
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           animateStaticModal && `${bs}-static`

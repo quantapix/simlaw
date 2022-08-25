@@ -1,12 +1,11 @@
 import { Anchor } from "./base/Anchor.jsx"
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Context as CContext } from "./Card.jsx"
 import { Context as NContext } from "./Navbar.jsx"
-import { EventKey, makeEventKey } from "./base/types.js"
 import { useBs } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 import {
   Nav as Base,
   Props as BaseProps,
@@ -16,9 +15,9 @@ import {
 
 interface Data {
   role?: string
-  activeKey: EventKey | null
-  getControlledId: (key: EventKey | null) => string
-  getControllerId: (key: EventKey | null) => string
+  activeKey: qt.EventKey | null
+  getControlledId: (key: qt.EventKey | null) => string
+  getControllerId: (key: qt.EventKey | null) => string
 }
 
 export const Context = qr.createContext<Data | null>(null)
@@ -26,15 +25,15 @@ Context.displayName = "NavContext"
 
 export const Item = withBs("nav-item")
 
-export interface LinkProps extends BsProps, Omit<IPs, "as"> {}
+export interface LinkProps extends qt.BsProps, Omit<IPs, "as"> {}
 
-export const Link: BsRef<"a", LinkProps> = qr.forwardRef<
+export const Link: qt.BsRef<"a", LinkProps> = qr.forwardRef<
   HTMLElement,
   LinkProps
 >(({ bsPrefix, className, as: X = Anchor, active, eventKey, ...ps }, ref) => {
   const bs = useBs(bsPrefix, "nav-link")
   const [navItemProps, meta] = useNavItem({
-    key: makeEventKey(eventKey, ps.href),
+    key: qt.makeEventKey(eventKey, ps.href),
     active,
     ...ps,
   })
@@ -43,7 +42,7 @@ export const Link: BsRef<"a", LinkProps> = qr.forwardRef<
       {...ps}
       {...navItemProps}
       ref={ref}
-      className={classNames(
+      className={qt.classNames(
         className,
         bs,
         ps.disabled && "disabled",
@@ -57,18 +56,18 @@ Link.defaultProps = {
   disabled: false,
 }
 
-export interface Props extends BsProps, BaseProps {
+export interface Props extends qt.BsProps, BaseProps {
   navbarBsPrefix?: string
   cardHeaderBsPrefix?: string
   variant?: "tabs" | "pills" | string
-  defaultActiveKey?: EventKey
+  defaultActiveKey?: qt.EventKey
   fill?: boolean
   justify?: boolean
   navbar?: boolean
   navbarScroll?: boolean
 }
 
-export const Nav: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
+export const Nav: qt.BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
   (xs: Props, ref) => {
     const {
       activeKey,
@@ -99,7 +98,7 @@ export const Nav: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
         as={as}
         ref={ref}
         activeKey={activeKey}
-        className={classNames(className, {
+        className={qt.classNames(className, {
           [bs]: !isNavbar,
           [`${navbarBsPrefix}-nav`]: isNavbar,
           [`${navbarBsPrefix}-nav-scroll`]: isNavbar && navbarScroll,

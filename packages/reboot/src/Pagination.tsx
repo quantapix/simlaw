@@ -1,16 +1,16 @@
 import { Anchor } from "./base/Anchor.jsx"
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 
-export interface ItemProps extends qr.HTMLAttributes<HTMLElement>, BsProps {
+export interface ItemProps extends qr.HTMLAttributes<HTMLElement>, qt.BsProps {
   disabled?: boolean
   active?: boolean
   activeLabel?: string
   href?: string
 }
 
-export const Item: BsRef<"li", ItemProps> = qr.forwardRef<
+export const Item: qt.BsRef<"li", ItemProps> = qr.forwardRef<
   HTMLLIElement,
   ItemProps
 >(
@@ -31,7 +31,7 @@ export const Item: BsRef<"li", ItemProps> = qr.forwardRef<
       <li
         ref={ref}
         style={style}
-        className={classNames(className, "page-item", { active, disabled })}
+        className={qt.classNames(className, "page-item", { active, disabled })}
       >
         <X className="page-link" disabled={disabled} {...ps}>
           {children}
@@ -67,7 +67,7 @@ export const Ellipsis = createButton("Ellipsis", "…", "More")
 export const Next = createButton("Next", "›")
 export const Last = createButton("Last", "»")
 
-export interface Props extends BsProps, qr.HTMLAttributes<HTMLUListElement> {
+export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLUListElement> {
   size?: "sm" | "lg"
 }
 
@@ -78,7 +78,7 @@ export const Pagination = qr.forwardRef<HTMLUListElement, Props>(
       <ul
         ref={ref}
         {...ps}
-        className={classNames(className, bs, size && `${bs}-${size}`)}
+        className={qt.classNames(className, bs, size && `${bs}-${size}`)}
       />
     )
   }

@@ -1,6 +1,6 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 
 type NumberAttr =
   | number
@@ -24,7 +24,7 @@ type ColSpec =
   | ColSize
   | { span?: ColSize; offset?: NumberAttr; order?: ColOrder }
 
-export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   xs?: ColSpec
   sm?: ColSpec
   md?: ColSpec
@@ -64,7 +64,7 @@ export function useCol({ as, bsPrefix, className, ...ps }: Props): [any, Meta] {
     if (offset != null) classes.push(`offset${infix}-${offset}`)
   })
   return [
-    { ...ps, className: classNames(className, ...spans, ...classes) },
+    { ...ps, className: qt.classNames(className, ...spans, ...classes) },
     {
       as,
       bsPrefix: bs,
@@ -73,7 +73,7 @@ export function useCol({ as, bsPrefix, className, ...ps }: Props): [any, Meta] {
   ]
 }
 
-export const Col: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
+export const Col: qt.BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
   (xs, ref) => {
     const [{ className, ...ps }, { as: X = "div", bsPrefix, spans }] =
       useCol(xs)
@@ -81,7 +81,7 @@ export const Col: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
       <X
         {...ps}
         ref={ref}
-        className={classNames(className, !spans.length && bsPrefix)}
+        className={qt.classNames(className, !spans.length && bsPrefix)}
       />
     )
   }

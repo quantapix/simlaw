@@ -1,11 +1,10 @@
-import { classNames } from "./helpers.js"
 import { Wrapper } from "./Wrapper.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 import * as qu from "./utils.jsx"
-import type { TransitionCBs } from "./base/types.jsx"
 import type { TransitionStatus, Transition } from "react-transition-group"
 
-export interface Props extends TransitionCBs {
+export interface Props extends qt.TransitionCBs {
   className?: string
   in?: boolean | undefined
   mountOnEnter?: boolean | undefined
@@ -44,7 +43,7 @@ export const Fade = qr.forwardRef<Transition<any>, Props>(
         {(status: TransitionStatus, ps2: Record<string, unknown>) =>
           qr.cloneElement(children, {
             ...ps2,
-            className: classNames(
+            className: qt.classNames(
               "fade",
               className,
               children.props.className,

@@ -1,6 +1,5 @@
 import { Anchor } from "./base/Anchor.jsx"
 import { Button as _Button, Props as BProps } from "./Button.jsx"
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Context as IContext } from "./InputGroup.jsx"
 import { Context as NContext } from "./Navbar.jsx"
 import { Link as NLink } from "./Nav.jsx"
@@ -10,8 +9,7 @@ import { warning } from "./base/utils.js"
 import { withBs } from "./utils.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import type { AlignType, AlignDirection, Placement } from "./types.jsx"
-import type { EventKey } from "./base/types.js"
+import * as qt from "./types.jsx"
 import {
   Dropdown as Base,
   Props as BaseProps,
@@ -28,7 +26,7 @@ export type Drop = "up" | "start" | "end" | "down"
 type CommonProps = "href" | "size" | "variant" | "disabled"
 
 export interface Data {
-  align?: AlignType | undefined
+  align?: qt.AlignType | undefined
   drop?: Drop | undefined
   isRTL?: boolean
 }
@@ -38,11 +36,11 @@ Context.displayName = "DropdownContext"
 
 export type Variant = "dark" | string
 
-export interface MenuProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface MenuProps extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   show?: boolean | undefined
   renderOnMount?: boolean | undefined
   flip?: boolean | undefined
-  align?: AlignType
+  align?: qt.AlignType
   rootCloseEvent?: "click" | "mousedown" | undefined
   popperConfig?: MenuOpts["popperConfig"]
   variant?: Variant | undefined
@@ -61,14 +59,14 @@ export function getPlacement(
   const leftEnd = isRTL ? "right-end" : "left-end"
   const rightStart = isRTL ? "left-start" : "right-start"
   const rightEnd = isRTL ? "left-end" : "right-end"
-  let y: Placement = alignEnd ? bottomEnd : bottomStart
+  let y: qt.Placement = alignEnd ? bottomEnd : bottomStart
   if (dropDirection === "up") y = alignEnd ? topEnd : topStart
   else if (dropDirection === "end") y = alignEnd ? rightEnd : rightStart
   else if (dropDirection === "start") y = alignEnd ? leftEnd : leftStart
   return y
 }
 
-export const Menu: BsRef<"div", MenuProps> = qr.forwardRef<
+export const Menu: qt.BsRef<"div", MenuProps> = qr.forwardRef<
   HTMLElement,
   MenuProps
 >(
@@ -104,7 +102,7 @@ export const Menu: BsRef<"div", MenuProps> = qr.forwardRef<
         )
         if (keys.length) {
           const brkPoint = keys[0]!
-          const direction: AlignDirection = align[brkPoint]!
+          const direction: qt.AlignDirection = align[brkPoint]!
           alignEnd = direction === "start"
           alignClasses.push(`${bs}-${brkPoint}-${direction}`)
         }
@@ -148,7 +146,7 @@ export const Menu: BsRef<"div", MenuProps> = qr.forwardRef<
         {...((alignClasses.length || isNavbar) && {
           "data-bs-popper": "static",
         })}
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           show && "show",
@@ -171,7 +169,7 @@ export interface ToggleProps extends Omit<BProps, "as"> {
   childBsPrefix?: string | undefined
 }
 
-type ToggleComponent = BsRef<"button", ToggleProps>
+type ToggleComponent = qt.BsRef<"button", ToggleProps>
 
 export type PropsFromToggle = Partial<
   Pick<qr.ComponentPropsWithRef<ToggleComponent>, CommonProps>
@@ -202,7 +200,7 @@ export const Toggle: ToggleComponent = qr.forwardRef(
     )
     return (
       <X
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           split && `${bs}-split`,
@@ -227,15 +225,15 @@ export const ItemText = withBs("dropdown-item-text", {
   Component: "span",
 })
 
-export interface ItemProps extends qr.HTMLAttributes<HTMLElement>, BsProps {
+export interface ItemProps extends qr.HTMLAttributes<HTMLElement>, qt.BsProps {
   as?: qr.ElementType
   active?: boolean
   disabled?: boolean
-  eventKey?: EventKey
+  eventKey?: qt.EventKey
   href?: string
 }
 
-export const Item: BsRef<typeof BaseItem, ItemProps> = qr.forwardRef(
+export const Item: qt.BsRef<typeof BaseItem, ItemProps> = qr.forwardRef(
   (
     {
       bsPrefix,
@@ -262,7 +260,7 @@ export const Item: BsRef<typeof BaseItem, ItemProps> = qr.forwardRef(
         {...ps}
         {...dropdownItemProps}
         ref={ref}
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           meta.isActive && "active",
@@ -276,92 +274,91 @@ Item.displayName = "DropdownItem"
 
 export interface Props
   extends BaseProps,
-    BsProps,
+    qt.BsProps,
     Omit<qr.HTMLAttributes<HTMLElement>, "onSelect" | "children"> {
   drop?: Drop
-  align?: AlignType
+  align?: qt.AlignType
   focusFirstItemOnShow?: boolean | "keyboard"
   navbar?: boolean
   autoClose?: boolean | "outside" | "inside"
 }
 
-export const Dropdown: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
-  (xs: Props, ref) => {
-    const {
-      align,
-      as: X = "div",
-      autoClose,
-      bsPrefix,
-      className,
-      drop,
-      focusFirstItemOnShow,
-      navbar,
-      onSelect,
-      onToggle,
-      show,
-      ...ps
-    } = qh.useUncontrolled(xs, { show: "onToggle" })
-    const isInputGroup = qr.useContext(IContext)
-    const bs = useBs(bsPrefix, "dropdown")
-    const isRTL = useIsRTL()
-    const isClosingPermitted = (source: string): boolean => {
-      if (autoClose === false) return source === "click"
-      if (autoClose === "inside") return source !== "rootClose"
-      if (autoClose === "outside") return source !== "select"
-      return true
-    }
-    const doToggle = qh.useEventCB(
-      (nextShow: boolean, meta: ToggleMetadata) => {
-        if (
-          meta.originalEvent!.currentTarget === document &&
-          (meta.source !== "keydown" ||
-            (meta.originalEvent as any).key === "Escape")
-        )
-          meta.source = "rootClose"
-        if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta)
-      }
-    )
-    const alignEnd = align === "end"
-    const placement = getPlacement(alignEnd, drop, isRTL)
-    const v = qr.useMemo(
-      () => ({
-        align,
-        drop,
-        isRTL,
-      }),
-      [align, drop, isRTL]
-    )
-    return (
-      <Context.Provider value={v}>
-        <Base
-          placement={placement}
-          show={show}
-          onSelect={onSelect}
-          onToggle={doToggle}
-          focusFirstItemOnShow={focusFirstItemOnShow}
-          itemSelector={`.${bs}-item:not(.disabled):not(:disabled)`}
-        >
-          {isInputGroup ? (
-            ps.children
-          ) : (
-            <X
-              {...ps}
-              ref={ref}
-              className={classNames(
-                className,
-                show && "show",
-                (!drop || drop === "down") && bs,
-                drop === "up" && "dropup",
-                drop === "end" && "dropend",
-                drop === "start" && "dropstart"
-              )}
-            />
-          )}
-        </Base>
-      </Context.Provider>
-    )
+export const Dropdown: qt.BsRef<"div", Props> = qr.forwardRef<
+  HTMLElement,
+  Props
+>((xs: Props, ref) => {
+  const {
+    align,
+    as: X = "div",
+    autoClose,
+    bsPrefix,
+    className,
+    drop,
+    focusFirstItemOnShow,
+    navbar,
+    onSelect,
+    onToggle,
+    show,
+    ...ps
+  } = qh.useUncontrolled(xs, { show: "onToggle" })
+  const isInputGroup = qr.useContext(IContext)
+  const bs = useBs(bsPrefix, "dropdown")
+  const isRTL = useIsRTL()
+  const isClosingPermitted = (source: string): boolean => {
+    if (autoClose === false) return source === "click"
+    if (autoClose === "inside") return source !== "rootClose"
+    if (autoClose === "outside") return source !== "select"
+    return true
   }
-)
+  const doToggle = qh.useEventCB((nextShow: boolean, meta: ToggleMetadata) => {
+    if (
+      meta.originalEvent!.currentTarget === document &&
+      (meta.source !== "keydown" ||
+        (meta.originalEvent as any).key === "Escape")
+    )
+      meta.source = "rootClose"
+    if (isClosingPermitted(meta.source!)) onToggle?.(nextShow, meta)
+  })
+  const alignEnd = align === "end"
+  const placement = getPlacement(alignEnd, drop, isRTL)
+  const v = qr.useMemo(
+    () => ({
+      align,
+      drop,
+      isRTL,
+    }),
+    [align, drop, isRTL]
+  )
+  return (
+    <Context.Provider value={v}>
+      <Base
+        placement={placement}
+        show={show}
+        onSelect={onSelect}
+        onToggle={doToggle}
+        focusFirstItemOnShow={focusFirstItemOnShow}
+        itemSelector={`.${bs}-item:not(.disabled):not(:disabled)`}
+      >
+        {isInputGroup ? (
+          ps.children
+        ) : (
+          <X
+            {...ps}
+            ref={ref}
+            className={qt.classNames(
+              className,
+              show && "show",
+              (!drop || drop === "down") && bs,
+              drop === "up" && "dropup",
+              drop === "end" && "dropend",
+              drop === "start" && "dropstart"
+            )}
+          />
+        )}
+      </Base>
+    </Context.Provider>
+  )
+})
 Dropdown.displayName = "Dropdown"
 Dropdown.defaultProps = {
   navbar: false,
@@ -372,7 +369,7 @@ Dropdown.defaultProps = {
 export interface ButtonProps
   extends Omit<Props, "title">,
     PropsFromToggle,
-    BsProps {
+    qt.BsProps {
   title: qr.ReactNode
   menuRole?: string
   renderMenuOnMount?: boolean
@@ -381,7 +378,7 @@ export interface ButtonProps
   flip?: boolean
 }
 
-export const Button: BsRef<"div", ButtonProps> = qr.forwardRef<
+export const Button: qt.BsRef<"div", ButtonProps> = qr.forwardRef<
   HTMLDivElement,
   ButtonProps
 >(
@@ -439,7 +436,7 @@ export interface NavProps extends Omit<Props, "title"> {
   menuVariant?: Variant
 }
 
-export const Nav: BsRef<"div", NavProps> = qr.forwardRef(
+export const Nav: qt.BsRef<"div", NavProps> = qr.forwardRef(
   (
     {
       id,
@@ -459,7 +456,7 @@ export const Nav: BsRef<"div", NavProps> = qr.forwardRef(
   ) => {
     const pre = useBs(undefined, "nav-item")
     return (
-      <Dropdown ref={ref} {...ps} className={classNames(className, pre)}>
+      <Dropdown ref={ref} {...ps} className={qt.classNames(className, pre)}>
         <Toggle
           id={id}
           eventKey={null}

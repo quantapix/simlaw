@@ -1,7 +1,7 @@
 import { Button, Group } from "./Button.jsx"
 import * as qr from "react"
-import type { BsProps } from "./helpers.js"
 import type { Type } from "./base/Button.jsx"
+import type * as qt from "./types.jsx"
 import {
   Dropdown,
   Props as BaseProps,
@@ -13,7 +13,7 @@ import {
 export interface Props
   extends Omit<BaseProps, "title">,
     PropsFromToggle,
-    BsProps {
+    qt.BsProps {
   menuRole?: string
   renderMenuOnMount?: boolean
   rootCloseEvent?: "click" | "mousedown"

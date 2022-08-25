@@ -1,15 +1,17 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
-import type { Variant } from "./types.jsx"
+import * as qt from "./types.jsx"
 
-export interface Props extends qr.HTMLAttributes<HTMLElement>, BsProps {
+export interface Props extends qr.HTMLAttributes<HTMLElement>, qt.BsProps {
   animation: "border" | "grow"
   size?: "sm"
-  variant?: Variant
+  variant?: qt.Variant
 }
 
-export const Spinner: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
+export const Spinner: qt.BsRef<"div", Props> = qr.forwardRef<
+  HTMLElement,
+  Props
+>(
   (
     { bsPrefix, variant, animation, size, as: X = "div", className, ...ps },
     ref
@@ -20,7 +22,7 @@ export const Spinner: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
       <X
         ref={ref}
         {...ps}
-        className={classNames(
+        className={qt.classNames(
           className,
           bsSpinnerPrefix,
           size && `${bsSpinnerPrefix}-${size}`,

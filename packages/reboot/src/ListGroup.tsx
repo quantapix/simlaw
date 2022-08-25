@@ -1,10 +1,8 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
-import { EventKey, makeEventKey } from "./base/types.js"
 import { useBs } from "./Theme.jsx"
 import { warning } from "./base/utils.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import type { Variant } from "./types.jsx"
+import * as qt from "./types.jsx"
 import {
   Nav as Base,
   Props as BaseProps,
@@ -12,13 +10,13 @@ import {
   ItemProps as IPs,
 } from "./base/Nav.jsx"
 
-export interface ItemProps extends Omit<IPs, "onSelect">, BsProps {
+export interface ItemProps extends Omit<IPs, "onSelect">, qt.BsProps {
   action?: boolean
   onClick?: qr.MouseEventHandler
-  variant?: Variant
+  variant?: qt.Variant
 }
 
-export const Item: BsRef<"a", ItemProps> = qr.forwardRef<
+export const Item: qt.BsRef<"a", ItemProps> = qr.forwardRef<
   HTMLElement,
   ItemProps
 >(
@@ -38,7 +36,7 @@ export const Item: BsRef<"a", ItemProps> = qr.forwardRef<
   ) => {
     bsPrefix = useBs(bsPrefix, "list-group-item")
     const [navItemProps, meta] = useNavItem({
-      key: makeEventKey(eventKey, ps.href),
+      key: qt.makeEventKey(eventKey, ps.href),
       active,
       ...ps,
     })
@@ -61,7 +59,7 @@ export const Item: BsRef<"a", ItemProps> = qr.forwardRef<
         {...ps}
         {...navItemProps}
         onClick={doClick}
-        className={classNames(
+        className={qt.classNames(
           className,
           bsPrefix,
           meta.isActive && "active",
@@ -75,47 +73,48 @@ export const Item: BsRef<"a", ItemProps> = qr.forwardRef<
 )
 Item.displayName = "ListGroupItem"
 
-export interface Props extends BsProps, BaseProps {
+export interface Props extends qt.BsProps, BaseProps {
   variant?: "flush" | string
   horizontal?: boolean | string | "sm" | "md" | "lg" | "xl" | "xxl"
-  defaultActiveKey?: EventKey
+  defaultActiveKey?: qt.EventKey
   numbered?: boolean
 }
 
-export const ListGroup: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
-  (xs: Props, ref) => {
-    const {
-      as = "div",
-      bsPrefix,
-      className,
-      horizontal,
-      numbered,
-      variant,
-      ...ps
-    } = qh.useUncontrolled(xs, { activeKey: "onSelect" })
-    const bs = useBs(bsPrefix, "list-group")
-    let h: string | undefined
-    if (horizontal) {
-      h = horizontal === true ? "horizontal" : `horizontal-${horizontal}`
-    }
-    warning(
-      !(horizontal && variant === "flush"),
-      '`variant="flush"` and `horizontal` should not be used together.'
-    )
-    return (
-      <Base
-        ref={ref}
-        {...ps}
-        as={as}
-        className={classNames(
-          className,
-          bs,
-          variant && `${bs}-${variant}`,
-          h && `${bs}-${h}`,
-          numbered && `${bs}-numbered`
-        )}
-      />
-    )
+export const ListGroup: qt.BsRef<"div", Props> = qr.forwardRef<
+  HTMLElement,
+  Props
+>((xs: Props, ref) => {
+  const {
+    as = "div",
+    bsPrefix,
+    className,
+    horizontal,
+    numbered,
+    variant,
+    ...ps
+  } = qh.useUncontrolled(xs, { activeKey: "onSelect" })
+  const bs = useBs(bsPrefix, "list-group")
+  let h: string | undefined
+  if (horizontal) {
+    h = horizontal === true ? "horizontal" : `horizontal-${horizontal}`
   }
-)
+  warning(
+    !(horizontal && variant === "flush"),
+    '`variant="flush"` and `horizontal` should not be used together.'
+  )
+  return (
+    <Base
+      ref={ref}
+      {...ps}
+      as={as}
+      className={qt.classNames(
+        className,
+        bs,
+        variant && `${bs}-${variant}`,
+        h && `${bs}-${h}`,
+        numbered && `${bs}-numbered`
+      )}
+    />
+  )
+})
 ListGroup.displayName = "ListGroup"

@@ -1,13 +1,11 @@
-import { classNames, BsOnlyProps, BsProps, BsRef } from "./helpers.js"
 import { Close, Variant as CloseVariant } from "./Button.jsx"
 import { Fade, Props as _Props } from "./Fade.jsx"
 import { useBs } from "./Theme.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 import * as qu from "./utils.jsx"
 import type { Transition } from "react-transition-group"
-import type { Variant } from "./types.jsx"
-import type * as qt from "./base/types.jsx"
 
 export interface Data {
   onClose?: ((e?: qr.MouseEvent | qr.KeyboardEvent) => void) | undefined
@@ -18,7 +16,7 @@ export const Context = qr.createContext<Data>({
 })
 
 export interface HeaderProps
-  extends BsOnlyProps,
+  extends qt.BsOnlyProps,
     qr.HTMLAttributes<HTMLDivElement> {
   closeLabel?: string
   closeVariant?: CloseVariant
@@ -44,7 +42,7 @@ export const Header = qr.forwardRef<HTMLDivElement, HeaderProps>(
       context?.onClose?.(e)
     })
     return (
-      <div ref={ref} {...ps} className={classNames(bsPrefix, className)}>
+      <div ref={ref} {...ps} className={qt.classNames(bsPrefix, className)}>
         {children}
         {closeButton && (
           <Close
@@ -79,17 +77,20 @@ export const ToastFade = qr.forwardRef<Transition<any>, _Props>((ps, ref) => (
 ))
 ToastFade.displayName = "ToastFade"
 
-export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   animation?: boolean
   autohide?: boolean
   delay?: number
   onClose?: (e?: qr.MouseEvent | qr.KeyboardEvent) => void
   show?: boolean
   transition?: qt.Transition
-  bg?: Variant
+  bg?: qt.Variant
 }
 
-export const Toast: BsRef<"div", Props> = qr.forwardRef<HTMLDivElement, Props>(
+export const Toast: qt.BsRef<"div", Props> = qr.forwardRef<
+  HTMLDivElement,
+  Props
+>(
   (
     {
       bsPrefix,
@@ -133,7 +134,7 @@ export const Toast: BsRef<"div", Props> = qr.forwardRef<HTMLDivElement, Props>(
       <div
         {...ps}
         ref={ref}
-        className={classNames(
+        className={qt.classNames(
           bs,
           className,
           bg && `bg-${bg}`,
@@ -171,7 +172,7 @@ export type Position =
   | "bottom-end"
 
 export interface ContainerProps
-  extends BsProps,
+  extends qt.BsProps,
     qr.HTMLAttributes<HTMLElement> {
   position?: Position
   containerPosition?: string
@@ -189,7 +190,7 @@ const positionClasses = {
   "bottom-end": "bottom-0 end-0",
 }
 
-export const Container: BsRef<"div", ContainerProps> = qr.forwardRef<
+export const Container: qt.BsRef<"div", ContainerProps> = qr.forwardRef<
   HTMLDivElement,
   ContainerProps
 >(
@@ -209,7 +210,7 @@ export const Container: BsRef<"div", ContainerProps> = qr.forwardRef<
       <X
         ref={ref}
         {...ps}
-        className={classNames(
+        className={qt.classNames(
           bs,
           position && [
             containerPosition ? `position-${containerPosition}` : null,

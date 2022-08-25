@@ -1,10 +1,10 @@
 import { Anchor } from "./base/Anchor.jsx"
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 
 export interface ItemProps
-  extends BsProps,
+  extends qt.BsProps,
     Omit<qr.HTMLAttributes<HTMLElement>, "title"> {
   active?: boolean
   href?: string
@@ -14,7 +14,7 @@ export interface ItemProps
   linkProps?: Record<string, any>
 }
 
-export const Item: BsRef<"li", ItemProps> = qr.forwardRef<
+export const Item: qt.BsRef<"li", ItemProps> = qr.forwardRef<
   HTMLElement,
   ItemProps
 >(
@@ -39,7 +39,7 @@ export const Item: BsRef<"li", ItemProps> = qr.forwardRef<
       <X
         ref={ref}
         {...ps}
-        className={classNames(bs, className, { active })}
+        className={qt.classNames(bs, className, { active })}
         aria-current={active ? "page" : undefined}
       >
         {active ? (
@@ -59,12 +59,12 @@ Item.defaultProps = {
   linkProps: {},
 }
 
-export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   label?: string
   listProps?: qr.OlHTMLAttributes<HTMLOListElement>
 }
 
-export const Breadcrumb: BsRef<"nav", Props> = qr.forwardRef<
+export const Breadcrumb: qt.BsRef<"nav", Props> = qr.forwardRef<
   HTMLElement,
   Props
 >(
@@ -75,7 +75,7 @@ export const Breadcrumb: BsRef<"nav", Props> = qr.forwardRef<
     const bs = useBs(bsPrefix, "breadcrumb")
     return (
       <X aria-label={label} className={className} ref={ref} {...ps}>
-        <ol {...listProps} className={classNames(bs, listProps?.className)}>
+        <ol {...listProps} className={qt.classNames(bs, listProps?.className)}>
           {children}
         </ol>
       </X>

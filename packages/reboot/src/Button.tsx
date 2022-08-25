@@ -1,16 +1,15 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Props as BaseProps, useButtonProps } from "./base/Button.jsx"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
-import type { ButtonVariant } from "./types.jsx"
+import * as qt from "./types.jsx"
 
-export interface Props extends BaseProps, Omit<BsProps, "as"> {
+export interface Props extends BaseProps, Omit<qt.BsProps, "as"> {
   active?: boolean | undefined
-  variant?: ButtonVariant | undefined
+  variant?: qt.ButtonVariant | undefined
   size?: "sm" | "lg" | undefined
 }
 
-export const Button: BsRef<"button", Props> = qr.forwardRef<
+export const Button: qt.BsRef<"button", Props> = qr.forwardRef<
   HTMLButtonElement,
   Props
 >(({ as, bsPrefix, variant, size, active, className, ...ps }, ref) => {
@@ -22,7 +21,7 @@ export const Button: BsRef<"button", Props> = qr.forwardRef<
       {...bps}
       {...ps}
       ref={ref}
-      className={classNames(
+      className={qt.classNames(
         className,
         bs,
         active && "active",
@@ -51,7 +50,7 @@ export const Close = qr.forwardRef<HTMLButtonElement, CloseProps>(
     <button
       ref={ref}
       type="button"
-      className={classNames(
+      className={qt.classNames(
         "btn-close",
         variant && `btn-close-${variant}`,
         className
@@ -65,12 +64,12 @@ Close.defaultProps = {
   "aria-label": "Close",
 }
 
-export interface GroupProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface GroupProps extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   size?: "sm" | "lg"
   vertical?: boolean
 }
 
-export const Group: BsRef<"div", GroupProps> = qr.forwardRef(
+export const Group: qt.BsRef<"div", GroupProps> = qr.forwardRef(
   (
     { bsPrefix, size, vertical, className, as: X = "div", ...ps }: GroupProps,
     ref
@@ -82,7 +81,7 @@ export const Group: BsRef<"div", GroupProps> = qr.forwardRef(
       <X
         {...ps}
         ref={ref}
-        className={classNames(className, base, size && `${bs}-${size}`)}
+        className={qt.classNames(className, base, size && `${bs}-${size}`)}
       />
     )
   }
@@ -93,12 +92,14 @@ Group.defaultProps = {
   role: "group",
 }
 
-export interface ToolbarProps extends BsProps, qr.HTMLAttributes<HTMLElement> {}
+export interface ToolbarProps
+  extends qt.BsProps,
+    qr.HTMLAttributes<HTMLElement> {}
 
 export const Toolbar = qr.forwardRef<HTMLDivElement, ToolbarProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
     const bs = useBs(bsPrefix, "btn-toolbar")
-    return <div {...ps} ref={ref} className={classNames(className, bs)} />
+    return <div {...ps} ref={ref} className={qt.classNames(className, bs)} />
   }
 )
 Toolbar.displayName = "ButtonToolbar"

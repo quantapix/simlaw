@@ -1,9 +1,9 @@
-import { classNames, BsOnlyProps } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 
 export interface Props
-  extends BsOnlyProps,
+  extends qt.BsOnlyProps,
     qr.ImgHTMLAttributes<HTMLImageElement> {
   fluid?: boolean
   rounded?: boolean
@@ -21,7 +21,7 @@ export const Image = qr.forwardRef<HTMLImageElement, Props>(
       <img
         ref={ref}
         {...ps}
-        className={classNames(
+        className={qt.classNames(
           className,
           fluid && `${bs}-fluid`,
           rounded && `rounded`,

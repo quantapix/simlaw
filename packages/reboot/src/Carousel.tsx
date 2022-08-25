@@ -1,23 +1,23 @@
 import { Anchor } from "./base/Anchor.jsx"
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { useBs, useIsRTL } from "./Theme.jsx"
 import { Wrapper } from "./Wrapper.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 import * as qu from "./utils.jsx"
 import type { TransitionStatus } from "react-transition-group"
 
 export const Caption = qu.withBs("carousel-caption")
 
-export interface ItemProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface ItemProps extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   interval?: number
 }
 
-export const Item: BsRef<"div", ItemProps> = qr.forwardRef<
+export const Item: qt.BsRef<"div", ItemProps> = qr.forwardRef<
   HTMLElement,
   ItemProps
 >(({ as: X = "div", bsPrefix, className, ...ps }, ref) => {
-  const n = classNames(className, useBs(bsPrefix, "carousel-item"))
+  const n = qt.classNames(className, useBs(bsPrefix, "carousel-item"))
   return <X ref={ref} {...ps} className={n} />
 })
 Item.displayName = "CarouselItem"
@@ -31,7 +31,7 @@ export interface Ref {
 }
 
 export interface Props
-  extends BsProps,
+  extends qt.BsProps,
     Omit<qr.HTMLAttributes<HTMLElement>, "onSelect"> {
   slide?: boolean
   fade?: boolean
@@ -70,7 +70,7 @@ function isVisible(x: any) {
   )
 }
 
-export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
+export const Carousel: qt.BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
   (xs: Props, ref) => {
     const {
       activeIndex,
@@ -337,7 +337,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
         onTouchStart={doTouchStart}
         onTouchMove={doTouchMove}
         onTouchEnd={doTouchEnd}
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           slide && "slide",
@@ -377,7 +377,7 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
                 {(status: TransitionStatus, ps2: Record<string, unknown>) =>
                   qr.cloneElement(x, {
                     ...ps2,
-                    className: classNames(
+                    className: qt.classNames(
                       x.props.className,
                       isActive && status !== "entered" && orderClassName,
                       (status === "entered" || status === "exiting") &&
@@ -390,7 +390,10 @@ export const Carousel: BsRef<"div", Props> = qr.forwardRef<Ref, Props>(
               </Wrapper>
             ) : (
               qr.cloneElement(x, {
-                className: classNames(x.props.className, isActive && "active"),
+                className: qt.classNames(
+                  x.props.className,
+                  isActive && "active"
+                ),
               })
             )
           })}

@@ -1,22 +1,21 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
-import type { Color, Variant } from "./types.jsx"
+import * as qt from "./types.jsx"
 
-export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
-  bg?: Variant
+export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
+  bg?: qt.Variant
   pill?: boolean
-  text?: Color
+  text?: qt.Color
 }
 
-export const Badge: BsRef<"span", Props> = qr.forwardRef<HTMLElement, Props>(
+export const Badge: qt.BsRef<"span", Props> = qr.forwardRef<HTMLElement, Props>(
   ({ bsPrefix, bg, pill, text, className, as: X = "span", ...ps }, ref) => {
     const bs = useBs(bsPrefix, "badge")
     return (
       <X
         ref={ref}
         {...ps}
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           pill && `rounded-pill`,

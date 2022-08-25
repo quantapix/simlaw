@@ -1,10 +1,10 @@
-import { classNames, BsOnlyProps, BsProps, BsRef, AsProp } from "./helpers.js"
 import { Col, Props as _Props } from "./Col.jsx"
 import { Feedback, Type } from "./Feedback.jsx"
 import { hasChildOfType, withBs } from "./utils.jsx"
 import { useBs } from "./Theme.jsx"
 import { warning } from "./base/utils.js"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 
 interface Data {
   controlId?: any
@@ -12,13 +12,13 @@ interface Data {
 
 export const FormContext = qr.createContext<Data>({})
 
-export interface GroupProps extends qr.HTMLAttributes<HTMLElement>, AsProp {
+export interface GroupProps extends qr.HTMLAttributes<HTMLElement>, qt.AsProp {
   controlId?: string | undefined
 }
 
 export const Floating = withBs("form-floating")
 
-export const Group: BsRef<"div", GroupProps> = qr.forwardRef(
+export const Group: qt.BsRef<"div", GroupProps> = qr.forwardRef(
   ({ controlId, as: X = "div", ...ps }, ref) => {
     const v = qr.useMemo(() => ({ controlId }), [controlId])
     return (
@@ -30,18 +30,18 @@ export const Group: BsRef<"div", GroupProps> = qr.forwardRef(
 )
 Group.displayName = "FormGroup"
 
-export interface FloatingLabelProps extends _Props, BsProps {
+export interface FloatingLabelProps extends _Props, qt.BsProps {
   controlId?: string
   label: qr.ReactNode
 }
 
-export const FloatingLabel: BsRef<"div", FloatingLabelProps> = qr.forwardRef(
+export const FloatingLabel: qt.BsRef<"div", FloatingLabelProps> = qr.forwardRef(
   ({ bsPrefix, className, children, controlId, label, ...ps }, ref) => {
     bsPrefix = useBs(bsPrefix, "form-floating")
     return (
       <Group
         ref={ref}
-        className={classNames(className, bsPrefix)}
+        className={qt.classNames(className, bsPrefix)}
         controlId={controlId}
         {...ps}
       >
@@ -53,7 +53,7 @@ export const FloatingLabel: BsRef<"div", FloatingLabelProps> = qr.forwardRef(
 )
 FloatingLabel.displayName = "FloatingLabel"
 
-interface Base extends BsProps, qr.HTMLAttributes<HTMLElement> {
+interface Base extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   htmlFor?: string
   visuallyHidden?: boolean
 }
@@ -68,7 +68,7 @@ export interface WithColProps extends Base, _Props {
 
 export type LabelProps = WithColProps | OwnProps
 
-export const Label: BsRef<"label", LabelProps> = qr.forwardRef<
+export const Label: qt.BsRef<"label", LabelProps> = qr.forwardRef<
   HTMLElement,
   LabelProps
 >(
@@ -89,7 +89,7 @@ export const Label: BsRef<"label", LabelProps> = qr.forwardRef<
     let columnClass = "col-form-label"
     if (typeof column === "string")
       columnClass = `${columnClass} ${columnClass}-${column}`
-    const classes = classNames(
+    const classes = qt.classNames(
       className,
       bs,
       visuallyHidden && "visually-hidden",
@@ -119,11 +119,11 @@ Label.defaultProps = {
   visuallyHidden: false,
 }
 
-export interface TextProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface TextProps extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   muted?: boolean
 }
 
-export const Text: BsRef<"small", TextProps> = qr.forwardRef<
+export const Text: qt.BsRef<"small", TextProps> = qr.forwardRef<
   HTMLElement,
   TextProps
 >(({ bsPrefix, className, as: X = "small", muted, ...ps }, ref) => {
@@ -132,14 +132,14 @@ export const Text: BsRef<"small", TextProps> = qr.forwardRef<
     <X
       {...ps}
       ref={ref}
-      className={classNames(className, bs, muted && "text-muted")}
+      className={qt.classNames(className, bs, muted && "text-muted")}
     />
   )
 })
 Text.displayName = "FormText"
 
 export interface RangeProps
-  extends BsOnlyProps,
+  extends qt.BsOnlyProps,
     Omit<qr.InputHTMLAttributes<HTMLInputElement>, "type"> {}
 
 export const Range = qr.forwardRef<HTMLInputElement, RangeProps>(
@@ -151,7 +151,7 @@ export const Range = qr.forwardRef<HTMLInputElement, RangeProps>(
         {...ps}
         type="range"
         ref={ref}
-        className={classNames(className, bs)}
+        className={qt.classNames(className, bs)}
         id={id || controlId}
       />
     )
@@ -160,7 +160,7 @@ export const Range = qr.forwardRef<HTMLInputElement, RangeProps>(
 Range.displayName = "FormRange"
 
 export interface SelectProps
-  extends BsOnlyProps,
+  extends qt.BsOnlyProps,
     Omit<qr.SelectHTMLAttributes<HTMLSelectElement>, "size"> {
   htmlSize?: number
   size?: "sm" | "lg"
@@ -168,7 +168,7 @@ export interface SelectProps
   isInvalid?: boolean
 }
 
-export const Select: BsRef<"select", SelectProps> = qr.forwardRef<
+export const Select: qt.BsRef<"select", SelectProps> = qr.forwardRef<
   HTMLSelectElement,
   SelectProps
 >(
@@ -192,7 +192,7 @@ export const Select: BsRef<"select", SelectProps> = qr.forwardRef<
         {...ps}
         size={htmlSize}
         ref={ref}
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           size && `${bs}-${size}`,
@@ -209,14 +209,14 @@ Select.displayName = "FormSelect"
 type InputType = "checkbox" | "radio"
 
 export interface InputProps
-  extends BsProps,
+  extends qt.BsProps,
     qr.InputHTMLAttributes<HTMLInputElement> {
   type?: InputType
   isValid?: boolean
   isInvalid?: boolean
 }
 
-export const Input: BsRef<"input", InputProps> = qr.forwardRef<
+export const Input: qt.BsRef<"input", InputProps> = qr.forwardRef<
   HTMLInputElement,
   InputProps
 >(
@@ -241,7 +241,7 @@ export const Input: BsRef<"input", InputProps> = qr.forwardRef<
         ref={ref}
         type={type}
         id={id || controlId}
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           isValid && "is-valid",
@@ -255,7 +255,7 @@ Input.displayName = "FormCheckInput"
 
 export interface CheckLabelProps
   extends qr.LabelHTMLAttributes<HTMLLabelElement>,
-    BsProps {}
+    qt.BsProps {}
 
 export const CheckLabel = qr.forwardRef<HTMLLabelElement, CheckLabelProps>(
   ({ bsPrefix, className, htmlFor, ...ps }, ref) => {
@@ -266,7 +266,7 @@ export const CheckLabel = qr.forwardRef<HTMLLabelElement, CheckLabelProps>(
         {...ps}
         ref={ref}
         htmlFor={htmlFor || controlId}
-        className={classNames(className, bs)}
+        className={qt.classNames(className, bs)}
       />
     )
   }
@@ -277,7 +277,7 @@ CheckLabel.displayName = "FormCheckLabel"
 export type CheckType = "checkbox" | "radio" | "switch"
 
 export interface CheckProps
-  extends BsProps,
+  extends qt.BsProps,
     qr.InputHTMLAttributes<HTMLInputElement> {
   inline?: boolean
   reverse?: boolean
@@ -292,7 +292,7 @@ export interface CheckProps
   bsSwitchPrefix?: string
 }
 
-export const Check: BsRef<"input", CheckProps> = qr.forwardRef<
+export const Check: qt.BsRef<"input", CheckProps> = qr.forwardRef<
   HTMLInputElement,
   CheckProps
 >(
@@ -347,7 +347,7 @@ export const Check: BsRef<"input", CheckProps> = qr.forwardRef<
       <FormContext.Provider value={v}>
         <div
           style={style}
-          className={classNames(
+          className={qt.classNames(
             className,
             hasLabel && bs,
             inline && `${bs}-inline`,
@@ -375,7 +375,7 @@ Check.displayName = "FormCheck"
 
 export type SwitchProps = Omit<CheckProps, "type">
 
-export const Switch: BsRef<typeof Check, SwitchProps> = qr.forwardRef<
+export const Switch: qt.BsRef<typeof Check, SwitchProps> = qr.forwardRef<
   typeof Check,
   SwitchProps
 >((ps, ref) => <Check {...ps} ref={ref} type="switch" />)
@@ -383,7 +383,7 @@ Switch.displayName = "Switch"
 
 type Element = HTMLInputElement | HTMLTextAreaElement
 
-export interface ControlProps extends BsProps, qr.HTMLAttributes<Element> {
+export interface ControlProps extends qt.BsProps, qr.HTMLAttributes<Element> {
   htmlSize?: number
   size?: "sm" | "lg"
   plaintext?: boolean
@@ -396,7 +396,7 @@ export interface ControlProps extends BsProps, qr.HTMLAttributes<Element> {
   isInvalid?: boolean
 }
 
-export const Control: BsRef<"input", ControlProps> = qr.forwardRef<
+export const Control: qt.BsRef<"input", ControlProps> = qr.forwardRef<
   Element,
   ControlProps
 >(
@@ -440,7 +440,7 @@ export const Control: BsRef<"input", ControlProps> = qr.forwardRef<
         ref={ref}
         readOnly={readOnly}
         id={id || controlId}
-        className={classNames(
+        className={qt.classNames(
           className,
           classes,
           isValid && `is-valid`,
@@ -453,17 +453,20 @@ export const Control: BsRef<"input", ControlProps> = qr.forwardRef<
 )
 Control.displayName = "FormControl"
 
-export interface Props extends qr.FormHTMLAttributes<HTMLFormElement>, AsProp {
+export interface Props
+  extends qr.FormHTMLAttributes<HTMLFormElement>,
+    qt.AsProp {
   validated?: boolean
 }
 
-export const Form: BsRef<"form", Props> = qr.forwardRef<HTMLFormElement, Props>(
-  ({ className, validated, as: X = "form", ...ps }, ref) => (
-    <X
-      {...ps}
-      ref={ref}
-      className={classNames(className, validated && "was-validated")}
-    />
-  )
-)
+export const Form: qt.BsRef<"form", Props> = qr.forwardRef<
+  HTMLFormElement,
+  Props
+>(({ className, validated, as: X = "form", ...ps }, ref) => (
+  <X
+    {...ps}
+    ref={ref}
+    className={qt.classNames(className, validated && "was-validated")}
+  />
+))
 Form.displayName = "Form"

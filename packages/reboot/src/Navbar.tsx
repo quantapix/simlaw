@@ -1,10 +1,9 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Collapse as C, Props as CPs } from "./Collapse.jsx"
 import { useBs } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./base/types.js"
+import * as qt from "./types.jsx"
 
 export interface Data {
   onToggle: () => void
@@ -20,24 +19,24 @@ export const Text = withBs("navbar-text", {
   Component: "span",
 })
 
-export interface BrandProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface BrandProps extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   href?: string
 }
 
-export const Brand: BsRef<"a", BrandProps> = qr.forwardRef<
+export const Brand: qt.BsRef<"a", BrandProps> = qr.forwardRef<
   HTMLElement,
   BrandProps
 >(({ bsPrefix, className, as, ...ps }, ref) => {
   const bs = useBs(bsPrefix, "navbar-brand")
   const X = as || (ps.href ? "a" : "span")
-  return <X {...ps} ref={ref} className={classNames(className, bs)} />
+  return <X {...ps} ref={ref} className={qt.classNames(className, bs)} />
 })
 Brand.displayName = "NavbarBrand"
 
 export interface CollapseProps
   extends Omit<CPs, "children">,
     qr.HTMLAttributes<HTMLDivElement>,
-    BsProps {}
+    qt.BsProps {}
 
 export const Collapse = qr.forwardRef<HTMLDivElement, CollapseProps>(
   ({ children, bsPrefix, ...ps }, ref) => {
@@ -54,11 +53,13 @@ export const Collapse = qr.forwardRef<HTMLDivElement, CollapseProps>(
 )
 Collapse.displayName = "NavbarCollapse"
 
-export interface ToggleProps extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface ToggleProps
+  extends qt.BsProps,
+    qr.HTMLAttributes<HTMLElement> {
   label?: string
 }
 
-export const Toggle: BsRef<"button", ToggleProps> = qr.forwardRef<
+export const Toggle: qt.BsRef<"button", ToggleProps> = qr.forwardRef<
   HTMLElement,
   ToggleProps
 >(
@@ -81,7 +82,7 @@ export const Toggle: BsRef<"button", ToggleProps> = qr.forwardRef<
         ref={ref}
         onClick={doClick}
         aria-label={label}
-        className={classNames(className, bs, !expanded && "collapsed")}
+        className={qt.classNames(className, bs, !expanded && "collapsed")}
       >
         {children || <span className={`${bs}-icon`} />}
       </X>
@@ -94,7 +95,7 @@ Toggle.defaultProps = {
 }
 
 export interface Props
-  extends BsProps,
+  extends qt.BsProps,
     Omit<qr.HTMLAttributes<HTMLElement>, "onSelect"> {
   variant?: "light" | "dark" | string
   expand?: boolean | string | "sm" | "md" | "lg" | "xl" | "xxl"
@@ -107,7 +108,7 @@ export interface Props
   expanded?: boolean
 }
 
-export const Navbar: BsRef<"nav", Props> = qr.forwardRef<HTMLElement, Props>(
+export const Navbar: qt.BsRef<"nav", Props> = qr.forwardRef<HTMLElement, Props>(
   (xs: Props, ref) => {
     const {
       as: X = "nav",
@@ -154,7 +155,7 @@ export const Navbar: BsRef<"nav", Props> = qr.forwardRef<HTMLElement, Props>(
           <X
             ref={ref}
             {...ps}
-            className={classNames(
+            className={qt.classNames(
               className,
               bs,
               expand && expandClass,

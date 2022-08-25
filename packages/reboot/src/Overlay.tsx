@@ -1,4 +1,3 @@
-import { classNames, Transition } from "./helpers.js"
 import { contains } from "./base/utils.js"
 import { Fade } from "./Fade.jsx"
 import { safeFindDOMNode } from "./utils.jsx"
@@ -6,8 +5,8 @@ import { useOffset } from "./use.jsx"
 import { warning } from "./base/utils.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import type { Placement, PopperRef, RootCloseEvent } from "./types.jsx"
-import type { State } from "./base/popper.js"
+import * as qt from "./types.jsx"
+import type { Placement, State } from "./base/popper.js"
 import {
   Overlay as Base,
   Props as BaseProps,
@@ -21,7 +20,7 @@ export interface InjectedProps {
   arrowProps: Partial<ArrowProps>
   show: boolean
   placement: Placement | undefined
-  popper: PopperRef
+  popper: qt.PopperRef
   [k: string]: any
 }
 
@@ -32,9 +31,9 @@ export type Children =
 export interface Props
   extends Omit<BaseProps, "children" | "transition" | "rootCloseEvent"> {
   children: Children
-  transition?: Transition
-  placement?: Placement
-  rootCloseEvent?: RootCloseEvent
+  transition?: qt.Transition
+  placement?: Placement | undefined
+  rootCloseEvent?: qt.RootCloseEvent
 }
 
 function wrapRefs(ps: any, arrowPs: any) {
@@ -48,7 +47,7 @@ function wrapRefs(ps: any, arrowPs: any) {
 
 export const Overlay = qr.forwardRef<HTMLElement, Props>(
   ({ children: overlay, transition, popperConfig = {}, ...ps }, ref) => {
-    const pRef = qr.useRef<Partial<PopperRef>>({})
+    const pRef = qr.useRef<Partial<qt.PopperRef>>({})
     const [firstState, setFirstState] = qh.useCallbackRef<State>()
     const [ref2, modifiers] = useOffset(ps.offset)
     const mRef = qh.useMergedRefs(ref, ref2)
@@ -97,7 +96,7 @@ export const Overlay = qr.forwardRef<HTMLElement, Props>(
             placement,
             arrowProps,
             popper,
-            className: classNames(
+            className: qt.classNames(
               (overlay as qr.ReactElement).props.className,
               !transition && show && "show"
             ),

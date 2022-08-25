@@ -1,9 +1,9 @@
-import { classNames, BsProps } from "./helpers.js"
 import { map } from "./utils.jsx"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 
-export interface Props extends qr.HTMLAttributes<HTMLDivElement>, BsProps {
+export interface Props extends qr.HTMLAttributes<HTMLDivElement>, qt.BsProps {
   min?: number | undefined
   now?: number | undefined
   max?: number | undefined
@@ -44,7 +44,7 @@ function renderProgressBar(
       ref={ref}
       {...ps}
       role="progressbar"
-      className={classNames(className, `${bsPrefix}-bar`, {
+      className={qt.classNames(className, `${bsPrefix}-bar`, {
         [`bg-${variant}`]: variant,
         [`${bsPrefix}-bar-animated`]: animated,
         [`${bsPrefix}-bar-striped`]: animated || striped,
@@ -87,7 +87,7 @@ export const ProgressBar = qr.forwardRef<HTMLDivElement, Props>(
       <div
         ref={ref}
         {...wrapperProps}
-        className={classNames(className, bsPrefix)}
+        className={qt.classNames(className, bsPrefix)}
       >
         {children
           ? map(children, child => qr.cloneElement(child, { isChild: true }))

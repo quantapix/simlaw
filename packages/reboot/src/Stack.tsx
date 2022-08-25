@@ -1,6 +1,5 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import * as qr from "react"
-import type { GapValue } from "./types.jsx"
+import * as qt from "./types.jsx"
 import {
   BREAKPOINTS,
   MIN_BREAKPOINT,
@@ -46,12 +45,12 @@ export function createUtilityClassName(
 
 export type Direction = "horizontal" | "vertical"
 
-export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   direction?: Direction
-  gap?: Utility<GapValue>
+  gap?: Utility<qt.GapValue>
 }
 
-export const Stack: BsRef<"span", Props> = qr.forwardRef<HTMLElement, Props>(
+export const Stack: qt.BsRef<"span", Props> = qr.forwardRef<HTMLElement, Props>(
   ({ as: X = "div", bsPrefix, className, direction, gap, ...ps }, ref) => {
     const bs = useBs(bsPrefix, direction === "horizontal" ? "hstack" : "vstack")
     const breakpoints = useBreakpoints()
@@ -60,7 +59,7 @@ export const Stack: BsRef<"span", Props> = qr.forwardRef<HTMLElement, Props>(
       <X
         {...ps}
         ref={ref}
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           ...createUtilityClassName({

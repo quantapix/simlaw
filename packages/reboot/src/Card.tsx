@@ -1,8 +1,7 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { divAs, withBs } from "./utils.jsx"
 import { useBs } from "./Theme.jsx"
 import * as qr from "react"
-import type { Color, Variant } from "./types.jsx"
+import * as qt from "./types.jsx"
 
 interface Data {
   headerBs: string
@@ -11,9 +10,11 @@ interface Data {
 export const Context = qr.createContext<Data | null>(null)
 Context.displayName = "CardHeaderContext"
 
-export interface HeaderProps extends BsProps, qr.HTMLAttributes<HTMLElement> {}
+export interface HeaderProps
+  extends qt.BsProps,
+    qr.HTMLAttributes<HTMLElement> {}
 
-export const Header: BsRef<"div", HeaderProps> = qr.forwardRef<
+export const Header: qt.BsRef<"div", HeaderProps> = qr.forwardRef<
   HTMLElement,
   HeaderProps
 >(({ bsPrefix, className, as: X = "div", ...ps }, ref) => {
@@ -26,7 +27,7 @@ export const Header: BsRef<"div", HeaderProps> = qr.forwardRef<
   )
   return (
     <Context.Provider value={v}>
-      <X ref={ref} {...ps} className={classNames(className, bs)} />
+      <X ref={ref} {...ps} className={qt.classNames(className, bs)} />
     </Context.Provider>
   )
 })
@@ -50,18 +51,18 @@ export const Footer = withBs("card-footer")
 export const ImgOverlay = withBs("card-img-overlay")
 
 export interface ImgProps
-  extends BsProps,
+  extends qt.BsProps,
     qr.ImgHTMLAttributes<HTMLImageElement> {
   variant?: "top" | "bottom" | string
 }
 
-export const Img: BsRef<"img", ImgProps> = qr.forwardRef(
+export const Img: qt.BsRef<"img", ImgProps> = qr.forwardRef(
   ({ bsPrefix, className, variant, as: X = "img", ...ps }: ImgProps, ref) => {
     const bs = useBs(bsPrefix, "card-img")
     return (
       <X
         ref={ref}
-        className={classNames(variant ? `${bs}-${variant}` : bs, className)}
+        className={qt.classNames(variant ? `${bs}-${variant}` : bs, className)}
         {...ps}
       />
     )
@@ -71,14 +72,14 @@ Img.displayName = "CardImg"
 
 export const Group = withBs("card-group")
 
-export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
-  bg?: Variant
-  text?: Color
-  border?: Variant
+export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
+  bg?: qt.Variant
+  text?: qt.Color
+  border?: qt.Variant
   body?: boolean
 }
 
-export const Card: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
+export const Card: qt.BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
   (
     {
       bsPrefix,
@@ -98,7 +99,7 @@ export const Card: BsRef<"div", Props> = qr.forwardRef<HTMLElement, Props>(
       <X
         ref={ref}
         {...ps}
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           bg && `bg-${bg}`,

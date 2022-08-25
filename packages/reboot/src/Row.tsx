@@ -1,6 +1,6 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 
 type ColWidth =
   | number
@@ -19,7 +19,7 @@ type ColWidth =
   | "auto"
 type Columns = ColWidth | { cols?: ColWidth }
 
-export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   xs?: Columns
   sm?: Columns
   md?: Columns
@@ -29,7 +29,7 @@ export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
   [key: string]: any
 }
 
-export const Row: BsRef<"div", Props> = qr.forwardRef<HTMLDivElement, Props>(
+export const Row: qt.BsRef<"div", Props> = qr.forwardRef<HTMLDivElement, Props>(
   ({ bsPrefix, className, as: X = "div", ...ps }: Props, ref) => {
     const decoratedBsPrefix = useBs(bsPrefix, "row")
     const breakpoints = useBreakpoints()
@@ -52,7 +52,7 @@ export const Row: BsRef<"div", Props> = qr.forwardRef<HTMLDivElement, Props>(
       <X
         ref={ref}
         {...ps}
-        className={classNames(className, decoratedBsPrefix, ...classes)}
+        className={qt.classNames(className, decoratedBsPrefix, ...classes)}
       />
     )
   }

@@ -1,5 +1,4 @@
 import { AbsHeader, AbsProps, Context as MContext } from "./Modal.jsx"
-import { classNames, BsOnlyProps, BsRef } from "./helpers.js"
 import { Context as NContext } from "./Navbar.jsx"
 import { Fade } from "./Fade.jsx"
 import { Manager, getSharedManager } from "./Manager.jsx"
@@ -8,11 +7,11 @@ import { useBs } from "./Theme.jsx"
 import { Wrapper } from "./Wrapper.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 import * as qu from "./utils.jsx"
 import type { Transition, TransitionStatus } from "react-transition-group"
-import type { TransitionCBs } from "./base/types.jsx"
 
-export interface HeaderProps extends AbsProps, BsOnlyProps {}
+export interface HeaderProps extends AbsProps, qt.BsOnlyProps {}
 
 export const Header = qr.forwardRef<HTMLDivElement, HeaderProps>(
   ({ bsPrefix, className, ...ps }, ref) => {
@@ -21,7 +20,7 @@ export const Header = qr.forwardRef<HTMLDivElement, HeaderProps>(
       <AbsHeader
         ref={ref}
         {...ps}
-        className={classNames(className, bsPrefix)}
+        className={qt.classNames(className, bsPrefix)}
       />
     )
   }
@@ -38,7 +37,7 @@ export const Title = qu.withBs("offcanvas-title", {
   Component: DivAsH5,
 })
 
-export interface TogglingProps extends TransitionCBs, BsOnlyProps {
+export interface TogglingProps extends qt.TransitionCBs, qt.BsOnlyProps {
   className?: string
   in?: boolean
   mountOnEnter?: boolean
@@ -69,7 +68,7 @@ export const Toggling = qr.forwardRef<Transition<any>, TogglingProps>(
         {(status: TransitionStatus, ps2: Record<string, unknown>) =>
           qr.cloneElement(children, {
             ...ps2,
-            className: classNames(
+            className: qt.classNames(
               className,
               children.props.className,
               (status === qu.ENTERING || status === qu.EXITING) &&
@@ -118,7 +117,7 @@ function BackdropTransition(ps: any) {
   return <Fade {...ps} />
 }
 
-export const Offcanvas: BsRef<"div", Props> = qr.forwardRef<Handle, Props>(
+export const Offcanvas: qt.BsRef<"div", Props> = qr.forwardRef<Handle, Props>(
   (
     {
       bsPrefix,
@@ -193,7 +192,7 @@ export const Offcanvas: BsRef<"div", Props> = qr.forwardRef<Handle, Props>(
       (xs: any) => (
         <div
           {...xs}
-          className={classNames(`${bs}-backdrop`, backdropClassName)}
+          className={qt.classNames(`${bs}-backdrop`, backdropClassName)}
         />
       ),
       [backdropClassName, bs]
@@ -202,7 +201,7 @@ export const Offcanvas: BsRef<"div", Props> = qr.forwardRef<Handle, Props>(
       <div
         {...xs}
         {...ps}
-        className={classNames(
+        className={qt.classNames(
           className,
           responsive ? `${bs}-${responsive}` : bs,
           `${bs}-${placement}`

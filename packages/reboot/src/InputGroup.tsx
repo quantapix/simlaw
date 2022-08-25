@@ -1,8 +1,8 @@
-import { classNames, BsProps, BsRef } from "./helpers.js"
 import { Input } from "./Form.jsx"
 import { useBs } from "./Theme.jsx"
 import { withBs } from "./utils.jsx"
 import * as qr from "react"
+import * as qt from "./types.jsx"
 
 export const Context = qr.createContext<unknown | null>(null)
 Context.displayName = "InputGroupContext"
@@ -23,12 +23,12 @@ export const Radio = (ps: any) => (
   </Text>
 )
 
-export interface Props extends BsProps, qr.HTMLAttributes<HTMLElement> {
+export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   size?: "sm" | "lg"
   hasValidation?: boolean
 }
 
-export const InputGroup: BsRef<"div", Props> = qr.forwardRef<
+export const InputGroup: qt.BsRef<"div", Props> = qr.forwardRef<
   HTMLElement,
   Props
 >(({ bsPrefix, size, hasValidation, className, as: X = "div", ...ps }, ref) => {
@@ -39,7 +39,7 @@ export const InputGroup: BsRef<"div", Props> = qr.forwardRef<
       <X
         ref={ref}
         {...ps}
-        className={classNames(
+        className={qt.classNames(
           className,
           bs,
           size && `${bs}-${size}`,
