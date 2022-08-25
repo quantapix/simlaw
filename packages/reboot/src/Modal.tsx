@@ -184,7 +184,7 @@ export const Modal: qt.BsRef<"div", Props> = qr.forwardRef(
       dialogClassName,
       contentClassName,
       children,
-      dialogAs: X,
+      dialogAs: X = Dialog,
       "aria-labelledby": ariaLabelledby,
       "aria-describedby": ariaDescribedby,
       "aria-label": ariaLabel,
@@ -218,7 +218,10 @@ export const Modal: qt.BsRef<"div", Props> = qr.forwardRef(
     const ignoreBackdropClickRef = qr.useRef(false)
     const removeStaticModalAnimationRef = qr.useRef<(() => void) | null>(null)
     const [modal, setModalRef] = qh.useCallbackRef<Instance>()
-    const mergedRef = qh.useMergedRefs(ref, setModalRef)
+    const mergedRef = qh.useMergedRefs(
+      ref,
+      setModalRef as qr.ForwardedRef<unknown>
+    )
     const doHide = qh.useEventCB(onHide)
     const isRTL = useIsRTL()
     const bs = useBs(bsPrefix, "modal")

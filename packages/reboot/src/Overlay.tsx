@@ -26,7 +26,7 @@ export interface InjectedProps {
 
 export type Children =
   | qr.ReactElement<InjectedProps>
-  | ((ps: InjectedProps) => qr.ReactNode)
+  | ((ps: InjectedProps) => qr.ReactElement)
 
 export interface Props
   extends Omit<BaseProps, "children" | "transition" | "rootCloseEvent"> {
@@ -67,7 +67,7 @@ export const Overlay = qr.forwardRef<HTMLElement, Props>(
         ref={mRef}
         popperConfig={{
           ...popperConfig,
-          modifiers: modifiers.concat(popperConfig.modifiers || []),
+          modifiers: modifiers.concat([]), //popperConfig.modifiers || []),
           onFirstUpdate: doFirstUpdate,
         }}
         transition={actual}

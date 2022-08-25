@@ -23,11 +23,11 @@ export interface InjectedProps extends Record<string, any> {
   "aria-labelledby"?: string
 }
 
-type Transition = qr.ComponentType<
+export type Transition = qr.ComponentType<
   {
     in?: boolean | undefined
     appear?: boolean
-    children: qr.ReactNode
+    children: qr.ReactElement
   } & qt.TransitionCBs
 >
 
@@ -45,7 +45,7 @@ export interface Props extends qt.TransitionCBs {
   rootClose?: boolean
   rootCloseDisabled?: boolean
   rootCloseEvent?: qu.RootCloseOptions["clickTrigger"]
-  children: (ps: InjectedProps, meta: Meta) => qr.ReactNode
+  children: (ps: InjectedProps, meta: Meta) => qr.ReactElement
 }
 
 export const Overlay = qr.forwardRef<HTMLElement, Props>((ps, ref) => {

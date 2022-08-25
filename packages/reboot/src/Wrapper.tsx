@@ -6,9 +6,7 @@ import type { TransitionProps as BaseProps } from "react-transition-group/Transi
 
 export type Props = BaseProps & {
   childRef?: qr.Ref<unknown>
-  children:
-    | qr.ReactElement
-    | ((status: Status, props: Record<string, unknown>) => qr.ReactNode)
+  children: qr.ReactNode | ((status: Status) => qr.ReactNode)
 }
 
 export const Wrapper = qr.forwardRef<Transition<any>, Props>(
@@ -59,14 +57,8 @@ export const Wrapper = qr.forwardRef<Transition<any>, Props>(
         nodeRef={nodeRef}
       >
         {typeof children === "function"
-          ? (status: Status, ps2: Record<string, unknown>) =>
-              children(status, {
-                ...ps2,
-                ref: attachRef,
-              })
-          : qr.cloneElement(children as qr.ReactElement, {
-              ref: attachRef,
-            })}
+          ? (status: Status) => children(status) //, { ref: attachRef })
+          : qr.cloneElement(children as qr.ReactElement, { ref: attachRef })}
       </Transition>
     )
   }
