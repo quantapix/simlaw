@@ -59,8 +59,8 @@ export interface BaseProps extends qt.TransitionCBs {
   onEscapeKeyDown?: (e: KeyboardEvent) => void
   onBackdropClick?: (e: qr.SyntheticEvent) => void
   keyboard?: boolean
-  transition?: Transition
-  backdropTransition?: Transition
+  transition?: Transition | undefined
+  backdropTransition?: Transition | undefined
   autoFocus?: boolean
   enforceFocus?: boolean
   restoreFocus?: boolean

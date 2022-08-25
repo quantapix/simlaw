@@ -10,6 +10,7 @@ import { withBs } from "./utils.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
 import * as qt from "./types.jsx"
+import type { Placement } from "./base/popper.js"
 import {
   Dropdown as Base,
   Props as BaseProps,
@@ -59,7 +60,7 @@ export function getPlacement(
   const leftEnd = isRTL ? "right-end" : "left-end"
   const rightStart = isRTL ? "left-start" : "right-start"
   const rightEnd = isRTL ? "left-end" : "right-end"
-  let y: qt.Placement = alignEnd ? bottomEnd : bottomStart
+  let y: Placement = alignEnd ? bottomEnd : bottomStart
   if (dropDirection === "up") y = alignEnd ? topEnd : topStart
   else if (dropDirection === "end") y = alignEnd ? rightEnd : rightStart
   else if (dropDirection === "start") y = alignEnd ? leftEnd : leftStart
@@ -135,8 +136,8 @@ export const Menu: qt.BsRef<"div", MenuProps> = qr.forwardRef<
     }
     let style = ps.style
     if (popper?.placement) {
+      ;(ps as any)["x-placement"] = popper.placement
       style = { ...ps.style, ...menuProps.style }
-      ps["x-placement"] = popper.placement
     }
     return (
       <X
@@ -204,7 +205,7 @@ export const Toggle: ToggleComponent = qr.forwardRef(
           className,
           bs,
           split && `${bs}-split`,
-          !!isInputGroup && context?.show && "show"
+          !!isInputGroup && (context as any).show && "show"
         )}
         {...toggleProps}
         {...ps}

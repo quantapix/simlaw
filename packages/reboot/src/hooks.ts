@@ -180,9 +180,9 @@ export type IsEqual<Ds extends qr.DependencyList> = (
   prev: Ds
 ) => boolean
 
-export type CustomEffectOptions<Ds extends qr.DependencyList> = {
+export type EffectOpts<Ds extends qr.DependencyList> = {
   isEqual: IsEqual<Ds>
-  effectHook?: EffectHook
+  effectHook?: EffectHook | undefined
 }
 
 type CleanUp = {
@@ -195,10 +195,10 @@ export function useCustomEffect<
 >(cb: qr.EffectCallback, ds: Ds, opts: IsEqual<Ds>): void
 export function useCustomEffect<
   Ds extends qr.DependencyList = qr.DependencyList
->(cb: qr.EffectCallback, ds: Ds, opts: CustomEffectOptions<Ds>): void
+>(cb: qr.EffectCallback, ds: Ds, opts: EffectOpts<Ds>): void
 export function useCustomEffect<
   Ds extends qr.DependencyList = qr.DependencyList
->(cb: qr.EffectCallback, ds: Ds, opts: IsEqual<Ds> | CustomEffectOptions<Ds>) {
+>(cb: qr.EffectCallback, ds: Ds, opts: IsEqual<Ds> | EffectOpts<Ds>) {
   const isMounted = useMounted()
   const { isEqual, effectHook = qr.useEffect } =
     typeof opts === "function" ? { isEqual: opts } : opts
@@ -279,7 +279,7 @@ export function useEventListener<
   listener: EventHandler<T, K>,
   capture: boolean | AddEventListenerOptions = false
 ) {
-  const cb = useEventCB(listener)
+  const cb = useEventCB(listener) as EventListenerOrEventListenerObject
   qr.useEffect(() => {
     const target = typeof x === "function" ? x() : x
     target.addEventListener(key, cb, capture)
@@ -579,7 +579,7 @@ export function useMediaQuery(
 const toFnRef = <T>(x?: qr.ForwardedRef<T>) =>
   !x || typeof x === "function"
     ? x
-    : (v: T) => {
+    : (v: T | null) => {
         x.current = v
       }
 
@@ -655,11 +655,8 @@ export function useMountEffect(effect: qr.EffectCallback) {
 
 type Deps = [Element | null | undefined, MutationObserverInit]
 
-function isDepsEqual(
-  [nextElement, nextConfig]: Deps,
-  [prevElement, prevConfig]: Deps
-) {
-  return nextElement === prevElement && dequal(nextConfig, prevConfig)
+function isDepsEqual([nextElem, nextCfg]: Deps, [prevElem, prevCfg]: Deps) {
+  return nextElem === prevElem && dequal(nextCfg, prevCfg)
 }
 
 export function useMutationObserver(
@@ -842,7 +839,7 @@ function isEqual(a: qr.DependencyList, b: qr.DependencyList) {
 }
 
 type DepsCache<T> = {
-  deps?: qr.DependencyList
+  deps?: qr.DependencyList | undefined
   result: T
 }
 
@@ -1088,7 +1085,7 @@ export function useUpdateEffect(
 
 export function useUpdateImmediateEffect(
   effect: qr.EffectCallback,
-  deps: qr.DependencyList
+  deps?: qr.DependencyList
 ) {
   const firstRef = qr.useRef(true)
   const tearDown = qr.useRef<ReturnType<qr.EffectCallback>>()
