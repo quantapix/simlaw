@@ -48,8 +48,8 @@ export function createChained(...fs: any) {
       }
       if (y === null) return x
       return function chainedFunction(...xs: any) {
-        y.apply(this, xs)
-        x.apply(this, xs)
+        y.apply(xs)
+        x.apply(xs)
       }
     }, null)
 }

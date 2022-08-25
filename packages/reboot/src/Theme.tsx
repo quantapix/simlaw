@@ -68,7 +68,7 @@ export function createComponent(X: any, xs: any) {
   const isClassy = X.prototype && X.prototype.isReactComponent
   const { prefix, forwardRefAs = isClassy ? "ref" : "innerRef" } = xs
   const Y = qr.forwardRef<any, { bsPrefix?: string }>(({ ...ps }, ref) => {
-    ps[forwardRefAs] = ref
+    ;(ps as any)[forwardRefAs] = ref
     const bs = useBs((ps as any).bsPrefix, prefix)
     return <X {...ps} bsPrefix={bs} />
   })

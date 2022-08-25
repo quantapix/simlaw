@@ -1,5 +1,5 @@
 import { Close, Variant as CloseVariant } from "./Button.jsx"
-import { Fade, Props as _Props } from "./Fade.jsx"
+import { Fade, Props as FProps } from "./Fade.jsx"
 import { useBs } from "./Theme.jsx"
 import * as qh from "./hooks.js"
 import * as qr from "react"
@@ -72,7 +72,7 @@ const styles = {
   [qu.UNMOUNTED]: "",
 }
 
-export const ToastFade = qr.forwardRef<Transition<any>, _Props>((ps, ref) => (
+export const ToastFade = qr.forwardRef<Transition<any>, FProps>((ps, ref) => (
   <Fade {...ps} ref={ref} transitionClasses={styles} />
 ))
 ToastFade.displayName = "ToastFade"
@@ -147,7 +147,7 @@ export const Toast: qt.BsRef<"div", Props> = qr.forwardRef<
     )
     return (
       <Context.Provider value={v}>
-        {hasAnimation && X ? (
+        {hasAnimation && X && typeof X !== "boolean" ? (
           <X in={show} unmountOnExit>
             {toast}
           </X>
