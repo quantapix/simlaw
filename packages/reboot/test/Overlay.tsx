@@ -3,7 +3,6 @@ import { fireEvent, render } from "@testing-library/react"
 import { Overlay, Trigger } from "../src/Overlay.jsx"
 import { Popover } from "../src/Popover.jsx"
 import { Tooltip } from "../src/Tooltip.jsx"
-
 describe("<Overlay>", () => {
   it("should forward ref to the overlay", () => {
     const ref = React.createRef<any>()
@@ -39,7 +38,6 @@ describe("<Overlay>", () => {
     expect(popoverElem.classList.contains("fade")).toBe(false)
   })
 })
-
 describe("<Trigger>", () => {
   const TemplateDiv = React.forwardRef(
     ({ className = "", children }: any, ref: any) => (
@@ -133,25 +131,25 @@ describe("<Trigger>", () => {
     expect(overlayElem!.classList.contains("show")).toBe(true)
   })
   it("Should call Trigger onClick prop to child", () => {
-    const callback = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
       <Trigger overlay={<TemplateDiv>test</TemplateDiv>} trigger="click">
-        <button type="button" onClick={callback} data-testid="test-button">
+        <button type="button" onClick={mock} data-testid="test-button">
           button
         </button>
       </Trigger>
     )
     const buttonElem = getByTestId("test-button")
     fireEvent.click(buttonElem)
-    expect(callback).toHaveBeenCalled()
+    expect(mock).toHaveBeenCalled()
   })
   it("Should be controllable", () => {
-    const callback = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
       <Trigger
         show
         trigger="click"
-        onToggle={callback}
+        onToggle={mock}
         overlay={<TemplateDiv className="test" />}
       >
         <button type="button" data-testid="test-button">
@@ -163,7 +161,7 @@ describe("<Trigger>", () => {
     const buttonElem = getByTestId("test-button")
     expect(overlayElem.classList.contains("show")).toBe(true)
     fireEvent.click(buttonElem)
-    expect(callback).toHaveBeenCalledTimes(1).and.calledWith(false)
+    expect(mock).toHaveBeenCalledTimes(1).and.calledWith(false)
   })
   it("Should show after mouseover trigger", done => {
     const clock = sinon.useFakeTimers()
@@ -253,22 +251,22 @@ describe("<Trigger>", () => {
     expect(overlayElem!.classList.contains("test-overlay")).toBe(true)
   })
   it("Should pass transition callbacks to Transition", done => {
-    const increment = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
       <Trigger
         trigger="click"
         overlay={<TemplateDiv>test</TemplateDiv>}
-        onExit={increment}
-        onExiting={increment}
+        onExit={mock}
+        onExiting={mock}
         onExited={() => {
-          increment()
-          expect(increment.callCount).toEqual(6)
+          mock()
+          expect(mock.callCount).toEqual(6)
           done()
         }}
-        onEnter={increment}
-        onEntering={increment}
+        onEnter={mock}
+        onEntering={mock}
         onEntered={() => {
-          increment()
+          mock()
           const buttonElem = getByTestId("test-button")
           fireEvent.click(buttonElem)
         }}
@@ -282,10 +280,10 @@ describe("<Trigger>", () => {
     fireEvent.click(buttonElem)
   })
   it("Should forward requested context", () => {
-    const contextSpy = jest.fn()
+    const mock = jest.fn()
     class ContextReader extends React.Component {
-      render() {
-        contextSpy(this.context.key)
+      override render() {
+        mock(this.context.key)
         return <div />
       }
     }
@@ -293,8 +291,7 @@ describe("<Trigger>", () => {
       getChildContext() {
         return { key: "value" }
       }
-
-      render() {
+      override render() {
         return (
           <Trigger trigger="click" overlay={<ContextReader />}>
             <button type="button" data-testid="test-button">
@@ -307,7 +304,7 @@ describe("<Trigger>", () => {
     const { getByTestId } = render(<ContextHolder />)
     const buttonElem = getByTestId("test-button")
     fireEvent.click(buttonElem)
-    expect(contextSpy.calledWith("value")).toBe(true)
+    expect(mock.calledWith("value")).toBe(true)
   })
   describe("overlay types", () => {
     ;[

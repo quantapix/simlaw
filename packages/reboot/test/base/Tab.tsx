@@ -12,9 +12,9 @@ import { Button, Nav, Tabs, useNavItem } from "../../src/base"
 
 describe("<Tabs>", () => {
   it("should not propagate context past TabPanels", () => {
-    const onSelect = jest.fn()
+    const mock = jest.fn()
     const { getByText } = render(
-      <Tabs id="custom-id" onSelect={onSelect}>
+      <Tabs id="custom-id" onSelect={mock}>
         <Nav>
           <NavItem eventKey="1">One</NavItem>
         </Nav>
@@ -29,10 +29,10 @@ describe("<Tabs>", () => {
     )
     const nestedNavItem = getByText("Two")
     fireEvent.click(nestedNavItem)
-    expect(onSelect).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
     const topNavItem = getByText("One")
     fireEvent.click(topNavItem)
-    expect(onSelect).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should let generateChildId function create id", () => {
     const generateChildIdSpy = sinon.spy(() => "test-id")
@@ -239,14 +239,14 @@ describe("<TabPanel>", () => {
     expect(queryByText("test")).not.toBeTruthy()
   })
   it("should call getControlledId for id", () => {
-    const getControlledIdSpy = jest.fn()
+    const mock = jest.fn()
     render(
       <TabContext.Provider
         value={{
           onSelect: jest.fn(),
           mountOnEnter: false,
           unmountOnExit: false,
-          getControlledId: getControlledIdSpy,
+          getControlledId: mock,
           getControllerId: jest.fn(),
         }}
       >
@@ -255,10 +255,10 @@ describe("<TabPanel>", () => {
         </TabPanel>
       </TabContext.Provider>
     )
-    expect(getControlledIdSpy).to.be.calledWith("mykey")
+    expect(mock).toHaveBeenCalledWith("mykey")
   })
   it("should fire transition events", async () => {
-    const transitionSpy = jest.fn()
+    const mock = jest.fn()
     const FADE_DURATION = 200
     const fadeStyles = {
       entering: "show",
@@ -289,12 +289,12 @@ describe("<TabPanel>", () => {
         <TabPanel
           transition={Fade}
           eventKey="1"
-          onEnter={transitionSpy}
-          onEntering={transitionSpy}
-          onEntered={transitionSpy}
-          onExit={transitionSpy}
-          onExiting={transitionSpy}
-          onExited={transitionSpy}
+          onEnter={mock}
+          onEntering={mock}
+          onEntered={mock}
+          onExit={mock}
+          onExiting={mock}
+          onExited={mock}
         >
           Tab 1 content
         </TabPanel>
@@ -304,11 +304,11 @@ describe("<TabPanel>", () => {
       </Tabs>
     )
     fireEvent.click(getByText("Tab 1"))
-    expect(await waitFor(() => transitionSpy))
+    expect(await waitFor(() => mock))
       .toHaveBeenCalled()
       .Thrice()
     fireEvent.click(getByText("Tab 2"))
-    expect(await waitFor(() => transitionSpy.callCount)).toEqual(6)
+    expect(await waitFor(() => mock.callCount)).toEqual(6)
   })
   it("should derive active state from context", () => {
     const { getByText } = render(

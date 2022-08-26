@@ -91,9 +91,9 @@ describe("<Nav>", () => {
     expect(navItem.classList.contains("card-header-pills")).toBe(true)
   })
   it("should call onSelect when a Link is selected", () => {
-    const onSelectSpy = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
-      <Nav onSelect={onSelectSpy} data-testid="test">
+      <Nav onSelect={mock} data-testid="test">
         <Link eventKey={1}>Tab 1 content</Link>
         <Link eventKey={2}>
           <span>Tab 2 content</span>
@@ -102,12 +102,12 @@ describe("<Nav>", () => {
     )
     const navItem = getByTestId("test")
     fireEvent.click(navItem.lastElementChild!)
-    expect(onSelectSpy).toHaveBeenCalledWith("2")
+    expect(mock).toHaveBeenCalledWith("2")
   })
   it("should call onSelect when a NavDropdown.Item is selected", () => {
-    const onSelectSpy = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
-      <Nav onSelect={onSelectSpy}>
+      <Nav onSelect={mock}>
         <NavDropdown title="Dropdown" id="nav-dropdown-test" renderMenuOnMount>
           <NavDropdown.Item eventKey={1} data-testid="test">
             Dropdown item
@@ -117,7 +117,7 @@ describe("<Nav>", () => {
     )
     const dropdownItem = getByTestId("test")
     fireEvent.click(dropdownItem!)
-    expect(onSelectSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should set the correct item active by href", () => {
     const { getByTestId } = render(

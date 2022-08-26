@@ -4,6 +4,7 @@ import simulant from "simulant"
 import { mount } from "enzyme"
 import useRootClose from "../src/useRootClose"
 const escapeKeyCode = 27
+
 describe("useRootClose", () => {
   let attachTo
   beforeEach(() => {
@@ -37,38 +38,41 @@ describe("useRootClose", () => {
       )
     }
     it("should close when clicked outside", () => {
-      let spy = jest.fn()
-      mount(<Wrapper onRootClose={spy} />, { attachTo })
+      const mock = jest.fn()
+      mount(<Wrapper onRootClose={mock} />, { attachTo })
       simulant.fire(document.getElementById("my-div"), eventName)
-      expect(spy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
       simulant.fire(document.body, eventName)
-      expect(spy).toHaveBeenCalledTimes(1)
-      expect(spy.mock.calls[0].args[0].type).to.be.oneOf(["click", "mousedown"])
+      expect(mock).toHaveBeenCalledTimes(1)
+      expect(mock.mock.calls[0].args[0].type).to.be.oneOf([
+        "click",
+        "mousedown",
+      ])
     })
     it("should not close when right-clicked outside", () => {
-      let spy = jest.fn()
-      mount(<Wrapper onRootClose={spy} />, { attachTo })
+      const mock = jest.fn()
+      mount(<Wrapper onRootClose={mock} />, { attachTo })
       simulant.fire(document.getElementById("my-div"), eventName, {
         button: 1,
       })
-      expect(spy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
       simulant.fire(document.body, eventName, { button: 1 })
-      expect(spy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
     })
     it("should not close when disabled", () => {
-      let spy = jest.fn()
-      mount(<Wrapper onRootClose={spy} disabled />, { attachTo })
+      const mock = jest.fn()
+      mount(<Wrapper onRootClose={mock} disabled />, { attachTo })
       simulant.fire(document.getElementById("my-div"), eventName)
-      expect(spy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
       simulant.fire(document.body, eventName)
-      expect(spy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
     })
     it("should close when inside another RootCloseWrapper", () => {
-      let outerSpy = jest.fn()
-      let innerSpy = jest.fn()
+      const outer = jest.fn()
+      const inner = jest.fn()
       function Inner() {
         const ref = useRef()
-        useRootClose(ref, innerSpy, { clickTrigger })
+        useRootClose(ref, inner, { clickTrigger })
         return (
           <div ref={ref} id="my-other-div">
             hello there
@@ -77,7 +81,7 @@ describe("useRootClose", () => {
       }
       function Outer() {
         const ref = useRef()
-        useRootClose(ref, outerSpy, { clickTrigger })
+        useRootClose(ref, outer, { clickTrigger })
         return (
           <div ref={ref}>
             <div id="my-div">hello there</div>
@@ -87,9 +91,9 @@ describe("useRootClose", () => {
       }
       mount(<Outer />, { attachTo })
       simulant.fire(document.getElementById("my-div"), eventName)
-      expect(outerSpy).not.toHaveBeenCalled()
-      expect(innerSpy).toHaveBeenCalledTimes(1)
-      expect(innerSpy.mock.calls[0].args[0].type).to.be.oneOf([
+      expect(outer).not.toHaveBeenCalled()
+      expect(inner).toHaveBeenCalledTimes(1)
+      expect(inner.mock.calls[0].args[0].type).to.be.oneOf([
         "click",
         "mousedown",
       ])
@@ -106,7 +110,7 @@ describe("useRootClose", () => {
       )
     }
     it("should close when escape keyup", () => {
-      let spy = jest.fn()
+      const spy = jest.fn()
       mount(
         <Wrapper onRootClose={spy}>
           <div id="my-div">hello there</div>
@@ -120,25 +124,23 @@ describe("useRootClose", () => {
       expect(spy.mock.calls[0].args[0].type).toEqual("keyup")
     })
     it("should close when inside another RootCloseWrapper", () => {
-      let outerSpy = jest.fn()
-      let innerSpy = jest.fn()
+      const outer = jest.fn()
+      const inner = jest.fn()
       mount(
-        <Wrapper onRootClose={outerSpy}>
+        <Wrapper onRootClose={outer}>
           <div>
             <div id="my-div">hello there</div>
-            <Wrapper onRootClose={innerSpy}>
+            <Wrapper onRootClose={inner}>
               <div id="my-other-div">hello there</div>
             </Wrapper>
           </div>
         </Wrapper>
       )
       simulant.fire(document.body, "keyup", { keyCode: escapeKeyCode })
-      // TODO: Update to match expectations.
-      // expect(outerSpy).not.toHaveBeenCalled();
-      expect(innerSpy).toHaveBeenCalledTimes(1)
-      expect(innerSpy.mock.calls[0].args.length).toEqual(1)
-      expect(innerSpy.mock.calls[0].args[0].keyCode).toEqual(escapeKeyCode)
-      expect(innerSpy.mock.calls[0].args[0].type).toEqual("keyup")
+      expect(inner).toHaveBeenCalledTimes(1)
+      expect(inner.mock.calls[0].args.length).toEqual(1)
+      expect(inner.mock.calls[0].args[0].keyCode).toEqual(escapeKeyCode)
+      expect(inner.mock.calls[0].args[0].type).toEqual("keyup")
     })
   })
 })

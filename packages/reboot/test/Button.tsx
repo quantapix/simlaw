@@ -54,10 +54,10 @@ describe("<Button>", () => {
     expect(getByRole("button").getAttribute("href")).toEqual(href)
   })
   it("Should call onClick callback", () => {
-    const onClick = jest.fn()
-    const { getByRole } = render(<Button onClick={onClick}>Title</Button>)
+    const mock = jest.fn()
+    const { getByRole } = render(<Button onClick={mock}>Title</Button>)
     fireEvent.click(getByRole("button"))
-    expect(onClick).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("Should be disabled", () => {
     const { getByRole } = render(<Button disabled>Title</Button>)
@@ -190,10 +190,10 @@ describe("<Close>", () => {
     getByRole("button").classList.contains("btn-close")
   })
   it("Should call onClick callback", () => {
-    const onClickSpy = jest.fn()
-    const { getByRole } = render(<Close onClick={onClickSpy} />)
+    const mock = jest.fn()
+    const { getByRole } = render(<Close onClick={mock} />)
     fireEvent.click(getByRole("button"))
-    expect(onClickSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it('Should have a aria-label defaulted to "Close"', () => {
     const { getByLabelText } = render(<Close />)

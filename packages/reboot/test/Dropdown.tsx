@@ -1,3 +1,4 @@
+import { InputGroup } from "../src/InputGroup.jsx"
 import { render, fireEvent } from "@testing-library/react"
 import * as React from "react"
 import {
@@ -12,7 +13,6 @@ import {
   Toggle,
   getPlacement,
 } from "../src/Dropdown.jsx"
-import { InputGroup } from "../src/InputGroup.jsx"
 
 describe("<Dropdown>", () => {
   const dropdownChildren = [
@@ -79,9 +79,9 @@ describe("<Dropdown>", () => {
     expect(toggle.getAttribute("aria-expanded")!).toEqual("false")
   })
   it("closes when child Item is selected", () => {
-    const onToggleSpy = jest.fn()
+    const mock = jest.fn()
     const { container, getByTestId } = render(
-      <Dropdown show onToggle={onToggleSpy}>
+      <Dropdown show onToggle={mock}>
         <Toggle id="test-id" key="toggle">
           Child Title
         </Toggle>
@@ -95,7 +95,7 @@ describe("<Dropdown>", () => {
     )
     expect(container.firstElementChild!.classList).toContain(["show"])
     fireEvent.click(getByTestId("item1"))
-    expect(onToggleSpy).toHaveBeenCalledWith(false)
+    expect(mock).toHaveBeenCalledWith(false)
   })
   it("has aria-labelledby same id as toggle button", () => {
     const { getByTestId } = render(
@@ -112,35 +112,35 @@ describe("<Dropdown>", () => {
   })
   describe("DOM event and source passed to onToggle", () => {
     it("passes open, event, and source correctly when opened with click", () => {
-      const onToggleSpy = jest.fn()
+      const mock = jest.fn()
       const { getByText } = render(
-        <Dropdown onToggle={onToggleSpy}>{dropdownChildren}</Dropdown>
+        <Dropdown onToggle={mock}>{dropdownChildren}</Dropdown>
       )
-      expect(onToggleSpy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
       fireEvent.click(getByText("Child Title"))
-      expect(onToggleSpy).toHaveBeenCalledTimes(1)
-      expect(onToggleSpy.mock.calls[0].args.length).toEqual(2)
-      expect(onToggleSpy.mock.calls[0].args[0]).toEqual(true)
-      expect(onToggleSpy.mock.calls[0].args[1].source).toEqual("click")
+      expect(mock).toHaveBeenCalledTimes(1)
+      expect(mock.mock.calls[0].args.length).toEqual(2)
+      expect(mock.mock.calls[0].args[0]).toEqual(true)
+      expect(mock.mock.calls[0].args[1].source).toEqual("click")
     })
     it("passes open, event, and source correctly when closed with click", () => {
-      const onToggleSpy = jest.fn()
+      const mock = jest.fn()
       const { getByText } = render(
-        <Dropdown show onToggle={onToggleSpy}>
+        <Dropdown show onToggle={mock}>
           {dropdownChildren}
         </Dropdown>
       )
       const toggle = getByText("Child Title")
-      expect(onToggleSpy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
       fireEvent.click(toggle)
-      expect(onToggleSpy.mock.calls[0].args.length).toEqual(2)
-      expect(onToggleSpy.mock.calls[0].args[0]).toEqual(false)
-      expect(onToggleSpy.mock.calls[0].args[1].source).toEqual("click")
+      expect(mock.mock.calls[0].args.length).toEqual(2)
+      expect(mock.mock.calls[0].args[0]).toEqual(false)
+      expect(mock.mock.calls[0].args[1].source).toEqual("click")
     })
     it("passes open, event, and source correctly when child selected", () => {
-      const onToggleSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
-        <Dropdown onToggle={onToggleSpy}>
+        <Dropdown onToggle={mock}>
           <Toggle data-testid="toggle">Toggle</Toggle>
           <Menu>
             <Item eventKey={1} data-testid="item1">
@@ -150,17 +150,17 @@ describe("<Dropdown>", () => {
         </Dropdown>
       )
       fireEvent.click(getByTestId("toggle"))
-      expect(onToggleSpy).toHaveBeenCalled()
+      expect(mock).toHaveBeenCalled()
       fireEvent.click(getByTestId("item1"))
-      expect(onToggleSpy).toHaveBeenCalledTimes(2)
-      expect(onToggleSpy.mock.calls[1].args.length).toEqual(2)
-      expect(onToggleSpy.mock.calls[1].args[0]).toEqual(false)
-      expect(onToggleSpy.mock.calls[1].args[1].source).toEqual("select")
+      expect(mock).toHaveBeenCalledTimes(2)
+      expect(mock.mock.calls[1].args.length).toEqual(2)
+      expect(mock.mock.calls[1].args[0]).toEqual(false)
+      expect(mock.mock.calls[1].args[1].source).toEqual("select")
     })
     it("passes open, event, and source correctly when opened with keydown", () => {
-      const onToggleSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
-        <Dropdown onToggle={onToggleSpy}>
+        <Dropdown onToggle={mock}>
           <Toggle data-testid="toggle">Toggle</Toggle>
           <Menu>
             <Item eventKey={1} data-testid="item1">
@@ -170,10 +170,10 @@ describe("<Dropdown>", () => {
         </Dropdown>
       )
       fireEvent.keyDown(getByTestId("toggle"), { key: "ArrowDown" })
-      expect(onToggleSpy).toHaveBeenCalledTimes(1)
-      expect(onToggleSpy.mock.calls[0].args.length).toEqual(2)
-      expect(onToggleSpy.mock.calls[0].args[0]).toEqual(true)
-      expect(onToggleSpy.mock.calls[0].args[1].source).toEqual("keydown")
+      expect(mock).toHaveBeenCalledTimes(1)
+      expect(mock.mock.calls[0].args.length).toEqual(2)
+      expect(mock.mock.calls[0].args[0]).toEqual(true)
+      expect(mock.mock.calls[0].args[1].source).toEqual("keydown")
     })
   })
   it("should use each components bsPrefix", () => {
@@ -238,9 +238,9 @@ describe("<Dropdown>", () => {
   describe("autoClose behaviour", () => {
     describe('autoClose="true"', () => {
       it("should close on outer click", () => {
-        const onToggleSpy = jest.fn()
+        const mock = jest.fn()
         render(
-          <Dropdown defaultShow onToggle={onToggleSpy} autoClose>
+          <Dropdown defaultShow onToggle={mock} autoClose>
             <Toggle>Toggle</Toggle>
             <Menu>
               <Item>Item 1</Item>
@@ -248,14 +248,14 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(document.body)
-        expect(onToggleSpy).toHaveBeenCalledWith(false)
+        expect(mock).toHaveBeenCalledWith(false)
       })
     })
     describe('autoClose="inside"', () => {
       it("should close on child selection", () => {
-        const onToggleSpy = jest.fn()
+        const mock = jest.fn()
         const { getByTestId } = render(
-          <Dropdown defaultShow onToggle={onToggleSpy} autoClose="inside">
+          <Dropdown defaultShow onToggle={mock} autoClose="inside">
             <Toggle>Toggle</Toggle>
             <Menu>
               <Item data-testid="item1">Item 1</Item>
@@ -263,12 +263,12 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(getByTestId("item1"))
-        expect(onToggleSpy).toHaveBeenCalledWith(false)
+        expect(mock).toHaveBeenCalledWith(false)
       })
       it("should not close on outer click", () => {
-        const onToggleSpy = jest.fn()
+        const mock = jest.fn()
         render(
-          <Dropdown defaultShow onToggle={onToggleSpy} autoClose="inside">
+          <Dropdown defaultShow onToggle={mock} autoClose="inside">
             <Toggle>Toggle</Toggle>
             <Menu>
               <Item>Item 1</Item>
@@ -276,14 +276,14 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(document.body)
-        expect(onToggleSpy).not.toHaveBeenCalled()
+        expect(mock).not.toHaveBeenCalled()
       })
     })
     describe('autoClose="outside"', () => {
       it("should not close on child selection", () => {
-        const onToggleSpy = jest.fn()
+        const mock = jest.fn()
         const { getByTestId } = render(
-          <Dropdown defaultShow onToggle={onToggleSpy} autoClose="outside">
+          <Dropdown defaultShow onToggle={mock} autoClose="outside">
             <Toggle>Toggle</Toggle>
             <Menu>
               <Item data-testid="item1">Item 1</Item>
@@ -291,12 +291,12 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(getByTestId("item1"))
-        expect(onToggleSpy).not.toHaveBeenCalled()
+        expect(mock).not.toHaveBeenCalled()
       })
       it("should close on outer click", () => {
-        const onToggleSpy = jest.fn()
+        const mock = jest.fn()
         render(
-          <Dropdown defaultShow onToggle={onToggleSpy} autoClose="outside">
+          <Dropdown defaultShow onToggle={mock} autoClose="outside">
             <Toggle>Toggle</Toggle>
             <Menu>
               <Item>Item 1</Item>
@@ -304,14 +304,14 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(document.body)
-        expect(onToggleSpy).to.be.calledWith(false)
+        expect(mock).toHaveBeenCalledWith(false)
       })
     })
     describe('autoClose="false"', () => {
       it("should not close on child selection", () => {
-        const onToggleSpy = jest.fn()
+        const mock = jest.fn()
         const { getByTestId } = render(
-          <Dropdown defaultShow onToggle={onToggleSpy} autoClose={false}>
+          <Dropdown defaultShow onToggle={mock} autoClose={false}>
             <Toggle>Toggle</Toggle>
             <Menu>
               <Item data-testid="item1">Item 1</Item>
@@ -319,12 +319,12 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(getByTestId("item1"))
-        expect(onToggleSpy).not.toHaveBeenCalled()
+        expect(mock).not.toHaveBeenCalled()
       })
       it("should not close on outer click", () => {
-        const onToggleSpy = jest.fn()
+        const mock = jest.fn()
         render(
-          <Dropdown defaultShow onToggle={onToggleSpy} autoClose={false}>
+          <Dropdown defaultShow onToggle={mock} autoClose={false}>
             <Toggle>Toggle</Toggle>
             <Menu>
               <Item>Item 1</Item>
@@ -332,7 +332,7 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(document.body)
-        expect(onToggleSpy).not.toHaveBeenCalled()
+        expect(mock).not.toHaveBeenCalled()
       })
     })
   })
@@ -386,9 +386,9 @@ describe("<Button>", () => {
     expect(menu!.classList.contains("dropdown-menu-dark")).toBe(true)
   })
   it("forwards onSelect handler to Items", () => {
-    const onSelectSpy = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
-      <Button defaultShow title="Simple Dropdown" onSelect={onSelectSpy}>
+      <Button defaultShow title="Simple Dropdown" onSelect={mock}>
         <Item eventKey="1" data-testid="key1">
           Item 1
         </Item>
@@ -401,20 +401,20 @@ describe("<Button>", () => {
       </Button>
     )
     fireEvent.click(getByTestId("key1"))
-    expect(onSelectSpy).to.be.calledWith("1")
+    expect(mock).toHaveBeenCalledWith("1")
     fireEvent.click(getByTestId("key2"))
-    expect(onSelectSpy).to.be.calledWith("2")
+    expect(mock).toHaveBeenCalledWith("2")
     fireEvent.click(getByTestId("key3"))
-    expect(onSelectSpy).to.be.calledWith("3")
-    expect(onSelectSpy).to.be.calledThrice
+    expect(mock).toHaveBeenCalledWith("3")
+    expect(mock).to.be.calledThrice
   })
   it("does not close when onToggle is controlled", () => {
-    const onSelectSpy = jest.fn()
+    const mock = jest.fn()
     const { container, getByTestId } = render(
       <Button
         show
         title="Simple Dropdown"
-        onToggle={onSelectSpy}
+        onToggle={mock}
         data-testid="test-id"
       >
         <Item eventKey="1" data-testid="key1">
@@ -424,7 +424,7 @@ describe("<Button>", () => {
     )
     fireEvent.click(getByTestId("test-id").firstElementChild!)
     fireEvent.click(getByTestId("key1"))
-    expect(onSelectSpy).toHaveBeenCalledWith(false)
+    expect(mock).toHaveBeenCalledWith(false)
     const menu = container.querySelector("div[x-placement]")
     expect(menu!).toBeTruthy()
   })
@@ -488,16 +488,16 @@ describe("<Item>", () => {
     expect(node.style.height).toEqual("100px")
   })
   it("renders menu item link", () => {
-    const onKeyDownSpy = jest.fn()
+    const mock = jest.fn()
     const { getByText } = render(
-      <Item onKeyDown={onKeyDownSpy} href="/herpa-derpa">
+      <Item onKeyDown={mock} href="/herpa-derpa">
         Item
       </Item>
     )
     const node = getByText("Item")
     expect(node.getAttribute("href")!).toEqual("/herpa-derpa")
     fireEvent.keyDown(node, { key: "a" })
-    expect(onKeyDownSpy).to.be.called
+    expect(mock).to.be.called
   })
   it("should render as a button when set", () => {
     const { getByTestId } = render(
@@ -684,12 +684,12 @@ describe("<Toggle>", () => {
     expect(getByText("herpa derpa")).toBeTruthy()
   })
   it("forwards onClick handler", () => {
-    const onClickSpy = jest.fn()
+    const mock = jest.fn()
     const { container } = render(
-      <Toggle id="test-id" title="click forwards" onClick={onClickSpy} />
+      <Toggle id="test-id" title="click forwards" onClick={mock} />
     )
     fireEvent.click(container.firstElementChild!)
-    expect(onClickSpy).to.be.called
+    expect(mock).to.be.called
   })
   it("forwards id", () => {
     const { container } = render(<Toggle id="testid" />)

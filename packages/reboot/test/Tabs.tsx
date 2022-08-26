@@ -69,9 +69,9 @@ describe("<Tabs>", () => {
     const onSelect = key => {
       expect(key).toEqual("2")
     }
-    const onSelectSpy = jest.fn(onSelect)
+    const mock = jest.fn(onSelect)
     const { getByText } = render(
-      <Tabs id="test" onSelect={onSelectSpy} activeKey={1}>
+      <Tabs id="test" onSelect={mock} activeKey={1}>
         <Tab title="Tab 1" eventKey="1">
           Tab 1 content
         </Tab>
@@ -81,7 +81,7 @@ describe("<Tabs>", () => {
       </Tabs>
     )
     fireEvent.click(getByText("Tab 2"))
-    expect(onSelectSpy).toHaveBeenCalled()
+    expect(mock).toHaveBeenCalled()
   })
   it("Should have children with the correct DOM properties", () => {
     const { getByText } = render(
@@ -123,9 +123,9 @@ describe("<Tabs>", () => {
   })
   it("Should pass disabled to Nav", () => {
     const onSelect = e => e
-    const onSelectSpy = jest.fn(onSelect)
+    const mock = jest.fn(onSelect)
     const { getByText } = render(
-      <Tabs id="test" defaultActiveKey={1} onSelect={onSelectSpy}>
+      <Tabs id="test" defaultActiveKey={1} onSelect={mock}>
         <Tab title="Tab 1" eventKey={1}>
           Tab 1 content
         </Tab>
@@ -136,7 +136,7 @@ describe("<Tabs>", () => {
     )
     const secondTabTitle = getByText("Tab 2")
     expect(secondTabTitle.classList.contains("disabled")).toBe(true)
-    expect(onSelectSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("Should not render a Tab without a title", () => {
     shouldWarn("Failed prop")

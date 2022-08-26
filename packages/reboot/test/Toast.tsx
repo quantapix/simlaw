@@ -2,13 +2,8 @@ import * as React from "react"
 import { fireEvent, render } from "@testing-library/react"
 import { Body, Container, Header, Position, Toast } from "../src/Toast.jsx"
 
-const getToast = ({
-  delay = 500,
-  onCloseSpy,
-  autohide = true,
-  show = true,
-}) => (
-  <Toast delay={delay} onClose={onCloseSpy} show={show} autohide={autohide}>
+const getToast = ({ delay = 500, mock, autohide = true, show = true }) => (
+  <Toast delay={delay} onClose={mock} show={show} autohide={autohide}>
     <Header>header-content</Header>
     <Body>body-content</Body>
   </Toast>
@@ -67,9 +62,9 @@ describe("<Toast>", () => {
     )
   })
   it("should trigger the onClose event after clicking on the close button", () => {
-    const onCloseSpy = jest.fn()
+    const mock = jest.fn()
     const { container } = render(
-      <Toast onClose={onCloseSpy}>
+      <Toast onClose={mock}>
         <Header>header-content</Header>
         <Body>body-content</Body>
       </Toast>
@@ -77,84 +72,84 @@ describe("<Toast>", () => {
     fireEvent.click(
       container.firstElementChild!.getElementsByTagName("button")[0]
     )
-    expect(onCloseSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should trigger the onClose event after the autohide delay", () => {
-    const onCloseSpy = jest.fn()
+    const mock = jest.fn()
     render(
-      <Toast onClose={onCloseSpy} delay={500} show autohide>
+      <Toast onClose={mock} delay={500} show autohide>
         <Header>header-content</Header>
         <Body>body-content</Body>
       </Toast>
     )
     clock.tick(1000)
-    expect(onCloseSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should not trigger the onClose event if autohide is not set", () => {
-    const onCloseSpy = jest.fn()
+    const mock = jest.fn()
     render(
-      <Toast onClose={onCloseSpy}>
+      <Toast onClose={mock}>
         <Header>header-content</Header>
         <Body>body-content</Body>
       </Toast>
     )
     clock.tick(3000)
-    expect(onCloseSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("should clearTimeout after unmount", () => {
-    const onCloseSpy = jest.fn()
+    const mock = jest.fn()
     const { unmount } = render(
-      <Toast delay={500} onClose={onCloseSpy} show autohide>
+      <Toast delay={500} onClose={mock} show autohide>
         <Header>header-content</Header>
         <Body>body-content</Body>
       </Toast>
     )
     unmount()
     clock.tick(1000)
-    expect(onCloseSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("should not reset autohide timer when element re-renders with same props", () => {
-    const onCloseSpy = jest.fn()
-    const toast = getToast({ onCloseSpy })
+    const mock = jest.fn()
+    const toast = getToast({ mock })
     const { rerender } = render(toast)
     clock.tick(250)
     rerender(toast)
     clock.tick(300)
-    expect(onCloseSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should not reset autohide timer when delay is changed", () => {
-    const onCloseSpy = jest.fn()
-    const { rerender } = render(getToast({ delay: 500, onCloseSpy }))
+    const mock = jest.fn()
+    const { rerender } = render(getToast({ delay: 500, mock }))
     clock.tick(250)
-    rerender(getToast({ delay: 10000, onCloseSpy }))
+    rerender(getToast({ delay: 10000, mock }))
     clock.tick(300)
-    expect(onCloseSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should not reset autohide timer when onClosed is changed", () => {
-    const onCloseSpy = jest.fn()
-    const onCloseSpy2 = jest.fn()
-    const { rerender } = render(getToast({ onCloseSpy }))
+    const mock = jest.fn()
+    const mock2 = jest.fn()
+    const { rerender } = render(getToast({ mock }))
     clock.tick(250)
-    rerender(getToast({ onCloseSpy: onCloseSpy2 }))
+    rerender(getToast({ mock: mock2 }))
     clock.tick(300)
-    expect(onCloseSpy).not.toHaveBeenCalled()
-    expect(onCloseSpy2).toHaveBeenCalledTimes(1)
+    expect(mock).not.toHaveBeenCalled()
+    expect(mock2).toHaveBeenCalledTimes(1)
   })
   it("should not call onClose if autohide is changed from true to false", () => {
-    const onCloseSpy = jest.fn()
-    const { rerender } = render(getToast({ onCloseSpy, autohide: true }))
+    const mock = jest.fn()
+    const { rerender } = render(getToast({ mock, autohide: true }))
     clock.tick(250)
-    rerender(getToast({ onCloseSpy, autohide: false }))
+    rerender(getToast({ mock, autohide: false }))
     clock.tick(300)
-    expect(onCloseSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("should not call onClose if show is changed from true to false", () => {
-    const onCloseSpy = jest.fn()
-    const { rerender } = render(getToast({ show: true, onCloseSpy }))
+    const mock = jest.fn()
+    const { rerender } = render(getToast({ show: true, mock }))
     clock.tick(100)
-    rerender(getToast({ show: false, onCloseSpy }))
+    rerender(getToast({ show: false, mock }))
     clock.tick(300)
-    expect(onCloseSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("should render with bsPrefix", () => {
     const { container } = render(

@@ -74,14 +74,14 @@ describe("<Item>", () => {
     expect(queryAllByRole("listitem", { current: "page" }).length).toEqual(1)
   })
   it("Should spread additional props onto inner element", () => {
-    const handleClick = jest.fn()
+    const mock = jest.fn()
     const { getByRole } = render(
-      <Item href="#" onClick={handleClick}>
+      <Item href="#" onClick={mock}>
         Crumb
       </Item>
     )
     fireEvent.click(getByRole("button"))
-    expect(handleClick).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("Should apply id onto the li element", () => {
     const { container } = render(

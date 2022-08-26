@@ -40,18 +40,17 @@ describe("<Modal>", () => {
         <strong>Message</strong>
       </Modal>
     )
-    // the modal-dialog element is pointer-events: none;
     fireEvent.click(getByRole("dialog"))
   })
   it('Should not close the modal when the "static" dialog is clicked', () => {
-    const onHideSpy = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
-      <Modal show onHide={onHideSpy} backdrop="static" data-testid="modal">
+      <Modal show onHide={mock} backdrop="static" data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
     fireEvent.click(getByTestId("modal"))
-    expect(onHideSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it('Should show "static" dialog animation when backdrop is clicked', () => {
     const { getByRole } = render(
@@ -221,23 +220,23 @@ describe("<Modal>", () => {
     expect(document.querySelector(".custom-dialog")!).toBeTruthy()
   })
   it("Should pass transition callbacks to Transition", done => {
-    const increment = jest.fn()
+    const mock = jest.fn()
     const Elem = () => {
       const [show, setShow] = React.useState(true)
       return (
         <Modal
           show={show}
-          onEnter={increment}
-          onEntering={increment}
+          onEnter={mock}
+          onEntering={mock}
           onEntered={() => {
-            increment()
+            mock()
             setShow(false)
           }}
-          onExit={increment}
-          onExiting={increment}
+          onExit={mock}
+          onExiting={mock}
           onExited={() => {
-            increment()
-            expect(increment.callCount).toEqual(6)
+            mock()
+            expect(mock.callCount).toEqual(6)
             done()
           }}
         >
@@ -248,7 +247,7 @@ describe("<Modal>", () => {
     render(<Elem />)
   })
   it("should call `transitionend` before `exited`", done => {
-    const increment = jest.fn()
+    const mock = jest.fn()
     const { getByRole, rerender } = render(
       <Modal
         show
@@ -259,13 +258,13 @@ describe("<Modal>", () => {
       </Modal>
     )
     const modal = getByRole("dialog")
-    modal.addEventListener("transitionend", increment)
+    modal.addEventListener("transitionend", mock)
     rerender(
       <Modal
         show={false}
         onExited={() => {
-          expect(increment.callCount).toEqual(1)
-          modal.removeEventListener("transitionend", increment)
+          expect(mock.callCount).toEqual(1)
+          modal.removeEventListener("transitionend", mock)
           done()
         }}
       >
@@ -274,12 +273,12 @@ describe("<Modal>", () => {
     )
   })
   describe("cleanup", () => {
-    let offSpy
+    let mock
     beforeEach(() => {
-      offSpy = jest.fn(window, "removeEventListener")
+      mock = jest.fn(window, "removeEventListener")
     })
     afterEach(() => {
-      offSpy.restore()
+      mock.restore()
     })
     it("should remove resize listener when unmounted", () => {
       class Component extends React.Component {
@@ -295,30 +294,30 @@ describe("<Modal>", () => {
       }
       const { rerender } = render(<Component />)
       rerender(<Modal show={false}>Foo</Modal>)
-      expect(offSpy).toHaveBeenCalledWith("resize")
+      expect(mock).toHaveBeenCalledWith("resize")
     })
   })
   it("Should close once it was clicked outside of the Modal", () => {
-    const onHideSpy = jest.fn()
+    const mock = jest.fn()
     const { getByRole } = render(
-      <Modal show onHide={onHideSpy}>
+      <Modal show onHide={mock}>
         <strong>Message</strong>
       </Modal>
     )
     fireEvent.click(getByRole("dialog"))
-    expect(onHideSpy).toHaveBeenCalled()
+    expect(mock).toHaveBeenCalled()
   })
   it("Should not call onHide if the click target comes from inside the dialog", () => {
-    const onHideSpy = jest.fn()
+    const mock = jest.fn()
     const { getByTestId, getByRole } = render(
-      <Modal show onHide={onHideSpy} data-testid="modal">
+      <Modal show onHide={mock} data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
     fireEvent.mouseDown(getByTestId("modal"))
     fireEvent.mouseUp(getByRole("dialog"))
     fireEvent.click(getByRole("dialog"))
-    expect(onHideSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it('Should set aria-labelledby to the role="dialog" element if aria-labelledby set', () => {
     const { getByRole } = render(
@@ -356,28 +355,28 @@ describe("<Modal>", () => {
     expect(getByRole("dialog").getAttribute("aria-label")).toEqual(labelValue)
   })
   it("Should call onEscapeKeyDown when keyboard is true", () => {
-    const onEscapeKeyDownSpy = jest.fn()
+    const mock = jest.fn()
     const { getByRole } = render(
-      <Modal show keyboard onEscapeKeyDown={onEscapeKeyDownSpy}>
+      <Modal show keyboard onEscapeKeyDown={mock}>
         <strong>Message</strong>
       </Modal>
     )
     fireEvent.keyDown(getByRole("dialog"), {
       keyCode: 27,
     })
-    expect(onEscapeKeyDownSpy).toHaveBeenCalled()
+    expect(mock).toHaveBeenCalled()
   })
   it("Should not call onEscapeKeyDown when keyboard is false", () => {
-    const onEscapeKeyDownSpy = jest.fn()
+    const mock = jest.fn()
     const { getByRole } = render(
-      <Modal show keyboard={false} onEscapeKeyDown={onEscapeKeyDownSpy}>
+      <Modal show keyboard={false} onEscapeKeyDown={mock}>
         <strong>Message</strong>
       </Modal>
     )
     fireEvent.keyDown(getByRole("dialog"), {
       keyCode: 27,
     })
-    expect(onEscapeKeyDownSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("Should use custom props manager if specified", done => {
     class MyModalManager extends Manager {
@@ -420,12 +419,12 @@ describe("Header", () => {
     expect(getByTestId("test-modal").querySelector("button")!).toBeTruthy()
   })
   it("Should trigger onHide when modal is closed", () => {
-    const onHideSpy = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
-      <Header data-testid="test-modal" closeButton onHide={onHideSpy} />
+      <Header data-testid="test-modal" closeButton onHide={mock} />
     )
     fireEvent.click(getByTestId("test-modal").querySelector("button")!)
-    expect(onHideSpy).to.be.calledOnce
+    expect(mock).toHaveReturnedTimes(1)
   })
   it("should render close button variant", () => {
     const { getByTestId } = render(

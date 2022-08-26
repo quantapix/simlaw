@@ -133,20 +133,18 @@ describe("<Item>", () => {
   })
   describe("onClick", () => {
     it("Should call on click", () => {
-      const onClickSpy = jest.fn()
-      const { getByTestId } = render(
-        <Item onClick={onClickSpy} data-testid="test" />
-      )
+      const mock = jest.fn()
+      const { getByTestId } = render(<Item onClick={mock} data-testid="test" />)
       fireEvent.click(getByTestId("test"))
-      expect(onClickSpy).toHaveBeenCalledTimes(1)
+      expect(mock).toHaveBeenCalledTimes(1)
     })
     it("Should not call if disabled", () => {
-      const onClickSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
-        <Item onClick={onClickSpy} disabled data-testid="test" />
+        <Item onClick={mock} disabled data-testid="test" />
       )
       fireEvent.click(getByTestId("test"))
-      expect(onClickSpy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
     })
   })
 })

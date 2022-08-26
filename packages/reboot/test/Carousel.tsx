@@ -1,8 +1,8 @@
-import * as React from "react"
-import { Simulate } from "react-dom/test-utils"
-import { fireEvent, render, RenderResult } from "@testing-library/react"
 import { Carousel, Item, Ref, Caption } from "../src/Carousel.jsx"
+import { fireEvent, render, RenderResult } from "@testing-library/react"
+import { Simulate } from "react-dom/test-utils"
 import { Theme } from "../src/Theme.jsx"
+import * as React from "react"
 
 describe("<Carousel>", () => {
   const CarouselItemTestId = "carousel-item-test"
@@ -31,8 +31,8 @@ describe("<Carousel>", () => {
   it("should show the first item by default and render all", () => {
     const { getAllByTestId, container } = render(<Carousel>{items}</Carousel>)
     const carouselItems = getAllByTestId(CarouselItemTestId)
-    expect(carouselItems[0].classList.contains("active")).toBe(true)
-    expect(carouselItems[1].classList.contains("active")).toBe(false)
+    expect(carouselItems[0]!.classList.contains("active")).toBe(true)
+    expect(carouselItems[1]!.classList.contains("active")).toBe(false)
     expect(
       container.querySelectorAll(".carousel-indicators > button")
     ).toHaveLength(items.length)
@@ -42,8 +42,8 @@ describe("<Carousel>", () => {
       <Carousel defaultActiveIndex={1}>{items}</Carousel>
     )
     const carouselItems = getAllByTestId(CarouselItemTestId)
-    expect(carouselItems[0].classList.contains("active")).toBe(false)
-    expect(carouselItems[1].classList.contains("active")).toBe(true)
+    expect(carouselItems[0]!.classList.contains("active")).toBe(false)
+    expect(carouselItems[1]!.classList.contains("active")).toBe(true)
   })
   it("should handle falsy children", () => {
     const { getAllByTestId, container } = render(
@@ -56,21 +56,21 @@ describe("<Carousel>", () => {
       </Carousel>
     )
     const carouselItems = getAllByTestId(CarouselItemTestId)
-    expect(carouselItems[0].classList.contains("active")).toBe(true)
-    expect(carouselItems[0].innerText).toEqual("Item 1 content")
+    expect(carouselItems[0]!.classList.contains("active")).toBe(true)
+    expect(carouselItems[0]!.innerText).toEqual("Item 1 content")
     expect(
       container.querySelectorAll(".carousel-indicators > button")
     ).toHaveLength(2)
   })
   it("should call onSelect when indicator selected", () => {
-    const onSelect = jest.fn()
+    const mock = jest.fn()
     const { getByLabelText } = render(
-      <Carousel activeIndex={1} onSelect={onSelect} interval={null}>
+      <Carousel activeIndex={1} onSelect={mock} interval={null}>
         {items}
       </Carousel>
     )
     fireEvent.click(getByLabelText("Slide 1"))
-    expect(onSelect).to.be.calledOnceWith(0)
+    expect(mock).toHaveReturnedTimes(1).With(0)
   })
   it("should render custom indicator labels", () => {
     const indicatorLabels = ["custom1", "custom2", "custom3"]
@@ -114,9 +114,9 @@ describe("<Carousel>", () => {
     })
     it("should allow refs to be attached and expose next, prev functions", () => {
       const ref = React.createRef<Ref>()
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       render(
-        <Carousel ref={ref} onSelect={onSelectSpy} defaultActiveIndex={1}>
+        <Carousel ref={ref} onSelect={mock} defaultActiveIndex={1}>
           {items}
         </Carousel>
       )
@@ -127,10 +127,10 @@ describe("<Carousel>", () => {
         .and.instanceOf(HTMLElement)
       ref.current!.next()
       clock.tick(50)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1)
+      expect(mock).toHaveBeenCalledTimes(1)
       ref.current!.prev()
       clock.tick(50)
-      expect(onSelectSpy).toHaveBeenCalledTimes(2)
+      expect(mock).toHaveBeenCalledTimes(2)
     })
   })
   ;["onSlide", "onSlid"].forEach(eventName => {
@@ -272,20 +272,20 @@ describe("<Carousel>", () => {
     })
   })
   it("should transition properly when slide animation is disabled", () => {
-    const spy = jest.fn()
+    const mock = jest.fn()
     const { container } = render(
-      <Carousel slide={false} onSelect={spy}>
+      <Carousel slide={false} onSelect={mock}>
         {items}
       </Carousel>
     )
     fireEvent.click(
       container.querySelector<HTMLElement>("a.carousel-control-next")!
     )
-    expect(spy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
     fireEvent.click(
       container.querySelector<HTMLElement>("a.carousel-control-prev")!
     )
-    expect(spy).toHaveBeenCalledTimes(2)
+    expect(mock).toHaveBeenCalledTimes(2)
   })
   it("should render on update, active item > new child length", () => {
     const { queryAllByLabelText, queryAllByText, rerender } = render(
@@ -328,20 +328,20 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should go through the items after given seconds", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const interval = 500
       render(
-        <Carousel interval={interval} onSelect={onSelectSpy}>
+        <Carousel interval={interval} onSelect={mock}>
           {items}
         </Carousel>
       )
       clock.tick(interval * 1.5)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1)
+      expect(mock).toHaveBeenCalledTimes(1)
     })
     it("should go through the items given the specified intervals", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       render(
-        <Carousel interval={5000} onSelect={onSelectSpy}>
+        <Carousel interval={5000} onSelect={mock}>
           <Item interval={1000}>Item 1 content</Item>
           <Item>Item 2 content</Item>
         </Carousel>
@@ -350,31 +350,31 @@ describe("<Carousel>", () => {
       // but short enough to not trigger auto-play to occur twice
       // (since the interval for the second item should be `5000`)
       clock.tick(1100)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1).With(1)
+      expect(mock).toHaveBeenCalledTimes(1).With(1)
     })
     it("should stop going through items on hover and continue afterwards", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const interval = 500
       const { getByTestId } = render(
-        <Carousel interval={interval} onSelect={onSelectSpy} data-testid="test">
+        <Carousel interval={interval} onSelect={mock} data-testid="test">
           {items}
         </Carousel>
       )
       const carousel = getByTestId("test")
       fireEvent.mouseOver(carousel)
       clock.tick(interval * 1.5)
-      expect(onSelectSpy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
       fireEvent.mouseOut(carousel)
       clock.tick(interval * 1.5)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1)
+      expect(mock).toHaveBeenCalledTimes(1)
     })
     it("should ignore hover if the prop is passed", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const interval = 500
       const { getByTestId } = render(
         <Carousel
           interval={interval}
-          onSelect={onSelectSpy}
+          onSelect={mock}
           pause={false}
           data-testid="test"
         >
@@ -383,19 +383,19 @@ describe("<Carousel>", () => {
       )
       fireEvent.mouseOver(getByTestId("test"))
       clock.tick(interval * 1.5)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1)
+      expect(mock).toHaveBeenCalledTimes(1)
     })
     it("should stop going through the items after unmounting", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const interval = 500
       const { unmount } = render(
-        <Carousel interval={interval} onSelect={onSelectSpy}>
+        <Carousel interval={interval} onSelect={mock}>
           {items}
         </Carousel>
       )
       unmount()
       clock.tick(interval * 1.5)
-      expect(onSelectSpy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
     })
   })
   describe("wrapping", () => {
@@ -407,9 +407,9 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should wrap to last from first", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
-        <Carousel activeIndex={0} onSelect={onSelectSpy} data-testid="test">
+        <Carousel activeIndex={0} onSelect={mock} data-testid="test">
           {items}
         </Carousel>
       )
@@ -417,16 +417,16 @@ describe("<Carousel>", () => {
         key: "ArrowLeft",
       })
       clock.tick(50)
-      expect(onSelectSpy)
+      expect(mock)
         .toHaveBeenCalledTimes(1)
         .With(items.length - 1)
     })
     it("should wrap from first to last", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
         <Carousel
           activeIndex={items.length - 1}
-          onSelect={onSelectSpy}
+          onSelect={mock}
           data-testid="test"
         >
           {items}
@@ -436,7 +436,7 @@ describe("<Carousel>", () => {
         key: "ArrowRight",
       })
       clock.tick(50)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1).With(0)
+      expect(mock).toHaveBeenCalledTimes(1).With(0)
     })
     ;[
       {
@@ -455,12 +455,12 @@ describe("<Carousel>", () => {
       },
     ].forEach(({ caseName, activeIndex, eventPayload }) => {
       it(`should not wrap with wrap unset for ${caseName}`, () => {
-        const onSelectSpy = jest.fn()
+        const mock = jest.fn()
         const { getByTestId, getAllByTestId } = render(
           <Carousel
             activeIndex={activeIndex}
             wrap={false}
-            onSelect={onSelectSpy}
+            onSelect={mock}
             data-testid="test"
           >
             {items}
@@ -473,7 +473,7 @@ describe("<Carousel>", () => {
         expect(carouselItems[activeIndex].classList.contains("active")).toBe(
           true
         )
-        expect(onSelectSpy).not.toHaveBeenCalled()
+        expect(mock).not.toHaveBeenCalled()
       })
     })
   })
@@ -486,9 +486,9 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should go back for the keyboard event ArrowLeft", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
-        <Carousel activeIndex={1} onSelect={onSelectSpy} data-testid="test">
+        <Carousel activeIndex={1} onSelect={mock} data-testid="test">
           {items}
         </Carousel>
       )
@@ -496,12 +496,12 @@ describe("<Carousel>", () => {
         key: "ArrowLeft",
       })
       clock.tick(50)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1).With(0)
+      expect(mock).toHaveBeenCalledTimes(1).With(0)
     })
     it("should go forward for the keyboard event ArrowRight", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
-        <Carousel activeIndex={1} onSelect={onSelectSpy} data-testid="test">
+        <Carousel activeIndex={1} onSelect={mock} data-testid="test">
           {items}
         </Carousel>
       )
@@ -509,14 +509,14 @@ describe("<Carousel>", () => {
         key: "ArrowRight",
       })
       clock.tick(50)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1).With(2)
+      expect(mock).toHaveBeenCalledTimes(1).With(2)
     })
     it("should ignore keyEvents when the keyboard is disabled", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
         <Carousel
           activeIndex={1}
-          onSelect={onSelectSpy}
+          onSelect={mock}
           keyboard={false}
           data-testid="test"
         >
@@ -527,12 +527,12 @@ describe("<Carousel>", () => {
         key: "ArrowRight",
       })
       clock.tick(50)
-      expect(onSelectSpy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
     })
     it("should handle a defined custom key event", () => {
-      const onKeyDownSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
-        <Carousel activeIndex={1} onKeyDown={onKeyDownSpy} data-testid="test">
+        <Carousel activeIndex={1} onKeyDown={mock} data-testid="test">
           {items}
         </Carousel>
       )
@@ -540,13 +540,13 @@ describe("<Carousel>", () => {
         key: "ArrowUp",
       })
       clock.tick(50)
-      expect(onKeyDownSpy).toHaveBeenCalledTimes(1)
+      expect(mock).toHaveBeenCalledTimes(1)
     })
     ;["ArrowUp", "ArrowRightLeft", "Onwards"].forEach(key => {
       it("should do nothing for non left or right keys", () => {
-        const onSelectSpy = jest.fn()
+        const mock = jest.fn()
         const { getByTestId } = render(
-          <Carousel activeIndex={1} onSelect={onSelectSpy} data-testid="test">
+          <Carousel activeIndex={1} onSelect={mock} data-testid="test">
             {items}
           </Carousel>
         )
@@ -554,7 +554,7 @@ describe("<Carousel>", () => {
           key,
         })
         clock.tick(50)
-        sinon.assert.notCalled(onSelectSpy)
+        sinon.assert.notCalled(mock)
       })
     })
   })
@@ -567,42 +567,38 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should handle a defined mouse over event", () => {
-      const onMouseOverSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
-        <Carousel
-          activeIndex={1}
-          onMouseOver={onMouseOverSpy}
-          data-testid="test"
-        >
+        <Carousel activeIndex={1} onMouseOver={mock} data-testid="test">
           {items}
         </Carousel>
       )
       fireEvent.mouseOver(getByTestId("test"))
       clock.tick(1500)
-      expect(onMouseOverSpy).toHaveBeenCalledTimes(1)
+      expect(mock).toHaveBeenCalledTimes(1)
     })
     it("should handle a defined mouse out event", () => {
-      const onMouseOutSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
-        <Carousel activeIndex={1} onMouseOut={onMouseOutSpy} data-testid="test">
+        <Carousel activeIndex={1} onMouseOut={mock} data-testid="test">
           {items}
         </Carousel>
       )
       fireEvent.mouseOut(getByTestId("test"))
       clock.tick(50)
-      expect(onMouseOutSpy).toHaveBeenCalledTimes(1)
+      expect(mock).toHaveBeenCalledTimes(1)
     })
   })
   describe("touch events", () => {
     let clock: sinon.SinonFakeTimers,
       renderResult: RenderResult,
       carousel: HTMLElement,
-      onSelectSpy: sinon.SinonSpy,
-      onTouchStartSpy: sinon.SinonSpy,
-      onTouchMoveSpy: sinon.SinonSpy,
-      onTouchEndSpy: sinon.SinonSpy
+      mock: jest.Mock,
+      onTouchStartSpy: jest.Mock,
+      onTouchMoveSpy: jest.Mock,
+      onTouchEndSpy: jest.Mock
     beforeEach(() => {
-      onSelectSpy = jest.fn()
+      mock = jest.fn()
       onTouchStartSpy = jest.fn()
       onTouchMoveSpy = jest.fn()
       onTouchEndSpy = jest.fn()
@@ -610,7 +606,7 @@ describe("<Carousel>", () => {
         <Carousel
           activeIndex={1}
           interval={null}
-          onSelect={onSelectSpy}
+          onSelect={mock}
           onTouchStart={onTouchStartSpy}
           onTouchMove={onTouchMoveSpy}
           onTouchEnd={onTouchEndSpy}
@@ -656,17 +652,17 @@ describe("<Carousel>", () => {
     it("should swipe right", () => {
       generateTouchEvents({ target: carousel, startX: 50, endX: 0 })
       clock.tick(50)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1).With(2)
+      expect(mock).toHaveBeenCalledTimes(1).With(2)
     })
     it("should swipe left", () => {
       generateTouchEvents({ target: carousel, startX: 0, endX: 50 })
       clock.tick(50)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1).With(0)
+      expect(mock).toHaveBeenCalledTimes(1).With(0)
     })
     it("should not swipe if swipe detected is under the swipe threshold", () => {
       generateTouchEvents({ target: carousel, startX: 0, endX: 35 })
       clock.tick(50)
-      expect(onSelectSpy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
     })
     it("should handle a custom touch start and end event", () => {
       generateTouchEvents({ target: carousel, startX: 50, endX: 0 })
@@ -697,7 +693,7 @@ describe("<Carousel>", () => {
         <Carousel
           activeIndex={1}
           interval={null}
-          onSelect={onSelectSpy}
+          onSelect={mock}
           touch={false}
           data-testid="test"
         >
@@ -707,7 +703,7 @@ describe("<Carousel>", () => {
       const noTouchCarousel = getByTestId("test")
       generateTouchEvents({ target: noTouchCarousel, startX: 50, endX: 0 })
       clock.tick(50)
-      expect(onSelectSpy).not.toHaveBeenCalled()
+      expect(mock).not.toHaveBeenCalled()
       const carouselItems = container.querySelectorAll(".carousel-item")
       expect(carouselItems).toHaveLength(3)
       expect(carouselItems[1]!.classList.contains("active")).toBe(true)
@@ -722,10 +718,10 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should call onSlide when slide animation is disabled", () => {
-      const onSlideSpy = jest.fn()
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
+      const mock2 = jest.fn()
       const { container } = render(
-        <Carousel slide={false} onSelect={onSelectSpy} onSlide={onSlideSpy}>
+        <Carousel slide={false} onSelect={mock} onSlide={mock2}>
           {items}
         </Carousel>
       )
@@ -733,18 +729,18 @@ describe("<Carousel>", () => {
         container.querySelector<HTMLElement>("a.carousel-control-next")!
       )
       clock.tick(150)
-      expect(onSlideSpy).toHaveBeenCalledTimes(1)
+      expect(mock2).toHaveBeenCalledTimes(1)
       fireEvent.click(
         container.querySelector<HTMLElement>("a.carousel-control-prev")!
       )
       clock.tick(150)
-      expect(onSlideSpy).toHaveBeenCalledTimes(2)
+      expect(mock2).toHaveBeenCalledTimes(2)
     })
     it("should call onSlid when slide animation is disabled", () => {
-      const onSlidSpy = jest.fn()
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
+      const mock2 = jest.fn()
       const { container } = render(
-        <Carousel slide={false} onSelect={onSelectSpy} onSlid={onSlidSpy}>
+        <Carousel slide={false} onSelect={mock} onSlid={mock2}>
           {items}
         </Carousel>
       )
@@ -752,38 +748,34 @@ describe("<Carousel>", () => {
         container.querySelector<HTMLElement>("a.carousel-control-next")!
       )
       clock.tick(150)
-      expect(onSlidSpy).toHaveBeenCalledTimes(1)
+      expect(mock2).toHaveBeenCalledTimes(1)
       fireEvent.click(
         container.querySelector<HTMLElement>("a.carousel-control-prev")!
       )
       clock.tick(150)
-      expect(onSlidSpy).toHaveBeenCalledTimes(2)
+      expect(mock2).toHaveBeenCalledTimes(2)
     })
     it("should transition/call onSelect once if previous arrow double clicked", () => {
-      const onSelectSpy = jest.fn()
-      const { container } = render(
-        <Carousel onSelect={onSelectSpy}>{items}</Carousel>
-      )
+      const mock = jest.fn()
+      const { container } = render(<Carousel onSelect={mock}>{items}</Carousel>)
       const prev = container.querySelector<HTMLElement>(
         "a.carousel-control-prev"
       )!
       fireEvent.click(prev)
       fireEvent.click(prev)
       clock.tick(1000)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1)
+      expect(mock).toHaveBeenCalledTimes(1)
     })
     it("should transition/call onSelect once if next arrow double clicked", () => {
-      const onSelectSpy = jest.fn()
-      const { container } = render(
-        <Carousel onSelect={onSelectSpy}>{items}</Carousel>
-      )
+      const mock = jest.fn()
+      const { container } = render(<Carousel onSelect={mock}>{items}</Carousel>)
       const next = container.querySelector<HTMLElement>(
         "a.carousel-control-next"
       )!
       fireEvent.click(next)
       fireEvent.click(next)
       clock.tick(1000)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1)
+      expect(mock).toHaveBeenCalledTimes(1)
     })
   })
   describe("RTL", () => {
@@ -795,10 +787,10 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should slide in correct direction on ArrowLeft when dir=rtl", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
         <Theme dir="rtl">
-          <Carousel activeIndex={1} onSelect={onSelectSpy} data-testid="test">
+          <Carousel activeIndex={1} onSelect={mock} data-testid="test">
             {items}
           </Carousel>
         </Theme>
@@ -807,13 +799,13 @@ describe("<Carousel>", () => {
         key: "ArrowLeft",
       })
       clock.tick(50)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1).With(2)
+      expect(mock).toHaveBeenCalledTimes(1).With(2)
     })
     it("should slide in correct direction on ArrowLeft when dir=rtl", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const { getByTestId } = render(
         <Theme dir="rtl">
-          <Carousel activeIndex={1} onSelect={onSelectSpy} data-testid="test">
+          <Carousel activeIndex={1} onSelect={mock} data-testid="test">
             {items}
           </Carousel>
         </Theme>
@@ -822,20 +814,20 @@ describe("<Carousel>", () => {
         key: "ArrowRight",
       })
       clock.tick(50)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1).With(0)
+      expect(mock).toHaveBeenCalledTimes(1).With(0)
     })
     it("should slide in correct direction automatically when dir=rtl", () => {
-      const onSelectSpy = jest.fn()
+      const mock = jest.fn()
       const interval = 300
       render(
         <Theme dir="rtl">
-          <Carousel activeIndex={1} onSelect={onSelectSpy} interval={interval}>
+          <Carousel activeIndex={1} onSelect={mock} interval={interval}>
             {items}
           </Carousel>
         </Theme>
       )
       clock.tick(interval * 1.5)
-      expect(onSelectSpy).toHaveBeenCalledTimes(1).With(0)
+      expect(mock).toHaveBeenCalledTimes(1).With(0)
     })
   })
 })

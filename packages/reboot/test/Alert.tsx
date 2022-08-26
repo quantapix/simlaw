@@ -25,14 +25,14 @@ describe("<Alert>", () => {
     ).toBe(true)
   })
   it("Should call onClose callback on dismiss click", () => {
-    const onCloseSpy = jest.fn()
+    const mock = jest.fn()
     const { getByLabelText } = render(
-      <Alert dismissible data-testid="test-alert" onClose={onCloseSpy}>
+      <Alert dismissible data-testid="test-alert" onClose={mock}>
         Message
       </Alert>
     )
     fireEvent.click(getByLabelText("Close alert"))
-    expect(onCloseSpy).to.be.calledOnce
+    expect(mock).toHaveReturnedTimes(1)
   })
   it('Should default to variant="primary"', () => {
     const { getByTestId } = render(

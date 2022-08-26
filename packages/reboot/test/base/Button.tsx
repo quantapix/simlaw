@@ -58,9 +58,9 @@ describe("<Button>", () => {
     expect(container.querySelector(`button[disabled]`)).toBeTruthy()
   })
   it("Should be inferred disabled link", () => {
-    const clickSpy = jest.fn()
+    const mock = jest.fn()
     const { container } = render(
-      <Button disabled href="#foo" onClick={clickSpy}>
+      <Button disabled href="#foo" onClick={mock}>
         Title
       </Button>
     )
@@ -68,49 +68,49 @@ describe("<Button>", () => {
     const anchor = container.querySelector(`a[role="button"][aria-disabled]`)!
     expect(anchor).toBeTruthy()
     fireEvent.click(anchor)
-    expect(clickSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   ;["#", ""].forEach(href => {
     it(`should prevent default on trivial href="${href}" clicks`, () => {
-      const clickSpy = jest.fn()
+      const mock = jest.fn()
       const { getByText } = render(
-        <div onClick={clickSpy}>
+        <div onClick={mock}>
           <Button href={href}>Title</Button>
         </div>
       )
       const button = getByText("Title")
       expect(button).toBeTruthy()
       fireEvent.click(button)
-      expect(clickSpy).toHaveBeenCalled()
-      const event = clickSpy.mock.calls[0].args[0]
+      expect(mock).toHaveBeenCalled()
+      const event = mock.mock.calls[0].args[0]
       expect(event.defaultPrevented).toEqual(true)
     })
   })
   it(`should not prevent default on button clicks`, () => {
-    const clickSpy = jest.fn()
+    const mock = jest.fn()
     const { getByText } = render(
-      <div onClick={clickSpy}>
+      <div onClick={mock}>
         <Button>Title</Button>
       </div>
     )
     const button = getByText("Title")
     expect(button).toBeTruthy()
     fireEvent.click(button)
-    expect(clickSpy).toHaveBeenCalled()
-    const event = clickSpy.mock.calls[0].args[0]
+    expect(mock).toHaveBeenCalled()
+    const event = mock.mock.calls[0].args[0]
     expect(event.defaultPrevented).toEqual(false)
   })
   it("Should be disabled link", () => {
-    const clickSpy = jest.fn()
+    const mock = jest.fn()
     const { container } = render(
-      <Button disabled as="a" onClick={clickSpy}>
+      <Button disabled as="a" onClick={mock}>
         Title
       </Button>
     )
     const anchor = container.querySelector(`a[role="button"][aria-disabled]`)!
     expect(anchor).toBeTruthy()
     fireEvent.click(anchor)
-    expect(clickSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("should render an anchor with # if href not provided", () => {
     const { container } = render(<Button as="a">Title</Button>)

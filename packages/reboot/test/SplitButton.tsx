@@ -40,20 +40,20 @@ describe("<SplitButton>", () => {
     fireEvent.click(splitButtonElem.firstElementChild!)
   })
   it("should not invoke onClick when SplitButton.Toggle is clicked (prop)", () => {
-    const onClickSpy = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
       <SplitButton
         data-testid="test-wrapper"
         title="Title"
         id="test-id"
-        onClick={onClickSpy}
+        onClick={mock}
       >
         <Item>Item 1</Item>
       </SplitButton>
     )
     const splitButtonElem = getByTestId("test-wrapper")
     fireEvent.click(splitButtonElem.children[1])
-    expect(onClickSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("Should pass disabled to both buttons", () => {
     const { getByTestId } = render(

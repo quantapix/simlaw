@@ -102,45 +102,45 @@ describe("<NavItem>", () => {
     expect(node.tabIndex).toEqual(-1)
   })
   it("should trigger onClick", () => {
-    const onClickSpy = jest.fn()
-    const { getByText } = render(<NavItem onClick={onClickSpy}>test</NavItem>)
+    const mock = jest.fn()
+    const { getByText } = render(<NavItem onClick={mock}>test</NavItem>)
     fireEvent.click(getByText("test"))
-    expect(onClickSpy).to.be.called
+    expect(mock).to.be.called
   })
   it("should not trigger onClick if disabled", () => {
-    const onClickSpy = jest.fn()
+    const mock = jest.fn()
     const { getByText } = render(
       // Render as div because onClick won't get triggered with Button when disabled.
-      <NavItem as="div" onClick={onClickSpy} disabled>
+      <NavItem as="div" onClick={mock} disabled>
         test
       </NavItem>
     )
     fireEvent.click(getByText("test"))
-    expect(onClickSpy).to.not.be.called
+    expect(mock).to.not.be.called
   })
   it("should call onSelect if a key is defined", () => {
-    const onSelect = jest.fn()
+    const mock = jest.fn()
     const { getByText } = render(
-      <SelectableContext.Provider value={onSelect}>
+      <SelectableContext.Provider value={mock}>
         <NavItem eventKey="abc">test</NavItem>
       </SelectableContext.Provider>
     )
     fireEvent.click(getByText("test"))
-    expect(onSelect).to.be.calledWith("abc")
+    expect(mock).toHaveBeenCalledWith("abc")
   })
   it("should not call onSelect onClick stopPropagation called", () => {
-    const onSelect = jest.fn()
+    const mock = jest.fn()
     const handleClick = (e: React.MouseEvent) => {
       e.stopPropagation()
     }
     const { getByText } = render(
-      <SelectableContext.Provider value={onSelect}>
+      <SelectableContext.Provider value={mock}>
         <NavItem eventKey="abc" onClick={handleClick}>
           test
         </NavItem>
       </SelectableContext.Provider>
     )
     fireEvent.click(getByText("test"))
-    expect(onSelect).to.not.be.called
+    expect(mock).to.not.be.called
   })
 })

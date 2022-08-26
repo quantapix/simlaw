@@ -32,14 +32,14 @@ describe("Fade", () => {
     )
   })
   it("should work with a class component as children", () => {
-    const onEnteringSpy = jest.fn()
+    const mock = jest.fn()
     class InnerComponent extends React.Component {
       override render() {
         return <div {...this.props}>test</div>
       }
     }
     const { getByTestId } = render(
-      <Fade in onEntering={onEnteringSpy} data-testid="test">
+      <Fade in onEntering={mock} data-testid="test">
         <InnerComponent />
       </Fade>
     )

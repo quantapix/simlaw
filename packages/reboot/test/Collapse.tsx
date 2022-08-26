@@ -38,18 +38,18 @@ describe("<Collapse>", () => {
         return <div {...this.props}>Inner</div>
       }
     }
-    const onEnteringSpy = jest.fn()
+    const mock = jest.fn()
     const { rerender } = render(
-      <Collapse onEntering={onEnteringSpy}>
+      <Collapse onEntering={mock}>
         <InnerComponent />
       </Collapse>
     )
     rerender(
-      <Collapse in onEntering={onEnteringSpy}>
+      <Collapse in onEntering={mock}>
         <InnerComponent />
       </Collapse>
     )
-    expect(onEnteringSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("Should default to collapsed", () => {
     const { getByTestId } = render(

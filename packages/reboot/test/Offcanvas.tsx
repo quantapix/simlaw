@@ -70,24 +70,24 @@ describe("<Offcanvas>", () => {
     expect(offcanvasElem.style.color).toEqual("red")
   })
   it("Should pass transition callbacks to Transition", done => {
-    const increment = jest.fn()
+    const mock = jest.fn()
     const Elem = () => {
       const [show, setShow] = React.useState(true)
       return (
         <Offcanvas
           show={show}
           onHide={noop}
-          onExit={increment}
-          onExiting={increment}
+          onExit={mock}
+          onExiting={mock}
           onExited={() => {
-            increment()
-            expect(increment.callCount).toEqual(6)
+            mock()
+            expect(mock.callCount).toEqual(6)
             done()
           }}
-          onEnter={increment}
-          onEntering={increment}
+          onEnter={mock}
+          onEntering={mock}
           onEntered={() => {
-            increment()
+            mock()
             setShow(false)
           }}
         >
@@ -98,51 +98,34 @@ describe("<Offcanvas>", () => {
     render(<Elem />)
   })
   it("Should close when backdrop clicked", () => {
-    const onHideSpy = jest.fn()
+    const mock = jest.fn()
     render(
-      <Offcanvas show onHide={onHideSpy}>
+      <Offcanvas show onHide={mock}>
         <strong>Message</strong>
       </Offcanvas>
     )
     const backdropElem =
       document.getElementsByClassName("offcanvas-backdrop")[0]
     fireEvent.click(backdropElem)
-    expect(onHideSpy).toHaveBeenCalled()
+    expect(mock).toHaveBeenCalled()
   })
   it("should not close when static backdrop is clicked", () => {
-    const onHideSpy = jest.fn()
+    const mock = jest.fn()
     render(
-      <Offcanvas show onHide={onHideSpy} backdrop="static">
+      <Offcanvas show onHide={mock} backdrop="static">
         <strong>Message</strong>
       </Offcanvas>
     )
     const backdropElem =
       document.getElementsByClassName("offcanvas-backdrop")[0]
     fireEvent.click(backdropElem)
-    expect(onHideSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
-  // TODO: unsure if we need this, since it seems like Offcanvas is still undergoing some
-  // changes upstream.
-  // it('Should close when anything outside offcanvas clicked and backdrop=false', () => {
-  //   const onHideSpy = jest.fn();
-  //   render(
-  //     <>
-  //       <Offcanvas show onHide={onHideSpy} backdrop={false}>
-  //         <strong>Message</strong>
-  //       </Offcanvas>
-  //       <button type="button" id="mybutton">
-  //         my button
-  //       </button>
-  //     </>,
-  //   );
-  //   fireEvent.click(document.body);
-  //   onHideSpy.should.have.been.called;
-  // });
   it("Should not call onHide if the click target comes from inside the offcanvas", () => {
-    const onHideSpy = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
       <>
-        <Offcanvas show onHide={onHideSpy} data-testid="test">
+        <Offcanvas show onHide={mock} data-testid="test">
           <strong>Message</strong>
         </Offcanvas>
         <div id="outside">outside</div>
@@ -150,7 +133,7 @@ describe("<Offcanvas>", () => {
     )
     const offcanvasElem = getByTestId("test")
     fireEvent.click(offcanvasElem)
-    expect(onHideSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it('Should set aria-labelledby to the role="dialog" element if aria-labelledby set', () => {
     const { getByTestId } = render(
@@ -173,34 +156,24 @@ describe("<Offcanvas>", () => {
     )
   })
   it("Should call onEscapeKeyDown when keyboard is true", () => {
-    const onEscapeKeyDownSpy = jest.fn()
+    const mock = jest.fn()
     render(
-      <Offcanvas
-        show
-        onHide={noop}
-        keyboard
-        onEscapeKeyDown={onEscapeKeyDownSpy}
-      >
+      <Offcanvas show onHide={noop} keyboard onEscapeKeyDown={mock}>
         <strong>Message</strong>
       </Offcanvas>
     )
     fireEvent.keyDown(document, { key: "Escape", code: "Escape", keyCode: 27 })
-    expect(onEscapeKeyDownSpy).toHaveBeenCalled()
+    expect(mock).toHaveBeenCalled()
   })
   it("Should not call onEscapeKeyDown when keyboard is false", () => {
-    const onEscapeKeyDownSpy = jest.fn()
+    const mock = jest.fn()
     render(
-      <Offcanvas
-        show
-        onHide={noop}
-        keyboard={false}
-        onEscapeKeyDown={onEscapeKeyDownSpy}
-      >
+      <Offcanvas show onHide={noop} keyboard={false} onEscapeKeyDown={mock}>
         <strong>Message</strong>
       </Offcanvas>
     )
     fireEvent.keyDown(document, { key: "Escape", code: "Escape", keyCode: 27 })
-    expect(onEscapeKeyDownSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("Should use custom props manager if specified", done => {
     class MyModalManager extends Manager {
@@ -256,15 +229,15 @@ describe("<Offcanvas>", () => {
       })
       return <div>Content</div>
     }
-    const onMountSpy = jest.fn()
-    const onUnmountSpy = jest.fn()
+    const mount = jest.fn()
+    const unmount = jest.fn()
     const { unmount } = render(
       <Offcanvas data-testid="test" onHide={noop} show>
-        <InnerComponent onMount={onMountSpy} onUnmount={onUnmountSpy} />
+        <InnerComponent onMount={mount} onUnmount={unmount} />
       </Offcanvas>
     )
-    expect(onMountSpy.callCount).toEqual(1)
+    expect(mount.callCount).toEqual(1)
     unmount()
-    expect(onUnmountSpy.callCount).toEqual(1)
+    expect(unmount.callCount).toEqual(1)
   })
 })

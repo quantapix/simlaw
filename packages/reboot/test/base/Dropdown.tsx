@@ -119,17 +119,17 @@ describe("<Dropdown>", () => {
     ).toBeTruthy()
   })
   it("closes when clicked outside", () => {
-    const closeSpy = jest.fn()
-    const { container } = render(<SimpleDropdown onToggle={closeSpy} />)
+    const mock = jest.fn()
+    const { container } = render(<SimpleDropdown onToggle={mock} />)
     fireEvent.click(container.querySelector(".toggle"))
     fireEvent.click(document.body)
-    expect(closeSpy).toHaveBeenCalledTimes(2)
-    expect(closeSpy.lastCall.args[0]).toEqual(false)
+    expect(mock).toHaveBeenCalledTimes(2)
+    expect(mock.lastCall.args[0]).toEqual(false)
   })
   it("closes when mousedown outside if rootCloseEvent set", () => {
-    const closeSpy = jest.fn()
+    const mock = jest.fn()
     const { container } = render(
-      <Dropdown onToggle={closeSpy} id="test-id">
+      <Dropdown onToggle={mock} id="test-id">
         <div>
           <Toggle>Child Title</Toggle>,
           <Menu rootCloseEvent="mousedown">
@@ -141,30 +141,30 @@ describe("<Dropdown>", () => {
     )
     fireEvent.click(container.querySelector(".toggle"))
     fireEvent.mouseDown(document.body)
-    expect(closeSpy).toHaveBeenCalledTimes(2)
-    expect(closeSpy.lastCall.args[0]).toEqual(false)
+    expect(mock).toHaveBeenCalledTimes(2)
+    expect(mock.lastCall.args[0]).toEqual(false)
   })
   it('when focused and closed toggles open when the key "down" is pressed', () => {
-    const closeSpy = jest.fn()
-    const { container } = render(<SimpleDropdown onToggle={closeSpy} />, {
+    const mock = jest.fn()
+    const { container } = render(<SimpleDropdown onToggle={mock} />, {
       container: focusableContainer,
     })
     fireEvent.keyDown(container.querySelector(".toggle"), { key: "ArrowDown" })
-    expect(closeSpy).toHaveBeenCalledTimes(1)
-    expect(closeSpy.lastCall.args[0]).toEqual(true)
+    expect(mock).toHaveBeenCalledTimes(1)
+    expect(mock.lastCall.args[0]).toEqual(true)
   })
   it("closes when item is clicked", () => {
-    const onToggle = jest.fn()
-    const root = render(<SimpleDropdown show onToggle={onToggle} />)
+    const mock = jest.fn()
+    const root = render(<SimpleDropdown show onToggle={mock} />)
     fireEvent.click(root.getByText("Item 4"))
-    expect(onToggle).toHaveBeenCalledWith(false)
+    expect(mock).toHaveBeenCalledWith(false)
   })
   it("does not close when onToggle is controlled", () => {
-    const onToggle = jest.fn()
-    const root = render(<SimpleDropdown show onToggle={onToggle} />)
+    const mock = jest.fn()
+    const root = render(<SimpleDropdown show onToggle={mock} />)
     fireEvent.click(root.getByText("Toggle"))
     fireEvent.click(root.getByText("Item 1"))
-    expect(onToggle).toHaveBeenCalledWith(false)
+    expect(mock).toHaveBeenCalledWith(false)
     expect(root.container.querySelector('div[data-show="true"]')).toBeTruthy()
   })
   it("has aria-labelledby same id as toggle button", () => {
@@ -273,9 +273,9 @@ describe("<Dropdown>", () => {
       expect(document.activeElement).toEqual(root.getByText("Toggle"))
     })
     it('when open and a search input is focused and the key "Escape" is pressed the menu stays open', () => {
-      const toggleSpy = jest.fn()
+      const mock = jest.fn()
       const root = render(
-        <Dropdown defaultShow onToggle={toggleSpy}>
+        <Dropdown defaultShow onToggle={mock}>
           <Toggle key="toggle">Toggle</Toggle>,
           <Menu key="menu">
             <input type="search" data-testid="input" />
@@ -290,7 +290,7 @@ describe("<Dropdown>", () => {
       expect(document.activeElement).toEqual(input)
       fireEvent.keyDown(input, { key: "Escape" })
       expect(document.activeElement).toEqual(input)
-      expect(toggleSpy).to.not.be.called
+      expect(mock).to.not.be.called
     })
     it('when open and the key "tab" is pressed the menu is closed and focus is progress to the next focusable element', () => {
       const root = render(
@@ -305,15 +305,12 @@ describe("<Dropdown>", () => {
       fireEvent.keyDown(toggle, { key: "Tab" })
       fireEvent.keyUp(toggle, { key: "Tab" })
       expect(toggle.getAttribute("aria-expanded")).toEqual("false")
-      // simulating a tab event doesn't actually shift focus.
-      // at least that seems to be the case according to SO.
-      // hence no assert on the input having focus.
     })
   })
   it('should not call onToggle if the menu ref not defined and "tab" is pressed', () => {
-    const onToggleSpy = jest.fn()
+    const mock = jest.fn()
     const root = render(
-      <SimpleDropdown onToggle={onToggleSpy} renderMenuOnMount={false} />,
+      <SimpleDropdown onToggle={mock} renderMenuOnMount={false} />,
       {
         container: focusableContainer,
       }
@@ -322,29 +319,29 @@ describe("<Dropdown>", () => {
     toggle.focus()
     fireEvent.keyDown(toggle, { key: "Tab" })
     fireEvent.keyUp(toggle, { key: "Tab" })
-    expect(onToggleSpy).to.not.be.called
+    expect(mock).to.not.be.called
   })
   it('should not call onToggle if the menu is hidden and "tab" is pressed', () => {
-    const onToggleSpy = jest.fn()
-    const root = render(<SimpleDropdown onToggle={onToggleSpy} />, {
+    const mock = jest.fn()
+    const root = render(<SimpleDropdown onToggle={mock} />, {
       container: focusableContainer,
     })
     const toggle = root.getByText("Toggle")
     toggle.focus()
     fireEvent.keyDown(toggle, { key: "Tab" })
     fireEvent.keyUp(toggle, { key: "Tab" })
-    expect(onToggleSpy).to.not.be.called
+    expect(mock).to.not.be.called
   })
   describe("popper config", () => {
     it("can add modifiers", done => {
-      const spy = jest.fn()
+      const mock = jest.fn()
       const popper = {
         modifiers: [
           {
             name: "test",
             enabled: true,
             phase: "write",
-            fn: spy,
+            fn: mock,
           },
         ],
       }
@@ -360,7 +357,7 @@ describe("<Dropdown>", () => {
         </Dropdown>
       )
       setTimeout(() => {
-        expect(spy).toHaveBeenCalledTimes(1)
+        expect(mock).toHaveBeenCalledTimes(1)
         done()
       })
     })

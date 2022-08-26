@@ -73,27 +73,27 @@ describe("<Navbar>", () => {
     expect(navToggleElem.tagName.toLowerCase()).toEqual("p")
   })
   it("Should trigger onToggle", () => {
-    const toggleSpy = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
-      <Navbar onToggle={toggleSpy}>
+      <Navbar onToggle={mock}>
         <Toggle data-testid="test" />
       </Navbar>
     )
     const toggleElem = getByTestId("test")
     fireEvent.click(toggleElem)
-    expect(toggleSpy).toHaveBeenCalledTimes(1)
-    expect(toggleSpy).toHaveBeenCalledWith(true)
+    expect(mock).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledWith(true)
   })
   it("Should not swallow onClick", () => {
-    const clickSpy = jest.fn()
+    const mock = jest.fn()
     const { getByTestId } = render(
       <Navbar>
-        <Toggle onClick={clickSpy} data-testid="test" />
+        <Toggle onClick={mock} data-testid="test" />
       </Navbar>
     )
     const toggleElem = getByTestId("test")
     fireEvent.click(toggleElem)
-    expect(clickSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("Should render collapse", () => {
     const { getByTestId } = render(
@@ -185,14 +185,14 @@ describe("<Navbar>", () => {
     fireEvent.click(innerLinkItem)
   })
   it("Should collapseOnSelect & fire Nav subcomponent onSelect event if expanded", () => {
-    const toggleSpy = jest.fn()
-    const navItemSpy = jest.fn()
+    const toggle = jest.fn()
+    const item = jest.fn()
     const { getByTestId } = render(
-      <Navbar collapseOnSelect onToggle={toggleSpy} expanded>
+      <Navbar collapseOnSelect onToggle={toggle} expanded>
         <Toggle />
         <Collapse>
           <Nav as="div">
-            <Link href="#" onClick={navItemSpy}>
+            <Link href="#" onClick={item}>
               <span className="link-text" data-testid="test">
                 Option 1
               </span>
@@ -203,19 +203,19 @@ describe("<Navbar>", () => {
     )
     const innerLinkElem = getByTestId("test")
     fireEvent.click(innerLinkElem)
-    expect(navItemSpy).toHaveBeenCalledTimes(1)
-    expect(toggleSpy).toHaveBeenCalledTimes(1)
-    expect(toggleSpy).toHaveBeenCalledWith(false)
+    expect(item).toHaveBeenCalledTimes(1)
+    expect(toggle).toHaveBeenCalledTimes(1)
+    expect(toggle).toHaveBeenCalledWith(false)
   })
   it("Should fire onSelect with eventKey for nav children", () => {
-    const selectSpy = jest.fn()
-    const navItemSpy = jest.fn()
+    const select = jest.fn()
+    const item = jest.fn()
     const { getByTestId } = render(
-      <Navbar onSelect={selectSpy}>
+      <Navbar onSelect={select}>
         <Toggle />
         <Collapse>
           <Nav as="div">
-            <Link href="#home" onClick={navItemSpy}>
+            <Link href="#home" onClick={item}>
               <span className="link-text" data-testid="test">
                 Option 1
               </span>
@@ -226,9 +226,9 @@ describe("<Navbar>", () => {
     )
     const innerLinkElem = getByTestId("test")
     fireEvent.click(innerLinkElem)
-    expect(navItemSpy).toHaveBeenCalledTimes(1)
-    expect(selectSpy).toHaveBeenCalledTimes(1)
-    expect(selectSpy).toHaveBeenCalledWith("#home")
+    expect(item).toHaveBeenCalledTimes(1)
+    expect(select).toHaveBeenCalledTimes(1)
+    expect(select).toHaveBeenCalledWith("#home")
   })
   it("Should have nav as default component", () => {
     const { getByTestId } = render(<Navbar data-testid="test" />)

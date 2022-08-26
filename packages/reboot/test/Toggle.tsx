@@ -255,9 +255,9 @@ describe("Group", () => {
     expect(getByText("Option 3").classList.contains("disabled")).toBe(false)
   })
   it("should return an array of values", () => {
-    const spy = jest.fn()
+    const mock = jest.fn()
     const { getByLabelText } = render(
-      <Group type="checkbox" onChange={spy}>
+      <Group type="checkbox" onChange={mock}>
         <Button id="id1" value={1}>
           Option 1
         </Button>
@@ -270,12 +270,12 @@ describe("Group", () => {
       </Group>
     )
     fireEvent.click(getByLabelText("Option 2"))
-    expect(spy).toHaveBeenCalledWith([2])
+    expect(mock).toHaveBeenCalledWith([2])
   })
   it("should return a single value", () => {
-    const spy = jest.fn()
+    const mock = jest.fn()
     const { getByLabelText } = render(
-      <Group type="radio" name="items" onChange={spy}>
+      <Group type="radio" name="items" onChange={mock}>
         <Button id="id1" value={1}>
           Option 1
         </Button>
@@ -288,12 +288,12 @@ describe("Group", () => {
       </Group>
     )
     fireEvent.click(getByLabelText("Option 2"))
-    expect(spy).toHaveBeenCalledWith(2)
+    expect(mock).toHaveBeenCalledWith(2)
   })
   it("should filter out value when deselected", () => {
-    const spy = jest.fn()
+    const mock = jest.fn()
     const { getByLabelText } = render(
-      <Group type="checkbox" name="items" defaultValue={[1, 2]} onChange={spy}>
+      <Group type="checkbox" name="items" defaultValue={[1, 2]} onChange={mock}>
         <Button id="id1" data-testid="id1" value={1}>
           Option 1
         </Button>
@@ -303,6 +303,6 @@ describe("Group", () => {
       </Group>
     )
     fireEvent.click(getByLabelText("Option 1"))
-    expect(spy).toHaveBeenCalledWith([2])
+    expect(mock).toHaveBeenCalledWith([2])
   })
 })

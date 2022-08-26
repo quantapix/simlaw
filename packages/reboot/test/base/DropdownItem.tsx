@@ -11,42 +11,42 @@ describe("<DropdownItem>", () => {
   })
 
   it("should trigger onClick", () => {
-    const onClickSpy = jest.fn()
-    const { getByText } = render(<Item onClick={onClickSpy}>test</Item>)
+    const mock = jest.fn()
+    const { getByText } = render(<Item onClick={mock}>test</Item>)
     fireEvent.click(getByText("test"))
-    expect(onClickSpy).to.be.called
+    expect(mock).to.be.called
   })
 
   it("should not trigger onClick if disabled", () => {
-    const onClickSpy = jest.fn()
+    const mock = jest.fn()
     const { getByText } = render(
-      <Item onClick={onClickSpy} disabled>
+      <Item onClick={mock} disabled>
         test
       </Item>
     )
     fireEvent.click(getByText("test"))
-    expect(onClickSpy).to.not.be.called
+    expect(mock).to.not.be.called
   })
 
   it("should call onSelect if a key is defined", () => {
-    const onSelect = jest.fn()
+    const mock = jest.fn()
     const { getByText } = render(
-      <SelectableContext.Provider value={onSelect}>
+      <SelectableContext.Provider value={mock}>
         <Item eventKey="abc">test</Item>
       </SelectableContext.Provider>
     )
 
     fireEvent.click(getByText("test"))
-    expect(onSelect).to.be.calledWith("abc")
+    expect(mock).toHaveBeenCalledWith("abc")
   })
 
   it("should not call onSelect onClick stopPropagation called", () => {
-    const onSelect = jest.fn()
+    const mock = jest.fn()
     const handleClick = (e: React.MouseEvent) => {
       e.stopPropagation()
     }
     const { getByText } = render(
-      <SelectableContext.Provider value={onSelect}>
+      <SelectableContext.Provider value={mock}>
         <Item eventKey="abc" onClick={handleClick}>
           test
         </Item>
@@ -54,6 +54,6 @@ describe("<DropdownItem>", () => {
     )
 
     fireEvent.click(getByText("test"))
-    expect(onSelect).to.not.be.called
+    expect(mock).to.not.be.called
   })
 })

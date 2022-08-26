@@ -65,7 +65,7 @@ describe("<Modal>", () => {
     render(<Container />, { container: attachTo })
     setTimeout(() => {
       const container = document.body
-      let backdrop = modal.current.backdrop
+      const backdrop = modal.current.backdrop
       expect(container.style.overflow).toEqual("hidden")
       backdrop.click()
       expect(container.style.overflow).to.not.equal("hidden")
@@ -73,69 +73,69 @@ describe("<Modal>", () => {
     })
   })
   it("should fire backdrop click callback", () => {
-    let onClickSpy = jest.fn()
-    let ref = mountWithRef(
-      <Modal show onBackdropClick={onClickSpy}>
+    const mock = jest.fn()
+    const ref = mountWithRef(
+      <Modal show onBackdropClick={mock}>
         <strong>Message</strong>
       </Modal>,
       { attachTo }
     )
-    let backdrop = ref.current.backdrop
+    const backdrop = ref.current.backdrop
     backdrop.click()
-    expect(onClickSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should close the modal when the backdrop is clicked", done => {
-    let doneOp = () => {
+    const doneOp = () => {
       done()
     }
-    let ref = mountWithRef(
+    const ref = mountWithRef(
       <Modal show onHide={doneOp}>
         <strong>Message</strong>
       </Modal>,
       { attachTo }
     )
-    let backdrop = ref.current.backdrop
+    const backdrop = ref.current.backdrop
     backdrop.click()
   })
   it('should not close the modal when the "static" backdrop is clicked', () => {
-    let onHideSpy = jest.fn()
-    let ref = mountWithRef(
-      <Modal show onHide={onHideSpy} backdrop="static">
+    const mock = jest.fn()
+    const ref = mountWithRef(
+      <Modal show onHide={mock} backdrop="static">
         <strong>Message</strong>
       </Modal>,
       { attachTo }
     )
-    let { backdrop } = ref.current
+    const { backdrop } = ref.current
     backdrop.click()
-    expect(onHideSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("should close the modal when the esc key is pressed", done => {
-    let doneOp = () => {
+    const doneOp = () => {
       done()
     }
-    let ref = mountWithRef(
+    const ref = mountWithRef(
       <Modal show onHide={doneOp}>
         <strong>Message</strong>
       </Modal>,
       { attachTo }
     )
-    let { backdrop } = ref.current
+    const { backdrop } = ref.current
     simulant.fire(backdrop, "keydown", { keyCode: 27 })
   })
   it("should not trigger onHide if e.preventDefault() called", () => {
-    const onHideSpy = jest.fn()
+    const mock = jest.fn()
     const onEscapeKeyDown = e => {
       e.preventDefault()
     }
-    let ref = mountWithRef(
-      <Modal show onHide={onHideSpy} onEscapeKeyDown={onEscapeKeyDown}>
+    const ref = mountWithRef(
+      <Modal show onHide={mock} onEscapeKeyDown={onEscapeKeyDown}>
         <strong>Message</strong>
       </Modal>,
       { attachTo }
     )
-    let { backdrop } = ref.current
+    const { backdrop } = ref.current
     simulant.fire(backdrop, "keydown", { keyCode: 27 })
-    expect(onHideSpy).not.toHaveBeenCalled()
+    expect(mock).not.toHaveBeenCalled()
   })
   it("should add role to child", () => {
     let dialog
@@ -189,7 +189,7 @@ describe("<Modal>", () => {
   })
   it("should pass transition callbacks to Transition", done => {
     let count = 0
-    let increment = () => count++
+    const increment = () => count++
     wrapper = mount(
       <Modal
         show
@@ -214,30 +214,30 @@ describe("<Modal>", () => {
     )
   })
   it("should fire show callback on mount", () => {
-    let onShowSpy = jest.fn()
+    const mock = jest.fn()
     mount(
-      <Modal show onShow={onShowSpy}>
+      <Modal show onShow={mock}>
         <strong>Message</strong>
       </Modal>,
       { attachTo }
     )
-    expect(onShowSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should fire show callback on update", () => {
-    let onShowSpy = jest.fn()
+    const mock = jest.fn()
     wrapper = mount(
-      <Modal onShow={onShowSpy}>
+      <Modal onShow={mock}>
         <strong>Message</strong>
       </Modal>,
       { attachTo }
     )
     wrapper.setProps({ show: true })
-    expect(onShowSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should fire onEscapeKeyDown callback on escape close", () => {
-    let onEscapeSpy = jest.fn()
-    let ref = mountWithRef(
-      <Modal onEscapeKeyDown={onEscapeSpy}>
+    const mock = jest.fn()
+    const ref = mountWithRef(
+      <Modal onEscapeKeyDown={mock}>
         <strong>Message</strong>
       </Modal>,
       { attachTo }
@@ -246,7 +246,7 @@ describe("<Modal>", () => {
     act(() => {
       simulant.fire(ref.current.backdrop, "keydown", { keyCode: 27 })
     })
-    expect(onEscapeSpy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should accept role on the Modal", () => {
     const ref = mountWithRef(
@@ -312,7 +312,7 @@ describe("<Modal>", () => {
         </Modal>,
         { attachTo: focusableContainer }
       )
-      let input = document.getElementsByTagName("input")[0]
+      const input = document.getElementsByTagName("input")[0]
       expect(document.activeElement).toEqual(input)
     })
     it("should return focus to the modal", done => {
