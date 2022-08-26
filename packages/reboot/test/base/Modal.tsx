@@ -28,7 +28,7 @@ describe("<Modal>", () => {
     }
     attachTo.remove()
   })
-  it("should render the modal content", () => {
+  it("Should render the modal content", () => {
     const ref = mountWithRef(
       <Modal show>
         <strong>Message</strong>
@@ -37,7 +37,7 @@ describe("<Modal>", () => {
     )
     expect(ref.current.dialog.querySelectorAll("strong")).toHaveLength(1)
   })
-  it("should disable scrolling on the modal container while open", done => {
+  it("Should disable scrolling on the modal container while open", done => {
     const modal = React.createRef()
     class Container extends React.Component {
       ref = React.createRef()
@@ -73,7 +73,7 @@ describe("<Modal>", () => {
       done()
     })
   })
-  it("should fire backdrop click callback", () => {
+  it("Should fire backdrop click callback", () => {
     const mock = jest.fn()
     const ref = mountWithRef(
       <Modal show onBackdropClick={mock}>
@@ -85,7 +85,7 @@ describe("<Modal>", () => {
     backdrop.click()
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should close the modal when the backdrop is clicked", done => {
+  it("Should close the modal when the backdrop is clicked", done => {
     const doneOp = () => {
       done()
     }
@@ -110,7 +110,7 @@ describe("<Modal>", () => {
     backdrop.click()
     expect(mock).not.toHaveBeenCalled()
   })
-  it("should close the modal when the esc key is pressed", done => {
+  it("Should close the modal when the esc key is pressed", done => {
     const doneOp = () => {
       done()
     }
@@ -123,7 +123,7 @@ describe("<Modal>", () => {
     const { backdrop } = ref.current
     simulant.fire(backdrop, "keydown", { keyCode: 27 })
   })
-  it("should not trigger onHide if e.preventDefault() called", () => {
+  it("Should not trigger onHide if e.preventDefault() called", () => {
     const mock = jest.fn()
     const onEscapeKeyDown = e => {
       e.preventDefault()
@@ -138,7 +138,7 @@ describe("<Modal>", () => {
     simulant.fire(backdrop, "keydown", { keyCode: 27 })
     expect(mock).not.toHaveBeenCalled()
   })
-  it("should add role to child", () => {
+  it("Should add role to child", () => {
     let dialog: any
     wrapper = mount(
       <Modal show>
@@ -154,7 +154,7 @@ describe("<Modal>", () => {
     )
     expect(dialog.getAttribute("role")).toEqual("document")
   })
-  it("should allow custom rendering", () => {
+  it("Should allow custom rendering", () => {
     let dialog: any
     wrapper = mount(
       <Modal
@@ -175,7 +175,7 @@ describe("<Modal>", () => {
     )
     expect(dialog.getAttribute("role")).toEqual("group")
   })
-  it("should unbind listeners when unmounted", () => {
+  it("Should unbind listeners when unmounted", () => {
     const { rerender } = render(
       <div>
         <Modal show>
@@ -188,7 +188,7 @@ describe("<Modal>", () => {
     rerender(null)
     expect(document.body.hasAttribute(OPEN_DATA_ATTRIBUTE)).toEqual(false)
   })
-  it("should pass transition callbacks to Transition", done => {
+  it("Should pass transition callbacks to Transition", done => {
     let count = 0
     const increment = () => count++
     wrapper = mount(
@@ -214,7 +214,7 @@ describe("<Modal>", () => {
       { attachTo }
     )
   })
-  it("should fire show callback on mount", () => {
+  it("Should fire show callback on mount", () => {
     const mock = jest.fn()
     mount(
       <Modal show onShow={mock}>
@@ -224,7 +224,7 @@ describe("<Modal>", () => {
     )
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should fire show callback on update", () => {
+  it("Should fire show callback on update", () => {
     const mock = jest.fn()
     wrapper = mount(
       <Modal onShow={mock}>
@@ -235,7 +235,7 @@ describe("<Modal>", () => {
     wrapper.setProps({ show: true })
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should fire onEscapeKeyDown callback on escape close", () => {
+  it("Should fire onEscapeKeyDown callback on escape close", () => {
     const mock = jest.fn()
     const ref = mountWithRef(
       <Modal onEscapeKeyDown={mock}>
@@ -249,7 +249,7 @@ describe("<Modal>", () => {
     })
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should accept role on the Modal", () => {
+  it("Should accept role on the Modal", () => {
     const ref = mountWithRef(
       <Modal role="alertdialog" show>
         <strong>Message</strong>
@@ -258,7 +258,7 @@ describe("<Modal>", () => {
     )
     expect(ref.current.dialog.getAttribute("role")).toEqual("alertdialog")
   })
-  it("should accept the `aria-describedby` property on the Modal", () => {
+  it("Should accept the `aria-describedby` property on the Modal", () => {
     const ref = mountWithRef(
       <Modal aria-describedby="modal-description" show>
         <strong id="modal-description">Message</strong>
@@ -282,7 +282,7 @@ describe("<Modal>", () => {
       ReactDOM.unmountComponentAtNode(focusableContainer)
       document.body.removeChild(focusableContainer)
     })
-    it("should focus on the Modal when it is opened", () => {
+    it("Should focus on the Modal when it is opened", () => {
       expect(document.activeElement).toEqual(focusableContainer)
       wrapper = mount(
         <Modal show className="modal">
@@ -294,7 +294,7 @@ describe("<Modal>", () => {
       wrapper.setProps({ show: false })
       expect(document.activeElement).toEqual(focusableContainer)
     })
-    it("should not focus on the Modal when autoFocus is false", () => {
+    it("Should not focus on the Modal when autoFocus is false", () => {
       mount(
         <Modal show autoFocus={false}>
           <strong>Message</strong>
@@ -303,7 +303,7 @@ describe("<Modal>", () => {
       )
       expect(document.activeElement).toEqual(focusableContainer)
     })
-    it("should not focus Modal when child has focus", () => {
+    it("Should not focus Modal when child has focus", () => {
       expect(document.activeElement).toEqual(focusableContainer)
       mount(
         <Modal show className="modal">
@@ -316,7 +316,7 @@ describe("<Modal>", () => {
       const input = document.getElementsByTagName("input")[0]
       expect(document.activeElement).toEqual(input)
     })
-    it("should return focus to the modal", done => {
+    it("Should return focus to the modal", done => {
       expect(document.activeElement).toEqual(focusableContainer)
       mount(
         <Modal show className="modal">
@@ -332,7 +332,7 @@ describe("<Modal>", () => {
         done()
       }, 50)
     })
-    it("should not attempt to focus nonexistent children", () => {
+    it("Should not attempt to focus nonexistent children", () => {
       const Dialog = React.forwardRef((_, __) => null)
       mount(
         <Modal show>

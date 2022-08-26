@@ -5,7 +5,7 @@ import * as React from "react"
 import ReactDOM from "react-dom"
 
 describe("Portal", () => {
-  it("should render overlay into container (document)", () => {
+  it("Should render overlay into container (document)", () => {
     class Container extends React.Component {
       override componentDidMount() {
         expect(this.div).toBeTruthy()
@@ -26,7 +26,7 @@ describe("Portal", () => {
     mount(<Container />)
     expect(document.querySelectorAll("#test1")).toHaveLength(1)
   })
-  it("should render overlay into container (DOMNode)", () => {
+  it("Should render overlay into container (DOMNode)", () => {
     const container = document.createElement("div")
     class Container extends React.Component {
       override componentDidMount() {
@@ -48,7 +48,7 @@ describe("Portal", () => {
     mount(<Container />)
     expect(container.querySelectorAll("#test1")).toHaveLength(1)
   })
-  it("should render overlay into container (ReactComponent)", () => {
+  it("Should render overlay into container (ReactComponent)", () => {
     class Container extends React.Component {
       container = React.createRef()
       override componentDidMount() {
@@ -78,7 +78,7 @@ describe("Portal", () => {
       ReactDOM.findDOMNode(instance).querySelectorAll("#test1")
     ).toHaveLength(1)
   })
-  it("should not fail to render a null overlay", () => {
+  it("Should not fail to render a null overlay", () => {
     class Container extends React.Component {
       container = React.createRef()
       override render() {
@@ -92,7 +92,7 @@ describe("Portal", () => {
     const nodes = mount(<Container />).getDOMNode().childNodes
     expect(nodes).to.be.empty
   })
-  it("should unmount when parent unmounts", () => {
+  it("Should unmount when parent unmounts", () => {
     class Parent extends React.Component {
       override state = { show: true }
       override render() {

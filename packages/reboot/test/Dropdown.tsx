@@ -176,7 +176,7 @@ describe("<Dropdown>", () => {
       expect(mock.mock.calls[0].args[1].source).toEqual("keydown")
     })
   })
-  it("should use each components bsPrefix", () => {
+  it("Should use each components bsPrefix", () => {
     const { getByTestId } = render(
       <Dropdown defaultShow bsPrefix="my-dropdown" data-testid="dropdown">
         <Toggle data-testid="toggle" bsPrefix="my-toggle">
@@ -218,7 +218,7 @@ describe("<Dropdown>", () => {
     expect(getByTestId("menu").id).toEqual("custom-component")
   })
   describe("InputGroup Dropdowns", () => {
-    it("should not render a .dropdown element when inside input group", () => {
+    it("Should not render a .dropdown element when inside input group", () => {
       const { queryByTestId } = render(
         <InputGroup>
           <Dropdown data-testid="dropdown">{dropdownChildren}</Dropdown>
@@ -226,7 +226,7 @@ describe("<Dropdown>", () => {
       )
       expect(queryByTestId("dropdown")!).not.toBeTruthy()
     })
-    it("should render .show on the dropdown toggle", () => {
+    it("Should render .show on the dropdown toggle", () => {
       const { getByText } = render(
         <InputGroup>
           <Dropdown show>{dropdownChildren}</Dropdown>
@@ -237,7 +237,7 @@ describe("<Dropdown>", () => {
   })
   describe("autoClose behaviour", () => {
     describe('autoClose="true"', () => {
-      it("should close on outer click", () => {
+      it("Should close on outer click", () => {
         const mock = jest.fn()
         render(
           <Dropdown defaultShow onToggle={mock} autoClose>
@@ -252,7 +252,7 @@ describe("<Dropdown>", () => {
       })
     })
     describe('autoClose="inside"', () => {
-      it("should close on child selection", () => {
+      it("Should close on child selection", () => {
         const mock = jest.fn()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={mock} autoClose="inside">
@@ -265,7 +265,7 @@ describe("<Dropdown>", () => {
         fireEvent.click(getByTestId("item1"))
         expect(mock).toHaveBeenCalledWith(false)
       })
-      it("should not close on outer click", () => {
+      it("Should not close on outer click", () => {
         const mock = jest.fn()
         render(
           <Dropdown defaultShow onToggle={mock} autoClose="inside">
@@ -280,7 +280,7 @@ describe("<Dropdown>", () => {
       })
     })
     describe('autoClose="outside"', () => {
-      it("should not close on child selection", () => {
+      it("Should not close on child selection", () => {
         const mock = jest.fn()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={mock} autoClose="outside">
@@ -293,7 +293,7 @@ describe("<Dropdown>", () => {
         fireEvent.click(getByTestId("item1"))
         expect(mock).not.toHaveBeenCalled()
       })
-      it("should close on outer click", () => {
+      it("Should close on outer click", () => {
         const mock = jest.fn()
         render(
           <Dropdown defaultShow onToggle={mock} autoClose="outside">
@@ -308,7 +308,7 @@ describe("<Dropdown>", () => {
       })
     })
     describe('autoClose="false"', () => {
-      it("should not close on child selection", () => {
+      it("Should not close on child selection", () => {
         const mock = jest.fn()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={mock} autoClose={false}>
@@ -321,7 +321,7 @@ describe("<Dropdown>", () => {
         fireEvent.click(getByTestId("item1"))
         expect(mock).not.toHaveBeenCalled()
       })
-      it("should not close on outer click", () => {
+      it("Should not close on outer click", () => {
         const mock = jest.fn()
         render(
           <Dropdown defaultShow onToggle={mock} autoClose={false}>
@@ -437,7 +437,7 @@ describe("<Button>", () => {
     )
     expect(container.querySelector("button[disabled]")!).toBeTruthy()
   })
-  it("should pass bsPrefix to the button", () => {
+  it("Should pass bsPrefix to the button", () => {
     const { getByTestId } = render(
       <Button title="title" data-testid="test-id" bsPrefix="my-button">
         <Item eventKey="1">Item 1</Item>
@@ -499,7 +499,7 @@ describe("<Item>", () => {
     fireEvent.keyDown(node, { key: "a" })
     expect(mock).to.be.called
   })
-  it("should render as a button when set", () => {
+  it("Should render as a button when set", () => {
     const { getByTestId } = render(
       <Item as={Button} variant="success" data-testid="item" />
     )
@@ -509,7 +509,7 @@ describe("<Item>", () => {
       "btn-success",
     ])
   })
-  it("should pass through props", () => {
+  it("Should pass through props", () => {
     const { getByText } = render(
       <Item
         className="test-class"
@@ -619,7 +619,7 @@ describe("<Dropdown.Menu>", () => {
       )
     ).toBe(true)
   })
-  it("should render variant", () => {
+  it("Should render variant", () => {
     const { container } = render(
       <Menu show variant="dark">
         <Item>Item</Item>
@@ -630,35 +630,35 @@ describe("<Dropdown.Menu>", () => {
     ).toBe(true)
   })
   describe("getPlacement", () => {
-    it("should return top placement", () => {
+    it("Should return top placement", () => {
       expect(getPlacement(false, "up", false)).toEqual("top-start")
       expect(getPlacement(true, "up", false)).toEqual("top-end")
     })
-    it("should return top placement for RTL", () => {
+    it("Should return top placement for RTL", () => {
       expect(getPlacement(false, "up", true)).toEqual("top-end")
       expect(getPlacement(true, "up", true)).toEqual("top-start")
     })
-    it("should return end placement", () => {
+    it("Should return end placement", () => {
       expect(getPlacement(false, "end", false)).toEqual("right-start")
       expect(getPlacement(true, "end", false)).toEqual("right-end")
     })
-    it("should return end placement for RTL", () => {
+    it("Should return end placement for RTL", () => {
       expect(getPlacement(false, "end", true)).toEqual("left-start")
       expect(getPlacement(true, "end", true)).toEqual("left-end")
     })
-    it("should return bottom placement", () => {
+    it("Should return bottom placement", () => {
       expect(getPlacement(false, "down", false)).toEqual("bottom-start")
       expect(getPlacement(true, "down", false)).toEqual("bottom-end")
     })
-    it("should return bottom placement for RTL", () => {
+    it("Should return bottom placement for RTL", () => {
       expect(getPlacement(false, "down", true)).toEqual("bottom-end")
       expect(getPlacement(true, "down", true)).toEqual("bottom-start")
     })
-    it("should return start placement", () => {
+    it("Should return start placement", () => {
       expect(getPlacement(false, "start", false)).toEqual("left-start")
       expect(getPlacement(true, "start", false)).toEqual("left-end")
     })
-    it("should return start placement for RTL", () => {
+    it("Should return start placement for RTL", () => {
       expect(getPlacement(false, "start", true)).toEqual("right-start")
       expect(getPlacement(true, "start", true)).toEqual("right-end")
     })

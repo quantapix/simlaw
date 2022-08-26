@@ -37,7 +37,7 @@ describe("useRootClose", () => {
         </div>
       )
     }
-    it("should close when clicked outside", () => {
+    it("Should close when clicked outside", () => {
       const mock = jest.fn()
       mount(<Wrapper onRootClose={mock} />, { attachTo })
       simulant.fire(document.getElementById("my-div"), eventName)
@@ -49,7 +49,7 @@ describe("useRootClose", () => {
         "mousedown",
       ])
     })
-    it("should not close when right-clicked outside", () => {
+    it("Should not close when right-clicked outside", () => {
       const mock = jest.fn()
       mount(<Wrapper onRootClose={mock} />, { attachTo })
       simulant.fire(document.getElementById("my-div"), eventName, {
@@ -59,7 +59,7 @@ describe("useRootClose", () => {
       simulant.fire(document.body, eventName, { button: 1 })
       expect(mock).not.toHaveBeenCalled()
     })
-    it("should not close when disabled", () => {
+    it("Should not close when disabled", () => {
       const mock = jest.fn()
       mount(<Wrapper onRootClose={mock} disabled />, { attachTo })
       simulant.fire(document.getElementById("my-div"), eventName)
@@ -67,7 +67,7 @@ describe("useRootClose", () => {
       simulant.fire(document.body, eventName)
       expect(mock).not.toHaveBeenCalled()
     })
-    it("should close when inside another RootCloseWrapper", () => {
+    it("Should close when inside another RootCloseWrapper", () => {
       const outer = jest.fn()
       const inner = jest.fn()
       function Inner() {
@@ -109,7 +109,7 @@ describe("useRootClose", () => {
         </div>
       )
     }
-    it("should close when escape keyup", () => {
+    it("Should close when escape keyup", () => {
       const spy = jest.fn()
       mount(
         <Wrapper onRootClose={spy}>
@@ -123,7 +123,7 @@ describe("useRootClose", () => {
       expect(spy.mock.calls[0].args[0].keyCode).toEqual(escapeKeyCode)
       expect(spy.mock.calls[0].args[0].type).toEqual("keyup")
     })
-    it("should close when inside another RootCloseWrapper", () => {
+    it("Should close when inside another RootCloseWrapper", () => {
       const outer = jest.fn()
       const inner = jest.fn()
       mount(

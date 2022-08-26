@@ -51,7 +51,7 @@ describe("<ListGroup>", () => {
     expect(listGroup.tagName.toLowerCase()).toEqual("ul")
     expect(listGroup.classList.contains("list-group")).toBe(true)
   })
-  it("should set active class on list item if activeKey set on parent", () => {
+  it("Should set active class on list item if activeKey set on parent", () => {
     const { getByTestId } = render(
       <ListGroup activeKey="1">
         <Item eventKey="1" data-testid="list-item">
@@ -61,7 +61,7 @@ describe("<ListGroup>", () => {
     )
     expect(getByTestId("list-item").classList.contains("active")).toBe(true)
   })
-  it("should add numbered class", () => {
+  it("Should add numbered class", () => {
     const { getByTestId } = render(
       <ListGroup activeKey="1" numbered data-testid="list-group">
         <Item eventKey="1">test</Item>
@@ -72,7 +72,7 @@ describe("<ListGroup>", () => {
   })
 })
 describe("<Item>", () => {
-  it("should output a div", () => {
+  it("Should output a div", () => {
     const { getByTestId } = render(<Item data-testid="test" />)
     const item = getByTestId("test")
     expect(item.tagName.toLowerCase()).toEqual("div")
@@ -104,11 +104,11 @@ describe("<Item>", () => {
     expect(item.tagName.toLowerCase()).toEqual("span")
     expect(item.classList.contains("list-group-item")).toBe(true)
   })
-  it("should not be focusable when disabled", () => {
+  it("Should not be focusable when disabled", () => {
     const { getByTestId } = render(<Item disabled data-testid="test" />)
     expect(getByTestId("test").getAttribute("tabindex")).toEqual("-1")
   })
-  it("should respect user-specified tabIndex", () => {
+  it("Should respect user-specified tabIndex", () => {
     const { getByTestId } = render(
       <Item disabled tabIndex={4} data-testid="test" />
     )

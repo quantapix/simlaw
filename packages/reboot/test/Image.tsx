@@ -2,11 +2,11 @@ import { Image } from "../src/Image.jsx"
 import { render } from "@testing-library/react"
 
 describe("Image", () => {
-  it("should be an image", () => {
+  it("Should be an image", () => {
     const { getByTestId } = render(<Image data-testid="test-image" />)
     expect(getByTestId("test-image").tagName.toLowerCase()).toEqual("img")
   })
-  it("should provide src and alt prop", () => {
+  it("Should provide src and alt prop", () => {
     const { getByTestId } = render(
       <Image data-testid="test-image" src="image.jpg" alt="this is alt" />
     )
@@ -15,22 +15,22 @@ describe("Image", () => {
       "this is alt"
     )
   })
-  it("should have correct class when fluid prop is set", () => {
+  it("Should have correct class when fluid prop is set", () => {
     const { getByTestId } = render(<Image data-testid="test-image" fluid />)
     expect(getByTestId("test-image").classList.contains("img-fluid")).toBe(true)
   })
-  it("should not override class when rounded prop is set", () => {
+  it("Should not override class when rounded prop is set", () => {
     const { getByTestId } = render(
       <Image data-testid="test-image" fluid rounded />
     )
     expect(getByTestId("test-image").classList.contains("img-fluid")).toBe(true)
     expect(getByTestId("test-image").classList.contains("rounded")).toBe(true)
   })
-  it("should have correct class when rounded prop is set", () => {
+  it("Should have correct class when rounded prop is set", () => {
     const { getByTestId } = render(<Image data-testid="test-image" rounded />)
     expect(getByTestId("test-image").classList.contains("rounded")).toBe(true)
   })
-  it("should have correct class when roundedCircle prop is set", () => {
+  it("Should have correct class when roundedCircle prop is set", () => {
     const { getByTestId } = render(
       <Image data-testid="test-image" roundedCircle />
     )
@@ -38,7 +38,7 @@ describe("Image", () => {
       true
     )
   })
-  it("should have correct class when thumbnail prop is set", () => {
+  it("Should have correct class when thumbnail prop is set", () => {
     const { getByTestId } = render(<Image data-testid="test-image" thumbnail />)
     expect(getByTestId("test-image").classList.contains("img-thumbnail")).toBe(
       true

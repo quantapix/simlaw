@@ -25,14 +25,14 @@ describe("Fade", () => {
       )
     }
   }
-  it("should not throw an error with StrictMode", () => {
+  it("Should not throw an error with StrictMode", () => {
     render(
       <React.StrictMode>
         <Component in>Panel content</Component>
       </React.StrictMode>
     )
   })
-  it("should work with a class component as children", () => {
+  it("Should work with a class component as children", () => {
     const mock = jest.fn()
     class InnerComponent extends React.Component {
       override render() {

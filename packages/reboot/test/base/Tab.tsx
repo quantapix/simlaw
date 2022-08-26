@@ -7,7 +7,7 @@ import { Transition } from "react-transition-group"
 import React from "react"
 
 describe("<Tabs>", () => {
-  it("should not propagate context past TabPanels", () => {
+  it("Should not propagate context past TabPanels", () => {
     const mock = jest.fn()
     const { getByText } = render(
       <Tabs id="custom-id" onSelect={mock}>
@@ -30,7 +30,7 @@ describe("<Tabs>", () => {
     fireEvent.click(topNavItem)
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should let generateChildId function create id", () => {
+  it("Should let generateChildId function create id", () => {
     const mock = jest.fn(() => "test-id")
     const { getByRole } = render(
       <Tabs generateChildId={mock}>
@@ -47,7 +47,7 @@ describe("<Tabs>", () => {
     const navItem = getByRole("tab")
     expect(navItem.getAttribute("id")).toEqual("test-id")
   })
-  it("should match up ids", () => {
+  it("Should match up ids", () => {
     const { getByTestId } = render(
       <Tabs>
         <div>
@@ -71,7 +71,7 @@ describe("<Tabs>", () => {
     expect(tabPanel.getAttribute("aria-labelledby")).toEqual(navItemID)
     expect(navItem.getAttribute("aria-controls")).toEqual(tabPanelID)
   })
-  it("should default Nav role to tablist", () => {
+  it("Should default Nav role to tablist", () => {
     const { getByRole, getByText } = render(
       <Tabs>
         <div>
@@ -84,7 +84,7 @@ describe("<Tabs>", () => {
     expect(getByRole("tablist")).toBeTruthy()
     expect(getByText("One").getAttribute("role")).toEqual("tab")
   })
-  it("should use explicit Nav role", () => {
+  it("Should use explicit Nav role", () => {
     const { getByRole } = render(
       <Tabs>
         <div>
@@ -205,25 +205,25 @@ describe("<Tabs>", () => {
   })
 })
 describe("<TabPanel>", () => {
-  it("should render a TabPanel", () => {
+  it("Should render a TabPanel", () => {
     const { getByText } = render(<Panel active>test</Panel>)
     expect(getByText("test")).toBeTruthy()
   })
-  it("should render a TabPanel with role tabpanel", () => {
+  it("Should render a TabPanel with role tabpanel", () => {
     const { getByRole } = render(<Panel active>test</Panel>)
     expect(getByRole("tabpanel")).toBeTruthy()
   })
-  it("should not render if not active and mountOnEnter=true", () => {
+  it("Should not render if not active and mountOnEnter=true", () => {
     const { queryByText } = render(<Panel mountOnEnter>test</Panel>)
     expect(queryByText("test")).not.toBeTruthy()
   })
-  it("should not unmount if rendered already", () => {
+  it("Should not unmount if rendered already", () => {
     const { getByText, rerender } = render(<Panel active>test</Panel>)
     expect(getByText("test")).toBeTruthy()
     rerender(<Panel>test</Panel>)
     expect(getByText("test")).toBeTruthy()
   })
-  it("should unmount", () => {
+  it("Should unmount", () => {
     const { getByText, queryByText, rerender } = render(
       <Panel active unmountOnExit>
         test
@@ -233,7 +233,7 @@ describe("<TabPanel>", () => {
     rerender(<Panel unmountOnExit>test</Panel>)
     expect(queryByText("test")).not.toBeTruthy()
   })
-  it("should call getControlledId for id", () => {
+  it("Should call getControlledId for id", () => {
     const mock = jest.fn()
     render(
       <Context.Provider
@@ -252,7 +252,7 @@ describe("<TabPanel>", () => {
     )
     expect(mock).toHaveBeenCalledWith("mykey")
   })
-  it("should fire transition events", async () => {
+  it("Should fire transition events", async () => {
     const mock = jest.fn()
     const FADE_DURATION = 200
     const fadeStyles = {
@@ -303,7 +303,7 @@ describe("<TabPanel>", () => {
     fireEvent.click(getByText("Tab 2"))
     expect(await waitFor(() => mock.callCount)).toEqual(6)
   })
-  it("should derive active state from context", () => {
+  it("Should derive active state from context", () => {
     const { getByText } = render(
       <Context.Provider
         value={{
@@ -323,7 +323,7 @@ describe("<TabPanel>", () => {
     expect(node.getAttribute("aria-hidden")).toEqual("false")
   })
   describe("useTabPanel", () => {
-    it("should have role set to tabpanel", () => {
+    it("Should have role set to tabpanel", () => {
       let props: any
       function Wrapper(wrapperProps: any) {
         const [_props] = useTabPanel(wrapperProps)
@@ -333,7 +333,7 @@ describe("<TabPanel>", () => {
       render(<Wrapper />)
       expect(props.role).toEqual("tabpanel")
     })
-    it("should have role tabpanel also within a context", () => {
+    it("Should have role tabpanel also within a context", () => {
       let props: any
       function Wrapper(wrapperProps: any) {
         const [_props] = useTabPanel(wrapperProps)
@@ -355,7 +355,7 @@ describe("<TabPanel>", () => {
       )
       expect(props.role).toEqual("tabpanel")
     })
-    it("should use mountOnEnter from props if provided", () => {
+    it("Should use mountOnEnter from props if provided", () => {
       let meta: any
       function Wrapper(wrapperProps: any) {
         const [_, m] = useTabPanel(wrapperProps)
@@ -377,7 +377,7 @@ describe("<TabPanel>", () => {
       )
       expect(meta.mountOnEnter).toEqual(false)
     })
-    it("should use unmountOnExit from props if provided", () => {
+    it("Should use unmountOnExit from props if provided", () => {
       let meta: any
       function Wrapper(wrapperProps: any) {
         const [_, m] = useTabPanel(wrapperProps)

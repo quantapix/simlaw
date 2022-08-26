@@ -24,7 +24,7 @@ describe("usePopper", () => {
   afterEach(() => {
     elements.mount.parentNode.removeChild(elements.mount)
   })
-  it("should return state", done => {
+  it("Should return state", done => {
     const result = renderHook(() =>
       usePopper(elements.reference, elements.popper, {
         eventsEnabled: true,
@@ -38,7 +38,7 @@ describe("usePopper", () => {
       done()
     })
   })
-  it("should add aria-describedBy for tooltips", done => {
+  it("Should add aria-describedBy for tooltips", done => {
     elements.popper.setAttribute("role", "tooltip")
     elements.popper.setAttribute("id", "example123")
     const result = renderHook(() =>
@@ -57,7 +57,7 @@ describe("usePopper", () => {
       done()
     })
   })
-  it("should add to existing describedBy", done => {
+  it("Should add to existing describedBy", done => {
     elements.popper.setAttribute("role", "tooltip")
     elements.popper.setAttribute("id", "example123")
     elements.reference.setAttribute("aria-describedby", "foo, bar , baz ")
@@ -79,7 +79,7 @@ describe("usePopper", () => {
       })
     })
   })
-  it("should not aria-describedBy any other role", done => {
+  it("Should not aria-describedBy any other role", done => {
     renderHook(() => usePopper(elements.reference, elements.popper))
     setTimeout(() => {
       expect(document.querySelector('[aria-describedby="example123"]')).toEqual(
@@ -88,7 +88,7 @@ describe("usePopper", () => {
       done()
     })
   })
-  it("should not add add duplicates to aria-describedby", done => {
+  it("Should not add add duplicates to aria-describedby", done => {
     elements.popper.setAttribute("role", "tooltip")
     elements.popper.setAttribute("id", "example123")
     elements.reference.setAttribute("aria-describedby", "foo")

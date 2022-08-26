@@ -30,7 +30,7 @@ describe("<Tabs>", () => {
     expect(checkEventKey(firstTabButton, 1)).toBe(true)
     expect(checkEventKey(secondTabButton, 2)).toBe(true)
   })
-  it("should get defaultActiveKey (if null) from first child tab with eventKey", () => {
+  it("Should get defaultActiveKey (if null) from first child tab with eventKey", () => {
     const { getByText } = render(
       <Tabs id="test" data-testid="test-id">
         <Tab title="Tab 1 title" eventKey={1}>
@@ -162,7 +162,7 @@ describe("<Tabs>", () => {
     )
     expect(getAllByRole("tabpanel")).toHaveLength(1)
   })
-  it("should have fade animation by default", () => {
+  it("Should have fade animation by default", () => {
     const { getByRole } = render(
       <Tabs id="test" defaultActiveKey={1}>
         <Tab title="Tab 1" eventKey={1}>

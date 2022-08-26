@@ -35,15 +35,15 @@ describe("<Nav>", () => {
 })
 
 describe("<NavItem>", () => {
-  it("should output a nav item as button", () => {
+  it("Should output a nav item as button", () => {
     const { getByText } = render(<Item>test</Item>)
     expect(getByText("test").tagName).toEqual("BUTTON")
   })
-  it("should output custom role", () => {
+  it("Should output custom role", () => {
     const { getByRole } = render(<Item role="abc">test</Item>)
     expect(getByRole("abc")).toBeTruthy()
   })
-  it("should set role to tab if inside nav context", () => {
+  it("Should set role to tab if inside nav context", () => {
     const { getByRole } = render(
       <Context.Provider
         value={{
@@ -58,7 +58,7 @@ describe("<NavItem>", () => {
     )
     expect(getByRole("tab")).toBeTruthy()
   })
-  it("should not override custom role if inside nav context", () => {
+  it("Should not override custom role if inside nav context", () => {
     const { getByRole } = render(
       <Context.Provider
         value={{
@@ -73,7 +73,7 @@ describe("<NavItem>", () => {
     )
     expect(getByRole("abc")).toBeTruthy()
   })
-  it("should use active from nav context", () => {
+  it("Should use active from nav context", () => {
     const { getByText } = render(
       <Context.Provider
         value={{
@@ -88,7 +88,7 @@ describe("<NavItem>", () => {
     )
     expect(getByText("test").getAttribute("data-rr-ui-active")).toEqual("true")
   })
-  it("should set disabled attributes when nav item is disabled and role is tab", () => {
+  it("Should set disabled attributes when nav item is disabled and role is tab", () => {
     const { getByText } = render(
       <Item role="tab" disabled>
         test
@@ -98,13 +98,13 @@ describe("<NavItem>", () => {
     expect(node.getAttribute("aria-disabled")).toEqual("true")
     expect(node.tabIndex).toEqual(-1)
   })
-  it("should trigger onClick", () => {
+  it("Should trigger onClick", () => {
     const mock = jest.fn()
     const { getByText } = render(<Item onClick={mock}>test</Item>)
     fireEvent.click(getByText("test"))
     expect(mock).toHaveBeenCalled()
   })
-  it("should not trigger onClick if disabled", () => {
+  it("Should not trigger onClick if disabled", () => {
     const mock = jest.fn()
     const { getByText } = render(
       <Item as="div" onClick={mock} disabled>
@@ -114,7 +114,7 @@ describe("<NavItem>", () => {
     fireEvent.click(getByText("test"))
     expect(mock).not.toHaveBeenCalled()
   })
-  it("should call onSelect if a key is defined", () => {
+  it("Should call onSelect if a key is defined", () => {
     const mock = jest.fn()
     const { getByText } = render(
       <Selectable.Provider value={mock}>
@@ -124,7 +124,7 @@ describe("<NavItem>", () => {
     fireEvent.click(getByText("test"))
     expect(mock).toHaveBeenCalledWith("abc")
   })
-  it("should not call onSelect onClick stopPropagation called", () => {
+  it("Should not call onSelect onClick stopPropagation called", () => {
     const mock = jest.fn()
     const handleClick = (e: React.MouseEvent) => {
       e.stopPropagation()

@@ -74,7 +74,7 @@ describe("Col", () => {
     const { getByText } = render(<Col>Column</Col>)
     expect(getByText("Column").tagName.toLowerCase()).toEqual("div")
   })
-  it("should allow custom breakpoints", () => {
+  it("Should allow custom breakpoints", () => {
     const { getByText } = render(
       <ThemeProvider breakpoints={["custom"]}>
         <Col custom="3">test</Col>

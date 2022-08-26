@@ -17,7 +17,7 @@ describe("<Theme>", () => {
     },
     hocValue
   )
-  it("should use HOC value", () => {
+  it("Should use HOC value", () => {
     const { getByText } = render(
       <div>
         <Foo />
@@ -27,7 +27,7 @@ describe("<Theme>", () => {
     expect(fooElem.classList.contains(hocValue)).toBe(true)
     expect(fooElem.tagName.toLowerCase()).toEqual("p")
   })
-  it("should provide bsPrefix overrides", () => {
+  it("Should provide bsPrefix overrides", () => {
     const { getByText } = render(
       <Theme prefixes={{ btn: "my-btn", foo: "global-foo" }}>
         <div>
@@ -44,7 +44,7 @@ describe("<Theme>", () => {
     expect(fooElem.tagName.toLowerCase()).toEqual("p")
     expect(fooElem.classList.contains("global-foo")).toBe(true)
   })
-  it("should use prop bsPrefix first", () => {
+  it("Should use prop bsPrefix first", () => {
     const { getByText } = render(
       <Theme prefixes={{ foo: "global-foo" }}>
         <div>
@@ -56,7 +56,7 @@ describe("<Theme>", () => {
     expect(fooElem.tagName.toLowerCase()).toEqual("p")
     expect(fooElem.classList.contains("my-foo")).toBe(true)
   })
-  it("should forward ref", () => {
+  it("Should forward ref", () => {
     let ref
     const { getByText } = render(
       <div>

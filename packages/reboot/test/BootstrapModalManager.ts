@@ -28,7 +28,7 @@ describe("BootstrapModalManager", () => {
     container = null
     manager = null
   })
-  it("should add Modal", () => {
+  it("Should add Modal", () => {
     const modal = createModal()
     manager.add(modal)
     expect(manager.modals.length).toEqual(1)
@@ -41,11 +41,11 @@ describe("BootstrapModalManager", () => {
       },
     })
   })
-  it("should return a shared modal manager", () => {
+  it("Should return a shared modal manager", () => {
     const localManager = getSharedManager()
     expect(localManager).toBeTruthy()
   })
-  it("should return a same modal manager if called twice", () => {
+  it("Should return a same modal manager if called twice", () => {
     let localManager = getSharedManager()
     expect(localManager).toBeTruthy()
     const modal = createModal()
@@ -69,21 +69,21 @@ describe("BootstrapModalManager", () => {
       `)
     })
     afterEach(() => injectCss.reset())
-    it("should set padding to right side", () => {
+    it("Should set padding to right side", () => {
       const modal = createModal()
       manager.add(modal)
       expect(document.body.style.paddingRight).toEqual(
         `${getScrollbarSize() + 20}px`
       )
     })
-    it("should set padding to left side if RTL", () => {
+    it("Should set padding to left side if RTL", () => {
       const modal = createModal()
       new BootstrapModalManager({ isRTL: true }).add(modal as any)
       expect(document.body.style.paddingLeft).toEqual(
         `${getScrollbarSize() + 20}px`
       )
     })
-    it("should restore container overflow style", () => {
+    it("Should restore container overflow style", () => {
       const modal = createModal()
       document.body.style.overflow = "scroll"
       expect(document.body.style.overflow).toEqual("scroll")
@@ -92,7 +92,7 @@ describe("BootstrapModalManager", () => {
       expect(document.body.style.overflow).toEqual("scroll")
       document.body.style.overflow = ""
     })
-    it("should restore container overflow style for RTL", () => {
+    it("Should restore container overflow style for RTL", () => {
       const modal = createModal()
       document.body.style.overflow = "scroll"
       expect(document.body.style.overflow).toEqual("scroll")

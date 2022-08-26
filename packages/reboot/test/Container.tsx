@@ -2,7 +2,7 @@ import { Container } from "../src/Container.jsx"
 import { render } from "@testing-library/react"
 
 describe("<Container>", () => {
-  it("should render props correctly", () => {
+  it("Should render props correctly", () => {
     const { getByText } = render(
       <Container className="whatever">Container</Container>
     )
@@ -27,7 +27,7 @@ describe("<Container>", () => {
     const { getByText } = render(<Container>Container</Container>)
     expect(getByText("Container").tagName.toLowerCase()).toEqual("div")
   })
-  it("should allow custom breakpoints", () => {
+  it("Should allow custom breakpoints", () => {
     const { getByText } = render(<Container fluid="custom">test</Container>)
     expect(getByText("test").classList.contains("container-custom")).toBe(true)
   })

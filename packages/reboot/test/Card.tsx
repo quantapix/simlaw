@@ -2,12 +2,12 @@ import { Card, Img } from "../src/Card.jsx"
 import { render } from "@testing-library/react"
 
 describe("<Card>", () => {
-  it("should output a div", () => {
+  it("Should output a div", () => {
     const { getByText } = render(<Card>Card</Card>)
     expect(getByText("Card").tagName.toLowerCase()).toEqual("div")
     expect(getByText("Card").classList.contains("card")).toBe(true)
   })
-  it("should have additional classes", () => {
+  it("Should have additional classes", () => {
     const { getByText } = render(<Card className="custom-class">Card</Card>)
     expect(getByText("Card").classList.contains("custom-class")).toBe(true)
   })
@@ -23,16 +23,15 @@ describe("<Card>", () => {
     const { getByText } = render(<Card border="danger">Card</Card>)
     expect(getByText("Card").classList.contains("border-danger")).toBe(true)
   })
-  it("should render children", () => {
+  it("Should render children", () => {
     const { getByTestId } = render(
-      <Card data-testid="test-card">
+      <Card data-testid="test">
         <p>hello</p>
       </Card>
     )
-    expect(getByTestId("test-card").children.length).toEqual(1)
-    expect(getByTestId("test-card").children[0]!.tagName.toLowerCase()).toEqual(
-      "p"
-    )
+    const y = getByTestId("test")
+    expect(y.children.length).toEqual(1)
+    expect(y.children[0]!.tagName.toLowerCase()).toEqual("p")
   })
   it("accepts as prop", () => {
     const { getByText } = render(<Card as="section">body</Card>)
@@ -43,16 +42,16 @@ describe("<Card>", () => {
     expect(getByText("test").classList.contains("card-body")).toBe(true)
   })
   it("Should have div as default component", () => {
-    const { getByTestId } = render(<Card data-testid="default-test" />)
-    expect(getByTestId("default-test").tagName.toLowerCase()).toEqual("div")
+    const { getByTestId } = render(<Card data-testid="test" />)
+    expect(getByTestId("test").tagName.toLowerCase()).toEqual("div")
   })
 })
 describe("<Img>", () => {
-  it("should output an img", () => {
+  it("Should output an img", () => {
     const { getByRole } = render(<Img src="#" />)
     expect(getByRole("img")).toBeTruthy()
   })
-  it("should pass down src to img", () => {
+  it("Should pass down src to img", () => {
     const url = "http://fakeurl.com/pic.jpg"
     const { getByRole } = render(<Img src={url} />)
     expect(getByRole("img").getAttribute("src")).toEqual(url)
@@ -63,9 +62,9 @@ describe("<Img>", () => {
   })
   it("accepts as prop", () => {
     const { getByRole } = render(<Img as="figure">img</Img>)
-    const card = getByRole("figure")
-    expect(card.tagName.toLowerCase()).toEqual("figure")
-    expect(card.classList.contains("card-img")).toEqual(true)
+    const y = getByRole("figure")
+    expect(y.tagName.toLowerCase()).toEqual("figure")
+    expect(y.classList.contains("card-img")).toEqual(true)
   })
   describe("variants", () => {
     it("null", () => {

@@ -3,7 +3,7 @@ import { Navbar, Offcanvas, Toggle } from "../src/Navbar.jsx"
 import { Header } from "../src/Offcanvas.jsx"
 
 describe("<NavbarOffcanvas>", () => {
-  it("should should open the offcanvas", () => {
+  it("Should should open the offcanvas", () => {
     const { getByTestId } = render(
       <Navbar>
         <Toggle data-testid="toggle" />
@@ -13,7 +13,7 @@ describe("<NavbarOffcanvas>", () => {
     fireEvent.click(getByTestId("toggle"))
     expect(getByTestId("offcanvas").classList.contains("show")).toBe(true)
   })
-  it("should close the offcanvas on header close button click", () => {
+  it("Should close the offcanvas on header close button click", () => {
     const mock = jest.fn()
     const { getByLabelText } = render(
       <Navbar onToggle={mock} expanded>
@@ -26,7 +26,7 @@ describe("<NavbarOffcanvas>", () => {
     fireEvent.click(getByLabelText("Close"))
     expect(mock).toHaveBeenCalledWith(false)
   })
-  it("should render nav items with expand prop", () => {
+  it("Should render nav items with expand prop", () => {
     const { getByText } = render(
       <Navbar expand="sm">
         <Toggle data-testid="toggle" />

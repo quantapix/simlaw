@@ -60,7 +60,7 @@ describe("Row", () => {
     expect(getByText("Row").tagName.toLowerCase()).toEqual("section")
     expect(getByText("Row").classList.contains("row")).toBe(true)
   })
-  it("should allow custom breakpoints", () => {
+  it("Should allow custom breakpoints", () => {
     const { getByText } = render(
       <ThemeProvider breakpoints={["custom"]}>
         <Row custom="3">test</Row>

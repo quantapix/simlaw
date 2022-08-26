@@ -19,7 +19,7 @@ describe("ModalManager", () => {
     container = null
     manager = null
   })
-  it("should add Modal", () => {
+  it("Should add Modal", () => {
     const modal = createModal()
     manager.add(modal)
     expect(manager.modals.length).toEqual(1)
@@ -32,20 +32,20 @@ describe("ModalManager", () => {
       },
     })
   })
-  it("should not add a modal twice", () => {
+  it("Should not add a modal twice", () => {
     const modal = createModal()
     manager.add(modal)
     manager.add(modal)
     expect(manager.modals.length).toEqual(1)
   })
-  it("should add multiple modals", () => {
+  it("Should add multiple modals", () => {
     const modalA = createModal()
     const modalB = createModal()
     manager.add(modalA)
     manager.add(modalB)
     expect(manager.modals.length).toEqual(2)
   })
-  it("should remove modal", () => {
+  it("Should remove modal", () => {
     const modalA = createModal()
     const modalB = createModal()
     manager.add(modalA)
@@ -67,13 +67,13 @@ describe("ModalManager", () => {
       `)
     })
     afterEach(() => injectCss.reset())
-    it("should set container overflow to hidden ", () => {
+    it("Should set container overflow to hidden ", () => {
       const modal = createModal()
       expect(document.body.style.overflow).toEqual("")
       manager.add(modal)
       expect(document.body.style.overflow).toEqual("hidden")
     })
-    it("should respect handleContainerOverflow", () => {
+    it("Should respect handleContainerOverflow", () => {
       const modal = createModal()
       expect(document.body.style.overflow).toEqual("")
       const modalManager = new Manager({ handleContainerOverflow: false })
@@ -82,21 +82,21 @@ describe("ModalManager", () => {
       modalManager.remove(modal)
       expect(document.body.style.overflow).toEqual("")
     })
-    it("should set add to existing container padding", () => {
+    it("Should set add to existing container padding", () => {
       const modal = createModal()
       manager.add(modal)
       expect(document.body.style.paddingRight).toEqual(
         `${getScrollbarSize() + 20}px`
       )
     })
-    it("should set padding to left side if RTL", () => {
+    it("Should set padding to left side if RTL", () => {
       const modal = createModal()
       new Manager({ isRTL: true }).add(modal)
       expect(document.body.style.paddingLeft).toEqual(
         `${getScrollbarSize() + 20}px`
       )
     })
-    it("should restore container overflow style", () => {
+    it("Should restore container overflow style", () => {
       const modal = createModal()
       document.body.style.overflow = "scroll"
       expect(document.body.style.overflow).toEqual("scroll")
@@ -105,7 +105,7 @@ describe("ModalManager", () => {
       expect(document.body.style.overflow).toEqual("scroll")
       document.body.style.overflow = ""
     })
-    it("should reset overflow style to the computed one", () => {
+    it("Should reset overflow style to the computed one", () => {
       const modal = createModal()
       expect(css(document.body, "overflow")).toEqual("scroll")
       manager.add(modal)
@@ -113,7 +113,7 @@ describe("ModalManager", () => {
       expect(document.body.style.overflow).toEqual("")
       expect(css(document.body, "overflow")).toEqual("scroll")
     })
-    it("should only remove styles when there are no associated modals", () => {
+    it("Should only remove styles when there are no associated modals", () => {
       const modalA = createModal()
       const modalB = createModal()
       expect(document.body.style.overflow).toEqual("")

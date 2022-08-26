@@ -5,7 +5,7 @@ import { useWaitForDOMRef } from "../../src/base/use.js"
 import * as React from "react"
 
 describe("useWaitForDOMRef", () => {
-  it("should resolve on first render if possible (element)", () => {
+  it("Should resolve on first render if possible (element)", () => {
     let renderCount = 0
     const container = document.createElement("div")
     function Test({ container, onResolved }) {
@@ -22,7 +22,7 @@ describe("useWaitForDOMRef", () => {
     expect(renderCount).toEqual(1)
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should resolve on first render if possible (ref)", () => {
+  it("Should resolve on first render if possible (ref)", () => {
     let renderCount = 0
     const container = React.createRef()
     container.current = document.createElement("div")
@@ -40,7 +40,7 @@ describe("useWaitForDOMRef", () => {
     expect(renderCount).toEqual(1)
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should resolve on first render if possible (function)", () => {
+  it("Should resolve on first render if possible (function)", () => {
     const div = document.createElement("div")
     const container = () => div
     let renderCount = 0
@@ -58,7 +58,7 @@ describe("useWaitForDOMRef", () => {
     expect(renderCount).toEqual(1)
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should resolve after if required", () => {
+  it("Should resolve after if required", () => {
     let renderCount = 0
     function Test({ container, onResolved }) {
       useWaitForDOMRef(container, onResolved)

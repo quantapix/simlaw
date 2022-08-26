@@ -113,7 +113,7 @@ describe("<Navbar>", () => {
     expect(toggleElem.classList.contains("show")).toBe(true)
   })
   it("Should wire the toggle to the collapse", done => {
-    const clock = sinon.useFakeTimers()
+    const // clock = sinon.useFakeTimers()
     const { getByTestId } = render(
       <Navbar>
         <Toggle data-testid="toggler" />
@@ -125,12 +125,12 @@ describe("<Navbar>", () => {
     expect(collapseElem.classList.contains("show")).toBe(false)
     expect(toggleElem.classList.contains("collapsed")).toBe(true)
     fireEvent.click(toggleElem)
-    clock.tick(500)
+    jest.advanceTimersByTime(500)
     toggleElem = getByTestId("toggler")
     collapseElem = getByTestId("collapse")
     expect(collapseElem.classList.contains("show")).toBe(true)
     expect(toggleElem.classList.contains("collapsed")).toBe(false)
-    clock.restore()
+    // clock.restore()
     done()
   })
   it("Should open external href link in collapseOnSelect", () => {
@@ -238,7 +238,7 @@ describe("<Navbar>", () => {
       true
     )
   })
-  it("should allow custom breakpoints for expand", () => {
+  it("Should allow custom breakpoints for expand", () => {
     const { getByTestId } = render(
       <Navbar expand="custom" data-testid="test" />
     )

@@ -27,7 +27,7 @@ describe("<Button>", () => {
     const { container } = render(<Button as="div">Title</Button>)
     expect(container.firstElementChild!.getAttribute("type")).toBeNull()
   })
-  it("should forward refs to the button", () => {
+  it("Should forward refs to the button", () => {
     const ref = React.createRef<any>()
     const { rerender } = render(
       <div>
@@ -71,7 +71,7 @@ describe("<Button>", () => {
     expect(mock).not.toHaveBeenCalled()
   })
   ;["#", ""].forEach(href => {
-    it(`should prevent default on trivial href="${href}" clicks`, () => {
+    it(`Should prevent default on trivial href="${href}" clicks`, () => {
       const mock = jest.fn()
       const { getByText } = render(
         <div onClick={mock}>
@@ -86,7 +86,7 @@ describe("<Button>", () => {
       expect(event.defaultPrevented).toEqual(true)
     })
   })
-  it(`should not prevent default on button clicks`, () => {
+  it(`Should not prevent default on button clicks`, () => {
     const mock = jest.fn()
     const { getByText } = render(
       <div onClick={mock}>
@@ -112,7 +112,7 @@ describe("<Button>", () => {
     fireEvent.click(anchor)
     expect(mock).not.toHaveBeenCalled()
   })
-  it("should render an anchor with # if href not provided", () => {
+  it("Should render an anchor with # if href not provided", () => {
     const { container } = render(<Button as="a">Title</Button>)
     expect(container.firstElementChild!.getAttribute("href")!).toEqual("#")
   })

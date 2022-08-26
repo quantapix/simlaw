@@ -31,7 +31,7 @@ describe("<Button>", () => {
     )
     expect(getByTestId("test").getAttribute("type")).toBeNull()
   })
-  it("should forward refs to the button", () => {
+  it("Should forward refs to the button", () => {
     const ref = React.createRef<HTMLButtonElement>()
     render(
       <div>
@@ -85,9 +85,9 @@ describe("<Button>", () => {
         Title
       </Button>
     )
-    const button = getByRole("button")
-    expect(button.classList.contains("bob")).toBe(true)
-    expect(button.classList.contains("btn-danger")).toBe(true)
+    const y = getByRole("button")
+    expect(y.classList.contains("bob")).toBe(true)
+    expect(y.classList.contains("btn-danger")).toBe(true)
   })
   it('Should default to variant="primary"', () => {
     const { getByRole } = render(<Button>Title</Button>)
@@ -115,9 +115,9 @@ describe("<Button>", () => {
         Title
       </Button>
     )
-    const button = getByRole("button")
-    expect(button.classList.contains("my-btn")).toBe(true)
-    expect(button.classList.contains("my-btn-danger")).toBe(true)
+    const y = getByRole("button")
+    expect(y.classList.contains("my-btn")).toBe(true)
+    expect(y.classList.contains("my-btn-danger")).toBe(true)
   })
 })
 describe("Group", () => {
@@ -143,9 +143,9 @@ describe("Group", () => {
         <Button>Title</Button>
       </Group>
     )
-    const group = getByRole("group")
-    expect(group.classList.contains("btn-group-vertical")).toBe(true)
-    expect(group.classList.contains("btn-group")).toBe(false)
+    const y = getByRole("group")
+    expect(y.classList.contains("btn-group-vertical")).toBe(true)
+    expect(y.classList.contains("btn-group")).toBe(false)
   })
   it("Should have div as default component", () => {
     const { getByRole } = render(<Group />)
@@ -171,9 +171,9 @@ describe("Toolbar", () => {
         <Button>Title</Button>
       </Toolbar>
     )
-    const toolbar = getByRole("toolbar")
-    expect(toolbar.classList.contains("my-custom-toolbar")).toBe(true)
-    expect(toolbar.classList.contains("btn-toolbar")).toBe(false)
+    const y = getByRole("toolbar")
+    expect(y.classList.contains("my-custom-toolbar")).toBe(true)
+    expect(y.classList.contains("btn-toolbar")).toBe(false)
   })
 })
 describe("<Close>", () => {

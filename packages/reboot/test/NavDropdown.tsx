@@ -43,7 +43,7 @@ describe("<Dropdown>", () => {
       true
     )
   })
-  it("should handle child active state", () => {
+  it("Should handle child active state", () => {
     const { getByTestId } = render(
       <Nav defaultActiveKey="2">
         <Dropdown defaultShow id="test-id" title="title">
@@ -57,7 +57,7 @@ describe("<Dropdown>", () => {
     )
     expect(getByTestId("test").textContent!).toEqual("Item 2 content")
   })
-  it("should pass the id to the NavLink element", () => {
+  it("Should pass the id to the NavLink element", () => {
     const { getByTestId } = render(
       <Dropdown id="test-id" title="title" data-testid="test">
         <Item eventKey="1">Item 1 content</Item>
@@ -65,7 +65,7 @@ describe("<Dropdown>", () => {
     )
     expect(getByTestId("test").firstElementChild!.id).toEqual("test-id")
   })
-  it("should support as as prop", () => {
+  it("Should support as as prop", () => {
     const { getByTestId } = render(
       <Dropdown as="li" id="test-id" title="title" data-testid="test">
         <Item eventKey="1">Item 1</Item>

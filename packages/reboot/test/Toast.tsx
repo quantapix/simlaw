@@ -11,19 +11,19 @@ const getToast = ({ delay = 500, mock, autohide = true, show = true }) => (
 describe("<Toast>", () => {
   let clock
   beforeEach(() => {
-    clock = sinon.useFakeTimers()
+    // clock = sinon.useFakeTimers()
   })
   afterEach(() => {
-    clock.restore()
+    // clock.restore()
   })
-  it("should apply bg prop", () => {
+  it("Should apply bg prop", () => {
     const { container } = render(<Toast bg="primary">Card</Toast>)
     expect(container.firstElementChild!.classList.contains("bg-primary")).toBe(
       true
     )
     expect(container.firstElementChild!.classList.contains("toast")).toBe(true)
   })
-  it("should render an entire toast", () => {
+  it("Should render an entire toast", () => {
     const { container } = render(
       <Toast>
         <Header />
@@ -48,7 +48,7 @@ describe("<Toast>", () => {
       ).toBe(true)
     )
   })
-  it("should render without transition if animation is false", () => {
+  it("Should render without transition if animation is false", () => {
     const { container } = render(
       <Toast animation={false}>
         <Header />
@@ -61,7 +61,7 @@ describe("<Toast>", () => {
       )
     )
   })
-  it("should trigger the onClose event after clicking on the close button", () => {
+  it("Should trigger the onClose event after clicking on the close button", () => {
     const mock = jest.fn()
     const { container } = render(
       <Toast onClose={mock}>
@@ -74,7 +74,7 @@ describe("<Toast>", () => {
     )
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should trigger the onClose event after the autohide delay", () => {
+  it("Should trigger the onClose event after the autohide delay", () => {
     const mock = jest.fn()
     render(
       <Toast onClose={mock} delay={500} show autohide>
@@ -82,10 +82,10 @@ describe("<Toast>", () => {
         <Body>body-content</Body>
       </Toast>
     )
-    clock.tick(1000)
+    jest.advanceTimersByTime(1000)
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should not trigger the onClose event if autohide is not set", () => {
+  it("Should not trigger the onClose event if autohide is not set", () => {
     const mock = jest.fn()
     render(
       <Toast onClose={mock}>
@@ -93,10 +93,10 @@ describe("<Toast>", () => {
         <Body>body-content</Body>
       </Toast>
     )
-    clock.tick(3000)
+    jest.advanceTimersByTime(3000)
     expect(mock).not.toHaveBeenCalled()
   })
-  it("should clearTimeout after unmount", () => {
+  it("Should clearTimeout after unmount", () => {
     const mock = jest.fn()
     const { unmount } = render(
       <Toast delay={500} onClose={mock} show autohide>
@@ -105,53 +105,53 @@ describe("<Toast>", () => {
       </Toast>
     )
     unmount()
-    clock.tick(1000)
+    jest.advanceTimersByTime(1000)
     expect(mock).not.toHaveBeenCalled()
   })
-  it("should not reset autohide timer when element re-renders with same props", () => {
+  it("Should not reset autohide timer when element re-renders with same props", () => {
     const mock = jest.fn()
     const toast = getToast({ mock })
     const { rerender } = render(toast)
-    clock.tick(250)
+    jest.advanceTimersByTime(250)
     rerender(toast)
-    clock.tick(300)
+    jest.advanceTimersByTime(300)
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should not reset autohide timer when delay is changed", () => {
+  it("Should not reset autohide timer when delay is changed", () => {
     const mock = jest.fn()
     const { rerender } = render(getToast({ delay: 500, mock }))
-    clock.tick(250)
+    jest.advanceTimersByTime(250)
     rerender(getToast({ delay: 10000, mock }))
-    clock.tick(300)
+    jest.advanceTimersByTime(300)
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should not reset autohide timer when onClosed is changed", () => {
+  it("Should not reset autohide timer when onClosed is changed", () => {
     const mock = jest.fn()
     const mock2 = jest.fn()
     const { rerender } = render(getToast({ mock }))
-    clock.tick(250)
+    jest.advanceTimersByTime(250)
     rerender(getToast({ mock: mock2 }))
-    clock.tick(300)
+    jest.advanceTimersByTime(300)
     expect(mock).not.toHaveBeenCalled()
     expect(mock2).toHaveBeenCalledTimes(1)
   })
-  it("should not call onClose if autohide is changed from true to false", () => {
+  it("Should not call onClose if autohide is changed from true to false", () => {
     const mock = jest.fn()
     const { rerender } = render(getToast({ mock, autohide: true }))
-    clock.tick(250)
+    jest.advanceTimersByTime(250)
     rerender(getToast({ mock, autohide: false }))
-    clock.tick(300)
+    jest.advanceTimersByTime(300)
     expect(mock).not.toHaveBeenCalled()
   })
-  it("should not call onClose if show is changed from true to false", () => {
+  it("Should not call onClose if show is changed from true to false", () => {
     const mock = jest.fn()
     const { rerender } = render(getToast({ show: true, mock }))
-    clock.tick(100)
+    jest.advanceTimersByTime(100)
     rerender(getToast({ show: false, mock }))
-    clock.tick(300)
+    jest.advanceTimersByTime(300)
     expect(mock).not.toHaveBeenCalled()
   })
-  it("should render with bsPrefix", () => {
+  it("Should render with bsPrefix", () => {
     const { container } = render(
       <Toast bsPrefix="my-toast">
         <Header />
@@ -178,7 +178,7 @@ describe("Header", () => {
       container.firstElementChild!.classList.contains("toast-header")
     ).toBe(true)
   })
-  it("should render close button variant", () => {
+  it("Should render close button variant", () => {
     const { container } = render(
       <Header closeButton closeVariant="white">
         <strong>content</strong>
@@ -226,7 +226,7 @@ const createExpectedClasses = (containerPosition = "absolute") =>
     ])
   )
 describe("Container", () => {
-  it("should render a basic toast container", () => {
+  it("Should render a basic toast container", () => {
     const { container } = render(<Container />)
     expect(
       container.firstElementChild!.classList.contains("toast-container")
@@ -235,7 +235,7 @@ describe("Container", () => {
   describe("without containerPosition", () => {
     const expectedClasses = createExpectedClasses()
     Object.keys(expectedClasses).forEach((position: Position) => {
-      it(`should render classes for position=${position} with position-absolute`, () => {
+      it(`Should render classes for position=${position} with position-absolute`, () => {
         const { container } = render(<Container position={position} />)
         expectedClasses[position].map(className =>
           expect(
@@ -248,7 +248,7 @@ describe("Container", () => {
   describe('with containerPosition = "" (empty string)', () => {
     const expectedClasses = createExpectedClasses("")
     Object.keys(expectedClasses).forEach((position: Position) => {
-      it(`should render classes for position=${position} without position-*`, () => {
+      it(`Should render classes for position=${position} without position-*`, () => {
         const { container } = render(<Container position={position} />)
         expectedClasses[position].map(className =>
           expect(
@@ -263,7 +263,7 @@ describe("Container", () => {
       describe(`with containerPosition=${containerPosition}`, () => {
         const expectedClasses = createExpectedClasses(containerPosition)
         Object.keys(expectedClasses).forEach((position: Position) => {
-          it(`should render classes for position=${position} with position-${containerPosition}`, () => {
+          it(`Should render classes for position=${position} with position-${containerPosition}`, () => {
             const { container } = render(
               <Container
                 position={position}

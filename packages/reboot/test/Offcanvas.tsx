@@ -109,7 +109,7 @@ describe("<Offcanvas>", () => {
     fireEvent.click(backdropElem)
     expect(mock).toHaveBeenCalled()
   })
-  it("should not close when static backdrop is clicked", () => {
+  it("Should not close when static backdrop is clicked", () => {
     const mock = jest.fn()
     render(
       <Offcanvas show onHide={mock} backdrop="static">
@@ -190,7 +190,7 @@ describe("<Offcanvas>", () => {
       </Offcanvas>
     )
   })
-  it("should not change overflow style when scroll=true", () => {
+  it("Should not change overflow style when scroll=true", () => {
     const containerRef = React.createRef<any>()
     render(
       <div ref={containerRef} style={{ height: "2000px", overflow: "scroll" }}>
@@ -201,7 +201,7 @@ describe("<Offcanvas>", () => {
     )
     expect(containerRef.current.style.overflow).toEqual("scroll")
   })
-  it("should set responsive class", () => {
+  it("Should set responsive class", () => {
     const { getByTestId } = render(
       <Offcanvas data-testid="test" responsive="lg" show onHide={noop}>
         <strong>Message</strong>
@@ -210,7 +210,7 @@ describe("<Offcanvas>", () => {
     const offcanvasElem = getByTestId("test")
     expect(offcanvasElem.classList.contains("offcanvas-lg")).toBe(true)
   })
-  it("should render offcanvas when show=false", () => {
+  it("Should render offcanvas when show=false", () => {
     const { getByTestId } = render(
       <Offcanvas data-testid="test" responsive="lg" onHide={noop}>
         <strong>Message</strong>
@@ -219,7 +219,7 @@ describe("<Offcanvas>", () => {
     const offcanvasElem = getByTestId("test")
     expect(offcanvasElem.getAttribute("role")).not.toBeTruthy()
   })
-  it("should not mount, unmount and mount content on show", () => {
+  it("Should not mount, unmount and mount content on show", () => {
     const InnerComponent = ({ onMount, onUnmount }) => {
       useEffect(() => {
         onMount()

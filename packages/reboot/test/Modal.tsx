@@ -247,7 +247,7 @@ describe("<Modal>", () => {
     }
     render(<Elem />)
   })
-  it("should call `transitionend` before `exited`", done => {
+  it("Should call `transitionend` before `exited`", done => {
     const mock = jest.fn()
     const { getByRole, rerender } = render(
       <Modal
@@ -281,7 +281,7 @@ describe("<Modal>", () => {
     afterEach(() => {
       mock.restore()
     })
-    it("should remove resize listener when unmounted", () => {
+    it("Should remove resize listener when unmounted", () => {
       class Component extends React.Component {
         override state = {
           show: true,
@@ -427,7 +427,7 @@ describe("Header", () => {
     fireEvent.click(getByTestId("test-modal").querySelector("button")!)
     expect(mock).toHaveReturnedTimes(1)
   })
-  it("should render close button variant", () => {
+  it("Should render close button variant", () => {
     const { getByTestId } = render(
       <Header data-testid="test-modal" closeButton closeVariant="white" />
     )

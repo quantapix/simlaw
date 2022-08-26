@@ -28,7 +28,7 @@ describe("Anchor", () => {
     fireEvent.keyDown(container.firstChild!, { key: " " })
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should call onKeyDown handler when href is non-trivial", () => {
+  it("Should call onKeyDown handler when href is non-trivial", () => {
     const mock = jest.fn()
     const { container } = render(
       <Anchor href="http://google.com" onKeyDown={mock} />

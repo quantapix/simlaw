@@ -34,7 +34,7 @@ describe("<Feedback>", () => {
   })
 })
 describe("<Feedback>", () => {
-  it("should render default success", () => {
+  it("Should render default success", () => {
     const { getByTestId } = render(
       <Group>
         <Control isValid />
@@ -45,7 +45,7 @@ describe("<Feedback>", () => {
     expect(element.classList.length).toEqual(1)
     expect(element.classList.contains("valid-feedback")).toBe(true)
   })
-  it("should render default error", () => {
+  it("Should render default error", () => {
     const { getByTestId } = render(
       <Group>
         <Control isInvalid />
@@ -56,7 +56,7 @@ describe("<Feedback>", () => {
     expect(element.classList.length).toEqual(1)
     expect(element.classList.contains("invalid-feedback")).toBe(true)
   })
-  it("should render custom component", () => {
+  it("Should render custom component", () => {
     class MyComponent extends React.Component {
       override render() {
         return <div id="my-component" {...this.props} />

@@ -11,21 +11,21 @@ describe("<SplitButton>", () => {
       <Item>Item 4</Item>
     </SplitButton>
   )
-  it("should open the menu when dropdown button is clicked", () => {
+  it("Should open the menu when dropdown button is clicked", () => {
     const { getByTestId } = render(simple)
     const splitButtonElem = getByTestId("test-wrapper")
     expect(splitButtonElem.classList.contains("show")).toBe(false)
     fireEvent.click(splitButtonElem.children[1])
     expect(splitButtonElem.classList.contains("show")).toBe(true)
   })
-  it("should not open the menu when other button is clicked", () => {
+  it("Should not open the menu when other button is clicked", () => {
     const { getByTestId } = render(simple)
     const splitButtonElem = getByTestId("test-wrapper")
     expect(splitButtonElem.classList.contains("show")).toBe(false)
     fireEvent.click(splitButtonElem.children[0])
     expect(splitButtonElem.classList.contains("show")).toBe(false)
   })
-  it("should invoke onClick when SplitButton.Button is clicked (prop)", done => {
+  it("Should invoke onClick when SplitButton.Button is clicked (prop)", done => {
     const { getByTestId } = render(
       <SplitButton
         data-testid="test-wrapper"
@@ -39,7 +39,7 @@ describe("<SplitButton>", () => {
     const splitButtonElem = getByTestId("test-wrapper")
     fireEvent.click(splitButtonElem.firstElementChild!)
   })
-  it("should not invoke onClick when SplitButton.Toggle is clicked (prop)", () => {
+  it("Should not invoke onClick when SplitButton.Toggle is clicked (prop)", () => {
     const mock = jest.fn()
     const { getByTestId } = render(
       <SplitButton
@@ -94,12 +94,12 @@ describe("<SplitButton>", () => {
       "_blank"
     )
   })
-  it("should set accessible label on toggle", () => {
+  it("Should set accessible label on toggle", () => {
     const { getByText } = render(simple)
     const toggleLabelElem = getByText("Toggle dropdown")
     expect(toggleLabelElem.classList.contains("visually-hidden")).toBe(true)
   })
-  it("should set aria-label on toggle from toggleLabel", () => {
+  it("Should set aria-label on toggle from toggleLabel", () => {
     const { getByText } = render(
       <SplitButton title="Title" id="test-id" toggleLabel="Label">
         <Item>Item 1</Item>
@@ -108,7 +108,7 @@ describe("<SplitButton>", () => {
     const labelElem = getByText("Label")
     expect(labelElem.classList.contains("visually-hidden")).toBe(true)
   })
-  it("should set type attribute from type", () => {
+  it("Should set type attribute from type", () => {
     const { getByTestId } = render(
       <SplitButton
         data-testid="test-wrapper"

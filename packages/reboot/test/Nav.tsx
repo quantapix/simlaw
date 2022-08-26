@@ -6,11 +6,11 @@ import { Navbar } from "../src/Navbar.jsx"
 import { shouldWarn } from "./tools.js"
 
 describe("<Nav>", () => {
-  it("should have div as default component", () => {
+  it("Should have div as default component", () => {
     const { getByTestId } = render(<Nav data-testid="test" />)
     expect(getByTestId("test").tagName.toLowerCase()).toEqual("div")
   })
-  it("should set the correct item active", () => {
+  it("Should set the correct item active", () => {
     const { getByTestId } = render(
       <Nav variant="pills" defaultActiveKey={1} data-testid="test">
         <Link eventKey={1}>Pill 1 content</Link>
@@ -21,7 +21,7 @@ describe("<Nav>", () => {
     expect(navLinks[0]!.classList.contains("active")).toBe(true)
     expect(navLinks[1]!.classList.contains("active")).not.toBe(true)
   })
-  it("should add variant class", () => {
+  it("Should add variant class", () => {
     const { getByTestId } = render(
       <Nav variant="tabs" data-testid="test">
         <Link eventKey={1}>Pill 1 content</Link>
@@ -32,7 +32,7 @@ describe("<Nav>", () => {
     expect(navElem.classList.contains("nav-tabs")).toBe(true)
     expect(navElem.classList.contains("nav")).toBe(true)
   })
-  it("should add justified class", () => {
+  it("Should add justified class", () => {
     const { getByTestId } = render(
       <Nav justify data-testid="test">
         <Link eventKey={1}>Pill 1 content</Link>
@@ -42,7 +42,7 @@ describe("<Nav>", () => {
     const navElem = getByTestId("test")
     expect(navElem.classList.contains("nav-justified")).toBe(true)
   })
-  it("should add fill class", () => {
+  it("Should add fill class", () => {
     const { getByTestId } = render(
       <Nav fill data-testid="test">
         <Link eventKey={1}>Pill 1 content</Link>
@@ -52,7 +52,7 @@ describe("<Nav>", () => {
     const navElem = getByTestId("test")
     expect(navElem.classList.contains("nav-fill")).toBe(true)
   })
-  it("should be navbar aware", () => {
+  it("Should be navbar aware", () => {
     const { getByTestId } = render(
       <Navbar>
         <Nav data-testid="test">
@@ -64,7 +64,7 @@ describe("<Nav>", () => {
     const navItem = getByTestId("test")
     expect(navItem.classList.contains("navbar-nav")).toBe(true)
   })
-  it("should handle navbarScroll if within navbar", () => {
+  it("Should handle navbarScroll if within navbar", () => {
     const { getByTestId } = render(
       <Navbar>
         <Nav navbarScroll data-testid="test" />
@@ -73,12 +73,12 @@ describe("<Nav>", () => {
     const navItem = getByTestId("test")
     expect(navItem.classList.contains("navbar-nav-scroll")).toBe(true)
   })
-  it("should not add navbarScroll when not within navbar", () => {
+  it("Should not add navbarScroll when not within navbar", () => {
     const { getByTestId } = render(<Nav navbarScroll data-testid="test" />)
     const navItem = getByTestId("test")
     expect(navItem.classList.contains("navbar-nav-scroll")).toBe(false)
   })
-  it("should be card header aware", () => {
+  it("Should be card header aware", () => {
     const { getByTestId } = render(
       <CardHeader>
         <Nav variant="pills" data-testid="test">
@@ -90,7 +90,7 @@ describe("<Nav>", () => {
     const navItem = getByTestId("test")
     expect(navItem.classList.contains("card-header-pills")).toBe(true)
   })
-  it("should call onSelect when a Link is selected", () => {
+  it("Should call onSelect when a Link is selected", () => {
     const mock = jest.fn()
     const { getByTestId } = render(
       <Nav onSelect={mock} data-testid="test">
@@ -104,7 +104,7 @@ describe("<Nav>", () => {
     fireEvent.click(navItem.lastElementChild!)
     expect(mock).toHaveBeenCalledWith("2")
   })
-  it("should call onSelect when a NavDropdown.Item is selected", () => {
+  it("Should call onSelect when a NavDropdown.Item is selected", () => {
     const mock = jest.fn()
     const { getByTestId } = render(
       <Nav onSelect={mock}>
@@ -119,7 +119,7 @@ describe("<Nav>", () => {
     fireEvent.click(dropdownItem!)
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("should set the correct item active by href", () => {
+  it("Should set the correct item active by href", () => {
     const { getByTestId } = render(
       <Nav defaultActiveKey="#item1" data-testid="test">
         <Link href="#item1" className="test-selected">
@@ -131,12 +131,12 @@ describe("<Nav>", () => {
     const navItem = getByTestId("test")
     expect(navItem.firstElementChild!.classList.contains("active")).toBe(true)
   })
-  it("should warn when attempting to use a justify navbar nav", () => {
+  it("Should warn when attempting to use a justify navbar nav", () => {
     shouldWarn("justify navbar `Nav`s are not supported")
     render(<Nav navbar justify />)
   })
   describe("Web Accessibility", () => {
-    it("should have tablist and tab roles", () => {
+    it("Should have tablist and tab roles", () => {
       const Component = (props: any) => (
         <Nav data-testid="test" {...props}>
           <Link key={1}>Tab 1 content</Link>
@@ -152,7 +152,7 @@ describe("<Nav>", () => {
   })
 })
 describe("<NavItem>", () => {
-  it("should have div as default component", () => {
+  it("Should have div as default component", () => {
     const { getByTestId } = render(<Item data-testid="test" />)
     const navItemElem = getByTestId("test")
 
@@ -168,7 +168,7 @@ describe("<NavItem>", () => {
     expect(navItemElem.classList.contains("nav-item")).toBe(true)
   })
 
-  it("should pass classNames down and render children", () => {
+  it("Should pass classNames down and render children", () => {
     const { getByTestId } = render(
       <Item data-testid="test" className="custom-class and-other">
         <strong>Children</strong>

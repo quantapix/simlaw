@@ -15,7 +15,7 @@ import {
 } from "../src/Form.jsx"
 
 describe("<Form>", () => {
-  it("should support custom `as`", () => {
+  it("Should support custom `as`", () => {
     const { getByTestId } = render(
       <Form as="fieldset" className="my-form" data-testid="test">
         <Group />
@@ -33,7 +33,7 @@ describe("<Form>", () => {
     const form = getByTestId("test")
     expect(form.tagName.toLowerCase()).toEqual("form")
   })
-  it("should have form class `was-validated` if validated", () => {
+  it("Should have form class `was-validated` if validated", () => {
     const { getByTestId } = render(<Form validated data-testid="test" />)
     const form = getByTestId("test")
     expect(form.classList.length).toEqual(1)
@@ -41,7 +41,7 @@ describe("<Form>", () => {
   })
 })
 describe("<Check>", () => {
-  it("should render correctly", () => {
+  it("Should render correctly", () => {
     const { getByTestId, container } = render(
       <Check
         id="foo"
@@ -72,7 +72,7 @@ describe("<Check>", () => {
     expect(label.getAttribute("for")!).toEqual("foo")
     expect(label.innerText).toEqual("My label")
   })
-  it("should render radio correctly", () => {
+  it("Should render radio correctly", () => {
     const { getByTestId, container } = render(
       <Check
         id="foo"
@@ -104,33 +104,33 @@ describe("<Check>", () => {
     expect(label.getAttribute("for")!).toEqual("foo")
     expect(label.innerText).toEqual("My label")
   })
-  it("should support inline", () => {
+  it("Should support inline", () => {
     const {
       container: { firstElementChild: element },
     } = render(<Check inline label="My label" />)
     expect(element!.classList.length).toEqual(2)
     expect(element!.classList.contains("form-check-inline")).toBe(true)
   })
-  it("should support in reverse", () => {
+  it("Should support in reverse", () => {
     const {
       container: { firstElementChild: element },
     } = render(<Check reverse label="My label" />)
     expect(element!.classList.length).toEqual(2)
     expect(element!.classList.contains("form-check-reverse")).toBe(true)
   })
-  it("should support isValid", () => {
+  it("Should support isValid", () => {
     const { getByTestId } = render(<Check isValid data-testid="test-id" />)
     const element = getByTestId("test-id")
     expect(element.classList.length).toEqual(2)
     expect(element.classList.contains("is-valid")).toBe(true)
   })
-  it("should support isInvalid", () => {
+  it("Should support isInvalid", () => {
     const { getByTestId } = render(<Check isInvalid data-testid="test-id" />)
     const element = getByTestId("test-id")
     expect(element.classList.length).toEqual(2)
     expect(element.classList.contains("is-invalid")).toBe(true)
   })
-  it("should support ref forwarding", () => {
+  it("Should support ref forwarding", () => {
     let input: any
     class Container extends React.Component {
       override render() {
@@ -146,13 +146,13 @@ describe("<Check>", () => {
     render(<Container />)
     expect(input.tagName.toLowerCase()).toEqual("input")
   })
-  it("should not render bsPrefix if no label is specified", () => {
+  it("Should not render bsPrefix if no label is specified", () => {
     const { container } = render(
       <Check id="foo" name="foo" value="foo" type="radio" />
     )
     expect(container.getElementsByClassName("form-check").length).toEqual(0)
   })
-  it("should support type switch", () => {
+  it("Should support type switch", () => {
     const { getByTestId, container } = render(
       <Check
         type="switch"
@@ -178,7 +178,7 @@ describe("<Check>", () => {
     expect(label.getAttribute("for")!).toEqual("switch-id")
     expect(label.innerText).toEqual("My label")
   })
-  it("should support Switch", () => {
+  it("Should support Switch", () => {
     const { getByTestId, container } = render(
       <Switch label="My label" id="switch-id" data-testid="test-id" />
     )
@@ -254,7 +254,7 @@ describe("<Check>", () => {
   })
 })
 describe("<Control>", () => {
-  it("should render correctly", () => {
+  it("Should render correctly", () => {
     const { getByTestId } = render(
       <Control
         type="text"
@@ -273,25 +273,25 @@ describe("<Control>", () => {
     expect(element.getAttribute("name")!).toEqual("bar")
     expect(element.getAttribute("type")!).toEqual("text")
   })
-  it("should support textarea", () => {
+  it("Should support textarea", () => {
     const { getByTestId } = render(
       <Control as="textarea" data-testid="test-id" />
     )
     expect(getByTestId("test-id").tagName.toLowerCase()).toEqual("textarea")
   })
-  it("should support plaintext inputs", () => {
+  it("Should support plaintext inputs", () => {
     const { getByTestId } = render(<Control plaintext data-testid="test-id" />)
     const element = getByTestId("test-id")
     expect(element.classList.length).toEqual(1)
     expect(element.classList.contains("form-control-plaintext")).toBe(true)
   })
-  it("should support type=color", () => {
+  it("Should support type=color", () => {
     const { getByTestId } = render(
       <Control type="color" data-testid="test-id" />
     )
     expect(getByTestId("test-id").getAttribute("type")!).toEqual("color")
   })
-  it("should use controlId for id", () => {
+  it("Should use controlId for id", () => {
     const { getByTestId } = render(
       <Group controlId="foo">
         <Control type="text" data-testid="test-id" />
@@ -299,7 +299,7 @@ describe("<Control>", () => {
     )
     expect(getByTestId("test-id").id).toEqual("foo")
   })
-  it("should prefer explicit id", () => {
+  it("Should prefer explicit id", () => {
     shouldWarn("ignored")
     const { getByTestId } = render(
       <Group controlId="foo">
@@ -308,7 +308,7 @@ describe("<Control>", () => {
     )
     expect(getByTestId("test-id").id).toEqual("bar")
   })
-  it("should support ref forwarding", () => {
+  it("Should support ref forwarding", () => {
     let input: any
     class Container extends React.Component {
       override render() {
@@ -327,7 +327,7 @@ describe("<Control>", () => {
     render(<Container />)
     expect(input.tagName.toLowerCase()).toEqual("input")
   })
-  it("should properly display size of Control", () => {
+  it("Should properly display size of Control", () => {
     const { getByTestId } = render(
       <Control type="text" size="lg" data-testid="test-id" />
     )
@@ -335,7 +335,7 @@ describe("<Control>", () => {
     expect(element.classList.length).toEqual(2)
     expect(element.classList.contains("form-control-lg")).toBe(true)
   })
-  it("should properly display html size of Control", () => {
+  it("Should properly display html size of Control", () => {
     const { getByTestId } = render(
       <Control type="text" htmlSize={42} data-testid="test-id" />
     )
@@ -345,13 +345,13 @@ describe("<Control>", () => {
     const { getByTestId } = render(<Control data-testid="test-id" />)
     expect(getByTestId("test-id").tagName.toLowerCase()).toEqual("input")
   })
-  it("should support numbers as values", () => {
+  it("Should support numbers as values", () => {
     const { getByTestId } = render(
       <Control value={10} onChange={() => undefined} data-testid="test-id" />
     )
     expect(getByTestId("test-id").getAttribute("value")!).toEqual("10")
   })
-  it("should support an array of strings as values", () => {
+  it("Should support an array of strings as values", () => {
     const { getByTestId } = render(
       <Control
         value={["hello", "world"]}
@@ -405,7 +405,7 @@ describe("<Group>", () => {
   })
 })
 describe("<Label>", () => {
-  it("should render correctly", () => {
+  it("Should render correctly", () => {
     const { getByTestId } = render(
       <Label
         id="foo"
@@ -422,7 +422,7 @@ describe("<Label>", () => {
     expect(element.id).toEqual("foo")
     expect(element.getAttribute("for")!).not.toBeNull()
   })
-  it("should use controlId for htmlFor", () => {
+  it("Should use controlId for htmlFor", () => {
     const { getByTestId } = render(
       <Group controlId="foo">
         <Label data-testid="test-id" />
@@ -431,7 +431,7 @@ describe("<Label>", () => {
     const element = getByTestId("test-id")
     expect(element.getAttribute("for")!).toEqual("foo")
   })
-  it("should render as a Col", () => {
+  it("Should render as a Col", () => {
     const { getByTestId } = render(
       <Label column sm={4} data-testid="test-id">
         Label
@@ -443,7 +443,7 @@ describe("<Label>", () => {
     expect(element.classList.contains("col-form-label")).toBe(true)
     expect(element.classList.contains("col-sm-4")).toBe(true)
   })
-  it("should use controlId for htmlFor when render as Col", () => {
+  it("Should use controlId for htmlFor when render as Col", () => {
     const { getByTestId } = render(
       <Group controlId="foo">
         <Label column sm={4} data-testid="test-id" />
@@ -456,7 +456,7 @@ describe("<Label>", () => {
     expect(element.classList.contains("col-sm-4")).toBe(true)
     expect(element.getAttribute("for")!).toEqual("foo")
   })
-  it("should respect visuallyHidden", () => {
+  it("Should respect visuallyHidden", () => {
     const { getByTestId } = render(
       <Label visuallyHidden data-testid="test-id">
         Label
@@ -466,7 +466,7 @@ describe("<Label>", () => {
     expect(element.classList.length).toEqual(2)
     expect(element.classList.contains("visually-hidden")).toBe(true)
   })
-  it("should prefer explicit htmlFor", () => {
+  it("Should prefer explicit htmlFor", () => {
     shouldWarn("ignored")
     const { getByTestId } = render(
       <Group controlId="foo">
@@ -476,7 +476,7 @@ describe("<Label>", () => {
     const element = getByTestId("test-id")
     expect(element.getAttribute("for")!).toEqual("bar")
   })
-  it("should support ref forwarding", () => {
+  it("Should support ref forwarding", () => {
     let input: any
     class Container extends React.Component {
       override render() {
@@ -494,7 +494,7 @@ describe("<Label>", () => {
     render(<Container />)
     expect(input.tagName.toLowerCase()).toEqual("label")
   })
-  it("should support ref forwarding when rendered as a Col", () => {
+  it("Should support ref forwarding when rendered as a Col", () => {
     let input: any
     class Container extends React.Component {
       override render() {
@@ -521,7 +521,7 @@ describe("<Label>", () => {
     )
     expect(getByTestId("test-id").tagName.toLowerCase()).toEqual("legend")
   })
-  it("should properly size itself when rendered as a Col", () => {
+  it("Should properly size itself when rendered as a Col", () => {
     const { getByTestId } = render(
       <div>
         <Label column="sm" data-testid="test-1">
@@ -547,7 +547,7 @@ describe("<Label>", () => {
   })
 })
 describe("<Range>", () => {
-  it("should render correctly", () => {
+  it("Should render correctly", () => {
     const { getByTestId } = render(
       <Range id="foo" name="bar" className="my-control" data-testid="test-id" />
     )
@@ -560,7 +560,7 @@ describe("<Range>", () => {
     expect(element.getAttribute("name")!).toEqual("bar")
     expect(element.getAttribute("type")!).toEqual("range")
   })
-  it("should render controlId as id correctly", () => {
+  it("Should render controlId as id correctly", () => {
     const { getByTestId } = render(
       <Group controlId="controll-id">
         <Range data-testid="test-id" />
@@ -569,7 +569,7 @@ describe("<Range>", () => {
     const element = getByTestId("test-id")
     expect(element.id).toEqual("controll-id")
   })
-  it("should override controlId correctly", () => {
+  it("Should override controlId correctly", () => {
     const { getByTestId } = render(
       <Group controlId="controll-id">
         <Range id="overridden-id" data-testid="test-id" />
@@ -580,7 +580,7 @@ describe("<Range>", () => {
   })
 })
 describe("<Select>", () => {
-  it("should render correctly", () => {
+  it("Should render correctly", () => {
     const { getByTestId } = render(
       <Select data-testid="test-id" name="bar" className="my-control" />
     )
@@ -591,32 +591,32 @@ describe("<Select>", () => {
     expect(element.classList.contains("form-select")).toBe(true)
     expect(element.getAttribute("name")!).toEqual("bar")
   })
-  it("should render size correctly", () => {
+  it("Should render size correctly", () => {
     const { getByTestId } = render(<Select size="lg" data-testid="test-id" />)
     const element = getByTestId("test-id")
     expect(element.classList.length).toEqual(2)
     expect(element.classList.contains("form-select-lg")).toBe(true)
   })
-  it("should render htmlSize correctly", () => {
+  it("Should render htmlSize correctly", () => {
     const { getByTestId } = render(
       <Select htmlSize={3} data-testid="test-id" />
     )
     const element = getByTestId("test-id")
     expect(element.getAttribute("size")!).toEqual("3")
   })
-  it("should render isValid correctly", () => {
+  it("Should render isValid correctly", () => {
     const { getByTestId } = render(<Select isValid data-testid="test-id" />)
     const element = getByTestId("test-id")
     expect(element.classList.length).toEqual(2)
     expect(element.classList.contains("is-valid")).toBe(true)
   })
-  it("should render isInvalid correctly", () => {
+  it("Should render isInvalid correctly", () => {
     const { getByTestId } = render(<Select isInvalid data-testid="test-id" />)
     const element = getByTestId("test-id")
     expect(element.classList.length).toEqual(2)
     expect(element.classList.contains("is-invalid")).toBe(true)
   })
-  it("should render controlId correctly", () => {
+  it("Should render controlId correctly", () => {
     const { getByTestId } = render(
       <Group controlId="controll-id">
         <Select data-testid="test-id">
@@ -627,7 +627,7 @@ describe("<Select>", () => {
     const element = getByTestId("test-id")
     expect(element.id).toEqual("controll-id")
   })
-  it("should override controlId correctly", () => {
+  it("Should override controlId correctly", () => {
     const { getByTestId } = render(
       <Group controlId="controll-id">
         <Select id="overridden-id" data-testid="test-id">
@@ -640,7 +640,7 @@ describe("<Select>", () => {
   })
 })
 describe("<FloatingLabel>", () => {
-  it("should render correctly", () => {
+  it("Should render correctly", () => {
     const { getByText, getByRole, getByTestId } = render(
       <FloatingLabel label="MyLabel" data-testid="test">
         <Control type="text" />
@@ -650,7 +650,7 @@ describe("<FloatingLabel>", () => {
     expect(getByText("MyLabel")).toBeTruthy()
     expect(getByRole("textbox")).toBeTruthy()
   })
-  it("should pass controlId to input and label", () => {
+  it("Should pass controlId to input and label", () => {
     const { getByRole, getByText } = render(
       <FloatingLabel label="MyLabel" controlId="MyId">
         <Control type="text" />
@@ -671,7 +671,7 @@ describe("<FloatingLabel>", () => {
   })
 })
 describe("<Text>", () => {
-  it("should render correctly", () => {
+  it("Should render correctly", () => {
     const { getByTestId } = render(
       <Text data-testid="foo" className="my-form-text">
         Help content

@@ -4,7 +4,7 @@ import { Overlay, Trigger } from "../src/Overlay.jsx"
 import { Popover } from "../src/Popover.jsx"
 import { Tooltip } from "../src/Tooltip.jsx"
 describe("<Overlay>", () => {
-  it("should forward ref to the overlay", () => {
+  it("Should forward ref to the overlay", () => {
     const ref = React.createRef<any>()
     render(
       <Overlay ref={ref} show target={ref.current}>
@@ -13,7 +13,7 @@ describe("<Overlay>", () => {
     )
     expect(ref.current.id).toEqual("my-overlay")
   })
-  it("should use Fade internally if transition=true", () => {
+  it("Should use Fade internally if transition=true", () => {
     const ref = React.createRef<any>()
     const { getByTestId } = render(
       <Overlay show transition ref={ref} target={ref.current}>
@@ -25,7 +25,7 @@ describe("<Overlay>", () => {
     const popoverElem = getByTestId("test")
     expect(popoverElem.classList.contains("fade")).toBe(true)
   })
-  it("should not use Fade if transition=false", () => {
+  it("Should not use Fade if transition=false", () => {
     const ref = React.createRef<any>()
     const { getByTestId } = render(
       <Overlay show transition={false} ref={ref} target={ref.current}>
@@ -52,7 +52,7 @@ describe("<Trigger>", () => {
       </div>
     )
   )
-  it("should not throw an error with StrictMode", () => {
+  it("Should not throw an error with StrictMode", () => {
     const { getByTestId } = render(
       <React.StrictMode>
         <Trigger overlay={<TemplateDiv>test</TemplateDiv>}>
@@ -164,7 +164,7 @@ describe("<Trigger>", () => {
     expect(mock).toHaveBeenCalledTimes(1).and.calledWith(false)
   })
   it("Should show after mouseover trigger", done => {
-    const clock = sinon.useFakeTimers()
+    const // clock = sinon.useFakeTimers()
     const { getByTestId, queryByTestId } = render(
       <Trigger overlay={<TemplateDiv />}>
         <span data-testid="test-hover">hover me</span>
@@ -177,10 +177,10 @@ describe("<Trigger>", () => {
     overlayElem = queryByTestId("test-overlay")
     expect(overlayElem).to.not.be.null
     fireEvent.mouseOut(hoverElem)
-    clock.tick(50)
+    jest.advanceTimersByTime(50)
     overlayElem = queryByTestId("test-overlay")
     expect(overlayElem).toBeNull()
-    clock.restore()
+    // clock.restore()
     done()
   })
   it("Should not set aria-describedby if the state is not show", () => {
@@ -370,7 +370,7 @@ describe("<Trigger>", () => {
       })
     })
     describe("clicking on trigger to hide", () => {
-      it("should hide after clicking on trigger", () => {
+      it("Should hide after clicking on trigger", () => {
         const { getByTestId } = render(
           <Trigger
             overlay={<TemplateDiv>test</TemplateDiv>}
