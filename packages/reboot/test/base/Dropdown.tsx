@@ -1,6 +1,7 @@
-import ReactDOM from "react-dom"
-import { render, fireEvent } from "@testing-library/react"
 import { Menu, Item, Toggle, Dropdown } from "../../src/base/Dropdown.jsx"
+import { render, fireEvent } from "@testing-library/react"
+import ReactDOM from "react-dom"
+
 describe("<Dropdown>", () => {
   const Menu = ({
     usePopper,
@@ -88,10 +89,10 @@ describe("<Dropdown>", () => {
     expect(toggle.textContent).toMatch(/Toggle/)
     expect(toggle.hasAttribute("aria-haspopup")).toEqual(false)
     expect(toggle.getAttribute("aria-expanded")).toEqual("false")
-    expect(toggle.getAttribute("id")).to.be.ok
+    expect(toggle.getAttribute("id")).toBeTruthy()
   })
   it("forwards placement to menu", () => {
-    const renderSpy = sinon.spy(meta => {
+    const mock = jest.fn(meta => {
       expect(meta.placement).toEqual("bottom-end")
     })
     render(
@@ -99,14 +100,11 @@ describe("<Dropdown>", () => {
         show
         placement="bottom-end"
         usePopper={false}
-        menuSpy={renderSpy}
+        menuSpy={mock}
       />
     )
-    expect(renderSpy).toHaveBeenCalled()
+    expect(mock).toHaveBeenCalled()
   })
-  // NOTE: The onClick event handler is invoked for both the Enter and Space
-  // keys as well since the component is a button. I cannot figure out how to
-  // get ReactTestUtils to simulate such though.
   it("toggles open/closed when clicked", () => {
     const { container } = render(<SimpleDropdown />)
     expect(container.querySelector(".show")).not.toBeTruthy()

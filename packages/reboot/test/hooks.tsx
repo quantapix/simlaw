@@ -24,22 +24,20 @@ export function renderHook<T extends (props: P) => any, P = any>(
 }
 
 describe("useAnimationFrame", () => {
-  let rafSpy, rafCancelSpy
+  let raf: any, rafCancel: any
   beforeAll(() => {
-    rafSpy = jest
-      .spyOn(window, "requestAnimationFrame")
-      .mockImplementation(cb => {
-        return setTimeout(() => cb(1)) as any
-      })
-    rafCancelSpy = jest
+    raf = jest.spyOn(window, "requestAnimationFrame").mockImplementation(cb => {
+      return setTimeout(() => cb(1)) as any
+    })
+    rafCancel = jest
       .spyOn(window, "cancelAnimationFrame")
       .mockImplementation(handle => {
         clearTimeout(handle)
       })
   })
   afterAll(() => {
-    rafSpy.mockRestore()
-    rafCancelSpy.mockRestore()
+    raf.mockRestore()
+    rafCancel.mockRestore()
   })
   it("should requestAnimationFrame", () => {
     jest.useFakeTimers()
@@ -242,7 +240,7 @@ describe("useDebouncedCallback", () => {
   it("should return a function that debounces input callback", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    let debouncedFn
+    let debouncedFn: any
     function Wrapper() {
       debouncedFn = qh.useDebouncedCB(mock, 500)
       return <span />
@@ -261,7 +259,7 @@ describe("useDebouncedCallback", () => {
 describe("useDebouncedState", () => {
   it("should return a function that debounces input callback", () => {
     jest.useFakeTimers()
-    let outerSetValue
+    let outerSetValue: any
     function Wrapper() {
       const [value, setValue] = qh.useDebouncedState(0, 500)
       outerSetValue = setValue
@@ -514,7 +512,7 @@ describe("useMap", () => {
     })
   })
   it("should rerender when the map is updated", () => {
-    let map
+    let map: any
     function Wrapper() {
       map = qh.useMap()
       return <span>{JSON.stringify(Array.from(map.entries()))}</span>
@@ -661,7 +659,7 @@ describe("useMountEffect", () => {
 })
 describe("useMounted", () => {
   it("should return a function that returns mount state", () => {
-    let isMounted
+    let isMounted: any
     function Wrapper() {
       isMounted = qh.useMounted()
       return <span />
@@ -763,7 +761,7 @@ describe("useRefWithInitialValueFactory", () => {
 })
 describe("useSafeState", () => {
   it("should work transparently", () => {
-    let state
+    let state: any
     function Wrapper() {
       state = qh.useSafeState(useState(false))
       return null
@@ -781,7 +779,7 @@ describe("useSafeState", () => {
     expect(state[0]).toEqual(true)
   })
   it("should work with async setState", async () => {
-    let state
+    let state: any
     function Wrapper() {
       state = qh.useSafeState(qh.useStateAsync(false))
       return null
@@ -835,7 +833,7 @@ describe("useSet", () => {
     })
   })
   it("should rerender when the set is updated", () => {
-    let set
+    let set: any
     function Wrapper() {
       set = qh.useSet()
       return <span>{JSON.stringify(Array.from(set))}</span>

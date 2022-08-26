@@ -1,14 +1,10 @@
-import { render, fireEvent } from "@testing-library/react"
-import Nav from "../../src/base/Nav.jsx"
-import NavItem from "../../src/base/NavItem.jsx"
-import TabPanel from "../../src/base/Tab.jsx"
-import Tabs from "../../src/base/Tabs,jsx"
-import React from "react"
+import { Button } from "../../src/base/Button.jsx"
 import { fireEvent, render, waitFor } from "@testing-library/react"
-import Transition from "react-transition-group/Transition"
-import TabContext from "../../src/base/TabContext.jsx"
-import TabPanel, { useTabPanel } from "../../src/base/Tab.jsx"
-import { Button, Nav, Tabs, useNavItem } from "../../src/base"
+import { Context, Panel, useTabPanel } from "../../src/base/Tab.jsx"
+import { Nav, Item, useNavItem } from "../../src/base/Nav.jsx"
+import { Tabs } from "../../src/base/Tabs.jsx"
+import { Transition } from "react-transition-group"
+import React from "react"
 
 describe("<Tabs>", () => {
   it("should not propagate context past TabPanels", () => {
@@ -16,14 +12,14 @@ describe("<Tabs>", () => {
     const { getByText } = render(
       <Tabs id="custom-id" onSelect={mock}>
         <Nav>
-          <NavItem eventKey="1">One</NavItem>
+          <Item eventKey="1">One</Item>
         </Nav>
         <div>
-          <TabPanel eventKey="1">
+          <Panel eventKey="1">
             <Nav>
-              <NavItem eventKey="2">Two</NavItem>
+              <Item eventKey="2">Two</Item>
             </Nav>
-          </TabPanel>
+          </Panel>
         </div>
       </Tabs>
     )
@@ -35,15 +31,15 @@ describe("<Tabs>", () => {
     expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should let generateChildId function create id", () => {
-    const generateChildIdSpy = sinon.spy(() => "test-id")
+    const mock = jest.fn(() => "test-id")
     const { getByRole } = render(
-      <Tabs generateChildId={generateChildIdSpy}>
+      <Tabs generateChildId={mock}>
         <div>
           <Nav>
-            <NavItem eventKey="1">One</NavItem>
+            <Item eventKey="1">One</Item>
           </Nav>
           <div>
-            <TabPanel eventKey="1" />
+            <Panel eventKey="1" />
           </div>
         </div>
       </Tabs>
@@ -56,12 +52,12 @@ describe("<Tabs>", () => {
       <Tabs>
         <div>
           <Nav>
-            <NavItem eventKey="1" data-testid="nav-item">
+            <Item eventKey="1" data-testid="nav-item">
               One
-            </NavItem>
+            </Item>
           </Nav>
           <div>
-            <TabPanel eventKey="1" data-testid="tab-panel" />
+            <Panel eventKey="1" data-testid="tab-panel" />
           </div>
         </div>
       </Tabs>
@@ -80,7 +76,7 @@ describe("<Tabs>", () => {
       <Tabs>
         <div>
           <Nav>
-            <NavItem eventKey="1">One</NavItem>
+            <Item eventKey="1">One</Item>
           </Nav>
         </div>
       </Tabs>
@@ -93,7 +89,7 @@ describe("<Tabs>", () => {
       <Tabs>
         <div>
           <Nav role="navigation">
-            <NavItem eventKey="1">One</NavItem>
+            <Item eventKey="1">One</Item>
           </Nav>
         </div>
       </Tabs>
@@ -106,12 +102,12 @@ describe("<Tabs>", () => {
     const { getByText } = render(
       <Tabs defaultActiveKey={1}>
         <Nav>
-          <NavItem eventKey="1">One</NavItem>
-          <NavItem eventKey="2">Two</NavItem>
+          <Item eventKey="1">One</Item>
+          <Item eventKey="2">Two</Item>
         </Nav>
         <div>
-          <TabPanel eventKey="1">Tab 1</TabPanel>
-          <TabPanel eventKey="2">Tab 2</TabPanel>
+          <Panel eventKey="1">Tab 1</Panel>
+          <Panel eventKey="2">Tab 2</Panel>
         </div>
       </Tabs>
     )
@@ -129,12 +125,12 @@ describe("<Tabs>", () => {
     const { queryByText, getByText } = render(
       <Tabs mountOnEnter unmountOnExit defaultActiveKey={1}>
         <Nav>
-          <NavItem eventKey="1">One</NavItem>
-          <NavItem eventKey="2">Two</NavItem>
+          <Item eventKey="1">One</Item>
+          <Item eventKey="2">Two</Item>
         </Nav>
         <div>
-          <TabPanel eventKey="1">Tab 1</TabPanel>
-          <TabPanel eventKey="2">Tab 2</TabPanel>
+          <Panel eventKey="1">Tab 1</Panel>
+          <Panel eventKey="2">Tab 2</Panel>
         </div>
       </Tabs>
     )
@@ -148,12 +144,12 @@ describe("<Tabs>", () => {
     const { queryByText, getByText } = render(
       <Tabs defaultActiveKey={1}>
         <Nav>
-          <NavItem eventKey="1">One</NavItem>
-          <NavItem eventKey="2">Two</NavItem>
+          <Item eventKey="1">One</Item>
+          <Item eventKey="2">Two</Item>
         </Nav>
         <div>
-          <TabPanel eventKey="1">Tab 1</TabPanel>
-          <TabPanel eventKey="2">Tab 2</TabPanel>
+          <Panel eventKey="1">Tab 1</Panel>
+          <Panel eventKey="2">Tab 2</Panel>
         </div>
       </Tabs>
     )
@@ -166,12 +162,12 @@ describe("<Tabs>", () => {
     const { queryByText, getByText } = render(
       <Tabs unmountOnExit defaultActiveKey={1}>
         <Nav>
-          <NavItem eventKey="1">One</NavItem>
-          <NavItem eventKey="2">Two</NavItem>
+          <Item eventKey="1">One</Item>
+          <Item eventKey="2">Two</Item>
         </Nav>
         <div>
-          <TabPanel eventKey="1">Tab 1</TabPanel>
-          <TabPanel eventKey="2">Tab 2</TabPanel>
+          <Panel eventKey="1">Tab 1</Panel>
+          <Panel eventKey="2">Tab 2</Panel>
         </div>
       </Tabs>
     )
@@ -189,12 +185,12 @@ describe("<Tabs>", () => {
     const { queryByText, getByText } = render(
       <Tabs mountOnEnter defaultActiveKey={1}>
         <Nav>
-          <NavItem eventKey="1">One</NavItem>
-          <NavItem eventKey="2">Two</NavItem>
+          <Item eventKey="1">One</Item>
+          <Item eventKey="2">Two</Item>
         </Nav>
         <div>
-          <TabPanel eventKey="1">Tab 1</TabPanel>
-          <TabPanel eventKey="2">Tab 2</TabPanel>
+          <Panel eventKey="1">Tab 1</Panel>
+          <Panel eventKey="2">Tab 2</Panel>
         </div>
       </Tabs>
     )
@@ -211,37 +207,37 @@ describe("<Tabs>", () => {
 })
 describe("<TabPanel>", () => {
   it("should render a TabPanel", () => {
-    const { getByText } = render(<TabPanel active>test</TabPanel>)
+    const { getByText } = render(<Panel active>test</Panel>)
     expect(getByText("test")).toBeTruthy()
   })
   it("should render a TabPanel with role tabpanel", () => {
-    const { getByRole } = render(<TabPanel active>test</TabPanel>)
+    const { getByRole } = render(<Panel active>test</Panel>)
     expect(getByRole("tabpanel")).toBeTruthy()
   })
   it("should not render if not active and mountOnEnter=true", () => {
-    const { queryByText } = render(<TabPanel mountOnEnter>test</TabPanel>)
+    const { queryByText } = render(<Panel mountOnEnter>test</Panel>)
     expect(queryByText("test")).not.toBeTruthy()
   })
   it("should not unmount if rendered already", () => {
-    const { getByText, rerender } = render(<TabPanel active>test</TabPanel>)
+    const { getByText, rerender } = render(<Panel active>test</Panel>)
     expect(getByText("test")).toBeTruthy()
-    rerender(<TabPanel>test</TabPanel>)
+    rerender(<Panel>test</Panel>)
     expect(getByText("test")).toBeTruthy()
   })
   it("should unmount", () => {
     const { getByText, queryByText, rerender } = render(
-      <TabPanel active unmountOnExit>
+      <Panel active unmountOnExit>
         test
-      </TabPanel>
+      </Panel>
     )
     expect(getByText("test")).toBeTruthy()
-    rerender(<TabPanel unmountOnExit>test</TabPanel>)
+    rerender(<Panel unmountOnExit>test</Panel>)
     expect(queryByText("test")).not.toBeTruthy()
   })
   it("should call getControlledId for id", () => {
     const mock = jest.fn()
     render(
-      <TabContext.Provider
+      <Context.Provider
         value={{
           onSelect: jest.fn(),
           mountOnEnter: false,
@@ -250,10 +246,10 @@ describe("<TabPanel>", () => {
           getControllerId: jest.fn(),
         }}
       >
-        <TabPanel active eventKey="mykey">
+        <Panel active eventKey="mykey">
           test
-        </TabPanel>
-      </TabContext.Provider>
+        </Panel>
+      </Context.Provider>
     )
     expect(mock).toHaveBeenCalledWith("mykey")
   })
@@ -286,7 +282,7 @@ describe("<TabPanel>", () => {
           <Tab eventKey="1">Tab 1</Tab>
           <Tab eventKey="2">Tab 2</Tab>
         </Nav>
-        <TabPanel
+        <Panel
           transition={Fade}
           eventKey="1"
           onEnter={mock}
@@ -297,10 +293,10 @@ describe("<TabPanel>", () => {
           onExited={mock}
         >
           Tab 1 content
-        </TabPanel>
-        <TabPanel title="Tab 2" eventKey="2">
+        </Panel>
+        <Panel title="Tab 2" eventKey="2">
           Tab 2 content
-        </TabPanel>
+        </Panel>
       </Tabs>
     )
     fireEvent.click(getByText("Tab 1"))
@@ -312,7 +308,7 @@ describe("<TabPanel>", () => {
   })
   it("should derive active state from context", () => {
     const { getByText } = render(
-      <TabContext.Provider
+      <Context.Provider
         value={{
           activeKey: "mykey",
           onSelect: jest.fn(),
@@ -322,8 +318,8 @@ describe("<TabPanel>", () => {
           getControllerId: jest.fn(),
         }}
       >
-        <TabPanel eventKey="mykey">test</TabPanel>
-      </TabContext.Provider>
+        <Panel eventKey="mykey">test</Panel>
+      </Context.Provider>
     )
     const node = getByText("test")
     expect(node).toBeTruthy()
@@ -348,7 +344,7 @@ describe("<TabPanel>", () => {
         return null
       }
       render(
-        <TabContext.Provider
+        <Context.Provider
           value={{
             onSelect: jest.fn(),
             mountOnEnter: true,
@@ -358,7 +354,7 @@ describe("<TabPanel>", () => {
           }}
         >
           <Wrapper />
-        </TabContext.Provider>
+        </Context.Provider>
       )
       expect(props.role).toEqual("tabpanel")
     })
@@ -370,7 +366,7 @@ describe("<TabPanel>", () => {
         return null
       }
       render(
-        <TabContext.Provider
+        <Context.Provider
           value={{
             onSelect: jest.fn(),
             mountOnEnter: true,
@@ -380,7 +376,7 @@ describe("<TabPanel>", () => {
           }}
         >
           <Wrapper mountOnEnter={false} />
-        </TabContext.Provider>
+        </Context.Provider>
       )
       expect(meta.mountOnEnter).toEqual(false)
     })
@@ -392,7 +388,7 @@ describe("<TabPanel>", () => {
         return null
       }
       render(
-        <TabContext.Provider
+        <Context.Provider
           value={{
             onSelect: jest.fn(),
             mountOnEnter: false,
@@ -402,7 +398,7 @@ describe("<TabPanel>", () => {
           }}
         >
           <Wrapper unmountOnExit={false} />
-        </TabContext.Provider>
+        </Context.Provider>
       )
       expect(meta.unmountOnExit).toEqual(false)
     })

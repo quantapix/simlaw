@@ -1,5 +1,6 @@
-import * as React from "react"
 import { render } from "@testing-library/react"
+import { shouldWarn } from "./helpers.js"
+import * as React from "react"
 import {
   Check,
   Control,
@@ -12,7 +13,6 @@ import {
   Switch,
   Text,
 } from "../src/Form.jsx"
-import { shouldWarn } from "./helpers.js"
 
 describe("<Form>", () => {
   it("should support custom `as`", () => {
@@ -131,7 +131,7 @@ describe("<Check>", () => {
     expect(element.classList.contains("is-invalid")).toBe(true)
   })
   it("should support ref forwarding", () => {
-    let input
+    let input: any
     class Container extends React.Component {
       override render() {
         return (
@@ -309,7 +309,7 @@ describe("<Control>", () => {
     expect(getByTestId("test-id").id).toEqual("bar")
   })
   it("should support ref forwarding", () => {
-    let input
+    let input: any
     class Container extends React.Component {
       override render() {
         return (
@@ -477,7 +477,7 @@ describe("<Label>", () => {
     expect(element.getAttribute("for")!).toEqual("bar")
   })
   it("should support ref forwarding", () => {
-    let input
+    let input: any
     class Container extends React.Component {
       override render() {
         return (
@@ -495,7 +495,7 @@ describe("<Label>", () => {
     expect(input.tagName.toLowerCase()).toEqual("label")
   })
   it("should support ref forwarding when rendered as a Col", () => {
-    let input
+    let input: any
     class Container extends React.Component {
       override render() {
         return (
@@ -535,12 +535,15 @@ describe("<Label>", () => {
         </Label>
       </div>
     )
-    expect(getByTestId("test-1").classList.contains("col-form-label-sm")).to.be
-      .true
-    expect(getByTestId("test-2").classList.contains("col-form-label")).to.be
-      .true
-    expect(getByTestId("test-3").classList.contains("col-form-label-lg")).to.be
-      .true
+    expect(getByTestId("test-1").classList.contains("col-form-label-sm")).toBe(
+      true
+    )
+    expect(getByTestId("test-2").classList.contains("col-form-label")).toBe(
+      true
+    )
+    expect(getByTestId("test-3").classList.contains("col-form-label-lg")).toBe(
+      true
+    )
   })
 })
 describe("<Range>", () => {

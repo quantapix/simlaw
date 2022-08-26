@@ -1,5 +1,5 @@
-import { render } from "@testing-library/react"
 import { Image } from "../src/Image.jsx"
+import { render } from "@testing-library/react"
 
 describe("Image", () => {
   it("should be an image", () => {

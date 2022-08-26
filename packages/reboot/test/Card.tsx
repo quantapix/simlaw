@@ -1,5 +1,5 @@
-import { render } from "@testing-library/react"
 import { Card, Img } from "../src/Card.jsx"
+import { render } from "@testing-library/react"
 
 describe("<Card>", () => {
   it("should output a div", () => {

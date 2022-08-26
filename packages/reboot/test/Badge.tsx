@@ -1,5 +1,5 @@
-import { render } from "@testing-library/react"
 import { Badge } from "../src/Badge.js"
+import { render } from "@testing-library/react"
 
 describe("Badge", () => {
   it("Should render correctly", () => {

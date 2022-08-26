@@ -1,6 +1,7 @@
 import { fireEvent, render } from "@testing-library/react"
 import { ListGroup, Item } from "../src/ListGroup.jsx"
 import { shouldWarn } from "./helpers.js"
+
 describe("<ListGroup>", () => {
   it('Should render correctly "list-group"', () => {
     const { getByTestId } = render(<ListGroup data-testid="test" />)

@@ -1,5 +1,6 @@
-import { render } from "@testing-library/react"
 import { Caption, Figure, Image } from "../src/Figure.jsx"
+import { render } from "@testing-library/react"
+
 describe("Figure", () => {
   describe("General", () => {
     it("should be a Figure", () => {

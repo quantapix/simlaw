@@ -1,6 +1,6 @@
+import { Col } from "../src/Col.jsx"
 import { render } from "@testing-library/react"
 import { ThemeProvider } from "../src/index.jsx"
-import { Col } from "../src/Col.jsx"
 
 describe("Col", () => {
   it('Should include "col" when there are no sizes', () => {

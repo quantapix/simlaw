@@ -120,11 +120,9 @@ describe("<Carousel>", () => {
           {items}
         </Carousel>
       )
-      expect(ref.current!).to.have.property("next")
-      expect(ref.current!).to.have.property("prev")
-      expect(ref.current!)
-        .to.have.property("element")
-        .and.instanceOf(HTMLElement)
+      expect(ref.current!).toHaveProperty("next")
+      expect(ref.current!).toHaveProperty("prev")
+      expect(ref.current!).toHaveProperty("element").toBeInstanceOf(HTMLElement)
       ref.current!.next()
       clock.tick(50)
       expect(mock).toHaveBeenCalledTimes(1)

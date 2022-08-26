@@ -1,8 +1,8 @@
+import { Dropdown, Item as DItem } from "../src/Dropdown.jsx"
 import { fireEvent, render } from "@testing-library/react"
 import { Header as CardHeader } from "../src/Card.jsx"
 import { Item, Link, Nav } from "../src/Nav.jsx"
 import { Navbar } from "../src/Navbar.jsx"
-import { Dropdown as NavDropdown } from "../src/Dropdown.jsx"
 import { shouldWarn } from "./helpers.js"
 
 describe("<Nav>", () => {
@@ -108,11 +108,11 @@ describe("<Nav>", () => {
     const mock = jest.fn()
     const { getByTestId } = render(
       <Nav onSelect={mock}>
-        <NavDropdown title="Dropdown" id="nav-dropdown-test" renderMenuOnMount>
-          <NavDropdown.Item eventKey={1} data-testid="test">
+        <Dropdown title="Dropdown" id="nav-dropdown-test" renderMenuOnMount>
+          <DItem eventKey={1} data-testid="test">
             Dropdown item
-          </NavDropdown.Item>
-        </NavDropdown>
+          </DItem>
+        </Dropdown>
       </Nav>
     )
     const dropdownItem = getByTestId("test")

@@ -1,6 +1,6 @@
+import { Brand, Collapse, Navbar, Toggle } from "../src/Navbar.jsx"
 import { fireEvent, render } from "@testing-library/react"
 import { Link, Nav } from "../src/Nav.jsx"
-import { Brand, Collapse, Navbar, Toggle } from "../src/Navbar.jsx"
 
 describe("<Navbar>", () => {
   it("Should create nav element", () => {
@@ -134,8 +134,7 @@ describe("<Navbar>", () => {
     done()
   })
   it("Should open external href link in collapseOnSelect", () => {
-    const spy = sinon.spy(e => {
-      // prevent actual redirect
+    const mock = jest.fn(e => {
       e.persist()
       e.preventDefault()
     })
@@ -147,7 +146,7 @@ describe("<Navbar>", () => {
             <Link
               href="https://www.google.com"
               data-testid="test"
-              onClick={spy}
+              onClick={mock}
             />
           </Nav>
         </Collapse>
@@ -155,14 +154,13 @@ describe("<Navbar>", () => {
     )
     const linkItem = getByTestId("test")
     fireEvent.click(linkItem)
-    expect(spy).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
     expect(getByTestId("test").getAttribute("href")!).toEqual(
       "https://www.google.com"
     )
   })
   it("Should fire external href click", done => {
-    const spy = sinon.spy(e => {
-      // prevent actual redirect
+    const mock = jest.fn(e => {
       e.persist()
       e.preventDefault()
       done()
@@ -172,7 +170,7 @@ describe("<Navbar>", () => {
         <Toggle />
         <Collapse>
           <Nav as="div">
-            <Link href="https://www.google.com" onClick={spy}>
+            <Link href="https://www.google.com" onClick={mock}>
               <span className="link-text" data-testid="test">
                 Option 1
               </span>
@@ -236,15 +234,17 @@ describe("<Navbar>", () => {
   })
   it("Should render correctly when expand is a string", () => {
     const { getByTestId } = render(<Navbar expand="sm" data-testid="test" />)
-    expect(getByTestId("test").classList.contains("navbar-expand-sm")).to.be
-      .true
+    expect(getByTestId("test").classList.contains("navbar-expand-sm")).toBe(
+      true
+    )
   })
   it("should allow custom breakpoints for expand", () => {
     const { getByTestId } = render(
       <Navbar expand="custom" data-testid="test" />
     )
-    expect(getByTestId("test").classList.contains("navbar-expand-custom")).to.be
-      .true
+    expect(getByTestId("test").classList.contains("navbar-expand-custom")).toBe(
+      true
+    )
   })
   it("Should render correctly when bg is set", () => {
     const { getByTestId } = render(<Navbar bg="light" data-testid="test" />)

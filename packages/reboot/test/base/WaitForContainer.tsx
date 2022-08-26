@@ -12,14 +12,14 @@ describe("useWaitForDOMRef", () => {
       renderCount++
       return null
     }
-    const onResolved = sinon.spy(resolved => {
+    const mock = jest.fn(resolved => {
       expect(resolved).toEqual(container)
     })
     act(() => {
-      mount(<Test container={container} onResolved={onResolved} />)
+      mount(<Test container={container} onResolved={mock} />)
     })
     expect(renderCount).toEqual(1)
-    expect(onResolved).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should resolve on first render if possible (ref)", () => {
     let renderCount = 0
@@ -30,14 +30,14 @@ describe("useWaitForDOMRef", () => {
       renderCount++
       return null
     }
-    const onResolved = sinon.spy(resolved => {
+    const mock = jest.fn(resolved => {
       expect(resolved).toEqual(container.current)
     })
     act(() => {
-      mount(<Test container={container} onResolved={onResolved} />)
+      mount(<Test container={container} onResolved={mock} />)
     })
     expect(renderCount).toEqual(1)
-    expect(onResolved).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should resolve on first render if possible (function)", () => {
     const div = document.createElement("div")
@@ -48,14 +48,14 @@ describe("useWaitForDOMRef", () => {
       renderCount++
       return null
     }
-    const onResolved = sinon.spy(resolved => {
+    const mock = jest.fn(resolved => {
       expect(resolved).toEqual(div)
     })
     act(() => {
-      mount(<Test container={container} onResolved={onResolved} />)
+      mount(<Test container={container} onResolved={mock} />)
     })
     expect(renderCount).toEqual(1)
-    expect(onResolved).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
   it("should resolve after if required", () => {
     let renderCount = 0
@@ -64,22 +64,22 @@ describe("useWaitForDOMRef", () => {
       renderCount++
       return null
     }
-    const onResolved = sinon.spy(resolved => {
+    const mock = jest.fn(resolved => {
       expect(resolved.tagName).toEqual("DIV")
     })
     function Wrapper() {
       const container = useRef(null)
       return (
         <>
-          <Test container={container} onResolved={onResolved} />
+          <Test container={container} onResolved={mock} />
           <div ref={container} />
         </>
       )
     }
     act(() => {
-      mount(<Wrapper onResolved={onResolved} />).update()
+      mount(<Wrapper onResolved={mock} />).update()
     })
     expect(renderCount).toEqual(2)
-    expect(onResolved).toHaveBeenCalledTimes(1)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
 })

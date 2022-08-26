@@ -1,7 +1,8 @@
+import { Control, Group } from "../src/Form.jsx"
+import { Feedback } from "../src/Feedback.jsx"
 import { render } from "@testing-library/react"
 import React from "react"
-import { Feedback } from "../src/Feedback.jsx"
-import { Control, Group } from "../src/Form.jsx"
+
 describe("<Feedback>", () => {
   it("Should have div as default component", () => {
     const { getByTestId } = render(<Feedback data-testid="test" />)

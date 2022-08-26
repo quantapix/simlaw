@@ -1,5 +1,5 @@
-import { render } from "@testing-library/react"
 import { Checkbox, InputGroup, Radio } from "../src/InputGroup.jsx"
+import { render } from "@testing-library/react"
 
 describe("<InputGroup>", () => {
   it("Should have div as default component", () => {

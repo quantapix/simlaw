@@ -1,6 +1,6 @@
-import * as React from "react"
-import { fireEvent, render } from "@testing-library/react"
 import { Button, Close, Group, Toolbar } from "../src/Button.jsx"
+import { fireEvent, render } from "@testing-library/react"
+import * as React from "react"
 
 describe("<Button>", () => {
   it("Should output a button", () => {

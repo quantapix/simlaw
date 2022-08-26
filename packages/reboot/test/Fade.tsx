@@ -1,7 +1,8 @@
+import { Fade, Props } from "../src/Fade.jsx"
+import { render } from "@testing-library/react"
 import * as React from "react"
 import type { Transition } from "react-transition-group"
-import { render } from "@testing-library/react"
-import { Fade, Props } from "../src/Fade.jsx"
+
 describe("Fade", () => {
   class Component extends React.Component<
     React.PropsWithChildren<Omit<Props, "children">>

@@ -46,7 +46,7 @@ describe("<Dropdown>", () => {
     const { getByText } = render(simpleDropdown)
     const toggle = getByText("Child Title")
     expect(toggle.getAttribute("aria-expanded")!).toEqual("false")
-    expect(toggle.id).to.be.ok
+    expect(toggle.id).toBeTruthy()
   })
   it('forwards align="end" to menu', () => {
     const X = React.forwardRef<any, any>(

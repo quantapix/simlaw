@@ -1,7 +1,8 @@
-import * as React from "react"
+import { Body, Header, Footer, Modal, Props, Title } from "../src/Modal.jsx"
 import { fireEvent, render } from "@testing-library/react"
 import { Manager } from "../src/base/Manager.js"
-import { Body, Header, Footer, Modal, Props, Title } from "../src/Modal.jsx"
+import * as React from "react"
+
 describe("<Modal>", () => {
   it("Should forward ref to BaseModal", () => {
     const ref = React.createRef<Props>()

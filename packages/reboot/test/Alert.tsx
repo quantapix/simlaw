@@ -1,6 +1,6 @@
-import * as React from "react"
-import { fireEvent, render } from "@testing-library/react"
 import { Alert, Heading } from "../src/Alert.js"
+import { fireEvent, render } from "@testing-library/react"
+import * as React from "react"
 
 describe("<Alert>", () => {
   it("Should output a alert with message", () => {

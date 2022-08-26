@@ -1,7 +1,8 @@
+import { Collapse, Props } from "../src/Collapse.jsx"
+import { render, RenderResult } from "@testing-library/react"
 import * as React from "react"
 import type { Transition } from "react-transition-group"
-import { render, RenderResult } from "@testing-library/react"
-import { Collapse, Props } from "../src/Collapse.jsx"
+
 describe("<Collapse>", () => {
   class Component extends React.Component<
     React.PropsWithChildren<Omit<Props, "children">>

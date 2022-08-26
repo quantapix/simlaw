@@ -1,6 +1,6 @@
-import { render, fireEvent } from "@testing-library/react"
 import { Breadcrumb, Item } from "../src/Breadcrumb.jsx"
 import { Button } from "../src/Button.jsx"
+import { render, fireEvent } from "@testing-library/react"
 
 describe("<Breadcrumb>", () => {
   it("Should apply id to the wrapper ol element", () => {
