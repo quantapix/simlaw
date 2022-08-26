@@ -133,7 +133,7 @@ describe("<Trigger>", () => {
     expect(overlayElem!.classList.contains("show")).toBe(true)
   })
   it("Should call Trigger onClick prop to child", () => {
-    const callback = sinon.spy()
+    const callback = jest.fn()
     const { getByTestId } = render(
       <Trigger overlay={<TemplateDiv>test</TemplateDiv>} trigger="click">
         <button type="button" onClick={callback} data-testid="test-button">
@@ -146,7 +146,7 @@ describe("<Trigger>", () => {
     expect(callback).toHaveBeenCalled()
   })
   it("Should be controllable", () => {
-    const callback = sinon.spy()
+    const callback = jest.fn()
     const { getByTestId } = render(
       <Trigger
         show
@@ -253,7 +253,7 @@ describe("<Trigger>", () => {
     expect(overlayElem!.classList.contains("test-overlay")).toBe(true)
   })
   it("Should pass transition callbacks to Transition", done => {
-    const increment = sinon.spy()
+    const increment = jest.fn()
     const { getByTestId } = render(
       <Trigger
         trigger="click"
@@ -282,7 +282,7 @@ describe("<Trigger>", () => {
     fireEvent.click(buttonElem)
   })
   it("Should forward requested context", () => {
-    const contextSpy = sinon.spy()
+    const contextSpy = jest.fn()
     class ContextReader extends React.Component {
       render() {
         contextSpy(this.context.key)

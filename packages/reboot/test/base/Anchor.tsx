@@ -16,19 +16,19 @@ describe("Anchor", () => {
     expect(container.firstElementChild!.getAttribute("href")!).toEqual("#")
   })
   it("forwards onClick handler", () => {
-    const handleClick = sinon.spy()
+    const handleClick = jest.fn()
     const { container } = render(<Anchor onClick={handleClick} />)
     fireEvent.click(container.firstChild!)
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
   it('provides onClick handler as onKeyDown handler for "space"', () => {
-    const handleClick = sinon.spy()
+    const handleClick = jest.fn()
     const { container } = render(<Anchor onClick={handleClick} />)
     fireEvent.keyDown(container.firstChild!, { key: " " })
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
   it("should call onKeyDown handler when href is non-trivial", () => {
-    const onKeyDownSpy = sinon.spy()
+    const onKeyDownSpy = jest.fn()
     const { container } = render(
       <Anchor href="http://google.com" onKeyDown={onKeyDownSpy} />
     )
@@ -36,22 +36,22 @@ describe("Anchor", () => {
     expect(onKeyDownSpy).toHaveBeenCalledTimes(1)
   })
   it("prevents default when no href is provided", () => {
-    const handleClick = sinon.spy()
+    const handleClick = jest.fn()
     const { container, rerender } = render(<Anchor onClick={handleClick} />)
     fireEvent.click(container.firstChild!)
     rerender(<Anchor onClick={handleClick} href="#" />)
     fireEvent.click(container.firstChild!)
     expect(handleClick).toHaveBeenCalledTimes(2)
-    expect(handleClick.getCall(0).args[0].isDefaultPrevented()).toBe(true)
-    expect(handleClick.getCall(1).args[0].isDefaultPrevented()).toBe(true)
+    expect(handleClick.mock.calls[0][0].isDefaultPrevented()).toBe(true)
+    expect(handleClick.mock.calls[1][0].isDefaultPrevented()).toBe(true)
   })
   it("does not prevent default when href is provided", () => {
-    const handleClick = sinon.spy()
+    const handleClick = jest.fn()
     fireEvent.click(
       render(<Anchor href="#foo" onClick={handleClick} />).container.firstChild!
     )
     expect(handleClick).toHaveBeenCalledTimes(1)
-    expect(handleClick.getCall(0).args[0].isDefaultPrevented()).toBe(false)
+    expect(handleClick.mock.calls[0].args[0].isDefaultPrevented()).toBe(false)
   })
   it("forwards provided role", () => {
     render(<Anchor role="test" />).getByRole("test")

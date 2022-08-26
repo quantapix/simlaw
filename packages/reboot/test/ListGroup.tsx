@@ -1,7 +1,6 @@
 import { fireEvent, render } from "@testing-library/react"
 import { ListGroup, Item } from "../src/ListGroup.jsx"
 import { shouldWarn } from "./helpers.js"
-
 describe("<ListGroup>", () => {
   it('Should render correctly "list-group"', () => {
     const { getByTestId } = render(<ListGroup data-testid="test" />)
@@ -71,7 +70,6 @@ describe("<ListGroup>", () => {
     expect(listGroup.classList.contains("list-group-numbered")).toBe(true)
   })
 })
-
 describe("<Item>", () => {
   it("should output a div", () => {
     const { getByTestId } = render(<Item data-testid="test" />)
@@ -135,7 +133,7 @@ describe("<Item>", () => {
   })
   describe("onClick", () => {
     it("Should call on click", () => {
-      const onClickSpy = sinon.spy()
+      const onClickSpy = jest.fn()
       const { getByTestId } = render(
         <Item onClick={onClickSpy} data-testid="test" />
       )
@@ -143,7 +141,7 @@ describe("<Item>", () => {
       expect(onClickSpy).toHaveBeenCalledTimes(1)
     })
     it("Should not call if disabled", () => {
-      const onClickSpy = sinon.spy()
+      const onClickSpy = jest.fn()
       const { getByTestId } = render(
         <Item onClick={onClickSpy} disabled data-testid="test" />
       )

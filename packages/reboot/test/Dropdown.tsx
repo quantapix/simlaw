@@ -29,7 +29,7 @@ describe("<Dropdown>", () => {
   const simpleDropdown = <Dropdown>{dropdownChildren}</Dropdown>
   it("renders div with dropdown class", () => {
     const { container } = render(simpleDropdown)
-    expect(container.firstElementChild!.classList).to.contain(["dropdown"])
+    expect(container.firstElementChild!.classList).toContain(["dropdown"])
   })
   ;["up", "end", "start"].forEach((dir: Drop) => {
     it(`renders div with drop${dir} class`, () => {
@@ -38,10 +38,8 @@ describe("<Dropdown>", () => {
           {dropdownChildren}
         </Dropdown>
       )
-      expect(container.firstElementChild!.classList).to.not.contain([
-        "dropdown",
-      ])
-      expect(container.firstElementChild!.classList).to.contain([`drop${dir}`])
+      expect(container.firstElementChild!.classList).not.toContain(["dropdown"])
+      expect(container.firstElementChild!.classList).toContain([`drop${dir}`])
     })
   })
   it("renders toggle with Toggle", () => {
@@ -72,16 +70,16 @@ describe("<Dropdown>", () => {
     const { container, getByText, getByTestId } = render(simpleDropdown)
     const dropdown = container.firstElementChild!
     const toggle = getByText("Child Title")
-    expect(dropdown.classList).to.not.contain(["show"])
+    expect(dropdown.classList).not.toContain(["show"])
     fireEvent.click(toggle)
-    expect(dropdown.classList).to.contain(["show"])
-    expect(getByTestId("menu").classList).to.contain(["dropdown-menu", "show"])
+    expect(dropdown.classList).toContain(["show"])
+    expect(getByTestId("menu").classList).toContain(["dropdown-menu", "show"])
     fireEvent.click(toggle)
-    expect(dropdown.classList).to.not.contain(["show"])
+    expect(dropdown.classList).not.toContain(["show"])
     expect(toggle.getAttribute("aria-expanded")!).toEqual("false")
   })
   it("closes when child Item is selected", () => {
-    const onToggleSpy = sinon.spy()
+    const onToggleSpy = jest.fn()
     const { container, getByTestId } = render(
       <Dropdown show onToggle={onToggleSpy}>
         <Toggle id="test-id" key="toggle">
@@ -95,7 +93,7 @@ describe("<Dropdown>", () => {
         </Menu>
       </Dropdown>
     )
-    expect(container.firstElementChild!.classList).to.contain(["show"])
+    expect(container.firstElementChild!.classList).toContain(["show"])
     fireEvent.click(getByTestId("item1"))
     expect(onToggleSpy).toHaveBeenCalledWith(false)
   })
@@ -114,19 +112,19 @@ describe("<Dropdown>", () => {
   })
   describe("DOM event and source passed to onToggle", () => {
     it("passes open, event, and source correctly when opened with click", () => {
-      const onToggleSpy = sinon.spy()
+      const onToggleSpy = jest.fn()
       const { getByText } = render(
         <Dropdown onToggle={onToggleSpy}>{dropdownChildren}</Dropdown>
       )
       expect(onToggleSpy).not.toHaveBeenCalled()
       fireEvent.click(getByText("Child Title"))
       expect(onToggleSpy).toHaveBeenCalledTimes(1)
-      expect(onToggleSpy.getCall(0).args.length).toEqual(2)
-      expect(onToggleSpy.getCall(0).args[0]).toEqual(true)
-      expect(onToggleSpy.getCall(0).args[1].source).toEqual("click")
+      expect(onToggleSpy.mock.calls[0].args.length).toEqual(2)
+      expect(onToggleSpy.mock.calls[0].args[0]).toEqual(true)
+      expect(onToggleSpy.mock.calls[0].args[1].source).toEqual("click")
     })
     it("passes open, event, and source correctly when closed with click", () => {
-      const onToggleSpy = sinon.spy()
+      const onToggleSpy = jest.fn()
       const { getByText } = render(
         <Dropdown show onToggle={onToggleSpy}>
           {dropdownChildren}
@@ -135,12 +133,12 @@ describe("<Dropdown>", () => {
       const toggle = getByText("Child Title")
       expect(onToggleSpy).not.toHaveBeenCalled()
       fireEvent.click(toggle)
-      expect(onToggleSpy.getCall(0).args.length).toEqual(2)
-      expect(onToggleSpy.getCall(0).args[0]).toEqual(false)
-      expect(onToggleSpy.getCall(0).args[1].source).toEqual("click")
+      expect(onToggleSpy.mock.calls[0].args.length).toEqual(2)
+      expect(onToggleSpy.mock.calls[0].args[0]).toEqual(false)
+      expect(onToggleSpy.mock.calls[0].args[1].source).toEqual("click")
     })
     it("passes open, event, and source correctly when child selected", () => {
-      const onToggleSpy = sinon.spy()
+      const onToggleSpy = jest.fn()
       const { getByTestId } = render(
         <Dropdown onToggle={onToggleSpy}>
           <Toggle data-testid="toggle">Toggle</Toggle>
@@ -155,12 +153,12 @@ describe("<Dropdown>", () => {
       expect(onToggleSpy).toHaveBeenCalled()
       fireEvent.click(getByTestId("item1"))
       expect(onToggleSpy).toHaveBeenCalledTimes(2)
-      expect(onToggleSpy.getCall(1).args.length).toEqual(2)
-      expect(onToggleSpy.getCall(1).args[0]).toEqual(false)
-      expect(onToggleSpy.getCall(1).args[1].source).toEqual("select")
+      expect(onToggleSpy.mock.calls[1].args.length).toEqual(2)
+      expect(onToggleSpy.mock.calls[1].args[0]).toEqual(false)
+      expect(onToggleSpy.mock.calls[1].args[1].source).toEqual("select")
     })
     it("passes open, event, and source correctly when opened with keydown", () => {
-      const onToggleSpy = sinon.spy()
+      const onToggleSpy = jest.fn()
       const { getByTestId } = render(
         <Dropdown onToggle={onToggleSpy}>
           <Toggle data-testid="toggle">Toggle</Toggle>
@@ -173,9 +171,9 @@ describe("<Dropdown>", () => {
       )
       fireEvent.keyDown(getByTestId("toggle"), { key: "ArrowDown" })
       expect(onToggleSpy).toHaveBeenCalledTimes(1)
-      expect(onToggleSpy.getCall(0).args.length).toEqual(2)
-      expect(onToggleSpy.getCall(0).args[0]).toEqual(true)
-      expect(onToggleSpy.getCall(0).args[1].source).toEqual("keydown")
+      expect(onToggleSpy.mock.calls[0].args.length).toEqual(2)
+      expect(onToggleSpy.mock.calls[0].args[0]).toEqual(true)
+      expect(onToggleSpy.mock.calls[0].args[1].source).toEqual("keydown")
     })
   })
   it("should use each components bsPrefix", () => {
@@ -189,12 +187,9 @@ describe("<Dropdown>", () => {
         </Menu>
       </Dropdown>
     )
-    expect(getByTestId("dropdown").classList).to.contain([
-      "show",
-      "my-dropdown",
-    ])
-    expect(getByTestId("toggle").classList).to.contain(["my-toggle"])
-    expect(getByTestId("menu").classList).to.contain(["my-menu"])
+    expect(getByTestId("dropdown").classList).toContain(["show", "my-dropdown"])
+    expect(getByTestId("toggle").classList).toContain(["my-toggle"])
+    expect(getByTestId("menu").classList).toContain(["my-menu"])
   })
   it("Should have div as default component", () => {
     const { getByTestId } = render(
@@ -243,7 +238,7 @@ describe("<Dropdown>", () => {
   describe("autoClose behaviour", () => {
     describe('autoClose="true"', () => {
       it("should close on outer click", () => {
-        const onToggleSpy = sinon.spy()
+        const onToggleSpy = jest.fn()
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose>
             <Toggle>Toggle</Toggle>
@@ -258,7 +253,7 @@ describe("<Dropdown>", () => {
     })
     describe('autoClose="inside"', () => {
       it("should close on child selection", () => {
-        const onToggleSpy = sinon.spy()
+        const onToggleSpy = jest.fn()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="inside">
             <Toggle>Toggle</Toggle>
@@ -271,7 +266,7 @@ describe("<Dropdown>", () => {
         expect(onToggleSpy).toHaveBeenCalledWith(false)
       })
       it("should not close on outer click", () => {
-        const onToggleSpy = sinon.spy()
+        const onToggleSpy = jest.fn()
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="inside">
             <Toggle>Toggle</Toggle>
@@ -286,7 +281,7 @@ describe("<Dropdown>", () => {
     })
     describe('autoClose="outside"', () => {
       it("should not close on child selection", () => {
-        const onToggleSpy = sinon.spy()
+        const onToggleSpy = jest.fn()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="outside">
             <Toggle>Toggle</Toggle>
@@ -299,7 +294,7 @@ describe("<Dropdown>", () => {
         expect(onToggleSpy).not.toHaveBeenCalled()
       })
       it("should close on outer click", () => {
-        const onToggleSpy = sinon.spy()
+        const onToggleSpy = jest.fn()
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="outside">
             <Toggle>Toggle</Toggle>
@@ -314,7 +309,7 @@ describe("<Dropdown>", () => {
     })
     describe('autoClose="false"', () => {
       it("should not close on child selection", () => {
-        const onToggleSpy = sinon.spy()
+        const onToggleSpy = jest.fn()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose={false}>
             <Toggle>Toggle</Toggle>
@@ -327,7 +322,7 @@ describe("<Dropdown>", () => {
         expect(onToggleSpy).not.toHaveBeenCalled()
       })
       it("should not close on outer click", () => {
-        const onToggleSpy = sinon.spy()
+        const onToggleSpy = jest.fn()
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose={false}>
             <Toggle>Toggle</Toggle>
@@ -391,7 +386,7 @@ describe("<Button>", () => {
     expect(menu!.classList.contains("dropdown-menu-dark")).toBe(true)
   })
   it("forwards onSelect handler to Items", () => {
-    const onSelectSpy = sinon.spy()
+    const onSelectSpy = jest.fn()
     const { getByTestId } = render(
       <Button defaultShow title="Simple Dropdown" onSelect={onSelectSpy}>
         <Item eventKey="1" data-testid="key1">
@@ -414,7 +409,7 @@ describe("<Button>", () => {
     expect(onSelectSpy).to.be.calledThrice
   })
   it("does not close when onToggle is controlled", () => {
-    const onSelectSpy = sinon.spy()
+    const onSelectSpy = jest.fn()
     const { container, getByTestId } = render(
       <Button
         show
@@ -462,7 +457,7 @@ describe("<Item>", () => {
       <Divider className="foo bar" style={{ height: "100px" }} />
     )
     const node = getByRole("separator")
-    expect(node.className).to.match(/\bfoo bar dropdown-divider\b/)
+    expect(node.className).toMatch(/\bfoo bar dropdown-divider\b/)
     expect(node.style.height).toEqual("100px")
   })
   it("renders header", () => {
@@ -476,7 +471,7 @@ describe("<Item>", () => {
       </Header>
     )
     const node = getByText("Header text")
-    expect(node.className).to.match(/\bfoo bar dropdown-header\b/)
+    expect(node.className).toMatch(/\bfoo bar dropdown-header\b/)
   })
   it("renders ItemText", () => {
     const { getByText } = render(<ItemText>My text</ItemText>)
@@ -489,11 +484,11 @@ describe("<Item>", () => {
       </ItemText>
     )
     const node = getByText("My text")
-    expect(node.className).to.match(/\bfoo bar dropdown-item-text\b/)
+    expect(node.className).toMatch(/\bfoo bar dropdown-item-text\b/)
     expect(node.style.height).toEqual("100px")
   })
   it("renders menu item link", () => {
-    const onKeyDownSpy = sinon.spy()
+    const onKeyDownSpy = jest.fn()
     const { getByText } = render(
       <Item onKeyDown={onKeyDownSpy} href="/herpa-derpa">
         Item
@@ -508,7 +503,7 @@ describe("<Item>", () => {
     const { getByTestId } = render(
       <Item as={Button} variant="success" data-testid="item" />
     )
-    expect(getByTestId("item").classList).to.contain([
+    expect(getByTestId("item").classList).toContain([
       "dropdown-item",
       "btn",
       "btn-success",
@@ -526,7 +521,7 @@ describe("<Item>", () => {
       </Item>
     )
     const node = getByText("Title")
-    expect(node.className).to.match(/\btest-class\b/)
+    expect(node.className).toMatch(/\btest-class\b/)
     expect(node.style.height).toEqual("100px")
     expect(node.getAttribute("href")!).toEqual("#hi-mom!")
     expect(node.getAttribute("title")!).toEqual("hi mom!")
@@ -546,8 +541,9 @@ describe("<Dropdown.Menu>", () => {
         <Item eventKey="4">Item 4</Item>
       </Menu>
     )
-    expect(container.firstElementChild!.classList.contains("dropdown-menu")).to
-      .be.true
+    expect(
+      container.firstElementChild!.classList.contains("dropdown-menu")
+    ).toBe(true)
   })
   it("Should pass props to dropdown", () => {
     const { container } = render(
@@ -673,7 +669,7 @@ describe("<Toggle>", () => {
     const { getByText } = render(<Toggle id="test-id">herpa derpa</Toggle>)
     const toggle = getByText("herpa derpa")
     expect(toggle.getAttribute("aria-expanded")!).toEqual("false")
-    expect(toggle.classList).to.contain([
+    expect(toggle.classList).toContain([
       "dropdown-toggle",
       "btn",
       "btn-primary",
@@ -688,7 +684,7 @@ describe("<Toggle>", () => {
     expect(getByText("herpa derpa")).toBeTruthy()
   })
   it("forwards onClick handler", () => {
-    const onClickSpy = sinon.spy()
+    const onClickSpy = jest.fn()
     const { container } = render(
       <Toggle id="test-id" title="click forwards" onClick={onClickSpy} />
     )
@@ -703,7 +699,7 @@ describe("<Toggle>", () => {
     const { container } = render(
       <Toggle bsPrefix="my-custom-bsPrefix" title="bsClass" id="test-id" />
     )
-    expect(container.firstElementChild!.classList).to.contain([
+    expect(container.firstElementChild!.classList).toContain([
       "my-custom-bsPrefix",
       "btn",
     ])

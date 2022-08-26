@@ -21,7 +21,7 @@ describe("Ratio", () => {
     )
     const ratioElem = getByTestId("test")
     const styleAttr = ratioElem.getAttribute("style")!
-    expect(styleAttr).to.match(/--bs-aspect-ratio:[ ]*50%;/)
+    expect(styleAttr).toMatch(/--bs-aspect-ratio:[ ]*50%;/)
   })
   it("should support custom ratios using fraction for aspectRatio", () => {
     const { getByTestId } = render(
@@ -31,7 +31,7 @@ describe("Ratio", () => {
     )
     const ratioElem = getByTestId("test")
     const styleAttr = ratioElem.getAttribute("style")!
-    expect(styleAttr).to.match(/--bs-aspect-ratio:[ ]*50%;/)
+    expect(styleAttr).toMatch(/--bs-aspect-ratio:[ ]*50%;/)
   })
   it("should support use 100% as custom ratio if aspectRatio is less than 0", () => {
     const { getByTestId } = render(
@@ -41,7 +41,7 @@ describe("Ratio", () => {
     )
     const ratioElem = getByTestId("test")
     const styleAttr = ratioElem.getAttribute("style")!
-    expect(styleAttr).to.match(/--bs-aspect-ratio:[ ]*100%;/)
+    expect(styleAttr).toMatch(/--bs-aspect-ratio:[ ]*100%;/)
   })
   it("should support use 100% as custom ratio if aspectRatio is greater than 100", () => {
     const { getByTestId } = render(
@@ -51,6 +51,6 @@ describe("Ratio", () => {
     )
     const ratioElem = getByTestId("test")
     const styleAttr = ratioElem.getAttribute("style")!
-    expect(styleAttr).to.match(/--bs-aspect-ratio:[ ]*100%;/)
+    expect(styleAttr).toMatch(/--bs-aspect-ratio:[ ]*100%;/)
   })
 })

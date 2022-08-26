@@ -10,9 +10,9 @@ describe("<Alert>", () => {
       </Alert>
     )
     expect(getByTestId("test-alert").children.length).toEqual(1)
-    expect(getByTestId("test-alert").children[0].tagName.toLowerCase()).toEqual(
-      "strong"
-    )
+    expect(
+      getByTestId("test-alert").children[0]!.tagName.toLowerCase()
+    ).toEqual("strong")
   })
   it("Should have dismissible style", () => {
     const { getByTestId } = render(
@@ -20,11 +20,12 @@ describe("<Alert>", () => {
         <strong>Message</strong>
       </Alert>
     )
-    expect(getByTestId("test-alert").classList.contains("alert-dismissible")).to
-      .be.true
+    expect(
+      getByTestId("test-alert").classList.contains("alert-dismissible")
+    ).toBe(true)
   })
   it("Should call onClose callback on dismiss click", () => {
-    const onCloseSpy = sinon.spy()
+    const onCloseSpy = jest.fn()
     const { getByLabelText } = render(
       <Alert dismissible data-testid="test-alert" onClose={onCloseSpy}>
         Message
@@ -57,8 +58,9 @@ describe("<Alert>", () => {
         Message
       </Alert>
     )
-    expect(getByTestId("test-alert").classList.contains("alert-primary")).to.not
-      .be.true
+    expect(
+      getByTestId("test-alert").classList.contains("alert-primary")
+    ).not.toBe(true)
   })
   it("should forward refs to the alert", () => {
     const ref = React.createRef<HTMLDivElement>()
@@ -114,7 +116,7 @@ describe("<Alert>", () => {
         Message
       </Alert>
     )
-    expect(container.innerHTML).equals("")
+    expect(container.innerHTML).toEqual("")
   })
   it("should render close button variant", () => {
     const { getByLabelText } = render(
@@ -142,8 +144,9 @@ describe("<Alert>", () => {
           Message
         </Alert>
       )
-      expect(getByTestId("test-alert").classList.contains("alert-heading")).to
-        .be.true
+      expect(
+        getByTestId("test-alert").classList.contains("alert-heading")
+      ).toBe(true)
     })
     it("Should have div styled as an h4 by default", () => {
       const { getByTestId } = render(

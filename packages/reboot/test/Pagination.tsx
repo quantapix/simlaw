@@ -27,7 +27,7 @@ describe("<Pagination>", () => {
         <Next ref={ref} data-testid="next" />
       </Pagination>
     )
-    expect(ref.current?.tagName.toLowerCase()).to.be.equal("li")
+    expect(ref.current?.tagName.toLowerCase()).toEqual("li")
   })
 })
 describe("<Item>", () => {

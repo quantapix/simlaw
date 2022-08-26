@@ -54,7 +54,7 @@ describe("<Button>", () => {
     expect(getByRole("button").getAttribute("href")).toEqual(href)
   })
   it("Should call onClick callback", () => {
-    const onClick = sinon.spy()
+    const onClick = jest.fn()
     const { getByRole } = render(<Button onClick={onClick}>Title</Button>)
     fireEvent.click(getByRole("button"))
     expect(onClick).toHaveBeenCalledTimes(1)
@@ -179,7 +179,7 @@ describe("Toolbar", () => {
 describe("<Close>", () => {
   it("Should output a button", () => {
     const { getAllByRole } = render(<Close />)
-    expect(getAllByRole("button")).to.have.lengthOf(1)
+    expect(getAllByRole("button")).toHaveLength(1)
   })
   it("Should have type=button by default", () => {
     const { getByRole } = render(<Close />)
@@ -190,7 +190,7 @@ describe("<Close>", () => {
     getByRole("button").classList.contains("btn-close")
   })
   it("Should call onClick callback", () => {
-    const onClickSpy = sinon.spy()
+    const onClickSpy = jest.fn()
     const { getByRole } = render(<Close onClick={onClickSpy} />)
     fireEvent.click(getByRole("button"))
     expect(onClickSpy).toHaveBeenCalledTimes(1)

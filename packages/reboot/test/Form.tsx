@@ -40,7 +40,6 @@ describe("<Form>", () => {
     expect(form.classList.contains("was-validated")).toBe(true)
   })
 })
-
 describe("<Check>", () => {
   it("should render correctly", () => {
     const { getByTestId, container } = render(
@@ -67,7 +66,7 @@ describe("<Check>", () => {
     expect(element.getAttribute("checked")!).toEqual("")
     const labels = container.getElementsByTagName("label")
     expect(labels.length).toEqual(1)
-    const label = labels[0]
+    const label = labels[0]!
     expect(label.classList.length).toEqual(1)
     expect(label.classList.contains("form-check-label")).toBe(true)
     expect(label.getAttribute("for")!).toEqual("foo")
@@ -99,7 +98,7 @@ describe("<Check>", () => {
     expect(element.getAttribute("checked")!).toEqual("")
     const labels = container.getElementsByTagName("label")
     expect(labels.length).toEqual(1)
-    const label = labels[0]
+    const label = labels[0]!
     expect(label.classList.length).toEqual(1)
     expect(label.classList.contains("form-check-label")).toBe(true)
     expect(label.getAttribute("for")!).toEqual("foo")
@@ -134,10 +133,10 @@ describe("<Check>", () => {
   it("should support ref forwarding", () => {
     let input
     class Container extends React.Component {
-      render() {
+      override render() {
         return (
           <Check
-            ref={ref => {
+            ref={(ref: any) => {
               input = ref
             }}
           />
@@ -173,7 +172,7 @@ describe("<Check>", () => {
     expect(element.getAttribute("type")!).toEqual("checkbox")
     const labels = container.getElementsByTagName("label")
     expect(labels.length).toEqual(1)
-    const label = labels[0]
+    const label = labels[0]!
     expect(label.classList.length).toEqual(1)
     expect(label.classList.contains("form-check-label")).toBe(true)
     expect(label.getAttribute("for")!).toEqual("switch-id")
@@ -194,7 +193,7 @@ describe("<Check>", () => {
     expect(element.getAttribute("type")!).toEqual("checkbox")
     const labels = container.getElementsByTagName("label")
     expect(labels.length).toEqual(1)
-    const label = labels[0]
+    const label = labels[0]!
     expect(label.classList.length).toEqual(1)
     expect(label.classList.contains("form-check-label")).toBe(true)
     expect(label.getAttribute("for")!).toEqual("switch-id")
@@ -217,7 +216,7 @@ describe("<Check>", () => {
     )
     const feedbacks = container.getElementsByClassName("valid-feedback")
     expect(feedbacks.length).toEqual(1)
-    expect(feedbacks[0].textContent!).toEqual("test")
+    expect(feedbacks[0]!.textContent!).toEqual("test")
   })
   it("Should render invalid feedback properly", () => {
     const { container } = render(
@@ -225,7 +224,7 @@ describe("<Check>", () => {
     )
     const feedbacks = container.getElementsByClassName("invalid-feedback")
     expect(feedbacks.length).toEqual(1)
-    expect(feedbacks[0].textContent!).toEqual("test")
+    expect(feedbacks[0]!.textContent!).toEqual("test")
   })
   it("Should render valid feedback tooltip properly", () => {
     const { container } = render(
@@ -238,7 +237,7 @@ describe("<Check>", () => {
     )
     const feedbacks = container.getElementsByClassName("valid-tooltip")
     expect(feedbacks.length).toEqual(1)
-    expect(feedbacks[0].textContent!).toEqual("test")
+    expect(feedbacks[0]!.textContent!).toEqual("test")
   })
   it("Should render invalid feedback tooltip properly", () => {
     const { container } = render(
@@ -251,10 +250,9 @@ describe("<Check>", () => {
     )
     const feedbacks = container.getElementsByClassName("invalid-tooltip")
     expect(feedbacks.length).toEqual(1)
-    expect(feedbacks[0].textContent!).toEqual("test")
+    expect(feedbacks[0]!.textContent!).toEqual("test")
   })
 })
-
 describe("<Control>", () => {
   it("should render correctly", () => {
     const { getByTestId } = render(
@@ -313,12 +311,12 @@ describe("<Control>", () => {
   it("should support ref forwarding", () => {
     let input
     class Container extends React.Component {
-      render() {
+      override render() {
         return (
           <Group controlId="foo">
             <Control
               type="text"
-              ref={ref => {
+              ref={(ref: any) => {
                 input = ref
               }}
             />
@@ -327,7 +325,7 @@ describe("<Control>", () => {
       }
     }
     render(<Container />)
-    expect(input.tagName.toLowerCase()).to.toEqual("input")
+    expect(input.tagName.toLowerCase()).toEqual("input")
   })
   it("should properly display size of Control", () => {
     const { getByTestId } = render(
@@ -364,7 +362,6 @@ describe("<Control>", () => {
     expect(getByTestId("test-id").getAttribute("value")!).toEqual("hello,world")
   })
 })
-
 describe("<Group>", () => {
   it("renders children", () => {
     const { getByTestId } = render(
@@ -375,11 +372,11 @@ describe("<Group>", () => {
     )
     const element = getByTestId("test-id")
     expect(element.childElementCount).toEqual(2)
-    const child1 = element.children[0]
+    const child1 = element.children[0]!
     expect(child1.tagName.toLowerCase()).toEqual("span")
     expect(child1.classList.length).toEqual(1)
     expect(child1.classList.contains("child1")).toBe(true)
-    const child2 = element.children[1]
+    const child2 = element.children[1]!
     expect(child2.tagName.toLowerCase()).toEqual("span")
     expect(child2.classList.length).toEqual(1)
     expect(child2.classList.contains("child2")).toBe(true)
@@ -396,10 +393,10 @@ describe("<Group>", () => {
     const element = getByTestId("test-id")
     const label = element.getElementsByTagName("label")
     expect(label.length).toEqual(1)
-    expect(label[0].getAttribute("for")!).toEqual("my-control")
+    expect(label[0]!.getAttribute("for")!).toEqual("my-control")
     const input = element.getElementsByTagName("input")
     expect(input.length).toEqual(1)
-    expect(input[0].id).to.be.equal("my-control")
+    expect(input[0]!.id).toEqual("my-control")
   })
   it("Should have div as default component", () => {
     const { getByTestId } = render(<Group data-testid="test-id" />)
@@ -407,7 +404,6 @@ describe("<Group>", () => {
     expect(element.tagName.toLowerCase()).toEqual("div")
   })
 })
-
 describe("<Label>", () => {
   it("should render correctly", () => {
     const { getByTestId } = render(
@@ -424,7 +420,7 @@ describe("<Label>", () => {
     expect(element.classList.contains("form-label")).toBe(true)
     expect(element.classList.contains("my-control")).toBe(true)
     expect(element.id).toEqual("foo")
-    expect(element.getAttribute("for")!).to.not.null
+    expect(element.getAttribute("for")!).not.toBeNull()
   })
   it("should use controlId for htmlFor", () => {
     const { getByTestId } = render(
@@ -483,11 +479,11 @@ describe("<Label>", () => {
   it("should support ref forwarding", () => {
     let input
     class Container extends React.Component {
-      render() {
+      override render() {
         return (
           <Group controlId="foo">
             <Label
-              ref={ref => {
+              ref={(ref: any) => {
                 input = ref
               }}
             />
@@ -496,17 +492,17 @@ describe("<Label>", () => {
       }
     }
     render(<Container />)
-    expect(input.tagName.toLowerCase()).to.toEqual("label")
+    expect(input.tagName.toLowerCase()).toEqual("label")
   })
   it("should support ref forwarding when rendered as a Col", () => {
     let input
     class Container extends React.Component {
-      render() {
+      override render() {
         return (
           <Group controlId="foo">
             <Label
               column
-              ref={ref => {
+              ref={(ref: any) => {
                 input = ref
               }}
             />
@@ -515,7 +511,7 @@ describe("<Label>", () => {
       }
     }
     render(<Container />)
-    expect(input.tagName.toLowerCase()).to.toEqual("label")
+    expect(input.tagName.toLowerCase()).toEqual("label")
   })
   it("accepts as prop", () => {
     const { getByTestId } = render(
@@ -547,7 +543,6 @@ describe("<Label>", () => {
       .true
   })
 })
-
 describe("<Range>", () => {
   it("should render correctly", () => {
     const { getByTestId } = render(
@@ -581,7 +576,6 @@ describe("<Range>", () => {
     expect(element.id).toEqual("overridden-id")
   })
 })
-
 describe("<Select>", () => {
   it("should render correctly", () => {
     const { getByTestId } = render(
@@ -642,7 +636,6 @@ describe("<Select>", () => {
     expect(element.id).toEqual("overridden-id")
   })
 })
-
 describe("<FloatingLabel>", () => {
   it("should render correctly", () => {
     const { getByText, getByRole, getByTestId } = render(
@@ -670,11 +663,10 @@ describe("<FloatingLabel>", () => {
       </FloatingLabel>
     )
     const label = getByTestId("test")
-    expect(label.tagName.toLowerCase()).to.be.equal("span")
+    expect(label.tagName.toLowerCase()).toEqual("span")
     expect(label.classList.contains("form-floating")).toBe(true)
   })
 })
-
 describe("<Text>", () => {
   it("should render correctly", () => {
     const { getByTestId } = render(

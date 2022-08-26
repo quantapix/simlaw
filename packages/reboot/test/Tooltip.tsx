@@ -8,7 +8,7 @@ describe("Tooltip", () => {
         <strong>Tooltip Content</strong>
       </Tooltip>
     )
-    expect(getByTestId("test-tooltip").classList).to.contains([
+    expect(getByTestId("test-tooltip").classList).toContain([
       "tooltip",
       "bs-tooltip-end",
     ])

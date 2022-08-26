@@ -1,42 +1,38 @@
 import * as React from "react"
 import { render, fireEvent } from "@testing-library/react"
-import sinon from "sinon"
-
-import DropdownItem from "../src/DropdownItem"
+import { Item } from "../../src/Dropdown.jsx"
 import SelectableContext from "../src/SelectableContext"
 
 describe("<DropdownItem>", () => {
   it("should output a nav item as button", () => {
-    const { getByText } = render(<DropdownItem>test</DropdownItem>)
+    const { getByText } = render(<Item>test</Item>)
 
     expect(getByText("test").tagName).toEqual("BUTTON")
   })
 
   it("should trigger onClick", () => {
-    const onClickSpy = sinon.spy()
-    const { getByText } = render(
-      <DropdownItem onClick={onClickSpy}>test</DropdownItem>
-    )
+    const onClickSpy = jest.fn()
+    const { getByText } = render(<Item onClick={onClickSpy}>test</Item>)
     fireEvent.click(getByText("test"))
     expect(onClickSpy).to.be.called
   })
 
   it("should not trigger onClick if disabled", () => {
-    const onClickSpy = sinon.spy()
+    const onClickSpy = jest.fn()
     const { getByText } = render(
-      <DropdownItem onClick={onClickSpy} disabled>
+      <Item onClick={onClickSpy} disabled>
         test
-      </DropdownItem>
+      </Item>
     )
     fireEvent.click(getByText("test"))
     expect(onClickSpy).to.not.be.called
   })
 
   it("should call onSelect if a key is defined", () => {
-    const onSelect = sinon.spy()
+    const onSelect = jest.fn()
     const { getByText } = render(
       <SelectableContext.Provider value={onSelect}>
-        <DropdownItem eventKey="abc">test</DropdownItem>
+        <Item eventKey="abc">test</Item>
       </SelectableContext.Provider>
     )
 
@@ -45,15 +41,15 @@ describe("<DropdownItem>", () => {
   })
 
   it("should not call onSelect onClick stopPropagation called", () => {
-    const onSelect = sinon.spy()
+    const onSelect = jest.fn()
     const handleClick = (e: React.MouseEvent) => {
       e.stopPropagation()
     }
     const { getByText } = render(
       <SelectableContext.Provider value={onSelect}>
-        <DropdownItem eventKey="abc" onClick={handleClick}>
+        <Item eventKey="abc" onClick={handleClick}>
           test
-        </DropdownItem>
+        </Item>
       </SelectableContext.Provider>
     )
 

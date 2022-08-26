@@ -35,10 +35,10 @@ describe("<Toast>", () => {
         <Body />
       </Toast>
     )
-    ;["fade", "toast", "show"].map(
-      className =>
-        expect(container.firstElementChild!.classList.contains(className)).to.be
-          .true
+    ;["fade", "toast", "show"].map(className =>
+      expect(container.firstElementChild!.classList.contains(className)).toBe(
+        true
+      )
     )
     ;(
       [
@@ -60,14 +60,14 @@ describe("<Toast>", () => {
         <Body />
       </Toast>
     )
-    ;["toast", "show"].map(
-      className =>
-        expect(container.firstElementChild!.classList.contains(className)).to.be
-          .true
+    ;["toast", "show"].map(className =>
+      expect(container.firstElementChild!.classList.contains(className)).toBe(
+        true
+      )
     )
   })
   it("should trigger the onClose event after clicking on the close button", () => {
-    const onCloseSpy = sinon.spy()
+    const onCloseSpy = jest.fn()
     const { container } = render(
       <Toast onClose={onCloseSpy}>
         <Header>header-content</Header>
@@ -80,7 +80,7 @@ describe("<Toast>", () => {
     expect(onCloseSpy).toHaveBeenCalledTimes(1)
   })
   it("should trigger the onClose event after the autohide delay", () => {
-    const onCloseSpy = sinon.spy()
+    const onCloseSpy = jest.fn()
     render(
       <Toast onClose={onCloseSpy} delay={500} show autohide>
         <Header>header-content</Header>
@@ -91,7 +91,7 @@ describe("<Toast>", () => {
     expect(onCloseSpy).toHaveBeenCalledTimes(1)
   })
   it("should not trigger the onClose event if autohide is not set", () => {
-    const onCloseSpy = sinon.spy()
+    const onCloseSpy = jest.fn()
     render(
       <Toast onClose={onCloseSpy}>
         <Header>header-content</Header>
@@ -102,7 +102,7 @@ describe("<Toast>", () => {
     expect(onCloseSpy).not.toHaveBeenCalled()
   })
   it("should clearTimeout after unmount", () => {
-    const onCloseSpy = sinon.spy()
+    const onCloseSpy = jest.fn()
     const { unmount } = render(
       <Toast delay={500} onClose={onCloseSpy} show autohide>
         <Header>header-content</Header>
@@ -114,17 +114,16 @@ describe("<Toast>", () => {
     expect(onCloseSpy).not.toHaveBeenCalled()
   })
   it("should not reset autohide timer when element re-renders with same props", () => {
-    const onCloseSpy = sinon.spy()
+    const onCloseSpy = jest.fn()
     const toast = getToast({ onCloseSpy })
     const { rerender } = render(toast)
     clock.tick(250)
-    // Trigger render with no props changes.
     rerender(toast)
     clock.tick(300)
     expect(onCloseSpy).toHaveBeenCalledTimes(1)
   })
   it("should not reset autohide timer when delay is changed", () => {
-    const onCloseSpy = sinon.spy()
+    const onCloseSpy = jest.fn()
     const { rerender } = render(getToast({ delay: 500, onCloseSpy }))
     clock.tick(250)
     rerender(getToast({ delay: 10000, onCloseSpy }))
@@ -132,8 +131,8 @@ describe("<Toast>", () => {
     expect(onCloseSpy).toHaveBeenCalledTimes(1)
   })
   it("should not reset autohide timer when onClosed is changed", () => {
-    const onCloseSpy = sinon.spy()
-    const onCloseSpy2 = sinon.spy()
+    const onCloseSpy = jest.fn()
+    const onCloseSpy2 = jest.fn()
     const { rerender } = render(getToast({ onCloseSpy }))
     clock.tick(250)
     rerender(getToast({ onCloseSpy: onCloseSpy2 }))
@@ -142,7 +141,7 @@ describe("<Toast>", () => {
     expect(onCloseSpy2).toHaveBeenCalledTimes(1)
   })
   it("should not call onClose if autohide is changed from true to false", () => {
-    const onCloseSpy = sinon.spy()
+    const onCloseSpy = jest.fn()
     const { rerender } = render(getToast({ onCloseSpy, autohide: true }))
     clock.tick(250)
     rerender(getToast({ onCloseSpy, autohide: false }))
@@ -150,7 +149,7 @@ describe("<Toast>", () => {
     expect(onCloseSpy).not.toHaveBeenCalled()
   })
   it("should not call onClose if show is changed from true to false", () => {
-    const onCloseSpy = sinon.spy()
+    const onCloseSpy = jest.fn()
     const { rerender } = render(getToast({ show: true, onCloseSpy }))
     clock.tick(100)
     rerender(getToast({ show: false, onCloseSpy }))
@@ -180,8 +179,9 @@ describe("Header", () => {
     expect(
       container.firstElementChild!.firstElementChild!.tagName.toLowerCase()
     ).toEqual("strong")
-    expect(container.firstElementChild!.classList.contains("toast-header")).to
-      .be.true
+    expect(
+      container.firstElementChild!.classList.contains("toast-header")
+    ).toBe(true)
   })
   it("should render close button variant", () => {
     const { container } = render(
@@ -191,7 +191,7 @@ describe("Header", () => {
     )
     expect(
       container
-        .firstElementChild!.getElementsByTagName("button")[0]
+        .firstElementChild!.getElementsByTagName("button")[0]!
         .classList.contains("btn-close-white")
     ).toBe(true)
   })
@@ -203,8 +203,9 @@ describe("Body", () => {
     const { container } = render(
       <Body className="custom-class">{content}</Body>
     )
-    expect(container.firstElementChild!.classList.contains("custom-class")).to
-      .be.true
+    expect(
+      container.firstElementChild!.classList.contains("custom-class")
+    ).toBe(true)
     expect(container.firstElementChild!.classList.contains("toast-body")).toBe(
       true
     )

@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react"
-import { InputGroup } from "../src/InputGroup.jsx"
+import { Checkbox, InputGroup, Radio } from "../src/InputGroup.jsx"
 
 describe("<InputGroup>", () => {
   it("Should have div as default component", () => {
@@ -19,14 +19,14 @@ describe("<InputGroup>", () => {
   describe("<Checkbox>", () => {
     it("Should forward props to underlying input element", () => {
       const name = "foobar"
-      const { getByRole } = render(<InputGroup.Checkbox name={name} />)
+      const { getByRole } = render(<Checkbox name={name} />)
       expect(getByRole("checkbox").getAttribute("name")).toEqual(name)
     })
   })
   describe("<Radio>", () => {
     it("Should forward props to underlying input element", () => {
       const name = "foobar"
-      const { getByRole } = render(<InputGroup.Radio name={name} />)
+      const { getByRole } = render(<Radio name={name} />)
       expect(getByRole("radio").getAttribute("name")).toEqual(name)
     })
   })

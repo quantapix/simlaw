@@ -16,7 +16,7 @@ describe("<NavbarOffcanvas>", () => {
   })
 
   it("should close the offcanvas on header close button click", () => {
-    const onToggleSpy = sinon.spy()
+    const onToggleSpy = jest.fn()
     const { getByLabelText } = render(
       <Navbar onToggle={onToggleSpy} expanded>
         <Navbar.Toggle data-testid="toggle" />

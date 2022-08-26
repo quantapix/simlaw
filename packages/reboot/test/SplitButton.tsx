@@ -40,7 +40,7 @@ describe("<SplitButton>", () => {
     fireEvent.click(splitButtonElem.firstElementChild!)
   })
   it("should not invoke onClick when SplitButton.Toggle is clicked (prop)", () => {
-    const onClickSpy = sinon.spy()
+    const onClickSpy = jest.fn()
     const { getByTestId } = render(
       <SplitButton
         data-testid="test-wrapper"
@@ -68,8 +68,8 @@ describe("<SplitButton>", () => {
     )
     const splitButtonElem = getByTestId("test-wrapper")
     expect(splitButtonElem.getAttribute("disabled")!).toBeTruthy()
-    expect(splitButtonElem.children[0].getAttribute("disabled")!).toBeTruthy()
-    expect(splitButtonElem.children[1].getAttribute("disabled")!).toBeTruthy()
+    expect(splitButtonElem.children[0]!.getAttribute("disabled")!).toBeTruthy()
+    expect(splitButtonElem.children[1]!.getAttribute("disabled")!).toBeTruthy()
   })
   it("Should set target attribute on anchor", () => {
     const { getByTestId } = render(

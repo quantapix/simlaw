@@ -33,7 +33,7 @@ describe("useOverlayOffset", () => {
     )
 
     const offset = ref.current.modifiers[0].options.offset()
-    expect(offset).to.eql([0, 8])
+    expect(offset).toEqual([0, 8])
   })
 
   it("should apply custom offset", () => {
@@ -46,7 +46,7 @@ describe("useOverlayOffset", () => {
     )
 
     const offset = ref.current.modifiers[0].options.offset()
-    expect(offset).to.eql([200, 200])
+    expect(offset).toEqual([200, 200])
   })
 
   it("should have offset of [0, 0] for Tooltips", () => {
@@ -59,7 +59,7 @@ describe("useOverlayOffset", () => {
     )
 
     const offset = ref.current.modifiers[0].options.offset()
-    expect(offset).to.eql([0, 0])
+    expect(offset).toEqual([0, 0])
   })
 
   it("should have offset of [0, 0] for any overlay", () => {
@@ -72,6 +72,6 @@ describe("useOverlayOffset", () => {
     )
 
     const offset = ref.current.modifiers[0].options.offset()
-    expect(offset).to.eql([0, 0])
+    expect(offset).toEqual([0, 0])
   })
 })

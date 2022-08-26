@@ -1,15 +1,13 @@
 import * as React from "react"
-import { Transition } from "react-transition-group"
+import type { Transition } from "react-transition-group"
 import { render, RenderResult } from "@testing-library/react"
 import { Collapse, Props } from "../src/Collapse.jsx"
-
 describe("<Collapse>", () => {
   class Component extends React.Component<
     React.PropsWithChildren<Omit<Props, "children">>
   > {
     collapse: Transition<HTMLElement> | null = null
-
-    render() {
+    override render() {
       const { children, ...props } = this.props
       return (
         <Collapse
@@ -36,11 +34,11 @@ describe("<Collapse>", () => {
   })
   it("should work with a class component as children", () => {
     class InnerComponent extends React.Component {
-      render() {
+      override render() {
         return <div {...this.props}>Inner</div>
       }
     }
-    const onEnteringSpy = sinon.spy()
+    const onEnteringSpy = jest.fn()
     const { rerender } = render(
       <Collapse onEntering={onEnteringSpy}>
         <InnerComponent />

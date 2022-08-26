@@ -69,7 +69,7 @@ describe("<Tabs>", () => {
     const onSelect = key => {
       expect(key).toEqual("2")
     }
-    const onSelectSpy = sinon.spy(onSelect)
+    const onSelectSpy = jest.fn(onSelect)
     const { getByText } = render(
       <Tabs id="test" onSelect={onSelectSpy} activeKey={1}>
         <Tab title="Tab 1" eventKey="1">
@@ -123,7 +123,7 @@ describe("<Tabs>", () => {
   })
   it("Should pass disabled to Nav", () => {
     const onSelect = e => e
-    const onSelectSpy = sinon.spy(onSelect)
+    const onSelectSpy = jest.fn(onSelect)
     const { getByText } = render(
       <Tabs id="test" defaultActiveKey={1} onSelect={onSelectSpy}>
         <Tab title="Tab 1" eventKey={1}>
@@ -142,7 +142,7 @@ describe("<Tabs>", () => {
     shouldWarn("Failed prop")
     const { getByTestId } = render(
       <Tabs data-testid="testid" id="test" defaultActiveKey={1}>
-        {/* @ts-ignore */}
+        {/* */}
         <Tab eventKey={1}>Tab 1 content</Tab>
         <Tab title="Tab 2" eventKey={2} disabled>
           Tab 2 content
@@ -150,7 +150,7 @@ describe("<Tabs>", () => {
       </Tabs>
     )
     const tabs = getByTestId("testid")
-    expect(tabs.children).to.have.length(1)
+    expect(tabs.children).toHaveLength(1)
   })
   it('Should render TabPane with role="tabpanel"', () => {
     const { getAllByRole } = render(
@@ -160,7 +160,7 @@ describe("<Tabs>", () => {
         </Tab>
       </Tabs>
     )
-    expect(getAllByRole("tabpanel")).to.have.length(1)
+    expect(getAllByRole("tabpanel")).toHaveLength(1)
   })
   it("should have fade animation by default", () => {
     const { getByRole } = render(

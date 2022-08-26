@@ -10,8 +10,9 @@ describe("<Container>", () => {
   })
   it('turns grid into "full-width" layout via "fluid" property set', () => {
     const { getByText } = render(<Container fluid>Container</Container>)
-    expect(getByText("Container").classList.contains("container-fluid")).to.be
-      .true
+    expect(getByText("Container").classList.contains("container-fluid")).toBe(
+      true
+    )
   })
   it("Should include size breakpoint class when fluid is set to sm, md, lg or xl", () => {
     const { getByText } = render(<Container fluid="sm">Container</Container>)

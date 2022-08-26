@@ -1,15 +1,13 @@
 import * as React from "react"
-import { Transition } from "react-transition-group"
+import type { Transition } from "react-transition-group"
 import { render } from "@testing-library/react"
 import { Fade, Props } from "../src/Fade.jsx"
-
 describe("Fade", () => {
   class Component extends React.Component<
     React.PropsWithChildren<Omit<Props, "children">>
   > {
     fade: Transition<HTMLElement> | null = null
-
-    render() {
+    override render() {
       const { children, ...props } = this.props
       return (
         <Fade
@@ -34,9 +32,9 @@ describe("Fade", () => {
     )
   })
   it("should work with a class component as children", () => {
-    const onEnteringSpy = sinon.spy()
+    const onEnteringSpy = jest.fn()
     class InnerComponent extends React.Component {
-      render() {
+      override render() {
         return <div {...this.props}>test</div>
       }
     }

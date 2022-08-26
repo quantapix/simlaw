@@ -28,7 +28,7 @@ describe("Portal", () => {
 
     mount(<Container />)
 
-    expect(document.querySelectorAll("#test1")).to.have.lengthOf(1)
+    expect(document.querySelectorAll("#test1")).toHaveLength(1)
   })
 
   it("should render overlay into container (DOMNode)", () => {
@@ -55,7 +55,7 @@ describe("Portal", () => {
 
     mount(<Container />)
 
-    expect(container.querySelectorAll("#test1")).to.have.lengthOf(1)
+    expect(container.querySelectorAll("#test1")).toHaveLength(1)
   })
 
   it("should render overlay into container (ReactComponent)", () => {
@@ -90,7 +90,7 @@ describe("Portal", () => {
     expect(instance.div).toBeTruthy()
     expect(
       ReactDOM.findDOMNode(instance).querySelectorAll("#test1")
-    ).to.have.lengthOf(1)
+    ).toHaveLength(1)
   })
 
   it("should not fail to render a null overlay", () => {

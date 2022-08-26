@@ -1,8 +1,7 @@
 import * as React from "react"
 import { fireEvent, render } from "@testing-library/react"
-import ModalManager from "../src/base/Manager.js"
+import { Manager } from "../src/base/Manager.js"
 import { Body, Header, Footer, Modal, Props, Title } from "../src/Modal.jsx"
-
 describe("<Modal>", () => {
   it("Should forward ref to BaseModal", () => {
     const ref = React.createRef<Props>()
@@ -11,7 +10,7 @@ describe("<Modal>", () => {
         <strong>Message</strong>
       </Modal>
     )
-    expect(ref.current!.dialog).toBeTruthy()
+    expect(ref.current!["dialog"]).toBeTruthy()
   })
   it("Should render the modal content", () => {
     const { getByTestId } = render(
@@ -30,7 +29,7 @@ describe("<Modal>", () => {
         <strong>Message</strong>
       </Modal>
     )
-    expect(ref.current!.dialog.style.display).toEqual("block")
+    expect(ref.current!["dialog"].style.display).toEqual("block")
   })
   it("Should close the modal when the modal dialog is clicked", done => {
     const doneOp = () => {
@@ -45,7 +44,7 @@ describe("<Modal>", () => {
     fireEvent.click(getByRole("dialog"))
   })
   it('Should not close the modal when the "static" dialog is clicked', () => {
-    const onHideSpy = sinon.spy()
+    const onHideSpy = jest.fn()
     const { getByTestId } = render(
       <Modal show onHide={onHideSpy} backdrop="static" data-testid="modal">
         <strong>Message</strong>
@@ -171,8 +170,9 @@ describe("<Modal>", () => {
         <strong>Message</strong>
       </Modal>
     )
-    expect(getByTestId("modal").classList.contains("modal-dialog-centered")).to
-      .be.true
+    expect(
+      getByTestId("modal").classList.contains("modal-dialog-centered")
+    ).toBe(true)
   })
   it("Should pass scrollable to the dialog", () => {
     const { getByTestId } = render(
@@ -221,7 +221,7 @@ describe("<Modal>", () => {
     expect(document.querySelector(".custom-dialog")!).toBeTruthy()
   })
   it("Should pass transition callbacks to Transition", done => {
-    const increment = sinon.spy()
+    const increment = jest.fn()
     const Elem = () => {
       const [show, setShow] = React.useState(true)
       return (
@@ -248,7 +248,7 @@ describe("<Modal>", () => {
     render(<Elem />)
   })
   it("should call `transitionend` before `exited`", done => {
-    const increment = sinon.spy()
+    const increment = jest.fn()
     const { getByRole, rerender } = render(
       <Modal
         show
@@ -276,18 +276,17 @@ describe("<Modal>", () => {
   describe("cleanup", () => {
     let offSpy
     beforeEach(() => {
-      offSpy = sinon.spy(window, "removeEventListener")
+      offSpy = jest.fn(window, "removeEventListener")
     })
     afterEach(() => {
       offSpy.restore()
     })
     it("should remove resize listener when unmounted", () => {
       class Component extends React.Component {
-        state = {
+        override state = {
           show: true,
         }
-
-        render() {
+        override render() {
           if (!this.state.show) {
             return null
           }
@@ -300,7 +299,7 @@ describe("<Modal>", () => {
     })
   })
   it("Should close once it was clicked outside of the Modal", () => {
-    const onHideSpy = sinon.spy()
+    const onHideSpy = jest.fn()
     const { getByRole } = render(
       <Modal show onHide={onHideSpy}>
         <strong>Message</strong>
@@ -310,7 +309,7 @@ describe("<Modal>", () => {
     expect(onHideSpy).toHaveBeenCalled()
   })
   it("Should not call onHide if the click target comes from inside the dialog", () => {
-    const onHideSpy = sinon.spy()
+    const onHideSpy = jest.fn()
     const { getByTestId, getByRole } = render(
       <Modal show onHide={onHideSpy} data-testid="modal">
         <strong>Message</strong>
@@ -357,7 +356,7 @@ describe("<Modal>", () => {
     expect(getByRole("dialog").getAttribute("aria-label")).toEqual(labelValue)
   })
   it("Should call onEscapeKeyDown when keyboard is true", () => {
-    const onEscapeKeyDownSpy = sinon.spy()
+    const onEscapeKeyDownSpy = jest.fn()
     const { getByRole } = render(
       <Modal show keyboard onEscapeKeyDown={onEscapeKeyDownSpy}>
         <strong>Message</strong>
@@ -369,7 +368,7 @@ describe("<Modal>", () => {
     expect(onEscapeKeyDownSpy).toHaveBeenCalled()
   })
   it("Should not call onEscapeKeyDown when keyboard is false", () => {
-    const onEscapeKeyDownSpy = sinon.spy()
+    const onEscapeKeyDownSpy = jest.fn()
     const { getByRole } = render(
       <Modal show keyboard={false} onEscapeKeyDown={onEscapeKeyDownSpy}>
         <strong>Message</strong>
@@ -381,14 +380,12 @@ describe("<Modal>", () => {
     expect(onEscapeKeyDownSpy).not.toHaveBeenCalled()
   })
   it("Should use custom props manager if specified", done => {
-    class MyModalManager extends ModalManager {
-      // @ts-ignore
-      add() {
+    class MyModalManager extends Manager {
+      override add() {
         done()
       }
     }
-    const managerRef = React.createRef<ModalManager | null>()
-    // @ts-ignore
+    const managerRef = React.createRef<Manager | null>()
     managerRef.current = new MyModalManager()
     render(
       <Modal show manager={managerRef.current as any}>
@@ -397,7 +394,6 @@ describe("<Modal>", () => {
     )
   })
 })
-
 describe("Header", () => {
   it('uses "div" by default', () => {
     const { getByTestId } = render(
@@ -424,7 +420,7 @@ describe("Header", () => {
     expect(getByTestId("test-modal").querySelector("button")!).toBeTruthy()
   })
   it("Should trigger onHide when modal is closed", () => {
-    const onHideSpy = sinon.spy()
+    const onHideSpy = jest.fn()
     const { getByTestId } = render(
       <Header data-testid="test-modal" closeButton onHide={onHideSpy} />
     )
@@ -440,7 +436,6 @@ describe("Header", () => {
     expect(button.classList.contains("btn-close-white")).toBe(true)
   })
 })
-
 describe("Body", () => {
   it('uses "div" by default', () => {
     const { getByTestId } = render(
@@ -466,7 +461,6 @@ describe("Body", () => {
     expect(getByTestId("test-modal").tagName.toLowerCase()).toEqual("section")
   })
 })
-
 describe("Footer", () => {
   it('uses "div" by default', () => {
     const { getByTestId } = render(
@@ -492,7 +486,6 @@ describe("Footer", () => {
     expect(getByTestId("test-modal").tagName.toLowerCase()).toEqual("section")
   })
 })
-
 describe("Title", () => {
   it('uses "div" by default', () => {
     const { getByTestId } = render(

@@ -13,7 +13,7 @@ function assertLength(length) {
       `Expected to find ${length} match but found ${
         result.length
       } for selector "${selector}" on element: \n\n${this.debug()}`
-    ).to.have.length(length)
+    ).toHaveLength(length)
     return result
   }
 }

@@ -35,7 +35,7 @@ describe("<Carousel>", () => {
     expect(carouselItems[1].classList.contains("active")).toBe(false)
     expect(
       container.querySelectorAll(".carousel-indicators > button")
-    ).to.have.lengthOf(items.length)
+    ).toHaveLength(items.length)
   })
   it("should show the correct item with defaultActiveIndex", () => {
     const { getAllByTestId } = render(
@@ -57,13 +57,13 @@ describe("<Carousel>", () => {
     )
     const carouselItems = getAllByTestId(CarouselItemTestId)
     expect(carouselItems[0].classList.contains("active")).toBe(true)
-    expect(carouselItems[0].innerText).to.be.equal("Item 1 content")
+    expect(carouselItems[0].innerText).toEqual("Item 1 content")
     expect(
       container.querySelectorAll(".carousel-indicators > button")
-    ).to.have.lengthOf(2)
+    ).toHaveLength(2)
   })
   it("should call onSelect when indicator selected", () => {
-    const onSelect = sinon.spy()
+    const onSelect = jest.fn()
     const { getByLabelText } = render(
       <Carousel activeIndex={1} onSelect={onSelect} interval={null}>
         {items}
@@ -114,7 +114,7 @@ describe("<Carousel>", () => {
     })
     it("should allow refs to be attached and expose next, prev functions", () => {
       const ref = React.createRef<Ref>()
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       render(
         <Carousel ref={ref} onSelect={onSelectSpy} defaultActiveIndex={1}>
           {items}
@@ -183,7 +183,7 @@ describe("<Carousel>", () => {
       )
       expect(
         container.querySelectorAll("a.carousel-control-prev")
-      ).to.have.lengthOf(1)
+      ).toHaveLength(1)
     })
     it("should show next button control on the last image if wrap is true", () => {
       const lastElementIndex = items.length - 1
@@ -194,7 +194,7 @@ describe("<Carousel>", () => {
       )
       expect(
         container.querySelectorAll("a.carousel-control-next")
-      ).to.have.lengthOf(1)
+      ).toHaveLength(1)
     })
     it("should not show the prev button on the first image if wrap is false", () => {
       const { container } = render(
@@ -204,7 +204,7 @@ describe("<Carousel>", () => {
       )
       expect(
         container.querySelectorAll("a.carousel-control-prev")
-      ).to.have.lengthOf(0)
+      ).toHaveLength(0)
     })
     it("should not show the next button on the last image if wrap is false", () => {
       const lastElementIndex = items.length - 1
@@ -215,7 +215,7 @@ describe("<Carousel>", () => {
       )
       expect(
         container.querySelectorAll("a.carousel-control-next")
-      ).to.have.lengthOf(0)
+      ).toHaveLength(0)
     })
   })
   it("should allow the user to specify a previous and next icon", () => {
@@ -248,9 +248,9 @@ describe("<Carousel>", () => {
       </Carousel>
     )
     const labels = container.querySelectorAll<HTMLElement>(".visually-hidden")
-    expect(labels).to.have.lengthOf(2)
-    expect(labels[0].innerText).to.contain("Previous awesomeness")
-    expect(labels[1].innerText).to.contain("Next awesomeness")
+    expect(labels).toHaveLength(2)
+    expect(labels[0]!.innerText).toContain("Previous awesomeness")
+    expect(labels[1]!.innerText).toContain("Next awesomeness")
   })
   it("should not render labels when values are null or undefined", () => {
     // undefined (as in nothing passed) renders default labels
@@ -265,14 +265,14 @@ describe("<Carousel>", () => {
           {items}
         </Carousel>
       )
-      expect(container.querySelectorAll(".visually-hidden")).to.have.lengthOf(
+      expect(container.querySelectorAll(".visually-hidden")).toHaveLength(
         0,
         `should not render labels for value ${falsyValue}`
       )
     })
   })
   it("should transition properly when slide animation is disabled", () => {
-    const spy = sinon.spy()
+    const spy = jest.fn()
     const { container } = render(
       <Carousel slide={false} onSelect={spy}>
         {items}
@@ -295,7 +295,7 @@ describe("<Carousel>", () => {
       queryAllByLabelText(/Slide/, {
         selector: ".carousel-indicators > button",
       })
-    ).to.have.lengthOf(items.length)
+    ).toHaveLength(items.length)
     const fewerItems = items.slice(2)
     rerender(
       <Carousel defaultActiveIndex={items.length - 1}>{fewerItems}</Carousel>
@@ -304,12 +304,12 @@ describe("<Carousel>", () => {
       queryAllByLabelText(/Slide/, {
         selector: ".carousel-indicators > button",
       })
-    ).to.have.lengthOf(fewerItems.length)
+    ).toHaveLength(fewerItems.length)
     expect(
       queryAllByText(/Item \d content/, {
         selector: "div.carousel-item",
       })
-    ).to.have.lengthOf(fewerItems.length)
+    ).toHaveLength(fewerItems.length)
   })
   it("should render correctly when fade is set", () => {
     const { getByTestId } = render(
@@ -328,7 +328,7 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should go through the items after given seconds", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const interval = 500
       render(
         <Carousel interval={interval} onSelect={onSelectSpy}>
@@ -339,7 +339,7 @@ describe("<Carousel>", () => {
       expect(onSelectSpy).toHaveBeenCalledTimes(1)
     })
     it("should go through the items given the specified intervals", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       render(
         <Carousel interval={5000} onSelect={onSelectSpy}>
           <Item interval={1000}>Item 1 content</Item>
@@ -353,7 +353,7 @@ describe("<Carousel>", () => {
       expect(onSelectSpy).toHaveBeenCalledTimes(1).With(1)
     })
     it("should stop going through items on hover and continue afterwards", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const interval = 500
       const { getByTestId } = render(
         <Carousel interval={interval} onSelect={onSelectSpy} data-testid="test">
@@ -369,7 +369,7 @@ describe("<Carousel>", () => {
       expect(onSelectSpy).toHaveBeenCalledTimes(1)
     })
     it("should ignore hover if the prop is passed", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const interval = 500
       const { getByTestId } = render(
         <Carousel
@@ -386,7 +386,7 @@ describe("<Carousel>", () => {
       expect(onSelectSpy).toHaveBeenCalledTimes(1)
     })
     it("should stop going through the items after unmounting", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const interval = 500
       const { unmount } = render(
         <Carousel interval={interval} onSelect={onSelectSpy}>
@@ -407,7 +407,7 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should wrap to last from first", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={0} onSelect={onSelectSpy} data-testid="test">
           {items}
@@ -422,7 +422,7 @@ describe("<Carousel>", () => {
         .With(items.length - 1)
     })
     it("should wrap from first to last", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const { getByTestId } = render(
         <Carousel
           activeIndex={items.length - 1}
@@ -455,7 +455,7 @@ describe("<Carousel>", () => {
       },
     ].forEach(({ caseName, activeIndex, eventPayload }) => {
       it(`should not wrap with wrap unset for ${caseName}`, () => {
-        const onSelectSpy = sinon.spy()
+        const onSelectSpy = jest.fn()
         const { getByTestId, getAllByTestId } = render(
           <Carousel
             activeIndex={activeIndex}
@@ -486,7 +486,7 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should go back for the keyboard event ArrowLeft", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={1} onSelect={onSelectSpy} data-testid="test">
           {items}
@@ -499,7 +499,7 @@ describe("<Carousel>", () => {
       expect(onSelectSpy).toHaveBeenCalledTimes(1).With(0)
     })
     it("should go forward for the keyboard event ArrowRight", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={1} onSelect={onSelectSpy} data-testid="test">
           {items}
@@ -512,7 +512,7 @@ describe("<Carousel>", () => {
       expect(onSelectSpy).toHaveBeenCalledTimes(1).With(2)
     })
     it("should ignore keyEvents when the keyboard is disabled", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const { getByTestId } = render(
         <Carousel
           activeIndex={1}
@@ -530,7 +530,7 @@ describe("<Carousel>", () => {
       expect(onSelectSpy).not.toHaveBeenCalled()
     })
     it("should handle a defined custom key event", () => {
-      const onKeyDownSpy = sinon.spy()
+      const onKeyDownSpy = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={1} onKeyDown={onKeyDownSpy} data-testid="test">
           {items}
@@ -544,7 +544,7 @@ describe("<Carousel>", () => {
     })
     ;["ArrowUp", "ArrowRightLeft", "Onwards"].forEach(key => {
       it("should do nothing for non left or right keys", () => {
-        const onSelectSpy = sinon.spy()
+        const onSelectSpy = jest.fn()
         const { getByTestId } = render(
           <Carousel activeIndex={1} onSelect={onSelectSpy} data-testid="test">
             {items}
@@ -567,7 +567,7 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should handle a defined mouse over event", () => {
-      const onMouseOverSpy = sinon.spy()
+      const onMouseOverSpy = jest.fn()
       const { getByTestId } = render(
         <Carousel
           activeIndex={1}
@@ -582,7 +582,7 @@ describe("<Carousel>", () => {
       expect(onMouseOverSpy).toHaveBeenCalledTimes(1)
     })
     it("should handle a defined mouse out event", () => {
-      const onMouseOutSpy = sinon.spy()
+      const onMouseOutSpy = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={1} onMouseOut={onMouseOutSpy} data-testid="test">
           {items}
@@ -602,10 +602,10 @@ describe("<Carousel>", () => {
       onTouchMoveSpy: sinon.SinonSpy,
       onTouchEndSpy: sinon.SinonSpy
     beforeEach(() => {
-      onSelectSpy = sinon.spy()
-      onTouchStartSpy = sinon.spy()
-      onTouchMoveSpy = sinon.spy()
-      onTouchEndSpy = sinon.spy()
+      onSelectSpy = jest.fn()
+      onTouchStartSpy = jest.fn()
+      onTouchMoveSpy = jest.fn()
+      onTouchEndSpy = jest.fn()
       renderResult = render(
         <Carousel
           activeIndex={1}
@@ -709,8 +709,8 @@ describe("<Carousel>", () => {
       clock.tick(50)
       expect(onSelectSpy).not.toHaveBeenCalled()
       const carouselItems = container.querySelectorAll(".carousel-item")
-      expect(carouselItems).to.have.lengthOf(3)
-      expect(carouselItems[1].classList.contains("active")).toBe(true)
+      expect(carouselItems).toHaveLength(3)
+      expect(carouselItems[1]!.classList.contains("active")).toBe(true)
     })
   })
   describe("callback tests", () => {
@@ -722,8 +722,8 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should call onSlide when slide animation is disabled", () => {
-      const onSlideSpy = sinon.spy()
-      const onSelectSpy = sinon.spy()
+      const onSlideSpy = jest.fn()
+      const onSelectSpy = jest.fn()
       const { container } = render(
         <Carousel slide={false} onSelect={onSelectSpy} onSlide={onSlideSpy}>
           {items}
@@ -741,8 +741,8 @@ describe("<Carousel>", () => {
       expect(onSlideSpy).toHaveBeenCalledTimes(2)
     })
     it("should call onSlid when slide animation is disabled", () => {
-      const onSlidSpy = sinon.spy()
-      const onSelectSpy = sinon.spy()
+      const onSlidSpy = jest.fn()
+      const onSelectSpy = jest.fn()
       const { container } = render(
         <Carousel slide={false} onSelect={onSelectSpy} onSlid={onSlidSpy}>
           {items}
@@ -760,7 +760,7 @@ describe("<Carousel>", () => {
       expect(onSlidSpy).toHaveBeenCalledTimes(2)
     })
     it("should transition/call onSelect once if previous arrow double clicked", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const { container } = render(
         <Carousel onSelect={onSelectSpy}>{items}</Carousel>
       )
@@ -773,7 +773,7 @@ describe("<Carousel>", () => {
       expect(onSelectSpy).toHaveBeenCalledTimes(1)
     })
     it("should transition/call onSelect once if next arrow double clicked", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const { container } = render(
         <Carousel onSelect={onSelectSpy}>{items}</Carousel>
       )
@@ -795,7 +795,7 @@ describe("<Carousel>", () => {
       clock.restore()
     })
     it("should slide in correct direction on ArrowLeft when dir=rtl", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const { getByTestId } = render(
         <Theme dir="rtl">
           <Carousel activeIndex={1} onSelect={onSelectSpy} data-testid="test">
@@ -810,7 +810,7 @@ describe("<Carousel>", () => {
       expect(onSelectSpy).toHaveBeenCalledTimes(1).With(2)
     })
     it("should slide in correct direction on ArrowLeft when dir=rtl", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const { getByTestId } = render(
         <Theme dir="rtl">
           <Carousel activeIndex={1} onSelect={onSelectSpy} data-testid="test">
@@ -825,7 +825,7 @@ describe("<Carousel>", () => {
       expect(onSelectSpy).toHaveBeenCalledTimes(1).With(0)
     })
     it("should slide in correct direction automatically when dir=rtl", () => {
-      const onSelectSpy = sinon.spy()
+      const onSelectSpy = jest.fn()
       const interval = 300
       render(
         <Theme dir="rtl">

@@ -30,7 +30,7 @@ describe("<Card>", () => {
       </Card>
     )
     expect(getByTestId("test-card").children.length).toEqual(1)
-    expect(getByTestId("test-card").children[0].tagName.toLowerCase()).toEqual(
+    expect(getByTestId("test-card").children[0]!.tagName.toLowerCase()).toEqual(
       "p"
     )
   })

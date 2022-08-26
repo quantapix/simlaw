@@ -50,7 +50,7 @@ describe("<Accordion>", () => {
     expect(getByTestId("item-1").querySelector(".collapse")).toBeTruthy()
   })
   it("should expand next item and collapse current item on click", async () => {
-    const onClickSpy = sinon.spy()
+    const onClickSpy = jest.fn()
     const { getByTestId, getByText } = render(
       <Accordion>
         <Item eventKey="0" data-testid="item-0">
@@ -75,7 +75,7 @@ describe("<Accordion>", () => {
     })
   })
   it("should collapse current item on click", async () => {
-    const onClickSpy = sinon.spy()
+    const onClickSpy = jest.fn()
     const { getByTestId, getByText } = render(
       <Accordion defaultActiveKey="0">
         <Item eventKey="0" data-testid="item-0">
@@ -157,7 +157,7 @@ describe("<Accordion>", () => {
       .exist
   })
   it("should allow multiple items to stay open", () => {
-    const onSelectSpy = sinon.spy()
+    const onSelectSpy = jest.fn()
     const { getByText } = render(
       <Accordion onSelect={onSelectSpy} alwaysOpen>
         <Item eventKey="0">
@@ -175,7 +175,7 @@ describe("<Accordion>", () => {
     expect(onSelectSpy).to.be.calledWith(["0", "1"])
   })
   it("should remove only one of the active indices", () => {
-    const onSelectSpy = sinon.spy()
+    const onSelectSpy = jest.fn()
     const { getByText } = render(
       <Accordion
         onSelect={onSelectSpy}
@@ -217,7 +217,7 @@ describe("<AccordionButton>", () => {
     )
   })
   it("Should call onClick", () => {
-    const onClickSpy = sinon.spy()
+    const onClickSpy = jest.fn()
     const { getByTestId } = render(
       <Button data-testid="btn" onClick={onClickSpy} />
     )

@@ -34,7 +34,7 @@ describe("<Modal>", () => {
       </Modal>,
       { attachTo }
     )
-    expect(ref.current.dialog.querySelectorAll("strong")).to.have.lengthOf(1)
+    expect(ref.current.dialog.querySelectorAll("strong")).toHaveLength(1)
   })
   it("should disable scrolling on the modal container while open", done => {
     const modal = React.createRef()
@@ -73,7 +73,7 @@ describe("<Modal>", () => {
     })
   })
   it("should fire backdrop click callback", () => {
-    let onClickSpy = sinon.spy()
+    let onClickSpy = jest.fn()
     let ref = mountWithRef(
       <Modal show onBackdropClick={onClickSpy}>
         <strong>Message</strong>
@@ -98,7 +98,7 @@ describe("<Modal>", () => {
     backdrop.click()
   })
   it('should not close the modal when the "static" backdrop is clicked', () => {
-    let onHideSpy = sinon.spy()
+    let onHideSpy = jest.fn()
     let ref = mountWithRef(
       <Modal show onHide={onHideSpy} backdrop="static">
         <strong>Message</strong>
@@ -123,7 +123,7 @@ describe("<Modal>", () => {
     simulant.fire(backdrop, "keydown", { keyCode: 27 })
   })
   it("should not trigger onHide if e.preventDefault() called", () => {
-    const onHideSpy = sinon.spy()
+    const onHideSpy = jest.fn()
     const onEscapeKeyDown = e => {
       e.preventDefault()
     }
@@ -214,7 +214,7 @@ describe("<Modal>", () => {
     )
   })
   it("should fire show callback on mount", () => {
-    let onShowSpy = sinon.spy()
+    let onShowSpy = jest.fn()
     mount(
       <Modal show onShow={onShowSpy}>
         <strong>Message</strong>
@@ -224,7 +224,7 @@ describe("<Modal>", () => {
     expect(onShowSpy).toHaveBeenCalledTimes(1)
   })
   it("should fire show callback on update", () => {
-    let onShowSpy = sinon.spy()
+    let onShowSpy = jest.fn()
     wrapper = mount(
       <Modal onShow={onShowSpy}>
         <strong>Message</strong>
@@ -235,7 +235,7 @@ describe("<Modal>", () => {
     expect(onShowSpy).toHaveBeenCalledTimes(1)
   })
   it("should fire onEscapeKeyDown callback on escape close", () => {
-    let onEscapeSpy = sinon.spy()
+    let onEscapeSpy = jest.fn()
     let ref = mountWithRef(
       <Modal onEscapeKeyDown={onEscapeSpy}>
         <strong>Message</strong>
@@ -289,7 +289,7 @@ describe("<Modal>", () => {
         </Modal>,
         { attachTo: focusableContainer }
       )
-      expect(document.activeElement.className).to.contain("modal")
+      expect(document.activeElement.className).toContain("modal")
       wrapper.setProps({ show: false })
       expect(document.activeElement).toEqual(focusableContainer)
     })
@@ -328,7 +328,7 @@ describe("<Modal>", () => {
       focusableContainer.focus()
       // focus reset runs in a timeout
       setTimeout(() => {
-        expect(document.activeElement.className).to.contain("modal")
+        expect(document.activeElement.className).toContain("modal")
         done()
       }, 50)
     })

@@ -1,7 +1,6 @@
 import ReactDOM from "react-dom"
 import { render, fireEvent } from "@testing-library/react"
-import { Dropdown } from "../../src/base/Dropdown.jsx"
-import { DropdownItem } from "../../src/base/DropdownItem.jsx"
+import { Menu, Item, Toggle, Dropdown } from "../../src/base/Dropdown.jsx"
 describe("<Dropdown>", () => {
   const Menu = ({
     usePopper,
@@ -11,7 +10,7 @@ describe("<Dropdown>", () => {
     renderMenuOnMount = true,
     ...props
   }) => (
-    <Dropdown.Menu
+    <Menu
       flip
       usePopper={usePopper}
       popperConfig={popperConfig}
@@ -33,10 +32,10 @@ describe("<Dropdown>", () => {
           />
         )
       }}
-    </Dropdown.Menu>
+    </Menu>
   )
   const Toggle = props => (
-    <Dropdown.Toggle>
+    <Toggle>
       {toggleProps => (
         <button
           {...props}
@@ -46,7 +45,7 @@ describe("<Dropdown>", () => {
           className="toggle"
         />
       )}
-    </Dropdown.Toggle>
+    </Toggle>
   )
   const SimpleDropdown = ({
     children,
@@ -65,10 +64,10 @@ describe("<Dropdown>", () => {
             usePopper={usePopper}
             renderMenuOnMount={renderMenuOnMount}
           >
-            <Dropdown.Item>Item 1</Dropdown.Item>
-            <Dropdown.Item>Item 2</Dropdown.Item>
-            <Dropdown.Item>Item 3</Dropdown.Item>
-            <Dropdown.Item>Item 4</Dropdown.Item>
+            <Item>Item 1</Item>
+            <Item>Item 2</Item>
+            <Item>Item 3</Item>
+            <Item>Item 4</Item>
           </Menu>
         </>
       )}
@@ -83,10 +82,10 @@ describe("<Dropdown>", () => {
     ReactDOM.unmountComponentAtNode(focusableContainer)
     document.body.removeChild(focusableContainer)
   })
-  it("renders toggle with Dropdown.Toggle", () => {
+  it("renders toggle with Toggle", () => {
     const { container } = render(<SimpleDropdown />)
     const toggle = container.querySelector("button.toggle")
-    expect(toggle.textContent).to.match(/Toggle/)
+    expect(toggle.textContent).toMatch(/Toggle/)
     expect(toggle.hasAttribute("aria-haspopup")).toEqual(false)
     expect(toggle.getAttribute("aria-expanded")).toEqual("false")
     expect(toggle.getAttribute("id")).to.be.ok
@@ -120,7 +119,7 @@ describe("<Dropdown>", () => {
     ).toBeTruthy()
   })
   it("closes when clicked outside", () => {
-    const closeSpy = sinon.spy()
+    const closeSpy = jest.fn()
     const { container } = render(<SimpleDropdown onToggle={closeSpy} />)
     fireEvent.click(container.querySelector(".toggle"))
     fireEvent.click(document.body)
@@ -128,7 +127,7 @@ describe("<Dropdown>", () => {
     expect(closeSpy.lastCall.args[0]).toEqual(false)
   })
   it("closes when mousedown outside if rootCloseEvent set", () => {
-    const closeSpy = sinon.spy()
+    const closeSpy = jest.fn()
     const { container } = render(
       <Dropdown onToggle={closeSpy} id="test-id">
         <div>
@@ -146,7 +145,7 @@ describe("<Dropdown>", () => {
     expect(closeSpy.lastCall.args[0]).toEqual(false)
   })
   it('when focused and closed toggles open when the key "down" is pressed', () => {
-    const closeSpy = sinon.spy()
+    const closeSpy = jest.fn()
     const { container } = render(<SimpleDropdown onToggle={closeSpy} />, {
       container: focusableContainer,
     })
@@ -155,13 +154,13 @@ describe("<Dropdown>", () => {
     expect(closeSpy.lastCall.args[0]).toEqual(true)
   })
   it("closes when item is clicked", () => {
-    const onToggle = sinon.spy()
+    const onToggle = jest.fn()
     const root = render(<SimpleDropdown show onToggle={onToggle} />)
     fireEvent.click(root.getByText("Item 4"))
     expect(onToggle).toHaveBeenCalledWith(false)
   })
   it("does not close when onToggle is controlled", () => {
-    const onToggle = sinon.spy()
+    const onToggle = jest.fn()
     const root = render(<SimpleDropdown show onToggle={onToggle} />)
     fireEvent.click(root.getByText("Toggle"))
     fireEvent.click(root.getByText("Item 1"))
@@ -180,8 +179,8 @@ describe("<Dropdown>", () => {
         <div>
           <Toggle>Toggle</Toggle>,
           <Menu role="menu">
-            <DropdownItem>Item 1</DropdownItem>
-            <DropdownItem>Item 2</DropdownItem>
+            <Item>Item 1</Item>
+            <Item>Item 2</Item>
           </Menu>
         </div>
       </Dropdown>
@@ -194,8 +193,8 @@ describe("<Dropdown>", () => {
         <div>
           <Toggle>Toggle</Toggle>,
           <Menu>
-            <DropdownItem>Item 1</DropdownItem>
-            <DropdownItem>Item 2</DropdownItem>
+            <Item>Item 1</Item>
+            <Item>Item 2</Item>
           </Menu>
         </div>
       </Dropdown>
@@ -228,8 +227,8 @@ describe("<Dropdown>", () => {
           <div>
             <Toggle>Toggle</Toggle>,
             <Menu role="menu">
-              <DropdownItem>Item 1</DropdownItem>
-              <DropdownItem>Item 2</DropdownItem>
+              <Item>Item 1</Item>
+              <Item>Item 2</Item>
             </Menu>
           </div>
         </Dropdown>,
@@ -249,8 +248,8 @@ describe("<Dropdown>", () => {
           <div>
             <Toggle>Toggle</Toggle>,
             <Menu>
-              <DropdownItem>Item 1</DropdownItem>
-              <DropdownItem>Item 2</DropdownItem>
+              <Item>Item 1</Item>
+              <Item>Item 2</Item>
             </Menu>
           </div>
         </Dropdown>,
@@ -274,7 +273,7 @@ describe("<Dropdown>", () => {
       expect(document.activeElement).toEqual(root.getByText("Toggle"))
     })
     it('when open and a search input is focused and the key "Escape" is pressed the menu stays open', () => {
-      const toggleSpy = sinon.spy()
+      const toggleSpy = jest.fn()
       const root = render(
         <Dropdown defaultShow onToggle={toggleSpy}>
           <Toggle key="toggle">Toggle</Toggle>,
@@ -312,7 +311,7 @@ describe("<Dropdown>", () => {
     })
   })
   it('should not call onToggle if the menu ref not defined and "tab" is pressed', () => {
-    const onToggleSpy = sinon.spy()
+    const onToggleSpy = jest.fn()
     const root = render(
       <SimpleDropdown onToggle={onToggleSpy} renderMenuOnMount={false} />,
       {
@@ -326,7 +325,7 @@ describe("<Dropdown>", () => {
     expect(onToggleSpy).to.not.be.called
   })
   it('should not call onToggle if the menu is hidden and "tab" is pressed', () => {
-    const onToggleSpy = sinon.spy()
+    const onToggleSpy = jest.fn()
     const root = render(<SimpleDropdown onToggle={onToggleSpy} />, {
       container: focusableContainer,
     })
@@ -338,7 +337,7 @@ describe("<Dropdown>", () => {
   })
   describe("popper config", () => {
     it("can add modifiers", done => {
-      const spy = sinon.spy()
+      const spy = jest.fn()
       const popper = {
         modifiers: [
           {

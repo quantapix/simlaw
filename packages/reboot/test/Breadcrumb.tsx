@@ -74,7 +74,7 @@ describe("<Item>", () => {
     expect(queryAllByRole("listitem", { current: "page" }).length).toEqual(1)
   })
   it("Should spread additional props onto inner element", () => {
-    const handleClick = sinon.spy()
+    const handleClick = jest.fn()
     const { getByRole } = render(
       <Item href="#" onClick={handleClick}>
         Crumb

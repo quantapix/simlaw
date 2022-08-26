@@ -255,7 +255,7 @@ describe("Group", () => {
     expect(getByText("Option 3").classList.contains("disabled")).toBe(false)
   })
   it("should return an array of values", () => {
-    const spy = sinon.spy()
+    const spy = jest.fn()
     const { getByLabelText } = render(
       <Group type="checkbox" onChange={spy}>
         <Button id="id1" value={1}>
@@ -273,7 +273,7 @@ describe("Group", () => {
     expect(spy).toHaveBeenCalledWith([2])
   })
   it("should return a single value", () => {
-    const spy = sinon.spy()
+    const spy = jest.fn()
     const { getByLabelText } = render(
       <Group type="radio" name="items" onChange={spy}>
         <Button id="id1" value={1}>
@@ -291,7 +291,7 @@ describe("Group", () => {
     expect(spy).toHaveBeenCalledWith(2)
   })
   it("should filter out value when deselected", () => {
-    const spy = sinon.spy()
+    const spy = jest.fn()
     const { getByLabelText } = render(
       <Group type="checkbox" name="items" defaultValue={[1, 2]} onChange={spy}>
         <Button id="id1" data-testid="id1" value={1}>

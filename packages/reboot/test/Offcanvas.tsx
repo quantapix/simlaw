@@ -70,7 +70,7 @@ describe("<Offcanvas>", () => {
     expect(offcanvasElem.style.color).toEqual("red")
   })
   it("Should pass transition callbacks to Transition", done => {
-    const increment = sinon.spy()
+    const increment = jest.fn()
     const Elem = () => {
       const [show, setShow] = React.useState(true)
       return (
@@ -98,7 +98,7 @@ describe("<Offcanvas>", () => {
     render(<Elem />)
   })
   it("Should close when backdrop clicked", () => {
-    const onHideSpy = sinon.spy()
+    const onHideSpy = jest.fn()
     render(
       <Offcanvas show onHide={onHideSpy}>
         <strong>Message</strong>
@@ -110,7 +110,7 @@ describe("<Offcanvas>", () => {
     expect(onHideSpy).toHaveBeenCalled()
   })
   it("should not close when static backdrop is clicked", () => {
-    const onHideSpy = sinon.spy()
+    const onHideSpy = jest.fn()
     render(
       <Offcanvas show onHide={onHideSpy} backdrop="static">
         <strong>Message</strong>
@@ -124,7 +124,7 @@ describe("<Offcanvas>", () => {
   // TODO: unsure if we need this, since it seems like Offcanvas is still undergoing some
   // changes upstream.
   // it('Should close when anything outside offcanvas clicked and backdrop=false', () => {
-  //   const onHideSpy = sinon.spy();
+  //   const onHideSpy = jest.fn();
   //   render(
   //     <>
   //       <Offcanvas show onHide={onHideSpy} backdrop={false}>
@@ -139,7 +139,7 @@ describe("<Offcanvas>", () => {
   //   onHideSpy.should.have.been.called;
   // });
   it("Should not call onHide if the click target comes from inside the offcanvas", () => {
-    const onHideSpy = sinon.spy()
+    const onHideSpy = jest.fn()
     const { getByTestId } = render(
       <>
         <Offcanvas show onHide={onHideSpy} data-testid="test">
@@ -173,7 +173,7 @@ describe("<Offcanvas>", () => {
     )
   })
   it("Should call onEscapeKeyDown when keyboard is true", () => {
-    const onEscapeKeyDownSpy = sinon.spy()
+    const onEscapeKeyDownSpy = jest.fn()
     render(
       <Offcanvas
         show
@@ -188,7 +188,7 @@ describe("<Offcanvas>", () => {
     expect(onEscapeKeyDownSpy).toHaveBeenCalled()
   })
   it("Should not call onEscapeKeyDown when keyboard is false", () => {
-    const onEscapeKeyDownSpy = sinon.spy()
+    const onEscapeKeyDownSpy = jest.fn()
     render(
       <Offcanvas
         show
@@ -256,8 +256,8 @@ describe("<Offcanvas>", () => {
       })
       return <div>Content</div>
     }
-    const onMountSpy = sinon.spy()
-    const onUnmountSpy = sinon.spy()
+    const onMountSpy = jest.fn()
+    const onUnmountSpy = jest.fn()
     const { unmount } = render(
       <Offcanvas data-testid="test" onHide={noop} show>
         <InnerComponent onMount={onMountSpy} onUnmount={onUnmountSpy} />

@@ -7,7 +7,7 @@ describe("<Theme>", () => {
   const hocValue = "foo"
   const Foo = createComponent(
     class Foo extends React.Component<{ bsPrefix: string }, any> {
-      render() {
+      override render() {
         return (
           <p className={`${this.props.bsPrefix} ${this.props.bsPrefix}-bar`}>
             foo val
@@ -63,7 +63,8 @@ describe("<Theme>", () => {
         <Foo bsPrefix="my-foo" ref={r => (ref = r)} />
       </div>
     )
-    expect(getByText("foo val").className.includes(ref.props.bsPrefix)).to.be
-      .true
+    expect(getByText("foo val").className.includes(ref.props.bsPrefix)).toBe(
+      true
+    )
   })
 })

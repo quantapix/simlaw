@@ -58,7 +58,7 @@ describe("<Button>", () => {
     expect(container.querySelector(`button[disabled]`)).toBeTruthy()
   })
   it("Should be inferred disabled link", () => {
-    const clickSpy = sinon.spy()
+    const clickSpy = jest.fn()
     const { container } = render(
       <Button disabled href="#foo" onClick={clickSpy}>
         Title
@@ -72,7 +72,7 @@ describe("<Button>", () => {
   })
   ;["#", ""].forEach(href => {
     it(`should prevent default on trivial href="${href}" clicks`, () => {
-      const clickSpy = sinon.spy()
+      const clickSpy = jest.fn()
       const { getByText } = render(
         <div onClick={clickSpy}>
           <Button href={href}>Title</Button>
@@ -82,12 +82,12 @@ describe("<Button>", () => {
       expect(button).toBeTruthy()
       fireEvent.click(button)
       expect(clickSpy).toHaveBeenCalled()
-      const event = clickSpy.getCall(0).args[0]
+      const event = clickSpy.mock.calls[0].args[0]
       expect(event.defaultPrevented).toEqual(true)
     })
   })
   it(`should not prevent default on button clicks`, () => {
-    const clickSpy = sinon.spy()
+    const clickSpy = jest.fn()
     const { getByText } = render(
       <div onClick={clickSpy}>
         <Button>Title</Button>
@@ -97,11 +97,11 @@ describe("<Button>", () => {
     expect(button).toBeTruthy()
     fireEvent.click(button)
     expect(clickSpy).toHaveBeenCalled()
-    const event = clickSpy.getCall(0).args[0]
+    const event = clickSpy.mock.calls[0].args[0]
     expect(event.defaultPrevented).toEqual(false)
   })
   it("Should be disabled link", () => {
-    const clickSpy = sinon.spy()
+    const clickSpy = jest.fn()
     const { container } = render(
       <Button disabled as="a" onClick={clickSpy}>
         Title

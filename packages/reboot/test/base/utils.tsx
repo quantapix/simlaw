@@ -25,7 +25,7 @@ describe("Class helpers", () => {
   it("should add a class", () => {
     const el = document.getElementById("item-1")
     cls.addClass(el, "my-class")
-    expect(el.className).to.contain("my-class")
+    expect(el.className).toContain("my-class")
   })
   it("should add a class properly when using a fallback path", () => {
     const el = document.getElementById("item-1")
@@ -185,8 +185,8 @@ describe("Event helpers", () => {
     const span = document.getElementsByTagName("span")[0],
       sibling = document.getElementById("item-3"),
       parent = document.getElementById("item-1"),
-      filtered = sinon.spy(),
-      handler = sinon.spy()
+      filtered = jest.fn(),
+      handler = jest.fn()
     evt.addEventListener(parent, "click", handler)
     evt.addEventListener(parent, "click", evt.filter("#item-2", filtered))
     simulant.fire(span, "click")
@@ -196,7 +196,7 @@ describe("Event helpers", () => {
   })
   it("should trigger events", () => {
     const span = document.getElementsByTagName("span")[0],
-      handler = sinon.spy()
+      handler = jest.fn()
     evt.addEventListener(span, "click", handler)
     evt.triggerEvent(span, "click")
     expect(handler.callCount).toEqual(1)
@@ -394,7 +394,7 @@ describe("transitionEnd", () => {
   it("should parse duration from node property", () => {
     const el = document.createElement("div")
     el.style.transitionDuration = "1.4s"
-    const handler1 = sinon.spy()
+    const handler1 = jest.fn()
     transitionEnd(el, handler1)
     clock.tick(1300)
     expect(handler1.callCount).toEqual(0)
@@ -402,7 +402,7 @@ describe("transitionEnd", () => {
     clock.tick(200)
     expect(handler1.callCount).toEqual(1)
     el.style.transitionDuration = "500ms"
-    const handler2 = sinon.spy()
+    const handler2 = jest.fn()
     transitionEnd(el, handler2)
     clock.tick(400)
     expect(handler2.callCount).toEqual(0)

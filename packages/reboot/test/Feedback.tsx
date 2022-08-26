@@ -2,7 +2,6 @@ import { render } from "@testing-library/react"
 import React from "react"
 import { Feedback } from "../src/Feedback.jsx"
 import { Control, Group } from "../src/Form.jsx"
-
 describe("<Feedback>", () => {
   it("Should have div as default component", () => {
     const { getByTestId } = render(<Feedback data-testid="test" />)
@@ -16,8 +15,9 @@ describe("<Feedback>", () => {
     const { getByTestId } = render(
       <Feedback type="invalid" data-testid="test" />
     )
-    expect(getByTestId("test").classList.contains("invalid-feedback")).to.be
-      .true
+    expect(getByTestId("test").classList.contains("invalid-feedback")).toBe(
+      true
+    )
   })
   it("Should render valid feedback tooltip", () => {
     const { getByTestId } = render(
@@ -32,7 +32,6 @@ describe("<Feedback>", () => {
     expect(getByTestId("test").classList.contains("invalid-tooltip")).toBe(true)
   })
 })
-
 describe("<Feedback>", () => {
   it("should render default success", () => {
     const { getByTestId } = render(
@@ -58,7 +57,7 @@ describe("<Feedback>", () => {
   })
   it("should render custom component", () => {
     class MyComponent extends React.Component {
-      render() {
+      override render() {
         return <div id="my-component" {...this.props} />
       }
     }

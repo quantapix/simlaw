@@ -34,12 +34,14 @@ describe("Image", () => {
     const { getByTestId } = render(
       <Image data-testid="test-image" roundedCircle />
     )
-    expect(getByTestId("test-image").classList.contains("rounded-circle")).to.be
-      .true
+    expect(getByTestId("test-image").classList.contains("rounded-circle")).toBe(
+      true
+    )
   })
   it("should have correct class when thumbnail prop is set", () => {
     const { getByTestId } = render(<Image data-testid="test-image" thumbnail />)
-    expect(getByTestId("test-image").classList.contains("img-thumbnail")).to.be
-      .true
+    expect(getByTestId("test-image").classList.contains("img-thumbnail")).toBe(
+      true
+    )
   })
 })

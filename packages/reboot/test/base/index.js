@@ -7,7 +7,7 @@ Enzyme.configure({ adapter: new Adapter() })
 function assertLength(length) {
   return function $assertLength(selector) {
     let result = this.find(selector)
-    expect(result).to.have.length(length)
+    expect(result).toHaveLength(length)
     return result
   }
 }

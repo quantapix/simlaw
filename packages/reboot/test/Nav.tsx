@@ -1,8 +1,8 @@
 import { fireEvent, render } from "@testing-library/react"
 import { Header as CardHeader } from "../src/Card.jsx"
-import { Link, Nav } from "../src/Nav.jsx"
+import { Item, Link, Nav } from "../src/Nav.jsx"
 import { Navbar } from "../src/Navbar.jsx"
-import NavDropdown from "../src/NavDropdown"
+import { Dropdown as NavDropdown } from "../src/Dropdown.jsx"
 import { shouldWarn } from "./helpers.js"
 
 describe("<Nav>", () => {
@@ -18,8 +18,8 @@ describe("<Nav>", () => {
       </Nav>
     )
     const navLinks = getByTestId("test").children
-    expect(navLinks[0].classList.contains("active")).toBe(true)
-    expect(navLinks[1].classList.contains("active")).not.toBe(true)
+    expect(navLinks[0]!.classList.contains("active")).toBe(true)
+    expect(navLinks[1]!.classList.contains("active")).not.toBe(true)
   })
   it("should add variant class", () => {
     const { getByTestId } = render(
@@ -91,7 +91,7 @@ describe("<Nav>", () => {
     expect(navItem.classList.contains("card-header-pills")).toBe(true)
   })
   it("should call onSelect when a Link is selected", () => {
-    const onSelectSpy = sinon.spy()
+    const onSelectSpy = jest.fn()
     const { getByTestId } = render(
       <Nav onSelect={onSelectSpy} data-testid="test">
         <Link eventKey={1}>Tab 1 content</Link>
@@ -105,7 +105,7 @@ describe("<Nav>", () => {
     expect(onSelectSpy).toHaveBeenCalledWith("2")
   })
   it("should call onSelect when a NavDropdown.Item is selected", () => {
-    const onSelectSpy = sinon.spy()
+    const onSelectSpy = jest.fn()
     const { getByTestId } = render(
       <Nav onSelect={onSelectSpy}>
         <NavDropdown title="Dropdown" id="nav-dropdown-test" renderMenuOnMount>
@@ -137,7 +137,7 @@ describe("<Nav>", () => {
   })
   describe("Web Accessibility", () => {
     it("should have tablist and tab roles", () => {
-      const Component = props => (
+      const Component = (props: any) => (
         <Nav data-testid="test" {...props}>
           <Link key={1}>Tab 1 content</Link>
           <Link key={2}>Tab 2 content</Link>
@@ -148,6 +148,105 @@ describe("<Nav>", () => {
       const navItem = getByTestId("test")
       expect(navItem.getAttribute("role")!).toEqual("tablist")
       expect(navItem.querySelectorAll('a[role="tab"]').length).toEqual(2)
+    })
+  })
+})
+describe("<NavItem>", () => {
+  it("should have div as default component", () => {
+    const { getByTestId } = render(<Item data-testid="test" />)
+    const navItemElem = getByTestId("test")
+
+    expect(navItemElem.tagName.toLowerCase()).toEqual("div")
+    expect(navItemElem.classList.contains("nav-item")).toBe(true)
+  })
+
+  it('should allow custom elements instead of "div"', () => {
+    const { getByTestId } = render(<Item data-testid="test" as="section" />)
+    const navItemElem = getByTestId("test")
+
+    expect(navItemElem.tagName.toLowerCase()).toEqual("section")
+    expect(navItemElem.classList.contains("nav-item")).toBe(true)
+  })
+
+  it("should pass classNames down and render children", () => {
+    const { getByTestId } = render(
+      <Item data-testid="test" className="custom-class and-other">
+        <strong>Children</strong>
+      </Item>
+    )
+    const navItemElem = getByTestId("test")
+
+    expect(navItemElem.classList.contains("nav-item")).toBe(true)
+    expect(navItemElem.classList.contains("custom-class")).toBe(true)
+    expect(navItemElem.classList.contains("and-other")).toBe(true)
+    expect(navItemElem.firstElementChild!.tagName.toLowerCase()).toEqual(
+      "strong"
+    )
+  })
+})
+describe("<NavLink>", () => {
+  it("renders correctly", () => {
+    const { getByTestId } = render(
+      <Link
+        className="custom-class"
+        href="/some/unique-thing/"
+        title="content"
+        data-testid="test"
+      >
+        <strong>Children</strong>
+      </Link>
+    )
+    const navLinkElem = getByTestId("test")
+    expect(navLinkElem.classList.contains("nav-link")).toBe(true)
+    expect(navLinkElem.classList.contains("custom-class")).toBe(true)
+    expect(navLinkElem.getAttribute("href")!).toEqual("/some/unique-thing/")
+    expect(navLinkElem.getAttribute("title")!).toEqual("content")
+    expect(navLinkElem.firstElementChild!.tagName.toLowerCase()).toEqual(
+      "strong"
+    )
+  })
+
+  it("Should add active class", () => {
+    const { getByTestId } = render(
+      <Link active data-testid="test">
+        Item content
+      </Link>
+    )
+    const navLinkElem = getByTestId("test")
+    expect(navLinkElem.classList.contains("active")).toBe(true)
+  })
+
+  it("Should add disabled class", () => {
+    const { getByTestId } = render(
+      <Link disabled data-testid="test">
+        Item content
+      </Link>
+    )
+    const navLinkElem = getByTestId("test")
+    expect(navLinkElem.classList.contains("disabled")).toBe(true)
+  })
+
+  describe("Web Accessibility", () => {
+    it('Should add aria-selected to the link when role is "tab"', () => {
+      const { getByTestId } = render(
+        <Link role="tab" active data-testid="test">
+          Item content
+        </Link>
+      )
+      const navLinkElem = getByTestId("test")
+      expect(navLinkElem.tagName.toLowerCase()).toEqual("a")
+      expect(navLinkElem.getAttribute("aria-selected")!).toEqual("true")
+    })
+
+    it('Should not add aria-selected to the link when role is not "tab"', () => {
+      const { getByTestId } = render(
+        <Link role="button" active data-testid="test">
+          Item content
+        </Link>
+      )
+      const navLinkElem = getByTestId("test")
+      expect(navLinkElem.tagName.toLowerCase()).toEqual("a")
+      expect(navLinkElem.getAttribute("aria-selected")).toBeNull()
     })
   })
 })

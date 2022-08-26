@@ -33,7 +33,7 @@ describe("createChained", () => {
     const func3 = () => results.push(3)
     const chained = createChained(func1, func2, func3)
     chained()
-    expect(results).to.eql([1, 2, 3])
+    expect(results).toEqual([1, 2, 3])
   })
 
   it("forwards arguments to all chained functions", () => {
@@ -54,7 +54,7 @@ describe("createChained", () => {
   it("throws when func is not provided", () => {
     expect(() => {
       createChained({ herpa: "derpa" })
-    }).to.throw(/Invalid Argument Type/)
+    }).toThrow(/Invalid Argument Type/)
   })
 
   it("works with new Function call", () => {
@@ -63,6 +63,6 @@ describe("createChained", () => {
     const func2 = new Function("results", "results.push(2);")
     const chained = createChained(func1, func2)
     chained(results)
-    expect(results).to.eql([1, 2])
+    expect(results).toEqual([1, 2])
   })
 })

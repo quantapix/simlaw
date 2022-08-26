@@ -73,7 +73,7 @@ describe("<Navbar>", () => {
     expect(navToggleElem.tagName.toLowerCase()).toEqual("p")
   })
   it("Should trigger onToggle", () => {
-    const toggleSpy = sinon.spy()
+    const toggleSpy = jest.fn()
     const { getByTestId } = render(
       <Navbar onToggle={toggleSpy}>
         <Toggle data-testid="test" />
@@ -85,7 +85,7 @@ describe("<Navbar>", () => {
     expect(toggleSpy).toHaveBeenCalledWith(true)
   })
   it("Should not swallow onClick", () => {
-    const clickSpy = sinon.spy()
+    const clickSpy = jest.fn()
     const { getByTestId } = render(
       <Navbar>
         <Toggle onClick={clickSpy} data-testid="test" />
@@ -185,8 +185,8 @@ describe("<Navbar>", () => {
     fireEvent.click(innerLinkItem)
   })
   it("Should collapseOnSelect & fire Nav subcomponent onSelect event if expanded", () => {
-    const toggleSpy = sinon.spy()
-    const navItemSpy = sinon.spy()
+    const toggleSpy = jest.fn()
+    const navItemSpy = jest.fn()
     const { getByTestId } = render(
       <Navbar collapseOnSelect onToggle={toggleSpy} expanded>
         <Toggle />
@@ -208,8 +208,8 @@ describe("<Navbar>", () => {
     expect(toggleSpy).toHaveBeenCalledWith(false)
   })
   it("Should fire onSelect with eventKey for nav children", () => {
-    const selectSpy = sinon.spy()
-    const navItemSpy = sinon.spy()
+    const selectSpy = jest.fn()
+    const navItemSpy = jest.fn()
     const { getByTestId } = render(
       <Navbar onSelect={selectSpy}>
         <Toggle />

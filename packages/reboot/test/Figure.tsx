@@ -1,6 +1,5 @@
 import { render } from "@testing-library/react"
 import { Caption, Figure, Image } from "../src/Figure.jsx"
-
 describe("Figure", () => {
   describe("General", () => {
     it("should be a Figure", () => {
@@ -38,8 +37,9 @@ describe("Figure", () => {
     })
     it("should have correct class when roundedCircle prop is set", () => {
       const { getByTestId } = render(<Image roundedCircle data-testid="test" />)
-      expect(getByTestId("test").classList.contains("rounded-circle")).to.be
-        .true
+      expect(getByTestId("test").classList.contains("rounded-circle")).toBe(
+        true
+      )
     })
     it("should have correct class when thumbnail prop is set", () => {
       const { getByTestId } = render(<Image thumbnail data-testid="test" />)
@@ -47,7 +47,6 @@ describe("Figure", () => {
     })
   })
 })
-
 describe("<Caption>", () => {
   it('uses "figcaption" by default', () => {
     const { getByTestId } = render(
@@ -63,8 +62,9 @@ describe("<Caption>", () => {
     const { getByTestId } = render(
       <Caption data-testid="test-figure">Caption</Caption>
     )
-    expect(getByTestId("test-figure").classList.contains("figure-caption")).to
-      .be.true
+    expect(
+      getByTestId("test-figure").classList.contains("figure-caption")
+    ).toBe(true)
   })
   it("Should merge additional classes passed in", () => {
     const { getByTestId } = render(
@@ -73,8 +73,9 @@ describe("<Caption>", () => {
       </Caption>
     )
     expect(getByTestId("test-figure").classList.contains("bob")).toBe(true)
-    expect(getByTestId("test-figure").classList.contains("figure-caption")).to
-      .be.true
+    expect(
+      getByTestId("test-figure").classList.contains("figure-caption")
+    ).toBe(true)
   })
   it('allows custom elements instead of "figcaption"', () => {
     const { getByTestId } = render(
