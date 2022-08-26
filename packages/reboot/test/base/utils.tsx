@@ -325,10 +325,6 @@ describe("Query helpers", () => {
     it("should handle nested positioning", () => {
       const item = document.getElementById("item-nested-abs")
       const offset = query.position(item)
-      // console.log( $(item).offset(),
-      //   $(item).offsetParent().scrollTop())
-      // console.log(query.offset(item),
-      //   query.scrollTop(query.offsetParent(item)))
       expect({ left: offset.left, top: offset.top }).to.be.eql(
         $(item).position()
       )

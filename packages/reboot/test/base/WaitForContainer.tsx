@@ -1,8 +1,9 @@
-import { useRef } from "react"
-import * as React from "react"
 import { act } from "react-dom/test-utils"
 import { mount } from "enzyme"
+import { useRef } from "react"
 import { useWaitForDOMRef } from "../../src/base/use.js"
+import * as React from "react"
+
 describe("useWaitForDOMRef", () => {
   it("should resolve on first render if possible (element)", () => {
     let renderCount = 0

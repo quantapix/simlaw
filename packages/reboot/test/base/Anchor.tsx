@@ -1,5 +1,6 @@
-import { render, fireEvent } from "@testing-library/react"
 import { Anchor } from "../../src/base/Anchor.jsx"
+import { render, fireEvent } from "@testing-library/react"
+
 describe("Anchor", () => {
   it("renders an anchor tag", () => {
     const { container } = render(<Anchor data-testid="anchor" />)

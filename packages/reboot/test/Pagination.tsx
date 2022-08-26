@@ -56,7 +56,6 @@ describe("<Item>", () => {
       const ItemInnerElem = ItemElem.firstElementChild!
       expect(ItemElem.classList.contains("active")).toBe(true)
       expect(ItemInnerElem.classList.contains("page-link")).toBe(true)
-      // check if nested span is rendered
       expect(ItemInnerElem.firstElementChild!.tagName.toLowerCase()).toEqual(
         "span"
       )

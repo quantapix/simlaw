@@ -205,7 +205,6 @@ describe("<Trigger>", () => {
     let buttonElem = getByTestId("test-button")
     fireEvent.click(buttonElem)
     buttonElem = getByTestId("test-button")
-    // aria-describedby gets assigned after a slight delay
     setTimeout(() => {
       expect(buttonElem.getAttribute("aria-describedby")!).toEqual(
         "test-tooltip"
@@ -328,8 +327,6 @@ describe("<Trigger>", () => {
           )
           const buttonElem = getByTestId("test-button")
           fireEvent.click(buttonElem)
-          // The use of Popper means that errors above will show up
-          //  asynchronously.
           setTimeout(done, 10)
         })
       })
@@ -365,7 +362,6 @@ describe("<Trigger>", () => {
           fireEvent.click(buttonElem)
           const overlayElem = getByTestId("test-overlay")
           expect(overlayElem.classList.contains("show")).toBe(true)
-          // Need to click this way for it to propagate to document element.
           document.documentElement.click()
           expect(overlayElem.classList.contains("show")).toEqual(
             testCase.shownAfterClick
@@ -390,7 +386,6 @@ describe("<Trigger>", () => {
         fireEvent.click(buttonElem)
         let overlayElem = getByTestId("test-overlay")
         expect(overlayElem.classList.contains("show")).toBe(true)
-        // Need to click this way for it to propagate to document element.
         fireEvent.click(buttonElem)
         overlayElem = getByTestId("test-overlay")
         expect(overlayElem.classList.contains("show")).toBe(false)

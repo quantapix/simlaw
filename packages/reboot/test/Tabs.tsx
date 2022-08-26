@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react"
 import { Content, Tab } from "../src/Tab.jsx"
 import { Tabs } from "../src/Tabs.jsx"
-import { shouldWarn } from "./helpers.js"
+import { shouldWarn } from "./tools.js"
 
 const checkEventKey = (elem: Element, eventKey: string | number) =>
   elem.getAttribute("data-rr-ui-event-key") === `${eventKey}` &&
@@ -223,15 +223,3 @@ describe("<Content>", () => {
     expect(container.tagName.toLowerCase()).toEqual("div")
   })
 })
-
-// describe('<Tab>', () => {
-//   it('should throw error message on attempt to render', () => {
-//     expect(() =>
-//       render(
-//         <Tab title="Tab 1" eventKey={1}>
-//           Tab 1 content
-//         </Tab>,
-//       ),
-//     ).to.throw();
-//   });
-// });

@@ -3,7 +3,7 @@ import { fireEvent, render } from "@testing-library/react"
 import { Header as CardHeader } from "../src/Card.jsx"
 import { Item, Link, Nav } from "../src/Nav.jsx"
 import { Navbar } from "../src/Navbar.jsx"
-import { shouldWarn } from "./helpers.js"
+import { shouldWarn } from "./tools.js"
 
 describe("<Nav>", () => {
   it("should have div as default component", () => {

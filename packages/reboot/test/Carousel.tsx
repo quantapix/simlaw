@@ -251,7 +251,6 @@ describe("<Carousel>", () => {
     expect(labels[1]!.innerText).toContain("Next awesomeness")
   })
   it("should not render labels when values are null or undefined", () => {
-    // undefined (as in nothing passed) renders default labels
     ;[null, ""].forEach(falsyValue => {
       const { container } = render(
         <Carousel
@@ -344,9 +343,6 @@ describe("<Carousel>", () => {
           <Item>Item 2 content</Item>
         </Carousel>
       )
-      // should be long enough to handle false positive issues
-      // but short enough to not trigger auto-play to occur twice
-      // (since the interval for the second item should be `5000`)
       clock.tick(1100)
       expect(mock).toHaveBeenCalledTimes(1).With(1)
     })
@@ -626,19 +622,6 @@ describe("<Carousel>", () => {
       endX: number
     }): void {
       const { target, startX, endX } = params
-      /**
-       * Below code is not working on Firefox due to Touch is not defined error.
-       * Maybe related to {@link https://bugzilla.mozilla.org/show_bug.cgi?id=1693172}?
-       *
-       * To avoid issue we are going to use {@link import('react-dom').Simulate} (used by enzyme internally)
-       */
-      // fireEvent.touchStart(target, {
-      //   touches: [new Touch({ identifier: 1, target, clientX: startX })],
-      // });
-      // fireEvent.touchMove(target, {
-      //   touches: [new Touch({ identifier: 1, target, clientX: endX })],
-      // });
-      // fireEvent.touchEnd(target);
       Simulate.touchStart(target, {
         touches: [{ identifier: 1, target, clientX: startX }] as never,
       })
@@ -670,13 +653,6 @@ describe("<Carousel>", () => {
       expect(onTouchEndSpy).toHaveBeenCalledTimes(1)
     })
     it("should handle a custom multi-touch move event", () => {
-      /** @see generateTouchEvents */
-      // fireEvent.touchMove(carousel, {
-      //   touches: [
-      //     new Touch({ identifier: 1, target: carousel, clientX: 0 }),
-      //     new Touch({ identifier: 1, target: carousel, clientX: 50 }),
-      //   ],
-      // });
       Simulate.touchMove(carousel, {
         touches: [
           { identifier: 1, target: carousel, clientX: 0 },

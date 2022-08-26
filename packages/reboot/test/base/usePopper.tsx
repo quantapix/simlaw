@@ -1,43 +1,35 @@
 import { mount } from "enzyme"
-import usePopper from "../src/usePopper"
+import { usePopper } from "../../src/base/popper.jsx"
 
 describe("usePopper", () => {
   function renderHook(fn, initialProps) {
-    let result = { current: null }
-
+    const result = { current: null }
     function Wrapper(props) {
       result.current = fn(props)
       return null
     }
-
     result.mount = mount(<Wrapper {...initialProps} />)
     result.update = props => result.mount.setProps(props)
-
     return result
   }
-
   const elements = {}
   beforeEach(() => {
     elements.mount = document.createElement("div")
     elements.reference = document.createElement("div")
     elements.popper = document.createElement("div")
-
     elements.mount.appendChild(elements.reference)
     elements.mount.appendChild(elements.popper)
     document.body.appendChild(elements.mount)
   })
-
   afterEach(() => {
     elements.mount.parentNode.removeChild(elements.mount)
   })
-
   it("should return state", done => {
     const result = renderHook(() =>
       usePopper(elements.reference, elements.popper, {
         eventsEnabled: true,
       })
     )
-
     setTimeout(() => {
       expect(result.current.update).to.be.a("function")
       expect(result.current.forceUpdate).to.be.a("function")
@@ -46,95 +38,73 @@ describe("usePopper", () => {
       done()
     })
   })
-
   it("should add aria-describedBy for tooltips", done => {
     elements.popper.setAttribute("role", "tooltip")
     elements.popper.setAttribute("id", "example123")
-
     const result = renderHook(() =>
       usePopper(elements.reference, elements.popper)
     )
-
     setTimeout(() => {
       expect(document.querySelector('[aria-describedby="example123"]')).toEqual(
         elements.reference
       )
-
       result.mount.unmount()
-
       setTimeout(() => {
         expect(
           document.querySelector('[aria-describedby="example123"]')
         ).toEqual(null)
       })
-
       done()
     })
   })
-
   it("should add to existing describedBy", done => {
     elements.popper.setAttribute("role", "tooltip")
     elements.popper.setAttribute("id", "example123")
     elements.reference.setAttribute("aria-describedby", "foo, bar , baz ")
-
     const result = renderHook(() =>
       usePopper(elements.reference, elements.popper)
     )
-
     setTimeout(() => {
       expect(
         document.querySelector(
           '[aria-describedby="foo, bar , baz ,example123"]'
         )
       ).toEqual(elements.reference)
-
       result.mount.unmount()
-
       setTimeout(() => {
         expect(
           document.querySelector('[aria-describedby="foo, bar , baz "]')
         ).toEqual(elements.reference)
-
         done()
       })
     })
   })
-
   it("should not aria-describedBy any other role", done => {
     renderHook(() => usePopper(elements.reference, elements.popper))
-
     setTimeout(() => {
       expect(document.querySelector('[aria-describedby="example123"]')).toEqual(
         null
       )
-
       done()
     })
   })
-
   it("should not add add duplicates to aria-describedby", done => {
     elements.popper.setAttribute("role", "tooltip")
     elements.popper.setAttribute("id", "example123")
     elements.reference.setAttribute("aria-describedby", "foo")
-
     const result = renderHook(() =>
       usePopper(elements.reference, elements.popper)
     )
-
     window.dispatchEvent(new Event("resize"))
-
     setTimeout(() => {
       expect(
         document.querySelector('[aria-describedby="foo,example123"]')
       ).toEqual(elements.reference)
-
       result.mount.unmount()
-
       setTimeout(() => {
         expect(document.querySelector('[aria-describedby="foo"]')).toEqual(
           elements.reference
         )
-
         done()
       })
     })

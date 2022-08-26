@@ -1,6 +1,7 @@
-import * as React from "react"
-import { render, fireEvent } from "@testing-library/react"
 import { Button } from "../../src/base/Button.jsx"
+import { render, fireEvent } from "@testing-library/react"
+import * as React from "react"
+
 describe("<Button>", () => {
   it("Should output a button", () => {
     const { container } = render(<Button>Title</Button>)
@@ -46,7 +47,6 @@ describe("<Button>", () => {
   it("Should output an anchor if called with a href", () => {
     const href = "/url"
     const { container } = render(<Button href={href}>Title</Button>)
-    // .assertSingle(`a[href="${href}"]`);
     expect(container.querySelector(`a[href="${href}"]`)).toBeTruthy()
   })
   it("Should call onClick callback", done => {

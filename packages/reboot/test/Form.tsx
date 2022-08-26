@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react"
-import { shouldWarn } from "./helpers.js"
+import { shouldWarn } from "./tools.js"
 import * as React from "react"
 import {
   Check,

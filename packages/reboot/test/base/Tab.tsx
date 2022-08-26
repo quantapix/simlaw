@@ -95,7 +95,6 @@ describe("<Tabs>", () => {
       </Tabs>
     )
     expect(getByRole("navigation")).toBeTruthy()
-    // make sure it's not passed to the NavItem
     expect(getByRole("button").getAttribute("role")).not.toBeTruthy()
   })
   it("Should show the correct tab when selected", () => {
@@ -300,9 +299,7 @@ describe("<TabPanel>", () => {
       </Tabs>
     )
     fireEvent.click(getByText("Tab 1"))
-    expect(await waitFor(() => mock))
-      .toHaveBeenCalled()
-      .Thrice()
+    expect(await waitFor(() => mock)).toHaveBeenCalledTimes(3)
     fireEvent.click(getByText("Tab 2"))
     expect(await waitFor(() => mock.callCount)).toEqual(6)
   })

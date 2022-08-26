@@ -1,15 +1,12 @@
 import { mount } from "enzyme"
-import Tabs from "../src/Tabs"
-import Nav from "../src/Nav"
-import NavItem from "../src/NavItem"
-import * as React from "react"
 import { render, fireEvent } from "@testing-library/react"
-import Context from "../../src/base/NavContext.jsx"
-import NavItem from "../../src/base/NavItem.jsx"
-import SelectableContext from "../../src/base/SelectableContext.jsx"
+import { Context, Item, Nav } from "../../src/base/Nav.jsx"
+import { Selectable } from "../../src/base/types.jsx"
+import { Tabs } from "../../src/base/Tabs.jsx"
+import * as React from "react"
 
 describe("<Nav>", () => {
-  let focusableContainer
+  let focusableContainer: any
 
   beforeEach(() => {
     focusableContainer = document.createElement("div")
@@ -25,25 +22,25 @@ describe("<Nav>", () => {
     const wrapper = mount(
       <Tabs defaultActiveKey="1">
         <Nav>
-          <NavItem eventKey="1">One</NavItem>
-          <NavItem eventKey="2">Two</NavItem>
+          <Item eventKey="1">One</Item>
+          <Item eventKey="2">Two</Item>
           <input type="text" autoFocus />
         </Nav>
       </Tabs>,
       { attachTo: focusableContainer }
     )
-    wrapper.find(NavItem).at(0).simulate("keydown", { key: "ArrowRight" })
+    wrapper.find(Item).at(0).simulate("keydown", { key: "ArrowRight" })
     expect(document.activeElement).toEqual(wrapper.find("input").getDOMNode())
   })
 })
 
 describe("<NavItem>", () => {
   it("should output a nav item as button", () => {
-    const { getByText } = render(<NavItem>test</NavItem>)
+    const { getByText } = render(<Item>test</Item>)
     expect(getByText("test").tagName).toEqual("BUTTON")
   })
   it("should output custom role", () => {
-    const { getByRole } = render(<NavItem role="abc">test</NavItem>)
+    const { getByRole } = render(<Item role="abc">test</Item>)
     expect(getByRole("abc")).toBeTruthy()
   })
   it("should set role to tab if inside nav context", () => {
@@ -56,7 +53,7 @@ describe("<NavItem>", () => {
           getControllerId: jest.fn(),
         }}
       >
-        <NavItem>test</NavItem>
+        <Item>test</Item>
       </Context.Provider>
     )
     expect(getByRole("tab")).toBeTruthy()
@@ -71,7 +68,7 @@ describe("<NavItem>", () => {
           getControllerId: jest.fn(),
         }}
       >
-        <NavItem role="abc">test</NavItem>
+        <Item role="abc">test</Item>
       </Context.Provider>
     )
     expect(getByRole("abc")).toBeTruthy()
@@ -86,16 +83,16 @@ describe("<NavItem>", () => {
           getControllerId: jest.fn(),
         }}
       >
-        <NavItem eventKey="key">test</NavItem>
+        <Item eventKey="key">test</Item>
       </Context.Provider>
     )
     expect(getByText("test").getAttribute("data-rr-ui-active")).toEqual("true")
   })
   it("should set disabled attributes when nav item is disabled and role is tab", () => {
     const { getByText } = render(
-      <NavItem role="tab" disabled>
+      <Item role="tab" disabled>
         test
-      </NavItem>
+      </Item>
     )
     const node = getByText("test")
     expect(node.getAttribute("aria-disabled")).toEqual("true")
@@ -103,27 +100,26 @@ describe("<NavItem>", () => {
   })
   it("should trigger onClick", () => {
     const mock = jest.fn()
-    const { getByText } = render(<NavItem onClick={mock}>test</NavItem>)
+    const { getByText } = render(<Item onClick={mock}>test</Item>)
     fireEvent.click(getByText("test"))
-    expect(mock).to.be.called
+    expect(mock).toHaveBeenCalled()
   })
   it("should not trigger onClick if disabled", () => {
     const mock = jest.fn()
     const { getByText } = render(
-      // Render as div because onClick won't get triggered with Button when disabled.
-      <NavItem as="div" onClick={mock} disabled>
+      <Item as="div" onClick={mock} disabled>
         test
-      </NavItem>
+      </Item>
     )
     fireEvent.click(getByText("test"))
-    expect(mock).to.not.be.called
+    expect(mock).not.toHaveBeenCalled()
   })
   it("should call onSelect if a key is defined", () => {
     const mock = jest.fn()
     const { getByText } = render(
-      <SelectableContext.Provider value={mock}>
-        <NavItem eventKey="abc">test</NavItem>
-      </SelectableContext.Provider>
+      <Selectable.Provider value={mock}>
+        <Item eventKey="abc">test</Item>
+      </Selectable.Provider>
     )
     fireEvent.click(getByText("test"))
     expect(mock).toHaveBeenCalledWith("abc")
@@ -134,13 +130,13 @@ describe("<NavItem>", () => {
       e.stopPropagation()
     }
     const { getByText } = render(
-      <SelectableContext.Provider value={mock}>
-        <NavItem eventKey="abc" onClick={handleClick}>
+      <Selectable.Provider value={mock}>
+        <Item eventKey="abc" onClick={handleClick}>
           test
-        </NavItem>
-      </SelectableContext.Provider>
+        </Item>
+      </Selectable.Provider>
     )
     fireEvent.click(getByText("test"))
-    expect(mock).to.not.be.called
+    expect(mock).not.toHaveBeenCalled()
   })
 })

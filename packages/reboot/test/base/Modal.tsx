@@ -1,18 +1,19 @@
+import { act } from "react-dom/test-utils"
+import { mount } from "enzyme"
+import { OPEN_DATA_ATTRIBUTE } from "../../src/base/Manager.jsx"
+import { render } from "@testing-library/react"
+import { Modal } from "../../src/base/Modal.jsx"
+import { Transition } from "react-transition-group"
 import * as React from "react"
 import ReactDOM from "react-dom"
-import { act } from "react-dom/test-utils"
-import Transition from "react-transition-group/Transition"
 import simulant from "simulant"
-import { render } from "@testing-library/react"
-import { mount } from "enzyme"
-import Modal from "../src/Modal"
-import { OPEN_DATA_ATTRIBUTE } from "../src/ModalManager"
+
 describe("<Modal>", () => {
-  let attachTo
-  let wrapper
+  let attachTo: any
+  let wrapper: any
   const mountWithRef = (el, options) => {
     const ref = React.createRef()
-    const Why = props => React.cloneElement(el, { ...props, ref })
+    const Why = (props: any) => React.cloneElement(el, { ...props, ref })
     wrapper = mount(<Why />, options)
     return ref
   }
@@ -40,13 +41,13 @@ describe("<Modal>", () => {
     const modal = React.createRef()
     class Container extends React.Component {
       ref = React.createRef()
-      state = {
+      override state = {
         modalOpen: true,
       }
       handleCloseModal = () => {
         this.setState({ modalOpen: false })
       }
-      render() {
+      override render() {
         return (
           <div ref={this.ref}>
             <Modal
@@ -138,7 +139,7 @@ describe("<Modal>", () => {
     expect(mock).not.toHaveBeenCalled()
   })
   it("should add role to child", () => {
-    let dialog
+    let dialog: any
     wrapper = mount(
       <Modal show>
         <strong
@@ -154,7 +155,7 @@ describe("<Modal>", () => {
     expect(dialog.getAttribute("role")).toEqual("document")
   })
   it("should allow custom rendering", () => {
-    let dialog
+    let dialog: any
     wrapper = mount(
       <Modal
         show
@@ -269,7 +270,7 @@ describe("<Modal>", () => {
     )
   })
   describe("Focused state", () => {
-    let focusableContainer = null
+    let focusableContainer: any = null
     beforeEach(() => {
       focusableContainer = document.createElement("div")
       focusableContainer.tabIndex = 0
@@ -326,7 +327,6 @@ describe("<Modal>", () => {
         { attachTo: focusableContainer }
       )
       focusableContainer.focus()
-      // focus reset runs in a timeout
       setTimeout(() => {
         expect(document.activeElement.className).toContain("modal")
         done()

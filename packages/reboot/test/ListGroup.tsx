@@ -1,6 +1,6 @@
 import { fireEvent, render } from "@testing-library/react"
 import { ListGroup, Item } from "../src/ListGroup.jsx"
-import { shouldWarn } from "./helpers.js"
+import { shouldWarn } from "./tools.js"
 
 describe("<ListGroup>", () => {
   it('Should render correctly "list-group"', () => {
@@ -77,7 +77,6 @@ describe("<Item>", () => {
     const item = getByTestId("test")
     expect(item.tagName.toLowerCase()).toEqual("div")
     expect(item.classList.contains("list-group-item")).toBe(true)
-    // .assertSingle('div.list-group-item');
   })
   it("accepts variants", () => {
     const { getByTestId } = render(
