@@ -2,81 +2,83 @@ import { render } from "@testing-library/react"
 import { Card, Img } from "../src/Card.jsx"
 
 describe("<Card>", () => {
-  test("should output a div", () => {
+  it("should output a div", () => {
     const { getByText } = render(<Card>Card</Card>)
-    getByText("Card").tagName.toLowerCase().should.equal("div")
-    getByText("Card").classList.contains("card").should.be.true
+    expect(getByText("Card").tagName.toLowerCase()).toEqual("div")
+    expect(getByText("Card").classList.contains("card")).toBe(true)
   })
-  test("should have additional classes", () => {
+  it("should have additional classes", () => {
     const { getByText } = render(<Card className="custom-class">Card</Card>)
-    getByText("Card").classList.contains("custom-class").should.be.true
+    expect(getByText("Card").classList.contains("custom-class")).toBe(true)
   })
-  test("accepts a bg prop", () => {
+  it("accepts a bg prop", () => {
     const { getByText } = render(<Card bg="primary">Card</Card>)
-    getByText("Card").classList.contains("bg-primary").should.be.true
+    expect(getByText("Card").classList.contains("bg-primary")).toBe(true)
   })
-  test("accepts a text prop", () => {
+  it("accepts a text prop", () => {
     const { getByText } = render(<Card text="success">Card</Card>)
-    getByText("Card").classList.contains("text-success").should.be.true
+    expect(getByText("Card").classList.contains("text-success")).toBe(true)
   })
-  test("accepts a border prop", () => {
+  it("accepts a border prop", () => {
     const { getByText } = render(<Card border="danger">Card</Card>)
-    getByText("Card").classList.contains("border-danger").should.be.true
+    expect(getByText("Card").classList.contains("border-danger")).toBe(true)
   })
-  test("should render children", () => {
+  it("should render children", () => {
     const { getByTestId } = render(
       <Card data-testid="test-card">
         <p>hello</p>
       </Card>
     )
-    getByTestId("test-card").children.length.should.equal(1)
-    getByTestId("test-card").children[0].tagName.toLowerCase().should.equal("p")
+    expect(getByTestId("test-card").children.length).toEqual(1)
+    expect(getByTestId("test-card").children[0].tagName.toLowerCase()).toEqual(
+      "p"
+    )
   })
-  test("accepts as prop", () => {
+  it("accepts as prop", () => {
     const { getByText } = render(<Card as="section">body</Card>)
-    getByText("body").tagName.toLowerCase().should.equal("section")
+    expect(getByText("body").tagName.toLowerCase()).toEqual("section")
   })
-  test("allows for the body shorthand", () => {
+  it("allows for the body shorthand", () => {
     const { getByText } = render(<Card body>test</Card>)
-    getByText("test").classList.contains("card-body").should.be.true
+    expect(getByText("test").classList.contains("card-body")).toBe(true)
   })
-  test("Should have div as default component", () => {
+  it("Should have div as default component", () => {
     const { getByTestId } = render(<Card data-testid="default-test" />)
-    getByTestId("default-test").tagName.toLowerCase().should.equal("div")
+    expect(getByTestId("default-test").tagName.toLowerCase()).toEqual("div")
   })
 })
 describe("<Img>", () => {
-  test("should output an img", () => {
+  it("should output an img", () => {
     const { getByRole } = render(<Img src="#" />)
-    getByRole("img").should.exist
+    expect(getByRole("img")).toBeTruthy()
   })
-  test("should pass down src to img", () => {
+  it("should pass down src to img", () => {
     const url = "http://fakeurl.com/pic.jpg"
     const { getByRole } = render(<Img src={url} />)
-    expect(getByRole("img").getAttribute("src")).to.be.equal(url)
+    expect(getByRole("img").getAttribute("src")).toEqual(url)
   })
-  test("Should have img as default component", () => {
+  it("Should have img as default component", () => {
     const { getByRole } = render(<Img />)
-    getByRole("img").should.exist
+    expect(getByRole("img")).toBeTruthy()
   })
-  test("accepts as prop", () => {
+  it("accepts as prop", () => {
     const { getByRole } = render(<Img as="figure">img</Img>)
     const card = getByRole("figure")
-    card.tagName.toLowerCase().should.equal("figure")
-    card.classList.contains("card-img").should.equal(true)
+    expect(card.tagName.toLowerCase()).toEqual("figure")
+    expect(card.classList.contains("card-img")).toEqual(true)
   })
   describe("variants", () => {
-    test("null", () => {
+    it("null", () => {
       const { getByRole } = render(<Img />)
-      getByRole("img").classList.contains("card-img").should.be.true
+      expect(getByRole("img").classList.contains("card-img")).toBe(true)
     })
-    test("top", () => {
+    it("top", () => {
       const { getByRole } = render(<Img variant="top" />)
-      getByRole("img").classList.contains("card-img-top").should.be.true
+      expect(getByRole("img").classList.contains("card-img-top")).toBe(true)
     })
-    test("bottom", () => {
+    it("bottom", () => {
       const { getByRole } = render(<Img variant="bottom" />)
-      getByRole("img").classList.contains("card-img-bottom").should.be.true
+      expect(getByRole("img").classList.contains("card-img-bottom")).toBe(true)
     })
   })
 })

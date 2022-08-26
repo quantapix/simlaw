@@ -66,7 +66,7 @@ describe("<Modal>", () => {
     setTimeout(() => {
       const container = document.body
       let backdrop = modal.current.backdrop
-      expect(container.style.overflow).to.equal("hidden")
+      expect(container.style.overflow).toEqual("hidden")
       backdrop.click()
       expect(container.style.overflow).to.not.equal("hidden")
       done()
@@ -82,7 +82,7 @@ describe("<Modal>", () => {
     )
     let backdrop = ref.current.backdrop
     backdrop.click()
-    expect(onClickSpy).to.have.been.calledOnce
+    expect(onClickSpy).toHaveBeenCalledTimes(1)
   })
   it("should close the modal when the backdrop is clicked", done => {
     let doneOp = () => {
@@ -107,7 +107,7 @@ describe("<Modal>", () => {
     )
     let { backdrop } = ref.current
     backdrop.click()
-    expect(onHideSpy).to.not.have.been.called
+    expect(onHideSpy).not.toHaveBeenCalled()
   })
   it("should close the modal when the esc key is pressed", done => {
     let doneOp = () => {
@@ -135,7 +135,7 @@ describe("<Modal>", () => {
     )
     let { backdrop } = ref.current
     simulant.fire(backdrop, "keydown", { keyCode: 27 })
-    expect(onHideSpy).to.not.have.been.called
+    expect(onHideSpy).not.toHaveBeenCalled()
   })
   it("should add role to child", () => {
     let dialog
@@ -151,7 +151,7 @@ describe("<Modal>", () => {
       </Modal>,
       { attachTo }
     )
-    expect(dialog.getAttribute("role")).to.equal("document")
+    expect(dialog.getAttribute("role")).toEqual("document")
   })
   it("should allow custom rendering", () => {
     let dialog
@@ -172,7 +172,7 @@ describe("<Modal>", () => {
       />,
       { attachTo }
     )
-    expect(dialog.getAttribute("role")).to.equal("group")
+    expect(dialog.getAttribute("role")).toEqual("group")
   })
   it("should unbind listeners when unmounted", () => {
     const { rerender } = render(
@@ -183,9 +183,9 @@ describe("<Modal>", () => {
       </div>,
       { attachTo }
     )
-    expect(document.body.hasAttribute(OPEN_DATA_ATTRIBUTE)).to.equal(true)
+    expect(document.body.hasAttribute(OPEN_DATA_ATTRIBUTE)).toEqual(true)
     rerender(null)
-    expect(document.body.hasAttribute(OPEN_DATA_ATTRIBUTE)).to.equal(false)
+    expect(document.body.hasAttribute(OPEN_DATA_ATTRIBUTE)).toEqual(false)
   })
   it("should pass transition callbacks to Transition", done => {
     let count = 0
@@ -198,7 +198,7 @@ describe("<Modal>", () => {
         onExiting={increment}
         onExited={() => {
           increment()
-          expect(count).to.equal(6)
+          expect(count).toEqual(6)
           done()
         }}
         onEnter={increment}
@@ -221,7 +221,7 @@ describe("<Modal>", () => {
       </Modal>,
       { attachTo }
     )
-    expect(onShowSpy).to.have.been.calledOnce
+    expect(onShowSpy).toHaveBeenCalledTimes(1)
   })
   it("should fire show callback on update", () => {
     let onShowSpy = sinon.spy()
@@ -232,7 +232,7 @@ describe("<Modal>", () => {
       { attachTo }
     )
     wrapper.setProps({ show: true })
-    expect(onShowSpy).to.have.been.calledOnce
+    expect(onShowSpy).toHaveBeenCalledTimes(1)
   })
   it("should fire onEscapeKeyDown callback on escape close", () => {
     let onEscapeSpy = sinon.spy()
@@ -246,7 +246,7 @@ describe("<Modal>", () => {
     act(() => {
       simulant.fire(ref.current.backdrop, "keydown", { keyCode: 27 })
     })
-    expect(onEscapeSpy).to.have.been.calledOnce
+    expect(onEscapeSpy).toHaveBeenCalledTimes(1)
   })
   it("should accept role on the Modal", () => {
     const ref = mountWithRef(
@@ -255,7 +255,7 @@ describe("<Modal>", () => {
       </Modal>,
       { attachTo }
     )
-    expect(ref.current.dialog.getAttribute("role")).to.equal("alertdialog")
+    expect(ref.current.dialog.getAttribute("role")).toEqual("alertdialog")
   })
   it("should accept the `aria-describedby` property on the Modal", () => {
     const ref = mountWithRef(
@@ -264,7 +264,7 @@ describe("<Modal>", () => {
       </Modal>,
       { attachTo }
     )
-    expect(ref.current.dialog.getAttribute("aria-describedby")).to.equal(
+    expect(ref.current.dialog.getAttribute("aria-describedby")).toEqual(
       "modal-description"
     )
   })
@@ -282,16 +282,16 @@ describe("<Modal>", () => {
       document.body.removeChild(focusableContainer)
     })
     it("should focus on the Modal when it is opened", () => {
-      expect(document.activeElement).to.equal(focusableContainer)
+      expect(document.activeElement).toEqual(focusableContainer)
       wrapper = mount(
         <Modal show className="modal">
           <strong>Message</strong>
         </Modal>,
         { attachTo: focusableContainer }
       )
-      document.activeElement.className.should.contain("modal")
+      expect(document.activeElement.className).to.contain("modal")
       wrapper.setProps({ show: false })
-      expect(document.activeElement).to.equal(focusableContainer)
+      expect(document.activeElement).toEqual(focusableContainer)
     })
     it("should not focus on the Modal when autoFocus is false", () => {
       mount(
@@ -300,10 +300,10 @@ describe("<Modal>", () => {
         </Modal>,
         { attachTo: focusableContainer }
       )
-      expect(document.activeElement).to.equal(focusableContainer)
+      expect(document.activeElement).toEqual(focusableContainer)
     })
     it("should not focus Modal when child has focus", () => {
-      expect(document.activeElement).to.equal(focusableContainer)
+      expect(document.activeElement).toEqual(focusableContainer)
       mount(
         <Modal show className="modal">
           <div>
@@ -313,10 +313,10 @@ describe("<Modal>", () => {
         { attachTo: focusableContainer }
       )
       let input = document.getElementsByTagName("input")[0]
-      expect(document.activeElement).to.equal(input)
+      expect(document.activeElement).toEqual(input)
     })
     it("should return focus to the modal", done => {
-      expect(document.activeElement).to.equal(focusableContainer)
+      expect(document.activeElement).toEqual(focusableContainer)
       mount(
         <Modal show className="modal">
           <div>
@@ -328,7 +328,7 @@ describe("<Modal>", () => {
       focusableContainer.focus()
       // focus reset runs in a timeout
       setTimeout(() => {
-        document.activeElement.className.should.contain("modal")
+        expect(document.activeElement.className).to.contain("modal")
         done()
       }, 50)
     })

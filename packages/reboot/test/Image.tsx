@@ -2,41 +2,44 @@ import { render } from "@testing-library/react"
 import { Image } from "../src/Image.jsx"
 
 describe("Image", () => {
-  test("should be an image", () => {
+  it("should be an image", () => {
     const { getByTestId } = render(<Image data-testid="test-image" />)
-    getByTestId("test-image").tagName.toLowerCase().should.equal("img")
+    expect(getByTestId("test-image").tagName.toLowerCase()).toEqual("img")
   })
-  test("should provide src and alt prop", () => {
+  it("should provide src and alt prop", () => {
     const { getByTestId } = render(
       <Image data-testid="test-image" src="image.jpg" alt="this is alt" />
     )
-    getByTestId("test-image").getAttribute("src")!.should.equal("image.jpg")
-    getByTestId("test-image").getAttribute("alt")!.should.equal("this is alt")
+    expect(getByTestId("test-image").getAttribute("src")!).toEqual("image.jpg")
+    expect(getByTestId("test-image").getAttribute("alt")!).toEqual(
+      "this is alt"
+    )
   })
-  test("should have correct class when fluid prop is set", () => {
+  it("should have correct class when fluid prop is set", () => {
     const { getByTestId } = render(<Image data-testid="test-image" fluid />)
-    getByTestId("test-image").classList.contains("img-fluid").should.be.true
+    expect(getByTestId("test-image").classList.contains("img-fluid")).toBe(true)
   })
-  test("should not override class when rounded prop is set", () => {
+  it("should not override class when rounded prop is set", () => {
     const { getByTestId } = render(
       <Image data-testid="test-image" fluid rounded />
     )
-    getByTestId("test-image").classList.contains("img-fluid").should.be.true
-    getByTestId("test-image").classList.contains("rounded").should.be.true
+    expect(getByTestId("test-image").classList.contains("img-fluid")).toBe(true)
+    expect(getByTestId("test-image").classList.contains("rounded")).toBe(true)
   })
-  test("should have correct class when rounded prop is set", () => {
+  it("should have correct class when rounded prop is set", () => {
     const { getByTestId } = render(<Image data-testid="test-image" rounded />)
-    getByTestId("test-image").classList.contains("rounded").should.be.true
+    expect(getByTestId("test-image").classList.contains("rounded")).toBe(true)
   })
-  test("should have correct class when roundedCircle prop is set", () => {
+  it("should have correct class when roundedCircle prop is set", () => {
     const { getByTestId } = render(
       <Image data-testid="test-image" roundedCircle />
     )
-    getByTestId("test-image").classList.contains("rounded-circle").should.be
+    expect(getByTestId("test-image").classList.contains("rounded-circle")).to.be
       .true
   })
-  test("should have correct class when thumbnail prop is set", () => {
+  it("should have correct class when thumbnail prop is set", () => {
     const { getByTestId } = render(<Image data-testid="test-image" thumbnail />)
-    getByTestId("test-image").classList.contains("img-thumbnail").should.be.true
+    expect(getByTestId("test-image").classList.contains("img-thumbnail")).to.be
+      .true
   })
 })

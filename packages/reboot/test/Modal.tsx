@@ -4,35 +4,35 @@ import ModalManager from "../src/base/Manager.js"
 import { Body, Header, Footer, Modal, Props, Title } from "../src/Modal.jsx"
 
 describe("<Modal>", () => {
-  test("Should forward ref to BaseModal", () => {
+  it("Should forward ref to BaseModal", () => {
     const ref = React.createRef<Props>()
     render(
       <Modal show animation={false} ref={ref}>
         <strong>Message</strong>
       </Modal>
     )
-    ref.current!.dialog.should.exist
+    expect(ref.current!.dialog).toBeTruthy()
   })
-  test("Should render the modal content", () => {
+  it("Should render the modal content", () => {
     const { getByTestId } = render(
       <Modal show animation={false} data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
-    expect(getByTestId("modal").querySelector("strong")!.textContent).to.equal(
+    expect(getByTestId("modal").querySelector("strong")!.textContent).toEqual(
       "Message"
     )
   })
-  test("Should sets `display: block` to `div.modal` when animation is false", () => {
+  it("Should sets `display: block` to `div.modal` when animation is false", () => {
     const ref = React.createRef<Props>()
     render(
       <Modal show animation={false} ref={ref}>
         <strong>Message</strong>
       </Modal>
     )
-    expect(ref.current!.dialog.style.display).to.equal("block")
+    expect(ref.current!.dialog.style.display).toEqual("block")
   })
-  test("Should close the modal when the modal dialog is clicked", done => {
+  it("Should close the modal when the modal dialog is clicked", done => {
     const doneOp = () => {
       done()
     }
@@ -44,7 +44,7 @@ describe("<Modal>", () => {
     // the modal-dialog element is pointer-events: none;
     fireEvent.click(getByRole("dialog"))
   })
-  test('Should not close the modal when the "static" dialog is clicked', () => {
+  it('Should not close the modal when the "static" dialog is clicked', () => {
     const onHideSpy = sinon.spy()
     const { getByTestId } = render(
       <Modal show onHide={onHideSpy} backdrop="static" data-testid="modal">
@@ -52,9 +52,9 @@ describe("<Modal>", () => {
       </Modal>
     )
     fireEvent.click(getByTestId("modal"))
-    onHideSpy.should.not.have.been.called
+    expect(onHideSpy).not.toHaveBeenCalled()
   })
-  test('Should show "static" dialog animation when backdrop is clicked', () => {
+  it('Should show "static" dialog animation when backdrop is clicked', () => {
     const { getByRole } = render(
       <Modal show backdrop="static">
         <strong>Message</strong>
@@ -62,9 +62,9 @@ describe("<Modal>", () => {
     )
     const modalDialog = getByRole("dialog")
     fireEvent.click(modalDialog)
-    getByRole("dialog").classList.contains("modal-static").should.be.true
+    expect(getByRole("dialog").classList.contains("modal-static")).toBe(true)
   })
-  test('Should show "static" dialog animation when esc pressed and keyboard is false', () => {
+  it('Should show "static" dialog animation when esc pressed and keyboard is false', () => {
     const { getByRole } = render(
       <Modal show backdrop="static" keyboard={false}>
         <strong>Message</strong>
@@ -73,9 +73,9 @@ describe("<Modal>", () => {
     fireEvent.keyDown(getByRole("dialog"), {
       keyCode: 27,
     })
-    getByRole("dialog").classList.contains("modal-static").should.be.true
+    expect(getByRole("dialog").classList.contains("modal-static")).toBe(true)
   })
-  test('Should not show "static" dialog animation when esc pressed and keyboard is true', () => {
+  it('Should not show "static" dialog animation when esc pressed and keyboard is true', () => {
     const { getByRole } = render(
       <Modal show backdrop="static" keyboard>
         <strong>Message</strong>
@@ -84,18 +84,18 @@ describe("<Modal>", () => {
     fireEvent.keyDown(getByRole("dialog"), {
       keyCode: 27,
     })
-    getByRole("dialog").classList.contains("modal-static").should.be.false
+    expect(getByRole("dialog").classList.contains("modal-static")).toBe(false)
   })
-  test('Should not show "static" dialog animation modal backdrop is not "static"', () => {
+  it('Should not show "static" dialog animation modal backdrop is not "static"', () => {
     const { getByTestId, getByRole } = render(
       <Modal show backdrop data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
     fireEvent.click(getByTestId("modal"))
-    getByRole("dialog").classList.contains("modal-static").should.be.false
+    expect(getByRole("dialog").classList.contains("modal-static")).toBe(false)
   })
-  test("Should close the modal when the modal close button is clicked", done => {
+  it("Should close the modal when the modal close button is clicked", done => {
     const doneOp = () => {
       done()
     }
@@ -107,102 +107,109 @@ describe("<Modal>", () => {
     )
     fireEvent.click(getByTestId("close-btn").querySelector("button")!)
   })
-  test("Should pass className to the dialog", () => {
+  it("Should pass className to the dialog", () => {
     const { getByRole } = render(
       <Modal show className="mymodal">
         <strong>Message</strong>
       </Modal>
     )
-    getByRole("dialog").classList.contains("mymodal").should.be.true
+    expect(getByRole("dialog").classList.contains("mymodal")).toBe(true)
   })
-  test("Should use backdropClassName to add classes to the backdrop", () => {
+  it("Should use backdropClassName to add classes to the backdrop", () => {
     render(
       <Modal show backdropClassName="my-modal-backdrop">
         <strong>Message</strong>
       </Modal>
     )
-    document
-      .querySelector(".modal-backdrop")!
-      .classList.contains("my-modal-backdrop").should.be.true
+    expect(
+      document
+        .querySelector(".modal-backdrop")!
+        .classList.contains("my-modal-backdrop")
+    ).toBe(true)
   })
-  test("Should pass size to the dialog", () => {
+  it("Should pass size to the dialog", () => {
     const { getByTestId } = render(
       <Modal show size="sm" data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
-    getByTestId("modal").classList.contains("modal-sm").should.be.true
+    expect(getByTestId("modal").classList.contains("modal-sm")).toBe(true)
   })
-  test("Should pass fullscreen as bool to the dialog", () => {
+  it("Should pass fullscreen as bool to the dialog", () => {
     const { getByTestId } = render(
       <Modal show fullscreen data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
-    getByTestId("modal").classList.contains("modal-fullscreen").should.be.true
+    expect(getByTestId("modal").classList.contains("modal-fullscreen")).toBe(
+      true
+    )
   })
-  test("Should pass fullscreen as string to the dialog", () => {
+  it("Should pass fullscreen as string to the dialog", () => {
     const { getByTestId } = render(
       <Modal show fullscreen="sm-down" data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
-    getByTestId("modal").classList.contains("modal-fullscreen-sm-down").should
-      .be.true
+    expect(
+      getByTestId("modal").classList.contains("modal-fullscreen-sm-down")
+    ).toBe(true)
   })
-  test("Should allow custom breakpoints for fullscreen", () => {
+  it("Should allow custom breakpoints for fullscreen", () => {
     const { getByTestId } = render(
       <Modal show fullscreen="custom-down" data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
-    getByTestId("modal").classList.contains("modal-fullscreen-custom-down")
-      .should.be.true
+    expect(
+      getByTestId("modal").classList.contains("modal-fullscreen-custom-down")
+    ).toBe(true)
   })
-  test("Should pass centered to the dialog", () => {
+  it("Should pass centered to the dialog", () => {
     const { getByTestId } = render(
       <Modal show centered data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
-    getByTestId("modal").classList.contains("modal-dialog-centered").should.be
-      .true
+    expect(getByTestId("modal").classList.contains("modal-dialog-centered")).to
+      .be.true
   })
-  test("Should pass scrollable to the dialog", () => {
+  it("Should pass scrollable to the dialog", () => {
     const { getByTestId } = render(
       <Modal show scrollable data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
-    getByTestId("modal").classList.contains("modal-dialog-scrollable").should.be
-      .true
+    expect(
+      getByTestId("modal").classList.contains("modal-dialog-scrollable")
+    ).toBe(true)
   })
-  test("Should pass dialog style to the dialog", () => {
+  it("Should pass dialog style to the dialog", () => {
     const { getByRole } = render(
       <Modal show style={{ color: "red" }}>
         <strong>Message</strong>
       </Modal>
     )
-    getByRole("dialog").style.color.should.equal("red")
+    expect(getByRole("dialog").style.color).toEqual("red")
   })
-  test("Should pass dialogClassName to the dialog", () => {
+  it("Should pass dialogClassName to the dialog", () => {
     const { getByTestId } = render(
       <Modal show dialogClassName="my-dialog" data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
-    getByTestId("modal").classList.contains("my-dialog").should.be.true
+    expect(getByTestId("modal").classList.contains("my-dialog")).toBe(true)
   })
-  test("Should pass contentClassName to .modal-content", () => {
+  it("Should pass contentClassName to .modal-content", () => {
     const { getByTestId } = render(
       <Modal show contentClassName="my-content" data-testid="modal">
         <strong>Message</strong>
       </Modal>
     )
     const modalContent = getByTestId("modal").querySelector(".modal-content")!
-    modalContent.classList.contains("my-content").should.be.true
+    expect(modalContent.classList.contains("my-content")).toBe(true)
   })
-  test("Should use dialogAs", () => {
+  it("Should use dialogAs", () => {
     function CustomDialog() {
       return <div className="custom-dialog" tabIndex={-1} />
     }
@@ -211,9 +218,9 @@ describe("<Modal>", () => {
         <strong>Message</strong>
       </Modal>
     )
-    document.querySelector(".custom-dialog")!.should.exist
+    expect(document.querySelector(".custom-dialog")!).toBeTruthy()
   })
-  test("Should pass transition callbacks to Transition", done => {
+  it("Should pass transition callbacks to Transition", done => {
     const increment = sinon.spy()
     const Elem = () => {
       const [show, setShow] = React.useState(true)
@@ -230,7 +237,7 @@ describe("<Modal>", () => {
           onExiting={increment}
           onExited={() => {
             increment()
-            expect(increment.callCount).to.equal(6)
+            expect(increment.callCount).toEqual(6)
             done()
           }}
         >
@@ -240,7 +247,7 @@ describe("<Modal>", () => {
     }
     render(<Elem />)
   })
-  test("should call `transitionend` before `exited`", done => {
+  it("should call `transitionend` before `exited`", done => {
     const increment = sinon.spy()
     const { getByRole, rerender } = render(
       <Modal
@@ -257,7 +264,7 @@ describe("<Modal>", () => {
       <Modal
         show={false}
         onExited={() => {
-          expect(increment.callCount).to.equal(1)
+          expect(increment.callCount).toEqual(1)
           modal.removeEventListener("transitionend", increment)
           done()
         }}
@@ -274,7 +281,7 @@ describe("<Modal>", () => {
     afterEach(() => {
       offSpy.restore()
     })
-    test("should remove resize listener when unmounted", () => {
+    it("should remove resize listener when unmounted", () => {
       class Component extends React.Component {
         state = {
           show: true,
@@ -289,10 +296,10 @@ describe("<Modal>", () => {
       }
       const { rerender } = render(<Component />)
       rerender(<Modal show={false}>Foo</Modal>)
-      offSpy.should.have.been.calledWith("resize")
+      expect(offSpy).toHaveBeenCalledWith("resize")
     })
   })
-  test("Should close once it was clicked outside of the Modal", () => {
+  it("Should close once it was clicked outside of the Modal", () => {
     const onHideSpy = sinon.spy()
     const { getByRole } = render(
       <Modal show onHide={onHideSpy}>
@@ -300,9 +307,9 @@ describe("<Modal>", () => {
       </Modal>
     )
     fireEvent.click(getByRole("dialog"))
-    onHideSpy.should.have.been.called
+    expect(onHideSpy).toHaveBeenCalled()
   })
-  test("Should not call onHide if the click target comes from inside the dialog", () => {
+  it("Should not call onHide if the click target comes from inside the dialog", () => {
     const onHideSpy = sinon.spy()
     const { getByTestId, getByRole } = render(
       <Modal show onHide={onHideSpy} data-testid="modal">
@@ -312,9 +319,9 @@ describe("<Modal>", () => {
     fireEvent.mouseDown(getByTestId("modal"))
     fireEvent.mouseUp(getByRole("dialog"))
     fireEvent.click(getByRole("dialog"))
-    onHideSpy.should.not.have.been.called
+    expect(onHideSpy).not.toHaveBeenCalled()
   })
-  test('Should set aria-labelledby to the role="dialog" element if aria-labelledby set', () => {
+  it('Should set aria-labelledby to the role="dialog" element if aria-labelledby set', () => {
     const { getByRole } = render(
       <Modal show aria-labelledby="modal-title">
         <Header closeButton>
@@ -322,11 +329,11 @@ describe("<Modal>", () => {
         </Header>
       </Modal>
     )
-    expect(getByRole("dialog").getAttribute("aria-labelledby")).to.equal(
+    expect(getByRole("dialog").getAttribute("aria-labelledby")).toEqual(
       "modal-title"
     )
   })
-  test('Should set aria-describedby to the role="dialog" element if aria-describedby set', () => {
+  it('Should set aria-describedby to the role="dialog" element if aria-describedby set', () => {
     const { getByRole } = render(
       <Modal show aria-describedby="modal-title">
         <Header closeButton>
@@ -334,11 +341,11 @@ describe("<Modal>", () => {
         </Header>
       </Modal>
     )
-    expect(getByRole("dialog").getAttribute("aria-describedby")).to.equal(
+    expect(getByRole("dialog").getAttribute("aria-describedby")).toEqual(
       "modal-title"
     )
   })
-  test('Should set aria-label to the role="dialog" element if aria-label set', () => {
+  it('Should set aria-label to the role="dialog" element if aria-label set', () => {
     const labelValue = "modal-label"
     const { getByRole } = render(
       <Modal show aria-label={labelValue}>
@@ -347,9 +354,9 @@ describe("<Modal>", () => {
         </Header>
       </Modal>
     )
-    expect(getByRole("dialog").getAttribute("aria-label")).to.equal(labelValue)
+    expect(getByRole("dialog").getAttribute("aria-label")).toEqual(labelValue)
   })
-  test("Should call onEscapeKeyDown when keyboard is true", () => {
+  it("Should call onEscapeKeyDown when keyboard is true", () => {
     const onEscapeKeyDownSpy = sinon.spy()
     const { getByRole } = render(
       <Modal show keyboard onEscapeKeyDown={onEscapeKeyDownSpy}>
@@ -359,9 +366,9 @@ describe("<Modal>", () => {
     fireEvent.keyDown(getByRole("dialog"), {
       keyCode: 27,
     })
-    onEscapeKeyDownSpy.should.have.been.called
+    expect(onEscapeKeyDownSpy).toHaveBeenCalled()
   })
-  test("Should not call onEscapeKeyDown when keyboard is false", () => {
+  it("Should not call onEscapeKeyDown when keyboard is false", () => {
     const onEscapeKeyDownSpy = sinon.spy()
     const { getByRole } = render(
       <Modal show keyboard={false} onEscapeKeyDown={onEscapeKeyDownSpy}>
@@ -371,9 +378,9 @@ describe("<Modal>", () => {
     fireEvent.keyDown(getByRole("dialog"), {
       keyCode: 27,
     })
-    onEscapeKeyDownSpy.should.not.have.been.called
+    expect(onEscapeKeyDownSpy).not.toHaveBeenCalled()
   })
-  test("Should use custom props manager if specified", done => {
+  it("Should use custom props manager if specified", done => {
     class MyModalManager extends ModalManager {
       // @ts-ignore
       add() {
@@ -392,113 +399,123 @@ describe("<Modal>", () => {
 })
 
 describe("Header", () => {
-  test('uses "div" by default', () => {
+  it('uses "div" by default', () => {
     const { getByTestId } = render(
       <Header data-testid="test-modal" className="custom-class">
         <strong>Content</strong>
       </Header>
     )
-    getByTestId("test-modal").tagName.toLowerCase().should.equal("div")
-    getByTestId("test-modal").classList.contains("modal-header").should.be.true
-    getByTestId("test-modal").classList.contains("custom-class").should.be.true
-    getByTestId("test-modal")
-      .querySelector("strong")!
-      .textContent!.should.equal("Content")
+    expect(getByTestId("test-modal").tagName.toLowerCase()).toEqual("div")
+    expect(getByTestId("test-modal").classList.contains("modal-header")).toBe(
+      true
+    )
+    expect(getByTestId("test-modal").classList.contains("custom-class")).toBe(
+      true
+    )
+    expect(
+      getByTestId("test-modal").querySelector("strong")!.textContent!
+    ).toEqual("Content")
   })
-  test("has closeButton without a containing Modal and renders", () => {
+  it("has closeButton without a containing Modal and renders", () => {
     const { getByTestId } = render(
       <Header data-testid="test-modal" closeButton />
     )
-    getByTestId("test-modal").tagName.toLowerCase().should.equal("div")
-    getByTestId("test-modal").querySelector("button")!.should.exist
+    expect(getByTestId("test-modal").tagName.toLowerCase()).toEqual("div")
+    expect(getByTestId("test-modal").querySelector("button")!).toBeTruthy()
   })
-  test("Should trigger onHide when modal is closed", () => {
+  it("Should trigger onHide when modal is closed", () => {
     const onHideSpy = sinon.spy()
     const { getByTestId } = render(
       <Header data-testid="test-modal" closeButton onHide={onHideSpy} />
     )
     fireEvent.click(getByTestId("test-modal").querySelector("button")!)
-    onHideSpy.should.be.calledOnce
+    expect(onHideSpy).to.be.calledOnce
   })
-  test("should render close button variant", () => {
+  it("should render close button variant", () => {
     const { getByTestId } = render(
       <Header data-testid="test-modal" closeButton closeVariant="white" />
     )
     const button = getByTestId("test-modal").querySelector("button")!
-    button.should.exist
-    button.classList.contains("btn-close-white").should.be.true
+    expect(button).toBeTruthy()
+    expect(button.classList.contains("btn-close-white")).toBe(true)
   })
 })
 
 describe("Body", () => {
-  test('uses "div" by default', () => {
+  it('uses "div" by default', () => {
     const { getByTestId } = render(
       <Body data-testid="test-modal" className="custom-class">
         <strong>Content</strong>
       </Body>
     )
     const elem = getByTestId("test-modal")
-    elem.tagName.toLowerCase().should.equal("div")
-    elem.classList.contains("modal-body").should.be.true
-    elem.classList.contains("custom-class").should.be.true
-    elem.querySelector("strong")!.textContent!.should.equal("Content")
+    expect(elem.tagName.toLowerCase()).toEqual("div")
+    expect(elem.classList.contains("modal-body")).toBe(true)
+    expect(elem.classList.contains("custom-class")).toBe(true)
+    expect(elem.querySelector("strong")!.textContent!).toEqual("Content")
   })
-  test('should allow custom elements instead of "div"', () => {
+  it('should allow custom elements instead of "div"', () => {
     const { getByTestId } = render(
       <Body data-testid="test-modal" as="section">
         <strong>Content</strong>
       </Body>
     )
-    getByTestId("test-modal").classList.contains("modal-body").should.be.true
-    getByTestId("test-modal").tagName.toLowerCase().should.equal("section")
+    expect(getByTestId("test-modal").classList.contains("modal-body")).toBe(
+      true
+    )
+    expect(getByTestId("test-modal").tagName.toLowerCase()).toEqual("section")
   })
 })
 
 describe("Footer", () => {
-  test('uses "div" by default', () => {
+  it('uses "div" by default', () => {
     const { getByTestId } = render(
       <Footer data-testid="test-modal" className="custom-class">
         <strong>Content</strong>
       </Footer>
     )
     const elem = getByTestId("test-modal")
-    elem.tagName.toLowerCase().should.equal("div")
-    elem.classList.contains("modal-footer").should.be.true
-    elem.classList.contains("custom-class").should.be.true
-    elem.querySelector("strong")!.textContent!.should.equal("Content")
+    expect(elem.tagName.toLowerCase()).toEqual("div")
+    expect(elem.classList.contains("modal-footer")).toBe(true)
+    expect(elem.classList.contains("custom-class")).toBe(true)
+    expect(elem.querySelector("strong")!.textContent!).toEqual("Content")
   })
-  test('should allow custom elements instead of "div"', () => {
+  it('should allow custom elements instead of "div"', () => {
     const { getByTestId } = render(
       <Footer data-testid="test-modal" as="section">
         <strong>Content</strong>
       </Footer>
     )
-    getByTestId("test-modal").classList.contains("modal-footer").should.be.true
-    getByTestId("test-modal").tagName.toLowerCase().should.equal("section")
+    expect(getByTestId("test-modal").classList.contains("modal-footer")).toBe(
+      true
+    )
+    expect(getByTestId("test-modal").tagName.toLowerCase()).toEqual("section")
   })
 })
 
 describe("Title", () => {
-  test('uses "div" by default', () => {
+  it('uses "div" by default', () => {
     const { getByTestId } = render(
       <Title data-testid="test-modal" className="custom-class">
         <strong>Content</strong>
       </Title>
     )
     const elem = getByTestId("test-modal")
-    elem.tagName.toLowerCase().should.equal("div")
-    elem.classList.contains("h4").should.be.true
-    elem.classList.contains("modal-title").should.be.true
-    elem.classList.contains("custom-class").should.be.true
-    elem.querySelector("strong")!.textContent!.should.equal("Content")
+    expect(elem.tagName.toLowerCase()).toEqual("div")
+    expect(elem.classList.contains("h4")).toBe(true)
+    expect(elem.classList.contains("modal-title")).toBe(true)
+    expect(elem.classList.contains("custom-class")).toBe(true)
+    expect(elem.querySelector("strong")!.textContent!).toEqual("Content")
   })
-  test('should allow custom elements instead of "div"', () => {
+  it('should allow custom elements instead of "div"', () => {
     const { getByTestId } = render(
       <Title data-testid="test-modal" as="h4">
         <strong>Content</strong>
       </Title>
     )
-    getByTestId("test-modal").classList.contains("modal-title").should.be.true
-    getByTestId("test-modal").tagName.toLowerCase().should.equal("h4")
+    expect(getByTestId("test-modal").classList.contains("modal-title")).toBe(
+      true
+    )
+    expect(getByTestId("test-modal").tagName.toLowerCase()).toEqual("h4")
   })
 })

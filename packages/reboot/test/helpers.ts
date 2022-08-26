@@ -2,20 +2,20 @@ import { getDirection } from "../src/helpers.js"
 
 describe("Helpers", () => {
   describe("getDirection", () => {
-    test("should return start for left", () => {
-      getDirection("left", false).should.equal("start")
+    it("should return start for left", () => {
+      expect(getDirection("left", false)).toEqual("start")
     })
 
-    test("should return end for left in RTL", () => {
-      getDirection("left", true).should.equal("end")
+    it("should return end for left in RTL", () => {
+      expect(getDirection("left", true)).toEqual("end")
     })
 
-    test("should return end for right", () => {
-      getDirection("right", false).should.equal("end")
+    it("should return end for right", () => {
+      expect(getDirection("right", false)).toEqual("end")
     })
 
-    test("should return start for right in RTL", () => {
-      getDirection("right", true).should.equal("start")
+    it("should return start for right in RTL", () => {
+      expect(getDirection("right", true)).toEqual("start")
     })
   })
 })

@@ -70,7 +70,7 @@ afterEach(() => {
 })
 
 describe("Process environment for tests", () => {
-  test("should not be production for React console warnings", () => {
+  it("should not be production for React console warnings", () => {
     expect(process.env.NODE_ENV).to.not.equal("production")
   })
 })

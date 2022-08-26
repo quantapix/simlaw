@@ -28,6 +28,6 @@ describe("<Nav>", () => {
       { attachTo: focusableContainer }
     )
     wrapper.find(NavItem).at(0).simulate("keydown", { key: "ArrowRight" })
-    expect(document.activeElement).to.equal(wrapper.find("input").getDOMNode())
+    expect(document.activeElement).toEqual(wrapper.find("input").getDOMNode())
   })
 })

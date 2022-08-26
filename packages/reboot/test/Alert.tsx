@@ -3,27 +3,27 @@ import { fireEvent, render } from "@testing-library/react"
 import { Alert, Heading } from "../src/Alert.js"
 
 describe("<Alert>", () => {
-  test("Should output a alert with message", () => {
+  it("Should output a alert with message", () => {
     const { getByTestId } = render(
       <Alert data-testid="test-alert">
         <strong>Message</strong>
       </Alert>
     )
-    getByTestId("test-alert").children.length.should.equal(1)
-    getByTestId("test-alert")
-      .children[0].tagName.toLowerCase()
-      .should.equal("strong")
+    expect(getByTestId("test-alert").children.length).toEqual(1)
+    expect(getByTestId("test-alert").children[0].tagName.toLowerCase()).toEqual(
+      "strong"
+    )
   })
-  test("Should have dismissible style", () => {
+  it("Should have dismissible style", () => {
     const { getByTestId } = render(
       <Alert data-testid="test-alert" dismissible>
         <strong>Message</strong>
       </Alert>
     )
-    getByTestId("test-alert").classList.contains("alert-dismissible").should.be
-      .true
+    expect(getByTestId("test-alert").classList.contains("alert-dismissible")).to
+      .be.true
   })
-  test("Should call onClose callback on dismiss click", () => {
+  it("Should call onClose callback on dismiss click", () => {
     const onCloseSpy = sinon.spy()
     const { getByLabelText } = render(
       <Alert dismissible data-testid="test-alert" onClose={onCloseSpy}>
@@ -31,75 +31,79 @@ describe("<Alert>", () => {
       </Alert>
     )
     fireEvent.click(getByLabelText("Close alert"))
-    onCloseSpy.should.be.calledOnce
+    expect(onCloseSpy).to.be.calledOnce
   })
-  test('Should default to variant="primary"', () => {
+  it('Should default to variant="primary"', () => {
     const { getByTestId } = render(
       <Alert data-testid="test-alert">Message</Alert>
     )
-    getByTestId("test-alert").classList.contains("alert-primary").should.be.true
+    expect(getByTestId("test-alert").classList.contains("alert-primary")).toBe(
+      true
+    )
   })
-  test("Should use variant class", () => {
+  it("Should use variant class", () => {
     const { getByTestId } = render(
       <Alert variant="danger" data-testid="test-alert">
         Message
       </Alert>
     )
-    getByTestId("test-alert").classList.contains("alert-danger").should.be.true
+    expect(getByTestId("test-alert").classList.contains("alert-danger")).toBe(
+      true
+    )
   })
-  test("Should not have variant class when variant=null", () => {
+  it("Should not have variant class when variant=null", () => {
     const { getByTestId } = render(
       <Alert variant={null as any} data-testid="test-alert">
         Message
       </Alert>
     )
-    getByTestId("test-alert").classList.contains("alert-primary").should.not.be
-      .true
+    expect(getByTestId("test-alert").classList.contains("alert-primary")).to.not
+      .be.true
   })
-  test("should forward refs to the alert", () => {
+  it("should forward refs to the alert", () => {
     const ref = React.createRef<HTMLDivElement>()
     const { getByTestId } = render(
       <Alert ref={ref} data-testid="test-alert">
         message
       </Alert>
     )
-    getByTestId("test-alert").tagName.toLowerCase().should.equal("div")
+    expect(getByTestId("test-alert").tagName.toLowerCase()).toEqual("div")
   })
-  test("should not have fade class when transition=false", () => {
+  it("should not have fade class when transition=false", () => {
     const { getByTestId } = render(
       <Alert transition={false} data-testid="test-alert">
         Message
       </Alert>
     )
-    getByTestId("test-alert").classList.contains("fade").should.not.be.true
+    expect(getByTestId("test-alert").classList.contains("fade")).not.toBe(true)
   })
-  test("should spread props to alert when transition=false", () => {
+  it("should spread props to alert when transition=false", () => {
     const alertId = "alert-id"
     const { getByTestId } = render(
       <Alert transition={false} id={alertId} data-testid="test-alert">
         Message
       </Alert>
     )
-    getByTestId("test-alert").getAttribute("id")!.should.equal(alertId)
+    expect(getByTestId("test-alert").getAttribute("id")!).toEqual(alertId)
   })
-  test("should spread props to alert when transition=true", () => {
+  it("should spread props to alert when transition=true", () => {
     const alertId = "alert-id"
     const { getByTestId } = render(
       <Alert transition id={alertId} data-testid="test-alert">
         Message
       </Alert>
     )
-    getByTestId("test-alert").getAttribute("id")!.should.equal(alertId)
+    expect(getByTestId("test-alert").getAttribute("id")!).toEqual(alertId)
   })
-  test("should use Fade when transition=true", () => {
+  it("should use Fade when transition=true", () => {
     const { getByTestId } = render(
       <Alert variant="danger" transition data-testid="test-alert">
         Message
       </Alert>
     )
-    getByTestId("test-alert").classList.contains("fade").should.be.true
+    expect(getByTestId("test-alert").classList.contains("fade")).toBe(true)
   })
-  test("should render null when transition and show are false", () => {
+  it("should render null when transition and show are false", () => {
     const { container } = render(
       <Alert
         variant="danger"
@@ -112,44 +116,45 @@ describe("<Alert>", () => {
     )
     expect(container.innerHTML).equals("")
   })
-  test("should render close button variant", () => {
+  it("should render close button variant", () => {
     const { getByLabelText } = render(
       <Alert dismissible closeVariant="white">
         Message
       </Alert>
     )
-    getByLabelText("Close alert").classList.contains("btn-close-white").should
-      .be.true
+    expect(
+      getByLabelText("Close alert").classList.contains("btn-close-white")
+    ).toBe(true)
   })
   describe("Web Accessibility", () => {
-    test("Should have alert role", () => {
+    it("Should have alert role", () => {
       const { getByTestId } = render(
         <Alert data-testid="test-alert">Message</Alert>
       )
-      getByTestId("test-alert").getAttribute("role")!.should.equal("alert")
+      expect(getByTestId("test-alert").getAttribute("role")!).toEqual("alert")
     })
   })
   describe("Alert alert-heading", () => {
-    test("Should have alert-heading", () => {
+    it("Should have alert-heading", () => {
       const { getByTestId } = render(
         <Alert>
           <Heading data-testid="test-alert">Well done</Heading>
           Message
         </Alert>
       )
-      getByTestId("test-alert").classList.contains("alert-heading").should.be
-        .true
+      expect(getByTestId("test-alert").classList.contains("alert-heading")).to
+        .be.true
     })
-    test("Should have div styled as an h4 by default", () => {
+    it("Should have div styled as an h4 by default", () => {
       const { getByTestId } = render(
         <Alert>
           <Heading data-testid="test-alert">Well done</Heading>
           Message
         </Alert>
       )
-      getByTestId("test-alert").classList.contains("h4").should.be.true
+      expect(getByTestId("test-alert").classList.contains("h4")).toBe(true)
     })
-    test("Should support Heading as as prop", () => {
+    it("Should support Heading as as prop", () => {
       const { getByTestId } = render(
         <Alert>
           <Heading as="h1" data-testid="test-alert">
@@ -158,7 +163,7 @@ describe("<Alert>", () => {
           Message
         </Alert>
       )
-      getByTestId("test-alert").tagName.toLowerCase().should.equal("h1")
+      expect(getByTestId("test-alert").tagName.toLowerCase()).toEqual("h1")
     })
   })
 })

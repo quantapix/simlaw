@@ -2,31 +2,32 @@ import { render } from "@testing-library/react"
 import { Container } from "../src/Container.jsx"
 
 describe("<Container>", () => {
-  test("should render props correctly", () => {
+  it("should render props correctly", () => {
     const { getByText } = render(
       <Container className="whatever">Container</Container>
     )
-    getByText("Container").classList.contains("whatever").should.be.true
+    expect(getByText("Container").classList.contains("whatever")).toBe(true)
   })
-  test('turns grid into "full-width" layout via "fluid" property set', () => {
+  it('turns grid into "full-width" layout via "fluid" property set', () => {
     const { getByText } = render(<Container fluid>Container</Container>)
-    getByText("Container").classList.contains("container-fluid").should.be.true
+    expect(getByText("Container").classList.contains("container-fluid")).to.be
+      .true
   })
-  test("Should include size breakpoint class when fluid is set to sm, md, lg or xl", () => {
+  it("Should include size breakpoint class when fluid is set to sm, md, lg or xl", () => {
     const { getByText } = render(<Container fluid="sm">Container</Container>)
-    getByText("Container").classList.contains("container-sm").should.be.true
+    expect(getByText("Container").classList.contains("container-sm")).toBe(true)
   })
-  test('allows custom elements instead of "div"', () => {
+  it('allows custom elements instead of "div"', () => {
     const { getByText } = render(<Container as="section">Container</Container>)
-    getByText("Container").classList.contains("container").should.be.true
-    getByText("Container").tagName.toLowerCase().should.equal("section")
+    expect(getByText("Container").classList.contains("container")).toBe(true)
+    expect(getByText("Container").tagName.toLowerCase()).toEqual("section")
   })
-  test("Should have div as default component", () => {
+  it("Should have div as default component", () => {
     const { getByText } = render(<Container>Container</Container>)
-    getByText("Container").tagName.toLowerCase().should.equal("div")
+    expect(getByText("Container").tagName.toLowerCase()).toEqual("div")
   })
-  test("should allow custom breakpoints", () => {
+  it("should allow custom breakpoints", () => {
     const { getByText } = render(<Container fluid="custom">test</Container>)
-    getByText("test").classList.contains("container-custom").should.be.true
+    expect(getByText("test").classList.contains("container-custom")).toBe(true)
   })
 })

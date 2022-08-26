@@ -1,69 +1,69 @@
-import * as React from 'react';
-import ReactDOM from 'react-dom';
-import { act } from 'react-dom/test-utils';
-import { mount } from 'enzyme';
+import * as React from "react"
+import ReactDOM from "react-dom"
+import { act } from "react-dom/test-utils"
+import { mount } from "enzyme"
 
-import Portal from '../src/Portal';
+import Portal from "../src/Portal"
 
-describe('Portal', () => {
-  it('should render overlay into container (document)', () => {
+describe("Portal", () => {
+  it("should render overlay into container (document)", () => {
     class Container extends React.Component {
       componentDidMount() {
-        expect(this.div).to.exist;
+        expect(this.div).toBeTruthy()
       }
 
       render() {
         return (
           <Portal>
             <div
-              ref={(c) => {
-                this.div = c;
+              ref={c => {
+                this.div = c
               }}
               id="test1"
             />
           </Portal>
-        );
+        )
       }
     }
 
-    mount(<Container />);
+    mount(<Container />)
 
-    expect(document.querySelectorAll('#test1')).to.have.lengthOf(1);
-  });
+    expect(document.querySelectorAll("#test1")).to.have.lengthOf(1)
+  })
 
-  it('should render overlay into container (DOMNode)', () => {
-    const container = document.createElement('div');
+  it("should render overlay into container (DOMNode)", () => {
+    const container = document.createElement("div")
 
     class Container extends React.Component {
       componentDidMount() {
-        expect(this.div).to.exist;
+        expect(this.div).toBeTruthy()
       }
 
       render() {
         return (
           <Portal container={container}>
             <div
-              ref={(c) => {
-                this.div = c;
+              ref={c => {
+                this.div = c
               }}
               id="test1"
             />
           </Portal>
-        );
+        )
       }
     }
 
-    mount(<Container />);
+    mount(<Container />)
 
-    expect(container.querySelectorAll('#test1')).to.have.lengthOf(1);
-  });
+    expect(container.querySelectorAll("#test1")).to.have.lengthOf(1)
+  })
 
-  it('should render overlay into container (ReactComponent)', () => {
+  it("should render overlay into container (ReactComponent)", () => {
     class Container extends React.Component {
-      container = React.createRef();
+      container = React.createRef()
 
       componentDidMount() {
-        expect(this.div).to.not.exist;
+        expect(this.div).not.toBeTruthy()
       }
 
       render() {
@@ -71,52 +71,52 @@ describe('Portal', () => {
           <div ref={this.container}>
             <Portal container={this.container}>
               <div
-                ref={(c) => {
-                  this.div = c;
+                ref={c => {
+                  this.div = c
                 }}
                 id="test1"
               />
             </Portal>
           </div>
-        );
+        )
       }
     }
 
-    let instance;
+    let instance
     act(() => {
-      instance = mount(<Container />).instance();
-    });
+      instance = mount(<Container />).instance()
+    })
 
-    expect(instance.div).to.exist;
+    expect(instance.div).toBeTruthy()
     expect(
-      ReactDOM.findDOMNode(instance).querySelectorAll('#test1'),
-    ).to.have.lengthOf(1);
-  });
+      ReactDOM.findDOMNode(instance).querySelectorAll("#test1")
+    ).to.have.lengthOf(1)
+  })
 
-  it('should not fail to render a null overlay', () => {
+  it("should not fail to render a null overlay", () => {
     class Container extends React.Component {
-      container = React.createRef();
+      container = React.createRef()
 
       render() {
         return (
           <div ref={this.container}>
             <Portal container={this.container} />
           </div>
-        );
+        )
       }
     }
 
-    const nodes = mount(<Container />).getDOMNode().childNodes;
+    const nodes = mount(<Container />).getDOMNode().childNodes
 
-    expect(nodes).to.be.empty;
-  });
+    expect(nodes).to.be.empty
+  })
 
-  it('should unmount when parent unmounts', () => {
+  it("should unmount when parent unmounts", () => {
     class Parent extends React.Component {
-      state = { show: true };
+      state = { show: true }
 
       render() {
-        return <div>{(this.state.show && <Child />) || null}</div>;
+        return <div>{(this.state.show && <Child />) || null}</div>
       }
     }
 
@@ -125,20 +125,20 @@ describe('Portal', () => {
         return (
           <div>
             <div
-              ref={(c) => {
-                this.container = c;
+              ref={c => {
+                this.container = c
               }}
             />
             <Portal container={() => this.container}>
               <div id="test1" />
             </Portal>
           </div>
-        );
+        )
       }
     }
 
-    const instance = mount(<Parent />);
+    const instance = mount(<Parent />)
 
-    instance.setState({ show: false });
-  });
-});
+    instance.setState({ show: false })
+  })
+})

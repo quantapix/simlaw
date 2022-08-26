@@ -2,20 +2,21 @@ import { render } from "@testing-library/react"
 import { Stack } from "../src/Stack.jsx"
 
 describe("<Stack>", () => {
-  test("should render a vertical stack by default", () => {
+  it("should render a vertical stack by default", () => {
     const { container } = render(<Stack />)
-    container.firstElementChild!.className.should.contain("vstack")
+    expect(container.firstElementChild!.className).to.contain("vstack")
   })
-  test("should render direction", () => {
+  it("should render direction", () => {
     const { container } = render(<Stack direction="horizontal" />)
-    container.firstElementChild!.className.should.contain("hstack")
+    expect(container.firstElementChild!.className).to.contain("hstack")
   })
-  test("should render gap", () => {
+  it("should render gap", () => {
     const { container } = render(<Stack gap={2} />)
-    container.firstElementChild!.classList.contains("gap-2").should.be.true
+    expect(container.firstElementChild!.classList.contains("gap-2")).toBe(true)
   })
-  test("should render responsive gap", () => {
+  it("should render responsive gap", () => {
     const { container } = render(<Stack gap={{ md: 2 }} />)
-    container.firstElementChild!.classList.contains("gap-md-2").should.be.true
+    expect(container.firstElementChild!.classList.contains("gap-md-2")).to.be
+      .true
   })
 })

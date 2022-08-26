@@ -11,21 +11,21 @@ describe("<SplitButton>", () => {
       <Item>Item 4</Item>
     </SplitButton>
   )
-  test("should open the menu when dropdown button is clicked", () => {
+  it("should open the menu when dropdown button is clicked", () => {
     const { getByTestId } = render(simple)
     const splitButtonElem = getByTestId("test-wrapper")
-    splitButtonElem.classList.contains("show").should.be.false
+    expect(splitButtonElem.classList.contains("show")).toBe(false)
     fireEvent.click(splitButtonElem.children[1])
-    splitButtonElem.classList.contains("show").should.be.true
+    expect(splitButtonElem.classList.contains("show")).toBe(true)
   })
-  test("should not open the menu when other button is clicked", () => {
+  it("should not open the menu when other button is clicked", () => {
     const { getByTestId } = render(simple)
     const splitButtonElem = getByTestId("test-wrapper")
-    splitButtonElem.classList.contains("show").should.be.false
+    expect(splitButtonElem.classList.contains("show")).toBe(false)
     fireEvent.click(splitButtonElem.children[0])
-    splitButtonElem.classList.contains("show").should.be.false
+    expect(splitButtonElem.classList.contains("show")).toBe(false)
   })
-  test("should invoke onClick when SplitButton.Button is clicked (prop)", done => {
+  it("should invoke onClick when SplitButton.Button is clicked (prop)", done => {
     const { getByTestId } = render(
       <SplitButton
         data-testid="test-wrapper"
@@ -39,7 +39,7 @@ describe("<SplitButton>", () => {
     const splitButtonElem = getByTestId("test-wrapper")
     fireEvent.click(splitButtonElem.firstElementChild!)
   })
-  test("should not invoke onClick when SplitButton.Toggle is clicked (prop)", () => {
+  it("should not invoke onClick when SplitButton.Toggle is clicked (prop)", () => {
     const onClickSpy = sinon.spy()
     const { getByTestId } = render(
       <SplitButton
@@ -53,9 +53,9 @@ describe("<SplitButton>", () => {
     )
     const splitButtonElem = getByTestId("test-wrapper")
     fireEvent.click(splitButtonElem.children[1])
-    onClickSpy.should.not.have.been.called
+    expect(onClickSpy).not.toHaveBeenCalled()
   })
-  test("Should pass disabled to both buttons", () => {
+  it("Should pass disabled to both buttons", () => {
     const { getByTestId } = render(
       <SplitButton
         data-testid="test-wrapper"
@@ -67,11 +67,11 @@ describe("<SplitButton>", () => {
       </SplitButton>
     )
     const splitButtonElem = getByTestId("test-wrapper")
-    splitButtonElem.getAttribute("disabled")!.should.exist
-    splitButtonElem.children[0].getAttribute("disabled")!.should.exist
-    splitButtonElem.children[1].getAttribute("disabled")!.should.exist
+    expect(splitButtonElem.getAttribute("disabled")!).toBeTruthy()
+    expect(splitButtonElem.children[0].getAttribute("disabled")!).toBeTruthy()
+    expect(splitButtonElem.children[1].getAttribute("disabled")!).toBeTruthy()
   })
-  test("Should set target attribute on anchor", () => {
+  it("Should set target attribute on anchor", () => {
     const { getByTestId } = render(
       <SplitButton
         title="Title"
@@ -84,29 +84,31 @@ describe("<SplitButton>", () => {
       </SplitButton>
     )
     const splitButtonElem = getByTestId("test-wrapper")
-    splitButtonElem.firstElementChild!.tagName.toLowerCase().should.equal("a")
-    splitButtonElem
-      .firstElementChild!.getAttribute("href")!
-      .should.equal("/some/unique-thing/")
-    splitButtonElem
-      .firstElementChild!.getAttribute("target")!
-      .should.equal("_blank")
+    expect(splitButtonElem.firstElementChild!.tagName.toLowerCase()).toEqual(
+      "a"
+    )
+    expect(splitButtonElem.firstElementChild!.getAttribute("href")!).toEqual(
+      "/some/unique-thing/"
+    )
+    expect(splitButtonElem.firstElementChild!.getAttribute("target")!).toEqual(
+      "_blank"
+    )
   })
-  test("should set accessible label on toggle", () => {
+  it("should set accessible label on toggle", () => {
     const { getByText } = render(simple)
     const toggleLabelElem = getByText("Toggle dropdown")
-    toggleLabelElem.classList.contains("visually-hidden").should.be.true
+    expect(toggleLabelElem.classList.contains("visually-hidden")).toBe(true)
   })
-  test("should set aria-label on toggle from toggleLabel", () => {
+  it("should set aria-label on toggle from toggleLabel", () => {
     const { getByText } = render(
       <SplitButton title="Title" id="test-id" toggleLabel="Label">
         <Item>Item 1</Item>
       </SplitButton>
     )
     const labelElem = getByText("Label")
-    labelElem.classList.contains("visually-hidden").should.be.true
+    expect(labelElem.classList.contains("visually-hidden")).toBe(true)
   })
-  test("should set type attribute from type", () => {
+  it("should set type attribute from type", () => {
     const { getByTestId } = render(
       <SplitButton
         data-testid="test-wrapper"
@@ -118,8 +120,8 @@ describe("<SplitButton>", () => {
       </SplitButton>
     )
     const splitButtonElem = getByTestId("test-wrapper")
-    splitButtonElem
-      .firstElementChild!.getAttribute("type")!
-      .should.equal("submit")
+    expect(splitButtonElem.firstElementChild!.getAttribute("type")!).toEqual(
+      "submit"
+    )
   })
 })

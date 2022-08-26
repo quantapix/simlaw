@@ -3,28 +3,28 @@ import { ThemeProvider } from "../src/index.jsx"
 import { Col } from "../src/Col.jsx"
 
 describe("Col", () => {
-  test('Should include "col" when there are no sizes', () => {
+  it('Should include "col" when there are no sizes', () => {
     const { getByText } = render(<Col>Column</Col>)
-    getByText("Column").classList.contains("col").should.be.true
+    expect(getByText("Column").classList.contains("col")).toBe(true)
   })
-  test('Should include "col" when xs is true', () => {
+  it('Should include "col" when xs is true', () => {
     const { getByText } = render(<Col xs>Column</Col>)
-    getByText("Column").classList.contains("col").should.be.true
+    expect(getByText("Column").classList.contains("col")).toBe(true)
     render(<Col xs={{ span: true }}>Column2</Col>)
-    getByText("Column2").classList.contains("col").should.be.true
+    expect(getByText("Column2").classList.contains("col")).toBe(true)
   })
-  test("Should include sizes", () => {
+  it("Should include sizes", () => {
     const { getByText } = render(
       <Col xs={4} md={8} lg={{ span: 12 }}>
         Column
       </Col>
     )
-    getByText("Column").classList.length.should.equal(3)
-    getByText("Column").classList.contains("col-4").should.be.true
-    getByText("Column").classList.contains("col-md-8").should.be.true
-    getByText("Column").classList.contains("col-lg-12").should.be.true
+    expect(getByText("Column").classList.length).toEqual(3)
+    expect(getByText("Column").classList.contains("col-4")).toBe(true)
+    expect(getByText("Column").classList.contains("col-md-8")).toBe(true)
+    expect(getByText("Column").classList.contains("col-lg-12")).toBe(true)
   })
-  test("Should include offsets", () => {
+  it("Should include offsets", () => {
     const { getByText } = render(
       <Col
         xs={{ span: 4, offset: 1 }}
@@ -34,56 +34,56 @@ describe("Col", () => {
         Column
       </Col>
     )
-    getByText("Column").classList.length.should.equal(5)
-    getByText("Column").classList.contains("col-md-8").should.be.true
-    getByText("Column").classList.contains("order-md-1").should.be.true
-    getByText("Column").classList.contains("col-4").should.be.true
-    getByText("Column").classList.contains("offset-1").should.be.true
-    getByText("Column").classList.contains("order-lg-last").should.be.true
+    expect(getByText("Column").classList.length).toEqual(5)
+    expect(getByText("Column").classList.contains("col-md-8")).toBe(true)
+    expect(getByText("Column").classList.contains("order-md-1")).toBe(true)
+    expect(getByText("Column").classList.contains("col-4")).toBe(true)
+    expect(getByText("Column").classList.contains("offset-1")).toBe(true)
+    expect(getByText("Column").classList.contains("order-lg-last")).toBe(true)
   })
-  test("Should allow span to be null", () => {
+  it("Should allow span to be null", () => {
     const { getByText } = render(
       // @ts-ignore
       <Col xs="6" md={{ span: null, order: 1 }}>
         Column
       </Col>
     )
-    getByText("Column").classList.contains("col-6").should.be.true
-    getByText("Column").classList.contains("order-md-1").should.be.true
-    getByText("Column").classList.contains("col-md").should.equal(false)
+    expect(getByText("Column").classList.contains("col-6")).toBe(true)
+    expect(getByText("Column").classList.contains("order-md-1")).toBe(true)
+    expect(getByText("Column").classList.contains("col-md")).toEqual(false)
   })
-  test("Should allow span to be false", () => {
+  it("Should allow span to be false", () => {
     const { getByText } = render(
       <Col xs="6" md={{ span: false, order: 1 }}>
         Column
       </Col>
     )
-    getByText("Column").classList.contains("col-6").should.be.true
-    getByText("Column").classList.contains("order-md-1").should.be.true
-    getByText("Column").classList.contains("col-md").should.equal(false)
+    expect(getByText("Column").classList.contains("col-6")).toBe(true)
+    expect(getByText("Column").classList.contains("order-md-1")).toBe(true)
+    expect(getByText("Column").classList.contains("col-md")).toEqual(false)
   })
-  test("Should allow span to be auto", () => {
+  it("Should allow span to be auto", () => {
     const { getByText } = render(
       <Col md="auto" lg={{ span: "auto" }}>
         Column
       </Col>
     )
-    getByText("Column").classList.contains("col-md-auto").should.be.true
-    getByText("Column").classList.contains("col-lg-auto").should.be.true
+    expect(getByText("Column").classList.contains("col-md-auto")).toBe(true)
+    expect(getByText("Column").classList.contains("col-lg-auto")).toBe(true)
   })
-  test("Should have div as default component", () => {
+  it("Should have div as default component", () => {
     const { getByText } = render(<Col>Column</Col>)
-    getByText("Column").tagName.toLowerCase().should.equal("div")
+    expect(getByText("Column").tagName.toLowerCase()).toEqual("div")
   })
-  test("should allow custom breakpoints", () => {
+  it("should allow custom breakpoints", () => {
     const { getByText } = render(
       <ThemeProvider breakpoints={["custom"]}>
         <Col custom="3">test</Col>
       </ThemeProvider>
     )
-    getByText("test").classList.contains("col-custom-3").should.be.true
+    expect(getByText("test").classList.contains("col-custom-3")).toBe(true)
   })
-  test('should allow custom breakpoints smaller than default "xs"', () => {
+  it('should allow custom breakpoints smaller than default "xs"', () => {
     const { getByText } = render(
       <ThemeProvider breakpoints={["xxs", "xs"]} minBreakpoint="xxs">
         <Col xxs="3" xs="2">
@@ -91,7 +91,7 @@ describe("Col", () => {
         </Col>
       </ThemeProvider>
     )
-    getByText("test").classList.contains("col-3").should.be.true
-    getByText("test").classList.contains("col-xs-2").should.be.true
+    expect(getByText("test").classList.contains("col-3")).toBe(true)
+    expect(getByText("test").classList.contains("col-xs-2")).toBe(true)
   })
 })

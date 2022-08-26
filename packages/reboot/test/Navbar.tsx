@@ -3,63 +3,63 @@ import { Link, Nav } from "../src/Nav.jsx"
 import { Brand, Collapse, Navbar, Toggle } from "../src/Navbar.jsx"
 
 describe("<Navbar>", () => {
-  test("Should create nav element", () => {
+  it("Should create nav element", () => {
     const { getByTestId } = render(<Navbar data-testid="test" />)
     const navbarElem = getByTestId("test")
-    navbarElem.classList.contains("navbar").should.be.true
-    navbarElem.classList.contains("navbar-expand").should.be.true
-    navbarElem.classList.contains("navbar-light").should.be.true
+    expect(navbarElem.classList.contains("navbar")).toBe(true)
+    expect(navbarElem.classList.contains("navbar-expand")).toBe(true)
+    expect(navbarElem.classList.contains("navbar-light")).toBe(true)
   })
-  test('Should add "navigation" role when not using a `<nav>`', () => {
+  it('Should add "navigation" role when not using a `<nav>`', () => {
     const { getByTestId } = render(<Navbar as="div" data-testid="test" />)
     const navbarElem = getByTestId("test")
-    navbarElem.tagName.toLowerCase().should.equal("div")
-    navbarElem.getAttribute("role")!.should.equal("navigation")
+    expect(navbarElem.tagName.toLowerCase()).toEqual("div")
+    expect(navbarElem.getAttribute("role")!).toEqual("navigation")
   })
-  test("Should add fixed=top|bottom variation", () => {
+  it("Should add fixed=top|bottom variation", () => {
     const { getByTestId: getByFirstTestId } = render(
       <Navbar fixed="top" data-testid="test1" />
     )
     const firstNavbarElem = getByFirstTestId("test1")
-    firstNavbarElem.classList.contains("fixed-top").should.be.true
+    expect(firstNavbarElem.classList.contains("fixed-top")).toBe(true)
     const { getByTestId: getBySecondTestId } = render(
       <Navbar fixed="bottom" data-testid="test2" />
     )
     const navbarElem = getBySecondTestId("test2")
-    navbarElem.classList.contains("fixed-bottom").should.be.true
+    expect(navbarElem.classList.contains("fixed-bottom")).toBe(true)
   })
-  test("Should variant=dark", () => {
+  it("Should variant=dark", () => {
     const { getByTestId } = render(<Navbar variant="dark" data-testid="test" />)
-    getByTestId("test").classList.contains("navbar-dark").should.be.true
+    expect(getByTestId("test").classList.contains("navbar-dark")).toBe(true)
   })
-  test("Should override role attribute", () => {
+  it("Should override role attribute", () => {
     const { getByTestId } = render(<Navbar role="banner" data-testid="test" />)
-    getByTestId("test").getAttribute("role")!.should.equal("banner")
+    expect(getByTestId("test").getAttribute("role")!).toEqual("banner")
   })
   describe("Brand", () => {
-    test("Should render brand", () => {
+    it("Should render brand", () => {
       const { getByTestId } = render(<Brand data-testid="test" />)
       const navbarBrandElem = getByTestId("test")
-      navbarBrandElem.classList.contains("navbar-brand").should.be.true
-      navbarBrandElem.tagName.toLowerCase().should.equal("span")
+      expect(navbarBrandElem.classList.contains("navbar-brand")).toBe(true)
+      expect(navbarBrandElem.tagName.toLowerCase()).toEqual("span")
     })
-    test("Should render brand as anchor", () => {
+    it("Should render brand as anchor", () => {
       const { getByTestId } = render(<Brand href="#" data-testid="test" />)
       const navbarBrandElem = getByTestId("test")
-      navbarBrandElem.classList.contains("navbar-brand").should.be.true
-      navbarBrandElem.tagName.toLowerCase().should.equal("a")
+      expect(navbarBrandElem.classList.contains("navbar-brand")).toBe(true)
+      expect(navbarBrandElem.tagName.toLowerCase()).toEqual("a")
     })
   })
-  test("Should pass navbar context to navs", () => {
+  it("Should pass navbar context to navs", () => {
     const { getByTestId } = render(
       <Navbar>
         <Nav data-testid="test" />
       </Navbar>
     )
     const navElem = getByTestId("test")
-    navElem.classList.contains("navbar-nav").should.be.true
+    expect(navElem.classList.contains("navbar-nav")).toBe(true)
   })
-  test("Should add custom toggle", () => {
+  it("Should add custom toggle", () => {
     const { getByTestId } = render(
       <Navbar>
         <Toggle as="p" data-testid="test">
@@ -68,11 +68,11 @@ describe("<Navbar>", () => {
       </Navbar>
     )
     const navToggleElem = getByTestId("test")
-    navToggleElem.textContent!.should.equal("hi")
+    expect(navToggleElem.textContent!).toEqual("hi")
     navToggleElem.classList.contains("navbar-toggler")
-    navToggleElem.tagName.toLowerCase().should.equal("p")
+    expect(navToggleElem.tagName.toLowerCase()).toEqual("p")
   })
-  test("Should trigger onToggle", () => {
+  it("Should trigger onToggle", () => {
     const toggleSpy = sinon.spy()
     const { getByTestId } = render(
       <Navbar onToggle={toggleSpy}>
@@ -81,10 +81,10 @@ describe("<Navbar>", () => {
     )
     const toggleElem = getByTestId("test")
     fireEvent.click(toggleElem)
-    toggleSpy.should.have.been.calledOnce
-    toggleSpy.should.have.been.calledWith(true)
+    expect(toggleSpy).toHaveBeenCalledTimes(1)
+    expect(toggleSpy).toHaveBeenCalledWith(true)
   })
-  test("Should not swallow onClick", () => {
+  it("Should not swallow onClick", () => {
     const clickSpy = sinon.spy()
     const { getByTestId } = render(
       <Navbar>
@@ -93,26 +93,26 @@ describe("<Navbar>", () => {
     )
     const toggleElem = getByTestId("test")
     fireEvent.click(toggleElem)
-    clickSpy.should.have.been.calledOnce
+    expect(clickSpy).toHaveBeenCalledTimes(1)
   })
-  test("Should render collapse", () => {
+  it("Should render collapse", () => {
     const { getByTestId } = render(
       <Navbar>
         <Collapse data-testid="test">hello</Collapse>
       </Navbar>
     )
-    getByTestId("test").classList.contains("navbar-collapse").should.be.true
+    expect(getByTestId("test").classList.contains("navbar-collapse")).toBe(true)
   })
-  test("Should pass expanded to Collapse", () => {
+  it("Should pass expanded to Collapse", () => {
     const { getByTestId } = render(
       <Navbar expanded>
         <Collapse data-testid="test">hello</Collapse>
       </Navbar>
     )
     const toggleElem = getByTestId("test")
-    toggleElem.classList.contains("show").should.be.true
+    expect(toggleElem.classList.contains("show")).toBe(true)
   })
-  test("Should wire the toggle to the collapse", done => {
+  it("Should wire the toggle to the collapse", done => {
     const clock = sinon.useFakeTimers()
     const { getByTestId } = render(
       <Navbar>
@@ -122,18 +122,18 @@ describe("<Navbar>", () => {
     )
     let toggleElem = getByTestId("toggler")
     let collapseElem = getByTestId("collapse")
-    collapseElem.classList.contains("show").should.be.false
-    toggleElem.classList.contains("collapsed").should.be.true
+    expect(collapseElem.classList.contains("show")).toBe(false)
+    expect(toggleElem.classList.contains("collapsed")).toBe(true)
     fireEvent.click(toggleElem)
     clock.tick(500)
     toggleElem = getByTestId("toggler")
     collapseElem = getByTestId("collapse")
-    collapseElem.classList.contains("show").should.be.true
-    toggleElem.classList.contains("collapsed").should.be.false
+    expect(collapseElem.classList.contains("show")).toBe(true)
+    expect(toggleElem.classList.contains("collapsed")).toBe(false)
     clock.restore()
     done()
   })
-  test("Should open external href link in collapseOnSelect", () => {
+  it("Should open external href link in collapseOnSelect", () => {
     const spy = sinon.spy(e => {
       // prevent actual redirect
       e.persist()
@@ -155,12 +155,12 @@ describe("<Navbar>", () => {
     )
     const linkItem = getByTestId("test")
     fireEvent.click(linkItem)
-    spy.should.have.been.calledOnce
-    getByTestId("test")
-      .getAttribute("href")!
-      .should.equal("https://www.google.com")
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(getByTestId("test").getAttribute("href")!).toEqual(
+      "https://www.google.com"
+    )
   })
-  test("Should fire external href click", done => {
+  it("Should fire external href click", done => {
     const spy = sinon.spy(e => {
       // prevent actual redirect
       e.persist()
@@ -184,7 +184,7 @@ describe("<Navbar>", () => {
     const innerLinkItem = getByTestId("test")
     fireEvent.click(innerLinkItem)
   })
-  test("Should collapseOnSelect & fire Nav subcomponent onSelect event if expanded", () => {
+  it("Should collapseOnSelect & fire Nav subcomponent onSelect event if expanded", () => {
     const toggleSpy = sinon.spy()
     const navItemSpy = sinon.spy()
     const { getByTestId } = render(
@@ -203,11 +203,11 @@ describe("<Navbar>", () => {
     )
     const innerLinkElem = getByTestId("test")
     fireEvent.click(innerLinkElem)
-    navItemSpy.should.have.been.calledOnce
-    toggleSpy.should.have.been.calledOnce
-    toggleSpy.should.have.been.calledWith(false)
+    expect(navItemSpy).toHaveBeenCalledTimes(1)
+    expect(toggleSpy).toHaveBeenCalledTimes(1)
+    expect(toggleSpy).toHaveBeenCalledWith(false)
   })
-  test("Should fire onSelect with eventKey for nav children", () => {
+  it("Should fire onSelect with eventKey for nav children", () => {
     const selectSpy = sinon.spy()
     const navItemSpy = sinon.spy()
     const { getByTestId } = render(
@@ -226,57 +226,58 @@ describe("<Navbar>", () => {
     )
     const innerLinkElem = getByTestId("test")
     fireEvent.click(innerLinkElem)
-    navItemSpy.should.have.been.calledOnce
-    selectSpy.should.have.been.calledOnce
-    selectSpy.should.have.been.calledWith("#home")
+    expect(navItemSpy).toHaveBeenCalledTimes(1)
+    expect(selectSpy).toHaveBeenCalledTimes(1)
+    expect(selectSpy).toHaveBeenCalledWith("#home")
   })
-  test("Should have nav as default component", () => {
+  it("Should have nav as default component", () => {
     const { getByTestId } = render(<Navbar data-testid="test" />)
-    getByTestId("test").tagName.toLowerCase().should.equal("nav")
+    expect(getByTestId("test").tagName.toLowerCase()).toEqual("nav")
   })
-  test("Should render correctly when expand is a string", () => {
+  it("Should render correctly when expand is a string", () => {
     const { getByTestId } = render(<Navbar expand="sm" data-testid="test" />)
-    getByTestId("test").classList.contains("navbar-expand-sm").should.be.true
+    expect(getByTestId("test").classList.contains("navbar-expand-sm")).to.be
+      .true
   })
-  test("should allow custom breakpoints for expand", () => {
+  it("should allow custom breakpoints for expand", () => {
     const { getByTestId } = render(
       <Navbar expand="custom" data-testid="test" />
     )
-    getByTestId("test").classList.contains("navbar-expand-custom").should.be
+    expect(getByTestId("test").classList.contains("navbar-expand-custom")).to.be
       .true
   })
-  test("Should render correctly when bg is set", () => {
+  it("Should render correctly when bg is set", () => {
     const { getByTestId } = render(<Navbar bg="light" data-testid="test" />)
-    getByTestId("test").classList.contains("bg-light").should.be.true
+    expect(getByTestId("test").classList.contains("bg-light")).toBe(true)
   })
-  test("Should render correctly when sticky is set", () => {
+  it("Should render correctly when sticky is set", () => {
     const { getByTestId } = render(<Navbar sticky="top" data-testid="test" />)
-    getByTestId("test").classList.contains("sticky-top").should.be.true
+    expect(getByTestId("test").classList.contains("sticky-top")).toBe(true)
   })
 })
 
 describe("<Brand>", () => {
-  test("Should create Brand SPAN element", () => {
+  it("Should create Brand SPAN element", () => {
     const { getByTestId } = render(<Brand data-testid="test">Brand</Brand>)
     const BrandElem = getByTestId("test")
-    BrandElem.tagName.toLowerCase().should.equal("span")
-    BrandElem.classList.contains("navbar-brand").should.be.true
+    expect(BrandElem.tagName.toLowerCase()).toEqual("span")
+    expect(BrandElem.classList.contains("navbar-brand")).toBe(true)
   })
-  test("Should create Brand A (link) element", () => {
+  it("Should create Brand A (link) element", () => {
     const { getByTestId } = render(
       <Brand href="/foo" data-testid="test">
         BrandLink
       </Brand>
     )
     const BrandElem = getByTestId("test")
-    BrandElem.tagName.toLowerCase().should.equal("a")
-    BrandElem.classList.contains("navbar-brand").should.be.true
+    expect(BrandElem.tagName.toLowerCase()).toEqual("a")
+    expect(BrandElem.classList.contains("navbar-brand")).toBe(true)
   })
 })
 
 describe("<Toggle>", () => {
-  test("Should have button as default component", () => {
+  it("Should have button as default component", () => {
     const { getByTestId } = render(<Toggle data-testid="test" />)
-    getByTestId("test").tagName.toLowerCase().should.equal("button")
+    expect(getByTestId("test").tagName.toLowerCase()).toEqual("button")
   })
 })

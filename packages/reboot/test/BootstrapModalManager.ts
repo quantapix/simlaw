@@ -35,13 +35,13 @@ describe("BootstrapModalManager", () => {
     manager = null
   })
 
-  test("should add Modal", () => {
+  it("should add Modal", () => {
     const modal = createModal()
 
     manager.add(modal)
 
-    expect(manager.modals.length).to.equal(1)
-    expect(manager.modals[0]).to.equal(modal)
+    expect(manager.modals.length).toEqual(1)
+    expect(manager.modals[0]).toEqual(modal)
 
     expect(manager.state).to.eql({
       scrollBarWidth: 0,
@@ -52,21 +52,21 @@ describe("BootstrapModalManager", () => {
     })
   })
 
-  test("should return a shared modal manager", () => {
+  it("should return a shared modal manager", () => {
     const localManager = getSharedManager()
-    localManager.should.exist
+    expect(localManager).toBeTruthy()
   })
 
-  test("should return a same modal manager if called twice", () => {
+  it("should return a same modal manager if called twice", () => {
     let localManager = getSharedManager()
-    localManager.should.exist
+    expect(localManager).toBeTruthy()
 
     const modal = createModal()
     localManager.add(modal as any)
-    localManager.modals.length.should.equal(1)
+    expect(localManager.modals.length).toEqual(1)
 
     localManager = getSharedManager()
-    localManager.modals.length.should.equal(1)
+    expect(localManager.modals.length).toEqual(1)
 
     localManager.remove(modal as any)
   })
@@ -88,51 +88,51 @@ describe("BootstrapModalManager", () => {
 
     afterEach(() => injectCss.reset())
 
-    test("should set padding to right side", () => {
+    it("should set padding to right side", () => {
       const modal = createModal()
       manager.add(modal)
 
-      expect(document.body.style.paddingRight).to.equal(
+      expect(document.body.style.paddingRight).toEqual(
         `${getScrollbarSize() + 20}px`
       )
     })
 
-    test("should set padding to left side if RTL", () => {
+    it("should set padding to left side if RTL", () => {
       const modal = createModal()
 
       new BootstrapModalManager({ isRTL: true }).add(modal as any)
 
-      expect(document.body.style.paddingLeft).to.equal(
+      expect(document.body.style.paddingLeft).toEqual(
         `${getScrollbarSize() + 20}px`
       )
     })
 
-    test("should restore container overflow style", () => {
+    it("should restore container overflow style", () => {
       const modal = createModal()
 
       document.body.style.overflow = "scroll"
 
-      expect(document.body.style.overflow).to.equal("scroll")
+      expect(document.body.style.overflow).toEqual("scroll")
 
       manager.add(modal)
       manager.remove(modal)
 
-      expect(document.body.style.overflow).to.equal("scroll")
+      expect(document.body.style.overflow).toEqual("scroll")
       document.body.style.overflow = ""
     })
 
-    test("should restore container overflow style for RTL", () => {
+    it("should restore container overflow style for RTL", () => {
       const modal = createModal()
 
       document.body.style.overflow = "scroll"
 
-      expect(document.body.style.overflow).to.equal("scroll")
+      expect(document.body.style.overflow).toEqual("scroll")
 
       const localManager = new BootstrapModalManager({ isRTL: true })
       localManager.add(modal as any)
       localManager.remove(modal as any)
 
-      expect(document.body.style.overflow).to.equal("scroll")
+      expect(document.body.style.overflow).toEqual("scroll")
       document.body.style.overflow = ""
     })
   })

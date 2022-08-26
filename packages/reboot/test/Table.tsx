@@ -2,57 +2,57 @@ import { render } from "@testing-library/react"
 import { Table } from "../src/Table.jsx"
 
 describe("Table", () => {
-  test("Should be a table", () => {
+  it("Should be a table", () => {
     const { getByTestId } = render(<Table data-testid="test" />)
     const tableElem = getByTestId("test")
-    tableElem.classList.contains("table").should.be.true
-    tableElem.tagName.toLowerCase().should.equal("table")
+    expect(tableElem.classList.contains("table")).toBe(true)
+    expect(tableElem.tagName.toLowerCase()).toEqual("table")
   })
-  test("Should have correct class when using striped row", () => {
+  it("Should have correct class when using striped row", () => {
     const { getByTestId } = render(<Table data-testid="test" striped />)
     const tableElem = getByTestId("test")
-    tableElem.classList.contains("table-striped").should.be.true
+    expect(tableElem.classList.contains("table-striped")).toBe(true)
   })
-  test("Should have correct class when using striped column", () => {
+  it("Should have correct class when using striped column", () => {
     const { getByTestId } = render(
       <Table data-testid="test" striped="columns" />
     )
     const tableElem = getByTestId("test")
-    tableElem.classList.contains("table-striped-columns").should.be.true
+    expect(tableElem.classList.contains("table-striped-columns")).toBe(true)
   })
-  test("Should have correct class when hover", () => {
+  it("Should have correct class when hover", () => {
     const { getByTestId } = render(<Table data-testid="test" hover />)
     const tableElem = getByTestId("test")
-    tableElem.classList.contains("table-hover").should.be.true
+    expect(tableElem.classList.contains("table-hover")).toBe(true)
   })
-  test("Should have correct class when bordered", () => {
+  it("Should have correct class when bordered", () => {
     const { getByTestId } = render(<Table data-testid="test" bordered />)
     const tableElem = getByTestId("test")
-    tableElem.classList.contains("table-bordered").should.be.true
+    expect(tableElem.classList.contains("table-bordered")).toBe(true)
   })
-  test("Should have correct class when borderless", () => {
+  it("Should have correct class when borderless", () => {
     const { getByTestId } = render(<Table data-testid="test" borderless />)
     const tableElem = getByTestId("test")
-    tableElem.classList.contains("table-borderless").should.be.true
+    expect(tableElem.classList.contains("table-borderless")).toBe(true)
   })
-  test("Should have correct class when small", () => {
+  it("Should have correct class when small", () => {
     const { getByTestId } = render(<Table data-testid="test" size="sm" />)
     const tableElem = getByTestId("test")
-    tableElem.classList.contains("table-sm").should.be.true
+    expect(tableElem.classList.contains("table-sm")).toBe(true)
   })
-  test("Should have correct class when dark", () => {
+  it("Should have correct class when dark", () => {
     const { getByTestId } = render(<Table data-testid="test" variant="dark" />)
     const tableElem = getByTestId("test")
-    tableElem.classList.contains("table-dark").should.be.true
+    expect(tableElem.classList.contains("table-dark")).toBe(true)
   })
-  test("Should have responsive wrapper", () => {
+  it("Should have responsive wrapper", () => {
     const { container } = render(<Table responsive />)
     const tableElem = container.firstElementChild!
-    tableElem!.classList.contains("table-responsive").should.be.true
+    expect(tableElem!.classList.contains("table-responsive")).toBe(true)
   })
-  test("Should have responsive breakpoints", () => {
+  it("Should have responsive breakpoints", () => {
     const { container } = render(<Table responsive="sm" />)
     const tableElem = container.firstElementChild!
-    tableElem!.classList.contains("table-responsive-sm").should.be.true
+    expect(tableElem!.classList.contains("table-responsive-sm")).toBe(true)
   })
 })

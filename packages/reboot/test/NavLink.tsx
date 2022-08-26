@@ -2,7 +2,7 @@ import { render } from "@testing-library/react"
 import NavLink from "../src/NavLink"
 
 describe("<NavLink>", () => {
-  test("renders correctly", () => {
+  it("renders correctly", () => {
     const { getByTestId } = render(
       <NavLink
         className="custom-class"
@@ -14,54 +14,56 @@ describe("<NavLink>", () => {
       </NavLink>
     )
     const navLinkElem = getByTestId("test")
-    navLinkElem.classList.contains("nav-link").should.be.true
-    navLinkElem.classList.contains("custom-class").should.be.true
-    navLinkElem.getAttribute("href")!.should.equal("/some/unique-thing/")
-    navLinkElem.getAttribute("title")!.should.equal("content")
-    navLinkElem.firstElementChild!.tagName.toLowerCase().should.equal("strong")
+    expect(navLinkElem.classList.contains("nav-link")).toBe(true)
+    expect(navLinkElem.classList.contains("custom-class")).toBe(true)
+    expect(navLinkElem.getAttribute("href")!).toEqual("/some/unique-thing/")
+    expect(navLinkElem.getAttribute("title")!).toEqual("content")
+    expect(navLinkElem.firstElementChild!.tagName.toLowerCase()).toEqual(
+      "strong"
+    )
   })
 
-  test("Should add active class", () => {
+  it("Should add active class", () => {
     const { getByTestId } = render(
       <NavLink active data-testid="test">
         Item content
       </NavLink>
     )
     const navLinkElem = getByTestId("test")
-    navLinkElem.classList.contains("active").should.be.true
+    expect(navLinkElem.classList.contains("active")).toBe(true)
   })
 
-  test("Should add disabled class", () => {
+  it("Should add disabled class", () => {
     const { getByTestId } = render(
       <NavLink disabled data-testid="test">
         Item content
       </NavLink>
     )
     const navLinkElem = getByTestId("test")
-    navLinkElem.classList.contains("disabled").should.be.true
+    expect(navLinkElem.classList.contains("disabled")).toBe(true)
   })
 
   describe("Web Accessibility", () => {
-    test('Should add aria-selected to the link when role is "tab"', () => {
+    it('Should add aria-selected to the link when role is "tab"', () => {
       const { getByTestId } = render(
         <NavLink role="tab" active data-testid="test">
           Item content
         </NavLink>
       )
       const navLinkElem = getByTestId("test")
-      navLinkElem.tagName.toLowerCase().should.equal("a")
-      navLinkElem.getAttribute("aria-selected")!.should.equal("true")
+      expect(navLinkElem.tagName.toLowerCase()).toEqual("a")
+      expect(navLinkElem.getAttribute("aria-selected")!).toEqual("true")
     })
 
-    test('Should not add aria-selected to the link when role is not "tab"', () => {
+    it('Should not add aria-selected to the link when role is not "tab"', () => {
       const { getByTestId } = render(
         <NavLink role="button" active data-testid="test">
           Item content
         </NavLink>
       )
       const navLinkElem = getByTestId("test")
-      navLinkElem.tagName.toLowerCase().should.equal("a")
-      expect(navLinkElem.getAttribute("aria-selected")).to.be.null
+      expect(navLinkElem.tagName.toLowerCase()).toEqual("a")
+      expect(navLinkElem.getAttribute("aria-selected")).toBeNull()
     })
   })
 })

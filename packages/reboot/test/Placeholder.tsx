@@ -2,35 +2,39 @@ import { render } from "@testing-library/react"
 import { Button, Placeholder } from "../src/Placeholder.jsx"
 
 describe("<Placeholder>", () => {
-  test("should render a placeholder", () => {
+  it("should render a placeholder", () => {
     const { container } = render(<Placeholder />)
-    container.firstElementChild!.className.should.contain("placeholder")
+    expect(container.firstElementChild!.className).to.contain("placeholder")
   })
-  test("should render size", () => {
+  it("should render size", () => {
     const { container } = render(<Placeholder size="lg" />)
-    container.firstElementChild!.className.should.contain("placeholder-lg")
+    expect(container.firstElementChild!.className).to.contain("placeholder-lg")
   })
-  test("should render animation", () => {
+  it("should render animation", () => {
     const { container } = render(<Placeholder animation="glow" />)
-    container.firstElementChild!.className.should.contain("placeholder-glow")
+    expect(container.firstElementChild!.className).to.contain(
+      "placeholder-glow"
+    )
   })
-  test("should render bg", () => {
+  it("should render bg", () => {
     const { container } = render(<Placeholder bg="primary" />)
-    container.firstElementChild!.className.should.contain("bg-primary")
+    expect(container.firstElementChild!.className).to.contain("bg-primary")
   })
 })
 
 describe("<Button>", () => {
-  test("should render a placeholder", () => {
+  it("should render a placeholder", () => {
     const { container } = render(<Button />)
-    container.firstElementChild!.className.should.contain("placeholder")
+    expect(container.firstElementChild!.className).to.contain("placeholder")
   })
-  test("should render size", () => {
+  it("should render size", () => {
     const { container } = render(<Button size="lg" />)
-    container.firstElementChild!.className.should.contain("placeholder-lg")
+    expect(container.firstElementChild!.className).to.contain("placeholder-lg")
   })
-  test("should render animation", () => {
+  it("should render animation", () => {
     const { container } = render(<Button animation="glow" />)
-    container.firstElementChild!.className.should.contain("placeholder-glow")
+    expect(container.firstElementChild!.className).to.contain(
+      "placeholder-glow"
+    )
   })
 })

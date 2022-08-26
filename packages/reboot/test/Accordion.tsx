@@ -12,17 +12,17 @@ import { ListGroup, Item as Litem } from "../src/ListGroup.js"
 import { Nav, Item as Nitem, Link } from "../src/Nav.js"
 
 describe("<Accordion>", () => {
-  test("should output a div", () => {
+  it("should output a div", () => {
     const { getByTestId } = render(<Accordion data-testid="test" />)
-    getByTestId("test").tagName.toLowerCase().should.equal("div")
+    expect(getByTestId("test").tagName.toLowerCase()).toEqual("div")
   })
-  test("should render flush prop", () => {
+  it("should render flush prop", () => {
     const { getByTestId } = render(<Accordion flush data-testid="test" />)
     const node = getByTestId("test")
-    node.classList.contains("accordion").should.be.true
-    node.classList.contains("accordion-flush").should.be.true
+    expect(node.classList.contains("accordion")).toBe(true)
+    expect(node.classList.contains("accordion-flush")).toBe(true)
   })
-  test("should output a h1", () => {
+  it("should output a h1", () => {
     const { getByTestId } = render(
       <Accordion>
         <Button>Hi</Button>
@@ -31,9 +31,9 @@ describe("<Accordion>", () => {
         </Collapse>
       </Accordion>
     )
-    getByTestId("test-collapse").tagName.toLowerCase().should.equal("h1")
+    expect(getByTestId("test-collapse").tagName.toLowerCase()).toEqual("h1")
   })
-  test("should only have second item collapsed", () => {
+  it("should only have second item collapsed", () => {
     const { getByTestId } = render(
       <Accordion defaultActiveKey="0">
         <Item eventKey="0" data-testid="item-0">
@@ -46,10 +46,10 @@ describe("<Accordion>", () => {
         </Item>
       </Accordion>
     )
-    expect(getByTestId("item-0").querySelector(".show")).to.exist
-    expect(getByTestId("item-1").querySelector(".collapse")).to.exist
+    expect(getByTestId("item-0").querySelector(".show")).toBeTruthy()
+    expect(getByTestId("item-1").querySelector(".collapse")).toBeTruthy()
   })
-  test("should expand next item and collapse current item on click", async () => {
+  it("should expand next item and collapse current item on click", async () => {
     const onClickSpy = sinon.spy()
     const { getByTestId, getByText } = render(
       <Accordion>
@@ -66,15 +66,15 @@ describe("<Accordion>", () => {
       </Accordion>
     )
     fireEvent.click(getByText("Button item 1"))
-    onClickSpy.should.be.calledOnce
-    expect(getByTestId("item-0").querySelector(".collapse")).to.exist
+    expect(onClickSpy).to.be.calledOnce
+    expect(getByTestId("item-0").querySelector(".collapse")).toBeTruthy()
     const item1 = getByTestId("item-1")
-    expect(item1.querySelector(".collapsing")).to.exist
-    await waitFor(() => expect(item1.querySelector(".show")).to.exist, {
+    expect(item1.querySelector(".collapsing")).toBeTruthy()
+    await waitFor(() => expect(item1.querySelector(".show")).toBeTruthy(), {
       container: item1,
     })
   })
-  test("should collapse current item on click", async () => {
+  it("should collapse current item on click", async () => {
     const onClickSpy = sinon.spy()
     const { getByTestId, getByText } = render(
       <Accordion defaultActiveKey="0">
@@ -89,16 +89,16 @@ describe("<Accordion>", () => {
       </Accordion>
     )
     fireEvent.click(getByText("Button item 0"))
-    onClickSpy.should.be.calledOnce
-    expect(getByTestId("item-1").querySelector(".collapse")).to.exist
+    expect(onClickSpy).to.be.calledOnce
+    expect(getByTestId("item-1").querySelector(".collapse")).toBeTruthy()
     const item0 = getByTestId("item-0")
-    expect(item0.querySelector(".collapsing")).to.exist
-    await waitFor(() => expect(item0.querySelector(".show")).to.not.exist, {
+    expect(item0.querySelector(".collapsing")).toBeTruthy()
+    await waitFor(() => expect(item0.querySelector(".show")).not.toBeTruthy(), {
       container: item0,
     })
   })
   // https://github.com/react-bootstrap/react-bootstrap/issues/4176
-  test("Should not close accordion when child dropdown clicked", () => {
+  it("Should not close accordion when child dropdown clicked", () => {
     const { getByTestId, getByText } = render(
       <Accordion defaultActiveKey="0">
         <Item eventKey="0" data-testid="item-0">
@@ -118,7 +118,7 @@ describe("<Accordion>", () => {
     expect(getByTestId("item-0").querySelector(".accordion-collapse.show")).to
       .exist
   })
-  test("Should not close accordion when child ListGroup clicked", () => {
+  it("Should not close accordion when child ListGroup clicked", () => {
     const { getByTestId, getByText } = render(
       <Accordion defaultActiveKey="0">
         <Item eventKey="0" data-testid="item-0">
@@ -137,7 +137,7 @@ describe("<Accordion>", () => {
     expect(getByTestId("item-0").querySelector(".accordion-collapse.show")).to
       .exist
   })
-  test("Should not close accordion when child Nav clicked", () => {
+  it("Should not close accordion when child Nav clicked", () => {
     const { getByTestId, getByText } = render(
       <Accordion defaultActiveKey="0">
         <Item eventKey="0" data-testid="item-0">
@@ -156,7 +156,7 @@ describe("<Accordion>", () => {
     expect(getByTestId("item-0").querySelector(".accordion-collapse.show")).to
       .exist
   })
-  test("should allow multiple items to stay open", () => {
+  it("should allow multiple items to stay open", () => {
     const onSelectSpy = sinon.spy()
     const { getByText } = render(
       <Accordion onSelect={onSelectSpy} alwaysOpen>
@@ -172,9 +172,9 @@ describe("<Accordion>", () => {
     )
     fireEvent.click(getByText("header0"))
     fireEvent.click(getByText("header1"))
-    onSelectSpy.should.be.calledWith(["0", "1"])
+    expect(onSelectSpy).to.be.calledWith(["0", "1"])
   })
-  test("should remove only one of the active indices", () => {
+  it("should remove only one of the active indices", () => {
     const onSelectSpy = sinon.spy()
     const { getByText } = render(
       <Accordion
@@ -193,35 +193,35 @@ describe("<Accordion>", () => {
       </Accordion>
     )
     fireEvent.click(getByText("header1"))
-    onSelectSpy.should.be.calledWith(["0"])
+    expect(onSelectSpy).to.be.calledWith(["0"])
   })
 })
 describe("<AccordionButton>", () => {
-  test("Should have button as default component", () => {
+  it("Should have button as default component", () => {
     const { getByTestId } = render(
       <Button data-testid="test-accordion-button" />
     )
-    getByTestId("test-accordion-button")
-      .tagName.toLowerCase()
-      .should.equal("button")
-    getByTestId("test-accordion-button")
-      .getAttribute("type")!
-      .should.equal("button")
+    expect(getByTestId("test-accordion-button").tagName.toLowerCase()).toEqual(
+      "button"
+    )
+    expect(getByTestId("test-accordion-button").getAttribute("type")!).toEqual(
+      "button"
+    )
   })
-  test("Should allow rendering as different component", () => {
+  it("Should allow rendering as different component", () => {
     const { getByTestId } = render(
       <Button data-testid="test-accordion-button" as="div" />
     )
-    getByTestId("test-accordion-button")
-      .tagName.toLowerCase()
-      .should.equal("div")
+    expect(getByTestId("test-accordion-button").tagName.toLowerCase()).toEqual(
+      "div"
+    )
   })
-  test("Should call onClick", () => {
+  it("Should call onClick", () => {
     const onClickSpy = sinon.spy()
     const { getByTestId } = render(
       <Button data-testid="btn" onClick={onClickSpy} />
     )
     fireEvent.click(getByTestId("btn"))
-    onClickSpy.should.be.calledOnce
+    expect(onClickSpy).to.be.calledOnce
   })
 })

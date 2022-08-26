@@ -2,13 +2,13 @@ import { render } from "@testing-library/react"
 import { Spinner } from "../src/Spinner.jsx"
 
 describe("<Spinner>", () => {
-  test("Should render a basic spinner correctly", () => {
+  it("Should render a basic spinner correctly", () => {
     const { getByTestId } = render(
       <Spinner data-testid="test" animation="border" />
     )
-    getByTestId("test").classList.contains("spinner-border").should.be.true
+    expect(getByTestId("test").classList.contains("spinner-border")).toBe(true)
   })
-  test("Should render a spinner with a custom element, variant and size ", () => {
+  it("Should render a spinner with a custom element, variant and size ", () => {
     const { getByTestId } = render(
       <Spinner
         data-testid="test"
@@ -19,33 +19,33 @@ describe("<Spinner>", () => {
       />
     )
     const spinnerElem = getByTestId("test")
-    spinnerElem.tagName.toLowerCase().should.equal("span")
-    spinnerElem.classList.contains("spinner-grow").should.be.true
-    spinnerElem.classList.contains("spinner-grow-sm").should.be.true
-    spinnerElem.classList.contains("text-primary").should.be.true
+    expect(spinnerElem.tagName.toLowerCase()).toEqual("span")
+    expect(spinnerElem.classList.contains("spinner-grow")).toBe(true)
+    expect(spinnerElem.classList.contains("spinner-grow-sm")).toBe(true)
+    expect(spinnerElem.classList.contains("text-primary")).toBe(true)
   })
-  test("Should render a spinner with other properties", () => {
+  it("Should render a spinner with other properties", () => {
     const { getByTestId } = render(
       <Spinner data-testid="test" animation="grow" role="status" />
     )
     const spinnerElem = getByTestId("test")
-    spinnerElem.classList.contains("spinner-grow").should.be.true
-    spinnerElem.getAttribute("role")!.should.equal("status")
+    expect(spinnerElem.classList.contains("spinner-grow")).toBe(true)
+    expect(spinnerElem.getAttribute("role")!).toEqual("status")
   })
-  test("Should render child elements", () => {
+  it("Should render child elements", () => {
     const { getByTestId } = render(
       <Spinner data-testid="test" animation="grow">
         <span id="testChild" />
       </Spinner>
     )
     const spinnerElem = getByTestId("test")
-    spinnerElem.children.length.should.equal(1)
+    expect(spinnerElem.children.length).toEqual(1)
   })
-  test("Should have div as default component", () => {
+  it("Should have div as default component", () => {
     const { getByTestId } = render(
       <Spinner data-testid="test" animation="border" />
     )
     const spinnerElem = getByTestId("test")
-    spinnerElem.tagName.toLowerCase().should.equal("div")
+    expect(spinnerElem.tagName.toLowerCase()).toEqual("div")
   })
 })

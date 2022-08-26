@@ -23,7 +23,7 @@ describe("useOverlayOffset", () => {
     })
   })
 
-  test("should have offset of [0s, 8] for Popovers", () => {
+  it("should have offset of [0s, 8] for Popovers", () => {
     const ref = React.createRef<any>()
 
     render(
@@ -36,7 +36,7 @@ describe("useOverlayOffset", () => {
     expect(offset).to.eql([0, 8])
   })
 
-  test("should apply custom offset", () => {
+  it("should apply custom offset", () => {
     const ref = React.createRef<any>()
 
     render(
@@ -49,7 +49,7 @@ describe("useOverlayOffset", () => {
     expect(offset).to.eql([200, 200])
   })
 
-  test("should have offset of [0, 0] for Tooltips", () => {
+  it("should have offset of [0, 0] for Tooltips", () => {
     const ref = React.createRef<any>()
 
     mount(
@@ -62,7 +62,7 @@ describe("useOverlayOffset", () => {
     expect(offset).to.eql([0, 0])
   })
 
-  test("should have offset of [0, 0] for any overlay", () => {
+  it("should have offset of [0, 0] for any overlay", () => {
     const ref = React.createRef<any>()
 
     mount(

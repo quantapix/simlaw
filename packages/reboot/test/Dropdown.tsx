@@ -27,28 +27,30 @@ describe("<Dropdown>", () => {
     </Menu>,
   ]
   const simpleDropdown = <Dropdown>{dropdownChildren}</Dropdown>
-  test("renders div with dropdown class", () => {
+  it("renders div with dropdown class", () => {
     const { container } = render(simpleDropdown)
-    container.firstElementChild!.classList.should.contain(["dropdown"])
+    expect(container.firstElementChild!.classList).to.contain(["dropdown"])
   })
   ;["up", "end", "start"].forEach((dir: Drop) => {
-    test(`renders div with drop${dir} class`, () => {
+    it(`renders div with drop${dir} class`, () => {
       const { container } = render(
         <Dropdown title="Dropup" drop={dir}>
           {dropdownChildren}
         </Dropdown>
       )
-      container.firstElementChild!.classList.should.not.contain(["dropdown"])
-      container.firstElementChild!.classList.should.contain([`drop${dir}`])
+      expect(container.firstElementChild!.classList).to.not.contain([
+        "dropdown",
+      ])
+      expect(container.firstElementChild!.classList).to.contain([`drop${dir}`])
     })
   })
-  test("renders toggle with Toggle", () => {
+  it("renders toggle with Toggle", () => {
     const { getByText } = render(simpleDropdown)
     const toggle = getByText("Child Title")
-    toggle.getAttribute("aria-expanded")!.should.equal("false")
-    toggle.id.should.be.ok
+    expect(toggle.getAttribute("aria-expanded")!).toEqual("false")
+    expect(toggle.id).to.be.ok
   })
-  test('forwards align="end" to menu', () => {
+  it('forwards align="end" to menu', () => {
     const X = React.forwardRef<any, any>(
       ({ show: _, close: _1, align, ...props }, ref) => (
         <div {...props} data-align={align} ref={ref} />
@@ -64,21 +66,21 @@ describe("<Dropdown>", () => {
         </X>
       </Dropdown>
     )
-    container.querySelector('[data-align="end"]')!.should.exist
+    expect(container.querySelector('[data-align="end"]')!).toBeTruthy()
   })
-  test("toggles open/closed when clicked", () => {
+  it("toggles open/closed when clicked", () => {
     const { container, getByText, getByTestId } = render(simpleDropdown)
     const dropdown = container.firstElementChild!
     const toggle = getByText("Child Title")
-    dropdown.classList.should.not.contain(["show"])
+    expect(dropdown.classList).to.not.contain(["show"])
     fireEvent.click(toggle)
-    dropdown.classList.should.contain(["show"])
-    getByTestId("menu").classList.should.contain(["dropdown-menu", "show"])
+    expect(dropdown.classList).to.contain(["show"])
+    expect(getByTestId("menu").classList).to.contain(["dropdown-menu", "show"])
     fireEvent.click(toggle)
-    dropdown.classList.should.not.contain(["show"])
-    toggle.getAttribute("aria-expanded")!.should.equal("false")
+    expect(dropdown.classList).to.not.contain(["show"])
+    expect(toggle.getAttribute("aria-expanded")!).toEqual("false")
   })
-  test("closes when child Item is selected", () => {
+  it("closes when child Item is selected", () => {
     const onToggleSpy = sinon.spy()
     const { container, getByTestId } = render(
       <Dropdown show onToggle={onToggleSpy}>
@@ -93,11 +95,11 @@ describe("<Dropdown>", () => {
         </Menu>
       </Dropdown>
     )
-    container.firstElementChild!.classList.should.contain(["show"])
+    expect(container.firstElementChild!.classList).to.contain(["show"])
     fireEvent.click(getByTestId("item1"))
-    onToggleSpy.should.have.been.calledWith(false)
+    expect(onToggleSpy).toHaveBeenCalledWith(false)
   })
-  test("has aria-labelledby same id as toggle button", () => {
+  it("has aria-labelledby same id as toggle button", () => {
     const { getByTestId } = render(
       <Dropdown show>
         <Toggle data-testid="toggle">Toggle</Toggle>
@@ -106,24 +108,24 @@ describe("<Dropdown>", () => {
         </Menu>
       </Dropdown>
     )
-    getByTestId("toggle").id.should.equal(
+    expect(getByTestId("toggle").id).toEqual(
       getByTestId("menu").getAttribute("aria-labelledby")
     )
   })
   describe("DOM event and source passed to onToggle", () => {
-    test("passes open, event, and source correctly when opened with click", () => {
+    it("passes open, event, and source correctly when opened with click", () => {
       const onToggleSpy = sinon.spy()
       const { getByText } = render(
         <Dropdown onToggle={onToggleSpy}>{dropdownChildren}</Dropdown>
       )
-      onToggleSpy.should.not.have.been.called
+      expect(onToggleSpy).not.toHaveBeenCalled()
       fireEvent.click(getByText("Child Title"))
-      onToggleSpy.should.have.been.calledOnce
-      onToggleSpy.getCall(0).args.length.should.equal(2)
-      onToggleSpy.getCall(0).args[0].should.equal(true)
-      onToggleSpy.getCall(0).args[1].source.should.equal("click")
+      expect(onToggleSpy).toHaveBeenCalledTimes(1)
+      expect(onToggleSpy.getCall(0).args.length).toEqual(2)
+      expect(onToggleSpy.getCall(0).args[0]).toEqual(true)
+      expect(onToggleSpy.getCall(0).args[1].source).toEqual("click")
     })
-    test("passes open, event, and source correctly when closed with click", () => {
+    it("passes open, event, and source correctly when closed with click", () => {
       const onToggleSpy = sinon.spy()
       const { getByText } = render(
         <Dropdown show onToggle={onToggleSpy}>
@@ -131,13 +133,13 @@ describe("<Dropdown>", () => {
         </Dropdown>
       )
       const toggle = getByText("Child Title")
-      onToggleSpy.should.not.have.been.called
+      expect(onToggleSpy).not.toHaveBeenCalled()
       fireEvent.click(toggle)
-      onToggleSpy.getCall(0).args.length.should.equal(2)
-      onToggleSpy.getCall(0).args[0].should.equal(false)
-      onToggleSpy.getCall(0).args[1].source.should.equal("click")
+      expect(onToggleSpy.getCall(0).args.length).toEqual(2)
+      expect(onToggleSpy.getCall(0).args[0]).toEqual(false)
+      expect(onToggleSpy.getCall(0).args[1].source).toEqual("click")
     })
-    test("passes open, event, and source correctly when child selected", () => {
+    it("passes open, event, and source correctly when child selected", () => {
       const onToggleSpy = sinon.spy()
       const { getByTestId } = render(
         <Dropdown onToggle={onToggleSpy}>
@@ -150,14 +152,14 @@ describe("<Dropdown>", () => {
         </Dropdown>
       )
       fireEvent.click(getByTestId("toggle"))
-      onToggleSpy.should.have.been.called
+      expect(onToggleSpy).toHaveBeenCalled()
       fireEvent.click(getByTestId("item1"))
-      onToggleSpy.should.have.been.calledTwice
-      onToggleSpy.getCall(1).args.length.should.equal(2)
-      onToggleSpy.getCall(1).args[0].should.equal(false)
-      onToggleSpy.getCall(1).args[1].source.should.equal("select")
+      expect(onToggleSpy).toHaveBeenCalledTimes(2)
+      expect(onToggleSpy.getCall(1).args.length).toEqual(2)
+      expect(onToggleSpy.getCall(1).args[0]).toEqual(false)
+      expect(onToggleSpy.getCall(1).args[1].source).toEqual("select")
     })
-    test("passes open, event, and source correctly when opened with keydown", () => {
+    it("passes open, event, and source correctly when opened with keydown", () => {
       const onToggleSpy = sinon.spy()
       const { getByTestId } = render(
         <Dropdown onToggle={onToggleSpy}>
@@ -170,13 +172,13 @@ describe("<Dropdown>", () => {
         </Dropdown>
       )
       fireEvent.keyDown(getByTestId("toggle"), { key: "ArrowDown" })
-      onToggleSpy.should.have.been.calledOnce
-      onToggleSpy.getCall(0).args.length.should.equal(2)
-      onToggleSpy.getCall(0).args[0].should.equal(true)
-      onToggleSpy.getCall(0).args[1].source.should.equal("keydown")
+      expect(onToggleSpy).toHaveBeenCalledTimes(1)
+      expect(onToggleSpy.getCall(0).args.length).toEqual(2)
+      expect(onToggleSpy.getCall(0).args[0]).toEqual(true)
+      expect(onToggleSpy.getCall(0).args[1].source).toEqual("keydown")
     })
   })
-  test("should use each components bsPrefix", () => {
+  it("should use each components bsPrefix", () => {
     const { getByTestId } = render(
       <Dropdown defaultShow bsPrefix="my-dropdown" data-testid="dropdown">
         <Toggle data-testid="toggle" bsPrefix="my-toggle">
@@ -187,11 +189,14 @@ describe("<Dropdown>", () => {
         </Menu>
       </Dropdown>
     )
-    getByTestId("dropdown").classList.should.contain(["show", "my-dropdown"])
-    getByTestId("toggle").classList.should.contain(["my-toggle"])
-    getByTestId("menu").classList.should.contain(["my-menu"])
+    expect(getByTestId("dropdown").classList).to.contain([
+      "show",
+      "my-dropdown",
+    ])
+    expect(getByTestId("toggle").classList).to.contain(["my-toggle"])
+    expect(getByTestId("menu").classList).to.contain(["my-menu"])
   })
-  test("Should have div as default component", () => {
+  it("Should have div as default component", () => {
     const { getByTestId } = render(
       <Dropdown defaultShow bsPrefix="my-dropdown" data-testid="dropdown">
         <Toggle data-testid="toggle" bsPrefix="my-toggle">
@@ -202,9 +207,9 @@ describe("<Dropdown>", () => {
         </Menu>
       </Dropdown>
     )
-    getByTestId("dropdown").tagName.should.equal("DIV")
+    expect(getByTestId("dropdown").tagName).toEqual("DIV")
   })
-  test("Should also accept a custom component", () => {
+  it("Should also accept a custom component", () => {
     const customComponent = React.forwardRef<any, any>(
       ({ show, close, ...props }, ref) => (
         <div ref={ref} id="custom-component" {...props} />
@@ -215,29 +220,29 @@ describe("<Dropdown>", () => {
         <Item>Example Item</Item>
       </Menu>
     )
-    getByTestId("menu").id.should.equal("custom-component")
+    expect(getByTestId("menu").id).toEqual("custom-component")
   })
   describe("InputGroup Dropdowns", () => {
-    test("should not render a .dropdown element when inside input group", () => {
+    it("should not render a .dropdown element when inside input group", () => {
       const { queryByTestId } = render(
         <InputGroup>
           <Dropdown data-testid="dropdown">{dropdownChildren}</Dropdown>
         </InputGroup>
       )
-      expect(queryByTestId("dropdown")!).not.to.exist
+      expect(queryByTestId("dropdown")!).not.toBeTruthy()
     })
-    test("should render .show on the dropdown toggle", () => {
+    it("should render .show on the dropdown toggle", () => {
       const { getByText } = render(
         <InputGroup>
           <Dropdown show>{dropdownChildren}</Dropdown>
         </InputGroup>
       )
-      getByText("Child Title").classList.contains("show").should.be.true
+      expect(getByText("Child Title").classList.contains("show")).toBe(true)
     })
   })
   describe("autoClose behaviour", () => {
     describe('autoClose="true"', () => {
-      test("should close on outer click", () => {
+      it("should close on outer click", () => {
         const onToggleSpy = sinon.spy()
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose>
@@ -248,11 +253,11 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(document.body)
-        onToggleSpy.should.have.been.calledWith(false)
+        expect(onToggleSpy).toHaveBeenCalledWith(false)
       })
     })
     describe('autoClose="inside"', () => {
-      test("should close on child selection", () => {
+      it("should close on child selection", () => {
         const onToggleSpy = sinon.spy()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="inside">
@@ -263,9 +268,9 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(getByTestId("item1"))
-        onToggleSpy.should.have.been.calledWith(false)
+        expect(onToggleSpy).toHaveBeenCalledWith(false)
       })
-      test("should not close on outer click", () => {
+      it("should not close on outer click", () => {
         const onToggleSpy = sinon.spy()
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="inside">
@@ -276,11 +281,11 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(document.body)
-        onToggleSpy.should.not.have.been.called
+        expect(onToggleSpy).not.toHaveBeenCalled()
       })
     })
     describe('autoClose="outside"', () => {
-      test("should not close on child selection", () => {
+      it("should not close on child selection", () => {
         const onToggleSpy = sinon.spy()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="outside">
@@ -291,9 +296,9 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(getByTestId("item1"))
-        onToggleSpy.should.not.have.been.called
+        expect(onToggleSpy).not.toHaveBeenCalled()
       })
-      test("should close on outer click", () => {
+      it("should close on outer click", () => {
         const onToggleSpy = sinon.spy()
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose="outside">
@@ -304,11 +309,11 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(document.body)
-        onToggleSpy.should.be.calledWith(false)
+        expect(onToggleSpy).to.be.calledWith(false)
       })
     })
     describe('autoClose="false"', () => {
-      test("should not close on child selection", () => {
+      it("should not close on child selection", () => {
         const onToggleSpy = sinon.spy()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose={false}>
@@ -319,9 +324,9 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(getByTestId("item1"))
-        onToggleSpy.should.not.have.been.called
+        expect(onToggleSpy).not.toHaveBeenCalled()
       })
-      test("should not close on outer click", () => {
+      it("should not close on outer click", () => {
         const onToggleSpy = sinon.spy()
         render(
           <Dropdown defaultShow onToggle={onToggleSpy} autoClose={false}>
@@ -332,13 +337,13 @@ describe("<Dropdown>", () => {
           </Dropdown>
         )
         fireEvent.click(document.body)
-        onToggleSpy.should.not.have.been.called
+        expect(onToggleSpy).not.toHaveBeenCalled()
       })
     })
   })
 })
 describe("<Button>", () => {
-  test("renders a toggle with the title prop", () => {
+  it("renders a toggle with the title prop", () => {
     const { getByTestId } = render(
       <Button title="Simple Dropdown" data-testid="test-id">
         <Item>Item 1</Item>
@@ -347,9 +352,9 @@ describe("<Button>", () => {
         <Item>Item 4</Item>
       </Button>
     )
-    getByTestId("test-id").textContent!.should.equal("Simple Dropdown")
+    expect(getByTestId("test-id").textContent!).toEqual("Simple Dropdown")
   })
-  test("renders single Item child", () => {
+  it("renders single Item child", () => {
     const { getByText } = render(
       <Button defaultShow title="Single child">
         <Item>Item 1</Item>
@@ -357,35 +362,35 @@ describe("<Button>", () => {
     )
     getByText("Item 1")
   })
-  test('forwards align="end" to the Dropdown', () => {
+  it('forwards align="end" to the Dropdown', () => {
     const { container } = render(
       <Button defaultShow align="end" title="blah">
         <Item>Item 1</Item>
       </Button>
     )
     const menu = container.querySelector("div[x-placement]")
-    menu!.classList.contains("dropdown-menu-end").should.be.true
+    expect(menu!.classList.contains("dropdown-menu-end")).toBe(true)
   })
-  test("passes variant and size to the toggle", () => {
+  it("passes variant and size to the toggle", () => {
     const { getByTestId } = render(
       <Button title="blah" size="sm" variant="success" data-testid="test-id">
         <Item>Item 1</Item>
       </Button>
     )
     const button = getByTestId("test-id").firstElementChild!
-    button.classList.contains("btn-success").should.be.true
-    button.classList.contains("btn-sm").should.be.true
+    expect(button.classList.contains("btn-success")).toBe(true)
+    expect(button.classList.contains("btn-sm")).toBe(true)
   })
-  test("passes menuVariant to dropdown menu", () => {
+  it("passes menuVariant to dropdown menu", () => {
     const { container } = render(
       <Button defaultShow title="blah" menuVariant="dark">
         <Item>Item 1</Item>
       </Button>
     )
     const menu = container.querySelector("div[x-placement]")
-    menu!.classList.contains("dropdown-menu-dark").should.be.true
+    expect(menu!.classList.contains("dropdown-menu-dark")).toBe(true)
   })
-  test("forwards onSelect handler to Items", () => {
+  it("forwards onSelect handler to Items", () => {
     const onSelectSpy = sinon.spy()
     const { getByTestId } = render(
       <Button defaultShow title="Simple Dropdown" onSelect={onSelectSpy}>
@@ -401,14 +406,14 @@ describe("<Button>", () => {
       </Button>
     )
     fireEvent.click(getByTestId("key1"))
-    onSelectSpy.should.be.calledWith("1")
+    expect(onSelectSpy).to.be.calledWith("1")
     fireEvent.click(getByTestId("key2"))
-    onSelectSpy.should.be.calledWith("2")
+    expect(onSelectSpy).to.be.calledWith("2")
     fireEvent.click(getByTestId("key3"))
-    onSelectSpy.should.be.calledWith("3")
-    onSelectSpy.should.be.calledThrice
+    expect(onSelectSpy).to.be.calledWith("3")
+    expect(onSelectSpy).to.be.calledThrice
   })
-  test("does not close when onToggle is controlled", () => {
+  it("does not close when onToggle is controlled", () => {
     const onSelectSpy = sinon.spy()
     const { container, getByTestId } = render(
       <Button
@@ -424,70 +429,70 @@ describe("<Button>", () => {
     )
     fireEvent.click(getByTestId("test-id").firstElementChild!)
     fireEvent.click(getByTestId("key1"))
-    onSelectSpy.should.have.been.calledWith(false)
+    expect(onSelectSpy).toHaveBeenCalledWith(false)
     const menu = container.querySelector("div[x-placement]")
-    menu!.should.exist
+    expect(menu!).toBeTruthy()
   })
-  test("Should pass disabled to button", () => {
+  it("Should pass disabled to button", () => {
     const { container } = render(
       <Button disabled title="Title">
         <Item eventKey="1">Item 1</Item>
         <Item eventKey="2">Item 2</Item>
       </Button>
     )
-    container.querySelector("button[disabled]")!.should.exist
+    expect(container.querySelector("button[disabled]")!).toBeTruthy()
   })
-  test("should pass bsPrefix to the button", () => {
+  it("should pass bsPrefix to the button", () => {
     const { getByTestId } = render(
       <Button title="title" data-testid="test-id" bsPrefix="my-button">
         <Item eventKey="1">Item 1</Item>
       </Button>
     )
     const button = getByTestId("test-id").firstElementChild!
-    button.classList.contains("my-button-primary").should.be.true
+    expect(button.classList.contains("my-button-primary")).toBe(true)
   })
 })
 describe("<Item>", () => {
-  test("renders divider", () => {
+  it("renders divider", () => {
     const { getByRole } = render(<Divider />)
     getByRole("separator")
   })
-  test("renders divider className and style", () => {
+  it("renders divider className and style", () => {
     const { getByRole } = render(
       <Divider className="foo bar" style={{ height: "100px" }} />
     )
     const node = getByRole("separator")
-    node.className.should.match(/\bfoo bar dropdown-divider\b/)
-    node.style.height.should.equal("100px")
+    expect(node.className).to.match(/\bfoo bar dropdown-divider\b/)
+    expect(node.style.height).toEqual("100px")
   })
-  test("renders header", () => {
+  it("renders header", () => {
     const { getByRole } = render(<Header>Header text</Header>)
-    getByRole("heading").textContent!.should.equal("Header text")
+    expect(getByRole("heading").textContent!).toEqual("Header text")
   })
-  test("renders header className and style", () => {
+  it("renders header className and style", () => {
     const { getByText } = render(
       <Header className="foo bar" style={{ height: "100px" }}>
         Header text
       </Header>
     )
     const node = getByText("Header text")
-    node.className.should.match(/\bfoo bar dropdown-header\b/)
+    expect(node.className).to.match(/\bfoo bar dropdown-header\b/)
   })
-  test("renders ItemText", () => {
+  it("renders ItemText", () => {
     const { getByText } = render(<ItemText>My text</ItemText>)
-    getByText("My text").className.should.equal("dropdown-item-text")
+    expect(getByText("My text").className).toEqual("dropdown-item-text")
   })
-  test("renders ItemText className and style", () => {
+  it("renders ItemText className and style", () => {
     const { getByText } = render(
       <ItemText className="foo bar" style={{ height: "100px" }}>
         My text
       </ItemText>
     )
     const node = getByText("My text")
-    node.className.should.match(/\bfoo bar dropdown-item-text\b/)
-    node.style.height.should.equal("100px")
+    expect(node.className).to.match(/\bfoo bar dropdown-item-text\b/)
+    expect(node.style.height).toEqual("100px")
   })
-  test("renders menu item link", () => {
+  it("renders menu item link", () => {
     const onKeyDownSpy = sinon.spy()
     const { getByText } = render(
       <Item onKeyDown={onKeyDownSpy} href="/herpa-derpa">
@@ -495,21 +500,21 @@ describe("<Item>", () => {
       </Item>
     )
     const node = getByText("Item")
-    node.getAttribute("href")!.should.equal("/herpa-derpa")
+    expect(node.getAttribute("href")!).toEqual("/herpa-derpa")
     fireEvent.keyDown(node, { key: "a" })
-    onKeyDownSpy.should.be.called
+    expect(onKeyDownSpy).to.be.called
   })
-  test("should render as a button when set", () => {
+  it("should render as a button when set", () => {
     const { getByTestId } = render(
       <Item as={Button} variant="success" data-testid="item" />
     )
-    getByTestId("item").classList.should.contain([
+    expect(getByTestId("item").classList).to.contain([
       "dropdown-item",
       "btn",
       "btn-success",
     ])
   })
-  test("should pass through props", () => {
+  it("should pass through props", () => {
     const { getByText } = render(
       <Item
         className="test-class"
@@ -521,18 +526,18 @@ describe("<Item>", () => {
       </Item>
     )
     const node = getByText("Title")
-    node.className.should.match(/\btest-class\b/)
-    node.style.height.should.equal("100px")
-    node.getAttribute("href")!.should.equal("#hi-mom!")
-    node.getAttribute("title")!.should.equal("hi mom!")
+    expect(node.className).to.match(/\btest-class\b/)
+    expect(node.style.height).toEqual("100px")
+    expect(node.getAttribute("href")!).toEqual("#hi-mom!")
+    expect(node.getAttribute("title")!).toEqual("hi mom!")
   })
-  test("Should set target attribute on anchor", () => {
+  it("Should set target attribute on anchor", () => {
     const { getByText } = render(<Item target="_blank">Title</Item>)
-    getByText("Title").getAttribute("target")!.should.equal("_blank")
+    expect(getByText("Title").getAttribute("target")!).toEqual("_blank")
   })
 })
 describe("<Dropdown.Menu>", () => {
-  test("renders div with dropdown-menu class", () => {
+  it("renders div with dropdown-menu class", () => {
     const { container } = render(
       <Menu show>
         <Item eventKey="1">Item 1</Item>
@@ -541,150 +546,164 @@ describe("<Dropdown.Menu>", () => {
         <Item eventKey="4">Item 4</Item>
       </Menu>
     )
-    container.firstElementChild!.classList.contains("dropdown-menu").should.be
-      .true
+    expect(container.firstElementChild!.classList.contains("dropdown-menu")).to
+      .be.true
   })
-  test("Should pass props to dropdown", () => {
+  it("Should pass props to dropdown", () => {
     const { container } = render(
       <Menu show className="new-fancy-class">
         <Item eventKey="1">Item 1 content</Item>
       </Menu>
     )
-    container.firstElementChild!.classList.contains("new-fancy-class").should.be
-      .true
+    expect(
+      container.firstElementChild!.classList.contains("new-fancy-class")
+    ).toBe(true)
   })
-  test('applies align="end"', () => {
+  it('applies align="end"', () => {
     const { container } = render(
       <Menu show align="end">
         <Item>Item</Item>
       </Menu>
     )
-    container.firstElementChild!.classList.contains("dropdown-menu-end").should
-      .be.true
+    expect(
+      container.firstElementChild!.classList.contains("dropdown-menu-end")
+    ).toBe(true)
   })
-  test("renders on mount with prop", () => {
+  it("renders on mount with prop", () => {
     const { container } = render(
       <Menu renderOnMount>
         <Item>Item</Item>
       </Menu>
     )
-    container.firstElementChild!.classList.contains("dropdown-menu").should.be
-      .true
+    expect(
+      container.firstElementChild!.classList.contains("dropdown-menu")
+    ).toBe(true)
   })
-  test('does not add any extra classes when align="start"', () => {
+  it('does not add any extra classes when align="start"', () => {
     const { container } = render(
       <Menu show align="start">
         <Item>Item</Item>
       </Menu>
     )
-    container.firstElementChild!.className.should.equal("dropdown-menu show")
+    expect(container.firstElementChild!.className).toEqual("dropdown-menu show")
   })
-  test("adds responsive start alignment classes", () => {
+  it("adds responsive start alignment classes", () => {
     const { container } = render(
       <Menu show align={{ lg: "start" }}>
         <Item>Item</Item>
       </Menu>
     )
-    container.firstElementChild!.classList.contains("dropdown-menu-end").should
-      .be.true
-    container.firstElementChild!.classList.contains("dropdown-menu-lg-start")
-      .should.be.true
+    expect(
+      container.firstElementChild!.classList.contains("dropdown-menu-end")
+    ).toBe(true)
+    expect(
+      container.firstElementChild!.classList.contains("dropdown-menu-lg-start")
+    ).toBe(true)
   })
-  test("adds responsive end alignment classes", () => {
+  it("adds responsive end alignment classes", () => {
     const { container } = render(
       <Menu show align={{ lg: "end" }}>
         <Item>Item</Item>
       </Menu>
     )
-    container.firstElementChild!.classList.contains("dropdown-menu-lg-end")
-      .should.be.true
-    container.querySelector('[data-bs-popper="static"]')!.should.exist
+    expect(
+      container.firstElementChild!.classList.contains("dropdown-menu-lg-end")
+    ).toBe(true)
+    expect(container.querySelector('[data-bs-popper="static"]')!).toBeTruthy()
   })
-  test("allows custom responsive alignment classes", () => {
+  it("allows custom responsive alignment classes", () => {
     const { container } = render(
       <Menu show align={{ custom: "end" }}>
         <Item>Item</Item>
       </Menu>
     )
-    container.firstElementChild!.classList.contains("dropdown-menu-custom-end")
-      .should.be.true
+    expect(
+      container.firstElementChild!.classList.contains(
+        "dropdown-menu-custom-end"
+      )
+    ).toBe(true)
   })
-  test("should render variant", () => {
+  it("should render variant", () => {
     const { container } = render(
       <Menu show variant="dark">
         <Item>Item</Item>
       </Menu>
     )
-    container.firstElementChild!.classList.contains("dropdown-menu-dark").should
-      .be.true
+    expect(
+      container.firstElementChild!.classList.contains("dropdown-menu-dark")
+    ).toBe(true)
   })
   describe("getPlacement", () => {
-    test("should return top placement", () => {
-      getPlacement(false, "up", false).should.equal("top-start")
-      getPlacement(true, "up", false).should.equal("top-end")
+    it("should return top placement", () => {
+      expect(getPlacement(false, "up", false)).toEqual("top-start")
+      expect(getPlacement(true, "up", false)).toEqual("top-end")
     })
-    test("should return top placement for RTL", () => {
-      getPlacement(false, "up", true).should.equal("top-end")
-      getPlacement(true, "up", true).should.equal("top-start")
+    it("should return top placement for RTL", () => {
+      expect(getPlacement(false, "up", true)).toEqual("top-end")
+      expect(getPlacement(true, "up", true)).toEqual("top-start")
     })
-    test("should return end placement", () => {
-      getPlacement(false, "end", false).should.equal("right-start")
-      getPlacement(true, "end", false).should.equal("right-end")
+    it("should return end placement", () => {
+      expect(getPlacement(false, "end", false)).toEqual("right-start")
+      expect(getPlacement(true, "end", false)).toEqual("right-end")
     })
-    test("should return end placement for RTL", () => {
-      getPlacement(false, "end", true).should.equal("left-start")
-      getPlacement(true, "end", true).should.equal("left-end")
+    it("should return end placement for RTL", () => {
+      expect(getPlacement(false, "end", true)).toEqual("left-start")
+      expect(getPlacement(true, "end", true)).toEqual("left-end")
     })
-    test("should return bottom placement", () => {
-      getPlacement(false, "down", false).should.equal("bottom-start")
-      getPlacement(true, "down", false).should.equal("bottom-end")
+    it("should return bottom placement", () => {
+      expect(getPlacement(false, "down", false)).toEqual("bottom-start")
+      expect(getPlacement(true, "down", false)).toEqual("bottom-end")
     })
-    test("should return bottom placement for RTL", () => {
-      getPlacement(false, "down", true).should.equal("bottom-end")
-      getPlacement(true, "down", true).should.equal("bottom-start")
+    it("should return bottom placement for RTL", () => {
+      expect(getPlacement(false, "down", true)).toEqual("bottom-end")
+      expect(getPlacement(true, "down", true)).toEqual("bottom-start")
     })
-    test("should return start placement", () => {
-      getPlacement(false, "start", false).should.equal("left-start")
-      getPlacement(true, "start", false).should.equal("left-end")
+    it("should return start placement", () => {
+      expect(getPlacement(false, "start", false)).toEqual("left-start")
+      expect(getPlacement(true, "start", false)).toEqual("left-end")
     })
-    test("should return start placement for RTL", () => {
-      getPlacement(false, "start", true).should.equal("right-start")
-      getPlacement(true, "start", true).should.equal("right-end")
+    it("should return start placement for RTL", () => {
+      expect(getPlacement(false, "start", true)).toEqual("right-start")
+      expect(getPlacement(true, "start", true)).toEqual("right-end")
     })
   })
 })
 describe("<Toggle>", () => {
-  test("renders toggle button", () => {
+  it("renders toggle button", () => {
     const { getByText } = render(<Toggle id="test-id">herpa derpa</Toggle>)
     const toggle = getByText("herpa derpa")
-    toggle.getAttribute("aria-expanded")!.should.equal("false")
-    toggle.classList.should.contain(["dropdown-toggle", "btn", "btn-primary"])
+    expect(toggle.getAttribute("aria-expanded")!).toEqual("false")
+    expect(toggle.classList).to.contain([
+      "dropdown-toggle",
+      "btn",
+      "btn-primary",
+    ])
   })
-  test("renders children", () => {
+  it("renders children", () => {
     const { getByText } = render(
       <Toggle id="test-id">
         <h3>herpa derpa</h3>
       </Toggle>
     )
-    getByText("herpa derpa").should.exist
+    expect(getByText("herpa derpa")).toBeTruthy()
   })
-  test("forwards onClick handler", () => {
+  it("forwards onClick handler", () => {
     const onClickSpy = sinon.spy()
     const { container } = render(
       <Toggle id="test-id" title="click forwards" onClick={onClickSpy} />
     )
     fireEvent.click(container.firstElementChild!)
-    onClickSpy.should.be.called
+    expect(onClickSpy).to.be.called
   })
-  test("forwards id", () => {
+  it("forwards id", () => {
     const { container } = render(<Toggle id="testid" />)
-    container.firstElementChild!.id.should.equal("testid")
+    expect(container.firstElementChild!.id).toEqual("testid")
   })
-  test("does not forward bsPrefix", () => {
+  it("does not forward bsPrefix", () => {
     const { container } = render(
       <Toggle bsPrefix="my-custom-bsPrefix" title="bsClass" id="test-id" />
     )
-    container.firstElementChild!.classList.should.contain([
+    expect(container.firstElementChild!.classList).to.contain([
       "my-custom-bsPrefix",
       "btn",
     ])

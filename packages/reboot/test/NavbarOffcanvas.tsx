@@ -3,7 +3,7 @@ import { Navbar } from "../src/Navbar.jsx"
 import { Offcanvas } from "../src/Offcanvas.jsx"
 
 describe("<NavbarOffcanvas>", () => {
-  test("should should open the offcanvas", () => {
+  it("should should open the offcanvas", () => {
     const { getByTestId } = render(
       <Navbar>
         <Navbar.Toggle data-testid="toggle" />
@@ -12,10 +12,10 @@ describe("<NavbarOffcanvas>", () => {
     )
 
     fireEvent.click(getByTestId("toggle"))
-    getByTestId("offcanvas").classList.contains("show").should.be.true
+    expect(getByTestId("offcanvas").classList.contains("show")).toBe(true)
   })
 
-  test("should close the offcanvas on header close button click", () => {
+  it("should close the offcanvas on header close button click", () => {
     const onToggleSpy = sinon.spy()
     const { getByLabelText } = render(
       <Navbar onToggle={onToggleSpy} expanded>
@@ -27,10 +27,10 @@ describe("<NavbarOffcanvas>", () => {
     )
 
     fireEvent.click(getByLabelText("Close"))
-    onToggleSpy.should.have.been.calledWith(false)
+    expect(onToggleSpy).toHaveBeenCalledWith(false)
   })
 
-  test("should render nav items with expand prop", () => {
+  it("should render nav items with expand prop", () => {
     const { getByText } = render(
       <Navbar expand="sm">
         <Navbar.Toggle data-testid="toggle" />
@@ -38,6 +38,6 @@ describe("<NavbarOffcanvas>", () => {
       </Navbar>
     )
 
-    getByText("hello").should.exist
+    expect(getByText("hello")).toBeTruthy()
   })
 })

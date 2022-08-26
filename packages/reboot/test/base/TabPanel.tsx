@@ -7,21 +7,21 @@ import { Button, Nav, Tabs, useNavItem } from "../../src/base"
 describe("<TabPanel>", () => {
   it("should render a TabPanel", () => {
     const { getByText } = render(<TabPanel active>test</TabPanel>)
-    getByText("test").should.exist
+    expect(getByText("test")).toBeTruthy()
   })
   it("should render a TabPanel with role tabpanel", () => {
     const { getByRole } = render(<TabPanel active>test</TabPanel>)
-    getByRole("tabpanel").should.exist
+    expect(getByRole("tabpanel")).toBeTruthy()
   })
   it("should not render if not active and mountOnEnter=true", () => {
     const { queryByText } = render(<TabPanel mountOnEnter>test</TabPanel>)
-    expect(queryByText("test")).to.not.exist
+    expect(queryByText("test")).not.toBeTruthy()
   })
   it("should not unmount if rendered already", () => {
     const { getByText, rerender } = render(<TabPanel active>test</TabPanel>)
-    getByText("test").should.exist
+    expect(getByText("test")).toBeTruthy()
     rerender(<TabPanel>test</TabPanel>)
-    getByText("test").should.exist
+    expect(getByText("test")).toBeTruthy()
   })
   it("should unmount", () => {
     const { getByText, queryByText, rerender } = render(
@@ -29,9 +29,9 @@ describe("<TabPanel>", () => {
         test
       </TabPanel>
     )
-    getByText("test").should.exist
+    expect(getByText("test")).toBeTruthy()
     rerender(<TabPanel unmountOnExit>test</TabPanel>)
-    expect(queryByText("test")).to.not.exist
+    expect(queryByText("test")).not.toBeTruthy()
   })
   it("should call getControlledId for id", () => {
     const getControlledIdSpy = sinon.spy()
@@ -50,7 +50,7 @@ describe("<TabPanel>", () => {
         </TabPanel>
       </TabContext.Provider>
     )
-    getControlledIdSpy.should.be.calledWith("mykey")
+    expect(getControlledIdSpy).to.be.calledWith("mykey")
   })
   it("should fire transition events", async () => {
     const transitionSpy = sinon.spy()
@@ -99,9 +99,11 @@ describe("<TabPanel>", () => {
       </Tabs>
     )
     fireEvent.click(getByText("Tab 1"))
-    await waitFor(() => transitionSpy.should.have.been.calledThrice)
+    expect(await waitFor(() => transitionSpy))
+      .toHaveBeenCalled()
+      .Thrice()
     fireEvent.click(getByText("Tab 2"))
-    await waitFor(() => transitionSpy.callCount.should.equal(6))
+    expect(await waitFor(() => transitionSpy.callCount)).toEqual(6)
   })
   it("should derive active state from context", () => {
     const { getByText } = render(
@@ -119,8 +121,8 @@ describe("<TabPanel>", () => {
       </TabContext.Provider>
     )
     const node = getByText("test")
-    node.should.exist
-    expect(node.getAttribute("aria-hidden")).to.equal("false")
+    expect(node).toBeTruthy()
+    expect(node.getAttribute("aria-hidden")).toEqual("false")
   })
   describe("useTabPanel", () => {
     it("should have role set to tabpanel", () => {
@@ -131,7 +133,7 @@ describe("<TabPanel>", () => {
         return null
       }
       render(<Wrapper />)
-      props.role.should.equal("tabpanel")
+      expect(props.role).toEqual("tabpanel")
     })
     it("should have role tabpanel also within a context", () => {
       let props: any
@@ -153,7 +155,7 @@ describe("<TabPanel>", () => {
           <Wrapper />
         </TabContext.Provider>
       )
-      props.role.should.equal("tabpanel")
+      expect(props.role).toEqual("tabpanel")
     })
     it("should use mountOnEnter from props if provided", () => {
       let meta: any
@@ -175,7 +177,7 @@ describe("<TabPanel>", () => {
           <Wrapper mountOnEnter={false} />
         </TabContext.Provider>
       )
-      meta.mountOnEnter.should.equal(false)
+      expect(meta.mountOnEnter).toEqual(false)
     })
     it("should use unmountOnExit from props if provided", () => {
       let meta: any
@@ -197,7 +199,7 @@ describe("<TabPanel>", () => {
           <Wrapper unmountOnExit={false} />
         </TabContext.Provider>
       )
-      meta.unmountOnExit.should.equal(false)
+      expect(meta.unmountOnExit).toEqual(false)
     })
   })
 })

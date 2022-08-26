@@ -13,13 +13,13 @@ describe("useWaitForDOMRef", () => {
       return null
     }
     const onResolved = sinon.spy(resolved => {
-      expect(resolved).to.equal(container)
+      expect(resolved).toEqual(container)
     })
     act(() => {
       mount(<Test container={container} onResolved={onResolved} />)
     })
-    renderCount.should.equal(1)
-    onResolved.should.have.been.calledOnce
+    expect(renderCount).toEqual(1)
+    expect(onResolved).toHaveBeenCalledTimes(1)
   })
   it("should resolve on first render if possible (ref)", () => {
     let renderCount = 0
@@ -31,13 +31,13 @@ describe("useWaitForDOMRef", () => {
       return null
     }
     const onResolved = sinon.spy(resolved => {
-      expect(resolved).to.equal(container.current)
+      expect(resolved).toEqual(container.current)
     })
     act(() => {
       mount(<Test container={container} onResolved={onResolved} />)
     })
-    renderCount.should.equal(1)
-    onResolved.should.have.been.calledOnce
+    expect(renderCount).toEqual(1)
+    expect(onResolved).toHaveBeenCalledTimes(1)
   })
   it("should resolve on first render if possible (function)", () => {
     const div = document.createElement("div")
@@ -49,13 +49,13 @@ describe("useWaitForDOMRef", () => {
       return null
     }
     const onResolved = sinon.spy(resolved => {
-      expect(resolved).to.equal(div)
+      expect(resolved).toEqual(div)
     })
     act(() => {
       mount(<Test container={container} onResolved={onResolved} />)
     })
-    renderCount.should.equal(1)
-    onResolved.should.have.been.calledOnce
+    expect(renderCount).toEqual(1)
+    expect(onResolved).toHaveBeenCalledTimes(1)
   })
   it("should resolve after if required", () => {
     let renderCount = 0
@@ -65,7 +65,7 @@ describe("useWaitForDOMRef", () => {
       return null
     }
     const onResolved = sinon.spy(resolved => {
-      expect(resolved.tagName).to.equal("DIV")
+      expect(resolved.tagName).toEqual("DIV")
     })
     function Wrapper() {
       const container = useRef(null)
@@ -79,7 +79,7 @@ describe("useWaitForDOMRef", () => {
     act(() => {
       mount(<Wrapper onResolved={onResolved} />).update()
     })
-    renderCount.should.equal(2)
-    onResolved.should.have.been.calledOnce
+    expect(renderCount).toEqual(2)
+    expect(onResolved).toHaveBeenCalledTimes(1)
   })
 })

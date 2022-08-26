@@ -86,14 +86,14 @@ describe("<Dropdown>", () => {
   it("renders toggle with Dropdown.Toggle", () => {
     const { container } = render(<SimpleDropdown />)
     const toggle = container.querySelector("button.toggle")
-    toggle.textContent.should.match(/Toggle/)
-    toggle.hasAttribute("aria-haspopup").should.equal(false)
-    toggle.getAttribute("aria-expanded").should.equal("false")
-    toggle.getAttribute("id").should.be.ok
+    expect(toggle.textContent).to.match(/Toggle/)
+    expect(toggle.hasAttribute("aria-haspopup")).toEqual(false)
+    expect(toggle.getAttribute("aria-expanded")).toEqual("false")
+    expect(toggle.getAttribute("id")).to.be.ok
   })
   it("forwards placement to menu", () => {
     const renderSpy = sinon.spy(meta => {
-      meta.placement.should.equal("bottom-end")
+      expect(meta.placement).toEqual("bottom-end")
     })
     render(
       <SimpleDropdown
@@ -103,27 +103,29 @@ describe("<Dropdown>", () => {
         menuSpy={renderSpy}
       />
     )
-    renderSpy.should.have.been.called
+    expect(renderSpy).toHaveBeenCalled()
   })
   // NOTE: The onClick event handler is invoked for both the Enter and Space
   // keys as well since the component is a button. I cannot figure out how to
   // get ReactTestUtils to simulate such though.
   it("toggles open/closed when clicked", () => {
     const { container } = render(<SimpleDropdown />)
-    expect(container.querySelector(".show")).to.not.exist
+    expect(container.querySelector(".show")).not.toBeTruthy()
     fireEvent.click(container.querySelector('button[aria-expanded="false"]'))
-    expect(container.querySelector('div[data-show="true"]')).to.exist
+    expect(container.querySelector('div[data-show="true"]')).toBeTruthy()
     fireEvent.click(container.querySelector('button[aria-expanded="true"]'))
-    expect(container.querySelector(".show")).to.not.exist
-    expect(container.querySelector('button[aria-expanded="false"]')).to.exist
+    expect(container.querySelector(".show")).not.toBeTruthy()
+    expect(
+      container.querySelector('button[aria-expanded="false"]')
+    ).toBeTruthy()
   })
   it("closes when clicked outside", () => {
     const closeSpy = sinon.spy()
     const { container } = render(<SimpleDropdown onToggle={closeSpy} />)
     fireEvent.click(container.querySelector(".toggle"))
     fireEvent.click(document.body)
-    closeSpy.should.have.been.calledTwice
-    closeSpy.lastCall.args[0].should.equal(false)
+    expect(closeSpy).toHaveBeenCalledTimes(2)
+    expect(closeSpy.lastCall.args[0]).toEqual(false)
   })
   it("closes when mousedown outside if rootCloseEvent set", () => {
     const closeSpy = sinon.spy()
@@ -140,8 +142,8 @@ describe("<Dropdown>", () => {
     )
     fireEvent.click(container.querySelector(".toggle"))
     fireEvent.mouseDown(document.body)
-    closeSpy.should.have.been.calledTwice
-    closeSpy.lastCall.args[0].should.equal(false)
+    expect(closeSpy).toHaveBeenCalledTimes(2)
+    expect(closeSpy.lastCall.args[0]).toEqual(false)
   })
   it('when focused and closed toggles open when the key "down" is pressed', () => {
     const closeSpy = sinon.spy()
@@ -149,31 +151,28 @@ describe("<Dropdown>", () => {
       container: focusableContainer,
     })
     fireEvent.keyDown(container.querySelector(".toggle"), { key: "ArrowDown" })
-    closeSpy.should.have.been.calledOnce
-    closeSpy.lastCall.args[0].should.equal(true)
+    expect(closeSpy).toHaveBeenCalledTimes(1)
+    expect(closeSpy.lastCall.args[0]).toEqual(true)
   })
   it("closes when item is clicked", () => {
     const onToggle = sinon.spy()
     const root = render(<SimpleDropdown show onToggle={onToggle} />)
     fireEvent.click(root.getByText("Item 4"))
-    onToggle.should.have.been.calledWith(false)
+    expect(onToggle).toHaveBeenCalledWith(false)
   })
   it("does not close when onToggle is controlled", () => {
     const onToggle = sinon.spy()
     const root = render(<SimpleDropdown show onToggle={onToggle} />)
     fireEvent.click(root.getByText("Toggle"))
     fireEvent.click(root.getByText("Item 1"))
-    onToggle.should.have.been.calledWith(false)
-    expect(root.container.querySelector('div[data-show="true"]')).to.exist
+    expect(onToggle).toHaveBeenCalledWith(false)
+    expect(root.container.querySelector('div[data-show="true"]')).toBeTruthy()
   })
   it("has aria-labelledby same id as toggle button", () => {
     const root = render(<SimpleDropdown defaultShow />)
-    root
-      .getByText("Toggle")
-      .getAttribute("id")
-      .should.equal(
-        root.container.querySelector(".menu").getAttribute("aria-labelledby")
-      )
+    expect(root.getByText("Toggle").getAttribute("id")).toEqual(
+      root.container.querySelector(".menu").getAttribute("aria-labelledby")
+    )
   })
   it("has aria-haspopup when menu has role=menu and not otherwise", () => {
     let root = render(
@@ -187,9 +186,7 @@ describe("<Dropdown>", () => {
         </div>
       </Dropdown>
     )
-    expect(root.getByText("Toggle").hasAttribute("aria-haspopup")).to.equal(
-      true
-    )
+    expect(root.getByText("Toggle").hasAttribute("aria-haspopup")).toEqual(true)
     // doesn't really work across rerenders b/c the menu ref doesn't change
     root.unmount()
     root = render(
@@ -203,7 +200,7 @@ describe("<Dropdown>", () => {
         </div>
       </Dropdown>
     )
-    expect(root.getByText("Toggle").hasAttribute("aria-haspopup")).to.equal(
+    expect(root.getByText("Toggle").hasAttribute("aria-haspopup")).toEqual(
       false
     )
   })
@@ -223,7 +220,7 @@ describe("<Dropdown>", () => {
       const toggle = root.getByText("Toggle")
       toggle.focus()
       fireEvent.click(toggle)
-      document.activeElement.should.equal(toggle)
+      expect(document.activeElement).toEqual(toggle)
     })
     it('when focused and closed sets focus on first menu item when the key "down" is pressed for role="menu"', done => {
       const root = render(
@@ -242,7 +239,7 @@ describe("<Dropdown>", () => {
       toggle.focus()
       fireEvent.keyDown(toggle, { key: "ArrowDown" })
       setTimeout(() => {
-        document.activeElement.should.equal(root.getByText("Item 1"))
+        expect(document.activeElement).toEqual(root.getByText("Item 1"))
         done()
       })
     })
@@ -263,7 +260,7 @@ describe("<Dropdown>", () => {
       toggle.focus()
       fireEvent.click(toggle)
       return Promise.resolve().then(() => {
-        document.activeElement.should.equal(root.getByText("Item 1"))
+        expect(document.activeElement).toEqual(root.getByText("Item 1"))
       })
     })
     it('when open and the key "Escape" is pressed the menu is closed and focus is returned to the button', () => {
@@ -272,9 +269,9 @@ describe("<Dropdown>", () => {
       })
       const firstItem = root.getByText("Item 1")
       firstItem.focus()
-      document.activeElement.should.equal(firstItem)
+      expect(document.activeElement).toEqual(firstItem)
       fireEvent.keyDown(firstItem, { key: "Escape" })
-      document.activeElement.should.equal(root.getByText("Toggle"))
+      expect(document.activeElement).toEqual(root.getByText("Toggle"))
     })
     it('when open and a search input is focused and the key "Escape" is pressed the menu stays open', () => {
       const toggleSpy = sinon.spy()
@@ -291,10 +288,10 @@ describe("<Dropdown>", () => {
       )
       const input = root.getByTestId("input")
       input.focus()
-      document.activeElement.should.equal(input)
+      expect(document.activeElement).toEqual(input)
       fireEvent.keyDown(input, { key: "Escape" })
-      document.activeElement.should.equal(input)
-      toggleSpy.should.not.be.called
+      expect(document.activeElement).toEqual(input)
+      expect(toggleSpy).to.not.be.called
     })
     it('when open and the key "tab" is pressed the menu is closed and focus is progress to the next focusable element', () => {
       const root = render(
@@ -308,7 +305,7 @@ describe("<Dropdown>", () => {
       toggle.focus()
       fireEvent.keyDown(toggle, { key: "Tab" })
       fireEvent.keyUp(toggle, { key: "Tab" })
-      toggle.getAttribute("aria-expanded").should.equal("false")
+      expect(toggle.getAttribute("aria-expanded")).toEqual("false")
       // simulating a tab event doesn't actually shift focus.
       // at least that seems to be the case according to SO.
       // hence no assert on the input having focus.
@@ -326,7 +323,7 @@ describe("<Dropdown>", () => {
     toggle.focus()
     fireEvent.keyDown(toggle, { key: "Tab" })
     fireEvent.keyUp(toggle, { key: "Tab" })
-    onToggleSpy.should.not.be.called
+    expect(onToggleSpy).to.not.be.called
   })
   it('should not call onToggle if the menu is hidden and "tab" is pressed', () => {
     const onToggleSpy = sinon.spy()
@@ -337,7 +334,7 @@ describe("<Dropdown>", () => {
     toggle.focus()
     fireEvent.keyDown(toggle, { key: "Tab" })
     fireEvent.keyUp(toggle, { key: "Tab" })
-    onToggleSpy.should.not.be.called
+    expect(onToggleSpy).to.not.be.called
   })
   describe("popper config", () => {
     it("can add modifiers", done => {
@@ -364,7 +361,7 @@ describe("<Dropdown>", () => {
         </Dropdown>
       )
       setTimeout(() => {
-        spy.should.have.been.calledOnce
+        expect(spy).toHaveBeenCalledTimes(1)
         done()
       })
     })

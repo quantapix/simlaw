@@ -17,17 +17,17 @@ describe("<Theme>", () => {
     },
     hocValue
   )
-  test("should use HOC value", () => {
+  it("should use HOC value", () => {
     const { getByText } = render(
       <div>
         <Foo />
       </div>
     )
     const fooElem = getByText("foo val")
-    fooElem.classList.contains(hocValue).should.be.true
-    fooElem.tagName.toLowerCase().should.equal("p")
+    expect(fooElem.classList.contains(hocValue)).toBe(true)
+    expect(fooElem.tagName.toLowerCase()).toEqual("p")
   })
-  test("should provide bsPrefix overrides", () => {
+  it("should provide bsPrefix overrides", () => {
     const { getByText } = render(
       <Theme prefixes={{ btn: "my-btn", foo: "global-foo" }}>
         <div>
@@ -37,14 +37,14 @@ describe("<Theme>", () => {
       </Theme>
     )
     const buttonElem = getByText("My label")
-    buttonElem.tagName.toLowerCase().should.equal("button")
-    buttonElem.classList.contains("my-btn").should.be.true
-    buttonElem.classList.contains("my-btn-primary").should.be.true
+    expect(buttonElem.tagName.toLowerCase()).toEqual("button")
+    expect(buttonElem.classList.contains("my-btn")).toBe(true)
+    expect(buttonElem.classList.contains("my-btn-primary")).toBe(true)
     const fooElem = getByText("foo val")
-    fooElem.tagName.toLowerCase().should.equal("p")
-    fooElem.classList.contains("global-foo").should.be.true
+    expect(fooElem.tagName.toLowerCase()).toEqual("p")
+    expect(fooElem.classList.contains("global-foo")).toBe(true)
   })
-  test("should use prop bsPrefix first", () => {
+  it("should use prop bsPrefix first", () => {
     const { getByText } = render(
       <Theme prefixes={{ foo: "global-foo" }}>
         <div>
@@ -53,16 +53,17 @@ describe("<Theme>", () => {
       </Theme>
     )
     const fooElem = getByText("foo val")
-    fooElem.tagName.toLowerCase().should.equal("p")
-    fooElem.classList.contains("my-foo").should.be.true
+    expect(fooElem.tagName.toLowerCase()).toEqual("p")
+    expect(fooElem.classList.contains("my-foo")).toBe(true)
   })
-  test("should forward ref", () => {
+  it("should forward ref", () => {
     let ref
     const { getByText } = render(
       <div>
         <Foo bsPrefix="my-foo" ref={r => (ref = r)} />
       </div>
     )
-    getByText("foo val").className.includes(ref.props.bsPrefix).should.be.true
+    expect(getByText("foo val").className.includes(ref.props.bsPrefix)).to.be
+      .true
   })
 })

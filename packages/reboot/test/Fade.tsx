@@ -26,14 +26,14 @@ describe("Fade", () => {
       )
     }
   }
-  test("should not throw an error with StrictMode", () => {
+  it("should not throw an error with StrictMode", () => {
     render(
       <React.StrictMode>
         <Component in>Panel content</Component>
       </React.StrictMode>
     )
   })
-  test("should work with a class component as children", () => {
+  it("should work with a class component as children", () => {
     const onEnteringSpy = sinon.spy()
     class InnerComponent extends React.Component {
       render() {
@@ -46,30 +46,30 @@ describe("Fade", () => {
       </Fade>
     )
     const node = getByTestId("test")
-    node.classList.contains("fade").should.be.true
-    node.classList.contains("show").should.be.true
+    expect(node.classList.contains("fade")).toBe(true)
+    expect(node.classList.contains("show")).toBe(true)
   })
-  test("Should default to hidden", () => {
+  it("Should default to hidden", () => {
     const { getByTestId } = render(<Component>Panel content</Component>)
-    getByTestId("status-hide").should.exist
+    expect(getByTestId("status-hide")).toBeTruthy()
   })
-  test('Should always have the "fade" class', () => {
+  it('Should always have the "fade" class', () => {
     const { getByTestId } = render(<Component>Panel content</Component>)
-    getByTestId("status-hide").should.exist
-    getByTestId("fade-component").classList.contains("fade").should.be.true
+    expect(getByTestId("status-hide")).toBeTruthy()
+    expect(getByTestId("fade-component").classList.contains("fade")).toBe(true)
   })
-  test('Should add "in" class when entering', done => {
+  it('Should add "in" class when entering', done => {
     const { getByTestId, rerender } = render(
       <Component>Panel content</Component>
     )
-    getByTestId("status-hide").should.exist
+    expect(getByTestId("status-hide")).toBeTruthy()
     rerender(
       <Component
         in
         onEntering={() => {
           const node = getByTestId("fade-component")
-          node.classList.contains("fade").should.be.true
-          node.classList.contains("show").should.be.true
+          expect(node.classList.contains("fade")).toBe(true)
+          expect(node.classList.contains("show")).toBe(true)
           done()
         }}
       >
@@ -77,19 +77,19 @@ describe("Fade", () => {
       </Component>
     )
   })
-  test('Should remove "in" class when exiting', done => {
+  it('Should remove "in" class when exiting', done => {
     const { getByTestId, rerender } = render(
       <Component in>Panel content</Component>
     )
     const node = getByTestId("fade-component")
-    node.classList.contains("fade").should.be.true
-    node.classList.contains("show").should.be.true
+    expect(node.classList.contains("fade")).toBe(true)
+    expect(node.classList.contains("show")).toBe(true)
     rerender(
       <Component
         in={false}
         onExiting={() => {
-          node.classList.contains("fade").should.be.true
-          node.classList.contains("show").should.be.false
+          expect(node.classList.contains("fade")).toBe(true)
+          expect(node.classList.contains("show")).toBe(false)
           done()
         }}
       >

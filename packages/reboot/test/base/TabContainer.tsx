@@ -22,10 +22,10 @@ describe("<Tabs>", () => {
     )
     const nestedNavItem = getByText("Two")
     fireEvent.click(nestedNavItem)
-    onSelect.should.not.have.been.called
+    expect(onSelect).not.toHaveBeenCalled()
     const topNavItem = getByText("One")
     fireEvent.click(topNavItem)
-    onSelect.should.have.been.calledOnce
+    expect(onSelect).toHaveBeenCalledTimes(1)
   })
   it("should let generateChildId function create id", () => {
     const generateChildIdSpy = sinon.spy(() => "test-id")
@@ -42,7 +42,7 @@ describe("<Tabs>", () => {
       </Tabs>
     )
     const navItem = getByRole("tab")
-    expect(navItem.getAttribute("id")).to.equal("test-id")
+    expect(navItem.getAttribute("id")).toEqual("test-id")
   })
   it("should match up ids", () => {
     const { getByTestId } = render(
@@ -63,10 +63,10 @@ describe("<Tabs>", () => {
     const tabPanelID = tabPanel.getAttribute("id")
     const navItem = getByTestId("nav-item")
     const navItemID = navItem.getAttribute("id")
-    expect(navItemID).to.exist
-    expect(tabPanelID).to.exist
-    expect(tabPanel.getAttribute("aria-labelledby")).to.equal(navItemID)
-    expect(navItem.getAttribute("aria-controls")).to.equal(tabPanelID)
+    expect(navItemID).toBeTruthy()
+    expect(tabPanelID).toBeTruthy()
+    expect(tabPanel.getAttribute("aria-labelledby")).toEqual(navItemID)
+    expect(navItem.getAttribute("aria-controls")).toEqual(tabPanelID)
   })
   it("should default Nav role to tablist", () => {
     const { getByRole, getByText } = render(
@@ -78,8 +78,8 @@ describe("<Tabs>", () => {
         </div>
       </Tabs>
     )
-    expect(getByRole("tablist")).to.exist
-    expect(getByText("One").getAttribute("role")).to.equal("tab")
+    expect(getByRole("tablist")).toBeTruthy()
+    expect(getByText("One").getAttribute("role")).toEqual("tab")
   })
   it("should use explicit Nav role", () => {
     const { getByRole } = render(
@@ -91,9 +91,9 @@ describe("<Tabs>", () => {
         </div>
       </Tabs>
     )
-    expect(getByRole("navigation")).to.exist
+    expect(getByRole("navigation")).toBeTruthy()
     // make sure it's not passed to the NavItem
-    expect(getByRole("button").getAttribute("role")).to.not.exist
+    expect(getByRole("button").getAttribute("role")).not.toBeTruthy()
   })
   it("Should show the correct tab when selected", () => {
     const { getByText } = render(
@@ -108,15 +108,15 @@ describe("<Tabs>", () => {
         </div>
       </Tabs>
     )
-    expect(getByText("Tab 1").getAttribute("aria-hidden")).to.equal("false")
-    expect(getByText("Tab 2").getAttribute("aria-hidden")).to.equal("true")
-    expect(getByText("One").getAttribute("aria-selected")).to.equal("true")
-    expect(getByText("Two").getAttribute("aria-selected")).to.equal("false")
+    expect(getByText("Tab 1").getAttribute("aria-hidden")).toEqual("false")
+    expect(getByText("Tab 2").getAttribute("aria-hidden")).toEqual("true")
+    expect(getByText("One").getAttribute("aria-selected")).toEqual("true")
+    expect(getByText("Two").getAttribute("aria-selected")).toEqual("false")
     fireEvent.click(getByText("Two"))
-    expect(getByText("Tab 1").getAttribute("aria-hidden")).to.equal("true")
-    expect(getByText("Tab 2").getAttribute("aria-hidden")).to.equal("false")
-    expect(getByText("One").getAttribute("aria-selected")).to.equal("false")
-    expect(getByText("Two").getAttribute("aria-selected")).to.equal("true")
+    expect(getByText("Tab 1").getAttribute("aria-hidden")).toEqual("true")
+    expect(getByText("Tab 2").getAttribute("aria-hidden")).toEqual("false")
+    expect(getByText("One").getAttribute("aria-selected")).toEqual("false")
+    expect(getByText("Two").getAttribute("aria-selected")).toEqual("true")
   })
   it("Should mount and unmount tabs when set", () => {
     const { queryByText, getByText } = render(
@@ -131,11 +131,11 @@ describe("<Tabs>", () => {
         </div>
       </Tabs>
     )
-    expect(queryByText("Tab 1")).to.exist
-    expect(queryByText("Tab 2")).to.not.exist
+    expect(queryByText("Tab 1")).toBeTruthy()
+    expect(queryByText("Tab 2")).not.toBeTruthy()
     fireEvent.click(getByText("Two"))
-    expect(queryByText("Tab 1")).to.not.exist
-    expect(queryByText("Tab 2")).to.exist
+    expect(queryByText("Tab 1")).not.toBeTruthy()
+    expect(queryByText("Tab 2")).toBeTruthy()
   })
   it('Should include "aria-controls" matching rendered TabPanel', () => {
     const { queryByText, getByText } = render(
@@ -150,10 +150,10 @@ describe("<Tabs>", () => {
         </div>
       </Tabs>
     )
-    expect(queryByText("Tab 1")).to.exist
-    expect(queryByText("Tab 2")).to.exist
-    expect(getByText("One").getAttribute("aria-controls")).to.exist
-    expect(getByText("Two").getAttribute("aria-controls")).to.exist
+    expect(queryByText("Tab 1")).toBeTruthy()
+    expect(queryByText("Tab 2")).toBeTruthy()
+    expect(getByText("One").getAttribute("aria-controls")).toBeTruthy()
+    expect(getByText("Two").getAttribute("aria-controls")).toBeTruthy()
   })
   it('Should include "aria-controls" only for rendered tabs when unmountOnExit is true', () => {
     const { queryByText, getByText } = render(
@@ -168,15 +168,15 @@ describe("<Tabs>", () => {
         </div>
       </Tabs>
     )
-    expect(queryByText("Tab 1")).to.exist
-    expect(queryByText("Tab 2")).to.not.exist
-    expect(getByText("One").getAttribute("aria-controls")).to.exist
-    expect(getByText("Two").getAttribute("aria-controls")).to.not.exist
+    expect(queryByText("Tab 1")).toBeTruthy()
+    expect(queryByText("Tab 2")).not.toBeTruthy()
+    expect(getByText("One").getAttribute("aria-controls")).toBeTruthy()
+    expect(getByText("Two").getAttribute("aria-controls")).not.toBeTruthy()
     fireEvent.click(getByText("Two"))
-    expect(queryByText("Tab 1")).to.not.exist
-    expect(queryByText("Tab 2")).to.exist
-    expect(getByText("One").getAttribute("aria-controls")).to.not.exist
-    expect(getByText("Two").getAttribute("aria-controls")).to.exist
+    expect(queryByText("Tab 1")).not.toBeTruthy()
+    expect(queryByText("Tab 2")).toBeTruthy()
+    expect(getByText("One").getAttribute("aria-controls")).not.toBeTruthy()
+    expect(getByText("Two").getAttribute("aria-controls")).toBeTruthy()
   })
   it('Should include "aria-controls" only for the active tab, when mountOnEnter is true', () => {
     const { queryByText, getByText } = render(
@@ -191,14 +191,14 @@ describe("<Tabs>", () => {
         </div>
       </Tabs>
     )
-    expect(queryByText("Tab 1")).to.exist
-    expect(queryByText("Tab 2")).to.not.exist
-    expect(getByText("One").getAttribute("aria-controls")).to.exist
-    expect(getByText("Two").getAttribute("aria-controls")).to.not.exist
+    expect(queryByText("Tab 1")).toBeTruthy()
+    expect(queryByText("Tab 2")).not.toBeTruthy()
+    expect(getByText("One").getAttribute("aria-controls")).toBeTruthy()
+    expect(getByText("Two").getAttribute("aria-controls")).not.toBeTruthy()
     fireEvent.click(getByText("Two"))
-    expect(queryByText("Tab 1")).to.exist
-    expect(queryByText("Tab 2")).to.exist
-    expect(getByText("One").getAttribute("aria-controls")).to.not.exist
-    expect(getByText("Two").getAttribute("aria-controls")).to.exist
+    expect(queryByText("Tab 1")).toBeTruthy()
+    expect(queryByText("Tab 2")).toBeTruthy()
+    expect(getByText("One").getAttribute("aria-controls")).not.toBeTruthy()
+    expect(getByText("Two").getAttribute("aria-controls")).toBeTruthy()
   })
 })

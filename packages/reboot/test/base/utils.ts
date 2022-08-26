@@ -31,34 +31,34 @@ describe("Class helpers", () => {
     const el = document.getElementById("item-1")
     removeProperty("classList", el)
     cls.addClass(el, "test-class")
-    expect(cls.hasClass(el, "test-class")).to.equal(true)
+    expect(cls.hasClass(el, "test-class")).toEqual(true)
     cls.addClass(el, "test-class")
     cls.removeClass(el, "test-class")
-    expect(cls.hasClass(el, "test-class")).to.equal(false)
+    expect(cls.hasClass(el, "test-class")).toEqual(false)
     cls.addClass(el, "undefined")
     cls.addClass(el, "test-class2")
-    expect(cls.hasClass(el, "test-class2")).to.equal(true)
+    expect(cls.hasClass(el, "test-class2")).toEqual(true)
   })
   it("should remove a class", () => {
     const el = document.getElementById("item-2")
     cls.removeClass(el, "test-class")
-    expect(el.className).to.equal("")
+    expect(el.className).toEqual("")
   })
   it("should check for a class", () => {
     expect(
       cls.hasClass(document.getElementById("item-2"), "test-class")
-    ).to.equal(true)
+    ).toEqual(true)
     expect(
       cls.hasClass(document.getElementById("item-1"), "test-class")
-    ).to.equal(false)
+    ).toEqual(false)
   })
   it("should toggle class", () => {
     const el = document.getElementById("item-1")
     removeProperty("classList", el)
     cls.toggleClass(el, "test-class")
-    expect(cls.hasClass(el, "test-class")).to.equal(true)
+    expect(cls.hasClass(el, "test-class")).toEqual(true)
     cls.toggleClass(el, "test-class")
-    expect(cls.hasClass(el, "test-class")).to.equal(false)
+    expect(cls.hasClass(el, "test-class")).toEqual(false)
   })
 })
 describe("DOM manipulation helpers", () => {
@@ -191,15 +191,15 @@ describe("Event helpers", () => {
     evt.addEventListener(parent, "click", evt.filter("#item-2", filtered))
     simulant.fire(span, "click")
     simulant.fire(sibling, "click")
-    expect(filtered.callCount).to.equal(1)
-    expect(handler.callCount).to.equal(2)
+    expect(filtered.callCount).toEqual(1)
+    expect(handler.callCount).toEqual(2)
   })
   it("should trigger events", () => {
     const span = document.getElementsByTagName("span")[0],
       handler = sinon.spy()
     evt.addEventListener(span, "click", handler)
     evt.triggerEvent(span, "click")
-    expect(handler.callCount).to.equal(1)
+    expect(handler.callCount).toEqual(1)
   })
 })
 describe("DOM helpers", () => {
@@ -214,8 +214,8 @@ describe("Query helpers", () => {
     })
     it("should use qsa for complex selectors", () => {
       const spy = sinon.spy(document, "querySelectorAll")
-      expect(qsa(document, ".item-class li").length).to.equal(3)
-      expect(spy.callCount).to.equal(1)
+      expect(qsa(document, ".item-class li").length).toEqual(3)
+      expect(spy.callCount).toEqual(1)
       spy.restore()
     })
   })
@@ -253,8 +253,8 @@ describe("Query helpers", () => {
     it("find Closest node", () => {
       const child = document.getElementById("item-3"),
         parent = document.getElementById("item-1")
-      expect(query.closest(child, "#item-1")).to.equal(parent)
-      expect(query.closest(child, "#item-40")).to.not.exist
+      expect(query.closest(child, "#item-1")).toEqual(parent)
+      expect(query.closest(child, "#item-40")).not.toBeTruthy()
     })
   })
   describe("ScrollParent", () => {
@@ -264,16 +264,16 @@ describe("Query helpers", () => {
     it("should find scroll parent for inline elements", () => {
       const child = document.getElementById("scroll-child"),
         parent = document.getElementById("scroll-parent")
-      expect(query.scrollParent(child)).to.be.equal(parent)
+      expect(query.scrollParent(child)).toEqual(parent)
     })
     it("should ignore static parents when absolute", () => {
       const child = document.getElementById("scroll-child-rel"),
         parent = document.getElementById("scroll-parent-rel")
-      expect(query.scrollParent(child)).to.be.equal(parent)
+      expect(query.scrollParent(child)).toEqual(parent)
     })
     it("should handle fixed", () => {
       const child = document.getElementById("scroll-child-fixed")
-      expect(query.scrollParent(child) === document).to.be.equal(true)
+      expect(query.scrollParent(child) === document).toEqual(true)
     })
   })
   describe("Offset", () => {
@@ -282,26 +282,26 @@ describe("Query helpers", () => {
     })
     it("should fallback when node is disconnected", () => {
       const offset = query.offset(document.createElement("div"))
-      expect(offset.top).to.be.equal(0)
-      expect(offset.left).to.be.equal(0)
+      expect(offset.top).toEqual(0)
+      expect(offset.left).toEqual(0)
     })
     it("should handle absolute position", () => {
       const item = document.getElementById("item-abs")
       const offset = query.offset(item)
-      expect(offset.top).to.be.equal(400)
-      expect(offset.left).to.be.equal(350)
+      expect(offset.top).toEqual(400)
+      expect(offset.left).toEqual(350)
     })
     it("should handle nested positioning", () => {
       const item = document.getElementById("item-nested-abs")
       const offset = query.offset(item)
-      expect(offset.top).to.be.equal(400)
-      expect(offset.left).to.be.equal(200)
+      expect(offset.top).toEqual(400)
+      expect(offset.left).toEqual(200)
     })
     it("should handle fixed offset", () => {
       const item = document.getElementById("item-fixed")
       const offset = query.offset(item)
-      expect(offset.top).to.be.equal(400)
-      expect(offset.left).to.be.equal(350)
+      expect(offset.top).toEqual(400)
+      expect(offset.left).toEqual(350)
     })
   })
   describe("Position", () => {
@@ -370,17 +370,17 @@ describe("style", () => {
     reset()
   })
   it("should get computed style", () => {
-    expect(
-      getComputedStyle(container).getPropertyValue("margin-left")
-    ).to.equal("16px")
+    expect(getComputedStyle(container).getPropertyValue("margin-left")).toEqual(
+      "16px"
+    )
     expect(
       getComputedStyle(container).getPropertyValue("padding-right")
-    ).to.equal("20px")
+    ).toEqual("20px")
   })
   it("should get style", () => {
-    expect(css(container, "margin-left")).to.equal("16px")
-    expect(css(container, "paddingRight")).to.equal("20px")
-    expect(css(container, "padding-right")).to.equal("20px")
+    expect(css(container, "margin-left")).toEqual("16px")
+    expect(css(container, "paddingRight")).toEqual("20px")
+    expect(css(container, "padding-right")).toEqual("20px")
   })
 })
 describe("transitionEnd", () => {
@@ -397,17 +397,17 @@ describe("transitionEnd", () => {
     const handler1 = sinon.spy()
     transitionEnd(el, handler1)
     clock.tick(1300)
-    expect(handler1.callCount).to.equal(0)
+    expect(handler1.callCount).toEqual(0)
     expect(handler1).to.not.be.called
     clock.tick(200)
-    expect(handler1.callCount).to.equal(1)
+    expect(handler1.callCount).toEqual(1)
     el.style.transitionDuration = "500ms"
     const handler2 = sinon.spy()
     transitionEnd(el, handler2)
     clock.tick(400)
-    expect(handler2.callCount).to.equal(0)
+    expect(handler2.callCount).toEqual(0)
     clock.tick(200)
-    expect(handler2.callCount).to.equal(1)
+    expect(handler2.callCount).toEqual(1)
   })
 })
 describe("utils", () => {

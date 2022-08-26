@@ -2,49 +2,49 @@ import { render } from "@testing-library/react"
 import { Badge } from "../src/Badge.js"
 
 describe("Badge", () => {
-  test("Should render correctly", () => {
+  it("Should render correctly", () => {
     const { getByTestId } = render(
       <Badge bg="primary" pill data-testid="test">
         Message
       </Badge>
     )
     const badge = getByTestId("test")
-    badge.innerText.should.equal("Message")
-    badge.classList.contains("badge").should.be.true
-    badge.classList.contains("bg-primary").should.be.true
-    badge.classList.contains("rounded-pill").should.be.true
+    expect(badge.innerText).toEqual("Message")
+    expect(badge.classList.contains("badge")).toBe(true)
+    expect(badge.classList.contains("bg-primary")).toBe(true)
+    expect(badge.classList.contains("rounded-pill")).toBe(true)
   })
-  test("should support custom `as`", () => {
+  it("should support custom `as`", () => {
     const { getByTestId } = render(
       <Badge as="a" href="#" bg="primary" pill data-testid="test">
         Message
       </Badge>
     )
     const badge = getByTestId("test")
-    badge.tagName.toLowerCase().should.equal("a")
-    badge.getAttribute("href")!.should.equal("#")
+    expect(badge.tagName.toLowerCase()).toEqual("a")
+    expect(badge.getAttribute("href")!).toEqual("#")
   })
-  test('Should default to bg="primary"', () => {
+  it('Should default to bg="primary"', () => {
     const { getByTestId } = render(<Badge data-testid="test">Message</Badge>)
     const badge = getByTestId("test")
-    badge.classList.contains("bg-primary").should.be.true
+    expect(badge.classList.contains("bg-primary")).toBe(true)
   })
-  test("Should use bg class", () => {
+  it("Should use bg class", () => {
     const { getByTestId } = render(
       <Badge bg="danger" data-testid="test">
         Message
       </Badge>
     )
     const badge = getByTestId("test")
-    badge.classList.contains("bg-danger").should.be.true
+    expect(badge.classList.contains("bg-danger")).toBe(true)
   })
-  test("Should not have bg class when bg=null", () => {
+  it("Should not have bg class when bg=null", () => {
     const { getByTestId } = render(
       <Badge bg={null as any} data-testid="test">
         Message
       </Badge>
     )
     const badge = getByTestId("test")
-    badge.classList.contains("bg-primary").should.be.false
+    expect(badge.classList.contains("bg-primary")).toBe(false)
   })
 })

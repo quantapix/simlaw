@@ -21,12 +21,14 @@ describe("<Toast>", () => {
   afterEach(() => {
     clock.restore()
   })
-  test("should apply bg prop", () => {
+  it("should apply bg prop", () => {
     const { container } = render(<Toast bg="primary">Card</Toast>)
-    container.firstElementChild!.classList.contains("bg-primary").should.be.true
-    container.firstElementChild!.classList.contains("toast").should.be.true
+    expect(container.firstElementChild!.classList.contains("bg-primary")).toBe(
+      true
+    )
+    expect(container.firstElementChild!.classList.contains("toast")).toBe(true)
   })
-  test("should render an entire toast", () => {
+  it("should render an entire toast", () => {
     const { container } = render(
       <Toast>
         <Header />
@@ -35,7 +37,7 @@ describe("<Toast>", () => {
     )
     ;["fade", "toast", "show"].map(
       className =>
-        container.firstElementChild!.classList.contains(className).should.be
+        expect(container.firstElementChild!.classList.contains(className)).to.be
           .true
     )
     ;(
@@ -44,15 +46,14 @@ describe("<Toast>", () => {
         ["aria-live", "assertive"],
         ["aria-atomic", true],
       ] as const
-    ).map(
-      ([attrName, attrVal]) =>
-        (
-          container.firstElementChild!.attributes.getNamedItem(attrName)!
-            .textContent === `${attrVal}`
-        ).should.be.true
+    ).map(([attrName, attrVal]) =>
+      expect(
+        container.firstElementChild!.attributes.getNamedItem(attrName)!
+          .textContent === `${attrVal}`
+      ).toBe(true)
     )
   })
-  test("should render without transition if animation is false", () => {
+  it("should render without transition if animation is false", () => {
     const { container } = render(
       <Toast animation={false}>
         <Header />
@@ -61,11 +62,11 @@ describe("<Toast>", () => {
     )
     ;["toast", "show"].map(
       className =>
-        container.firstElementChild!.classList.contains(className).should.be
+        expect(container.firstElementChild!.classList.contains(className)).to.be
           .true
     )
   })
-  test("should trigger the onClose event after clicking on the close button", () => {
+  it("should trigger the onClose event after clicking on the close button", () => {
     const onCloseSpy = sinon.spy()
     const { container } = render(
       <Toast onClose={onCloseSpy}>
@@ -76,9 +77,9 @@ describe("<Toast>", () => {
     fireEvent.click(
       container.firstElementChild!.getElementsByTagName("button")[0]
     )
-    onCloseSpy.should.have.been.calledOnce
+    expect(onCloseSpy).toHaveBeenCalledTimes(1)
   })
-  test("should trigger the onClose event after the autohide delay", () => {
+  it("should trigger the onClose event after the autohide delay", () => {
     const onCloseSpy = sinon.spy()
     render(
       <Toast onClose={onCloseSpy} delay={500} show autohide>
@@ -87,9 +88,9 @@ describe("<Toast>", () => {
       </Toast>
     )
     clock.tick(1000)
-    onCloseSpy.should.have.been.calledOnce
+    expect(onCloseSpy).toHaveBeenCalledTimes(1)
   })
-  test("should not trigger the onClose event if autohide is not set", () => {
+  it("should not trigger the onClose event if autohide is not set", () => {
     const onCloseSpy = sinon.spy()
     render(
       <Toast onClose={onCloseSpy}>
@@ -98,9 +99,9 @@ describe("<Toast>", () => {
       </Toast>
     )
     clock.tick(3000)
-    onCloseSpy.should.not.to.have.been.called
+    expect(onCloseSpy).not.toHaveBeenCalled()
   })
-  test("should clearTimeout after unmount", () => {
+  it("should clearTimeout after unmount", () => {
     const onCloseSpy = sinon.spy()
     const { unmount } = render(
       <Toast delay={500} onClose={onCloseSpy} show autohide>
@@ -110,9 +111,9 @@ describe("<Toast>", () => {
     )
     unmount()
     clock.tick(1000)
-    onCloseSpy.should.not.to.have.been.called
+    expect(onCloseSpy).not.toHaveBeenCalled()
   })
-  test("should not reset autohide timer when element re-renders with same props", () => {
+  it("should not reset autohide timer when element re-renders with same props", () => {
     const onCloseSpy = sinon.spy()
     const toast = getToast({ onCloseSpy })
     const { rerender } = render(toast)
@@ -120,89 +121,93 @@ describe("<Toast>", () => {
     // Trigger render with no props changes.
     rerender(toast)
     clock.tick(300)
-    onCloseSpy.should.have.been.calledOnce
+    expect(onCloseSpy).toHaveBeenCalledTimes(1)
   })
-  test("should not reset autohide timer when delay is changed", () => {
+  it("should not reset autohide timer when delay is changed", () => {
     const onCloseSpy = sinon.spy()
     const { rerender } = render(getToast({ delay: 500, onCloseSpy }))
     clock.tick(250)
     rerender(getToast({ delay: 10000, onCloseSpy }))
     clock.tick(300)
-    onCloseSpy.should.have.been.calledOnce
+    expect(onCloseSpy).toHaveBeenCalledTimes(1)
   })
-  test("should not reset autohide timer when onClosed is changed", () => {
+  it("should not reset autohide timer when onClosed is changed", () => {
     const onCloseSpy = sinon.spy()
     const onCloseSpy2 = sinon.spy()
     const { rerender } = render(getToast({ onCloseSpy }))
     clock.tick(250)
     rerender(getToast({ onCloseSpy: onCloseSpy2 }))
     clock.tick(300)
-    onCloseSpy.should.not.to.have.been.called
-    onCloseSpy2.should.have.been.calledOnce
+    expect(onCloseSpy).not.toHaveBeenCalled()
+    expect(onCloseSpy2).toHaveBeenCalledTimes(1)
   })
-  test("should not call onClose if autohide is changed from true to false", () => {
+  it("should not call onClose if autohide is changed from true to false", () => {
     const onCloseSpy = sinon.spy()
     const { rerender } = render(getToast({ onCloseSpy, autohide: true }))
     clock.tick(250)
     rerender(getToast({ onCloseSpy, autohide: false }))
     clock.tick(300)
-    onCloseSpy.should.not.to.have.been.called
+    expect(onCloseSpy).not.toHaveBeenCalled()
   })
-  test("should not call onClose if show is changed from true to false", () => {
+  it("should not call onClose if show is changed from true to false", () => {
     const onCloseSpy = sinon.spy()
     const { rerender } = render(getToast({ show: true, onCloseSpy }))
     clock.tick(100)
     rerender(getToast({ show: false, onCloseSpy }))
     clock.tick(300)
-    onCloseSpy.should.not.to.have.been.called
+    expect(onCloseSpy).not.toHaveBeenCalled()
   })
-  test("should render with bsPrefix", () => {
+  it("should render with bsPrefix", () => {
     const { container } = render(
       <Toast bsPrefix="my-toast">
         <Header />
         <Body />
       </Toast>
     )
-    container.firstElementChild!.tagName.toLowerCase().should.equal("div")
+    expect(container.firstElementChild!.tagName.toLowerCase()).toEqual("div")
     container.firstElementChild!.classList.contains("my-toast")
   })
 })
 
 describe("Header", () => {
-  test("will pass all props to the created div and renders its children", () => {
+  it("will pass all props to the created div and renders its children", () => {
     const { container } = render(
       <Header>
         <strong>content</strong>
       </Header>
     )
-    container.firstElementChild!.tagName.toLowerCase().should.equal("div")
-    container
-      .firstElementChild!.firstElementChild!.tagName.toLowerCase()
-      .should.equal("strong")
-    container.firstElementChild!.classList.contains("toast-header").should.be
-      .true
+    expect(container.firstElementChild!.tagName.toLowerCase()).toEqual("div")
+    expect(
+      container.firstElementChild!.firstElementChild!.tagName.toLowerCase()
+    ).toEqual("strong")
+    expect(container.firstElementChild!.classList.contains("toast-header")).to
+      .be.true
   })
-  test("should render close button variant", () => {
+  it("should render close button variant", () => {
     const { container } = render(
       <Header closeButton closeVariant="white">
         <strong>content</strong>
       </Header>
     )
-    container
-      .firstElementChild!.getElementsByTagName("button")[0]
-      .classList.contains("btn-close-white").should.be.true
+    expect(
+      container
+        .firstElementChild!.getElementsByTagName("button")[0]
+        .classList.contains("btn-close-white")
+    ).toBe(true)
   })
 })
 
 describe("Body", () => {
-  test("will pass all props to the created div and renders its children", () => {
+  it("will pass all props to the created div and renders its children", () => {
     const content = <strong>Content</strong>
     const { container } = render(
       <Body className="custom-class">{content}</Body>
     )
-    container.firstElementChild!.classList.contains("custom-class").should.be
-      .true
-    container.firstElementChild!.classList.contains("toast-body").should.be.true
+    expect(container.firstElementChild!.classList.contains("custom-class")).to
+      .be.true
+    expect(container.firstElementChild!.classList.contains("toast-body")).toBe(
+      true
+    )
   })
 })
 
@@ -225,20 +230,21 @@ const createExpectedClasses = (containerPosition = "absolute") =>
     ])
   )
 describe("Container", () => {
-  test("should render a basic toast container", () => {
+  it("should render a basic toast container", () => {
     const { container } = render(<Container />)
-    container.firstElementChild!.classList.contains("toast-container").should.be
-      .true
+    expect(
+      container.firstElementChild!.classList.contains("toast-container")
+    ).toBe(true)
   })
   describe("without containerPosition", () => {
     const expectedClasses = createExpectedClasses()
     Object.keys(expectedClasses).forEach((position: Position) => {
-      test(`should render classes for position=${position} with position-absolute`, () => {
+      it(`should render classes for position=${position} with position-absolute`, () => {
         const { container } = render(<Container position={position} />)
-        expectedClasses[position].map(
-          className =>
-            container.firstElementChild!.classList.contains(className).should.be
-              .true
+        expectedClasses[position].map(className =>
+          expect(
+            container.firstElementChild!.classList.contains(className)
+          ).toBe(true)
         )
       })
     })
@@ -246,12 +252,12 @@ describe("Container", () => {
   describe('with containerPosition = "" (empty string)', () => {
     const expectedClasses = createExpectedClasses("")
     Object.keys(expectedClasses).forEach((position: Position) => {
-      test(`should render classes for position=${position} without position-*`, () => {
+      it(`should render classes for position=${position} without position-*`, () => {
         const { container } = render(<Container position={position} />)
-        expectedClasses[position].map(
-          className =>
-            container.firstElementChild!.classList.contains(className).should.be
-              .true
+        expectedClasses[position].map(className =>
+          expect(
+            container.firstElementChild!.classList.contains(className)
+          ).toBe(true)
         )
       })
     })
@@ -261,17 +267,17 @@ describe("Container", () => {
       describe(`with containerPosition=${containerPosition}`, () => {
         const expectedClasses = createExpectedClasses(containerPosition)
         Object.keys(expectedClasses).forEach((position: Position) => {
-          test(`should render classes for position=${position} with position-${containerPosition}`, () => {
+          it(`should render classes for position=${position} with position-${containerPosition}`, () => {
             const { container } = render(
               <Container
                 position={position}
                 containerPosition={containerPosition}
               />
             )
-            expectedClasses[position].map(
-              className =>
+            expectedClasses[position].map(className =>
+              expect(
                 container.firstElementChild!.classList.contains(className)
-                  .should.be.true
+              ).toBe(true)
             )
           })
         })
