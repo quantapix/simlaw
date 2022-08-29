@@ -406,7 +406,7 @@ describe("<Button>", () => {
     expect(mock).toHaveBeenCalledWith("2")
     fireEvent.click(getByTestId("key3"))
     expect(mock).toHaveBeenCalledWith("3")
-    expect(mock).to.be.calledThrice
+    expect(mock).toHaveBeenCalledTimes(3)
   })
   it("does not close when onToggle is controlled", () => {
     const mock = jest.fn()
@@ -497,7 +497,7 @@ describe("<Item>", () => {
     const node = getByText("Item")
     expect(node.getAttribute("href")!).toEqual("/herpa-derpa")
     fireEvent.keyDown(node, { key: "a" })
-    expect(mock).to.be.called
+    expect(mock).toHaveBeenCalled()
   })
   it("Should render as a button when set", () => {
     const { getByTestId } = render(
@@ -689,7 +689,7 @@ describe("<Toggle>", () => {
       <Toggle id="test-id" title="click forwards" onClick={mock} />
     )
     fireEvent.click(container.firstElementChild!)
-    expect(mock).to.be.called
+    expect(mock).toHaveBeenCalled()
   })
   it("forwards id", () => {
     const { container } = render(<Toggle id="testid" />)

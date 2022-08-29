@@ -1,17 +1,27 @@
-import { Menu, Item, Toggle, Dropdown } from "../../src/base/Dropdown.jsx"
+import {
+  Menu,
+  MenuOpts,
+  Item,
+  Toggle,
+  Dropdown,
+} from "../../src/base/Dropdown.jsx"
 import { render, fireEvent } from "@testing-library/react"
-import * as React from "react"
+import { Selectable } from "../../src/base/types.jsx"
+import type * as qr from "react"
 import ReactDOM from "react-dom"
-import SelectableContext from "../src/SelectableContext"
 
 describe("<Dropdown>", () => {
-  const Menu = ({
+  const TestMenu = ({
     usePopper,
     rootCloseEvent,
-    renderSpy,
+    mock,
     popperConfig,
     renderMenuOnMount = true,
-    ...props
+    ...ps
+  }: MenuOpts & {
+    mock?: any
+    renderMenuOnMount?: boolean | undefined
+    children?: qr.ReactNode | qr.ReactNode[]
   }) => (
     <Menu
       flip
@@ -21,13 +31,13 @@ describe("<Dropdown>", () => {
     >
       {(menuProps, meta) => {
         const { show, hasShown } = meta
-        renderSpy && renderSpy(meta)
+        mock && mock(meta)
         if (!renderMenuOnMount && !hasShown) {
           return null
         }
         return (
           <div
-            {...props}
+            {...ps}
             {...menuProps}
             data-show={show}
             className="menu"
@@ -37,11 +47,11 @@ describe("<Dropdown>", () => {
       }}
     </Menu>
   )
-  const Toggle = props => (
+  const TestToggle = (ps: any) => (
     <Toggle>
-      {toggleProps => (
+      {(toggleProps: any) => (
         <button
-          {...props}
+          {...ps}
           {...toggleProps}
           id="test-id"
           type="button"
@@ -52,31 +62,41 @@ describe("<Dropdown>", () => {
   )
   const SimpleDropdown = ({
     children,
-    menuSpy,
+    mock,
     usePopper,
+    rootCloseEvent,
+    popperConfig,
     renderMenuOnMount,
-    ...outer
+    ...ps
+  }: MenuOpts & {
+    mock?: any
+    renderMenuOnMount?: boolean
+    children?: qr.ReactNode
+    defaultShow?: boolean
+    onToggle?: any
   }) => (
-    <Dropdown {...outer}>
+    <Dropdown {...ps}>
       {children || (
         <>
-          <Toggle key="toggle">Toggle</Toggle>,
-          <Menu
+          <TestToggle key="toggle">Toggle</TestToggle>,
+          <TestMenu
             key="menu"
-            renderSpy={menuSpy}
+            mock={mock}
             usePopper={usePopper}
+            popperConfig={popperConfig}
+            rootCloseEvent={rootCloseEvent}
             renderMenuOnMount={renderMenuOnMount}
           >
             <Item>Item 1</Item>
             <Item>Item 2</Item>
             <Item>Item 3</Item>
             <Item>Item 4</Item>
-          </Menu>
+          </TestMenu>
         </>
       )}
     </Dropdown>
   )
-  let focusableContainer
+  let focusableContainer: any
   beforeEach(() => {
     focusableContainer = document.createElement("div")
     document.body.appendChild(focusableContainer)
@@ -87,11 +107,11 @@ describe("<Dropdown>", () => {
   })
   it("renders toggle with Toggle", () => {
     const { container } = render(<SimpleDropdown />)
-    const toggle = container.querySelector("button.toggle")
-    expect(toggle.textContent).toMatch(/Toggle/)
-    expect(toggle.hasAttribute("aria-haspopup")).toEqual(false)
-    expect(toggle.getAttribute("aria-expanded")).toEqual("false")
-    expect(toggle.getAttribute("id")).toBeTruthy()
+    const y = container.querySelector("button.toggle")!
+    expect(y.textContent).toMatch(/Toggle/)
+    expect(y.hasAttribute("aria-haspopup")).toEqual(false)
+    expect(y.getAttribute("aria-expanded")).toEqual("false")
+    expect(y.getAttribute("id")).toBeTruthy()
   })
   it("forwards placement to menu", () => {
     const mock = jest.fn(meta => {
@@ -102,47 +122,45 @@ describe("<Dropdown>", () => {
         show
         placement="bottom-end"
         usePopper={false}
-        menuSpy={mock}
+        mock={mock}
       />
     )
     expect(mock).toHaveBeenCalled()
   })
   it("toggles open/closed when clicked", () => {
-    const { container } = render(<SimpleDropdown />)
-    expect(container.querySelector(".show")).not.toBeTruthy()
-    fireEvent.click(container.querySelector('button[aria-expanded="false"]'))
-    expect(container.querySelector('div[data-show="true"]')).toBeTruthy()
-    fireEvent.click(container.querySelector('button[aria-expanded="true"]'))
-    expect(container.querySelector(".show")).not.toBeTruthy()
-    expect(
-      container.querySelector('button[aria-expanded="false"]')
-    ).toBeTruthy()
+    const { container: c } = render(<SimpleDropdown />)
+    expect(c.querySelector(".show")).not.toBeTruthy()
+    fireEvent.click(c.querySelector('button[aria-expanded="false"]')!)
+    expect(c.querySelector('div[data-show="true"]')).toBeTruthy()
+    fireEvent.click(c.querySelector('button[aria-expanded="true"]')!)
+    expect(c.querySelector(".show")).not.toBeTruthy()
+    expect(c.querySelector('button[aria-expanded="false"]')).toBeTruthy()
   })
   it("closes when clicked outside", () => {
     const mock = jest.fn()
-    const { container } = render(<SimpleDropdown onToggle={mock} />)
-    fireEvent.click(container.querySelector(".toggle"))
+    const { container: c } = render(<SimpleDropdown mock={mock} />)
+    fireEvent.click(c.querySelector(".toggle")!)
     fireEvent.click(document.body)
     expect(mock).toHaveBeenCalledTimes(2)
-    expect(mock.lastCall.args[0]).toEqual(false)
+    expect(mock.mock.lastCall.args[0]).toEqual(false)
   })
   it("closes when mousedown outside if rootCloseEvent set", () => {
     const mock = jest.fn()
-    const { container } = render(
+    const { container: c } = render(
       <Dropdown onToggle={mock} id="test-id">
         <div>
-          <Toggle>Child Title</Toggle>,
-          <Menu rootCloseEvent="mousedown">
+          <TestToggle>Child Title</TestToggle>,
+          <TestMenu rootCloseEvent="mousedown">
             <button type="button">Item 1</button>
             <button type="button">Item 2</button>
-          </Menu>
+          </TestMenu>
         </div>
       </Dropdown>
     )
-    fireEvent.click(container.querySelector(".toggle"))
+    fireEvent.click(c.querySelector(".toggle")!)
     fireEvent.mouseDown(document.body)
     expect(mock).toHaveBeenCalledTimes(2)
-    expect(mock.lastCall.args[0]).toEqual(false)
+    expect(mock.mock.lastCall.args[0]).toEqual(false)
   })
   it('when focused and closed toggles open when the key "down" is pressed', () => {
     const mock = jest.fn()
@@ -151,7 +169,7 @@ describe("<Dropdown>", () => {
     })
     fireEvent.keyDown(container.querySelector(".toggle"), { key: "ArrowDown" })
     expect(mock).toHaveBeenCalledTimes(1)
-    expect(mock.lastCall.args[0]).toEqual(true)
+    expect(mock.mock.lastCall.args[0]).toEqual(true)
   })
   it("closes when item is clicked", () => {
     const mock = jest.fn()
@@ -170,18 +188,18 @@ describe("<Dropdown>", () => {
   it("has aria-labelledby same id as toggle button", () => {
     const root = render(<SimpleDropdown defaultShow />)
     expect(root.getByText("Toggle").getAttribute("id")).toEqual(
-      root.container.querySelector(".menu").getAttribute("aria-labelledby")
+      root.container.querySelector(".menu")!.getAttribute("aria-labelledby")
     )
   })
   it("has aria-haspopup when menu has role=menu and not otherwise", () => {
     let root = render(
       <Dropdown>
         <div>
-          <Toggle>Toggle</Toggle>,
-          <Menu role="menu">
+          <TestToggle>Toggle</TestToggle>,
+          <TestMenu role="menu">
             <Item>Item 1</Item>
             <Item>Item 2</Item>
-          </Menu>
+          </TestMenu>
         </div>
       </Dropdown>
     )
@@ -190,11 +208,11 @@ describe("<Dropdown>", () => {
     root = render(
       <Dropdown>
         <div>
-          <Toggle>Toggle</Toggle>,
-          <Menu>
+          <TestToggle>Toggle</TestToggle>,
+          <TestMenu>
             <Item>Item 1</Item>
             <Item>Item 2</Item>
-          </Menu>
+          </TestMenu>
         </div>
       </Dropdown>
     )
@@ -207,35 +225,37 @@ describe("<Dropdown>", () => {
       const root = render(
         <Dropdown focusFirstItemOnShow={false}>
           <div>
-            <Toggle>Toggle</Toggle>,
-            <Menu>
+            <TestToggle>Toggle</TestToggle>,
+            <TestMenu>
               <button type="button">Item 1</button>
-            </Menu>
+            </TestMenu>
           </div>
         </Dropdown>,
         { container: focusableContainer }
       )
-      const toggle = root.getByText("Toggle")
-      toggle.focus()
-      fireEvent.click(toggle)
-      expect(document.activeElement).toEqual(toggle)
+      const y = root.getByText("Toggle")
+      y.focus()
+      fireEvent.click(y)
+      expect(document.activeElement).toEqual(y)
     })
     it('when focused and closed sets focus on first menu item when the key "down" is pressed for role="menu"', done => {
       const root = render(
         <Dropdown>
           <div>
-            <Toggle>Toggle</Toggle>,
-            <Menu role="menu">
+            <TestToggle>Toggle</TestToggle>,
+            <TestMenu>
+              {" "}
+              role="menu"
               <Item>Item 1</Item>
               <Item>Item 2</Item>
-            </Menu>
+            </TestMenu>
           </div>
         </Dropdown>,
         { container: focusableContainer }
       )
-      const toggle = root.getByText("Toggle")
-      toggle.focus()
-      fireEvent.keyDown(toggle, { key: "ArrowDown" })
+      const y = root.getByText("Toggle")
+      y.focus()
+      fireEvent.keyDown(y, { key: "ArrowDown" })
       setTimeout(() => {
         expect(document.activeElement).toEqual(root.getByText("Item 1"))
         done()
@@ -245,18 +265,18 @@ describe("<Dropdown>", () => {
       const root = render(
         <Dropdown focusFirstItemOnShow>
           <div>
-            <Toggle>Toggle</Toggle>,
-            <Menu>
+            <TestToggle>Toggle</TestToggle>,
+            <TestMenu>
               <Item>Item 1</Item>
               <Item>Item 2</Item>
-            </Menu>
+            </TestMenu>
           </div>
         </Dropdown>,
         { container: focusableContainer }
       )
-      const toggle = root.getByText("Toggle")
-      toggle.focus()
-      fireEvent.click(toggle)
+      const y = root.getByText("Toggle")
+      y.focus()
+      fireEvent.click(y)
       return Promise.resolve().then(() => {
         expect(document.activeElement).toEqual(root.getByText("Item 1"))
       })
@@ -265,31 +285,31 @@ describe("<Dropdown>", () => {
       const root = render(<SimpleDropdown defaultShow />, {
         container: focusableContainer,
       })
-      const firstItem = root.getByText("Item 1")
-      firstItem.focus()
-      expect(document.activeElement).toEqual(firstItem)
-      fireEvent.keyDown(firstItem, { key: "Escape" })
+      const y = root.getByText("Item 1")
+      y.focus()
+      expect(document.activeElement).toEqual(y)
+      fireEvent.keyDown(y, { key: "Escape" })
       expect(document.activeElement).toEqual(root.getByText("Toggle"))
     })
     it('when open and a search input is focused and the key "Escape" is pressed the menu stays open', () => {
       const mock = jest.fn()
       const root = render(
         <Dropdown defaultShow onToggle={mock}>
-          <Toggle key="toggle">Toggle</Toggle>,
-          <Menu key="menu">
+          <TestToggle key="toggle">Toggle</TestToggle>,
+          <TestMenu>
+            {" "}
+            key="menu"
             <input type="search" data-testid="input" />
-          </Menu>
+          </TestMenu>
         </Dropdown>,
-        {
-          container: focusableContainer,
-        }
+        { container: focusableContainer }
       )
-      const input = root.getByTestId("input")
-      input.focus()
-      expect(document.activeElement).toEqual(input)
-      fireEvent.keyDown(input, { key: "Escape" })
-      expect(document.activeElement).toEqual(input)
-      expect(mock).to.not.be.called
+      const y = root.getByTestId("input")
+      y.focus()
+      expect(document.activeElement).toEqual(y)
+      fireEvent.keyDown(y, { key: "Escape" })
+      expect(document.activeElement).toEqual(y)
+      expect(mock).not.toHaveBeenCalled()
     })
     it('when open and the key "tab" is pressed the menu is closed and focus is progress to the next focusable element', () => {
       const root = render(
@@ -299,11 +319,11 @@ describe("<Dropdown>", () => {
         </div>,
         { container: focusableContainer }
       )
-      const toggle = root.getByText("Toggle")
-      toggle.focus()
-      fireEvent.keyDown(toggle, { key: "Tab" })
-      fireEvent.keyUp(toggle, { key: "Tab" })
-      expect(toggle.getAttribute("aria-expanded")).toEqual("false")
+      const y = root.getByText("Toggle")
+      y.focus()
+      fireEvent.keyDown(y, { key: "Tab" })
+      fireEvent.keyUp(y, { key: "Tab" })
+      expect(y.getAttribute("aria-expanded")).toEqual("false")
     })
   })
   it('should not call onToggle if the menu ref not defined and "tab" is pressed', () => {
@@ -314,22 +334,22 @@ describe("<Dropdown>", () => {
         container: focusableContainer,
       }
     )
-    const toggle = root.getByText("Toggle")
-    toggle.focus()
-    fireEvent.keyDown(toggle, { key: "Tab" })
-    fireEvent.keyUp(toggle, { key: "Tab" })
-    expect(mock).to.not.be.called
+    const y = root.getByText("Toggle")
+    y.focus()
+    fireEvent.keyDown(y, { key: "Tab" })
+    fireEvent.keyUp(y, { key: "Tab" })
+    expect(mock).not.toHaveBeenCalled()
   })
   it('should not call onToggle if the menu is hidden and "tab" is pressed', () => {
     const mock = jest.fn()
     const root = render(<SimpleDropdown onToggle={mock} />, {
       container: focusableContainer,
     })
-    const toggle = root.getByText("Toggle")
-    toggle.focus()
-    fireEvent.keyDown(toggle, { key: "Tab" })
-    fireEvent.keyUp(toggle, { key: "Tab" })
-    expect(mock).to.not.be.called
+    const y = root.getByText("Toggle")
+    y.focus()
+    fireEvent.keyDown(y, { key: "Tab" })
+    fireEvent.keyUp(y, { key: "Tab" })
+    expect(mock).not.toHaveBeenCalled()
   })
   describe("popper config", () => {
     it("can add modifiers", done => {
@@ -347,11 +367,13 @@ describe("<Dropdown>", () => {
       render(
         <Dropdown show id="test-id">
           <div>
-            <Toggle>Child Title</Toggle>
-            <Menu popperConfig={popper}>
+            <TestToggle>Child Title</TestToggle>
+            <TestMenu>
+              {" "}
+              popperConfig={popper}
               <button type="button">Item 1</button>
               <button type="button">Item 2</button>
-            </Menu>
+            </TestMenu>
           </div>
         </Dropdown>
       )
@@ -371,7 +393,7 @@ describe("<DropdownItem>", () => {
     const mock = jest.fn()
     const { getByText } = render(<Item onClick={mock}>test</Item>)
     fireEvent.click(getByText("test"))
-    expect(mock).to.be.called
+    expect(mock).toHaveBeenCalled()
   })
   it("Should not trigger onClick if disabled", () => {
     const mock = jest.fn()
@@ -381,31 +403,31 @@ describe("<DropdownItem>", () => {
       </Item>
     )
     fireEvent.click(getByText("test"))
-    expect(mock).to.not.be.called
+    expect(mock).not.toHaveBeenCalled()
   })
   it("Should call onSelect if a key is defined", () => {
     const mock = jest.fn()
     const { getByText } = render(
-      <SelectableContext.Provider value={mock}>
+      <Selectable.Provider value={mock}>
         <Item eventKey="abc">test</Item>
-      </SelectableContext.Provider>
+      </Selectable.Provider>
     )
     fireEvent.click(getByText("test"))
     expect(mock).toHaveBeenCalledWith("abc")
   })
   it("Should not call onSelect onClick stopPropagation called", () => {
     const mock = jest.fn()
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = (e: qr.MouseEvent) => {
       e.stopPropagation()
     }
     const { getByText } = render(
-      <SelectableContext.Provider value={mock}>
+      <Selectable.Provider value={mock}>
         <Item eventKey="abc" onClick={handleClick}>
           test
         </Item>
-      </SelectableContext.Provider>
+      </Selectable.Provider>
     )
     fireEvent.click(getByText("test"))
-    expect(mock).to.not.be.called
+    expect(mock).not.toHaveBeenCalled()
   })
 })

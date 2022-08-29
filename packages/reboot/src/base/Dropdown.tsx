@@ -87,7 +87,7 @@ export interface MenuOpts {
   show?: boolean | undefined
   fixed?: boolean
   placement?: qp.Placement
-  usePopper?: boolean
+  usePopper?: boolean | undefined
   enableEventListeners?: boolean
   offset?: qp.Offset | undefined
   rootCloseEvent?: qu.ClickOutsideOptions["clickTrigger"]

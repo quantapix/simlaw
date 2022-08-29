@@ -1,5 +1,5 @@
 import { getScrollbarSize } from "../src/base/utils.js"
-import { injectCss } from "./helpers.js"
+import { injectCss } from "./tools.js"
 import BootstrapModalManager, {
   getSharedManager,
 } from "../src/BootstrapModalManager.js"

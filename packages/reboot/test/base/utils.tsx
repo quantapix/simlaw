@@ -394,7 +394,7 @@ describe("transitionEnd", () => {
     transitionEnd(el, handler1)
     jest.advanceTimersByTime(1300)
     expect(handler1.callCount).toEqual(0)
-    expect(handler1).to.not.be.called
+    expect(handler1).not.toHaveBeenCalled()
     jest.advanceTimersByTime(200)
     expect(handler1.callCount).toEqual(1)
     el.style.transitionDuration = "500ms"
