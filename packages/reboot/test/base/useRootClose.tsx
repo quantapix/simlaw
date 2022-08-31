@@ -2,11 +2,11 @@ import { useRef } from "react"
 import ReactDOM from "react-dom"
 import simulant from "simulant"
 import { mount } from "enzyme"
-import useRootClose from "../src/useRootClose"
+import { useRootClose } from "../../src/base/use.js"
 const escapeKeyCode = 27
 
 describe("useRootClose", () => {
-  let attachTo
+  let attachTo: any
   beforeEach(() => {
     attachTo = document.createElement("div")
     document.body.appendChild(attachTo)
@@ -40,7 +40,7 @@ describe("useRootClose", () => {
     it("Should close when clicked outside", () => {
       const mock = jest.fn()
       mount(<Wrapper onRootClose={mock} />, { attachTo })
-      simulant.fire(document.getElementById("my-div"), eventName)
+      simulant.fire(document.getElementById("my-div")!, eventName)
       expect(mock).not.toHaveBeenCalled()
       simulant.fire(document.body, eventName)
       expect(mock).toHaveBeenCalledTimes(1)
@@ -52,7 +52,7 @@ describe("useRootClose", () => {
     it("Should not close when right-clicked outside", () => {
       const mock = jest.fn()
       mount(<Wrapper onRootClose={mock} />, { attachTo })
-      simulant.fire(document.getElementById("my-div"), eventName, {
+      simulant.fire(document.getElementById("my-div")!, eventName, {
         button: 1,
       })
       expect(mock).not.toHaveBeenCalled()
@@ -62,7 +62,7 @@ describe("useRootClose", () => {
     it("Should not close when disabled", () => {
       const mock = jest.fn()
       mount(<Wrapper onRootClose={mock} disabled />, { attachTo })
-      simulant.fire(document.getElementById("my-div"), eventName)
+      simulant.fire(document.getElementById("my-div")!, eventName)
       expect(mock).not.toHaveBeenCalled()
       simulant.fire(document.body, eventName)
       expect(mock).not.toHaveBeenCalled()
@@ -90,7 +90,7 @@ describe("useRootClose", () => {
         )
       }
       mount(<Outer />, { attachTo })
-      simulant.fire(document.getElementById("my-div"), eventName)
+      simulant.fire(document.getElementById("my-div")!, eventName)
       expect(outer).not.toHaveBeenCalled()
       expect(inner).toHaveBeenCalledTimes(1)
       expect(inner.mock.calls[0].args[0].type).to.be.oneOf([

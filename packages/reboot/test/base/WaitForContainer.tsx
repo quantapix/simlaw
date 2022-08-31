@@ -6,11 +6,11 @@ import * as React from "react"
 
 describe("useWaitForDOMRef", () => {
   it("Should resolve on first render if possible (element)", () => {
-    let renderCount = 0
+    let n = 0
     const container = document.createElement("div")
     function Test({ container, onResolved }) {
       useWaitForDOMRef(container, onResolved)
-      renderCount++
+      n++
       return null
     }
     const mock = jest.fn(resolved => {
@@ -19,7 +19,7 @@ describe("useWaitForDOMRef", () => {
     act(() => {
       mount(<Test container={container} onResolved={mock} />)
     })
-    expect(renderCount).toEqual(1)
+    expect(n).toEqual(1)
     expect(mock).toHaveBeenCalledTimes(1)
   })
   it("Should resolve on first render if possible (ref)", () => {

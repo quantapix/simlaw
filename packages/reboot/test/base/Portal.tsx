@@ -89,8 +89,8 @@ describe("Portal", () => {
         )
       }
     }
-    const nodes = mount(<Container />).getDOMNode().childNodes
-    expect(nodes).to.be.empty
+    const y = mount(<Container />).getDOMNode().childNodes
+    expect(y).toHaveLength(0)
   })
   it("Should unmount when parent unmounts", () => {
     class Parent extends React.Component {

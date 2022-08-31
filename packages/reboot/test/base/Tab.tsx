@@ -301,7 +301,7 @@ describe("<TabPanel>", () => {
     fireEvent.click(getByText("Tab 1"))
     expect(await waitFor(() => mock)).toHaveBeenCalledTimes(3)
     fireEvent.click(getByText("Tab 2"))
-    expect(await waitFor(() => mock.callCount)).toEqual(6)
+    expect(await waitFor(() => mock)).toHaveBeenCalledTimes(6)
   })
   it("Should derive active state from context", () => {
     const { getByText } = render(

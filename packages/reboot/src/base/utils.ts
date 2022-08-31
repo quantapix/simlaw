@@ -488,9 +488,9 @@ export type TransformValue =
 export function isTransform(value: string): value is TransformValue {
   return !!(value && supportedTransforms.test(value))
 }
-export function isVisible(node: HTMLElement | null): boolean {
-  return node
-    ? !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
+export function isVisible(x: HTMLElement | null): boolean {
+  return x
+    ? !!(x.offsetWidth || x.offsetHeight || x.getClientRects().length)
     : false
 }
 export function isWindow(node: Element | Document | Window): Window | false {
@@ -724,7 +724,7 @@ const regExpNbspEntity = /&nbsp;/gi
 const regExpNbspHex = /\xA0/g
 const regExpSpaces = /\s+([^\s])/gm
 export function text(
-  node: HTMLElement | null,
+  node: Element | null,
   trim = true,
   singleSpaces = true
 ): string {

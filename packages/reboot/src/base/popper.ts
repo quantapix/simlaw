@@ -99,14 +99,14 @@ const ariaDescribedByModifier: qp.Modifier<"ariaDescribedBy", qp.Obj> = {
 const EMPTY_MODIFIERS = [] as any
 
 export function usePopper(
-  referenceElement: qp.VirtualElement | null | undefined,
-  popperElement: HTMLElement | null | undefined,
+  refElem?: qp.VirtualElement | null,
+  popperElem?: HTMLElement | null,
   {
     enabled = true,
     placement = "bottom",
     strategy = "absolute",
     modifiers = EMPTY_MODIFIERS,
-    ...config
+    ...ps
   }: UseOptions = {}
 ): UseState {
   const prevMods = qr.useRef<UseOptions["modifiers"]>(modifiers)
@@ -169,11 +169,11 @@ export function usePopper(
     })
   }, [strategy, placement, updateMod, enabled, nextMods])
   qr.useEffect(() => {
-    if (!enabled || referenceElement == null || popperElement == null) {
+    if (!enabled || refElem == null || popperElem == null) {
       return undefined
     }
-    ref.current = create(referenceElement, popperElement, {
-      ...config,
+    ref.current = create(refElem, popperElem, {
+      ...ps,
       placement,
       strategy,
       modifiers: [...nextMods, ariaDescribedByModifier, updateMod] as Partial<
@@ -191,7 +191,7 @@ export function usePopper(
         }))
       }
     }
-  }, [enabled, referenceElement, popperElement])
+  }, [enabled, refElem, popperElem])
   return state
 }
 
