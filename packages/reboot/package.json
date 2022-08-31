@@ -19,8 +19,12 @@
     "react-transition-group": ""
   },
   "devDependencies": {
-    "@types/react-transition-group": "",
+    "@types/enzyme": "",
     "@types/jest": "",
-    "jest": ""
+    "@types/react-transition-group": "",
+    "@types/simulant": "",
+    "enzyme": "",
+    "jest": "",
+    "simulant": ""
   }
 }

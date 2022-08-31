@@ -2,8 +2,8 @@ import { css, getBodyScrollbarWidth } from "./utils.js"
 import * as qt from "./types.jsx"
 
 export interface Instance {
-  dialog: Element
-  backdrop: Element
+  dialog?: Element
+  backdrop?: Element
 }
 
 export interface Opts {

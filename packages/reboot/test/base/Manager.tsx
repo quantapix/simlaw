@@ -1,8 +1,8 @@
 import { injectCss } from "../tools.js"
 import { css, getScrollbarSize } from "../../src/base/utils.jsx"
-import { Manager } from "../../src/base/Manager.jsx"
+import { Instance, Manager } from "../../src/base/Manager.jsx"
 
-const createModal = () => ({ dialog: null, backdrop: null })
+const createModal = () => ({} as Instance)
 
 describe("ModalManager", () => {
   let container: any, manager: any

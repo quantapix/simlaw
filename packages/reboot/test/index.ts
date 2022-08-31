@@ -51,7 +51,7 @@ afterEach(() => {
 })
 describe("Process environment for tests", () => {
   it("Should not be production for React console warnings", () => {
-    expect(process.env.NODE_ENV).to.not.equal("production")
+    expect(process.env.NODE_ENV).not.toEqual("production")
   })
 })
 const srcContext = require.context("../src", true, /.*\.js$/)

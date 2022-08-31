@@ -11,11 +11,11 @@ import simulant from "simulant"
 describe("<Modal>", () => {
   let attachTo: any
   let wrapper: any
-  const mountWithRef = (el, options) => {
-    const ref = React.createRef()
-    const Why = (props: any) => React.cloneElement(el, { ...props, ref })
-    wrapper = mount(<Why />, options)
-    return ref
+  const mountWithRef = (x: any, xs: any) => {
+    const y = React.createRef()
+    const Why = (ps: any) => React.cloneElement(x, { ...ps, ref: y })
+    wrapper = mount(<Why />, xs)
+    return y
   }
   beforeEach(() => {
     attachTo = document.createElement("div")
@@ -66,10 +66,10 @@ describe("<Modal>", () => {
     render(<Container />, { container: attachTo })
     setTimeout(() => {
       const container = document.body
-      const backdrop = modal.current.backdrop
+      const y = modal.current.backdrop
       expect(container.style.overflow).toEqual("hidden")
-      backdrop.click()
-      expect(container.style.overflow).to.not.equal("hidden")
+      y.click()
+      expect(container.style.overflow).not.toEqual("hidden")
       done()
     })
   })
@@ -81,8 +81,8 @@ describe("<Modal>", () => {
       </Modal>,
       { attachTo }
     )
-    const backdrop = ref.current.backdrop
-    backdrop.click()
+    const y = ref.current.backdrop
+    y.click()
     expect(mock).toHaveBeenCalledTimes(1)
   })
   it("Should close the modal when the backdrop is clicked", done => {
@@ -95,8 +95,8 @@ describe("<Modal>", () => {
       </Modal>,
       { attachTo }
     )
-    const backdrop = ref.current.backdrop
-    backdrop.click()
+    const y = ref.current.backdrop
+    y.click()
   })
   it('should not close the modal when the "static" backdrop is clicked', () => {
     const mock = jest.fn()
@@ -106,8 +106,8 @@ describe("<Modal>", () => {
       </Modal>,
       { attachTo }
     )
-    const { backdrop } = ref.current
-    backdrop.click()
+    const y = ref.current.backdrop
+    y.click()
     expect(mock).not.toHaveBeenCalled()
   })
   it("Should close the modal when the esc key is pressed", done => {
@@ -120,12 +120,12 @@ describe("<Modal>", () => {
       </Modal>,
       { attachTo }
     )
-    const { backdrop } = ref.current
-    simulant.fire(backdrop, "keydown", { keyCode: 27 })
+    const y = ref.current.backydrop
+    simulant.fire(y, "keydown", { keyCode: 27 })
   })
   it("Should not trigger onHide if e.preventDefault() called", () => {
     const mock = jest.fn()
-    const onEscapeKeyDown = e => {
+    const onEscapeKeyDown = (e: any) => {
       e.preventDefault()
     }
     const ref = mountWithRef(
@@ -134,8 +134,8 @@ describe("<Modal>", () => {
       </Modal>,
       { attachTo }
     )
-    const { backdrop } = ref.current
-    simulant.fire(backdrop, "keydown", { keyCode: 27 })
+    const y = ref.current.backdrop
+    simulant.fire(y, "keydown", { keyCode: 27 })
     expect(mock).not.toHaveBeenCalled()
   })
   it("Should add role to child", () => {
@@ -159,9 +159,9 @@ describe("<Modal>", () => {
     wrapper = mount(
       <Modal
         show
-        renderDialog={props => (
+        renderDialog={ps => (
           <strong
-            {...props}
+            {...ps}
             role="group"
             ref={r => {
               dialog = r
@@ -270,65 +270,65 @@ describe("<Modal>", () => {
     )
   })
   describe("Focused state", () => {
-    let focusableContainer: any = null
+    let y: any = null
     beforeEach(() => {
-      focusableContainer = document.createElement("div")
-      focusableContainer.tabIndex = 0
-      focusableContainer.className = "focus-container"
-      document.body.appendChild(focusableContainer)
-      focusableContainer.focus()
+      y = document.createElement("div")
+      y.tabIndex = 0
+      y.className = "focus-container"
+      document.body.appendChild(y)
+      y.focus()
     })
     afterEach(() => {
-      ReactDOM.unmountComponentAtNode(focusableContainer)
-      document.body.removeChild(focusableContainer)
+      ReactDOM.unmountComponentAtNode(y)
+      document.body.removeChild(y)
     })
     it("Should focus on the Modal when it is opened", () => {
-      expect(document.activeElement).toEqual(focusableContainer)
+      expect(document.activeElement).toEqual(y)
       wrapper = mount(
         <Modal show className="modal">
           <strong>Message</strong>
         </Modal>,
-        { attachTo: focusableContainer }
+        { attachTo: y }
       )
-      expect(document.activeElement.className).toContain("modal")
+      expect(document.activeElement?.className).toContain("modal")
       wrapper.setProps({ show: false })
-      expect(document.activeElement).toEqual(focusableContainer)
+      expect(document.activeElement).toEqual(y)
     })
     it("Should not focus on the Modal when autoFocus is false", () => {
       mount(
         <Modal show autoFocus={false}>
           <strong>Message</strong>
         </Modal>,
-        { attachTo: focusableContainer }
+        { attachTo: y }
       )
-      expect(document.activeElement).toEqual(focusableContainer)
+      expect(document.activeElement).toEqual(y)
     })
     it("Should not focus Modal when child has focus", () => {
-      expect(document.activeElement).toEqual(focusableContainer)
+      expect(document.activeElement).toEqual(y)
       mount(
         <Modal show className="modal">
           <div>
             <input autoFocus />
           </div>
         </Modal>,
-        { attachTo: focusableContainer }
+        { attachTo: y }
       )
       const input = document.getElementsByTagName("input")[0]
       expect(document.activeElement).toEqual(input)
     })
     it("Should return focus to the modal", done => {
-      expect(document.activeElement).toEqual(focusableContainer)
+      expect(document.activeElement).toEqual(y)
       mount(
         <Modal show className="modal">
           <div>
             <input autoFocus />
           </div>
         </Modal>,
-        { attachTo: focusableContainer }
+        { attachTo: y }
       )
-      focusableContainer.focus()
+      y.focus()
       setTimeout(() => {
-        expect(document.activeElement.className).toContain("modal")
+        expect(document.activeElement?.className).toContain("modal")
         done()
       }, 50)
     })
@@ -338,7 +338,7 @@ describe("<Modal>", () => {
         <Modal show>
           <Dialog />
         </Modal>,
-        { attachTo: focusableContainer }
+        { attachTo: y }
       )
     })
   })
