@@ -1,12 +1,12 @@
-export function shouldWarn(about: any) {
-  console.error.expected.push(about)
+export function shouldWarn(x: any) {
+  console.error.expected.push(x)
 }
+
 let style: any
 let seen: any = []
-export function injectCss(rules) {
-  if (seen.indexOf(rules) !== -1) {
-    return
-  }
+
+export function injectCss(xs: any) {
+  if (seen.indexOf(xs) !== -1) return
   style =
     style ||
     (function iife() {
@@ -15,13 +15,11 @@ export function injectCss(rules) {
       document.head.appendChild(_style)
       return _style
     })()
-  seen.push(rules)
-  style.innerHTML += `\n${rules}`
+  seen.push(xs)
+  style.innerHTML += `\n${xs}`
 }
 injectCss.reset = () => {
-  if (style) {
-    document.head.removeChild(style)
-  }
+  if (style) document.head.removeChild(style)
   style = null
   seen = []
 }
