@@ -33,7 +33,7 @@ describe("BootstrapModalManager", () => {
     manager.add(modal)
     expect(manager.modals.length).toEqual(1)
     expect(manager.modals[0]).toEqual(modal)
-    expect(manager.state).to.eql({
+    expect(manager.state).toEqual({
       scrollBarWidth: 0,
       style: {
         overflow: "",
