@@ -1,7 +1,7 @@
 export * from "./utils.js"
 export * from "./types.js"
 export * from "./plugins.js"
-export * from "./immer.js"
+export * from "./main.js"
 
 import {
   current,
@@ -47,7 +47,6 @@ export function castImmutable<T>(value: T): Immutable<T> {
 
 export { Immer }
 
-export { enableES5 } from "../plugins/es5.js"
 export { enablePatches } from "../plugins/patches.js"
 export { enableMapSet } from "../plugins/mapset.js"
 export { enableAllPlugins } from "./plugins.js"

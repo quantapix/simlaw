@@ -1,248 +1,35 @@
 import {
   createProxy,
   die,
-  DRAFT_STATE,
   each,
   get,
-  getArchtype,
+  getQType,
   getCurrentScope,
-  getOwnPropertyDescriptors,
   has,
   immerable,
-  is,
   isDraft,
   isDraftable,
   isMap,
   isSet,
-  iteratorSymbol,
   latest,
   loadPlugin,
   markChanged,
-  NOTHING,
-  objectTraps,
-  ownKeys,
 } from "./utils.js"
 import {
+  DRAFT_STATE,
+  NOTHING,
   AnyMap,
   AnySet,
-  Archtype,
-  Drafted,
-  ES5ArrayState,
-  ES5ObjectState,
+  QType,
   MapState,
   Patch,
   PatchPath,
   ProxyArray,
   ProxyObject,
   ProxyType,
-  Scope,
   SetState,
   State,
 } from "./types.js"
-
-type ES5State = ES5ArrayState | ES5ObjectState
-
-export function enableES5() {
-  function willFinalizeES5_(scope: Scope, result: any, isReplaced: boolean) {
-    if (!isReplaced) {
-      if (scope.patches_) {
-        markChangesRecursively(scope.drafts_![0])
-      }
-      markChangesSweep(scope.drafts_)
-    } else if (
-      isDraft(result) &&
-      (result[DRAFT_STATE] as ES5State).scope_ === scope
-    ) {
-      markChangesSweep(scope.drafts_)
-    }
-  }
-
-  function createES5Draft(isArray: boolean, base: any) {
-    if (isArray) {
-      const draft = new Array(base.length)
-      for (let i = 0; i < base.length; i++)
-        Object.defineProperty(draft, "" + i, proxyProperty(i, true))
-      return draft
-    } else {
-      const descriptors = getOwnPropertyDescriptors(base)
-      delete descriptors[DRAFT_STATE as any]
-      const keys = ownKeys(descriptors)
-      for (let i = 0; i < keys.length; i++) {
-        const key: any = keys[i]
-        descriptors[key] = proxyProperty(
-          key,
-          isArray || !!descriptors[key].enumerable
-        )
-      }
-      return Object.create(Object.getPrototypeOf(base), descriptors)
-    }
-  }
-
-  function createES5Proxy_<T>(
-    base: T,
-    parent?: State
-  ): Drafted<T, ES5ObjectState | ES5ArrayState> {
-    const isArray = Array.isArray(base)
-    const draft = createES5Draft(isArray, base)
-
-    const state: ES5ObjectState | ES5ArrayState = {
-      type_: isArray ? ProxyType.ES5Array : (ProxyType.ES5Object as any),
-      scope_: parent ? parent.scope_ : getCurrentScope(),
-      modified_: false,
-      finalized_: false,
-      assigned_: {},
-      parent_: parent,
-      base_: base,
-      draft_: draft,
-      copy_: null,
-      revoked_: false,
-      isManual_: false,
-    }
-
-    Object.defineProperty(draft, DRAFT_STATE, {
-      value: state,
-      writable: true,
-    })
-    return draft
-  }
-
-  const descriptors: { [prop: string]: PropertyDescriptor } = {}
-
-  function proxyProperty(
-    prop: string | number,
-    enumerable: boolean
-  ): PropertyDescriptor {
-    let desc = descriptors[prop]
-    if (desc) {
-      desc.enumerable = enumerable
-    } else {
-      descriptors[prop] = desc = {
-        configurable: true,
-        enumerable,
-        get(this: any) {
-          const state = this[DRAFT_STATE]
-          if (__DEV__) assertUnrevoked(state)
-          return objectTraps.get(state, prop)
-        },
-        set(this: any, value) {
-          const state = this[DRAFT_STATE]
-          if (__DEV__) assertUnrevoked(state)
-          objectTraps.set(state, prop, value)
-        },
-      }
-    }
-    return desc
-  }
-
-  function markChangesSweep(drafts: Drafted<any, State>[]) {
-    for (let i = drafts.length - 1; i >= 0; i--) {
-      const state: ES5State = drafts[i][DRAFT_STATE]
-      if (!state.modified_) {
-        switch (state.type_) {
-          case ProxyType.ES5Array:
-            if (hasArrayChanges(state)) markChanged(state)
-            break
-          case ProxyType.ES5Object:
-            if (hasObjectChanges(state)) markChanged(state)
-            break
-        }
-      }
-    }
-  }
-
-  function markChangesRecursively(object: any) {
-    if (!object || typeof object !== "object") return
-    const state: ES5State | undefined = object[DRAFT_STATE]
-    if (!state) return
-    const { base_, draft_, assigned_, type_ } = state
-    if (type_ === ProxyType.ES5Object) {
-      each(draft_, key => {
-        if ((key as any) === DRAFT_STATE) return
-        if ((base_ as any)[key] === undefined && !has(base_, key)) {
-          assigned_[key] = true
-          markChanged(state)
-        } else if (!assigned_[key]) {
-          markChangesRecursively(draft_[key])
-        }
-      })
-      each(base_, key => {
-        if (draft_[key] === undefined && !has(draft_, key)) {
-          assigned_[key] = false
-          markChanged(state)
-        }
-      })
-    } else if (type_ === ProxyType.ES5Array) {
-      if (hasArrayChanges(state as ES5ArrayState)) {
-        markChanged(state)
-        assigned_.length = true
-      }
-
-      if (draft_.length < base_.length) {
-        for (let i = draft_.length; i < base_.length; i++) assigned_[i] = false
-      } else {
-        for (let i = base_.length; i < draft_.length; i++) assigned_[i] = true
-      }
-      const min = Math.min(draft_.length, base_.length)
-      for (let i = 0; i < min; i++) {
-        if (!draft_.hasOwnProperty(i)) {
-          assigned_[i] = true
-        }
-        if (assigned_[i] === undefined) markChangesRecursively(draft_[i])
-      }
-    }
-  }
-
-  function hasObjectChanges(state: ES5ObjectState) {
-    const { base_, draft_ } = state
-    const keys = ownKeys(draft_)
-    for (let i = keys.length - 1; i >= 0; i--) {
-      const key: any = keys[i]
-      if (key === DRAFT_STATE) continue
-      const baseValue = base_[key]
-      if (baseValue === undefined && !has(base_, key)) {
-        return true
-      } else {
-        const value = draft_[key]
-        const state: State = value && value[DRAFT_STATE]
-        if (state ? state.base_ !== baseValue : !is(value, baseValue)) {
-          return true
-        }
-      }
-    }
-    const baseIsDraft = !!base_[DRAFT_STATE as any]
-    return keys.length !== ownKeys(base_).length + (baseIsDraft ? 0 : 1)
-  }
-
-  function hasArrayChanges(state: ES5ArrayState) {
-    const { draft_ } = state
-    if (draft_.length !== state.base_.length) return true
-    const descriptor = Object.getOwnPropertyDescriptor(
-      draft_,
-      draft_.length - 1
-    )
-    if (descriptor && !descriptor.get) return true
-    for (let i = 0; i < draft_.length; i++) {
-      if (!draft_.hasOwnProperty(i)) return true
-    }
-    return false
-  }
-
-  function hasChanges_(state: ES5State) {
-    return state.type_ === ProxyType.ES5Object
-      ? hasObjectChanges(state)
-      : hasArrayChanges(state)
-  }
-
-  function assertUnrevoked(state: any) {
-    if (state.revoked_) die(3, JSON.stringify(latest(state)))
-  }
-
-  loadPlugin("ES5", {
-    createES5Proxy_,
-    willFinalizeES5_,
-    hasChanges_,
-  })
-}
 
 export function enableMapSet() {
   var extendStatics = function (d: any, b: any): any {
@@ -361,7 +148,7 @@ export function enableMapSet() {
       if (value !== state.base_.get(key)) {
         return value
       }
-      const draft = createProxy(state.scope_.immer_, value, state)
+      const draft = createProxy(value, state)
       prepareMapCopy(state)
       state.copy_!.set(key, draft)
       return draft
@@ -374,7 +161,7 @@ export function enableMapSet() {
     p.values = function (): IterableIterator<any> {
       const iterator = this.keys()
       return {
-        [iteratorSymbol]: () => this.values(),
+        [Symbol.iterator]: () => this.values(),
         next: () => {
           const r = iterator.next()
           if (r.done) return r
@@ -390,7 +177,7 @@ export function enableMapSet() {
     p.entries = function (): IterableIterator<[any, any]> {
       const iterator = this.keys()
       return {
-        [iteratorSymbol]: () => this.entries(),
+        [Symbol.iterator]: () => this.entries(),
         next: () => {
           const r = iterator.next()
           if (r.done) return r
@@ -403,7 +190,7 @@ export function enableMapSet() {
       } as any
     }
 
-    p[iteratorSymbol] = function () {
+    p[Symbol.iterator] = function () {
       return this.entries()
     }
 
@@ -515,7 +302,7 @@ export function enableMapSet() {
       return this.values()
     }
 
-    p[iteratorSymbol] = function () {
+    p[Symbol.iterator] = function () {
       return this.values()
     }
 
@@ -540,7 +327,7 @@ export function enableMapSet() {
       state.copy_ = new Set()
       state.base_.forEach(value => {
         if (isDraftable(value)) {
-          const draft = createProxy(state.scope_.immer_, value, state)
+          const draft = createProxy(value, state)
           state.drafts_.set(value, draft)
           state.copy_!.add(draft)
         } else {
@@ -570,7 +357,7 @@ export function enablePatches() {
   ): void {
     switch (state.type_) {
       case ProxyType.ProxyObject:
-      case ProxyType.ES5Object:
+      case ProxyType.Object:
       case ProxyType.Map:
         return generatePatchesFromAssigned(
           state,
@@ -578,7 +365,6 @@ export function enablePatches() {
           patches,
           inversePatches
         )
-      case ProxyType.ES5Array:
       case ProxyType.ProxyArray:
         return generateArrayPatches(state, basePath, patches, inversePatches)
       case ProxyType.Set:
@@ -592,7 +378,7 @@ export function enablePatches() {
   }
 
   function generateArrayPatches(
-    state: ES5ArrayState | ProxyArray,
+    state: ProxyArray,
     basePath: PatchPath,
     patches: Patch[],
     inversePatches: Patch[]
@@ -636,7 +422,7 @@ export function enablePatches() {
   }
 
   function generatePatchesFromAssigned(
-    state: MapState | ES5ObjectState | ProxyObject,
+    state: MapState | ProxyObject,
     basePath: PatchPath,
     patches: Patch[],
     inversePatches: Patch[]
@@ -727,10 +513,10 @@ export function enablePatches() {
 
       let base: any = draft
       for (let i = 0; i < path.length - 1; i++) {
-        const parentType = getArchtype(base)
+        const parentType = getQType(base)
         const p = "" + path[i]
         if (
-          (parentType === Archtype.Object || parentType === Archtype.Array) &&
+          (parentType === QType.Object || parentType === QType.Array) &&
           (p === "__proto__" || p === "constructor")
         )
           die(24)
@@ -739,39 +525,39 @@ export function enablePatches() {
         if (typeof base !== "object") die(15, path.join("/"))
       }
 
-      const type = getArchtype(base)
+      const type = getQType(base)
       const value = deepClonePatchValue(patch.value)
       const key = path[path.length - 1]
       switch (op) {
         case REPLACE:
           switch (type) {
-            case Archtype.Map:
+            case QType.Map:
               return base.set(key, value)
-            case Archtype.Set:
+            case QType.Set:
               die(16)
             default:
               return (base[key] = value)
           }
         case ADD:
           switch (type) {
-            case Archtype.Array:
+            case QType.Array:
               return key === "-"
                 ? base.push(value)
                 : base.splice(key as any, 0, value)
-            case Archtype.Map:
+            case QType.Map:
               return base.set(key, value)
-            case Archtype.Set:
+            case QType.Set:
               return base.add(value)
             default:
               return (base[key] = value)
           }
         case REMOVE:
           switch (type) {
-            case Archtype.Array:
+            case QType.Array:
               return base.splice(key as any, 1)
-            case Archtype.Map:
+            case QType.Map:
               return base.delete(key)
-            case Archtype.Set:
+            case QType.Set:
               return base.delete(patch.value)
             default:
               return delete base[key]
@@ -813,7 +599,6 @@ export function enablePatches() {
 }
 
 export function enableAllPlugins() {
-  enableES5()
   enableMapSet()
   enablePatches()
 }

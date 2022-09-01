@@ -2,6 +2,10 @@ export class Nothing {
   private _!: unique symbol
 }
 
+export const NOTHING = Symbol.for("immer-nothing")
+export const DRAFTABLE: unique symbol = Symbol.for("immer-draftable")
+export const DRAFT_STATE: unique symbol = Symbol.for("immer-state")
+
 export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
 export type ObjectishNoSet = AnyObject | AnyArray | AnyMap
 
@@ -10,7 +14,7 @@ export type AnyArray = Array<any>
 export type AnySet = Set<any>
 export type AnyMap = Map<any, any>
 
-export const enum Archtype {
+export const enum QType {
   Object,
   Array,
   Map,
@@ -22,15 +26,11 @@ export const enum ProxyType {
   ProxyArray,
   Map,
   Set,
-  ES5Object,
-  ES5Array,
 }
 
-type AnyFunc = (...args: any[]) => any
-
-type PrimitiveType = number | string | boolean
-
-type AtomicObject = Function | Promise<any> | Date | RegExp
+type AnyFunc = (...xs: any[]) => any
+type Primitive = number | string | boolean
+type Atomic = Function | Promise<any> | Date | RegExp
 
 export type IfAvailable<T, Fallback = void> = true | false extends (
   T extends never ? true : false
@@ -44,9 +44,9 @@ type WeakReferences = IfAvailable<WeakMap<any, any>> | IfAvailable<WeakSet<any>>
 
 export type WritableDraft<T> = { -readonly [K in keyof T]: Draft<T[K]> }
 
-export type Draft<T> = T extends PrimitiveType
+export type Draft<T> = T extends Primitive
   ? T
-  : T extends AtomicObject
+  : T extends Atomic
   ? T
   : T extends IfAvailable<ReadonlyMap<infer K, infer V>>
   ? Map<Draft<K>, Draft<V>>
@@ -58,9 +58,9 @@ export type Draft<T> = T extends PrimitiveType
   ? WritableDraft<T>
   : T
 
-export type Immutable<T> = T extends PrimitiveType
+export type Immutable<T> = T extends Primitive
   ? T
-  : T extends AtomicObject
+  : T extends Atomic
   ? T
   : T extends IfAvailable<ReadonlyMap<infer K, infer V>>
   ? ReadonlyMap<Immutable<K>, Immutable<V>>
@@ -226,7 +226,7 @@ export interface Scope {
   inversePatches_?: Patch[]
   canAutoFreeze_: boolean
   drafts_: any[]
-  parent_?: Scope
+  parent_?: Scope | undefined
   patchListener_?: PatchListener
   immer_: Immer
   unfinalizedDrafts_: number
@@ -264,37 +264,11 @@ export interface ProxyArray extends ProxyBase {
 
 export type ProxyState = ProxyObject | ProxyArray
 
-export type State =
-  | ProxyObject
-  | ProxyArray
-  | ES5ObjectState
-  | ES5ArrayState
-  | MapState
-  | SetState
+export type State = ProxyObject | ProxyArray | MapState | SetState
 
 export type Drafted<Base = any, T extends State = State> = {
   [DRAFT_STATE]: T
 } & Base
-
-interface ES5BaseState extends BaseState {
-  assigned_: { [key: string]: any }
-  parent_?: State
-  revoked_: boolean
-}
-
-export interface ES5ObjectState extends ES5BaseState {
-  type_: ProxyType.ES5Object
-  draft_: Drafted<AnyObject, ES5ObjectState>
-  base_: AnyObject
-  copy_: AnyObject | null
-}
-
-export interface ES5ArrayState extends ES5BaseState {
-  type_: ProxyType.ES5Array
-  draft_: Drafted<AnyObject, ES5ArrayState>
-  base_: any
-  copy_: any
-}
 
 export interface MapState extends BaseState {
   type_: ProxyType.Map
