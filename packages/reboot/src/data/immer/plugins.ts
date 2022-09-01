@@ -1,15 +1,16 @@
 import {
-  DRAFT_STATE,
-  NOTHING,
   AnyMap,
   AnySet,
-  QType,
+  DRAFT_STATE,
+  DRAFTABLE,
   MapState,
+  NOTHING,
   Patch,
   PatchPath,
   ProxyArray,
   ProxyObject,
   ProxyType,
+  QType,
   SetState,
   State,
 } from "./types.js"
@@ -26,7 +27,7 @@ import {
   latest,
   loadPlugin,
 } from "./utils.js"
-import { getCurrentScope, markChanged, immerable, createProxy } from "./main.js"
+import { getCurrentScope, markChanged, createProxy } from "./main.js"
 
 export function enableMapSet() {
   let extendStatics = function (d: any, b: any): any {
@@ -526,7 +527,7 @@ export function enablePatches() {
     if (isSet(x)) return new Set(Array.from(x).map(deepClonePatchValue))
     const y = Object.create(Object.getPrototypeOf(x))
     for (const k in x) y[k] = deepClonePatchValue(x[k])
-    if (has(x, immerable)) y[immerable] = x[immerable]
+    if (has(x, DRAFTABLE)) y[DRAFTABLE] = x[DRAFTABLE]
     return y
   }
 

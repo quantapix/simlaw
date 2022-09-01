@@ -2,7 +2,7 @@ export class Nothing {
   private _!: unique symbol
 }
 
-export const NOTHING = Symbol.for("immer-nothing")
+export const NOTHING: unique symbol = Symbol.for("immer-nothing")
 export const DRAFTABLE: unique symbol = Symbol.for("immer-draftable")
 export const DRAFT_STATE: unique symbol = Symbol.for("immer-state")
 
