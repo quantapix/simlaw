@@ -8,3 +8,7 @@
 [submodule "lib/nx"]
 	path = lib/nx
 	url = https://github.com/nrwl/nx.git
+[submodule "lib/react"]
+	path = lib/react
+	url = https://github.com/facebook/react.git
+	branch = main
