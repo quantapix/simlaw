@@ -1,24 +1,4 @@
 import {
-  die,
-  each,
-  freeze,
-  get,
-  getQType,
-  getPlugin,
-  has,
-  Immer,
-  is,
-  isDraft,
-  isDraftable,
-  isFrozen,
-  isMap,
-  isSet,
-  latest,
-  set,
-  shallowCopy,
-} from "./utils.js"
-
-import {
   DRAFT_STATE,
   NOTHING,
   QType,
@@ -38,6 +18,24 @@ import {
   SetState,
   State,
 } from "./types.js"
+import {
+  die,
+  each,
+  freeze,
+  get,
+  getType,
+  getPlugin,
+  has,
+  is,
+  isDraft,
+  isDraftable,
+  isFrozen,
+  isMap,
+  isSet,
+  latest,
+  set,
+  shallowCopy,
+} from "./utils.js"
 
 let currentScope: Scope | undefined
 
@@ -81,8 +79,7 @@ export function enterScope(x: Immer) {
 
 function revokeDraft(x: Drafted) {
   const s: State = x[DRAFT_STATE]
-  if (s.type_ === ProxyType.ProxyObject || s.type_ === ProxyType.ProxyArray)
-    s.revoke_()
+  if (s.type_ === ProxyType.Obj || s.type_ === ProxyType.Array) s.revoke_()
   else s.revoked_ = true
 }
 
@@ -96,7 +93,7 @@ function _current(x: any): any {
   if (!isDraftable(x)) return x
   const s: State | undefined = x[DRAFT_STATE]
   let copy: any
-  const t = getQType(x)
+  const t = getType(x)
   if (s) {
     if (!s.modified_) return s.base_
     s.finalized_ = true
@@ -224,7 +221,7 @@ export function createProxyProxy<T extends Objectish>(
 ): Drafted<T, ProxyState> {
   const isArray = Array.isArray(base)
   const state: ProxyState = {
-    type_: isArray ? ProxyType.ProxyArray : (ProxyType.ProxyObject as any),
+    type_: isArray ? ProxyType.Array : (ProxyType.Obj as any),
     scope_: parent ? parent.scope_ : getCurrentScope()!,
     modified_: false,
     finalized_: false,
@@ -312,7 +309,7 @@ export const objectTraps: ProxyHandler<ProxyState> = {
     if (!desc) return desc
     return {
       writable: true,
-      configurable: x.type_ !== ProxyType.ProxyArray || k !== "length",
+      configurable: x.type_ !== ProxyType.Array || k !== "length",
       enumerable: desc.enumerable,
       value: owner[k],
     }
@@ -413,7 +410,7 @@ export class Immer implements ProducersFns {
     let result
     if (isDraftable(base)) {
       const scope = enterScope(this)
-      const proxy = createProxy(this, base, undefined)
+      const proxy = createProxy(base, undefined)
       let hasError = true
       try {
         result = recipe(proxy)
@@ -454,72 +451,64 @@ export class Immer implements ProducersFns {
   produceWithPatches: IProduceWithPatches = (
     arg1: any,
     arg2?: any,
-    arg3?: any
+    _?: any
   ): any => {
     if (typeof arg1 === "function") {
-      return (state: any, ...args: any[]) =>
-        this.produceWithPatches(state, (draft: any) => arg1(draft, ...args))
+      return (x: any, ...xs: any[]) =>
+        this.produceWithPatches(x, (draft: any) => arg1(draft, ...xs))
     }
-
-    let patches: Patch[], inversePatches: Patch[]
-    const result = this.produce(arg1, arg2, (p: Patch[], ip: Patch[]) => {
-      patches = p
-      inversePatches = ip
+    let ps: Patch[], inverses: Patch[]
+    const y = this.produce(arg1, arg2, (p: Patch[], ip: Patch[]) => {
+      ps = p
+      inverses = ip
     })
-
-    if (typeof Promise !== "undefined" && result instanceof Promise) {
-      return result.then(nextState => [nextState, patches!, inversePatches!])
+    if (typeof Promise !== "undefined" && y instanceof Promise) {
+      return y.then(next => [next, ps!, inverses!])
     }
-    return [result, patches!, inversePatches!]
+    return [y, ps!, inverses!]
   }
 
-  createDraft<T extends Objectish>(base: T): Draft<T> {
-    if (!isDraftable(base)) die(8)
-    if (isDraft(base)) base = current(base)
+  createDraft<T extends Objectish>(x: T): Draft<T> {
+    if (!isDraftable(x)) die(8)
+    if (isDraft(x)) x = current(x)
     const scope = enterScope(this)
-    const proxy = createProxy(this, base, undefined)
-    proxy[DRAFT_STATE].isManual_ = true
+    const y = createProxy(x, undefined)
+    y[DRAFT_STATE].isManual_ = true
     leaveScope(scope)
-    return proxy as any
+    return y as any
   }
 
   finishDraft<D extends Draft<any>>(
-    draft: D,
-    patchListener?: PatchListener
+    x: D,
+    listener?: PatchListener
   ): D extends Draft<infer T> ? T : never {
-    const state: State = draft && (draft as any)[DRAFT_STATE]
+    const s: State = x && (x as any)[DRAFT_STATE]
     if (__DEV__) {
-      if (!state || !state.isManual_) die(9)
-      if (state.finalized_) die(10)
+      if (!s || !s.isManual_) die(9)
+      if (s.finalized_) die(10)
     }
-    const { scope_: scope } = state
-    usePatchesInScope(scope, patchListener)
+    const { scope_: scope } = s
+    usePatchesInScope(scope, listener)
     return processResult(undefined, scope)
   }
 
-  setAutoFreeze(value: boolean) {
-    this.autoFreeze_ = value
+  setAutoFreeze(x: boolean) {
+    this.autoFreeze_ = x
   }
 
-  applyPatches<T extends Objectish>(base: T, patches: Patch[]): T {
+  applyPatches<T extends Objectish>(x: T, ps: Patch[]): T {
     let i: number
-    for (i = patches.length - 1; i >= 0; i--) {
-      const patch = patches[i]
-      if (patch.path.length === 0 && patch.op === "replace") {
-        base = patch.value
+    for (i = ps.length - 1; i >= 0; i--) {
+      const p = ps[i]
+      if (p && p.path.length === 0 && p.op === "replace") {
+        x = p.value
         break
       }
     }
-    if (i > -1) {
-      patches = patches.slice(i + 1)
-    }
-    const applyPatchesImpl = getPlugin("Patches").applyPatches_
-    if (isDraft(base)) {
-      return applyPatchesImpl(base, patches)
-    }
-    return this.produce(base, (draft: Drafted) =>
-      applyPatchesImpl(draft, patches)
-    )
+    if (i > -1) ps = ps.slice(i + 1)
+    const f = getPlugin("Patches").applyPatches_
+    if (isDraft(x)) return f(x, ps)
+    return this.produce(x, (d: Drafted) => f(d, ps))
   }
 }
 

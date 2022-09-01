@@ -1,21 +1,4 @@
 import {
-  createProxy,
-  die,
-  each,
-  get,
-  getQType,
-  getCurrentScope,
-  has,
-  immerable,
-  isDraft,
-  isDraftable,
-  isMap,
-  isSet,
-  latest,
-  loadPlugin,
-  markChanged,
-} from "./utils.js"
-import {
   DRAFT_STATE,
   NOTHING,
   AnyMap,
@@ -30,9 +13,23 @@ import {
   SetState,
   State,
 } from "./types.js"
+import {
+  die,
+  each,
+  get,
+  getType,
+  has,
+  isDraft,
+  isDraftable,
+  isMap,
+  isSet,
+  latest,
+  loadPlugin,
+} from "./utils.js"
+import { getCurrentScope, markChanged, immerable, createProxy } from "./main.js"
 
 export function enableMapSet() {
-  var extendStatics = function (d: any, b: any): any {
+  let extendStatics = function (d: any, b: any): any {
     extendStatics =
       Object.setPrototypeOf ||
       ({ __proto__: [] } instanceof Array &&
@@ -40,7 +37,7 @@ export function enableMapSet() {
           d.__proto__ = b
         }) ||
       function (d, b) {
-        for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]
+        for (const p in b) if (b.hasOwnProperty(p)) d[p] = b[p]
       }
     return extendStatics(d, b)
   }
@@ -72,128 +69,103 @@ export function enableMapSet() {
       return this
     }
     const p = DraftMap.prototype
-
     Object.defineProperty(p, "size", {
       get: function () {
         return latest(this[DRAFT_STATE]).size
       },
     })
-
-    p.has = function (key: any): boolean {
-      return latest(this[DRAFT_STATE]).has(key)
+    p.has = function (k: any): boolean {
+      return latest(this[DRAFT_STATE]).has(k)
     }
-
-    p.set = function (key: any, value: any) {
-      const state: MapState = this[DRAFT_STATE]
-      assertUnrevoked(state)
-      if (!latest(state).has(key) || latest(state).get(key) !== value) {
-        prepareMapCopy(state)
-        markChanged(state)
-        state.assigned_!.set(key, true)
-        state.copy_!.set(key, value)
-        state.assigned_!.set(key, true)
+    p.set = function (k: any, v: any) {
+      const s: MapState = this[DRAFT_STATE]
+      assertUnrevoked(s)
+      if (!latest(s).has(k) || latest(s).get(k) !== v) {
+        prepareMapCopy(s)
+        markChanged(s)
+        s.assigned_!.set(k, true)
+        s.copy_!.set(k, v)
+        s.assigned_!.set(k, true)
       }
       return this
     }
-
-    p.delete = function (key: any): boolean {
-      if (!this.has(key)) {
-        return false
-      }
-
-      const state: MapState = this[DRAFT_STATE]
-      assertUnrevoked(state)
-      prepareMapCopy(state)
-      markChanged(state)
-      if (state.base_.has(key)) {
-        state.assigned_!.set(key, false)
-      } else {
-        state.assigned_!.delete(key)
-      }
-      state.copy_!.delete(key)
+    p.delete = function (k: any): boolean {
+      if (!this.has(k)) return false
+      const s: MapState = this[DRAFT_STATE]
+      assertUnrevoked(s)
+      prepareMapCopy(s)
+      markChanged(s)
+      if (s.base_.has(k)) s.assigned_!.set(k, false)
+      else s.assigned_!.delete(k)
+      s.copy_!.delete(k)
       return true
     }
-
     p.clear = function () {
-      const state: MapState = this[DRAFT_STATE]
-      assertUnrevoked(state)
-      if (latest(state).size) {
-        prepareMapCopy(state)
-        markChanged(state)
-        state.assigned_ = new Map()
-        each(state.base_, key => {
-          state.assigned_!.set(key, false)
+      const s: MapState = this[DRAFT_STATE]
+      assertUnrevoked(s)
+      if (latest(s).size) {
+        prepareMapCopy(s)
+        markChanged(s)
+        s.assigned_ = new Map()
+        each(s.base_, k => {
+          s.assigned_!.set(k, false)
         })
-        state.copy_!.clear()
+        s.copy_!.clear()
       }
     }
-
     p.forEach = function (
-      cb: (value: any, key: any, self: any) => void,
+      cb: (x: any, k: any, self: any) => void,
       thisArg?: any
     ) {
-      const state: MapState = this[DRAFT_STATE]
-      latest(state).forEach((_value: any, key: any, _map: any) => {
-        cb.call(thisArg, this.get(key), key, this)
+      const s: MapState = this[DRAFT_STATE]
+      latest(s).forEach((_x: any, k: any, _map: any) => {
+        cb.call(thisArg, this.get(k), k, this)
       })
     }
-
-    p.get = function (key: any): any {
-      const state: MapState = this[DRAFT_STATE]
-      assertUnrevoked(state)
-      const value = latest(state).get(key)
-      if (state.finalized_ || !isDraftable(value)) {
-        return value
-      }
-      if (value !== state.base_.get(key)) {
-        return value
-      }
-      const draft = createProxy(value, state)
-      prepareMapCopy(state)
-      state.copy_!.set(key, draft)
-      return draft
+    p.get = function (k: any): any {
+      const s: MapState = this[DRAFT_STATE]
+      assertUnrevoked(s)
+      const v = latest(s).get(k)
+      if (s.finalized_ || !isDraftable(v)) return v
+      if (v !== s.base_.get(k)) return v
+      const y = createProxy(v, s)
+      prepareMapCopy(s)
+      s.copy_!.set(k, y)
+      return y
     }
-
     p.keys = function (): IterableIterator<any> {
       return latest(this[DRAFT_STATE]).keys()
     }
-
     p.values = function (): IterableIterator<any> {
-      const iterator = this.keys()
+      const ks = this.keys()
       return {
         [Symbol.iterator]: () => this.values(),
         next: () => {
-          const r = iterator.next()
-          if (r.done) return r
-          const value = this.get(r.value)
-          return {
-            done: false,
-            value,
-          }
+          const k = ks.next()
+          if (k.done) return k
+          const value = this.get(k.value)
+          return { done: false, value }
         },
       } as any
     }
-
     p.entries = function (): IterableIterator<[any, any]> {
-      const iterator = this.keys()
+      const ks = this.keys()
       return {
         [Symbol.iterator]: () => this.entries(),
         next: () => {
-          const r = iterator.next()
-          if (r.done) return r
-          const value = this.get(r.value)
+          const k = ks.next()
+          if (k.done) return k
+          const value = this.get(k.value)
           return {
             done: false,
-            value: [r.value, value],
+            value: [k.value, value],
           }
         },
       } as any
     }
-
     p[Symbol.iterator] = function () {
       return this.entries()
     }
-
     return DraftMap
   })(Map)
 
@@ -201,10 +173,10 @@ export function enableMapSet() {
     return new DraftMap(target, parent)
   }
 
-  function prepareMapCopy(state: MapState) {
-    if (!state.copy_) {
-      state.assigned_ = new Map()
-      state.copy_ = new Map(state.base_)
+  function prepareMapCopy(x: MapState) {
+    if (!x.copy_) {
+      x.assigned_ = new Map()
+      x.copy_ = new Map(x.base_)
     }
   }
 
@@ -227,94 +199,75 @@ export function enableMapSet() {
       return this
     }
     const p = DraftSet.prototype
-
     Object.defineProperty(p, "size", {
       get: function () {
         return latest(this[DRAFT_STATE]).size
       },
     })
-
-    p.has = function (value: any): boolean {
-      const state: SetState = this[DRAFT_STATE]
-      assertUnrevoked(state)
-      if (!state.copy_) {
-        return state.base_.has(value)
-      }
-      if (state.copy_.has(value)) return true
-      if (state.drafts_.has(value) && state.copy_.has(state.drafts_.get(value)))
-        return true
+    p.has = function (x: any): boolean {
+      const s: SetState = this[DRAFT_STATE]
+      assertUnrevoked(s)
+      if (!s.copy_) return s.base_.has(x)
+      if (s.copy_.has(x)) return true
+      if (s.drafts_.has(x) && s.copy_.has(s.drafts_.get(x))) return true
       return false
     }
-
-    p.add = function (value: any): any {
-      const state: SetState = this[DRAFT_STATE]
-      assertUnrevoked(state)
-      if (!this.has(value)) {
-        prepareSetCopy(state)
-        markChanged(state)
-        state.copy_!.add(value)
+    p.add = function (x: any): any {
+      const s: SetState = this[DRAFT_STATE]
+      assertUnrevoked(s)
+      if (!this.has(x)) {
+        prepareSetCopy(s)
+        markChanged(s)
+        s.copy_!.add(x)
       }
       return this
     }
-
-    p.delete = function (value: any): any {
-      if (!this.has(value)) {
-        return false
-      }
-
-      const state: SetState = this[DRAFT_STATE]
-      assertUnrevoked(state)
-      prepareSetCopy(state)
-      markChanged(state)
+    p.delete = function (x: any): any {
+      if (!this.has(x)) return false
+      const s: SetState = this[DRAFT_STATE]
+      assertUnrevoked(s)
+      prepareSetCopy(s)
+      markChanged(s)
       return (
-        state.copy_!.delete(value) ||
-        (state.drafts_.has(value)
-          ? state.copy_!.delete(state.drafts_.get(value))
-          : false)
+        s.copy_!.delete(x) ||
+        (s.drafts_.has(x) ? s.copy_!.delete(s.drafts_.get(x)) : false)
       )
     }
-
     p.clear = function () {
-      const state: SetState = this[DRAFT_STATE]
-      assertUnrevoked(state)
-      if (latest(state).size) {
-        prepareSetCopy(state)
-        markChanged(state)
-        state.copy_!.clear()
+      const s: SetState = this[DRAFT_STATE]
+      assertUnrevoked(s)
+      if (latest(s).size) {
+        prepareSetCopy(s)
+        markChanged(s)
+        s.copy_!.clear()
       }
     }
-
     p.values = function (): IterableIterator<any> {
-      const state: SetState = this[DRAFT_STATE]
-      assertUnrevoked(state)
-      prepareSetCopy(state)
-      return state.copy_!.values()
+      const s: SetState = this[DRAFT_STATE]
+      assertUnrevoked(s)
+      prepareSetCopy(s)
+      return s.copy_!.values()
     }
-
     p.entries = function entries(): IterableIterator<[any, any]> {
-      const state: SetState = this[DRAFT_STATE]
-      assertUnrevoked(state)
-      prepareSetCopy(state)
-      return state.copy_!.entries()
+      const s: SetState = this[DRAFT_STATE]
+      assertUnrevoked(s)
+      prepareSetCopy(s)
+      return s.copy_!.entries()
     }
-
     p.keys = function (): IterableIterator<any> {
       return this.values()
     }
-
     p[Symbol.iterator] = function () {
       return this.values()
     }
-
     p.forEach = function forEach(cb: any, thisArg?: any) {
-      const iterator = this.values()
-      let result = iterator.next()
-      while (!result.done) {
-        cb.call(thisArg, result.value, result.value, this)
-        result = iterator.next()
+      const vs = this.values()
+      let y = vs.next()
+      while (!y.done) {
+        cb.call(thisArg, y.value, y.value, this)
+        y = vs.next()
       }
     }
-
     return DraftSet
   })(Set)
 
@@ -322,23 +275,21 @@ export function enableMapSet() {
     return new DraftSet(target, parent)
   }
 
-  function prepareSetCopy(state: SetState) {
-    if (!state.copy_) {
-      state.copy_ = new Set()
-      state.base_.forEach(value => {
+  function prepareSetCopy(x: SetState) {
+    if (!x.copy_) {
+      x.copy_ = new Set()
+      x.base_.forEach(value => {
         if (isDraftable(value)) {
-          const draft = createProxy(value, state)
-          state.drafts_.set(value, draft)
-          state.copy_!.add(draft)
-        } else {
-          state.copy_!.add(value)
-        }
+          const draft = createProxy(value, x)
+          x.drafts_.set(value, draft)
+          x.copy_!.add(draft)
+        } else x.copy_!.add(value)
       })
     }
   }
 
-  function assertUnrevoked(state: any) {
-    if (state.revoked_) die(3, JSON.stringify(latest(state)))
+  function assertUnrevoked(x: any) {
+    if (x.revoked_) die(3, JSON.stringify(latest(x)))
   }
 
   loadPlugin("MapSet", { proxyMap_, proxySet_ })
@@ -356,8 +307,7 @@ export function enablePatches() {
     inversePatches: Patch[]
   ): void {
     switch (state.type_) {
-      case ProxyType.ProxyObject:
-      case ProxyType.Object:
+      case ProxyType.Obj:
       case ProxyType.Map:
         return generatePatchesFromAssigned(
           state,
@@ -365,7 +315,7 @@ export function enablePatches() {
           patches,
           inversePatches
         )
-      case ProxyType.ProxyArray:
+      case ProxyType.Array:
         return generateArrayPatches(state, basePath, patches, inversePatches)
       case ProxyType.Set:
         return generateSetPatches(
@@ -452,7 +402,6 @@ export function enablePatches() {
     inversePatches: Patch[]
   ) {
     let { base_, copy_ } = state
-
     let i = 0
     base_.forEach((value: any) => {
       if (!copy_!.has(value)) {
@@ -507,88 +456,84 @@ export function enablePatches() {
     })
   }
 
-  function applyPatches_<T>(draft: T, patches: Patch[]): T {
-    patches.forEach(patch => {
-      const { path, op } = patch
-
-      let base: any = draft
+  function applyPatches_<T>(x: T, ps: Patch[]): T {
+    ps.forEach(p => {
+      const { path, op } = p
+      let y: any = x
       for (let i = 0; i < path.length - 1; i++) {
-        const parentType = getQType(base)
-        const p = "" + path[i]
+        const t = getType(y)
+        const n = "" + path[i]
         if (
-          (parentType === QType.Object || parentType === QType.Array) &&
-          (p === "__proto__" || p === "constructor")
+          (t === QType.Obj || t === QType.Array) &&
+          (n === "__proto__" || n === "constructor")
         )
           die(24)
-        if (typeof base === "function" && p === "prototype") die(24)
-        base = get(base, p)
-        if (typeof base !== "object") die(15, path.join("/"))
+        if (typeof y === "function" && n === "prototype") die(24)
+        y = get(y, n)
+        if (typeof y !== "object") die(15, path.join("/"))
       }
-
-      const type = getQType(base)
-      const value = deepClonePatchValue(patch.value)
-      const key = path[path.length - 1]
+      const t = getType(y)
+      const v = deepClonePatchValue(p.value)
+      const k = path[path.length - 1]!
       switch (op) {
         case REPLACE:
-          switch (type) {
+          switch (t) {
             case QType.Map:
-              return base.set(key, value)
+              return y.set(k, v)
             case QType.Set:
               die(16)
+            // eslint-disable-next-line no-fallthrough
             default:
-              return (base[key] = value)
+              return (y[k] = v)
           }
         case ADD:
-          switch (type) {
+          switch (t) {
             case QType.Array:
-              return key === "-"
-                ? base.push(value)
-                : base.splice(key as any, 0, value)
+              return k === "-" ? y.push(v) : y.splice(k as any, 0, v)
             case QType.Map:
-              return base.set(key, value)
+              return y.set(k, v)
             case QType.Set:
-              return base.add(value)
+              return y.add(v)
             default:
-              return (base[key] = value)
+              return (y[k] = v)
           }
         case REMOVE:
-          switch (type) {
+          switch (t) {
             case QType.Array:
-              return base.splice(key as any, 1)
+              return y.splice(k as any, 1)
             case QType.Map:
-              return base.delete(key)
+              return y.delete(k)
             case QType.Set:
-              return base.delete(patch.value)
+              return y.delete(p.value)
             default:
-              return delete base[key]
+              return delete y[k]
           }
         default:
           die(17, op)
       }
     })
-
-    return draft
+    return x
   }
 
-  function deepClonePatchValue<T>(obj: T): T
-  function deepClonePatchValue(obj: any) {
-    if (!isDraftable(obj)) return obj
-    if (Array.isArray(obj)) return obj.map(deepClonePatchValue)
-    if (isMap(obj))
+  function deepClonePatchValue<T>(x: T): T
+  function deepClonePatchValue(x: any) {
+    if (!isDraftable(x)) return x
+    if (Array.isArray(x)) return x.map(deepClonePatchValue)
+    if (isMap(x))
       return new Map(
-        Array.from(obj.entries()).map(([k, v]) => [k, deepClonePatchValue(v)])
+        Array.from(x.entries()).map(([k, v]) => [k, deepClonePatchValue(v)])
       )
-    if (isSet(obj)) return new Set(Array.from(obj).map(deepClonePatchValue))
-    const cloned = Object.create(Object.getPrototypeOf(obj))
-    for (const key in obj) cloned[key] = deepClonePatchValue(obj[key])
-    if (has(obj, immerable)) cloned[immerable] = obj[immerable]
-    return cloned
+    if (isSet(x)) return new Set(Array.from(x).map(deepClonePatchValue))
+    const y = Object.create(Object.getPrototypeOf(x))
+    for (const k in x) y[k] = deepClonePatchValue(x[k])
+    if (has(x, immerable)) y[immerable] = x[immerable]
+    return y
   }
 
-  function clonePatchValueIfNeeded<T>(obj: T): T {
-    if (isDraft(obj)) {
-      return deepClonePatchValue(obj)
-    } else return obj
+  function clonePatchValueIfNeeded<T>(x: T): T {
+    if (isDraft(x)) {
+      return deepClonePatchValue(x)
+    } else return x
   }
 
   loadPlugin("Patches", {

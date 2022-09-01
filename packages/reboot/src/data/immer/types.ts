@@ -6,31 +6,31 @@ export const NOTHING = Symbol.for("immer-nothing")
 export const DRAFTABLE: unique symbol = Symbol.for("immer-draftable")
 export const DRAFT_STATE: unique symbol = Symbol.for("immer-state")
 
-export type Objectish = AnyObject | AnyArray | AnyMap | AnySet
-export type ObjectishNoSet = AnyObject | AnyArray | AnyMap
-
-export type AnyObject = { [key: string]: any }
+export type AnyObj = { [k: string]: any }
 export type AnyArray = Array<any>
 export type AnySet = Set<any>
 export type AnyMap = Map<any, any>
 
+type AnyFunc = (...xs: any[]) => any
+type Primitive = number | string | boolean
+type Atomic = AnyFunc | Promise<any> | Date | RegExp
+
+export type Objectish = AnyObj | AnyArray | AnyMap | AnySet
+export type ObjectishNoSet = AnyObj | AnyArray | AnyMap
+
 export const enum QType {
-  Object,
+  Obj,
   Array,
   Map,
   Set,
 }
 
 export const enum ProxyType {
-  ProxyObject,
-  ProxyArray,
+  Obj,
+  Array,
   Map,
   Set,
 }
-
-type AnyFunc = (...xs: any[]) => any
-type Primitive = number | string | boolean
-type Atomic = Function | Promise<any> | Date | RegExp
 
 export type IfAvailable<T, Fallback = void> = true | false extends (
   T extends never ? true : false
@@ -78,7 +78,7 @@ export interface Patch {
   value?: any
 }
 
-export type PatchListener = (patches: Patch[], inversePatches: Patch[]) => void
+export type PatchListener = (xs: Patch[], inverses: Patch[]) => void
 
 type FromNothing<T> = T extends Nothing ? undefined : T
 
@@ -183,7 +183,7 @@ export interface IProduce {
   <State, Args extends any[]>(
     recipe: (state: Draft<State>, ...args: Args) => ValidRecipeReturnType<State>
   ): (state: State, ...args: Args) => State
-  <State, Recipe extends Function>(
+  <State, Recipe extends AnyFunc>(
     recipe: Recipe,
     initialState: State
   ): InferCurriedFromInitialStateAndRecipe<State, Recipe, false>
@@ -203,7 +203,7 @@ export interface IProduce {
 
 export interface IProduceWithPatches {
   <Recipe extends AnyFunc>(recipe: Recipe): InferCurriedFromRecipe<Recipe, true>
-  <State, Recipe extends Function>(
+  <State, Recipe extends AnyFunc>(
     recipe: Recipe,
     initialState: State
   ): InferCurriedFromInitialStateAndRecipe<State, Recipe, true>
@@ -249,14 +249,14 @@ interface ProxyBase extends BaseState {
 }
 
 export interface ProxyObject extends ProxyBase {
-  type_: ProxyType.ProxyObject
+  type_: ProxyType.Obj
   base_: any
   copy_: any
-  draft_: Drafted<AnyObject, ProxyObject>
+  draft_: Drafted<AnyObj, ProxyObject>
 }
 
 export interface ProxyArray extends ProxyBase {
-  type_: ProxyType.ProxyArray
+  type_: ProxyType.Array
   base_: AnyArray
   copy_: AnyArray | null
   draft_: Drafted<AnyArray, ProxyArray>

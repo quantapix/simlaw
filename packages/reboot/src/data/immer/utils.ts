@@ -13,19 +13,19 @@ export function isSet(x: any): x is qt.AnySet {
   return x instanceof Set
 }
 
-export function isDraft(value: any): boolean {
-  return !!value && !!value[qt.DRAFT_STATE]
+export function isDraft(x: any): boolean {
+  return !!x && !!x[qt.DRAFT_STATE]
 }
 
-export function isDraftable(value: any): boolean {
-  if (!value) return false
+export function isDraftable(x: any): boolean {
+  if (!x) return false
   return (
-    isPlainObject(value) ||
-    Array.isArray(value) ||
-    !!value[qt.DRAFTABLE] ||
-    !!value.constructor[qt.DRAFTABLE] ||
-    isMap(value) ||
-    isSet(value)
+    isPlainObject(x) ||
+    Array.isArray(x) ||
+    !!x[qt.DRAFTABLE] ||
+    !!x.constructor[qt.DRAFTABLE] ||
+    isMap(x) ||
+    isSet(x)
   )
 }
 
@@ -33,12 +33,11 @@ const CTOR = Object.prototype.constructor.toString()
 
 export function isPlainObject(x: any): boolean {
   if (!x || typeof x !== "object") return false
-  const proto = Object.getPrototypeOf(x)
-  if (proto === null) return true
-  const Ctor =
-    Object.hasOwnProperty.call(proto, "constructor") && proto.constructor
-  if (Ctor === Object) return true
-  return typeof Ctor == "function" && Function.toString.call(Ctor) === CTOR
+  const p = Object.getPrototypeOf(x)
+  if (p === null) return true
+  const c = Object.hasOwnProperty.call(p, "constructor") && p.constructor
+  if (c === Object) return true
+  return typeof c == "function" && Function.toString.call(c) === CTOR
 }
 
 export function latest(x: qt.State): any {
@@ -51,7 +50,7 @@ export function original(x: qt.Drafted<any>): any {
   return x[qt.DRAFT_STATE].base_
 }
 
-export const ownKeys: (x: qt.AnyObject) => PropertyKey[] =
+export const ownKeys: (x: qt.AnyObj) => PropertyKey[] =
   typeof Reflect !== "undefined" && Reflect.ownKeys
     ? Reflect.ownKeys
     : typeof Object.getOwnPropertySymbols !== "undefined"
@@ -61,7 +60,7 @@ export const ownKeys: (x: qt.AnyObject) => PropertyKey[] =
         )
     : Object.getOwnPropertyNames
 
-export const getOwnPropertyDescriptors =
+export const ownDescs =
   Object.getOwnPropertyDescriptors ||
   function getOwnPropertyDescriptors(x: any) {
     const res: any = {}
@@ -77,7 +76,7 @@ export function each<T extends qt.Objectish>(
   enumerableOnly?: boolean
 ): void
 export function each(x: any, iter: any, enumerableOnly = false) {
-  if (getQType(x) === qt.QType.Object) {
+  if (getType(x) === qt.QType.Obj) {
     ;(enumerableOnly ? Object.keys : ownKeys)(x).forEach(k => {
       if (!enumerableOnly || typeof k !== "symbol") iter(k, x[k], x)
     })
@@ -86,7 +85,7 @@ export function each(x: any, iter: any, enumerableOnly = false) {
   }
 }
 
-export function getQType(x: any): qt.QType {
+export function getType(x: any): qt.QType {
   const state: undefined | qt.State = x[qt.DRAFT_STATE]
   return state
     ? (state.type_ as any)
@@ -96,21 +95,21 @@ export function getQType(x: any): qt.QType {
     ? qt.QType.Map
     : isSet(x)
     ? qt.QType.Set
-    : qt.QType.Object
+    : qt.QType.Obj
 }
 
 export function has(x: any, k: PropertyKey): boolean {
-  return getQType(x) === qt.QType.Map
+  return getType(x) === qt.QType.Map
     ? x.has(k)
     : Object.prototype.hasOwnProperty.call(x, k)
 }
 
-export function get(x: qt.AnyMap | qt.AnyObject, k: PropertyKey): any {
-  return getQType(x) === qt.QType.Map ? x.get(k) : (x as any)[k]
+export function get(x: qt.AnyMap | qt.AnyObj, k: PropertyKey): any {
+  return getType(x) === qt.QType.Map ? x.get(k) : (x as any)[k]
 }
 
 export function set(x: any, k: PropertyKey, v: any) {
-  const t = getQType(x)
+  const t = getType(x)
   if (t === qt.QType.Map) x.set(k, v)
   else if (t === qt.QType.Set) {
     x.delete(k)
@@ -120,7 +119,7 @@ export function set(x: any, k: PropertyKey, v: any) {
 
 export function shallowCopy(x: any) {
   if (Array.isArray(x)) return Array.prototype.slice.call(x)
-  const ds = getOwnPropertyDescriptors(x)
+  const ds = ownDescs(x)
   delete ds[qt.DRAFT_STATE as any]
   const ks = ownKeys(ds)
   for (let i = 0; i < ks.length; i++) {
@@ -141,19 +140,19 @@ export function shallowCopy(x: any) {
   return Object.create(Object.getPrototypeOf(x), ds)
 }
 
+function dontMutateFrozens() {
+  die(2)
+}
+
 export function freeze<T>(x: T, deep?: boolean): T
 export function freeze<T>(x: any, deep = false): T {
   if (isFrozen(x) || isDraft(x) || !isDraftable(x)) return x
-  if (getQType(x) > 1) {
-    x.set = x.add = x.clear = x.delete = dontMutateFrozenCollections as any
+  if (getType(x) > 1) {
+    x.set = x.add = x.clear = x.delete = dontMutateFrozens as any
   }
   Object.freeze(x)
   if (deep) each(x, (_, v) => freeze(v, true), true)
   return x
-}
-
-function dontMutateFrozenCollections() {
-  die(2)
 }
 
 export function isFrozen(x: any): boolean {
@@ -189,9 +188,7 @@ export function getPlugin<K extends keyof Plugins>(
   k: K
 ): Exclude<Plugins[K], undefined> {
   const y = plugins[k]
-  if (!y) {
-    die(18, k)
-  }
+  if (!y) die(18, k)
   return y
 }
 
@@ -243,19 +240,19 @@ const errors = {
   24: "Patching reserved attributes like __proto__, prototype and constructor is not allowed",
 } as const
 
-export function die(error: keyof typeof errors, ...args: any[]): never {
+export function die(k: keyof typeof errors, ...xs: any[]): never {
   if (__DEV__) {
-    const e = errors[error]
+    const e = errors[k]
     const m = !e
-      ? "unknown error nr: " + error
+      ? "unknown error nr: " + k
       : typeof e === "function"
-      ? e.apply(null, args as any)
+      ? (e as (...xs: any[]) => any)(xs)
       : e
     throw new Error(`[Immer] ${m}`)
   }
   throw new Error(
-    `[Immer] minified error nr: ${error}${
-      args.length ? " " + args.map(s => `'${s}'`).join(",") : ""
+    `[Immer] minified error nr: ${k}${
+      xs.length ? " " + xs.map(s => `'${s}'`).join(",") : ""
     }. Find the full error at: https://bit.ly/3cXEKWf`
   )
 }
