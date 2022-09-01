@@ -1,10 +1,10 @@
 import type * as qt from "./types.js"
-import { Immer } from "./main.js"
+import { Immer } from "./immer.js"
 
 export * from "./utils.js"
 export * from "./types.js"
 export * from "./plugins.js"
-export * from "./main.js"
+export * from "./immer.js"
 export * from "./use.js"
 
 const immer = new Immer()

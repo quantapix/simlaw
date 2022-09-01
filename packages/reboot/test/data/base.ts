@@ -5,7 +5,7 @@ import {
   enableAllPlugins,
   Immer,
   isDraft,
-  Nothing,
+  Unknown,
   original,
   shallowCopy,
 } from "../../src/data/immer/index.js"
@@ -1613,13 +1613,13 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
       expect(produce(base, () => null)).toBe(null)
       expect(produce(base, () => undefined)).toBe(3)
       expect(produce(base, () => {})).toBe(3)
-      expect(produce(base, () => Nothing)).toBe(undefined)
+      expect(produce(base, () => Unknown)).toBe(undefined)
       expect(produce({}, () => undefined)).toEqual({})
-      expect(produce({}, () => Nothing)).toBe(undefined)
-      expect(produce(3, () => Nothing)).toBe(undefined)
+      expect(produce({}, () => Unknown)).toBe(undefined)
+      expect(produce(3, () => Unknown)).toBe(undefined)
       expect(produce(() => undefined)({})).toEqual({})
-      expect(produce(() => Nothing)({})).toBe(undefined)
-      expect(produce(() => Nothing)(3)).toBe(undefined)
+      expect(produce(() => Unknown)({})).toBe(undefined)
+      expect(produce(() => Unknown)(3)).toBe(undefined)
     })
     describe("base state type", () => {
       if (!global.USES_BUILD) testObjectTypes(produce)

@@ -1,4 +1,4 @@
-export class Nothing {
+export class Unknown {
   private _!: unique symbol
 }
 
@@ -80,13 +80,13 @@ export interface Patch {
 
 export type PatchListener = (xs: Patch[], inverses: Patch[]) => void
 
-type FromNothing<T> = T extends Nothing ? undefined : T
+type FromUnknown<T> = T extends Unknown ? undefined : T
 
-export type Produced<Base, Return> = Return extends void
-  ? Base
-  : Return extends Promise<infer Result>
-  ? Promise<Result extends void ? Base : FromNothing<Result>>
-  : FromNothing<Return>
+export type Produced<T, R> = R extends void
+  ? T
+  : R extends Promise<infer R>
+  ? Promise<R extends void ? T : FromUnknown<R>>
+  : FromUnknown<R>
 
 type PatchesTuple<T> = readonly [T, Patch[], Patch[]]
 
@@ -94,7 +94,7 @@ type ValidRecipeReturnType<State> =
   | State
   | void
   | undefined
-  | (State extends undefined ? Nothing : never)
+  | (State extends undefined ? Unknown : never)
 
 type ValidRecipeReturnTypePossiblyPromise<State> =
   | ValidRecipeReturnType<State>

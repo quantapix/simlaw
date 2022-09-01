@@ -8,16 +8,11 @@ import produce, {
   DRAFTABLE,
   nothing,
 } from "../src/immer"
-
 enableAllPlugins()
-
 jest.setTimeout(1000)
-
 const isProd = process.env.NODE_ENV === "production"
-
 function runPatchTest(base, producer, patches, inversePathes, expectedResult) {
   let resultProxies, resultEs5
-
   function runPatchTestHelper() {
     let recordedPatches
     let recordedInversePatches
@@ -25,33 +20,26 @@ function runPatchTest(base, producer, patches, inversePathes, expectedResult) {
       recordedPatches = p
       recordedInversePatches = i
     })
-
     if (expectedResult !== undefined)
       test("produced the correct result", () => {
         expect(res).toEqual(expectedResult)
       })
-
     test("produces the correct patches", () => {
       expect(recordedPatches).toEqual(patches)
       if (inversePathes) expect(recordedInversePatches).toEqual(inversePathes)
     })
-
     test("patches are replayable", () => {
       expect(applyPatches(base, recordedPatches)).toEqual(res)
     })
-
     test("patches can be reversed", () => {
       expect(applyPatches(res, recordedInversePatches)).toEqual(base)
     })
-
     return res
   }
-
   describe(`proxy`, () => {
     setUseProxies(true)
     resultProxies = runPatchTestHelper()
   })
-
   describe(`es5`, () => {
     setUseProxies(false)
     resultEs5 = runPatchTestHelper()
@@ -59,10 +47,8 @@ function runPatchTest(base, producer, patches, inversePathes, expectedResult) {
       expect(resultEs5).toEqual(resultProxies)
     })
   })
-
   return resultProxies
 }
-
 describe("applyPatches", () => {
   it("mutates the base state when it is a draft", () => {
     produce({ a: 1 }, draft => {
@@ -94,7 +80,6 @@ describe("applyPatches", () => {
       const patch = { op: "add", path: ["a", "b"], value: 1 }
       applyPatches({}, [patch])
     }).toThrowErrorMatchingSnapshot()
-
     // missing grand-parent
     expect(() => {
       const patch = { op: "add", path: ["a", "b", "c"], value: 1 }
@@ -106,25 +91,18 @@ describe("applyPatches", () => {
     const s0 = {
       items: [1],
     }
-
     const [s1, p1] = produceWithPatches(s0, draft => {
       draft.items = []
     })
-
     const replaceValueBefore = p1[0].value.slice()
-
     const [s2, p2] = produceWithPatches(s1, draft => {
       draft.items.push(2)
     })
-
     applyPatches(s0, [...p1, ...p2])
-
     const replaceValueAfter = p1[0].value.slice()
-
     expect(replaceValueAfter).toStrictEqual(replaceValueBefore)
   })
 })
-
 describe("simple assignment - 1", () => {
   runPatchTest(
     { x: 3 },
@@ -134,7 +112,6 @@ describe("simple assignment - 1", () => {
     [{ op: "replace", path: ["x"], value: 4 }]
   )
 })
-
 describe("simple assignment - 2", () => {
   runPatchTest(
     { x: { y: 4 } },
@@ -144,7 +121,6 @@ describe("simple assignment - 2", () => {
     [{ op: "replace", path: ["x", "y"], value: 5 }]
   )
 })
-
 describe("simple assignment - 3", () => {
   runPatchTest(
     { x: [{ y: 4 }] },
@@ -154,7 +130,6 @@ describe("simple assignment - 3", () => {
     [{ op: "replace", path: ["x", 0, "y"], value: 5 }]
   )
 })
-
 describe("simple assignment - 4", () => {
   runPatchTest(
     new Map([["x", { y: 4 }]]),
@@ -165,7 +140,6 @@ describe("simple assignment - 4", () => {
     [{ op: "replace", path: ["x", "y"], value: 4 }]
   )
 })
-
 describe("simple assignment - 5", () => {
   runPatchTest(
     { x: new Map([["y", 4]]) },
@@ -176,7 +150,6 @@ describe("simple assignment - 5", () => {
     [{ op: "replace", path: ["x", "y"], value: 4 }]
   )
 })
-
 describe("simple assignment - 6", () => {
   runPatchTest(
     new Map([["x", 1]]),
@@ -195,7 +168,6 @@ describe("simple assignment - 6", () => {
     ]
   )
 })
-
 describe("simple assignment - 7", () => {
   const key1 = { prop: "val1" }
   const key2 = { prop: "val2" }
@@ -215,7 +187,6 @@ describe("simple assignment - 7", () => {
     ]
   )
 })
-
 describe("delete 1", () => {
   runPatchTest(
     { x: { y: 4 } },
@@ -225,7 +196,6 @@ describe("delete 1", () => {
     [{ op: "remove", path: ["x"] }]
   )
 })
-
 describe("delete 2", () => {
   runPatchTest(
     new Map([["x", 1]]),
@@ -236,7 +206,6 @@ describe("delete 2", () => {
     [{ op: "add", path: ["x"], value: 1 }]
   )
 })
-
 describe("delete 3", () => {
   runPatchTest(
     { x: new Map([["y", 1]]) },
@@ -247,7 +216,6 @@ describe("delete 3", () => {
     [{ op: "add", path: ["x", "y"], value: 1 }]
   )
 })
-
 describe("delete 5", () => {
   const key1 = { prop: "val1" }
   const key2 = { prop: "val2" }
@@ -272,7 +240,6 @@ describe("delete 5", () => {
     ]
   )
 })
-
 describe("delete 6", () => {
   runPatchTest(
     new Set(["x", 1]),
@@ -283,7 +250,6 @@ describe("delete 6", () => {
     [{ op: "add", path: [0], value: "x" }]
   )
 })
-
 describe("delete 7", () => {
   runPatchTest(
     { x: new Set(["y", 1]) },
@@ -294,7 +260,6 @@ describe("delete 7", () => {
     [{ op: "add", path: ["x", 0], value: "y" }]
   )
 })
-
 describe("renaming properties", () => {
   describe("nested object (no changes)", () => {
     runPatchTest(
@@ -309,7 +274,6 @@ describe("renaming properties", () => {
       ]
     )
   })
-
   describe("nested change in object", () => {
     runPatchTest(
       {
@@ -322,7 +286,6 @@ describe("renaming properties", () => {
       [{ op: "replace", path: ["a", "b"], value: 1 }]
     )
   })
-
   describe("nested change in map", () => {
     runPatchTest(
       new Map([["a", new Map([["b", 1]])]]),
@@ -333,7 +296,6 @@ describe("renaming properties", () => {
       [{ op: "replace", path: ["a", "b"], value: 1 }]
     )
   })
-
   describe("nested change in array", () => {
     runPatchTest(
       [[{ b: 1 }]],
@@ -344,7 +306,6 @@ describe("renaming properties", () => {
       [{ op: "replace", path: [0, 0, "b"], value: 1 }]
     )
   })
-
   describe("nested map (no changes)", () => {
     runPatchTest(
       new Map([["a", new Map([["b", 1]])]]),
@@ -362,7 +323,6 @@ describe("renaming properties", () => {
       ]
     )
   })
-
   describe("nested object (with changes)", () => {
     runPatchTest(
       { a: { b: 1, c: 1 } },
@@ -371,7 +331,6 @@ describe("renaming properties", () => {
         a.b = 2 // change
         delete a.c // delete
         a.y = 2 // add
-
         // rename
         d.x = a
         delete d.a
@@ -382,7 +341,6 @@ describe("renaming properties", () => {
       ]
     )
   })
-
   describe("nested map (with changes)", () => {
     runPatchTest(
       new Map([
@@ -399,7 +357,6 @@ describe("renaming properties", () => {
         a.set("b", 2) // change
         a.delete("c") // delete
         a.set("y", 2) // add
-
         // rename
         d.set("x", a)
         d.delete("a")
@@ -428,7 +385,6 @@ describe("renaming properties", () => {
       ]
     )
   })
-
   describe("deeply nested object (with changes)", () => {
     runPatchTest(
       { a: { b: { c: 1, d: 1 } } },
@@ -437,7 +393,6 @@ describe("renaming properties", () => {
         b.c = 2 // change
         delete b.d // delete
         b.y = 2 // add
-
         // rename
         d.a.x = b
         delete d.a.b
@@ -448,7 +403,6 @@ describe("renaming properties", () => {
       ]
     )
   })
-
   describe("deeply nested map (with changes)", () => {
     runPatchTest(
       new Map([
@@ -470,7 +424,6 @@ describe("renaming properties", () => {
         b.set("c", 2) // change
         b.delete("d") // delete
         b.set("y", 2) // add
-
         // rename
         d.get("a").set("x", b)
         d.get("a").delete("b")
@@ -500,7 +453,6 @@ describe("renaming properties", () => {
     )
   })
 })
-
 describe("minimum amount of changes", () => {
   runPatchTest(
     { x: 3, y: { a: 4 }, z: 3 },
@@ -515,7 +467,6 @@ describe("minimum amount of changes", () => {
     ]
   )
 })
-
 describe("arrays - prepend", () => {
   runPatchTest(
     { x: [1, 2, 3] },
@@ -530,7 +481,6 @@ describe("arrays - prepend", () => {
     ]
   )
 })
-
 describe("arrays - multiple prepend", () => {
   runPatchTest(
     { x: [1, 2, 3] },
@@ -548,7 +498,6 @@ describe("arrays - multiple prepend", () => {
     ]
   )
 })
-
 describe("arrays - splice middle", () => {
   runPatchTest(
     { x: [1, 2, 3] },
@@ -561,7 +510,6 @@ describe("arrays - splice middle", () => {
     ]
   )
 })
-
 describe("arrays - multiple splice", () => {
   runPatchTest(
     [0, 1, 2, 3, 4, 5, 0],
@@ -580,7 +528,6 @@ describe("arrays - multiple splice", () => {
     ]
   )
 })
-
 describe("arrays - modify and shrink", () => {
   runPatchTest(
     { x: [1, 2, 3] },
@@ -599,7 +546,6 @@ describe("arrays - modify and shrink", () => {
     ]
   )
 })
-
 describe("arrays - prepend then splice middle", () => {
   runPatchTest(
     { x: [1, 2, 3] },
@@ -614,7 +560,6 @@ describe("arrays - prepend then splice middle", () => {
     ]
   )
 })
-
 describe("arrays - splice middle then prepend", () => {
   runPatchTest(
     { x: [1, 2, 3] },
@@ -629,7 +574,6 @@ describe("arrays - splice middle then prepend", () => {
     ]
   )
 })
-
 describe("arrays - truncate", () => {
   runPatchTest(
     { x: [1, 2, 3] },
@@ -643,7 +587,6 @@ describe("arrays - truncate", () => {
     ]
   )
 })
-
 describe("arrays - pop twice", () => {
   runPatchTest(
     { x: [1, 2, 3] },
@@ -654,7 +597,6 @@ describe("arrays - pop twice", () => {
     [{ op: "replace", path: ["x", "length"], value: 1 }]
   )
 })
-
 describe("arrays - push multiple", () => {
   // These patches were more optimal pre immer 7, but not always correct
   runPatchTest(
@@ -669,7 +611,6 @@ describe("arrays - push multiple", () => {
     [{ op: "replace", path: ["x", "length"], value: 3 }]
   )
 })
-
 describe("arrays - splice (expand)", () => {
   // These patches were more optimal pre immer 7, but not always correct
   runPatchTest(
@@ -690,7 +631,6 @@ describe("arrays - splice (expand)", () => {
     ]
   )
 })
-
 describe("arrays - splice (shrink)", () => {
   // These patches were more optimal pre immer 7, but not always correct
   runPatchTest(
@@ -711,7 +651,6 @@ describe("arrays - splice (shrink)", () => {
     ]
   )
 })
-
 describe("arrays - delete", () => {
   runPatchTest(
     {
@@ -726,7 +665,6 @@ describe("arrays - delete", () => {
     [{ op: "remove", path: ["x", 1, "c"] }]
   )
 })
-
 describe("arrays - append", () => {
   test("appends to array when last part of path is '-'", () => {
     const state = {
@@ -742,7 +680,6 @@ describe("arrays - append", () => {
     })
   })
 })
-
 describe("sets - add - 1", () => {
   runPatchTest(
     new Set([1]),
@@ -753,7 +690,6 @@ describe("sets - add - 1", () => {
     [{ op: "remove", path: [1], value: 2 }]
   )
 })
-
 describe("sets - add, delete, add - 1", () => {
   runPatchTest(
     new Set([1]),
@@ -766,7 +702,6 @@ describe("sets - add, delete, add - 1", () => {
     [{ op: "remove", path: [1], value: 2 }]
   )
 })
-
 describe("sets - add, delete, add - 2", () => {
   runPatchTest(
     new Set([2, 1]),
@@ -779,7 +714,6 @@ describe("sets - add, delete, add - 2", () => {
     []
   )
 })
-
 describe("sets - mutate - 1", () => {
   const findById = (set, id) => {
     for (const item of set) {
@@ -811,7 +745,6 @@ describe("sets - mutate - 1", () => {
     ]
   )
 })
-
 describe("arrays - splice should should result in remove op.", () => {
   // These patches were more optimal pre immer 7, but not always correct
   runPatchTest(
@@ -823,7 +756,6 @@ describe("arrays - splice should should result in remove op.", () => {
     [{ op: "add", path: [1], value: 2 }]
   )
 })
-
 describe("arrays - NESTED splice should should result in remove op.", () => {
   // These patches were more optimal pre immer 7, but not always correct
   runPatchTest(
@@ -835,11 +767,9 @@ describe("arrays - NESTED splice should should result in remove op.", () => {
     [{ op: "add", path: ["a", "b", "c", 1], value: 2 }]
   )
 })
-
 describe("simple replacement", () => {
   runPatchTest({ x: 3 }, _d => 4, [{ op: "replace", path: [], value: 4 }])
 })
-
 describe("same value replacement - 1", () => {
   runPatchTest(
     { x: { y: 3 } },
@@ -850,7 +780,6 @@ describe("same value replacement - 1", () => {
     []
   )
 })
-
 describe("same value replacement - 2", () => {
   runPatchTest(
     { x: { y: 3 } },
@@ -862,7 +791,6 @@ describe("same value replacement - 2", () => {
     []
   )
 })
-
 describe("same value replacement - 3", () => {
   runPatchTest(
     { x: 3 },
@@ -872,7 +800,6 @@ describe("same value replacement - 3", () => {
     []
   )
 })
-
 describe("same value replacement - 4", () => {
   runPatchTest(
     { x: 3 },
@@ -883,7 +810,6 @@ describe("same value replacement - 4", () => {
     []
   )
 })
-
 describe("same value replacement - 5", () => {
   runPatchTest(
     new Map([["x", 3]]),
@@ -895,7 +821,6 @@ describe("same value replacement - 5", () => {
     []
   )
 })
-
 describe("same value replacement - 6", () => {
   runPatchTest(
     new Set(["x", 3]),
@@ -907,7 +832,6 @@ describe("same value replacement - 6", () => {
     []
   )
 })
-
 describe("simple delete", () => {
   runPatchTest(
     { x: 2 },
@@ -922,7 +846,6 @@ describe("simple delete", () => {
     ]
   )
 })
-
 describe("patch compressions yields correct results", () => {
   let p1, p2
   runPatchTest(
@@ -959,10 +882,8 @@ describe("patch compressions yields correct results", () => {
     },
     []
   )
-
   expect(res).toEqual({})
 })
-
 describe("change then delete property", () => {
   const res = runPatchTest(
     {
@@ -983,11 +904,9 @@ describe("change then delete property", () => {
     expect(res).toEqual({})
   })
 })
-
 test("replaying patches with interweaved replacements should work correctly", () => {
   const patches = []
   const s0 = { x: 1 }
-
   const s1 = produce(
     s0,
     draft => {
@@ -997,7 +916,6 @@ test("replaying patches with interweaved replacements should work correctly", ()
       patches.push(...p)
     }
   )
-
   const s2 = produce(
     s1,
     draft => {
@@ -1007,7 +925,6 @@ test("replaying patches with interweaved replacements should work correctly", ()
       patches.push(...p)
     }
   )
-
   const s3 = produce(
     s2,
     draft => {
@@ -1017,10 +934,8 @@ test("replaying patches with interweaved replacements should work correctly", ()
       patches.push(...p)
     }
   )
-
   expect(s3).toEqual({ x: -1 }) // correct result
   expect(applyPatches(s0, patches)).toEqual({ x: -1 }) // correct replay
-
   // manual replay on a draft should also be correct
   expect(
     produce(s0, draft => {
@@ -1028,7 +943,6 @@ test("replaying patches with interweaved replacements should work correctly", ()
     })
   ).toEqual({ x: -1 })
 })
-
 describe("#468", () => {
   function run() {
     const item = { id: 1 }
@@ -1037,7 +951,6 @@ describe("#468", () => {
       draft[0].id = 2
       draft[1] = item
     })
-
     expect(nextState).toEqual([{ id: 2 }, { id: 1 }])
     expect(patches).toEqual([
       {
@@ -1053,54 +966,42 @@ describe("#468", () => {
         },
       },
     ])
-
     const final = applyPatches(state, patches)
     expect(final).toEqual(nextState)
   }
-
   test("es5", () => {
     setUseProxies(false)
     run()
   })
-
   test("proxy", () => {
     setUseProxies(true)
     run()
   })
 })
-
 test("#521", () => {
   const state = new Map()
-
   const [nextState, patches] = produceWithPatches(state, draft => {
     draft.set("hello", new Set(["world"]))
   })
-
   let patchedState = applyPatches(state, patches)
   expect(patchedState).toEqual(nextState)
-
   const [nextStateV2, patchesV2] = produceWithPatches(nextState, draft => {
     draft.get("hello").add("immer")
   })
-
   expect(applyPatches(nextState, patchesV2)).toEqual(
     new Map([["hello", new Set(["world", "immer"])]])
   )
 })
-
 test("#559 patches works in a nested reducer with proxies", () => {
   setUseProxies(true)
-
   const state = {
     x: 1,
     sub: {
       y: [{ a: 0 }, { a: 1 }],
     },
   }
-
   const changes = []
   const inverseChanges = []
-
   const newState = produce(state, draft => {
     draft.sub = produce(
       draft.sub,
@@ -1115,15 +1016,11 @@ test("#559 patches works in a nested reducer with proxies", () => {
       }
     )
   })
-
   const reversedSubState = applyPatches(newState.sub, inverseChanges)
-
   expect(reversedSubState).toMatchObject(state.sub)
 })
-
 describe("#588", () => {
   const reference = { value: { num: 53 } }
-
   class Base {
     [DRAFTABLE] = true
     get nested() {
@@ -1131,9 +1028,7 @@ describe("#588", () => {
     }
     set nested(value) {}
   }
-
   let base = new Base()
-
   runPatchTest(
     base,
     vdraft => {
@@ -1145,7 +1040,6 @@ describe("#588", () => {
     [{ op: "add", path: ["num"], value: 42 }]
   )
 })
-
 test("#676 patching Date objects", () => {
   class Test {
     constructor() {
@@ -1155,17 +1049,14 @@ test("#676 patching Date objects", () => {
       return "tested!"
     }
   }
-
   const [nextState, patches] = produceWithPatches({}, function (draft) {
     draft.date = new Date("2020-11-10T08:08:08.003Z")
     draft.test = new Test()
   })
-
   expect(nextState.date.toJSON()).toMatchInlineSnapshot(
     `"2020-11-10T08:08:08.003Z"`
   )
   expect(nextState.test.perform()).toBe("tested!")
-
   const rebuilt = applyPatches({}, patches)
   expect(rebuilt.date).toBeInstanceOf(Date)
   expect(rebuilt.date.toJSON()).toMatchInlineSnapshot(
@@ -1173,10 +1064,8 @@ test("#676 patching Date objects", () => {
   )
   expect(rebuilt.date).toEqual(new Date("2020-11-10T08:08:08.003Z"))
 })
-
 test("do not allow __proto__ polution - 738", () => {
   const obj = {}
-
   // @ts-ignore
   expect(obj.polluted).toBe(undefined)
   expect(() => {
@@ -1191,11 +1080,9 @@ test("do not allow __proto__ polution - 738", () => {
   // @ts-ignore
   expect(obj.polluted).toBe(undefined)
 })
-
 test("do not allow __proto__ polution using arrays - 738", () => {
   const obj = {}
   const ar = []
-
   // @ts-ignore
   expect(obj.polluted).toBe(undefined)
   // @ts-ignore
@@ -1215,10 +1102,8 @@ test("do not allow __proto__ polution using arrays - 738", () => {
   // @ts-ignore
   expect(ar.polluted).toBe(undefined)
 })
-
 test("do not allow prototype polution - 738", () => {
   const obj = {}
-
   // @ts-ignore
   expect(obj.polluted).toBe(undefined)
   expect(() => {
@@ -1233,10 +1118,8 @@ test("do not allow prototype polution - 738", () => {
   // @ts-ignore
   expect(obj.polluted).toBe(undefined)
 })
-
 test("do not allow constructor polution - 738", () => {
   const obj = {}
-
   // @ts-ignore
   expect(obj.polluted).toBe(undefined)
   const t = {}
@@ -1245,10 +1128,8 @@ test("do not allow constructor polution - 738", () => {
   // @ts-ignore
   expect(Object.polluted).toBe(undefined)
 })
-
 test("do not allow constructor.prototype polution - 738", () => {
   const obj = {}
-
   // @ts-ignore
   expect(obj.polluted).toBe(undefined)
   expect(() => {
@@ -1267,7 +1148,6 @@ test("do not allow constructor.prototype polution - 738", () => {
   // @ts-ignore
   expect(Object.polluted).toBe(undefined)
 })
-
 test("maps can store __proto__, prototype and constructor props", () => {
   const obj = {}
   const map = new Map()
@@ -1284,10 +1164,8 @@ test("maps can store __proto__, prototype and constructor props", () => {
   expect(newMap.get("prototype").polluted).toBe("yes")
   expect(obj.polluted).toBe(undefined)
 })
-
 test("CVE-2020-28477 (https://snyk.io/vuln/SNYK-JS-IMMER-1019369) follow up", () => {
   const obj = {}
-
   // @ts-ignore
   expect(obj.polluted).toBe(undefined)
   expect(() => {
@@ -1302,19 +1180,16 @@ test("CVE-2020-28477 (https://snyk.io/vuln/SNYK-JS-IMMER-1019369) follow up", ()
   // @ts-ignore
   expect(obj.polluted).toBe(undefined)
 })
-
 test("#648 assigning object to itself should not change patches", () => {
   const input = {
     obj: {
       value: 200,
     },
   }
-
   const [nextState, patches] = produceWithPatches(input, draft => {
     draft.obj.value = 1
     draft.obj = draft.obj
   })
-
   expect(patches).toEqual([
     {
       op: "replace",
@@ -1323,14 +1198,11 @@ test("#648 assigning object to itself should not change patches", () => {
     },
   ])
 })
-
 test("#791 patch for  nothing is stored as undefined", () => {
   const [newState, patches] = produceWithPatches({ abc: 123 }, draft => nothing)
   expect(patches).toEqual([{ op: "replace", path: [], value: undefined }])
-
   expect(applyPatches({}, patches)).toEqual(undefined)
 })
-
 test("#876 Ensure empty patch set for atomic set+delete on Map", () => {
   {
     const [newState, patches] = produceWithPatches(
@@ -1342,7 +1214,6 @@ test("#876 Ensure empty patch set for atomic set+delete on Map", () => {
     )
     expect(patches).toEqual([{ op: "remove", path: ["foo"] }])
   }
-
   {
     const [newState, patches] = produceWithPatches(new Map(), draft => {
       draft.set("foo", "bar")
@@ -1351,7 +1222,6 @@ test("#876 Ensure empty patch set for atomic set+delete on Map", () => {
     expect(patches).toEqual([])
   }
 })
-
 test("#888 patch to a primitive produces the primitive", () => {
   {
     const [res, patches] = produceWithPatches({ abc: 123 }, draft => nothing)
@@ -1399,7 +1269,6 @@ test("#888 patch to a primitive produces the primitive", () => {
     expect(patches).toEqual([{ op: "replace", path: [], value: true }])
   }
 })
-
 describe("#879 delete item from array", () => {
   runPatchTest(
     [1, 2, 3],
@@ -1411,7 +1280,6 @@ describe("#879 delete item from array", () => {
     [1, undefined, 3]
   )
 })
-
 describe("#879 delete item from array - 2", () => {
   runPatchTest(
     [1, 2, 3],
@@ -1423,7 +1291,6 @@ describe("#879 delete item from array - 2", () => {
     [1, 2, undefined]
   )
 })
-
 test("#897 appendPatch", () => {
   const state0 = { a: [] }
   const state1 = applyPatches(state0, [

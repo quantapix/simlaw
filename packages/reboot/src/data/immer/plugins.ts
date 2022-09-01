@@ -27,7 +27,7 @@ import {
   latest,
   loadPlugin,
 } from "./utils.js"
-import { getCurrentScope, markChanged, createProxy } from "./main.js"
+import { getCurrentScope, markChanged, createProxy } from "./immer.js"
 
 export function enableMapSet() {
   let extendStatics = function (d: any, b: any): any {

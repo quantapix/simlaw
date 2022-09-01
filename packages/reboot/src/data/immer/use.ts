@@ -1,12 +1,12 @@
 import * as qr from "react"
-import type { Draft, Nothing } from "./types.js"
+import type { Draft, Unknown } from "./types.js"
 import { freeze } from "./utils.js"
 import { produce } from "./index.js"
 
 export type Reducer<S = any, A = any> = (
   s: Draft<S>,
   action: A
-) => void | (S extends undefined ? typeof Nothing : S)
+) => void | (S extends undefined ? typeof Unknown : S)
 export type DraftFunction<S> = (x: Draft<S>) => void
 export type Updater<S> = (x: S | DraftFunction<S>) => void
 export type Hook<S> = [S, Updater<S>]
