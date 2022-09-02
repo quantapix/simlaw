@@ -40,14 +40,14 @@ export function isPlainObject(x: any): boolean {
   return typeof c == "function" && Function.toString.call(c) === CTOR
 }
 
-export function latest(x: qt.State): any {
-  return x.copy_ || x.base_
-}
-
 export function original<T>(x: T): T | undefined
 export function original(x: qt.Drafted<any>): any {
   if (!isDraft(x)) die(23, x)
   return x[qt.DRAFT_STATE].base_
+}
+
+export function latest(x: qt.State): any {
+  return x.copy || x.base
 }
 
 export const ownKeys: (x: qt.AnyObj) => PropertyKey[] =
@@ -60,35 +60,23 @@ export const ownKeys: (x: qt.AnyObj) => PropertyKey[] =
         )
     : Object.getOwnPropertyNames
 
-export const ownDescs =
-  Object.getOwnPropertyDescriptors ||
-  function getOwnPropertyDescriptors(x: any) {
-    const res: any = {}
-    ownKeys(x).forEach(k => {
-      res[k] = Object.getOwnPropertyDescriptor(x, k)
-    })
-    return res
-  }
-
 export function each<T extends qt.Objectish>(
   x: T,
   iter: (k: string | number, v: any, src: T) => void,
-  enumerableOnly?: boolean
+  enumOnly?: boolean
 ): void
-export function each(x: any, iter: any, enumerableOnly = false) {
+export function each(x: any, iter: any, enumOnly = false) {
   if (getType(x) === qt.QType.Obj) {
-    ;(enumerableOnly ? Object.keys : ownKeys)(x).forEach(k => {
-      if (!enumerableOnly || typeof k !== "symbol") iter(k, x[k], x)
+    ;(enumOnly ? Object.keys : ownKeys)(x).forEach(k => {
+      if (!enumOnly || typeof k !== "symbol") iter(k, x[k], x)
     })
-  } else {
-    x.forEach((entry: any, i: any) => iter(i, entry, x))
-  }
+  } else x.forEach((entry: any, i: any) => iter(i, entry, x))
 }
 
 export function getType(x: any): qt.QType {
-  const state: undefined | qt.State = x[qt.DRAFT_STATE]
-  return state
-    ? (state.type_ as any)
+  const s: undefined | qt.State = x[qt.DRAFT_STATE]
+  return s
+    ? (s.type as any)
     : Array.isArray(x)
     ? qt.QType.Array
     : isMap(x)
@@ -117,9 +105,19 @@ export function set(x: any, k: PropertyKey, v: any) {
   } else x[k] = v
 }
 
+export const ownDescriptors =
+  Object.getOwnPropertyDescriptors ||
+  ((x: any) => {
+    const y: any = {}
+    ownKeys(x).forEach(k => {
+      y[k] = Object.getOwnPropertyDescriptor(x, k)
+    })
+    return y
+  })
+
 export function shallowCopy(x: any) {
   if (Array.isArray(x)) return Array.prototype.slice.call(x)
-  const ds = ownDescs(x)
+  const ds = ownDescriptors(x)
   delete ds[qt.DRAFT_STATE as any]
   const ks = ownKeys(ds)
   for (let i = 0; i < ks.length; i++) {
@@ -140,16 +138,14 @@ export function shallowCopy(x: any) {
   return Object.create(Object.getPrototypeOf(x), ds)
 }
 
-function dontMutateFrozens() {
+function dontMutate() {
   die(2)
 }
 
 export function freeze<T>(x: T, deep?: boolean): T
 export function freeze<T>(x: any, deep = false): T {
   if (isFrozen(x) || isDraft(x) || !isDraftable(x)) return x
-  if (getType(x) > 1) {
-    x.set = x.add = x.clear = x.delete = dontMutateFrozens as any
-  }
+  if (getType(x) > 1) x.set = x.add = x.clear = x.delete = dontMutate as any
   Object.freeze(x)
   if (deep) each(x, (_, v) => freeze(v, true), true)
   return x
@@ -162,23 +158,23 @@ export function isFrozen(x: any): boolean {
 
 const plugins: {
   Patches?: {
-    generatePatches_(
+    generatePatches(
       state: qt.State,
-      basePath: qt.PatchPath,
+      path: qt.PatchPath,
       patches: qt.Patch[],
-      inversePatches: qt.Patch[]
+      inverses: qt.Patch[]
     ): void
-    generateReplacementPatches_(
+    replacementPatches(
       base: any,
       replacement: any,
       patches: qt.Patch[],
-      inversePatches: qt.Patch[]
+      inverses: qt.Patch[]
     ): void
-    applyPatches_<T>(draft: T, patches: qt.Patch[]): T
+    applyPatches<T>(x: T, ps: qt.Patch[]): T
   }
   MapSet?: {
-    proxyMap_<T extends qt.AnyMap>(x: T, parent?: qt.State): T
-    proxySet_<T extends qt.AnySet>(x: T, parent?: qt.State): T
+    proxyMap<T extends qt.AnyMap>(x: T, parent?: qt.State): T
+    proxySet<T extends qt.AnySet>(x: T, parent?: qt.State): T
   }
 } = {}
 

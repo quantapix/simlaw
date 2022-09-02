@@ -8,7 +8,7 @@ import {
   Patch,
   PatchPath,
   ProxyArray,
-  ProxyObject,
+  ProxyObj,
   ProxyType,
   QType,
   SetState,
@@ -55,17 +55,17 @@ export function enableMapSet() {
     __extends(DraftMap, _super)
     function DraftMap(this: any, target: AnyMap, parent?: State): any {
       this[DRAFT_STATE] = {
-        type_: ProxyType.Map,
-        parent_: parent,
-        scope_: parent ? parent.scope_ : getCurrentScope()!,
-        modified_: false,
-        finalized_: false,
-        copy_: undefined,
-        assigned_: undefined,
-        base_: target,
-        draft_: this as any,
-        isManual_: false,
-        revoked_: false,
+        type: ProxyType.Map,
+        parent: parent,
+        scope: parent ? parent.scope : getCurrentScope()!,
+        modified: false,
+        finalized: false,
+        copy: undefined,
+        assigned: undefined,
+        base: target,
+        draft: this as any,
+        manual: false,
+        revoked: false,
       } as MapState
       return this
     }
@@ -84,9 +84,9 @@ export function enableMapSet() {
       if (!latest(s).has(k) || latest(s).get(k) !== v) {
         prepareMapCopy(s)
         markChanged(s)
-        s.assigned_!.set(k, true)
-        s.copy_!.set(k, v)
-        s.assigned_!.set(k, true)
+        s.assigned!.set(k, true)
+        s.copy!.set(k, v)
+        s.assigned!.set(k, true)
       }
       return this
     }
@@ -96,9 +96,9 @@ export function enableMapSet() {
       assertUnrevoked(s)
       prepareMapCopy(s)
       markChanged(s)
-      if (s.base_.has(k)) s.assigned_!.set(k, false)
-      else s.assigned_!.delete(k)
-      s.copy_!.delete(k)
+      if (s.base.has(k)) s.assigned!.set(k, false)
+      else s.assigned!.delete(k)
+      s.copy!.delete(k)
       return true
     }
     p.clear = function () {
@@ -107,11 +107,11 @@ export function enableMapSet() {
       if (latest(s).size) {
         prepareMapCopy(s)
         markChanged(s)
-        s.assigned_ = new Map()
-        each(s.base_, k => {
-          s.assigned_!.set(k, false)
+        s.assigned = new Map()
+        each(s.base, k => {
+          s.assigned!.set(k, false)
         })
-        s.copy_!.clear()
+        s.copy!.clear()
       }
     }
     p.forEach = function (
@@ -127,11 +127,11 @@ export function enableMapSet() {
       const s: MapState = this[DRAFT_STATE]
       assertUnrevoked(s)
       const v = latest(s).get(k)
-      if (s.finalized_ || !isDraftable(v)) return v
-      if (v !== s.base_.get(k)) return v
+      if (s.finalized || !isDraftable(v)) return v
+      if (v !== s.base.get(k)) return v
       const y = createProxy(v, s)
       prepareMapCopy(s)
-      s.copy_!.set(k, y)
+      s.copy!.set(k, y)
       return y
     }
     p.keys = function (): IterableIterator<any> {
@@ -175,9 +175,9 @@ export function enableMapSet() {
   }
 
   function prepareMapCopy(x: MapState) {
-    if (!x.copy_) {
-      x.assigned_ = new Map()
-      x.copy_ = new Map(x.base_)
+    if (!x.copy) {
+      x.assigned = new Map()
+      x.copy = new Map(x.base)
     }
   }
 
@@ -185,17 +185,17 @@ export function enableMapSet() {
     __extends(DraftSet, _super)
     function DraftSet(this: any, target: AnySet, parent?: State) {
       this[DRAFT_STATE] = {
-        type_: ProxyType.Set,
-        parent_: parent,
-        scope_: parent ? parent.scope_ : getCurrentScope()!,
-        modified_: false,
-        finalized_: false,
-        copy_: undefined,
-        base_: target,
-        draft_: this,
-        drafts_: new Map(),
-        revoked_: false,
-        isManual_: false,
+        type: ProxyType.Set,
+        parent: parent,
+        scope: parent ? parent.scope : getCurrentScope()!,
+        modified: false,
+        finalized: false,
+        copy: undefined,
+        base: target,
+        draft: this,
+        drafts: new Map(),
+        revoked: false,
+        manual: false,
       } as SetState
       return this
     }
@@ -208,9 +208,9 @@ export function enableMapSet() {
     p.has = function (x: any): boolean {
       const s: SetState = this[DRAFT_STATE]
       assertUnrevoked(s)
-      if (!s.copy_) return s.base_.has(x)
-      if (s.copy_.has(x)) return true
-      if (s.drafts_.has(x) && s.copy_.has(s.drafts_.get(x))) return true
+      if (!s.copy) return s.base.has(x)
+      if (s.copy.has(x)) return true
+      if (s.drafts.has(x) && s.copy.has(s.drafts.get(x))) return true
       return false
     }
     p.add = function (x: any): any {
@@ -219,7 +219,7 @@ export function enableMapSet() {
       if (!this.has(x)) {
         prepareSetCopy(s)
         markChanged(s)
-        s.copy_!.add(x)
+        s.copy!.add(x)
       }
       return this
     }
@@ -230,8 +230,8 @@ export function enableMapSet() {
       prepareSetCopy(s)
       markChanged(s)
       return (
-        s.copy_!.delete(x) ||
-        (s.drafts_.has(x) ? s.copy_!.delete(s.drafts_.get(x)) : false)
+        s.copy!.delete(x) ||
+        (s.drafts.has(x) ? s.copy!.delete(s.drafts.get(x)) : false)
       )
     }
     p.clear = function () {
@@ -240,20 +240,20 @@ export function enableMapSet() {
       if (latest(s).size) {
         prepareSetCopy(s)
         markChanged(s)
-        s.copy_!.clear()
+        s.copy!.clear()
       }
     }
     p.values = function (): IterableIterator<any> {
       const s: SetState = this[DRAFT_STATE]
       assertUnrevoked(s)
       prepareSetCopy(s)
-      return s.copy_!.values()
+      return s.copy!.values()
     }
     p.entries = function entries(): IterableIterator<[any, any]> {
       const s: SetState = this[DRAFT_STATE]
       assertUnrevoked(s)
       prepareSetCopy(s)
-      return s.copy_!.entries()
+      return s.copy!.entries()
     }
     p.keys = function (): IterableIterator<any> {
       return this.values()
@@ -277,14 +277,14 @@ export function enableMapSet() {
   }
 
   function prepareSetCopy(x: SetState) {
-    if (!x.copy_) {
-      x.copy_ = new Set()
-      x.base_.forEach(value => {
+    if (!x.copy) {
+      x.copy = new Set()
+      x.base.forEach(value => {
         if (isDraftable(value)) {
           const draft = createProxy(value, x)
-          x.drafts_.set(value, draft)
-          x.copy_!.add(draft)
-        } else x.copy_!.add(value)
+          x.drafts.set(value, draft)
+          x.copy!.add(draft)
+        } else x.copy!.add(value)
       })
     }
   }
@@ -293,7 +293,7 @@ export function enableMapSet() {
     if (x.revoked_) die(3, JSON.stringify(latest(x)))
   }
 
-  loadPlugin("MapSet", { proxyMap_, proxySet_ })
+  loadPlugin("MapSet", { proxyMap: proxyMap_, proxySet: proxySet_ })
 }
 
 export function enablePatches() {
@@ -305,25 +305,20 @@ export function enablePatches() {
     state: State,
     basePath: PatchPath,
     patches: Patch[],
-    inversePatches: Patch[]
+    inverses: Patch[]
   ): void {
-    switch (state.type_) {
+    switch (state.type) {
       case ProxyType.Obj:
       case ProxyType.Map:
-        return generatePatchesFromAssigned(
-          state,
-          basePath,
-          patches,
-          inversePatches
-        )
+        return generatePatchesFromAssigned(state, basePath, patches, inverses)
       case ProxyType.Array:
-        return generateArrayPatches(state, basePath, patches, inversePatches)
+        return generateArrayPatches(state, basePath, patches, inverses)
       case ProxyType.Set:
         return generateSetPatches(
           state as any as SetState,
           basePath,
           patches,
-          inversePatches
+          inverses
         )
     }
   }
@@ -332,13 +327,13 @@ export function enablePatches() {
     state: ProxyArray,
     basePath: PatchPath,
     patches: Patch[],
-    inversePatches: Patch[]
+    inverses: Patch[]
   ) {
-    let { base_, assigned_ } = state
-    let copy_ = state.copy_!
+    let { base: base_, assigned: assigned_ } = state
+    let copy_ = state.copy!
     if (copy_.length < base_.length) {
       ;[base_, copy_] = [copy_, base_]
-      ;[patches, inversePatches] = [inversePatches, patches]
+      ;[patches, inverses] = [inverses, patches]
     }
     for (let i = 0; i < base_.length; i++) {
       if (assigned_[i] && copy_[i] !== base_[i]) {
@@ -348,7 +343,7 @@ export function enablePatches() {
           path,
           value: clonePatchValueIfNeeded(copy_[i]),
         })
-        inversePatches.push({
+        inverses.push({
           op: REPLACE,
           path,
           value: clonePatchValueIfNeeded(base_[i]),
@@ -364,7 +359,7 @@ export function enablePatches() {
       })
     }
     if (base_.length < copy_.length) {
-      inversePatches.push({
+      inverses.push({
         op: REPLACE,
         path: basePath.concat(["length"]),
         value: base_.length,
@@ -373,20 +368,20 @@ export function enablePatches() {
   }
 
   function generatePatchesFromAssigned(
-    state: MapState | ProxyObject,
+    state: MapState | ProxyObj,
     basePath: PatchPath,
     patches: Patch[],
-    inversePatches: Patch[]
+    inverses: Patch[]
   ) {
-    const { base_, copy_ } = state
-    each(state.assigned_!, (key, assignedValue) => {
+    const { base: base_, copy: copy_ } = state
+    each(state.assigned!, (key, assignedValue) => {
       const origValue = get(base_, key)
       const value = get(copy_!, key)
       const op = !assignedValue ? REMOVE : has(base_, key) ? REPLACE : ADD
       if (origValue === value && op === REPLACE) return
       const path = basePath.concat(key as any)
       patches.push(op === REMOVE ? { op, path } : { op, path, value })
-      inversePatches.push(
+      inverses.push(
         op === ADD
           ? { op: REMOVE, path }
           : op === REMOVE
@@ -400,9 +395,9 @@ export function enablePatches() {
     state: SetState,
     basePath: PatchPath,
     patches: Patch[],
-    inversePatches: Patch[]
+    inverses: Patch[]
   ) {
-    let { base_, copy_ } = state
+    let { base: base_, copy: copy_ } = state
     let i = 0
     base_.forEach((value: any) => {
       if (!copy_!.has(value)) {
@@ -412,7 +407,7 @@ export function enablePatches() {
           path,
           value,
         })
-        inversePatches.unshift({
+        inverses.unshift({
           op: ADD,
           path,
           value,
@@ -429,7 +424,7 @@ export function enablePatches() {
           path,
           value,
         })
-        inversePatches.unshift({
+        inverses.unshift({
           op: REMOVE,
           path,
           value,
@@ -443,14 +438,14 @@ export function enablePatches() {
     baseValue: any,
     replacement: any,
     patches: Patch[],
-    inversePatches: Patch[]
+    inverses: Patch[]
   ): void {
     patches.push({
       op: REPLACE,
       path: [],
       value: replacement === NOTHING ? undefined : replacement,
     })
-    inversePatches.push({
+    inverses.push({
       op: REPLACE,
       path: [],
       value: baseValue,
@@ -538,9 +533,9 @@ export function enablePatches() {
   }
 
   loadPlugin("Patches", {
-    applyPatches_,
-    generatePatches_,
-    generateReplacementPatches_,
+    applyPatches: applyPatches_,
+    generatePatches: generatePatches_,
+    replacementPatches: generateReplacementPatches_,
   })
 }
 

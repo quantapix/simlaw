@@ -53,9 +53,9 @@ describe("readme example", () => {
         draft.age = 33
       },
       // The third argument to produce is a callback to which the patches will be fed
-      (patches, inversePatches) => {
+      (patches, inverses) => {
         changes.push(...patches)
-        inverseChanges.push(...inversePatches)
+        inverseChanges.push(...inverses)
       }
     )
     // In the mean time, our original state is updated as well, as changes come in from the server

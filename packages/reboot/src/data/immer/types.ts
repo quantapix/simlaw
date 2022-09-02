@@ -1,22 +1,10 @@
 export class Unknown {
-  private _!: unique symbol
+  static readonly _: unique symbol
 }
 
 export const NOTHING: unique symbol = Symbol.for("immer-nothing")
 export const DRAFTABLE: unique symbol = Symbol.for("immer-draftable")
 export const DRAFT_STATE: unique symbol = Symbol.for("immer-state")
-
-export type AnyObj = { [k: string]: any }
-export type AnyArray = Array<any>
-export type AnySet = Set<any>
-export type AnyMap = Map<any, any>
-
-type AnyFunc = (...xs: any[]) => any
-type Primitive = number | string | boolean
-type Atomic = AnyFunc | Promise<any> | Date | RegExp
-
-export type Objectish = AnyObj | AnyArray | AnyMap | AnySet
-export type ObjectishNoSet = AnyObj | AnyArray | AnyMap
 
 export const enum QType {
   Obj,
@@ -32,15 +20,18 @@ export const enum ProxyType {
   Set,
 }
 
-export type IfAvailable<T, Fallback = void> = true | false extends (
-  T extends never ? true : false
-)
-  ? Fallback
-  : keyof T extends never
-  ? Fallback
-  : T
+export type AnyObj = { [k: string]: any }
+export type AnyArray = Array<any>
+export type AnySet = Set<any>
+export type AnyMap = Map<any, any>
 
-type WeakReferences = IfAvailable<WeakMap<any, any>> | IfAvailable<WeakSet<any>>
+export type Objectish = AnyObj | AnyArray | AnyMap | AnySet
+export type ObjectishNoSet = AnyObj | AnyArray | AnyMap
+
+type AnyFunc = (...xs: any[]) => any
+type Primitive = number | string | boolean
+type Atomic = AnyFunc | Promise<any> | Date | RegExp
+type Weaks = WeakMap<any, any> | WeakSet<any>
 
 export type WritableDraft<T> = { -readonly [K in keyof T]: Draft<T[K]> }
 
@@ -48,11 +39,11 @@ export type Draft<T> = T extends Primitive
   ? T
   : T extends Atomic
   ? T
-  : T extends IfAvailable<ReadonlyMap<infer K, infer V>>
+  : T extends ReadonlyMap<infer K, infer V>
   ? Map<Draft<K>, Draft<V>>
-  : T extends IfAvailable<ReadonlySet<infer V>>
+  : T extends ReadonlySet<infer V>
   ? Set<Draft<V>>
-  : T extends WeakReferences
+  : T extends Weaks
   ? T
   : T extends object
   ? WritableDraft<T>
@@ -62,11 +53,11 @@ export type Immutable<T> = T extends Primitive
   ? T
   : T extends Atomic
   ? T
-  : T extends IfAvailable<ReadonlyMap<infer K, infer V>>
+  : T extends ReadonlyMap<infer K, infer V>
   ? ReadonlyMap<Immutable<K>, Immutable<V>>
-  : T extends IfAvailable<ReadonlySet<infer V>>
+  : T extends ReadonlySet<infer V>
   ? ReadonlySet<Immutable<V>>
-  : T extends WeakReferences
+  : T extends Weaks
   ? T
   : T extends object
   ? { readonly [K in keyof T]: Immutable<T[K]> }
@@ -78,7 +69,7 @@ export interface Patch {
   value?: any
 }
 
-export type PatchListener = (xs: Patch[], inverses: Patch[]) => void
+export type Listener = (xs: Patch[], inverses: Patch[]) => void
 
 type FromUnknown<T> = T extends Unknown ? undefined : T
 
@@ -90,31 +81,31 @@ export type Produced<T, R> = R extends void
 
 type PatchesTuple<T> = readonly [T, Patch[], Patch[]]
 
-type ValidRecipeReturnType<State> =
-  | State
+type ValidRecipeReturnType<T> =
+  | T
   | void
   | undefined
-  | (State extends undefined ? Unknown : never)
+  | (T extends undefined ? Unknown : never)
 
-type ValidRecipeReturnTypePossiblyPromise<State> =
-  | ValidRecipeReturnType<State>
-  | Promise<ValidRecipeReturnType<State>>
+type ValidRecipeReturnTypePossiblyPromise<T> =
+  | ValidRecipeReturnType<T>
+  | Promise<ValidRecipeReturnType<T>>
 
 type PromisifyReturnIfNeeded<
-  State,
+  T,
   Recipe extends AnyFunc,
   UsePatches extends boolean
 > = ReturnType<Recipe> extends Promise<any>
-  ? Promise<UsePatches extends true ? PatchesTuple<State> : State>
+  ? Promise<UsePatches extends true ? PatchesTuple<T> : T>
   : UsePatches extends true
-  ? PatchesTuple<State>
-  : State
+  ? PatchesTuple<T>
+  : T
 
-type InferRecipeFromCurried<Curried> = Curried extends (
+type InferRecipeFromCurried<T> = T extends (
   base: infer State,
   ...rest: infer Args
 ) => any
-  ? ReturnType<Curried> extends State
+  ? ReturnType<T> extends State
     ? (
         draft: Draft<State>,
         ...rest: Args
@@ -160,6 +151,7 @@ export interface IProduce {
     recipe: InferRecipeFromCurried<Curried>,
     initialState?: InferInitialStateFromCurried<Curried>
   ): Curried
+
   <Recipe extends AnyFunc>(recipe: Recipe): InferCurriedFromRecipe<
     Recipe,
     false
@@ -170,6 +162,7 @@ export interface IProduce {
       initialState: State
     ) => ValidRecipeReturnType<State>
   ): (state?: State) => State
+
   <State, Args extends any[]>(
     recipe: (
       state: Draft<State>,
@@ -177,12 +170,15 @@ export interface IProduce {
     ) => ValidRecipeReturnType<State>,
     initialState: State
   ): (state?: State, ...args: Args) => State
+
   <State>(recipe: (state: Draft<State>) => ValidRecipeReturnType<State>): (
     state: State
   ) => State
+
   <State, Args extends any[]>(
     recipe: (state: Draft<State>, ...args: Args) => ValidRecipeReturnType<State>
   ): (state: State, ...args: Args) => State
+
   <State, Recipe extends AnyFunc>(
     recipe: Recipe,
     initialState: State
@@ -191,13 +187,13 @@ export interface IProduce {
   <Base, D = Draft<Base>>(
     base: Base,
     recipe: (draft: D) => ValidRecipeReturnType<D>,
-    listener?: PatchListener
+    listener?: Listener
   ): Base
 
   <Base, D = Draft<Base>>(
     base: Base,
     recipe: (draft: D) => Promise<ValidRecipeReturnType<D>>,
-    listener?: PatchListener
+    listener?: Listener
   ): Promise<Base>
 }
 
@@ -210,82 +206,79 @@ export interface IProduceWithPatches {
   <Base, D = Draft<Base>>(
     base: Base,
     recipe: (draft: D) => ValidRecipeReturnType<D>,
-    listener?: PatchListener
+    listener?: Listener
   ): PatchesTuple<Base>
   <Base, D = Draft<Base>>(
     base: Base,
     recipe: (draft: D) => Promise<ValidRecipeReturnType<D>>,
-    listener?: PatchListener
+    listener?: Listener
   ): Promise<PatchesTuple<Base>>
 }
 
 export function never_used() {}
 
 export interface Scope {
-  patches_?: Patch[]
-  inversePatches_?: Patch[]
-  canAutoFreeze_: boolean
-  drafts_: any[]
-  parent_?: Scope | undefined
-  patchListener_?: PatchListener
-  immer_: Immer
-  unfinalizedDrafts_: number
+  canAutoFreeze: boolean
+  drafts: any[]
+  immer: Immer
+  inverses?: Patch[]
+  listener?: Listener
+  parent?: Scope | undefined
+  patches?: Patch[]
+  unfinalized: number
 }
 
 export interface BaseState {
-  parent_?: State
-  scope_: Scope
-  modified_: boolean
-  finalized_: boolean
-  isManual_: boolean
+  parent?: State
+  scope: Scope
+  modified: boolean
+  finalized: boolean
+  manual: boolean
 }
 
 interface ProxyBase extends BaseState {
-  assigned_: {
-    [property: string]: boolean
-  }
-  parent_?: State
-  revoke_(): void
+  assigned: { [k: string]: boolean }
+  parent?: State
+  revoke(): void
 }
 
-export interface ProxyObject extends ProxyBase {
-  type_: ProxyType.Obj
-  base_: any
-  copy_: any
-  draft_: Drafted<AnyObj, ProxyObject>
+export interface ProxyObj extends ProxyBase {
+  base: any
+  copy: any
+  draft: Drafted<AnyObj, ProxyObj>
+  type: ProxyType.Obj
 }
 
 export interface ProxyArray extends ProxyBase {
-  type_: ProxyType.Array
-  base_: AnyArray
-  copy_: AnyArray | null
-  draft_: Drafted<AnyArray, ProxyArray>
+  base: AnyArray
+  copy: AnyArray | null
+  draft: Drafted<AnyArray, ProxyArray>
+  type: ProxyType.Array
 }
 
-export type ProxyState = ProxyObject | ProxyArray
-
-export type State = ProxyObject | ProxyArray | MapState | SetState
+export type ProxyState = ProxyObj | ProxyArray
+export type State = ProxyObj | ProxyArray | MapState | SetState
 
 export type Drafted<Base = any, T extends State = State> = {
   [DRAFT_STATE]: T
 } & Base
 
 export interface MapState extends BaseState {
-  type_: ProxyType.Map
-  copy_: AnyMap | undefined
-  assigned_: Map<any, boolean> | undefined
-  base_: AnyMap
-  revoked_: boolean
-  draft_: Drafted<AnyMap, MapState>
+  assigned: Map<any, boolean> | undefined
+  base: AnyMap
+  copy: AnyMap | undefined
+  draft: Drafted<AnyMap, MapState>
+  revoked: boolean
+  type: ProxyType.Map
 }
 
 export interface SetState extends BaseState {
-  type_: ProxyType.Set
-  copy_: AnySet | undefined
-  base_: AnySet
-  drafts_: Map<any, Drafted>
-  revoked_: boolean
-  draft_: Drafted<AnySet, SetState>
+  base: AnySet
+  copy: AnySet | undefined
+  draft: Drafted<AnySet, SetState>
+  drafts: Map<any, Drafted>
+  revoked: boolean
+  type: ProxyType.Set
 }
 
 export type PatchPath = (string | number)[]

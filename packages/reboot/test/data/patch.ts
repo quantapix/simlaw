@@ -1008,11 +1008,11 @@ test("#559 patches works in a nested reducer with proxies", () => {
       draft => {
         draft.y.pop()
       },
-      (patches, inversePatches) => {
-        expect(isDraft(inversePatches[0].value)).toBeFalsy()
-        expect(inversePatches[0].value).toMatchObject({ a: 1 })
+      (patches, inverses) => {
+        expect(isDraft(inverses[0].value)).toBeFalsy()
+        expect(inverses[0].value).toMatchObject({ a: 1 })
         changes.push(...patches)
-        inverseChanges.push(...inversePatches)
+        inverseChanges.push(...inverses)
       }
     )
   })
