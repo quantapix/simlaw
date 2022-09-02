@@ -1,37 +1,10 @@
-import {
-  AnyMap,
-  AnySet,
-  DRAFT_STATE,
-  DRAFTABLE,
-  MapState,
-  NOTHING,
-  Patch,
-  PatchPath,
-  ProxyArray,
-  ProxyObj,
-  ProxyType,
-  QType,
-  SetState,
-  State,
-} from "./types.js"
-import {
-  die,
-  each,
-  get,
-  getType,
-  has,
-  isDraft,
-  isDraftable,
-  isMap,
-  isSet,
-  latest,
-  loadPlugin,
-} from "./utils.js"
 import { getCurrentScope, markChanged, createProxy } from "./immer.js"
+import * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 export function enableMapSet() {
-  let extendStatics = function (d: any, b: any): any {
-    extendStatics =
+  let statics = function (d: any, b: any): any {
+    statics =
       Object.setPrototypeOf ||
       ({ __proto__: [] } instanceof Array &&
         function (d, b) {
@@ -40,11 +13,11 @@ export function enableMapSet() {
       function (d, b) {
         for (const p in b) if (b.hasOwnProperty(p)) d[p] = b[p]
       }
-    return extendStatics(d, b)
+    return statics(d, b)
   }
 
   function __extends(d: any, b: any): any {
-    extendStatics(d, b)
+    statics(d, b)
     function __(this: any): any {
       this.constructor = d
     }
@@ -53,9 +26,9 @@ export function enableMapSet() {
 
   const DraftMap = (function (_super) {
     __extends(DraftMap, _super)
-    function DraftMap(this: any, target: AnyMap, parent?: State): any {
-      this[DRAFT_STATE] = {
-        type: ProxyType.Map,
+    function DraftMap(this: any, target: qt.AnyMap, parent?: qt.State): any {
+      this[qt.DRAFT_STATE] = {
+        type: qt.ProxyType.Map,
         parent: parent,
         scope: parent ? parent.scope : getCurrentScope()!,
         modified: false,
@@ -66,22 +39,22 @@ export function enableMapSet() {
         draft: this as any,
         manual: false,
         revoked: false,
-      } as MapState
+      } as qt.MapState
       return this
     }
     const p = DraftMap.prototype
     Object.defineProperty(p, "size", {
       get: function () {
-        return latest(this[DRAFT_STATE]).size
+        return qu.latest(this[qt.DRAFT_STATE]).size
       },
     })
     p.has = function (k: any): boolean {
-      return latest(this[DRAFT_STATE]).has(k)
+      return qu.latest(this[qt.DRAFT_STATE]).has(k)
     }
     p.set = function (k: any, v: any) {
-      const s: MapState = this[DRAFT_STATE]
+      const s: qt.MapState = this[qt.DRAFT_STATE]
       assertUnrevoked(s)
-      if (!latest(s).has(k) || latest(s).get(k) !== v) {
+      if (!qu.latest(s).has(k) || qu.latest(s).get(k) !== v) {
         prepareMapCopy(s)
         markChanged(s)
         s.assigned!.set(k, true)
@@ -92,7 +65,7 @@ export function enableMapSet() {
     }
     p.delete = function (k: any): boolean {
       if (!this.has(k)) return false
-      const s: MapState = this[DRAFT_STATE]
+      const s: qt.MapState = this[qt.DRAFT_STATE]
       assertUnrevoked(s)
       prepareMapCopy(s)
       markChanged(s)
@@ -102,13 +75,13 @@ export function enableMapSet() {
       return true
     }
     p.clear = function () {
-      const s: MapState = this[DRAFT_STATE]
+      const s: qt.MapState = this[qt.DRAFT_STATE]
       assertUnrevoked(s)
-      if (latest(s).size) {
+      if (qu.latest(s).size) {
         prepareMapCopy(s)
         markChanged(s)
         s.assigned = new Map()
-        each(s.base, k => {
+        qu.each(s.base, k => {
           s.assigned!.set(k, false)
         })
         s.copy!.clear()
@@ -118,16 +91,16 @@ export function enableMapSet() {
       cb: (x: any, k: any, self: any) => void,
       thisArg?: any
     ) {
-      const s: MapState = this[DRAFT_STATE]
-      latest(s).forEach((_x: any, k: any, _map: any) => {
+      const s: qt.MapState = this[qt.DRAFT_STATE]
+      qu.latest(s).forEach((_x: any, k: any, _map: any) => {
         cb.call(thisArg, this.get(k), k, this)
       })
     }
     p.get = function (k: any): any {
-      const s: MapState = this[DRAFT_STATE]
+      const s: qt.MapState = this[qt.DRAFT_STATE]
       assertUnrevoked(s)
-      const v = latest(s).get(k)
-      if (s.finalized || !isDraftable(v)) return v
+      const v = qu.latest(s).get(k)
+      if (s.finalized || !qu.isDraftable(v)) return v
       if (v !== s.base.get(k)) return v
       const y = createProxy(v, s)
       prepareMapCopy(s)
@@ -135,7 +108,7 @@ export function enableMapSet() {
       return y
     }
     p.keys = function (): IterableIterator<any> {
-      return latest(this[DRAFT_STATE]).keys()
+      return qu.latest(this[qt.DRAFT_STATE]).keys()
     }
     p.values = function (): IterableIterator<any> {
       const ks = this.keys()
@@ -170,11 +143,11 @@ export function enableMapSet() {
     return DraftMap
   })(Map)
 
-  function proxyMap_<T extends AnyMap>(target: T, parent?: State): T {
+  function proxyMap_<T extends qt.AnyMap>(target: T, parent?: qt.State): T {
     return new DraftMap(target, parent)
   }
 
-  function prepareMapCopy(x: MapState) {
+  function prepareMapCopy(x: qt.MapState) {
     if (!x.copy) {
       x.assigned = new Map()
       x.copy = new Map(x.base)
@@ -183,9 +156,9 @@ export function enableMapSet() {
 
   const DraftSet = (function (_super) {
     __extends(DraftSet, _super)
-    function DraftSet(this: any, target: AnySet, parent?: State) {
-      this[DRAFT_STATE] = {
-        type: ProxyType.Set,
+    function DraftSet(this: any, target: qt.AnySet, parent?: qt.State) {
+      this[qt.DRAFT_STATE] = {
+        type: qt.ProxyType.Set,
         parent: parent,
         scope: parent ? parent.scope : getCurrentScope()!,
         modified: false,
@@ -196,17 +169,17 @@ export function enableMapSet() {
         drafts: new Map(),
         revoked: false,
         manual: false,
-      } as SetState
+      } as qt.SetState
       return this
     }
     const p = DraftSet.prototype
     Object.defineProperty(p, "size", {
       get: function () {
-        return latest(this[DRAFT_STATE]).size
+        return qu.latest(this[qt.DRAFT_STATE]).size
       },
     })
     p.has = function (x: any): boolean {
-      const s: SetState = this[DRAFT_STATE]
+      const s: qt.SetState = this[qt.DRAFT_STATE]
       assertUnrevoked(s)
       if (!s.copy) return s.base.has(x)
       if (s.copy.has(x)) return true
@@ -214,7 +187,7 @@ export function enableMapSet() {
       return false
     }
     p.add = function (x: any): any {
-      const s: SetState = this[DRAFT_STATE]
+      const s: qt.SetState = this[qt.DRAFT_STATE]
       assertUnrevoked(s)
       if (!this.has(x)) {
         prepareSetCopy(s)
@@ -225,7 +198,7 @@ export function enableMapSet() {
     }
     p.delete = function (x: any): any {
       if (!this.has(x)) return false
-      const s: SetState = this[DRAFT_STATE]
+      const s: qt.SetState = this[qt.DRAFT_STATE]
       assertUnrevoked(s)
       prepareSetCopy(s)
       markChanged(s)
@@ -235,22 +208,22 @@ export function enableMapSet() {
       )
     }
     p.clear = function () {
-      const s: SetState = this[DRAFT_STATE]
+      const s: qt.SetState = this[qt.DRAFT_STATE]
       assertUnrevoked(s)
-      if (latest(s).size) {
+      if (qu.latest(s).size) {
         prepareSetCopy(s)
         markChanged(s)
         s.copy!.clear()
       }
     }
     p.values = function (): IterableIterator<any> {
-      const s: SetState = this[DRAFT_STATE]
+      const s: qt.SetState = this[qt.DRAFT_STATE]
       assertUnrevoked(s)
       prepareSetCopy(s)
       return s.copy!.values()
     }
     p.entries = function entries(): IterableIterator<[any, any]> {
-      const s: SetState = this[DRAFT_STATE]
+      const s: qt.SetState = this[qt.DRAFT_STATE]
       assertUnrevoked(s)
       prepareSetCopy(s)
       return s.copy!.entries()
@@ -272,15 +245,15 @@ export function enableMapSet() {
     return DraftSet
   })(Set)
 
-  function proxySet_<T extends AnySet>(target: T, parent?: State): T {
+  function proxySet_<T extends qt.AnySet>(target: T, parent?: qt.State): T {
     return new DraftSet(target, parent)
   }
 
-  function prepareSetCopy(x: SetState) {
+  function prepareSetCopy(x: qt.SetState) {
     if (!x.copy) {
       x.copy = new Set()
       x.base.forEach(value => {
-        if (isDraftable(value)) {
+        if (qu.isDraftable(value)) {
           const draft = createProxy(value, x)
           x.drafts.set(value, draft)
           x.copy!.add(draft)
@@ -290,10 +263,10 @@ export function enableMapSet() {
   }
 
   function assertUnrevoked(x: any) {
-    if (x.revoked_) die(3, JSON.stringify(latest(x)))
+    if (x.revoked_) qu.die(3, JSON.stringify(qu.latest(x)))
   }
 
-  loadPlugin("MapSet", { proxyMap: proxyMap_, proxySet: proxySet_ })
+  qu.loadPlugin("MapSet", { proxyMap: proxyMap_, proxySet: proxySet_ })
 }
 
 export function enablePatches() {
@@ -301,21 +274,21 @@ export function enablePatches() {
   const ADD = "add"
   const REMOVE = "remove"
 
-  function generatePatches_(
-    state: State,
-    basePath: PatchPath,
-    patches: Patch[],
-    inverses: Patch[]
+  function generatePatches(
+    state: qt.State,
+    basePath: qt.PatchPath,
+    patches: qt.Patch[],
+    inverses: qt.Patch[]
   ): void {
     switch (state.type) {
-      case ProxyType.Obj:
-      case ProxyType.Map:
+      case qt.ProxyType.Obj:
+      case qt.ProxyType.Map:
         return generatePatchesFromAssigned(state, basePath, patches, inverses)
-      case ProxyType.Array:
+      case qt.ProxyType.Array:
         return generateArrayPatches(state, basePath, patches, inverses)
-      case ProxyType.Set:
+      case qt.ProxyType.Set:
         return generateSetPatches(
-          state as any as SetState,
+          state as any as qt.SetState,
           basePath,
           patches,
           inverses
@@ -324,10 +297,10 @@ export function enablePatches() {
   }
 
   function generateArrayPatches(
-    state: ProxyArray,
-    basePath: PatchPath,
-    patches: Patch[],
-    inverses: Patch[]
+    state: qt.ProxyArray,
+    basePath: qt.PatchPath,
+    patches: qt.Patch[],
+    inverses: qt.Patch[]
   ) {
     let { base: base_, assigned: assigned_ } = state
     let copy_ = state.copy!
@@ -368,19 +341,19 @@ export function enablePatches() {
   }
 
   function generatePatchesFromAssigned(
-    state: MapState | ProxyObj,
-    basePath: PatchPath,
-    patches: Patch[],
-    inverses: Patch[]
+    state: qt.MapState | qt.ProxyObj,
+    basePath: qt.PatchPath,
+    ps: qt.Patch[],
+    inverses: qt.Patch[]
   ) {
     const { base: base_, copy: copy_ } = state
-    each(state.assigned!, (key, assignedValue) => {
-      const origValue = get(base_, key)
-      const value = get(copy_!, key)
-      const op = !assignedValue ? REMOVE : has(base_, key) ? REPLACE : ADD
+    qu.each(state.assigned!, (key, assignedValue) => {
+      const origValue = qu.get(base_, key)
+      const value = qu.get(copy_!, key)
+      const op = !assignedValue ? REMOVE : qu.has(base_, key) ? REPLACE : ADD
       if (origValue === value && op === REPLACE) return
       const path = basePath.concat(key as any)
-      patches.push(op === REMOVE ? { op, path } : { op, path, value })
+      ps.push(op === REMOVE ? { op, path } : { op, path, value })
       inverses.push(
         op === ADD
           ? { op: REMOVE, path }
@@ -392,17 +365,17 @@ export function enablePatches() {
   }
 
   function generateSetPatches(
-    state: SetState,
-    basePath: PatchPath,
-    patches: Patch[],
-    inverses: Patch[]
+    state: qt.SetState,
+    basePath: qt.PatchPath,
+    ps: qt.Patch[],
+    inverses: qt.Patch[]
   ) {
     let { base: base_, copy: copy_ } = state
     let i = 0
     base_.forEach((value: any) => {
       if (!copy_!.has(value)) {
         const path = basePath.concat([i])
-        patches.push({
+        ps.push({
           op: REMOVE,
           path,
           value,
@@ -419,7 +392,7 @@ export function enablePatches() {
     copy_!.forEach((value: any) => {
       if (!base_.has(value)) {
         const path = basePath.concat([i])
-        patches.push({
+        ps.push({
           op: ADD,
           path,
           value,
@@ -434,78 +407,78 @@ export function enablePatches() {
     })
   }
 
-  function generateReplacementPatches_(
-    baseValue: any,
+  function replacementPatches(
+    base: any,
     replacement: any,
-    patches: Patch[],
-    inverses: Patch[]
+    ps: qt.Patch[],
+    inverses: qt.Patch[]
   ): void {
-    patches.push({
+    ps.push({
       op: REPLACE,
       path: [],
-      value: replacement === NOTHING ? undefined : replacement,
+      value: replacement === qt.NOTHING ? undefined : replacement,
     })
     inverses.push({
       op: REPLACE,
       path: [],
-      value: baseValue,
+      value: base,
     })
   }
 
-  function applyPatches_<T>(x: T, ps: Patch[]): T {
+  function applyPatches<T>(x: T, ps: qt.Patch[]): T {
     ps.forEach(p => {
       const { path, op } = p
       let y: any = x
       for (let i = 0; i < path.length - 1; i++) {
-        const t = getType(y)
+        const t = qu.getType(y)
         const n = "" + path[i]
         if (
-          (t === QType.Obj || t === QType.Array) &&
+          (t === qt.QType.Obj || t === qt.QType.Array) &&
           (n === "__proto__" || n === "constructor")
         )
-          die(24)
-        if (typeof y === "function" && n === "prototype") die(24)
-        y = get(y, n)
-        if (typeof y !== "object") die(15, path.join("/"))
+          qu.die(24)
+        if (typeof y === "function" && n === "prototype") qu.die(24)
+        y = qu.get(y, n)
+        if (typeof y !== "object") qu.die(15, path.join("/"))
       }
-      const t = getType(y)
+      const t = qu.getType(y)
       const v = deepClonePatchValue(p.value)
       const k = path[path.length - 1]!
       switch (op) {
         case REPLACE:
           switch (t) {
-            case QType.Map:
+            case qt.QType.Map:
               return y.set(k, v)
-            case QType.Set:
-              die(16)
+            case qt.QType.Set:
+              qu.die(16)
             // eslint-disable-next-line no-fallthrough
             default:
               return (y[k] = v)
           }
         case ADD:
           switch (t) {
-            case QType.Array:
+            case qt.QType.Array:
               return k === "-" ? y.push(v) : y.splice(k as any, 0, v)
-            case QType.Map:
+            case qt.QType.Map:
               return y.set(k, v)
-            case QType.Set:
+            case qt.QType.Set:
               return y.add(v)
             default:
               return (y[k] = v)
           }
         case REMOVE:
           switch (t) {
-            case QType.Array:
+            case qt.QType.Array:
               return y.splice(k as any, 1)
-            case QType.Map:
+            case qt.QType.Map:
               return y.delete(k)
-            case QType.Set:
+            case qt.QType.Set:
               return y.delete(p.value)
             default:
               return delete y[k]
           }
         default:
-          die(17, op)
+          qu.die(17, op)
       }
     })
     return x
@@ -513,29 +486,29 @@ export function enablePatches() {
 
   function deepClonePatchValue<T>(x: T): T
   function deepClonePatchValue(x: any) {
-    if (!isDraftable(x)) return x
+    if (!qu.isDraftable(x)) return x
     if (Array.isArray(x)) return x.map(deepClonePatchValue)
-    if (isMap(x))
+    if (qu.isMap(x))
       return new Map(
         Array.from(x.entries()).map(([k, v]) => [k, deepClonePatchValue(v)])
       )
-    if (isSet(x)) return new Set(Array.from(x).map(deepClonePatchValue))
+    if (qu.isSet(x)) return new Set(Array.from(x).map(deepClonePatchValue))
     const y = Object.create(Object.getPrototypeOf(x))
     for (const k in x) y[k] = deepClonePatchValue(x[k])
-    if (has(x, DRAFTABLE)) y[DRAFTABLE] = x[DRAFTABLE]
+    if (qu.has(x, qt.DRAFTABLE)) y[qt.DRAFTABLE] = x[qt.DRAFTABLE]
     return y
   }
 
   function clonePatchValueIfNeeded<T>(x: T): T {
-    if (isDraft(x)) {
+    if (qu.isDraft(x)) {
       return deepClonePatchValue(x)
     } else return x
   }
 
-  loadPlugin("Patches", {
-    applyPatches: applyPatches_,
-    generatePatches: generatePatches_,
-    replacementPatches: generateReplacementPatches_,
+  qu.loadPlugin("Patches", {
+    applyPatches,
+    generatePatches,
+    replacementPatches,
   })
 }
 

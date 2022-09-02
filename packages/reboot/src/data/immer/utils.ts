@@ -167,7 +167,7 @@ const plugins: {
     replacementPatches(
       base: any,
       replacement: any,
-      patches: qt.Patch[],
+      ps: qt.Patch[],
       inverses: qt.Patch[]
     ): void
     applyPatches<T>(x: T, ps: qt.Patch[]): T

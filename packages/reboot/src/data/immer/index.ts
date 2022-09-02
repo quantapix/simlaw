@@ -9,8 +9,8 @@ export * from "./use.js"
 
 const immer = new Immer()
 
-export const produce: qt.IProduce = immer.produce
-export const produceWithPatches: qt.IProduceWithPatches =
+export const produce: qt.Produce = immer.produce
+export const produceWithPatches: qt.ProduceWithPatches =
   immer.produceWithPatches.bind(immer)
 
 export const setAutoFreeze = immer.setAutoFreeze.bind(immer)

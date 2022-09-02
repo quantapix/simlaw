@@ -342,8 +342,8 @@ export function prepareCopy(x: { base: any; copy: any }) {
 }
 
 interface ProducersFns {
-  produce: qt.IProduce
-  produceWithPatches: qt.IProduceWithPatches
+  produce: qt.Produce
+  produceWithPatches: qt.ProduceWithPatches
 }
 
 export class Immer implements ProducersFns {
@@ -354,7 +354,7 @@ export class Immer implements ProducersFns {
       this.setAutoFreeze(cfg!.autoFreeze)
   }
 
-  produce: qt.IProduce = (base: any, recipe?: any, listener?: any) => {
+  produce: qt.Produce = (base: any, recipe?: any, listener?: any) => {
     if (typeof base === "function" && typeof recipe !== "function") {
       const defaultBase = recipe
       recipe = base
@@ -410,7 +410,7 @@ export class Immer implements ProducersFns {
     } else qu.die(21, base)
   }
 
-  produceWithPatches: qt.IProduceWithPatches = (
+  produceWithPatches: qt.ProduceWithPatches = (
     arg1: any,
     arg2?: any,
     _?: any
