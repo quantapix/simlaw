@@ -1,112 +1,84 @@
-"use strict"
-import produce, {
-  setUseProxies,
-  applyPatches,
-  produceWithPatches,
-  enableAllPlugins,
-  isDraft,
-  DRAFTABLE,
-  nothing,
-} from "../src/immer"
-enableAllPlugins()
+import * as qi from "../../../src/data/immer/index.js"
+
+const isProd = process.env["NODE_ENV"] === "production"
+
 jest.setTimeout(1000)
-const isProd = process.env.NODE_ENV === "production"
-function runPatchTest(base, producer, patches, inversePathes, expectedResult) {
-  let resultProxies, resultEs5
-  function runPatchTestHelper() {
-    let recordedPatches
-    let recordedInversePatches
-    const res = produce(base, producer, (p, i) => {
-      recordedPatches = p
-      recordedInversePatches = i
+qi.enableAllPlugins()
+
+function runPatchTest(x: any, recipe: any, ps: any, invs?: any, res?: any) {
+  return describe(`proxy`, () => {
+    let ps2: any
+    let invs2: any
+    const y = qi.produce(x, recipe, (p, inv) => {
+      ps2 = p
+      invs2 = inv
     })
-    if (expectedResult !== undefined)
+    if (res !== undefined)
       test("produced the correct result", () => {
-        expect(res).toEqual(expectedResult)
+        expect(y).toEqual(res)
       })
     test("produces the correct patches", () => {
-      expect(recordedPatches).toEqual(patches)
-      if (inversePathes) expect(recordedInversePatches).toEqual(inversePathes)
+      expect(ps2).toEqual(ps)
+      if (invs) expect(invs2).toEqual(invs)
     })
     test("patches are replayable", () => {
-      expect(applyPatches(base, recordedPatches)).toEqual(res)
+      expect(qi.applyPatches(x, ps2)).toEqual(y)
     })
     test("patches can be reversed", () => {
-      expect(applyPatches(res, recordedInversePatches)).toEqual(base)
+      expect(qi.applyPatches(y, invs2)).toEqual(x)
     })
-    return res
-  }
-  describe(`proxy`, () => {
-    setUseProxies(true)
-    resultProxies = runPatchTestHelper()
+    return y
   })
-  describe(`es5`, () => {
-    setUseProxies(false)
-    resultEs5 = runPatchTestHelper()
-    test("ES5 and Proxy implementation yield same result", () => {
-      expect(resultEs5).toEqual(resultProxies)
-    })
-  })
-  return resultProxies
 }
 describe("applyPatches", () => {
   it("mutates the base state when it is a draft", () => {
-    produce({ a: 1 }, draft => {
-      const result = applyPatches(draft, [
-        { op: "replace", path: ["a"], value: 2 },
-      ])
-      expect(result).toBe(draft)
-      expect(draft.a).toBe(2)
+    qi.produce({ a: 1 }, x => {
+      const y = qi.applyPatches(x, [{ op: "replace", path: ["a"], value: 2 }])
+      expect(y).toBe(x)
+      expect(x.a).toBe(2)
     })
   })
   it("produces a copy of the base state when not a draft", () => {
     const base = { a: 1 }
-    const result = applyPatches(base, [
-      { op: "replace", path: ["a"], value: 2 },
-    ])
-    expect(result).not.toBe(base)
-    expect(result.a).toBe(2)
+    const y = qi.applyPatches(base, [{ op: "replace", path: ["a"], value: 2 }])
+    expect(y).not.toBe(base)
+    expect(y.a).toBe(2)
     expect(base.a).toBe(1)
   })
   it('throws when `op` is not "add", "replace", nor "remove"', () => {
     expect(() => {
       const patch = { op: "copy", from: [0], path: [1] }
-      applyPatches([2], [patch])
+      qi.applyPatches([2], [patch as any])
     }).toThrowErrorMatchingSnapshot()
   })
   it("throws when `path` cannot be resolved", () => {
-    // missing parent
     expect(() => {
       const patch = { op: "add", path: ["a", "b"], value: 1 }
-      applyPatches({}, [patch])
+      qi.applyPatches({}, [patch as any])
     }).toThrowErrorMatchingSnapshot()
-    // missing grand-parent
     expect(() => {
       const patch = { op: "add", path: ["a", "b", "c"], value: 1 }
-      applyPatches({}, [patch])
+      qi.applyPatches({}, [patch as any])
     }).toThrowErrorMatchingSnapshot()
   })
   it("applied patches cannot be modified", () => {
-    // see also: https://github.com/immerjs/immer/issues/411
-    const s0 = {
-      items: [1],
-    }
-    const [s1, p1] = produceWithPatches(s0, draft => {
-      draft.items = []
+    const s0 = { items: [1] }
+    const [s1, p1] = qi.produceWithPatches(s0, x => {
+      x.items = []
     })
-    const replaceValueBefore = p1[0].value.slice()
-    const [s2, p2] = produceWithPatches(s1, draft => {
-      draft.items.push(2)
+    const before = p1[0]?.value.slice()
+    const [_, p2] = qi.produceWithPatches(s1, x => {
+      x.items.push(2)
     })
-    applyPatches(s0, [...p1, ...p2])
-    const replaceValueAfter = p1[0].value.slice()
-    expect(replaceValueAfter).toStrictEqual(replaceValueBefore)
+    qi.applyPatches(s0, [...p1, ...p2])
+    const after = p1[0]?.value.slice()
+    expect(after).toStrictEqual(before)
   })
 })
 describe("simple assignment - 1", () => {
   runPatchTest(
     { x: 3 },
-    d => {
+    (d: any) => {
       d.x++
     },
     [{ op: "replace", path: ["x"], value: 4 }]
@@ -115,7 +87,7 @@ describe("simple assignment - 1", () => {
 describe("simple assignment - 2", () => {
   runPatchTest(
     { x: { y: 4 } },
-    d => {
+    (d: any) => {
       d.x.y++
     },
     [{ op: "replace", path: ["x", "y"], value: 5 }]
@@ -124,7 +96,7 @@ describe("simple assignment - 2", () => {
 describe("simple assignment - 3", () => {
   runPatchTest(
     { x: [{ y: 4 }] },
-    d => {
+    (d: any) => {
       d.x[0].y++
     },
     [{ op: "replace", path: ["x", 0, "y"], value: 5 }]
@@ -133,7 +105,7 @@ describe("simple assignment - 3", () => {
 describe("simple assignment - 4", () => {
   runPatchTest(
     new Map([["x", { y: 4 }]]),
-    d => {
+    (d: any) => {
       d.get("x").y++
     },
     [{ op: "replace", path: ["x", "y"], value: 5 }],
@@ -143,7 +115,7 @@ describe("simple assignment - 4", () => {
 describe("simple assignment - 5", () => {
   runPatchTest(
     { x: new Map([["y", 4]]) },
-    d => {
+    (d: any) => {
       d.x.set("y", 5)
     },
     [{ op: "replace", path: ["x", "y"], value: 5 }],
@@ -153,8 +125,7 @@ describe("simple assignment - 5", () => {
 describe("simple assignment - 6", () => {
   runPatchTest(
     new Map([["x", 1]]),
-    d => {
-      // Map.prototype.set should return the Map itself
+    (d: any) => {
       const res = d.set("x", 2)
       res.set("y", 3)
     },
@@ -173,7 +144,7 @@ describe("simple assignment - 7", () => {
   const key2 = { prop: "val2" }
   runPatchTest(
     { x: new Map([[key1, 4]]) },
-    d => {
+    (d: any) => {
       d.x.set(key1, 5)
       d.x.set(key2, 6)
     },
@@ -190,7 +161,7 @@ describe("simple assignment - 7", () => {
 describe("delete 1", () => {
   runPatchTest(
     { x: { y: 4 } },
-    d => {
+    (d: any) => {
       delete d.x
     },
     [{ op: "remove", path: ["x"] }]
@@ -199,7 +170,7 @@ describe("delete 1", () => {
 describe("delete 2", () => {
   runPatchTest(
     new Map([["x", 1]]),
-    d => {
+    (d: any) => {
       d.delete("x")
     },
     [{ op: "remove", path: ["x"] }],
@@ -209,7 +180,7 @@ describe("delete 2", () => {
 describe("delete 3", () => {
   runPatchTest(
     { x: new Map([["y", 1]]) },
-    d => {
+    (d: any) => {
       d.x.delete("y")
     },
     [{ op: "remove", path: ["x", "y"] }],
@@ -226,7 +197,7 @@ describe("delete 5", () => {
         [key2, 2],
       ]),
     },
-    d => {
+    (d: any) => {
       d.x.delete(key1)
       d.x.delete(key2)
     },
@@ -243,7 +214,7 @@ describe("delete 5", () => {
 describe("delete 6", () => {
   runPatchTest(
     new Set(["x", 1]),
-    d => {
+    (d: any) => {
       d.delete("x")
     },
     [{ op: "remove", path: [0], value: "x" }],
@@ -253,7 +224,7 @@ describe("delete 6", () => {
 describe("delete 7", () => {
   runPatchTest(
     { x: new Set(["y", 1]) },
-    d => {
+    (d: any) => {
       d.x.delete("y")
     },
     [{ op: "remove", path: ["x", 0], value: "y" }],
@@ -264,7 +235,7 @@ describe("renaming properties", () => {
   describe("nested object (no changes)", () => {
     runPatchTest(
       { a: { b: 1 } },
-      d => {
+      (d: any) => {
         d.x = d.a
         delete d.a
       },
@@ -279,7 +250,7 @@ describe("renaming properties", () => {
       {
         a: { b: 1 },
       },
-      d => {
+      (d: any) => {
         d.a.b++
       },
       [{ op: "replace", path: ["a", "b"], value: 2 }],
@@ -289,7 +260,7 @@ describe("renaming properties", () => {
   describe("nested change in map", () => {
     runPatchTest(
       new Map([["a", new Map([["b", 1]])]]),
-      d => {
+      (d: any) => {
         d.get("a").set("b", 2)
       },
       [{ op: "replace", path: ["a", "b"], value: 2 }],
@@ -299,7 +270,7 @@ describe("renaming properties", () => {
   describe("nested change in array", () => {
     runPatchTest(
       [[{ b: 1 }]],
-      d => {
+      (d: any) => {
         d[0][0].b++
       },
       [{ op: "replace", path: [0, 0, "b"], value: 2 }],
@@ -309,7 +280,7 @@ describe("renaming properties", () => {
   describe("nested map (no changes)", () => {
     runPatchTest(
       new Map([["a", new Map([["b", 1]])]]),
-      d => {
+      (d: any) => {
         d.set("x", d.get("a"))
         d.delete("a")
       },
@@ -326,12 +297,11 @@ describe("renaming properties", () => {
   describe("nested object (with changes)", () => {
     runPatchTest(
       { a: { b: 1, c: 1 } },
-      d => {
-        let a = d.a
-        a.b = 2 // change
-        delete a.c // delete
-        a.y = 2 // add
-        // rename
+      (d: any) => {
+        const a = d.a
+        a.b = 2
+        delete a.c
+        a.y = 2
         d.x = a
         delete d.a
       },
@@ -352,12 +322,11 @@ describe("renaming properties", () => {
           ]),
         ],
       ]),
-      d => {
-        let a = d.get("a")
-        a.set("b", 2) // change
-        a.delete("c") // delete
-        a.set("y", 2) // add
-        // rename
+      (d: any) => {
+        const a = d.get("a")
+        a.set("b", 2)
+        a.delete("c")
+        a.set("y", 2)
         d.set("x", a)
         d.delete("a")
       },
@@ -388,12 +357,11 @@ describe("renaming properties", () => {
   describe("deeply nested object (with changes)", () => {
     runPatchTest(
       { a: { b: { c: 1, d: 1 } } },
-      d => {
-        let b = d.a.b
-        b.c = 2 // change
-        delete b.d // delete
-        b.y = 2 // add
-        // rename
+      (d: any) => {
+        const b = d.a.b
+        b.c = 2
+        delete b.d
+        b.y = 2
         d.a.x = b
         delete d.a.b
       },
@@ -419,12 +387,11 @@ describe("renaming properties", () => {
           ]),
         ],
       ]),
-      d => {
-        let b = d.get("a").get("b")
-        b.set("c", 2) // change
-        b.delete("d") // delete
-        b.set("y", 2) // add
-        // rename
+      (d: any) => {
+        const b = d.get("a").get("b")
+        b.set("c", 2)
+        b.delete("d")
+        b.set("y", 2)
         d.get("a").set("x", b)
         d.get("a").delete("b")
       },
@@ -456,7 +423,7 @@ describe("renaming properties", () => {
 describe("minimum amount of changes", () => {
   runPatchTest(
     { x: 3, y: { a: 4 }, z: 3 },
-    d => {
+    (d: any) => {
       d.y.a = 4
       d.y.b = 5
       Object.assign(d, { x: 4, y: { a: 2 } })
@@ -470,7 +437,7 @@ describe("minimum amount of changes", () => {
 describe("arrays - prepend", () => {
   runPatchTest(
     { x: [1, 2, 3] },
-    d => {
+    (d: any) => {
       d.x.unshift(4)
     },
     [
@@ -484,10 +451,9 @@ describe("arrays - prepend", () => {
 describe("arrays - multiple prepend", () => {
   runPatchTest(
     { x: [1, 2, 3] },
-    d => {
+    (d: any) => {
       d.x.unshift(4)
       d.x.unshift(5)
-      // 4,5,1,2,3
     },
     [
       { op: "replace", path: ["x", 0], value: 5 },
@@ -501,7 +467,7 @@ describe("arrays - multiple prepend", () => {
 describe("arrays - splice middle", () => {
   runPatchTest(
     { x: [1, 2, 3] },
-    d => {
+    (d: any) => {
       d.x.splice(1, 1)
     },
     [
@@ -513,11 +479,9 @@ describe("arrays - splice middle", () => {
 describe("arrays - multiple splice", () => {
   runPatchTest(
     [0, 1, 2, 3, 4, 5, 0],
-    d => {
+    (d: any) => {
       d.splice(4, 2, 3)
-      // [0,1,2,3,3,0]
       d.splice(1, 2, 3)
-      // [0,3,3,3,0]
       expect(d.slice()).toEqual([0, 3, 3, 3, 0])
     },
     [
@@ -531,10 +495,9 @@ describe("arrays - multiple splice", () => {
 describe("arrays - modify and shrink", () => {
   runPatchTest(
     { x: [1, 2, 3] },
-    d => {
+    (d: any) => {
       d.x[0] = 4
       d.x.length = 2
-      // [0, 2]
     },
     [
       { op: "replace", path: ["x", 0], value: 4 },
@@ -549,10 +512,9 @@ describe("arrays - modify and shrink", () => {
 describe("arrays - prepend then splice middle", () => {
   runPatchTest(
     { x: [1, 2, 3] },
-    d => {
+    (d: any) => {
       d.x.unshift(4)
       d.x.splice(2, 1)
-      // 4, 1, 3
     },
     [
       { op: "replace", path: ["x", 0], value: 4 },
@@ -563,10 +525,9 @@ describe("arrays - prepend then splice middle", () => {
 describe("arrays - splice middle then prepend", () => {
   runPatchTest(
     { x: [1, 2, 3] },
-    d => {
+    (d: any) => {
       d.x.splice(1, 1)
       d.x.unshift(4)
-      // [4, 1, 3]
     },
     [
       { op: "replace", path: ["x", 0], value: 4 },
@@ -577,7 +538,7 @@ describe("arrays - splice middle then prepend", () => {
 describe("arrays - truncate", () => {
   runPatchTest(
     { x: [1, 2, 3] },
-    d => {
+    (d: any) => {
       d.x.length -= 2
     },
     [{ op: "replace", path: ["x", "length"], value: 1 }],
@@ -590,7 +551,7 @@ describe("arrays - truncate", () => {
 describe("arrays - pop twice", () => {
   runPatchTest(
     { x: [1, 2, 3] },
-    d => {
+    (d: any) => {
       d.x.pop()
       d.x.pop()
     },
@@ -598,10 +559,9 @@ describe("arrays - pop twice", () => {
   )
 })
 describe("arrays - push multiple", () => {
-  // These patches were more optimal pre immer 7, but not always correct
   runPatchTest(
     { x: [1, 2, 3] },
-    d => {
+    (d: any) => {
       d.x.push(4, 5)
     },
     [
@@ -612,11 +572,10 @@ describe("arrays - push multiple", () => {
   )
 })
 describe("arrays - splice (expand)", () => {
-  // These patches were more optimal pre immer 7, but not always correct
   runPatchTest(
     { x: [1, 2, 3] },
-    d => {
-      d.x.splice(1, 1, 4, 5, 6) // [1,4,5,6,3]
+    (d: any) => {
+      d.x.splice(1, 1, 4, 5, 6)
     },
     [
       { op: "replace", path: ["x", 1], value: 4 },
@@ -632,11 +591,10 @@ describe("arrays - splice (expand)", () => {
   )
 })
 describe("arrays - splice (shrink)", () => {
-  // These patches were more optimal pre immer 7, but not always correct
   runPatchTest(
     { x: [1, 2, 3, 4, 5] },
-    d => {
-      d.x.splice(1, 3, 6) // [1, 6, 5]
+    (d: any) => {
+      d.x.splice(1, 3, 6)
     },
     [
       { op: "replace", path: ["x", 1], value: 6 },
@@ -659,7 +617,7 @@ describe("arrays - delete", () => {
         { c: 3, d: 4 },
       ],
     },
-    d => {
+    (d: any) => {
       delete d.x[1].c
     },
     [{ op: "remove", path: ["x", 1, "c"] }]
@@ -667,15 +625,9 @@ describe("arrays - delete", () => {
 })
 describe("arrays - append", () => {
   test("appends to array when last part of path is '-'", () => {
-    const state = {
-      list: [1, 2, 3],
-    }
-    const patch = {
-      op: "add",
-      value: 4,
-      path: ["list", "-"],
-    }
-    expect(applyPatches(state, [patch])).toEqual({
+    const base = { list: [1, 2, 3] }
+    const patch = { op: "add", value: 4, path: ["list", "-"] }
+    expect(qi.applyPatches(base, [patch as any])).toEqual({
       list: [1, 2, 3, 4],
     })
   })
@@ -683,7 +635,7 @@ describe("arrays - append", () => {
 describe("sets - add - 1", () => {
   runPatchTest(
     new Set([1]),
-    d => {
+    (d: any) => {
       d.add(2)
     },
     [{ op: "add", path: [1], value: 2 }],
@@ -693,7 +645,7 @@ describe("sets - add - 1", () => {
 describe("sets - add, delete, add - 1", () => {
   runPatchTest(
     new Set([1]),
-    d => {
+    (d: any) => {
       d.add(2)
       d.delete(2)
       d.add(2)
@@ -705,7 +657,7 @@ describe("sets - add, delete, add - 1", () => {
 describe("sets - add, delete, add - 2", () => {
   runPatchTest(
     new Set([2, 1]),
-    d => {
+    (d: any) => {
       d.add(2)
       d.delete(2)
       d.add(2)
@@ -715,9 +667,9 @@ describe("sets - add, delete, add - 2", () => {
   )
 })
 describe("sets - mutate - 1", () => {
-  const findById = (set, id) => {
-    for (const item of set) {
-      if (item.id === id) return item
+  const findById = (set: any, id: any) => {
+    for (const x of set) {
+      if (x.id === id) return x
     }
   }
   runPatchTest(
@@ -725,7 +677,7 @@ describe("sets - mutate - 1", () => {
       { id: 1, val: "We" },
       { id: 2, val: "will" },
     ]),
-    d => {
+    (d: any) => {
       const obj1 = findById(d, 1)
       const obj2 = findById(d, 2)
       obj1.val = "rock"
@@ -746,10 +698,9 @@ describe("sets - mutate - 1", () => {
   )
 })
 describe("arrays - splice should should result in remove op.", () => {
-  // These patches were more optimal pre immer 7, but not always correct
   runPatchTest(
     [1, 2],
-    d => {
+    (d: any) => {
       d.splice(1, 1)
     },
     [{ op: "replace", path: ["length"], value: 1 }],
@@ -757,10 +708,9 @@ describe("arrays - splice should should result in remove op.", () => {
   )
 })
 describe("arrays - NESTED splice should should result in remove op.", () => {
-  // These patches were more optimal pre immer 7, but not always correct
   runPatchTest(
     { a: { b: { c: [1, 2] } } },
-    d => {
+    (d: any) => {
       d.a.b.c.splice(1, 1)
     },
     [{ op: "replace", path: ["a", "b", "c", "length"], value: 1 }],
@@ -768,12 +718,12 @@ describe("arrays - NESTED splice should should result in remove op.", () => {
   )
 })
 describe("simple substitute", () => {
-  runPatchTest({ x: 3 }, _d => 4, [{ op: "replace", path: [], value: 4 }])
+  runPatchTest({ x: 3 }, (_: any) => 4, [{ op: "replace", path: [], value: 4 }])
 })
 describe("same value substitute - 1", () => {
   runPatchTest(
     { x: { y: 3 } },
-    d => {
+    (d: any) => {
       const a = d.x
       d.x = a
     },
@@ -783,7 +733,7 @@ describe("same value substitute - 1", () => {
 describe("same value substitute - 2", () => {
   runPatchTest(
     { x: { y: 3 } },
-    d => {
+    (d: any) => {
       const a = d.x
       d.x = 4
       d.x = a
@@ -794,7 +744,7 @@ describe("same value substitute - 2", () => {
 describe("same value substitute - 3", () => {
   runPatchTest(
     { x: 3 },
-    d => {
+    (d: any) => {
       d.x = 3
     },
     []
@@ -803,7 +753,7 @@ describe("same value substitute - 3", () => {
 describe("same value substitute - 4", () => {
   runPatchTest(
     { x: 3 },
-    d => {
+    (d: any) => {
       d.x = 4
       d.x = 3
     },
@@ -813,7 +763,7 @@ describe("same value substitute - 4", () => {
 describe("same value substitute - 5", () => {
   runPatchTest(
     new Map([["x", 3]]),
-    d => {
+    (d: any) => {
       d.set("x", 4)
       d.set("x", 3)
     },
@@ -824,7 +774,7 @@ describe("same value substitute - 5", () => {
 describe("same value substitute - 6", () => {
   runPatchTest(
     new Set(["x", 3]),
-    d => {
+    (d: any) => {
       d.delete("x")
       d.add("x")
     },
@@ -835,50 +785,38 @@ describe("same value substitute - 6", () => {
 describe("simple delete", () => {
   runPatchTest(
     { x: 2 },
-    d => {
+    (d: any) => {
       delete d.x
     },
-    [
-      {
-        op: "remove",
-        path: ["x"],
-      },
-    ]
+    [{ op: "remove", path: ["x"] }]
   )
 })
 describe("patch compressions yields correct results", () => {
-  let p1, p2
+  let p1: any, p2: any
   runPatchTest(
     {},
-    d => {
+    (d: any) => {
       d.x = { test: true }
     },
     (p1 = [
       {
         op: "add",
         path: ["x"],
-        value: {
-          test: true,
-        },
+        value: { test: true },
       },
     ])
   )
   runPatchTest(
     { x: { test: true } },
-    d => {
+    (d: any) => {
       delete d.x
     },
-    (p2 = [
-      {
-        op: "remove",
-        path: ["x"],
-      },
-    ])
+    (p2 = [{ op: "remove", path: ["x"] }])
   )
   const res = runPatchTest(
     {},
-    d => {
-      applyPatches(d, [...p1, ...p2])
+    (d: any) => {
+      qi.applyPatches(d, [...p1, ...p2])
     },
     []
   )
@@ -886,28 +824,21 @@ describe("patch compressions yields correct results", () => {
 })
 describe("change then delete property", () => {
   const res = runPatchTest(
-    {
-      x: 1,
-    },
-    d => {
+    { x: 1 },
+    (d: any) => {
       d.x = 2
       delete d.x
     },
-    [
-      {
-        op: "remove",
-        path: ["x"],
-      },
-    ]
+    [{ op: "remove", path: ["x"] }]
   )
   test("valid result", () => {
     expect(res).toEqual({})
   })
 })
 test("replaying patches with interweaved substitutes should work correctly", () => {
-  const patches = []
+  const patches: any = []
   const s0 = { x: 1 }
-  const s1 = produce(
+  const s1 = qi.produce(
     s0,
     draft => {
       draft.x = 2
@@ -916,42 +847,41 @@ test("replaying patches with interweaved substitutes should work correctly", () 
       patches.push(...p)
     }
   )
-  const s2 = produce(
+  const s2 = qi.produce(
     s1,
-    draft => {
+    _ => {
       return { x: 0 }
     },
     p => {
       patches.push(...p)
     }
   )
-  const s3 = produce(
+  const s3 = qi.produce(
     s2,
-    draft => {
-      draft.x--
+    x => {
+      x.x--
     },
     p => {
       patches.push(...p)
     }
   )
-  expect(s3).toEqual({ x: -1 }) // correct result
-  expect(applyPatches(s0, patches)).toEqual({ x: -1 }) // correct replay
-  // manual replay on a draft should also be correct
+  expect(s3).toEqual({ x: -1 })
+  expect(qi.applyPatches(s0, patches)).toEqual({ x: -1 })
   expect(
-    produce(s0, draft => {
-      return applyPatches(draft, patches)
+    qi.produce(s0, x => {
+      return qi.applyPatches(x, patches)
     })
   ).toEqual({ x: -1 })
 })
 describe("#468", () => {
   function run() {
     const item = { id: 1 }
-    const state = [item]
-    const [nextState, patches] = produceWithPatches(state, draft => {
-      draft[0].id = 2
-      draft[1] = item
+    const base = [item]
+    const [y, patches] = qi.produceWithPatches(base, (x: any) => {
+      x[0].id = 2
+      x[1] = item
     })
-    expect(nextState).toEqual([{ id: 2 }, { id: 1 }])
+    expect(y).toEqual([{ id: 2 }, { id: 1 }])
     expect(patches).toEqual([
       {
         op: "replace",
@@ -966,75 +896,67 @@ describe("#468", () => {
         },
       },
     ])
-    const final = applyPatches(state, patches)
-    expect(final).toEqual(nextState)
+    const y2 = qi.applyPatches(base, patches)
+    expect(y2).toEqual(y)
   }
-  test("es5", () => {
-    setUseProxies(false)
-    run()
-  })
   test("proxy", () => {
-    setUseProxies(true)
     run()
   })
 })
 test("#521", () => {
-  const state = new Map()
-  const [nextState, patches] = produceWithPatches(state, draft => {
-    draft.set("hello", new Set(["world"]))
+  const base = new Map()
+  const [y, patches] = qi.produceWithPatches(base, x => {
+    x.set("hello", new Set(["world"]))
   })
-  let patchedState = applyPatches(state, patches)
-  expect(patchedState).toEqual(nextState)
-  const [nextStateV2, patchesV2] = produceWithPatches(nextState, draft => {
-    draft.get("hello").add("immer")
+  const y2 = qi.applyPatches(base, patches)
+  expect(y2).toEqual(y)
+  const [_, patches2] = qi.produceWithPatches(y, x => {
+    x.get("hello").add("immer")
   })
-  expect(applyPatches(nextState, patchesV2)).toEqual(
+  expect(qi.applyPatches(y, patches2)).toEqual(
     new Map([["hello", new Set(["world", "immer"])]])
   )
 })
 test("#559 patches works in a nested reducer with proxies", () => {
-  setUseProxies(true)
-  const state = {
+  const base = {
     x: 1,
-    sub: {
-      y: [{ a: 0 }, { a: 1 }],
-    },
+    sub: { y: [{ a: 0 }, { a: 1 }] },
   }
-  const changes = []
-  const inverseChanges = []
-  const newState = produce(state, draft => {
-    draft.sub = produce(
-      draft.sub,
+  const ps = []
+  const invs: any = []
+  const y = qi.produce(base, x => {
+    x.sub = qi.produce(
+      x.sub,
       draft => {
         draft.y.pop()
       },
-      (patches, inverses) => {
-        expect(isDraft(inverses[0].value)).toBeFalsy()
-        expect(inverses[0].value).toMatchObject({ a: 1 })
-        changes.push(...patches)
-        inverseChanges.push(...inverses)
+      (ps2, invs2) => {
+        expect(qi.isDraft(invs2[0]?.value)).toBeFalsy()
+        expect(invs2[0]?.value).toMatchObject({ a: 1 })
+        ps.push(...ps2)
+        invs.push(...invs2)
       }
     )
   })
-  const reversedSubState = applyPatches(newState.sub, inverseChanges)
-  expect(reversedSubState).toMatchObject(state.sub)
+  const y2 = qi.applyPatches(y.sub, invs)
+  expect(y2).toMatchObject(base.sub)
 })
 describe("#588", () => {
-  const reference = { value: { num: 53 } }
+  const ref = { value: { num: 53 } }
   class Base {
-    [DRAFTABLE] = true
+    [qi.DRAFTABLE] = true
     get nested() {
-      return reference.value
+      return ref.value
     }
-    set nested(value) {}
+    set nested(_) {}
   }
-  let base = new Base()
+  const base = new Base()
   runPatchTest(
     base,
-    vdraft => {
-      reference.value = vdraft
-      produce(base, bdraft => {
-        bdraft.nested.num = 42
+    (x: any) => {
+      ref.value = x
+      qi.produce(base, x2 => {
+        x2.nested.num = 42
       })
     },
     [{ op: "add", path: ["num"], value: 42 }]
@@ -1042,6 +964,7 @@ describe("#588", () => {
 })
 test("#676 patching Date objects", () => {
   class Test {
+    test: boolean
     constructor() {
       this.test = true
     }
@@ -1049,27 +972,24 @@ test("#676 patching Date objects", () => {
       return "tested!"
     }
   }
-  const [nextState, patches] = produceWithPatches({}, function (draft) {
-    draft.date = new Date("2020-11-10T08:08:08.003Z")
-    draft.test = new Test()
+  const [y, patches] = qi.produceWithPatches({}, function (x: any) {
+    x.date = new Date("2020-11-10T08:08:08.003Z")
+    x.test = new Test()
   })
-  expect(nextState.date.toJSON()).toMatchInlineSnapshot(
+  expect((y as any).date.toJSON()).toMatchInlineSnapshot(
     `"2020-11-10T08:08:08.003Z"`
   )
-  expect(nextState.test.perform()).toBe("tested!")
-  const rebuilt = applyPatches({}, patches)
-  expect(rebuilt.date).toBeInstanceOf(Date)
-  expect(rebuilt.date.toJSON()).toMatchInlineSnapshot(
-    `"2020-11-10T08:08:08.003Z"`
-  )
-  expect(rebuilt.date).toEqual(new Date("2020-11-10T08:08:08.003Z"))
+  expect((y as any).test.perform()).toBe("tested!")
+  const y2: any = qi.applyPatches({}, patches)
+  expect(y2.date).toBeInstanceOf(Date)
+  expect(y2.date.toJSON()).toMatchInlineSnapshot(`"2020-11-10T08:08:08.003Z"`)
+  expect(y2.date).toEqual(new Date("2020-11-10T08:08:08.003Z"))
 })
 test("do not allow __proto__ polution - 738", () => {
-  const obj = {}
-  // @ts-ignore
+  const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
-    applyPatches({}, [
+    qi.applyPatches({}, [
       { op: "add", path: ["__proto__", "polluted"], value: "yes" },
     ])
   }).toThrow(
@@ -1077,18 +997,15 @@ test("do not allow __proto__ polution - 738", () => {
       ? "24"
       : "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
   )
-  // @ts-ignore
   expect(obj.polluted).toBe(undefined)
 })
 test("do not allow __proto__ polution using arrays - 738", () => {
-  const obj = {}
-  const ar = []
-  // @ts-ignore
+  const obj: any = {}
+  const ar: any = []
   expect(obj.polluted).toBe(undefined)
-  // @ts-ignore
   expect(ar.polluted).toBe(undefined)
   expect(() => {
-    applyPatches(
+    qi.applyPatches(
       [],
       [{ op: "add", path: ["__proto__", "polluted"], value: "yes" }]
     )
@@ -1097,17 +1014,14 @@ test("do not allow __proto__ polution using arrays - 738", () => {
       ? "24"
       : "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
   )
-  // @ts-ignore
   expect(obj.polluted).toBe(undefined)
-  // @ts-ignore
   expect(ar.polluted).toBe(undefined)
 })
 test("do not allow prototype polution - 738", () => {
-  const obj = {}
-  // @ts-ignore
+  const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
-    applyPatches(Object, [
+    qi.applyPatches(Object, [
       { op: "add", path: ["prototype", "polluted"], value: "yes" },
     ])
   }).toThrow(
@@ -1115,25 +1029,21 @@ test("do not allow prototype polution - 738", () => {
       ? "24"
       : "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
   )
-  // @ts-ignore
   expect(obj.polluted).toBe(undefined)
 })
 test("do not allow constructor polution - 738", () => {
-  const obj = {}
-  // @ts-ignore
+  const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   const t = {}
-  applyPatches(t, [{ op: "replace", path: ["constructor"], value: "yes" }])
+  qi.applyPatches(t, [{ op: "replace", path: ["constructor"], value: "yes" }])
   expect(typeof t.constructor).toBe("function")
-  // @ts-ignore
-  expect(Object.polluted).toBe(undefined)
+  expect((Object as any).polluted).toBe(undefined)
 })
 test("do not allow constructor.prototype polution - 738", () => {
-  const obj = {}
-  // @ts-ignore
+  const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
-    applyPatches({}, [
+    qi.applyPatches({}, [
       {
         op: "add",
         path: ["constructor", "prototype", "polluted"],
@@ -1145,135 +1055,117 @@ test("do not allow constructor.prototype polution - 738", () => {
       ? "24"
       : "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
   )
-  // @ts-ignore
-  expect(Object.polluted).toBe(undefined)
+  expect((Object as any).polluted).toBe(undefined)
 })
 test("maps can store __proto__, prototype and constructor props", () => {
-  const obj = {}
-  const map = new Map()
-  map.set("__proto__", {})
-  map.set("constructor", {})
-  map.set("prototype", {})
-  const newMap = applyPatches(map, [
+  const obj: any = {}
+  const base = new Map()
+  base.set("__proto__", {})
+  base.set("constructor", {})
+  base.set("prototype", {})
+  const y = qi.applyPatches(base, [
     { op: "add", path: ["__proto__", "polluted"], value: "yes" },
     { op: "add", path: ["constructor", "polluted"], value: "yes" },
     { op: "add", path: ["prototype", "polluted"], value: "yes" },
   ])
-  expect(newMap.get("__proto__").polluted).toBe("yes")
-  expect(newMap.get("constructor").polluted).toBe("yes")
-  expect(newMap.get("prototype").polluted).toBe("yes")
+  expect(y.get("__proto__").polluted).toBe("yes")
+  expect(y.get("constructor").polluted).toBe("yes")
+  expect(y.get("prototype").polluted).toBe("yes")
   expect(obj.polluted).toBe(undefined)
 })
 test("CVE-2020-28477 (https://snyk.io/vuln/SNYK-JS-IMMER-1019369) follow up", () => {
-  const obj = {}
-  // @ts-ignore
+  const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
-    applyPatches({}, [
-      { op: "add", path: [["__proto__"], "polluted"], value: "yes" },
+    qi.applyPatches({}, [
+      { op: "add", path: ["__proto__", "polluted"], value: "yes" },
     ])
   }).toThrow(
     isProd
       ? "24"
       : "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
   )
-  // @ts-ignore
   expect(obj.polluted).toBe(undefined)
 })
 test("#648 assigning object to itself should not change patches", () => {
-  const input = {
-    obj: {
-      value: 200,
-    },
+  const base = {
+    obj: { value: 200 },
   }
-  const [nextState, patches] = produceWithPatches(input, draft => {
-    draft.obj.value = 1
-    draft.obj = draft.obj
+  const [_, patches] = qi.produceWithPatches(base, x => {
+    x.obj.value = 1
   })
-  expect(patches).toEqual([
-    {
-      op: "replace",
-      path: ["obj", "value"],
-      value: 1,
-    },
-  ])
+  expect(patches).toEqual([{ op: "replace", path: ["obj", "value"], value: 1 }])
 })
 test("#791 patch for  nothing is stored as undefined", () => {
-  const [newState, patches] = produceWithPatches({ abc: 123 }, draft => nothing)
+  const [_, patches] = qi.produceWithPatches({ abc: 123 }, _ => undefined)
   expect(patches).toEqual([{ op: "replace", path: [], value: undefined }])
-  expect(applyPatches({}, patches)).toEqual(undefined)
+  expect(qi.applyPatches({}, patches)).toEqual(undefined)
 })
 test("#876 Ensure empty patch set for atomic set+delete on Map", () => {
   {
-    const [newState, patches] = produceWithPatches(
-      new Map([["foo", "baz"]]),
-      draft => {
-        draft.set("foo", "bar")
-        draft.delete("foo")
-      }
-    )
+    const [_, patches] = qi.produceWithPatches(new Map([["foo", "baz"]]), x => {
+      x.set("foo", "bar")
+      x.delete("foo")
+    })
     expect(patches).toEqual([{ op: "remove", path: ["foo"] }])
   }
   {
-    const [newState, patches] = produceWithPatches(new Map(), draft => {
-      draft.set("foo", "bar")
-      draft.delete("foo")
+    const [_, patches] = qi.produceWithPatches(new Map(), x => {
+      x.set("foo", "bar")
+      x.delete("foo")
     })
     expect(patches).toEqual([])
   }
 })
 test("#888 patch to a primitive produces the primitive", () => {
   {
-    const [res, patches] = produceWithPatches({ abc: 123 }, draft => nothing)
-    expect(res).toEqual(undefined)
+    const [y, patches] = qi.produceWithPatches({ abc: 123 }, _ => undefined)
+    expect(y).toEqual(undefined)
     expect(patches).toEqual([{ op: "replace", path: [], value: undefined }])
   }
   {
-    const [res, patches] = produceWithPatches(null, draft => nothing)
-    expect(res).toEqual(undefined)
+    const [y, patches] = qi.produceWithPatches(null, _ => undefined)
+    expect(y).toEqual(undefined)
     expect(patches).toEqual([{ op: "replace", path: [], value: undefined }])
   }
   {
-    const [res, patches] = produceWithPatches(0, draft => nothing)
-    expect(res).toEqual(undefined)
+    const [y, patches] = qi.produceWithPatches(0, _ => undefined)
+    expect(y).toEqual(undefined)
     expect(patches).toEqual([{ op: "replace", path: [], value: undefined }])
   }
   {
-    const [res, patches] = produceWithPatches("foobar", draft => nothing)
-    expect(res).toEqual(undefined)
+    const [y, patches] = qi.produceWithPatches("foobar", _ => undefined)
+    expect(y).toEqual(undefined)
     expect(patches).toEqual([{ op: "replace", path: [], value: undefined }])
   }
   {
-    const [res, patches] = produceWithPatches([], draft => nothing)
-    expect(res).toEqual(undefined)
+    const [y, patches] = qi.produceWithPatches([], _ => undefined)
+    expect(y).toEqual(undefined)
     expect(patches).toEqual([{ op: "replace", path: [], value: undefined }])
   }
   {
-    const [res, patches] = produceWithPatches(false, draft => nothing)
-    expect(res).toEqual(undefined)
+    const [y, patches] = qi.produceWithPatches(false, _ => undefined)
+    expect(y).toEqual(undefined)
     expect(patches).toEqual([{ op: "replace", path: [], value: undefined }])
   }
   {
-    const [res, patches] = produceWithPatches(
-      "foobar",
-      draft => "something else"
-    )
-    expect(res).toEqual("something else")
+    const [y, patches] = qi.produceWithPatches("foobar", _ => "something else")
+    expect(y).toEqual("something else")
     expect(patches).toEqual([
       { op: "replace", path: [], value: "something else" },
     ])
   }
   {
-    const [res, patches] = produceWithPatches(false, draft => true)
-    expect(res).toEqual(true)
+    const [y, patches] = qi.produceWithPatches(false, _ => true)
+    expect(y).toEqual(true)
     expect(patches).toEqual([{ op: "replace", path: [], value: true }])
   }
 })
 describe("#879 delete item from array", () => {
   runPatchTest(
     [1, 2, 3],
-    draft => {
-      delete draft[1]
+    (x: any) => {
+      delete x[1]
     },
     [{ op: "replace", path: [1], value: undefined }],
     [{ op: "replace", path: [1], value: 2 }],
@@ -1283,8 +1175,8 @@ describe("#879 delete item from array", () => {
 describe("#879 delete item from array - 2", () => {
   runPatchTest(
     [1, 2, 3],
-    draft => {
-      delete draft[2]
+    (x: any) => {
+      delete x[2]
     },
     [{ op: "replace", path: [2], value: undefined }],
     [{ op: "replace", path: [2], value: 3 }],
@@ -1292,17 +1184,9 @@ describe("#879 delete item from array - 2", () => {
   )
 })
 test("#897 appendPatch", () => {
-  const state0 = { a: [] }
-  const state1 = applyPatches(state0, [
-    { op: "add", path: ["a", "-"], value: 1 },
-  ])
-  const state2 = applyPatches(state1, [
-    { op: "add", path: ["a", "-"], value: 2 },
-  ])
-  const state3 = applyPatches(state2, [
-    { op: "add", path: ["a", "-"], value: 3 },
-  ])
-  expect(state3).toEqual({
-    a: [1, 2, 3],
-  })
+  const base = { a: [] }
+  const y1 = qi.applyPatches(base, [{ op: "add", path: ["a", "-"], value: 1 }])
+  const y2 = qi.applyPatches(y1, [{ op: "add", path: ["a", "-"], value: 2 }])
+  const y3 = qi.applyPatches(y2, [{ op: "add", path: ["a", "-"], value: 3 }])
+  expect(y3).toEqual({ a: [1, 2, 3] })
 })

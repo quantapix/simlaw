@@ -75,7 +75,7 @@
     "nx": "14.5.4",
     "prettier": "",
     "react-test-renderer": "",
-    "typescript": "rc",
+    "typescript": "next",
     "webpack-dev-server": "",
     "webpack-manifest-plugin": "",
     "webpack": ""

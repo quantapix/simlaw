@@ -1,20 +1,10 @@
-import {
-  DRAFT_STATE,
-  DRAFTABLE,
-  each,
-  enableAllPlugins,
-  Immer,
-  isDraft,
-  Unknown,
-  original,
-  shallowCopy,
-} from "../../src/data/immer/index.js"
+import * as qi from "../../../src/data/immer/index.js"
 import deepFreeze from "deep-freeze"
-import * as lodash from "lodash"
+import lodash from "lodash"
 
 jest.setTimeout(1000)
-enableAllPlugins()
-const isProd = process.env.NODE_ENV === "production"
+qi.enableAllPlugins()
+const isProd = process.env["NODE_ENV"] === "production"
 
 runBaseTest("proxy (no freeze)", true, false)
 runBaseTest("proxy (autofreeze)", true, true)
@@ -22,18 +12,18 @@ runBaseTest("proxy (patch listener)", false, true)
 runBaseTest("proxy (autofreeze)(patch listener)", true, true)
 function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
   const listener = useListener ? function () {} : undefined
-  const { produce, produceWithPatches } = createPatchedImmer({
+  const { produce, produceWithPatches } = createImmer({
     autoFreeze,
   })
-  function createPatchedImmer(x: any) {
-    const immer = new Immer(x)
-    const { produce } = immer
-    immer.produce = function (...xs: any[]) {
+  function createImmer(x: any) {
+    const i = new qi.Immer(x)
+    const { produce } = i
+    i.produce = function (...xs: any[]) {
       return typeof xs[1] === "function" && xs.length < 3
         ? produce(...xs, listener)
         : produce(...xs)
     }
-    return immer
+    return i
   }
   describe(`base functionality - ${name}`, () => {
     let base: any
@@ -396,7 +386,8 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
       it("can assign by key", () => {
         const y: any = produce(base, (x: any) => {
           const res = x.aMap.set("force", true)
-          if (!global.USES_BUILD) expect(res).toBe(x.aMap[DRAFT_STATE].draft_)
+          if (!global.USES_BUILD)
+            expect(res).toBe(x.aMap[qi.DRAFT_STATE].draft_)
         })
         expect(y).not.toBe(base)
         expect(y.aMap).not.toBe(base.aMap)
@@ -497,7 +488,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
         const base = new Map([[k, 2]])
         const y = produce(base, (x: any) => {
           const dKey: any = Array.from(x.keys())[0]
-          expect(isDraft(dKey)).toBe(false)
+          expect(qi.isDraft(dKey)).toBe(false)
           expect(dKey).toBe(k)
           dKey.a += 1
           x.set(dKey, x.get(dKey) + 1)
@@ -698,7 +689,8 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
       it("can add new items", () => {
         const y: any = produce(base, (x: any) => {
           const res = x.aSet.add("force")
-          if (!global.USES_BUILD) expect(res).toBe(x.aSet[DRAFT_STATE].draft_)
+          if (!global.USES_BUILD)
+            expect(res).toBe(x.aSet[qi.DRAFT_STATE].draft_)
         })
         expect(y).not.toBe(base)
         expect(y.aSet).not.toBe(base.aSet)
@@ -786,7 +778,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
     })
     it("supports `DRAFTABLE` symbol on constructor", () => {
       class One {}
-      ;(One as any)[DRAFTABLE] = true
+      ;(One as any)[qi.DRAFTABLE] = true
       const base = new One()
       const y: any = produce(base, (x: any) => {
         expect(x).not.toBe(base)
@@ -860,7 +852,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
     })
     it("can work with class with computed props", () => {
       class State {
-        [DRAFTABLE] = true
+        [qi.DRAFTABLE] = true
         x = 1
         set y(v) {
           this.x = v
@@ -893,7 +885,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
           this.bar = val
         },
       })
-      proto[DRAFTABLE] = true
+      proto[qi.DRAFTABLE] = true
       const base = Object.create(proto)
       produce(base, (x: any) => {
         expect(x.bar).toBeUndefined()
@@ -1130,8 +1122,8 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
           produce({}, (base: any) => {
             produce(base, (x: any) => {
               expect(x).not.toBe(base)
-              expect(isDraft(x)).toBeTruthy()
-              expect(original(x)).toBe(base)
+              expect(qi.isDraft(x)).toBeTruthy()
+              expect(qi.original(x)).toBe(base)
             })
           })
         })
@@ -1140,8 +1132,8 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
             base.a
             produce(base, (x: any) => {
               x.c = 1
-              expect(isDraft(x.a)).toBeTruthy()
-              expect(isDraft(x.b)).toBeTruthy()
+              expect(qi.isDraft(x.a)).toBeTruthy()
+              expect(qi.isDraft(x.b)).toBeTruthy()
             })
           })
         })
@@ -1164,8 +1156,8 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
           produce({ a: {} }, (base: any) => {
             produce({ a: base.a }, (x: any) => {
               expect(x.a).not.toBe(base.a)
-              expect(isDraft(x.a)).toBeTruthy()
-              expect(original(x.a)).toBe(base.a)
+              expect(qi.isDraft(x.a)).toBeTruthy()
+              expect(qi.original(x.a)).toBe(base.a)
             })
           })
         })
@@ -1209,16 +1201,16 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
       })
       it("works with interweaved Immer instances", () => {
         const options = { autoFreeze }
-        const one = createPatchedImmer(options)
-        const two = createPatchedImmer(options)
+        const one = createImmer(options)
+        const two = createImmer(options)
         const base = {}
         const y: any = one.produce(base, x1 =>
           two.produce({ s1: x1 }, x2 => {
-            expect(original(x2.s1)).toBe(x1)
+            expect(qi.original(x2.s1)).toBe(x1)
             x2.n = 1
             x2.s1 = one.produce({ s2: x2 }, (x3: any) => {
-              expect(original(x3.s2)).toBe(x2)
-              expect(original(x3.s2.s1)).toBe(x2.s1)
+              expect(qi.original(x3.s2)).toBe(x2)
+              expect(qi.original(x3.s2.s1)).toBe(x2.s1)
               return x3.s2.s1
             })
           })
@@ -1613,13 +1605,13 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
       expect(produce(base, () => null)).toBe(null)
       expect(produce(base, () => undefined)).toBe(3)
       expect(produce(base, () => {})).toBe(3)
-      expect(produce(base, () => Unknown)).toBe(undefined)
+      expect(produce(base, () => qi.Unknown)).toBe(undefined)
       expect(produce({}, () => undefined)).toEqual({})
-      expect(produce({}, () => Unknown)).toBe(undefined)
-      expect(produce(3, () => Unknown)).toBe(undefined)
+      expect(produce({}, () => qi.Unknown)).toBe(undefined)
+      expect(produce(3, () => qi.Unknown)).toBe(undefined)
       expect(produce(() => undefined)({})).toEqual({})
-      expect(produce(() => Unknown)({})).toBe(undefined)
-      expect(produce(() => Unknown)(3)).toBe(undefined)
+      expect(produce(() => qi.Unknown)({})).toBe(undefined)
+      expect(produce(() => qi.Unknown)(3)).toBe(undefined)
     })
     describe("base state type", () => {
       if (!global.USES_BUILD) testObjectTypes(produce)
@@ -1743,41 +1735,41 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
   describe(`isDraft - ${name}`, () => {
     it("returns true for object drafts", () => {
       produce({}, state => {
-        expect(isDraft(state)).toBeTruthy()
+        expect(qi.isDraft(state)).toBeTruthy()
       })
     })
     it("returns true for array drafts", () => {
       produce([], state => {
-        expect(isDraft(state)).toBeTruthy()
+        expect(qi.isDraft(state)).toBeTruthy()
       })
     })
     it("returns true for objects nested in object drafts", () => {
       produce({ a: { b: {} } }, state => {
-        expect(isDraft(state.a)).toBeTruthy()
-        expect(isDraft(state.a.b)).toBeTruthy()
+        expect(qi.isDraft(state.a)).toBeTruthy()
+        expect(qi.isDraft(state.a.b)).toBeTruthy()
       })
     })
     it("returns false for new objects added to a draft", () => {
       produce({}, state => {
         state.a = {}
-        expect(isDraft(state.a)).toBeFalsy()
+        expect(qi.isDraft(state.a)).toBeFalsy()
       })
     })
     it("returns false for objects returned by the producer", () => {
       const y = produce([], () => Object.create(null))
-      expect(isDraft(y)).toBeFalsy()
+      expect(qi.isDraft(y)).toBeFalsy()
     })
     it("returns false for arrays returned by the producer", () => {
       const y = produce({}, _ => [])
-      expect(isDraft(y)).toBeFalsy()
+      expect(qi.isDraft(y)).toBeFalsy()
     })
     it("returns false for object drafts returned by the producer", () => {
       const y = produce({}, state => state)
-      expect(isDraft(y)).toBeFalsy()
+      expect(qi.isDraft(y)).toBeFalsy()
     })
     it("returns false for array drafts returned by the producer", () => {
       const y = produce([], state => state)
-      expect(isDraft(y)).toBeFalsy()
+      expect(qi.isDraft(y)).toBeFalsy()
     })
   })
   describe(`complex nesting map / set / object`, () => {
@@ -1800,7 +1792,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
     test(`modify deep object`, () => {
       const [y, patches] = produceWithPatches(base, (x: any) => {
         const v = first(x.map.get("set1"))
-        expect(original(v)).toBe(a)
+        expect(qi.original(v)).toBe(a)
         expect(v).toEqual(a)
         expect(v).not.toBe(a)
         v.a++
@@ -1820,7 +1812,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener: boolean) {
     test(`modify deep object - keep value`, () => {
       const [y, patches] = produceWithPatches(base, (x: any) => {
         const v = first(x.map.get("set1"))
-        expect(original(v)).toBe(a)
+        expect(qi.original(v)).toBe(a)
         expect(v).toEqual(a)
         expect(v).not.toBe(a)
         v.a = 1
@@ -1854,7 +1846,7 @@ function testObjectTypes(produce) {
   class Foo {
     constructor(foo) {
       this.foo = foo
-      this[DRAFTABLE] = true
+      this[qi.DRAFTABLE] = true
     }
   }
   const vs: any = {
@@ -1867,7 +1859,7 @@ function testObjectTypes(produce) {
   }
   for (const n in vs) {
     const v = vs[n]
-    const copy = shallowCopy(v)
+    const copy = qi.shallowCopy(v)
     testObjectType(n, v)
     testObjectType(n + " (frozen)", Object.freeze(copy))
   }
@@ -1876,7 +1868,7 @@ function testObjectTypes(produce) {
       it("creates a draft", () => {
         produce(base, (x: any) => {
           expect(x).not.toBe(base)
-          expect(shallowCopy(x, true)).toEqual(base)
+          expect(qi.shallowCopy(x, true)).toEqual(base)
         })
       })
       it("preserves the prototype", () => {
@@ -1901,7 +1893,7 @@ function testObjectTypes(produce) {
   }
   describe("class with getters", () => {
     class State {
-      [DRAFTABLE] = true
+      [qi.DRAFTABLE] = true
       _bar = { baz: 1 }
       foo
       get bar() {
@@ -1925,7 +1917,7 @@ function testObjectTypes(produce) {
   })
   describe("super class with getters", () => {
     class BaseState {
-      [DRAFTABLE] = true
+      [qi.DRAFTABLE] = true
       _bar = { baz: 1 }
       foo
       get bar() {
@@ -1950,7 +1942,7 @@ function testObjectTypes(produce) {
   })
   describe("class with setters", () => {
     class State {
-      [DRAFTABLE] = true
+      [qi.DRAFTABLE] = true
       _bar = 0
       get bar() {
         return this._bar
@@ -1974,7 +1966,7 @@ function testObjectTypes(produce) {
   describe("setter only", () => {
     let setterCalled = 0
     class State {
-      [DRAFTABLE] = true
+      [qi.DRAFTABLE] = true
       x = 0
       set y(value) {
         setterCalled++
@@ -1994,7 +1986,7 @@ function testObjectTypes(produce) {
   describe("getter only", () => {
     let getterCalled = 0
     class State {
-      [DRAFTABLE] = true
+      [qi.DRAFTABLE] = true
       x = 0
       get y() {
         getterCalled++
@@ -2057,7 +2049,7 @@ function testObjectTypes(produce) {
   describe("#620", () => {
     const customSymbol = Symbol("customSymbol")
     class TestClass {
-      [DRAFTABLE] = true;
+      [qi.DRAFTABLE] = true;
       [customSymbol] = 1
     }
     const base = new TestClass()
@@ -2066,7 +2058,7 @@ function testObjectTypes(produce) {
       x[customSymbol] = 2
     })
     expect(y1).toEqual({
-      [DRAFTABLE]: true,
+      [qi.DRAFTABLE]: true,
       [customSymbol]: 2,
     })
     const y2 = produce(y1, (x: any) => {
@@ -2074,7 +2066,7 @@ function testObjectTypes(produce) {
       x[customSymbol] = 3
     })
     expect(y2).toEqual({
-      [DRAFTABLE]: true,
+      [qi.DRAFTABLE]: true,
       [customSymbol]: 3,
     })
   })
@@ -2131,7 +2123,7 @@ function testLiteralTypes(produce) {
 }
 function enumerableOnly(x: any) {
   const copy = Array.isArray(x) ? x.slice() : Object.assign({}, x)
-  each(copy, (k, v) => {
+  qi.each(copy, (k, v) => {
     if (v && typeof v === "object") {
       copy[k] = enumerableOnly(v)
     }
