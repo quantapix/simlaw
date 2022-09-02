@@ -6,6 +6,7 @@ export * from "./types.js"
 export * from "./plugins.js"
 export * from "./immer.js"
 export * from "./use.js"
+export { Immer } from "./immer.js"
 
 const immer = new Immer()
 

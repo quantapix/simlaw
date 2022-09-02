@@ -177,7 +177,11 @@ export interface ProduceWithPatches {
   ): Promise<PatchesTuple<X>>
 }
 
-export function never_used() {}
+export interface Immer {
+  autoFreeze: boolean
+  produce: Produce
+  produceWithPatches: ProduceWithPatches
+}
 
 export interface Scope {
   canAutoFreeze: boolean

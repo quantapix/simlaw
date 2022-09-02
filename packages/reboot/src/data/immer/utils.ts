@@ -182,7 +182,7 @@ type Plugins = typeof plugins
 
 export function getPlugin<K extends keyof Plugins>(
   k: K
-): Exclude<Plugins[K], undefined> {
+): NonNullable<Plugins[K]> {
   const y = plugins[k]
   if (!y) die(18, k)
   return y

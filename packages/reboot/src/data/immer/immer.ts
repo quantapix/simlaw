@@ -8,7 +8,7 @@ export function getCurrentScope() {
   return currentScope!
 }
 
-function createScope(parent: qt.Scope | undefined, immer: Immer): qt.Scope {
+function createScope(parent: qt.Scope | undefined, immer: qt.Immer): qt.Scope {
   return {
     canAutoFreeze: true,
     drafts: [],
@@ -18,12 +18,18 @@ function createScope(parent: qt.Scope | undefined, immer: Immer): qt.Scope {
   }
 }
 
-export function enterScope(x: Immer) {
+export function enterScope(x: qt.Immer) {
   return (currentScope = createScope(currentScope, x))
 }
 
 export function leaveScope(x: qt.Scope) {
   if (x === currentScope) currentScope = x.parent
+}
+
+function revokeDraft(x: qt.Drafted) {
+  const s: qt.State = x[qt.DRAFT_STATE]
+  if (s.type === qt.ProxyType.Obj || s.type === qt.ProxyType.Array) s.revoke()
+  else s.revoked = true
 }
 
 export function revokeScope(x: qt.Scope) {
@@ -41,36 +47,6 @@ export function usePatchesInScope(x: qt.Scope, listener?: qt.Listener) {
   }
 }
 
-function revokeDraft(x: qt.Drafted) {
-  const s: qt.State = x[qt.DRAFT_STATE]
-  if (s.type === qt.ProxyType.Obj || s.type === qt.ProxyType.Array) s.revoke()
-  else s.revoked = true
-}
-
-export function current<T>(x: T): T
-export function current(x: any): any {
-  if (!qu.isDraft(x)) qu.die(22, x)
-  return _current(x)
-}
-
-function _current(x: any): any {
-  if (!qu.isDraftable(x)) return x
-  const s: qt.State | undefined = x[qt.DRAFT_STATE]
-  let copy: any
-  const t = qu.getType(x)
-  if (s) {
-    if (!s.modified) return s.base
-    s.finalized = true
-    copy = _copy(x, t)
-    s.finalized = false
-  } else copy = _copy(x, t)
-  qu.each(copy, (k, v) => {
-    if (s && qu.get(s.base, k) === v) return
-    qu.set(copy, k, _current(v))
-  })
-  return t === qt.QType.Set ? new Set(copy) : copy
-}
-
 function _copy(x: any, t: number): any {
   switch (t) {
     case qt.QType.Map:
@@ -79,6 +55,30 @@ function _copy(x: any, t: number): any {
       return Array.from(x)
   }
   return qu.shallowCopy(x)
+}
+
+function _get(x: any): any {
+  if (!qu.isDraftable(x)) return x
+  const s: qt.State | undefined = x[qt.DRAFT_STATE]
+  let y: any
+  const t = qu.getType(x)
+  if (s) {
+    if (!s.modified) return s.base
+    s.finalized = true
+    y = _copy(x, t)
+    s.finalized = false
+  } else y = _copy(x, t)
+  qu.each(y, (k, v) => {
+    if (s && qu.get(s.base, k) === v) return
+    qu.set(y, k, _get(v))
+  })
+  return t === qt.QType.Set ? new Set(y) : y
+}
+
+export function current<T>(x: T): T
+export function current(x: any): any {
+  if (!qu.isDraft(x)) qu.die(22, x)
+  return _get(x)
 }
 
 export function processResult(x: any, s: qt.Scope) {
@@ -108,11 +108,44 @@ export function processResult(x: any, s: qt.Scope) {
   return x !== qt.NOTHING ? x : undefined
 }
 
-function finalize(root: qt.Scope, x: any, p?: qt.PatchPath) {
+function maybeFreeze(s: qt.Scope, x: any, deep = false) {
+  if (s.immer.autoFreeze && s.canAutoFreeze) qu.freeze(x, deep)
+}
+
+function finalizeProp(
+  root: qt.Scope,
+  s: qt.State | undefined,
+  x: any,
+  k: string | number,
+  v: any,
+  path?: qt.PatchPath
+) {
+  if (__DEV__ && v === x) qu.die(5)
+  if (qu.isDraft(v)) {
+    const p =
+      path &&
+      s &&
+      s.type !== qt.ProxyType.Set &&
+      !qu.has((s as Exclude<qt.State, qt.SetState>).assigned!, k)
+        ? path!.concat(k)
+        : undefined
+    const y = finalize(root, v, p)
+    qu.set(x, k, y)
+    if (qu.isDraft(y)) root.canAutoFreeze = false
+    else return
+  }
+  if (qu.isDraftable(v) && !qu.isFrozen(v)) {
+    if (!root.immer.autoFreeze && root.unfinalized < 1) return
+    finalize(root, v)
+    if (!s || !s.scope.parent) maybeFreeze(root, v)
+  }
+}
+
+function finalize(root: qt.Scope, x: any, path?: qt.PatchPath) {
   if (qu.isFrozen(x)) return x
   const s: qt.State = x[qt.DRAFT_STATE]
   if (!s) {
-    qu.each(x, (k, v) => finalizeProperty(root, s, x, k, v, p), true)
+    qu.each(x, (k, v) => finalizeProp(root, s, x, k, v, path), true)
     return x
   }
   if (s.scope !== root) return x
@@ -125,13 +158,13 @@ function finalize(root: qt.Scope, x: any, p?: qt.PatchPath) {
     s.scope.unfinalized--
     const y = s.copy
     qu.each(s.type === qt.ProxyType.Set ? new Set(y) : y, (k, v) =>
-      finalizeProperty(root, s, y, k, v, p)
+      finalizeProp(root, s, y, k, v, path)
     )
     maybeFreeze(root, y, false)
-    if (p && root.patches) {
+    if (path && root.patches) {
       qu.getPlugin("Patches").generatePatches(
         s,
-        p,
+        path,
         root.patches,
         root.inverses!
       )
@@ -140,63 +173,26 @@ function finalize(root: qt.Scope, x: any, p?: qt.PatchPath) {
   return s.copy
 }
 
-function finalizeProperty(
-  root: qt.Scope,
-  state: qt.State | undefined,
-  x: any,
-  prop: string | number,
-  v: any,
-  p?: qt.PatchPath
-) {
-  if (__DEV__ && v === x) qu.die(5)
-  if (qu.isDraft(v)) {
-    const path =
-      p &&
-      state &&
-      state!.type !== qt.ProxyType.Set &&
-      !qu.has((state as Exclude<qt.State, qt.SetState>).assigned!, prop)
-        ? p!.concat(prop)
-        : undefined
-    const y = finalize(root, v, path)
-    qu.set(x, prop, y)
-    if (qu.isDraft(y)) root.canAutoFreeze = false
-    else return
-  }
-  if (qu.isDraftable(v) && !qu.isFrozen(v)) {
-    if (!root.immer.autoFreeze && root.unfinalized < 1) {
-      return
-    }
-    finalize(root, v)
-    if (!state || !state.scope.parent) maybeFreeze(root, v)
-  }
-}
-
-function maybeFreeze(s: qt.Scope, x: any, deep = false) {
-  if (s.immer.autoFreeze && s.canAutoFreeze) {
-    qu.freeze(x, deep)
-  }
-}
-
 export function createProxyProxy<T extends qt.Objectish>(
   base: T,
   parent?: qt.State
 ): qt.Drafted<T, qt.ProxyState> {
   const isArray = Array.isArray(base)
   const state: qt.ProxyState = {
-    type: isArray ? qt.ProxyType.Array : (qt.ProxyType.Obj as any),
-    scope: parent ? parent.scope : getCurrentScope()!,
-    modified: false,
-    finalized: false,
     assigned: {},
-    parent: parent,
-    base: base,
-    draft: null as any,
+    base,
     copy: null,
-    revoke: null as any,
+    draft: null as any,
+    finalized: false,
     manual: false,
+    modified: false,
+    parent,
+    revoke: null as any,
+    scope: parent ? parent.scope : getCurrentScope()!,
+    type: isArray ? qt.ProxyType.Array : qt.ProxyType.Obj,
   }
   let target: T = state as any
-  let traps: ProxyHandler<object | Array<any>> = objectTraps
+  let traps: ProxyHandler<object | Array<any>> = objTraps
   if (isArray) {
     target = [state] as any
     traps = arrayTraps
@@ -207,17 +203,48 @@ export function createProxyProxy<T extends qt.Objectish>(
   return proxy as any
 }
 
-export const objectTraps: ProxyHandler<qt.ProxyState> = {
+function descFromProto(src: any, k: PropertyKey) {
+  if (!(k in src)) return undefined
+  let p = Object.getPrototypeOf(src)
+  while (p) {
+    const d = Object.getOwnPropertyDescriptor(p, k)
+    if (d) return d
+    p = Object.getPrototypeOf(p)
+  }
+  return undefined
+}
+
+function propFromProto(s: qt.State, src: any, k: PropertyKey) {
+  const d = descFromProto(src, k)
+  return d ? (`value` in d ? d.value : d.get?.call(s.draft)) : undefined
+}
+
+function peek(x: qt.Drafted, k: PropertyKey) {
+  const s = x[qt.DRAFT_STATE]
+  const y = s ? qu.latest(s) : x
+  return y[k]
+}
+
+function prepCopy(x: { base: any; copy: any }) {
+  if (!x.copy) x.copy = qu.shallowCopy(x.base)
+}
+
+export function markChanged(x: qt.State) {
+  if (!x.modified) {
+    x.modified = true
+    if (x.parent) markChanged(x.parent)
+  }
+}
+
+export const objTraps: ProxyHandler<qt.ProxyState> = {
   get(x, k) {
     if (k === qt.DRAFT_STATE) return x
     const src = qu.latest(x)
-    if (!qu.has(src, k)) {
-      return readPropFromProto(x, src, k)
-    }
+    if (!qu.has(src, k)) return propFromProto(x, src, k)
     const y = src[k]
     if (x.finalized || !qu.isDraftable(y)) return y
     if (y === peek(x.base, k)) {
-      prepareCopy(x)
+      prepCopy(x)
       return (x.copy![k as any] = createProxy(y, x))
     }
     return y
@@ -229,22 +256,21 @@ export const objectTraps: ProxyHandler<qt.ProxyState> = {
     return Reflect.ownKeys(qu.latest(x))
   },
   set(x: qt.ProxyObj, k: string, v) {
-    const desc = getDescriptorFromProto(qu.latest(x), k)
-    if (desc?.set) {
-      desc.set.call(x.draft, v)
+    const d = descFromProto(qu.latest(x), k)
+    if (d?.set) {
+      d.set.call(x.draft, v)
       return true
     }
     if (!x.modified) {
-      const current = peek(qu.latest(x), k)
-      const currentState: qt.ProxyObj = current?.[qt.DRAFT_STATE]
-      if (currentState && currentState.base === v) {
+      const y = peek(qu.latest(x), k)
+      const s: qt.ProxyObj = y?.[qt.DRAFT_STATE]
+      if (s && s.base === v) {
         x.copy![k] = v
         x.assigned[k] = false
         return true
       }
-      if (qu.is(v, current) && (v !== undefined || qu.has(x.base, k)))
-        return true
-      prepareCopy(x)
+      if (qu.is(v, y) && (v !== undefined || qu.has(x.base, k))) return true
+      prepCopy(x)
       markChanged(x)
     }
     if (
@@ -260,21 +286,21 @@ export const objectTraps: ProxyHandler<qt.ProxyState> = {
   deleteProperty(x, k: string) {
     if (peek(x.base, k) !== undefined || k in x.base) {
       x.assigned[k] = false
-      prepareCopy(x)
+      prepCopy(x)
       markChanged(x)
     } else delete x.assigned[k]
     if (x.copy) delete x.copy[k]
     return true
   },
   getOwnPropertyDescriptor(x, k) {
-    const owner = qu.latest(x)
-    const d = Reflect.getOwnPropertyDescriptor(owner, k)
+    const y = qu.latest(x)
+    const d = Reflect.getOwnPropertyDescriptor(y, k)
     if (!d) return d
     return {
       writable: true,
       configurable: x.type !== qt.ProxyType.Array || k !== "length",
       //qfix enumerable: d.enumerable,
-      value: owner[k],
+      value: y[k],
     }
   },
   defineProperty() {
@@ -290,68 +316,31 @@ export const objectTraps: ProxyHandler<qt.ProxyState> = {
 
 const arrayTraps: ProxyHandler<[qt.ProxyArray]> = {}
 
-qu.each(objectTraps, (k, f) => {
-  arrayTraps[k] = function () {
-    arguments[0] = arguments[0][0]
-    return f.apply(this, arguments)
+qu.each(objTraps, (k, f) => {
+  ;(arrayTraps as any)[k] = function (...xs: any) {
+    xs[0] = xs[0][0]
+    return f.apply(this, xs)
   }
 })
-arrayTraps.deleteProperty = function (x, k) {
-  if (__DEV__ && isNaN(parseInt(k as any))) qu.die(13)
-  return arrayTraps.set!.call(this, x, k, undefined)
-}
 arrayTraps.set = function (x, k, v) {
   if (__DEV__ && k !== "length" && isNaN(parseInt(k as any))) qu.die(14)
-  return objectTraps.set!.call(this, x[0], k, v, x[0])
+  return objTraps.set!.call(this, x[0], k, v, x[0])
+}
+arrayTraps.deleteProperty = function (x, k) {
+  if (__DEV__ && isNaN(parseInt(k as any))) qu.die(13)
+  return arrayTraps.set!.call(this, x, k, undefined, x)
 }
 
-function peek(x: qt.Drafted, k: PropertyKey) {
-  const s = x[qt.DRAFT_STATE]
-  const y = s ? qu.latest(s) : x
-  return y[k]
-}
-
-function readPropFromProto(s: qt.State, src: any, k: PropertyKey) {
-  const d = getDescriptorFromProto(src, k)
-  return d ? (`value` in d ? d.value : d.get?.call(s.draft)) : undefined
-}
-
-function getDescriptorFromProto(
-  src: any,
-  k: PropertyKey
-): PropertyDescriptor | undefined {
-  if (!(k in src)) return undefined
-  let proto = Object.getPrototypeOf(src)
-  while (proto) {
-    const d = Object.getOwnPropertyDescriptor(proto, k)
-    if (d) return d
-    proto = Object.getPrototypeOf(proto)
-  }
-  return undefined
-}
-
-export function markChanged(x: qt.State) {
-  if (!x.modified) {
-    x.modified = true
-    if (x.parent) markChanged(x.parent)
-  }
-}
-
-export function prepareCopy(x: { base: any; copy: any }) {
-  if (!x.copy) x.copy = qu.shallowCopy(x.base)
-}
-
-interface ProducersFns {
-  produce: qt.Produce
-  produceWithPatches: qt.ProduceWithPatches
-}
-
-export class Immer implements ProducersFns {
+export class Immer implements qt.Immer {
   autoFreeze = true
 
   constructor(cfg?: { autoFreeze?: boolean }) {
     if (typeof cfg?.autoFreeze === "boolean")
       this.setAutoFreeze(cfg!.autoFreeze)
+  }
+
+  setAutoFreeze(x: boolean) {
+    this.autoFreeze = x
   }
 
   produce: qt.Produce = (base: any, recipe?: any, listener?: any) => {
@@ -452,10 +441,6 @@ export class Immer implements ProducersFns {
     const { scope: scope } = s
     usePatchesInScope(scope, listener)
     return processResult(undefined, scope)
-  }
-
-  setAutoFreeze(x: boolean) {
-    this.autoFreeze = x
   }
 
   applyPatches<T extends qt.Objectish>(x: T, ps: qt.Patch[]): T {
