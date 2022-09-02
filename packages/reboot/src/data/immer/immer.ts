@@ -173,36 +173,6 @@ function finalize(root: qt.Scope, x: any, path?: qt.PatchPath) {
   return s.copy
 }
 
-export function createProxyProxy<T extends qt.Objectish>(
-  base: T,
-  parent?: qt.State
-): qt.Drafted<T, qt.ProxyState> {
-  const isArray = Array.isArray(base)
-  const state: qt.ProxyState = {
-    assigned: {},
-    base,
-    copy: null,
-    draft: null as any,
-    finalized: false,
-    manual: false,
-    modified: false,
-    parent,
-    revoke: null as any,
-    scope: parent ? parent.scope : getCurrentScope()!,
-    type: isArray ? qt.ProxyType.Array : qt.ProxyType.Obj,
-  }
-  let target: T = state as any
-  let traps: ProxyHandler<object | Array<any>> = objTraps
-  if (isArray) {
-    target = [state] as any
-    traps = arrayTraps
-  }
-  const { revoke, proxy } = Proxy.revocable(target, traps)
-  state.draft = proxy as any
-  state.revoke = revoke
-  return proxy as any
-}
-
 function descFromProto(src: any, k: PropertyKey) {
   if (!(k in src)) return undefined
   let p = Object.getPrototypeOf(src)
@@ -347,13 +317,12 @@ export class Immer implements qt.Immer {
     if (typeof base === "function" && typeof recipe !== "function") {
       const defaultBase = recipe
       recipe = base
-      const self = this
       return function curriedProduce(
         this: any,
         base = defaultBase,
         ...args: any[]
       ) {
-        return self.produce(base, (draft: qt.Drafted) => recipe.call(this, draft, ...args)) // prettier-ignore
+        return this.produce(base, (draft: qt.Drafted) => recipe.call(this, draft, ...args)) // prettier-ignore
       }
     }
     if (typeof recipe !== "function") qu.die(6)
@@ -457,6 +426,36 @@ export class Immer implements qt.Immer {
     if (qu.isDraft(x)) return f(x, ps)
     return this.produce(x, (d: qt.Drafted) => f(d, ps))
   }
+}
+
+function createProxyProxy<T extends qt.Objectish>(
+  base: T,
+  parent?: qt.State
+): qt.Drafted<T, qt.ProxyState> {
+  const isArray = Array.isArray(base)
+  const state = {
+    assigned: {},
+    base,
+    copy: null,
+    draft: null as any,
+    finalized: false,
+    manual: false,
+    modified: false,
+    parent,
+    revoke: null as any,
+    scope: parent ? parent.scope : getCurrentScope()!,
+    type: isArray ? qt.ProxyType.Array : qt.ProxyType.Obj,
+  } as qt.ProxyState
+  let target: T = state as any
+  let traps: ProxyHandler<object | Array<any>> = objTraps
+  if (isArray) {
+    target = [state] as any
+    traps = arrayTraps
+  }
+  const { revoke, proxy } = Proxy.revocable(target, traps)
+  state.draft = proxy as any
+  state.revoke = revoke
+  return proxy as any
 }
 
 export function createProxy<T extends qt.Objectish>(

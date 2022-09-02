@@ -4,5 +4,5 @@
     "composite": true,
     "types": ["jest", "node"]
   },
-  "include": ["src/**/*.*", "test0/**/*.*"]
+  "include": ["src/**/*.*", "test/**/*.*"]
 }

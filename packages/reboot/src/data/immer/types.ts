@@ -198,13 +198,13 @@ export interface BaseState {
   finalized: boolean
   manual: boolean
   modified: boolean
-  parent?: State
+  parent?: State | undefined
   scope: Scope
 }
 
 interface ProxyBase extends BaseState {
   assigned: { [k: string]: boolean }
-  parent?: State
+  parent?: State | undefined
   revoke(): void
 }
 
