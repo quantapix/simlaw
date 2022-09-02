@@ -95,7 +95,7 @@ export function processResult(x: any, s: qt.Scope) {
       if (!s.parent) maybeFreeze(s, x)
     }
     if (s.patches) {
-      qu.getPlugin("Patches").replacementPatches(
+      qu.getPlugin("Patches").substitutePatches(
         d0[qt.DRAFT_STATE].base,
         x,
         s.patches,
@@ -403,7 +403,7 @@ export class Immer implements ProducersFns {
       if (listener) {
         const p: qt.Patch[] = []
         const ip: qt.Patch[] = []
-        qu.getPlugin("Patches").replacementPatches(base, y, p, ip)
+        qu.getPlugin("Patches").substitutePatches(base, y, p, ip)
         listener(p, ip)
       }
       return y

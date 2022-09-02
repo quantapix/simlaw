@@ -767,10 +767,10 @@ describe("arrays - NESTED splice should should result in remove op.", () => {
     [{ op: "add", path: ["a", "b", "c", 1], value: 2 }]
   )
 })
-describe("simple replacement", () => {
+describe("simple substitute", () => {
   runPatchTest({ x: 3 }, _d => 4, [{ op: "replace", path: [], value: 4 }])
 })
-describe("same value replacement - 1", () => {
+describe("same value substitute - 1", () => {
   runPatchTest(
     { x: { y: 3 } },
     d => {
@@ -780,7 +780,7 @@ describe("same value replacement - 1", () => {
     []
   )
 })
-describe("same value replacement - 2", () => {
+describe("same value substitute - 2", () => {
   runPatchTest(
     { x: { y: 3 } },
     d => {
@@ -791,7 +791,7 @@ describe("same value replacement - 2", () => {
     []
   )
 })
-describe("same value replacement - 3", () => {
+describe("same value substitute - 3", () => {
   runPatchTest(
     { x: 3 },
     d => {
@@ -800,7 +800,7 @@ describe("same value replacement - 3", () => {
     []
   )
 })
-describe("same value replacement - 4", () => {
+describe("same value substitute - 4", () => {
   runPatchTest(
     { x: 3 },
     d => {
@@ -810,7 +810,7 @@ describe("same value replacement - 4", () => {
     []
   )
 })
-describe("same value replacement - 5", () => {
+describe("same value substitute - 5", () => {
   runPatchTest(
     new Map([["x", 3]]),
     d => {
@@ -821,7 +821,7 @@ describe("same value replacement - 5", () => {
     []
   )
 })
-describe("same value replacement - 6", () => {
+describe("same value substitute - 6", () => {
   runPatchTest(
     new Set(["x", 3]),
     d => {
@@ -904,7 +904,7 @@ describe("change then delete property", () => {
     expect(res).toEqual({})
   })
 })
-test("replaying patches with interweaved replacements should work correctly", () => {
+test("replaying patches with interweaved substitutes should work correctly", () => {
   const patches = []
   const s0 = { x: 1 }
   const s1 = produce(

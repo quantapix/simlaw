@@ -20,7 +20,7 @@ export function isDraft(x: any): boolean {
 export function isDraftable(x: any): boolean {
   if (!x) return false
   return (
-    isPlainObject(x) ||
+    isPlain(x) ||
     Array.isArray(x) ||
     !!x[qt.DRAFTABLE] ||
     !!x.constructor[qt.DRAFTABLE] ||
@@ -29,9 +29,14 @@ export function isDraftable(x: any): boolean {
   )
 }
 
+export function isFrozen(x: any): boolean {
+  if (x == null || typeof x !== "object") return true
+  return Object.isFrozen(x)
+}
+
 const CTOR = Object.prototype.constructor.toString()
 
-export function isPlainObject(x: any): boolean {
+export function isPlain(x: any): boolean {
   if (!x || typeof x !== "object") return false
   const p = Object.getPrototypeOf(x)
   if (p === null) return true
@@ -48,6 +53,19 @@ export function original(x: qt.Drafted<any>): any {
 
 export function latest(x: qt.State): any {
   return x.copy || x.base
+}
+
+export function getType(x: any): qt.QType {
+  const s: undefined | qt.State = x[qt.DRAFT_STATE]
+  return s
+    ? (s.type as any)
+    : Array.isArray(x)
+    ? qt.QType.Array
+    : isMap(x)
+    ? qt.QType.Map
+    : isSet(x)
+    ? qt.QType.Set
+    : qt.QType.Obj
 }
 
 export const ownKeys: (x: qt.AnyObj) => PropertyKey[] =
@@ -71,19 +89,6 @@ export function each(x: any, iter: any, enumOnly = false) {
       if (!enumOnly || typeof k !== "symbol") iter(k, x[k], x)
     })
   } else x.forEach((entry: any, i: any) => iter(i, entry, x))
-}
-
-export function getType(x: any): qt.QType {
-  const s: undefined | qt.State = x[qt.DRAFT_STATE]
-  return s
-    ? (s.type as any)
-    : Array.isArray(x)
-    ? qt.QType.Array
-    : isMap(x)
-    ? qt.QType.Map
-    : isSet(x)
-    ? qt.QType.Set
-    : qt.QType.Obj
 }
 
 export function has(x: any, k: PropertyKey): boolean {
@@ -151,22 +156,17 @@ export function freeze<T>(x: any, deep = false): T {
   return x
 }
 
-export function isFrozen(x: any): boolean {
-  if (x == null || typeof x !== "object") return true
-  return Object.isFrozen(x)
-}
-
 const plugins: {
   Patches?: {
     generatePatches(
-      state: qt.State,
+      s: qt.State,
       path: qt.PatchPath,
       patches: qt.Patch[],
       inverses: qt.Patch[]
     ): void
-    replacementPatches(
+    substitutePatches(
       base: any,
-      replacement: any,
+      sub: any,
       ps: qt.Patch[],
       inverses: qt.Patch[]
     ): void
