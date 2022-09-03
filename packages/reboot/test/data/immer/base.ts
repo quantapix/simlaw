@@ -1,5 +1,4 @@
 import * as qi from "../../../src/data/immer/index.js"
-import deepFreeze from "deep-freeze"
 import lodash from "lodash"
 
 jest.setTimeout(1000)
@@ -103,7 +102,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
     })
     it("can get property descriptors", () => {
       const getDescriptor = Object.getOwnPropertyDescriptor
-      const base = deepFreeze([{ a: 1 }])
+      const base = qi.deepFreeze([{ a: 1 }])
       produce(base, (x: any) => {
         const y = x[0]
         const desc = {
@@ -225,24 +224,22 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         })
         expect("x" in y).toBeFalsy()
       })
-      if (!global.USES_BUILD) {
-        it("throws when a non-numeric property is added", () => {
-          expect(() => {
-            produce([], (x: any) => {
-              x.x = 3
-            })
-          }).toThrowErrorMatchingSnapshot()
-        })
-        it("throws when a non-numeric property is deleted", () => {
-          expect(() => {
-            const base: any = []
-            base.x = 7
-            produce(base, (x: any) => {
-              delete x.x
-            })
-          }).toThrowErrorMatchingSnapshot()
-        })
-      }
+      it("throws when a non-numeric property is added", () => {
+        expect(() => {
+          produce([], (x: any) => {
+            x.x = 3
+          })
+        }).toThrowErrorMatchingSnapshot()
+      })
+      it("throws when a non-numeric property is deleted", () => {
+        expect(() => {
+          const base: any = []
+          base.x = 7
+          produce(base, (x: any) => {
+            delete x.x
+          })
+        }).toThrowErrorMatchingSnapshot()
+      })
     })
     describe("map drafts", () => {
       it("supports key access", () => {
@@ -329,7 +326,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
           ["first", Symbol()],
           ["second", Symbol()],
         ])
-        const y = produce(base, (x: any) => {
+        produce(base, (x: any) => {
           expect([...x.keys()]).toEqual(["first", "second"])
           x.set("third", Symbol())
           expect([...x.keys()]).toEqual(["first", "second", "third"])
@@ -338,7 +335,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       it("supports forEach", () => {
         const key1 = { prop: "val1" }
         const key2 = { prop: "val2" }
-        const base = new Map([
+        const base = new Map<any, any>([
           ["first", { id: 1, a: 1 }],
           ["second", { id: 2, a: 1 }],
           [key1, { id: 3, a: 1 }],
@@ -355,7 +352,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
           x.get("second").a = 20
           x.get(key1).a = 30
           x.get(key2).a = 40
-          x.forEach(({ a }) => {
+          x.forEach(({ a }: { a: any }) => {
             sum2 += a
           })
           expect(sum2).toBe(100)
@@ -386,9 +383,8 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       })
       it("can assign by key", () => {
         const y: any = produce(base, (x: any) => {
-          const res = x.aMap.set("force", true)
-          if (!global.USES_BUILD)
-            expect(res).toBe(x.aMap[qi.DRAFT_STATE].draft_)
+          const y2 = x.aMap.set("force", true)
+          expect(y2).toBe(x.aMap[qi.DRAFT_STATE].draft_)
         })
         expect(y).not.toBe(base)
         expect(y.aMap).not.toBe(base.aMap)
@@ -689,9 +685,8 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       })
       it("can add new items", () => {
         const y: any = produce(base, (x: any) => {
-          const res = x.aSet.add("force")
-          if (!global.USES_BUILD)
-            expect(res).toBe(x.aSet[qi.DRAFT_STATE].draft_)
+          const y2 = x.aSet.add("force")
+          expect(y2).toBe(x.aSet[qi.DRAFT_STATE].draft_)
         })
         expect(y).not.toBe(base)
         expect(y.aSet).not.toBe(base.aSet)
@@ -800,28 +795,27 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         foo: true,
       })
     })
-    if (!global.USES_BUILD)
-      it("preserves non-enumerable properties", () => {
-        const base = {}
-        Object.defineProperty(base, "foo", {
-          value: { a: 1 },
-          enumerable: false,
-        })
-        Object.defineProperty(base, "bar", {
-          value: 1,
-          enumerable: false,
-        })
-        const y: any = produce(base, (x: any) => {
-          expect(x.foo).toBeTruthy()
-          expect(isEnumerable(x, "foo")).toBeFalsy()
-          x.bar++
-          expect(isEnumerable(x, "foo")).toBeFalsy()
-          x.foo.a++
-          expect(isEnumerable(x, "foo")).toBeFalsy()
-        })
-        expect(y.foo).toBeTruthy()
-        expect(isEnumerable(y, "foo")).toBeFalsy()
+    it("preserves non-enumerable properties", () => {
+      const base = {}
+      Object.defineProperty(base, "foo", {
+        value: { a: 1 },
+        enumerable: false,
       })
+      Object.defineProperty(base, "bar", {
+        value: 1,
+        enumerable: false,
+      })
+      const y: any = produce(base, (x: any) => {
+        expect(x.foo).toBeTruthy()
+        expect(isEnumerable(x, "foo")).toBeFalsy()
+        x.bar++
+        expect(isEnumerable(x, "foo")).toBeFalsy()
+        x.foo.a++
+        expect(isEnumerable(x, "foo")).toBeFalsy()
+      })
+      expect(y.foo).toBeTruthy()
+      expect(isEnumerable(y, "foo")).toBeFalsy()
+    })
     it("can work with own computed props", () => {
       const base = {
         x: 1,
@@ -1054,8 +1048,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       produce(base, (x: any) => {
         x.anArray[0] = 5
         x.anArray.unshift("test")
-        if (!global.USES_BUILD)
-          expect(enumerableOnly(x.anArray)).toEqual(["test", 5, 2, { c: 3 }, 1])
+        expect(enumOnly(x.anArray)).toEqual(["test", 5, 2, { c: 3 }, 1])
         x.stuffz = "coffee"
         expect(x.stuffz).toBe("coffee")
       })
@@ -1245,20 +1238,20 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
     })
     it("'this' should not be bound anymore - 1", () => {
       const base = { x: 3 }
-      produce(base, function () {
+      produce(base, function (this: any) {
         expect(this).toBe(undefined)
       })
     })
     it("'this' should not be bound anymore - 2", () => {
-      const y = produce(function () {
+      const y = produce(function (this: any) {
         expect(this).toBe(undefined)
       })
-      y()
+      y(undefined)
     })
     it("should be possible to use dynamic bound this", () => {
       const world = {
         counter: { count: 1 },
-        inc: produce(function (x) {
+        inc: produce(function (this: any, x) {
           expect(this).toBe(world)
           x.counter.count = this.counter.count + 1
         }),
@@ -1408,7 +1401,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         }).toThrowErrorMatchingSnapshot()
       })
       it("can return a frozen object", () => {
-        const res = deepFreeze([{ x: 3 }])
+        const res = qi.deepFreeze([{ x: 3 }])
         expect(produce({}, () => res)).toBe(res)
       })
       it("can return an object with two references to another object", () => {
@@ -1613,7 +1606,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       expect(produce(() => qi.Nothing)(3)).toBe(undefined)
     })
     describe("base state type", () => {
-      if (!global.USES_BUILD) testObjectTypes(produce)
+      testObjectTypes(produce)
       testLiteralTypes(produce)
     })
     afterEach(() => {
@@ -1625,7 +1618,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       const data = {
         anInstance: new Foo(),
         anArray: [3, 2, { c: 3 }, 1],
-        aMap: new Map([
+        aMap: new Map<string, any>([
           ["jedi", { name: "Luke", skill: 10 }],
           ["jediTotal", 42],
           ["force", "these aren't the droids you're looking for"],
@@ -1634,7 +1627,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         aProp: "hi",
         anObject: { nested: { yummie: true }, coffee: false },
       }
-      return autoFreeze ? deepFreeze(data) : data
+      return autoFreeze ? qi.deepFreeze(data) : data
     }
   })
   it(`works with spread #524 - ${name}`, () => {
@@ -1757,7 +1750,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
     const c = { c: 3 }
     const set1 = new Set([a, b])
     const set2 = new Set([c])
-    const map = new Map([
+    const map = new Map<string, any>([
       ["set1", set1],
       ["set2", set2],
     ])
@@ -1821,7 +1814,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
     })
   }
 }
-function testObjectTypes(produce) {
+function testObjectTypes(produce: any) {
   class Foo {
     foo: any
     constructor(x: any) {
@@ -2100,16 +2093,16 @@ function testLiteralTypes(produce: any) {
     })
   }
 }
-function enumerableOnly(x: any) {
+function enumOnly(x: any) {
   const copy = Array.isArray(x) ? x.slice() : Object.assign({}, x)
   qi.each(copy, (k, v) => {
     if (v && typeof v === "object") {
-      copy[k] = enumerableOnly(v)
+      copy[k] = enumOnly(v)
     }
   })
   return copy
 }
-function isEnumerable(base: any, k: PropertyKey) {
-  const y = Object.getOwnPropertyDescriptor(base, k)
+function isEnumerable(x: any, k: PropertyKey) {
+  const y = Object.getOwnPropertyDescriptor(x, k)
   return y && y.enumerable ? true : false
 }

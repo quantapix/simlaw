@@ -473,7 +473,7 @@ describe("freeze", () => {
 describe("manual", () => {
   beforeAll(() => {})
   it("should check arguments", () => {
-    expect(() => qi.createDraft(3)).toThrowErrorMatchingSnapshot()
+    expect(() => qi.createDraft(3 as any)).toThrowErrorMatchingSnapshot()
     const buf = Buffer.from([])
     expect(() => qi.createDraft(buf)).toThrowErrorMatchingSnapshot()
     expect(() => qi.finishDraft({})).toThrowErrorMatchingSnapshot()
@@ -549,12 +549,11 @@ describe("manual", () => {
     })
     expect(y).toEqual({ a: 1, b: 3, c: 4, d: 2 })
   })
-  !global.USES_BUILD &&
-    it("should not finish drafts from produce", () => {
-      qi.produce({ x: 1 }, x => {
-        expect(() => qi.finishDraft(x)).toThrowErrorMatchingSnapshot()
-      })
+  it("should not finish drafts from produce", () => {
+    qi.produce({ x: 1 }, x => {
+      expect(() => qi.finishDraft(x)).toThrowErrorMatchingSnapshot()
     })
+  })
   it("should not finish twice", () => {
     const d = qi.createDraft({ a: 1 })
     d.a++
@@ -667,8 +666,7 @@ describe("map set", () => {
     const base = createBaseState()
     const y = qi.produce(base, s => {
       const res = s.aMap.set("force", true)
-      if (!global.USES_BUILD)
-        expect(res).toBe((s.aMap as any)[qi.DRAFT_STATE].draft_)
+      expect(res).toBe((s.aMap as any)[qi.DRAFT_STATE].draft_)
     })
     expect(y).not.toBe(base)
     expect(y.aMap).not.toBe(base.aMap)

@@ -4,26 +4,20 @@ qi.enableAllPlugins()
 
 describe("readme example", () => {
   it("works", () => {
-    const baseState = [
-      {
-        todo: "Learn typescript",
-        done: true,
-      },
-      {
-        todo: "Try immer",
-        done: false,
-      },
+    const base = [
+      { todo: "Learn typescript", done: true },
+      { todo: "Try immer", done: false },
     ]
-    const y = qi.produce(baseState, x => {
-      x.push({ todo: "Tweet about it" })
-      x[1].done = true
+    const y = qi.produce(base, x => {
+      x.push({ todo: "Tweet about it", done: false })
+      x[1]!.done = true
     })
-    expect(baseState.length).toBe(2)
+    expect(base.length).toBe(2)
     expect(y.length).toBe(3)
-    expect(baseState[1].done).toBe(false)
-    expect(y[1].done).toBe(true)
-    expect(y[0]).toBe(baseState[0])
-    expect(y[1]).not.toBe(baseState[1])
+    expect(base[1]?.done).toBe(false)
+    expect(y[1]?.done).toBe(true)
+    expect(y[0]).toBe(base[0])
+    expect(y[1]).not.toBe(base[1])
   })
   it("patches", () => {
     let base = { name: "Micheal", age: 32 }
@@ -76,15 +70,15 @@ describe("readme example", () => {
         this.minutes = minutes
       }
       increment(hours: number, minutes = 0) {
-        return qi.produce(this, d => {
-          d.hours += hours
-          d.minutes += minutes
+        return qi.produce(this, x => {
+          x.hours += hours
+          x.minutes += minutes
         })
       }
       toString() {
-        return `${("" + this.hours).padStart(2, 0)}:${(
+        return `${("" + this.hours).padStart(2, "0")}:${(
           "" + this.minutes
-        ).padStart(2, 0)}`
+        ).padStart(2, "0")}`
       }
     }
     ;(Clock as any)[qi.immerable] = true
@@ -100,10 +94,10 @@ describe("readme example", () => {
     expect(diner.toString()).toBe("18:30")
   })
   test("produceWithPatches", () => {
-    const result = qi.produceWithPatches({ age: 33 }, x => {
+    const y = qi.produceWithPatches({ age: 33 }, x => {
       x.age++
     })
-    expect(result).toEqual([
+    expect(y).toEqual([
       { age: 34 },
       [{ op: "replace", path: ["age"], value: 34 }],
       [{ op: "replace", path: ["age"], value: 33 }],
@@ -113,11 +107,11 @@ describe("readme example", () => {
 test("Producers can update Maps", () => {
   qi.setAutoFreeze(true)
   const base = new Map()
-  const y = qi.produce(base, draft => {
-    draft.set("michel", { name: "Michel Weststrate", country: "NL" })
+  const y = qi.produce(base, x => {
+    x.set("michel", { name: "Michel Weststrate", country: "NL" })
   })
-  const y2 = qi.produce(y, draft => {
-    draft.get("michel").country = "UK"
+  const y2 = qi.produce(y, x => {
+    x.get("michel").country = "UK"
   })
   expect(y).not.toBe(base)
   expect(y2).not.toBe(y)
@@ -152,8 +146,8 @@ test("clock class", () => {
       return `${this.hour}:${this.minute}`
     }
     tick() {
-      return qi.produce(this, draft => {
-        draft.minute++
+      return qi.produce(this, x => {
+        x.minute++
       })
     }
   }

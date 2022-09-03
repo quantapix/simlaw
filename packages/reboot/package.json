@@ -19,13 +19,11 @@
     "react-transition-group": ""
   },
   "devDependencies": {
-    "@types/deep-freeze": "",
     "@types/enzyme": "",
     "@types/jest": "",
     "@types/lodash": "",
     "@types/react-transition-group": "",
     "@types/simulant": "",
-    "deep-freeze": "",
     "enzyme": "",
     "jest": "",
     "lodash": "",

@@ -840,8 +840,8 @@ test("replaying patches with interweaved substitutes should work correctly", () 
   const s0 = { x: 1 }
   const s1 = qi.produce(
     s0,
-    draft => {
-      draft.x = 2
+    x => {
+      x.x = 2
     },
     p => {
       patches.push(...p)
@@ -927,8 +927,8 @@ test("#559 patches works in a nested reducer with proxies", () => {
   const y = qi.produce(base, x => {
     x.sub = qi.produce(
       x.sub,
-      draft => {
-        draft.y.pop()
+      x2 => {
+        x2.y.pop()
       },
       (ps2, invs2) => {
         expect(qi.isDraft(invs2[0]?.value)).toBeFalsy()

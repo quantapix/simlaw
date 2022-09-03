@@ -367,9 +367,7 @@ it("shows error in production if called incorrectly", () => {
   expect(() => {
     qi.produce(null as any)
   }).toThrow(
-    (global as any).USES_BUILD
-      ? "[Immer] minified error nr: 6"
-      : "[Immer] The first or second argument to `produce` must be a function"
+    "[Immer] The first or second argument to `produce` must be a function"
   )
 })
 it("#749 types Immer", () => {
@@ -456,12 +454,12 @@ it("infers draft, #720 - 3", () => {
 it("infers curried", () => {
   type Todo = { title: string }
   {
-    const fn = qi.produce((x: Todo) => {
+    const y = qi.produce((x: Todo) => {
       const a: string = x.title
       a
     })
-    fn({ title: "test" })
-    // fn(3)
+    y({ title: "test" })
+    y(3 as any)
   }
   {
     const y = qi.produce((x: Todo) => {
@@ -470,7 +468,7 @@ it("infers curried", () => {
       return x
     })
     y({ title: "test" })
-    // fn(3)
+    y(3 as any)
   }
 })
 it("infers async curried", async () => {
@@ -481,7 +479,7 @@ it("infers async curried", async () => {
       a
     })
     const res = await y({ title: "test" })
-    // y(3)
+    y(3 as any)
     assert(res, _ as Todo)
   }
   {
@@ -491,7 +489,7 @@ it("infers async curried", async () => {
       return x
     })
     const res = await y({ title: "test" })
-    // y(3)
+    y(3 as any)
     assert(res, _ as Todo)
   }
 })

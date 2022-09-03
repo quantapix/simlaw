@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import * as qt from "./types.js"
 
 export function is(x: any, y: any): boolean {
@@ -153,6 +154,28 @@ export function freeze<T>(x: any, deep = false): T {
   if (getType(x) > 1) x.set = x.add = x.clear = x.delete = dontMutate as any
   Object.freeze(x)
   if (deep) each(x, (_, v) => freeze(v, true), true)
+  return x
+}
+
+export type DeepReadonly<T> = T extends (...xs: any) => any
+  ? T
+  : { readonly [P in keyof T]: DeepReadonly<T[P]> }
+
+export function deepFreeze<T>(x: T[]): ReadonlyArray<DeepReadonly<T>>
+export function deepFreeze<T extends Function>(x: T): T
+export function deepFreeze<T>(x: T): DeepReadonly<T>
+export function deepFreeze(x: any) {
+  Object.freeze(x)
+  Object.getOwnPropertyNames(x).forEach(k => {
+    if (
+      Object.hasOwnProperty.call(x, k) &&
+      x[k] !== null &&
+      (typeof x[k] === "object" || typeof x[k] === "function") &&
+      !Object.isFrozen(x[k])
+    ) {
+      deepFreeze(x[k])
+    }
+  })
   return x
 }
 
