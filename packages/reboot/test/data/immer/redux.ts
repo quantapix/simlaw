@@ -1,5 +1,5 @@
-import { assert, _ } from "spec.ts"
-import { produce, Draft } from "../../../src/data/immer/index.js"
+import { assert, _ } from "../../../src/data/spec.js"
+import * as qi from "../../../src/data/immer/index.js"
 import * as redux from "redux"
 
 {
@@ -14,7 +14,7 @@ import * as redux from "redux"
     counter: 0,
   }
   const reduceCounterProducer = (state: State = initialState, action: Action) =>
-    produce(state, draftState => {
+    qi.produce(state, draftState => {
       switch (action.type) {
         case "ADD_TO_COUNTER":
           draftState.counter += action.payload
@@ -24,7 +24,7 @@ import * as redux from "redux"
           break
       }
     })
-  const reduceCounterCurriedProducer = produce(
+  const reduceCounterCurriedProducer = qi.produce(
     (draftState: State, action: Action) => {
       switch (action.type) {
         case "ADD_TO_COUNTER":
@@ -76,7 +76,7 @@ import * as redux from "redux"
       state: State = initialState,
       action: Action
     ) =>
-      produce(state, draftState => {
+      qi.produce(state, draftState => {
         switch (action.type) {
           case "ADD_TO_COUNTER":
             draftState.counter += action.payload
@@ -86,8 +86,8 @@ import * as redux from "redux"
             break
         }
       })
-    const reduceCounterCurriedProducer = produce(
-      (draftState: Draft<State>, action: Action) => {
+    const reduceCounterCurriedProducer = qi.produce(
+      (draftState: qi.Draft<State>, action: Action) => {
         switch (action.type) {
           case "ADD_TO_COUNTER":
             draftState.counter += action.payload
@@ -135,7 +135,7 @@ it("works with inferred curried reducer", () => {
     count: 3,
   }
   const store = redux.createStore(
-    produce((state: State, action: Action) => {
+    qi.produce((state: State, action: Action) => {
       if (action.type === "inc") state.count += action.count
       state.count2
     }, defaultState)
@@ -162,7 +162,7 @@ it("works with inferred curried reducer - readonly", () => {
     count: 3,
   }
   const store = redux.createStore(
-    produce((state: Draft<State>, action: Action) => {
+    qi.produce((state: qi.Draft<State>, action: Action) => {
       if (action.type === "inc") state.count += action.count
       state.count2
     }, defaultState)
