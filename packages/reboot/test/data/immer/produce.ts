@@ -58,11 +58,10 @@ it("can update readonly state via standard api", () => {
   })
   assert(newState, _ as State)
 })
-// NOTE: only when the function type is inferred
 it("can infer state type from default state", () => {
   type State = { readonly a: number }
   type Recipe = (state?: State | undefined) => State
-  let foo = produce((_: any) => {}, _ as State)
+  const foo = produce((_: any) => {}, _ as State)
   assert(foo, _ as Recipe)
 })
 it("can infer state type from recipe function", () => {
@@ -70,7 +69,7 @@ it("can infer state type from recipe function", () => {
   type B = { readonly b: string }
   type State = A | B
   type Recipe = (state: State) => State
-  let foo = produce((draft: State) => {
+  const foo = produce((draft: State) => {
     assert(draft, _ as State)
     if (Math.random() > 0.5) return { a: "test" }
     else return { b: "boe" }
@@ -82,7 +81,7 @@ it("can infer state type from recipe function", () => {
 it("can infer state type from recipe function with arguments", () => {
   type State = { readonly a: string } | { readonly b: string }
   type Recipe = (state: State, x: number) => State
-  let foo = produce<State, [number]>((draft, x) => {
+  const foo = produce<State, [number]>((draft, x) => {
     assert(draft, _ as Draft<State>)
     assert(x, _ as number)
   })
@@ -91,13 +90,12 @@ it("can infer state type from recipe function with arguments", () => {
 it("can infer state type from recipe function with arguments and initial state", () => {
   type State = { readonly a: string } | { readonly b: string }
   type Recipe = (state: State | undefined, x: number) => State
-  let foo = produce((draft: Draft<State>, x: number) => {}, _ as State)
+  const foo = produce((draft: Draft<State>, x: number) => {}, _ as State)
   assert(foo, _ as Recipe)
 })
 it("cannot infer state type when the function type and default state are missing", () => {
   type Recipe = <S extends any>(state: S) => S
   const foo = produce((_: any) => {})
-  // @ts-expect-error
   assert(foo, _ as Recipe)
 })
 it("can update readonly state via curried api", () => {
@@ -146,38 +144,34 @@ it("can apply patches", () => {
 describe("curried producer", () => {
   it("supports rest parameters", () => {
     type State = { readonly a: 1 }
-    // No initial state:
     {
       type Recipe = (state: State, a: number, b: number) => State
-      let foo = produce((s: State, a: number, b: number) => {})
+      const foo = produce((s: State, a: number, b: number) => {})
       assert(foo, _ as Recipe)
       foo(_ as State, 1, 2)
     }
-    // Using argument parameters:
     {
       type Recipe = (state: Immutable<State>, ...rest: number[]) => Draft<State>
-      let woo = produce((state: Draft<State>, ...args: number[]) => {})
+      const woo = produce((state: Draft<State>, ...args: number[]) => {})
       assert(woo, _ as Recipe)
       woo(_ as State, 1, 2)
     }
-    // With initial state:
     {
       type Recipe = (state?: State | undefined, ...rest: number[]) => State
-      let bar = produce((state: Draft<State>, ...args: number[]) => {},
+      const bar = produce((state: Draft<State>, ...args: number[]) => {},
       _ as State)
       assert(bar, _ as Recipe)
       bar(_ as State, 1, 2)
       bar(_ as State)
       bar()
     }
-    // When args is a tuple:
     {
       type Recipe = (
         state: State | undefined,
         first: string,
         ...rest: number[]
       ) => State
-      let tup = produce(
+      const tup = produce(
         (state: Draft<State>, ...args: [string, ...number[]]) => {},
         _ as State
       )
@@ -187,15 +181,13 @@ describe("curried producer", () => {
     }
   })
   it("can be passed a readonly array", () => {
-    // No initial state:
     {
-      let foo = produce((state: string[]) => {})
+      const foo = produce((state: string[]) => {})
       assert(foo, _ as (state: readonly string[]) => string[])
       foo([] as ReadonlyArray<string>)
     }
-    // With initial state:
     {
-      let bar = produce(() => {}, [] as ReadonlyArray<string>)
+      const bar = produce(() => {}, [] as ReadonlyArray<string>)
       assert(
         bar,
         _ as (state?: readonly string[] | undefined) => readonly string[]
@@ -207,34 +199,32 @@ describe("curried producer", () => {
   })
 })
 it("works with return type of: number", () => {
-  let base = { a: 0 } as { a: number }
+  const base = { a: 0 } as { a: number }
   {
     if (Math.random() === 100) {
-      // @ts-expect-error, this return accidentally a number, this is probably a dev error!
-      let result = produce(base, draft => draft.a++)
+      const result = produce(base, draft => draft.a++)
     }
   }
   {
-    let result = produce(base, draft => void draft.a++)
+    const result = produce(base, draft => void draft.a++)
     assert(result, _ as { a: number })
   }
 })
 it("can return an object type that is identical to the base type", () => {
-  let base = { a: 0 } as { a: number }
-  let result = produce(base, draft => {
+  const base = { a: 0 } as { a: number }
+  const result = produce(base, draft => {
     return draft.a < 0 ? { a: 0 } : undefined
   })
   assert(result, _ as { a: number })
 })
 it("can NOT return an object type that is _not_ assignable to the base type", () => {
-  let base = { a: 0 } as { a: number }
-  // @ts-expect-error
-  let result = produce(base, draft => {
+  const base = { a: 0 } as { a: number }
+  const result = produce(base, draft => {
     return draft.a < 0 ? { a: true } : undefined
   })
 })
 it("does not enforce immutability at the type level", () => {
-  let result = produce([] as any[], draft => {
+  const result = produce([] as any[], draft => {
     draft.push(1)
   })
   assert(result, _ as any[])
@@ -242,50 +232,45 @@ it("does not enforce immutability at the type level", () => {
 it("can produce an undefined value", () => {
   type State = { readonly a: number } | undefined
   const base = { a: 0 } as State
-  // Return only nothing.
-  let result = produce(base, _ => NOTHING)
+  const result = produce(base, _ => NOTHING)
   assert(result, _ as State)
-  // Return maybe nothing.
-  let result2 = produce(base, draft => {
+  const result2 = produce(base, draft => {
     if (draft?.a ?? 0 > 0) return NOTHING
   })
   assert(result2, _ as State)
 })
 it("can return the draft itself", () => {
-  let base = _ as { readonly a: number }
-  let result = produce(base, draft => draft)
+  const base = _ as { readonly a: number }
+  const result = produce(base, draft => draft)
   assert(result, _ as { readonly a: number })
 })
 it("can return a promise", () => {
   type Base = { readonly a: number }
-  let base = { a: 0 } as Base
-  // Return a promise only.
-  let res1 = produce(base, draft => {
+  const base = { a: 0 } as Base
+  const res1 = produce(base, draft => {
     return Promise.resolve(draft)
   })
   assert(res1, _ as Promise<Base>)
-  // Return a promise or undefined.
-  let res2 = produce(base, draft => {
+  const res2 = produce(base, draft => {
     return Promise.resolve()
   })
   assert(res2, _ as Promise<Base>)
 })
 it("works with `void` hack", () => {
-  let base = { a: 0 } as { readonly a: number }
-  let copy = produce(base, s => void s.a++)
+  const base = { a: 0 } as { readonly a: number }
+  const copy = produce(base, s => void s.a++)
   assert(copy, base)
 })
 it("works with generic parameters", () => {
-  let insert = <T>(array: readonly T[], index: number, elem: T) => {
-    // Need explicit cast on draft as T[] is wider than readonly T[]
+  const insert = <T>(array: readonly T[], index: number, elem: T) => {
     return produce(array, (draft: T[]) => {
       draft.push(elem)
       draft.splice(index, 0, elem)
       draft.concat([elem])
     })
   }
-  let val: { readonly a: ReadonlyArray<number> } = { a: [] } as any
-  let arr: ReadonlyArray<typeof val> = [] as any
+  const val: { readonly a: ReadonlyArray<number> } = { a: [] } as any
+  const arr: ReadonlyArray<typeof val> = [] as any
   insert(arr, 0, val)
 })
 it("can work with non-readonly base types", () => {
@@ -314,13 +299,10 @@ it("can work with non-readonly base types", () => {
       done: true,
     })
   }
-  // base case for with-initial-state
   const newState4 = produce(reducer, state)(state)
   assert(newState4, _ as State)
-  // no argument case, in that case, immutable version recipe first arg will be inferred
   const newState5 = produce(reducer, state)()
   assert(newState5, _ as State)
-  // we can force the return type of the reducer by casting the initial state
   const newState3 = produce(reducer, state as State)()
   assert(newState3, _ as State)
 })
@@ -349,7 +331,7 @@ it("can work with readonly base types", () => {
     })
   })
   assert(newState, _ as State)
-  assert(newState, _ as Immutable<State>) // cause that is the same!
+  assert(newState, _ as Immutable<State>)
   const reducer = (draft: Draft<State>) => {
     draft.price += 5
     draft.todos.push({
@@ -359,19 +341,15 @@ it("can work with readonly base types", () => {
   }
   const newState2: State = produce(reducer)(state)
   assert(newState2, _ as State)
-  // base case for with-initial-state
   const newState4 = produce(reducer, state)(state)
   assert(newState4, _ as State)
-  // no argument case, in that case, immutable version recipe first arg will be inferred
   const newState5 = produce(reducer, state)()
   assert(newState5, _ as State)
-  // we can force the return type of the reducer by casting initial argument
   const newState3 = produce(reducer, state as State)()
   assert(newState3, _ as State)
 })
 it("works with generic array", () => {
   const append = <T>(queue: T[], item: T) =>
-    // T[] is needed here v. Too bad.
     produce(queue, (queueDraft: T[]) => {
       queueDraft.push(item)
     })
@@ -420,7 +398,6 @@ it("works with ReadonlyMap and ReadonlySet", () => {
 })
 it("shows error in production if called incorrectly", () => {
   expect(() => {
-    debugger
     produce(null as any)
   }).toThrow(
     (global as any).USES_BUILD
@@ -435,29 +412,22 @@ it("#749 types Immer", () => {
   const immer = new Immer()
   const z = immer.produce(t, d => {
     d.x++
-    // @ts-expect-error
     d.y = 0
   })
   expect(z.x).toBe(4)
-  // @ts-expect-error
   expect(z.z).toBeUndefined()
 })
 it("infers draft, #720", () => {
-  function nextNumberCalculator(fn: (base: number) => number) {
-    // noop
-  }
+  function nextNumberCalculator(fn: (base: number) => number) {}
   const res2 = nextNumberCalculator(
     produce(draft => {
-      // @ts-expect-error
-      let x: string = draft
+      const x: string = draft
       return draft + 1
     })
   )
   const res = nextNumberCalculator(
     produce(draft => {
-      // @ts-expect-error
-      let x: string = draft
-      // return draft + 1;
+      const x: string = draft
       return undefined
     })
   )
@@ -473,7 +443,6 @@ it("infers draft, #720 - 2", () => {
   const [n, setN] = useState({ x: 3 })
   setN(
     produce(draft => {
-      // @ts-expect-error
       draft.y = 4
       draft.x = 5
       return draft
@@ -481,10 +450,8 @@ it("infers draft, #720 - 2", () => {
   )
   setN(
     produce(draft => {
-      // @ts-expect-error
       draft.y = 4
       draft.x = 5
-      // return draft + 1;
       return undefined
     })
   )
@@ -505,7 +472,6 @@ it("infers draft, #720 - 3", () => {
   const [n, setN] = useState({ x: 3 } as { readonly x: number })
   setN(
     produce(draft => {
-      // @ts-expect-error
       draft.y = 4
       draft.x = 5
       return draft
@@ -513,10 +479,8 @@ it("infers draft, #720 - 3", () => {
   )
   setN(
     produce(draft => {
-      // @ts-expect-error
       draft.y = 4
       draft.x = 5
-      // return draft + 1;
       return undefined
     })
   )
@@ -530,19 +494,17 @@ it("infers curried", () => {
   type Todo = { title: string }
   {
     const fn = produce((draft: Todo) => {
-      let x: string = draft.title
+      const x: string = draft.title
     })
     fn({ title: "test" })
-    // @ts-expect-error
     fn(3)
   }
   {
     const fn = produce((draft: Todo) => {
-      let x: string = draft.title
+      const x: string = draft.title
       return draft
     })
     fn({ title: "test" })
-    // @ts-expect-error
     fn(3)
   }
 })
@@ -550,20 +512,18 @@ it("infers async curried", async () => {
   type Todo = { title: string }
   {
     const fn = produce(async (draft: Todo) => {
-      let x: string = draft.title
+      const x: string = draft.title
     })
     const res = await fn({ title: "test" })
-    // @ts-expect-error
     fn(3)
     assert(res, _ as Todo)
   }
   {
     const fn = produce(async (draft: Todo) => {
-      let x: string = draft.title
+      const x: string = draft.title
       return draft
     })
     const res = await fn({ title: "test" })
-    // @ts-expect-error
     fn(3)
     assert(res, _ as Todo)
   }
@@ -573,95 +533,80 @@ it("infers async curried", async () => {
   type ROState = Immutable<State>
   const base: any = { count: 0 }
   {
-    // basic
     const res = produce(base as State, draft => {
       draft.count++
     })
     assert(res, _ as State)
   }
   {
-    // basic
     const res = produce<State>(base, draft => {
       draft.count++
     })
     assert(res, _ as State)
   }
   {
-    // basic
     const res = produce(base as ROState, draft => {
       draft.count++
     })
     assert(res, _ as ROState)
   }
   {
-    // curried
     const f = produce((state: State) => {
       state.count++
     })
     assert(f, _ as (state: Immutable<State>) => State)
   }
   {
-    // curried
     const f = produce((state: Draft<ROState>) => {
       state.count++
     })
     assert(f, _ as (state: ROState) => State)
   }
   {
-    // curried
     const f: (value: State) => State = produce(state => {
       state.count++
     })
   }
   {
-    // curried
     const f: (value: ROState) => ROState = produce(state => {
       state.count++
     })
   }
   {
-    // curried initial
     const f = produce(state => {
       state.count++
     }, _ as State)
     assert(f, _ as (state?: State) => State)
   }
   {
-    // curried initial
     const f = produce(state => {
       state.count++
     }, _ as ROState)
     assert(f, _ as (state?: ROState) => ROState)
   }
   {
-    // curried
     const f: (value: State) => State = produce(state => {
       state.count++
     }, base as ROState)
   }
   {
-    // curried
     const f: (value: ROState) => ROState = produce(state => {
       state.count++
     }, base as ROState)
   }
   {
-    // nothing allowed
     const res = produce(base as State | undefined, draft => {
       return NOTHING
     })
     assert(res, _ as State | undefined)
   }
   {
-    // as any
     const res = produce(base as State, draft => {
       return NOTHING as any
     })
     assert(res, _ as State)
   }
   {
-    // nothing not allowed
-    // @ts-expect-error
     produce(base as State, draft => {
       return NOTHING
     })
@@ -679,11 +624,10 @@ it("infers async curried", async () => {
     assert(n, _ as State)
   }
   {
-    // explictly use generic
     const f = produce<ROState>(draft => {
       draft.count++
     })
     const n = f(base as ROState)
-    assert(n, _ as ROState) // yay!
+    assert(n, _ as ROState)
   }
 }

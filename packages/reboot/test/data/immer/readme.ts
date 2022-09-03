@@ -1,12 +1,7 @@
-import {
-  produce,
-  applyPatches,
-  DRAFTABLE,
-  produceWithPatches,
-  enableAllPlugins,
-  setAutoFreeze,
-} from "../../../src/data/immer/index.js"
-enableAllPlugins()
+import * as qi from "../../../src/data/immer/index.js"
+
+qi.enableAllPlugins()
+
 describe("readme example", () => {
   it("works", () => {
     const baseState = [
@@ -19,86 +14,69 @@ describe("readme example", () => {
         done: false,
       },
     ]
-    const nextState = produce(baseState, draft => {
-      draft.push({ todo: "Tweet about it" })
-      draft[1].done = true
+    const y = qi.produce(baseState, x => {
+      x.push({ todo: "Tweet about it" })
+      x[1].done = true
     })
     expect(baseState.length).toBe(2)
-    expect(nextState.length).toBe(3)
+    expect(y.length).toBe(3)
     expect(baseState[1].done).toBe(false)
-    expect(nextState[1].done).toBe(true)
-    expect(nextState[0]).toBe(baseState[0])
-    expect(nextState[1]).not.toBe(baseState[1])
+    expect(y[1].done).toBe(true)
+    expect(y[0]).toBe(baseState[0])
+    expect(y[1]).not.toBe(baseState[1])
   })
   it("patches", () => {
-    let state = {
-      name: "Micheal",
-      age: 32,
-    }
-    let fork = state
-    let changes = []
-    let inverseChanges = []
-    fork = produce(
+    let base = { name: "Micheal", age: 32 }
+    let fork = base
+    const ps: any = []
+    const invs: any = []
+    fork = qi.produce(
       fork,
-      draft => {
-        draft.age = 33
+      x => {
+        x.age = 33
       },
-      (patches, inverses) => {
-        changes.push(...patches)
-        inverseChanges.push(...inverses)
+      (ps2, invs2) => {
+        ps.push(...ps2)
+        invs.push(...invs2)
       }
     )
-    state = produce(state, draft => {
-      draft.name = "Michel"
+    base = qi.produce(base, x => {
+      x.name = "Michel"
     })
-    state = applyPatches(state, changes)
-    expect(state).toEqual({
-      name: "Michel",
-      age: 33,
-    })
-    state = applyPatches(state, inverseChanges)
-    expect(state).toEqual({
-      name: "Michel",
-      age: 32,
-    })
+    base = qi.applyPatches(base, ps)
+    expect(base).toEqual({ name: "Michel", age: 33 })
+    base = qi.applyPatches(base, invs)
+    expect(base).toEqual({ name: "Michel", age: 32 })
   })
   it("can update set", () => {
-    const state = {
-      title: "hello",
-      tokenSet: new Set(),
-    }
-    const nextState = produce(state, draft => {
-      draft.title = draft.title.toUpperCase()
-      draft.tokenSet.add("c1342")
+    const base = { title: "hello", tokenSet: new Set() }
+    const y = qi.produce(base, x => {
+      x.title = x.title.toUpperCase()
+      x.tokenSet.add("c1342")
     })
-    expect(state).toEqual({ title: "hello", tokenSet: new Set() })
-    expect(nextState).toEqual({
-      title: "HELLO",
-      tokenSet: new Set(["c1342"]),
-    })
+    expect(base).toEqual({ title: "hello", tokenSet: new Set() })
+    expect(y).toEqual({ title: "HELLO", tokenSet: new Set(["c1342"]) })
   })
   it("can deep update map", () => {
-    const state = {
-      users: new Map([["michel", { name: "miche", age: 27 }]]),
-    }
-    const nextState = produce(state, draft => {
-      draft.users.get("michel").name = "michel"
+    const base = { users: new Map([["michel", { name: "miche", age: 27 }]]) }
+    const y = qi.produce(base, x => {
+      x.users.get("michel")!.name = "michel"
     })
-    expect(state).toEqual({
+    expect(base).toEqual({
       users: new Map([["michel", { name: "miche", age: 27 }]]),
     })
-    expect(nextState).toEqual({
+    expect(y).toEqual({
       users: new Map([["michel", { name: "michel", age: 27 }]]),
     })
   })
   it("supports DRAFTABLE", () => {
     class Clock {
-      constructor(hours = 0, minutes = 0) {
+      constructor(public hours = 0, public minutes = 0) {
         this.hours = hours
         this.minutes = minutes
       }
-      increment(hours, minutes = 0) {
-        return produce(this, d => {
+      increment(hours: number, minutes = 0) {
+        return qi.produce(this, d => {
           d.hours += hours
           d.minutes += minutes
         })
@@ -109,7 +87,7 @@ describe("readme example", () => {
         ).padStart(2, 0)}`
       }
     }
-    Clock[DRAFTABLE] = true
+    ;(Clock as any)[qi.DRAFTABLE] = true
     const midnight = new Clock()
     const lunch = midnight.increment(12, 30)
     expect(midnight).not.toBe(lunch)
@@ -122,53 +100,29 @@ describe("readme example", () => {
     expect(diner.toString()).toBe("18:30")
   })
   test("produceWithPatches", () => {
-    const result = produceWithPatches(
-      {
-        age: 33,
-      },
-      draft => {
-        draft.age++
-      }
-    )
+    const result = qi.produceWithPatches({ age: 33 }, x => {
+      x.age++
+    })
     expect(result).toEqual([
-      {
-        age: 34,
-      },
-      [
-        {
-          op: "replace",
-          path: ["age"],
-          value: 34,
-        },
-      ],
-      [
-        {
-          op: "replace",
-          path: ["age"],
-          value: 33,
-        },
-      ],
+      { age: 34 },
+      [{ op: "replace", path: ["age"], value: 34 }],
+      [{ op: "replace", path: ["age"], value: 33 }],
     ])
   })
 })
 test("Producers can update Maps", () => {
-  setAutoFreeze(true)
-  const usersById_v1 = new Map()
-  const usersById_v2 = produce(usersById_v1, draft => {
-    // Modifying a map results in a new map
+  qi.setAutoFreeze(true)
+  const base = new Map()
+  const y = qi.produce(base, draft => {
     draft.set("michel", { name: "Michel Weststrate", country: "NL" })
   })
-  const usersById_v3 = produce(usersById_v2, draft => {
-    // Making a change deep inside a map, results in a new map as well!
+  const y2 = qi.produce(y, draft => {
     draft.get("michel").country = "UK"
-    debugger
   })
-  // We got a new map each time!
-  expect(usersById_v2).not.toBe(usersById_v1)
-  expect(usersById_v3).not.toBe(usersById_v2)
-  // With different content obviously
-  expect(usersById_v1).toMatchInlineSnapshot(`Map {}`)
-  expect(usersById_v2).toMatchInlineSnapshot(`
+  expect(y).not.toBe(base)
+  expect(y2).not.toBe(y)
+  expect(base).toMatchInlineSnapshot(`Map {}`)
+  expect(y).toMatchInlineSnapshot(`
 		Map {
 		  "michel" => Object {
 		    "country": "NL",
@@ -176,7 +130,7 @@ test("Producers can update Maps", () => {
 		  },
 		}
 	`)
-  expect(usersById_v3).toMatchInlineSnapshot(`
+  expect(y2).toMatchInlineSnapshot(`
 		Map {
 		  "michel" => Object {
 		    "country": "UK",
@@ -184,15 +138,13 @@ test("Producers can update Maps", () => {
 		  },
 		}
 	`)
-  // The old one was never modified
-  expect(usersById_v1.size).toBe(0)
-  // And trying to change a Map outside a producers is going to: NO!
-  expect(() => usersById_v3.clear()).toThrowErrorMatchingSnapshot()
+  expect(base.size).toBe(0)
+  expect(() => y2.clear()).toThrowErrorMatchingSnapshot()
 })
 test("clock class", () => {
   class Clock {
-    [DRAFTABLE] = true
-    constructor(hour, minute) {
+    [qi.DRAFTABLE] = true
+    constructor(public hour: number, public minute: number) {
       this.hour = hour
       this.minute = minute
     }
@@ -200,14 +152,14 @@ test("clock class", () => {
       return `${this.hour}:${this.minute}`
     }
     tick() {
-      return produce(this, draft => {
+      return qi.produce(this, draft => {
         draft.minute++
       })
     }
   }
   const clock1 = new Clock(12, 10)
   const clock2 = clock1.tick()
-  expect(clock1.time).toEqual("12:10") // 12:10
-  expect(clock2.time).toEqual("12:11") // 12:11
+  expect(clock1.time).toEqual("12:10")
+  expect(clock2.time).toEqual("12:11")
   expect(clock2).toBeInstanceOf(Clock)
 })

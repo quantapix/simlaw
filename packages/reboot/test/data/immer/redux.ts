@@ -13,7 +13,6 @@ import * as redux from "redux"
   const initialState: State = {
     counter: 0,
   }
-  /// =============== Actions
   const reduceCounterProducer = (state: State = initialState, action: Action) =>
     produce(state, draftState => {
       switch (action.type) {
@@ -38,16 +37,12 @@ import * as redux from "redux"
     },
     initialState
   )
-  /// =============== Reducers
   const reduce = redux.combineReducers({
     counterReducer: reduceCounterProducer,
   })
   const curredReduce = redux.combineReducers({
     counterReducer: reduceCounterCurriedProducer,
   })
-  // reducing the current state to get the next state!
-  // console.log(reduce(initialState, addToCounter(12));
-  // ================ store
   const store = redux.createStore(reduce)
   const curriedStore = redux.createStore(curredReduce)
   it("#470 works with Redux combine reducers", () => {
@@ -65,7 +60,6 @@ import * as redux from "redux"
     )
   })
 }
-// Readonly Redux
 {
   {
     interface State {
@@ -78,7 +72,6 @@ import * as redux from "redux"
     const initialState: State = {
       counter: 0,
     }
-    /// =============== Actions
     const reduceCounterProducer = (
       state: State = initialState,
       action: Action
@@ -106,16 +99,12 @@ import * as redux from "redux"
       },
       initialState
     )
-    /// =============== Reducers
     const reduce = redux.combineReducers({
       counterReducer: reduceCounterProducer,
     })
     const curredReduce = redux.combineReducers({
       counterReducer: reduceCounterCurriedProducer,
     })
-    // reducing the current state to get the next state!
-    // console.log(reduce(initialState, addToCounter(12));
-    // ================ store
     const store = redux.createStore(reduce)
     const curriedStore = redux.createStore(curredReduce)
     it("#470 works with Redux combine readonly reducers", () => {
@@ -148,7 +137,6 @@ it("works with inferred curried reducer", () => {
   const store = redux.createStore(
     produce((state: State, action: Action) => {
       if (action.type === "inc") state.count += action.count
-      // @ts-expect-error
       state.count2
     }, defaultState)
   )
@@ -158,7 +146,6 @@ it("works with inferred curried reducer", () => {
     count: 2,
   })
   store.dispatch({
-    // @ts-expect-error
     type: "inc2",
     count: 2,
   })
@@ -177,7 +164,6 @@ it("works with inferred curried reducer - readonly", () => {
   const store = redux.createStore(
     produce((state: Draft<State>, action: Action) => {
       if (action.type === "inc") state.count += action.count
-      // @ts-expect-error
       state.count2
     }, defaultState)
   )
@@ -187,7 +173,6 @@ it("works with inferred curried reducer - readonly", () => {
     count: 2,
   })
   store.dispatch({
-    // @ts-expect-error
     type: "inc2",
     count: 2,
   })
