@@ -1,211 +1,181 @@
-"use strict"
-import {
-  Immer,
-  nothing,
-  original,
-  isDraft,
-  DRAFTABLE,
-  enableAllPlugins,
-} from "../src/immer"
-enableAllPlugins()
-runBaseTest("proxy (no freeze)", true, false)
-runBaseTest("proxy (autofreeze)", true, true)
-function runBaseTest(name, useProxies, autoFreeze, useListener) {
+import * as qi from "../../../src/data/immer/index.js"
+
+qi.enableAllPlugins()
+
+runBaseTest("proxy (no freeze)", false)
+runBaseTest("proxy (autofreeze)", true)
+
+function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
   const listener = useListener ? function () {} : undefined
-  const { produce, produceWithPatches } = createPatchedImmer({
-    useProxies,
+  const { produce } = createImmer({
     autoFreeze,
   })
-  // When `useListener` is true, append a function to the arguments of every
-  // uncurried `produce` call in every test. This makes tests easier to read.
-  function createPatchedImmer(options) {
-    const immer = new Immer(options)
-    const { produce } = immer
-    immer.produce = function (...args) {
-      return typeof args[1] === "function" && args.length < 3
-        ? produce(...args, listener)
-        : produce(...args)
+  function createImmer(x: any) {
+    const i = new qi.Immer(x)
+    const { produce } = i
+    i.produce = function (...xs: any[]) {
+      return typeof xs[1] === "function" && xs.length < 3
+        ? produce(...xs, listener)
+        : produce(...xs)
     }
-    return immer
+    return i
   }
   describe(`regressions ${name}`, () => {
     test("#604 freeze inside class", () => {
       class Thing {
-        [DRAFTABLE] = true
+        [qi.DRAFTABLE] = true
+        data: { x: any }
         constructor({ x }) {
-          this._data = { x }
+          this.data = { x }
         }
         get x() {
-          return this._data.x
+          return this.data.x
         }
         set x(x) {
-          this._data.x = x
+          this.data.x = x
         }
       }
       let i = 1
       let item = new Thing({ x: i })
-      let item0 = item
+      const item0 = item
       const bump = () => {
-        item = produce(item, draft => {
-          // uncomment this to make things work
-          //draft._data
-          draft.x = ++i
+        item = produce(item, x => {
+          x.x = ++i
         })
       }
       bump()
       bump()
       expect(i).toBe(3)
-      expect(item._data).toEqual({
-        x: 3,
-      })
-      expect(item0._data).toEqual({
-        x: 1,
-      })
+      expect(item.data).toEqual({ x: 3 })
+      expect(item0.data).toEqual({ x: 1 })
     })
     test("#646 setting undefined field to undefined should not create new result", () => {
-      const foo = {
-        bar: undefined,
-      }
-      const foo2 = produce(foo, draft => {
-        draft.bar = undefined
+      const base = { bar: undefined }
+      const y = produce(base, x => {
+        x.bar = undefined
       })
-      expect(foo2).toBe(foo)
+      expect(y).toBe(base)
     })
     test("#646 - 2 setting undefined field to undefined should not create new result", () => {
-      const foo = {}
-      const foo2 = produce(foo, draft => {
-        draft.bar = undefined
+      const base = {}
+      const y = produce(base, (x: any) => {
+        x.bar = undefined
       })
-      expect(foo2).not.toBe(foo)
-      expect(foo).toEqual({})
-      expect(foo2).toEqual({ bar: undefined })
+      expect(y).not.toBe(base)
+      expect(base).toEqual({})
+      expect(y).toEqual({ bar: undefined })
     })
     test("#638 - out of range assignments", () => {
-      const state = []
-      const state1 = produce(state, draft => {
-        draft[2] = "v2"
+      const base: any = []
+      const y = produce(base, (x: any) => {
+        x[2] = "v2"
       })
-      expect(state1.length).toBe(3)
-      expect(state1).toEqual([undefined, undefined, "v2"])
-      const state2 = produce(state1, draft => {
-        draft[1] = "v1"
+      expect(y.length).toBe(3)
+      expect(y).toEqual([undefined, undefined, "v2"])
+      const y2 = produce(y, (x: any) => {
+        x[1] = "v1"
       })
-      expect(state2.length).toBe(3)
-      expect(state2).toEqual([undefined, "v1", "v2"])
+      expect(y2.length).toBe(3)
+      expect(y2).toEqual([undefined, "v1", "v2"])
     })
     test("#628 set removal hangs", () => {
-      let arr = []
-      let set = new Set([arr])
-      let result = produce(set, draft1 => {
-        produce(draft1, draft2 => {
-          draft2.delete(arr)
+      const arr: any = []
+      const base = new Set([arr])
+      const y = produce(base, x => {
+        produce(x, x2 => {
+          x2.delete(arr)
         })
       })
-      expect(result).toEqual(new Set([[]])) // N.B. this outcome doesn't seem not correct, but then again,
-      // double produce without return looks iffy as well, so not sure what the expected outcome in the
-      // original report was
+      expect(y).toEqual(new Set([[]]))
     })
     test("#628 - 2 set removal hangs", () => {
-      let arr = []
-      let set = new Set([arr])
-      let result = produce(set, draft2 => {
-        draft2.delete(arr)
+      const arr: any = []
+      const base = new Set([arr])
+      const y = produce(base, x => {
+        x.delete(arr)
       })
-      expect(result).toEqual(new Set())
+      expect(y).toEqual(new Set())
     })
     test("#650 - changes with overridden arr.slice() fail", () => {
-      const data = {
-        foo: [
-          {
-            isActive: false,
-          },
-        ],
-      }
-      // That's roughly what seamless-immutable does
-      data.foo.slice = (...args) =>
-        Object.freeze(Array.prototype.slice.call(data.foo, ...args))
-      const newData = produce(data, draft => {
-        draft.foo[0].isActive = true
+      const data = { foo: [{ isActive: false }] }
+      //data.foo.slice = (...xs) =>
+      //  Object.freeze(Array.prototype.slice.call(data.foo, ...xs))
+      const y = produce(data, (x: any) => {
+        x.foo[0].isActive = true
       })
-      expect(newData.foo[0].isActive).toBe(true)
+      expect(y.foo[0]?.isActive).toBe(true)
     })
     test("#659 no reconciliation after read", () => {
       const bar = {}
-      const foo = { bar }
-      const next = produce(foo, draft => {
-        draft.bar
-        draft.bar = bar
+      const base = { bar }
+      const y = produce(base, x => {
+        x.bar
+        x.bar = bar
       })
-      expect(next).toBe(foo)
+      expect(y).toBe(base)
     })
     test("#659 no reconciliation after read - 2", () => {
       const bar = {}
-      const foo = { bar }
-      const next = produce(foo, draft => {
-        const subDraft = draft.bar
-        draft.bar = bar
-        subDraft.x = 3 // this subDraft is not part of the end result, so ignore
+      const base = { bar }
+      const y = produce(base, x => {
+        const y2: any = x.bar
+        x.bar = bar
+        y2.x = 3
       })
-      expect(next).toEqual(foo)
+      expect(y).toEqual(base)
     })
     test("#659 no reconciliation after read - 3", () => {
       const bar = {}
-      const foo = { bar }
-      const next = produce(foo, draft => {
-        const subDraft = draft.bar
-        subDraft.x = 3 // this subDraft is not part of the end result, so ignore
-        draft.bar = bar
+      const base = { bar }
+      const y = produce(base, x => {
+        const y2: any = x.bar
+        y2.x = 3
+        x.bar = bar
       })
-      expect(next).toEqual(foo)
+      expect(y).toEqual(base)
     })
-    // Disabled: these are optimizations that would be nice if they
-    // could be detected, but don't change the correctness of the result
     test.skip("#659 no reconciliation after read - 4", () => {
       const bar = {}
-      const foo = { bar }
-      const next = produce(foo, draft => {
-        const subDraft = draft.bar
-        draft.bar = bar
-        subDraft.x = 3 // this subDraft is not part of the end result, so ignore
+      const base = { bar }
+      const y = produce(base, x => {
+        const y2: any = x.bar
+        x.bar = bar
+        y2.x = 3
       })
-      expect(next).toBe(foo)
+      expect(y).toBe(base)
     })
-    // Disabled: these are optimizations that would be nice if they
-    // could be detected, but don't change the correctness of the result
     test.skip("#659 no reconciliation after read - 5", () => {
       const bar = {}
-      const foo = { bar }
-      const next = produce(foo, draft => {
-        const subDraft = draft.bar
-        subDraft.x = 3 // this subDraft is not part of the end result, so ignore
-        draft.bar = bar
+      const base = { bar }
+      const y = produce(base, x => {
+        const y2: any = x.bar
+        y2.x = 3
+        x.bar = bar
       })
-      expect(next).toBe(foo)
+      expect(y).toBe(base)
     })
     test("#659 no reconciliation after read - 6", () => {
       const bar = {}
-      const foo = { bar }
-      const next = produce(foo, draft => {
-        const subDraft = draft.bar
-        subDraft.x = 3 // this subDraft is not part of the end result, so ignore
-        draft.bar = bar
-        draft.bar = subDraft
+      const base = { bar }
+      const y = produce(base, x => {
+        const y2: any = x.bar
+        y2.x = 3
+        x.bar = bar
+        x.bar = y2
       })
-      expect(next).not.toBe(foo)
-      expect(next).toEqual({
+      expect(y).not.toBe(base)
+      expect(y).toEqual({
         bar: { x: 3 },
       })
     })
     test("#807 new undefined member not stored", () => {
-      const state = {}
-      const newState = produce(state, draft => {
-        draft.baz = undefined
+      const base = {}
+      const y = produce(base, (x: any) => {
+        x.baz = undefined
       })
-      expect(state).not.toBe(newState)
-      expect(Object.hasOwnProperty.call(newState, "baz")).toBe(true)
-      expect(newState).toEqual({
-        baz: undefined,
-      })
+      expect(base).not.toBe(y)
+      expect(Object.hasOwnProperty.call(y, "baz")).toBe(true)
+      expect(y).toEqual({ baz: undefined })
     })
   })
 }

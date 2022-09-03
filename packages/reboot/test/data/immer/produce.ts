@@ -1,15 +1,17 @@
 import { assert, _ } from "spec.ts"
-import produce, {
-  produce as produce2,
+import {
+  produce,
   applyPatches,
   Patch,
-  nothing,
+  NOTHING,
   Draft,
   Immutable,
   enableAllPlugins,
   Immer,
-} from "../src/immer"
+} from "../../../src/data/immer/index.js"
+
 enableAllPlugins()
+
 interface State {
   readonly num: number
   readonly foo?: string
@@ -114,7 +116,7 @@ it("can update readonly state via curried api", () => {
   expect(newState).toEqual(expectedState)
 })
 it("can update use the non-default export", () => {
-  const newState = produce2((draft: Draft<State>) => {
+  const newState = produce((draft: Draft<State>) => {
     draft.num++
     draft.foo = "bar"
     draft.bar = "foo"
@@ -241,11 +243,11 @@ it("can produce an undefined value", () => {
   type State = { readonly a: number } | undefined
   const base = { a: 0 } as State
   // Return only nothing.
-  let result = produce(base, _ => nothing)
+  let result = produce(base, _ => NOTHING)
   assert(result, _ as State)
   // Return maybe nothing.
   let result2 = produce(base, draft => {
-    if (draft?.a ?? 0 > 0) return nothing
+    if (draft?.a ?? 0 > 0) return NOTHING
   })
   assert(result2, _ as State)
 })
@@ -646,14 +648,14 @@ it("infers async curried", async () => {
   {
     // nothing allowed
     const res = produce(base as State | undefined, draft => {
-      return nothing
+      return NOTHING
     })
     assert(res, _ as State | undefined)
   }
   {
     // as any
     const res = produce(base as State, draft => {
-      return nothing as any
+      return NOTHING as any
     })
     assert(res, _ as State)
   }
@@ -661,7 +663,7 @@ it("infers async curried", async () => {
     // nothing not allowed
     // @ts-expect-error
     produce(base as State, draft => {
-      return nothing
+      return NOTHING
     })
   }
   {

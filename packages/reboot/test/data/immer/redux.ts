@@ -1,8 +1,7 @@
 import { assert, _ } from "spec.ts"
-import produce, { Draft, enableES5, Immutable } from "../src/immer"
+import { produce, Draft } from "../../../src/data/immer/index.js"
 import * as redux from "redux"
-enableES5()
-// Mutable Redux
+
 {
   interface State {
     counter: number
