@@ -777,9 +777,9 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         })
       })
     })
-    it("supports `DRAFTABLE` symbol on constructor", () => {
+    it("supports `immerable` symbol on constructor", () => {
       class One {}
-      ;(One as any)[qi.DRAFTABLE] = true
+      ;(One as any)[qi.immerable] = true
       const base = new One()
       const y: any = produce(base, (x: any) => {
         expect(x).not.toBe(base)
@@ -853,7 +853,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
     })
     it("can work with class with computed props", () => {
       class State {
-        [qi.DRAFTABLE] = true
+        [qi.immerable] = true
         x = 1
         set y(v) {
           this.x = v
@@ -886,7 +886,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
           this.bar = val
         },
       })
-      proto[qi.DRAFTABLE] = true
+      proto[qi.immerable] = true
       const base = Object.create(proto)
       produce(base, (x: any) => {
         expect(x.bar).toBeUndefined()
@@ -1604,13 +1604,13 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       expect(produce(base, () => null)).toBe(null)
       expect(produce(base, () => undefined)).toBe(3)
       expect(produce(base, () => {})).toBe(3)
-      expect(produce(base, () => qi.Unknown)).toBe(undefined)
+      expect(produce(base, () => qi.Nothing)).toBe(undefined)
       expect(produce({}, () => undefined)).toEqual({})
-      expect(produce({}, () => qi.Unknown)).toBe(undefined)
-      expect(produce(3, () => qi.Unknown)).toBe(undefined)
+      expect(produce({}, () => qi.Nothing)).toBe(undefined)
+      expect(produce(3, () => qi.Nothing)).toBe(undefined)
       expect(produce(() => undefined)({})).toEqual({})
-      expect(produce(() => qi.Unknown)({})).toBe(undefined)
-      expect(produce(() => qi.Unknown)(3)).toBe(undefined)
+      expect(produce(() => qi.Nothing)({})).toBe(undefined)
+      expect(produce(() => qi.Nothing)(3)).toBe(undefined)
     })
     describe("base state type", () => {
       if (!global.USES_BUILD) testObjectTypes(produce)
@@ -1825,7 +1825,7 @@ function testObjectTypes(produce) {
   class Foo {
     foo: any
     constructor(x: any) {
-      this.foo = x(this as any)[qi.DRAFTABLE] = true
+      this.foo = x(this as any)[qi.immerable] = true
     }
   }
   const vs: any = {
@@ -1872,7 +1872,7 @@ function testObjectTypes(produce) {
   }
   describe("class with getters", () => {
     class State {
-      [qi.DRAFTABLE] = true
+      [qi.immerable] = true
       _bar = { baz: 1 }
       foo: any
       get bar() {
@@ -1896,7 +1896,7 @@ function testObjectTypes(produce) {
   })
   describe("super class with getters", () => {
     class Base {
-      [qi.DRAFTABLE] = true
+      [qi.immerable] = true
       _bar = { baz: 1 }
       foo: any
       get bar() {
@@ -1921,7 +1921,7 @@ function testObjectTypes(produce) {
   })
   describe("class with setters", () => {
     class State {
-      [qi.DRAFTABLE] = true
+      [qi.immerable] = true
       _bar = 0
       get bar() {
         return this._bar
@@ -1945,7 +1945,7 @@ function testObjectTypes(produce) {
   describe("setter only", () => {
     let setterCalled = 0
     class State {
-      [qi.DRAFTABLE] = true
+      [qi.immerable] = true
       x = 0
       set y(v: any) {
         setterCalled++
@@ -1965,7 +1965,7 @@ function testObjectTypes(produce) {
   describe("getter only", () => {
     let getterCalled = 0
     class State {
-      [qi.DRAFTABLE] = true
+      [qi.immerable] = true
       x = 0
       get y() {
         getterCalled++
@@ -2028,7 +2028,7 @@ function testObjectTypes(produce) {
   describe("#620", () => {
     const customSymbol = Symbol("customSymbol")
     class TestClass {
-      [qi.DRAFTABLE] = true;
+      [qi.immerable] = true;
       [customSymbol] = 1
     }
     const base = new TestClass()
@@ -2037,7 +2037,7 @@ function testObjectTypes(produce) {
       x[customSymbol] = 2
     })
     expect(y1).toEqual({
-      [qi.DRAFTABLE]: true,
+      [qi.immerable]: true,
       [customSymbol]: 2,
     })
     const y2 = produce(y1, (x: any) => {
@@ -2045,7 +2045,7 @@ function testObjectTypes(produce) {
       x[customSymbol] = 3
     })
     expect(y2).toEqual({
-      [qi.DRAFTABLE]: true,
+      [qi.immerable]: true,
       [customSymbol]: 3,
     })
   })

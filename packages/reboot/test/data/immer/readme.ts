@@ -69,7 +69,7 @@ describe("readme example", () => {
       users: new Map([["michel", { name: "michel", age: 27 }]]),
     })
   })
-  it("supports DRAFTABLE", () => {
+  it("supports immerable", () => {
     class Clock {
       constructor(public hours = 0, public minutes = 0) {
         this.hours = hours
@@ -87,7 +87,7 @@ describe("readme example", () => {
         ).padStart(2, 0)}`
       }
     }
-    ;(Clock as any)[qi.DRAFTABLE] = true
+    ;(Clock as any)[qi.immerable] = true
     const midnight = new Clock()
     const lunch = midnight.increment(12, 30)
     expect(midnight).not.toBe(lunch)
@@ -143,7 +143,7 @@ test("Producers can update Maps", () => {
 })
 test("clock class", () => {
   class Clock {
-    [qi.DRAFTABLE] = true
+    [qi.immerable] = true
     constructor(public hour: number, public minute: number) {
       this.hour = hour
       this.minute = minute

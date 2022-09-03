@@ -22,8 +22,8 @@ export function isDraftable(x: any): boolean {
   return (
     isPlain(x) ||
     Array.isArray(x) ||
-    !!x[qt.DRAFTABLE] ||
-    !!x.constructor[qt.DRAFTABLE] ||
+    !!x[qt.immerable] ||
+    !!x.constructor[qt.immerable] ||
     isMap(x) ||
     isSet(x)
   )

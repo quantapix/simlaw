@@ -375,7 +375,7 @@ export function enablePatches() {
     ps: qt.Patch[],
     inverses: qt.Patch[]
   ): void {
-    const value = sub === qt.NOTHING ? undefined : sub
+    const value = sub === qt.nothing ? undefined : sub
     ps.push({ op: REPLACE, path: [], value })
     inverses.push({ op: REPLACE, path: [], value: base })
   }
@@ -454,7 +454,7 @@ export function enablePatches() {
     if (qu.isSet(x)) return new Set(Array.from(x).map(deepClone))
     const y = Object.create(Object.getPrototypeOf(x))
     for (const k in x) y[k] = deepClone(x[k])
-    if (qu.has(x, qt.DRAFTABLE)) y[qt.DRAFTABLE] = x[qt.DRAFTABLE]
+    if (qu.has(x, qt.immerable)) y[qt.immerable] = x[qt.immerable]
     return y
   }
 

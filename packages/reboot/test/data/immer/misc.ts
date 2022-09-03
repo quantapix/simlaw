@@ -232,7 +232,7 @@ describe("current", () => {
   })
   it("handles simple class", () => {
     class Counter {
-      [qi.DRAFTABLE] = true
+      [qi.immerable] = true
       current = 0
       inc() {
         this.current++
@@ -937,7 +937,7 @@ describe("map issues", () => {
 
 describe("xxx", () => {
   class Stock {
-    [qi.DRAFTABLE] = true
+    [qi.immerable] = true
     constructor(public price: number) {}
     pushPrice(x: number) {
       this.price = x
@@ -954,17 +954,17 @@ describe("xxx", () => {
     ] as qi.Patch[]
     const base = { stock: new Stock(100) }
     expect(base.stock.price).toEqual(100)
-    expect(base.stock[qi.DRAFTABLE]).toBeTruthy()
+    expect(base.stock[qi.immerable]).toBeTruthy()
     const y: State = qi.applyPatches(base, errorProducingPatch)
     expect(base.stock.price).toEqual(100)
     expect(y.stock.price).toEqual(200)
-    expect(y.stock[qi.DRAFTABLE]).toBeTruthy()
+    expect(y.stock[qi.immerable]).toBeTruthy()
     const y2 = qi.produce(y, x => {
       x.stock.pushPrice(300)
     })
     expect(base.stock.price).toEqual(100)
     expect(y2.stock.price).toEqual(300)
-    expect(y2.stock[qi.DRAFTABLE]).toBeTruthy()
+    expect(y2.stock[qi.immerable]).toBeTruthy()
     expect(y.stock.price).toEqual(200)
   })
 })

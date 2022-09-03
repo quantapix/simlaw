@@ -944,7 +944,7 @@ test("#559 patches works in a nested reducer with proxies", () => {
 describe("#588", () => {
   const ref = { value: { num: 53 } }
   class Base {
-    [qi.DRAFTABLE] = true
+    [qi.immerable] = true
     get nested() {
       return ref.value
     }

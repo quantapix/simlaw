@@ -1,9 +1,9 @@
-export class Unknown {
+export class Nothing {
   static readonly _: unique symbol
 }
 
-export const NOTHING: unique symbol = Symbol.for("immer-nothing")
-export const DRAFTABLE: unique symbol = Symbol.for("immer-draftable")
+export const nothing: Nothing = Symbol.for("immer-nothing")
+export const immerable: unique symbol = Symbol.for("immer-draftable")
 export const DRAFT_STATE: unique symbol = Symbol.for("immer-state")
 
 export const enum QType {
@@ -71,13 +71,13 @@ export interface Patch {
 
 export type Listener = (xs: Patch[], inverses: Patch[]) => void
 
-type FromUnknown<T> = T extends Unknown ? undefined : T
+type FromNothing<T> = T extends Nothing ? undefined : T
 
 export type Produced<X, Y> = Y extends void
   ? X
   : Y extends Promise<infer T>
-  ? Promise<T extends void ? X : FromUnknown<T>>
-  : FromUnknown<Y>
+  ? Promise<T extends void ? X : FromNothing<T>>
+  : FromNothing<Y>
 
 type PatchesTuple<T> = readonly [T, Patch[], Patch[]]
 
@@ -85,7 +85,7 @@ type RecipeReturn<T> =
   | T
   | void
   | undefined
-  | (T extends undefined ? Unknown : never)
+  | (T extends undefined ? Nothing : never)
 
 type ReturnOrPromise<T> = RecipeReturn<T> | Promise<RecipeReturn<T>>
 
@@ -109,28 +109,30 @@ type StateFromCurried<T> = T extends (x: infer X, ...xs: any[]) => any
   ? X
   : never
 
-type CurriedFromRecipe<T, UsePatches extends boolean> = T extends (
+type CurriedFromRecipe<R, UsePatches extends boolean> = R extends (
   x: infer X,
   ...xs: infer Xs
 ) => any
-  ? ReturnType<T> extends ReturnOrPromise<X>
-    ? (x: Immutable<X>, ...xs: Xs) => PromisifyReturn<X, T, UsePatches>
+  ? ReturnType<R> extends ReturnOrPromise<X>
+    ? (x: Immutable<X>, ...xs: Xs) => PromisifyReturn<X, R, UsePatches>
     : never
   : never
 
-type CurriedFromState<X, T, UsePatches extends boolean> = T extends (
-  x: Draft<X>,
+type CurriedFromState<S, R, UsePatches extends boolean> = R extends (
+  s: Draft<S>,
   ...xs: infer Xs
-) => ReturnOrPromise<X>
-  ? (x?: X | undefined, ...xs: Xs) => PromisifyReturn<X, T, UsePatches>
+) => ReturnOrPromise<S>
+  ? (s?: S | undefined, ...xs: Xs) => PromisifyReturn<S, R, UsePatches>
   : never
 
 export interface Produce {
-  <T>(recipe: RecipeFromCurried<T>, state0?: StateFromCurried<T>): T
+  <R extends AnyFunc>(recipe: R): CurriedFromRecipe<R, false>
 
-  <F extends AnyFunc>(recipe: F): CurriedFromRecipe<F, false>
+  <S, R extends AnyFunc>(recipe: R, s0: S): CurriedFromState<S, R, false>
 
   <X>(recipe: (x: Draft<X>, x0: X) => RecipeReturn<X>): (x?: X) => X
+
+  <T>(recipe: RecipeFromCurried<T>, s0?: StateFromCurried<T>): T
 
   <X, Xs extends any[]>(
     recipe: (x: Draft<X>, ...xs: Xs) => RecipeReturn<X>,
@@ -143,8 +145,6 @@ export interface Produce {
     x: X,
     ...xs: Xs
   ) => X
-
-  <X, F extends AnyFunc>(recipe: F, x0: X): CurriedFromState<X, F, false>
 
   <X, D = Draft<X>>(
     x: X,
@@ -160,9 +160,9 @@ export interface Produce {
 }
 
 export interface ProduceWithPatches {
-  <F extends AnyFunc>(recipe: F): CurriedFromRecipe<F, true>
+  <R extends AnyFunc>(recipe: R): CurriedFromRecipe<R, true>
 
-  <X, F extends AnyFunc>(recipe: F, x0: X): CurriedFromState<X, F, true>
+  <S, R extends AnyFunc>(recipe: R, s0: S): CurriedFromState<S, R, true>
 
   <X, D = Draft<X>>(
     x: X,

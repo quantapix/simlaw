@@ -7,25 +7,23 @@ runBaseTest("proxy (autofreeze)", true)
 
 function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
   const listener = useListener ? function () {} : undefined
-  const { produce } = createImmer({
-    autoFreeze,
-  })
   function createImmer(x: any) {
     const i = new qi.Immer(x)
     const { produce } = i
-    i.produce = function (...xs: any[]) {
-      return typeof xs[1] === "function" && xs.length < 3
+    i.produce = (...xs: any[]) => {
+      return xs.length == 2 && typeof xs[1] === "function"
         ? produce(...xs, listener)
         : produce(...xs)
     }
     return i
   }
+  const { produce } = createImmer({ autoFreeze })
   describe(`regressions ${name}`, () => {
     test("#604 freeze inside class", () => {
       class Thing {
-        [qi.DRAFTABLE] = true
+        [qi.immerable] = true
         data: { x: any }
-        constructor({ x }) {
+        constructor({ x }: { x: any }) {
           this.data = { x }
         }
         get x() {

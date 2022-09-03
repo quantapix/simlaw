@@ -105,7 +105,7 @@ export function processResult(x: any, s: qt.Scope) {
   } else x = finalize(s, d0, [])
   revokeScope(s)
   if (s.patches) s.listener!(s.patches, s.inverses!)
-  return x !== qt.NOTHING ? x : undefined
+  return x !== qt.nothing ? x : undefined
 }
 
 function maybeFreeze(s: qt.Scope, x: any, deep = false) {
@@ -320,9 +320,11 @@ export class Immer implements qt.Immer {
       return function curriedProduce(
         this: any,
         base = defaultBase,
-        ...args: any[]
+        ...xs: any[]
       ) {
-        return this.produce(base, (draft: qt.Drafted) => recipe.call(this, draft, ...args)) // prettier-ignore
+        return this.produce(base, (x: qt.Drafted) =>
+          recipe.call(this, x, ...xs)
+        )
       }
     }
     if (typeof recipe !== "function") qu.die(6)
@@ -356,7 +358,7 @@ export class Immer implements qt.Immer {
     } else if (!base || typeof base !== "object") {
       y = recipe(base)
       if (y === undefined) y = base
-      if (y === qt.NOTHING) y = undefined
+      if (y === qt.nothing) y = undefined
       if (this.autoFreeze) qu.freeze(y, true)
       if (listener) {
         const p: qt.Patch[] = []

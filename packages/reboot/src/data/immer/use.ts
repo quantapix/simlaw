@@ -10,7 +10,7 @@ export type Hook<T> = [T, Updater<T>]
 export type Reducer<T = any, A = any> = (
   x: qt.Draft<T>,
   action: A
-) => void | (T extends undefined ? typeof qt.Unknown : T)
+) => void | (T extends undefined ? typeof qt.Nothing : T)
 
 export function useImmer<T = any>(x: T | (() => T)): Hook<T>
 export function useImmer(x: any) {
