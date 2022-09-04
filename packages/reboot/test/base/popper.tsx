@@ -1,16 +1,16 @@
 import { mount } from "enzyme"
-import { usePopper } from "../../src/base/popper.jsx"
+import { usePopper } from "../../src/base/popper.js"
 
 describe("usePopper", () => {
   function renderHook(f: any, ps?: any) {
-    const result: { current?: any; mount?: any; update?: any } = {}
+    const y: { current?: any; mount?: any; update?: any } = {}
     function Wrapper(xs: any) {
-      result.current = f(xs)
+      y.current = f(xs)
       return null
     }
-    result.mount = mount(<Wrapper {...ps} />)
-    result.update = (xs: any) => result.mount.setProps(xs)
-    return result
+    y.mount = mount(<Wrapper {...ps} />)
+    y.update = (xs: any) => y.mount.setProps(xs)
+    return y
   }
   const elems: { reference?: any; mount?: any; popper?: any } = {}
   beforeEach(() => {

@@ -19,7 +19,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
   }
   const { produce } = createImmer({ autoFreeze })
   describe(`regressions ${name}`, () => {
-    test("#604 freeze inside class", () => {
+    it("#604 freeze inside class", () => {
       class Thing {
         [qi.immerable] = true
         data: { x: any }
@@ -47,14 +47,14 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       expect(item.data).toEqual({ x: 3 })
       expect(item0.data).toEqual({ x: 1 })
     })
-    test("#646 setting undefined field to undefined should not create new result", () => {
+    it("#646 setting undefined field to undefined should not create new result", () => {
       const base = { bar: undefined }
       const y = produce(base, x => {
         x.bar = undefined
       })
       expect(y).toBe(base)
     })
-    test("#646 - 2 setting undefined field to undefined should not create new result", () => {
+    it("#646 - 2 setting undefined field to undefined should not create new result", () => {
       const base = {}
       const y = produce(base, (x: any) => {
         x.bar = undefined
@@ -63,7 +63,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       expect(base).toEqual({})
       expect(y).toEqual({ bar: undefined })
     })
-    test("#638 - out of range assignments", () => {
+    it("#638 - out of range assignments", () => {
       const base: any = []
       const y = produce(base, (x: any) => {
         x[2] = "v2"
@@ -76,7 +76,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       expect(y2.length).toBe(3)
       expect(y2).toEqual([undefined, "v1", "v2"])
     })
-    test("#628 set removal hangs", () => {
+    it("#628 set removal hangs", () => {
       const arr: any = []
       const base = new Set([arr])
       const y = produce(base, x => {
@@ -86,7 +86,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       })
       expect(y).toEqual(new Set([[]]))
     })
-    test("#628 - 2 set removal hangs", () => {
+    it("#628 - 2 set removal hangs", () => {
       const arr: any = []
       const base = new Set([arr])
       const y = produce(base, x => {
@@ -94,7 +94,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       })
       expect(y).toEqual(new Set())
     })
-    test("#650 - changes with overridden arr.slice() fail", () => {
+    it("#650 - changes with overridden arr.slice() fail", () => {
       const data = { foo: [{ isActive: false }] }
       //data.foo.slice = (...xs) =>
       //  Object.freeze(Array.prototype.slice.call(data.foo, ...xs))
@@ -103,7 +103,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       })
       expect(y.foo[0]?.isActive).toBe(true)
     })
-    test("#659 no reconciliation after read", () => {
+    it("#659 no reconciliation after read", () => {
       const bar = {}
       const base = { bar }
       const y = produce(base, x => {
@@ -112,7 +112,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       })
       expect(y).toBe(base)
     })
-    test("#659 no reconciliation after read - 2", () => {
+    it("#659 no reconciliation after read - 2", () => {
       const bar = {}
       const base = { bar }
       const y = produce(base, x => {
@@ -122,7 +122,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       })
       expect(y).toEqual(base)
     })
-    test("#659 no reconciliation after read - 3", () => {
+    it("#659 no reconciliation after read - 3", () => {
       const bar = {}
       const base = { bar }
       const y = produce(base, x => {
@@ -152,7 +152,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       })
       expect(y).toBe(base)
     })
-    test("#659 no reconciliation after read - 6", () => {
+    it("#659 no reconciliation after read - 6", () => {
       const bar = {}
       const base = { bar }
       const y = produce(base, x => {
@@ -166,7 +166,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         bar: { x: 3 },
       })
     })
-    test("#807 new undefined member not stored", () => {
+    it("#807 new undefined member not stored", () => {
       const base = {}
       const y = produce(base, (x: any) => {
         x.baz = undefined

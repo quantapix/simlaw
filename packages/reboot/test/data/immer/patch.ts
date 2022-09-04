@@ -14,17 +14,17 @@ function runPatchTest(x: any, recipe: any, ps: any, invs?: any, res?: any) {
       invs2 = inv
     })
     if (res !== undefined)
-      test("produced the correct result", () => {
+      it("produced the correct result", () => {
         expect(y).toEqual(res)
       })
-    test("produces the correct patches", () => {
+    it("produces the correct patches", () => {
       expect(ps2).toEqual(ps)
       if (invs) expect(invs2).toEqual(invs)
     })
-    test("patches are replayable", () => {
+    it("patches are replayable", () => {
       expect(qi.applyPatches(x, ps2)).toEqual(y)
     })
-    test("patches can be reversed", () => {
+    it("patches can be reversed", () => {
       expect(qi.applyPatches(y, invs2)).toEqual(x)
     })
     return y
@@ -624,7 +624,7 @@ describe("arrays - delete", () => {
   )
 })
 describe("arrays - append", () => {
-  test("appends to array when last part of path is '-'", () => {
+  it("appends to array when last part of path is '-'", () => {
     const base = { list: [1, 2, 3] }
     const patch = { op: "add", value: 4, path: ["list", "-"] }
     expect(qi.applyPatches(base, [patch as any])).toEqual({
@@ -831,11 +831,11 @@ describe("change then delete property", () => {
     },
     [{ op: "remove", path: ["x"] }]
   )
-  test("valid result", () => {
+  it("valid result", () => {
     expect(res).toEqual({})
   })
 })
-test("replaying patches with interweaved substitutes should work correctly", () => {
+it("replaying patches with interweaved substitutes should work correctly", () => {
   const patches: any = []
   const s0 = { x: 1 }
   const s1 = qi.produce(
@@ -899,11 +899,11 @@ describe("#468", () => {
     const y2 = qi.applyPatches(base, patches)
     expect(y2).toEqual(y)
   }
-  test("proxy", () => {
+  it("proxy", () => {
     run()
   })
 })
-test("#521", () => {
+it("#521", () => {
   const base = new Map()
   const [y, patches] = qi.produceWithPatches(base, x => {
     x.set("hello", new Set(["world"]))
@@ -917,7 +917,7 @@ test("#521", () => {
     new Map([["hello", new Set(["world", "immer"])]])
   )
 })
-test("#559 patches works in a nested reducer with proxies", () => {
+it("#559 patches works in a nested reducer with proxies", () => {
   const base = {
     x: 1,
     sub: { y: [{ a: 0 }, { a: 1 }] },
@@ -962,7 +962,7 @@ describe("#588", () => {
     [{ op: "add", path: ["num"], value: 42 }]
   )
 })
-test("#676 patching Date objects", () => {
+it("#676 patching Date objects", () => {
   class Test {
     test: boolean
     constructor() {
@@ -985,7 +985,7 @@ test("#676 patching Date objects", () => {
   expect(y2.date.toJSON()).toMatchInlineSnapshot(`"2020-11-10T08:08:08.003Z"`)
   expect(y2.date).toEqual(new Date("2020-11-10T08:08:08.003Z"))
 })
-test("do not allow __proto__ polution - 738", () => {
+it("do not allow __proto__ polution - 738", () => {
   const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
@@ -999,7 +999,7 @@ test("do not allow __proto__ polution - 738", () => {
   )
   expect(obj.polluted).toBe(undefined)
 })
-test("do not allow __proto__ polution using arrays - 738", () => {
+it("do not allow __proto__ polution using arrays - 738", () => {
   const obj: any = {}
   const ar: any = []
   expect(obj.polluted).toBe(undefined)
@@ -1017,7 +1017,7 @@ test("do not allow __proto__ polution using arrays - 738", () => {
   expect(obj.polluted).toBe(undefined)
   expect(ar.polluted).toBe(undefined)
 })
-test("do not allow prototype polution - 738", () => {
+it("do not allow prototype polution - 738", () => {
   const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
@@ -1031,7 +1031,7 @@ test("do not allow prototype polution - 738", () => {
   )
   expect(obj.polluted).toBe(undefined)
 })
-test("do not allow constructor polution - 738", () => {
+it("do not allow constructor polution - 738", () => {
   const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   const t = {}
@@ -1039,7 +1039,7 @@ test("do not allow constructor polution - 738", () => {
   expect(typeof t.constructor).toBe("function")
   expect((Object as any).polluted).toBe(undefined)
 })
-test("do not allow constructor.prototype polution - 738", () => {
+it("do not allow constructor.prototype polution - 738", () => {
   const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
@@ -1057,7 +1057,7 @@ test("do not allow constructor.prototype polution - 738", () => {
   )
   expect((Object as any).polluted).toBe(undefined)
 })
-test("maps can store __proto__, prototype and constructor props", () => {
+it("maps can store __proto__, prototype and constructor props", () => {
   const obj: any = {}
   const base = new Map()
   base.set("__proto__", {})
@@ -1073,7 +1073,7 @@ test("maps can store __proto__, prototype and constructor props", () => {
   expect(y.get("prototype").polluted).toBe("yes")
   expect(obj.polluted).toBe(undefined)
 })
-test("CVE-2020-28477 (https://snyk.io/vuln/SNYK-JS-IMMER-1019369) follow up", () => {
+it("CVE-2020-28477 (https://snyk.io/vuln/SNYK-JS-IMMER-1019369) follow up", () => {
   const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
@@ -1087,7 +1087,7 @@ test("CVE-2020-28477 (https://snyk.io/vuln/SNYK-JS-IMMER-1019369) follow up", ()
   )
   expect(obj.polluted).toBe(undefined)
 })
-test("#648 assigning object to itself should not change patches", () => {
+it("#648 assigning object to itself should not change patches", () => {
   const base = {
     obj: { value: 200 },
   }
@@ -1096,12 +1096,12 @@ test("#648 assigning object to itself should not change patches", () => {
   })
   expect(patches).toEqual([{ op: "replace", path: ["obj", "value"], value: 1 }])
 })
-test("#791 patch for  nothing is stored as undefined", () => {
+it("#791 patch for  nothing is stored as undefined", () => {
   const [_, patches] = qi.produceWithPatches({ abc: 123 }, _ => undefined)
   expect(patches).toEqual([{ op: "replace", path: [], value: undefined }])
   expect(qi.applyPatches({}, patches)).toEqual(undefined)
 })
-test("#876 Ensure empty patch set for atomic set+delete on Map", () => {
+it("#876 Ensure empty patch set for atomic set+delete on Map", () => {
   {
     const [_, patches] = qi.produceWithPatches(new Map([["foo", "baz"]]), x => {
       x.set("foo", "bar")
@@ -1117,7 +1117,7 @@ test("#876 Ensure empty patch set for atomic set+delete on Map", () => {
     expect(patches).toEqual([])
   }
 })
-test("#888 patch to a primitive produces the primitive", () => {
+it("#888 patch to a primitive produces the primitive", () => {
   {
     const [y, patches] = qi.produceWithPatches({ abc: 123 }, _ => undefined)
     expect(y).toEqual(undefined)
@@ -1183,7 +1183,7 @@ describe("#879 delete item from array - 2", () => {
     [1, 2, undefined]
   )
 })
-test("#897 appendPatch", () => {
+it("#897 appendPatch", () => {
   const base = { a: [] }
   const y1 = qi.applyPatches(base, [{ op: "add", path: ["a", "-"], value: 1 }])
   const y2 = qi.applyPatches(y1, [{ op: "add", path: ["a", "-"], value: 2 }])

@@ -1324,7 +1324,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       expect(y2).toBe(base)
     })
     autoFreeze &&
-      test("issue #462 - frozen", () => {
+      it("issue #462 - frozen", () => {
         const base = {
           a: {
             value: "no",
@@ -1348,7 +1348,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         )
       })
     autoFreeze &&
-      test("issue #469, state not frozen", () => {
+      it("issue #469, state not frozen", () => {
         const y = produce(
           {
             id: 1,
@@ -1402,7 +1402,7 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         expect(produce({}, () => res)).toBe(res)
       })
       it("can return an object with two references to another object", () => {
-        const y: any = produce({}, (d: any) => {
+        const y: any = produce({}, (_: any) => {
           const obj = {}
           return { obj, arr: [obj] }
         })
@@ -1962,6 +1962,7 @@ function testObjectTypes(produce: any) {
         return this.x
       }
     }
+    getterCalled
     const base = new State()
     const y = produce(base, (x: any) => {
       expect(x.y).toBe(0)

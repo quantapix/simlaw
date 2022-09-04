@@ -93,7 +93,7 @@ describe("readme example", () => {
     expect(lunch).toBeInstanceOf(Clock)
     expect(diner.toString()).toBe("18:30")
   })
-  test("produceWithPatches", () => {
+  it("produceWithPatches", () => {
     const y = qi.produceWithPatches({ age: 33 }, x => {
       x.age++
     })
@@ -104,7 +104,7 @@ describe("readme example", () => {
     ])
   })
 })
-test("Producers can update Maps", () => {
+it("Producers can update Maps", () => {
   qi.setAutoFreeze(true)
   const base = new Map()
   const y = qi.produce(base, x => {
@@ -135,7 +135,7 @@ test("Producers can update Maps", () => {
   expect(base.size).toBe(0)
   expect(() => y2.clear()).toThrowErrorMatchingSnapshot()
 })
-test("clock class", () => {
+it("clock class", () => {
   class Clock {
     [qi.immerable] = true
     constructor(public hour: number, public minute: number) {

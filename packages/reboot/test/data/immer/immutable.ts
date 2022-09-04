@@ -6,7 +6,7 @@ qi.enableAllPlugins()
 const toDraft: <T>(x: T) => qi.Draft<T> = x => x as any
 const fromDraft: <T>(x: qi.Draft<T>) => T = x => x as any
 
-test("draft", () => {
+it("draft", () => {
   {
     const x: [1, 2] = _
     assert(toDraft(x), x)
@@ -209,7 +209,7 @@ test("draft", () => {
   expect(true).toBe(true)
 })
 
-test("castDraft", () => {
+it("castDraft", () => {
   type Todo = { readonly done: boolean }
   type State = {
     readonly finished: ReadonlyArray<Todo>
@@ -224,22 +224,22 @@ test("castDraft", () => {
   markAll()
 })
 
-test("original", () => {
+it("original", () => {
   const base = { users: [{ name: "Richie" }] as const }
   qi.produce(base, x => {
     qi.original(x.users) === base.users
   })
 })
-test("castDraft preserves a value", () => {
+it("castDraft preserves a value", () => {
   const x = {}
   expect(qi.castDraft(x)).toBe(x)
 })
-test("createDraft creates a draft", () => {
+it("createDraft creates a draft", () => {
   const x = { y: 1 }
   assert(x, _ as qi.Draft<{ y: number }>)
 })
 
-test("types are ok", () => {
+it("types are ok", () => {
   {
     const x = _ as qi.Immutable<[string[], 1]>
     assert(x, _ as readonly [ReadonlyArray<string>, 1])
@@ -303,7 +303,7 @@ test("types are ok", () => {
   expect(true).toBe(true)
 })
 
-test("produce immutable state", () => {
+it("produce immutable state", () => {
   const base = {
     todos: [{ done: false }],
   }
@@ -311,7 +311,7 @@ test("produce immutable state", () => {
   assert(y, _ as { readonly todos: ReadonlyArray<{ readonly done: boolean }> })
 })
 
-test("castImmutable preserves a value", () => {
+it("castImmutable preserves a value", () => {
   const x = {}
   expect(qi.castImmutable(x)).toBe(x)
 })
