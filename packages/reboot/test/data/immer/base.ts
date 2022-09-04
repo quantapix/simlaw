@@ -901,11 +901,8 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         produce({}, (d: any) => {
           d.data = newData
         })
-      if (autoFreeze) {
-        expect(run).toThrow("visited!")
-      } else {
-        expect(run).not.toThrow("visited!")
-      }
+      if (autoFreeze) expect(run).toThrow("visited!")
+      else expect(run).not.toThrow("visited!")
     })
     it("same optimization doesn't cause draft from nested producers to be unfinished", () => {
       const base = {

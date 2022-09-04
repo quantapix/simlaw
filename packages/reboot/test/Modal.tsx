@@ -2,8 +2,19 @@ import { Body, Header, Footer, Modal, Props, Title } from "../src/Modal.jsx"
 import { fireEvent, render } from "@testing-library/react"
 import { Manager } from "../src/base/Manager.js"
 import * as React from "react"
+import ReactDOMServer from "react-dom/server"
 
-describe("<Modal>", () => {
+describe("Modal", () => {
+  it("Should be rendered on the server side", () => {
+    const noOp = () => {}
+    const run = () =>
+      ReactDOMServer.renderToString(
+        <Modal onHide={noOp}>
+          <strong>Message</strong>
+        </Modal>
+      )
+    expect(run).not.toThrow()
+  })
   it("Should forward ref to BaseModal", () => {
     const ref = React.createRef<Props>()
     render(
