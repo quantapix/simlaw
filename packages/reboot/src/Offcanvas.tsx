@@ -32,19 +32,20 @@ Header.defaultProps = {
 }
 
 export const Body = qu.withBs("offcanvas-body")
+
 const DivAsH5 = qu.divAs("h5")
 export const Title = qu.withBs("offcanvas-title", {
   Component: DivAsH5,
 })
 
-export interface TogglingProps extends qt.TransitionCBs, qt.BsOnlyProps {
+export interface ToggleProps extends qt.TransitionCBs, qt.BsOnlyProps {
   className?: string
   in?: boolean
   mountOnEnter?: boolean
   unmountOnExit?: boolean
   appear?: boolean
   timeout?: number
-  children: qr.ReactElement
+  children?: qr.ReactElement
 }
 
 const styles = {
@@ -55,7 +56,7 @@ const styles = {
   [qu.UNMOUNTED]: "",
 }
 
-export const Toggling = qr.forwardRef<Transition<any>, TogglingProps>(
+export const Toggle = qr.forwardRef<Transition<any>, ToggleProps>(
   ({ bsPrefix, className, children, ...ps }, ref) => {
     const bs = useBs(bsPrefix, "offcanvas")
     return (
@@ -63,26 +64,28 @@ export const Toggling = qr.forwardRef<Transition<any>, TogglingProps>(
         ref={ref}
         addEndListener={qu.endListener}
         {...ps}
-        childRef={(children as any).ref}
+        childRef={(children as any)?.ref}
       >
-        {(status: TransitionStatus, ps2: Record<string, unknown>) =>
-          qr.cloneElement(children, {
-            ...ps2,
-            className: qt.classNames(
-              className,
-              children.props.className,
-              (status === qu.ENTERING || status === qu.EXITING) &&
-                `${bs}-toggling`,
-              styles[status]
-            ),
-          })
-        }
+        {(status: TransitionStatus, ps2: Record<string, unknown>) => {
+          if (children) {
+            qr.cloneElement(children, {
+              ...ps2,
+              className: qt.classNames(
+                className,
+                children.props.className,
+                (status === qu.ENTERING || status === qu.EXITING) &&
+                  `${bs}-toggling`,
+                styles[status]
+              ),
+            })
+          }
+        }}
       </Wrapper>
     )
   }
 )
-Toggling.displayName = "OffcanvasToggling"
-Toggling.defaultProps = {
+Toggle.displayName = "OffcanvasToggling"
+Toggle.defaultProps = {
   in: false,
   mountOnEnter: false,
   unmountOnExit: false,
@@ -110,7 +113,7 @@ export interface Props
 }
 
 function DialogTransition(ps: any) {
-  return <Toggling {...ps} />
+  return <Toggle {...ps} />
 }
 
 function BackdropTransition(ps: any) {

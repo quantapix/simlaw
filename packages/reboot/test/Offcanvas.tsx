@@ -1,13 +1,13 @@
-import * as qr from "react"
-import { Manager } from "../src/base/Manager.js"
 import { fireEvent, render } from "@testing-library/react"
-import { Header, Offcanvas, Title } from "../src/Offcanvas.jsx"
-import { noop } from "../src/hooks.js"
+import { Header, Offcanvas, Title, Navbar, Toggle } from "../src/Offcanvas.jsx"
+import { Manager } from "../src/base/Manager.js"
+import * as qh from "../src/hooks.js"
+import * as qr from "react"
 
 describe("<Offcanvas>", () => {
   it("Should render the modal content", () => {
     const { getByTestId } = render(
-      <Offcanvas show onHide={noop}>
+      <Offcanvas show onHide={qh.noop}>
         <strong data-testid="test">Message</strong>
       </Offcanvas>
     )
@@ -42,7 +42,12 @@ describe("<Offcanvas>", () => {
   })
   it("Should pass className to the offcanvas", () => {
     const { getByTestId } = render(
-      <Offcanvas show className="myoffcanvas" onHide={noop} data-testid="test">
+      <Offcanvas
+        show
+        className="myoffcanvas"
+        onHide={qh.noop}
+        data-testid="test"
+      >
         <strong>Message</strong>
       </Offcanvas>
     )
@@ -51,7 +56,7 @@ describe("<Offcanvas>", () => {
   })
   it("Should pass backdropClassName to the backdrop", () => {
     render(
-      <Offcanvas show backdropClassName="custom-backdrop" onHide={noop}>
+      <Offcanvas show backdropClassName="custom-backdrop" onHide={qh.noop}>
         <strong>Message</strong>
       </Offcanvas>
     )
@@ -60,7 +65,12 @@ describe("<Offcanvas>", () => {
   })
   it("Should pass style to the offcanvas", () => {
     const { getByTestId } = render(
-      <Offcanvas show style={{ color: "red" }} onHide={noop} data-testid="test">
+      <Offcanvas
+        show
+        style={{ color: "red" }}
+        onHide={qh.noop}
+        data-testid="test"
+      >
         <strong>Message</strong>
       </Offcanvas>
     )
@@ -74,7 +84,7 @@ describe("<Offcanvas>", () => {
       return (
         <Offcanvas
           show={show}
-          onHide={noop}
+          onHide={qh.noop}
           onExit={mock}
           onExiting={mock}
           onExited={() => {
@@ -135,7 +145,7 @@ describe("<Offcanvas>", () => {
     const { getByTestId } = render(
       <Offcanvas
         show
-        onHide={noop}
+        onHide={qh.noop}
         aria-labelledby="offcanvas-title"
         data-testid="test"
       >
@@ -152,7 +162,7 @@ describe("<Offcanvas>", () => {
   it("Should call onEscapeKeyDown when keyboard is true", () => {
     const mock = jest.fn()
     render(
-      <Offcanvas show onHide={noop} keyboard onEscapeKeyDown={mock}>
+      <Offcanvas show onHide={qh.noop} keyboard onEscapeKeyDown={mock}>
         <strong>Message</strong>
       </Offcanvas>
     )
@@ -162,7 +172,7 @@ describe("<Offcanvas>", () => {
   it("Should not call onEscapeKeyDown when keyboard is false", () => {
     const mock = jest.fn()
     render(
-      <Offcanvas show onHide={noop} keyboard={false} onEscapeKeyDown={mock}>
+      <Offcanvas show onHide={qh.noop} keyboard={false} onEscapeKeyDown={mock}>
         <strong>Message</strong>
       </Offcanvas>
     )
@@ -170,16 +180,16 @@ describe("<Offcanvas>", () => {
     expect(mock).not.toHaveBeenCalled()
   })
   it("Should use custom props manager if specified", done => {
-    class MyModalManager extends Manager {
+    class Mgr extends Manager {
       override add() {
         done()
         return 0
       }
     }
     const ref = qr.createRef<any>()
-    ;(ref as any).current = new MyModalManager()
+    ;(ref as any).current = new Mgr()
     render(
-      <Offcanvas show onHide={noop} manager={ref.current}>
+      <Offcanvas show onHide={qh.noop} manager={ref.current}>
         <strong>Message</strong>
       </Offcanvas>
     )
@@ -188,7 +198,7 @@ describe("<Offcanvas>", () => {
     const ref = qr.createRef<any>()
     render(
       <div ref={ref} style={{ height: "2000px", overflow: "scroll" }}>
-        <Offcanvas show onHide={noop} container={ref} scroll>
+        <Offcanvas show onHide={qh.noop} container={ref} scroll>
           <strong>Message</strong>
         </Offcanvas>
       </div>
@@ -197,7 +207,7 @@ describe("<Offcanvas>", () => {
   })
   it("Should set responsive class", () => {
     const { getByTestId } = render(
-      <Offcanvas data-testid="test" responsive="lg" show onHide={noop}>
+      <Offcanvas data-testid="test" responsive="lg" show onHide={qh.noop}>
         <strong>Message</strong>
       </Offcanvas>
     )
@@ -206,7 +216,7 @@ describe("<Offcanvas>", () => {
   })
   it("Should render offcanvas when show=false", () => {
     const { getByTestId } = render(
-      <Offcanvas data-testid="test" responsive="lg" onHide={noop}>
+      <Offcanvas data-testid="test" responsive="lg" onHide={qh.noop}>
         <strong>Message</strong>
       </Offcanvas>
     )
@@ -232,12 +242,46 @@ describe("<Offcanvas>", () => {
     const mock = jest.fn()
     const mock2 = jest.fn()
     render(
-      <Offcanvas data-testid="test" onHide={noop} show>
+      <Offcanvas data-testid="test" onHide={qh.noop} show>
         <InnerComponent onMount={mock} onUnmount={mock2} />
       </Offcanvas>
     )
     expect(mock.mock.calls.length).toEqual(1)
     mock2()
     expect(mock2.mock.calls.length).toEqual(1)
+  })
+})
+describe("<NavbarOffcanvas>", () => {
+  it("Should should open the offcanvas", () => {
+    const { getByTestId } = render(
+      <Navbar>
+        <Toggle data-testid="toggle" />
+        <Offcanvas data-testid="offcanvas">hello</Offcanvas>
+      </Navbar>
+    )
+    fireEvent.click(getByTestId("toggle"))
+    expect(getByTestId("offcanvas").classList.contains("show")).toBe(true)
+  })
+  it("Should close the offcanvas on header close button click", () => {
+    const mock = jest.fn()
+    const { getByLabelText } = render(
+      <Navbar onToggle={mock} expanded>
+        <Toggle data-testid="toggle" />
+        <Offcanvas data-testid="offcanvas">
+          <Header closeButton>header</Header>
+        </Offcanvas>
+      </Navbar>
+    )
+    fireEvent.click(getByLabelText("Close"))
+    expect(mock).toHaveBeenCalledWith(false)
+  })
+  it("Should render nav items with expand prop", () => {
+    const { getByText } = render(
+      <Navbar expand="sm">
+        <Toggle data-testid="toggle" />
+        <Offcanvas data-testid="offcanvas">hello</Offcanvas>
+      </Navbar>
+    )
+    expect(getByText("hello")).toBeTruthy()
   })
 })

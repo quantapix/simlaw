@@ -1,6 +1,8 @@
 import { InputGroup } from "../src/InputGroup.jsx"
+import { Nav } from "../src/Nav.jsx"
+import { Navbar } from "../src/Navbar.jsx"
 import { render, fireEvent } from "@testing-library/react"
-import * as React from "react"
+import * as qr from "react"
 import {
   Button,
   Divider,
@@ -28,33 +30,33 @@ describe("<Dropdown>", () => {
   ]
   const simpleDropdown = <Dropdown>{dropdownChildren}</Dropdown>
   it("renders div with dropdown class", () => {
-    const { container } = render(simpleDropdown)
-    expect(container.firstElementChild!.classList).toContain(["dropdown"])
+    const { container: c } = render(simpleDropdown)
+    expect(c.firstElementChild!.classList).toContain(["dropdown"])
   })
-  ;["up", "end", "start"].forEach((dir: Drop) => {
-    it(`renders div with drop${dir} class`, () => {
-      const { container } = render(
-        <Dropdown title="Dropup" drop={dir}>
+  ;["up", "end", "start"].forEach(x => {
+    it(`renders div with drop${x} class`, () => {
+      const { container: c } = render(
+        <Dropdown title="Dropup" drop={x as Drop}>
           {dropdownChildren}
         </Dropdown>
       )
-      expect(container.firstElementChild!.classList).not.toContain(["dropdown"])
-      expect(container.firstElementChild!.classList).toContain([`drop${dir}`])
+      expect(c.firstElementChild!.classList).not.toContain(["dropdown"])
+      expect(c.firstElementChild!.classList).toContain([`drop${x}`])
     })
   })
   it("renders toggle with Toggle", () => {
     const { getByText } = render(simpleDropdown)
-    const toggle = getByText("Child Title")
-    expect(toggle.getAttribute("aria-expanded")!).toEqual("false")
-    expect(toggle.id).toBeTruthy()
+    const y = getByText("Child Title")
+    expect(y.getAttribute("aria-expanded")!).toEqual("false")
+    expect(y.id).toBeTruthy()
   })
   it('forwards align="end" to menu', () => {
-    const X = React.forwardRef<any, any>(
+    const X = qr.forwardRef<any, any>(
       ({ show: _, close: _1, align, ...props }, ref) => (
         <div {...props} data-align={align} ref={ref} />
       )
     )
-    const { container } = render(
+    const { container: c } = render(
       <Dropdown align="end" show>
         <Toggle id="test-id" key="toggle">
           Child Title
@@ -64,23 +66,23 @@ describe("<Dropdown>", () => {
         </X>
       </Dropdown>
     )
-    expect(container.querySelector('[data-align="end"]')!).toBeTruthy()
+    expect(c.querySelector('[data-align="end"]')!).toBeTruthy()
   })
   it("toggles open/closed when clicked", () => {
     const { container, getByText, getByTestId } = render(simpleDropdown)
     const dropdown = container.firstElementChild!
-    const toggle = getByText("Child Title")
+    const y = getByText("Child Title")
     expect(dropdown.classList).not.toContain(["show"])
-    fireEvent.click(toggle)
+    fireEvent.click(y)
     expect(dropdown.classList).toContain(["show"])
     expect(getByTestId("menu").classList).toContain(["dropdown-menu", "show"])
-    fireEvent.click(toggle)
+    fireEvent.click(y)
     expect(dropdown.classList).not.toContain(["show"])
-    expect(toggle.getAttribute("aria-expanded")!).toEqual("false")
+    expect(y.getAttribute("aria-expanded")!).toEqual("false")
   })
   it("closes when child Item is selected", () => {
     const mock = jest.fn()
-    const { container, getByTestId } = render(
+    const { container: c, getByTestId } = render(
       <Dropdown show onToggle={mock}>
         <Toggle id="test-id" key="toggle">
           Child Title
@@ -93,7 +95,7 @@ describe("<Dropdown>", () => {
         </Menu>
       </Dropdown>
     )
-    expect(container.firstElementChild!.classList).toContain(["show"])
+    expect(c.firstElementChild!.classList).toContain(["show"])
     fireEvent.click(getByTestId("item1"))
     expect(mock).toHaveBeenCalledWith(false)
   })
@@ -130,9 +132,9 @@ describe("<Dropdown>", () => {
           {dropdownChildren}
         </Dropdown>
       )
-      const toggle = getByText("Child Title")
+      const y = getByText("Child Title")
       expect(mock).not.toHaveBeenCalled()
-      fireEvent.click(toggle)
+      fireEvent.click(y)
       expect(mock.mock.calls[0].args.length).toEqual(2)
       expect(mock.mock.calls[0].args[0]).toEqual(false)
       expect(mock.mock.calls[0].args[1].source).toEqual("click")
@@ -205,13 +207,11 @@ describe("<Dropdown>", () => {
     expect(getByTestId("dropdown").tagName).toEqual("DIV")
   })
   it("Should also accept a custom component", () => {
-    const customComponent = React.forwardRef<any, any>(
-      ({ show, close, ...props }, ref) => (
-        <div ref={ref} id="custom-component" {...props} />
-      )
-    )
+    const ref = qr.forwardRef<any, any>(({ show, close, ...props }, ref) => (
+      <div ref={ref} id="custom-component" {...props} />
+    ))
     const { getByTestId } = render(
-      <Menu data-testid="menu" show as={customComponent}>
+      <Menu data-testid="menu" show as={ref}>
         <Item>Example Item</Item>
       </Menu>
     )
@@ -363,8 +363,8 @@ describe("<Button>", () => {
         <Item>Item 1</Item>
       </Button>
     )
-    const menu = container.querySelector("div[x-placement]")
-    expect(menu!.classList.contains("dropdown-menu-end")).toBe(true)
+    const y = container.querySelector("div[x-placement]")
+    expect(y!.classList.contains("dropdown-menu-end")).toBe(true)
   })
   it("passes variant and size to the toggle", () => {
     const { getByTestId } = render(
@@ -372,9 +372,9 @@ describe("<Button>", () => {
         <Item>Item 1</Item>
       </Button>
     )
-    const button = getByTestId("test-id").firstElementChild!
-    expect(button.classList.contains("btn-success")).toBe(true)
-    expect(button.classList.contains("btn-sm")).toBe(true)
+    const y = getByTestId("test-id").firstElementChild!
+    expect(y.classList.contains("btn-success")).toBe(true)
+    expect(y.classList.contains("btn-sm")).toBe(true)
   })
   it("passes menuVariant to dropdown menu", () => {
     const { container } = render(
@@ -382,8 +382,8 @@ describe("<Button>", () => {
         <Item>Item 1</Item>
       </Button>
     )
-    const menu = container.querySelector("div[x-placement]")
-    expect(menu!.classList.contains("dropdown-menu-dark")).toBe(true)
+    const y = container.querySelector("div[x-placement]")
+    expect(y!.classList.contains("dropdown-menu-dark")).toBe(true)
   })
   it("forwards onSelect handler to Items", () => {
     const mock = jest.fn()
@@ -425,8 +425,8 @@ describe("<Button>", () => {
     fireEvent.click(getByTestId("test-id").firstElementChild!)
     fireEvent.click(getByTestId("key1"))
     expect(mock).toHaveBeenCalledWith(false)
-    const menu = container.querySelector("div[x-placement]")
-    expect(menu!).toBeTruthy()
+    const y = container.querySelector("div[x-placement]")
+    expect(y!).toBeTruthy()
   })
   it("Should pass disabled to button", () => {
     const { container } = render(
@@ -443,8 +443,8 @@ describe("<Button>", () => {
         <Item eventKey="1">Item 1</Item>
       </Button>
     )
-    const button = getByTestId("test-id").firstElementChild!
-    expect(button.classList.contains("my-button-primary")).toBe(true)
+    const y = getByTestId("test-id").firstElementChild!
+    expect(y.classList.contains("my-button-primary")).toBe(true)
   })
 })
 describe("<Item>", () => {
@@ -456,9 +456,9 @@ describe("<Item>", () => {
     const { getByRole } = render(
       <Divider className="foo bar" style={{ height: "100px" }} />
     )
-    const node = getByRole("separator")
-    expect(node.className).toMatch(/\bfoo bar dropdown-divider\b/)
-    expect(node.style.height).toEqual("100px")
+    const y = getByRole("separator")
+    expect(y.className).toMatch(/\bfoo bar dropdown-divider\b/)
+    expect(y.style.height).toEqual("100px")
   })
   it("renders header", () => {
     const { getByRole } = render(<Header>Header text</Header>)
@@ -470,8 +470,8 @@ describe("<Item>", () => {
         Header text
       </Header>
     )
-    const node = getByText("Header text")
-    expect(node.className).toMatch(/\bfoo bar dropdown-header\b/)
+    const y = getByText("Header text")
+    expect(y.className).toMatch(/\bfoo bar dropdown-header\b/)
   })
   it("renders ItemText", () => {
     const { getByText } = render(<ItemText>My text</ItemText>)
@@ -483,9 +483,9 @@ describe("<Item>", () => {
         My text
       </ItemText>
     )
-    const node = getByText("My text")
-    expect(node.className).toMatch(/\bfoo bar dropdown-item-text\b/)
-    expect(node.style.height).toEqual("100px")
+    const y = getByText("My text")
+    expect(y.className).toMatch(/\bfoo bar dropdown-item-text\b/)
+    expect(y.style.height).toEqual("100px")
   })
   it("renders menu item link", () => {
     const mock = jest.fn()
@@ -494,9 +494,9 @@ describe("<Item>", () => {
         Item
       </Item>
     )
-    const node = getByText("Item")
-    expect(node.getAttribute("href")!).toEqual("/herpa-derpa")
-    fireEvent.keyDown(node, { key: "a" })
+    const y = getByText("Item")
+    expect(y.getAttribute("href")!).toEqual("/herpa-derpa")
+    fireEvent.keyDown(y, { key: "a" })
     expect(mock).toHaveBeenCalled()
   })
   it("Should render as a button when set", () => {
@@ -520,11 +520,11 @@ describe("<Item>", () => {
         Title
       </Item>
     )
-    const node = getByText("Title")
-    expect(node.className).toMatch(/\btest-class\b/)
-    expect(node.style.height).toEqual("100px")
-    expect(node.getAttribute("href")!).toEqual("#hi-mom!")
-    expect(node.getAttribute("title")!).toEqual("hi mom!")
+    const y = getByText("Title")
+    expect(y.className).toMatch(/\btest-class\b/)
+    expect(y.style.height).toEqual("100px")
+    expect(y.getAttribute("href")!).toEqual("#hi-mom!")
+    expect(y.getAttribute("title")!).toEqual("hi mom!")
   })
   it("Should set target attribute on anchor", () => {
     const { getByText } = render(<Item target="_blank">Title</Item>)
@@ -533,7 +533,7 @@ describe("<Item>", () => {
 })
 describe("<Dropdown.Menu>", () => {
   it("renders div with dropdown-menu class", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Menu show>
         <Item eventKey="1">Item 1</Item>
         <Item eventKey="2">Item 2</Item>
@@ -541,93 +541,87 @@ describe("<Dropdown.Menu>", () => {
         <Item eventKey="4">Item 4</Item>
       </Menu>
     )
-    expect(
-      container.firstElementChild!.classList.contains("dropdown-menu")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.contains("dropdown-menu")).toBe(true)
   })
   it("Should pass props to dropdown", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Menu show className="new-fancy-class">
         <Item eventKey="1">Item 1 content</Item>
       </Menu>
     )
-    expect(
-      container.firstElementChild!.classList.contains("new-fancy-class")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.contains("new-fancy-class")).toBe(
+      true
+    )
   })
   it('applies align="end"', () => {
-    const { container } = render(
+    const { container: c } = render(
       <Menu show align="end">
         <Item>Item</Item>
       </Menu>
     )
-    expect(
-      container.firstElementChild!.classList.contains("dropdown-menu-end")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.contains("dropdown-menu-end")).toBe(
+      true
+    )
   })
   it("renders on mount with prop", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Menu renderOnMount>
         <Item>Item</Item>
       </Menu>
     )
-    expect(
-      container.firstElementChild!.classList.contains("dropdown-menu")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.contains("dropdown-menu")).toBe(true)
   })
   it('does not add any extra classes when align="start"', () => {
-    const { container } = render(
+    const { container: c } = render(
       <Menu show align="start">
         <Item>Item</Item>
       </Menu>
     )
-    expect(container.firstElementChild!.className).toEqual("dropdown-menu show")
+    expect(c.firstElementChild!.className).toEqual("dropdown-menu show")
   })
   it("adds responsive start alignment classes", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Menu show align={{ lg: "start" }}>
         <Item>Item</Item>
       </Menu>
     )
+    expect(c.firstElementChild!.classList.contains("dropdown-menu-end")).toBe(
+      true
+    )
     expect(
-      container.firstElementChild!.classList.contains("dropdown-menu-end")
-    ).toBe(true)
-    expect(
-      container.firstElementChild!.classList.contains("dropdown-menu-lg-start")
+      c.firstElementChild!.classList.contains("dropdown-menu-lg-start")
     ).toBe(true)
   })
   it("adds responsive end alignment classes", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Menu show align={{ lg: "end" }}>
         <Item>Item</Item>
       </Menu>
     )
     expect(
-      container.firstElementChild!.classList.contains("dropdown-menu-lg-end")
+      c.firstElementChild!.classList.contains("dropdown-menu-lg-end")
     ).toBe(true)
-    expect(container.querySelector('[data-bs-popper="static"]')!).toBeTruthy()
+    expect(c.querySelector('[data-bs-popper="static"]')!).toBeTruthy()
   })
   it("allows custom responsive alignment classes", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Menu show align={{ custom: "end" }}>
         <Item>Item</Item>
       </Menu>
     )
     expect(
-      container.firstElementChild!.classList.contains(
-        "dropdown-menu-custom-end"
-      )
+      c.firstElementChild!.classList.contains("dropdown-menu-custom-end")
     ).toBe(true)
   })
   it("Should render variant", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Menu show variant="dark">
         <Item>Item</Item>
       </Menu>
     )
-    expect(
-      container.firstElementChild!.classList.contains("dropdown-menu-dark")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.contains("dropdown-menu-dark")).toBe(
+      true
+    )
   })
   describe("getPlacement", () => {
     it("Should return top placement", () => {
@@ -667,13 +661,9 @@ describe("<Dropdown.Menu>", () => {
 describe("<Toggle>", () => {
   it("renders toggle button", () => {
     const { getByText } = render(<Toggle id="test-id">herpa derpa</Toggle>)
-    const toggle = getByText("herpa derpa")
-    expect(toggle.getAttribute("aria-expanded")!).toEqual("false")
-    expect(toggle.classList).toContain([
-      "dropdown-toggle",
-      "btn",
-      "btn-primary",
-    ])
+    const y = getByText("herpa derpa")
+    expect(y.getAttribute("aria-expanded")!).toEqual("false")
+    expect(y.classList).toContain(["dropdown-toggle", "btn", "btn-primary"])
   })
   it("renders children", () => {
     const { getByText } = render(
@@ -696,12 +686,104 @@ describe("<Toggle>", () => {
     expect(container.firstElementChild!.id).toEqual("testid")
   })
   it("does not forward bsPrefix", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Toggle bsPrefix="my-custom-bsPrefix" title="bsClass" id="test-id" />
     )
-    expect(container.firstElementChild!.classList).toContain([
+    expect(c.firstElementChild!.classList).toContain([
       "my-custom-bsPrefix",
       "btn",
     ])
+  })
+})
+describe("<Dropdown>", () => {
+  it("Should render li when in nav", () => {
+    const { getByTestId } = render(
+      <Dropdown
+        className="test-class"
+        data-testid="test"
+        defaultShow
+        id="nav-test"
+        title="Title"
+      >
+        <Item eventKey="1">Item 1 content</Item>
+        <Item eventKey="2">Item 2 content</Item>
+      </Dropdown>
+    )
+    const y = getByTestId("test")
+    expect(y.classList.contains("dropdown")).toBe(true)
+    expect(y.classList.contains("test-class")).toBe(true)
+    expect(y.firstElementChild!.classList.contains("nav-link")).toBe(true)
+    expect(y.firstElementChild!.textContent!).toEqual("Title")
+  })
+  it("renders active toggle", () => {
+    const { getByTestId } = render(
+      <Dropdown
+        /* active  */
+        data-testid="test"
+        defaultShow
+        id="nav-test"
+        title="Title"
+      >
+        <Item eventKey="1">Item 1 content</Item>
+        <Item eventKey="2">Item 2 content</Item>
+      </Dropdown>
+    )
+    const y = getByTestId("test")
+    expect(y.firstElementChild!.classList.contains("active")).toBe(true)
+  })
+  it("Should handle child active state", () => {
+    const { getByTestId } = render(
+      <Nav defaultActiveKey="2">
+        <Dropdown defaultShow id="test-id" title="title">
+          <Item eventKey="1">Item 1 content</Item>
+          <Item eventKey="2" data-testid="test">
+            Item 2 content
+          </Item>
+          <Item eventKey="3">Item 3 content</Item>
+        </Dropdown>
+      </Nav>
+    )
+    expect(getByTestId("test").textContent!).toEqual("Item 2 content")
+  })
+  it("Should pass the id to the NavLink element", () => {
+    const { getByTestId } = render(
+      <Dropdown id="test-id" title="title" data-testid="test">
+        <Item eventKey="1">Item 1 content</Item>
+      </Dropdown>
+    )
+    expect(getByTestId("test").firstElementChild!.id).toEqual("test-id")
+  })
+  it("Should support as as prop", () => {
+    const { getByTestId } = render(
+      <Dropdown as="li" id="test-id" title="title" data-testid="test">
+        <Item eventKey="1">Item 1</Item>
+      </Dropdown>
+    )
+    expect(getByTestId("test").tagName.toLowerCase()).toEqual("li")
+  })
+  it("passes menuVariant to dropdown menu", () => {
+    render(
+      <Dropdown
+        renderMenuOnMount
+        title="blah"
+        /* menuVariant="dark" */ id="test"
+      >
+        <Item>Item 1</Item>
+      </Dropdown>
+    )
+    expect(document.querySelector(".dropdown-menu-dark")!).toBeTruthy()
+  })
+  it("sets data-bs-popper attribute on dropdown menu", () => {
+    render(
+      <Navbar>
+        <Dropdown renderMenuOnMount id="test-id" title="title">
+          <Item>Item 1</Item>
+        </Dropdown>
+      </Navbar>
+    )
+    expect(
+      document.querySelectorAll('.dropdown-menu[data-bs-popper="static"]')
+        .length
+    ).toEqual(1)
   })
 })

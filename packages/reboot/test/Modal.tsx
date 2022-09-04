@@ -381,13 +381,13 @@ describe("Modal", () => {
     expect(mock).not.toHaveBeenCalled()
   })
   it("Should use custom props manager if specified", done => {
-    class MyManager extends Manager {
+    class Mgr extends Manager {
       override add(_: any): any {
         done()
       }
     }
     const ref: any = React.createRef<Manager | null>()
-    ref.current = new MyManager()
+    ref.current = new Mgr()
     render(
       <Modal show manager={ref.current as any}>
         <strong>Message</strong>

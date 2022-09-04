@@ -24,7 +24,7 @@ import {
 
 export type Drop = "up" | "start" | "end" | "down"
 
-type CommonProps = "href" | "size" | "variant" | "disabled"
+type Common = "href" | "size" | "variant" | "disabled"
 
 export interface Data {
   align?: qt.AlignType | undefined
@@ -47,23 +47,19 @@ export interface MenuProps extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   variant?: Variant | undefined
 }
 
-export function getPlacement(
-  alignEnd: boolean,
-  dropDirection?: Drop,
-  isRTL?: boolean
-) {
-  const topStart = isRTL ? "top-end" : "top-start"
-  const topEnd = isRTL ? "top-start" : "top-end"
-  const bottomStart = isRTL ? "bottom-end" : "bottom-start"
-  const bottomEnd = isRTL ? "bottom-start" : "bottom-end"
-  const leftStart = isRTL ? "right-start" : "left-start"
-  const leftEnd = isRTL ? "right-end" : "left-end"
-  const rightStart = isRTL ? "left-start" : "right-start"
-  const rightEnd = isRTL ? "left-end" : "right-end"
-  let y: Placement = alignEnd ? bottomEnd : bottomStart
-  if (dropDirection === "up") y = alignEnd ? topEnd : topStart
-  else if (dropDirection === "end") y = alignEnd ? rightEnd : rightStart
-  else if (dropDirection === "start") y = alignEnd ? leftEnd : leftStart
+export function getPlacement(alignEnd: boolean, drop?: Drop, isRTL?: boolean) {
+  const tStart = isRTL ? "top-end" : "top-start"
+  const tEnd = isRTL ? "top-start" : "top-end"
+  const bStart = isRTL ? "bottom-end" : "bottom-start"
+  const bEnd = isRTL ? "bottom-start" : "bottom-end"
+  const lStart = isRTL ? "right-start" : "left-start"
+  const lEnd = isRTL ? "right-end" : "left-end"
+  const rStart = isRTL ? "left-start" : "right-start"
+  const rEnd = isRTL ? "left-end" : "right-end"
+  let y: Placement = alignEnd ? bEnd : bStart
+  if (drop === "up") y = alignEnd ? tEnd : tStart
+  else if (drop === "end") y = alignEnd ? rEnd : rStart
+  else if (drop === "start") y = alignEnd ? lEnd : lStart
   return y
 }
 
@@ -170,13 +166,13 @@ export interface ToggleProps extends Omit<BProps, "as"> {
   childBsPrefix?: string | undefined
 }
 
-type ToggleComponent = qt.BsRef<"button", ToggleProps>
+type ToggleType = qt.BsRef<"button", ToggleProps>
 
 export type PropsFromToggle = Partial<
-  Pick<qr.ComponentPropsWithRef<ToggleComponent>, CommonProps>
+  Pick<qr.ComponentPropsWithRef<ToggleType>, Common>
 >
 
-export const Toggle: ToggleComponent = qr.forwardRef(
+export const Toggle: ToggleType = qr.forwardRef(
   (
     {
       bsPrefix,
@@ -277,11 +273,12 @@ export interface Props
   extends BaseProps,
     qt.BsProps,
     Omit<qr.HTMLAttributes<HTMLElement>, "onSelect" | "children"> {
-  drop?: Drop
   align?: qt.AlignType
+  autoClose?: boolean | "outside" | "inside"
+  drop?: Drop
   focusFirstItemOnShow?: boolean | "keyboard"
   navbar?: boolean
-  autoClose?: boolean | "outside" | "inside"
+  renderMenuOnMount?: boolean
 }
 
 export const Dropdown: qt.BsRef<"div", Props> = qr.forwardRef<
