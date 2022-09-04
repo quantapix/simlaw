@@ -1,12 +1,12 @@
 import { act } from "react-dom/test-utils"
 import { mount } from "enzyme"
 import { Portal } from "../../src/base/Portal.jsx"
-import * as React from "react"
+import * as qr from "react"
 import ReactDOM from "react-dom"
 
 describe("Portal", () => {
   it("Should render overlay into container (document)", () => {
-    class Container extends React.Component {
+    class Container extends qr.Component {
       override componentDidMount(this: any) {
         expect(this.div).toBeTruthy()
       }
@@ -28,7 +28,7 @@ describe("Portal", () => {
   })
   it("Should render overlay into container (DOMNode)", () => {
     const container = document.createElement("div")
-    class Container extends React.Component {
+    class Container extends qr.Component {
       override componentDidMount(this: any) {
         expect(this.div).toBeTruthy()
       }
@@ -49,8 +49,8 @@ describe("Portal", () => {
     expect(container.querySelectorAll("#test1")).toHaveLength(1)
   })
   it("Should render overlay into container (ReactComponent)", () => {
-    class Container extends React.Component {
-      container = React.createRef()
+    class Container extends qr.Component {
+      container = qr.createRef()
       override componentDidMount(this: any) {
         expect(this.div).not.toBeTruthy()
       }
@@ -79,8 +79,8 @@ describe("Portal", () => {
     ).toHaveLength(1)
   })
   it("Should not fail to render a null overlay", () => {
-    class Container extends React.Component {
-      container = React.createRef<HTMLDivElement>()
+    class Container extends qr.Component {
+      container = qr.createRef<HTMLDivElement>()
       override render() {
         return (
           <div ref={this.container}>
@@ -93,13 +93,13 @@ describe("Portal", () => {
     expect(y).toHaveLength(0)
   })
   it("Should unmount when parent unmounts", () => {
-    class Parent extends React.Component {
+    class Parent extends qr.Component {
       override state = { show: true }
       override render() {
         return <div>{(this.state.show && <Child />) || null}</div>
       }
     }
-    class Child extends React.Component {
+    class Child extends qr.Component {
       override render(this: any) {
         return (
           <div>

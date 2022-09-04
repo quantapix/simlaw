@@ -1,12 +1,12 @@
-import * as React from "react"
+import { Button } from "../src/Button.jsx"
 import { render } from "@testing-library/react"
 import { Theme, createComponent } from "../src/Theme.jsx"
-import { Button } from "../src/Button.jsx"
+import * as qr from "react"
 
 describe("<Theme>", () => {
   const hocValue = "foo"
   const Foo = createComponent(
-    class Foo extends React.Component<{ bsPrefix: string }, any> {
+    class Foo extends qr.Component<{ bsPrefix: string }, any> {
       override render() {
         return (
           <p className={`${this.props.bsPrefix} ${this.props.bsPrefix}-bar`}>
@@ -23,9 +23,9 @@ describe("<Theme>", () => {
         <Foo />
       </div>
     )
-    const fooElem = getByText("foo val")
-    expect(fooElem.classList.contains(hocValue)).toBe(true)
-    expect(fooElem.tagName.toLowerCase()).toEqual("p")
+    const y = getByText("foo val")
+    expect(y.classList.contains(hocValue)).toBe(true)
+    expect(y.tagName.toLowerCase()).toEqual("p")
   })
   it("Should provide bsPrefix overrides", () => {
     const { getByText } = render(
@@ -36,13 +36,13 @@ describe("<Theme>", () => {
         </div>
       </Theme>
     )
-    const buttonElem = getByText("My label")
-    expect(buttonElem.tagName.toLowerCase()).toEqual("button")
-    expect(buttonElem.classList.contains("my-btn")).toBe(true)
-    expect(buttonElem.classList.contains("my-btn-primary")).toBe(true)
-    const fooElem = getByText("foo val")
-    expect(fooElem.tagName.toLowerCase()).toEqual("p")
-    expect(fooElem.classList.contains("global-foo")).toBe(true)
+    const y = getByText("My label")
+    expect(y.tagName.toLowerCase()).toEqual("button")
+    expect(y.classList.contains("my-btn")).toBe(true)
+    expect(y.classList.contains("my-btn-primary")).toBe(true)
+    const y2 = getByText("foo val")
+    expect(y2.tagName.toLowerCase()).toEqual("p")
+    expect(y2.classList.contains("global-foo")).toBe(true)
   })
   it("Should use prop bsPrefix first", () => {
     const { getByText } = render(
@@ -52,12 +52,12 @@ describe("<Theme>", () => {
         </div>
       </Theme>
     )
-    const fooElem = getByText("foo val")
-    expect(fooElem.tagName.toLowerCase()).toEqual("p")
-    expect(fooElem.classList.contains("my-foo")).toBe(true)
+    const y = getByText("foo val")
+    expect(y.tagName.toLowerCase()).toEqual("p")
+    expect(y.classList.contains("my-foo")).toBe(true)
   })
   it("Should forward ref", () => {
-    let ref
+    let ref: any
     const { getByText } = render(
       <div>
         <Foo bsPrefix="my-foo" ref={r => (ref = r)} />

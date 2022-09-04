@@ -1,7 +1,7 @@
 import { Body, Header, Footer, Modal, Props, Title } from "../src/Modal.jsx"
 import { fireEvent, render } from "@testing-library/react"
 import { Manager } from "../src/base/Manager.js"
-import * as React from "react"
+import * as qr from "react"
 import ReactDOMServer from "react-dom/server"
 
 describe("Modal", () => {
@@ -16,7 +16,7 @@ describe("Modal", () => {
     expect(run).not.toThrow()
   })
   it("Should forward ref to BaseModal", () => {
-    const ref = React.createRef<Props>()
+    const ref = qr.createRef<Props>()
     render(
       <Modal show animation={false} ref={ref}>
         <strong>Message</strong>
@@ -35,7 +35,7 @@ describe("Modal", () => {
     )
   })
   it("Should sets `display: block` to `div.modal` when animation is false", () => {
-    const ref = React.createRef<Props>()
+    const ref = qr.createRef<Props>()
     render(
       <Modal show animation={false} ref={ref}>
         <strong>Message</strong>
@@ -230,7 +230,7 @@ describe("Modal", () => {
   it("Should pass transition callbacks to Transition", done => {
     const mock = jest.fn()
     const Elem = () => {
-      const [show, setShow] = React.useState(true)
+      const [show, setShow] = qr.useState(true)
       return (
         <Modal
           show={show}
@@ -289,7 +289,7 @@ describe("Modal", () => {
       mock.restore()
     })
     it("Should remove resize listener when unmounted", () => {
-      class Component extends React.Component {
+      class Component extends qr.Component {
         override state = {
           show: true,
         }
@@ -386,7 +386,7 @@ describe("Modal", () => {
         done()
       }
     }
-    const ref: any = React.createRef<Manager | null>()
+    const ref: any = qr.createRef<Manager | null>()
     ref.current = new Mgr()
     render(
       <Modal show manager={ref.current as any}>

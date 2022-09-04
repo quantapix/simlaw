@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react"
 import { shouldWarn } from "./tools.js"
-import * as React from "react"
+import * as qr from "react"
 import {
   Check,
   Control,
@@ -132,7 +132,7 @@ describe("<Check>", () => {
   })
   it("Should support ref forwarding", () => {
     let input: any
-    class Container extends React.Component {
+    class Container extends qr.Component {
       override render() {
         return (
           <Check
@@ -310,7 +310,7 @@ describe("<Control>", () => {
   })
   it("Should support ref forwarding", () => {
     let input: any
-    class Container extends React.Component {
+    class Container extends qr.Component {
       override render() {
         return (
           <Group controlId="foo">
@@ -478,7 +478,7 @@ describe("<Label>", () => {
   })
   it("Should support ref forwarding", () => {
     let input: any
-    class Container extends React.Component {
+    class Container extends qr.Component {
       override render() {
         return (
           <Group controlId="foo">
@@ -496,7 +496,7 @@ describe("<Label>", () => {
   })
   it("Should support ref forwarding when rendered as a Col", () => {
     let input: any
-    class Container extends React.Component {
+    class Container extends qr.Component {
       override render() {
         return (
           <Group controlId="foo">

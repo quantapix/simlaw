@@ -7,11 +7,11 @@ describe("<ProgressBar>", () => {
     const { getByTestId } = render(
       <ProgressBar data-testid="test" min={0} max={10} now={0} />
     )
-    const progressElem = getByTestId("test")
-    const innerProgressElem = progressElem.firstElementChild!
-    expect(progressElem.classList.contains("progress")).toBe(true)
-    expect(innerProgressElem.classList.contains("progress-bar")).toBe(true)
-    expect(innerProgressElem.getAttribute("role")!).toEqual("progressbar")
+    const y = getByTestId("test")
+    const y2 = y.firstElementChild!
+    expect(y.classList.contains("progress")).toBe(true)
+    expect(y2.classList.contains("progress-bar")).toBe(true)
+    expect(y2.getAttribute("role")!).toEqual("progressbar")
   })
   ;["success", "warning", "info", "danger"].forEach(variant => {
     it(`Should have the variant="${variant}" class`, () => {
@@ -24,50 +24,50 @@ describe("<ProgressBar>", () => {
           variant={variant}
         />
       )
-      const innerProgressElem = getByTestId("test").firstElementChild!
-      innerProgressElem.classList.contains(`bg-${variant}`)
+      const y = getByTestId("test").firstElementChild!
+      y.classList.contains(`bg-${variant}`)
     })
   })
   it("Should default to min:0, max:100", () => {
     const { getByTestId } = render(<ProgressBar data-testid="test" now={5} />)
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    expect(innerProgressElem.getAttribute("aria-valuemin")!).toEqual("0")
-    expect(innerProgressElem.getAttribute("aria-valuemax")!).toEqual("100")
+    const y = getByTestId("test").firstElementChild!
+    expect(y.getAttribute("aria-valuemin")!).toEqual("0")
+    expect(y.getAttribute("aria-valuemax")!).toEqual("100")
   })
   it("Should have 0% computed width", () => {
     const { getByTestId } = render(
       <ProgressBar data-testid="test" min={0} max={10} now={0} />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    expect((innerProgressElem as HTMLElement).style.width).toEqual("0%")
+    const y = getByTestId("test").firstElementChild!
+    expect((y as HTMLElement).style.width).toEqual("0%")
   })
   it("Should have 10% computed width", () => {
     const { getByTestId } = render(
       <ProgressBar data-testid="test" min={0} max={10} now={1} />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    expect((innerProgressElem as HTMLElement).style.width).toEqual("10%")
+    const y = getByTestId("test").firstElementChild!
+    expect((y as HTMLElement).style.width).toEqual("10%")
   })
   it("Should have 100% computed width", () => {
     const { getByTestId } = render(
       <ProgressBar data-testid="test" min={0} max={10} now={10} />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    expect((innerProgressElem as HTMLElement).style.width).toEqual("100%")
+    const y = getByTestId("test").firstElementChild!
+    expect((y as HTMLElement).style.width).toEqual("100%")
   })
   it("Should have 50% computed width with non-zero min", () => {
     const { getByTestId } = render(
       <ProgressBar data-testid="test" min={1} max={11} now={6} />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    expect((innerProgressElem as HTMLElement).style.width).toEqual("50%")
+    const y = getByTestId("test").firstElementChild!
+    expect((y as HTMLElement).style.width).toEqual("50%")
   })
   it("Should not have label", () => {
     const { getByTestId } = render(
       <ProgressBar data-testid="test" min={0} max={10} now={5} />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    expect(innerProgressElem.textContent!).toEqual("")
+    const y = getByTestId("test").firstElementChild!
+    expect(y.textContent!).toEqual("")
   })
   it("Should have label", () => {
     const { getByTestId } = render(
@@ -80,8 +80,8 @@ describe("<ProgressBar>", () => {
         label="progress bar label"
       />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    expect(innerProgressElem.textContent!).toEqual("progress bar label")
+    const y = getByTestId("test").firstElementChild!
+    expect(y.textContent!).toEqual("progress bar label")
   })
   it("Should have screen reader only label", () => {
     const { getByTestId } = render(
@@ -95,44 +95,36 @@ describe("<ProgressBar>", () => {
         label="progress bar label"
       />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    innerProgressElem.classList.contains("visually-hidden")
-    expect(innerProgressElem.textContent!).toEqual("progress bar label")
+    const y = getByTestId("test").firstElementChild!
+    y.classList.contains("visually-hidden")
+    expect(y.textContent!).toEqual("progress bar label")
   })
   it("Should have a label that is a React component", () => {
-    const customLabel = <strong className="special-label">My label</strong>
+    const label = <strong className="special-label">My label</strong>
     const { getByTestId } = render(
-      <ProgressBar
-        data-testid="test"
-        min={0}
-        max={10}
-        now={5}
-        label={customLabel}
-      />
+      <ProgressBar data-testid="test" min={0} max={10} now={5} label={label} />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    expect(
-      innerProgressElem.firstElementChild!.classList.contains("special-label")
-    ).toBe(true)
+    const y = getByTestId("test").firstElementChild!
+    expect(y.firstElementChild!.classList.contains("special-label")).toBe(true)
   })
   it("Should have screen reader only label that wraps a React component", () => {
-    const customLabel = <strong className="special-label">My label</strong>
+    const label = <strong className="special-label">My label</strong>
     const { getByTestId } = render(
       <ProgressBar
         data-testid="test"
         min={0}
         max={10}
         now={5}
-        label={customLabel}
+        label={label}
         visuallyHidden
       />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
+    const y = getByTestId("test").firstElementChild!
+    expect(y.firstElementChild!.classList.contains("visually-hidden")).toBe(
+      true
+    )
     expect(
-      innerProgressElem.firstElementChild!.classList.contains("visually-hidden")
-    ).toBe(true)
-    expect(
-      innerProgressElem.firstElementChild!.firstElementChild!.classList.contains(
+      y.firstElementChild!.firstElementChild!.classList.contains(
         "special-label"
       )
     ).toBe(true)
@@ -141,16 +133,16 @@ describe("<ProgressBar>", () => {
     const { getByTestId } = render(
       <ProgressBar data-testid="test" min={1} max={11} now={6} striped />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    innerProgressElem.classList.contains("progress-bar-striped")
+    const y = getByTestId("test").firstElementChild!
+    y.classList.contains("progress-bar-striped")
   })
   it("Should show animated striped bar", () => {
     const { getByTestId } = render(
       <ProgressBar data-testid="test" min={1} max={11} now={6} animated />
     )
-    const innerProgressElem = getByTestId("test").firstElementChild!
-    innerProgressElem.classList.contains("progress-bar-striped")
-    innerProgressElem.classList.contains("progress-bar-animated")
+    const y = getByTestId("test").firstElementChild!
+    y.classList.contains("progress-bar-striped")
+    y.classList.contains("progress-bar-animated")
   })
   it("Should show stacked bars", () => {
     const { getByTestId } = render(
@@ -159,13 +151,13 @@ describe("<ProgressBar>", () => {
         <ProgressBar key={2} now={30} />
       </ProgressBar>
     )
-    const innerProgressElem = getByTestId("test")
-    const bar1 = innerProgressElem.firstElementChild!
-    const bar2 = innerProgressElem.lastElementChild!
-    expect(bar1.classList.contains("progress-bar")).toBe(true)
-    expect((bar1 as HTMLElement).style.width).toEqual("50%")
-    expect(bar2.classList.contains("progress-bar")).toBe(true)
-    expect((bar2 as HTMLElement).style.width).toEqual("30%")
+    const y = getByTestId("test")
+    const y1 = y.firstElementChild!
+    const y2 = y.lastElementChild!
+    expect(y1.classList.contains("progress-bar")).toBe(true)
+    expect((y1 as HTMLElement).style.width).toEqual("50%")
+    expect(y2.classList.contains("progress-bar")).toBe(true)
+    expect((y2 as HTMLElement).style.width).toEqual("30%")
   })
   it("Should render animated and striped children in stacked bar too", () => {
     const { getByTestId } = render(
@@ -174,15 +166,15 @@ describe("<ProgressBar>", () => {
         <ProgressBar striped key={2} now={30} />
       </ProgressBar>
     )
-    const innerProgressElem = getByTestId("test")
-    const bar1 = innerProgressElem.firstElementChild!
-    const bar2 = innerProgressElem.lastElementChild!
-    expect(bar1.classList.contains("progress-bar")).toBe(true)
-    expect(bar1.classList.contains("progress-bar-striped")).toBe(true)
-    expect(bar1.classList.contains("progress-bar-animated")).toBe(true)
-    expect(bar2.classList.contains("progress-bar")).toBe(true)
-    expect(bar2.classList.contains("progress-bar-striped")).toBe(true)
-    expect(bar2.classList.contains("progress-bar-animated")).toBe(false)
+    const y = getByTestId("test")
+    const y1 = y.firstElementChild!
+    const y2 = y.lastElementChild!
+    expect(y1.classList.contains("progress-bar")).toBe(true)
+    expect(y1.classList.contains("progress-bar-striped")).toBe(true)
+    expect(y1.classList.contains("progress-bar-animated")).toBe(true)
+    expect(y2.classList.contains("progress-bar")).toBe(true)
+    expect(y2.classList.contains("progress-bar-striped")).toBe(true)
+    expect(y2.classList.contains("progress-bar-animated")).toBe(false)
   })
   it("Should forward className and style to nested bars", () => {
     const { getByTestId } = render(
@@ -191,11 +183,11 @@ describe("<ProgressBar>", () => {
         <ProgressBar now={2} style={{ minWidth: 10 }} />
       </ProgressBar>
     )
-    const innerProgressElem = getByTestId("test")
-    const bar1 = innerProgressElem.firstElementChild!
-    const bar2 = innerProgressElem.lastElementChild!
-    expect(bar1.classList.contains("progress-bar")).toBe(true)
-    expect((bar2 as HTMLElement).style.minWidth).toEqual("10px")
+    const y = getByTestId("test")
+    const y1 = y.firstElementChild!
+    const y2 = y.lastElementChild!
+    expect(y1.classList.contains("progress-bar")).toBe(true)
+    expect((y2 as HTMLElement).style.minWidth).toEqual("10px")
   })
   it("allows only ProgressBar in children", () => {
     shouldWarn("Failed prop")

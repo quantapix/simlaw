@@ -1,10 +1,10 @@
 import { act } from "react-dom/test-utils"
+import { Modal } from "../../src/base/Modal.jsx"
 import { mount } from "enzyme"
 import { OPEN_DATA_ATTRIBUTE } from "../../src/base/Manager.jsx"
 import { render } from "@testing-library/react"
-import { Modal } from "../../src/base/Modal.jsx"
 import { Transition } from "react-transition-group"
-import * as React from "react"
+import * as qr from "react"
 import ReactDOM from "react-dom"
 import simulant from "simulant"
 
@@ -12,8 +12,8 @@ describe("Modal", () => {
   let attachTo: any
   let wrapper: any
   const mountWithRef = (x: any, xs: any) => {
-    const y = React.createRef<any>()
-    const Why = (ps: any) => React.cloneElement(x, { ...ps, ref: y })
+    const y = qr.createRef<any>()
+    const Why = (ps: any) => qr.cloneElement(x, { ...ps, ref: y })
     wrapper = mount(<Why />, xs)
     return y
   }
@@ -38,9 +38,9 @@ describe("Modal", () => {
     expect(ref.current.dialog.querySelectorAll("strong")).toHaveLength(1)
   })
   it("Should disable scrolling on the modal container while open", done => {
-    const modal = React.createRef<any>()
-    class Container extends React.Component {
-      ref = React.createRef<any>()
+    const modal = qr.createRef<any>()
+    class Container extends qr.Component {
+      ref = qr.createRef<any>()
       override state = { modalOpen: true }
       handleCloseModal = () => {
         this.setState({ modalOpen: false })
@@ -331,7 +331,7 @@ describe("Modal", () => {
       }, 50)
     })
     it("Should not attempt to focus nonexistent children", () => {
-      const Dialog = React.forwardRef((_, __) => null)
+      const Dialog = qr.forwardRef((_, __) => null)
       mount(
         <Modal show>
           <Dialog />

@@ -1,6 +1,6 @@
 import { Alert, Heading } from "../src/Alert.js"
 import { fireEvent, render } from "@testing-library/react"
-import * as React from "react"
+import * as qr from "react"
 
 describe("<Alert>", () => {
   it("Should output a alert with message", () => {
@@ -56,7 +56,7 @@ describe("<Alert>", () => {
     expect(y.classList.contains("alert-primary")).not.toBe(true)
   })
   it("Should forward refs to the alert", () => {
-    const ref = React.createRef<HTMLDivElement>()
+    const ref = qr.createRef<HTMLDivElement>()
     const { getByTestId } = render(
       <Alert ref={ref} data-testid="test">
         message

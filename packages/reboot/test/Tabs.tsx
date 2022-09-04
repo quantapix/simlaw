@@ -1,12 +1,13 @@
-import { fireEvent, render } from "@testing-library/react"
 import { Content, Tab } from "../src/Tab.jsx"
-import { Tabs } from "../src/Tabs.jsx"
+import { fireEvent, render } from "@testing-library/react"
 import { shouldWarn } from "./tools.js"
+import { Tabs } from "../src/Tabs.jsx"
 
-const checkEventKey = (elem: Element, eventKey: string | number) =>
-  elem.getAttribute("data-rr-ui-event-key") === `${eventKey}` &&
-  elem.getAttribute("id") === `test-tab-${eventKey}` &&
-  elem.getAttribute("aria-controls") === `test-tabpane-${eventKey}`
+const check = (x: Element, k: string | number) =>
+  x.getAttribute("data-rr-ui-event-key") === `${k}` &&
+  x.getAttribute("id") === `test-tab-${k}` &&
+  x.getAttribute("aria-controls") === `test-tabpane-${k}`
+
 describe("<Tabs>", () => {
   it("Should show the correct tab and assign correct eventKeys", () => {
     const { getByText } = render(
@@ -19,16 +20,16 @@ describe("<Tabs>", () => {
         </Tab>
       </Tabs>
     )
-    const firstTabButton = getByText("Tab 1 title")
-    const firstTabContent = getByText("Tab 1 content")
-    const secondTabButton = getByText("Tab 2 title")
-    expect(firstTabButton.tagName.toLowerCase()).toEqual("button")
-    expect(firstTabButton.classList.contains("active")).toBe(true)
-    expect(firstTabContent.classList.contains("active")).toBe(true)
-    expect(secondTabButton.classList.contains("active")).toBe(false)
-    expect(secondTabButton.tagName.toLowerCase()).toEqual("button")
-    expect(checkEventKey(firstTabButton, 1)).toBe(true)
-    expect(checkEventKey(secondTabButton, 2)).toBe(true)
+    const b1 = getByText("Tab 1 title")
+    const c1 = getByText("Tab 1 content")
+    const b2 = getByText("Tab 2 title")
+    expect(b1.tagName.toLowerCase()).toEqual("button")
+    expect(b1.classList.contains("active")).toBe(true)
+    expect(c1.classList.contains("active")).toBe(true)
+    expect(b2.classList.contains("active")).toBe(false)
+    expect(b2.tagName.toLowerCase()).toEqual("button")
+    expect(check(b1, 1)).toBe(true)
+    expect(check(b2, 2)).toBe(true)
   })
   it("Should get defaultActiveKey (if null) from first child tab with eventKey", () => {
     const { getByText } = render(
@@ -41,14 +42,14 @@ describe("<Tabs>", () => {
         </Tab>
       </Tabs>
     )
-    const firstTabButton = getByText("Tab 1 title")
-    const firstTabContent = getByText("Tab 1 content")
-    const secondTabButton = getByText("Tab 2 title")
-    expect(firstTabButton.tagName.toLowerCase()).toEqual("button")
-    expect(firstTabButton.classList.contains("active")).toBe(true)
-    expect(firstTabContent.classList.contains("active")).toBe(true)
-    expect(secondTabButton.classList.contains("active")).toBe(false)
-    expect(secondTabButton.tagName.toLowerCase()).toEqual("button")
+    const b1 = getByText("Tab 1 title")
+    const c1 = getByText("Tab 1 content")
+    const b2 = getByText("Tab 2 title")
+    expect(b1.tagName.toLowerCase()).toEqual("button")
+    expect(b1.classList.contains("active")).toBe(true)
+    expect(c1.classList.contains("active")).toBe(true)
+    expect(b2.classList.contains("active")).toBe(false)
+    expect(b2.tagName.toLowerCase()).toEqual("button")
   })
   it("Should allow tab title to have React components", () => {
     const tabTitle = <strong className="special-tab">React Tab 2</strong>
@@ -62,12 +63,13 @@ describe("<Tabs>", () => {
         </Tab>
       </Tabs>
     )
-    expect(getByText("React Tab 2").classList.contains("special-tab")).to.be
-      .true
+    expect(getByText("React Tab 2").classList.contains("special-tab")).toBe(
+      true
+    )
   })
   it("Should call onSelect when tab is selected", () => {
-    const onSelect = key => {
-      expect(key).toEqual("2")
+    const onSelect = (k: any) => {
+      expect(k).toEqual("2")
     }
     const mock = jest.fn(onSelect)
     const { getByText } = render(
@@ -94,14 +96,14 @@ describe("<Tabs>", () => {
         </Tab>
       </Tabs>
     )
-    const firstTabContent = getByText("Tab 1 content")
-    const secondTabContent = getByText("Tab 2 content")
-    const firstTabTitle = getByText("Tab 1")
-    const secondTabTitle = getByText("Tab 2")
-    expect(firstTabContent.classList.contains("custom")).toBe(true)
-    expect(secondTabContent.classList.contains("tcustom")).toBe(false)
-    expect(firstTabTitle.classList.contains("custom")).toBe(false)
-    expect(secondTabTitle.classList.contains("tcustom")).toBe(true)
+    const c1 = getByText("Tab 1 content")
+    const c2 = getByText("Tab 2 content")
+    const t1 = getByText("Tab 1")
+    const t2 = getByText("Tab 2")
+    expect(c1.classList.contains("custom")).toBe(true)
+    expect(c2.classList.contains("tcustom")).toBe(false)
+    expect(t1.classList.contains("custom")).toBe(false)
+    expect(t2.classList.contains("tcustom")).toBe(true)
   })
   it("Should pass variant to Nav", () => {
     const { getByTestId } = render(
@@ -122,7 +124,7 @@ describe("<Tabs>", () => {
     expect(getByTestId("test").classList.contains("nav-pills")).toBe(true)
   })
   it("Should pass disabled to Nav", () => {
-    const onSelect = e => e
+    const onSelect = (k: any) => k
     const mock = jest.fn(onSelect)
     const { getByText } = render(
       <Tabs id="test" defaultActiveKey={1} onSelect={mock}>
@@ -134,8 +136,8 @@ describe("<Tabs>", () => {
         </Tab>
       </Tabs>
     )
-    const secondTabTitle = getByText("Tab 2")
-    expect(secondTabTitle.classList.contains("disabled")).toBe(true)
+    const t2 = getByText("Tab 2")
+    expect(t2.classList.contains("disabled")).toBe(true)
     expect(mock).not.toHaveBeenCalled()
   })
   it("Should not render a Tab without a title", () => {
@@ -143,7 +145,9 @@ describe("<Tabs>", () => {
     const { getByTestId } = render(
       <Tabs data-testid="testid" id="test" defaultActiveKey={1}>
         {/* */}
-        <Tab eventKey={1}>Tab 1 content</Tab>
+        <Tab title="Tab 1" eventKey={1}>
+          Tab 1 content
+        </Tab>
         <Tab title="Tab 2" eventKey={2} disabled>
           Tab 2 content
         </Tab>
@@ -183,10 +187,10 @@ describe("<Tabs>", () => {
         </Tab>
       </Tabs>
     )
-    const firstTabContent = getByText("Tab 1 content")
-    const secondTabContent = getByText("Tab 2 content")
-    expect(firstTabContent.classList.contains("fade")).toBe(false)
-    expect(secondTabContent.classList.contains("fade")).toBe(true)
+    const c1 = getByText("Tab 1 content")
+    const c2 = getByText("Tab 2 content")
+    expect(c1.classList.contains("fade")).toBe(false)
+    expect(c2.classList.contains("fade")).toBe(true)
   })
   it("Should pass fill to Nav", () => {
     const { getByTestId } = render(
@@ -215,11 +219,9 @@ describe("<Tabs>", () => {
     expect(getByTestId("test").classList.contains("nav-justified")).toBe(true)
   })
 })
-
 describe("<Content>", () => {
   it("Should have div as default component", () => {
     const { container } = render(<Content />)
-
     expect(container.tagName.toLowerCase()).toEqual("div")
   })
 })

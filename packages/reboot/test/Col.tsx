@@ -43,7 +43,7 @@ describe("Col", () => {
   })
   it("Should allow span to be null", () => {
     const { getByText } = render(
-      <Col xs="6" md={{ span: null, order: 1 }}>
+      <Col xs="6" md={{ order: 1 }}>
         Column
       </Col>
     )

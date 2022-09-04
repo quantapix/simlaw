@@ -49,10 +49,10 @@ describe("Row", () => {
         <strong>Children</strong>
       </Row>
     )
-    const wrapper = getByText("Children").parentElement
-    expect(wrapper?.tagName.toLowerCase()).toEqual("div")
-    expect(wrapper?.classList.contains("row")).toBe(true)
-    expect(wrapper?.classList.contains("custom-class")).toBe(true)
+    const y = getByText("Children").parentElement
+    expect(y?.tagName.toLowerCase()).toEqual("div")
+    expect(y?.classList.contains("row")).toBe(true)
+    expect(y?.classList.contains("custom-class")).toBe(true)
     expect(getByText("Children").tagName.toLowerCase()).toEqual("strong")
   })
   it('should allow custom elements instead of "div"', () => {

@@ -8,10 +8,10 @@ describe("Ratio", () => {
         <div />
       </Ratio>
     )
-    const ratioElem = getByTestId("test")
-    expect(ratioElem.classList.contains("custom-class")).toBe(true)
-    expect(ratioElem.classList.contains("ratio")).toBe(true)
-    expect(ratioElem.classList.contains("ratio-1x1")).toBe(true)
+    const y = getByTestId("test")
+    expect(y.classList.contains("custom-class")).toBe(true)
+    expect(y.classList.contains("ratio")).toBe(true)
+    expect(y.classList.contains("ratio-1x1")).toBe(true)
   })
   it("Should support custom ratios using percent for aspectRatio", () => {
     const { getByTestId } = render(
@@ -19,9 +19,9 @@ describe("Ratio", () => {
         <div />
       </Ratio>
     )
-    const ratioElem = getByTestId("test")
-    const styleAttr = ratioElem.getAttribute("style")!
-    expect(styleAttr).toMatch(/--bs-aspect-ratio:[ ]*50%;/)
+    const y = getByTestId("test")
+    const y2 = y.getAttribute("style")!
+    expect(y2).toMatch(/--bs-aspect-ratio:[ ]*50%;/)
   })
   it("Should support custom ratios using fraction for aspectRatio", () => {
     const { getByTestId } = render(
@@ -29,9 +29,9 @@ describe("Ratio", () => {
         <div />
       </Ratio>
     )
-    const ratioElem = getByTestId("test")
-    const styleAttr = ratioElem.getAttribute("style")!
-    expect(styleAttr).toMatch(/--bs-aspect-ratio:[ ]*50%;/)
+    const y = getByTestId("test")
+    const y2 = y.getAttribute("style")!
+    expect(y2).toMatch(/--bs-aspect-ratio:[ ]*50%;/)
   })
   it("Should support use 100% as custom ratio if aspectRatio is less than 0", () => {
     const { getByTestId } = render(
@@ -39,9 +39,9 @@ describe("Ratio", () => {
         <div />
       </Ratio>
     )
-    const ratioElem = getByTestId("test")
-    const styleAttr = ratioElem.getAttribute("style")!
-    expect(styleAttr).toMatch(/--bs-aspect-ratio:[ ]*100%;/)
+    const y = getByTestId("test")
+    const y2 = y.getAttribute("style")!
+    expect(y2).toMatch(/--bs-aspect-ratio:[ ]*100%;/)
   })
   it("Should support use 100% as custom ratio if aspectRatio is greater than 100", () => {
     const { getByTestId } = render(
@@ -49,8 +49,8 @@ describe("Ratio", () => {
         <div />
       </Ratio>
     )
-    const ratioElem = getByTestId("test")
-    const styleAttr = ratioElem.getAttribute("style")!
-    expect(styleAttr).toMatch(/--bs-aspect-ratio:[ ]*100%;/)
+    const y = getByTestId("test")
+    const y2 = y.getAttribute("style")!
+    expect(y2).toMatch(/--bs-aspect-ratio:[ ]*100%;/)
   })
 })

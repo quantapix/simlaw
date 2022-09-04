@@ -1,11 +1,11 @@
 import { Collapse, Props } from "../src/Collapse.jsx"
 import { render, RenderResult } from "@testing-library/react"
-import * as React from "react"
+import * as qr from "react"
 import type { Transition } from "react-transition-group"
 
 describe("<Collapse>", () => {
-  class Component extends React.Component<
-    React.PropsWithChildren<Omit<Props, "children">>
+  class Component extends qr.Component<
+    qr.PropsWithChildren<Omit<Props, "children">>
   > {
     collapse: Transition<HTMLElement> | null = null
     override render() {
@@ -28,13 +28,13 @@ describe("<Collapse>", () => {
   }
   it("Should not throw an error with StrictMode", () => {
     render(
-      <React.StrictMode>
+      <qr.StrictMode>
         <Component in>Panel content</Component>
-      </React.StrictMode>
+      </qr.StrictMode>
     )
   })
   it("Should work with a class component as children", () => {
-    class InnerComponent extends React.Component {
+    class InnerComponent extends qr.Component {
       override render() {
         return <div {...this.props}>Inner</div>
       }

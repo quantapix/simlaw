@@ -1,9 +1,9 @@
+import { Context, Item, Nav } from "../../src/base/Nav.jsx"
 import { mount } from "enzyme"
 import { render, fireEvent } from "@testing-library/react"
-import { Context, Item, Nav } from "../../src/base/Nav.jsx"
 import { Selectable } from "../../src/base/types.jsx"
 import { Tabs } from "../../src/base/Tabs.jsx"
-import * as React from "react"
+import * as qr from "react"
 
 describe("<Nav>", () => {
   let focusableContainer: any
@@ -126,7 +126,7 @@ describe("<NavItem>", () => {
   })
   it("Should not call onSelect onClick stopPropagation called", () => {
     const mock = jest.fn()
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = (e: qr.MouseEvent) => {
       e.stopPropagation()
     }
     const { getByText } = render(

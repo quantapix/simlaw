@@ -1,15 +1,24 @@
-import * as React from "react"
-import { fireEvent, render } from "@testing-library/react"
 import { Body, Container, Header, Position, Toast } from "../src/Toast.jsx"
+import { fireEvent, render } from "@testing-library/react"
 
-const getToast = ({ delay = 500, mock, autohide = true, show = true }) => (
+const getToast = ({
+  delay = 500,
+  mock,
+  autohide = true,
+  show = true,
+}: {
+  delay?: number
+  mock: any
+  autohide?: boolean
+  show?: boolean
+}) => (
   <Toast delay={delay} onClose={mock} show={show} autohide={autohide}>
     <Header>header-content</Header>
     <Body>body-content</Body>
   </Toast>
 )
 describe("<Toast>", () => {
-  let clock
+  // let clock
   beforeEach(() => {
     // clock = sinon.useFakeTimers()
   })
@@ -17,23 +26,19 @@ describe("<Toast>", () => {
     // clock.restore()
   })
   it("Should apply bg prop", () => {
-    const { container } = render(<Toast bg="primary">Card</Toast>)
-    expect(container.firstElementChild!.classList.contains("bg-primary")).toBe(
-      true
-    )
-    expect(container.firstElementChild!.classList.contains("toast")).toBe(true)
+    const { container: c } = render(<Toast bg="primary">Card</Toast>)
+    expect(c.firstElementChild!.classList.contains("bg-primary")).toBe(true)
+    expect(c.firstElementChild!.classList.contains("toast")).toBe(true)
   })
   it("Should render an entire toast", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Toast>
         <Header />
         <Body />
       </Toast>
     )
     ;["fade", "toast", "show"].map(className =>
-      expect(container.firstElementChild!.classList.contains(className)).toBe(
-        true
-      )
+      expect(c.firstElementChild!.classList.contains(className)).toBe(true)
     )
     ;(
       [
@@ -43,35 +48,31 @@ describe("<Toast>", () => {
       ] as const
     ).map(([attrName, attrVal]) =>
       expect(
-        container.firstElementChild!.attributes.getNamedItem(attrName)!
-          .textContent === `${attrVal}`
+        c.firstElementChild!.attributes.getNamedItem(attrName)!.textContent ===
+          `${attrVal}`
       ).toBe(true)
     )
   })
   it("Should render without transition if animation is false", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Toast animation={false}>
         <Header />
         <Body />
       </Toast>
     )
     ;["toast", "show"].map(className =>
-      expect(container.firstElementChild!.classList.contains(className)).toBe(
-        true
-      )
+      expect(c.firstElementChild!.classList.contains(className)).toBe(true)
     )
   })
   it("Should trigger the onClose event after clicking on the close button", () => {
     const mock = jest.fn()
-    const { container } = render(
+    const { container: c } = render(
       <Toast onClose={mock}>
         <Header>header-content</Header>
         <Body>body-content</Body>
       </Toast>
     )
-    fireEvent.click(
-      container.firstElementChild!.getElementsByTagName("button")[0]
-    )
+    fireEvent.click(c.firstElementChild!.getElementsByTagName("button")[0]!)
     expect(mock).toHaveBeenCalledTimes(1)
   })
   it("Should trigger the onClose event after the autohide delay", () => {
@@ -110,10 +111,10 @@ describe("<Toast>", () => {
   })
   it("Should not reset autohide timer when element re-renders with same props", () => {
     const mock = jest.fn()
-    const toast = getToast({ mock })
-    const { rerender } = render(toast)
+    const y = getToast({ mock })
+    const { rerender } = render(y)
     jest.advanceTimersByTime(250)
-    rerender(toast)
+    rerender(y)
     jest.advanceTimersByTime(300)
     expect(mock).toHaveBeenCalledTimes(1)
   })
@@ -152,40 +153,38 @@ describe("<Toast>", () => {
     expect(mock).not.toHaveBeenCalled()
   })
   it("Should render with bsPrefix", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Toast bsPrefix="my-toast">
         <Header />
         <Body />
       </Toast>
     )
-    expect(container.firstElementChild!.tagName.toLowerCase()).toEqual("div")
-    container.firstElementChild!.classList.contains("my-toast")
+    expect(c.firstElementChild!.tagName.toLowerCase()).toEqual("div")
+    c.firstElementChild!.classList.contains("my-toast")
   })
 })
 
 describe("Header", () => {
   it("will pass all props to the created div and renders its children", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Header>
         <strong>content</strong>
       </Header>
     )
-    expect(container.firstElementChild!.tagName.toLowerCase()).toEqual("div")
+    expect(c.firstElementChild!.tagName.toLowerCase()).toEqual("div")
     expect(
-      container.firstElementChild!.firstElementChild!.tagName.toLowerCase()
+      c.firstElementChild!.firstElementChild!.tagName.toLowerCase()
     ).toEqual("strong")
-    expect(
-      container.firstElementChild!.classList.contains("toast-header")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.contains("toast-header")).toBe(true)
   })
   it("Should render close button variant", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Header closeButton closeVariant="white">
         <strong>content</strong>
       </Header>
     )
     expect(
-      container
+      c
         .firstElementChild!.getElementsByTagName("button")[0]!
         .classList.contains("btn-close-white")
     ).toBe(true)
@@ -195,15 +194,11 @@ describe("Header", () => {
 describe("Body", () => {
   it("will pass all props to the created div and renders its children", () => {
     const content = <strong>Content</strong>
-    const { container } = render(
+    const { container: c } = render(
       <Body className="custom-class">{content}</Body>
     )
-    expect(
-      container.firstElementChild!.classList.contains("custom-class")
-    ).toBe(true)
-    expect(container.firstElementChild!.classList.contains("toast-body")).toBe(
-      true
-    )
+    expect(c.firstElementChild!.classList.contains("custom-class")).toBe(true)
+    expect(c.firstElementChild!.classList.contains("toast-body")).toBe(true)
   })
 })
 
@@ -218,66 +213,55 @@ const expectedClassesWithoutPosition: Record<Position, Array<string>> = {
   "bottom-center": ["bottom-0", "start-50", "translate-middle-x"],
   "bottom-end": ["bottom-0", "end-0"],
 }
-const createExpectedClasses = (containerPosition = "absolute") =>
+const createExpectedClasses = (pos = "absolute") =>
   Object.fromEntries(
-    Object.entries(expectedClassesWithoutPosition).map(([key, value]) => [
-      key,
-      containerPosition ? [`position-${containerPosition}`, ...value] : value,
+    Object.entries(expectedClassesWithoutPosition).map(([k, v]) => [
+      k,
+      pos ? [`position-${pos}`, ...v] : v,
     ])
   )
 describe("Container", () => {
   it("Should render a basic toast container", () => {
-    const { container } = render(<Container />)
-    expect(
-      container.firstElementChild!.classList.contains("toast-container")
-    ).toBe(true)
+    const { container: c } = render(<Container />)
+    expect(c.firstElementChild!.classList.contains("toast-container")).toBe(
+      true
+    )
   })
   describe("without containerPosition", () => {
-    const expectedClasses = createExpectedClasses()
-    Object.keys(expectedClasses).forEach((position: Position) => {
-      it(`Should render classes for position=${position} with position-absolute`, () => {
-        const { container } = render(<Container position={position} />)
-        expectedClasses[position].map(className =>
-          expect(
-            container.firstElementChild!.classList.contains(className)
-          ).toBe(true)
+    const cs = createExpectedClasses()
+    Object.keys(cs).forEach(x => {
+      it(`Should render classes for position=${x} with position-absolute`, () => {
+        const { container: c } = render(<Container position={x as Position} />)
+        cs[x]?.map(n =>
+          expect(c.firstElementChild!.classList.contains(n)).toBe(true)
         )
       })
     })
   })
   describe('with containerPosition = "" (empty string)', () => {
-    const expectedClasses = createExpectedClasses("")
-    Object.keys(expectedClasses).forEach((position: Position) => {
-      it(`Should render classes for position=${position} without position-*`, () => {
-        const { container } = render(<Container position={position} />)
-        expectedClasses[position].map(className =>
-          expect(
-            container.firstElementChild!.classList.contains(className)
-          ).toBe(true)
+    const cs = createExpectedClasses("")
+    Object.keys(cs).forEach(x => {
+      it(`Should render classes for position=${x} without position-*`, () => {
+        const { container } = render(<Container position={x as Position} />)
+        cs[x]?.map(n =>
+          expect(container.firstElementChild!.classList.contains(n)).toBe(true)
         )
       })
     })
   })
-  ;["absolute", "fixed", "relative", "sticky", "custom"].forEach(
-    containerPosition => {
-      describe(`with containerPosition=${containerPosition}`, () => {
-        const expectedClasses = createExpectedClasses(containerPosition)
-        Object.keys(expectedClasses).forEach((position: Position) => {
-          it(`Should render classes for position=${position} with position-${containerPosition}`, () => {
-            const { container } = render(
-              <Container
-                position={position}
-                containerPosition={containerPosition}
-              />
-            )
-            expectedClasses[position].map(className =>
-              expect(
-                container.firstElementChild!.classList.contains(className)
-              ).toBe(true)
-            )
-          })
+  ;["absolute", "fixed", "relative", "sticky", "custom"].forEach(x => {
+    describe(`with containerPosition=${x}`, () => {
+      const cs = createExpectedClasses(x)
+      Object.keys(cs).forEach(p => {
+        it(`Should render classes for position=${p} with position-${x}`, () => {
+          const { container: c } = render(
+            <Container position={p as Position} containerPosition={x} />
+          )
+          cs[p]?.map(n =>
+            expect(c.firstElementChild!.classList.contains(n)).toBe(true)
+          )
         })
       })
-    }
-  )
+    })
+  })
 })

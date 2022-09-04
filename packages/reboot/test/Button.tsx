@@ -1,6 +1,6 @@
 import { Button, Close, Group, Toolbar } from "../src/Button.jsx"
 import { fireEvent, render } from "@testing-library/react"
-import * as React from "react"
+import * as qr from "react"
 
 describe("<Button>", () => {
   it("Should output a button", () => {
@@ -32,7 +32,7 @@ describe("<Button>", () => {
     expect(getByTestId("test").getAttribute("type")).toBeNull()
   })
   it("Should forward refs to the button", () => {
-    const ref = React.createRef<HTMLButtonElement>()
+    const ref = qr.createRef<HTMLButtonElement>()
     render(
       <div>
         <Button ref={ref}>Yo</Button>

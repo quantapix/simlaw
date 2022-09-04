@@ -1,6 +1,6 @@
 import { Button } from "../../src/base/Button.jsx"
 import { render, fireEvent } from "@testing-library/react"
-import * as React from "react"
+import * as qr from "react"
 
 describe("Button", () => {
   it("Should output a button", () => {
@@ -28,7 +28,7 @@ describe("Button", () => {
     expect(container.firstElementChild!.getAttribute("type")).toBeNull()
   })
   it("Should forward refs to the button", () => {
-    const ref = React.createRef<any>()
+    const ref = qr.createRef<any>()
     const { rerender } = render(
       <div>
         <Button ref={ref}>Yo</Button>

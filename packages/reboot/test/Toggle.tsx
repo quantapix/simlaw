@@ -1,10 +1,10 @@
-import * as React from "react"
-import { render, fireEvent } from "@testing-library/react"
 import { Button, Group } from "../src/Toggle.jsx"
+import { render, fireEvent } from "@testing-library/react"
+import * as qr from "react"
 
 describe("Button", () => {
   it("Should forward refs to the label", () => {
-    const ref = React.createRef<HTMLLabelElement>()
+    const ref = qr.createRef<HTMLLabelElement>()
     render(
       <Button id="id" ref={ref} value={1}>
         Option
@@ -13,7 +13,7 @@ describe("Button", () => {
     expect(ref.current!.tagName).toEqual("LABEL")
   })
   it("Should add an inputRef", () => {
-    const ref = React.createRef<HTMLInputElement>()
+    const ref = qr.createRef<HTMLInputElement>()
     render(
       <Button id="id" inputRef={ref} value={1}>
         Option
@@ -32,7 +32,7 @@ describe("Button", () => {
 })
 describe("Group", () => {
   it("Should render checkboxes", () => {
-    const { container, getByLabelText } = render(
+    const { container: c, getByLabelText } = render(
       <Group type="checkbox">
         <Button id="id1" value={1}>
           Option 1
@@ -45,10 +45,8 @@ describe("Group", () => {
         </Button>
       </Group>
     )
-    expect(container.firstElementChild!.classList.length).toEqual(1)
-    expect(container.firstElementChild!.classList.contains("btn-group")).toBe(
-      true
-    )
+    expect(c.firstElementChild!.classList.length).toEqual(1)
+    expect(c.firstElementChild!.classList.contains("btn-group")).toBe(true)
     expect(getByLabelText("Option 1")!.getAttribute("type")!).toEqual(
       "checkbox"
     )
@@ -60,7 +58,7 @@ describe("Group", () => {
     )
   })
   it("Should render checkboxes vertically", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Group type="checkbox" vertical>
         <Button id="id1" value={1}>
           Option 1
@@ -73,13 +71,13 @@ describe("Group", () => {
         </Button>
       </Group>
     )
-    expect(container.firstElementChild!.classList.length).toEqual(1)
-    expect(
-      container.firstElementChild!.classList.contains("btn-group-vertical")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.length).toEqual(1)
+    expect(c.firstElementChild!.classList.contains("btn-group-vertical")).toBe(
+      true
+    )
   })
   it("Should render checkboxes vertically and small", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Group type="checkbox" vertical size="sm">
         <Button id="id1" value={1}>
           Option 1
@@ -92,16 +90,14 @@ describe("Group", () => {
         </Button>
       </Group>
     )
-    expect(container.firstElementChild!.classList.length).toEqual(2)
-    expect(
-      container.firstElementChild!.classList.contains("btn-group-vertical")
-    ).toBe(true)
-    expect(
-      container.firstElementChild!.classList.contains("btn-group-sm")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.length).toEqual(2)
+    expect(c.firstElementChild!.classList.contains("btn-group-vertical")).toBe(
+      true
+    )
+    expect(c.firstElementChild!.classList.contains("btn-group-sm")).toBe(true)
   })
   it("Should render checkboxes vertically and large", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Group type="checkbox" vertical size="lg">
         <Button id="id1" value={1}>
           Option 1
@@ -114,16 +110,14 @@ describe("Group", () => {
         </Button>
       </Group>
     )
-    expect(container.firstElementChild!.classList.length).toEqual(2)
-    expect(
-      container.firstElementChild!.classList.contains("btn-group-vertical")
-    ).toBe(true)
-    expect(
-      container.firstElementChild!.classList.contains("btn-group-lg")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.length).toEqual(2)
+    expect(c.firstElementChild!.classList.contains("btn-group-vertical")).toBe(
+      true
+    )
+    expect(c.firstElementChild!.classList.contains("btn-group-lg")).toBe(true)
   })
   it("Should render radios", () => {
-    const { container, getByLabelText } = render(
+    const { container: c, getByLabelText } = render(
       <Group type="radio" name="items">
         <Button id="id1" value={1}>
           Option 1
@@ -136,16 +130,14 @@ describe("Group", () => {
         </Button>
       </Group>
     )
-    expect(container.firstElementChild!.classList.length).toEqual(1)
-    expect(container.firstElementChild!.classList.contains("btn-group")).toBe(
-      true
-    )
+    expect(c.firstElementChild!.classList.length).toEqual(1)
+    expect(c.firstElementChild!.classList.contains("btn-group")).toBe(true)
     expect(getByLabelText("Option 1")!.getAttribute("type")!).toEqual("radio")
     expect(getByLabelText("Option 2")!.getAttribute("type")!).toEqual("radio")
     expect(getByLabelText("Option 3")!.getAttribute("type")!).toEqual("radio")
   })
   it("Should render radios vertically", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Group type="radio" name="items" vertical>
         <Button id="id1" value={1}>
           Option 1
@@ -158,13 +150,13 @@ describe("Group", () => {
         </Button>
       </Group>
     )
-    expect(container.firstElementChild!.classList.length).toEqual(1)
-    expect(
-      container.firstElementChild!.classList.contains("btn-group-vertical")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.length).toEqual(1)
+    expect(c.firstElementChild!.classList.contains("btn-group-vertical")).toBe(
+      true
+    )
   })
   it("Should render radios vertically and small", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Group type="radio" name="items" vertical size="sm">
         <Button id="id1" value={1}>
           Option 1
@@ -177,16 +169,14 @@ describe("Group", () => {
         </Button>
       </Group>
     )
-    expect(container.firstElementChild!.classList.length).toEqual(2)
-    expect(
-      container.firstElementChild!.classList.contains("btn-group-vertical")
-    ).toBe(true)
-    expect(
-      container.firstElementChild!.classList.contains("btn-group-sm")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.length).toEqual(2)
+    expect(c.firstElementChild!.classList.contains("btn-group-vertical")).toBe(
+      true
+    )
+    expect(c.firstElementChild!.classList.contains("btn-group-sm")).toBe(true)
   })
   it("Should render radios vertically and large", () => {
-    const { container } = render(
+    const { container: c } = render(
       <Group type="radio" name="items" vertical size="lg">
         <Button id="id1" value={1}>
           Option 1
@@ -199,13 +189,11 @@ describe("Group", () => {
         </Button>
       </Group>
     )
-    expect(container.firstElementChild!.classList.length).toEqual(2)
-    expect(
-      container.firstElementChild!.classList.contains("btn-group-vertical")
-    ).toBe(true)
-    expect(
-      container.firstElementChild!.classList.contains("btn-group-lg")
-    ).toBe(true)
+    expect(c.firstElementChild!.classList.length).toEqual(2)
+    expect(c.firstElementChild!.classList.contains("btn-group-vertical")).toBe(
+      true
+    )
+    expect(c.firstElementChild!.classList.contains("btn-group-lg")).toBe(true)
   })
   it("Should select initial values", () => {
     const { getByLabelText } = render(

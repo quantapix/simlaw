@@ -1,11 +1,11 @@
 import { Fade, Props } from "../src/Fade.jsx"
 import { render } from "@testing-library/react"
-import * as React from "react"
+import * as qr from "react"
 import type { Transition } from "react-transition-group"
 
 describe("Fade", () => {
-  class Component extends React.Component<
-    React.PropsWithChildren<Omit<Props, "children">>
+  class Component extends qr.Component<
+    qr.PropsWithChildren<Omit<Props, "children">>
   > {
     fade: Transition<HTMLElement> | null = null
     override render() {
@@ -27,14 +27,14 @@ describe("Fade", () => {
   }
   it("Should not throw an error with StrictMode", () => {
     render(
-      <React.StrictMode>
+      <qr.StrictMode>
         <Component in>Panel content</Component>
-      </React.StrictMode>
+      </qr.StrictMode>
     )
   })
   it("Should work with a class component as children", () => {
     const mock = jest.fn()
-    class InnerComponent extends React.Component {
+    class InnerComponent extends qr.Component {
       override render() {
         return <div {...this.props}>test</div>
       }

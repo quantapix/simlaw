@@ -2,7 +2,7 @@ import { Carousel, Item, Ref, Caption } from "../src/Carousel.jsx"
 import { fireEvent, render, RenderResult } from "@testing-library/react"
 import { Simulate } from "react-dom/test-utils"
 import { Theme } from "../src/Theme.jsx"
-import * as React from "react"
+import * as qr from "react"
 
 jest.useFakeTimers()
 
@@ -20,13 +20,13 @@ describe("<Carousel>", () => {
     </Item>,
   ]
   it("Should not throw an error with StrictMode", () => {
-    const ref = React.createRef<Ref>()
+    const ref = qr.createRef<Ref>()
     render(
-      <React.StrictMode>
+      <qr.StrictMode>
         <Carousel ref={ref} interval={null}>
           {items}
         </Carousel>
-      </React.StrictMode>
+      </qr.StrictMode>
     )
     ref.current!.next()
   })
@@ -110,7 +110,7 @@ describe("<Carousel>", () => {
       // clock = undefined
     })
     it("Should allow refs to be attached and expose next, prev functions", () => {
-      const ref = React.createRef<Ref>()
+      const ref = qr.createRef<Ref>()
       const mock = jest.fn()
       render(
         <Carousel ref={ref} onSelect={mock} defaultActiveIndex={1}>
