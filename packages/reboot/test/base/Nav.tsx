@@ -3,7 +3,7 @@ import { mount } from "enzyme"
 import { render, fireEvent } from "@testing-library/react"
 import { Selectable } from "../../src/base/types.jsx"
 import { Tabs } from "../../src/base/Tabs.jsx"
-import * as qr from "react"
+import type * as qr from "react"
 
 describe("<Nav>", () => {
   let focusableContainer: any

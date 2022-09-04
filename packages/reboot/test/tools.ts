@@ -1,5 +1,5 @@
 export function shouldWarn(x: any) {
-  console.error.expected.push(x)
+  console.error(x)
 }
 
 let style: any
@@ -18,6 +18,7 @@ export function injectCss(xs: any) {
   seen.push(xs)
   style.innerHTML += `\n${xs}`
 }
+
 injectCss.reset = () => {
   if (style) document.head.removeChild(style)
   style = null

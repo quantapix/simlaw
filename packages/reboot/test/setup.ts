@@ -1,10 +1,10 @@
 import Enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-import matchMediaPolyfill from "mq-polyfill"
+//import matchMediaPolyfill from "mq-polyfill"
 
 Enzyme.configure({ adapter: new Adapter() })
 if (typeof window !== "undefined") {
-  matchMediaPolyfill(window)
+  //matchMediaPolyfill(window)
   window.resizeTo = function resizeTo(width, height) {
     Object.assign(this, {
       innerWidth: width,
@@ -14,20 +14,18 @@ if (typeof window !== "undefined") {
     }).dispatchEvent(new this.Event("resize"))
   }
 }
-let expectedErrors = 0
-let actualErrors = 0
-function onError(e) {
-  if (expectedErrors) {
-    e.preventDefault()
-  }
-  actualErrors += 1
+let expected = 0
+let actual = 0
+function onError(x: any) {
+  if (expected) x.preventDefault()
+  actual += 1
 }
-expect.errors = num => {
-  expectedErrors = num
+expect.assertions = (x: any) => {
+  expected = x
 }
 beforeEach(() => {
-  expectedErrors = 0
-  actualErrors = 0
+  expected = 0
+  actual = 0
   if (typeof window !== "undefined") {
     window.addEventListener("error", onError)
   }
@@ -36,8 +34,6 @@ afterEach(() => {
   if (typeof window !== "undefined") {
     window.removeEventListener("error", onError)
   }
-  if (expectedErrors) {
-    expect(actualErrors).toBe(expectedErrors)
-  }
-  expectedErrors = 0
+  if (expected) expect(actual).toBe(expected)
+  expected = 0
 })
