@@ -113,7 +113,7 @@ describe("<Navbar>", () => {
     expect(toggleElem.classList.contains("show")).toBe(true)
   })
   it("Should wire the toggle to the collapse", done => {
-    const // clock = sinon.useFakeTimers()
+    //const clock = sinon.useFakeTimers()
     const { getByTestId } = render(
       <Navbar>
         <Toggle data-testid="toggler" />
