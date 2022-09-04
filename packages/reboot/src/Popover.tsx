@@ -1,14 +1,14 @@
 import { useBs, useIsRTL } from "./Theme.jsx"
-import { withBs } from "./utils.jsx"
 import * as qr from "react"
 import * as qt from "./types.jsx"
+import * as qu from "./utils.jsx"
 import type { ArrowProps } from "./base/Overlay.jsx"
 import type { Placement } from "./base/popper.js"
 
 export const POPPER_OFFSET = [0, 8]
 
-export const Header = withBs("popover-header")
-export const Body = withBs("popover-body")
+export const Header = qu.withBs("popover-header")
+export const Body = qu.withBs("popover-body")
 
 export interface Props extends qr.HTMLAttributes<HTMLDivElement>, qt.BsProps {
   placement?: Placement
@@ -35,21 +35,17 @@ export const Popover = qr.forwardRef<HTMLDivElement, Props>(
     },
     ref
   ) => {
-    const decoratedBsPrefix = useBs(bsPrefix, "popover")
+    const bs = useBs(bsPrefix, "popover")
     const isRTL = useIsRTL()
-    const [primaryPlacement] = placement?.split("-") || []
-    const bsDirection = qt.getDirection(primaryPlacement!, isRTL)
+    const [primary] = placement?.split("-") || []
+    const dir = qu.getDirection(primary!, isRTL)
     return (
       <div
         ref={ref}
         role="tooltip"
         style={style}
-        x-placement={primaryPlacement}
-        className={qt.classNames(
-          className,
-          decoratedBsPrefix,
-          primaryPlacement && `bs-popover-${bsDirection}`
-        )}
+        x-placement={primary}
+        className={qt.classNames(className, bs, primary && `bs-popover-${dir}`)}
         {...ps}
       >
         <div className="popover-arrow" {...arrowProps} />

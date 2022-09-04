@@ -19,28 +19,26 @@ export type Utility<T> =
       xxl?: T
     }
 
-export function createUtilityClassName(
-  utilityValues: Record<string, Utility<unknown>>,
-  breakpoints = BREAKPOINTS,
-  minBreakpoint = MIN_BREAKPOINT
+export function createUtilClasses(
+  xs: Record<string, Utility<unknown>>,
+  bps = BREAKPOINTS,
+  min = MIN_BREAKPOINT
 ) {
-  const classes: string[] = []
-  Object.entries(utilityValues).forEach(([n, v]) => {
+  const ys: string[] = []
+  Object.entries(xs).forEach(([n, v]) => {
     if (v != null) {
       if (typeof v === "object") {
-        breakpoints.forEach(x => {
-          const bp = (v as any)[x]
-          if (bp != null) {
-            const infix = x !== minBreakpoint ? `-${x}` : ""
-            classes.push(`${n}${infix}-${bp}`)
+        bps.forEach(bp => {
+          const x = (v as any)[bp]
+          if (x != null) {
+            const infix = bp !== min ? `-${bp}` : ""
+            ys.push(`${n}${infix}-${x}`)
           }
         })
-      } else {
-        classes.push(`${n}-${v}`)
-      }
+      } else ys.push(`${n}-${v}`)
     }
   })
-  return classes
+  return ys
 }
 
 export type Direction = "horizontal" | "vertical"
@@ -53,8 +51,8 @@ export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
 export const Stack: qt.BsRef<"span", Props> = qr.forwardRef<HTMLElement, Props>(
   ({ as: X = "div", bsPrefix, className, direction, gap, ...ps }, ref) => {
     const bs = useBs(bsPrefix, direction === "horizontal" ? "hstack" : "vstack")
-    const breakpoints = useBreakpoints()
-    const minBreakpoint = useMinBreakpoint()
+    const bps = useBreakpoints()
+    const min = useMinBreakpoint()
     return (
       <X
         {...ps}
@@ -62,11 +60,7 @@ export const Stack: qt.BsRef<"span", Props> = qr.forwardRef<HTMLElement, Props>(
         className={qt.classNames(
           className,
           bs,
-          ...createUtilityClassName({
-            gap,
-            breakpoints,
-            minBreakpoint,
-          })
+          ...createUtilClasses({ gap }, bps, min)
         )}
       />
     )

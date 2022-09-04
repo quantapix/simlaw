@@ -45,16 +45,6 @@ export type BsCompClass<
 
 export type Transition2 = boolean | qt.Transition
 
-export function getDirection(placement: string, isRTL?: boolean) {
-  let bsDirection = placement
-  if (placement === "left") {
-    bsDirection = isRTL ? "end" : "start"
-  } else if (placement === "right") {
-    bsDirection = isRTL ? "start" : "end"
-  }
-  return bsDirection
-}
-
 export type Arg =
   | string
   | number

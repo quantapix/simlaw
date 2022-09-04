@@ -142,3 +142,10 @@ export function endListener(
     duration + delay
   )
 }
+
+export function getDirection(x: string, isRTL?: boolean) {
+  let y = x
+  if (x === "left") y = isRTL ? "end" : "start"
+  else if (x === "right") y = isRTL ? "start" : "end"
+  return y
+}

@@ -1,6 +1,7 @@
 import { useBs, useIsRTL } from "./Theme.jsx"
 import * as qr from "react"
 import * as qt from "./types.jsx"
+import * as qu from "./utils.jsx"
 import type { ArrowProps } from "./base/Overlay.jsx"
 import type { Placement } from "./base/popper.js"
 
@@ -26,30 +27,24 @@ export const Tooltip = qr.forwardRef<HTMLDivElement, Props>(
     }: Props,
     ref
   ) => {
-    bsPrefix = useBs(bsPrefix, "tooltip")
+    const bs = useBs(bsPrefix, "tooltip")
     const isRTL = useIsRTL()
-    const [primaryPlacement] = placement?.split("-") || []
-    const bsDirection = qt.getDirection(primaryPlacement!, isRTL)
+    const [primary] = placement?.split("-") || []
+    const dir = qu.getDirection(primary!, isRTL)
     return (
       <div
         ref={ref}
         style={style}
         role="tooltip"
-        x-placement={primaryPlacement}
-        className={qt.classNames(
-          className,
-          bsPrefix,
-          `bs-tooltip-${bsDirection}`
-        )}
+        x-placement={primary}
+        className={qt.classNames(className, bs, `bs-tooltip-${dir}`)}
         {...ps}
       >
         <div className="tooltip-arrow" {...arrowProps} />
-        <div className={`${bsPrefix}-inner`}>{children}</div>
+        <div className={`${bs}-inner`}>{children}</div>
       </div>
     )
   }
 )
 Tooltip.displayName = "Tooltip"
-Tooltip.defaultProps = {
-  placement: "right",
-}
+Tooltip.defaultProps = { placement: "right" }
