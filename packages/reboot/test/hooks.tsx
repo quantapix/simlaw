@@ -1,26 +1,21 @@
-import { act } from "react-dom/test-utils"
-import { ReactWrapper, mount } from "enzyme"
-//import { renderHook, act } from "@testing-library/react-hooks"
+// import { renderHook, act } from "@testing-library/react-hooks"
+import { act } from "@testing-library/react-hooks"
 import { renderToString } from "react-dom/server"
-import { useEffect, useState, useLayoutEffect } from "react"
-import React from "react"
+import * as qe from "enzyme"
 import * as qh from "../src/hooks.js"
+import * as qr from "react"
 
-interface Props {
-  breakpoint: qh.DefaultBreakpointMap
-}
-
-export function renderHook<T extends (props: P) => any, P = any>(
-  fn: T,
-  initialProps?: P
-): [ReturnType<T>, ReactWrapper<P>] {
-  const result = Array(2) as any
-  function Wrapper(props: any) {
-    result[0] = fn(props)
+export function renderHook<F extends (ps: P) => any, P = any>(
+  f: F,
+  ps0?: P
+): [ReturnType<F>, qe.ReactWrapper<P>] {
+  const y = Array(2) as any
+  function Wrapper(xs: any) {
+    y[0] = f(xs)
     return <span />
   }
-  result[1] = mount(<Wrapper {...initialProps} />)
-  return result
+  y[1] = qe.mount(<Wrapper {...ps0} />)
+  return y
 }
 
 describe("useAnimationFrame", () => {
@@ -31,8 +26,8 @@ describe("useAnimationFrame", () => {
     })
     rafCancel = jest
       .spyOn(window, "cancelAnimationFrame")
-      .mockImplementation(handle => {
-        clearTimeout(handle)
+      .mockImplementation(x => {
+        clearTimeout(x)
       })
   })
   afterAll(() => {
@@ -42,8 +37,8 @@ describe("useAnimationFrame", () => {
   it("Should requestAnimationFrame", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    const { result } = renderHook(qh.useAnimationFrame)
-    act(() => result.current!.request(mock))
+    const [y] = renderHook(qh.useAnimationFrame)
+    act(() => y.request(mock))
     expect(mock).not.toHaveBeenCalled()
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(1)
@@ -51,10 +46,10 @@ describe("useAnimationFrame", () => {
   it("Should cancel a request", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    const { result } = renderHook(qh.useAnimationFrame)
+    const [y] = renderHook(qh.useAnimationFrame)
     act(() => {
-      result.current.request(mock)
-      result.current.cancel()
+      y.request(mock)
+      y.cancel()
     })
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(0)
@@ -62,32 +57,32 @@ describe("useAnimationFrame", () => {
   it("Should cancel a request on unmount", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    const { result, unmount } = renderHook(qh.useAnimationFrame)
-    act(() => result.current!.request(mock))
-    unmount()
+    const [y, w] = renderHook(qh.useAnimationFrame)
+    act(() => y.request(mock))
+    w.unmount()
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(0)
   })
 })
 describe("useBreakpoint (ssr)", () => {
   it("Should match immediately if possible", () => {
-    let matches
+    let y
     const Wrapper = () => {
-      matches = qh.useBreakpoint("md")
+      y = qh.useBreakpoint("md")
       return null
     }
     renderToString(<Wrapper />)
-    expect(matches).toEqual(false)
+    expect(y).toEqual(false)
   })
 })
 describe("useBreakpoint", () => {
-  let matchMediaSpy: jest.SpyInstance<MediaQueryList, [string]>
+  let spy: jest.SpyInstance<MediaQueryList, [string]>
   beforeEach(() => {
-    matchMediaSpy = jest.spyOn(window, "matchMedia")
+    spy = jest.spyOn(window, "matchMedia")
     window.resizeTo(1024, window.innerHeight)
   })
   afterEach(() => {
-    matchMediaSpy.mockRestore()
+    spy.mockRestore()
   })
   it.each`
     width   | expected | config
@@ -109,65 +104,54 @@ describe("useBreakpoint", () => {
     "should match: $expected with config: $config at window width: $width",
     ({ width, expected, config }) => {
       window.resizeTo(width, window.innerHeight)
-      const { result, unmount } = renderHook(() => qh.useBreakpoint(config))
-      expect(result.current).toEqual(expected)
-      unmount()
+      const [y, w] = renderHook(() => qh.useBreakpoint(config))
+      expect(y).toEqual(expected)
+      w.unmount()
     }
   )
   it("Should assume pixels for number values", () => {
-    const useCustomBreakpoint = qh.createBreakpointHook({
-      xs: 0,
-      sm: 400,
-      md: 700,
-    })
-    renderHook(() => useCustomBreakpoint("sm"))
-    expect(matchMediaSpy).toBeCalled()
-    expect(matchMediaSpy.mock.calls[0][0]).toEqual(
+    const bp = qh.createBreakpointHook({ xs: 0, sm: 400, md: 700 })
+    renderHook(() => bp("sm"))
+    expect(spy).toBeCalled()
+    expect(spy.mock.calls[0]?.[0]).toEqual(
       "(min-width: 400px) and (max-width: 699.8px)"
     )
   })
   it("Should use calc for string values", () => {
-    const useCustomBreakpoint = qh.createBreakpointHook({
-      xs: 0,
-      sm: "40rem",
-      md: "70rem",
-    })
-    renderHook(() => useCustomBreakpoint("sm"))
-    expect(matchMediaSpy).toBeCalled()
-    expect(matchMediaSpy.mock.calls[0][0]).toEqual(
+    const bp = qh.createBreakpointHook({ xs: 0, sm: "40rem", md: "70rem" })
+    renderHook(() => bp("sm"))
+    expect(spy).toBeCalled()
+    expect(spy.mock.calls[0]?.[0]).toEqual(
       "(min-width: 40rem) and (max-width: calc(70rem - 0.2px))"
     )
   })
   it("Should flatten media", () => {
-    const useCustomBreakpoint = qh.createBreakpointHook({
-      sm: 400,
-      md: 400,
-    })
-    renderHook(() => useCustomBreakpoint({ sm: "up", md: "up" }))
-    expect(matchMediaSpy.mock.calls[0][0]).toEqual("(min-width: 400px)")
+    const bp = qh.createBreakpointHook({ sm: 400, md: 400 })
+    renderHook(() => bp({ sm: "up", md: "up" }))
+    expect(spy.mock.calls[0]?.[0]).toEqual("(min-width: 400px)")
   })
 })
 describe("useCallbackRef", () => {
   it("Should update value and be fresh in an effect", () => {
     const mock = jest.fn()
-    function Wrapper({ toggle }) {
-      const [ref, attachRef] = qh.useCallbackRef<
+    function Wrapper({ toggle }: { toggle: any }) {
+      const [ref, attach] = qh.useCallbackRef<
         HTMLDivElement | HTMLSpanElement
       >()
-      useEffect(() => {
+      qr.useEffect(() => {
         mock(ref)
       }, [ref])
-      return toggle ? <div ref={attachRef} /> : <span ref={attachRef} />
+      return toggle ? <div ref={attach} /> : <span ref={attach} />
     }
-    const wrapper = mount(<Wrapper toggle={false} />)
-    expect(wrapper.children().type()).toEqual("span")
+    const w = qe.mount(<Wrapper toggle={false} />)
+    expect(w.children().type()).toEqual("span")
     expect(mock).toHaveBeenLastCalledWith(
       expect.objectContaining({ tagName: "SPAN" })
     )
     act(() => {
-      wrapper.setProps({ toggle: true })
+      w.setProps({ toggle: true })
     })
-    expect(wrapper.children().type()).toEqual("div")
+    expect(w.children().type()).toEqual("div")
     expect(mock).toHaveBeenLastCalledWith(
       expect.objectContaining({ tagName: "DIV" })
     )
@@ -175,58 +159,51 @@ describe("useCallbackRef", () => {
 })
 describe("useCommittedRef", () => {
   it("Should use fresh value", () => {
-    function Foo({ fn }) {
-      const fnRef = qh.useCommittedRef(fn)
-      useEffect(() => {
-        fnRef.current()
-      })
-      return null
-    }
     const mockA = jest.fn()
     const mockB = jest.fn()
-    const { rerender } = renderHook(
-      fn => {
-        const fnRef = qh.useCommittedRef<any>(fn)
-        useEffect(() => {
-          fnRef.current()
+    const [y] = renderHook(
+      f => {
+        const ref = qh.useCommittedRef<any>(f)
+        qr.useEffect(() => {
+          ref.current()
         })
       },
-      { initialProps: mockA }
+      { ps0: mockA }
     )
-    rerender(mockB)
+    y(mockB)
     expect(mockA).toHaveBeenCalledTimes(1)
     expect(mockB).toHaveBeenCalledTimes(1)
   })
 })
 describe("useCustomEffect", () => {
   it("Should run custom isEqual logic", () => {
-    const teardown = jest.fn()
-    const mock = jest.fn().mockImplementation(() => teardown)
-    const isEqual = jest.fn((next, prev) => next[0].foo === prev[0].foo)
-    const [, wrapper] = renderHook(
+    const unmock = jest.fn()
+    const mock = jest.fn().mockImplementation(() => unmock)
+    const isEqual = jest.fn((a, b) => a[0].foo === b[0].foo)
+    const [, y] = renderHook(
       ({ value }) => {
         qh.useCustomEffect(mock, [value], isEqual)
       },
       { value: { foo: true } }
     )
     expect(mock).toHaveBeenCalledTimes(1)
-    wrapper.setProps({ value: { foo: true } })
+    y.setProps({ value: { foo: true } })
     expect(mock).toHaveBeenCalledTimes(1)
-    wrapper.setProps({ value: { foo: false } })
+    y.setProps({ value: { foo: false } })
     expect(mock).toHaveBeenCalledTimes(2)
     expect(isEqual).toHaveBeenCalledTimes(2)
-    expect(teardown).toBeCalledTimes(1)
+    expect(unmock).toBeCalledTimes(1)
     expect(mock).toHaveBeenCalledTimes(2)
-    wrapper.unmount()
-    expect(teardown).toBeCalledTimes(2)
+    y.unmount()
+    expect(unmock).toBeCalledTimes(2)
   })
   it("Should accept different hooks", () => {
     const mock = jest.fn()
-    const hook = jest.fn().mockImplementation(qh.useImmediateUpdateEffect)
+    const hook = jest.fn().mockImplementation(qh.useUpdateImmediateEffect)
     renderHook(
       ({ value }) => {
         qh.useCustomEffect(mock, [value], {
-          isEqual: (next, prev) => next[0].foo === prev[0].foo,
+          isEqual: (a, b) => a[0]?.foo === b[0]?.foo,
           effectHook: hook,
         })
       },
@@ -240,18 +217,17 @@ describe("useDebouncedCallback", () => {
   it("Should return a function that debounces input callback", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    let debouncedFn: any
+    let cb: any
     function Wrapper() {
-      debouncedFn = qh.useDebouncedCB(mock, 500)
+      cb = qh.useDebouncedCB(mock, 500)
       return <span />
     }
-    mount(<Wrapper />)
-    debouncedFn(1)
-    debouncedFn(2)
-    debouncedFn(3)
+    qe.mount(<Wrapper />)
+    cb(1)
+    cb(2)
+    cb(3)
     expect(mock).not.toHaveBeenCalled()
     jest.runOnlyPendingTimers()
-
     expect(mock).toHaveBeenCalledTimes(1)
     expect(mock).toHaveBeenCalledWith(3)
   })
@@ -259,87 +235,86 @@ describe("useDebouncedCallback", () => {
 describe("useDebouncedState", () => {
   it("Should return a function that debounces input callback", () => {
     jest.useFakeTimers()
-    let outerSetValue: any
+    let y: any
     function Wrapper() {
       const [value, setValue] = qh.useDebouncedState(0, 500)
-      outerSetValue = setValue
+      y = setValue
       return <span>{value}</span>
     }
-    const wrapper = mount(<Wrapper />)
-    expect(wrapper.text()).toBe("0")
-    outerSetValue((cur: number) => cur + 1)
-    outerSetValue((cur: number) => cur + 1)
-    outerSetValue((cur: number) => cur + 1)
-    outerSetValue((cur: number) => cur + 1)
-    outerSetValue((cur: number) => cur + 1)
-    expect(wrapper.text()).toBe("0")
+    const w = qe.mount(<Wrapper />)
+    expect(w.text()).toBe("0")
+    y((x: number) => x + 1)
+    y((x: number) => x + 1)
+    y((x: number) => x + 1)
+    y((x: number) => x + 1)
+    y((x: number) => x + 1)
+    expect(w.text()).toBe("0")
     act(() => {
       jest.runOnlyPendingTimers()
     })
-
-    expect(wrapper.text()).toBe("1")
+    expect(w.text()).toBe("1")
   })
 })
 describe("useDebouncedValue", () => {
   it("Should return a function that debounces input callback", () => {
     jest.useFakeTimers()
-    let count = 0
-    function Wrapper({ value }) {
-      const debouncedValue = qh.useDebouncedValue(value, 500)
-      useEffect(() => {
-        count++
-      }, [debouncedValue])
-      return <span>{debouncedValue}</span>
+    let n = 0
+    function Wrapper({ value }: { value: any }) {
+      const y = qh.useDebouncedValue(value, 500)
+      qr.useEffect(() => {
+        n++
+      }, [y])
+      return <span>{y}</span>
     }
     act(() => {
-      const wrapper = mount(<Wrapper value={0} />)
-      expect(wrapper.text()).toBe("0")
-      wrapper.setProps({ value: 1 })
-      wrapper.setProps({ value: 2 })
-      wrapper.setProps({ value: 3 })
-      wrapper.setProps({ value: 4 })
-      wrapper.setProps({ value: 5 })
-      expect(wrapper.text()).toBe("0")
+      const w = qe.mount(<Wrapper value={0} />)
+      expect(w.text()).toBe("0")
+      w.setProps({ value: 1 })
+      w.setProps({ value: 2 })
+      w.setProps({ value: 3 })
+      w.setProps({ value: 4 })
+      w.setProps({ value: 5 })
+      expect(w.text()).toBe("0")
       jest.runAllTimers()
-      expect(wrapper.text()).toBe("5")
-      expect(count).toBe(2)
+      expect(w.text()).toBe("5")
+      expect(n).toBe(2)
     })
   })
 })
 describe("useForceUpdate", () => {
   it("Should return a function that returns mount state", () => {
-    let count = 0
-    const [forceUpdate] = renderHook(() => {
-      count++
+    let n = 0
+    const [y] = renderHook(() => {
+      n++
       return qh.useForceUpdate()
     })
-    expect(count).toEqual(1)
+    expect(n).toEqual(1)
     act(() => {
-      forceUpdate()
+      y()
     })
-    expect(count).toEqual(2)
+    expect(n).toEqual(2)
   })
 })
-describe("useImmediateUpdateEffect", () => {
+describe("useUpdateImmediateEffect", () => {
   it("Should run update after value changes", () => {
-    const teardown = jest.fn()
-    const mock = jest.fn().mockImplementation(() => teardown)
-    const [, wrapper] = renderHook(
+    const unmock = jest.fn()
+    const mock = jest.fn().mockImplementation(() => unmock)
+    const [, y] = renderHook(
       ({ value }) => {
-        qh.useImmediateUpdateEffect(mock, [value])
+        qh.useUpdateImmediateEffect(mock, [value])
       },
       { value: 1, other: false }
     )
     expect(mock).not.toHaveBeenCalled()
-    wrapper.setProps({ value: 2 })
+    y.setProps({ value: 2 })
     expect(mock).toHaveBeenCalledTimes(1)
-    wrapper.setProps({ value: 2, other: true })
+    y.setProps({ value: 2, other: true })
     expect(mock).toHaveBeenCalledTimes(1)
-    wrapper.setProps({ value: 4, other: true })
-    expect(teardown).toBeCalledTimes(1)
+    y.setProps({ value: 4, other: true })
+    expect(unmock).toBeCalledTimes(1)
     expect(mock).toHaveBeenCalledTimes(2)
-    wrapper.unmount()
-    expect(teardown).toBeCalledTimes(2)
+    y.unmount()
+    expect(unmock).toBeCalledTimes(2)
   })
 })
 describe("useIntersectionObserver", () => {
@@ -349,8 +324,8 @@ describe("useIntersectionObserver", () => {
       observe: jest.Mock<any, any>
       unobserve: jest.Mock<any, any>
       args: [IntersectionObserverCallback, IntersectionObserverEntryInit]
-      constructor(handler: any, init: any) {
-        this.args = [handler, init]
+      constructor(x: any, init: any) {
+        this.args = [x, init]
         this.observe = jest.fn()
         this.unobserve = jest.fn()
         observers.push(this)
@@ -361,47 +336,45 @@ describe("useIntersectionObserver", () => {
     observers = []
   })
   it("Should observe element", async () => {
-    const element = document.createElement("span")
-    const { result } = renderHook(() => qh.useIntersectionObserver(element))
+    const e = document.createElement("span")
+    const [y] = renderHook(() => qh.useIntersectionObserver(e))
     const entry = {}
-    expect(result.current).toEqual([])
+    expect(y).toEqual([])
     act(() => {
       observers[0].args[0]([entry])
     })
-    expect(result.current[0]).toStrictEqual(entry)
+    expect(y[0]).toStrictEqual(entry)
   })
   it("Should wait for element", async () => {
     const element = document.createElement("span")
-    const { result, rerender, unmount } = renderHook(
+    const [y, w] = renderHook(
       ({ element }) => qh.useIntersectionObserver(element),
-      { initialProps: { element: null as any } }
+      { ps0: { element: null as any } }
     )
-    expect(result.current).toEqual([])
+    expect(y).toEqual([])
     expect(observers[0].observe).not.toBeCalled()
-    rerender({ element })
+    w.render({ element })
     expect(observers[0].observe).toBeCalledTimes(1)
-    unmount()
+    w.unmount()
     expect(observers[0].unobserve).toBeCalledTimes(1)
   })
   it("Should wait for root to set up observer", async () => {
-    const root = document.createElement("div")
-    const element = document.createElement("span")
-    const { result, rerender } = renderHook(
-      (root: any) => qh.useIntersectionObserver(element, { root }),
-      { initialProps: null }
+    const div = document.createElement("div")
+    const span = document.createElement("span")
+    const [, y] = renderHook(
+      (root: any) => qh.useIntersectionObserver(span, { root }),
+      { ps0: null }
     )
     expect(observers).toHaveLength(0)
-    rerender(root)
+    y.render(div)
     expect(observers).toHaveLength(1)
     expect(observers[0].observe).toBeCalledTimes(1)
   })
   it("Should accept a callback", async () => {
     const mock = jest.fn()
-    const element = document.createElement("span")
-    const { result } = renderHook(() =>
-      qh.useIntersectionObserver(element, mock)
-    )
-    expect(result.current).toEqual(undefined)
+    const span = document.createElement("span")
+    const [y] = renderHook(() => qh.useIntersectionObserver(span, mock))
+    expect(y).toEqual(undefined)
     const entry = {}
     act(() => {
       observers[0].args[0]([entry, observers[0]])
@@ -414,10 +387,6 @@ describe("useTimeout", () => {
   it("Should set an interval", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    function Wrapper() {
-      qh.useInterval(mock, 100)
-      return <span />
-    }
     renderHook(() => qh.useInterval(mock, 100))
     expect(mock).not.toHaveBeenCalled()
     act(() => {
@@ -445,8 +414,8 @@ describe("useTimeout", () => {
   it("Should stop running on unmount", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    const { unmount } = renderHook(() => qh.useInterval(mock, 100))
-    unmount()
+    const [y] = renderHook(() => qh.useInterval(mock, 100))
+    y()
     jest.runOnlyPendingTimers()
     expect(mock).not.toHaveBeenCalled()
   })
@@ -454,7 +423,7 @@ describe("useTimeout", () => {
 describe("useIsomorphicEffect (ssr)", () => {
   it("Should not run or warn", () => {
     const mock = jest.fn()
-    expect(qh.useIsomorphicEffect).toEqual(useEffect)
+    expect(qh.useIsomorphicEffect).toEqual(qr.useEffect)
     const Wrapper = () => {
       qh.useIsomorphicEffect(mock)
       return null
@@ -466,286 +435,267 @@ describe("useIsomorphicEffect (ssr)", () => {
 describe("useIsomorphicEffect", () => {
   it("Should not run or warn", () => {
     const mock = jest.fn()
-    expect(qh.useIsomorphicEffect).toEqual(useLayoutEffect)
+    expect(qh.useIsomorphicEffect).toEqual(qr.useLayoutEffect)
     const Wrapper = () => {
       qh.useIsomorphicEffect(mock)
       return null
     }
-    mount(<Wrapper />)
+    qe.mount(<Wrapper />)
     expect(mock).toBeCalled()
   })
 })
 describe("useMap", () => {
   describe("ObservableMap", () => {
     it("Should implement a Map", () => {
-      const map = new qh.ObservableMap(() => {}, [["baz", false]])
-      expect(map.size).toEqual(1)
-      map.clear()
-      expect(map.size).toEqual(0)
-      expect(map.set("foo", true)).toEqual(map)
-      expect(map.get("foo")).toEqual(true)
-      expect(map.size).toEqual(1)
-      for (const item of map) {
+      const y = new qh.ObservableMap(() => {}, [["baz", false]])
+      expect(y.size).toEqual(1)
+      y.clear()
+      expect(y.size).toEqual(0)
+      expect(y.set("foo", true)).toEqual(y)
+      expect(y.get("foo")).toEqual(true)
+      expect(y.size).toEqual(1)
+      for (const item of y) {
         expect(item[0]).toEqual("foo")
         expect(item[1]).toEqual(true)
       }
-      map.set("bar", false)
-      expect(Array.from(map.values())).toEqual([true, false])
-      expect(Array.from(map.keys())).toEqual(["foo", "bar"])
-      expect(map[Symbol.iterator]).toBeDefined()
-      expect(map.delete("bar")).toEqual(true)
-      expect(map.size).toEqual(1)
-      map.clear()
-      expect(map.size).toEqual(0)
+      y.set("bar", false)
+      expect(Array.from(y.values())).toEqual([true, false])
+      expect(Array.from(y.keys())).toEqual(["foo", "bar"])
+      expect(y[Symbol.iterator]).toBeDefined()
+      expect(y.delete("bar")).toEqual(true)
+      expect(y.size).toEqual(1)
+      y.clear()
+      expect(y.size).toEqual(0)
     })
     it("Should be observable", () => {
       const mock = jest.fn()
-      const map = new qh.ObservableMap(mock)
-      map.set("foo", true)
+      const y = new qh.ObservableMap(mock)
+      y.set("foo", true)
       expect(mock).toHaveBeenCalledTimes(1)
-      map.set("baz", 3)
+      y.set("baz", 3)
       expect(mock).toHaveBeenCalledTimes(2)
-      map.delete("baz")
+      y.delete("baz")
       expect(mock).toHaveBeenCalledTimes(3)
-      map.clear()
+      y.clear()
       expect(mock).toHaveBeenCalledTimes(4)
     })
   })
   it("Should rerender when the map is updated", () => {
-    let map: any
+    let y: any
     function Wrapper() {
-      map = qh.useMap()
-      return <span>{JSON.stringify(Array.from(map.entries()))}</span>
+      y = qh.useMap()
+      return <span>{JSON.stringify(Array.from(y.entries()))}</span>
     }
-    const wrapper = mount(<Wrapper />)
+    const w = qe.mount(<Wrapper />)
     act(() => {
-      map.set("foo", true)
+      y.set("foo", true)
     })
-    expect(wrapper.text()).toEqual('[["foo",true]]')
+    expect(w.text()).toEqual('[["foo",true]]')
     act(() => {
-      map.set("bar", true)
+      y.set("bar", true)
     })
-    expect(wrapper.text()).toEqual('[["foo",true],["bar",true]]')
+    expect(w.text()).toEqual('[["foo",true],["bar",true]]')
     act(() => {
-      map.clear()
+      y.clear()
     })
-    expect(wrapper.text()).toEqual("[]")
+    expect(w.text()).toEqual("[]")
   })
 })
 describe("useMediaQuery (ssr)", () => {
   it("Should match immediately if possible", () => {
-    let matches
-    const Wrapper = ({ media }) => {
-      matches = qh.useMediaQuery(media)
+    let y
+    const Wrapper = ({ media }: { media: any }) => {
+      y = qh.useMediaQuery(media)
       return null
     }
     renderToString(<Wrapper media="min-width: 100px" />)
-    expect(matches).toEqual(false)
+    expect(y).toEqual(false)
   })
 })
 describe("useMediaQuery", () => {
   it("Should match immediately if possible", () => {
-    let matches
-    const Wrapper = ({ media }) => {
-      matches = qh.useMediaQuery(media)
+    let y
+    const Wrapper = ({ media }: { media: any }) => {
+      y = qh.useMediaQuery(media)
       return null
     }
-    const wrapper = mount(<Wrapper media="min-width: 100px" />)
+    const w = qe.mount(<Wrapper media="min-width: 100px" />)
     expect(window.innerWidth).toBeGreaterThanOrEqual(100)
-    expect(matches).toEqual(true)
-    wrapper.setProps({ media: "min-width: 2000px" })
+    expect(y).toEqual(true)
+    w.setProps({ media: "min-width: 2000px" })
     expect(window.innerWidth).toBeLessThanOrEqual(2000)
-    expect(matches).toEqual(false)
+    expect(y).toEqual(false)
   })
   it("Should clear if no media is passed", () => {
     let matches
-    const Wrapper = ({ media }) => {
+    const Wrapper = ({ media }: { media: any }) => {
       matches = qh.useMediaQuery(media)
       return null
     }
-    const wrapper = mount(<Wrapper media={null} />)
+    const y = qe.mount(<Wrapper media={null} />)
     expect(matches).toEqual(false)
-    wrapper.setProps({ media: "" })
+    y.setProps({ media: "" })
     expect(matches).toEqual(false)
   })
 })
 describe("useMergeStateFromProps", () => {
   it("Should adjust state when props change", () => {
-    const updates = [] as Array<{ props: any; state: any }>
-    const getDerivedStateFromProps = (
-      nextProps: { foo: any },
-      prevState: { lastFoo: any }
-    ) => {
-      if (nextProps.foo === prevState.lastFoo) return null
-      return { bar: 3, lastFoo: nextProps.foo }
+    const y = [] as Array<{ ps: any; state: any }>
+    const derive = (next: { foo: any }, prev: { last: any }) => {
+      if (next.foo === prev.last) return null
+      return { bar: 3, last: next.foo }
     }
-    function Foo(props: { foo: any }) {
-      const [state] = qh.useMergeStateFromProps(
-        props,
-        getDerivedStateFromProps,
-        {
-          lastFoo: props.foo,
-        }
-      )
-      updates.push({ props, state })
+    function Foo(ps: { foo: any }) {
+      const [state] = qh.useMergeStateFromProps(ps, derive, { last: ps.foo })
+      y.push({ ps, state })
       return <div>{JSON.stringify(state)}</div>
     }
-    const wrapper = mount(<Foo foo={1} />)
-    expect(updates[0].state).toEqual({ lastFoo: 1 })
-    wrapper.setProps({ foo: 2 })
-    expect(updates).toHaveLength(3)
-    expect(updates[2].state).toEqual({ lastFoo: 2, bar: 3 })
-    wrapper.setProps({ foo: 2, biz: true })
-    expect(updates).toHaveLength(4)
-    wrapper.setProps({ foo: 3 })
-    expect(updates).toHaveLength(6)
+    const w = qe.mount(<Foo foo={1} />)
+    expect(y[0]?.state).toEqual({ lastFoo: 1 })
+    w.setProps({ foo: 2 })
+    expect(y).toHaveLength(3)
+    expect(y[2]?.state).toEqual({ lastFoo: 2, bar: 3 })
+    w.setProps({ foo: 2, biz: true })
+    expect(y).toHaveLength(4)
+    w.setProps({ foo: 3 })
+    expect(y).toHaveLength(6)
   })
   it("Should adjust state when props change", () => {
-    type Props = { foo: number }
-    type State = { lastFoo: number }
-    const updates = []
-    function Foo(props: { foo: any }) {
-      const [state, setState] = qh.useMergeStateFromProps<Props, State>(
-        props,
-        (nextProps, prevState, prevProps: any) => {
-          if (nextProps.foo === prevState.lastFoo) return null
-          return { bar: 3, lastFoo: nextProps.foo }
+    type Ps = { foo: number }
+    type State = { last: number }
+    const y = []
+    function Foo(ps: { foo: any }) {
+      const [state, _] = qh.useMergeStateFromProps<Ps, State>(
+        ps,
+        (next, prev) => {
+          if (next.foo === prev.last) return null
+          return { bar: 3, last: next.foo }
         },
-        { lastFoo: props.foo }
+        { last: ps.foo }
       )
-      updates.push({ props, state })
+      y.push({ ps, state })
       return <div>{JSON.stringify(state)}</div>
     }
-    const wrapper = mount(<Foo foo={1} />)
-    wrapper.setProps({ foo: 2 })
+    const w = qe.mount(<Foo foo={1} />)
+    w.setProps({ foo: 2 })
   })
 })
 describe("useMergedRefs", () => {
   it("Should return a function that returns mount state", () => {
-    let innerRef: HTMLButtonElement
-    const outerRef = React.createRef<HTMLButtonElement>()
-    const Button = React.forwardRef((props, ref) => {
-      const [buttonEl, attachRef] = qh.useCallbackRef<HTMLButtonElement>()
-      innerRef = buttonEl!
-      const mergedRef = qh.useMergedRefs(ref, attachRef)
-      return <button ref={mergedRef} {...props} />
+    let inner: HTMLButtonElement
+    const outer = qr.createRef<HTMLButtonElement>()
+    const Button = qr.forwardRef<HTMLButtonElement>((ps, ref) => {
+      const [x, attach] = qh.useCallbackRef<HTMLButtonElement>()
+      inner = x!
+      const mergedRef = qh.useMergedRefs<HTMLButtonElement>(ref, attach)
+      return <button ref={mergedRef} {...ps} />
     })
     function Wrapper() {
-      return <Button ref={outerRef} />
+      return <Button ref={outer} />
     }
-    mount(<Wrapper />)
-    expect(innerRef!.tagName).toEqual("BUTTON")
-    expect(outerRef.current!.tagName).toEqual("BUTTON")
+    qe.mount(<Wrapper />)
+    expect(inner!.tagName).toEqual("BUTTON")
+    expect(outer.current!.tagName).toEqual("BUTTON")
   })
 })
 describe("useMountEffect", () => {
   it("Should run update only on mount", () => {
-    const teardown = jest.fn()
-    const mock = jest.fn(() => teardown)
-    const [, wrapper] = renderHook(
+    const unmock = jest.fn()
+    const mock = jest.fn(() => unmock)
+    const [, y] = renderHook(
       () => {
         qh.useMountEffect(mock)
       },
       { value: 1, other: false }
     )
     expect(mock).toHaveBeenCalledTimes(1)
-    wrapper.setProps({ value: 2 })
+    y.setProps({ value: 2 })
     expect(mock).toHaveBeenCalledTimes(1)
-    wrapper.setProps({ value: 2, other: true })
+    y.setProps({ value: 2, other: true })
     expect(mock).toHaveBeenCalledTimes(1)
-    wrapper.unmount()
-    expect(teardown).toHaveBeenCalledTimes(1)
+    y.unmount()
+    expect(unmock).toHaveBeenCalledTimes(1)
   })
 })
 describe("useMounted", () => {
   it("Should return a function that returns mount state", () => {
-    let isMounted: any
+    let y: any
     function Wrapper() {
-      isMounted = qh.useMounted()
+      y = qh.useMounted()
       return <span />
     }
-    const wrapper = mount(<Wrapper />)
-    expect(isMounted()).toEqual(true)
-    wrapper.unmount()
-    expect(isMounted()).toEqual(false)
+    const w = qe.mount(<Wrapper />)
+    expect(y()).toEqual(true)
+    w.unmount()
+    expect(y()).toEqual(false)
   })
 })
 describe("useMutationObserver", () => {
   it("Should add a mutation observer", async () => {
-    const teardown = jest.fn()
-    const mock = jest.fn(() => teardown)
-    function Wrapper(props) {
-      const [el, attachRef] = qh.useCallbackRef<HTMLElement>()
-      qh.useMutationObserver(el, { attributes: true }, mock)
-      return <div ref={attachRef} {...props} />
+    const unmock = jest.fn()
+    const mock = jest.fn(() => unmock)
+    function Wrapper(ps: any) {
+      const [x, attach] = qh.useCallbackRef<HTMLElement>()
+      qh.useMutationObserver(x, { attributes: true }, mock)
+      return <div ref={attach} {...ps} />
     }
-    const wrapper = mount(<Wrapper />)
+    const w = qe.mount(<Wrapper />)
     expect(mock).toHaveBeenCalledTimes(0)
-    wrapper.setProps({ role: "button" })
+    w.setProps({ role: "button" })
     await Promise.resolve()
     expect(mock).toHaveBeenCalledTimes(1)
     expect(mock).toHaveBeenCalledWith(
-      [
-        expect.objectContaining({
-          type: "attributes",
-          attributeName: "role",
-        }),
-      ],
+      [expect.objectContaining({ type: "attributes", attributeName: "role" })],
       expect.anything()
     )
-    wrapper.unmount()
+    w.unmount()
   })
-  let disconnentSpy: jest.SpyInstance<void, []>
+  let spy: jest.SpyInstance<void, []>
   afterEach(() => {
-    disconnentSpy?.mockRestore()
+    spy?.mockRestore()
   })
   it("Should update config", async () => {
-    const teardown = jest.fn()
-    const mock = jest.fn(() => teardown)
-    disconnentSpy = jest.spyOn(MutationObserver.prototype, "disconnect")
-    function Wrapper({ attributeFilter, ...props }) {
-      const [el, attachRef] = qh.useCallbackRef<HTMLElement>()
-      qh.useMutationObserver(el, { attributes: true, attributeFilter }, mock)
-      return <div ref={attachRef} {...props} />
+    const unmock = jest.fn()
+    const mock = jest.fn(() => unmock)
+    spy = jest.spyOn(MutationObserver.prototype, "disconnect")
+    function Wrapper({ attributeFilter, ...ps }: { attributeFilter: any }) {
+      const [x, attach] = qh.useCallbackRef<HTMLElement>()
+      qh.useMutationObserver(x, { attributes: true, attributeFilter }, mock)
+      return <div ref={attach} {...ps} />
     }
-    const wrapper = mount(<Wrapper attributeFilter={["data-name"]} />)
-    wrapper.setProps({ role: "presentation" })
+    const w = qe.mount(<Wrapper attributeFilter={["data-name"]} />)
+    w.setProps({ role: "presentation" })
     await Promise.resolve()
     expect(mock).toHaveBeenCalledTimes(0)
-    wrapper.setProps({ attributeFilter: undefined, role: "button" })
+    w.setProps({ attributeFilter: undefined, role: "button" })
     await Promise.resolve()
     expect(mock).toHaveBeenCalledTimes(1)
     expect(mock).toHaveBeenCalledWith(
-      [
-        expect.objectContaining({
-          type: "attributes",
-          attributeName: "role",
-        }),
-      ],
+      [expect.objectContaining({ type: "attributes", attributeName: "role" })],
       expect.anything()
     )
-    expect(disconnentSpy).toBeCalledTimes(1)
-    wrapper.unmount()
-    expect(disconnentSpy).toBeCalledTimes(2)
+    expect(spy).toBeCalledTimes(1)
+    w.unmount()
+    expect(spy).toBeCalledTimes(2)
   })
 })
 describe("usePrevious", () => {
   it("Should return a function that returns mount state", () => {
-    let prevFoo
-    function Wrapper({ foo }) {
-      prevFoo = qh.usePrevious(foo)
+    let y
+    function Wrapper({ foo }: { foo: any }) {
+      y = qh.usePrevious(foo)
       return <span />
     }
-    const wrapper = mount(<Wrapper foo={true} />)
-    expect(prevFoo).toEqual(null)
-    wrapper.setProps({ foo: false })
-    expect(prevFoo).toEqual(true)
+    const w = qe.mount(<Wrapper foo={true} />)
+    expect(y).toEqual(null)
+    w.setProps({ foo: false })
+    expect(y).toEqual(true)
   })
 })
 describe("useRefWithInitialValueFactory", () => {
   it("Should set a ref value using factory once", () => {
     const mock = jest.fn((v: number) => v)
-    const [ref, wrapper] = renderHook(
+    const [y, w] = renderHook(
       ({ value }) => {
         return qh.useRefWithInitialValueFactory(() => mock(value))
       },
@@ -753,185 +703,182 @@ describe("useRefWithInitialValueFactory", () => {
     )
     expect(mock).toHaveBeenCalledTimes(1)
     expect(mock).toHaveBeenCalledWith(2)
-    expect(ref.current).toEqual(2)
-    wrapper.setProps({ value: 1 })
+    expect(y.current).toEqual(2)
+    w.setProps({ value: 1 })
     expect(mock).toHaveBeenCalledTimes(1)
-    expect(ref.current).toEqual(2)
+    expect(y.current).toEqual(2)
   })
 })
 describe("useSafeState", () => {
   it("Should work transparently", () => {
-    let state: any
+    let y: any
     function Wrapper() {
-      state = qh.useSafeState(useState(false))
+      y = qh.useSafeState(qr.useState(false))
       return null
     }
-    const wrapper = mount(<Wrapper />)
-    expect(state[0]).toEqual(false)
+    const w = qe.mount(<Wrapper />)
+    expect(y[0]).toEqual(false)
     act(() => {
-      state[1](true)
+      y[1](true)
     })
-    expect(state[0]).toEqual(true)
-    wrapper.unmount()
+    expect(y[0]).toEqual(true)
+    w.unmount()
     act(() => {
-      state[1](false)
+      y[1](false)
     })
-    expect(state[0]).toEqual(true)
+    expect(y[0]).toEqual(true)
   })
   it("Should work with async setState", async () => {
-    let state: any
+    let y: any
     function Wrapper() {
-      state = qh.useSafeState(qh.useStateAsync(false))
+      y = qh.useSafeState(qh.useStateAsync(false))
       return null
     }
-    const wrapper = mount(<Wrapper />)
-    expect(state[0]).toEqual(false)
+    const w = qe.mount(<Wrapper />)
+    expect(y[0]).toEqual(false)
     await act(async () => {
-      await state[1](true)
+      await y[1](true)
     })
-    expect(state[0]).toEqual(true)
-    wrapper.unmount()
+    expect(y[0]).toEqual(true)
+    w.unmount()
     await act(async () => {
-      await state[1](true)
+      await y[1](true)
     })
-    expect(state[0]).toEqual(true)
+    expect(y[0]).toEqual(true)
   })
 })
 describe("useSet", () => {
   describe("ObservableSet", () => {
     it("Should implement a Set", () => {
-      const set = new qh.ObservableSet(() => {}, ["baz"])
-      expect(set.size).toEqual(1)
-      set.clear()
-      expect(set.size).toEqual(0)
-      expect(set.add("foo")).toEqual(set)
-      expect(set.has("foo")).toEqual(true)
-      expect(set.size).toEqual(1)
-      for (const item of set) {
+      const y = new qh.ObservableSet(() => {}, ["baz"])
+      expect(y.size).toEqual(1)
+      y.clear()
+      expect(y.size).toEqual(0)
+      expect(y.add("foo")).toEqual(y)
+      expect(y.has("foo")).toEqual(true)
+      expect(y.size).toEqual(1)
+      for (const item of y) {
         expect(item).toEqual("foo")
       }
-      set.add("bar")
-      expect(Array.from(set.values())).toEqual(["foo", "bar"])
-      expect(Array.from(set.keys())).toEqual(["foo", "bar"])
-      expect(set[Symbol.iterator]).toBeDefined()
-      expect(set.delete("bar")).toEqual(true)
-      expect(set.size).toEqual(1)
-      set.clear()
-      expect(set.size).toEqual(0)
+      y.add("bar")
+      expect(Array.from(y.values())).toEqual(["foo", "bar"])
+      expect(Array.from(y.keys())).toEqual(["foo", "bar"])
+      expect(y[Symbol.iterator]).toBeDefined()
+      expect(y.delete("bar")).toEqual(true)
+      expect(y.size).toEqual(1)
+      y.clear()
+      expect(y.size).toEqual(0)
     })
     it("Should be observable", () => {
       const mock = jest.fn()
-      const set = new qh.ObservableSet(mock)
-      set.add("foo")
+      const y = new qh.ObservableSet(mock)
+      y.add("foo")
       expect(mock).toHaveBeenCalledTimes(1)
-      set.add("baz")
+      y.add("baz")
       expect(mock).toHaveBeenCalledTimes(2)
-      set.delete("baz")
+      y.delete("baz")
       expect(mock).toHaveBeenCalledTimes(3)
-      set.clear()
+      y.clear()
       expect(mock).toHaveBeenCalledTimes(4)
     })
   })
   it("Should rerender when the set is updated", () => {
-    let set: any
+    let y: any
     function Wrapper() {
-      set = qh.useSet()
-      return <span>{JSON.stringify(Array.from(set))}</span>
+      y = qh.useSet()
+      return <span>{JSON.stringify(Array.from(y))}</span>
     }
-    const wrapper = mount(<Wrapper />)
+    const w = qe.mount(<Wrapper />)
     act(() => {
-      set.add("foo")
+      y.add("foo")
     })
-    expect(wrapper.text()).toEqual('["foo"]')
+    expect(w.text()).toEqual('["foo"]')
     act(() => {
-      set.add("bar")
+      y.add("bar")
     })
-    expect(wrapper.text()).toEqual('["foo","bar"]')
+    expect(w.text()).toEqual('["foo","bar"]')
     act(() => {
-      set.clear()
+      y.clear()
     })
-    expect(wrapper.text()).toEqual("[]")
+    expect(w.text()).toEqual("[]")
   })
 })
 describe("useStateAsync", () => {
   it("Should increment counter", async () => {
-    let asyncState: [number, qh.AsyncSetState<number>]
+    let y: [number, qh.AsyncSetState<number>]
     function Wrapper() {
-      asyncState = qh.useStateAsync<number>(0)
+      y = qh.useStateAsync<number>(0)
       return null
     }
-    mount(<Wrapper />)
+    qe.mount(<Wrapper />)
     expect.assertions(4)
-    const incrementAsync = async () => {
-      await act(() => asyncState[1](prev => prev + 1))
+    const inc = async () => {
+      act(() => y[1](x => x + 1))
     }
-    expect(asyncState![0]).toEqual(0)
-    await incrementAsync()
-    expect(asyncState![0]).toEqual(1)
-    await incrementAsync()
-    expect(asyncState![0]).toEqual(2)
-    await incrementAsync()
-    expect(asyncState![0]).toEqual(3)
+    expect(y![0]).toEqual(0)
+    await inc()
+    expect(y![0]).toEqual(1)
+    await inc()
+    expect(y![0]).toEqual(2)
+    await inc()
+    expect(y![0]).toEqual(3)
   })
   it("Should reject on error", async () => {
-    let asyncState: [number, qh.AsyncSetState<number>]
+    let y: [number, qh.AsyncSetState<number>]
     function Wrapper() {
-      asyncState = qh.useStateAsync<number>(1)
+      y = qh.useStateAsync<number>(1)
       return null
     }
-    class CatchError extends React.Component {
+    class CatchError extends qr.Component {
       static getDerivedStateFromError() {}
-      componentDidCatch() {}
-      render() {
-        return this.props.children
+      override componentDidCatch() {}
+      override render() {
+        return (this.props as any).children
       }
     }
-    mount(
+    qe.mount(
       <CatchError>
         <Wrapper />
       </CatchError>
     )
-    expect.errors(1)
+    expect.assertions(1)
     await act(async () => {
-      const p = asyncState[1](() => {
+      const p = y[1](() => {
         throw new Error("yo")
       })
       return expect(p).rejects.toThrow("yo")
     })
   })
   it("Should resolve even if no update happens", async () => {
-    let asyncState: [number, qh.AsyncSetState<number>]
+    let y: [number, qh.AsyncSetState<number>]
     function Wrapper() {
-      asyncState = qh.useStateAsync<number>(1)
+      y = qh.useStateAsync<number>(1)
       return null
     }
-    mount(<Wrapper />)
+    qe.mount(<Wrapper />)
     expect.assertions(3)
-    expect(asyncState![0]).toEqual(1)
-    await act(() => expect(asyncState[1](1)).resolves.toEqual(1))
-    expect(asyncState![0]).toEqual(1)
+    expect(y![0]).toEqual(1)
+    await act(() => expect(y[1](1)).resolves.toEqual(1))
+    expect(y![0]).toEqual(1)
   })
   it("Should resolve after update if already pending", async () => {
-    let asyncState: [number, qh.AsyncSetState<number>]
+    let y: [number, qh.AsyncSetState<number>]
     function Wrapper() {
-      asyncState = qh.useStateAsync<number>(0)
+      y = qh.useStateAsync<number>(0)
       return null
     }
-    mount(<Wrapper />)
+    qe.mount(<Wrapper />)
     expect.assertions(5)
-    expect(asyncState![0]).toEqual(0)
-    const setAndAssert = async (n: number) =>
-      expect(asyncState[1](n)).resolves.toEqual(2)
-    await act(() =>
-      Promise.all([setAndAssert(1), setAndAssert(1), setAndAssert(2)])
-    )
-    expect(asyncState![0]).toEqual(2)
+    expect(y![0]).toEqual(0)
+    const f = async (n: number) => expect(y[1](n)).resolves.toEqual(2)
+    act(() => Promise.all([f(1), f(1), f(2)]))
+    expect(y![0]).toEqual(2)
   })
 })
 describe("useThrottledEventHandler", () => {
   it("Should throttle and use return the most recent event", done => {
     const mock = jest.fn()
-    const [handler, wrapper] = renderHook(() =>
+    const [y, w] = renderHook(() =>
       qh.useThrottledEventHandler<MouseEvent>(mock)
     )
     const events = [
@@ -939,13 +886,13 @@ describe("useThrottledEventHandler", () => {
       new MouseEvent("pointermove"),
       new MouseEvent("pointermove"),
     ]
-    events.forEach(handler)
+    events.forEach(y)
     expect(mock).not.toHaveBeenCalled()
     setTimeout(() => {
       expect(mock).toHaveBeenCalledTimes(1)
       expect(mock).toHaveBeenCalledWith(events[events.length - 1])
-      wrapper.unmount()
-      handler(new MouseEvent("pointermove"))
+      w.unmount()
+      y(new MouseEvent("pointermove"))
       setTimeout(() => {
         expect(mock).toHaveBeenCalledTimes(1)
         done()
@@ -954,16 +901,14 @@ describe("useThrottledEventHandler", () => {
   })
   it("Should clear pending handler calls", done => {
     const mock = jest.fn()
-    const [handler, wrapper] = renderHook(() =>
-      qh.useThrottledEventHandler<MouseEvent>(mock)
-    )
+    const [y] = renderHook(() => qh.useThrottledEventHandler<MouseEvent>(mock))
     ;[
       new MouseEvent("pointermove"),
       new MouseEvent("pointermove"),
       new MouseEvent("pointermove"),
-    ].forEach(handler)
+    ].forEach(y)
     expect(mock).not.toHaveBeenCalled()
-    handler.clear()
+    y.clear()
     setTimeout(() => {
       expect(mock).toHaveBeenCalledTimes(0)
       done()
@@ -974,13 +919,13 @@ describe("useTimeout", () => {
   it("Should set a timeout", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    let timeout: ReturnType<typeof qh.useTimeout>
+    let y: ReturnType<typeof qh.useTimeout>
     function Wrapper() {
-      timeout = qh.useTimeout()
+      y = qh.useTimeout()
       return <span />
     }
-    mount(<Wrapper />)
-    timeout!.set(mock, 100)
+    qe.mount(<Wrapper />)
+    y!.set(mock, 100)
     expect(mock).not.toHaveBeenCalled()
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(1)
@@ -988,43 +933,43 @@ describe("useTimeout", () => {
   it("Should clear a timeout", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    let timeout: ReturnType<typeof qh.useTimeout>
+    let y: ReturnType<typeof qh.useTimeout>
     function Wrapper() {
-      timeout = qh.useTimeout()
+      y = qh.useTimeout()
       return <span />
     }
-    mount(<Wrapper />)
-    timeout!.set(mock, 100)
-    timeout!.clear()
+    qe.mount(<Wrapper />)
+    y!.set(mock, 100)
+    y!.clear()
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(0)
   })
   it("Should clear a timeout on unmount", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    let timeout: ReturnType<typeof qh.useTimeout>
+    let y: ReturnType<typeof qh.useTimeout>
     function Wrapper() {
-      timeout = qh.useTimeout()
+      y = qh.useTimeout()
       return <span />
     }
-    const wrapper = mount(<Wrapper />)
-    timeout!.set(mock, 100)
-    wrapper.unmount()
+    const w = qe.mount(<Wrapper />)
+    y!.set(mock, 100)
+    w.unmount()
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(0)
   })
   it("Should handle very large timeouts", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    let timeout: ReturnType<typeof qh.useTimeout>
+    let y: ReturnType<typeof qh.useTimeout>
     function Wrapper() {
-      timeout = qh.useTimeout()
+      y = qh.useTimeout()
       return <span />
     }
-    mount(<Wrapper />)
+    qe.mount(<Wrapper />)
     const MAX = 2 ** 31 - 1
-    timeout!.set(mock, MAX + 100)
-    jest.runTimersToTime(100)
+    y!.set(mock, MAX + 100)
+    //jest.runTimersToTime(100)
     expect(mock).toHaveBeenCalledTimes(0)
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(1)
@@ -1032,63 +977,63 @@ describe("useTimeout", () => {
 })
 describe("useToggleState", () => {
   it("Should toggle", () => {
-    let toggleState: ReturnType<typeof qh.useToggleState>
+    let y: ReturnType<typeof qh.useToggleState>
     function Wrapper({ initial }: { initial?: boolean }) {
-      toggleState = qh.useToggleState(initial)
+      y = qh.useToggleState(initial)
       return <span />
     }
-    const wrapper = mount(<Wrapper />)
-    expect(toggleState![0]).toEqual(false)
-    act(() => toggleState[1]())
-    expect(toggleState![0]).toEqual(true)
-    act(() => toggleState[1](true))
-    expect(toggleState![0]).toEqual(true)
-    act(() => toggleState[1]())
-    expect(toggleState![0]).toEqual(false)
+    qe.mount(<Wrapper />)
+    expect(y![0]).toEqual(false)
+    act(() => y[1]())
+    expect(y![0]).toEqual(true)
+    act(() => y[1](true))
+    expect(y![0]).toEqual(true)
+    act(() => y[1]())
+    expect(y![0]).toEqual(false)
   })
 })
 describe("useUpdateEffect", () => {
   it("Should run update after value changes", () => {
-    const teardown = jest.fn()
-    const mock = jest.fn(() => teardown)
-    const [, wrapper] = renderHook(
+    const unmock = jest.fn()
+    const mock = jest.fn(() => unmock)
+    const [, w] = renderHook(
       ({ value }) => {
         qh.useUpdateEffect(mock, [value])
       },
       { value: 1, other: false }
     )
     expect(mock).not.toHaveBeenCalled()
-    expect(teardown).not.toHaveBeenCalled()
-    wrapper.setProps({ value: 2 })
+    expect(unmock).not.toHaveBeenCalled()
+    w.setProps({ value: 2 })
     expect(mock).toHaveBeenCalledTimes(1)
-    expect(teardown).not.toHaveBeenCalled()
-    wrapper.setProps({ value: 2, other: true })
+    expect(unmock).not.toHaveBeenCalled()
+    w.setProps({ value: 2, other: true })
     expect(mock).toHaveBeenCalledTimes(1)
-    wrapper.setProps({ value: 3, other: true })
+    w.setProps({ value: 3, other: true })
     expect(mock).toHaveBeenCalledTimes(2)
-    expect(teardown).toHaveBeenCalledTimes(1)
+    expect(unmock).toHaveBeenCalledTimes(1)
   })
 })
 describe("useUpdateLayoutEffect", () => {
   it("Should run update after value changes", () => {
-    const teardown = jest.fn()
-    const mock = jest.fn(() => teardown)
-    const [, wrapper] = renderHook(
+    const unmock = jest.fn()
+    const mock = jest.fn(() => unmock)
+    const [, w] = renderHook(
       ({ value }) => {
         qh.useUpdateLayoutEffect(mock, [value])
       },
       { value: 1, other: false }
     )
     expect(mock).not.toHaveBeenCalled()
-    expect(teardown).not.toHaveBeenCalled()
-    wrapper.setProps({ value: 2 })
+    expect(unmock).not.toHaveBeenCalled()
+    w.setProps({ value: 2 })
     expect(mock).toHaveBeenCalledTimes(1)
-    expect(teardown).not.toHaveBeenCalled()
-    wrapper.setProps({ value: 2, other: true })
+    expect(unmock).not.toHaveBeenCalled()
+    w.setProps({ value: 2, other: true })
     expect(mock).toHaveBeenCalledTimes(1)
-    wrapper.setProps({ value: 3, other: true })
+    w.setProps({ value: 3, other: true })
     expect(mock).toHaveBeenCalledTimes(2)
-    expect(teardown).toHaveBeenCalledTimes(1)
+    expect(unmock).toHaveBeenCalledTimes(1)
   })
 })
 describe("useWillUnmount", () => {
@@ -1098,9 +1043,9 @@ describe("useWillUnmount", () => {
       qh.useWillUnmount(mock)
       return <span />
     }
-    const wrapper = mount(<Wrapper />)
+    const w = qe.mount(<Wrapper />)
     expect(mock).not.toHaveBeenCalled()
-    wrapper.unmount()
+    w.unmount()
     expect(mock).toHaveBeenCalledTimes(1)
   })
 })

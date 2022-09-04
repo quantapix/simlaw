@@ -18,19 +18,19 @@ describe("<Spinner>", () => {
         size="sm"
       />
     )
-    const spinnerElem = getByTestId("test")
-    expect(spinnerElem.tagName.toLowerCase()).toEqual("span")
-    expect(spinnerElem.classList.contains("spinner-grow")).toBe(true)
-    expect(spinnerElem.classList.contains("spinner-grow-sm")).toBe(true)
-    expect(spinnerElem.classList.contains("text-primary")).toBe(true)
+    const y = getByTestId("test")
+    expect(y.tagName.toLowerCase()).toEqual("span")
+    expect(y.classList.contains("spinner-grow")).toBe(true)
+    expect(y.classList.contains("spinner-grow-sm")).toBe(true)
+    expect(y.classList.contains("text-primary")).toBe(true)
   })
   it("Should render a spinner with other properties", () => {
     const { getByTestId } = render(
       <Spinner data-testid="test" animation="grow" role="status" />
     )
-    const spinnerElem = getByTestId("test")
-    expect(spinnerElem.classList.contains("spinner-grow")).toBe(true)
-    expect(spinnerElem.getAttribute("role")!).toEqual("status")
+    const y = getByTestId("test")
+    expect(y.classList.contains("spinner-grow")).toBe(true)
+    expect(y.getAttribute("role")!).toEqual("status")
   })
   it("Should render child elements", () => {
     const { getByTestId } = render(
@@ -38,14 +38,14 @@ describe("<Spinner>", () => {
         <span id="testChild" />
       </Spinner>
     )
-    const spinnerElem = getByTestId("test")
-    expect(spinnerElem.children.length).toEqual(1)
+    const y = getByTestId("test")
+    expect(y.children.length).toEqual(1)
   })
   it("Should have div as default component", () => {
     const { getByTestId } = render(
       <Spinner data-testid="test" animation="border" />
     )
-    const spinnerElem = getByTestId("test")
-    expect(spinnerElem.tagName.toLowerCase()).toEqual("div")
+    const y = getByTestId("test")
+    expect(y.tagName.toLowerCase()).toEqual("div")
   })
 })
