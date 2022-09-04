@@ -63,7 +63,7 @@ export function usePlaceholder({
 }
 
 export function useWrappedRef(ref: any, componentName: any) {
-  // if (!__DEV__) return ref
+  if (!__DEV__) return ref
   const cb = qr.useCallback(
     (x: any) => {
       qt.invariant(

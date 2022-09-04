@@ -1,8 +1,9 @@
+import { act } from "react-dom/test-utils"
+import { mount } from "enzyme"
+import { useRootClose, useWaitForDOMRef } from "../../src/base/use.js"
 import * as qr from "react"
 import ReactDOM from "react-dom"
 import simulant from "simulant"
-import { mount } from "enzyme"
-import { useRootClose } from "../../src/base/use.js"
 
 const escapeKeyCode = 27
 
@@ -148,5 +149,110 @@ describe("useRootClose", () => {
       expect(inner.mock.calls[0].args[0].keyCode).toEqual(escapeKeyCode)
       expect(inner.mock.calls[0].args[0].type).toEqual("keyup")
     })
+  })
+})
+describe("useWaitForDOMRef", () => {
+  it("Should resolve on first render if possible (element)", () => {
+    let n = 0
+    const container = document.createElement("div")
+    function Test({
+      container,
+      onResolved,
+    }: {
+      container: any
+      onResolved: any
+    }) {
+      useWaitForDOMRef(container, onResolved)
+      n++
+      return null
+    }
+    const mock = jest.fn(x => {
+      expect(x).toEqual(container)
+    })
+    act(() => {
+      mount(<Test container={container} onResolved={mock} />)
+    })
+    expect(n).toEqual(1)
+    expect(mock).toHaveBeenCalledTimes(1)
+  })
+  it("Should resolve on first render if possible (ref)", () => {
+    let n = 0
+    const ref: any = qr.createRef()
+    ref.current = document.createElement("div")
+    function Test({
+      container,
+      onResolved,
+    }: {
+      container: any
+      onResolved: any
+    }) {
+      useWaitForDOMRef(container, onResolved)
+      n++
+      return null
+    }
+    const mock = jest.fn(x => {
+      expect(x).toEqual(ref.current)
+    })
+    act(() => {
+      mount(<Test container={ref} onResolved={mock} />)
+    })
+    expect(n).toEqual(1)
+    expect(mock).toHaveBeenCalledTimes(1)
+  })
+  it("Should resolve on first render if possible (function)", () => {
+    const div = document.createElement("div")
+    const container = () => div
+    let n = 0
+    function Test({
+      container,
+      onResolved,
+    }: {
+      container: any
+      onResolved: any
+    }) {
+      useWaitForDOMRef(container, onResolved)
+      n++
+      return null
+    }
+    const mock = jest.fn(x => {
+      expect(x).toEqual(div)
+    })
+    act(() => {
+      mount(<Test container={container} onResolved={mock} />)
+    })
+    expect(n).toEqual(1)
+    expect(mock).toHaveBeenCalledTimes(1)
+  })
+  it("Should resolve after if required", () => {
+    let n = 0
+    function Test({
+      container,
+      onResolved,
+    }: {
+      container: any
+      onResolved: any
+    }) {
+      useWaitForDOMRef(container, onResolved)
+      n++
+      return null
+    }
+    const mock = jest.fn(x => {
+      expect(x.tagName).toEqual("DIV")
+    })
+    function Wrapper({ onResolved }: { onResolved: any }) {
+      const container = qr.useRef(null)
+      onResolved
+      return (
+        <>
+          <Test container={container} onResolved={mock} />
+          <div ref={container} />
+        </>
+      )
+    }
+    act(() => {
+      mount(<Wrapper onResolved={mock} />).update()
+    })
+    expect(n).toEqual(2)
+    expect(mock).toHaveBeenCalledTimes(1)
   })
 })
