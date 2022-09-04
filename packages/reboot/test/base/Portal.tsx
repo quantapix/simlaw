@@ -7,10 +7,10 @@ import ReactDOM from "react-dom"
 describe("Portal", () => {
   it("Should render overlay into container (document)", () => {
     class Container extends React.Component {
-      override componentDidMount() {
+      override componentDidMount(this: any) {
         expect(this.div).toBeTruthy()
       }
-      override render() {
+      override render(this: any) {
         return (
           <Portal>
             <div
@@ -29,10 +29,10 @@ describe("Portal", () => {
   it("Should render overlay into container (DOMNode)", () => {
     const container = document.createElement("div")
     class Container extends React.Component {
-      override componentDidMount() {
+      override componentDidMount(this: any) {
         expect(this.div).toBeTruthy()
       }
-      override render() {
+      override render(this: any) {
         return (
           <Portal container={container}>
             <div
@@ -51,10 +51,10 @@ describe("Portal", () => {
   it("Should render overlay into container (ReactComponent)", () => {
     class Container extends React.Component {
       container = React.createRef()
-      override componentDidMount() {
+      override componentDidMount(this: any) {
         expect(this.div).not.toBeTruthy()
       }
-      override render() {
+      override render(this: any) {
         return (
           <div ref={this.container}>
             <Portal container={this.container}>
@@ -69,18 +69,18 @@ describe("Portal", () => {
         )
       }
     }
-    let instance
+    let y: any
     act(() => {
-      instance = mount(<Container />).instance()
+      y = mount(<Container />).instance()
     })
-    expect(instance.div).toBeTruthy()
+    expect(y.div).toBeTruthy()
     expect(
-      ReactDOM.findDOMNode(instance).querySelectorAll("#test1")
+      (ReactDOM.findDOMNode(y) as any).querySelectorAll("#test1")
     ).toHaveLength(1)
   })
   it("Should not fail to render a null overlay", () => {
     class Container extends React.Component {
-      container = React.createRef()
+      container = React.createRef<HTMLDivElement>()
       override render() {
         return (
           <div ref={this.container}>
@@ -100,7 +100,7 @@ describe("Portal", () => {
       }
     }
     class Child extends React.Component {
-      override render() {
+      override render(this: any) {
         return (
           <div>
             <div

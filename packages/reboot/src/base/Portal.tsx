@@ -3,15 +3,13 @@ import ReactDOM from "react-dom"
 import type * as qr from "react"
 
 export interface Props {
-  children: qr.ReactElement
-  container: qu.DOMContainer
+  children?: qr.ReactElement
+  container?: qu.DOMContainer
   onRendered?: (x: any) => void
 }
 
 export const Portal = ({ container, children, onRendered }: Props) => {
-  const resolvedContainer = qu.useWaitForDOMRef(container, onRendered)
-  return resolvedContainer ? (
-    <>{ReactDOM.createPortal(children, resolvedContainer)}</>
-  ) : null
+  const y = qu.useWaitForDOMRef(container, onRendered)
+  return y ? <>{ReactDOM.createPortal(children, y)}</> : null
 }
 Portal.displayName = "Portal"

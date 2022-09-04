@@ -83,15 +83,15 @@ export const Item: qt.DynRef<typeof Button, ItemProps> = qr.forwardRef(
 Item.displayName = "DropdownItem"
 
 export interface MenuOpts {
-  flip?: boolean | undefined
-  show?: boolean | undefined
-  fixed?: boolean
-  placement?: qp.Placement
-  usePopper?: boolean | undefined
   enableEventListeners?: boolean
+  fixed?: boolean
+  flip?: boolean | undefined
   offset?: qp.Offset | undefined
-  rootCloseEvent?: qu.ClickOutsideOptions["clickTrigger"]
+  placement?: qp.Placement
   popperConfig?: Omit<qp.UseOptions, "enabled" | "placement"> | undefined
+  rootCloseEvent?: qu.ClickOutsideOptions["clickTrigger"]
+  show?: boolean | undefined
+  usePopper?: boolean | undefined
 }
 
 export type UseMenuProps = Record<string, any> & {
@@ -106,12 +106,12 @@ export type ArrowProps = Record<string, any> & {
 }
 
 export interface MenuMeta {
-  show: boolean
-  placement?: qp.Placement | undefined
-  hasShown: boolean
-  toggle?: Data["toggle"] | undefined
-  popper: qp.UseState | null
   arrowProps: Partial<ArrowProps>
+  hasShown: boolean
+  placement?: qp.Placement | undefined
+  popper: qp.UseState | null
+  show: boolean
+  toggle?: Data["toggle"] | undefined
 }
 
 export function useMenu(options: MenuOpts = {}) {
@@ -252,14 +252,14 @@ export interface ToggleMetadata {
 }
 
 export interface Props {
-  placement?: qp.Placement
+  children: qr.ReactNode
   defaultShow?: boolean
-  show?: boolean | undefined
+  focusFirstItemOnShow?: boolean | "keyboard" | undefined
+  itemSelector?: string
   onSelect?: qt.SelectCB | undefined
   onToggle?: (nextShow: boolean, meta: ToggleMetadata) => void
-  itemSelector?: string
-  focusFirstItemOnShow?: boolean | "keyboard" | undefined
-  children: qr.ReactNode
+  placement?: qp.Placement
+  show?: boolean | undefined
 }
 
 function useRefWithUpdate() {

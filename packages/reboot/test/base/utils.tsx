@@ -1,11 +1,13 @@
-import simulant from "simulant"
 import * as qu from "../../src/base/utils.js"
+import $ from "jquery"
+import simulant from "simulant"
 
 function removeProperty(p: any, x: any) {
   Object.defineProperty(x, p, {
     value: undefined,
   })
 }
+
 describe("Class helpers", () => {
   beforeEach(() => {
     document.body.innerHTML = window.__html__["test/fixtures/class.html"]
@@ -198,7 +200,7 @@ describe("Query helpers", () => {
       document.body.innerHTML = window.__html__["test/fixtures/qsa.html"]
     })
     it("Should use qsa for complex selectors", () => {
-      const mock = jest.fn(document, "querySelectorAll")
+      const mock = jest.fn(document.querySelectorAll)
       expect(qu.qsa(document, ".item-class li").length).toEqual(3)
       expect(mock).toHaveBeenCalledTimes(1)
       //mock.restore()
@@ -312,12 +314,10 @@ describe("Query helpers", () => {
 })
 let style: any
 function reset() {
-  if (style) {
-    style.remove()
-  }
+  if (style) style.remove()
   style = null
 }
-function injectCss(rules) {
+function injectCss(rules: any) {
   if (style) reset()
   style = $(`<style>${rules}</style>`)
   style.appendTo("head")
@@ -359,7 +359,7 @@ describe("style", () => {
   })
 })
 describe("transitionEnd", () => {
-  let clock: any
+  // let clock: any
   beforeEach(() => {
     // clock = sinon.useFakeTimers()
   })

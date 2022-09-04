@@ -12,16 +12,17 @@ import ReactDOM from "react-dom"
 
 describe("<Dropdown>", () => {
   const TestMenu = ({
-    usePopper,
-    rootCloseEvent,
     mock,
     popperConfig,
     renderMenuOnMount = true,
+    rootCloseEvent,
+    usePopper,
     ...ps
   }: MenuOpts & {
+    children?: qr.ReactNode | qr.ReactNode[]
     mock?: any
     renderMenuOnMount?: boolean | undefined
-    children?: qr.ReactNode | qr.ReactNode[]
+    role?: any
   }) => (
     <Menu
       flip
@@ -29,16 +30,14 @@ describe("<Dropdown>", () => {
       popperConfig={popperConfig}
       rootCloseEvent={rootCloseEvent}
     >
-      {(menuProps, meta) => {
+      {(mps, meta) => {
         const { show, hasShown } = meta
         mock && mock(meta)
-        if (!renderMenuOnMount && !hasShown) {
-          return null
-        }
+        if (!renderMenuOnMount && !hasShown) return null
         return (
           <div
             {...ps}
-            {...menuProps}
+            {...mps}
             data-show={show}
             className="menu"
             style={{ display: show ? "flex" : "none" }}
@@ -49,10 +48,10 @@ describe("<Dropdown>", () => {
   )
   const TestToggle = (ps: any) => (
     <Toggle>
-      {(toggleProps: any) => (
+      {(tps: any) => (
         <button
           {...ps}
-          {...toggleProps}
+          {...tps}
           id="test-id"
           type="button"
           className="toggle"
@@ -63,17 +62,17 @@ describe("<Dropdown>", () => {
   const SimpleDropdown = ({
     children,
     mock,
-    usePopper,
-    rootCloseEvent,
     popperConfig,
     renderMenuOnMount,
+    rootCloseEvent,
+    usePopper,
     ...ps
   }: MenuOpts & {
-    mock?: any
-    renderMenuOnMount?: boolean
     children?: qr.ReactNode
     defaultShow?: boolean
+    mock?: any
     onToggle?: any
+    renderMenuOnMount?: boolean
   }) => (
     <Dropdown {...ps}>
       {children || (
@@ -82,10 +81,10 @@ describe("<Dropdown>", () => {
           <TestMenu
             key="menu"
             mock={mock}
-            usePopper={usePopper}
             popperConfig={popperConfig}
-            rootCloseEvent={rootCloseEvent}
             renderMenuOnMount={renderMenuOnMount}
+            rootCloseEvent={rootCloseEvent}
+            usePopper={usePopper}
           >
             <Item>Item 1</Item>
             <Item>Item 2</Item>
@@ -147,7 +146,7 @@ describe("<Dropdown>", () => {
   it("closes when mousedown outside if rootCloseEvent set", () => {
     const mock = jest.fn()
     const { container: c } = render(
-      <Dropdown onToggle={mock} id="test-id">
+      <Dropdown onToggle={mock}>
         <div>
           <TestToggle>Child Title</TestToggle>,
           <TestMenu rootCloseEvent="mousedown">
@@ -243,9 +242,7 @@ describe("<Dropdown>", () => {
         <Dropdown>
           <div>
             <TestToggle>Toggle</TestToggle>,
-            <TestMenu>
-              {" "}
-              role="menu"
+            <TestMenu role="menu">
               <Item>Item 1</Item>
               <Item>Item 2</Item>
             </TestMenu>
@@ -296,9 +293,7 @@ describe("<Dropdown>", () => {
       const root = render(
         <Dropdown defaultShow onToggle={mock}>
           <TestToggle key="toggle">Toggle</TestToggle>,
-          <TestMenu>
-            {" "}
-            key="menu"
+          <TestMenu key="menu">
             <input type="search" data-testid="input" />
           </TestMenu>
         </Dropdown>,
@@ -354,23 +349,22 @@ describe("<Dropdown>", () => {
   describe("popper config", () => {
     it("can add modifiers", done => {
       const mock = jest.fn()
+      const write = "write"
       const popper = {
         modifiers: [
           {
             name: "test",
             enabled: true,
-            phase: "write",
+            phase: write,
             fn: mock,
           },
         ],
-      }
+      } as any
       render(
-        <Dropdown show id="test-id">
+        <Dropdown show>
           <div>
             <TestToggle>Child Title</TestToggle>
-            <TestMenu>
-              {" "}
-              popperConfig={popper}
+            <TestMenu popperConfig={popper}>
               <button type="button">Item 1</button>
               <button type="button">Item 2</button>
             </TestMenu>
