@@ -2,7 +2,7 @@ import { Button } from "../../src/base/Button.jsx"
 import { render, fireEvent } from "@testing-library/react"
 import * as React from "react"
 
-describe("<Button>", () => {
+describe("Button", () => {
   it("Should output a button", () => {
     const { container } = render(<Button>Title</Button>)
     expect(container.firstElementChild!.tagName).toEqual("BUTTON")

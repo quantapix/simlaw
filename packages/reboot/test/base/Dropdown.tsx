@@ -10,7 +10,7 @@ import { Selectable } from "../../src/base/types.jsx"
 import type * as qr from "react"
 import ReactDOM from "react-dom"
 
-describe("<Dropdown>", () => {
+describe("Dropdown", () => {
   const TestMenu = ({
     mock,
     popperConfig,
@@ -378,7 +378,7 @@ describe("<Dropdown>", () => {
     })
   })
 })
-describe("<DropdownItem>", () => {
+describe("DropdownItem", () => {
   it("Should output a nav item as button", () => {
     const { getByText } = render(<Item>test</Item>)
     expect(getByText("test").tagName).toEqual("BUTTON")

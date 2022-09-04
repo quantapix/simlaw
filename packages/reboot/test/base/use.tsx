@@ -1,8 +1,9 @@
-import { useRef } from "react"
+import * as qr from "react"
 import ReactDOM from "react-dom"
 import simulant from "simulant"
 import { mount } from "enzyme"
 import { useRootClose } from "../../src/base/use.js"
+
 const escapeKeyCode = 27
 
 describe("useRootClose", () => {
@@ -24,13 +25,16 @@ describe("useRootClose", () => {
   describe("using mousedown event", () => {
     shouldCloseOn("mousedown", "mousedown")
   })
-  function shouldCloseOn(clickTrigger, eventName) {
-    function Wrapper({ onRootClose, disabled }) {
-      const ref = useRef()
-      useRootClose(ref, onRootClose, {
-        disabled,
-        clickTrigger,
-      })
+  function shouldCloseOn(clickTrigger: any, eventName: any) {
+    function Wrapper({
+      onRootClose,
+      disabled,
+    }: {
+      onRootClose: any
+      disabled?: any
+    }) {
+      const ref: any = qr.useRef()
+      useRootClose(ref, onRootClose, { disabled, clickTrigger })
       return (
         <div ref={ref} id="my-div">
           hello there
@@ -44,10 +48,7 @@ describe("useRootClose", () => {
       expect(mock).not.toHaveBeenCalled()
       simulant.fire(document.body, eventName)
       expect(mock).toHaveBeenCalledTimes(1)
-      expect(mock.mock.calls[0].args[0].type).to.be.oneOf([
-        "click",
-        "mousedown",
-      ])
+      expect(mock.mock.calls[0].args[0].type).toContain(["click", "mousedown"])
     })
     it("Should not close when right-clicked outside", () => {
       const mock = jest.fn()
@@ -71,7 +72,7 @@ describe("useRootClose", () => {
       const outer = jest.fn()
       const inner = jest.fn()
       function Inner() {
-        const ref = useRef()
+        const ref: any = qr.useRef()
         useRootClose(ref, inner, { clickTrigger })
         return (
           <div ref={ref} id="my-other-div">
@@ -80,7 +81,7 @@ describe("useRootClose", () => {
         )
       }
       function Outer() {
-        const ref = useRef()
+        const ref: any = qr.useRef()
         useRootClose(ref, outer, { clickTrigger })
         return (
           <div ref={ref}>
@@ -93,15 +94,20 @@ describe("useRootClose", () => {
       simulant.fire(document.getElementById("my-div")!, eventName)
       expect(outer).not.toHaveBeenCalled()
       expect(inner).toHaveBeenCalledTimes(1)
-      expect(inner.mock.calls[0].args[0].type).to.be.oneOf([
-        "click",
-        "mousedown",
-      ])
+      expect(inner.mock.calls[0].args[0].type).toContain(["click", "mousedown"])
     })
   }
   describe("using keyup event", () => {
-    function Wrapper({ children, onRootClose, event: clickTrigger }) {
-      const ref = useRef()
+    function Wrapper({
+      children,
+      onRootClose,
+      event: clickTrigger,
+    }: {
+      children: any
+      onRootClose: any
+      event?: any
+    }) {
+      const ref: any = qr.useRef()
       useRootClose(ref, onRootClose, { clickTrigger })
       return (
         <div ref={ref} id="my-div">

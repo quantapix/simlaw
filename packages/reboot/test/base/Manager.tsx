@@ -4,7 +4,7 @@ import { Instance, Manager } from "../../src/base/Manager.jsx"
 
 const createModal = () => ({} as Instance)
 
-describe("ModalManager", () => {
+describe("Manager", () => {
   let container: any, manager: any
   beforeEach(() => {
     manager?.reset()

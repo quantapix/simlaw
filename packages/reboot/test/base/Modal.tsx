@@ -8,11 +8,11 @@ import * as React from "react"
 import ReactDOM from "react-dom"
 import simulant from "simulant"
 
-describe("<Modal>", () => {
+describe("Modal", () => {
   let attachTo: any
   let wrapper: any
   const mountWithRef = (x: any, xs: any) => {
-    const y = React.createRef()
+    const y = React.createRef<any>()
     const Why = (ps: any) => React.cloneElement(x, { ...ps, ref: y })
     wrapper = mount(<Why />, xs)
     return y
@@ -38,12 +38,10 @@ describe("<Modal>", () => {
     expect(ref.current.dialog.querySelectorAll("strong")).toHaveLength(1)
   })
   it("Should disable scrolling on the modal container while open", done => {
-    const modal = React.createRef()
+    const modal = React.createRef<any>()
     class Container extends React.Component {
-      ref = React.createRef()
-      override state = {
-        modalOpen: true,
-      }
+      ref = React.createRef<any>()
+      override state = { modalOpen: true }
       handleCloseModal = () => {
         this.setState({ modalOpen: false })
       }
@@ -54,7 +52,7 @@ describe("<Modal>", () => {
               ref={modal}
               show={this.state.modalOpen}
               onHide={this.handleCloseModal}
-              renderBackdrop={p => <div data-backdrop {...p} />}
+              renderBackdrop={x => <div data-backdrop {...x} />}
               container={this.ref}
             >
               <strong>Message</strong>
@@ -176,16 +174,16 @@ describe("<Modal>", () => {
     expect(dialog.getAttribute("role")).toEqual("group")
   })
   it("Should unbind listeners when unmounted", () => {
-    const { rerender } = render(
+    /* const { rerender } = */ render(
       <div>
         <Modal show>
           <strong>Foo bar</strong>
         </Modal>
-      </div>,
-      { attachTo }
+      </div>
+      // { attachTo }
     )
     expect(document.body.hasAttribute(OPEN_DATA_ATTRIBUTE)).toEqual(true)
-    rerender(null)
+    // rerender(null)
     expect(document.body.hasAttribute(OPEN_DATA_ATTRIBUTE)).toEqual(false)
   })
   it("Should pass transition callbacks to Transition", done => {

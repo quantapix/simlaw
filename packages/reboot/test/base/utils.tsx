@@ -10,7 +10,7 @@ function removeProperty(p: any, x: any) {
 
 describe("Class helpers", () => {
   beforeEach(() => {
-    document.body.innerHTML = window.__html__["test/fixtures/class.html"]
+    document.body.innerHTML = classhtml
   })
   it("Should add a class", () => {
     const y = document.getElementById("item-1")!
@@ -53,7 +53,7 @@ describe("Class helpers", () => {
 })
 describe("DOM manipulation helpers", () => {
   beforeEach(() => {
-    document.body.innerHTML = window.__html__["test/fixtures/dom-qu.html"]
+    document.body.innerHTML = queryhtml
   })
   it("Should check for input elements", () => {
     const y1 = document.querySelector("#child-1 :first-child")
@@ -107,8 +107,7 @@ describe("DOM manipulation helpers", () => {
 })
 describe("DOM traversal helpers", () => {
   beforeEach(() => {
-    document.body.innerHTML =
-      window.__html__["test/fixtures/dom-traversal.html"]
+    document.body.innerHTML = domtravers
   })
   it("Should collect child nodes", () => {
     const y = document.getElementById("root")
@@ -139,7 +138,7 @@ describe("DOM traversal helpers", () => {
 let unlisten
 describe("Event helpers", () => {
   beforeEach(() => {
-    document.body.innerHTML = window.__html__["test/fixtures/event.html"]
+    document.body.innerHTML = eventhtml
   })
   it("Should add an event listener", done => {
     const y = document.getElementById("item-2")!
@@ -197,7 +196,7 @@ describe("DOM helpers", () => {
 describe("Query helpers", () => {
   describe("QuerySelectorAll", () => {
     beforeEach(() => {
-      document.body.innerHTML = window.__html__["test/fixtures/qsa.html"]
+      document.body.innerHTML = qsahtml
     })
     it("Should use qsa for complex selectors", () => {
       const mock = jest.fn(document.querySelectorAll)
@@ -208,7 +207,7 @@ describe("Query helpers", () => {
   })
   describe("Matches", () => {
     beforeEach(() => {
-      document.body.innerHTML = window.__html__["test/fixtures/matches.html"]
+      document.body.innerHTML = matcheshtml
     })
     it("Should match", () => {
       const y = document.getElementById("middle")!
@@ -220,7 +219,7 @@ describe("Query helpers", () => {
   })
   describe("Contains", () => {
     beforeEach(() => {
-      document.body.innerHTML = window.__html__["test/fixtures/qu.html"]
+      document.body.innerHTML = queryhtml
     })
     it("Should check for contained element", () => {
       const y = document.getElementById("item-3")!,
@@ -235,7 +234,7 @@ describe("Query helpers", () => {
   })
   describe("Closest", () => {
     beforeEach(() => {
-      document.body.innerHTML = window.__html__["test/fixtures/qu.html"]
+      document.body.innerHTML = queryhtml
     })
     it("find Closest node", () => {
       const y = document.getElementById("item-3")!,
@@ -246,7 +245,7 @@ describe("Query helpers", () => {
   })
   describe("ScrollParent", () => {
     beforeEach(() => {
-      document.body.innerHTML = window.__html__["test/fixtures/qu.html"]
+      document.body.innerHTML = queryhtml
     })
     it("Should find scroll parent for inline elements", () => {
       const y = document.getElementById("scroll-child")!,
@@ -265,7 +264,7 @@ describe("Query helpers", () => {
   })
   describe("Offset", () => {
     beforeEach(() => {
-      document.body.innerHTML = window.__html__["test/fixtures/offset.html"]
+      document.body.innerHTML = offsethtml
     })
     it("Should fallback when node is disconnected", () => {
       const y = qu.getOffset(document.createElement("div"))
@@ -293,7 +292,7 @@ describe("Query helpers", () => {
   })
   describe("Position", () => {
     beforeEach(() => {
-      document.body.innerHTML = window.__html__["test/fixtures/offset.html"]
+      document.body.innerHTML = offsethtml
     })
     it("Should handle fixed offset", () => {
       const y = document.getElementById("item-fixed")!
@@ -413,3 +412,120 @@ describe("utils", () => {
     })
   })
 })
+
+const classhtml = `
+<div>
+  <div id="item-1"></div>
+  <div id="item-2" class="test-class"></div>
+</div>
+`
+
+const domtravers = `
+<div id="root">
+  <div id="child-1"></div>
+  <div id="child-2">
+    <div></div>
+    <div></div>
+    <div class="some-class"></div>
+    <div></div>
+  </div>
+</div>
+`
+
+const eventhtml = `
+<div>
+  <div id='item-1'>
+    <div id='item-2'>
+      <span>hello<span>
+    </div>
+    <div id='item-3'></div>
+  </div>
+</div>
+`
+
+const qsahtml = `
+<div>
+  <div class='item-class'>
+    <ul id='ListID'>
+      <li>1</li>
+      <li>3</li>
+      <li>4</li>
+    </ul>
+  </div>
+</div>
+`
+
+const matcheshtml = `
+<div>
+<div class='item-class'>
+  <ul id='ListID'>
+    <li>1</li>
+    <li id='middle'>3</li>
+    <li>4</li>
+  </ul>
+</div>
+</div>
+`
+
+const queryhtml = `
+<div>
+  <div id='item-1'>
+    <div id='item-2'>
+      <span id='item-3'>hello<span>
+      <span id='sibling-1'>hello<span>
+      <span id='sibling-2'>hello<span>
+      <span id='sibling-3'>hello<span>
+    </div>
+  </div>
+  <div id='ht' style='height: 50px;'></div>
+  <div id='scroll-parent' style="height: 200px; overflow:scroll;">
+    <div>
+      <div id='scroll-child' style="height: 500px"/>hello</div>
+    </div>
+  </div>
+  <div id='scroll-parent-rel' style="height: 200px; overflow:scroll;position: relative;">
+    <div style="height: 200px; overflow:scroll;">
+      <div id='scroll-child-rel' style="height: 500px; position:absolute;"/>hello</div>
+    </div>
+  </div>
+  <div style="height: 200px; overflow:scroll;">
+    <div id='scroll-child-fixed' style="height: 500px;position:fixed;"/>hello</div>
+  </div>
+</div>
+`
+
+const offsethtml = `
+<div>
+  <div id='item-abs' style="position:absolute;top: 400px; left: 350px;"/>hello</div>
+  <div id='item-fixed' style="position:fixed;top: 400px; left: 350px;"/>hello</div>
+  <div id='scroll-parent-rel' style="height: 200px; overflow:scroll;position: absolute; top: 200px; left: 100px;">
+    <div id='item-nested-abs' style="position:absolute;top: 200px; left: 100px;"/>hello</div>
+  </div>
+</div>
+`
+
+const maniphtml = `
+<div id="root">
+  <div id="child-1">
+    <input type="text" disabled="disabled" />
+    <span style="display: none;"></span>
+  </div>
+  <div id="child-2">
+    <span>
+      Text&nbsp;content
+      with multiple  lines
+    </span>
+  </div>
+</div>`
+maniphtml
+
+const stylehtml = `
+<div>
+  <div id='computed'>
+    <div id='item-2'>
+      <span>hello<span>
+    </div>
+  </div>
+  <div id='item-3'></div>
+</div>`
+stylehtml
