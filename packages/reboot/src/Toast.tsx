@@ -1,10 +1,10 @@
-import { Close, Variant as CloseVariant } from "./Button.jsx"
-import { Fade, Props as FProps } from "./Fade.jsx"
-import { useBs } from "./Theme.jsx"
+import { Close, Variant as CloseVariant } from "./Button.js"
+import { Fade, Props as FProps } from "./Fade.js"
+import { useBs } from "./Theme.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
-import * as qu from "./utils.jsx"
+import * as qt from "./types.js"
+import * as qu from "./utils.js"
 import type { Transition } from "react-transition-group"
 
 export interface Data {

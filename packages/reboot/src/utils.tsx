@@ -1,7 +1,7 @@
 import { css, transitionEnd } from "./base/utils.js"
-import { useBs } from "./Theme.jsx"
+import { useBs } from "./Theme.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 import ReactDOM from "react-dom"
 
 export const ENTERING = "entering"

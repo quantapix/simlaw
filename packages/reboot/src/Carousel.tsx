@@ -1,10 +1,10 @@
-import { Anchor } from "./base/Anchor.jsx"
-import { useBs, useIsRTL } from "./Theme.jsx"
-import { Wrapper } from "./Wrapper.jsx"
+import { Anchor } from "./base/Anchor.js"
+import { useBs, useIsRTL } from "./Theme.js"
+import { Wrapper } from "./Wrapper.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
-import * as qu from "./utils.jsx"
+import * as qt from "./types.js"
+import * as qu from "./utils.js"
 import type { TransitionStatus } from "react-transition-group"
 
 export const Caption = qu.withBs("carousel-caption")

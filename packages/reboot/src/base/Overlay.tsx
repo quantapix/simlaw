@@ -3,7 +3,7 @@ import * as qp from "./popper.js"
 import * as qr from "react"
 import * as qu from "./use.js"
 import ReactDOM from "react-dom"
-import type * as qt from "./types.jsx"
+import type * as qt from "./types.js"
 
 export interface ArrowProps extends Record<string, any> {
   ref: qr.RefCallback<HTMLElement>

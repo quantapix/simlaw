@@ -1,10 +1,10 @@
-import { Col, Props as _Props } from "./Col.jsx"
-import { Feedback, Type } from "./Feedback.jsx"
-import { hasChildOfType, withBs } from "./utils.jsx"
-import { useBs } from "./Theme.jsx"
+import { Col, Props as _Props } from "./Col.js"
+import { Feedback, Type } from "./Feedback.js"
+import { hasChildOfType, withBs } from "./utils.js"
+import { useBs } from "./Theme.js"
 import { warning } from "./base/utils.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 interface Data {
   controlId?: any

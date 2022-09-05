@@ -1,6 +1,6 @@
-import { useBs } from "./Theme.jsx"
+import { useBs } from "./Theme.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export interface Props extends qt.BsProps, qr.HTMLAttributes<HTMLElement> {
   fluid?: boolean | string | "sm" | "md" | "lg" | "xl" | "xxl"

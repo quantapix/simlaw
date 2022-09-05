@@ -1,8 +1,8 @@
-import { Input } from "./Form.jsx"
-import { useBs } from "./Theme.jsx"
-import { withBs } from "./utils.jsx"
+import { Input } from "./Form.js"
+import { useBs } from "./Theme.js"
+import { withBs } from "./utils.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export const Context = qr.createContext<unknown | null>(null)
 Context.displayName = "InputGroupContext"

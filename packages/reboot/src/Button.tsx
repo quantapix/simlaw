@@ -1,7 +1,7 @@
-import { Props as BaseProps, useButtonProps } from "./base/Button.jsx"
-import { useBs } from "./Theme.jsx"
+import { Props as BaseProps, useButtonProps } from "./base/Button.js"
+import { useBs } from "./Theme.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export interface Props extends BaseProps, Omit<qt.BsProps, "as"> {
   active?: boolean | undefined

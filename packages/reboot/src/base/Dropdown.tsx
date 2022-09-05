@@ -1,11 +1,11 @@
-import { Button } from "./Button.jsx"
-import { Context as NavContext } from "./Nav.jsx"
+import { Button } from "./Button.js"
+import { Context as NavContext } from "./Nav.js"
 import { qsa, addEventListener } from "./utils.js"
 import { useSSRSafeId } from "@react-aria/ssr"
 import * as qh from "../hooks.js"
 import * as qp from "./popper.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 import * as qu from "./use.js"
 
 export type ToggleEvent = Event | qr.SyntheticEvent // | KeyboardEvent | MouseEvent

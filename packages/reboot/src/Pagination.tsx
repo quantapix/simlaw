@@ -1,7 +1,7 @@
-import { Anchor } from "./base/Anchor.jsx"
-import { useBs } from "./Theme.jsx"
+import { Anchor } from "./base/Anchor.js"
+import { useBs } from "./Theme.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export interface ItemProps extends qr.HTMLAttributes<HTMLElement>, qt.BsProps {
   disabled?: boolean

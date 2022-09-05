@@ -1,17 +1,17 @@
 import { contains } from "./base/utils.js"
-import { Fade } from "./Fade.jsx"
-import { safeFindDOMNode } from "./utils.jsx"
-import { useOffset } from "./use.jsx"
+import { Fade } from "./Fade.js"
+import { safeFindDOMNode } from "./utils.js"
+import { useOffset } from "./use.js"
 import { warning } from "./base/utils.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 import type { Placement, State } from "./base/popper.js"
 import {
   Overlay as Base,
   Props as BaseProps,
   ArrowProps,
-} from "./base/Overlay.jsx"
+} from "./base/Overlay.js"
 
 export interface InjectedProps {
   ref: qr.RefCallback<HTMLElement>

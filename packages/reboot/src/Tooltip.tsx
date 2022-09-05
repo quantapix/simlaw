@@ -1,8 +1,8 @@
-import { useBs, useIsRTL } from "./Theme.jsx"
+import { useBs, useIsRTL } from "./Theme.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
-import * as qu from "./utils.jsx"
-import type { ArrowProps } from "./base/Overlay.jsx"
+import * as qt from "./types.js"
+import * as qu from "./utils.js"
+import type { ArrowProps } from "./base/Overlay.js"
 import type { Placement } from "./base/popper.js"
 
 export interface Props extends qr.HTMLAttributes<HTMLDivElement>, qt.BsProps {

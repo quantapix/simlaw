@@ -1,14 +1,14 @@
-import { Button, Group } from "./Button.jsx"
+import { Button, Group } from "./Button.js"
 import * as qr from "react"
-import type { Type } from "./base/Button.jsx"
-import type * as qt from "./types.jsx"
+import type { Type } from "./base/Button.js"
+import type * as qt from "./types.js"
 import {
   Dropdown,
   Props as BaseProps,
   PropsFromToggle,
   Toggle,
   Menu,
-} from "./Dropdown.jsx"
+} from "./Dropdown.js"
 
 export interface Props
   extends Omit<BaseProps, "title">,

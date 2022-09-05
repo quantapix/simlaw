@@ -1,5 +1,5 @@
 import { isTrivialHref } from "./utils.js"
-import { useButtonProps } from "./Button.jsx"
+import { useButtonProps } from "./Button.js"
 import * as qh from "../hooks.js"
 import * as qr from "react"
 

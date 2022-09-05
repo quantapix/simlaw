@@ -1,12 +1,12 @@
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 import {
   BREAKPOINTS,
   MIN_BREAKPOINT,
   useBs,
   useBreakpoints,
   useMinBreakpoint,
-} from "./Theme.jsx"
+} from "./Theme.js"
 
 export type Utility<T> =
   | T

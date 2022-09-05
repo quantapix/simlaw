@@ -16,7 +16,7 @@
     "importHelpers": true,
     "importsNotUsedAsValues": "error",
     "inlineSources": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "lib": ["ESNext", "dom", "dom.iterable"],
     "module": "NodeNext",
     "moduleDetection": "auto",

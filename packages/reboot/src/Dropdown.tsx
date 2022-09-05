@@ -1,15 +1,15 @@
-import { Anchor } from "./base/Anchor.jsx"
-import { Button as _Button, Props as BProps } from "./Button.jsx"
-import { Context as IContext } from "./InputGroup.jsx"
-import { Context as NContext } from "./Navbar.jsx"
-import { Link as NLink } from "./Nav.jsx"
-import { useBs, useIsRTL } from "./Theme.jsx"
-import { useWrappedRef } from "./use.jsx"
+import { Anchor } from "./base/Anchor.js"
+import { Button as _Button, Props as BProps } from "./Button.js"
+import { Context as IContext } from "./InputGroup.js"
+import { Context as NContext } from "./Navbar.js"
+import { Link as NLink } from "./Nav.js"
+import { useBs, useIsRTL } from "./Theme.js"
+import { useWrappedRef } from "./use.js"
 import { warning } from "./base/utils.js"
-import { withBs } from "./utils.jsx"
+import { withBs } from "./utils.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 import type { Placement } from "./base/popper.js"
 import {
   Dropdown as Base,
@@ -20,7 +20,7 @@ import {
   useMenu,
   useToggle,
   MenuOpts,
-} from "./base/Dropdown.jsx"
+} from "./base/Dropdown.js"
 
 export type Drop = "up" | "start" | "end" | "down"
 

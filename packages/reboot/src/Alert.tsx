@@ -1,11 +1,11 @@
-import { Anchor } from "./base/Anchor.jsx"
-import { Close, Variant as CloseVariant } from "./Button.jsx"
-import { divAs, withBs } from "./utils.jsx"
-import { Fade } from "./Fade.jsx"
-import { useBs } from "./Theme.jsx"
+import { Anchor } from "./base/Anchor.js"
+import { Close, Variant as CloseVariant } from "./Button.js"
+import { divAs, withBs } from "./utils.js"
+import { Fade } from "./Fade.js"
+import { useBs } from "./Theme.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export const Link = withBs("alert-link", {
   Component: Anchor,

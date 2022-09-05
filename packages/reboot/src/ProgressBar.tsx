@@ -1,7 +1,7 @@
-import { map } from "./utils.jsx"
-import { useBs } from "./Theme.jsx"
+import { map } from "./utils.js"
+import { useBs } from "./Theme.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export interface Props extends qr.HTMLAttributes<HTMLDivElement>, qt.BsProps {
   min?: number | undefined

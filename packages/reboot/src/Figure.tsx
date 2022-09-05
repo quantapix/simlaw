@@ -1,7 +1,7 @@
-import { Image as X, Props } from "./Image.jsx"
-import { withBs } from "./utils.jsx"
+import { Image as X, Props } from "./Image.js"
+import { withBs } from "./utils.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export const Image = qr.forwardRef<HTMLImageElement, Props>(
   ({ className, ...ps }, ref) => (

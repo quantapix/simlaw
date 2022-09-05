@@ -1,7 +1,7 @@
-import { Button as B } from "./Button.jsx"
-import { usePlaceholder, Props as _Props } from "./use.jsx"
+import { Button as B } from "./Button.js"
+import { usePlaceholder, Props as _Props } from "./use.js"
 import * as qr from "react"
-import type * as qt from "./types.jsx"
+import type * as qt from "./types.js"
 
 export interface ButtonProps extends Props {
   variant?: qt.ButtonVariant

@@ -1,17 +1,17 @@
-import { Anchor } from "./base/Anchor.jsx"
-import { Context as CContext } from "./Card.jsx"
-import { Context as NContext } from "./Navbar.jsx"
-import { useBs } from "./Theme.jsx"
-import { withBs } from "./utils.jsx"
+import { Anchor } from "./base/Anchor.js"
+import { Context as CContext } from "./Card.js"
+import { Context as NContext } from "./Navbar.js"
+import { useBs } from "./Theme.js"
+import { withBs } from "./utils.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 import {
   Nav as Base,
   Props as BaseProps,
   useNavItem,
   ItemProps as IPs,
-} from "./base/Nav.jsx"
+} from "./base/Nav.js"
 
 interface Data {
   role?: string

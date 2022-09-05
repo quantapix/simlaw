@@ -1,14 +1,14 @@
-import { useBs } from "./Theme.jsx"
+import { useBs } from "./Theme.js"
 import { warning } from "./base/utils.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 import {
   Nav as Base,
   Props as BaseProps,
   useNavItem,
   ItemProps as IPs,
-} from "./base/Nav.jsx"
+} from "./base/Nav.js"
 
 export interface ItemProps extends Omit<IPs, "onSelect">, qt.BsProps {
   action?: boolean

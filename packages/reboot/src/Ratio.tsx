@@ -1,6 +1,6 @@
-import { useBs } from "./Theme.jsx"
+import { useBs } from "./Theme.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export type AspectRatio = "1x1" | "4x3" | "16x9" | "21x9" | string
 

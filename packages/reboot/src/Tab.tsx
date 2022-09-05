@@ -1,10 +1,10 @@
-import { Context, useTabPanel, NoopTransition } from "./base/Tab.jsx"
-import { Fade } from "./Fade.jsx"
-import { Tabs, Props as TabsProps } from "./base/Tabs.jsx"
-import { useBs } from "./Theme.jsx"
-import { withBs } from "./utils.jsx"
+import { Context, useTabPanel, NoopTransition } from "./base/Tab.js"
+import { Fade } from "./Fade.js"
+import { Tabs, Props as TabsProps } from "./base/Tabs.js"
+import { useBs } from "./Theme.js"
+import { withBs } from "./utils.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export function getTabTransition(
   x?: qt.Transition2

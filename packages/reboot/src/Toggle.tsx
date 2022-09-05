@@ -1,14 +1,14 @@
-import { map, createChained } from "./utils.jsx"
-import { useBs } from "./Theme.jsx"
+import { map, createChained } from "./utils.js"
+import { useBs } from "./Theme.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 import {
   Button as B,
   Props as BPs,
   Group as G,
   GroupProps as GPs,
-} from "./Button.jsx"
+} from "./Button.js"
 
 export type Type = "checkbox" | "radio"
 

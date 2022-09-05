@@ -1,8 +1,8 @@
 import * as qr from "react"
 import type { Placement, State } from "./base/popper.js"
-import type * as qt from "./base/types.jsx"
+import type * as qt from "./base/types.js"
 
-export * from "./base/types.jsx"
+export * from "./base/types.js"
 
 export type Omit2<T, U> = Pick<T, Exclude<keyof T, keyof U>>
 

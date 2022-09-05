@@ -1,9 +1,9 @@
-import { Collapse as C, Props as CPs } from "./Collapse.jsx"
-import { useBs } from "./Theme.jsx"
-import { withBs } from "./utils.jsx"
+import { Collapse as C, Props as CPs } from "./Collapse.js"
+import { useBs } from "./Theme.js"
+import { withBs } from "./utils.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export interface Data {
   onToggle: () => void

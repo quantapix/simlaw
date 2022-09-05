@@ -1,8 +1,8 @@
-import { Context, Data } from "./Tab.jsx"
+import { Context, Data } from "./Tab.js"
 import { useSSRSafeId } from "@react-aria/ssr"
 import * as qh from "../hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export interface Props extends qr.PropsWithChildren<unknown> {
   id?: string | undefined

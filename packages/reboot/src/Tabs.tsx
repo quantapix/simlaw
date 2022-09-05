@@ -1,10 +1,10 @@
-import { Content, Pane, getTabTransition } from "./Tab.jsx"
-import { forEach, map } from "./utils.jsx"
-import { Item, Link, Nav, Props as NProps } from "./Nav.jsx"
-import { Tabs as Base, Props as BaseProps } from "./base/Tabs.jsx"
+import { Content, Pane, getTabTransition } from "./Tab.js"
+import { forEach, map } from "./utils.js"
+import { Item, Link, Nav, Props as NProps } from "./Nav.js"
+import { Tabs as Base, Props as BaseProps } from "./base/Tabs.js"
 import * as qh from "./hooks.js"
 import type * as qr from "react"
-import type * as qt from "./types.jsx"
+import type * as qt from "./types.js"
 
 export interface Props
   extends Omit<BaseProps, "transition">,

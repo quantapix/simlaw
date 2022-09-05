@@ -1,9 +1,9 @@
-import { Button } from "./Button.jsx"
-import { Context as TabContext } from "./Tab.jsx"
+import { Button } from "./Button.js"
+import { Context as TabContext } from "./Tab.js"
 import { qsa } from "./utils.js"
 import * as qh from "../hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 interface Data {
   role?: string | undefined

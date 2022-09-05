@@ -1,4 +1,4 @@
-import { safeFindDOMNode } from "./utils.jsx"
+import { safeFindDOMNode } from "./utils.js"
 import { Transition, TransitionStatus as Status } from "react-transition-group"
 import * as qh from "./hooks.js"
 import * as qr from "react"

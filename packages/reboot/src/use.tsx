@@ -1,10 +1,10 @@
 import { hasClass } from "./base/utils.js"
-import { POPPER_OFFSET } from "./Popover.jsx"
-import { useBs } from "./Theme.jsx"
-import { useCol, Props as _Props } from "./Col.jsx"
+import { POPPER_OFFSET } from "./Popover.js"
+import { useBs } from "./Theme.js"
+import { useCol, Props as _Props } from "./Col.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 import type { Offset, Options } from "./base/popper.js"
 
 export function useOffset(

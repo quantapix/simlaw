@@ -1,6 +1,6 @@
-import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.jsx"
+import { useBs, useBreakpoints, useMinBreakpoint } from "./Theme.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 type ColWidth =
   | number

@@ -1,5 +1,5 @@
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 export type Type = "valid" | "invalid"
 

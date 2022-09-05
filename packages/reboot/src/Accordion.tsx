@@ -1,8 +1,8 @@
-import { Collapse as C, Props as CProps } from "./Collapse.jsx"
-import { useBs } from "./Theme.jsx"
+import { Collapse as C, Props as CProps } from "./Collapse.js"
+import { useBs } from "./Theme.js"
 import * as qh from "./hooks.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 import type { Transition } from "react-transition-group"
 
 export type Key = string | string[] | null | undefined

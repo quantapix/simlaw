@@ -1,7 +1,7 @@
-import { divAs, withBs } from "./utils.jsx"
-import { useBs } from "./Theme.jsx"
+import { divAs, withBs } from "./utils.js"
+import { useBs } from "./Theme.js"
 import * as qr from "react"
-import * as qt from "./types.jsx"
+import * as qt from "./types.js"
 
 interface Data {
   headerBs: string
