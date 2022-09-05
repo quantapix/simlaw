@@ -6,5 +6,7 @@
   "https://github.com/react-bootstrap/react-bootstrap.git": "9b7b078",
   "https://github.com/react-restart/context.git": "fb25d46",
   "https://github.com/react-restart/hooks.git": "77e267b",
-  "https://github.com/react-restart/ui.git": "155aa93"
+  "https://github.com/react-restart/ui.git": "155aa93",
+  "https://github.com/ReactiveX/rxjs.git": "4afbc16",
+  "https://github.com/reduxjs/redux-toolkit.git": "3de00f4"
 }
