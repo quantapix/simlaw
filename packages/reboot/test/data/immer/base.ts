@@ -1425,22 +1425,21 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       })
     })
     describe("async recipe function", () => {
-      it("can modify the draft", () => {
+      it("can modify the draft", async () => {
         const base = { a: 0, b: 0 }
-        return produce(base, async (x: any) => {
+        const y = await produce(base, async x => {
           x.a = 1
           await Promise.resolve()
           x.b = 1
-        }).then((y: any) => {
-          expect(y).not.toBe(base)
-          expect(y).toEqual({ a: 1, b: 1 })
         })
+        expect(y).not.toBe(base)
+        expect(y).toEqual({ a: 1, b: 1 })
       })
       it("works with rejected promises", () => {
         let draft: any
         const base = { a: 0, b: 0 }
         const err = new Error("passed")
-        return produce(base, (x: any) => {
+        return produce(base, x => {
           draft = x
           draft.b = 1
           return Promise.reject(err)
@@ -1448,32 +1447,29 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
           () => {
             throw "failed"
           },
-          (e: any) => {
+          e => {
             expect(e).toBe(err)
             if (!isProd) expect(() => draft.a).toThrowErrorMatchingSnapshot()
           }
         )
       })
-      it("supports recursive produce calls after await", () => {
-        const base = { obj: { k: 1 } }
-        return produce(base, async (x: any) => {
+      it("supports recursive produce calls after await", async () => {
+        const base: { obj?: any } = { obj: { k: 1 } }
+        const y = await produce(base, async x => {
           const obj = x.obj
           delete x.obj
           await Promise.resolve()
-          x.a = produce({}, (d: any) => {
-            d.b = obj
+          ;(x as any).a = produce({}, (x2: any) => {
+            x2.b = obj
           })
-          expect(Object.isFrozen(x.a)).toBeFalsy()
+          expect(Object.isFrozen((x as any).a)).toBeFalsy()
           obj.c = 1
-        }).then((y: any) => {
-          expect(y).not.toBe(base)
-          expect(y).toEqual({
-            a: { b: { k: 1, c: 1 } },
-          })
         })
+        expect(y).not.toBe(base)
+        expect(y).toEqual({ a: { b: { k: 1, c: 1 } } })
       })
       it("works with patches", () =>
-        produceWithPatches({ a: 0 }, async (x: any) => {
+        produceWithPatches({ a: 0 }, async x => {
           await Promise.resolve()
           x.a = 1
         }).then(([y, ps, invs]) => {
@@ -1492,49 +1488,47 @@ function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
       }).toThrowErrorMatchingSnapshot()
     })
     it("should fix #117 - 1", () => {
-      const reducer = (base: any, action: any) =>
+      const reducer = (base: any, recipe: any) =>
         produce(base, (x: any) => {
-          switch (action.type) {
-            case "SET_STARTING_DOTS":
-              return x.availableStartingDots.map(a => a)
+          switch (recipe.type) {
+            case "WITH_DOTS":
+              return x.withDots.map((x2: any) => x2)
             default:
               break
           }
         })
       const base = {
-        availableStartingDots: [
+        withDots: [
           { dots: 4, count: 1 },
           { dots: 3, count: 2 },
           { dots: 2, count: 3 },
           { dots: 1, count: 4 },
         ],
       }
-      const next = reducer(base, { type: "SET_STARTING_DOTS" })
-      expect(next).toEqual(base.availableStartingDots)
-      expect(next).not.toBe(base.availableStartingDots)
+      const y = reducer(base, { type: "WITH_DOTS" })
+      expect(y).toEqual(base.withDots)
+      expect(y).not.toBe(base.withDots)
     })
     it("should fix #117 - 2", () => {
-      const reducer = (x: any, recipe: any) =>
-        produce(x, (x2: any) => {
+      const reducer = (base: any, recipe: any) =>
+        produce(base, (x: any) => {
           switch (recipe.type) {
-            case "SET_STARTING_DOTS":
-              return {
-                dots: x2.availableStartingDots.map((a: any) => a),
-              }
+            case "WITH_DOTS":
+              return { dots: x.withDots.map((x2: any) => x2) }
             default:
               return
           }
         })
       const base = {
-        availableStartingDots: [
+        withDots: [
           { dots: 4, count: 1 },
           { dots: 3, count: 2 },
           { dots: 2, count: 3 },
           { dots: 1, count: 4 },
         ],
       }
-      const y = reducer(base, { type: "SET_STARTING_DOTS" })
-      expect(y).toEqual({ dots: base.availableStartingDots })
+      const y = reducer(base, { type: "WITH_DOTS" })
+      expect(y).toEqual({ dots: base.withDots })
     })
     it("cannot always detect noop assignments - 0", () => {
       const base = { x: { y: 3 } }
