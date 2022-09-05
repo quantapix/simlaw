@@ -3,42 +3,6 @@ import * as qr from "react"
 
 export const noop = () => {}
 
-/*
-interface Window {
-  ResizeObserver: ResizeObserver
-}
-
-interface ResizeObserver {
-  new (callback: ResizeObserverCB): any
-  observe: (x: Element) => void
-  unobserve: (x: Element) => void
-  disconnect: () => void
-}
-
-interface ResizeObserverCB {
-  (es: ResizeObserverEntry[], o: ResizeObserver): void
-}
-
-interface ResizeObserverEntry {
-  new (x: Element): any
-  readonly target: Element
-  readonly contentRect: DOMRectReadOnly
-}
-
-interface DOMRectReadOnly {
-  fromRect(other: DOMRectInit | undefined): DOMRectReadOnly
-  readonly x: number
-  readonly y: number
-  readonly width: number
-  readonly height: number
-  readonly top: number
-  readonly right: number
-  readonly bottom: number
-  readonly left: number
-  toJSON: () => any
-}
-*/
-
 export interface AnimationFrame {
   cancel(): void
   request(f: FrameRequestCallback): void
@@ -72,81 +36,64 @@ export function useAnimationFrame(): AnimationFrame {
   )
 }
 
-export type BreakpointDirection = "up" | "down" | true
+export type BreakDir = "up" | "down" | true
+export type BreakMap<K extends string> = Partial<Record<K, BreakDir>>
 
-export type BreakpointMap<K extends string> = Partial<
-  Record<K, BreakpointDirection>
->
-
-export function createBreakpointHook<K extends string>(
+export function createBreakHook<K extends string>(
   xs: Record<K, string | number>
 ) {
-  const names = Object.keys(xs) as K[]
-  function and(query: string, next: string) {
-    if (query === next) {
-      return next
-    }
-    return query ? `${query} and ${next}` : next
+  const ks = Object.keys(xs) as K[]
+  function and(a: string, b: string) {
+    if (a === b) return b
+    return a ? `${a} and ${b}` : b
   }
-  function getNext(key: K) {
-    return names[Math.min(names.indexOf(key) + 1, names.length - 1)]
+  function next(k: K) {
+    return ks[Math.min(ks.indexOf(k) + 1, ks.length - 1)]
   }
-  function getMaxQuery(key: K) {
-    const next = getNext(key)!
-    let v = xs[next]
-    if (typeof v === "number") v = `${v - 0.2}px`
-    else v = `calc(${v} - 0.2px)`
-    return `(max-width: ${v})`
+  function max(k: K) {
+    let y = xs[next(k)!]
+    if (typeof y === "number") y = `${y - 0.2}px`
+    else y = `calc(${y} - 0.2px)`
+    return `(max-width: ${y})`
   }
-  function getMinQuery(key: K) {
-    let v = xs[key]
-    if (typeof v === "number") {
-      v = `${v}px`
-    }
-    return `(min-width: ${v})`
+  function min(k: K) {
+    let y = xs[k]
+    if (typeof y === "number") y = `${y}px`
+    return `(min-width: ${y})`
   }
-  function useBreakpoint(m: BreakpointMap<K>, window?: Window): boolean
-  function useBreakpoint(
-    key: K,
-    direction?: BreakpointDirection,
-    window?: Window
-  ): boolean
-  function useBreakpoint(
-    x: K | BreakpointMap<K>,
-    direction?: BreakpointDirection | Window,
-    window?: Window
+  function hook(m: BreakMap<K>, w?: Window): boolean
+  function hook(k: K, d?: BreakDir, w?: Window): boolean
+  function hook(
+    x: K | BreakMap<K>,
+    d?: BreakDir | Window,
+    w?: Window
   ): boolean {
-    let m: BreakpointMap<K>
+    let m: BreakMap<K>
     if (typeof x === "object") {
       m = x
-      window = direction as Window
-      direction = true
+      w = d as Window
     } else {
-      direction = direction || true
-      m = { [x]: direction } as Record<K, BreakpointDirection>
+      d = d || true
+      m = { [x]: d } as Record<K, BreakDir>
     }
-    const query = qr.useMemo(
+    const y = qr.useMemo(
       () =>
-        Object.entries(m).reduce((query, [key, direction]) => {
-          if (direction === "up" || direction === true) {
-            query = and(query, getMinQuery(key as K))
-          }
-          if (direction === "down" || direction === true) {
-            query = and(query, getMaxQuery(key as K))
-          }
-          return query
+        Object.entries(m).reduce((y, [k, d]) => {
+          if (d === "up" || d === true) y = and(y, min(k as K))
+          if (d === "down" || d === true) y = and(y, max(k as K))
+          return y
         }, ""),
       [JSON.stringify(m)]
     )
-    return useMediaQuery(query, window)
+    return useMediaQuery(y, w)
   }
-  return useBreakpoint
+  return hook
 }
 
 export type DefaultBreakpoints = "xs" | "sm" | "md" | "lg" | "xl" | "xxl"
-export type DefaultBreakpointMap = BreakpointMap<DefaultBreakpoints>
+export type DefaultBreakMap = BreakMap<DefaultBreakpoints>
 
-export const useBreakpoint = createBreakpointHook<DefaultBreakpoints>({
+export const useBreakpoint = createBreakHook<DefaultBreakpoints>({
   xs: 0,
   sm: 576,
   md: 768,
@@ -155,34 +102,27 @@ export const useBreakpoint = createBreakpointHook<DefaultBreakpoints>({
   xxl: 1400,
 })
 
-export function useCallbackRef<V = unknown>(): [
-  V | null,
-  (ref: V | null) => void
+export function useCallbackRef<X = unknown>(): [
+  X | null,
+  (x: X | null) => void
 ] {
-  return qr.useState<V | null>(null)
+  return qr.useState<X | null>(null)
 }
 
-export function useCommittedRef<V>(v: V): qr.MutableRefObject<V> {
-  const ref = qr.useRef(v)
+export function useCommittedRef<X>(x: X): qr.MutableRefObject<X> {
+  const y = qr.useRef(x)
   qr.useEffect(() => {
-    ref.current = v
-  }, [v])
-  return ref
+    y.current = x
+  }, [x])
+  return y
 }
 
-export type EffectHook = (
-  effect: qr.EffectCallback,
-  deps?: qr.DependencyList
-) => void
+export type EffectHook = (x: qr.EffectCallback, xs?: qr.DependencyList) => void
+export type IsEqual<X extends qr.DependencyList> = (a: X, b: X) => boolean
 
-export type IsEqual<Ds extends qr.DependencyList> = (
-  next: Ds,
-  prev: Ds
-) => boolean
-
-export type EffectOpts<Ds extends qr.DependencyList> = {
-  isEqual: IsEqual<Ds>
-  effectHook?: EffectHook | undefined
+export type EffectOpts<X extends qr.DependencyList> = {
+  isEqual: IsEqual<X>
+  hook?: EffectHook | undefined
 }
 
 type CleanUp = {
@@ -191,83 +131,78 @@ type CleanUp = {
 }
 
 export function useCustomEffect<
-  Ds extends qr.DependencyList = qr.DependencyList
->(cb: qr.EffectCallback, ds: Ds, opts: IsEqual<Ds>): void
+  T extends qr.DependencyList = qr.DependencyList
+>(x: qr.EffectCallback, xs: T, opts: IsEqual<T>): void
 export function useCustomEffect<
-  Ds extends qr.DependencyList = qr.DependencyList
->(cb: qr.EffectCallback, ds: Ds, opts: EffectOpts<Ds>): void
+  T extends qr.DependencyList = qr.DependencyList
+>(x: qr.EffectCallback, xs: T, opts: EffectOpts<T>): void
 export function useCustomEffect<
-  Ds extends qr.DependencyList = qr.DependencyList
->(cb: qr.EffectCallback, ds: Ds, opts: IsEqual<Ds> | EffectOpts<Ds>) {
-  const isMounted = useMounted()
-  const { isEqual, effectHook = qr.useEffect } =
+  T extends qr.DependencyList = qr.DependencyList
+>(x: qr.EffectCallback, xs: T, opts: IsEqual<T> | EffectOpts<T>) {
+  const mounted = useMounted()
+  const { isEqual, hook = qr.useEffect } =
     typeof opts === "function" ? { isEqual: opts } : opts
-  const ref = qr.useRef<Ds>()
-  ref.current = ds
+  const ref = qr.useRef<T>()
+  ref.current = xs
   const ref2 = qr.useRef<CleanUp | null>(null)
-  effectHook(() => {
+  hook(() => {
     if (ref2.current === null) {
-      const cleanup = cb()
+      const cleanup = x()
       ref2.current = () => {
-        if (isMounted() && isEqual(ref.current!, ds)) {
-          return
-        }
+        if (mounted() && isEqual(ref.current!, xs)) return
         ref2.current = null
         if (cleanup) cleanup()
       }
     }
     return ref2.current
   })
-  qr.useDebugValue(cb)
+  qr.useDebugValue(x)
 }
 
-export function useDebouncedCB<F extends (...xs: any[]) => any>(
-  f: F,
+export function useDebounced<T extends (...xs: any[]) => any>(
+  x: T,
   delay: number
-): F {
+): T {
   const timeout = useTimeout()
   return qr.useCallback(
     (...xs: any[]) => {
       timeout.set(() => {
-        f(...xs)
+        x(...xs)
       }, delay)
     },
-    [f, delay]
+    [x, delay]
   ) as any
 }
 
-export function useDebouncedState<S>(
-  s0: S,
+export function useDebouncedState<T>(
+  x: T,
   delay: number
-): [S, qr.Dispatch<qr.SetStateAction<S>>] {
-  const [state, setState] = qr.useState(s0)
-  const debounced = useDebouncedCB<qr.Dispatch<qr.SetStateAction<S>>>(
-    setState,
-    delay
-  )
-  return [state, debounced]
+): [T, qr.Dispatch<qr.SetStateAction<T>>] {
+  const [state, setState] = qr.useState(x)
+  const y = useDebounced<qr.Dispatch<qr.SetStateAction<T>>>(setState, delay)
+  return [state, y]
 }
 
-export function useDebouncedValue<V>(v: V, delay = 500): V {
-  const [debounced, setDebounced] = useDebouncedState(v, delay)
-  qr.useDebugValue(debounced)
+export function useDebouncedValue<T>(x: T, delay = 500): T {
+  const [y, set] = useDebouncedState(x, delay)
+  qr.useDebugValue(y)
   qr.useEffect(() => {
-    setDebounced(v)
-  }, [v, delay])
-  return debounced
+    set(x)
+  }, [x, delay])
+  return y
 }
 
-export function useEventCB<F extends (...xs: any[]) => any>(f?: F | null): F {
-  const ref = useCommittedRef(f)
+export function useEventCB<T extends (...xs: any[]) => any>(x?: T | null): T {
+  const y = useCommittedRef(x)
   return qr.useCallback(
-    (...xs: any[]) => ref.current && ref.current(...xs),
-    [ref]
+    (...xs: any[]) => y.current && y.current(...xs),
+    [y]
   ) as any
 }
 
 type EventHandler<T, K extends keyof DocumentEventMap> = (
   this: T,
-  ev: DocumentEventMap[K]
+  x: DocumentEventMap[K]
 ) => any
 
 export function useEventListener<
@@ -275,15 +210,15 @@ export function useEventListener<
   K extends keyof DocumentEventMap
 >(
   x: T | (() => T),
-  key: K,
+  k: K,
   listener: EventHandler<T, K>,
   capture: boolean | AddEventListenerOptions = false
 ) {
   const cb = useEventCB(listener) as EventListenerOrEventListenerObject
   qr.useEffect(() => {
-    const target = typeof x === "function" ? x() : x
-    target.addEventListener(key, cb, capture)
-    return () => target.removeEventListener(key, cb, capture)
+    const y = typeof x === "function" ? x() : x
+    y.addEventListener(k, cb, capture)
+    return () => y.removeEventListener(k, cb, capture)
   }, [x])
 }
 
@@ -687,7 +622,7 @@ export function useMutationObserver(
     [e, init],
     {
       isEqual: isDepsEqual,
-      effectHook: useUpdateImmediateEffect,
+      hook: useUpdateImmediateEffect,
     }
   )
   return cb ? void 0 : records || []
@@ -1120,3 +1055,39 @@ export function useWillUnmount(fn: () => void) {
   const onUnmount = useUpdatedRef(fn)
   qr.useEffect(() => () => onUnmount.current(), [])
 }
+
+/*
+interface Window {
+  ResizeObserver: ResizeObserver
+}
+
+interface ResizeObserver {
+  new (callback: ResizeObserverCB): any
+  observe: (x: Element) => void
+  unobserve: (x: Element) => void
+  disconnect: () => void
+}
+
+interface ResizeObserverCB {
+  (es: ResizeObserverEntry[], o: ResizeObserver): void
+}
+
+interface ResizeObserverEntry {
+  new (x: Element): any
+  readonly target: Element
+  readonly contentRect: DOMRectReadOnly
+}
+
+interface DOMRectReadOnly {
+  fromRect(other: DOMRectInit | undefined): DOMRectReadOnly
+  readonly x: number
+  readonly y: number
+  readonly width: number
+  readonly height: number
+  readonly top: number
+  readonly right: number
+  readonly bottom: number
+  readonly left: number
+  toJSON: () => any
+}
+*/
