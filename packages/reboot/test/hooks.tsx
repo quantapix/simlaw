@@ -1,5 +1,4 @@
-// import { renderHook, act } from "@testing-library/react-hooks"
-import { act } from "@testing-library/react-hooks"
+import { renderHook, act } from "@testing-library/react-hooks"
 import { renderToString } from "react-dom/server"
 import * as qe from "enzyme"
 import * as qh from "../src/hooks.js"
@@ -37,8 +36,8 @@ describe("useAnimationFrame", () => {
   it("Should requestAnimationFrame", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    const [y] = testHook(qh.useAnimationFrame)
-    act(() => y.request(mock))
+    const { result: y } = renderHook(qh.useAnimationFrame)
+    act(() => y.current.request(mock))
     expect(mock).not.toHaveBeenCalled()
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(1)
@@ -46,10 +45,10 @@ describe("useAnimationFrame", () => {
   it("Should cancel a request", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    const [y] = testHook(qh.useAnimationFrame)
+    const { result: y } = renderHook(qh.useAnimationFrame)
     act(() => {
-      y.request(mock)
-      y.cancel()
+      y.current.request(mock)
+      y.current.cancel()
     })
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(0)
@@ -57,9 +56,9 @@ describe("useAnimationFrame", () => {
   it("Should cancel a request on unmount", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    const [y, w] = testHook(qh.useAnimationFrame)
-    act(() => y.request(mock))
-    w.unmount()
+    const { result: y, unmount } = renderHook(qh.useAnimationFrame)
+    act(() => y.current.request(mock))
+    unmount()
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(0)
   })
@@ -104,14 +103,14 @@ describe("useBreakpoint", () => {
     "should match: $expected with config: $config at window width: $width",
     ({ width, expected, config }) => {
       window.resizeTo(width, window.innerHeight)
-      const [y, w] = testHook(() => qh.useBreakpoint(config))
+      const { result: y, unmount } = renderHook(() => qh.useBreakpoint(config))
       expect(y).toEqual(expected)
-      w.unmount()
+      unmount()
     }
   )
   it("Should assume pixels for number values", () => {
     const bp = qh.createBreakHook({ xs: 0, sm: 400, md: 700 })
-    testHook(() => bp("sm"))
+    renderHook(() => bp("sm"))
     expect(spy).toBeCalled()
     expect(spy.mock.calls[0]?.[0]).toEqual(
       "(min-width: 400px) and (max-width: 699.8px)"
@@ -119,7 +118,7 @@ describe("useBreakpoint", () => {
   })
   it("Should use calc for string values", () => {
     const bp = qh.createBreakHook({ xs: 0, sm: "40rem", md: "70rem" })
-    testHook(() => bp("sm"))
+    renderHook(() => bp("sm"))
     expect(spy).toBeCalled()
     expect(spy.mock.calls[0]?.[0]).toEqual(
       "(min-width: 40rem) and (max-width: calc(70rem - 0.2px))"
@@ -127,7 +126,7 @@ describe("useBreakpoint", () => {
   })
   it("Should flatten media", () => {
     const bp = qh.createBreakHook({ sm: 400, md: 400 })
-    testHook(() => bp({ sm: "up", md: "up" }))
+    renderHook(() => bp({ sm: "up", md: "up" }))
     expect(spy.mock.calls[0]?.[0]).toEqual("(min-width: 400px)")
   })
 })
@@ -161,14 +160,15 @@ describe("useCommittedRef", () => {
   it("Should use fresh value", () => {
     const mockA = jest.fn()
     const mockB = jest.fn()
-    const [y] = testHook(
+    const { rerender } = renderHook(
       x => {
         const ref = qh.useCommittedRef<any>(x)
         qr.useEffect(() => ref.current())
+        return null
       },
-      { ps0: mockA }
+      { initialProps: mockA }
     )
-    y(mockB)
+    rerender(mockB)
     expect(mockA).toHaveBeenCalledTimes(1)
     expect(mockB).toHaveBeenCalledTimes(1)
   })
@@ -335,43 +335,48 @@ describe("useIntersectionObserver", () => {
   })
   it("Should observe element", async () => {
     const e = document.createElement("span")
-    const [y] = testHook(() => qh.useIntersectionObserver(e))
+    const { result: y } = renderHook(() => qh.useIntersectionObserver(e))
     const entry = {}
     expect(y).toEqual([])
     act(() => {
       observers[0].args[0]([entry])
     })
-    expect(y[0]).toStrictEqual(entry)
+    expect(y.current[0]).toStrictEqual(entry)
   })
   it("Should wait for element", async () => {
     const element = document.createElement("span")
-    const [y, w] = testHook(
-      ({ element }) => qh.useIntersectionObserver(element),
-      { ps0: { element: null as any } }
-    )
+    const {
+      result: y,
+      rerender,
+      unmount,
+    } = renderHook(({ element }) => qh.useIntersectionObserver(element), {
+      initialProps: { element: null as any },
+    })
     expect(y).toEqual([])
     expect(observers[0].observe).not.toBeCalled()
-    w.render({ element })
+    rerender({ element })
     expect(observers[0].observe).toBeCalledTimes(1)
-    w.unmount()
+    unmount()
     expect(observers[0].unobserve).toBeCalledTimes(1)
   })
   it("Should wait for root to set up observer", async () => {
     const div = document.createElement("div")
     const span = document.createElement("span")
-    const [, w] = testHook(
+    const { rerender } = renderHook(
       (root: any) => qh.useIntersectionObserver(span, { root }),
-      { ps0: null }
+      { initialProps: null }
     )
     expect(observers).toHaveLength(0)
-    w.render(div)
+    rerender(div as any)
     expect(observers).toHaveLength(1)
     expect(observers[0].observe).toBeCalledTimes(1)
   })
   it("Should accept a callback", async () => {
     const mock = jest.fn()
     const span = document.createElement("span")
-    const [y] = testHook(() => qh.useIntersectionObserver(span, mock))
+    const { result: y } = renderHook(() =>
+      qh.useIntersectionObserver(span, mock)
+    )
     expect(y).toEqual(undefined)
     const entry = {}
     act(() => {
@@ -385,7 +390,7 @@ describe("useTimeout", () => {
   it("Should set an interval", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    testHook(() => qh.useInterval(mock, 100))
+    renderHook(() => qh.useInterval(mock, 100))
     expect(mock).not.toHaveBeenCalled()
     act(() => {
       jest.runOnlyPendingTimers()
@@ -399,21 +404,21 @@ describe("useTimeout", () => {
   it("Should run immediately when argument is set", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    testHook(() => qh.useInterval(mock, 100, false, true))
+    renderHook(() => qh.useInterval(mock, 100, false, true))
     expect(mock).toHaveBeenCalledTimes(1)
   })
   it("Should not run when paused", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    testHook(() => qh.useInterval(mock, 100, true))
+    renderHook(() => qh.useInterval(mock, 100, true))
     jest.runOnlyPendingTimers()
     expect(mock).not.toHaveBeenCalled()
   })
   it("Should stop running on unmount", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
-    const [y] = testHook(() => qh.useInterval(mock, 100))
-    y()
+    const { unmount } = renderHook(() => qh.useInterval(mock, 100))
+    unmount()
     jest.runOnlyPendingTimers()
     expect(mock).not.toHaveBeenCalled()
   })
@@ -810,9 +815,7 @@ describe("useStateAsync", () => {
     }
     qe.mount(<Wrapper />)
     expect.assertions(4)
-    const inc = async () => {
-      act(() => y[1](x => x + 1))
-    }
+    const inc = async () => act(() => y[1](x => x + 1))
     expect(y![0]).toEqual(0)
     await inc()
     expect(y![0]).toEqual(1)
