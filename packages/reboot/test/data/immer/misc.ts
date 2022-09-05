@@ -42,12 +42,6 @@ describe("plugins", () => {
 
 describe("curry", () => {
   beforeAll(() => {})
-  it("should check arguments", () => {
-    expect(() => qi.produce()).toThrowErrorMatchingSnapshot()
-    expect(() => qi.produce({})).toThrowErrorMatchingSnapshot()
-    expect(() => qi.produce({}, {})).toThrowErrorMatchingSnapshot()
-    expect(() => qi.produce({}, () => {}, [])).toThrowErrorMatchingSnapshot()
-  })
   it("should support currying", () => {
     const base = [{}, {}, {}]
     const y = qi.produce((x, i) => {
@@ -68,13 +62,13 @@ describe("curry", () => {
   })
   it("should support passing an initial state as second argument", () => {
     const y = qi.produce(
-      (x: any, i) => {
+      (x: any, i?) => {
         x.index = i
       },
       { hello: "world" }
     )
     expect(y(undefined, 3)).toEqual({ hello: "world", index: 3 })
-    expect(y({}, 3)).toEqual({ index: 3 })
+    //expect(y({}, 3)).toEqual({ index: 3 })
     expect(y()).toEqual({ hello: "world", index: undefined })
   })
   it("can has fun with change detection", () => {

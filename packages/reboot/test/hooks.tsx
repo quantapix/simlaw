@@ -815,7 +815,10 @@ describe("useStateAsync", () => {
     }
     qe.mount(<Wrapper />)
     expect.assertions(4)
-    const inc = async () => act(() => y[1](x => x + 1))
+    const inc = async () =>
+      act(() => {
+        y[1](x => x + 1)
+      })
     expect(y![0]).toEqual(0)
     await inc()
     expect(y![0]).toEqual(1)
@@ -872,7 +875,9 @@ describe("useStateAsync", () => {
     expect.assertions(5)
     expect(y![0]).toEqual(0)
     const f = async (n: number) => expect(y[1](n)).resolves.toEqual(2)
-    act(() => Promise.all([f(1), f(1), f(2)]))
+    act(() => {
+      Promise.all([f(1), f(1), f(2)])
+    })
     expect(y![0]).toEqual(2)
   })
 })
