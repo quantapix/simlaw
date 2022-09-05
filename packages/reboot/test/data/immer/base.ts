@@ -5,26 +5,26 @@ jest.setTimeout(1000)
 qi.enableAllPlugins()
 const isProd = process.env["NODE_ENV"] === "production"
 
-runBaseTest("proxy (no freeze)", false)
-runBaseTest("proxy (autofreeze)", true)
-runBaseTest("proxy (patch listener)", false, true)
-runBaseTest("proxy (autofreeze)(patch listener)", true, true)
+runTest("proxy (no freeze)", false)
+runTest("proxy (autofreeze)", true)
+runTest("proxy (patch listener)", false, true)
+runTest("proxy (autofreeze)(patch listener)", true, true)
 
-function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
-  const listener = useListener ? function () {} : undefined
+function runTest(name: string, autoFreeze: boolean, useListener?: boolean) {
+  function createImmer(x: any) {
+    const y = new qi.Immer(x)
+    const { produce } = y
+    y.produce = (base: any, recipe?: any, listener?: any) => {
+      const mock = useListener ? function () {} : undefined
+      return typeof recipe === "function" && listener === undefined
+        ? produce(base, recipe, mock)
+        : produce(base, recipe, listener)
+    }
+    return y
+  }
   const { produce, produceWithPatches } = createImmer({
     autoFreeze,
   })
-  function createImmer(x: any) {
-    const i = new qi.Immer(x)
-    const { produce } = i
-    i.produce = function (...xs: any[]) {
-      return typeof xs[1] === "function" && xs.length < 3
-        ? produce(...xs, listener)
-        : produce(...xs)
-    }
-    return i
-  }
   describe(`base functionality - ${name}`, () => {
     let base: any
     let orig: any

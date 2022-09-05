@@ -6,16 +6,16 @@ runBaseTest("proxy (no freeze)", false)
 runBaseTest("proxy (autofreeze)", true)
 
 function runBaseTest(name: string, autoFreeze: boolean, useListener?: boolean) {
-  const listener = useListener ? function () {} : undefined
   function createImmer(x: any) {
-    const i = new qi.Immer(x)
-    const { produce } = i
-    i.produce = (...xs: any[]) => {
-      return xs.length == 2 && typeof xs[1] === "function"
-        ? produce(...xs, listener)
-        : produce(...xs)
+    const y = new qi.Immer(x)
+    const { produce } = y
+    y.produce = (base: any, recipe?: any, listener?: any) => {
+      const mock = useListener ? function () {} : undefined
+      return typeof recipe === "function" && listener === undefined
+        ? produce(base, recipe, mock)
+        : produce(base, recipe, listener)
     }
-    return i
+    return y
   }
   const { produce } = createImmer({ autoFreeze })
   describe(`regressions ${name}`, () => {
