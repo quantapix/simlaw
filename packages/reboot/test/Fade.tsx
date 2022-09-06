@@ -1,4 +1,4 @@
-import { Fade, Props } from "../src/Fade.jsx"
+import { Fade, Props } from "../src/Fade.js"
 import { render } from "@testing-library/react"
 import * as qr from "react"
 import type { Transition } from "react-transition-group"

@@ -1,5 +1,5 @@
-import { Breadcrumb, Item } from "../src/Breadcrumb.jsx"
-import { Button } from "../src/Button.jsx"
+import { Breadcrumb, Item } from "../src/Breadcrumb.js"
+import { Button } from "../src/Button.js"
 import { render, fireEvent } from "@testing-library/react"
 
 describe("<Breadcrumb>", () => {

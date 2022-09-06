@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react"
-import { Tooltip } from "../src/Tooltip.jsx"
+import { Tooltip } from "../src/Tooltip.js"
 
 describe("Tooltip", () => {
   it("Should output a tooltip with content", () => {

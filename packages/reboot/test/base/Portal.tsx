@@ -1,6 +1,6 @@
 import { act } from "react-dom/test-utils"
 import { mount } from "enzyme"
-import { Portal } from "../../src/base/Portal.jsx"
+import { Portal } from "../../src/base/Portal.js"
 import * as qr from "react"
 import ReactDOM from "react-dom"
 

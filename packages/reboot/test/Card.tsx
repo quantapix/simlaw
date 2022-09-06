@@ -1,4 +1,4 @@
-import { Card, Img } from "../src/Card.jsx"
+import { Card, Img } from "../src/Card.js"
 import { render } from "@testing-library/react"
 
 describe("<Card>", () => {

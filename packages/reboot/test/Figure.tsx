@@ -1,4 +1,4 @@
-import { Caption, Figure, Image } from "../src/Figure.jsx"
+import { Caption, Figure, Image } from "../src/Figure.js"
 import { render } from "@testing-library/react"
 
 describe("Figure", () => {

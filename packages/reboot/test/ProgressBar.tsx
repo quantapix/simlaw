@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react"
-import { ProgressBar } from "../src/ProgressBar.jsx"
+import { ProgressBar } from "../src/ProgressBar.js"
 import { shouldWarn } from "./tools.js"
 
 describe("<ProgressBar>", () => {

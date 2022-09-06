@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react"
-import { Button, Placeholder } from "../src/Placeholder.jsx"
+import { Button, Placeholder } from "../src/Placeholder.js"
 
 describe("<Placeholder>", () => {
   it("Should render a placeholder", () => {

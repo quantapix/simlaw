@@ -1,6 +1,6 @@
-import { Brand, Collapse, Navbar, Toggle } from "../src/Navbar.jsx"
+import { Brand, Collapse, Navbar, Toggle } from "../src/Navbar.js"
 import { fireEvent, render } from "@testing-library/react"
-import { Link, Nav } from "../src/Nav.jsx"
+import { Link, Nav } from "../src/Nav.js"
 
 describe("<Navbar>", () => {
   it("Should create nav element", () => {

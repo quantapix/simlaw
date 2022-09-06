@@ -4,9 +4,9 @@ import {
   Item,
   Toggle,
   Dropdown,
-} from "../../src/base/Dropdown.jsx"
+} from "../../src/base/Dropdown.js"
 import { render, fireEvent } from "@testing-library/react"
-import { Selectable } from "../../src/base/types.jsx"
+import { Selectable } from "../../src/base/types.js"
 import type * as qr from "react"
 import ReactDOM from "react-dom"
 

@@ -1,4 +1,4 @@
-import { Body, Container, Header, Position, Toast } from "../src/Toast.jsx"
+import { Body, Container, Header, Position, Toast } from "../src/Toast.js"
 import { fireEvent, render } from "@testing-library/react"
 
 const getToast = ({

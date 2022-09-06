@@ -1,5 +1,5 @@
-import { Control, Group } from "../src/Form.jsx"
-import { Feedback } from "../src/Feedback.jsx"
+import { Control, Group } from "../src/Form.js"
+import { Feedback } from "../src/Feedback.js"
 import { render } from "@testing-library/react"
 import React from "react"
 

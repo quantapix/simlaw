@@ -1,6 +1,6 @@
-import { Button } from "../src/Button.jsx"
+import { Button } from "../src/Button.js"
 import { render } from "@testing-library/react"
-import { Theme, createComponent } from "../src/Theme.jsx"
+import { Theme, createComponent } from "../src/Theme.js"
 import * as qr from "react"
 
 describe("<Theme>", () => {

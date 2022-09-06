@@ -1,6 +1,6 @@
 import { injectCss } from "../tools.js"
-import { css, getScrollbarSize } from "../../src/base/utils.jsx"
-import { Instance, Manager } from "../../src/base/Manager.jsx"
+import { css, getScrollbarSize } from "../../src/base/utils.js"
+import { Instance, Manager } from "../../src/base/Manager.js"
 
 const createModal = () => ({} as Instance)
 

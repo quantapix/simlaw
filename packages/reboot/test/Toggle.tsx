@@ -1,4 +1,4 @@
-import { Button, Group } from "../src/Toggle.jsx"
+import { Button, Group } from "../src/Toggle.js"
 import { render, fireEvent } from "@testing-library/react"
 import * as qr from "react"
 

@@ -1,7 +1,7 @@
-import { Content, Tab } from "../src/Tab.jsx"
+import { Content, Tab } from "../src/Tab.js"
 import { fireEvent, render } from "@testing-library/react"
 import { shouldWarn } from "./tools.js"
-import { Tabs } from "../src/Tabs.jsx"
+import { Tabs } from "../src/Tabs.js"
 
 const check = (x: Element, k: string | number) =>
   x.getAttribute("data-rr-ui-event-key") === `${k}` &&

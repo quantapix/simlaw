@@ -1,4 +1,4 @@
-import { Body, Header, Footer, Modal, Props, Title } from "../src/Modal.jsx"
+import { Body, Header, Footer, Modal, Props, Title } from "../src/Modal.js"
 import { fireEvent, render } from "@testing-library/react"
 import { Manager } from "../src/base/Manager.js"
 import * as qr from "react"

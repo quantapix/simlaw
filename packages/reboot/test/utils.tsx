@@ -1,4 +1,4 @@
-import { createChained, getDirection } from "../src/utils.jsx"
+import { createChained, getDirection } from "../src/utils.js"
 
 describe("getDirection", () => {
   it("Should return start for left", () => {

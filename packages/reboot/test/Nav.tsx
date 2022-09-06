@@ -1,8 +1,8 @@
-import { Dropdown, Item as DItem } from "../src/Dropdown.jsx"
+import { Dropdown, Item as DItem } from "../src/Dropdown.js"
 import { fireEvent, render } from "@testing-library/react"
-import { Header as CardHeader } from "../src/Card.jsx"
-import { Item, Link, Nav } from "../src/Nav.jsx"
-import { Navbar } from "../src/Navbar.jsx"
+import { Header as CardHeader } from "../src/Card.js"
+import { Item, Link, Nav } from "../src/Nav.js"
+import { Navbar } from "../src/Navbar.js"
 import { shouldWarn } from "./tools.js"
 
 describe("<Nav>", () => {

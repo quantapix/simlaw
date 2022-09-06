@@ -1,6 +1,6 @@
 import { fireEvent, render } from "@testing-library/react"
-import { SplitButton } from "../src/SplitButton.jsx"
-import { Item } from "../src/Dropdown.jsx"
+import { SplitButton } from "../src/SplitButton.js"
+import { Item } from "../src/Dropdown.js"
 
 describe("<SplitButton>", () => {
   const simple = (

@@ -1,8 +1,8 @@
 import { mount } from "enzyme"
-import { Popover } from "../src/Popover.jsx"
+import { Popover } from "../src/Popover.js"
 import { render } from "@testing-library/react"
-import { Tooltip } from "../src/Tooltip.jsx"
-import { useOffset } from "../src/use.jsx"
+import { Tooltip } from "../src/Tooltip.js"
+import { useOffset } from "../src/use.js"
 import * as qr from "react"
 import type { Offset } from "../src/base/popper.js"
 

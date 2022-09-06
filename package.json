@@ -68,6 +68,7 @@
     "eslint": "",
     "graphql-tag": "",
     "jest-circus": "",
+    "jest-environment-jsdom": "",
     "jest-react": "",
     "jest-resolve": "",
     "jest-watch-typeahead": "",

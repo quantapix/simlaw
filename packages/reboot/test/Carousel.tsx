@@ -1,7 +1,7 @@
-import { Carousel, Item, Ref, Caption } from "../src/Carousel.jsx"
+import { Carousel, Item, Ref, Caption } from "../src/Carousel.js"
 import { fireEvent, render, RenderResult } from "@testing-library/react"
 import { Simulate } from "react-dom/test-utils"
-import { Theme } from "../src/Theme.jsx"
+import { Theme } from "../src/Theme.js"
 import * as qr from "react"
 
 jest.useFakeTimers()

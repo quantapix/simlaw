@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react"
-import { Body, Header, Popover } from "../src/Popover.jsx"
+import { Body, Header, Popover } from "../src/Popover.js"
 
 describe("Popover", () => {
   it("Should output a popover title and content", () => {

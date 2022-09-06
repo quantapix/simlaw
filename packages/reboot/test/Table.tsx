@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react"
-import { Table } from "../src/Table.jsx"
+import { Table } from "../src/Table.js"
 
 describe("Table", () => {
   it("Should be a table", () => {

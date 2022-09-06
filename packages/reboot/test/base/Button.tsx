@@ -1,4 +1,4 @@
-import { Button } from "../../src/base/Button.jsx"
+import { Button } from "../../src/base/Button.js"
 import { render, fireEvent } from "@testing-library/react"
 import * as qr from "react"
 

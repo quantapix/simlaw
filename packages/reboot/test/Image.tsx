@@ -1,4 +1,4 @@
-import { Image } from "../src/Image.jsx"
+import { Image } from "../src/Image.js"
 import { render } from "@testing-library/react"
 
 describe("Image", () => {

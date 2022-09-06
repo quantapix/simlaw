@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react"
-import { Overlay, Trigger } from "../src/Overlay.jsx"
-import { Popover } from "../src/Popover.jsx"
-import { Tooltip } from "../src/Tooltip.jsx"
+import { Overlay, Trigger } from "../src/Overlay.js"
+import { Popover } from "../src/Popover.js"
+import { Tooltip } from "../src/Tooltip.js"
 import * as qr from "react"
 
 describe("<Overlay>", () => {

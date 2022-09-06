@@ -1,4 +1,4 @@
-import { Checkbox, InputGroup, Radio } from "../src/InputGroup.jsx"
+import { Checkbox, InputGroup, Radio } from "../src/InputGroup.js"
 import { render } from "@testing-library/react"
 
 describe("<InputGroup>", () => {

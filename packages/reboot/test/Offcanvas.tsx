@@ -1,5 +1,5 @@
 import { fireEvent, render } from "@testing-library/react"
-import { Header, Offcanvas, Title, Navbar, Toggle } from "../src/Offcanvas.jsx"
+import { Header, Offcanvas, Title, Navbar, Toggle } from "../src/Offcanvas.js"
 import { Manager } from "../src/base/Manager.js"
 import * as qh from "../src/hooks.js"
 import * as qr from "react"

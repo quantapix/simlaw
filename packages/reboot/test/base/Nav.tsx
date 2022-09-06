@@ -1,8 +1,8 @@
-import { Context, Item, Nav } from "../../src/base/Nav.jsx"
+import { Context, Item, Nav } from "../../src/base/Nav.js"
 import { mount } from "enzyme"
 import { render, fireEvent } from "@testing-library/react"
-import { Selectable } from "../../src/base/types.jsx"
-import { Tabs } from "../../src/base/Tabs.jsx"
+import { Selectable } from "../../src/base/types.js"
+import { Tabs } from "../../src/base/Tabs.js"
 import type * as qr from "react"
 
 describe("<Nav>", () => {

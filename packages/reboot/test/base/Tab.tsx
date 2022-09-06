@@ -1,8 +1,8 @@
-import { Button } from "../../src/base/Button.jsx"
+import { Button } from "../../src/base/Button.js"
 import { fireEvent, render, waitFor } from "@testing-library/react"
-import { Context, Panel, useTabPanel } from "../../src/base/Tab.jsx"
-import { Nav, Item, useNavItem } from "../../src/base/Nav.jsx"
-import { Tabs } from "../../src/base/Tabs.jsx"
+import { Context, Panel, useTabPanel } from "../../src/base/Tab.js"
+import { Nav, Item, useNavItem } from "../../src/base/Nav.js"
+import { Tabs } from "../../src/base/Tabs.js"
 import { Transition } from "react-transition-group"
 import React from "react"
 

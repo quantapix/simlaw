@@ -12,7 +12,7 @@ import {
   Select,
   Switch,
   Text,
-} from "../src/Form.jsx"
+} from "../src/Form.js"
 
 describe("<Form>", () => {
   it("Should support custom `as`", () => {

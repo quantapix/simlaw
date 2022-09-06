@@ -1,5 +1,5 @@
 import { fireEvent, render } from "@testing-library/react"
-import { ListGroup, Item } from "../src/ListGroup.jsx"
+import { ListGroup, Item } from "../src/ListGroup.js"
 import { shouldWarn } from "./tools.js"
 
 describe("<ListGroup>", () => {

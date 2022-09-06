@@ -1,4 +1,4 @@
-import { Anchor } from "../../src/base/Anchor.jsx"
+import { Anchor } from "../../src/base/Anchor.js"
 import { render, fireEvent } from "@testing-library/react"
 
 describe("Anchor", () => {

@@ -1,4 +1,4 @@
-import { Collapse, Props } from "../src/Collapse.jsx"
+import { Collapse, Props } from "../src/Collapse.js"
 import { render, RenderResult } from "@testing-library/react"
 import * as qr from "react"
 import type { Transition } from "react-transition-group"

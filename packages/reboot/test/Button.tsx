@@ -1,4 +1,4 @@
-import { Button, Close, Group, Toolbar } from "../src/Button.jsx"
+import { Button, Close, Group, Toolbar } from "../src/Button.js"
 import { fireEvent, render } from "@testing-library/react"
 import * as qr from "react"
 

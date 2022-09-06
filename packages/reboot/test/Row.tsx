@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react"
-import { ThemeProvider } from "../src/index.jsx"
-import { Row } from "../src/Row.jsx"
+import { ThemeProvider } from "../src/index.js"
+import { Row } from "../src/Row.js"
 
 describe("Row", () => {
   it('Should include "row" when there are no sizes', () => {

@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react"
-import { Ratio } from "../src/Ratio.jsx"
+import { Ratio } from "../src/Ratio.js"
 
 describe("Ratio", () => {
   it("Should contain `ratio-1x1` and custom class", () => {

@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react"
 import React from "react"
-import { First, Item, Next, Pagination } from "../src/Pagination.jsx"
+import { First, Item, Next, Pagination } from "../src/Pagination.js"
 
 describe("<Pagination>", () => {
   it("Should have class", () => {

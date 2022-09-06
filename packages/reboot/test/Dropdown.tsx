@@ -1,6 +1,6 @@
-import { InputGroup } from "../src/InputGroup.jsx"
-import { Nav } from "../src/Nav.jsx"
-import { Navbar } from "../src/Navbar.jsx"
+import { InputGroup } from "../src/InputGroup.js"
+import { Nav } from "../src/Nav.js"
+import { Navbar } from "../src/Navbar.js"
 import { render, fireEvent } from "@testing-library/react"
 import * as qr from "react"
 import {
@@ -14,7 +14,7 @@ import {
   ItemText,
   Toggle,
   getPlacement,
-} from "../src/Dropdown.jsx"
+} from "../src/Dropdown.js"
 
 describe("<Dropdown>", () => {
   const dropdownChildren = [

@@ -1,4 +1,4 @@
-import { createUtilClasses, Stack } from "../src/Stack.jsx"
+import { createUtilClasses, Stack } from "../src/Stack.js"
 import { render } from "@testing-library/react"
 
 describe("createUtilityClassName", () => {
