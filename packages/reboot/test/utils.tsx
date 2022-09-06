@@ -1,16 +1,16 @@
 import { createChained, getDirection } from "../src/utils.js"
 
 describe("getDirection", () => {
-  it("Should return start for left", () => {
+  it("should return start for left", () => {
     expect(getDirection("left", false)).toEqual("start")
   })
-  it("Should return end for left in RTL", () => {
+  it("should return end for left in RTL", () => {
     expect(getDirection("left", true)).toEqual("end")
   })
-  it("Should return end for right", () => {
+  it("should return end for right", () => {
     expect(getDirection("right", false)).toEqual("end")
   })
-  it("Should return start for right in RTL", () => {
+  it("should return start for right in RTL", () => {
     expect(getDirection("right", true)).toEqual("start")
   })
 })

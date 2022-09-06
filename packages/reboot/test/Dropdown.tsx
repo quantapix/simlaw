@@ -16,7 +16,7 @@ import {
   getPlacement,
 } from "../src/Dropdown.js"
 
-describe("<Dropdown>", () => {
+describe("Dropdown", () => {
   const dropdownChildren = [
     <Toggle id="test-id" key="toggle">
       Child Title
@@ -178,7 +178,7 @@ describe("<Dropdown>", () => {
       expect(mock.mock.calls[0].args[1].source).toEqual("keydown")
     })
   })
-  it("Should use each components bsPrefix", () => {
+  it("should use each components bsPrefix", () => {
     const { getByTestId } = render(
       <Dropdown defaultShow bsPrefix="my-dropdown" data-testid="dropdown">
         <Toggle data-testid="toggle" bsPrefix="my-toggle">
@@ -193,7 +193,7 @@ describe("<Dropdown>", () => {
     expect(getByTestId("toggle").classList).toContain(["my-toggle"])
     expect(getByTestId("menu").classList).toContain(["my-menu"])
   })
-  it("Should have div as default component", () => {
+  it("should have div as default component", () => {
     const { getByTestId } = render(
       <Dropdown defaultShow bsPrefix="my-dropdown" data-testid="dropdown">
         <Toggle data-testid="toggle" bsPrefix="my-toggle">
@@ -206,7 +206,7 @@ describe("<Dropdown>", () => {
     )
     expect(getByTestId("dropdown").tagName).toEqual("DIV")
   })
-  it("Should also accept a custom component", () => {
+  it("should also accept a custom component", () => {
     const ref = qr.forwardRef<any, any>(({ show, close, ...props }, ref) => (
       <div ref={ref} id="custom-component" {...props} />
     ))
@@ -218,7 +218,7 @@ describe("<Dropdown>", () => {
     expect(getByTestId("menu").id).toEqual("custom-component")
   })
   describe("InputGroup Dropdowns", () => {
-    it("Should not render a .dropdown element when inside input group", () => {
+    it("should not render a .dropdown element when inside input group", () => {
       const { queryByTestId } = render(
         <InputGroup>
           <Dropdown data-testid="dropdown">{dropdownChildren}</Dropdown>
@@ -226,7 +226,7 @@ describe("<Dropdown>", () => {
       )
       expect(queryByTestId("dropdown")!).not.toBeTruthy()
     })
-    it("Should render .show on the dropdown toggle", () => {
+    it("should render .show on the dropdown toggle", () => {
       const { getByText } = render(
         <InputGroup>
           <Dropdown show>{dropdownChildren}</Dropdown>
@@ -237,7 +237,7 @@ describe("<Dropdown>", () => {
   })
   describe("autoClose behaviour", () => {
     describe('autoClose="true"', () => {
-      it("Should close on outer click", () => {
+      it("should close on outer click", () => {
         const mock = jest.fn()
         render(
           <Dropdown defaultShow onToggle={mock} autoClose>
@@ -252,7 +252,7 @@ describe("<Dropdown>", () => {
       })
     })
     describe('autoClose="inside"', () => {
-      it("Should close on child selection", () => {
+      it("should close on child selection", () => {
         const mock = jest.fn()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={mock} autoClose="inside">
@@ -265,7 +265,7 @@ describe("<Dropdown>", () => {
         fireEvent.click(getByTestId("item1"))
         expect(mock).toHaveBeenCalledWith(false)
       })
-      it("Should not close on outer click", () => {
+      it("should not close on outer click", () => {
         const mock = jest.fn()
         render(
           <Dropdown defaultShow onToggle={mock} autoClose="inside">
@@ -280,7 +280,7 @@ describe("<Dropdown>", () => {
       })
     })
     describe('autoClose="outside"', () => {
-      it("Should not close on child selection", () => {
+      it("should not close on child selection", () => {
         const mock = jest.fn()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={mock} autoClose="outside">
@@ -293,7 +293,7 @@ describe("<Dropdown>", () => {
         fireEvent.click(getByTestId("item1"))
         expect(mock).not.toHaveBeenCalled()
       })
-      it("Should close on outer click", () => {
+      it("should close on outer click", () => {
         const mock = jest.fn()
         render(
           <Dropdown defaultShow onToggle={mock} autoClose="outside">
@@ -308,7 +308,7 @@ describe("<Dropdown>", () => {
       })
     })
     describe('autoClose="false"', () => {
-      it("Should not close on child selection", () => {
+      it("should not close on child selection", () => {
         const mock = jest.fn()
         const { getByTestId } = render(
           <Dropdown defaultShow onToggle={mock} autoClose={false}>
@@ -321,7 +321,7 @@ describe("<Dropdown>", () => {
         fireEvent.click(getByTestId("item1"))
         expect(mock).not.toHaveBeenCalled()
       })
-      it("Should not close on outer click", () => {
+      it("should not close on outer click", () => {
         const mock = jest.fn()
         render(
           <Dropdown defaultShow onToggle={mock} autoClose={false}>
@@ -337,7 +337,7 @@ describe("<Dropdown>", () => {
     })
   })
 })
-describe("<Button>", () => {
+describe("Button", () => {
   it("renders a toggle with the title prop", () => {
     const { getByTestId } = render(
       <Button title="Simple Dropdown" data-testid="test-id">
@@ -428,7 +428,7 @@ describe("<Button>", () => {
     const y = container.querySelector("div[x-placement]")
     expect(y!).toBeTruthy()
   })
-  it("Should pass disabled to button", () => {
+  it("should pass disabled to button", () => {
     const { container } = render(
       <Button disabled title="Title">
         <Item eventKey="1">Item 1</Item>
@@ -437,7 +437,7 @@ describe("<Button>", () => {
     )
     expect(container.querySelector("button[disabled]")!).toBeTruthy()
   })
-  it("Should pass bsPrefix to the button", () => {
+  it("should pass bsPrefix to the button", () => {
     const { getByTestId } = render(
       <Button title="title" data-testid="test-id" bsPrefix="my-button">
         <Item eventKey="1">Item 1</Item>
@@ -447,7 +447,7 @@ describe("<Button>", () => {
     expect(y.classList.contains("my-button-primary")).toBe(true)
   })
 })
-describe("<Item>", () => {
+describe("Item", () => {
   it("renders divider", () => {
     const { getByRole } = render(<Divider />)
     getByRole("separator")
@@ -499,7 +499,7 @@ describe("<Item>", () => {
     fireEvent.keyDown(y, { key: "a" })
     expect(mock).toHaveBeenCalled()
   })
-  it("Should render as a button when set", () => {
+  it("should render as a button when set", () => {
     const { getByTestId } = render(
       <Item as={Button} variant="success" data-testid="item" />
     )
@@ -509,7 +509,7 @@ describe("<Item>", () => {
       "btn-success",
     ])
   })
-  it("Should pass through props", () => {
+  it("should pass through props", () => {
     const { getByText } = render(
       <Item
         className="test-class"
@@ -526,12 +526,12 @@ describe("<Item>", () => {
     expect(y.getAttribute("href")!).toEqual("#hi-mom!")
     expect(y.getAttribute("title")!).toEqual("hi mom!")
   })
-  it("Should set target attribute on anchor", () => {
+  it("should set target attribute on anchor", () => {
     const { getByText } = render(<Item target="_blank">Title</Item>)
     expect(getByText("Title").getAttribute("target")!).toEqual("_blank")
   })
 })
-describe("<Dropdown.Menu>", () => {
+describe("Menu", () => {
   it("renders div with dropdown-menu class", () => {
     const { container: c } = render(
       <Menu show>
@@ -543,7 +543,7 @@ describe("<Dropdown.Menu>", () => {
     )
     expect(c.firstElementChild!.classList.contains("dropdown-menu")).toBe(true)
   })
-  it("Should pass props to dropdown", () => {
+  it("should pass props to dropdown", () => {
     const { container: c } = render(
       <Menu show className="new-fancy-class">
         <Item eventKey="1">Item 1 content</Item>
@@ -613,7 +613,7 @@ describe("<Dropdown.Menu>", () => {
       c.firstElementChild!.classList.contains("dropdown-menu-custom-end")
     ).toBe(true)
   })
-  it("Should render variant", () => {
+  it("should render variant", () => {
     const { container: c } = render(
       <Menu show variant="dark">
         <Item>Item</Item>
@@ -624,41 +624,41 @@ describe("<Dropdown.Menu>", () => {
     )
   })
   describe("getPlacement", () => {
-    it("Should return top placement", () => {
+    it("should return top placement", () => {
       expect(getPlacement(false, "up", false)).toEqual("top-start")
       expect(getPlacement(true, "up", false)).toEqual("top-end")
     })
-    it("Should return top placement for RTL", () => {
+    it("should return top placement for RTL", () => {
       expect(getPlacement(false, "up", true)).toEqual("top-end")
       expect(getPlacement(true, "up", true)).toEqual("top-start")
     })
-    it("Should return end placement", () => {
+    it("should return end placement", () => {
       expect(getPlacement(false, "end", false)).toEqual("right-start")
       expect(getPlacement(true, "end", false)).toEqual("right-end")
     })
-    it("Should return end placement for RTL", () => {
+    it("should return end placement for RTL", () => {
       expect(getPlacement(false, "end", true)).toEqual("left-start")
       expect(getPlacement(true, "end", true)).toEqual("left-end")
     })
-    it("Should return bottom placement", () => {
+    it("should return bottom placement", () => {
       expect(getPlacement(false, "down", false)).toEqual("bottom-start")
       expect(getPlacement(true, "down", false)).toEqual("bottom-end")
     })
-    it("Should return bottom placement for RTL", () => {
+    it("should return bottom placement for RTL", () => {
       expect(getPlacement(false, "down", true)).toEqual("bottom-end")
       expect(getPlacement(true, "down", true)).toEqual("bottom-start")
     })
-    it("Should return start placement", () => {
+    it("should return start placement", () => {
       expect(getPlacement(false, "start", false)).toEqual("left-start")
       expect(getPlacement(true, "start", false)).toEqual("left-end")
     })
-    it("Should return start placement for RTL", () => {
+    it("should return start placement for RTL", () => {
       expect(getPlacement(false, "start", true)).toEqual("right-start")
       expect(getPlacement(true, "start", true)).toEqual("right-end")
     })
   })
 })
-describe("<Toggle>", () => {
+describe("Toggle", () => {
   it("renders toggle button", () => {
     const { getByText } = render(<Toggle id="test-id">herpa derpa</Toggle>)
     const y = getByText("herpa derpa")
@@ -695,8 +695,8 @@ describe("<Toggle>", () => {
     ])
   })
 })
-describe("<Dropdown>", () => {
-  it("Should render li when in nav", () => {
+describe("Dropdown", () => {
+  it("should render li when in nav", () => {
     const { getByTestId } = render(
       <Dropdown
         className="test-class"
@@ -731,7 +731,7 @@ describe("<Dropdown>", () => {
     const y = getByTestId("test")
     expect(y.firstElementChild!.classList.contains("active")).toBe(true)
   })
-  it("Should handle child active state", () => {
+  it("should handle child active state", () => {
     const { getByTestId } = render(
       <Nav defaultActiveKey="2">
         <Dropdown defaultShow id="test-id" title="title">
@@ -745,7 +745,7 @@ describe("<Dropdown>", () => {
     )
     expect(getByTestId("test").textContent!).toEqual("Item 2 content")
   })
-  it("Should pass the id to the NavLink element", () => {
+  it("should pass the id to the NavLink element", () => {
     const { getByTestId } = render(
       <Dropdown id="test-id" title="title" data-testid="test">
         <Item eventKey="1">Item 1 content</Item>
@@ -753,7 +753,7 @@ describe("<Dropdown>", () => {
     )
     expect(getByTestId("test").firstElementChild!.id).toEqual("test-id")
   })
-  it("Should support as as prop", () => {
+  it("should support as as prop", () => {
     const { getByTestId } = render(
       <Dropdown as="li" id="test-id" title="title" data-testid="test">
         <Item eventKey="1">Item 1</Item>

@@ -2,7 +2,7 @@ import { render } from "@testing-library/react"
 import { Body, Header, Popover } from "../src/Popover.js"
 
 describe("Popover", () => {
-  it("Should output a popover title and content", () => {
+  it("should output a popover title and content", () => {
     const { getByTestId } = render(
       <Popover data-testid="test" id="test-popover">
         <Header>Popover title</Header>

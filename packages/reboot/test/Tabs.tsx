@@ -8,8 +8,8 @@ const check = (x: Element, k: string | number) =>
   x.getAttribute("id") === `test-tab-${k}` &&
   x.getAttribute("aria-controls") === `test-tabpane-${k}`
 
-describe("<Tabs>", () => {
-  it("Should show the correct tab and assign correct eventKeys", () => {
+describe("Tabs", () => {
+  it("should show the correct tab and assign correct eventKeys", () => {
     const { getByText } = render(
       <Tabs id="test" defaultActiveKey={1}>
         <Tab title="Tab 1 title" eventKey={1}>
@@ -31,7 +31,7 @@ describe("<Tabs>", () => {
     expect(check(b1, 1)).toBe(true)
     expect(check(b2, 2)).toBe(true)
   })
-  it("Should get defaultActiveKey (if null) from first child tab with eventKey", () => {
+  it("should get defaultActiveKey (if null) from first child tab with eventKey", () => {
     const { getByText } = render(
       <Tabs id="test" data-testid="test-id">
         <Tab title="Tab 1 title" eventKey={1}>
@@ -51,7 +51,7 @@ describe("<Tabs>", () => {
     expect(b2.classList.contains("active")).toBe(false)
     expect(b2.tagName.toLowerCase()).toEqual("button")
   })
-  it("Should allow tab title to have React components", () => {
+  it("should allow tab title to have React components", () => {
     const tabTitle = <strong className="special-tab">React Tab 2</strong>
     const { getByText } = render(
       <Tabs id="test" defaultActiveKey={2}>
@@ -67,7 +67,7 @@ describe("<Tabs>", () => {
       true
     )
   })
-  it("Should call onSelect when tab is selected", () => {
+  it("should call onSelect when tab is selected", () => {
     const onSelect = (k: any) => {
       expect(k).toEqual("2")
     }
@@ -85,7 +85,7 @@ describe("<Tabs>", () => {
     fireEvent.click(getByText("Tab 2"))
     expect(mock).toHaveBeenCalled()
   })
-  it("Should have children with the correct DOM properties", () => {
+  it("should have children with the correct DOM properties", () => {
     const { getByText } = render(
       <Tabs id="test" defaultActiveKey={1}>
         <Tab title="Tab 1" className="custom" eventKey={1}>
@@ -105,7 +105,7 @@ describe("<Tabs>", () => {
     expect(t1.classList.contains("custom")).toBe(false)
     expect(t2.classList.contains("tcustom")).toBe(true)
   })
-  it("Should pass variant to Nav", () => {
+  it("should pass variant to Nav", () => {
     const { getByTestId } = render(
       <Tabs
         data-testid="test"
@@ -123,7 +123,7 @@ describe("<Tabs>", () => {
     )
     expect(getByTestId("test").classList.contains("nav-pills")).toBe(true)
   })
-  it("Should pass disabled to Nav", () => {
+  it("should pass disabled to Nav", () => {
     const onSelect = (k: any) => k
     const mock = jest.fn(onSelect)
     const { getByText } = render(
@@ -140,7 +140,7 @@ describe("<Tabs>", () => {
     expect(t2.classList.contains("disabled")).toBe(true)
     expect(mock).not.toHaveBeenCalled()
   })
-  it("Should not render a Tab without a title", () => {
+  it("should not render a Tab without a title", () => {
     shouldWarn("Failed prop")
     const { getByTestId } = render(
       <Tabs data-testid="testid" id="test" defaultActiveKey={1}>
@@ -166,7 +166,7 @@ describe("<Tabs>", () => {
     )
     expect(getAllByRole("tabpanel")).toHaveLength(1)
   })
-  it("Should have fade animation by default", () => {
+  it("should have fade animation by default", () => {
     const { getByRole } = render(
       <Tabs id="test" defaultActiveKey={1}>
         <Tab title="Tab 1" eventKey={1}>
@@ -176,7 +176,7 @@ describe("<Tabs>", () => {
     )
     expect(getByRole("tabpanel").classList.contains("fade")).toBe(true)
   })
-  it("Should omit Transition in TabPane if prop is false ", () => {
+  it("should omit Transition in TabPane if prop is false ", () => {
     const { getByText } = render(
       <Tabs id="test" defaultActiveKey={1}>
         <Tab title="Tab 1" className="custom" eventKey={1} transition={false}>
@@ -192,7 +192,7 @@ describe("<Tabs>", () => {
     expect(c1.classList.contains("fade")).toBe(false)
     expect(c2.classList.contains("fade")).toBe(true)
   })
-  it("Should pass fill to Nav", () => {
+  it("should pass fill to Nav", () => {
     const { getByTestId } = render(
       <Tabs data-testid="test" defaultActiveKey={1} transition={false} fill>
         <Tab title="Tab 1" eventKey={1}>
@@ -205,7 +205,7 @@ describe("<Tabs>", () => {
     )
     expect(getByTestId("test").classList.contains("nav-fill")).toBe(true)
   })
-  it("Should pass justified to Nav", () => {
+  it("should pass justified to Nav", () => {
     const { getByTestId } = render(
       <Tabs data-testid="test" defaultActiveKey={1} transition={false} justify>
         <Tab title="Tab 1" eventKey={1}>
@@ -219,8 +219,8 @@ describe("<Tabs>", () => {
     expect(getByTestId("test").classList.contains("nav-justified")).toBe(true)
   })
 })
-describe("<Content>", () => {
-  it("Should have div as default component", () => {
+describe("Content", () => {
+  it("should have div as default component", () => {
     const { container } = render(<Content />)
     expect(container.tagName.toLowerCase()).toEqual("div")
   })

@@ -25,14 +25,14 @@ describe("Fade", () => {
       )
     }
   }
-  it("Should not throw an error with StrictMode", () => {
+  it("should not throw an error with StrictMode", () => {
     render(
       <qr.StrictMode>
         <Component in>Panel content</Component>
       </qr.StrictMode>
     )
   })
-  it("Should work with a class component as children", () => {
+  it("should work with a class component as children", () => {
     const mock = jest.fn()
     class InnerComponent extends qr.Component {
       override render() {
@@ -48,7 +48,7 @@ describe("Fade", () => {
     expect(node.classList.contains("fade")).toBe(true)
     expect(node.classList.contains("show")).toBe(true)
   })
-  it("Should default to hidden", () => {
+  it("should default to hidden", () => {
     const { getByTestId } = render(<Component>Panel content</Component>)
     expect(getByTestId("status-hide")).toBeTruthy()
   })

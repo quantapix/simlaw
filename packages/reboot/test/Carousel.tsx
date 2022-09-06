@@ -6,7 +6,7 @@ import * as qr from "react"
 
 jest.useFakeTimers()
 
-describe("<Carousel>", () => {
+describe("Carousel", () => {
   const testid = "test"
   const items = [
     <Item key={1} data-testid={testid}>
@@ -19,7 +19,7 @@ describe("<Carousel>", () => {
       Item 3 content
     </Item>,
   ]
-  it("Should not throw an error with StrictMode", () => {
+  it("should not throw an error with StrictMode", () => {
     const ref = qr.createRef<Ref>()
     render(
       <qr.StrictMode>
@@ -30,7 +30,7 @@ describe("<Carousel>", () => {
     )
     ref.current!.next()
   })
-  it("Should show the first item by default and render all", () => {
+  it("should show the first item by default and render all", () => {
     const { getAllByTestId, container: c } = render(
       <Carousel>{items}</Carousel>
     )
@@ -41,7 +41,7 @@ describe("<Carousel>", () => {
       items.length
     )
   })
-  it("Should show the correct item with defaultActiveIndex", () => {
+  it("should show the correct item with defaultActiveIndex", () => {
     const { getAllByTestId } = render(
       <Carousel defaultActiveIndex={1}>{items}</Carousel>
     )
@@ -49,7 +49,7 @@ describe("<Carousel>", () => {
     expect(y[0]!.classList.contains("active")).toBe(false)
     expect(y[1]!.classList.contains("active")).toBe(true)
   })
-  it("Should handle falsy children", () => {
+  it("should handle falsy children", () => {
     const { getAllByTestId, container: c } = render(
       <Carousel>
         {null}
@@ -64,7 +64,7 @@ describe("<Carousel>", () => {
     expect(y[0]!.innerText).toEqual("Item 1 content")
     expect(c.querySelectorAll(".carousel-indicators > button")).toHaveLength(2)
   })
-  it("Should call onSelect when indicator selected", () => {
+  it("should call onSelect when indicator selected", () => {
     const mock = jest.fn()
     const { getByLabelText } = render(
       <Carousel activeIndex={1} onSelect={mock} interval={null}>
@@ -75,7 +75,7 @@ describe("<Carousel>", () => {
     expect(mock).toHaveReturnedTimes(1)
     expect(mock).toHaveReturnedWith(0)
   })
-  it("Should render custom indicator labels", () => {
+  it("should render custom indicator labels", () => {
     const ls = ["custom1", "custom2", "custom3"]
     const { getByLabelText } = render(
       <Carousel activeIndex={1} interval={null} indicatorLabels={ls}>
@@ -86,7 +86,7 @@ describe("<Carousel>", () => {
       expect(getByLabelText(ls[i]!, { selector: "[aria-label]" })).toBeTruthy()
     }
   })
-  it("Should render variant", () => {
+  it("should render variant", () => {
     const { getByTestId } = render(
       <Carousel
         activeIndex={1}
@@ -109,7 +109,7 @@ describe("<Carousel>", () => {
     afterEach(() => {
       // clock = undefined
     })
-    it("Should allow refs to be attached and expose next, prev functions", () => {
+    it("should allow refs to be attached and expose next, prev functions", () => {
       const ref = qr.createRef<Ref>()
       const mock = jest.fn()
       render(
@@ -172,7 +172,7 @@ describe("<Carousel>", () => {
     })
   })
   describe("Buttons and labels with and without wrapping", () => {
-    it("Should show back button control on the first image if wrap is true", () => {
+    it("should show back button control on the first image if wrap is true", () => {
       const { container: c } = render(
         <Carousel controls wrap>
           {items}
@@ -180,7 +180,7 @@ describe("<Carousel>", () => {
       )
       expect(c.querySelectorAll("a.carousel-control-prev")).toHaveLength(1)
     })
-    it("Should show next button control on the last image if wrap is true", () => {
+    it("should show next button control on the last image if wrap is true", () => {
       const last = items.length - 1
       const { container: c } = render(
         <Carousel defaultActiveIndex={last} controls wrap>
@@ -189,7 +189,7 @@ describe("<Carousel>", () => {
       )
       expect(c.querySelectorAll("a.carousel-control-next")).toHaveLength(1)
     })
-    it("Should not show the prev button on the first image if wrap is false", () => {
+    it("should not show the prev button on the first image if wrap is false", () => {
       const { container: c } = render(
         <Carousel controls wrap={false}>
           {items}
@@ -197,7 +197,7 @@ describe("<Carousel>", () => {
       )
       expect(c.querySelectorAll("a.carousel-control-prev")).toHaveLength(0)
     })
-    it("Should not show the next button on the last image if wrap is false", () => {
+    it("should not show the next button on the last image if wrap is false", () => {
       const last = items.length - 1
       const { container: c } = render(
         <Carousel defaultActiveIndex={last} controls wrap={false}>
@@ -207,7 +207,7 @@ describe("<Carousel>", () => {
       expect(c.querySelectorAll("a.carousel-control-next")).toHaveLength(0)
     })
   })
-  it("Should allow the user to specify a previous and next icon", () => {
+  it("should allow the user to specify a previous and next icon", () => {
     const { getByTestId } = render(
       <Carousel
         controls
@@ -221,7 +221,7 @@ describe("<Carousel>", () => {
     expect(getByTestId("prev").classList.contains("ficon-left")).toBe(true)
     expect(getByTestId("next").classList.contains("ficon-right")).toBe(true)
   })
-  it("Should allow user to specify a previous and next SR label", () => {
+  it("should allow user to specify a previous and next SR label", () => {
     const { container: c } = render(
       <Carousel
         controls
@@ -237,7 +237,7 @@ describe("<Carousel>", () => {
     expect(y[0]!.innerText).toContain("Previous awesomeness")
     expect(y[1]!.innerText).toContain("Next awesomeness")
   })
-  it("Should not render labels when values are null or undefined", () => {
+  it("should not render labels when values are null or undefined", () => {
     ;[null, ""].forEach(falsyValue => {
       const { container: c } = render(
         <Carousel
@@ -254,7 +254,7 @@ describe("<Carousel>", () => {
       )
     })
   })
-  it("Should transition properly when slide animation is disabled", () => {
+  it("should transition properly when slide animation is disabled", () => {
     const mock = jest.fn()
     const { container: c } = render(
       <Carousel slide={false} onSelect={mock}>
@@ -266,7 +266,7 @@ describe("<Carousel>", () => {
     fireEvent.click(c.querySelector<HTMLElement>("a.carousel-control-prev")!)
     expect(mock).toHaveBeenCalledTimes(2)
   })
-  it("Should render on update, active item > new child length", () => {
+  it("should render on update, active item > new child length", () => {
     const { queryAllByLabelText, queryAllByText, rerender } = render(
       <Carousel defaultActiveIndex={items.length - 1}>{items}</Carousel>
     )
@@ -288,7 +288,7 @@ describe("<Carousel>", () => {
       })
     ).toHaveLength(fewer.length)
   })
-  it("Should render correctly when fade is set", () => {
+  it("should render correctly when fade is set", () => {
     const { getByTestId } = render(
       <Carousel defaultActiveIndex={1} fade data-testid="test">
         {items}
@@ -305,7 +305,7 @@ describe("<Carousel>", () => {
     afterEach(() => {
       // clock.restore()
     })
-    it("Should go through the items after given seconds", () => {
+    it("should go through the items after given seconds", () => {
       const mock = jest.fn()
       const interval = 500
       render(
@@ -316,7 +316,7 @@ describe("<Carousel>", () => {
       jest.advanceTimersByTime(interval * 1.5)
       expect(mock).toHaveBeenCalledTimes(1)
     })
-    it("Should go through the items given the specified intervals", () => {
+    it("should go through the items given the specified intervals", () => {
       const mock = jest.fn()
       render(
         <Carousel interval={5000} onSelect={mock}>
@@ -328,7 +328,7 @@ describe("<Carousel>", () => {
       expect(mock).toHaveBeenCalledTimes(1)
       expect(mock).toHaveBeenCalledWith(1)
     })
-    it("Should stop going through items on hover and continue afterwards", () => {
+    it("should stop going through items on hover and continue afterwards", () => {
       const mock = jest.fn()
       const interval = 500
       const { getByTestId } = render(
@@ -344,7 +344,7 @@ describe("<Carousel>", () => {
       jest.advanceTimersByTime(interval * 1.5)
       expect(mock).toHaveBeenCalledTimes(1)
     })
-    it("Should ignore hover if the prop is passed", () => {
+    it("should ignore hover if the prop is passed", () => {
       const mock = jest.fn()
       const interval = 500
       const { getByTestId } = render(
@@ -361,7 +361,7 @@ describe("<Carousel>", () => {
       jest.advanceTimersByTime(interval * 1.5)
       expect(mock).toHaveBeenCalledTimes(1)
     })
-    it("Should stop going through the items after unmounting", () => {
+    it("should stop going through the items after unmounting", () => {
       const mock = jest.fn()
       const interval = 500
       const { unmount } = render(
@@ -382,7 +382,7 @@ describe("<Carousel>", () => {
     afterEach(() => {
       // clock.restore()
     })
-    it("Should wrap to last from first", () => {
+    it("should wrap to last from first", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={0} onSelect={mock} data-testid="test">
@@ -394,7 +394,7 @@ describe("<Carousel>", () => {
       expect(mock).toHaveBeenCalledTimes(1)
       expect(mock).toHaveBeenCalledWith(items.length - 1)
     })
-    it("Should wrap from first to last", () => {
+    it("should wrap from first to last", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Carousel
@@ -451,7 +451,7 @@ describe("<Carousel>", () => {
     afterEach(() => {
       // clock.restore()
     })
-    it("Should go back for the keyboard event ArrowLeft", () => {
+    it("should go back for the keyboard event ArrowLeft", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={1} onSelect={mock} data-testid="test">
@@ -463,7 +463,7 @@ describe("<Carousel>", () => {
       expect(mock).toHaveBeenCalledTimes(1)
       expect(mock).toHaveBeenCalledWith(0)
     })
-    it("Should go forward for the keyboard event ArrowRight", () => {
+    it("should go forward for the keyboard event ArrowRight", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={1} onSelect={mock} data-testid="test">
@@ -475,7 +475,7 @@ describe("<Carousel>", () => {
       expect(mock).toHaveBeenCalledTimes(1)
       expect(mock).toHaveBeenCalledWith(2)
     })
-    it("Should ignore keyEvents when the keyboard is disabled", () => {
+    it("should ignore keyEvents when the keyboard is disabled", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Carousel
@@ -491,7 +491,7 @@ describe("<Carousel>", () => {
       jest.advanceTimersByTime(50)
       expect(mock).not.toHaveBeenCalled()
     })
-    it("Should handle a defined custom key event", () => {
+    it("should handle a defined custom key event", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={1} onKeyDown={mock} data-testid="test">
@@ -503,7 +503,7 @@ describe("<Carousel>", () => {
       expect(mock).toHaveBeenCalledTimes(1)
     })
     ;["ArrowUp", "ArrowRightLeft", "Onwards"].forEach(key => {
-      it("Should do nothing for non left or right keys", () => {
+      it("should do nothing for non left or right keys", () => {
         const mock = jest.fn()
         const { getByTestId } = render(
           <Carousel activeIndex={1} onSelect={mock} data-testid="test">
@@ -524,7 +524,7 @@ describe("<Carousel>", () => {
     afterEach(() => {
       // clock.restore()
     })
-    it("Should handle a defined mouse over event", () => {
+    it("should handle a defined mouse over event", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={1} onMouseOver={mock} data-testid="test">
@@ -535,7 +535,7 @@ describe("<Carousel>", () => {
       jest.advanceTimersByTime(1500)
       expect(mock).toHaveBeenCalledTimes(1)
     })
-    it("Should handle a defined mouse out event", () => {
+    it("should handle a defined mouse out event", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Carousel activeIndex={1} onMouseOut={mock} data-testid="test">
@@ -594,31 +594,31 @@ describe("<Carousel>", () => {
       })
       Simulate.touchEnd(target)
     }
-    it("Should swipe right", () => {
+    it("should swipe right", () => {
       generateTouchEvents({ target: y, startX: 50, endX: 0 })
       jest.advanceTimersByTime(50)
       expect(mock).toHaveBeenCalledTimes(1)
       expect(mock).toHaveBeenCalledWith(2)
     })
-    it("Should swipe left", () => {
+    it("should swipe left", () => {
       generateTouchEvents({ target: y, startX: 0, endX: 50 })
       jest.advanceTimersByTime(50)
       expect(mock).toHaveBeenCalledTimes(1)
       expect(mock).toHaveBeenCalledWith(0)
     })
-    it("Should not swipe if swipe detected is under the swipe threshold", () => {
+    it("should not swipe if swipe detected is under the swipe threshold", () => {
       generateTouchEvents({ target: y, startX: 0, endX: 35 })
       jest.advanceTimersByTime(50)
       expect(mock).not.toHaveBeenCalled()
     })
-    it("Should handle a custom touch start and end event", () => {
+    it("should handle a custom touch start and end event", () => {
       generateTouchEvents({ target: y, startX: 50, endX: 0 })
       jest.advanceTimersByTime(50)
       expect(onTouchStart).toHaveBeenCalledTimes(1)
       expect(onTouchMove).toHaveBeenCalledTimes(1)
       expect(onTouchEnd).toHaveBeenCalledTimes(1)
     })
-    it("Should handle a custom multi-touch move event", () => {
+    it("should handle a custom multi-touch move event", () => {
       Simulate.touchMove(y, {
         touches: [
           { identifier: 1, target: y, clientX: 0 },
@@ -628,7 +628,7 @@ describe("<Carousel>", () => {
       jest.advanceTimersByTime(50)
       expect(onTouchMove).toHaveBeenCalledTimes(1)
     })
-    it("Should do nothing with disabled touch right", () => {
+    it("should do nothing with disabled touch right", () => {
       const { getByTestId, container } = render(
         <Carousel
           activeIndex={1}
@@ -657,7 +657,7 @@ describe("<Carousel>", () => {
     afterEach(() => {
       // clock.restore()
     })
-    it("Should call onSlide when slide animation is disabled", () => {
+    it("should call onSlide when slide animation is disabled", () => {
       const sel = jest.fn()
       const slide = jest.fn()
       const { container: c } = render(
@@ -672,7 +672,7 @@ describe("<Carousel>", () => {
       jest.advanceTimersByTime(150)
       expect(slide).toHaveBeenCalledTimes(2)
     })
-    it("Should call onSlid when slide animation is disabled", () => {
+    it("should call onSlid when slide animation is disabled", () => {
       const sel = jest.fn()
       const slide = jest.fn()
       const { container: c } = render(
@@ -687,7 +687,7 @@ describe("<Carousel>", () => {
       jest.advanceTimersByTime(150)
       expect(slide).toHaveBeenCalledTimes(2)
     })
-    it("Should transition/call onSelect once if previous arrow double clicked", () => {
+    it("should transition/call onSelect once if previous arrow double clicked", () => {
       const mock = jest.fn()
       const { container: c } = render(
         <Carousel onSelect={mock}>{items}</Carousel>
@@ -698,7 +698,7 @@ describe("<Carousel>", () => {
       jest.advanceTimersByTime(1000)
       expect(mock).toHaveBeenCalledTimes(1)
     })
-    it("Should transition/call onSelect once if next arrow double clicked", () => {
+    it("should transition/call onSelect once if next arrow double clicked", () => {
       const mock = jest.fn()
       const { container: c } = render(
         <Carousel onSelect={mock}>{items}</Carousel>
@@ -718,7 +718,7 @@ describe("<Carousel>", () => {
     afterEach(() => {
       // clock.restore()
     })
-    it("Should slide in correct direction on ArrowLeft when dir=rtl", () => {
+    it("should slide in correct direction on ArrowLeft when dir=rtl", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Theme dir="rtl">
@@ -732,7 +732,7 @@ describe("<Carousel>", () => {
       expect(mock).toHaveBeenCalledTimes(1)
       expect(mock).toHaveBeenCalledWith(2)
     })
-    it("Should slide in correct direction on ArrowLeft when dir=rtl", () => {
+    it("should slide in correct direction on ArrowLeft when dir=rtl", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Theme dir="rtl">
@@ -746,7 +746,7 @@ describe("<Carousel>", () => {
       expect(mock).toHaveBeenCalledTimes(1)
       expect(mock).toHaveBeenCalledWith(0)
     })
-    it("Should slide in correct direction automatically when dir=rtl", () => {
+    it("should slide in correct direction automatically when dir=rtl", () => {
       const mock = jest.fn()
       const interval = 300
       render(
@@ -762,7 +762,7 @@ describe("<Carousel>", () => {
     })
   })
 })
-describe("<Caption>", () => {
+describe("Caption", () => {
   it('uses "div" by default', () => {
     const { getByTestId, getByText } = render(
       <Caption className="custom-class" data-testid="test">

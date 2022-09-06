@@ -11,18 +11,18 @@ import {
   Button,
 } from "../src/Accordion.js"
 
-describe("<Accordion>", () => {
-  it("Should output a div", () => {
+describe("Accordion", () => {
+  it("should output a div", () => {
     const { getByTestId } = render(<Accordion data-testid="test" />)
     expect(getByTestId("test").tagName.toLowerCase()).toEqual("div")
   })
-  it("Should render flush prop", () => {
+  it("should render flush prop", () => {
     const { getByTestId } = render(<Accordion flush data-testid="test" />)
     const y = getByTestId("test")
     expect(y.classList.contains("accordion")).toBe(true)
     expect(y.classList.contains("accordion-flush")).toBe(true)
   })
-  it("Should output a h1", () => {
+  it("should output a h1", () => {
     const { getByTestId } = render(
       <Accordion>
         <Button>Hi</Button>
@@ -34,7 +34,7 @@ describe("<Accordion>", () => {
     const y = getByTestId("test")
     expect(y.tagName.toLowerCase()).toEqual("h1")
   })
-  it("Should only have second item collapsed", () => {
+  it("should only have second item collapsed", () => {
     const { getByTestId } = render(
       <Accordion defaultActiveKey="0">
         <Item eventKey="0" data-testid="item-0">
@@ -50,7 +50,7 @@ describe("<Accordion>", () => {
     expect(getByTestId("item-0").querySelector(".show")).toBeTruthy()
     expect(getByTestId("item-1").querySelector(".collapse")).toBeTruthy()
   })
-  it("Should expand next item and collapse current item on click", async () => {
+  it("should expand next item and collapse current item on click", async () => {
     const mock = jest.fn()
     const { getByTestId, getByText } = render(
       <Accordion>
@@ -75,7 +75,7 @@ describe("<Accordion>", () => {
       container: item1,
     })
   })
-  it("Should collapse current item on click", async () => {
+  it("should collapse current item on click", async () => {
     const mock = jest.fn()
     const { getByTestId, getByText } = render(
       <Accordion defaultActiveKey="0">
@@ -98,7 +98,7 @@ describe("<Accordion>", () => {
       container: item0,
     })
   })
-  it("Should not close accordion when child dropdown clicked", () => {
+  it("should not close accordion when child dropdown clicked", () => {
     const { getByTestId, getByText } = render(
       <Accordion defaultActiveKey="0">
         <Item eventKey="0" data-testid="item-0">
@@ -118,7 +118,7 @@ describe("<Accordion>", () => {
     const y = getByTestId("item-0")
     expect(y.querySelector(".accordion-collapse.show")).not.toBeNull()
   })
-  it("Should not close accordion when child ListGroup clicked", () => {
+  it("should not close accordion when child ListGroup clicked", () => {
     const { getByTestId, getByText } = render(
       <Accordion defaultActiveKey="0">
         <Item eventKey="0" data-testid="item-0">
@@ -137,7 +137,7 @@ describe("<Accordion>", () => {
     const y = getByTestId("item-0")
     expect(y.querySelector(".accordion-collapse.show")).not.toBeNull()
   })
-  it("Should not close accordion when child Nav clicked", () => {
+  it("should not close accordion when child Nav clicked", () => {
     const { getByTestId, getByText } = render(
       <Accordion defaultActiveKey="0">
         <Item eventKey="0" data-testid="item-0">
@@ -156,7 +156,7 @@ describe("<Accordion>", () => {
     const y = getByTestId("item-0")
     expect(y.querySelector(".accordion-collapse.show")).not.toBeNull()
   })
-  it("Should allow multiple items to stay open", () => {
+  it("should allow multiple items to stay open", () => {
     const mock = jest.fn()
     const { getByText } = render(
       <Accordion onSelect={mock} alwaysOpen>
@@ -174,7 +174,7 @@ describe("<Accordion>", () => {
     fireEvent.click(getByText("header1"))
     expect(mock).toHaveBeenCalledWith(["0", "1"])
   })
-  it("Should remove only one of the active indices", () => {
+  it("should remove only one of the active indices", () => {
     const mock = jest.fn()
     const { getByText } = render(
       <Accordion onSelect={mock} defaultActiveKey={["0", "1"]} alwaysOpen>
@@ -192,19 +192,19 @@ describe("<Accordion>", () => {
     expect(mock).toHaveBeenCalledWith(["0"])
   })
 })
-describe("<AccordionButton>", () => {
-  it("Should have button as default component", () => {
+describe("AccordionButton", () => {
+  it("should have button as default component", () => {
     const { getByTestId } = render(<Button data-testid="test" />)
     const y = getByTestId("test")
     expect(y.tagName.toLowerCase()).toEqual("button")
     expect(y.getAttribute("type")!).toEqual("button")
   })
-  it("Should allow rendering as different component", () => {
+  it("should allow rendering as different component", () => {
     const { getByTestId } = render(<Button data-testid="test" as="div" />)
     const y = getByTestId("test")
     expect(y.tagName.toLowerCase()).toEqual("div")
   })
-  it("Should call onClick", () => {
+  it("should call onClick", () => {
     const mock = jest.fn()
     const { getByTestId } = render(<Button data-testid="btn" onClick={mock} />)
     fireEvent.click(getByTestId("btn"))

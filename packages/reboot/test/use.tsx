@@ -18,7 +18,7 @@ describe("useOffset", () => {
       ref,
     })
   })
-  it("Should have offset of [0s, 8] for Popovers", () => {
+  it("should have offset of [0s, 8] for Popovers", () => {
     const ref = qr.createRef<any>()
     render(
       <Wrapper ref={ref}>
@@ -28,7 +28,7 @@ describe("useOffset", () => {
     const y = ref.current.modifiers[0].options.offset()
     expect(y).toEqual([0, 8])
   })
-  it("Should apply custom offset", () => {
+  it("should apply custom offset", () => {
     const ref = qr.createRef<any>()
     render(
       <Wrapper ref={ref} customOffset={[200, 200]}>
@@ -38,7 +38,7 @@ describe("useOffset", () => {
     const y = ref.current.modifiers[0].options.offset()
     expect(y).toEqual([200, 200])
   })
-  it("Should have offset of [0, 0] for Tooltips", () => {
+  it("should have offset of [0, 0] for Tooltips", () => {
     const ref = qr.createRef<any>()
     render(
       <Wrapper ref={ref}>
@@ -48,7 +48,7 @@ describe("useOffset", () => {
     const y = ref.current.modifiers[0].options.offset()
     expect(y).toEqual([0, 0])
   })
-  it("Should have offset of [0, 0] for any overlay", () => {
+  it("should have offset of [0, 0] for any overlay", () => {
     const ref = qr.createRef<any>()
     render(
       <Wrapper ref={ref}>

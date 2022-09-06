@@ -2,7 +2,7 @@ import { Badge } from "../src/Badge.js"
 import { render } from "@testing-library/react"
 
 describe("Badge", () => {
-  it("Should render correctly", () => {
+  it("should render correctly", () => {
     const { getByTestId } = render(
       <Badge bg="primary" pill data-testid="test">
         Message
@@ -14,7 +14,7 @@ describe("Badge", () => {
     expect(y.classList.contains("bg-primary")).toBe(true)
     expect(y.classList.contains("rounded-pill")).toBe(true)
   })
-  it("Should support custom `as`", () => {
+  it("should support custom `as`", () => {
     const { getByTestId } = render(
       <Badge as="a" href="#" bg="primary" pill data-testid="test">
         Message
@@ -29,7 +29,7 @@ describe("Badge", () => {
     const y = getByTestId("test")
     expect(y.classList.contains("bg-primary")).toBe(true)
   })
-  it("Should use bg class", () => {
+  it("should use bg class", () => {
     const { getByTestId } = render(
       <Badge bg="danger" data-testid="test">
         Message
@@ -38,7 +38,7 @@ describe("Badge", () => {
     const y = getByTestId("test")
     expect(y.classList.contains("bg-danger")).toBe(true)
   })
-  it("Should not have bg class when bg=null", () => {
+  it("should not have bg class when bg=null", () => {
     const { getByTestId } = render(
       <Badge bg={null as any} data-testid="test">
         Message

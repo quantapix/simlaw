@@ -34,7 +34,7 @@ describe("useAnimationFrame", () => {
     raf.mockRestore()
     rafCancel.mockRestore()
   })
-  it("Should requestAnimationFrame", () => {
+  it("should requestAnimationFrame", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     const { result: y } = renderHook(qh.useAnimationFrame)
@@ -43,7 +43,7 @@ describe("useAnimationFrame", () => {
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("Should cancel a request", () => {
+  it("should cancel a request", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     const { result: y } = renderHook(qh.useAnimationFrame)
@@ -54,7 +54,7 @@ describe("useAnimationFrame", () => {
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(0)
   })
-  it("Should cancel a request on unmount", () => {
+  it("should cancel a request on unmount", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     const { result: y, unmount } = renderHook(qh.useAnimationFrame)
@@ -65,7 +65,7 @@ describe("useAnimationFrame", () => {
   })
 })
 describe("useBreakpoint (ssr)", () => {
-  it("Should match immediately if possible", () => {
+  it("should match immediately if possible", () => {
     let y
     const Wrapper = () => {
       y = qh.useBreakpoint("md")
@@ -109,7 +109,7 @@ describe("useBreakpoint", () => {
       unmount()
     }
   )
-  it("Should assume pixels for number values", () => {
+  it("should assume pixels for number values", () => {
     const bp = qh.createBreakHook({ xs: 0, sm: 400, md: 700 })
     renderHook(() => bp("sm"))
     expect(spy).toBeCalled()
@@ -117,7 +117,7 @@ describe("useBreakpoint", () => {
       "(min-width: 400px) and (max-width: 699.8px)"
     )
   })
-  it("Should use calc for string values", () => {
+  it("should use calc for string values", () => {
     const bp = qh.createBreakHook({ xs: 0, sm: "40rem", md: "70rem" })
     renderHook(() => bp("sm"))
     expect(spy).toBeCalled()
@@ -125,14 +125,14 @@ describe("useBreakpoint", () => {
       "(min-width: 40rem) and (max-width: calc(70rem - 0.2px))"
     )
   })
-  it("Should flatten media", () => {
+  it("should flatten media", () => {
     const bp = qh.createBreakHook({ sm: 400, md: 400 })
     renderHook(() => bp({ sm: "up", md: "up" }))
     expect(spy.mock.calls[0]?.[0]).toEqual("(min-width: 400px)")
   })
 })
 describe("useCallbackRef", () => {
-  it("Should update value and be fresh in an effect", () => {
+  it("should update value and be fresh in an effect", () => {
     const mock = jest.fn()
     function Wrapper({ toggle }: { toggle: any }) {
       const [ref, attach] = qh.useCallbackRef<
@@ -158,7 +158,7 @@ describe("useCallbackRef", () => {
   })
 })
 describe("useCommittedRef", () => {
-  it("Should use fresh value", () => {
+  it("should use fresh value", () => {
     const mockA = jest.fn()
     const mockB = jest.fn()
     const { rerender } = renderHook(
@@ -175,7 +175,7 @@ describe("useCommittedRef", () => {
   })
 })
 describe("useCustomEffect", () => {
-  it("Should run custom isEqual logic", () => {
+  it("should run custom isEqual logic", () => {
     const unmock = jest.fn()
     const mock = jest.fn().mockImplementation(() => unmock)
     const isEqual = jest.fn((a, b) => a[0].foo === b[0].foo)
@@ -196,7 +196,7 @@ describe("useCustomEffect", () => {
     w.unmount()
     expect(unmock).toBeCalledTimes(2)
   })
-  it("Should accept different hooks", () => {
+  it("should accept different hooks", () => {
     const mock = jest.fn()
     const hook = jest.fn().mockImplementation(qh.useUpdateImmediateEffect)
     testHook(
@@ -213,7 +213,7 @@ describe("useCustomEffect", () => {
   })
 })
 describe("useDebouncedCallback", () => {
-  it("Should return a function that debounces input callback", () => {
+  it("should return a function that debounces input callback", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     let cb: any
@@ -232,7 +232,7 @@ describe("useDebouncedCallback", () => {
   })
 })
 describe("useDebouncedState", () => {
-  it("Should return a function that debounces input callback", () => {
+  it("should return a function that debounces input callback", () => {
     jest.useFakeTimers()
     let y: any
     function Wrapper() {
@@ -255,7 +255,7 @@ describe("useDebouncedState", () => {
   })
 })
 describe("useDebouncedValue", () => {
-  it("Should return a function that debounces input callback", () => {
+  it("should return a function that debounces input callback", () => {
     jest.useFakeTimers()
     let n = 0
     function Wrapper({ value }: { value: any }) {
@@ -281,7 +281,7 @@ describe("useDebouncedValue", () => {
   })
 })
 describe("useForceUpdate", () => {
-  it("Should return a function that returns mount state", () => {
+  it("should return a function that returns mount state", () => {
     let n = 0
     const [y] = testHook(() => {
       n++
@@ -295,7 +295,7 @@ describe("useForceUpdate", () => {
   })
 })
 describe("useUpdateImmediateEffect", () => {
-  it("Should run update after value changes", () => {
+  it("should run update after value changes", () => {
     const unmock = jest.fn()
     const mock = jest.fn().mockImplementation(() => unmock)
     const [, w] = testHook(
@@ -334,7 +334,7 @@ describe("useIntersectionObserver", () => {
   afterEach(() => {
     observers = []
   })
-  it("Should observe element", async () => {
+  it("should observe element", async () => {
     const e = document.createElement("span")
     const { result: y } = renderHook(() => qh.useIntersectionObserver(e))
     const entry = {}
@@ -344,7 +344,7 @@ describe("useIntersectionObserver", () => {
     })
     expect(y.current[0]).toStrictEqual(entry)
   })
-  it("Should wait for element", async () => {
+  it("should wait for element", async () => {
     const element = document.createElement("span")
     const {
       result: y,
@@ -360,7 +360,7 @@ describe("useIntersectionObserver", () => {
     unmount()
     expect(observers[0].unobserve).toBeCalledTimes(1)
   })
-  it("Should wait for root to set up observer", async () => {
+  it("should wait for root to set up observer", async () => {
     const div = document.createElement("div")
     const span = document.createElement("span")
     const { rerender } = renderHook(
@@ -372,7 +372,7 @@ describe("useIntersectionObserver", () => {
     expect(observers).toHaveLength(1)
     expect(observers[0].observe).toBeCalledTimes(1)
   })
-  it("Should accept a callback", async () => {
+  it("should accept a callback", async () => {
     const mock = jest.fn()
     const span = document.createElement("span")
     const { result: y } = renderHook(() =>
@@ -388,7 +388,7 @@ describe("useIntersectionObserver", () => {
   })
 })
 describe("useTimeout", () => {
-  it("Should set an interval", () => {
+  it("should set an interval", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     renderHook(() => qh.useInterval(mock, 100))
@@ -402,20 +402,20 @@ describe("useTimeout", () => {
     })
     expect(mock).toHaveBeenCalledTimes(2)
   })
-  it("Should run immediately when argument is set", () => {
+  it("should run immediately when argument is set", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     renderHook(() => qh.useInterval(mock, 100, false, true))
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("Should not run when paused", () => {
+  it("should not run when paused", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     renderHook(() => qh.useInterval(mock, 100, true))
     jest.runOnlyPendingTimers()
     expect(mock).not.toHaveBeenCalled()
   })
-  it("Should stop running on unmount", () => {
+  it("should stop running on unmount", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     const { unmount } = renderHook(() => qh.useInterval(mock, 100))
@@ -425,7 +425,7 @@ describe("useTimeout", () => {
   })
 })
 describe("useIsomorphicEffect (ssr)", () => {
-  it("Should not run or warn", () => {
+  it("should not run or warn", () => {
     const mock = jest.fn()
     expect(qh.useIsomorphicEffect).toEqual(qr.useEffect)
     const Wrapper = () => {
@@ -437,7 +437,7 @@ describe("useIsomorphicEffect (ssr)", () => {
   })
 })
 describe("useIsomorphicEffect", () => {
-  it("Should not run or warn", () => {
+  it("should not run or warn", () => {
     const mock = jest.fn()
     expect(qh.useIsomorphicEffect).toEqual(qr.useLayoutEffect)
     const Wrapper = () => {
@@ -450,7 +450,7 @@ describe("useIsomorphicEffect", () => {
 })
 describe("useMap", () => {
   describe("ObservableMap", () => {
-    it("Should implement a Map", () => {
+    it("should implement a Map", () => {
       const y = new qh.ObservableMap(() => {}, [["baz", false]])
       expect(y.size).toEqual(1)
       y.clear()
@@ -471,7 +471,7 @@ describe("useMap", () => {
       y.clear()
       expect(y.size).toEqual(0)
     })
-    it("Should be observable", () => {
+    it("should be observable", () => {
       const mock = jest.fn()
       const y = new qh.ObservableMap(mock)
       y.set("foo", true)
@@ -484,7 +484,7 @@ describe("useMap", () => {
       expect(mock).toHaveBeenCalledTimes(4)
     })
   })
-  it("Should rerender when the map is updated", () => {
+  it("should rerender when the map is updated", () => {
     let y: any
     function Wrapper() {
       y = qh.useMap()
@@ -506,7 +506,7 @@ describe("useMap", () => {
   })
 })
 describe("useMediaQuery (ssr)", () => {
-  it("Should match immediately if possible", () => {
+  it("should match immediately if possible", () => {
     let y
     const Wrapper = ({ media }: { media: any }) => {
       y = qh.useMediaQuery(media)
@@ -517,7 +517,7 @@ describe("useMediaQuery (ssr)", () => {
   })
 })
 describe("useMediaQuery", () => {
-  it("Should match immediately if possible", () => {
+  it("should match immediately if possible", () => {
     let y
     const Wrapper = ({ media }: { media: any }) => {
       y = qh.useMediaQuery(media)
@@ -530,7 +530,7 @@ describe("useMediaQuery", () => {
     expect(window.innerWidth).toBeLessThanOrEqual(2000)
     expect(y).toEqual(false)
   })
-  it("Should clear if no media is passed", () => {
+  it("should clear if no media is passed", () => {
     let matches
     const Wrapper = ({ media }: { media: any }) => {
       matches = qh.useMediaQuery(media)
@@ -543,7 +543,7 @@ describe("useMediaQuery", () => {
   })
 })
 describe("useMergeStateFromProps", () => {
-  it("Should adjust state when props change", () => {
+  it("should adjust state when props change", () => {
     const y = [] as Array<{ ps: any; state: any }>
     const derive = (next: { foo: any }, prev: { last: any }) => {
       if (next.foo === prev.last) return null
@@ -564,7 +564,7 @@ describe("useMergeStateFromProps", () => {
     w.setProps({ foo: 3 })
     expect(y).toHaveLength(6)
   })
-  it("Should adjust state when props change", () => {
+  it("should adjust state when props change", () => {
     type Ps = { foo: number }
     type State = { last: number }
     const y = []
@@ -585,7 +585,7 @@ describe("useMergeStateFromProps", () => {
   })
 })
 describe("useMergedRefs", () => {
-  it("Should return a function that returns mount state", () => {
+  it("should return a function that returns mount state", () => {
     let inner: HTMLButtonElement
     const outer = qr.createRef<HTMLButtonElement>()
     const Button = qr.forwardRef<HTMLButtonElement>((ps, ref) => {
@@ -603,7 +603,7 @@ describe("useMergedRefs", () => {
   })
 })
 describe("useMountEffect", () => {
-  it("Should run update only on mount", () => {
+  it("should run update only on mount", () => {
     const unmock = jest.fn()
     const mock = jest.fn(() => unmock)
     const [, w] = testHook(
@@ -622,7 +622,7 @@ describe("useMountEffect", () => {
   })
 })
 describe("useMounted", () => {
-  it("Should return a function that returns mount state", () => {
+  it("should return a function that returns mount state", () => {
     let y: any
     function Wrapper() {
       y = qh.useMounted()
@@ -635,7 +635,7 @@ describe("useMounted", () => {
   })
 })
 describe("useMutationObserver", () => {
-  it("Should add a mutation observer", async () => {
+  it("should add a mutation observer", async () => {
     const unmock = jest.fn()
     const mock = jest.fn(() => unmock)
     function Wrapper(ps: any) {
@@ -658,7 +658,7 @@ describe("useMutationObserver", () => {
   afterEach(() => {
     spy?.mockRestore()
   })
-  it("Should update config", async () => {
+  it("should update config", async () => {
     const unmock = jest.fn()
     const mock = jest.fn(() => unmock)
     spy = jest.spyOn(MutationObserver.prototype, "disconnect")
@@ -684,7 +684,7 @@ describe("useMutationObserver", () => {
   })
 })
 describe("usePrevious", () => {
-  it("Should return a function that returns mount state", () => {
+  it("should return a function that returns mount state", () => {
     let y
     function Wrapper({ foo }: { foo: any }) {
       y = qh.usePrevious(foo)
@@ -697,7 +697,7 @@ describe("usePrevious", () => {
   })
 })
 describe("useRefWithInitialValueFactory", () => {
-  it("Should set a ref value using factory once", () => {
+  it("should set a ref value using factory once", () => {
     const mock = jest.fn((v: number) => v)
     const [y, w] = testHook(
       ({ value }) => {
@@ -714,7 +714,7 @@ describe("useRefWithInitialValueFactory", () => {
   })
 })
 describe("useSafeState", () => {
-  it("Should work transparently", () => {
+  it("should work transparently", () => {
     let y: any
     function Wrapper() {
       y = qh.useSafeState(qr.useState(false))
@@ -732,7 +732,7 @@ describe("useSafeState", () => {
     })
     expect(y[0]).toEqual(true)
   })
-  it("Should work with async setState", async () => {
+  it("should work with async setState", async () => {
     let y: any
     function Wrapper() {
       y = qh.useSafeState(qh.useStateAsync(false))
@@ -753,7 +753,7 @@ describe("useSafeState", () => {
 })
 describe("useSet", () => {
   describe("ObservableSet", () => {
-    it("Should implement a Set", () => {
+    it("should implement a Set", () => {
       const y = new qh.ObservableSet(() => {}, ["baz"])
       expect(y.size).toEqual(1)
       y.clear()
@@ -773,7 +773,7 @@ describe("useSet", () => {
       y.clear()
       expect(y.size).toEqual(0)
     })
-    it("Should be observable", () => {
+    it("should be observable", () => {
       const mock = jest.fn()
       const y = new qh.ObservableSet(mock)
       y.add("foo")
@@ -786,7 +786,7 @@ describe("useSet", () => {
       expect(mock).toHaveBeenCalledTimes(4)
     })
   })
-  it("Should rerender when the set is updated", () => {
+  it("should rerender when the set is updated", () => {
     let y: any
     function Wrapper() {
       y = qh.useSet()
@@ -808,7 +808,7 @@ describe("useSet", () => {
   })
 })
 describe("useStateAsync", () => {
-  it("Should increment counter", async () => {
+  it("should increment counter", async () => {
     let y: [number, qh.AsyncSetState<number>]
     function Wrapper() {
       y = qh.useStateAsync<number>(0)
@@ -828,7 +828,7 @@ describe("useStateAsync", () => {
     await inc()
     expect(y![0]).toEqual(3)
   })
-  it("Should reject on error", async () => {
+  it("should reject on error", async () => {
     let y: [number, qh.AsyncSetState<number>]
     function Wrapper() {
       y = qh.useStateAsync<number>(1)
@@ -854,7 +854,7 @@ describe("useStateAsync", () => {
       return expect(p).rejects.toThrow("yo")
     })
   })
-  it("Should resolve even if no update happens", async () => {
+  it("should resolve even if no update happens", async () => {
     let y: [number, qh.AsyncSetState<number>]
     function Wrapper() {
       y = qh.useStateAsync<number>(1)
@@ -866,7 +866,7 @@ describe("useStateAsync", () => {
     await act(() => expect(y[1](1)).resolves.toEqual(1))
     expect(y![0]).toEqual(1)
   })
-  it("Should resolve after update if already pending", async () => {
+  it("should resolve after update if already pending", async () => {
     let y: [number, qh.AsyncSetState<number>]
     function Wrapper() {
       y = qh.useStateAsync<number>(0)
@@ -883,7 +883,7 @@ describe("useStateAsync", () => {
   })
 })
 describe("useThrottledEventHandler", () => {
-  it("Should throttle and use return the most recent event", done => {
+  it("should throttle and use return the most recent event", done => {
     const mock = jest.fn()
     const [y, w] = testHook(() => qh.useThrottledEventHandler<MouseEvent>(mock))
     const events = [
@@ -904,7 +904,7 @@ describe("useThrottledEventHandler", () => {
       }, 20)
     }, 20)
   })
-  it("Should clear pending handler calls", done => {
+  it("should clear pending handler calls", done => {
     const mock = jest.fn()
     const [y] = testHook(() => qh.useThrottledEventHandler<MouseEvent>(mock))
     ;[
@@ -921,7 +921,7 @@ describe("useThrottledEventHandler", () => {
   })
 })
 describe("useTimeout", () => {
-  it("Should set a timeout", () => {
+  it("should set a timeout", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     let y: ReturnType<typeof qh.useTimeout>
@@ -935,7 +935,7 @@ describe("useTimeout", () => {
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("Should clear a timeout", () => {
+  it("should clear a timeout", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     let y: ReturnType<typeof qh.useTimeout>
@@ -949,7 +949,7 @@ describe("useTimeout", () => {
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(0)
   })
-  it("Should clear a timeout on unmount", () => {
+  it("should clear a timeout on unmount", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     let y: ReturnType<typeof qh.useTimeout>
@@ -963,7 +963,7 @@ describe("useTimeout", () => {
     jest.runAllTimers()
     expect(mock).toHaveBeenCalledTimes(0)
   })
-  it("Should handle very large timeouts", () => {
+  it("should handle very large timeouts", () => {
     jest.useFakeTimers()
     const mock = jest.fn()
     let y: ReturnType<typeof qh.useTimeout>
@@ -981,7 +981,7 @@ describe("useTimeout", () => {
   })
 })
 describe("useToggleState", () => {
-  it("Should toggle", () => {
+  it("should toggle", () => {
     let y: ReturnType<typeof qh.useToggleState>
     function Wrapper({ initial }: { initial?: boolean }) {
       y = qh.useToggleState(initial)
@@ -998,7 +998,7 @@ describe("useToggleState", () => {
   })
 })
 describe("useUpdateEffect", () => {
-  it("Should run update after value changes", () => {
+  it("should run update after value changes", () => {
     const unmock = jest.fn()
     const mock = jest.fn(() => unmock)
     const [, w] = testHook(
@@ -1020,7 +1020,7 @@ describe("useUpdateEffect", () => {
   })
 })
 describe("useUpdateLayoutEffect", () => {
-  it("Should run update after value changes", () => {
+  it("should run update after value changes", () => {
     const unmock = jest.fn()
     const mock = jest.fn(() => unmock)
     const [, w] = testHook(
@@ -1042,7 +1042,7 @@ describe("useUpdateLayoutEffect", () => {
   })
 })
 describe("useWillUnmount", () => {
-  it("Should return a function that returns mount state", () => {
+  it("should return a function that returns mount state", () => {
     const mock = jest.fn()
     function Wrapper() {
       qh.useWillUnmount(mock)

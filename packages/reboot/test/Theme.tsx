@@ -3,7 +3,7 @@ import { render } from "@testing-library/react"
 import { Theme, createComponent } from "../src/Theme.js"
 import * as qr from "react"
 
-describe("<Theme>", () => {
+describe("Theme", () => {
   const hocValue = "foo"
   const Foo = createComponent(
     class Foo extends qr.Component<{ bsPrefix: string }, any> {
@@ -17,7 +17,7 @@ describe("<Theme>", () => {
     },
     hocValue
   )
-  it("Should use HOC value", () => {
+  it("should use HOC value", () => {
     const { getByText } = render(
       <div>
         <Foo />
@@ -27,7 +27,7 @@ describe("<Theme>", () => {
     expect(y.classList.contains(hocValue)).toBe(true)
     expect(y.tagName.toLowerCase()).toEqual("p")
   })
-  it("Should provide bsPrefix overrides", () => {
+  it("should provide bsPrefix overrides", () => {
     const { getByText } = render(
       <Theme prefixes={{ btn: "my-btn", foo: "global-foo" }}>
         <div>
@@ -44,7 +44,7 @@ describe("<Theme>", () => {
     expect(y2.tagName.toLowerCase()).toEqual("p")
     expect(y2.classList.contains("global-foo")).toBe(true)
   })
-  it("Should use prop bsPrefix first", () => {
+  it("should use prop bsPrefix first", () => {
     const { getByText } = render(
       <Theme prefixes={{ foo: "global-foo" }}>
         <div>
@@ -56,7 +56,7 @@ describe("<Theme>", () => {
     expect(y.tagName.toLowerCase()).toEqual("p")
     expect(y.classList.contains("my-foo")).toBe(true)
   })
-  it("Should forward ref", () => {
+  it("should forward ref", () => {
     let ref: any
     const { getByText } = render(
       <div>

@@ -2,7 +2,7 @@ import { render } from "@testing-library/react"
 import { Tooltip } from "../src/Tooltip.js"
 
 describe("Tooltip", () => {
-  it("Should output a tooltip with content", () => {
+  it("should output a tooltip with content", () => {
     const { getByTestId } = render(
       <Tooltip data-testid="test-tooltip" placement="right">
         <strong>Tooltip Content</strong>

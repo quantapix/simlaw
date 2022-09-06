@@ -7,7 +7,7 @@ describe("Row", () => {
     const { getByText } = render(<Row>Row</Row>)
     expect(getByText("Row").classList.contains("row")).toBe(true)
   })
-  it("Should include sizes", () => {
+  it("should include sizes", () => {
     const { getByText } = render(
       <Row xs={4} md={8}>
         Row
@@ -16,7 +16,7 @@ describe("Row", () => {
     expect(getByText("Row").classList.contains("row-cols-md-8")).toBe(true)
     expect(getByText("Row").classList.contains("row-cols-4")).toBe(true)
   })
-  it("Should allow sizes as objects", () => {
+  it("should allow sizes as objects", () => {
     const { getByText } = render(
       <Row xs={{ cols: 4 }} md={{ cols: 8 }}>
         Row
@@ -25,7 +25,7 @@ describe("Row", () => {
     expect(getByText("Row").classList.contains("row-cols-md-8")).toBe(true)
     expect(getByText("Row").classList.contains("row-cols-4")).toBe(true)
   })
-  it("Should allow auto as size", () => {
+  it("should allow auto as size", () => {
     const { getByText } = render(
       <Row xs="auto" md="auto">
         Row
@@ -34,7 +34,7 @@ describe("Row", () => {
     expect(getByText("Row").classList.contains("row-cols-md-auto")).toBe(true)
     expect(getByText("Row").classList.contains("row-cols-auto")).toBe(true)
   })
-  it("Should allow auto as size in object form", () => {
+  it("should allow auto as size in object form", () => {
     const { getByText } = render(
       <Row xs={{ cols: "auto" }} md={{ cols: "auto" }}>
         Row
@@ -60,7 +60,7 @@ describe("Row", () => {
     expect(getByText("Row").tagName.toLowerCase()).toEqual("section")
     expect(getByText("Row").classList.contains("row")).toBe(true)
   })
-  it("Should allow custom breakpoints", () => {
+  it("should allow custom breakpoints", () => {
     const { getByText } = render(
       <ThemeProvider breakpoints={["custom"]}>
         <Row custom="3">test</Row>

@@ -2,7 +2,7 @@ import { fireEvent, render } from "@testing-library/react"
 import { ListGroup, Item } from "../src/ListGroup.js"
 import { shouldWarn } from "./tools.js"
 
-describe("<ListGroup>", () => {
+describe("ListGroup", () => {
   it('Should render correctly "list-group"', () => {
     const { getByTestId } = render(<ListGroup data-testid="test" />)
     const listGroup = getByTestId("test")
@@ -51,7 +51,7 @@ describe("<ListGroup>", () => {
     expect(listGroup.tagName.toLowerCase()).toEqual("ul")
     expect(listGroup.classList.contains("list-group")).toBe(true)
   })
-  it("Should set active class on list item if activeKey set on parent", () => {
+  it("should set active class on list item if activeKey set on parent", () => {
     const { getByTestId } = render(
       <ListGroup activeKey="1">
         <Item eventKey="1" data-testid="list-item">
@@ -61,7 +61,7 @@ describe("<ListGroup>", () => {
     )
     expect(getByTestId("list-item").classList.contains("active")).toBe(true)
   })
-  it("Should add numbered class", () => {
+  it("should add numbered class", () => {
     const { getByTestId } = render(
       <ListGroup activeKey="1" numbered data-testid="list-group">
         <Item eventKey="1">test</Item>
@@ -71,8 +71,8 @@ describe("<ListGroup>", () => {
     expect(listGroup.classList.contains("list-group-numbered")).toBe(true)
   })
 })
-describe("<Item>", () => {
-  it("Should output a div", () => {
+describe("Item", () => {
+  it("should output a div", () => {
     const { getByTestId } = render(<Item data-testid="test" />)
     const item = getByTestId("test")
     expect(item.tagName.toLowerCase()).toEqual("div")
@@ -104,11 +104,11 @@ describe("<Item>", () => {
     expect(item.tagName.toLowerCase()).toEqual("span")
     expect(item.classList.contains("list-group-item")).toBe(true)
   })
-  it("Should not be focusable when disabled", () => {
+  it("should not be focusable when disabled", () => {
     const { getByTestId } = render(<Item disabled data-testid="test" />)
     expect(getByTestId("test").getAttribute("tabindex")).toEqual("-1")
   })
-  it("Should respect user-specified tabIndex", () => {
+  it("should respect user-specified tabIndex", () => {
     const { getByTestId } = render(
       <Item disabled tabIndex={4} data-testid="test" />
     )
@@ -132,13 +132,13 @@ describe("<Item>", () => {
     })
   })
   describe("onClick", () => {
-    it("Should call on click", () => {
+    it("should call on click", () => {
       const mock = jest.fn()
       const { getByTestId } = render(<Item onClick={mock} data-testid="test" />)
       fireEvent.click(getByTestId("test"))
       expect(mock).toHaveBeenCalledTimes(1)
     })
-    it("Should not call if disabled", () => {
+    it("should not call if disabled", () => {
       const mock = jest.fn()
       const { getByTestId } = render(
         <Item onClick={mock} disabled data-testid="test" />

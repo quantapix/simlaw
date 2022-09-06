@@ -1,14 +1,14 @@
 import { render } from "@testing-library/react"
 import { Spinner } from "../src/Spinner.js"
 
-describe("<Spinner>", () => {
-  it("Should render a basic spinner correctly", () => {
+describe("Spinner", () => {
+  it("should render a basic spinner correctly", () => {
     const { getByTestId } = render(
       <Spinner data-testid="test" animation="border" />
     )
     expect(getByTestId("test").classList.contains("spinner-border")).toBe(true)
   })
-  it("Should render a spinner with a custom element, variant and size ", () => {
+  it("should render a spinner with a custom element, variant and size ", () => {
     const { getByTestId } = render(
       <Spinner
         data-testid="test"
@@ -24,7 +24,7 @@ describe("<Spinner>", () => {
     expect(y.classList.contains("spinner-grow-sm")).toBe(true)
     expect(y.classList.contains("text-primary")).toBe(true)
   })
-  it("Should render a spinner with other properties", () => {
+  it("should render a spinner with other properties", () => {
     const { getByTestId } = render(
       <Spinner data-testid="test" animation="grow" role="status" />
     )
@@ -32,7 +32,7 @@ describe("<Spinner>", () => {
     expect(y.classList.contains("spinner-grow")).toBe(true)
     expect(y.getAttribute("role")!).toEqual("status")
   })
-  it("Should render child elements", () => {
+  it("should render child elements", () => {
     const { getByTestId } = render(
       <Spinner data-testid="test" animation="grow">
         <span id="testChild" />
@@ -41,7 +41,7 @@ describe("<Spinner>", () => {
     const y = getByTestId("test")
     expect(y.children.length).toEqual(1)
   })
-  it("Should have div as default component", () => {
+  it("should have div as default component", () => {
     const { getByTestId } = render(
       <Spinner data-testid="test" animation="border" />
     )

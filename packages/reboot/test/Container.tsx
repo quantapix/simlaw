@@ -1,8 +1,8 @@
 import { Container } from "../src/Container.js"
 import { render } from "@testing-library/react"
 
-describe("<Container>", () => {
-  it("Should render props correctly", () => {
+describe("Container", () => {
+  it("should render props correctly", () => {
     const { getByText } = render(
       <Container className="whatever">Container</Container>
     )
@@ -14,7 +14,7 @@ describe("<Container>", () => {
       true
     )
   })
-  it("Should include size breakpoint class when fluid is set to sm, md, lg or xl", () => {
+  it("should include size breakpoint class when fluid is set to sm, md, lg or xl", () => {
     const { getByText } = render(<Container fluid="sm">Container</Container>)
     expect(getByText("Container").classList.contains("container-sm")).toBe(true)
   })
@@ -23,11 +23,11 @@ describe("<Container>", () => {
     expect(getByText("Container").classList.contains("container")).toBe(true)
     expect(getByText("Container").tagName.toLowerCase()).toEqual("section")
   })
-  it("Should have div as default component", () => {
+  it("should have div as default component", () => {
     const { getByText } = render(<Container>Container</Container>)
     expect(getByText("Container").tagName.toLowerCase()).toEqual("div")
   })
-  it("Should allow custom breakpoints", () => {
+  it("should allow custom breakpoints", () => {
     const { getByText } = render(<Container fluid="custom">test</Container>)
     expect(getByText("test").classList.contains("container-custom")).toBe(true)
   })

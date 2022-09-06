@@ -2,7 +2,7 @@ import { render } from "@testing-library/react"
 import { Ratio } from "../src/Ratio.js"
 
 describe("Ratio", () => {
-  it("Should contain `ratio-1x1` and custom class", () => {
+  it("should contain `ratio-1x1` and custom class", () => {
     const { getByTestId } = render(
       <Ratio data-testid="test" aspectRatio="1x1" className="custom-class">
         <div />
@@ -13,7 +13,7 @@ describe("Ratio", () => {
     expect(y.classList.contains("ratio")).toBe(true)
     expect(y.classList.contains("ratio-1x1")).toBe(true)
   })
-  it("Should support custom ratios using percent for aspectRatio", () => {
+  it("should support custom ratios using percent for aspectRatio", () => {
     const { getByTestId } = render(
       <Ratio data-testid="test" aspectRatio={50}>
         <div />
@@ -23,7 +23,7 @@ describe("Ratio", () => {
     const y2 = y.getAttribute("style")!
     expect(y2).toMatch(/--bs-aspect-ratio:[ ]*50%;/)
   })
-  it("Should support custom ratios using fraction for aspectRatio", () => {
+  it("should support custom ratios using fraction for aspectRatio", () => {
     const { getByTestId } = render(
       <Ratio data-testid="test" aspectRatio={1 / 2}>
         <div />
@@ -33,7 +33,7 @@ describe("Ratio", () => {
     const y2 = y.getAttribute("style")!
     expect(y2).toMatch(/--bs-aspect-ratio:[ ]*50%;/)
   })
-  it("Should support use 100% as custom ratio if aspectRatio is less than 0", () => {
+  it("should support use 100% as custom ratio if aspectRatio is less than 0", () => {
     const { getByTestId } = render(
       <Ratio data-testid="test" aspectRatio={-1}>
         <div />
@@ -43,7 +43,7 @@ describe("Ratio", () => {
     const y2 = y.getAttribute("style")!
     expect(y2).toMatch(/--bs-aspect-ratio:[ ]*100%;/)
   })
-  it("Should support use 100% as custom ratio if aspectRatio is greater than 100", () => {
+  it("should support use 100% as custom ratio if aspectRatio is greater than 100", () => {
     const { getByTestId } = render(
       <Ratio data-testid="test" aspectRatio={200}>
         <div />

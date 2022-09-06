@@ -4,8 +4,8 @@ import { Popover } from "../src/Popover.js"
 import { Tooltip } from "../src/Tooltip.js"
 import * as qr from "react"
 
-describe("<Overlay>", () => {
-  it("Should forward ref to the overlay", () => {
+describe("Overlay", () => {
+  it("should forward ref to the overlay", () => {
     const ref = qr.createRef<any>()
     render(
       <Overlay ref={ref} show target={ref.current}>
@@ -14,7 +14,7 @@ describe("<Overlay>", () => {
     )
     expect(ref.current.id).toEqual("my-overlay")
   })
-  it("Should use Fade internally if transition=true", () => {
+  it("should use Fade internally if transition=true", () => {
     const ref = qr.createRef<any>()
     const { getByTestId } = render(
       <Overlay show transition ref={ref} target={ref.current}>
@@ -26,7 +26,7 @@ describe("<Overlay>", () => {
     const y = getByTestId("test")
     expect(y.classList.contains("fade")).toBe(true)
   })
-  it("Should not use Fade if transition=false", () => {
+  it("should not use Fade if transition=false", () => {
     const ref = qr.createRef<any>()
     const { getByTestId } = render(
       <Overlay show transition={false} ref={ref} target={ref.current}>
@@ -39,7 +39,7 @@ describe("<Overlay>", () => {
     expect(y.classList.contains("fade")).toBe(false)
   })
 })
-describe("<Trigger>", () => {
+describe("Trigger", () => {
   const TemplateDiv = qr.forwardRef(
     ({ className = "", children }: any, ref: any) => (
       <div
@@ -53,7 +53,7 @@ describe("<Trigger>", () => {
       </div>
     )
   )
-  it("Should not throw an error with StrictMode", () => {
+  it("should not throw an error with StrictMode", () => {
     const { getByTestId } = render(
       <qr.StrictMode>
         <Trigger overlay={<TemplateDiv>test</TemplateDiv>}>
@@ -66,7 +66,7 @@ describe("<Trigger>", () => {
     const y = getByTestId("test-button")
     fireEvent.click(y)
   })
-  it("Should render Trigger element", () => {
+  it("should render Trigger element", () => {
     const { getByTestId } = render(
       <Trigger overlay={<TemplateDiv>test</TemplateDiv>}>
         <button type="button" data-testid="test-button">
@@ -77,7 +77,7 @@ describe("<Trigger>", () => {
     const y = getByTestId("test-button")
     expect(y).toBeTruthy()
   })
-  it("Should show after click trigger", () => {
+  it("should show after click trigger", () => {
     const { queryByTestId, getByTestId } = render(
       <Trigger trigger="click" overlay={<TemplateDiv />}>
         <button type="button" data-testid="test-button">
@@ -92,7 +92,7 @@ describe("<Trigger>", () => {
     y = queryByTestId("test-overlay")
     expect(y).not.toBeNull()
   })
-  it("Should accept a function as an overlay render prop", () => {
+  it("should accept a function as an overlay render prop", () => {
     const overlay = () => <TemplateDiv />
     const { queryByTestId, getByTestId } = render(
       <Trigger trigger="click" overlay={overlay}>
@@ -108,7 +108,7 @@ describe("<Trigger>", () => {
     y = queryByTestId("test-overlay")
     expect(y).not.toBeNull()
   })
-  it("Should show the tooltip when transitions are disabled", () => {
+  it("should show the tooltip when transitions are disabled", () => {
     const overlay = ({ className }: any) => (
       <TemplateDiv className={`${className} test`} />
     )
@@ -131,7 +131,7 @@ describe("<Trigger>", () => {
     expect(y).not.toBeNull()
     expect(y!.classList.contains("show")).toBe(true)
   })
-  it("Should call Trigger onClick prop to child", () => {
+  it("should call Trigger onClick prop to child", () => {
     const mock = jest.fn()
     const { getByTestId } = render(
       <Trigger overlay={<TemplateDiv>test</TemplateDiv>} trigger="click">
@@ -144,7 +144,7 @@ describe("<Trigger>", () => {
     fireEvent.click(y)
     expect(mock).toHaveBeenCalled()
   })
-  it("Should be controllable", () => {
+  it("should be controllable", () => {
     const mock = jest.fn()
     const { getByTestId } = render(
       <Trigger
@@ -165,7 +165,7 @@ describe("<Trigger>", () => {
     expect(mock).toHaveBeenCalledTimes(1)
     expect(mock).toHaveBeenCalledWith(false)
   })
-  it("Should show after mouseover trigger", done => {
+  it("should show after mouseover trigger", done => {
     // const clock = sinon.useFakeTimers()
     const { getByTestId, queryByTestId } = render(
       <Trigger overlay={<TemplateDiv />}>
@@ -185,7 +185,7 @@ describe("<Trigger>", () => {
     // clock.restore()
     done()
   })
-  it("Should not set aria-describedby if the state is not show", () => {
+  it("should not set aria-describedby if the state is not show", () => {
     const { getByTestId } = render(
       <Trigger trigger="click" overlay={<TemplateDiv />}>
         <button type="button" data-testid="test-button">
@@ -196,7 +196,7 @@ describe("<Trigger>", () => {
     const y = getByTestId("test-button")
     expect(y.getAttribute("aria-describedby")).toBeNull()
   })
-  it("Should set aria-describedby for tooltips if the state is show", done => {
+  it("should set aria-describedby for tooltips if the state is show", done => {
     const { getByTestId } = render(
       <Trigger trigger="click" overlay={<TemplateDiv />}>
         <button type="button" data-testid="test-button">
@@ -213,7 +213,7 @@ describe("<Trigger>", () => {
     })
   })
   describe("trigger handlers", () => {
-    it("Should keep trigger handlers", done => {
+    it("should keep trigger handlers", done => {
       const { getByTestId } = render(
         <div>
           <Trigger trigger="click" overlay={<TemplateDiv>test</TemplateDiv>}>
@@ -232,7 +232,7 @@ describe("<Trigger>", () => {
       fireEvent.click(y)
     })
   })
-  it("Should maintain overlay classname", () => {
+  it("should maintain overlay classname", () => {
     const { getByTestId, queryByTestId } = render(
       <Trigger
         trigger="click"
@@ -249,7 +249,7 @@ describe("<Trigger>", () => {
     expect(y2!).not.toBeNull()
     expect(y2!.classList.contains("test-overlay")).toBe(true)
   })
-  it("Should pass transition callbacks to Transition", done => {
+  it("should pass transition callbacks to Transition", done => {
     const mock = jest.fn()
     const { getByTestId } = render(
       <Trigger
@@ -278,7 +278,7 @@ describe("<Trigger>", () => {
     const y = getByTestId("test-button")
     fireEvent.click(y)
   })
-  it("Should forward requested context", () => {
+  it("should forward requested context", () => {
     const mock = jest.fn()
     class ContextReader extends qr.Component {
       override render(this: any) {
@@ -311,7 +311,7 @@ describe("<Trigger>", () => {
       { name: "Tooltip", overlay: <Tooltip id="test-tooltip">test</Tooltip> },
     ].forEach(x => {
       describe(x.name, () => {
-        it("Should handle trigger without warnings", done => {
+        it("should handle trigger without warnings", done => {
           const { getByTestId } = render(
             <Trigger trigger="click" overlay={x.overlay}>
               <button type="button" data-testid="test-button">
@@ -340,7 +340,7 @@ describe("<Trigger>", () => {
       },
     ].forEach(x => {
       describe(x.label, () => {
-        it("Should have correct show state", () => {
+        it("should have correct show state", () => {
           const { getByTestId } = render(
             <Trigger
               overlay={<TemplateDiv>test</TemplateDiv>}
@@ -362,7 +362,7 @@ describe("<Trigger>", () => {
       })
     })
     describe("clicking on trigger to hide", () => {
-      it("Should hide after clicking on trigger", () => {
+      it("should hide after clicking on trigger", () => {
         const { getByTestId } = render(
           <Trigger
             overlay={<TemplateDiv>test</TemplateDiv>}
@@ -384,7 +384,7 @@ describe("<Trigger>", () => {
       })
     })
     describe("replaced overlay", () => {
-      it("Should still be shown", () => {
+      it("should still be shown", () => {
         const ReplacedOverlay = qr.forwardRef(
           ({ className = "" }: any, ref: any) => {
             const [state, setState] = qr.useState(false)

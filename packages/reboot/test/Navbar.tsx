@@ -2,8 +2,8 @@ import { Brand, Collapse, Navbar, Toggle } from "../src/Navbar.js"
 import { fireEvent, render } from "@testing-library/react"
 import { Link, Nav } from "../src/Nav.js"
 
-describe("<Navbar>", () => {
-  it("Should create nav element", () => {
+describe("Navbar", () => {
+  it("should create nav element", () => {
     const { getByTestId } = render(<Navbar data-testid="test" />)
     const navbarElem = getByTestId("test")
     expect(navbarElem.classList.contains("navbar")).toBe(true)
@@ -16,7 +16,7 @@ describe("<Navbar>", () => {
     expect(navbarElem.tagName.toLowerCase()).toEqual("div")
     expect(navbarElem.getAttribute("role")!).toEqual("navigation")
   })
-  it("Should add fixed=top|bottom variation", () => {
+  it("should add fixed=top|bottom variation", () => {
     const { getByTestId: getByFirstTestId } = render(
       <Navbar fixed="top" data-testid="test1" />
     )
@@ -28,29 +28,29 @@ describe("<Navbar>", () => {
     const navbarElem = getBySecondTestId("test2")
     expect(navbarElem.classList.contains("fixed-bottom")).toBe(true)
   })
-  it("Should variant=dark", () => {
+  it("should variant=dark", () => {
     const { getByTestId } = render(<Navbar variant="dark" data-testid="test" />)
     expect(getByTestId("test").classList.contains("navbar-dark")).toBe(true)
   })
-  it("Should override role attribute", () => {
+  it("should override role attribute", () => {
     const { getByTestId } = render(<Navbar role="banner" data-testid="test" />)
     expect(getByTestId("test").getAttribute("role")!).toEqual("banner")
   })
   describe("Brand", () => {
-    it("Should render brand", () => {
+    it("should render brand", () => {
       const { getByTestId } = render(<Brand data-testid="test" />)
       const navbarBrandElem = getByTestId("test")
       expect(navbarBrandElem.classList.contains("navbar-brand")).toBe(true)
       expect(navbarBrandElem.tagName.toLowerCase()).toEqual("span")
     })
-    it("Should render brand as anchor", () => {
+    it("should render brand as anchor", () => {
       const { getByTestId } = render(<Brand href="#" data-testid="test" />)
       const navbarBrandElem = getByTestId("test")
       expect(navbarBrandElem.classList.contains("navbar-brand")).toBe(true)
       expect(navbarBrandElem.tagName.toLowerCase()).toEqual("a")
     })
   })
-  it("Should pass navbar context to navs", () => {
+  it("should pass navbar context to navs", () => {
     const { getByTestId } = render(
       <Navbar>
         <Nav data-testid="test" />
@@ -59,7 +59,7 @@ describe("<Navbar>", () => {
     const navElem = getByTestId("test")
     expect(navElem.classList.contains("navbar-nav")).toBe(true)
   })
-  it("Should add custom toggle", () => {
+  it("should add custom toggle", () => {
     const { getByTestId } = render(
       <Navbar>
         <Toggle as="p" data-testid="test">
@@ -72,7 +72,7 @@ describe("<Navbar>", () => {
     navToggleElem.classList.contains("navbar-toggler")
     expect(navToggleElem.tagName.toLowerCase()).toEqual("p")
   })
-  it("Should trigger onToggle", () => {
+  it("should trigger onToggle", () => {
     const mock = jest.fn()
     const { getByTestId } = render(
       <Navbar onToggle={mock}>
@@ -84,7 +84,7 @@ describe("<Navbar>", () => {
     expect(mock).toHaveBeenCalledTimes(1)
     expect(mock).toHaveBeenCalledWith(true)
   })
-  it("Should not swallow onClick", () => {
+  it("should not swallow onClick", () => {
     const mock = jest.fn()
     const { getByTestId } = render(
       <Navbar>
@@ -95,7 +95,7 @@ describe("<Navbar>", () => {
     fireEvent.click(toggleElem)
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("Should render collapse", () => {
+  it("should render collapse", () => {
     const { getByTestId } = render(
       <Navbar>
         <Collapse data-testid="test">hello</Collapse>
@@ -103,7 +103,7 @@ describe("<Navbar>", () => {
     )
     expect(getByTestId("test").classList.contains("navbar-collapse")).toBe(true)
   })
-  it("Should pass expanded to Collapse", () => {
+  it("should pass expanded to Collapse", () => {
     const { getByTestId } = render(
       <Navbar expanded>
         <Collapse data-testid="test">hello</Collapse>
@@ -112,7 +112,7 @@ describe("<Navbar>", () => {
     const toggleElem = getByTestId("test")
     expect(toggleElem.classList.contains("show")).toBe(true)
   })
-  it("Should wire the toggle to the collapse", done => {
+  it("should wire the toggle to the collapse", done => {
     //const clock = sinon.useFakeTimers()
     const { getByTestId } = render(
       <Navbar>
@@ -133,7 +133,7 @@ describe("<Navbar>", () => {
     // clock.restore()
     done()
   })
-  it("Should open external href link in collapseOnSelect", () => {
+  it("should open external href link in collapseOnSelect", () => {
     const mock = jest.fn(e => {
       e.persist()
       e.preventDefault()
@@ -159,7 +159,7 @@ describe("<Navbar>", () => {
       "https://www.google.com"
     )
   })
-  it("Should fire external href click", done => {
+  it("should fire external href click", done => {
     const mock = jest.fn(e => {
       e.persist()
       e.preventDefault()
@@ -182,7 +182,7 @@ describe("<Navbar>", () => {
     const innerLinkItem = getByTestId("test")
     fireEvent.click(innerLinkItem)
   })
-  it("Should collapseOnSelect & fire Nav subcomponent onSelect event if expanded", () => {
+  it("should collapseOnSelect & fire Nav subcomponent onSelect event if expanded", () => {
     const toggle = jest.fn()
     const item = jest.fn()
     const { getByTestId } = render(
@@ -205,7 +205,7 @@ describe("<Navbar>", () => {
     expect(toggle).toHaveBeenCalledTimes(1)
     expect(toggle).toHaveBeenCalledWith(false)
   })
-  it("Should fire onSelect with eventKey for nav children", () => {
+  it("should fire onSelect with eventKey for nav children", () => {
     const select = jest.fn()
     const item = jest.fn()
     const { getByTestId } = render(
@@ -228,17 +228,17 @@ describe("<Navbar>", () => {
     expect(select).toHaveBeenCalledTimes(1)
     expect(select).toHaveBeenCalledWith("#home")
   })
-  it("Should have nav as default component", () => {
+  it("should have nav as default component", () => {
     const { getByTestId } = render(<Navbar data-testid="test" />)
     expect(getByTestId("test").tagName.toLowerCase()).toEqual("nav")
   })
-  it("Should render correctly when expand is a string", () => {
+  it("should render correctly when expand is a string", () => {
     const { getByTestId } = render(<Navbar expand="sm" data-testid="test" />)
     expect(getByTestId("test").classList.contains("navbar-expand-sm")).toBe(
       true
     )
   })
-  it("Should allow custom breakpoints for expand", () => {
+  it("should allow custom breakpoints for expand", () => {
     const { getByTestId } = render(
       <Navbar expand="custom" data-testid="test" />
     )
@@ -246,24 +246,24 @@ describe("<Navbar>", () => {
       true
     )
   })
-  it("Should render correctly when bg is set", () => {
+  it("should render correctly when bg is set", () => {
     const { getByTestId } = render(<Navbar bg="light" data-testid="test" />)
     expect(getByTestId("test").classList.contains("bg-light")).toBe(true)
   })
-  it("Should render correctly when sticky is set", () => {
+  it("should render correctly when sticky is set", () => {
     const { getByTestId } = render(<Navbar sticky="top" data-testid="test" />)
     expect(getByTestId("test").classList.contains("sticky-top")).toBe(true)
   })
 })
 
-describe("<Brand>", () => {
-  it("Should create Brand SPAN element", () => {
+describe("Brand", () => {
+  it("should create Brand SPAN element", () => {
     const { getByTestId } = render(<Brand data-testid="test">Brand</Brand>)
     const BrandElem = getByTestId("test")
     expect(BrandElem.tagName.toLowerCase()).toEqual("span")
     expect(BrandElem.classList.contains("navbar-brand")).toBe(true)
   })
-  it("Should create Brand A (link) element", () => {
+  it("should create Brand A (link) element", () => {
     const { getByTestId } = render(
       <Brand href="/foo" data-testid="test">
         BrandLink
@@ -275,8 +275,8 @@ describe("<Brand>", () => {
   })
 })
 
-describe("<Toggle>", () => {
-  it("Should have button as default component", () => {
+describe("Toggle", () => {
+  it("should have button as default component", () => {
     const { getByTestId } = render(<Toggle data-testid="test" />)
     expect(getByTestId("test").tagName.toLowerCase()).toEqual("button")
   })

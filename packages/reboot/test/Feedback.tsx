@@ -3,16 +3,16 @@ import { Feedback } from "../src/Feedback.js"
 import { render } from "@testing-library/react"
 import React from "react"
 
-describe("<Feedback>", () => {
-  it("Should have div as default component", () => {
+describe("Feedback", () => {
+  it("should have div as default component", () => {
     const { getByTestId } = render(<Feedback data-testid="test" />)
     expect(getByTestId("test").tagName.toLowerCase()).toEqual("div")
   })
-  it("Should render valid feedback", () => {
+  it("should render valid feedback", () => {
     const { getByTestId } = render(<Feedback type="valid" data-testid="test" />)
     expect(getByTestId("test").classList.contains("valid-feedback")).toBe(true)
   })
-  it("Should render invalid feedback", () => {
+  it("should render invalid feedback", () => {
     const { getByTestId } = render(
       <Feedback type="invalid" data-testid="test" />
     )
@@ -20,21 +20,21 @@ describe("<Feedback>", () => {
       true
     )
   })
-  it("Should render valid feedback tooltip", () => {
+  it("should render valid feedback tooltip", () => {
     const { getByTestId } = render(
       <Feedback type="valid" tooltip data-testid="test" />
     )
     expect(getByTestId("test").classList.contains("valid-tooltip")).toBe(true)
   })
-  it("Should render invalid feedback tooltip", () => {
+  it("should render invalid feedback tooltip", () => {
     const { getByTestId } = render(
       <Feedback type="invalid" tooltip data-testid="test" />
     )
     expect(getByTestId("test").classList.contains("invalid-tooltip")).toBe(true)
   })
 })
-describe("<Feedback>", () => {
-  it("Should render default success", () => {
+describe("Feedback", () => {
+  it("should render default success", () => {
     const { getByTestId } = render(
       <Group>
         <Control isValid />
@@ -45,7 +45,7 @@ describe("<Feedback>", () => {
     expect(element.classList.length).toEqual(1)
     expect(element.classList.contains("valid-feedback")).toBe(true)
   })
-  it("Should render default error", () => {
+  it("should render default error", () => {
     const { getByTestId } = render(
       <Group>
         <Control isInvalid />
@@ -56,7 +56,7 @@ describe("<Feedback>", () => {
     expect(element.classList.length).toEqual(1)
     expect(element.classList.contains("invalid-feedback")).toBe(true)
   })
-  it("Should render custom component", () => {
+  it("should render custom component", () => {
     class MyComponent extends React.Component {
       override render() {
         return <div id="my-component" {...this.props} />

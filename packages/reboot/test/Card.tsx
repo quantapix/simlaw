@@ -1,13 +1,13 @@
 import { Card, Img } from "../src/Card.js"
 import { render } from "@testing-library/react"
 
-describe("<Card>", () => {
-  it("Should output a div", () => {
+describe("Card", () => {
+  it("should output a div", () => {
     const { getByText } = render(<Card>Card</Card>)
     expect(getByText("Card").tagName.toLowerCase()).toEqual("div")
     expect(getByText("Card").classList.contains("card")).toBe(true)
   })
-  it("Should have additional classes", () => {
+  it("should have additional classes", () => {
     const { getByText } = render(<Card className="custom-class">Card</Card>)
     expect(getByText("Card").classList.contains("custom-class")).toBe(true)
   })
@@ -23,7 +23,7 @@ describe("<Card>", () => {
     const { getByText } = render(<Card border="danger">Card</Card>)
     expect(getByText("Card").classList.contains("border-danger")).toBe(true)
   })
-  it("Should render children", () => {
+  it("should render children", () => {
     const { getByTestId } = render(
       <Card data-testid="test">
         <p>hello</p>
@@ -41,22 +41,22 @@ describe("<Card>", () => {
     const { getByText } = render(<Card body>test</Card>)
     expect(getByText("test").classList.contains("card-body")).toBe(true)
   })
-  it("Should have div as default component", () => {
+  it("should have div as default component", () => {
     const { getByTestId } = render(<Card data-testid="test" />)
     expect(getByTestId("test").tagName.toLowerCase()).toEqual("div")
   })
 })
-describe("<Img>", () => {
-  it("Should output an img", () => {
+describe("Img", () => {
+  it("should output an img", () => {
     const { getByRole } = render(<Img src="#" />)
     expect(getByRole("img")).toBeTruthy()
   })
-  it("Should pass down src to img", () => {
+  it("should pass down src to img", () => {
     const url = "http://fakeurl.com/pic.jpg"
     const { getByRole } = render(<Img src={url} />)
     expect(getByRole("img").getAttribute("src")).toEqual(url)
   })
-  it("Should have img as default component", () => {
+  it("should have img as default component", () => {
     const { getByRole } = render(<Img />)
     expect(getByRole("img")).toBeTruthy()
   })

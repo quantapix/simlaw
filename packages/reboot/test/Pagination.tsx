@@ -2,15 +2,15 @@ import { render } from "@testing-library/react"
 import React from "react"
 import { First, Item, Next, Pagination } from "../src/Pagination.js"
 
-describe("<Pagination>", () => {
-  it("Should have class", () => {
+describe("Pagination", () => {
+  it("should have class", () => {
     const { getByTestId } = render(
       <Pagination data-testid="test">Item content</Pagination>
     )
     const paginationElem = getByTestId("test")
     expect(paginationElem.classList.contains("pagination")).toBe(true)
   })
-  it("Should render correctly when size is set", () => {
+  it("should render correctly when size is set", () => {
     const { getByTestId } = render(
       <Pagination data-testid="test" size="sm">
         Item content
@@ -30,9 +30,9 @@ describe("<Pagination>", () => {
     expect(ref.current?.tagName.toLowerCase()).toEqual("li")
   })
 })
-describe("<Item>", () => {
-  describe("<First>", () => {
-    it("Should have expected default innerText", () => {
+describe("Item", () => {
+  describe("First", () => {
+    it("should have expected default innerText", () => {
       const { getByTestId } = render(<First data-testid="test" />)
       const firstElem = getByTestId("test")
       expect(firstElem.classList.contains("page-link")).toBe(true)
@@ -42,7 +42,7 @@ describe("<Item>", () => {
       )
       expect(firstElem.firstElementChild!.textContent!).toEqual("«")
     })
-    it("Should have expected custom innerText", () => {
+    it("should have expected custom innerText", () => {
       const innerHTML = "custom"
       const { getByTestId } = render(
         <First data-testid="test">{innerHTML}</First>
@@ -50,7 +50,7 @@ describe("<Item>", () => {
       const firstElem = getByTestId("test")
       expect(firstElem.firstElementChild!.textContent!).toEqual(innerHTML)
     })
-    it("Should render a nested span if active is true", () => {
+    it("should render a nested span if active is true", () => {
       const { container } = render(<Item active />)
       const ItemElem = container.firstElementChild!
       const ItemInnerElem = ItemElem.firstElementChild!
@@ -60,7 +60,7 @@ describe("<Item>", () => {
         "span"
       )
     })
-    it("Should render a span if disabled is true", () => {
+    it("should render a span if disabled is true", () => {
       const { container } = render(<Item disabled />)
       const ItemElem = container.firstElementChild!
       const ItemInnerElem = ItemElem.firstElementChild!

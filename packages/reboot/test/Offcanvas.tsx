@@ -4,8 +4,8 @@ import { Manager } from "../src/base/Manager.js"
 import * as qh from "../src/hooks.js"
 import * as qr from "react"
 
-describe("<Offcanvas>", () => {
-  it("Should render the modal content", () => {
+describe("Offcanvas", () => {
+  it("should render the modal content", () => {
     const { getByTestId } = render(
       <Offcanvas show onHide={qh.noop}>
         <strong data-testid="test">Message</strong>
@@ -15,7 +15,7 @@ describe("<Offcanvas>", () => {
     expect(y.tagName.toLowerCase()).toEqual("strong")
     expect(y.textContent!).toEqual("Message")
   })
-  it("Should set `visibility: visible` to `offcanvas`", () => {
+  it("should set `visibility: visible` to `offcanvas`", () => {
     const { getByTestId } = render(
       <Offcanvas data-testid="test" show>
         <strong>Message</strong>
@@ -26,7 +26,7 @@ describe("<Offcanvas>", () => {
     expect(y.classList.contains("offcanvas")).toBe(true)
     expect(y.style.visibility!).toEqual("visible")
   })
-  it("Should close the offcanvas when the modal close button is clicked", done => {
+  it("should close the offcanvas when the modal close button is clicked", done => {
     const doneOp = () => {
       done()
     }
@@ -40,7 +40,7 @@ describe("<Offcanvas>", () => {
     expect(y.classList.contains("btn-close")).toBe(true)
     fireEvent.click(y)
   })
-  it("Should pass className to the offcanvas", () => {
+  it("should pass className to the offcanvas", () => {
     const { getByTestId } = render(
       <Offcanvas
         show
@@ -54,7 +54,7 @@ describe("<Offcanvas>", () => {
     const y = getByTestId("test")
     expect(y.classList.contains("myoffcanvas")).toBe(true)
   })
-  it("Should pass backdropClassName to the backdrop", () => {
+  it("should pass backdropClassName to the backdrop", () => {
     render(
       <Offcanvas show backdropClassName="custom-backdrop" onHide={qh.noop}>
         <strong>Message</strong>
@@ -63,7 +63,7 @@ describe("<Offcanvas>", () => {
     const y: any = document.getElementsByClassName("offcanvas-backdrop")[0]
     expect(y.classList.contains("custom-backdrop")).toBe(true)
   })
-  it("Should pass style to the offcanvas", () => {
+  it("should pass style to the offcanvas", () => {
     const { getByTestId } = render(
       <Offcanvas
         show
@@ -77,7 +77,7 @@ describe("<Offcanvas>", () => {
     const y = getByTestId("test")
     expect(y.style.color).toEqual("red")
   })
-  it("Should pass transition callbacks to Transition", done => {
+  it("should pass transition callbacks to Transition", done => {
     const mock = jest.fn()
     const Elem = () => {
       const [show, setShow] = qr.useState(true)
@@ -105,7 +105,7 @@ describe("<Offcanvas>", () => {
     }
     render(<Elem />)
   })
-  it("Should close when backdrop clicked", () => {
+  it("should close when backdrop clicked", () => {
     const mock = jest.fn()
     render(
       <Offcanvas show onHide={mock}>
@@ -116,7 +116,7 @@ describe("<Offcanvas>", () => {
     fireEvent.click(y!)
     expect(mock).toHaveBeenCalled()
   })
-  it("Should not close when static backdrop is clicked", () => {
+  it("should not close when static backdrop is clicked", () => {
     const mock = jest.fn()
     render(
       <Offcanvas show onHide={mock} backdrop="static">
@@ -127,7 +127,7 @@ describe("<Offcanvas>", () => {
     fireEvent.click(y!)
     expect(mock).not.toHaveBeenCalled()
   })
-  it("Should not call onHide if the click target comes from inside the offcanvas", () => {
+  it("should not call onHide if the click target comes from inside the offcanvas", () => {
     const mock = jest.fn()
     const { getByTestId } = render(
       <>
@@ -159,7 +159,7 @@ describe("<Offcanvas>", () => {
     expect(y.getAttribute("role")!).toEqual("dialog")
     expect(y.getAttribute("aria-labelledby")!).toEqual("offcanvas-title")
   })
-  it("Should call onEscapeKeyDown when keyboard is true", () => {
+  it("should call onEscapeKeyDown when keyboard is true", () => {
     const mock = jest.fn()
     render(
       <Offcanvas show onHide={qh.noop} keyboard onEscapeKeyDown={mock}>
@@ -169,7 +169,7 @@ describe("<Offcanvas>", () => {
     fireEvent.keyDown(document, { key: "Escape", code: "Escape", keyCode: 27 })
     expect(mock).toHaveBeenCalled()
   })
-  it("Should not call onEscapeKeyDown when keyboard is false", () => {
+  it("should not call onEscapeKeyDown when keyboard is false", () => {
     const mock = jest.fn()
     render(
       <Offcanvas show onHide={qh.noop} keyboard={false} onEscapeKeyDown={mock}>
@@ -179,7 +179,7 @@ describe("<Offcanvas>", () => {
     fireEvent.keyDown(document, { key: "Escape", code: "Escape", keyCode: 27 })
     expect(mock).not.toHaveBeenCalled()
   })
-  it("Should use custom props manager if specified", done => {
+  it("should use custom props manager if specified", done => {
     class Mgr extends Manager {
       override add() {
         done()
@@ -194,7 +194,7 @@ describe("<Offcanvas>", () => {
       </Offcanvas>
     )
   })
-  it("Should not change overflow style when scroll=true", () => {
+  it("should not change overflow style when scroll=true", () => {
     const ref = qr.createRef<any>()
     render(
       <div ref={ref} style={{ height: "2000px", overflow: "scroll" }}>
@@ -205,7 +205,7 @@ describe("<Offcanvas>", () => {
     )
     expect(ref.current.style.overflow).toEqual("scroll")
   })
-  it("Should set responsive class", () => {
+  it("should set responsive class", () => {
     const { getByTestId } = render(
       <Offcanvas data-testid="test" responsive="lg" show onHide={qh.noop}>
         <strong>Message</strong>
@@ -214,7 +214,7 @@ describe("<Offcanvas>", () => {
     const y = getByTestId("test")
     expect(y.classList.contains("offcanvas-lg")).toBe(true)
   })
-  it("Should render offcanvas when show=false", () => {
+  it("should render offcanvas when show=false", () => {
     const { getByTestId } = render(
       <Offcanvas data-testid="test" responsive="lg" onHide={qh.noop}>
         <strong>Message</strong>
@@ -223,7 +223,7 @@ describe("<Offcanvas>", () => {
     const y = getByTestId("test")
     expect(y.getAttribute("role")).not.toBeTruthy()
   })
-  it("Should not mount, unmount and mount content on show", () => {
+  it("should not mount, unmount and mount content on show", () => {
     const InnerComponent = ({
       onMount,
       onUnmount,
@@ -251,8 +251,8 @@ describe("<Offcanvas>", () => {
     expect(mock2.mock.calls.length).toEqual(1)
   })
 })
-describe("<NavbarOffcanvas>", () => {
-  it("Should should open the offcanvas", () => {
+describe("Navbar", () => {
+  it("should should open the offcanvas", () => {
     const { getByTestId } = render(
       <Navbar>
         <Toggle data-testid="toggle" />
@@ -262,7 +262,7 @@ describe("<NavbarOffcanvas>", () => {
     fireEvent.click(getByTestId("toggle"))
     expect(getByTestId("offcanvas").classList.contains("show")).toBe(true)
   })
-  it("Should close the offcanvas on header close button click", () => {
+  it("should close the offcanvas on header close button click", () => {
     const mock = jest.fn()
     const { getByLabelText } = render(
       <Navbar onToggle={mock} expanded>
@@ -275,7 +275,7 @@ describe("<NavbarOffcanvas>", () => {
     fireEvent.click(getByLabelText("Close"))
     expect(mock).toHaveBeenCalledWith(false)
   })
-  it("Should render nav items with expand prop", () => {
+  it("should render nav items with expand prop", () => {
     const { getByText } = render(
       <Navbar expand="sm">
         <Toggle data-testid="toggle" />

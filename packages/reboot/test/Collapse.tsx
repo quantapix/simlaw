@@ -3,7 +3,7 @@ import { render, RenderResult } from "@testing-library/react"
 import * as qr from "react"
 import type { Transition } from "react-transition-group"
 
-describe("<Collapse>", () => {
+describe("Collapse", () => {
   class Component extends qr.Component<
     qr.PropsWithChildren<Omit<Props, "children">>
   > {
@@ -26,14 +26,14 @@ describe("<Collapse>", () => {
       )
     }
   }
-  it("Should not throw an error with StrictMode", () => {
+  it("should not throw an error with StrictMode", () => {
     render(
       <qr.StrictMode>
         <Component in>Panel content</Component>
       </qr.StrictMode>
     )
   })
-  it("Should work with a class component as children", () => {
+  it("should work with a class component as children", () => {
     class InnerComponent extends qr.Component {
       override render() {
         return <div {...this.props}>Inner</div>
@@ -52,14 +52,14 @@ describe("<Collapse>", () => {
     )
     expect(mock).toHaveBeenCalledTimes(1)
   })
-  it("Should default to collapsed", () => {
+  it("should default to collapsed", () => {
     const { getByTestId } = render(
       <Component data-testid="test">Panel content</Component>
     )
     expect(getByTestId("test").classList.contains("show")).toBe(false)
     expect(getByTestId("status-hide")).toBeTruthy()
   })
-  it("Should have collapse class", () => {
+  it("should have collapse class", () => {
     const { getByTestId } = render(<Component>Panel content</Component>)
     getByTestId("collapse-component").classList.contains("collapse")
   })
@@ -68,13 +68,13 @@ describe("<Collapse>", () => {
     beforeEach(() => {
       renderResult = render(<Component>Panel content</Component>)
     })
-    it("Should have collapsing class", () => {
+    it("should have collapsing class", () => {
       renderResult.rerender(<Component in>Panel content</Component>)
       renderResult
         .getByTestId("collapse-component")
         .classList.contains("collapsing")
     })
-    it("Should set initial 0px height", done => {
+    it("should set initial 0px height", done => {
       const node = renderResult.getByTestId("collapse-component")
       expect(node.style.height).toEqual("")
       renderResult.rerender(
@@ -89,13 +89,13 @@ describe("<Collapse>", () => {
         </Component>
       )
     })
-    it("Should set node to height", () => {
+    it("should set node to height", () => {
       const node = renderResult.getByTestId("collapse-component")
       expect(node.style.height).toEqual("")
       renderResult.rerender(<Component in>Panel content</Component>)
       expect(node.style.height).toEqual(`${node.scrollHeight}px`)
     })
-    it("Should transition from collapsing to not collapsing", done => {
+    it("should transition from collapsing to not collapsing", done => {
       const node = renderResult.getByTestId("collapse-component")
       renderResult.rerender(
         <Component
@@ -111,7 +111,7 @@ describe("<Collapse>", () => {
       )
       expect(node.classList.contains("collapsing")).toBe(true)
     })
-    it("Should clear height after transition complete", done => {
+    it("should clear height after transition complete", done => {
       const node = renderResult.getByTestId("collapse-component")
       expect(node.style.height).toEqual("")
       renderResult.rerender(
@@ -133,12 +133,12 @@ describe("<Collapse>", () => {
     beforeEach(() => {
       renderResult = render(<Component in>Panel content</Component>)
     })
-    it("Should have collapsing class", () => {
+    it("should have collapsing class", () => {
       renderResult.rerender(<Component in={false}>Panel content</Component>)
       const node = renderResult.getByTestId("collapse-component")
       expect(node.classList.contains("collapsing")).toBe(true)
     })
-    it("Should set initial height", done => {
+    it("should set initial height", done => {
       const node = renderResult.getByTestId("collapse-component")
       expect(node.style.height).toEqual("")
       renderResult.rerender(
@@ -153,13 +153,13 @@ describe("<Collapse>", () => {
         </Component>
       )
     })
-    it("Should set node to height", () => {
+    it("should set node to height", () => {
       const node = renderResult.getByTestId("collapse-component")
       expect(node.style.height).toEqual("")
       renderResult.rerender(<Component in={false}>Panel content</Component>)
       expect(node.style.height).toEqual("")
     })
-    it("Should transition from collapsing to not collapsing", done => {
+    it("should transition from collapsing to not collapsing", done => {
       const node = renderResult.getByTestId("collapse-component")
       renderResult.rerender(
         <Component
@@ -174,7 +174,7 @@ describe("<Collapse>", () => {
       )
       expect(node.classList.contains("collapsing")).toBe(true)
     })
-    it("Should have no height after transition complete", done => {
+    it("should have no height after transition complete", done => {
       const node = renderResult.getByTestId("collapse-component")
       expect(node.style.height).toEqual("")
       renderResult.rerender(
@@ -191,7 +191,7 @@ describe("<Collapse>", () => {
     })
   })
   describe("expanded", () => {
-    it("Should have collapse and in class", () => {
+    it("should have collapse and in class", () => {
       const { getByTestId } = render(<Component in>Panel content</Component>)
       const node = getByTestId("collapse-component")
       expect(node.classList.contains("collapse")).toBe(true)
@@ -199,12 +199,12 @@ describe("<Collapse>", () => {
     })
   })
   describe("dimension", () => {
-    it("Should not have width in class", () => {
+    it("should not have width in class", () => {
       const { getByTestId } = render(<Component>Panel content</Component>)
       const node = getByTestId("collapse-component")
       expect(node.className.includes("width")).toBe(false)
     })
-    it("Should have collapse-horizontal in class", () => {
+    it("should have collapse-horizontal in class", () => {
       const { getByTestId } = render(
         <Component dimension={() => "width"}>Panel content</Component>
       )

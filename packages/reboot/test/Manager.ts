@@ -28,7 +28,7 @@ describe("Manager", () => {
     ctner = null
     mgr = null
   })
-  it("Should add Modal", () => {
+  it("should add Modal", () => {
     const y = createModal()
     mgr.add(y)
     expect(mgr.modals.length).toEqual(1)
@@ -38,11 +38,11 @@ describe("Manager", () => {
       style: { overflow: "", paddingRight: "" },
     })
   })
-  it("Should return a shared modal manager", () => {
+  it("should return a shared modal manager", () => {
     const y = getSharedManager()
     expect(y).toBeTruthy()
   })
-  it("Should return a same modal manager if called twice", () => {
+  it("should return a same modal manager if called twice", () => {
     let m = getSharedManager()
     expect(m).toBeTruthy()
     const y = createModal()
@@ -66,21 +66,21 @@ describe("Manager", () => {
       `)
     })
     afterEach(() => injectCss.reset())
-    it("Should set padding to right side", () => {
+    it("should set padding to right side", () => {
       const y = createModal()
       mgr.add(y)
       expect(document.body.style.paddingRight).toEqual(
         `${getScrollbarSize() + 20}px`
       )
     })
-    it("Should set padding to left side if RTL", () => {
+    it("should set padding to left side if RTL", () => {
       const y = createModal()
       new Manager({ isRTL: true }).add(y as any)
       expect(document.body.style.paddingLeft).toEqual(
         `${getScrollbarSize() + 20}px`
       )
     })
-    it("Should restore container overflow style", () => {
+    it("should restore container overflow style", () => {
       const y = createModal()
       document.body.style.overflow = "scroll"
       expect(document.body.style.overflow).toEqual("scroll")
@@ -89,7 +89,7 @@ describe("Manager", () => {
       expect(document.body.style.overflow).toEqual("scroll")
       document.body.style.overflow = ""
     })
-    it("Should restore container overflow style for RTL", () => {
+    it("should restore container overflow style for RTL", () => {
       const y = createModal()
       document.body.style.overflow = "scroll"
       expect(document.body.style.overflow).toEqual("scroll")

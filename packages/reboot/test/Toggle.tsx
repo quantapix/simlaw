@@ -3,7 +3,7 @@ import { render, fireEvent } from "@testing-library/react"
 import * as qr from "react"
 
 describe("Button", () => {
-  it("Should forward refs to the label", () => {
+  it("should forward refs to the label", () => {
     const ref = qr.createRef<HTMLLabelElement>()
     render(
       <Button id="id" ref={ref} value={1}>
@@ -12,7 +12,7 @@ describe("Button", () => {
     )
     expect(ref.current!.tagName).toEqual("LABEL")
   })
-  it("Should add an inputRef", () => {
+  it("should add an inputRef", () => {
     const ref = qr.createRef<HTMLInputElement>()
     render(
       <Button id="id" inputRef={ref} value={1}>
@@ -21,7 +21,7 @@ describe("Button", () => {
     )
     expect(ref.current!.tagName).toEqual("INPUT")
   })
-  it("Should not have a role on the label button", () => {
+  it("should not have a role on the label button", () => {
     const { getByText } = render(
       <Button id="id" value={1}>
         Option
@@ -31,7 +31,7 @@ describe("Button", () => {
   })
 })
 describe("Group", () => {
-  it("Should render checkboxes", () => {
+  it("should render checkboxes", () => {
     const { container: c, getByLabelText } = render(
       <Group type="checkbox">
         <Button id="id1" value={1}>
@@ -57,7 +57,7 @@ describe("Group", () => {
       "checkbox"
     )
   })
-  it("Should render checkboxes vertically", () => {
+  it("should render checkboxes vertically", () => {
     const { container: c } = render(
       <Group type="checkbox" vertical>
         <Button id="id1" value={1}>
@@ -76,7 +76,7 @@ describe("Group", () => {
       true
     )
   })
-  it("Should render checkboxes vertically and small", () => {
+  it("should render checkboxes vertically and small", () => {
     const { container: c } = render(
       <Group type="checkbox" vertical size="sm">
         <Button id="id1" value={1}>
@@ -96,7 +96,7 @@ describe("Group", () => {
     )
     expect(c.firstElementChild!.classList.contains("btn-group-sm")).toBe(true)
   })
-  it("Should render checkboxes vertically and large", () => {
+  it("should render checkboxes vertically and large", () => {
     const { container: c } = render(
       <Group type="checkbox" vertical size="lg">
         <Button id="id1" value={1}>
@@ -116,7 +116,7 @@ describe("Group", () => {
     )
     expect(c.firstElementChild!.classList.contains("btn-group-lg")).toBe(true)
   })
-  it("Should render radios", () => {
+  it("should render radios", () => {
     const { container: c, getByLabelText } = render(
       <Group type="radio" name="items">
         <Button id="id1" value={1}>
@@ -136,7 +136,7 @@ describe("Group", () => {
     expect(getByLabelText("Option 2")!.getAttribute("type")!).toEqual("radio")
     expect(getByLabelText("Option 3")!.getAttribute("type")!).toEqual("radio")
   })
-  it("Should render radios vertically", () => {
+  it("should render radios vertically", () => {
     const { container: c } = render(
       <Group type="radio" name="items" vertical>
         <Button id="id1" value={1}>
@@ -155,7 +155,7 @@ describe("Group", () => {
       true
     )
   })
-  it("Should render radios vertically and small", () => {
+  it("should render radios vertically and small", () => {
     const { container: c } = render(
       <Group type="radio" name="items" vertical size="sm">
         <Button id="id1" value={1}>
@@ -175,7 +175,7 @@ describe("Group", () => {
     )
     expect(c.firstElementChild!.classList.contains("btn-group-sm")).toBe(true)
   })
-  it("Should render radios vertically and large", () => {
+  it("should render radios vertically and large", () => {
     const { container: c } = render(
       <Group type="radio" name="items" vertical size="lg">
         <Button id="id1" value={1}>
@@ -195,7 +195,7 @@ describe("Group", () => {
     )
     expect(c.firstElementChild!.classList.contains("btn-group-lg")).toBe(true)
   })
-  it("Should select initial values", () => {
+  it("should select initial values", () => {
     const { getByLabelText } = render(
       <Group type="checkbox" defaultValue={[1, 3]}>
         <Button id="id1" data-testid="id1" value={1}>
@@ -215,7 +215,7 @@ describe("Group", () => {
     )
     expect((getByLabelText("Option 3") as HTMLInputElement)!.checked).toBe(true)
   })
-  it("Should disable radios", () => {
+  it("should disable radios", () => {
     const { getByText, getByLabelText } = render(
       <Group type="radio" name="items">
         <Button id="id1" value={1} disabled>
@@ -242,7 +242,7 @@ describe("Group", () => {
     expect(getByText("Option 2").classList.contains("disabled")).toBe(true)
     expect(getByText("Option 3").classList.contains("disabled")).toBe(false)
   })
-  it("Should return an array of values", () => {
+  it("should return an array of values", () => {
     const mock = jest.fn()
     const { getByLabelText } = render(
       <Group type="checkbox" onChange={mock}>
@@ -260,7 +260,7 @@ describe("Group", () => {
     fireEvent.click(getByLabelText("Option 2"))
     expect(mock).toHaveBeenCalledWith([2])
   })
-  it("Should return a single value", () => {
+  it("should return a single value", () => {
     const mock = jest.fn()
     const { getByLabelText } = render(
       <Group type="radio" name="items" onChange={mock}>
@@ -278,7 +278,7 @@ describe("Group", () => {
     fireEvent.click(getByLabelText("Option 2"))
     expect(mock).toHaveBeenCalledWith(2)
   })
-  it("Should filter out value when deselected", () => {
+  it("should filter out value when deselected", () => {
     const mock = jest.fn()
     const { getByLabelText } = render(
       <Group type="checkbox" name="items" defaultValue={[1, 2]} onChange={mock}>
