@@ -1,0 +1,33 @@
+{
+  "name": "@simlaw/server",
+  "version": "0.0.1",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "preprep": "git submodule update --init --recursive",
+    "predev": "(cd ..; yarn)",
+    "prep": "(cd ../lib/react; rm package-lock.json; yarn; yarn build react/index,react/jsx,react-dom/index,scheduler --type=NODE)",
+    "build": "../../node_modules/.bin/tsc -b",
+    "clean": "../../node_modules/.bin/tsc -b --clean",
+    "test": "node --experimental-vm-modules ../../node_modules/.bin/jest"
+  },
+  "dependencies": {
+    "@popperjs/core": "",
+    "dequal": "",
+    "react-transition-group": ""
+  },
+  "devDependencies": {
+    "@types/enzyme": "",
+    "@types/jest": "",
+    "@types/jquery": "",
+    "@types/lodash": "",
+    "@types/react-transition-group": "",
+    "@types/simulant": "",
+    "enzyme": "",
+    "jest": "",
+    "jquery": "",
+    "lodash": "",
+    "simulant": ""
+  }
+}

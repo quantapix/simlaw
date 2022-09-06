@@ -84,6 +84,7 @@
   "workspaces": [
     "packages/nested",
     "packages/reboot",
-    "packages/rooted"
+    "packages/rooted",
+    "packages/server"
   ]
 }

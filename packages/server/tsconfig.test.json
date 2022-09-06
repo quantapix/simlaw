@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.test.json",
+  "compilerOptions": {
+    "composite": true,
+    "types": ["jest", "node"]
+  },
+  "include": ["src/**/*.*", "test/**/*.*"],
+  "exclude": ["test/**/redux/*.*"]
+}
