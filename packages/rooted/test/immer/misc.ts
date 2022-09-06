@@ -1,4 +1,4 @@
-import * as qi from "../../../src/data/immer/index.js"
+import * as qi from "../../src/immer/index.js"
 
 const isProd = process.env["NODE_ENV"] === "production"
 

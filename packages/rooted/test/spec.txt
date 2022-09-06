@@ -1,4 +1,4 @@
-import { _, assert, Test } from "../../src/data/spec.js"
+import { _, assert, Test } from "../src/spec.js"
 
 type T1 = Test<never, unknown>
 type T2 = Test<unknown, never>

@@ -1,5 +1,5 @@
-import { assert, _ } from "../../../src/data/spec.js"
-import * as qi from "../../../src/data/immer/index.js"
+import { assert, _ } from "../../src/spec.js"
+import * as qi from "../../src/immer/index.js"
 import * as redux from "redux"
 
 {
