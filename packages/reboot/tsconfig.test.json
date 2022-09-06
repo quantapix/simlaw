@@ -4,6 +4,8 @@
     "composite": true,
     "types": ["jest", "node"]
   },
-  "include": ["src/**/*.*", "test/**/*.*"],
+  "includeold": ["src/**/*.*", "test/**/*.*"],
+  "include": ["src/**/*.*", "test/Alert.*"],
+
   "exclude": ["test/**/redux/*.*"]
 }

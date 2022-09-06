@@ -1,4 +1,3 @@
-import { mount } from "enzyme"
 import { Popover } from "../src/Popover.js"
 import { render } from "@testing-library/react"
 import { Tooltip } from "../src/Tooltip.js"
@@ -41,7 +40,7 @@ describe("useOffset", () => {
   })
   it("Should have offset of [0, 0] for Tooltips", () => {
     const ref = qr.createRef<any>()
-    mount(
+    render(
       <Wrapper ref={ref}>
         <Tooltip id="test-tooltip" />
       </Wrapper>
@@ -51,7 +50,7 @@ describe("useOffset", () => {
   })
   it("Should have offset of [0, 0] for any overlay", () => {
     const ref = qr.createRef<any>()
-    mount(
+    render(
       <Wrapper ref={ref}>
         <div>test</div>
       </Wrapper>

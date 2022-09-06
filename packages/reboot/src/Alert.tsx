@@ -13,6 +13,7 @@ export const Link = withBs("alert-link", {
 
 const DivAsH4 = divAs("h4")
 DivAsH4.displayName = "DivStyledAsH4"
+
 export const Heading = withBs("alert-heading", {
   Component: DivAsH4,
 })
@@ -44,9 +45,7 @@ export const Alert = qr.forwardRef<HTMLDivElement, Props>((xs: Props, ref) => {
   } = qh.useUncontrolled(xs, { show: "onClose" })
   const bs = useBs(bsPrefix, "alert")
   const doClick = qh.useEventCB(e => {
-    if (onClose) {
-      onClose(false, e)
-    }
+    if (onClose) onClose(false, e)
   })
   const X = transition === true ? Fade : transition
   const alert = (
