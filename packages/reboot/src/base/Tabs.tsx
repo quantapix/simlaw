@@ -1,5 +1,5 @@
 import { Context, Data } from "./Tab.js"
-import { useSSRSafeId } from "@react-aria/ssr"
+import { useSSRSafeId } from "./SSR.js"
 import * as qh from "../hooks.js"
 import * as qr from "react"
 import * as qt from "./types.js"

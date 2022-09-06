@@ -1,7 +1,7 @@
 import { Button } from "./Button.js"
 import { Context as NavContext } from "./Nav.js"
 import { qsa, addEventListener } from "./utils.js"
-import { useSSRSafeId } from "@react-aria/ssr"
+import { useSSRSafeId } from "./SSR.js"
 import * as qh from "../hooks.js"
 import * as qp from "./popper.js"
 import * as qr from "react"

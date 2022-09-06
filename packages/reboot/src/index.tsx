@@ -1,4 +1,7 @@
-export { SSRProvider, SSRProviderProps } from "@react-aria/ssr"
+export {
+  Provider as SSRProvider,
+  Props as SSRProviderProps,
+} from "./base/SSR.js"
 
 export { Accordion } from "./Accordion.js"
 export type { Props as AccordionProps } from "./Accordion.js"
