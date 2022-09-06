@@ -7,17 +7,14 @@ import type * as qr from "react"
 
 describe("<Nav>", () => {
   let focusableContainer: any
-
   beforeEach(() => {
     focusableContainer = document.createElement("div")
     document.body.appendChild(focusableContainer)
   })
-
   afterEach(() => {
     document.body.removeChild(focusableContainer)
     focusableContainer = null
   })
-
   it("When Arrow key is pressed and a nom NavItem element is the activeElement, then the activeElement keeps the same element", () => {
     const wrapper = mount(
       <Tabs defaultActiveKey="1">

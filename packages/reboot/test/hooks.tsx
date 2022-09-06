@@ -1,3 +1,4 @@
+import { render } from "@testing-library/react"
 import { renderHook, act } from "@testing-library/react-hooks"
 import { renderToString } from "react-dom/server"
 import * as qe from "enzyme"
@@ -220,7 +221,7 @@ describe("useDebouncedCallback", () => {
       cb = qh.useDebounced(mock, 500)
       return <span />
     }
-    qe.mount(<Wrapper />)
+    render(<Wrapper />)
     cb(1)
     cb(2)
     cb(3)
@@ -443,7 +444,7 @@ describe("useIsomorphicEffect", () => {
       qh.useIsomorphicEffect(mock)
       return null
     }
-    qe.mount(<Wrapper />)
+    render(<Wrapper />)
     expect(mock).toBeCalled()
   })
 })
@@ -596,7 +597,7 @@ describe("useMergedRefs", () => {
     function Wrapper() {
       return <Button ref={outer} />
     }
-    qe.mount(<Wrapper />)
+    render(<Wrapper />)
     expect(inner!.tagName).toEqual("BUTTON")
     expect(outer.current!.tagName).toEqual("BUTTON")
   })
@@ -813,7 +814,7 @@ describe("useStateAsync", () => {
       y = qh.useStateAsync<number>(0)
       return null
     }
-    qe.mount(<Wrapper />)
+    render(<Wrapper />)
     expect.assertions(4)
     const inc = async () =>
       act(() => {
@@ -840,7 +841,7 @@ describe("useStateAsync", () => {
         return (this.props as any).children
       }
     }
-    qe.mount(
+    render(
       <CatchError>
         <Wrapper />
       </CatchError>
@@ -859,7 +860,7 @@ describe("useStateAsync", () => {
       y = qh.useStateAsync<number>(1)
       return null
     }
-    qe.mount(<Wrapper />)
+    render(<Wrapper />)
     expect.assertions(3)
     expect(y![0]).toEqual(1)
     await act(() => expect(y[1](1)).resolves.toEqual(1))
@@ -871,7 +872,7 @@ describe("useStateAsync", () => {
       y = qh.useStateAsync<number>(0)
       return null
     }
-    qe.mount(<Wrapper />)
+    render(<Wrapper />)
     expect.assertions(5)
     expect(y![0]).toEqual(0)
     const f = async (n: number) => expect(y[1](n)).resolves.toEqual(2)
@@ -928,7 +929,7 @@ describe("useTimeout", () => {
       y = qh.useTimeout()
       return <span />
     }
-    qe.mount(<Wrapper />)
+    render(<Wrapper />)
     y!.set(mock, 100)
     expect(mock).not.toHaveBeenCalled()
     jest.runAllTimers()
@@ -942,7 +943,7 @@ describe("useTimeout", () => {
       y = qh.useTimeout()
       return <span />
     }
-    qe.mount(<Wrapper />)
+    render(<Wrapper />)
     y!.set(mock, 100)
     y!.clear()
     jest.runAllTimers()
@@ -970,7 +971,7 @@ describe("useTimeout", () => {
       y = qh.useTimeout()
       return <span />
     }
-    qe.mount(<Wrapper />)
+    render(<Wrapper />)
     const MAX = 2 ** 31 - 1
     y!.set(mock, MAX + 100)
     //jest.runTimersToTime(100)
@@ -986,7 +987,7 @@ describe("useToggleState", () => {
       y = qh.useToggleState(initial)
       return <span />
     }
-    qe.mount(<Wrapper />)
+    render(<Wrapper />)
     expect(y![0]).toEqual(false)
     act(() => y[1]())
     expect(y![0]).toEqual(true)
