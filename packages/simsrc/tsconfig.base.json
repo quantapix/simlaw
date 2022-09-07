@@ -4,6 +4,5 @@
     "composite": true,
     "types": ["node"]
   },
-  "include": ["prisma/*.*", "src/**/*.*"],
-  "exclude": ["src/**/*.test.*"]
+  "include": ["src/**/*.*"]
 }
