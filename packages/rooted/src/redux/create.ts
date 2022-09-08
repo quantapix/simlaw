@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import * as qi from "../immer/index.js"
 import type * as qt from "./types.js"
-import type { ActionReducerMapBuilder } from "./mapBuilders.js"
-import { executeReducerBuilderCallback } from "./mapBuilders.js"
+import type { ActionReducerMapBuilder } from "./builder.js"
+import { executeReducerBuilderCallback } from "./builder.js"
 import * as qu from "./utils.js"
 import { createSelector } from "reselect"
 import type { ThunkDispatch } from "redux-thunk"
@@ -400,6 +400,7 @@ export function createReducer<S extends NotFunction<any>>(
     const frozenInitialState = qu.freezeDraftable(initialState)
     getInitialState = () => frozenInitialState
   }
+
   function reducer(state = getInitialState(), action: any): S {
     let caseReducers = [
       actionsMap[action.type],
@@ -431,7 +432,7 @@ export function createReducer<S extends NotFunction<any>>(
           }
           return result as S
         } else {
-          return qi.createNextState(previousState, (draft: qi.Draft<S>) => {
+          return qi.produce(previousState, (draft => {
             return caseReducer(draft, action)
           })
         }

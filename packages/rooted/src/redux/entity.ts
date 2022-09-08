@@ -1,6 +1,6 @@
 import { PayloadAction, isFSA, createDraftSafeSelector } from "./create.js"
 import type { IsAny } from "./types.js"
-import createNextState, { isDraft } from "immer"
+import * as qi from "../immer/index.js"
 import type { Selector } from "reselect"
 
 export function createEntityAdapter<T>(
@@ -314,11 +314,11 @@ export function createStateOperator<V, R>(
         mutator(arg, draft)
       }
     }
-    if (isDraft(state)) {
+    if (qi.isDraft(state)) {
       runMutator(state)
       return state
     } else {
-      return createNextState(state, runMutator)
+      return qi.produce(state, runMutator)
     }
   }
 }

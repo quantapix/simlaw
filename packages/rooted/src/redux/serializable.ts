@@ -1,6 +1,6 @@
-import isPlainObject from "./isPlainObject"
-import type { Middleware } from "redux"
-import { getTimeMeasureUtils } from "./utils.js"
+import * as qu from "./utils.js"
+import type * as qt from "./types.js"
+
 export function isPlain(val: any) {
   const type = typeof val
   return (
@@ -9,7 +9,7 @@ export function isPlain(val: any) {
     type === "boolean" ||
     type === "number" ||
     Array.isArray(val) ||
-    isPlainObject(val)
+    qu.isPlainObject(val)
   )
 }
 interface NonSerializableValue {
@@ -18,7 +18,7 @@ interface NonSerializableValue {
 }
 export function findNonSerializableValue(
   value: unknown,
-  path: string = "",
+  path = "",
   isSerializable: (value: unknown) => boolean = isPlain,
   getEntries?: (value: unknown) => [string, any][],
   ignoredPaths: readonly string[] = []
@@ -73,7 +73,7 @@ export interface SerializableStateInvariantMiddlewareOptions {
 }
 export function createSerializableStateInvariantMiddleware(
   options: SerializableStateInvariantMiddlewareOptions = {}
-): Middleware {
+): qt.Middleware {
   if (process.env["NODE_ENV"] === "production") {
     return () => next => action => next(action)
   }
@@ -89,7 +89,7 @@ export function createSerializableStateInvariantMiddleware(
   } = options
   return storeAPI => next => action => {
     const result = next(action)
-    const measureUtils = getTimeMeasureUtils(
+    const measureUtils = qu.getTimeMeasureUtils(
       warnAfter,
       "SerializableStateInvariantMiddleware"
     )

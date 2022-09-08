@@ -1,14 +1,11 @@
-import type { Middleware, AnyAction } from "redux"
-import type { ThunkMiddleware } from "redux-thunk"
+import { createImmutableStateInvariantMiddleware } from "./immutable.js"
+import { createSerializableStateInvariantMiddleware } from "./serializable.js"
+import * as qt from "./types.js"
 import thunkMiddleware from "redux-thunk"
-import type { ImmutableStateInvariantMiddlewareOptions } from "./immutableStateInvariantMiddleware"
-/* PROD_START_REMOVE_UMD */
-import { createImmutableStateInvariantMiddleware } from "./immutableStateInvariantMiddleware"
-/* PROD_STOP_REMOVE_UMD */
-import type { SerializableStateInvariantMiddlewareOptions } from "./serializableStateInvariantMiddleware"
-import { createSerializableStateInvariantMiddleware } from "./serializableStateInvariantMiddleware"
-import type { ExcludeFromTuple } from "./tsHelpers"
-import { MiddlewareArray } from "./utils.js"
+import type { ImmutableStateInvariantMiddlewareOptions } from "./immutable.js"
+import type { SerializableStateInvariantMiddlewareOptions } from "./serializable.js"
+import type { ThunkMiddleware } from "redux-thunk"
+
 function isBoolean(x: any): x is boolean {
   return typeof x === "boolean"
 }
@@ -28,8 +25,8 @@ export type ThunkMiddlewareFor<
 }
   ? never
   : O extends { thunk: { extraArgument: infer E } }
-  ? ThunkMiddleware<S, AnyAction, E>
-  : ThunkMiddleware<S, AnyAction>
+  ? ThunkMiddleware<S, qt.AnyAction, E>
+  : ThunkMiddleware<S, qt.AnyAction>
 export type CurriedGetDefaultMiddleware<S = any> = <
   O extends Partial<GetDefaultMiddlewareOptions> = {
     thunk: true
@@ -38,7 +35,7 @@ export type CurriedGetDefaultMiddleware<S = any> = <
   }
 >(
   options?: O
-) => MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
+) => qt.MiddlewareArray<qt.ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
 export function curryGetDefaultMiddleware<
   S = any
 >(): CurriedGetDefaultMiddleware<S> {
@@ -55,13 +52,13 @@ export function getDefaultMiddleware<
   }
 >(
   options: O = {} as O
-): MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>> {
+): qt.MiddlewareArray<qt.ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>> {
   const {
     thunk = true,
     immutableCheck = true,
     serializableCheck = true,
   } = options
-  let middlewareArray = new MiddlewareArray<Middleware[]>()
+  const middlewareArray = new qt.MiddlewareArray<qt.Middleware[]>()
   if (thunk) {
     if (isBoolean(thunk)) {
       middlewareArray.push(thunkMiddleware)

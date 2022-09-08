@@ -1,13 +1,12 @@
-import type { Action, AnyAction } from "redux"
 import type {
   CaseReducer,
   CaseReducers,
   ActionMatcherDescriptionCollection,
 } from "./create.js"
-import type { TypeGuard } from "./types.js"
+import type * as qt from "./types.js"
 
 export interface TypedActionCreator<Type extends string> {
-  (...args: any[]): Action<Type>
+  (...args: any[]): qt.Action<Type>
   type: Type
 }
 
@@ -16,17 +15,17 @@ export interface ActionReducerMapBuilder<State> {
     actionCreator: ActionCreator,
     reducer: CaseReducer<State, ReturnType<ActionCreator>>
   ): ActionReducerMapBuilder<State>
-  addCase<Type extends string, A extends Action<Type>>(
+  addCase<Type extends string, A extends qt.Action<Type>>(
     type: Type,
     reducer: CaseReducer<State, A>
   ): ActionReducerMapBuilder<State>
 
   addMatcher<A>(
-    matcher: TypeGuard<A> | ((action: any) => boolean),
-    reducer: CaseReducer<State, A extends AnyAction ? A : A & AnyAction>
+    matcher: qt.TypeGuard<A> | ((action: any) => boolean),
+    reducer: CaseReducer<State, A extends qt.AnyAction ? A : A & qt.AnyAction>
   ): Omit<ActionReducerMapBuilder<State>, "addCase">
 
-  addDefaultCase(reducer: CaseReducer<State, AnyAction>): {}
+  addDefaultCase(reducer: CaseReducer<State, qt.AnyAction>): {}
 }
 
 export function executeReducerBuilderCallback<S>(
@@ -34,11 +33,11 @@ export function executeReducerBuilderCallback<S>(
 ): [
   CaseReducers<S, any>,
   ActionMatcherDescriptionCollection<S>,
-  CaseReducer<S, AnyAction> | undefined
+  CaseReducer<S, qt.AnyAction> | undefined
 ] {
   const actionsMap: CaseReducers<S, any> = {}
   const actionMatchers: ActionMatcherDescriptionCollection<S> = []
-  let defaultCaseReducer: CaseReducer<S, AnyAction> | undefined
+  let defaultCaseReducer: CaseReducer<S, qt.AnyAction> | undefined
   const builder = {
     addCase(
       typeOrActionCreator: string | TypedActionCreator<any>,
@@ -69,8 +68,8 @@ export function executeReducerBuilderCallback<S>(
       return builder
     },
     addMatcher<A>(
-      matcher: TypeGuard<A>,
-      reducer: CaseReducer<S, A extends AnyAction ? A : A & AnyAction>
+      matcher: qt.TypeGuard<A>,
+      reducer: CaseReducer<S, A extends qt.AnyAction ? A : A & qt.AnyAction>
     ) {
       if (process.env["NODE_ENV"] !== "production") {
         if (defaultCaseReducer) {
@@ -82,7 +81,7 @@ export function executeReducerBuilderCallback<S>(
       actionMatchers.push({ matcher, reducer })
       return builder
     },
-    addDefaultCase(reducer: CaseReducer<S, AnyAction>) {
+    addDefaultCase(reducer: CaseReducer<S, qt.AnyAction>) {
       if (process.env["NODE_ENV"] !== "production") {
         if (defaultCaseReducer) {
           throw new Error("`builder.addDefaultCase` can only be called once")

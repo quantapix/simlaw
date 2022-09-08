@@ -1,87 +1,12 @@
-import type { SerializedError } from "@reduxjs/toolkit"
-import type { Dispatch, AnyAction, MiddlewareAPI } from "redux"
+import * as qu from "./utils.js"
+import {
+  createAction,
+  PayloadAction,
+  BaseActionCreator,
+  SerializedError,
+} from "./create.js"
 import type { ThunkDispatch } from "redux-thunk"
-import { createAction } from "../createAction"
-import { nanoid } from "../nanoid"
-import type {
-  ListenerMiddleware,
-  ListenerMiddlewareInstance,
-  AddListenerOverloads,
-  AnyListenerPredicate,
-  CreateListenerMiddlewareOptions,
-  TypedAddListener,
-  TypedCreateListenerEntry,
-  FallbackAddListenerOptions,
-  ListenerEntry,
-  ListenerErrorHandler,
-  UnsubscribeListener,
-  TakePattern,
-  ListenerErrorInfo,
-  ForkedTaskExecutor,
-  ForkedTask,
-  TypedRemoveListener,
-  TaskResult,
-  AbortSignalWithReason,
-  UnsubscribeListenerOptions,
-} from "./types.js"
-import {
-  abortControllerWithReason,
-  addAbortSignalListener,
-  assertFunction,
-  catchRejection,
-} from "./utils.js"
-import {
-  listenerCancelled,
-  listenerCompleted,
-  TaskAbortError,
-  taskCancelled,
-  taskCompleted,
-} from "./exceptions"
-import {
-  runTask,
-  promisifyAbortSignal,
-  validateActive,
-  createPause,
-  createDelay,
-} from "./task"
-export { TaskAbortError } from "./exceptions"
-export type {
-  ListenerEffect,
-  ListenerMiddleware,
-  ListenerEffectAPI,
-  ListenerMiddlewareInstance,
-  CreateListenerMiddlewareOptions,
-  ListenerErrorHandler,
-  TypedStartListening,
-  TypedAddListener,
-  TypedStopListening,
-  TypedRemoveListener,
-  UnsubscribeListener,
-  UnsubscribeListenerOptions,
-  ForkedTaskExecutor,
-  ForkedTask,
-  ForkedTaskAPI,
-  AsyncTaskExecutor,
-  SyncTaskExecutor,
-  TaskCancelled,
-  TaskRejected,
-  TaskResolved,
-  TaskResult,
-} from "./types.js"
-import { TaskAbortError } from "./exceptions"
-import type { AbortSignalWithReason, TaskResult } from "./types"
-import { addAbortSignalListener, catchRejection } from "./utils"
-import type { PayloadAction, BaseActionCreator } from "../createAction"
-import type {
-  Dispatch as ReduxDispatch,
-  AnyAction,
-  MiddlewareAPI,
-  Middleware,
-  Action as ReduxAction,
-} from "redux"
-import type { ThunkDispatch } from "redux-thunk"
-import type { TaskAbortError } from "./exceptions"
-import type { AbortSignalWithReason } from "./types"
+import type * as qt from "./types.js"
 
 const task = "task"
 const listener = "listener"
@@ -136,7 +61,7 @@ const createTakePattern = <S>(
   startListening: AddListenerOverloads<
     UnsubscribeListener,
     S,
-    Dispatch<AnyAction>
+    qt.Dispatch<qt.AnyAction>
   >,
   signal: AbortSignal
 ): TakePattern<S> => {
@@ -146,7 +71,7 @@ const createTakePattern = <S>(
   ) => {
     validateActive(signal)
     let unsubscribe: UnsubscribeListener = () => {}
-    const tuplePromise = new Promise<[AnyAction, S, S]>(resolve => {
+    const tuplePromise = new Promise<[qt.AnyAction, S, S]>(resolve => {
       unsubscribe = startListening({
         predicate: predicate as any,
         effect: (action, listenerApi): void => {
@@ -159,7 +84,7 @@ const createTakePattern = <S>(
         },
       })
     })
-    const promises: (Promise<null> | Promise<[AnyAction, S, S]>)[] = [
+    const promises: (Promise<null> | Promise<[qt.AnyAction, S, S]>)[] = [
       promisifyAbortSignal(signal),
       tuplePromise,
     ]
@@ -202,7 +127,7 @@ export const createListenerEntry: TypedCreateListenerEntry<unknown> = (
   options: FallbackAddListenerOptions
 ) => {
   const { type, predicate, effect } = getListenerEntryPropsFrom(options)
-  const id = nanoid()
+  const id = qu.nanoid()
   const entry: ListenerEntry<unknown> = {
     id,
     effect,
@@ -247,7 +172,7 @@ const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
   console.error(`${alm}/error`, ...args)
 }
 const cancelActiveListeners = (
-  entry: ListenerEntry<unknown, Dispatch<AnyAction>>
+  entry: ListenerEntry<unknown, qt.Dispatch<qt.AnyAction>>
 ) => {
   entry.pending.forEach(controller => {
     abortControllerWithReason(controller, listenerCancelled)
@@ -255,7 +180,7 @@ const cancelActiveListeners = (
 }
 export function createListenerMiddleware<
   S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>,
+  D extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<S, unknown, qt.AnyAction>,
   ExtraArgument = unknown
 >(middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {}) {
   const listenerMap = new Map<string, ListenerEntry>()
@@ -310,9 +235,9 @@ export function createListenerMiddleware<
     return !!entry
   }
   const notifyListener = async (
-    entry: ListenerEntry<unknown, Dispatch<AnyAction>>,
-    action: AnyAction,
-    api: MiddlewareAPI,
+    entry: ListenerEntry<unknown, qt.Dispatch<qt.AnyAction>>,
+    action: qt.AnyAction,
+    api: qt.MiddlewareAPI,
     getOriginalState: () => S
   ) => {
     const internalTaskController = new AbortController()
@@ -360,7 +285,7 @@ export function createListenerMiddleware<
         })
       }
     } finally {
-      abortControllerWithReason(internalTaskController, listenerCompleted) // Notify that the task has completed
+      abortControllerWithReason(internalTaskController, listenerCompleted)
       entry.pending.delete(internalTaskController)
     }
   }
@@ -390,9 +315,9 @@ export function createListenerMiddleware<
       try {
         result = next(action)
         if (listenerMap.size > 0) {
-          let currentState = api.getState()
+          const currentState = api.getState()
           const listenerEntries = Array.from(listenerMap.values())
-          for (let entry of listenerEntries) {
+          for (const entry of listenerEntries) {
             let runListener = false
             try {
               runListener = entry.predicate(action, currentState, originalState)
@@ -477,17 +402,17 @@ export const createDelay = (signal: AbortSignal) => {
 }
 export type AbortSignalWithReason<T> = AbortSignal & { reason?: T }
 export interface TypedActionCreator<Type extends string> {
-  (...args: any[]): ReduxAction<Type>
+  (...args: any[]): qt.Action<Type>
   type: Type
   match: MatchFunction<any>
 }
 export type AnyListenerPredicate<State> = (
-  action: AnyAction,
+  action: qt.AnyAction,
   currentState: State,
   originalState: State
 ) => boolean
-export type ListenerPredicate<Action extends AnyAction, State> = (
-  action: AnyAction,
+export type ListenerPredicate<Action extends qt.AnyAction, State> = (
+  action: qt.AnyAction,
   currentState: State,
   originalState: State
 ) => action is Action
@@ -531,9 +456,9 @@ export interface ForkedTask<T> {
 }
 export interface ListenerEffectAPI<
   State,
-  Dispatch extends ReduxDispatch<AnyAction>,
+  Dispatch extends qt.Dispatch<qt.AnyAction>,
   ExtraArgument = unknown
-> extends MiddlewareAPI<Dispatch, State> {
+> extends qt.MiddlewareAPI<Dispatch, State> {
   getOriginalState: () => State
   unsubscribe(): void
   subscribe(): void
@@ -547,9 +472,9 @@ export interface ListenerEffectAPI<
   extra: ExtraArgument
 }
 export type ListenerEffect<
-  Action extends AnyAction,
+  Action extends qt.AnyAction,
   State,
-  Dispatch extends ReduxDispatch<AnyAction>,
+  Dispatch extends qt.Dispatch<qt.AnyAction>,
   ExtraArgument = unknown
 > = (
   action: Action,
@@ -567,25 +492,25 @@ export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
 }
 export type ListenerMiddleware<
   State = unknown,
-  Dispatch extends ThunkDispatch<State, unknown, AnyAction> = ThunkDispatch<
+  Dispatch extends ThunkDispatch<State, unknown, qt.AnyAction> = ThunkDispatch<
     State,
     unknown,
-    AnyAction
+    qt.AnyAction
   >,
   ExtraArgument = unknown
-> = Middleware<
+> = qt.Middleware<
   {
-    (action: ReduxAction<"listenerMiddleware/add">): UnsubscribeListener
+    (action: qt.Action<"listenerMiddleware/add">): UnsubscribeListener
   },
   State,
   Dispatch
 >
 export interface ListenerMiddlewareInstance<
   State = unknown,
-  Dispatch extends ThunkDispatch<State, unknown, AnyAction> = ThunkDispatch<
+  Dispatch extends ThunkDispatch<State, unknown, qt.AnyAction> = ThunkDispatch<
     State,
     unknown,
-    AnyAction
+    qt.AnyAction
   >,
   ExtraArgument = unknown
 > {
@@ -604,13 +529,13 @@ export type TakePatternOutputWithoutTimeout<
   Predicate extends AnyListenerPredicate<State>
 > = Predicate extends MatchFunction<infer Action>
   ? Promise<[Action, State, State]>
-  : Promise<[AnyAction, State, State]>
+  : Promise<[qt.AnyAction, State, State]>
 export type TakePatternOutputWithTimeout<
   State,
   Predicate extends AnyListenerPredicate<State>
 > = Predicate extends MatchFunction<infer Action>
   ? Promise<[Action, State, State] | null>
-  : Promise<[AnyAction, State, State] | null>
+  : Promise<[qt.AnyAction, State, State] | null>
 export interface TakePattern<State> {
   <Predicate extends AnyListenerPredicate<State>>(
     predicate: Predicate
@@ -633,11 +558,11 @@ export type UnsubscribeListener = (
 export interface AddListenerOverloads<
   Return,
   State = unknown,
-  Dispatch extends ReduxDispatch = ThunkDispatch<State, unknown, AnyAction>,
+  Dispatch extends qt.Dispatch = ThunkDispatch<State, unknown, qt.AnyAction>,
   ExtraArgument = unknown,
   AdditionalOptions = unknown
 > {
-  <MA extends AnyAction, LP extends ListenerPredicate<MA, State>>(
+  <MA extends qt.AnyAction, LP extends ListenerPredicate<MA, State>>(
     options: {
       actionCreator?: never
       type?: never
@@ -666,10 +591,10 @@ export interface AddListenerOverloads<
       type: T
       matcher?: never
       predicate?: never
-      effect: ListenerEffect<ReduxAction<T>, State, Dispatch, ExtraArgument>
+      effect: ListenerEffect<qt.Action<T>, State, Dispatch, ExtraArgument>
     } & AdditionalOptions
   ): Return
-  <MA extends AnyAction, M extends MatchFunction<MA>>(
+  <MA extends qt.AnyAction, M extends MatchFunction<MA>>(
     options: {
       actionCreator?: never
       type?: never
@@ -684,13 +609,13 @@ export interface AddListenerOverloads<
       type?: never
       matcher?: never
       predicate: LP
-      effect: ListenerEffect<AnyAction, State, Dispatch, ExtraArgument>
+      effect: ListenerEffect<qt.AnyAction, State, Dispatch, ExtraArgument>
     } & AdditionalOptions
   ): Return
 }
 export type RemoveListenerOverloads<
   State = unknown,
-  Dispatch extends ReduxDispatch = ThunkDispatch<State, unknown, AnyAction>
+  Dispatch extends qt.Dispatch = ThunkDispatch<State, unknown, qt.AnyAction>
 > = AddListenerOverloads<
   boolean,
   State,
@@ -699,9 +624,9 @@ export type RemoveListenerOverloads<
   UnsubscribeListenerOptions
 >
 export interface RemoveListenerAction<
-  Action extends AnyAction,
+  Action extends qt.AnyAction,
   State,
-  Dispatch extends ReduxDispatch<AnyAction>
+  Dispatch extends qt.Dispatch<qt.AnyAction>
 > {
   type: "listenerMiddleware/remove"
   payload: {
@@ -711,10 +636,10 @@ export interface RemoveListenerAction<
 }
 export type TypedAddListener<
   State,
-  Dispatch extends ReduxDispatch<AnyAction> = ThunkDispatch<
+  Dispatch extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<
     State,
     unknown,
-    AnyAction
+    qt.AnyAction
   >,
   ExtraArgument = unknown,
   Payload = ListenerEntry<State, Dispatch>,
@@ -728,10 +653,10 @@ export type TypedAddListener<
   >
 export type TypedRemoveListener<
   State,
-  Dispatch extends ReduxDispatch<AnyAction> = ThunkDispatch<
+  Dispatch extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<
     State,
     unknown,
-    AnyAction
+    qt.AnyAction
   >,
   Payload = ListenerEntry<State, Dispatch>,
   T extends string = "listenerMiddleware/remove"
@@ -745,39 +670,39 @@ export type TypedRemoveListener<
   >
 export type TypedStartListening<
   State,
-  Dispatch extends ReduxDispatch<AnyAction> = ThunkDispatch<
+  Dispatch extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<
     State,
     unknown,
-    AnyAction
+    qt.AnyAction
   >,
   ExtraArgument = unknown
 > = AddListenerOverloads<UnsubscribeListener, State, Dispatch, ExtraArgument>
 export type TypedStopListening<
   State,
-  Dispatch extends ReduxDispatch<AnyAction> = ThunkDispatch<
+  Dispatch extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<
     State,
     unknown,
-    AnyAction
+    qt.AnyAction
   >
 > = RemoveListenerOverloads<State, Dispatch>
 export type TypedCreateListenerEntry<
   State,
-  Dispatch extends ReduxDispatch<AnyAction> = ThunkDispatch<
+  Dispatch extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<
     State,
     unknown,
-    AnyAction
+    qt.AnyAction
   >
 > = AddListenerOverloads<ListenerEntry<State, Dispatch>, State, Dispatch>
 export type ListenerEntry<
   State = unknown,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.Dispatch<qt.AnyAction>
 > = {
   id: string
   effect: ListenerEffect<any, State, Dispatch>
   unsubscribe: () => void
   pending: Set<AbortController>
   type?: string
-  predicate: ListenerPredicate<AnyAction, State>
+  predicate: ListenerPredicate<qt.AnyAction, State>
 }
 export type FallbackAddListenerOptions = {
   actionCreator?: TypedActionCreator<string>

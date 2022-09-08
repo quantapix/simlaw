@@ -1,4 +1,5 @@
 import type { InternalSerializeQueryArgs } from "../utils.js"
+import * as qi from "../../../immer/index.js"
 import type {
   Api,
   ApiContext,
@@ -48,7 +49,6 @@ import {
   combineReducers,
   createAction,
   createAsyncThunk,
-  createNextState,
   createSelector,
   createSlice,
   Draft,
@@ -365,8 +365,8 @@ export type MutationResultSelectorResult<
 const initialSubState: QuerySubState<any> = {
   status: QueryStatus.uninitialized as const,
 }
-const defaultQuerySubState = createNextState(initialSubState, () => {})
-const defaultMutationSubState = createNextState(
+const defaultQuerySubState = qi.produce(initialSubState, () => {})
+const defaultMutationSubState = qi.produce(
   initialSubState as MutationSubState<any>,
   () => {}
 )

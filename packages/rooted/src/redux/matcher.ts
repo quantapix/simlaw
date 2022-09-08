@@ -1,43 +1,38 @@
-import type {
-  ActionFromMatcher,
-  Matcher,
-  UnionToIntersection,
-} from "./tsHelpers"
-import { hasMatchFunction } from "./tsHelpers"
+import * as qt from "./types.js"
 import type {
   AsyncThunk,
   AsyncThunkFulfilledActionCreator,
   AsyncThunkPendingActionCreator,
   AsyncThunkRejectedActionCreator,
-} from "./createAsyncThunk"
+} from "./create.js"
 
 export type ActionMatchingAnyOf<
-  Matchers extends [Matcher<any>, ...Matcher<any>[]]
-> = ActionFromMatcher<Matchers[number]>
+  Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]
+> = qt.ActionFromMatcher<Matchers[number]>
 
 export type ActionMatchingAllOf<
-  Matchers extends [Matcher<any>, ...Matcher<any>[]]
-> = UnionToIntersection<ActionMatchingAnyOf<Matchers>>
+  Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]
+> = qt.UnionToIntersection<ActionMatchingAnyOf<Matchers>>
 
-const matches = (matcher: Matcher<any>, action: any) => {
-  if (hasMatchFunction(matcher)) {
+const matches = (matcher: qt.Matcher<any>, action: any) => {
+  if (qt.hasMatchFunction(matcher)) {
     return matcher.match(action)
   } else {
     return matcher(action)
   }
 }
 
-export function isAnyOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(
-  ...matchers: Matchers
-) {
+export function isAnyOf<
+  Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]
+>(...matchers: Matchers) {
   return (action: any): action is ActionMatchingAnyOf<Matchers> => {
     return matchers.some(matcher => matches(matcher, action))
   }
 }
 
-export function isAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(
-  ...matchers: Matchers
-) {
+export function isAllOf<
+  Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]
+>(...matchers: Matchers) {
   return (action: any): action is ActionMatchingAllOf<Matchers> => {
     return matchers.every(matcher => matches(matcher, action))
   }
@@ -70,7 +65,7 @@ export type UnknownAsyncThunkPendingAction = ReturnType<
 >
 
 export type PendingActionFromAsyncThunk<T extends AnyAsyncThunk> =
-  ActionFromMatcher<T["pending"]>
+  qt.ActionFromMatcher<T["pending"]>
 
 export function isPending(): (
   action: any
@@ -98,7 +93,7 @@ export function isPending<
     action: any
   ): action is PendingActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
+    const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(
       asyncThunk => asyncThunk.pending
     ) as any
 
@@ -113,7 +108,7 @@ export type UnknownAsyncThunkRejectedAction = ReturnType<
 >
 
 export type RejectedActionFromAsyncThunk<T extends AnyAsyncThunk> =
-  ActionFromMatcher<T["rejected"]>
+  qt.ActionFromMatcher<T["rejected"]>
 
 export function isRejected(): (
   action: any
@@ -143,7 +138,7 @@ export function isRejected<
     action: any
   ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
+    const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(
       asyncThunk => asyncThunk.rejected
     ) as any
 
@@ -158,7 +153,7 @@ export type UnknownAsyncThunkRejectedWithValueAction = ReturnType<
 >
 
 export type RejectedWithValueActionFromAsyncThunk<T extends AnyAsyncThunk> =
-  ActionFromMatcher<T["rejected"]> &
+  qt.ActionFromMatcher<T["rejected"]> &
     (T extends AsyncThunk<any, any, { rejectValue: infer RejectedValue }>
       ? { payload: RejectedValue }
       : unknown)
@@ -211,7 +206,7 @@ export type UnknownAsyncThunkFulfilledAction = ReturnType<
 >
 
 export type FulfilledActionFromAsyncThunk<T extends AnyAsyncThunk> =
-  ActionFromMatcher<T["fulfilled"]>
+  qt.ActionFromMatcher<T["fulfilled"]>
 
 export function isFulfilled(): (
   action: any
@@ -241,7 +236,7 @@ export function isFulfilled<
     action: any
   ): action is FulfilledActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
+    const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(
       asyncThunk => asyncThunk.fulfilled
     ) as any
 
@@ -263,9 +258,9 @@ export type AnyAsyncThunk = {
 }
 
 export type ActionsFromAsyncThunk<T extends AnyAsyncThunk> =
-  | ActionFromMatcher<T["pending"]>
-  | ActionFromMatcher<T["fulfilled"]>
-  | ActionFromMatcher<T["rejected"]>
+  | qt.ActionFromMatcher<T["pending"]>
+  | qt.ActionFromMatcher<T["fulfilled"]>
+  | qt.ActionFromMatcher<T["rejected"]>
 
 export function isAsyncThunkAction(): (
   action: any
@@ -296,7 +291,7 @@ export function isAsyncThunkAction<
     action: any
   ): action is ActionsFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = [] as any
+    const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = [] as any
 
     for (const asyncThunk of asyncThunks) {
       matchers.push(

@@ -1,4 +1,4 @@
-import { createNextState, isDraftable } from "../immer/immer.js"
+import * as qi from "../immer/index.js"
 
 const randomString = () =>
   Math.random().toString(36).substring(7).split("").join(".")
@@ -87,7 +87,7 @@ export function kindOf(x: any) {
 }
 
 export function freezeDraftable<T>(val: T) {
-  return isDraftable(val) ? createNextState(val, () => {}) : val
+  return qi.isDraftable(val) ? qi.produce(val, () => {}) : val
 }
 
 export function warning(x: string): void {
