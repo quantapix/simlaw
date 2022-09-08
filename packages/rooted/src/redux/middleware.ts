@@ -1,10 +1,37 @@
 import { createImmutableStateInvariantMiddleware } from "./immutable.js"
 import { createSerializableStateInvariantMiddleware } from "./serializable.js"
 import * as qt from "./types.js"
-import thunkMiddleware from "redux-thunk"
 import type { ImmutableStateInvariantMiddlewareOptions } from "./immutable.js"
 import type { SerializableStateInvariantMiddlewareOptions } from "./serializable.js"
-import type { ThunkMiddleware } from "redux-thunk"
+
+function createThunkMiddleware<
+  State = any,
+  BasicAction extends qt.Action = qt.AnyAction,
+  ExtraThunkArg = undefined
+>(extraArgument?: ExtraThunkArg) {
+  const middleware: qt.ThunkMiddleware<State, BasicAction, ExtraThunkArg> =
+    ({ dispatch, getState }) =>
+    next =>
+    action => {
+      if (typeof action === "function") {
+        return action(dispatch, getState, extraArgument)
+      }
+      return next(action)
+    }
+  return middleware
+}
+
+export const thunkMiddleware = createThunkMiddleware() as qt.ThunkMiddleware & {
+  withExtraArgument<
+    ExtraThunkArg,
+    State = any,
+    BasicAction extends qt.Action = qt.AnyAction
+  >(
+    extraArgument: ExtraThunkArg
+  ): qt.ThunkMiddleware<State, BasicAction, ExtraThunkArg>
+}
+
+thunkMiddleware.withExtraArgument = createThunkMiddleware
 
 function isBoolean(x: any): x is boolean {
   return typeof x === "boolean"
@@ -25,8 +52,8 @@ export type ThunkMiddlewareFor<
 }
   ? never
   : O extends { thunk: { extraArgument: infer E } }
-  ? ThunkMiddleware<S, qt.AnyAction, E>
-  : ThunkMiddleware<S, qt.AnyAction>
+  ? qt.ThunkMiddleware<S, qt.AnyAction, E>
+  : qt.ThunkMiddleware<S, qt.AnyAction>
 export type CurriedGetDefaultMiddleware<S = any> = <
   O extends Partial<GetDefaultMiddlewareOptions> = {
     thunk: true

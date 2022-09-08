@@ -1,15 +1,15 @@
-import type { PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from "@reduxjs/toolkit"
 import {
   createAsyncThunk,
   createAction,
   createSlice,
   configureStore,
   createEntityAdapter,
-} from '@reduxjs/toolkit'
-import type { EntityAdapter } from '@internal/entities/models'
-import type { BookModel } from '@internal/entities/tests/fixtures/book'
+} from "../../src/redux/index.js"
+import type { EntityAdapter } from "@internal/entities/models"
+import type { BookModel } from "./entities/fixtures/book.js"
 
-describe('Combined entity slice', () => {
+describe("Combined entity slice", () => {
   let adapter: EntityAdapter<BookModel>
 
   beforeEach(() => {
@@ -19,22 +19,22 @@ describe('Combined entity slice', () => {
     })
   })
 
-  it('Entity and async features all works together', async () => {
-    const upsertBook = createAction<BookModel>('otherBooks/upsert')
+  it("Entity and async features all works together", async () => {
+    const upsertBook = createAction<BookModel>("otherBooks/upsert")
 
     type BooksState = ReturnType<typeof adapter.getInitialState> & {
-      loading: 'initial' | 'pending' | 'finished' | 'failed'
+      loading: "initial" | "pending" | "finished" | "failed"
       lastRequestId: string | null
     }
 
     const initialState: BooksState = adapter.getInitialState({
-      loading: 'initial',
+      loading: "initial",
       lastRequestId: null,
     })
 
     const fakeBooks: BookModel[] = [
-      { id: 'b', title: 'Second' },
-      { id: 'a', title: 'First' },
+      { id: "b", title: "Second" },
+      { id: "a", title: "First" },
     ]
 
     const fetchBooksTAC = createAsyncThunk<
@@ -44,7 +44,7 @@ describe('Combined entity slice', () => {
         state: { books: BooksState }
       }
     >(
-      'books/fetch',
+      "books/fetch",
       async (arg, { getState, dispatch, extra, requestId, signal }) => {
         const state = getState()
         return fakeBooks
@@ -52,7 +52,7 @@ describe('Combined entity slice', () => {
     )
 
     const booksSlice = createSlice({
-      name: 'books',
+      name: "books",
       initialState,
       reducers: {
         addOne: adapter.addOne,
@@ -75,21 +75,21 @@ describe('Combined entity slice', () => {
           //Deliberately _don't_ return result
         },
       },
-      extraReducers: (builder) => {
+      extraReducers: builder => {
         builder.addCase(upsertBook, (state, action) => {
           return adapter.upsertOne(state, action)
         })
         builder.addCase(fetchBooksTAC.pending, (state, action) => {
-          state.loading = 'pending'
+          state.loading = "pending"
           state.lastRequestId = action.meta.requestId
         })
         builder.addCase(fetchBooksTAC.fulfilled, (state, action) => {
           if (
-            state.loading === 'pending' &&
+            state.loading === "pending" &&
             action.meta.requestId === state.lastRequestId
           ) {
             adapter.setAll(state, action.payload)
-            state.loading = 'finished'
+            state.loading = "finished"
             state.lastRequestId = null
           }
         })
@@ -109,25 +109,25 @@ describe('Combined entity slice', () => {
 
     const { books: booksAfterLoaded } = store.getState()
     // Sorted, so "First" goes first
-    expect(booksAfterLoaded.ids).toEqual(['a', 'b'])
+    expect(booksAfterLoaded.ids).toEqual(["a", "b"])
     expect(booksAfterLoaded.lastRequestId).toBe(null)
-    expect(booksAfterLoaded.loading).toBe('finished')
+    expect(booksAfterLoaded.loading).toBe("finished")
 
-    store.dispatch(addOne({ id: 'd', title: 'Remove Me' }))
-    store.dispatch(removeOne('d'))
+    store.dispatch(addOne({ id: "d", title: "Remove Me" }))
+    store.dispatch(removeOne("d"))
 
-    store.dispatch(addOne({ id: 'c', title: 'Middle' }))
+    store.dispatch(addOne({ id: "c", title: "Middle" }))
 
     const { books: booksAfterAddOne } = store.getState()
 
     // Sorted, so "Middle" goes in the middle
-    expect(booksAfterAddOne.ids).toEqual(['a', 'c', 'b'])
+    expect(booksAfterAddOne.ids).toEqual(["a", "c", "b"])
 
-    store.dispatch(upsertBook({ id: 'c', title: 'Zeroth' }))
+    store.dispatch(upsertBook({ id: "c", title: "Zeroth" }))
 
     const { books: booksAfterUpsert } = store.getState()
 
     // Sorted, so "Zeroth" goes last
-    expect(booksAfterUpsert.ids).toEqual(['a', 'b', 'c'])
+    expect(booksAfterUpsert.ids).toEqual(["a", "b", "c"])
   })
 })

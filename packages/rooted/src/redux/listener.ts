@@ -3,9 +3,8 @@ import {
   createAction,
   PayloadAction,
   BaseActionCreator,
-  SerializedError,
+  qt.SerializedError,
 } from "./create.js"
-import type { ThunkDispatch } from "redux-thunk"
 import type * as qt from "./types.js"
 
 const task = "task"
@@ -16,7 +15,7 @@ export const taskCancelled = `task-${cancelled}` as const
 export const taskCompleted = `task-${completed}` as const
 export const listenerCancelled = `${listener}-${cancelled}` as const
 export const listenerCompleted = `${listener}-${completed}` as const
-export class TaskAbortError implements SerializedError {
+export class TaskAbortError implements qt.SerializedError {
   name = "TaskAbortError"
   message: string
   constructor(public code: string | undefined) {
@@ -180,7 +179,11 @@ const cancelActiveListeners = (
 }
 export function createListenerMiddleware<
   S = unknown,
-  D extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<S, unknown, qt.AnyAction>,
+  D extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
+    S,
+    unknown,
+    qt.AnyAction
+  >,
   ExtraArgument = unknown
 >(middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {}) {
   const listenerMap = new Map<string, ListenerEntry>()
@@ -492,11 +495,11 @@ export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
 }
 export type ListenerMiddleware<
   State = unknown,
-  Dispatch extends ThunkDispatch<State, unknown, qt.AnyAction> = ThunkDispatch<
+  Dispatch extends qt.ThunkDispatch<
     State,
     unknown,
     qt.AnyAction
-  >,
+  > = qt.ThunkDispatch<State, unknown, qt.AnyAction>,
   ExtraArgument = unknown
 > = qt.Middleware<
   {
@@ -507,11 +510,11 @@ export type ListenerMiddleware<
 >
 export interface ListenerMiddlewareInstance<
   State = unknown,
-  Dispatch extends ThunkDispatch<State, unknown, qt.AnyAction> = ThunkDispatch<
+  Dispatch extends qt.ThunkDispatch<
     State,
     unknown,
     qt.AnyAction
-  >,
+  > = qt.ThunkDispatch<State, unknown, qt.AnyAction>,
   ExtraArgument = unknown
 > {
   middleware: ListenerMiddleware<State, Dispatch, ExtraArgument>
@@ -558,7 +561,7 @@ export type UnsubscribeListener = (
 export interface AddListenerOverloads<
   Return,
   State = unknown,
-  Dispatch extends qt.Dispatch = ThunkDispatch<State, unknown, qt.AnyAction>,
+  Dispatch extends qt.Dispatch = qt.ThunkDispatch<State, unknown, qt.AnyAction>,
   ExtraArgument = unknown,
   AdditionalOptions = unknown
 > {
@@ -615,7 +618,7 @@ export interface AddListenerOverloads<
 }
 export type RemoveListenerOverloads<
   State = unknown,
-  Dispatch extends qt.Dispatch = ThunkDispatch<State, unknown, qt.AnyAction>
+  Dispatch extends qt.Dispatch = qt.ThunkDispatch<State, unknown, qt.AnyAction>
 > = AddListenerOverloads<
   boolean,
   State,
@@ -636,7 +639,7 @@ export interface RemoveListenerAction<
 }
 export type TypedAddListener<
   State,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
     State,
     unknown,
     qt.AnyAction
@@ -653,7 +656,7 @@ export type TypedAddListener<
   >
 export type TypedRemoveListener<
   State,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
     State,
     unknown,
     qt.AnyAction
@@ -670,7 +673,7 @@ export type TypedRemoveListener<
   >
 export type TypedStartListening<
   State,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
     State,
     unknown,
     qt.AnyAction
@@ -679,7 +682,7 @@ export type TypedStartListening<
 > = AddListenerOverloads<UnsubscribeListener, State, Dispatch, ExtraArgument>
 export type TypedStopListening<
   State,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
     State,
     unknown,
     qt.AnyAction
@@ -687,7 +690,7 @@ export type TypedStopListening<
 > = RemoveListenerOverloads<State, Dispatch>
 export type TypedCreateListenerEntry<
   State,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = ThunkDispatch<
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
     State,
     unknown,
     qt.AnyAction

@@ -1,5 +1,4 @@
-import type { BaseQueryEnhancer } from "./types"
-import { HandledError } from "./HandledError"
+import { BaseQueryEnhancer, HandledError } from "./types.js"
 
 async function defaultBackoff(attempt: number = 0, maxRetries: number = 5) {
   const attempts = Math.min(attempt, maxRetries)

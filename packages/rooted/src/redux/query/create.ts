@@ -1,16 +1,13 @@
-import type { Api, ApiContext, Module, ModuleName } from "./types"
-import type { CombinedState } from "./core/apiState"
-import type { BaseQueryArg, BaseQueryFn } from "./types"
-import type { SerializeQueryArgs } from "./defaultSerializeQueryArgs"
-import { defaultSerializeQueryArgs } from "./defaultSerializeQueryArgs"
-import type {
-  EndpointBuilder,
-  EndpointDefinitions,
-} from "./endpointDefinitions"
-import { DefinitionType } from "./endpointDefinitions"
-import { nanoid } from "@reduxjs/toolkit"
-import type { AnyAction } from "@reduxjs/toolkit"
-import type { NoInfer } from "./tsHelpers"
+import type { Api, ApiContext, Module, ModuleName } from "./types.js"
+import type { CombinedState } from "./core/types.js"
+import type { BaseQueryArg, BaseQueryFn } from "./types.js"
+import type { SerializeQueryArgs } from "./types.js"
+import { defaultSerializeQueryArgs } from "./utils.js"
+import type { EndpointBuilder, EndpointDefinitions } from "./types.js"
+import { DefinitionType } from "./types.js"
+import { nanoid } from "../../redux/index.js"
+import type { AnyAction } from "../../redux/types.js"
+import type { NoInfer } from "./types.js"
 import { defaultMemoize } from "reselect"
 
 export interface CreateApiOptions<

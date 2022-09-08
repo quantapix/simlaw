@@ -1,165 +1,96 @@
 /* eslint-disable no-lone-blocks */
-import type {
-  Dispatch,
-  AnyAction,
-  Middleware,
-  Reducer,
-  Store,
-  Action,
-} from 'redux'
-import { applyMiddleware } from 'redux'
-import type { PayloadAction, MiddlewareArray } from '@reduxjs/toolkit'
+import type * as qt from "../../src/redux/types.js"
 import {
+  applyMiddleware,
   configureStore,
   getDefaultMiddleware,
   createSlice,
-} from '@reduxjs/toolkit'
-import type { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
-import thunk from 'redux-thunk'
-import { expectNotAny, expectType } from './helpers'
-import type { IsAny, ExtractDispatchExtensions } from '../tsHelpers'
+} from "../../src/redux/index.js"
+import { thunkMiddleware as thunk } from "../../src/redux/middleware.js"
+import { expectNotAny, expectType } from "./helpers.js"
 
 const _anyMiddleware: any = () => () => () => {}
 
-/*
- * Test: configureStore() requires a valid reducer or reducer map.
- */
 {
   configureStore({
     reducer: (state, action) => 0,
   })
-
   configureStore({
     reducer: {
       counter1: () => 0,
       counter2: () => 1,
     },
   })
-
-  // @ts-expect-error
-  configureStore({ reducer: 'not a reducer' })
-
-  // @ts-expect-error
-  configureStore({ reducer: { a: 'not a reducer' } })
-
-  // @ts-expect-error
+  configureStore({ reducer: "not a reducer" })
+  configureStore({ reducer: { a: "not a reducer" } })
   configureStore({})
 }
-
-/*
- * Test: configureStore() infers the store state type.
- */
 {
-  const reducer: Reducer<number> = () => 0
+  const reducer: qt.Reducer<number> = () => 0
   const store = configureStore({ reducer })
-  const numberStore: Store<number, AnyAction> = store
-
-  // @ts-expect-error
-  const stringStore: Store<string, AnyAction> = store
+  const numberStore: qt.Store<number, qt.AnyAction> = store
+  const stringStore: qt.Store<string, qt.AnyAction> = store
 }
-
-/*
- * Test: configureStore() infers the store action type.
- */
 {
-  const reducer: Reducer<number, PayloadAction<number>> = () => 0
+  const reducer: qt.Reducer<number, qt.PayloadAction<number>> = () => 0
   const store = configureStore({ reducer })
-  const numberStore: Store<number, PayloadAction<number>> = store
-
-  // @ts-expect-error
-  const stringStore: Store<number, PayloadAction<string>> = store
+  const numberStore: qt.Store<number, qt.PayloadAction<number>> = store
+  const stringStore: qt.Store<number, qt.PayloadAction<string>> = store
 }
-
-/*
- * Test: configureStore() accepts middleware array.
- */
 {
-  const middleware: Middleware = (store) => (next) => next
-
+  const middleware: qt.Middleware = store => next => next
   configureStore({
     reducer: () => 0,
     middleware: [middleware],
   })
-
   configureStore({
     reducer: () => 0,
-    // @ts-expect-error
-    middleware: ['not middleware'],
+    middleware: ["not middleware"],
   })
 }
-
-/*
- * Test: configureStore() accepts devTools flag.
- */
 {
   configureStore({
     reducer: () => 0,
     devTools: true,
   })
-
   configureStore({
     reducer: () => 0,
-    // @ts-expect-error
-    devTools: 'true',
+    devTools: "true",
   })
 }
-
-/*
- * Test: configureStore() accepts devTools EnhancerOptions.
- */
 {
   configureStore({
     reducer: () => 0,
-    devTools: { name: 'myApp' },
+    devTools: { name: "myApp" },
   })
-
   configureStore({
     reducer: () => 0,
-    // @ts-expect-error
-    devTools: { appname: 'myApp' },
+    devTools: { appname: "myApp" },
   })
 }
-
-/*
- * Test: configureStore() accepts preloadedState.
- */
 {
   configureStore({
     reducer: () => 0,
     preloadedState: 0,
   })
-
   configureStore({
     reducer: () => 0,
-    // @ts-expect-error
-    preloadedState: 'non-matching state type',
+    preloadedState: "non-matching state type",
   })
 }
-
-/*
- * Test: configureStore() accepts store enhancer.
- */
 {
   configureStore({
     reducer: () => 0,
-    enhancers: [applyMiddleware((store) => (next) => next)],
+    enhancers: [applyMiddleware(store => next => next)],
   })
-
   configureStore({
     reducer: () => 0,
-    // @ts-expect-error
-    enhancers: ['not a store enhancer'],
+    enhancers: ["not a store enhancer"],
   })
 }
-
-/**
- * Test: configureStore() state type inference works when specifying both a
- * reducer object and a partial preloaded state.
- */
 {
-  let counterReducer1: Reducer<number> = () => 0
-  let counterReducer2: Reducer<number> = () => 0
-
+  const counterReducer1: qt.Reducer<number> = () => 0
+  const counterReducer2: qt.Reducer<number> = () => 0
   const store = configureStore({
     reducer: {
       counter1: counterReducer1,
@@ -169,317 +100,243 @@ const _anyMiddleware: any = () => () => () => {}
       counter1: 0,
     },
   })
-
   const counter1: number = store.getState().counter1
   const counter2: number = store.getState().counter2
 }
-
-/**
- * Test: Dispatch typings
- */
 {
   type StateA = number
   const reducerA = () => 0
   function thunkA() {
-    return (() => {}) as any as ThunkAction<Promise<'A'>, StateA, any, any>
+    return (() => {}) as any as qt.ThunkAction<Promise<"A">, StateA, any, any>
   }
 
   type StateB = string
   function thunkB() {
-    return (dispatch: Dispatch, getState: () => StateB) => {}
+    return (dispatch: qt.Dispatch, getState: () => StateB) => {}
   }
-  /**
-   * Test: by default, dispatching Thunks is possible
-   */
   {
     const store = configureStore({
       reducer: reducerA,
     })
-
     store.dispatch(thunkA())
-    // @ts-expect-error
     store.dispatch(thunkB())
-
     const res = store.dispatch((dispatch, getState) => {
       return 42
     })
-
-    const action = store.dispatch({ type: 'foo' })
+    const action = store.dispatch({ type: "foo" })
   }
-  /**
-   * Test: return type of thunks and actions is inferred correctly
-   */
   {
     const slice = createSlice({
-      name: 'counter',
+      name: "counter",
       initialState: {
         value: 0,
       },
       reducers: {
-        incrementByAmount: (state, action: PayloadAction<number>) => {
+        incrementByAmount: (state, action: qt.PayloadAction<number>) => {
           state.value += action.payload
         },
       },
     })
-
     const store = configureStore({
       reducer: {
         counter: slice.reducer,
       },
     })
-
     const action = slice.actions.incrementByAmount(2)
-
     const dispatchResult = store.dispatch(action)
     expectType<{ type: string; payload: number }>(dispatchResult)
-
-    const promiseResult = store.dispatch(async (dispatch) => {
+    const promiseResult = store.dispatch(async dispatch => {
       return 42
     })
-
     expectType<Promise<number>>(promiseResult)
-
     const store2 = configureStore({
       reducer: {
         counter: slice.reducer,
       },
-      middleware: (gDM) =>
+      middleware: gDM =>
         gDM({
           thunk: {
             extraArgument: 42,
           },
         }),
     })
-
     const dispatchResult2 = store2.dispatch(action)
     expectType<{ type: string; payload: number }>(dispatchResult2)
   }
-  /**
-   * Test: removing the Thunk Middleware
-   */
   {
     const store = configureStore({
       reducer: reducerA,
       middleware: [],
     })
-    // @ts-expect-error
     store.dispatch(thunkA())
-    // @ts-expect-error
     store.dispatch(thunkB())
   }
-  /**
-   * Test: adding the thunk middleware by hand
-   */
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [thunk] as [ThunkMiddleware<StateA>],
+      middleware: [thunk] as [qt.ThunkMiddleware<StateA>],
     })
     store.dispatch(thunkA())
-    // @ts-expect-error
     store.dispatch(thunkB())
   }
-  /**
-   * Test: using getDefaultMiddleware
-   */
   {
     const store = configureStore({
       reducer: reducerA,
       middleware: getDefaultMiddleware<StateA>(),
     })
-
     store.dispatch(thunkA())
-    // @ts-expect-error
     store.dispatch(thunkB())
   }
-  /**
-   * Test: custom middleware
-   */
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [] as any as [Middleware<(a: StateA) => boolean, StateA>],
+      middleware: [] as any as [qt.Middleware<(a: StateA) => boolean, StateA>],
     })
     const result: boolean = store.dispatch(5)
-    // @ts-expect-error
     const result2: string = store.dispatch(5)
   }
-  /**
-   * Test: multiple custom middleware
-   */
   {
     const middleware = [] as any as [
-      Middleware<(a: 'a') => 'A', StateA>,
-      Middleware<(b: 'b') => 'B', StateA>,
-      ThunkMiddleware<StateA>
+      qt.Middleware<(a: "a") => "A", StateA>,
+      qt.Middleware<(b: "b") => "B", StateA>,
+      qt.ThunkMiddleware<StateA>
     ]
     const store = configureStore({
       reducer: reducerA,
       middleware,
     })
-
-    const result: 'A' = store.dispatch('a')
-    const result2: 'B' = store.dispatch('b')
-    const result3: Promise<'A'> = store.dispatch(thunkA())
+    const result: "A" = store.dispatch("a")
+    const result2: "B" = store.dispatch("b")
+    const result3: Promise<"A"> = store.dispatch(thunkA())
   }
-  /**
-   * Accepts thunk with `unknown`, `undefined` or `null` ThunkAction extraArgument per default
-   */
   {
     const store = configureStore({ reducer: {} })
-    // undefined is the default value for the ThunkMiddleware extraArgument
-    store.dispatch(function () {} as ThunkAction<
+    store.dispatch(function () {} as qt.ThunkAction<
       void,
       {},
       undefined,
-      AnyAction
+      qt.AnyAction
     >)
-    // `null` for the `extra` generic was previously documented in the RTK "Advanced Tutorial", but
-    // is a bad pattern and users should use `unknown` instead
-    // @ts-expect-error
-    store.dispatch(function () {} as ThunkAction<void, {}, null, AnyAction>)
-    // unknown is the best way to type a ThunkAction if you do not care
-    // about the value of the extraArgument, as it will always work with every
-    // ThunkMiddleware, no matter the actual extraArgument type
-    store.dispatch(function () {} as ThunkAction<void, {}, unknown, AnyAction>)
-    // @ts-expect-error
-    store.dispatch(function () {} as ThunkAction<void, {}, boolean, AnyAction>)
+    store.dispatch(function () {} as qt.ThunkAction<
+      void,
+      {},
+      null,
+      qt.AnyAction
+    >)
+    store.dispatch(function () {} as qt.ThunkAction<
+      void,
+      {},
+      unknown,
+      qt.AnyAction
+    >)
+    store.dispatch(function () {} as qt.ThunkAction<
+      void,
+      {},
+      boolean,
+      qt.AnyAction
+    >)
   }
-
-  /**
-   * Test: custom middleware and getDefaultMiddleware
-   */
   {
     const middleware = getDefaultMiddleware<StateA>().prepend(
-      (() => {}) as any as Middleware<(a: 'a') => 'A', StateA>
+      (() => {}) as any as qt.Middleware<(a: "a") => "A", StateA>
     )
     const store = configureStore({
       reducer: reducerA,
       middleware,
     })
-
-    const result1: 'A' = store.dispatch('a')
-    const result2: Promise<'A'> = store.dispatch(thunkA())
-    // @ts-expect-error
+    const result1: "A" = store.dispatch("a")
+    const result2: Promise<"A"> = store.dispatch(thunkA())
     store.dispatch(thunkB())
   }
-
-  /**
-   * Test: custom middleware and getDefaultMiddleware, using prepend
-   */
   {
-    const otherMiddleware: Middleware<(a: 'a') => 'A', StateA> = _anyMiddleware
+    const otherMiddleware: qt.Middleware<(a: "a") => "A", StateA> =
+      _anyMiddleware
     const concatenated = getDefaultMiddleware<StateA>().prepend(otherMiddleware)
-
     expectType<
-      ReadonlyArray<typeof otherMiddleware | ThunkMiddleware | Middleware<{}>>
+      ReadonlyArray<
+        typeof otherMiddleware | qt.ThunkMiddleware | qt.Middleware<{}>
+      >
     >(concatenated)
-
     const store = configureStore({
       reducer: reducerA,
       middleware: concatenated,
     })
-    const result1: 'A' = store.dispatch('a')
-    const result2: Promise<'A'> = store.dispatch(thunkA())
-    // @ts-expect-error
+    const result1: "A" = store.dispatch("a")
+    const result2: Promise<"A"> = store.dispatch(thunkA())
     store.dispatch(thunkB())
   }
-
-  /**
-   * Test: custom middleware and getDefaultMiddleware, using concat
-   */
   {
-    const otherMiddleware: Middleware<(a: 'a') => 'A', StateA> = _anyMiddleware
+    const otherMiddleware: qt.Middleware<(a: "a") => "A", StateA> =
+      _anyMiddleware
     const concatenated = getDefaultMiddleware<StateA>().concat(otherMiddleware)
-
     expectType<
-      ReadonlyArray<typeof otherMiddleware | ThunkMiddleware | Middleware<{}>>
+      ReadonlyArray<
+        typeof otherMiddleware | qt.ThunkMiddleware | qt.Middleware<{}>
+      >
     >(concatenated)
-
     const store = configureStore({
       reducer: reducerA,
       middleware: concatenated,
     })
-    const result1: 'A' = store.dispatch('a')
-    const result2: Promise<'A'> = store.dispatch(thunkA())
-    // @ts-expect-error
+    const result1: "A" = store.dispatch("a")
+    const result2: Promise<"A"> = store.dispatch(thunkA())
     store.dispatch(thunkB())
   }
-
-  /**
-   * Test: middlewareBuilder notation, getDefaultMiddleware (unconfigured)
-   */
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().prepend((() => {}) as any as Middleware<
-          (a: 'a') => 'A',
+      middleware: getDefaultMiddleware =>
+        getDefaultMiddleware().prepend((() => {}) as any as qt.Middleware<
+          (a: "a") => "A",
           StateA
         >),
     })
-    const result1: 'A' = store.dispatch('a')
-    const result2: Promise<'A'> = store.dispatch(thunkA())
-    // @ts-expect-error
+    const result1: "A" = store.dispatch("a")
+    const result2: Promise<"A"> = store.dispatch(thunkA())
     store.dispatch(thunkB())
   }
-
-  /**
-   * Test: middlewareBuilder notation, getDefaultMiddleware, concat & prepend
-   */
   {
-    const otherMiddleware: Middleware<(a: 'a') => 'A', StateA> = _anyMiddleware
-    const otherMiddleware2: Middleware<(a: 'b') => 'B', StateA> = _anyMiddleware
+    const otherMiddleware: qt.Middleware<(a: "a") => "A", StateA> =
+      _anyMiddleware
+    const otherMiddleware2: qt.Middleware<(a: "b") => "B", StateA> =
+      _anyMiddleware
     const store = configureStore({
       reducer: reducerA,
-      middleware: (getDefaultMiddleware) =>
+      middleware: getDefaultMiddleware =>
         getDefaultMiddleware()
           .concat(otherMiddleware)
           .prepend(otherMiddleware2),
     })
-    const result1: 'A' = store.dispatch('a')
-    const result2: Promise<'A'> = store.dispatch(thunkA())
-    const result3: 'B' = store.dispatch('b')
-    // @ts-expect-error
+    const result1: "A" = store.dispatch("a")
+    const result2: Promise<"A"> = store.dispatch(thunkA())
+    const result3: "B" = store.dispatch("b")
     store.dispatch(thunkB())
   }
-
-  /**
-   * Test: middlewareBuilder notation, getDefaultMiddleware (thunk: false)
-   */
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: (getDefaultMiddleware) =>
+      middleware: getDefaultMiddleware =>
         getDefaultMiddleware({ thunk: false }).prepend(
-          (() => {}) as any as Middleware<(a: 'a') => 'A', StateA>
+          (() => {}) as any as qt.Middleware<(a: "a") => "A", StateA>
         ),
     })
-    const result1: 'A' = store.dispatch('a')
-    // @ts-expect-error
+    const result1: "A" = store.dispatch("a")
     store.dispatch(thunkA())
   }
-
-  /**
-   * Test: badly typed middleware won't make `dispatch` `any`
-   */
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(_anyMiddleware as Middleware<any>),
+      middleware: getDefaultMiddleware =>
+        getDefaultMiddleware().concat(_anyMiddleware as qt.Middleware<any>),
     })
-
     expectNotAny(store.dispatch)
   }
-
   {
     interface CounterState {
       value: number
     }
-
     const counterSlice = createSlice({
-      name: 'counter',
+      name: "counter",
       initialState: { value: 0 } as CounterState,
       reducers: {
         increment(state) {
@@ -488,41 +345,30 @@ const _anyMiddleware: any = () => () => () => {}
         decrement(state) {
           state.value -= 1
         },
-        // Use the PayloadAction type to declare the contents of `action.payload`
-        incrementByAmount: (state, action: PayloadAction<number>) => {
+        incrementByAmount: (state, action: qt.PayloadAction<number>) => {
           state.value += action.payload
         },
       },
     })
-
     type Unsubscribe = () => void
-
-    // A fake middleware that tells TS that an unsubscribe callback is being returned for a given action
-    // This is the same signature that the "listener" middleware uses
-    const dummyMiddleware: Middleware<
+    const dummyMiddleware: qt.Middleware<
       {
-        (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
+        (action: qt.Action<"actionListenerMiddleware/add">): Unsubscribe
       },
       CounterState
-    > = (storeApi) => (next) => (action) => {}
-
+    > = storeApi => next => action => {}
     const store = configureStore({
       reducer: counterSlice.reducer,
-      middleware: (gDM) => gDM().prepend(dummyMiddleware),
+      middleware: gDM => gDM().prepend(dummyMiddleware),
     })
-
-    // Order matters here! We need the listener type to come first, otherwise
-    // the thunk middleware type kicks in and TS thinks a plain action is being returned
     expectType<
-      ((action: Action<'actionListenerMiddleware/add'>) => Unsubscribe) &
-        ThunkDispatch<CounterState, undefined, AnyAction> &
-        Dispatch<AnyAction>
+      ((action: qt.Action<"actionListenerMiddleware/add">) => Unsubscribe) &
+        qt.ThunkDispatch<CounterState, undefined, qt.AnyAction> &
+        qt.Dispatch<qt.AnyAction>
     >(store.dispatch)
-
     const unsubscribe = store.dispatch({
-      type: 'actionListenerMiddleware/add',
+      type: "actionListenerMiddleware/add",
     } as const)
-
     expectType<Unsubscribe>(unsubscribe)
   }
 }

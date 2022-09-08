@@ -1,5 +1,5 @@
-import type { ThunkDispatch } from "@reduxjs/toolkit"
-import { createAction } from "@reduxjs/toolkit"
+import { createAction } from "../../../redux/index.js"
+import type * as qt from "../../../redux/types.js"
 
 export const onFocus = createAction("__rtkq/focused")
 export const onFocusLost = createAction("__rtkq/unfocused")
@@ -9,9 +9,9 @@ export const onOffline = createAction("__rtkq/offline")
 let initialized = false
 
 export function setupListeners(
-  dispatch: ThunkDispatch<any, any, any>,
+  dispatch: qt.ThunkDispatch<any, any, any>,
   customHandler?: (
-    dispatch: ThunkDispatch<any, any, any>,
+    dispatch: qt.ThunkDispatch<any, any, any>,
     actions: {
       onFocus: typeof onFocus
       onFocusLost: typeof onFocusLost

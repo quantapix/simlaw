@@ -1,6 +1,5 @@
-import { isPlainObject as _iPO } from "@reduxjs/toolkit"
-import type { QueryCacheKey } from "./core/types.js"
-import type { NEVER, BaseQueryFn, EndpointDefinition } from "./types.js"
+import { isPlainObject as _iPO } from "../../redux/index.js"
+import type * as qt from "./types.js"
 
 export function capitalize(str: string) {
   return str.replace(str[0], str[0].toUpperCase())
@@ -59,7 +58,6 @@ export function isValidUrl(string: string) {
   }
   return true
 }
-import { isAbsoluteUrl } from "./isAbsoluteUrl"
 
 const withoutTrailingSlash = (url: string) => url.replace(/\/$/, "")
 const withoutLeadingSlash = (url: string) => url.replace(/^\//, "")
@@ -83,7 +81,7 @@ export function joinUrls(
   return `${base}${delimiter}${url}`
 }
 
-export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
+export const defaultSerializeQueryArgs: qt.SerializeQueryArgs<any> = ({
   endpointName,
   queryArgs,
 }) => {
@@ -99,21 +97,9 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
   )})`
 }
 
-export type SerializeQueryArgs<QueryArgs> = (_: {
-  queryArgs: QueryArgs
-  endpointDefinition: EndpointDefinition<any, any, any, any>
-  endpointName: string
-}) => string
-
-export type InternalSerializeQueryArgs = (_: {
-  queryArgs: any
-  endpointDefinition: EndpointDefinition<any, any, any, any>
-  endpointName: string
-}) => QueryCacheKey
-
-export function fakeBaseQuery<ErrorType>(): BaseQueryFn<
+export function fakeBaseQuery<ErrorType>(): qt.BaseQueryFn<
   void,
-  NEVER,
+  qt.NEVER,
   ErrorType,
   {}
 > {

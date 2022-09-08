@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import type { AnyAction, ThunkDispatch } from "@reduxjs/toolkit"
+import type * as qt from "../types.js"
 import type { CoreModule } from "./core/module.js"
-import type { CreateApiOptions } from "./createApi"
-import type { RootState, CombinedState } from "./core/types.js"
+import type { CreateApiOptions } from "./create.js"
+import type { RootState, CombinedState, QueryCacheKey } from "./core/types.js"
 
 const _NEVER = Symbol()
 export type NEVER = typeof _NEVER
@@ -56,7 +56,7 @@ export type CastAny<T, CastTo> = IsAny<T, CastTo, T>
 
 export interface BaseQueryApi {
   signal: AbortSignal
-  dispatch: ThunkDispatch<any, any, any>
+  dispatch: qt.ThunkDispatch<any, any, any>
   getState: () => unknown
   extra: unknown
   endpoint: string
@@ -161,9 +161,9 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   endpointDefinitions: Definitions
   batch(cb: () => void): void
   extractRehydrationInfo: (
-    action: AnyAction
+    action: qt.AnyAction
   ) => CombinedState<any, any, any> | undefined
-  hasRehydrationInfo: (action: AnyAction) => boolean
+  hasRehydrationInfo: (action: qt.AnyAction) => boolean
 }
 
 export type Api<
@@ -295,7 +295,7 @@ export type ResultDescription<
 
 /** @deprecated please use `onQueryStarted` instead */
 export interface QueryApi<ReducerPath extends string, Context extends {}> {
-  dispatch: ThunkDispatch<any, any, AnyAction>
+  dispatch: qt.ThunkDispatch<any, any, qt.AnyAction>
   getState(): RootState<any, any, ReducerPath>
   extra: unknown
   requestId: string
@@ -380,7 +380,7 @@ export interface MutationBaseLifecycleApi<
 }
 
 export interface LifecycleApi<ReducerPath extends string = string> {
-  dispatch: ThunkDispatch<any, any, AnyAction>
+  dispatch: qt.ThunkDispatch<any, any, qt.AnyAction>
   getState(): RootState<any, any, ReducerPath>
   extra: unknown
   requestId: string
@@ -667,3 +667,15 @@ export interface ApiModules<
   ReducerPath extends string,
   TagTypes extends string
 > {}
+
+export type SerializeQueryArgs<QueryArgs> = (_: {
+  queryArgs: QueryArgs
+  endpointDefinition: EndpointDefinition<any, any, any, any>
+  endpointName: string
+}) => string
+
+export type InternalSerializeQueryArgs = (_: {
+  queryArgs: any
+  endpointDefinition: EndpointDefinition<any, any, any, any>
+  endpointName: string
+}) => QueryCacheKey

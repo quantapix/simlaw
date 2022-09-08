@@ -1,14 +1,5 @@
-import type { SerializedError } from "@reduxjs/toolkit"
-import type {
-  BaseQueryError,
-  QueryDefinition,
-  MutationDefinition,
-  EndpointDefinitions,
-  BaseEndpointDefinition,
-  ResultTypeFrom,
-  QueryArgFrom,
-} from "../types.js"
-import type { Id, WithRequiredProp } from "../tsHelpers"
+import type { SerializedError } from "../../../redux/types.js"
+import type * as qt from "../types.js"
 
 export type QueryCacheKey = string & { _type: "queryCacheKey" }
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey }
@@ -82,8 +73,8 @@ export type SubscriptionOptions = {
 }
 
 export type Subscribers = { [requestId: string]: SubscriptionOptions }
-export type QueryKeys<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+export type QueryKeys<Definitions extends qt.EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends qt.QueryDefinition<
     any,
     any,
     any,
@@ -93,8 +84,8 @@ export type QueryKeys<Definitions extends EndpointDefinitions> = {
     : never
 }[keyof Definitions]
 
-export type MutationKeys<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<
+export type MutationKeys<Definitions extends qt.EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends qt.MutationDefinition<
     any,
     any,
     any,
@@ -104,62 +95,66 @@ export type MutationKeys<Definitions extends EndpointDefinitions> = {
     : never
 }[keyof Definitions]
 
-type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
-  originalArgs: QueryArgFrom<D>
+type BaseQuerySubState<D extends qt.BaseEndpointDefinition<any, any, any>> = {
+  originalArgs: qt.QueryArgFrom<D>
   requestId: string
-  data?: ResultTypeFrom<D>
+  data?: qt.ResultTypeFrom<D>
   error?:
     | SerializedError
-    | (D extends QueryDefinition<any, infer BaseQuery, any, any>
-        ? BaseQueryError<BaseQuery>
+    | (D extends qt.QueryDefinition<any, infer BaseQuery, any, any>
+        ? qt.BaseQueryError<BaseQuery>
         : never)
   endpointName: string
   startedTimeStamp: number
   fulfilledTimeStamp?: number
 }
 
-export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
-  | ({
-      status: QueryStatus.fulfilled
-    } & WithRequiredProp<
-      BaseQuerySubState<D>,
-      "data" | "fulfilledTimeStamp"
-    > & { error: undefined })
-  | ({
-      status: QueryStatus.pending
-    } & BaseQuerySubState<D>)
-  | ({
-      status: QueryStatus.rejected
-    } & WithRequiredProp<BaseQuerySubState<D>, "error">)
-  | {
-      status: QueryStatus.uninitialized
-      originalArgs?: undefined
-      data?: undefined
-      error?: undefined
-      requestId?: undefined
-      endpointName?: string
-      startedTimeStamp?: undefined
-      fulfilledTimeStamp?: undefined
-    }
->
+export type QuerySubState<D extends qt.BaseEndpointDefinition<any, any, any>> =
+  qt.Id<
+    | ({
+        status: QueryStatus.fulfilled
+      } & qt.WithRequiredProp<
+        BaseQuerySubState<D>,
+        "data" | "fulfilledTimeStamp"
+      > & { error: undefined })
+    | ({
+        status: QueryStatus.pending
+      } & BaseQuerySubState<D>)
+    | ({
+        status: QueryStatus.rejected
+      } & qt.WithRequiredProp<BaseQuerySubState<D>, "error">)
+    | {
+        status: QueryStatus.uninitialized
+        originalArgs?: undefined
+        data?: undefined
+        error?: undefined
+        requestId?: undefined
+        endpointName?: string
+        startedTimeStamp?: undefined
+        fulfilledTimeStamp?: undefined
+      }
+  >
 
-type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
-  requestId: string
-  data?: ResultTypeFrom<D>
-  error?:
-    | SerializedError
-    | (D extends MutationDefinition<any, infer BaseQuery, any, any>
-        ? BaseQueryError<BaseQuery>
-        : never)
-  endpointName: string
-  startedTimeStamp: number
-  fulfilledTimeStamp?: number
-}
+type BaseMutationSubState<D extends qt.BaseEndpointDefinition<any, any, any>> =
+  {
+    requestId: string
+    data?: qt.ResultTypeFrom<D>
+    error?:
+      | SerializedError
+      | (D extends qt.MutationDefinition<any, infer BaseQuery, any, any>
+          ? qt.BaseQueryError<BaseQuery>
+          : never)
+    endpointName: string
+    startedTimeStamp: number
+    fulfilledTimeStamp?: number
+  }
 
-export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
+export type MutationSubState<
+  D extends qt.BaseEndpointDefinition<any, any, any>
+> =
   | (({
       status: QueryStatus.fulfilled
-    } & WithRequiredProp<
+    } & qt.WithRequiredProp<
       BaseMutationSubState<D>,
       "data" | "fulfilledTimeStamp"
     >) & { error: undefined })
@@ -168,7 +163,7 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
     } & BaseMutationSubState<D>) & { data?: undefined })
   | ({
       status: QueryStatus.rejected
-    } & WithRequiredProp<BaseMutationSubState<D>, "error">)
+    } & qt.WithRequiredProp<BaseMutationSubState<D>, "error">)
   | {
       requestId?: undefined
       status: QueryStatus.uninitialized
@@ -180,7 +175,7 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
     }
 
 export type CombinedState<
-  D extends EndpointDefinitions,
+  D extends qt.EndpointDefinitions,
   E extends string,
   ReducerPath extends string
 > = {
@@ -198,7 +193,7 @@ export type InvalidationState<TagTypes extends string> = {
   }
 }
 
-export type QueryState<D extends EndpointDefinitions> = {
+export type QueryState<D extends qt.EndpointDefinitions> = {
   [queryCacheKey: string]: QuerySubState<D[string]> | undefined
 }
 
@@ -217,12 +212,12 @@ export type ModifiableConfigState = {
   keepUnusedDataFor: number
 } & RefetchConfigOptions
 
-export type MutationState<D extends EndpointDefinitions> = {
+export type MutationState<D extends qt.EndpointDefinitions> = {
   [requestId: string]: MutationSubState<D[string]> | undefined
 }
 
 export type RootState<
-  Definitions extends EndpointDefinitions,
+  Definitions extends qt.EndpointDefinitions,
   TagTypes extends string,
   ReducerPath extends string
 > = {

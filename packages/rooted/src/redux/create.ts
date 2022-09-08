@@ -5,7 +5,6 @@ import type { ActionReducerMapBuilder } from "./builder.js"
 import { executeReducerBuilderCallback } from "./builder.js"
 import * as qu from "./utils.js"
 import { createSelector } from "reselect"
-import type { ThunkDispatch } from "redux-thunk"
 
 export type SliceActionCreator<P> = PayloadActionCreator<P>
 export interface Slice<
@@ -488,14 +487,7 @@ export type BaseThunkAPI<
   >
 }
 
-export interface SerializedError {
-  name?: string
-  message?: string
-  stack?: string
-  code?: string
-}
-
-const commonProperties: Array<keyof SerializedError> = [
+const commonProperties: Array<keyof qt.SerializedError> = [
   "name",
   "message",
   "stack",
@@ -518,9 +510,9 @@ class FulfillWithMeta<Payload, FulfilledMeta> {
   ) {}
 }
 
-export const miniSerializeError = (value: any): SerializedError => {
+export const miniSerializeError = (value: any): qt.SerializedError => {
   if (typeof value === "object" && value !== null) {
-    const simpleError: SerializedError = {}
+    const simpleError: qt.SerializedError = {}
     for (const property of commonProperties) {
       if (typeof value[property] === "string") {
         simpleError[property] = value[property]
@@ -557,13 +549,13 @@ type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
 }
   ? qt.FallbackIfUnknown<
       Dispatch,
-      ThunkDispatch<
+      qt.ThunkDispatch<
         GetState<ThunkApiConfig>,
         GetExtra<ThunkApiConfig>,
         qt.AnyAction
       >
     >
-  : ThunkDispatch<
+  : qt.ThunkDispatch<
       GetState<ThunkApiConfig>,
       GetExtra<ThunkApiConfig>,
       qt.AnyAction
@@ -606,7 +598,7 @@ type GetSerializedErrorType<ThunkApiConfig> = ThunkApiConfig extends {
   serializedErrorType: infer GetSerializedErrorType
 }
   ? GetSerializedErrorType
-  : SerializedError
+  : qt.SerializedError
 
 type MaybePromise<T> = T | Promise<T> | (T extends any ? Promise<T> : never)
 

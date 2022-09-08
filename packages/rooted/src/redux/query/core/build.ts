@@ -66,7 +66,7 @@ import {
 import type { Patch } from "immer"
 import { isDraftable, produceWithPatches, applyPatches } from "immer"
 import type { ApiEndpointQuery, PrefetchOptions } from "./module.js"
-import { onFocus, onFocusLost, onOffline, onOnline } from "./listeners.js"
+import { onFocus, onFocusLost, onOffline, onOnline } from "./utils.js"
 import {
   isDocumentVisible,
   isOnline,

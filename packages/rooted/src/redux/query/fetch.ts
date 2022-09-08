@@ -1,12 +1,12 @@
+import { isPlainObject } from "../../redux/index.js"
 import { joinUrls } from "./utils.js"
-import { isPlainObject } from "@reduxjs/toolkit"
-import type { BaseQueryApi, BaseQueryFn } from "./types.js"
-import type { MaybePromise, Override } from "./types.js"
+import type * as qt from "./types.js"
+
 export type ResponseHandler =
   | "json"
   | "text"
   | ((response: Response) => Promise<any>)
-type CustomRequestInit = Override<
+type CustomRequestInit = qt.Override<
   RequestInit,
   {
     headers?:
@@ -79,10 +79,10 @@ export type FetchBaseQueryArgs = {
   prepareHeaders?: (
     headers: Headers,
     api: Pick<
-      BaseQueryApi,
+      qt.BaseQueryApi,
       "getState" | "extra" | "endpoint" | "type" | "forced"
     >
-  ) => MaybePromise<Headers>
+  ) => qt.MaybePromise<Headers>
   fetchFn?: (
     input: RequestInfo,
     init?: RequestInit | undefined
@@ -96,7 +96,7 @@ export function fetchBaseQuery({
   fetchFn = defaultFetchFn,
   paramsSerializer,
   ...baseFetchOptions
-}: FetchBaseQueryArgs = {}): BaseQueryFn<
+}: FetchBaseQueryArgs = {}): qt.BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError,
@@ -110,7 +110,6 @@ export function fetchBaseQuery({
   }
   return async (arg, api) => {
     const { signal, getState, extra, endpoint, forced, type } = api
-    let meta: FetchBaseQueryMeta | undefined
     let {
       url,
       method = "GET" as const,
@@ -121,7 +120,7 @@ export function fetchBaseQuery({
       validateStatus = defaultValidateStatus,
       ...rest
     } = typeof arg == "string" ? { url: arg } : arg
-    let config: RequestInit = {
+    const config: RequestInit = {
       ...baseFetchOptions,
       method,
       signal,
@@ -153,7 +152,7 @@ export function fetchBaseQuery({
     url = joinUrls(baseUrl, url)
     const request = new Request(url, config)
     const requestClone = request.clone()
-    meta = { request: requestClone }
+    const meta: FetchBaseQueryMeta | undefined = { request: requestClone }
     let response
     try {
       response = await fetchFn(request)
@@ -163,7 +162,7 @@ export function fetchBaseQuery({
     const responseClone = response.clone()
     meta.response = responseClone
     let resultData: any
-    let responseText: string = ""
+    let responseText = ""
     try {
       let handleResponseError
       await Promise.all([

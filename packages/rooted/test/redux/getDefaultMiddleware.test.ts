@@ -1,20 +1,8 @@
-import type {
-  AnyAction,
-  Middleware,
-  ThunkAction,
-  Action,
-  ThunkDispatch,
-  Dispatch,
-} from "@reduxjs/toolkit"
-import {
-  getDefaultMiddleware,
-  MiddlewareArray,
-  configureStore,
-} from "@reduxjs/toolkit"
+import type * as qt from "../../src/redux/types.js"
+import { getDefaultMiddleware, configureStore } from "@reduxjs/toolkit"
 import thunk from "redux-thunk"
-import type { ThunkMiddleware } from "redux-thunk"
 
-import { expectType } from "./helpers"
+import { expectType } from "./helpers.js"
 
 describe("getDefaultMiddleware", () => {
   const ORIGINAL_NODE_ENV = process.env["NODE_ENV"]
@@ -37,7 +25,6 @@ describe("getDefaultMiddleware", () => {
 
   it("removes the thunk middleware if disabled", () => {
     const middleware = getDefaultMiddleware({ thunk: false })
-    // @ts-ignore
     expect(middleware.includes(thunk)).toBe(false)
     expect(middleware.length).toBe(2)
   })
@@ -66,36 +53,36 @@ describe("getDefaultMiddleware", () => {
       thunk: false,
     })
 
-    expectType<MiddlewareArray<[]>>(m2)
+    expectType<qt.MiddlewareArray<[]>>(m2)
 
-    const dummyMiddleware: Middleware<
+    const dummyMiddleware: qt.Middleware<
       {
-        (action: Action<"actionListenerMiddleware/add">): () => void
+        (action: qt.Action<"actionListenerMiddleware/add">): () => void
       },
       { counter: number }
     > = storeApi => next => action => {}
 
-    const dummyMiddleware2: Middleware = storeApi => next => action => {}
+    const dummyMiddleware2: qt.Middleware = storeApi => next => action => {}
 
     const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
 
     expectType<
-      MiddlewareArray<
+      qt.MiddlewareArray<
         [
-          ThunkMiddleware<any, AnyAction, 42>,
-          Middleware<
-            (action: Action<"actionListenerMiddleware/add">) => () => void,
+          qt.ThunkMiddleware<any, qt.AnyAction, 42>,
+          qt.Middleware<
+            (action: qt.Action<"actionListenerMiddleware/add">) => () => void,
             {
               counter: number
             },
-            Dispatch<AnyAction>
+            qt.Dispatch<qt.AnyAction>
           >,
-          Middleware<{}, any, Dispatch<AnyAction>>
+          qt.Middleware<{}, any, qt.Dispatch<qt.AnyAction>>
         ]
       >
     >(m3)
 
-    const testThunk: ThunkAction<void, {}, number, AnyAction> = (
+    const testThunk: qt.ThunkAction<void, {}, number, qt.AnyAction> = (
       dispatch,
       getState,
       extraArg
@@ -110,9 +97,9 @@ describe("getDefaultMiddleware", () => {
       middleware,
     })
 
-    expectType<ThunkDispatch<any, 42, AnyAction> & Dispatch<AnyAction>>(
-      store.dispatch
-    )
+    expectType<
+      qt.ThunkDispatch<any, 42, qt.AnyAction> & qt.Dispatch<qt.AnyAction>
+    >(store.dispatch)
 
     store.dispatch(testThunk)
   })
@@ -169,8 +156,8 @@ describe("getDefaultMiddleware", () => {
 })
 
 describe("MiddlewareArray functionality", () => {
-  const middleware1: Middleware = () => next => action => next(action)
-  const middleware2: Middleware = () => next => action => next(action)
+  const middleware1: qt.Middleware = () => next => action => next(action)
+  const middleware2: qt.Middleware = () => next => action => next(action)
   const defaultMiddleware = getDefaultMiddleware()
   const originalDefaultMiddleware = [...defaultMiddleware]
 
@@ -180,7 +167,7 @@ describe("MiddlewareArray functionality", () => {
     // value is prepended
     expect(prepended).toEqual([middleware1, ...defaultMiddleware])
     // returned value is of correct type
-    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    expect(prepended).toBeInstanceOf(qt.MiddlewareArray)
     // prepended is a new array
     expect(prepended).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -193,7 +180,7 @@ describe("MiddlewareArray functionality", () => {
     // value is prepended
     expect(prepended).toEqual([middleware1, middleware2, ...defaultMiddleware])
     // returned value is of correct type
-    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    expect(prepended).toBeInstanceOf(qt.MiddlewareArray)
     // prepended is a new array
     expect(prepended).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -206,7 +193,7 @@ describe("MiddlewareArray functionality", () => {
     // value is prepended
     expect(prepended).toEqual([middleware1, middleware2, ...defaultMiddleware])
     // returned value is of correct type
-    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    expect(prepended).toBeInstanceOf(qt.MiddlewareArray)
     // prepended is a new array
     expect(prepended).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -219,7 +206,7 @@ describe("MiddlewareArray functionality", () => {
     // value is concatenated
     expect(concatenated).toEqual([...defaultMiddleware, middleware1])
     // returned value is of correct type
-    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    expect(concatenated).toBeInstanceOf(qt.MiddlewareArray)
     // concatenated is a new array
     expect(concatenated).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -236,7 +223,7 @@ describe("MiddlewareArray functionality", () => {
       middleware2,
     ])
     // returned value is of correct type
-    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    expect(concatenated).toBeInstanceOf(qt.MiddlewareArray)
     // concatenated is a new array
     expect(concatenated).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -253,7 +240,7 @@ describe("MiddlewareArray functionality", () => {
       middleware2,
     ])
     // returned value is of correct type
-    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    expect(concatenated).toBeInstanceOf(qt.MiddlewareArray)
     // concatenated is a new array
     expect(concatenated).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
