@@ -1,6 +1,0 @@
-{
-  "parserOptions": {
-    "tsconfigRootDir": "/Users/qpix/clone/qnarre2/qnarre-app",
-    "project": ["./tsconfig.json"]
-  }
-}

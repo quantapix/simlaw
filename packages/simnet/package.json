@@ -1,5 +1,39 @@
 {
   "name": "@simlaw/simnet",
   "version": "0.0.1",
-  "type": "module"
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc -b",
+    "clean": "../../node_modules/.bin/tsc -b --clean",
+    "prettier": "prettier --write \"**/*.ts\"",
+    "test": "node --experimental-vm-modules ../../node_modules/.bin/jest"
+  },
+  "dependencies": {
+    "@popperjs/core": "",
+    "cytoscape-dagre": "",
+    "cytoscape-popper": "",
+    "cytoscape": "",
+    "d3": "",
+    "dequal": "",
+    "lodash": "",
+    "react-transition-group": ""
+  },
+  "devDependencies": {
+    "@types/assert": "",
+    "@types/cytoscape": "",
+    "@types/d3": "",
+    "@types/enzyme": "",
+    "@types/jest": "",
+    "@types/jquery": "",
+    "@types/lodash": "",
+    "@types/react-transition-group": "",
+    "@types/simulant": "",
+    "enzyme": "",
+    "jest": "",
+    "jquery": "",
+    "lodash": "",
+    "simulant": ""
+  }
 }
