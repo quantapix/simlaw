@@ -1,9 +1,9 @@
-import type { Middleware } from "redux"
-import { getTimeMeasureUtils } from "./utils.js"
+import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 
 type EntryProcessor = (key: string, value: any) => any
 const isProduction: boolean = process.env["NODE_ENV"] === "production"
-const prefix: string = "Invariant failed"
+const prefix = "Invariant failed"
 
 function invariant(condition: any, message?: string) {
   if (condition) {
@@ -37,7 +37,7 @@ function getSerialize(
     }
   return function (this: any, key: string, value: any) {
     if (stack.length > 0) {
-      var thisPos = stack.indexOf(this)
+      const thisPos = stack.indexOf(this)
       ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
       ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
       if (~stack.indexOf(value)) value = decycler!.call(this, key, value)
@@ -68,7 +68,7 @@ function trackProperties(
   isImmutable: IsImmutableFunc,
   ignorePaths: IgnorePaths = [],
   obj: Record<string, any>,
-  path: string = ""
+  path = ""
 ) {
   const tracked: Partial<TrackedProperty> = { value: obj }
   if (!isImmutable(obj)) {
@@ -94,8 +94,8 @@ function detectMutations(
   ignorePaths: IgnorePaths = [],
   trackedProperty: TrackedProperty,
   obj: any,
-  sameParentRef: boolean = false,
-  path: string = ""
+  sameParentRef = false,
+  path = ""
 ): { wasMutated: boolean; path?: string } {
   const prevObj = trackedProperty ? trackedProperty.value : undefined
   const sameRef = prevObj === obj
@@ -141,24 +141,27 @@ export interface ImmutableStateInvariantMiddlewareOptions {
 }
 export function createImmutableStateInvariantMiddleware(
   options: ImmutableStateInvariantMiddlewareOptions = {}
-): Middleware {
+): qt.Middleware {
   if (process.env["NODE_ENV"] === "production") {
     return () => next => action => next(action)
   }
-  let {
+  const {
     isImmutable = isImmutableDefault,
     ignoredPaths,
     warnAfter = 32,
     ignore,
   } = options
-  ignoredPaths = ignoredPaths || ignore
-  const track = trackForMutations.bind(null, isImmutable, ignoredPaths)
+  const track = trackForMutations.bind(
+    null,
+    isImmutable,
+    ignoredPaths || ignore
+  )
   return ({ getState }) => {
     let state = getState()
     let tracker = track(state)
     let result
     return next => action => {
-      const measureUtils = getTimeMeasureUtils(
+      const measureUtils = qu.getTimeMeasureUtils(
         warnAfter,
         "ImmutableStateInvariantMiddleware"
       )

@@ -1,4 +1,4 @@
-import type { PayloadAction, isFSA, createDraftSafeSelector } from "./create.js"
+import { PayloadAction, isFSA, createDraftSafeSelector } from "./create.js"
 import type { IsAny } from "./types.js"
 import createNextState, { isDraft } from "immer"
 import type { Selector } from "reselect"
@@ -209,7 +209,7 @@ export function createSortedStateAdapter<T>(
     state: R
   ): void {
     let appliedUpdates = false
-    for (let update of updates) {
+    for (const update of updates) {
       const entity = state.entities[update.id]
       if (!entity) {
         continue
@@ -335,11 +335,14 @@ export function createSelectorsFactory<T>() {
     const selectAll = createDraftSafeSelector(
       selectIds,
       selectEntities,
-      (ids, entities): T[] => ids.map(id => entities[id]!)
+      (ids: any, entities: any): T[] => ids.map((id: any) => entities[id]!)
     )
     const selectId = (_: unknown, id: EntityId) => id
     const selectById = (entities: Dictionary<T>, id: EntityId) => entities[id]
-    const selectTotal = createDraftSafeSelector(selectIds, ids => ids.length)
+    const selectTotal = createDraftSafeSelector(
+      selectIds,
+      (ids: any) => ids.length
+    )
     if (!selectState) {
       return {
         selectIds,
@@ -469,7 +472,7 @@ export function createUnsortedStateAdapter<T>(
           id: update.id,
           changes: {
             ...(updatesPerEntity[update.id]
-              ? updatesPerEntity[update.id].changes
+              ? updatesPerEntity[update.id]?.changes
               : null),
             ...update.changes,
           },

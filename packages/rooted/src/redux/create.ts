@@ -108,7 +108,7 @@ export function createSlice<
   const sliceCaseReducersByType: Record<string, CaseReducer> = {}
   const actionCreators: Record<string, Function> = {}
   reducerNames.forEach(reducerName => {
-    const maybeReducerWithPrepare = reducers[reducerName]
+    const maybeReducerWithPrepare = reducers[reducerName]!
     const type = getType(name, reducerName)
     let caseReducer: CaseReducer<State, any>
     let prepareCallback: PrepareAction<any> | undefined
@@ -235,7 +235,7 @@ export interface ActionCreatorWithPayload<P, T extends string = string>
 export interface ActionCreatorWithNonInferrablePayload<
   T extends string = string
 > extends BaseActionCreator<unknown, T> {
-  <PT extends unknown>(payload: PT): PayloadAction<PT, T>
+  <PT>(payload: PT): PayloadAction<PT, T>
 }
 
 export type PayloadActionCreator<
@@ -281,7 +281,7 @@ export function createAction<
 export function createAction(type: string, prepareAction?: Function): any {
   function actionCreator(...args: any[]) {
     if (prepareAction) {
-      let prepared = prepareAction(...args)
+      const prepared = prepareAction(...args)
       if (!prepared) {
         throw new Error("prepareAction did not return an object")
       }
@@ -389,7 +389,7 @@ export function createReducer<S extends NotFunction<any>>(
   actionMatchers: ReadonlyActionMatcherDescriptionCollection<S> = [],
   defaultCaseReducer?: CaseReducer<S>
 ): ReducerWithInitialState<S> {
-  let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
+  const [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
     typeof mapOrBuilderCallback === "function"
       ? executeReducerBuilderCallback(mapOrBuilderCallback)
       : [mapOrBuilderCallback, actionMatchers, defaultCaseReducer]

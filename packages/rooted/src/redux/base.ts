@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 import * as qt from "./types.js"
 import * as qu from "./utils.js"
 
@@ -152,7 +153,7 @@ function getUnexpectedStateShapeWarningMessage(
 
 function assertReducerShape(reducers: qt.ReducersMapObject) {
   Object.keys(reducers).forEach(key => {
-    const reducer = reducers[key]
+    const reducer = reducers[key]!
     const initialState = reducer(undefined, { type: qu.ActionTypes.INIT })
     if (typeof initialState === "undefined") {
       throw new Error(
@@ -196,14 +197,14 @@ export function combineReducers(reducers: qt.ReducersMapObject) {
   const reducerKeys = Object.keys(reducers)
   const finalReducers: qt.ReducersMapObject = {}
   for (let i = 0; i < reducerKeys.length; i++) {
-    const key = reducerKeys[i]
+    const key = reducerKeys[i]!
     if (process.env["NODE_ENV"] !== "production") {
       if (typeof reducers[key] === "undefined") {
         qu.warning(`No reducer provided for key "${key}"`)
       }
     }
     if (typeof reducers[key] === "function") {
-      finalReducers[key] = reducers[key]
+      finalReducers[key] = reducers[key]!
     }
   }
   const finalReducerKeys = Object.keys(finalReducers)
@@ -238,8 +239,8 @@ export function combineReducers(reducers: qt.ReducersMapObject) {
     let hasChanged = false
     const nextState: qt.StateFromReducersMapObject<typeof reducers> = {}
     for (let i = 0; i < finalReducerKeys.length; i++) {
-      const key = finalReducerKeys[i]
-      const reducer = finalReducers[key]
+      const key = finalReducerKeys[i]!
+      const reducer = finalReducers[key]!
       const previousStateForKey = state[key]
       const nextStateForKey = reducer(previousStateForKey, action)
       if (typeof nextStateForKey === "undefined") {
