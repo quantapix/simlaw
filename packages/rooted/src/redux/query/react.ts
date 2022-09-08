@@ -1,7 +1,7 @@
-import type { AnyAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit'
-import { createSelector } from '@reduxjs/toolkit'
-import type { Selector } from '@reduxjs/toolkit'
-import type { DependencyList } from 'react'
+import type { AnyAction, ThunkAction, ThunkDispatch } from "@reduxjs/toolkit"
+import { createSelector } from "@reduxjs/toolkit"
+import type { Selector } from "@reduxjs/toolkit"
+import type { DependencyList } from "react"
 import {
   useCallback,
   useDebugValue,
@@ -10,59 +10,99 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react'
-import { QueryStatus, skipToken } from '@reduxjs/toolkit/query'
+} from "react"
+import { QueryStatus, skipToken } from "@reduxjs/toolkit/query"
 import type {
   QuerySubState,
   SubscriptionOptions,
   QueryKeys,
   RootState,
-} from '@reduxjs/toolkit/dist/query/core/apiState'
+} from "./core/apiState"
 import type {
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
   QueryArgFrom,
   ResultTypeFrom,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+} from "./endpointDefinitions"
 import type {
   QueryResultSelectorResult,
   MutationResultSelectorResult,
   SkipToken,
-} from '@reduxjs/toolkit/dist/query/core/buildSelectors'
+} from "./core/buildSelectors"
 import type {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
-} from '@reduxjs/toolkit/dist/query/core/buildInitiate'
-import type { SerializeQueryArgs } from '@reduxjs/toolkit/dist/query/defaultSerializeQueryArgs'
-import { shallowEqual } from 'react-redux'
-import type { Api, ApiContext } from '@reduxjs/toolkit/dist/query/apiTypes'
-import type {
-  Id,
-  NoInfer,
-  Override,
-} from '@reduxjs/toolkit/dist/query/tsHelpers'
+} from "./core/buildInitiate"
+import type { SerializeQueryArgs } from "./defaultSerializeQueryArgs"
+import { shallowEqual } from "react-redux"
+import type { Api, ApiContext } from "./types"
+import type { Id, NoInfer, Override } from "./tsHelpers"
 import type {
   ApiEndpointMutation,
   ApiEndpointQuery,
   CoreModule,
   PrefetchOptions,
-} from '@reduxjs/toolkit/dist/query/core/module'
-import type { ReactHooksModuleOptions } from './module'
-import { useStableQueryArgs } from './useSerializedStableValue'
-import type { UninitializedValue } from './constants'
-import { UNINITIALIZED_VALUE } from './constants'
-import { useShallowStableValue } from './useShallowStableValue'
-import type { BaseQueryFn } from '../baseQueryTypes'
+} from "./core/module"
+import type { ReactHooksModuleOptions } from "./module"
+import { useStableQueryArgs } from "./useSerializedStableValue"
+import type { UninitializedValue } from "./constants"
+import { UNINITIALIZED_VALUE } from "./constants"
+import { useShallowStableValue } from "./useShallowStableValue"
+import type { BaseQueryFn } from "../types"
+import { coreModule, buildCreateApi, CreateApi } from "@reduxjs/toolkit/query"
+import { reactHooksModule, reactHooksModuleName } from "./module"
+import type { MutationHooks, QueryHooks } from "./buildHooks"
+import type {
+  EndpointDefinitions,
+  QueryDefinition,
+  MutationDefinition,
+  QueryArgFrom,
+} from "./endpointDefinitions"
+import type { BaseQueryFn } from "./types"
+import type { QueryKeys } from "./core/apiState"
+import type { PrefetchOptions } from "./core/module"
+import type { MutationHooks, QueryHooks } from "./buildHooks"
+import { buildHooks } from "./buildHooks"
+import { isQueryDefinition, isMutationDefinition } from "../endpointDefinitions"
+import type {
+  EndpointDefinitions,
+  QueryDefinition,
+  MutationDefinition,
+  QueryArgFrom,
+} from "./endpointDefinitions"
+import type { Api, Module } from "../types"
+import { capitalize } from "../utils"
+import { safeAssign } from "../tsHelpers"
+import type { BaseQueryFn } from "./types"
+import type { HooksWithUniqueNames } from "./versionedTypes"
+import {
+  useDispatch as rrUseDispatch,
+  useSelector as rrUseSelector,
+  useStore as rrUseStore,
+  batch as rrBatch,
+} from "react-redux"
+import type { QueryKeys } from "../core/apiState"
+import type { PrefetchOptions } from "../core/module"
+import type { UseMutation, UseLazyQuery, UseQuery } from "../buildHooks"
+import type {
+  DefinitionType,
+  EndpointDefinitions,
+  MutationDefinition,
+  QueryDefinition,
+} from "./endpointDefinitions"
+import { useEffect, useRef, useMemo } from "react"
+import type { SerializeQueryArgs } from "./defaultSerializeQueryArgs"
+import type { EndpointDefinition } from "./endpointDefinitions"
+import { useEffect, useRef } from "react"
+import { shallowEqual } from "react-redux"
 
-// Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
-  typeof window !== 'undefined' &&
+  typeof window !== "undefined" &&
   window.document &&
   window.document.createElement
     ? useLayoutEffect
     : useEffect
-
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>
 > {
@@ -72,44 +112,21 @@ export interface QueryHooks<
   useLazyQuerySubscription: UseLazyQuerySubscription<Definition>
   useQueryState: UseQueryState<Definition>
 }
-
 export interface MutationHooks<
   Definition extends MutationDefinition<any, any, any, any, any>
 > {
   useMutation: UseMutation<Definition>
 }
-
-/**
- * A React hook that automatically triggers fetches of data from an endpoint, 'subscribes' the component to the cached data, and reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
- *
- * The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already, and the hook will return the data for that query arg once it's available.
- *
- * This hook combines the functionality of both [`useQueryState`](#usequerystate) and [`useQuerySubscription`](#usequerysubscription) together, and is intended to be used in the majority of situations.
- *
- * #### Features
- *
- * - Automatically triggers requests to retrieve data based on the hook argument and whether cached data exists by default
- * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
- * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met
- * - Returns the latest request status and cached data from the Redux store
- * - Re-renders as the request status changes and data becomes available
- */
 export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
   R extends Record<string, any> = UseQueryStateDefaultResult<D>
 >(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
 ) => UseQueryHookResult<D, R>
-
 export type UseQueryHookResult<
   D extends QueryDefinition<any, any, any, any>,
   R = UseQueryStateDefaultResult<D>
 > = UseQueryStateResult<D, R> & UseQuerySubscriptionResult<D>
-
-/**
- * Helper type to manually type the result
- * of the `useQuery` hook in userland code.
- */
 export type TypedUseQueryHookResult<
   ResultType,
   QueryArg,
@@ -119,80 +136,19 @@ export type TypedUseQueryHookResult<
   >
 > = TypedUseQueryStateResult<ResultType, QueryArg, BaseQuery, R> &
   TypedUseQuerySubscriptionResult<ResultType, QueryArg, BaseQuery>
-
 interface UseQuerySubscriptionOptions extends SubscriptionOptions {
-  /**
-   * Prevents a query from automatically running.
-   *
-   * @remarks
-   * When `skip` is true (or `skipToken` is passed in as `arg`):
-   *
-   * - **If the query has cached data:**
-   *   * The cached data **will not be used** on the initial load, and will ignore updates from any identical query until the `skip` condition is removed
-   *   * The query will have a status of `uninitialized`
-   *   * If `skip: false` is set after the initial load, the cached result will be used
-   * - **If the query does not have cached data:**
-   *   * The query will have a status of `uninitialized`
-   *   * The query will not exist in the state when viewed with the dev tools
-   *   * The query will not automatically fetch on mount
-   *   * The query will not automatically run when additional components with the same query are added that do run
-   *
-   * @example
-   * ```tsx
-   * // codeblock-meta title="Skip example"
-   * const Pokemon = ({ name, skip }: { name: string; skip: boolean }) => {
-   *   const { data, error, status } = useGetPokemonByNameQuery(name, {
-   *     skip,
-   *   });
-   *
-   *   return (
-   *     <div>
-   *       {name} - {status}
-   *     </div>
-   *   );
-   * };
-   * ```
-   */
   skip?: boolean
-  /**
-   * Defaults to `false`. This setting allows you to control whether if a cached result is already available, RTK Query will only serve a cached result, or if it should `refetch` when set to `true` or if an adequate amount of time has passed since the last successful query result.
-   * - `false` - Will not cause a query to be performed _unless_ it does not exist yet.
-   * - `true` - Will always refetch when a new subscriber to a query is added. Behaves the same as calling the `refetch` callback or passing `forceRefetch: true` in the action creator.
-   * - `number` - **Value is in seconds**. If a number is provided and there is an existing query in the cache, it will compare the current time vs the last fulfilled timestamp, and only refetch if enough time has elapsed.
-   *
-   * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
-   */
   refetchOnMountOrArgChange?: boolean | number
 }
-
-/**
- * A React hook that automatically triggers fetches of data from an endpoint, and 'subscribes' the component to the cached data.
- *
- * The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already.
- *
- * Note that this hook does not return a request status or cached data. For that use-case, see [`useQuery`](#usequery) or [`useQueryState`](#usequerystate).
- *
- * #### Features
- *
- * - Automatically triggers requests to retrieve data based on the hook argument and whether cached data exists by default
- * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
- * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met
- */
 export type UseQuerySubscription<
   D extends QueryDefinition<any, any, any, any>
 > = (
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions
 ) => UseQuerySubscriptionResult<D>
-
 export type UseQuerySubscriptionResult<
   D extends QueryDefinition<any, any, any, any>
-> = Pick<QueryActionCreatorResult<D>, 'refetch'>
-
-/**
- * Helper type to manually type the result
- * of the `useQuerySubscription` hook in userland code.
- */
+> = Pick<QueryActionCreatorResult<D>, "refetch">
 export type TypedUseQuerySubscriptionResult<
   ResultType,
   QueryArg,
@@ -200,185 +156,52 @@ export type TypedUseQuerySubscriptionResult<
 > = UseQuerySubscriptionResult<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
-
 export type UseLazyQueryLastPromiseInfo<
   D extends QueryDefinition<any, any, any, any>
 > = {
   lastArg: QueryArgFrom<D>
 }
-
-/**
- * A React hook similar to [`useQuery`](#usequery), but with manual control over when the data fetching occurs.
- *
- * This hook includes the functionality of [`useLazyQuerySubscription`](#uselazyquerysubscription).
- *
- * #### Features
- *
- * - Manual control over firing a request to retrieve data
- * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
- * - Returns the latest request status and cached data from the Redux store
- * - Re-renders as the request status changes and data becomes available
- * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met and the fetch has been manually called at least once
- *
- * #### Note
- *
- * When the trigger function returned from a LazyQuery is called, it always initiates a new request to the server even if there is cached data. Set `preferCacheValue`(the second argument to the function) as `true` if you want it to immediately return a cached value if one exists.
- */
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   R extends Record<string, any> = UseQueryStateDefaultResult<D>
 >(
-  options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, 'skip'>
+  options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, "skip">
 ) => [
   LazyQueryTrigger<D>,
   UseQueryStateResult<D, R>,
   UseLazyQueryLastPromiseInfo<D>
 ]
-
 export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
-  /**
-   * Triggers a lazy query.
-   *
-   * By default, this will start a new request even if there is already a value in the cache.
-   * If you want to use the cache value and only start a request if there is no cache value, set the second argument to `true`.
-   *
-   * @remarks
-   * If you need to access the error or success payload immediately after a lazy query, you can chain .unwrap().
-   *
-   * @example
-   * ```ts
-   * // codeblock-meta title="Using .unwrap with async await"
-   * try {
-   *   const payload = await getUserById(1).unwrap();
-   *   console.log('fulfilled', payload)
-   * } catch (error) {
-   *   console.error('rejected', error);
-   * }
-   * ```
-   */
   (
     arg: QueryArgFrom<D>,
     preferCacheValue?: boolean
   ): QueryActionCreatorResult<D>
 }
-
-/**
- * A React hook similar to [`useQuerySubscription`](#usequerysubscription), but with manual control over when the data fetching occurs.
- *
- * Note that this hook does not return a request status or cached data. For that use-case, see [`useLazyQuery`](#uselazyquery).
- *
- * #### Features
- *
- * - Manual control over firing a request to retrieve data
- * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
- * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met and the fetch has been manually called at least once
- */
 export type UseLazyQuerySubscription<
   D extends QueryDefinition<any, any, any, any>
 > = (
   options?: SubscriptionOptions
 ) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
-
 export type QueryStateSelector<
   R extends Record<string, any>,
   D extends QueryDefinition<any, any, any, any>
 > = (state: UseQueryStateDefaultResult<D>) => R
-
-/**
- * A React hook that reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
- *
- * Note that this hook does not trigger fetching new data. For that use-case, see [`useQuery`](#usequery) or [`useQuerySubscription`](#usequerysubscription).
- *
- * #### Features
- *
- * - Returns the latest request status and cached data from the Redux store
- * - Re-renders as the request status changes and data becomes available
- */
 export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
   R extends Record<string, any> = UseQueryStateDefaultResult<D>
 >(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQueryStateOptions<D, R>
 ) => UseQueryStateResult<D, R>
-
 export type UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
   R extends Record<string, any>
 > = {
-  /**
-   * Prevents a query from automatically running.
-   *
-   * @remarks
-   * When skip is true:
-   *
-   * - **If the query has cached data:**
-   *   * The cached data **will not be used** on the initial load, and will ignore updates from any identical query until the `skip` condition is removed
-   *   * The query will have a status of `uninitialized`
-   *   * If `skip: false` is set after skipping the initial load, the cached result will be used
-   * - **If the query does not have cached data:**
-   *   * The query will have a status of `uninitialized`
-   *   * The query will not exist in the state when viewed with the dev tools
-   *   * The query will not automatically fetch on mount
-   *   * The query will not automatically run when additional components with the same query are added that do run
-   *
-   * @example
-   * ```ts
-   * // codeblock-meta title="Skip example"
-   * const Pokemon = ({ name, skip }: { name: string; skip: boolean }) => {
-   *   const { data, error, status } = useGetPokemonByNameQuery(name, {
-   *     skip,
-   *   });
-   *
-   *   return (
-   *     <div>
-   *       {name} - {status}
-   *     </div>
-   *   );
-   * };
-   * ```
-   */
   skip?: boolean
-  /**
-   * `selectFromResult` allows you to get a specific segment from a query result in a performant manner.
-   * When using this feature, the component will not rerender unless the underlying data of the selected item has changed.
-   * If the selected item is one element in a larger collection, it will disregard changes to elements in the same collection.
-   *
-   * @example
-   * ```ts
-   * // codeblock-meta title="Using selectFromResult to extract a single result"
-   * function PostsList() {
-   *   const { data: posts } = api.useGetPostsQuery();
-   *
-   *   return (
-   *     <ul>
-   *       {posts?.data?.map((post) => (
-   *         <PostById key={post.id} id={post.id} />
-   *       ))}
-   *     </ul>
-   *   );
-   * }
-   *
-   * function PostById({ id }: { id: number }) {
-   *   // Will select the post with the given id, and will only rerender if the given posts data changes
-   *   const { post } = api.useGetPostsQuery(undefined, {
-   *     selectFromResult: ({ data }) => ({ post: data?.find((post) => post.id === id) }),
-   *   });
-   *
-   *   return <li>{post?.name}</li>;
-   * }
-   * ```
-   */
   selectFromResult?: QueryStateSelector<R, D>
 }
-
 export type UseQueryStateResult<
   _ extends QueryDefinition<any, any, any, any>,
   R
 > = NoInfer<R>
-
-/**
- * Helper type to manually type the result
- * of the `useQueryState` hook in userland code.
- */
 export type TypedUseQueryStateResult<
   ResultType,
   QueryArg,
@@ -387,37 +210,15 @@ export type TypedUseQueryStateResult<
     QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
   >
 > = NoInfer<R>
-
 type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
   QuerySubState<D> & {
-    /**
-     * Where `data` tries to hold data as much as possible, also re-using
-     * data from the last arguments passed into the hook, this property
-     * will always contain the received data from the query, for the current query arguments.
-     */
     currentData?: ResultTypeFrom<D>
-    /**
-     * Query has not started yet.
-     */
     isUninitialized: false
-    /**
-     * Query is currently loading for the first time. No data yet.
-     */
     isLoading: false
-    /**
-     * Query is currently fetching, but might have data from an earlier request.
-     */
     isFetching: false
-    /**
-     * Query has data from a successful load.
-     */
     isSuccess: false
-    /**
-     * Query is currently in "error" state.
-     */
     isError: false
   }
-
 type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
   Id<
     | Override<
@@ -435,7 +236,7 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
             isFetching: true
             error: undefined
           } & Required<
-            Pick<UseQueryStateBaseResult<D>, 'data' | 'fulfilledTimeStamp'>
+            Pick<UseQueryStateBaseResult<D>, "data" | "fulfilledTimeStamp">
           >)
         | ({
             isSuccess: true
@@ -444,27 +245,20 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
           } & Required<
             Pick<
               UseQueryStateBaseResult<D>,
-              'data' | 'fulfilledTimeStamp' | 'currentData'
+              "data" | "fulfilledTimeStamp" | "currentData"
             >
           >)
         | ({ isError: true } & Required<
-            Pick<UseQueryStateBaseResult<D>, 'error'>
+            Pick<UseQueryStateBaseResult<D>, "error">
           >)
       >
   > & {
-    /**
-     * @deprecated will be removed in the next version
-     * please use the `isLoading`, `isFetching`, `isSuccess`, `isError`
-     * and `isUninitialized` flags instead
-     */
     status: QueryStatus
   }
-
 export type MutationStateSelector<
   R extends Record<string, any>,
   D extends MutationDefinition<any, any, any, any>
 > = (state: MutationResultSelectorResult<D>) => R
-
 export type UseMutationStateOptions<
   D extends MutationDefinition<any, any, any, any>,
   R extends Record<string, any>
@@ -472,23 +266,13 @@ export type UseMutationStateOptions<
   selectFromResult?: MutationStateSelector<R, D>
   fixedCacheKey?: string
 }
-
 export type UseMutationStateResult<
   D extends MutationDefinition<any, any, any, any>,
   R
 > = NoInfer<R> & {
   originalArgs?: QueryArgFrom<D>
-  /**
-   * Resets the hook state to it's initial `uninitialized` state.
-   * This will also remove the last result from the cache.
-   */
   reset: () => void
 }
-
-/**
- * Helper type to manually type the result
- * of the `useMutation` hook in userland code.
- */
 export type TypedUseMutationResult<
   ResultType,
   QueryArg,
@@ -500,56 +284,18 @@ export type TypedUseMutationResult<
   MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>,
   R
 >
-
-/**
- * A React hook that lets you trigger an update request for a given endpoint, and subscribes the component to read the request status from the Redux store. The component will re-render as the loading status changes.
- *
- * #### Features
- *
- * - Manual control over firing a request to alter data on the server or possibly invalidate the cache
- * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
- * - Returns the latest request status and cached data from the Redux store
- * - Re-renders as the request status changes and data becomes available
- */
 export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
   R extends Record<string, any> = MutationResultSelectorResult<D>
 >(
   options?: UseMutationStateOptions<D, R>
 ) => readonly [MutationTrigger<D>, UseMutationStateResult<D, R>]
-
 export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
   {
-    /**
-     * Triggers the mutation and returns a Promise.
-     * @remarks
-     * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
-     *
-     * @example
-     * ```ts
-     * // codeblock-meta title="Using .unwrap with async await"
-     * try {
-     *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
-     *   console.log('fulfilled', payload)
-     * } catch (error) {
-     *   console.error('rejected', error);
-     * }
-     * ```
-     */
     (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
   }
-
-const defaultQueryStateSelector: QueryStateSelector<any, any> = (x) => x
-const defaultMutationStateSelector: MutationStateSelector<any, any> = (x) => x
-
-/**
- * Wrapper around `defaultQueryStateSelector` to be used in `useQuery`.
- * We want the initial render to already come back with
- * `{ isUninitialized: false, isFetching: true, isLoading: true }`
- * to prevent that the library user has to do an additional check for `isUninitialized`/
- */
-const noPendingQueryStateSelector: QueryStateSelector<any, any> = (
-  selected
-) => {
+const defaultQueryStateSelector: QueryStateSelector<any, any> = x => x
+const defaultMutationStateSelector: MutationStateSelector<any, any> = x => x
+const noPendingQueryStateSelector: QueryStateSelector<any, any> = selected => {
   if (selected.isUninitialized) {
     return {
       ...selected,
@@ -561,21 +307,11 @@ const noPendingQueryStateSelector: QueryStateSelector<any, any> = (
   }
   return selected
 }
-
 type GenericPrefetchThunk = (
   endpointName: any,
   arg: any,
   options: PrefetchOptions
 ) => ThunkAction<void, any, any, AnyAction>
-
-/**
- *
- * @param opts.api - An API with defined endpoints to create hooks for
- * @param opts.moduleOptions.batch - The version of the `batchedUpdates` function to be used
- * @param opts.moduleOptions.useDispatch - The version of the `useDispatch` hook to be used
- * @param opts.moduleOptions.useSelector - The version of the `useSelector` hook to be used
- * @returns An object containing functions to generate hooks based on an endpoint
- */
 export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
   moduleOptions: {
@@ -596,18 +332,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   const usePossiblyImmediateEffect: (
     effect: () => void | undefined,
     deps?: DependencyList
-  ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
-
+  ) => void = unstable__sideEffectsInRender ? cb => cb() : useEffect
   return { buildQueryHooks, buildMutationHook, usePrefetch }
-
   function queryStatePreSelector(
     currentState: QueryResultSelectorResult<any>,
     lastResult: UseQueryStateDefaultResult<any> | undefined,
     queryArgs: any
   ): UseQueryStateDefaultResult<any> {
-    // if we had a last result and the current result is uninitialized,
-    // we might have called `api.util.resetApiState`
-    // in this case, reset the hook
     if (lastResult?.endpointName && currentState.isUninitialized) {
       const { endpointName } = lastResult
       const endpointDefinition = context.endpointDefinitions[endpointName]
@@ -625,20 +356,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
         lastResult = undefined
     }
-
-    // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
     let data = currentState.isSuccess ? currentState.data : lastResult?.data
     if (data === undefined) data = currentState.data
-
     const hasData = data !== undefined
-
-    // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
-    // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
     const isLoading = !hasData && isFetching
-    // isSuccess = true when data is present
     const isSuccess = currentState.isSuccess || (isFetching && hasData)
-
     return {
       ...currentState,
       data,
@@ -648,14 +371,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       isSuccess,
     } as UseQueryStateDefaultResult<any>
   }
-
   function usePrefetch<EndpointName extends QueryKeys<Definitions>>(
     endpointName: EndpointName,
     defaultOptions?: PrefetchOptions
   ) {
     const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
     const stableDefaultOptions = useShallowStableValue(defaultOptions)
-
     return useCallback(
       (arg: any, options?: PrefetchOptions) =>
         dispatch(
@@ -667,7 +388,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       [endpointName, dispatch, stableDefaultOptions]
     )
   }
-
   function buildQueryHooks(name: string): QueryHooks<any> {
     const useQuerySubscription: UseQuerySubscription<any> = (
       arg: any,
@@ -695,9 +415,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         refetchOnFocus,
         pollingInterval,
       })
-
       const promiseRef = useRef<QueryActionCreatorResult<any>>()
-
       let { queryCacheKey, requestId } = promiseRef.current || {}
       const subscriptionRemoved = useSelector(
         (state: RootState<Definitions, string, string>) =>
@@ -705,29 +423,23 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           !!requestId &&
           !state[api.reducerPath].subscriptions[queryCacheKey]?.[requestId]
       )
-
       usePossiblyImmediateEffect((): void | undefined => {
         promiseRef.current = undefined
       }, [subscriptionRemoved])
-
       usePossiblyImmediateEffect((): void | undefined => {
         const lastPromise = promiseRef.current
         if (
-          typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'removeMeOnCompilation'
+          typeof process !== "undefined" &&
+          process.env.NODE_ENV === "removeMeOnCompilation"
         ) {
-          // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
           console.log(subscriptionRemoved)
         }
-
         if (stableArg === skipToken) {
           lastPromise?.unsubscribe()
           promiseRef.current = undefined
           return
         }
-
         const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
-
         if (!lastPromise || lastPromise.arg !== stableArg) {
           lastPromise?.unsubscribe()
           const promise = dispatch(
@@ -748,25 +460,19 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         stableSubscriptionOptions,
         subscriptionRemoved,
       ])
-
       useEffect(() => {
         return () => {
           promiseRef.current?.unsubscribe()
           promiseRef.current = undefined
         }
       }, [])
-
       return useMemo(
         () => ({
-          /**
-           * A method to manually refetch data for the query
-           */
           refetch: () => void promiseRef.current?.refetch(),
         }),
         []
       )
     }
-
     const useLazyQuerySubscription: UseLazyQuerySubscription<any> = ({
       refetchOnReconnect,
       refetchOnFocus,
@@ -777,70 +483,54 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
-
       const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
       const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>()
-
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
         refetchOnFocus,
         pollingInterval,
       })
-
       usePossiblyImmediateEffect(() => {
         const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
-
         if (stableSubscriptionOptions !== lastSubscriptionOptions) {
           promiseRef.current?.updateSubscriptionOptions(
             stableSubscriptionOptions
           )
         }
       }, [stableSubscriptionOptions])
-
       const subscriptionOptionsRef = useRef(stableSubscriptionOptions)
       usePossiblyImmediateEffect(() => {
         subscriptionOptionsRef.current = stableSubscriptionOptions
       }, [stableSubscriptionOptions])
-
       const trigger = useCallback(
         function (arg: any, preferCacheValue = false) {
           let promise: QueryActionCreatorResult<any>
-
           batch(() => {
             promiseRef.current?.unsubscribe()
-
             promiseRef.current = promise = dispatch(
               initiate(arg, {
                 subscriptionOptions: subscriptionOptionsRef.current,
                 forceRefetch: !preferCacheValue,
               })
             )
-
             setArg(arg)
           })
-
           return promise!
         },
         [dispatch, initiate]
       )
-
-      /* cleanup on unmount */
       useEffect(() => {
         return () => {
           promiseRef?.current?.unsubscribe()
         }
       }, [])
-
-      /* if "cleanup on unmount" was triggered from a fast refresh, we want to reinstate the query */
       useEffect(() => {
         if (arg !== UNINITIALIZED_VALUE && !promiseRef.current) {
           trigger(arg, true)
         }
       }, [arg, trigger])
-
       return useMemo(() => [trigger, arg] as const, [trigger, arg])
     }
-
     const useQueryState: UseQueryState<any> = (
       arg: any,
       { skip = false, selectFromResult = defaultQueryStateSelector } = {}
@@ -855,11 +545,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         context.endpointDefinitions[name],
         name
       )
-
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
-
       const lastValue = useRef<any>()
-
       const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
         () =>
           createSelector(
@@ -872,18 +559,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           ),
         [select, stableArg]
       )
-
       const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
         () => createSelector([selectDefaultResult], selectFromResult),
         [selectDefaultResult, selectFromResult]
       )
-
       const currentState = useSelector(
         (state: RootState<Definitions, any, any>) =>
           querySelector(state, lastValue.current),
         shallowEqual
       )
-
       const store = useStore<RootState<Definitions, any, any>>()
       const newLastValue = selectDefaultResult(
         store.getState(),
@@ -892,10 +576,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       useIsomorphicLayoutEffect(() => {
         lastValue.current = newLastValue
       }, [newLastValue])
-
       return currentState
     }
-
     return {
       useQueryState,
       useQuerySubscription,
@@ -906,7 +588,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           ...options,
           skip: arg === UNINITIALIZED_VALUE,
         })
-
         const info = useMemo(() => ({ lastArg: arg }), [arg])
         return useMemo(
           () => [trigger, queryStateResults, info],
@@ -922,10 +603,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
               : noPendingQueryStateSelector,
           ...options,
         })
-
-        const { data, status, isLoading, isSuccess, isError, error } = queryStateResults;
-        useDebugValue({ data, status, isLoading, isSuccess, isError, error });
-
+        const { data, status, isLoading, isSuccess, isError, error } =
+          queryStateResults
+        useDebugValue({ data, status, isLoading, isSuccess, isError, error })
         return useMemo(
           () => ({ ...queryStateResults, ...querySubscriptionResults }),
           [queryStateResults, querySubscriptionResults]
@@ -933,7 +613,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       },
     }
   }
-
   function buildMutationHook(name: string): UseMutation<any> {
     return ({
       selectFromResult = defaultMutationStateSelector,
@@ -945,7 +624,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
       const [promise, setPromise] = useState<MutationActionCreatorResult<any>>()
-
       useEffect(
         () => () => {
           if (!promise?.arg.fixedCacheKey) {
@@ -954,16 +632,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         },
         [promise]
       )
-
       const triggerMutation = useCallback(
-        function (arg: Parameters<typeof initiate>['0']) {
+        function (arg: Parameters<typeof initiate>["0"]) {
           const promise = dispatch(initiate(arg, { fixedCacheKey }))
           setPromise(promise)
           return promise
         },
         [dispatch, initiate, fixedCacheKey]
       )
-
       const { requestId } = promise || {}
       const mutationSelector = useMemo(
         () =>
@@ -973,7 +649,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           ),
         [select, promise, selectFromResult, fixedCacheKey]
       )
-
       const currentState = useSelector(mutationSelector, shallowEqual)
       const originalArgs =
         fixedCacheKey == null ? promise?.arg.originalArgs : undefined
@@ -992,15 +667,28 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           }
         })
       }, [dispatch, fixedCacheKey, promise, requestId])
-
-      const { endpointName, data, status, isLoading, isSuccess, isError, error } = currentState;
-      useDebugValue({ endpointName, data, status, isLoading, isSuccess, isError, error });
-
+      const {
+        endpointName,
+        data,
+        status,
+        isLoading,
+        isSuccess,
+        isError,
+        error,
+      } = currentState
+      useDebugValue({
+        endpointName,
+        data,
+        status,
+        isLoading,
+        isSuccess,
+        isError,
+        error,
+      })
       const finalState = useMemo(
         () => ({ ...currentState, originalArgs, reset }),
         [currentState, originalArgs, reset]
       )
-
       return useMemo(
         () => [triggerMutation, finalState] as const,
         [triggerMutation, finalState]
@@ -1010,78 +698,19 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 }
 export const UNINITIALIZED_VALUE = Symbol()
 export type UninitializedValue = typeof UNINITIALIZED_VALUE
-import { coreModule, buildCreateApi, CreateApi } from '@reduxjs/toolkit/query'
-import { reactHooksModule, reactHooksModuleName } from './module'
-
-import type { MutationHooks, QueryHooks } from './buildHooks'
-import type {
-  EndpointDefinitions,
-  QueryDefinition,
-  MutationDefinition,
-  QueryArgFrom,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
-import type { BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
-
-import type { QueryKeys } from '@reduxjs/toolkit/dist/query/core/apiState'
-import type { PrefetchOptions } from '@reduxjs/toolkit/dist/query/core/module'
-
-export * from '@reduxjs/toolkit/query'
-export { ApiProvider } from './ApiProvider'
-
-const createApi = /* @__PURE__ */ buildCreateApi(
-  coreModule(),
-  reactHooksModule()
-)
-
-export type {
-  TypedUseQueryHookResult,
-  TypedUseQueryStateResult,
-  TypedUseQuerySubscriptionResult,
-  TypedUseMutationResult,
-} from './buildHooks'
+const createApi = buildCreateApi(coreModule(), reactHooksModule())
 export { createApi, reactHooksModule }
-import type { MutationHooks, QueryHooks } from './buildHooks'
-import { buildHooks } from './buildHooks'
-import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
-import type {
-  EndpointDefinitions,
-  QueryDefinition,
-  MutationDefinition,
-  QueryArgFrom,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
-import type { Api, Module } from '../apiTypes'
-import { capitalize } from '../utils'
-import { safeAssign } from '../tsHelpers'
-import type { BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
-
-import type { HooksWithUniqueNames } from './versionedTypes'
-
-import {
-  useDispatch as rrUseDispatch,
-  useSelector as rrUseSelector,
-  useStore as rrUseStore,
-  batch as rrBatch,
-} from 'react-redux'
-import type { QueryKeys } from '../core/apiState'
-import type { PrefetchOptions } from '../core/module'
-
-export const reactHooksModuleName = /* @__PURE__ */ Symbol()
+export const reactHooksModuleName = Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
 
-declare module '@reduxjs/toolkit/dist/query/apiTypes' {
+declare module "./types" {
   export interface ApiModules<
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ReducerPath extends string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     TagTypes extends string
   > {
     [reactHooksModuleName]: {
-      /**
-       *  Endpoints based on the input endpoints provided to `createApi`, containing `select`, `hooks` and `action matchers`.
-       */
       endpoints: {
         [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
           any,
@@ -1095,9 +724,6 @@ declare module '@reduxjs/toolkit/dist/query/apiTypes' {
           ? MutationHooks<Definitions[K]>
           : never
       }
-      /**
-       * A hook that accepts a string endpoint name, and provides a callback that when called, pre-fetches the data for that endpoint.
-       */
       usePrefetch<EndpointName extends QueryKeys<Definitions>>(
         endpointName: EndpointName,
         options?: PrefetchOptions
@@ -1109,60 +735,16 @@ declare module '@reduxjs/toolkit/dist/query/apiTypes' {
   }
 }
 
-type RR = typeof import('react-redux')
+type RR = typeof import("react-redux")
 
 export interface ReactHooksModuleOptions {
-  /**
-   * The version of the `batchedUpdates` function to be used
-   */
-  batch?: RR['batch']
-  /**
-   * The version of the `useDispatch` hook to be used
-   */
-  useDispatch?: RR['useDispatch']
-  /**
-   * The version of the `useSelector` hook to be used
-   */
-  useSelector?: RR['useSelector']
-  /**
-   * The version of the `useStore` hook to be used
-   */
-  useStore?: RR['useStore']
-  /**
-   * Enables performing asynchronous tasks immediately within a render.
-   *
-   * @example
-   *
-   * ```ts
-   * import {
-   *   buildCreateApi,
-   *   coreModule,
-   *   reactHooksModule
-   * } from '@reduxjs/toolkit/query/react'
-   *
-   * const createApi = buildCreateApi(
-   *   coreModule(),
-   *   reactHooksModule({ unstable__sideEffectsInRender: true })
-   * )
-   * ```
-   */
+  batch?: RR["batch"]
+  useDispatch?: RR["useDispatch"]
+  useSelector?: RR["useSelector"]
+  useStore?: RR["useStore"]
   unstable__sideEffectsInRender?: boolean
 }
 
-/**
- * Creates a module that generates react hooks from endpoints, for use with `buildCreateApi`.
- *
- *  @example
- * ```ts
- * const MyContext = React.createContext<ReactReduxContextValue>(null as any);
- * const customCreateApi = buildCreateApi(
- *   coreModule(),
- *   reactHooksModule({ useDispatch: createDispatchHook(MyContext) })
- * );
- * ```
- *
- * @returns A module for use with `buildCreateApi`
- */
 export const reactHooksModule = ({
   batch = rrBatch,
   useDispatch = rrUseDispatch,
@@ -1193,7 +775,6 @@ export const reactHooksModule = ({
     })
     safeAssign(anyApi, { usePrefetch })
     safeAssign(context, { batch })
-
     return {
       injectEndpoint(endpointName, definition) {
         if (isQueryDefinition(definition)) {
@@ -1225,16 +806,7 @@ export const reactHooksModule = ({
     }
   },
 })
-import type { UseMutation, UseLazyQuery, UseQuery } from '../buildHooks'
-import type {
-  DefinitionType,
-  EndpointDefinitions,
-  MutationDefinition,
-  QueryDefinition,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 
-// For TS 4.1 and later, we can use string literal types to define
-// the exact names of each endpoint's exported hooks
 export type HooksWithUniqueNames<Definitions extends EndpointDefinitions> =
   keyof Definitions extends infer Keys
     ? Keys extends string
@@ -1243,12 +815,11 @@ export type HooksWithUniqueNames<Definitions extends EndpointDefinitions> =
             [K in Keys as `use${Capitalize<K>}Query`]: UseQuery<
               Extract<Definitions[K], QueryDefinition<any, any, any, any>>
             >
-          } &
-            {
-              [K in Keys as `useLazy${Capitalize<K>}Query`]: UseLazyQuery<
-                Extract<Definitions[K], QueryDefinition<any, any, any, any>>
-              >
-            }
+          } & {
+            [K in Keys as `useLazy${Capitalize<K>}Query`]: UseLazyQuery<
+              Extract<Definitions[K], QueryDefinition<any, any, any, any>>
+            >
+          }
         : Definitions[Keys] extends { type: DefinitionType.mutation }
         ? {
             [K in Keys as `use${Capitalize<K>}Mutation`]: UseMutation<
@@ -1258,9 +829,6 @@ export type HooksWithUniqueNames<Definitions extends EndpointDefinitions> =
         : never
       : never
     : never
-import { useEffect, useRef, useMemo } from 'react'
-import type { SerializeQueryArgs } from '@reduxjs/toolkit/dist/query/defaultSerializeQueryArgs'
-import type { EndpointDefinition } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 
 export function useStableQueryArgs<T>(
   queryArgs: T,
@@ -1272,7 +840,7 @@ export function useStableQueryArgs<T>(
     () => ({
       queryArgs,
       serialized:
-        typeof queryArgs == 'object'
+        typeof queryArgs == "object"
           ? serialize({ queryArgs, endpointDefinition, endpointName })
           : queryArgs,
     }),
@@ -1284,13 +852,10 @@ export function useStableQueryArgs<T>(
       cache.current = incoming
     }
   }, [incoming])
-
   return cache.current.serialized === incoming.serialized
     ? cache.current.queryArgs
     : queryArgs
 }
-import { useEffect, useRef } from 'react'
-import { shallowEqual } from 'react-redux'
 
 export function useShallowStableValue<T>(value: T) {
   const cache = useRef(value)
@@ -1299,6 +864,5 @@ export function useShallowStableValue<T>(value: T) {
       cache.current = value
     }
   }, [value])
-
   return shallowEqual(cache.current, value) ? cache.current : value
 }

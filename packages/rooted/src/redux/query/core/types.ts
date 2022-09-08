@@ -1,16 +1,16 @@
-import type { SerializedError } from '@reduxjs/toolkit'
-import type { BaseQueryError } from '../baseQueryTypes'
+import type { SerializedError } from "@reduxjs/toolkit"
 import type {
+  BaseQueryError,
   QueryDefinition,
   MutationDefinition,
   EndpointDefinitions,
   BaseEndpointDefinition,
   ResultTypeFrom,
   QueryArgFrom,
-} from '../endpointDefinitions'
-import type { Id, WithRequiredProp } from '../tsHelpers'
+} from "../types.js"
+import type { Id, WithRequiredProp } from "../tsHelpers"
 
-export type QueryCacheKey = string & { _type: 'queryCacheKey' }
+export type QueryCacheKey = string & { _type: "queryCacheKey" }
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey }
 export type MutationSubstateIdentifier =
   | {
@@ -28,14 +28,11 @@ export type RefetchConfigOptions = {
   refetchOnFocus: boolean
 }
 
-/**
- * Strings describing the query state at any given time.
- */
 export enum QueryStatus {
-  uninitialized = 'uninitialized',
-  pending = 'pending',
-  fulfilled = 'fulfilled',
-  rejected = 'rejected',
+  uninitialized = "uninitialized",
+  pending = "pending",
+  fulfilled = "fulfilled",
+  rejected = "rejected",
 }
 
 export type RequestStatusFlags =
@@ -79,27 +76,11 @@ export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
 }
 
 export type SubscriptionOptions = {
-  /**
-   * How frequently to automatically re-fetch data (in milliseconds). Defaults to `0` (off).
-   */
   pollingInterval?: number
-  /**
-   * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
-   *
-   * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
-   *
-   * Note: requires [`setupListeners`](./setupListeners) to have been called.
-   */
   refetchOnReconnect?: boolean
-  /**
-   * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
-   *
-   * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
-   *
-   * Note: requires [`setupListeners`](./setupListeners) to have been called.
-   */
   refetchOnFocus?: boolean
 }
+
 export type Subscribers = { [requestId: string]: SubscriptionOptions }
 export type QueryKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
@@ -111,6 +92,7 @@ export type QueryKeys<Definitions extends EndpointDefinitions> = {
     ? K
     : never
 }[keyof Definitions]
+
 export type MutationKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends MutationDefinition<
     any,
@@ -123,37 +105,16 @@ export type MutationKeys<Definitions extends EndpointDefinitions> = {
 }[keyof Definitions]
 
 type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
-  /**
-   * The argument originally passed into the hook or `initiate` action call
-   */
   originalArgs: QueryArgFrom<D>
-  /**
-   * A unique ID associated with the request
-   */
   requestId: string
-  /**
-   * The received data from the query
-   */
   data?: ResultTypeFrom<D>
-  /**
-   * The received error if applicable
-   */
   error?:
     | SerializedError
     | (D extends QueryDefinition<any, infer BaseQuery, any, any>
         ? BaseQueryError<BaseQuery>
         : never)
-  /**
-   * The name of the endpoint associated with the query
-   */
   endpointName: string
-  /**
-   * Time that the latest query started
-   */
   startedTimeStamp: number
-  /**
-   * Time that the latest query was fulfilled
-   */
   fulfilledTimeStamp?: number
 }
 
@@ -162,14 +123,14 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
       status: QueryStatus.fulfilled
     } & WithRequiredProp<
       BaseQuerySubState<D>,
-      'data' | 'fulfilledTimeStamp'
+      "data" | "fulfilledTimeStamp"
     > & { error: undefined })
   | ({
       status: QueryStatus.pending
     } & BaseQuerySubState<D>)
   | ({
       status: QueryStatus.rejected
-    } & WithRequiredProp<BaseQuerySubState<D>, 'error'>)
+    } & WithRequiredProp<BaseQuerySubState<D>, "error">)
   | {
       status: QueryStatus.uninitialized
       originalArgs?: undefined
@@ -200,14 +161,14 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
       status: QueryStatus.fulfilled
     } & WithRequiredProp<
       BaseMutationSubState<D>,
-      'data' | 'fulfilledTimeStamp'
+      "data" | "fulfilledTimeStamp"
     >) & { error: undefined })
   | (({
       status: QueryStatus.pending
     } & BaseMutationSubState<D>) & { data?: undefined })
   | ({
       status: QueryStatus.rejected
-    } & WithRequiredProp<BaseMutationSubState<D>, 'error'>)
+    } & WithRequiredProp<BaseMutationSubState<D>, "error">)
   | {
       requestId?: undefined
       status: QueryStatus.uninitialized
@@ -249,7 +210,7 @@ export type ConfigState<ReducerPath> = RefetchConfigOptions & {
   reducerPath: ReducerPath
   online: boolean
   focused: boolean
-  middlewareRegistered: boolean | 'conflict'
+  middlewareRegistered: boolean | "conflict"
 } & ModifiableConfigState
 
 export type ModifiableConfigState = {
