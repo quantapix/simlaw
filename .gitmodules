@@ -1,13 +1,6 @@
 [submodule "lib/jupyterlab"]
 	path = lib/jupyterlab
 	url = https://github.com/jupyterlab/jupyterlab.git
-[submodule "lib/lumino"]
-	path = lib/lumino
-	url = https://github.com/jupyterlab/lumino.git
-	branch = main
-[submodule "lib/nx"]
-	path = lib/nx
-	url = https://github.com/nrwl/nx.git
 [submodule "lib/react"]
 	path = lib/react
 	url = https://github.com/facebook/react.git
