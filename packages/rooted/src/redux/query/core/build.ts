@@ -196,7 +196,7 @@ export function buildInitiate({
     ].filter(<T>(t: T | undefined): t is T => !!t)
   }
   function middlewareWarning(getState: () => RootState<{}, string, string>) {
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env["NODE_ENV"] !== "production") {
       if ((middlewareWarning as any).triggered) return
       const registered =
         getState()[api.reducerPath]?.config?.middlewareRegistered
@@ -393,7 +393,7 @@ export function buildSelectors<
   }
   function selectInternalState(rootState: RootState) {
     const state = rootState[reducerPath]
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env["NODE_ENV"] !== "production") {
       if (!state) {
         if ((selectInternalState as any).triggered) return state
         ;(selectInternalState as any).triggered = true
@@ -696,7 +696,7 @@ export function buildThunks<
       }
       if (
         typeof process !== "undefined" &&
-        process.env.NODE_ENV === "development"
+        process.env["NODE_ENV"] === "development"
       ) {
         const what = endpointDefinition.query ? "`baseQuery`" : "`queryFn`"
         let err: undefined | string
@@ -740,7 +740,7 @@ export function buildThunks<
       }
       if (
         typeof process !== "undefined" &&
-        process.env.NODE_ENV === "development"
+        process.env["NODE_ENV"] === "development"
       ) {
         console.error(
           `An unhandled error occurred processing a request for the endpoint "${arg.endpointName}".

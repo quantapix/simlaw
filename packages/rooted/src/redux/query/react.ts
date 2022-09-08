@@ -430,7 +430,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         const lastPromise = promiseRef.current
         if (
           typeof process !== "undefined" &&
-          process.env.NODE_ENV === "removeMeOnCompilation"
+          process.env["NODE_ENV"] === "removeMeOnCompilation"
         ) {
           console.log(subscriptionRemoved)
         }

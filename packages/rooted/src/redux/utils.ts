@@ -1,52 +1,102 @@
 import { createNextState, isDraftable } from "../immer/immer.js"
-import type { Middleware } from "redux"
 
-export class MiddlewareArray<
-  Middlewares extends Middleware<any, any>[]
-> extends Array<Middlewares[number]> {
-  constructor(...items: Middlewares)
-  constructor(...args: any[]) {
-    super(...args)
-    Object.setPrototypeOf(this, MiddlewareArray.prototype)
+const randomString = () =>
+  Math.random().toString(36).substring(7).split("").join(".")
+
+export const ActionTypes = {
+  INIT: `@@redux/INIT${randomString()}`,
+  REPLACE: `@@redux/REPLACE${randomString()}`,
+  PROBE_UNKNOWN_ACTION: () => `@@redux/PROBE_UNKNOWN_ACTION${randomString()}`,
+}
+
+export function formatProdErrorMessage(code: number) {
+  return (
+    `Minified Redux error #${code}; visit https://redux.js.org/Errors?code=${code} for the full message or ` +
+    "use the non-minified dev environment for full errors. "
+  )
+}
+
+export function isPlainObject(x: any): boolean {
+  if (typeof x !== "object" || x === null) return false
+  let y = x
+  while (Object.getPrototypeOf(y) !== null) {
+    y = Object.getPrototypeOf(y)
   }
+  return Object.getPrototypeOf(x) === y
+}
 
-  static get [Symbol.species]() {
-    return MiddlewareArray as any
-  }
-
-  override concat<
-    AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>
-  >(
-    items: AdditionalMiddlewares
-  ): MiddlewareArray<[...Middlewares, ...AdditionalMiddlewares]>
-
-  override concat<
-    AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>
-  >(
-    ...items: AdditionalMiddlewares
-  ): MiddlewareArray<[...Middlewares, ...AdditionalMiddlewares]>
-  override concat(...arr: any[]) {
-    return super.concat.apply(this, arr)
-  }
-
-  prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    items: AdditionalMiddlewares
-  ): MiddlewareArray<[...AdditionalMiddlewares, ...Middlewares]>
-
-  prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    ...items: AdditionalMiddlewares
-  ): MiddlewareArray<[...AdditionalMiddlewares, ...Middlewares]>
-
-  prepend(...arr: any[]) {
-    if (arr.length === 1 && Array.isArray(arr[0])) {
-      return new MiddlewareArray(...arr[0].concat(this))
+export function miniKindOf(x: any): string {
+  if (x === void 0) return "undefined"
+  if (x === null) return "null"
+  const type = typeof x
+  switch (type) {
+    case "boolean":
+    case "string":
+    case "number":
+    case "symbol":
+    case "function": {
+      return type
     }
-    return new MiddlewareArray(...arr.concat(this))
   }
+  if (Array.isArray(x)) return "array"
+  if (isDate(x)) return "date"
+  if (isError(x)) return "error"
+  const n = ctorName(x)
+  switch (n) {
+    case "Symbol":
+    case "Promise":
+    case "WeakMap":
+    case "WeakSet":
+    case "Map":
+    case "Set":
+      return n
+  }
+  return Object.prototype.toString
+    .call(x)
+    .slice(8, -1)
+    .toLowerCase()
+    .replace(/\s/g, "")
+}
+
+function ctorName(x: any): string | null {
+  return typeof x.constructor === "function" ? x.constructor.name : null
+}
+
+function isError(x: any) {
+  return (
+    x instanceof Error ||
+    (typeof x.message === "string" &&
+      x.constructor &&
+      typeof x.constructor.stackTraceLimit === "number")
+  )
+}
+
+function isDate(x: any) {
+  if (x instanceof Date) return true
+  return (
+    typeof x.toDateString === "function" &&
+    typeof x.getDate === "function" &&
+    typeof x.setDate === "function"
+  )
+}
+
+export function kindOf(x: any) {
+  let typeOfVal: string = typeof x
+  if (process.env["NODE_ENV"] !== "production") typeOfVal = miniKindOf(x)
+  return typeOfVal
 }
 
 export function freezeDraftable<T>(val: T) {
   return isDraftable(val) ? createNextState(val, () => {}) : val
+}
+
+export function warning(x: string): void {
+  if (typeof console !== "undefined" && typeof console.error === "function") {
+    console.error(x)
+  }
+  try {
+    throw new Error(x)
+  } catch (e) {}
 }
 
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
@@ -69,17 +119,6 @@ It is disabled in production builds, so you don't need to worry about that.`)
       }
     },
   }
-}
-
-export function isPlainObject(value: unknown): value is object {
-  if (typeof value !== "object" || value === null) return false
-  const proto = Object.getPrototypeOf(value)
-  if (proto === null) return true
-  let baseProto = proto
-  while (Object.getPrototypeOf(baseProto) !== null) {
-    baseProto = Object.getPrototypeOf(baseProto)
-  }
-  return proto === baseProto
 }
 
 const urlAlphabet =

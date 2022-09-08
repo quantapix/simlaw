@@ -1,9 +1,11 @@
-import type { Action, ActionCreator, StoreEnhancer } from "redux"
-import { compose } from "redux"
+import * as qb from "./base.js"
+import type * as qt from "./types.js"
 
-export interface DevToolsEnhancerOptions {
+export interface DevToolsOptions {
   name?: string
-  actionCreators?: ActionCreator<any>[] | { [key: string]: ActionCreator<any> }
+  actionCreators?:
+    | qt.ActionCreator<any>[]
+    | { [key: string]: qt.ActionCreator<any> }
   latency?: number
   maxAge?: number
   serialize?:
@@ -27,13 +29,13 @@ export interface DevToolsEnhancerOptions {
         immutable?: any
         refs?: any
       }
-  actionSanitizer?: <A extends Action>(action: A, id: number) => A
+  actionSanitizer?: <A extends qt.Action>(action: A, id: number) => A
   stateSanitizer?: <S>(state: S, index: number) => S
   actionsBlacklist?: string | string[]
   actionsWhitelist?: string | string[]
   actionsDenylist?: string | string[]
   actionsAllowlist?: string | string[]
-  predicate?: <S, A extends Action>(state: S, action: A) => boolean
+  predicate?: <S, A extends qt.Action>(state: S, action: A) => boolean
   shouldRecordChanges?: boolean
   pauseActionType?: string
   autoPause?: boolean
@@ -52,15 +54,15 @@ export interface DevToolsEnhancerOptions {
     dispatch?: boolean
     test?: boolean
   }
-  trace?: boolean | (<A extends Action>(action: A) => string)
+  trace?: boolean | (<A extends qt.Action>(action: A) => string)
   traceLimit?: number
 }
 
-type Compose = typeof compose
+type Compose = typeof qb.compose
 
 interface ComposeWithDevTools {
-  (options: DevToolsEnhancerOptions): Compose
-  <StoreExt>(...funcs: StoreEnhancer<StoreExt>[]): StoreEnhancer<StoreExt>
+  (options: DevToolsOptions): Compose
+  <StoreExt>(...funcs: qt.StoreEnhancer<StoreExt>[]): qt.StoreEnhancer<StoreExt>
 }
 
 export const composeWithDevTools: ComposeWithDevTools =
@@ -69,12 +71,12 @@ export const composeWithDevTools: ComposeWithDevTools =
     ? (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
     : function () {
         if (arguments.length === 0) return undefined
-        if (typeof arguments[0] === "object") return compose
-        return compose.apply(null, arguments as any as Function[])
+        if (typeof arguments[0] === "object") return qb.compose
+        return qb.compose.apply(null, arguments as any as Function[])
       }
 
 export const devToolsEnhancer: {
-  (options: DevToolsEnhancerOptions): StoreEnhancer<any>
+  (options: DevToolsOptions): qt.StoreEnhancer<any>
 } =
   typeof window !== "undefined" && (window as any).__REDUX_DEVTOOLS_EXTENSION__
     ? (window as any).__REDUX_DEVTOOLS_EXTENSION__

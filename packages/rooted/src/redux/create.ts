@@ -1,25 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import type { Draft } from "../immer/types.js"
-import {
-  createNextState,
-  current,
-  isDraft,
-  isDraftable,
-} from "../immer/immer.js"
-import type { AnyAction, Action, Reducer, Dispatch } from "redux"
+import * as qi from "../immer/index.js"
+import type * as qt from "./types.js"
 import type { ActionReducerMapBuilder } from "./mapBuilders.js"
 import { executeReducerBuilderCallback } from "./mapBuilders.js"
-import { freezeDraftable, isPlainObject, nanoid } from "./utils.js"
+import * as qu from "./utils.js"
 import { createSelector } from "reselect"
-import type {
-  IsUnknownOrNonInferrable,
-  IfMaybeUndefined,
-  IfVoid,
-  IsAny,
-  NoInfer,
-  FallbackIfUnknown,
-  IsUnknown,
-} from "./types.js"
 import type { ThunkDispatch } from "redux-thunk"
 
 export type SliceActionCreator<P> = PayloadActionCreator<P>
@@ -29,7 +14,7 @@ export interface Slice<
   Name extends string = string
 > {
   name: Name
-  reducer: Reducer<State>
+  reducer: qt.Reducer<State>
   actions: CaseReducerActions<CaseReducers>
   caseReducers: SliceDefinedCaseReducers<CaseReducers>
   getInitialState: () => State
@@ -43,8 +28,8 @@ export interface CreateSliceOptions<
   initialState: State | (() => State)
   reducers: ValidateSliceCaseReducers<State, CR>
   extraReducers?:
-    | CaseReducers<NoInfer<State>, any>
-    | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void)
+    | CaseReducers<qt.NoInfer<State>, any>
+    | ((builder: ActionReducerMapBuilder<qt.NoInfer<State>>) => void)
 }
 export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   reducer: CaseReducer<State, Action>
@@ -105,7 +90,7 @@ export function createSlice<
   }
   if (
     typeof process !== "undefined" &&
-    process.env.NODE_ENV === "development"
+    process.env["NODE_ENV"] === "development"
   ) {
     if (options.initialState === undefined) {
       console.error(
@@ -116,7 +101,7 @@ export function createSlice<
   const initialState =
     typeof options.initialState == "function"
       ? options.initialState
-      : freezeDraftable(options.initialState)
+      : qu.freezeDraftable(options.initialState)
   const reducers = options.reducers || {}
   const reducerNames = Object.keys(reducers)
   const sliceCaseReducersByName: Record<string, CaseReducer> = {}
@@ -219,7 +204,7 @@ export type _ActionCreatorWithPreparedPayload<
 
 export interface BaseActionCreator<P, T extends string, M = never, E = never> {
   type: T
-  match: (action: Action<unknown>) => action is PayloadAction<P, T, M, E>
+  match: (action: qt.Action<unknown>) => action is PayloadAction<P, T, M, E>
 }
 
 export interface ActionCreatorWithPreparedPayload<
@@ -261,18 +246,18 @@ export type PayloadActionCreator<
   PA,
   _ActionCreatorWithPreparedPayload<PA, T>,
   // else
-  IsAny<
+  qt.IsAny<
     P,
     ActionCreatorWithPayload<any, T>,
-    IsUnknownOrNonInferrable<
+    qt.IsUnknownOrNonInferrable<
       P,
       ActionCreatorWithNonInferrablePayload<T>,
       // else
-      IfVoid<
+      qt.IfVoid<
         P,
         ActionCreatorWithoutPayload<T>,
         // else
-        IfMaybeUndefined<
+        qt.IfMaybeUndefined<
           P,
           ActionCreatorWithOptionalPayload<P, T>,
           // else
@@ -311,7 +296,7 @@ export function createAction(type: string, prepareAction?: Function): any {
   }
   actionCreator.toString = () => `${type}`
   actionCreator.type = type
-  actionCreator.match = (action: Action<unknown>): action is PayloadAction =>
+  actionCreator.match = (action: qt.Action<unknown>): action is PayloadAction =>
     action.type === type
   return actionCreator
 }
@@ -323,7 +308,7 @@ export function isFSA(action: unknown): action is {
   meta?: unknown
 } {
   return (
-    isPlainObject(action) &&
+    qu.isPlainObject(action) &&
     typeof (action as any).type === "string" &&
     Object.keys(action).every(isValidKey)
   )
@@ -345,15 +330,15 @@ type IfPrepareActionMethodProvided<
   False
 > = PA extends (...args: any[]) => any ? True : False
 
-export type Actions<T extends keyof any = string> = Record<T, Action>
+export type Actions<T extends keyof any = string> = Record<T, qt.Action>
 
-export interface ActionMatcher<A extends AnyAction> {
-  (action: AnyAction): action is A
+export interface ActionMatcher<A extends qt.AnyAction> {
+  (action: qt.AnyAction): action is A
 }
 
-export type ActionMatcherDescription<S, A extends AnyAction> = {
+export type ActionMatcherDescription<S, A extends qt.AnyAction> = {
   matcher: ActionMatcher<A>
-  reducer: CaseReducer<S, NoInfer<A>>
+  reducer: CaseReducer<S, qt.NoInfer<A>>
 }
 
 export type ReadonlyActionMatcherDescriptionCollection<S> = ReadonlyArray<
@@ -364,12 +349,12 @@ export type ActionMatcherDescriptionCollection<S> = Array<
   ActionMatcherDescription<S, any>
 >
 
-export type CaseReducer<S = any, A extends Action = AnyAction> = (
-  state: Draft<S>,
+export type CaseReducer<S = any, A extends qt.Action = qt.AnyAction> = (
+  state: qi.Draft<S>,
   action: A
-) => S | void | Draft<S>
+) => S | void | qi.Draft<S>
 export type CaseReducers<S, AS extends Actions> = {
-  [T in keyof AS]: AS[T] extends Action ? CaseReducer<S, AS[T]> : void
+  [T in keyof AS]: AS[T] extends qt.Action ? CaseReducer<S, AS[T]> : void
 }
 
 export type NotFunction<T> = T extends Function ? never : T
@@ -378,9 +363,10 @@ function isStateFunction<S>(x: unknown): x is () => S {
   return typeof x === "function"
 }
 
-export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
-  getInitialState: () => S
-}
+export type ReducerWithInitialState<S extends NotFunction<any>> =
+  qt.Reducer<S> & {
+    getInitialState: () => S
+  }
 
 export function createReducer<S extends NotFunction<any>>(
   initialState: S | (() => S),
@@ -409,9 +395,9 @@ export function createReducer<S extends NotFunction<any>>(
       : [mapOrBuilderCallback, actionMatchers, defaultCaseReducer]
   let getInitialState: () => S
   if (isStateFunction(initialState)) {
-    getInitialState = () => freezeDraftable(initialState())
+    getInitialState = () => qu.freezeDraftable(initialState())
   } else {
-    const frozenInitialState = freezeDraftable(initialState)
+    const frozenInitialState = qu.freezeDraftable(initialState)
     getInitialState = () => frozenInitialState
   }
   function reducer(state = getInitialState(), action: any): S {
@@ -426,14 +412,14 @@ export function createReducer<S extends NotFunction<any>>(
     }
     return caseReducers.reduce((previousState, caseReducer): S => {
       if (caseReducer) {
-        if (isDraft(previousState)) {
-          const draft = previousState as Draft<S>
+        if (qi.isDraft(previousState)) {
+          const draft = previousState as qi.Draft<S>
           const result = caseReducer(draft, action)
           if (result === undefined) {
             return previousState
           }
           return result as S
-        } else if (!isDraftable(previousState)) {
+        } else if (!qi.isDraftable(previousState)) {
           const result = caseReducer(previousState as any, action)
           if (result === undefined) {
             if (previousState === null) {
@@ -445,7 +431,7 @@ export function createReducer<S extends NotFunction<any>>(
           }
           return result as S
         } else {
-          return createNextState(previousState, (draft: Draft<S>) => {
+          return qi.createNextState(previousState, (draft: qi.Draft<S>) => {
             return caseReducer(draft, action)
           })
         }
@@ -462,7 +448,7 @@ export const createDraftSafeSelector: typeof createSelector = (
 ) => {
   const selector = (createSelector as any)(...args)
   const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
-    selector(isDraft(value) ? current(value) : value, ...rest)
+    selector(qi.isDraft(value) ? qi.current(value) : value, ...rest)
   return wrappedSelector as any
 }
 
@@ -471,7 +457,7 @@ type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
 export type BaseThunkAPI<
   S,
   E,
-  D extends Dispatch = Dispatch,
+  D extends qt.Dispatch = qt.Dispatch,
   RejectedValue = undefined,
   RejectedMeta = unknown,
   FulfilledMeta = unknown
@@ -481,7 +467,7 @@ export type BaseThunkAPI<
   extra: E
   requestId: string
   signal: AbortSignal
-  rejectWithValue: IsUnknown<
+  rejectWithValue: qt.IsUnknown<
     RejectedMeta,
     (value: RejectedValue) => RejectWithValue<RejectedValue, RejectedMeta>,
     (
@@ -489,7 +475,7 @@ export type BaseThunkAPI<
       meta: RejectedMeta
     ) => RejectWithValue<RejectedValue, RejectedMeta>
   >
-  fulfillWithValue: IsUnknown<
+  fulfillWithValue: qt.IsUnknown<
     FulfilledMeta,
     <FulfilledValue>(
       value: FulfilledValue
@@ -548,7 +534,7 @@ export const miniSerializeError = (value: any): SerializedError => {
 
 type AsyncThunkConfig = {
   state?: unknown
-  dispatch?: Dispatch
+  dispatch?: qt.Dispatch
   extra?: unknown
   rejectValue?: unknown
   serializedErrorType?: unknown
@@ -568,15 +554,19 @@ type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
 type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
   dispatch: infer Dispatch
 }
-  ? FallbackIfUnknown<
+  ? qt.FallbackIfUnknown<
       Dispatch,
       ThunkDispatch<
         GetState<ThunkApiConfig>,
         GetExtra<ThunkApiConfig>,
-        AnyAction
+        qt.AnyAction
       >
     >
-  : ThunkDispatch<GetState<ThunkApiConfig>, GetExtra<ThunkApiConfig>, AnyAction>
+  : ThunkDispatch<
+      GetState<ThunkApiConfig>,
+      GetExtra<ThunkApiConfig>,
+      qt.AnyAction
+    >
 
 type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,
@@ -623,7 +613,7 @@ export type AsyncThunkPayloadCreatorReturnValue<
   Returned,
   ThunkApiConfig extends AsyncThunkConfig
 > = MaybePromise<
-  | IsUnknown<
+  | qt.IsUnknown<
       GetFulfilledMeta<ThunkApiConfig>,
       Returned,
       FulfillWithMeta<Returned, GetFulfilledMeta<ThunkApiConfig>>
@@ -665,7 +655,7 @@ type AsyncThunkActionCreator<
   Returned,
   ThunkArg,
   ThunkApiConfig extends AsyncThunkConfig
-> = IsAny<
+> = qt.IsAny<
   ThunkArg,
   (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
   unknown extends ThunkArg
@@ -697,7 +687,7 @@ export type AsyncThunkOptions<
   serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>
 
   idGenerator?: (arg: ThunkArg) => string
-} & IsUnknown<
+} & qt.IsUnknown<
   GetPendingMeta<ThunkApiConfig>,
   {
     getPendingMeta?(
@@ -903,7 +893,7 @@ export function createAsyncThunk<
             throwIfAborted() {},
           }
           abort() {
-            if (process.env.NODE_ENV !== "production") {
+            if (process.env["NODE_ENV"] !== "production") {
               if (!displayedWarning) {
                 displayedWarning = true
                 console.info(
@@ -921,7 +911,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
     return (dispatch, getState, extra) => {
       const requestId = options?.idGenerator
         ? options.idGenerator(arg)
-        : nanoid()
+        : qu.nanoid()
 
       const abortController = new AC()
       let abortReason: string | undefined

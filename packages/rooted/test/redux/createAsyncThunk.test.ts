@@ -1,18 +1,18 @@
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { AnyAction } from "@reduxjs/toolkit"
 import {
   createAsyncThunk,
   unwrapResult,
   configureStore,
   createReducer,
-} from '@reduxjs/toolkit'
-import { miniSerializeError } from '@internal/createAsyncThunk'
+} from "@reduxjs/toolkit"
+import { miniSerializeError } from "@internal/createAsyncThunk"
 
 import {
   mockConsole,
   createConsole,
   getLog,
-} from 'console-testing-library/pure'
-import { expectType } from './helpers'
+} from "console-testing-library/pure"
+import { expectType } from "./helpers"
 
 declare global {
   interface Window {
@@ -20,23 +20,23 @@ declare global {
   }
 }
 
-describe('createAsyncThunk', () => {
-  it('creates the action types', () => {
-    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+describe("createAsyncThunk", () => {
+  it("creates the action types", () => {
+    const thunkActionCreator = createAsyncThunk("testType", async () => 42)
 
-    expect(thunkActionCreator.fulfilled.type).toBe('testType/fulfilled')
-    expect(thunkActionCreator.pending.type).toBe('testType/pending')
-    expect(thunkActionCreator.rejected.type).toBe('testType/rejected')
+    expect(thunkActionCreator.fulfilled.type).toBe("testType/fulfilled")
+    expect(thunkActionCreator.pending.type).toBe("testType/pending")
+    expect(thunkActionCreator.rejected.type).toBe("testType/rejected")
   })
 
-  it('exposes the typePrefix it was created with', () => {
-    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+  it("exposes the typePrefix it was created with", () => {
+    const thunkActionCreator = createAsyncThunk("testType", async () => 42)
 
-    expect(thunkActionCreator.typePrefix).toBe('testType')
+    expect(thunkActionCreator.typePrefix).toBe("testType")
   })
 
-  it('works without passing arguments to the payload creator', async () => {
-    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+  it("works without passing arguments to the payload creator", async () => {
+    const thunkActionCreator = createAsyncThunk("testType", async () => 42)
 
     let timesReducerCalled = 0
 
@@ -56,17 +56,17 @@ describe('createAsyncThunk', () => {
     expect(timesReducerCalled).toBe(2)
   })
 
-  it('accepts arguments and dispatches the actions on resolve', async () => {
+  it("accepts arguments and dispatches the actions on resolve", async () => {
     const dispatch = jest.fn()
 
     let passedArg: any
 
     const result = 42
     const args = 123
-    let generatedRequestId = ''
+    let generatedRequestId = ""
 
     const thunkActionCreator = createAsyncThunk(
-      'testType',
+      "testType",
       async (arg: number, { requestId }) => {
         passedArg = arg
         generatedRequestId = requestId
@@ -96,16 +96,16 @@ describe('createAsyncThunk', () => {
     )
   })
 
-  it('accepts arguments and dispatches the actions on reject', async () => {
+  it("accepts arguments and dispatches the actions on reject", async () => {
     const dispatch = jest.fn()
 
     const args = 123
-    let generatedRequestId = ''
+    let generatedRequestId = ""
 
-    const error = new Error('Panic!')
+    const error = new Error("Panic!")
 
     const thunkActionCreator = createAsyncThunk(
-      'testType',
+      "testType",
       async (args: number, { requestId }) => {
         generatedRequestId = requestId
         throw error
@@ -132,16 +132,16 @@ describe('createAsyncThunk', () => {
     expect(errorAction.meta.arg).toBe(args)
   })
 
-  it('dispatches an empty error when throwing a random object without serializedError properties', async () => {
+  it("dispatches an empty error when throwing a random object without serializedError properties", async () => {
     const dispatch = jest.fn()
 
     const args = 123
-    let generatedRequestId = ''
+    let generatedRequestId = ""
 
-    const errorObject = { wny: 'dothis' }
+    const errorObject = { wny: "dothis" }
 
     const thunkActionCreator = createAsyncThunk(
-      'testType',
+      "testType",
       async (args: number, { requestId }) => {
         generatedRequestId = requestId
         throw errorObject
@@ -167,20 +167,20 @@ describe('createAsyncThunk', () => {
     expect(errorAction.meta.arg).toBe(args)
   })
 
-  it('dispatches an action with a formatted error when throwing an object with known error keys', async () => {
+  it("dispatches an action with a formatted error when throwing an object with known error keys", async () => {
     const dispatch = jest.fn()
 
     const args = 123
-    let generatedRequestId = ''
+    let generatedRequestId = ""
 
     const errorObject = {
-      name: 'Custom thrown error',
-      message: 'This is not necessary',
-      code: '400',
+      name: "Custom thrown error",
+      message: "This is not necessary",
+      code: "400",
     }
 
     const thunkActionCreator = createAsyncThunk(
-      'testType',
+      "testType",
       async (args: number, { requestId }) => {
         generatedRequestId = requestId
         throw errorObject
@@ -203,28 +203,28 @@ describe('createAsyncThunk', () => {
     // Have to check the bits of the action separately since the error was processed
     const errorAction = dispatch.mock.calls[1][0]
     expect(errorAction.error).toEqual(miniSerializeError(errorObject))
-    expect(Object.keys(errorAction.error)).not.toContain('stack')
+    expect(Object.keys(errorAction.error)).not.toContain("stack")
     expect(errorAction.meta.requestId).toBe(generatedRequestId)
     expect(errorAction.meta.arg).toBe(args)
   })
 
-  it('dispatches a rejected action with a customized payload when a user returns rejectWithValue()', async () => {
+  it("dispatches a rejected action with a customized payload when a user returns rejectWithValue()", async () => {
     const dispatch = jest.fn()
 
     const args = 123
-    let generatedRequestId = ''
+    let generatedRequestId = ""
 
     const errorPayload = {
       errorMessage:
-        'I am a fake server-provided 400 payload with validation details',
+        "I am a fake server-provided 400 payload with validation details",
       errors: [
-        { field_one: 'Must be a string' },
-        { field_two: 'Must be a number' },
+        { field_one: "Must be a string" },
+        { field_two: "Must be a number" },
       ],
     }
 
     const thunkActionCreator = createAsyncThunk(
-      'testType',
+      "testType",
       async (args: number, { requestId, rejectWithValue }) => {
         generatedRequestId = requestId
 
@@ -248,28 +248,28 @@ describe('createAsyncThunk', () => {
     // Have to check the bits of the action separately since the error was processed
     const errorAction = dispatch.mock.calls[1][0]
 
-    expect(errorAction.error.message).toEqual('Rejected')
+    expect(errorAction.error.message).toEqual("Rejected")
     expect(errorAction.payload).toBe(errorPayload)
     expect(errorAction.meta.arg).toBe(args)
   })
 
-  it('dispatches a rejected action with a customized payload when a user throws rejectWithValue()', async () => {
+  it("dispatches a rejected action with a customized payload when a user throws rejectWithValue()", async () => {
     const dispatch = jest.fn()
 
     const args = 123
-    let generatedRequestId = ''
+    let generatedRequestId = ""
 
     const errorPayload = {
       errorMessage:
-        'I am a fake server-provided 400 payload with validation details',
+        "I am a fake server-provided 400 payload with validation details",
       errors: [
-        { field_one: 'Must be a string' },
-        { field_two: 'Must be a number' },
+        { field_one: "Must be a string" },
+        { field_two: "Must be a number" },
       ],
     }
 
     const thunkActionCreator = createAsyncThunk(
-      'testType',
+      "testType",
       async (args: number, { requestId, rejectWithValue }) => {
         generatedRequestId = requestId
 
@@ -293,30 +293,30 @@ describe('createAsyncThunk', () => {
     // Have to check the bits of the action separately since the error was processed
     const errorAction = dispatch.mock.calls[1][0]
 
-    expect(errorAction.error.message).toEqual('Rejected')
+    expect(errorAction.error.message).toEqual("Rejected")
     expect(errorAction.payload).toBe(errorPayload)
     expect(errorAction.meta.arg).toBe(args)
   })
 
-  it('dispatches a rejected action with a miniSerializeError when rejectWithValue conditions are not satisfied', async () => {
+  it("dispatches a rejected action with a miniSerializeError when rejectWithValue conditions are not satisfied", async () => {
     const dispatch = jest.fn()
 
     const args = 123
-    let generatedRequestId = ''
+    let generatedRequestId = ""
 
-    const error = new Error('Panic!')
+    const error = new Error("Panic!")
 
     const errorPayload = {
       errorMessage:
-        'I am a fake server-provided 400 payload with validation details',
+        "I am a fake server-provided 400 payload with validation details",
       errors: [
-        { field_one: 'Must be a string' },
-        { field_two: 'Must be a number' },
+        { field_one: "Must be a string" },
+        { field_two: "Must be a number" },
       ],
     }
 
     const thunkActionCreator = createAsyncThunk(
-      'testType',
+      "testType",
       async (args: number, { requestId, rejectWithValue }) => {
         generatedRequestId = requestId
 
@@ -353,21 +353,21 @@ describe('createAsyncThunk', () => {
   })
 })
 
-describe('createAsyncThunk with abortController', () => {
+describe("createAsyncThunk with abortController", () => {
   const asyncThunk = createAsyncThunk(
-    'test',
+    "test",
     function abortablePayloadCreator(_: any, { signal }) {
       return new Promise((resolve, reject) => {
         if (signal.aborted) {
           reject(
             new DOMException(
-              'This should never be reached as it should already be handled.',
-              'AbortError'
+              "This should never be reached as it should already be handled.",
+              "AbortError"
             )
           )
         }
-        signal.addEventListener('abort', () => {
-          reject(new DOMException('Was aborted while running', 'AbortError'))
+        signal.addEventListener("abort", () => {
+          reject(new DOMException("Was aborted while running", "AbortError"))
         })
         setTimeout(resolve, 100)
       })
@@ -388,24 +388,24 @@ describe('createAsyncThunk with abortController', () => {
     })
   })
 
-  test('normal usage', async () => {
+  test("normal usage", async () => {
     await store.dispatch(asyncThunk({}))
     expect(store.getState()).toEqual([
       expect.any(Object),
-      expect.objectContaining({ type: 'test/pending' }),
-      expect.objectContaining({ type: 'test/fulfilled' }),
+      expect.objectContaining({ type: "test/pending" }),
+      expect.objectContaining({ type: "test/fulfilled" }),
     ])
   })
 
-  test('abort after dispatch', async () => {
+  test("abort after dispatch", async () => {
     const promise = store.dispatch(asyncThunk({}))
-    promise.abort('AbortReason')
+    promise.abort("AbortReason")
     const result = await promise
     const expectedAbortedAction = {
-      type: 'test/rejected',
+      type: "test/rejected",
       error: {
-        message: 'AbortReason',
-        name: 'AbortError',
+        message: "AbortReason",
+        name: "AbortError",
       },
       meta: { aborted: true, requestId: promise.requestId },
     }
@@ -413,7 +413,7 @@ describe('createAsyncThunk with abortController', () => {
     // abortedAction with reason is dispatched after test/pending is dispatched
     expect(store.getState()).toMatchObject([
       {},
-      { type: 'test/pending' },
+      { type: "test/pending" },
       expectedAbortedAction,
     ])
 
@@ -426,28 +426,28 @@ describe('createAsyncThunk with abortController', () => {
     )
   })
 
-  test('even when the payloadCreator does not directly support the signal, no further actions are dispatched', async () => {
-    const unawareAsyncThunk = createAsyncThunk('unaware', async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100))
-      return 'finished'
+  test("even when the payloadCreator does not directly support the signal, no further actions are dispatched", async () => {
+    const unawareAsyncThunk = createAsyncThunk("unaware", async () => {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      return "finished"
     })
 
     const promise = store.dispatch(unawareAsyncThunk())
-    promise.abort('AbortReason')
+    promise.abort("AbortReason")
     const result = await promise
 
     const expectedAbortedAction = {
-      type: 'unaware/rejected',
+      type: "unaware/rejected",
       error: {
-        message: 'AbortReason',
-        name: 'AbortError',
+        message: "AbortReason",
+        name: "AbortError",
       },
     }
 
     // abortedAction with reason is dispatched after test/pending is dispatched
     expect(store.getState()).toEqual([
       expect.any(Object),
-      expect.objectContaining({ type: 'unaware/pending' }),
+      expect.objectContaining({ type: "unaware/pending" }),
       expect.objectContaining(expectedAbortedAction),
     ])
 
@@ -460,11 +460,11 @@ describe('createAsyncThunk with abortController', () => {
     )
   })
 
-  test('dispatch(asyncThunk) returns on abort and does not wait for the promiseProvider to finish', async () => {
+  test("dispatch(asyncThunk) returns on abort and does not wait for the promiseProvider to finish", async () => {
     let running = false
-    const longRunningAsyncThunk = createAsyncThunk('longRunning', async () => {
+    const longRunningAsyncThunk = createAsyncThunk("longRunning", async () => {
       running = true
-      await new Promise((resolve) => setTimeout(resolve, 30000))
+      await new Promise(resolve => setTimeout(resolve, 30000))
       running = false
     })
 
@@ -474,15 +474,15 @@ describe('createAsyncThunk with abortController', () => {
     const result = await promise
     expect(running).toBeTruthy()
     expect(result).toMatchObject({
-      type: 'longRunning/rejected',
-      error: { message: 'Aborted', name: 'AbortError' },
+      type: "longRunning/rejected",
+      error: { message: "Aborted", name: "AbortError" },
       meta: { aborted: true },
     })
   })
 
-  describe('behaviour with missing AbortController', () => {
-    let keepAbortController: typeof window['AbortController']
-    let freshlyLoadedModule: typeof import('../createAsyncThunk')
+  describe("behaviour with missing AbortController", () => {
+    let keepAbortController: typeof window["AbortController"]
+    let freshlyLoadedModule: typeof import("../createAsyncThunk")
     let restore: () => void
     let nodeEnv: string
 
@@ -490,10 +490,10 @@ describe('createAsyncThunk with abortController', () => {
       keepAbortController = window.AbortController
       delete (window as any).AbortController
       jest.resetModules()
-      freshlyLoadedModule = require('../createAsyncThunk')
+      freshlyLoadedModule = require("../createAsyncThunk")
       restore = mockConsole(createConsole())
-      nodeEnv = process.env.NODE_ENV!
-      ;(process.env as any).NODE_ENV = 'development'
+      nodeEnv = process.env["NODE_ENV"]!
+      ;(process.env as any).NODE_ENV = "development"
     })
 
     afterEach(() => {
@@ -503,11 +503,11 @@ describe('createAsyncThunk with abortController', () => {
       jest.resetModules()
     })
 
-    test('calling `abort` on an asyncThunk works with a FallbackAbortController if no global abortController is not available', async () => {
+    test("calling `abort` on an asyncThunk works with a FallbackAbortController if no global abortController is not available", async () => {
       const longRunningAsyncThunk = freshlyLoadedModule.createAsyncThunk(
-        'longRunning',
+        "longRunning",
         async () => {
-          await new Promise((resolve) => setTimeout(resolve, 30000))
+          await new Promise(resolve => setTimeout(resolve, 30000))
         }
       )
 
@@ -523,10 +523,10 @@ describe('createAsyncThunk with abortController', () => {
   })
 })
 
-test('non-serializable arguments are ignored by serializableStateInvariantMiddleware', async () => {
+test("non-serializable arguments are ignored by serializableStateInvariantMiddleware", async () => {
   const restore = mockConsole(createConsole())
   const nonSerializableValue = new Map()
-  const asyncThunk = createAsyncThunk('test', (arg: Map<any, any>) => {})
+  const asyncThunk = createAsyncThunk("test", (arg: Map<any, any>) => {})
 
   configureStore({
     reducer: () => 0,
@@ -536,7 +536,7 @@ test('non-serializable arguments are ignored by serializableStateInvariantMiddle
   restore()
 })
 
-describe('conditional skipping of asyncThunks', () => {
+describe("conditional skipping of asyncThunks", () => {
   const arg = {}
   const getState = jest.fn(() => ({}))
   const dispatch = jest.fn((x: any) => x)
@@ -551,8 +551,8 @@ describe('conditional skipping of asyncThunks', () => {
     condition.mockClear()
   })
 
-  test('returning false from condition skips payloadCreator and returns a rejected action', async () => {
-    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+  test("returning false from condition skips payloadCreator and returns a rejected action", async () => {
+    const asyncThunk = createAsyncThunk("test", payloadCreator, { condition })
     const result = await asyncThunk(arg)(dispatch, getState, extra)
 
     expect(condition).toHaveBeenCalled()
@@ -561,10 +561,10 @@ describe('conditional skipping of asyncThunks', () => {
     expect((result as any).meta.condition).toBe(true)
   })
 
-  test('return falsy from condition does not skip payload creator', async () => {
+  test("return falsy from condition does not skip payload creator", async () => {
     // Override TS's expectation that this is a boolean
     condition.mockReturnValueOnce(undefined as unknown as boolean)
-    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    const asyncThunk = createAsyncThunk("test", payloadCreator, { condition })
     const result = await asyncThunk(arg)(dispatch, getState, extra)
 
     expect(condition).toHaveBeenCalled()
@@ -573,9 +573,9 @@ describe('conditional skipping of asyncThunks', () => {
     expect(result.payload).toBe(10)
   })
 
-  test('returning true from condition executes payloadCreator', async () => {
+  test("returning true from condition executes payloadCreator", async () => {
     condition.mockReturnValueOnce(true)
-    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    const asyncThunk = createAsyncThunk("test", payloadCreator, { condition })
     const result = await asyncThunk(arg)(dispatch, getState, extra)
 
     expect(condition).toHaveBeenCalled()
@@ -584,8 +584,8 @@ describe('conditional skipping of asyncThunks', () => {
     expect(result.payload).toBe(10)
   })
 
-  test('condition is called with arg, getState and extra', async () => {
-    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+  test("condition is called with arg, getState and extra", async () => {
+    const asyncThunk = createAsyncThunk("test", payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
 
     expect(condition).toHaveBeenCalledTimes(1)
@@ -595,46 +595,46 @@ describe('conditional skipping of asyncThunks', () => {
     )
   })
 
-  test('pending is dispatched synchronously if condition is synchronous', async () => {
+  test("pending is dispatched synchronously if condition is synchronous", async () => {
     const condition = () => true
-    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    const asyncThunk = createAsyncThunk("test", payloadCreator, { condition })
     const thunkCallPromise = asyncThunk(arg)(dispatch, getState, extra)
     expect(dispatch).toHaveBeenCalledTimes(1)
     await thunkCallPromise
     expect(dispatch).toHaveBeenCalledTimes(2)
   })
 
-  test('async condition', async () => {
+  test("async condition", async () => {
     const condition = () => Promise.resolve(false)
-    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    const asyncThunk = createAsyncThunk("test", payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
     expect(dispatch).toHaveBeenCalledTimes(0)
   })
 
-  test('async condition with rejected promise', async () => {
+  test("async condition with rejected promise", async () => {
     const condition = () => Promise.reject()
-    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    const asyncThunk = createAsyncThunk("test", payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
     expect(dispatch).toHaveBeenCalledTimes(1)
     expect(dispatch).toHaveBeenLastCalledWith(
-      expect.objectContaining({ type: 'test/rejected' })
+      expect.objectContaining({ type: "test/rejected" })
     )
   })
 
-  test('rejected action is not dispatched by default', async () => {
-    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+  test("rejected action is not dispatched by default", async () => {
+    const asyncThunk = createAsyncThunk("test", payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
 
     expect(dispatch).toHaveBeenCalledTimes(0)
   })
 
-  test('does not fail when attempting to abort a canceled promise', async () => {
+  test("does not fail when attempting to abort a canceled promise", async () => {
     const asyncPayloadCreator = jest.fn(async (x: typeof arg) => {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await new Promise(resolve => setTimeout(resolve, 2000))
       return 10
     })
 
-    const asyncThunk = createAsyncThunk('test', asyncPayloadCreator, {
+    const asyncThunk = createAsyncThunk("test", asyncPayloadCreator, {
       condition,
     })
     const promise = asyncThunk(arg)(dispatch, getState, extra)
@@ -643,8 +643,8 @@ describe('conditional skipping of asyncThunks', () => {
     )
   })
 
-  test('rejected action can be dispatched via option', async () => {
-    const asyncThunk = createAsyncThunk('test', payloadCreator, {
+  test("rejected action can be dispatched via option", async () => {
+    const asyncThunk = createAsyncThunk("test", payloadCreator, {
       condition,
       dispatchConditionRejection: true,
     })
@@ -654,29 +654,29 @@ describe('conditional skipping of asyncThunks', () => {
     expect(dispatch).toHaveBeenLastCalledWith(
       expect.objectContaining({
         error: {
-          message: 'Aborted due to condition callback returning false.',
-          name: 'ConditionError',
+          message: "Aborted due to condition callback returning false.",
+          name: "ConditionError",
         },
         meta: {
           aborted: false,
           arg: arg,
           rejectedWithValue: false,
           condition: true,
-          requestId: expect.stringContaining(''),
-          requestStatus: 'rejected',
+          requestId: expect.stringContaining(""),
+          requestStatus: "rejected",
         },
         payload: undefined,
-        type: 'test/rejected',
+        type: "test/rejected",
       })
     )
   })
 })
 
-test('serializeError implementation', async () => {
+test("serializeError implementation", async () => {
   function serializeError() {
-    return 'serialized!'
+    return "serialized!"
   }
-  const errorObject = 'something else!'
+  const errorObject = "something else!"
 
   const store = configureStore({
     reducer: (state = [], action) => [...state, action],
@@ -686,16 +686,16 @@ test('serializeError implementation', async () => {
     unknown,
     void,
     { serializedErrorType: string }
-  >('test', () => Promise.reject(errorObject), { serializeError })
+  >("test", () => Promise.reject(errorObject), { serializeError })
   const rejected = await store.dispatch(asyncThunk())
   if (!asyncThunk.rejected.match(rejected)) {
     throw new Error()
   }
 
   const expectation = {
-    type: 'test/rejected',
+    type: "test/rejected",
     payload: undefined,
-    error: 'serialized!',
+    error: "serialized!",
     meta: expect.any(Object),
   }
   expect(rejected).toEqual(expectation)
@@ -703,28 +703,28 @@ test('serializeError implementation', async () => {
   expect(rejected.error).not.toEqual(miniSerializeError(errorObject))
 })
 
-describe('unwrapResult', () => {
+describe("unwrapResult", () => {
   const getState = jest.fn(() => ({}))
   const dispatch = jest.fn((x: any) => x)
   const extra = {}
-  test('fulfilled case', async () => {
-    const asyncThunk = createAsyncThunk('test', () => {
-      return 'fulfilled!' as const
+  test("fulfilled case", async () => {
+    const asyncThunk = createAsyncThunk("test", () => {
+      return "fulfilled!" as const
     })
 
     const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
       unwrapResult
     )
 
-    await expect(unwrapPromise).resolves.toBe('fulfilled!')
+    await expect(unwrapPromise).resolves.toBe("fulfilled!")
 
     const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
     const res = await unwrapPromise2.unwrap()
-    expect(res).toBe('fulfilled!')
+    expect(res).toBe("fulfilled!")
   })
-  test('error case', async () => {
-    const error = new Error('Panic!')
-    const asyncThunk = createAsyncThunk('test', () => {
+  test("error case", async () => {
+    const error = new Error("Panic!")
+    const asyncThunk = createAsyncThunk("test", () => {
       throw error
     })
 
@@ -739,28 +739,28 @@ describe('unwrapResult', () => {
       miniSerializeError(error)
     )
   })
-  test('rejectWithValue case', async () => {
-    const asyncThunk = createAsyncThunk('test', (_, { rejectWithValue }) => {
-      return rejectWithValue('rejectWithValue!')
+  test("rejectWithValue case", async () => {
+    const asyncThunk = createAsyncThunk("test", (_, { rejectWithValue }) => {
+      return rejectWithValue("rejectWithValue!")
     })
 
     const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
       unwrapResult
     )
 
-    await expect(unwrapPromise).rejects.toBe('rejectWithValue!')
+    await expect(unwrapPromise).rejects.toBe("rejectWithValue!")
 
     const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
-    await expect(unwrapPromise2.unwrap()).rejects.toBe('rejectWithValue!')
+    await expect(unwrapPromise2.unwrap()).rejects.toBe("rejectWithValue!")
   })
 })
 
-describe('idGenerator option', () => {
+describe("idGenerator option", () => {
   const getState = () => ({})
   const dispatch = (x: any) => x
   const extra = {}
 
-  test('idGenerator implementation - can customizes how request IDs are generated', async () => {
+  test("idGenerator implementation - can customizes how request IDs are generated", async () => {
     function makeFakeIdGenerator() {
       let id = 0
       return jest.fn(() => {
@@ -769,11 +769,11 @@ describe('idGenerator option', () => {
       })
     }
 
-    let generatedRequestId = ''
+    let generatedRequestId = ""
 
     const idGenerator = makeFakeIdGenerator()
     const asyncThunk = createAsyncThunk(
-      'test',
+      "test",
       async (args: void, { requestId }) => {
         generatedRequestId = requestId
       },
@@ -782,23 +782,23 @@ describe('idGenerator option', () => {
 
     // dispatching the thunks should be using the custom id generator
     const promise0 = asyncThunk()(dispatch, getState, extra)
-    expect(generatedRequestId).toEqual('fake-random-id-1')
-    expect(promise0.requestId).toEqual('fake-random-id-1')
-    expect((await promise0).meta.requestId).toEqual('fake-random-id-1')
+    expect(generatedRequestId).toEqual("fake-random-id-1")
+    expect(promise0.requestId).toEqual("fake-random-id-1")
+    expect((await promise0).meta.requestId).toEqual("fake-random-id-1")
 
     const promise1 = asyncThunk()(dispatch, getState, extra)
-    expect(generatedRequestId).toEqual('fake-random-id-2')
-    expect(promise1.requestId).toEqual('fake-random-id-2')
-    expect((await promise1).meta.requestId).toEqual('fake-random-id-2')
+    expect(generatedRequestId).toEqual("fake-random-id-2")
+    expect(promise1.requestId).toEqual("fake-random-id-2")
+    expect((await promise1).meta.requestId).toEqual("fake-random-id-2")
 
     const promise2 = asyncThunk()(dispatch, getState, extra)
-    expect(generatedRequestId).toEqual('fake-random-id-3')
-    expect(promise2.requestId).toEqual('fake-random-id-3')
-    expect((await promise2).meta.requestId).toEqual('fake-random-id-3')
+    expect(generatedRequestId).toEqual("fake-random-id-3")
+    expect(promise2.requestId).toEqual("fake-random-id-3")
+    expect((await promise2).meta.requestId).toEqual("fake-random-id-3")
 
-    generatedRequestId = ''
+    generatedRequestId = ""
     const defaultAsyncThunk = createAsyncThunk(
-      'test',
+      "test",
       async (args: void, { requestId }) => {
         generatedRequestId = requestId
       }
@@ -807,20 +807,20 @@ describe('idGenerator option', () => {
     // but not using the custom id generator
     const promise3 = defaultAsyncThunk()(dispatch, getState, extra)
     expect(generatedRequestId).toEqual(promise3.requestId)
-    expect(promise3.requestId).not.toEqual('')
+    expect(promise3.requestId).not.toEqual("")
     expect(promise3.requestId).not.toEqual(
-      expect.stringContaining('fake-random-id')
+      expect.stringContaining("fake-random-id")
     )
     expect((await promise3).meta.requestId).not.toEqual(
-      expect.stringContaining('fake-fandom-id')
+      expect.stringContaining("fake-fandom-id")
     )
   })
 
-  test('idGenerator should be called with thunkArg', async () => {
-    const customIdGenerator = jest.fn((seed) => `fake-unique-random-id-${seed}`)
-    let generatedRequestId = ''
+  test("idGenerator should be called with thunkArg", async () => {
+    const customIdGenerator = jest.fn(seed => `fake-unique-random-id-${seed}`)
+    let generatedRequestId = ""
     const asyncThunk = createAsyncThunk(
-      'test',
+      "test",
       async (args: any, { requestId }) => {
         generatedRequestId = requestId
       },
@@ -828,7 +828,7 @@ describe('idGenerator option', () => {
     )
 
     const thunkArg = 1
-    const expected = 'fake-unique-random-id-1'
+    const expected = "fake-unique-random-id-1"
     const asyncThunkPromise = asyncThunk(thunkArg)(dispatch, getState, extra)
 
     expect(customIdGenerator).toHaveBeenCalledWith(thunkArg)
@@ -837,21 +837,21 @@ describe('idGenerator option', () => {
   })
 })
 
-test('`condition` will see state changes from a synchronously invoked asyncThunk', () => {
+test("`condition` will see state changes from a synchronously invoked asyncThunk", () => {
   type State = ReturnType<typeof store.getState>
   const onStart = jest.fn()
   const asyncThunk = createAsyncThunk<
     void,
     { force?: boolean },
     { state: State }
-  >('test', onStart, {
+  >("test", onStart, {
     condition({ force }, { getState }) {
       return force || !getState().started
     },
   })
   const store = configureStore({
-    reducer: createReducer({ started: false }, (builder) => {
-      builder.addCase(asyncThunk.pending, (state) => {
+    reducer: createReducer({ started: false }, builder => {
+      builder.addCase(asyncThunk.pending, state => {
         state.started = true
       })
     }),
@@ -865,7 +865,7 @@ test('`condition` will see state changes from a synchronously invoked asyncThunk
   expect(onStart).toHaveBeenCalledTimes(2)
 })
 
-describe('meta', () => {
+describe("meta", () => {
   const getNewStore = () =>
     configureStore({
       reducer(actions = [], action) {
@@ -878,74 +878,74 @@ describe('meta', () => {
     const store = getNewStore()
   })
 
-  test('pendingMeta', () => {
-    const pendingThunk = createAsyncThunk('test', (arg: string) => {}, {
+  test("pendingMeta", () => {
+    const pendingThunk = createAsyncThunk("test", (arg: string) => {}, {
       getPendingMeta({ arg, requestId }) {
-        expect(arg).toBe('testArg')
+        expect(arg).toBe("testArg")
         expect(requestId).toEqual(expect.any(String))
-        return { extraProp: 'foo' }
+        return { extraProp: "foo" }
       },
     })
-    const ret = store.dispatch(pendingThunk('testArg'))
+    const ret = store.dispatch(pendingThunk("testArg"))
     expect(store.getState()[1]).toEqual({
       meta: {
-        arg: 'testArg',
-        extraProp: 'foo',
+        arg: "testArg",
+        extraProp: "foo",
         requestId: ret.requestId,
-        requestStatus: 'pending',
+        requestStatus: "pending",
       },
       payload: undefined,
-      type: 'test/pending',
+      type: "test/pending",
     })
   })
 
-  test('fulfilledMeta', async () => {
+  test("fulfilledMeta", async () => {
     const fulfilledThunk = createAsyncThunk<
       string,
       string,
       { fulfilledMeta: { extraProp: string } }
-    >('test', (arg: string, { fulfillWithValue }) => {
-      return fulfillWithValue('hooray!', { extraProp: 'bar' })
+    >("test", (arg: string, { fulfillWithValue }) => {
+      return fulfillWithValue("hooray!", { extraProp: "bar" })
     })
-    const ret = store.dispatch(fulfilledThunk('testArg'))
+    const ret = store.dispatch(fulfilledThunk("testArg"))
     expect(await ret).toEqual({
       meta: {
-        arg: 'testArg',
-        extraProp: 'bar',
+        arg: "testArg",
+        extraProp: "bar",
         requestId: ret.requestId,
-        requestStatus: 'fulfilled',
+        requestStatus: "fulfilled",
       },
-      payload: 'hooray!',
-      type: 'test/fulfilled',
+      payload: "hooray!",
+      type: "test/fulfilled",
     })
   })
 
-  test('rejectedMeta', async () => {
+  test("rejectedMeta", async () => {
     const fulfilledThunk = createAsyncThunk<
       string,
       string,
       { rejectedMeta: { extraProp: string } }
-    >('test', (arg: string, { rejectWithValue }) => {
-      return rejectWithValue('damn!', { extraProp: 'baz' })
+    >("test", (arg: string, { rejectWithValue }) => {
+      return rejectWithValue("damn!", { extraProp: "baz" })
     })
-    const promise = store.dispatch(fulfilledThunk('testArg'))
+    const promise = store.dispatch(fulfilledThunk("testArg"))
     const ret = await promise
     expect(ret).toEqual({
       meta: {
-        arg: 'testArg',
-        extraProp: 'baz',
+        arg: "testArg",
+        extraProp: "baz",
         requestId: promise.requestId,
-        requestStatus: 'rejected',
+        requestStatus: "rejected",
         rejectedWithValue: true,
         aborted: false,
         condition: false,
       },
-      error: { message: 'Rejected' },
-      payload: 'damn!',
-      type: 'test/rejected',
+      error: { message: "Rejected" },
+      payload: "damn!",
+      type: "test/rejected",
     })
 
-    if (ret.meta.requestStatus === 'rejected' && ret.meta.rejectedWithValue) {
+    if (ret.meta.requestStatus === "rejected" && ret.meta.rejectedWithValue) {
       expectType<string>(ret.meta.extraProp)
     } else {
       // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case

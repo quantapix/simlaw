@@ -224,7 +224,7 @@ export const coreModule = (): Module<CoreModule> => ({
     const assertTagType: AssertTagTypes = tag => {
       if (
         typeof process !== "undefined" &&
-        process.env.NODE_ENV === "development"
+        process.env["NODE_ENV"] === "development"
       ) {
         if (!tagTypes.includes(tag.type as any)) {
           console.error(
@@ -284,7 +284,7 @@ export const coreModule = (): Module<CoreModule> => ({
       get() {
         if (
           typeof process !== "undefined" &&
-          process.env.NODE_ENV === "development"
+          process.env["NODE_ENV"] === "development"
         ) {
           console.warn(
             "`api.util.updateQueryResult` has been renamed to `api.util.updateQueryData`, please change your code accordingly"
@@ -297,7 +297,7 @@ export const coreModule = (): Module<CoreModule> => ({
       get() {
         if (
           typeof process !== "undefined" &&
-          process.env.NODE_ENV === "development"
+          process.env["NODE_ENV"] === "development"
         ) {
           console.warn(
             "`api.util.patchQueryResult` has been renamed to `api.util.patchQueryData`, please change your code accordingly"

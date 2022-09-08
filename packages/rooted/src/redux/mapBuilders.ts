@@ -44,7 +44,7 @@ export function executeReducerBuilderCallback<S>(
       typeOrActionCreator: string | TypedActionCreator<any>,
       reducer: CaseReducer<S>
     ) {
-      if (process.env.NODE_ENV !== "production") {
+      if (process.env["NODE_ENV"] !== "production") {
         if (actionMatchers.length > 0) {
           throw new Error(
             "`builder.addCase` should only be called before calling `builder.addMatcher`"
@@ -72,7 +72,7 @@ export function executeReducerBuilderCallback<S>(
       matcher: TypeGuard<A>,
       reducer: CaseReducer<S, A extends AnyAction ? A : A & AnyAction>
     ) {
-      if (process.env.NODE_ENV !== "production") {
+      if (process.env["NODE_ENV"] !== "production") {
         if (defaultCaseReducer) {
           throw new Error(
             "`builder.addMatcher` should only be called before calling `builder.addDefaultCase`"
@@ -83,7 +83,7 @@ export function executeReducerBuilderCallback<S>(
       return builder
     },
     addDefaultCase(reducer: CaseReducer<S, AnyAction>) {
-      if (process.env.NODE_ENV !== "production") {
+      if (process.env["NODE_ENV"] !== "production") {
         if (defaultCaseReducer) {
           throw new Error("`builder.addDefaultCase` can only be called once")
         }

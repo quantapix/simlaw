@@ -1,56 +1,43 @@
-import type {
-  Reducer,
-  ReducersMapObject,
-  Middleware,
-  Action,
-  AnyAction,
-  StoreEnhancer,
-  Store,
-  Dispatch,
-  PreloadedState,
-  CombinedState,
-} from "redux"
-import { createStore, compose, applyMiddleware, combineReducers } from "redux"
-import type { DevToolsEnhancerOptions as DevToolsOptions } from "./devtools.js"
-import { composeWithDevTools } from "./devtools.js"
-import { isPlainObject } from "./utils.js"
-import type {
+import { DevToolsOptions, composeWithDevTools } from "./tools.js"
+import * as qb from "./base.js"
+import * as qu from "./utils.js"
+import type * as qt from "./types.js"
+import {
   ThunkMiddlewareFor,
   CurriedGetDefaultMiddleware,
-} from "./getDefaultMiddleware.js"
-import { curryGetDefaultMiddleware } from "./getDefaultMiddleware.js"
-import type { NoInfer, ExtractDispatchExtensions } from "./types.js"
+  curryGetDefaultMiddleware,
+} from "./middleware.js"
 
-const IS_PRODUCTION = process.env.NODE_ENV === "production"
+const IS_PRODUCTION = process.env["NODE_ENV"] === "production"
 
 export type ConfigureEnhancersCallback = (
-  defaultEnhancers: readonly StoreEnhancer[]
-) => StoreEnhancer[]
+  defaultEnhancers: readonly qt.StoreEnhancer[]
+) => qt.StoreEnhancer[]
 
 export interface ConfigureStoreOptions<
   S = any,
-  A extends Action = AnyAction,
+  A extends qt.Action = qt.AnyAction,
   M extends Middlewares<S> = Middlewares<S>
 > {
-  reducer: Reducer<S, A> | ReducersMapObject<S, A>
+  reducer: qt.Reducer<S, A> | qt.ReducersMapObject<S, A>
   middleware?: ((getDefaultMiddleware: CurriedGetDefaultMiddleware<S>) => M) | M
   devTools?: boolean | DevToolsOptions
-  preloadedState?: PreloadedState<CombinedState<NoInfer<S>>>
-  enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
+  preloadedState?: qt.PreloadedState<qt.CombinedState<qt.NoInfer<S>>>
+  enhancers?: qt.StoreEnhancer[] | ConfigureEnhancersCallback
 }
 
-type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
+type Middlewares<S> = ReadonlyArray<qt.Middleware<{}, S>>
 
 export interface EnhancedStore<
   S = any,
-  A extends Action = AnyAction,
+  A extends qt.Action = qt.AnyAction,
   M extends Middlewares<S> = Middlewares<S>
-> extends Store<S, A> {
-  dispatch: ExtractDispatchExtensions<M> & Dispatch<A>
+> extends qt.Store<S, A> {
+  dispatch: qt.ExtractDispatchExtensions<M> & qt.Dispatch<A>
 }
 export function configureStore<
   S = any,
-  A extends Action = AnyAction,
+  A extends qt.Action = qt.AnyAction,
   M extends Middlewares<S> = [ThunkMiddlewareFor<S>]
 >(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M> {
   const curriedGetDefaultMiddleware = curryGetDefaultMiddleware<S>()
@@ -61,11 +48,11 @@ export function configureStore<
     preloadedState = undefined,
     enhancers = undefined,
   } = options || {}
-  let rootReducer: Reducer<S, A>
+  let rootReducer: qt.Reducer<S, A>
   if (typeof reducer === "function") {
     rootReducer = reducer
-  } else if (isPlainObject(reducer)) {
-    rootReducer = combineReducers(reducer) as unknown as Reducer<S, A>
+  } else if (qu.isPlainObject(reducer)) {
+    rootReducer = qb.combineReducers(reducer) as unknown as qt.Reducer<S, A>
   } else {
     throw new Error(
       '"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
@@ -88,20 +75,20 @@ export function configureStore<
       "each middleware provided to configureStore must be a function"
     )
   }
-  const middlewareEnhancer = applyMiddleware(...finalMiddleware)
-  let finalCompose = compose
+  const middlewareEnhancer = qb.applyMiddleware(...finalMiddleware)
+  let finalCompose = qb.compose
   if (devTools) {
     finalCompose = composeWithDevTools({
       trace: !IS_PRODUCTION,
       ...(typeof devTools === "object" && devTools),
     })
   }
-  let storeEnhancers: StoreEnhancer[] = [middlewareEnhancer]
+  let storeEnhancers: qt.StoreEnhancer[] = [middlewareEnhancer]
   if (Array.isArray(enhancers)) {
     storeEnhancers = [middlewareEnhancer, ...enhancers]
   } else if (typeof enhancers === "function") {
     storeEnhancers = enhancers(storeEnhancers)
   }
   const composedEnhancer = finalCompose(...storeEnhancers) as any
-  return createStore(rootReducer, preloadedState, composedEnhancer)
+  return qb.createStore(rootReducer, preloadedState, composedEnhancer)
 }

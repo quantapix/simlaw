@@ -8,7 +8,7 @@ import { createImmutableStateInvariantMiddleware } from "./immutableStateInvaria
 import type { SerializableStateInvariantMiddlewareOptions } from "./serializableStateInvariantMiddleware"
 import { createSerializableStateInvariantMiddleware } from "./serializableStateInvariantMiddleware"
 import type { ExcludeFromTuple } from "./tsHelpers"
-import { MiddlewareArray } from "./utils"
+import { MiddlewareArray } from "./utils.js"
 function isBoolean(x: any): x is boolean {
   return typeof x === "boolean"
 }
@@ -71,7 +71,7 @@ export function getDefaultMiddleware<
       )
     }
   }
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env["NODE_ENV"] !== "production") {
     if (immutableCheck) {
       let immutableOptions: ImmutableStateInvariantMiddlewareOptions = {}
       if (!isBoolean(immutableCheck)) {

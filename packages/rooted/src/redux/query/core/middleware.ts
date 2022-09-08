@@ -320,7 +320,7 @@ export const build: SubMiddlewareBuilder = ({
       }
       if (
         typeof process !== "undefined" &&
-        process.env.NODE_ENV === "development"
+        process.env["NODE_ENV"] === "development"
       ) {
         if (
           api.internalActions.middlewareRegistered.match(action) &&

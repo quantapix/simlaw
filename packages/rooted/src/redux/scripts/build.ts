@@ -148,14 +148,14 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     sourcemap: 'inline',
     bundle: true,
     format: format === 'umd' ? 'esm' : format,
-    // Needed to prevent auto-replacing of process.env.NODE_ENV in all builds
+    // Needed to prevent auto-replacing of process.env['NODE_ENV'] in all builds
     platform: 'neutral',
     // Needed to return to normal lookup behavior when platform: 'neutral'
     mainFields: ['browser', 'module', 'main'],
     conditions: ['browser'],
     define: env
       ? {
-          'process.env.NODE_ENV': JSON.stringify(env),
+          'process.env['NODE_ENV']': JSON.stringify(env),
         }
       : {},
     plugins: [
@@ -286,7 +286,7 @@ async function writeEntry(folder: string, prefix: string) {
   await fs.writeFile(
     path.join('dist', folder, 'index.js'),
     `'use strict'
-if (process.env.NODE_ENV === 'production') {
+if (process.env['NODE_ENV'] === 'production') {
   module.exports = require('./${prefix}.cjs.production.min.js')
 } else {
   module.exports = require('./${prefix}.cjs.development.js')

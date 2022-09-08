@@ -2,7 +2,7 @@ import type { Middleware } from "redux"
 import { getTimeMeasureUtils } from "./utils.js"
 
 type EntryProcessor = (key: string, value: any) => any
-const isProduction: boolean = process.env.NODE_ENV === "production"
+const isProduction: boolean = process.env["NODE_ENV"] === "production"
 const prefix: string = "Invariant failed"
 
 function invariant(condition: any, message?: string) {
@@ -142,7 +142,7 @@ export interface ImmutableStateInvariantMiddlewareOptions {
 export function createImmutableStateInvariantMiddleware(
   options: ImmutableStateInvariantMiddlewareOptions = {}
 ): Middleware {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env["NODE_ENV"] === "production") {
     return () => next => action => next(action)
   }
   let {

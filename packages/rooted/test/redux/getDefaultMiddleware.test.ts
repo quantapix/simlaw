@@ -5,56 +5,56 @@ import type {
   Action,
   ThunkDispatch,
   Dispatch,
-} from '@reduxjs/toolkit'
+} from "@reduxjs/toolkit"
 import {
   getDefaultMiddleware,
   MiddlewareArray,
   configureStore,
-} from '@reduxjs/toolkit'
-import thunk from 'redux-thunk'
-import type { ThunkMiddleware } from 'redux-thunk'
+} from "@reduxjs/toolkit"
+import thunk from "redux-thunk"
+import type { ThunkMiddleware } from "redux-thunk"
 
-import { expectType } from './helpers'
+import { expectType } from "./helpers"
 
-describe('getDefaultMiddleware', () => {
-  const ORIGINAL_NODE_ENV = process.env.NODE_ENV
+describe("getDefaultMiddleware", () => {
+  const ORIGINAL_NODE_ENV = process.env["NODE_ENV"]
 
   afterEach(() => {
-    process.env.NODE_ENV = ORIGINAL_NODE_ENV
+    process.env["NODE_ENV"] = ORIGINAL_NODE_ENV
   })
 
-  it('returns an array with only redux-thunk in production', () => {
-    process.env.NODE_ENV = 'production'
+  it("returns an array with only redux-thunk in production", () => {
+    process.env["NODE_ENV"] = "production"
 
     expect(getDefaultMiddleware()).toEqual([thunk]) // @remap-prod-remove-line
   })
 
-  it('returns an array with additional middleware in development', () => {
+  it("returns an array with additional middleware in development", () => {
     const middleware = getDefaultMiddleware()
     expect(middleware).toContain(thunk)
     expect(middleware.length).toBeGreaterThan(1)
   })
 
-  it('removes the thunk middleware if disabled', () => {
+  it("removes the thunk middleware if disabled", () => {
     const middleware = getDefaultMiddleware({ thunk: false })
     // @ts-ignore
     expect(middleware.includes(thunk)).toBe(false)
     expect(middleware.length).toBe(2)
   })
 
-  it('removes the immutable middleware if disabled', () => {
+  it("removes the immutable middleware if disabled", () => {
     const defaultMiddleware = getDefaultMiddleware()
     const middleware = getDefaultMiddleware({ immutableCheck: false })
     expect(middleware.length).toBe(defaultMiddleware.length - 1)
   })
 
-  it('removes the serializable middleware if disabled', () => {
+  it("removes the serializable middleware if disabled", () => {
     const defaultMiddleware = getDefaultMiddleware()
     const middleware = getDefaultMiddleware({ serializableCheck: false })
     expect(middleware.length).toBe(defaultMiddleware.length - 1)
   })
 
-  it('allows passing options to thunk', () => {
+  it("allows passing options to thunk", () => {
     const extraArgument = 42 as const
     const middleware = getDefaultMiddleware({
       thunk: { extraArgument },
@@ -70,12 +70,12 @@ describe('getDefaultMiddleware', () => {
 
     const dummyMiddleware: Middleware<
       {
-        (action: Action<'actionListenerMiddleware/add'>): () => void
+        (action: Action<"actionListenerMiddleware/add">): () => void
       },
       { counter: number }
-    > = (storeApi) => (next) => (action) => {}
+    > = storeApi => next => action => {}
 
-    const dummyMiddleware2: Middleware = (storeApi) => (next) => (action) => {}
+    const dummyMiddleware2: Middleware = storeApi => next => action => {}
 
     const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
 
@@ -84,7 +84,7 @@ describe('getDefaultMiddleware', () => {
         [
           ThunkMiddleware<any, AnyAction, 42>,
           Middleware<
-            (action: Action<'actionListenerMiddleware/add'>) => () => void,
+            (action: Action<"actionListenerMiddleware/add">) => () => void,
             {
               counter: number
             },
@@ -117,7 +117,7 @@ describe('getDefaultMiddleware', () => {
     store.dispatch(testThunk)
   })
 
-  it('allows passing options to immutableCheck', () => {
+  it("allows passing options to immutableCheck", () => {
     let immutableCheckWasCalled = false
 
     const middleware = getDefaultMiddleware({
@@ -141,7 +141,7 @@ describe('getDefaultMiddleware', () => {
     expect(immutableCheckWasCalled).toBe(true)
   })
 
-  it('allows passing options to serializableCheck', () => {
+  it("allows passing options to serializableCheck", () => {
     let serializableCheckWasCalled = false
 
     const middleware = getDefaultMiddleware({
@@ -162,19 +162,19 @@ describe('getDefaultMiddleware', () => {
       middleware,
     })
 
-    store.dispatch({ type: 'TEST_ACTION' })
+    store.dispatch({ type: "TEST_ACTION" })
 
     expect(serializableCheckWasCalled).toBe(true)
   })
 })
 
-describe('MiddlewareArray functionality', () => {
-  const middleware1: Middleware = () => (next) => (action) => next(action)
-  const middleware2: Middleware = () => (next) => (action) => next(action)
+describe("MiddlewareArray functionality", () => {
+  const middleware1: Middleware = () => next => action => next(action)
+  const middleware2: Middleware = () => next => action => next(action)
   const defaultMiddleware = getDefaultMiddleware()
   const originalDefaultMiddleware = [...defaultMiddleware]
 
-  test('allows to prepend a single value', () => {
+  test("allows to prepend a single value", () => {
     const prepended = defaultMiddleware.prepend(middleware1)
 
     // value is prepended
@@ -187,7 +187,7 @@ describe('MiddlewareArray functionality', () => {
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
 
-  test('allows to prepend multiple values (array as first argument)', () => {
+  test("allows to prepend multiple values (array as first argument)", () => {
     const prepended = defaultMiddleware.prepend([middleware1, middleware2])
 
     // value is prepended
@@ -200,7 +200,7 @@ describe('MiddlewareArray functionality', () => {
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
 
-  test('allows to prepend multiple values (rest)', () => {
+  test("allows to prepend multiple values (rest)", () => {
     const prepended = defaultMiddleware.prepend(middleware1, middleware2)
 
     // value is prepended
@@ -213,7 +213,7 @@ describe('MiddlewareArray functionality', () => {
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
 
-  test('allows to concat a single value', () => {
+  test("allows to concat a single value", () => {
     const concatenated = defaultMiddleware.concat(middleware1)
 
     // value is concatenated
@@ -226,7 +226,7 @@ describe('MiddlewareArray functionality', () => {
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
 
-  test('allows to concat multiple values (array as first argument)', () => {
+  test("allows to concat multiple values (array as first argument)", () => {
     const concatenated = defaultMiddleware.concat([middleware1, middleware2])
 
     // value is concatenated
@@ -243,7 +243,7 @@ describe('MiddlewareArray functionality', () => {
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
 
-  test('allows to concat multiple values (rest)', () => {
+  test("allows to concat multiple values (rest)", () => {
     const concatenated = defaultMiddleware.concat(middleware1, middleware2)
 
     // value is concatenated
@@ -260,7 +260,7 @@ describe('MiddlewareArray functionality', () => {
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
 
-  test('allows to concat and then prepend', () => {
+  test("allows to concat and then prepend", () => {
     const concatenated = defaultMiddleware
       .concat(middleware1)
       .prepend(middleware2)
@@ -272,7 +272,7 @@ describe('MiddlewareArray functionality', () => {
     ])
   })
 
-  test('allows to prepend and then concat', () => {
+  test("allows to prepend and then concat", () => {
     const concatenated = defaultMiddleware
       .prepend(middleware2)
       .concat(middleware1)

@@ -4,8 +4,8 @@ import type {
   Draft,
   Reducer,
   AnyAction,
-} from '@reduxjs/toolkit'
-import { createReducer, createAction, createNextState } from '@reduxjs/toolkit'
+} from "@reduxjs/toolkit"
+import { createReducer, createAction, createNextState } from "@reduxjs/toolkit"
 
 interface Todo {
   text: string
@@ -29,8 +29,8 @@ type ToggleTodoReducer = CaseReducer<
   PayloadAction<ToggleTodoPayload>
 >
 
-describe('createReducer', () => {
-  describe('given impure reducers with immer', () => {
+describe("createReducer", () => {
+  describe("given impure reducers with immer", () => {
     const addTodo: AddTodoReducer = (state, action) => {
       const { newTodo } = action.payload
 
@@ -54,20 +54,20 @@ describe('createReducer', () => {
     behavesLikeReducer(todosReducer)
   })
 
-  describe('Immer in a production environment', () => {
-    let originalNodeEnv = process.env.NODE_ENV
+  describe("Immer in a production environment", () => {
+    let originalNodeEnv = process.env["NODE_ENV"]
 
     beforeEach(() => {
       jest.resetModules()
-      process.env.NODE_ENV = 'production'
+      process.env["NODE_ENV"] = "production"
     })
 
     afterEach(() => {
-      process.env.NODE_ENV = originalNodeEnv
+      process.env["NODE_ENV"] = originalNodeEnv
     })
 
-    test('Freezes data in production', () => {
-      const { createReducer } = require('../createReducer')
+    test("Freezes data in production", () => {
+      const { createReducer } = require("../createReducer")
       const addTodo: AddTodoReducer = (state, action) => {
         const { newTodo } = action.payload
         state.push({ ...newTodo, completed: false })
@@ -85,33 +85,33 @@ describe('createReducer', () => {
       })
 
       const result = todosReducer([], {
-        type: 'ADD_TODO',
-        payload: { text: 'Buy milk' },
+        type: "ADD_TODO",
+        payload: { text: "Buy milk" },
       })
 
-      const mutateStateOutsideReducer = () => (result[0].text = 'edited')
+      const mutateStateOutsideReducer = () => (result[0].text = "edited")
       expect(mutateStateOutsideReducer).toThrowError(
-        'Cannot add property text, object is not extensible'
+        "Cannot add property text, object is not extensible"
       )
     })
 
-    test('Freezes initial state', () => {
-      const initialState = [{ text: 'Buy milk' }]
+    test("Freezes initial state", () => {
+      const initialState = [{ text: "Buy milk" }]
       const todosReducer = createReducer(initialState, {})
-      const frozenInitialState = todosReducer(undefined, { type: 'dummy' })
+      const frozenInitialState = todosReducer(undefined, { type: "dummy" })
 
       const mutateStateOutsideReducer = () =>
-        (frozenInitialState[0].text = 'edited')
+        (frozenInitialState[0].text = "edited")
       expect(mutateStateOutsideReducer).toThrowError(
         /Cannot assign to read only property/
       )
     })
-    test('does not throw error if initial state is not draftable', () => {
+    test("does not throw error if initial state is not draftable", () => {
       expect(() => createReducer(new URLSearchParams(), {})).not.toThrowError()
     })
   })
 
-  describe('given pure reducers with immutable updates', () => {
+  describe("given pure reducers with immutable updates", () => {
     const addTodo: AddTodoReducer = (state, action) => {
       const { newTodo } = action.payload
 
@@ -137,7 +137,7 @@ describe('createReducer', () => {
     behavesLikeReducer(todosReducer)
   })
 
-  describe('Accepts a lazy state init function to generate initial state', () => {
+  describe("Accepts a lazy state init function to generate initial state", () => {
     const addTodo: AddTodoReducer = (state, action) => {
       const { newTodo } = action.payload
       state.push({ ...newTodo, completed: false })
@@ -158,21 +158,21 @@ describe('createReducer', () => {
 
     behavesLikeReducer(todosReducer)
 
-    it('Should only call the init function when `undefined` state is passed in', () => {
+    it("Should only call the init function when `undefined` state is passed in", () => {
       const spy = jest.fn().mockReturnValue(42)
 
       const dummyReducer = createReducer(spy, {})
       expect(spy).not.toHaveBeenCalled()
 
-      dummyReducer(123, { type: 'dummy' })
+      dummyReducer(123, { type: "dummy" })
       expect(spy).not.toHaveBeenCalled()
 
-      const initialState = dummyReducer(undefined, { type: 'dummy' })
+      const initialState = dummyReducer(undefined, { type: "dummy" })
       expect(spy).toHaveBeenCalledTimes(1)
     })
   })
 
-  describe('given draft state from immer', () => {
+  describe("given draft state from immer", () => {
     const addTodo: AddTodoReducer = (state, action) => {
       const { newTodo } = action.payload
 
@@ -202,24 +202,24 @@ describe('createReducer', () => {
     behavesLikeReducer(wrappedReducer)
   })
 
-  describe('actionMatchers argument', () => {
+  describe("actionMatchers argument", () => {
     const prepareNumberAction = (payload: number) => ({
       payload,
-      meta: { type: 'number_action' },
+      meta: { type: "number_action" },
     })
     const prepareStringAction = (payload: string) => ({
       payload,
-      meta: { type: 'string_action' },
+      meta: { type: "string_action" },
     })
 
     const numberActionMatcher = (a: AnyAction): a is PayloadAction<number> =>
-      a.meta && a.meta.type === 'number_action'
+      a.meta && a.meta.type === "number_action"
     const stringActionMatcher = (a: AnyAction): a is PayloadAction<string> =>
-      a.meta && a.meta.type === 'string_action'
+      a.meta && a.meta.type === "string_action"
 
-    const incrementBy = createAction('increment', prepareNumberAction)
-    const decrementBy = createAction('decrement', prepareNumberAction)
-    const concatWith = createAction('concat', prepareStringAction)
+    const incrementBy = createAction("increment", prepareNumberAction)
+    const decrementBy = createAction("decrement", prepareNumberAction)
+    const concatWith = createAction("concat", prepareStringAction)
 
     const initialState = { numberActions: 0, stringActions: 0 }
     const numberActionsCounter = {
@@ -235,7 +235,7 @@ describe('createReducer', () => {
       },
     }
 
-    test('uses the reducer of matching actionMatchers', () => {
+    test("uses the reducer of matching actionMatchers", () => {
       const reducer = createReducer(initialState, {}, [
         numberActionsCounter,
         stringActionsCounter,
@@ -248,27 +248,27 @@ describe('createReducer', () => {
         numberActions: 1,
         stringActions: 0,
       })
-      expect(reducer(undefined, concatWith('foo'))).toEqual({
+      expect(reducer(undefined, concatWith("foo"))).toEqual({
         numberActions: 0,
         stringActions: 1,
       })
     })
-    test('fallback to default case', () => {
+    test("fallback to default case", () => {
       const reducer = createReducer(
         initialState,
         {},
         [numberActionsCounter, stringActionsCounter],
-        (state) => {
+        state => {
           state.numberActions = -1
           state.stringActions = -1
         }
       )
-      expect(reducer(undefined, { type: 'somethingElse' })).toEqual({
+      expect(reducer(undefined, { type: "somethingElse" })).toEqual({
         numberActions: -1,
         stringActions: -1,
       })
     })
-    test('runs reducer cases followed by all matching actionMatchers', () => {
+    test("runs reducer cases followed by all matching actionMatchers", () => {
       const reducer = createReducer(
         initialState,
         {
@@ -295,12 +295,12 @@ describe('createReducer', () => {
         numberActions: 31,
         stringActions: 0,
       })
-      expect(reducer(undefined, concatWith('foo'))).toEqual({
+      expect(reducer(undefined, concatWith("foo"))).toEqual({
         numberActions: 0,
         stringActions: 1,
       })
     })
-    test('works with `actionCreator.match`', () => {
+    test("works with `actionCreator.match`", () => {
       const reducer = createReducer(initialState, {}, [
         {
           matcher: incrementBy.match,
@@ -316,12 +316,12 @@ describe('createReducer', () => {
     })
   })
 
-  describe('alternative builder callback for actionMap', () => {
-    const increment = createAction<number, 'increment'>('increment')
-    const decrement = createAction<number, 'decrement'>('decrement')
+  describe("alternative builder callback for actionMap", () => {
+    const increment = createAction<number, "increment">("increment")
+    const decrement = createAction<number, "decrement">("decrement")
 
-    test('can be used with ActionCreators', () => {
-      const reducer = createReducer(0, (builder) =>
+    test("can be used with ActionCreators", () => {
+      const reducer = createReducer(0, builder =>
         builder
           .addCase(increment, (state, action) => state + action.payload)
           .addCase(decrement, (state, action) => state - action.payload)
@@ -329,53 +329,53 @@ describe('createReducer', () => {
       expect(reducer(0, increment(5))).toBe(5)
       expect(reducer(5, decrement(5))).toBe(0)
     })
-    test('can be used with string types', () => {
-      const reducer = createReducer(0, (builder) =>
+    test("can be used with string types", () => {
+      const reducer = createReducer(0, builder =>
         builder
           .addCase(
-            'increment',
-            (state, action: { type: 'increment'; payload: number }) =>
+            "increment",
+            (state, action: { type: "increment"; payload: number }) =>
               state + action.payload
           )
           .addCase(
-            'decrement',
-            (state, action: { type: 'decrement'; payload: number }) =>
+            "decrement",
+            (state, action: { type: "decrement"; payload: number }) =>
               state - action.payload
           )
       )
       expect(reducer(0, increment(5))).toBe(5)
       expect(reducer(5, decrement(5))).toBe(0)
     })
-    test('can be used with ActionCreators and string types combined', () => {
-      const reducer = createReducer(0, (builder) =>
+    test("can be used with ActionCreators and string types combined", () => {
+      const reducer = createReducer(0, builder =>
         builder
           .addCase(increment, (state, action) => state + action.payload)
           .addCase(
-            'decrement',
-            (state, action: { type: 'decrement'; payload: number }) =>
+            "decrement",
+            (state, action: { type: "decrement"; payload: number }) =>
               state - action.payload
           )
       )
       expect(reducer(0, increment(5))).toBe(5)
       expect(reducer(5, decrement(5))).toBe(0)
     })
-    test('will throw an error when returning undefined from a non-draftable state', () => {
-      const reducer = createReducer(0, (builder) =>
+    test("will throw an error when returning undefined from a non-draftable state", () => {
+      const reducer = createReducer(0, builder =>
         builder.addCase(
-          'decrement',
-          (state, action: { type: 'decrement'; payload: number }) => {}
+          "decrement",
+          (state, action: { type: "decrement"; payload: number }) => {}
         )
       )
       expect(() => reducer(5, decrement(5))).toThrowErrorMatchingInlineSnapshot(
         `"A case reducer on a non-draftable value must not return undefined"`
       )
     })
-    test('allows you to return undefined if the state was null, thus skipping an update', () => {
-      const reducer = createReducer(null as number | null, (builder) =>
+    test("allows you to return undefined if the state was null, thus skipping an update", () => {
+      const reducer = createReducer(null as number | null, builder =>
         builder.addCase(
-          'decrement',
-          (state, action: { type: 'decrement'; payload: number }) => {
-            if (typeof state === 'number') {
+          "decrement",
+          (state, action: { type: "decrement"; payload: number }) => {
+            if (typeof state === "number") {
               return state - action.payload
             }
             return undefined
@@ -385,30 +385,30 @@ describe('createReducer', () => {
       expect(reducer(0, decrement(5))).toBe(-5)
       expect(reducer(null, decrement(5))).toBe(null)
     })
-    test('allows you to return null', () => {
-      const reducer = createReducer(0 as number | null, (builder) =>
+    test("allows you to return null", () => {
+      const reducer = createReducer(0 as number | null, builder =>
         builder.addCase(
-          'decrement',
-          (state, action: { type: 'decrement'; payload: number }) => {
+          "decrement",
+          (state, action: { type: "decrement"; payload: number }) => {
             return null
           }
         )
       )
       expect(reducer(5, decrement(5))).toBe(null)
     })
-    test('allows you to return 0', () => {
-      const reducer = createReducer(0, (builder) =>
+    test("allows you to return 0", () => {
+      const reducer = createReducer(0, builder =>
         builder.addCase(
-          'decrement',
-          (state, action: { type: 'decrement'; payload: number }) =>
+          "decrement",
+          (state, action: { type: "decrement"; payload: number }) =>
             state - action.payload
         )
       )
       expect(reducer(5, decrement(5))).toBe(0)
     })
-    test('will throw if the same type is used twice', () => {
+    test("will throw if the same type is used twice", () => {
       expect(() =>
-        createReducer(0, (builder) =>
+        createReducer(0, builder =>
           builder
             .addCase(increment, (state, action) => state + action.payload)
             .addCase(increment, (state, action) => state + action.payload)
@@ -418,10 +418,10 @@ describe('createReducer', () => {
         `"addCase cannot be called with two reducers for the same action type"`
       )
       expect(() =>
-        createReducer(0, (builder) =>
+        createReducer(0, builder =>
           builder
             .addCase(increment, (state, action) => state + action.payload)
-            .addCase('increment', (state) => state + 1)
+            .addCase("increment", state => state + 1)
             .addCase(decrement, (state, action) => state - action.payload)
         )
       ).toThrowErrorMatchingInlineSnapshot(
@@ -433,31 +433,31 @@ describe('createReducer', () => {
   describe('builder "addMatcher" method', () => {
     const prepareNumberAction = (payload: number) => ({
       payload,
-      meta: { type: 'number_action' },
+      meta: { type: "number_action" },
     })
     const prepareStringAction = (payload: string) => ({
       payload,
-      meta: { type: 'string_action' },
+      meta: { type: "string_action" },
     })
 
     const numberActionMatcher = (a: AnyAction): a is PayloadAction<number> =>
-      a.meta && a.meta.type === 'number_action'
+      a.meta && a.meta.type === "number_action"
     const stringActionMatcher = (a: AnyAction): a is PayloadAction<string> =>
-      a.meta && a.meta.type === 'string_action'
+      a.meta && a.meta.type === "string_action"
 
-    const incrementBy = createAction('increment', prepareNumberAction)
-    const decrementBy = createAction('decrement', prepareNumberAction)
-    const concatWith = createAction('concat', prepareStringAction)
+    const incrementBy = createAction("increment", prepareNumberAction)
+    const decrementBy = createAction("decrement", prepareNumberAction)
+    const concatWith = createAction("concat", prepareStringAction)
 
     const initialState = { numberActions: 0, stringActions: 0 }
 
-    test('uses the reducer of matching actionMatchers', () => {
-      const reducer = createReducer(initialState, (builder) =>
+    test("uses the reducer of matching actionMatchers", () => {
+      const reducer = createReducer(initialState, builder =>
         builder
-          .addMatcher(numberActionMatcher, (state) => {
+          .addMatcher(numberActionMatcher, state => {
             state.numberActions += 1
           })
-          .addMatcher(stringActionMatcher, (state) => {
+          .addMatcher(stringActionMatcher, state => {
             state.stringActions += 1
           })
       )
@@ -469,43 +469,43 @@ describe('createReducer', () => {
         numberActions: 1,
         stringActions: 0,
       })
-      expect(reducer(undefined, concatWith('foo'))).toEqual({
+      expect(reducer(undefined, concatWith("foo"))).toEqual({
         numberActions: 0,
         stringActions: 1,
       })
     })
-    test('falls back to defaultCase', () => {
-      const reducer = createReducer(initialState, (builder) =>
+    test("falls back to defaultCase", () => {
+      const reducer = createReducer(initialState, builder =>
         builder
-          .addCase(concatWith, (state) => {
+          .addCase(concatWith, state => {
             state.stringActions += 1
           })
-          .addMatcher(numberActionMatcher, (state) => {
+          .addMatcher(numberActionMatcher, state => {
             state.numberActions += 1
           })
-          .addDefaultCase((state) => {
+          .addDefaultCase(state => {
             state.numberActions = -1
             state.stringActions = -1
           })
       )
-      expect(reducer(undefined, { type: 'somethingElse' })).toEqual({
+      expect(reducer(undefined, { type: "somethingElse" })).toEqual({
         numberActions: -1,
         stringActions: -1,
       })
     })
-    test('runs reducer cases followed by all matching actionMatchers', () => {
-      const reducer = createReducer(initialState, (builder) =>
+    test("runs reducer cases followed by all matching actionMatchers", () => {
+      const reducer = createReducer(initialState, builder =>
         builder
-          .addCase(incrementBy, (state) => {
+          .addCase(incrementBy, state => {
             state.numberActions = state.numberActions * 10 + 1
           })
-          .addMatcher(numberActionMatcher, (state) => {
+          .addMatcher(numberActionMatcher, state => {
             state.numberActions = state.numberActions * 10 + 2
           })
-          .addMatcher(stringActionMatcher, (state) => {
+          .addMatcher(stringActionMatcher, state => {
             state.stringActions = state.stringActions * 10 + 1
           })
-          .addMatcher(numberActionMatcher, (state) => {
+          .addMatcher(numberActionMatcher, state => {
             state.numberActions = state.numberActions * 10 + 3
           })
       )
@@ -517,14 +517,14 @@ describe('createReducer', () => {
         numberActions: 23,
         stringActions: 0,
       })
-      expect(reducer(undefined, concatWith('foo'))).toEqual({
+      expect(reducer(undefined, concatWith("foo"))).toEqual({
         numberActions: 0,
         stringActions: 1,
       })
     })
-    test('works with `actionCreator.match`', () => {
-      const reducer = createReducer(initialState, (builder) =>
-        builder.addMatcher(incrementBy.match, (state) => {
+    test("works with `actionCreator.match`", () => {
+      const reducer = createReducer(initialState, builder =>
+        builder.addMatcher(incrementBy.match, state => {
           state.numberActions += 100
         })
       )
@@ -533,7 +533,7 @@ describe('createReducer', () => {
         stringActions: 0,
       })
     })
-    test('calling addCase, addMatcher and addDefaultCase in a nonsensical order should result in an error in development mode', () => {
+    test("calling addCase, addMatcher and addDefaultCase in a nonsensical order should result in an error in development mode", () => {
       expect(() =>
         createReducer(initialState, (builder: any) =>
           builder
@@ -571,20 +571,20 @@ describe('createReducer', () => {
 })
 
 function behavesLikeReducer(todosReducer: TodosReducer) {
-  it('should handle initial state', () => {
-    const initialAction = { type: '', payload: undefined }
+  it("should handle initial state", () => {
+    const initialAction = { type: "", payload: undefined }
     expect(todosReducer(undefined, initialAction)).toEqual([])
   })
 
-  it('should handle ADD_TODO', () => {
+  it("should handle ADD_TODO", () => {
     expect(
       todosReducer([], {
-        type: 'ADD_TODO',
-        payload: { newTodo: { text: 'Run the tests' } },
+        type: "ADD_TODO",
+        payload: { newTodo: { text: "Run the tests" } },
       })
     ).toEqual([
       {
-        text: 'Run the tests',
+        text: "Run the tests",
         completed: false,
       },
     ])
@@ -593,22 +593,22 @@ function behavesLikeReducer(todosReducer: TodosReducer) {
       todosReducer(
         [
           {
-            text: 'Run the tests',
+            text: "Run the tests",
             completed: false,
           },
         ],
         {
-          type: 'ADD_TODO',
-          payload: { newTodo: { text: 'Use Redux' } },
+          type: "ADD_TODO",
+          payload: { newTodo: { text: "Use Redux" } },
         }
       )
     ).toEqual([
       {
-        text: 'Run the tests',
+        text: "Run the tests",
         completed: false,
       },
       {
-        text: 'Use Redux',
+        text: "Use Redux",
         completed: false,
       },
     ])
@@ -617,60 +617,60 @@ function behavesLikeReducer(todosReducer: TodosReducer) {
       todosReducer(
         [
           {
-            text: 'Run the tests',
+            text: "Run the tests",
             completed: false,
           },
           {
-            text: 'Use Redux',
+            text: "Use Redux",
             completed: false,
           },
         ],
         {
-          type: 'ADD_TODO',
-          payload: { newTodo: { text: 'Fix the tests' } },
+          type: "ADD_TODO",
+          payload: { newTodo: { text: "Fix the tests" } },
         }
       )
     ).toEqual([
       {
-        text: 'Run the tests',
+        text: "Run the tests",
         completed: false,
       },
       {
-        text: 'Use Redux',
+        text: "Use Redux",
         completed: false,
       },
       {
-        text: 'Fix the tests',
+        text: "Fix the tests",
         completed: false,
       },
     ])
   })
 
-  it('should handle TOGGLE_TODO', () => {
+  it("should handle TOGGLE_TODO", () => {
     expect(
       todosReducer(
         [
           {
-            text: 'Run the tests',
+            text: "Run the tests",
             completed: false,
           },
           {
-            text: 'Use Redux',
+            text: "Use Redux",
             completed: false,
           },
         ],
         {
-          type: 'TOGGLE_TODO',
+          type: "TOGGLE_TODO",
           payload: { index: 0 },
         }
       )
     ).toEqual([
       {
-        text: 'Run the tests',
+        text: "Run the tests",
         completed: true,
       },
       {
-        text: 'Use Redux',
+        text: "Use Redux",
         completed: false,
       },
     ])
