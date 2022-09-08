@@ -1,4 +1,3 @@
-import { enableES5 } from "immer"
 export * from "redux"
 export {
   default as createNextState,

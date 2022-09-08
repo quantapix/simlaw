@@ -1,30 +1,25 @@
-import type { Middleware, AnyAction } from 'redux'
-import type { ThunkMiddleware } from 'redux-thunk'
-import thunkMiddleware from 'redux-thunk'
-import type { ImmutableStateInvariantMiddlewareOptions } from './immutableStateInvariantMiddleware'
+import type { Middleware, AnyAction } from "redux"
+import type { ThunkMiddleware } from "redux-thunk"
+import thunkMiddleware from "redux-thunk"
+import type { ImmutableStateInvariantMiddlewareOptions } from "./immutableStateInvariantMiddleware"
 /* PROD_START_REMOVE_UMD */
-import { createImmutableStateInvariantMiddleware } from './immutableStateInvariantMiddleware'
+import { createImmutableStateInvariantMiddleware } from "./immutableStateInvariantMiddleware"
 /* PROD_STOP_REMOVE_UMD */
-
-import type { SerializableStateInvariantMiddlewareOptions } from './serializableStateInvariantMiddleware'
-import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
-import type { ExcludeFromTuple } from './tsHelpers'
-import { MiddlewareArray } from './utils'
-
+import type { SerializableStateInvariantMiddlewareOptions } from "./serializableStateInvariantMiddleware"
+import { createSerializableStateInvariantMiddleware } from "./serializableStateInvariantMiddleware"
+import type { ExcludeFromTuple } from "./tsHelpers"
+import { MiddlewareArray } from "./utils"
 function isBoolean(x: any): x is boolean {
-  return typeof x === 'boolean'
+  return typeof x === "boolean"
 }
-
 interface ThunkOptions<E = any> {
   extraArgument: E
 }
-
 interface GetDefaultMiddlewareOptions {
   thunk?: boolean | ThunkOptions
   immutableCheck?: boolean | ImmutableStateInvariantMiddlewareOptions
   serializableCheck?: boolean | SerializableStateInvariantMiddlewareOptions
 }
-
 export type ThunkMiddlewareFor<
   S,
   O extends GetDefaultMiddlewareOptions = {}
@@ -35,7 +30,6 @@ export type ThunkMiddlewareFor<
   : O extends { thunk: { extraArgument: infer E } }
   ? ThunkMiddleware<S, AnyAction, E>
   : ThunkMiddleware<S, AnyAction>
-
 export type CurriedGetDefaultMiddleware<S = any> = <
   O extends Partial<GetDefaultMiddlewareOptions> = {
     thunk: true
@@ -45,7 +39,6 @@ export type CurriedGetDefaultMiddleware<S = any> = <
 >(
   options?: O
 ) => MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
-
 export function curryGetDefaultMiddleware<
   S = any
 >(): CurriedGetDefaultMiddleware<S> {
@@ -53,19 +46,6 @@ export function curryGetDefaultMiddleware<
     return getDefaultMiddleware(options)
   }
 }
-
-/**
- * Returns any array containing the default middleware installed by
- * `configureStore()`. Useful if you want to configure your store with a custom
- * `middleware` array but still keep the default set.
- *
- * @return The default middleware used by `configureStore()`.
- *
- * @public
- *
- * @deprecated Prefer to use the callback notation for the `middleware` option in `configureStore`
- * to access a pre-typed `getDefaultMiddleware` instead.
- */
 export function getDefaultMiddleware<
   S = any,
   O extends Partial<GetDefaultMiddlewareOptions> = {
@@ -81,9 +61,7 @@ export function getDefaultMiddleware<
     immutableCheck = true,
     serializableCheck = true,
   } = options
-
   let middlewareArray = new MiddlewareArray<Middleware[]>()
-
   if (thunk) {
     if (isBoolean(thunk)) {
       middlewareArray.push(thunkMiddleware)
@@ -93,34 +71,25 @@ export function getDefaultMiddleware<
       )
     }
   }
-
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== "production") {
     if (immutableCheck) {
-      /* PROD_START_REMOVE_UMD */
       let immutableOptions: ImmutableStateInvariantMiddlewareOptions = {}
-
       if (!isBoolean(immutableCheck)) {
         immutableOptions = immutableCheck
       }
-
       middlewareArray.unshift(
         createImmutableStateInvariantMiddleware(immutableOptions)
       )
-      /* PROD_STOP_REMOVE_UMD */
     }
-
     if (serializableCheck) {
       let serializableOptions: SerializableStateInvariantMiddlewareOptions = {}
-
       if (!isBoolean(serializableCheck)) {
         serializableOptions = serializableCheck
       }
-
       middlewareArray.push(
         createSerializableStateInvariantMiddleware(serializableOptions)
       )
     }
   }
-
   return middlewareArray as any
 }
