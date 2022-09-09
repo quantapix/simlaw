@@ -6,7 +6,7 @@ import { executeReducerBuilderCallback } from "./builder.js"
 import * as qu from "./utils.js"
 import { createSelector } from "reselect"
 
-export type SliceActionCreator<P> = PayloadActionCreator<P>
+export type SliceActionCreator<P> = qt.PayloadActionCreator<P>
 export interface Slice<
   State = any,
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
@@ -30,14 +30,14 @@ export interface CreateSliceOptions<
     | CaseReducers<qt.NoInfer<State>, any>
     | ((builder: ActionReducerMapBuilder<qt.NoInfer<State>>) => void)
 }
-export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
+export type CaseReducerWithPrepare<State, Action extends qt.PayloadAction> = {
   reducer: CaseReducer<State, Action>
-  prepare: PrepareAction<Action["payload"]>
+  prepare: qt.PrepareAction<Action["payload"]>
 }
 export type SliceCaseReducers<State> = {
   [K: string]:
-    | CaseReducer<State, PayloadAction<any>>
-    | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
+    | CaseReducer<State, qt.PayloadAction<any>>
+    | CaseReducerWithPrepare<State, qt.PayloadAction<any, string, any, any>>
 }
 export type CaseReducerActions<CaseReducers extends SliceCaseReducers<any>> = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends { prepare: any }
@@ -51,9 +51,9 @@ type ActionCreatorForCaseReducer<CR> = CR extends (
   action: infer Action
 ) => any
   ? Action extends { payload: infer P }
-    ? PayloadActionCreator<P>
-    : ActionCreatorWithoutPayload
-  : ActionCreatorWithoutPayload
+    ? qt.PayloadActionCreator<P>
+    : qt.ActionCreatorWithoutPayload
+  : qt.ActionCreatorWithoutPayload
 type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends {
     reducer: infer Reducer
@@ -76,6 +76,7 @@ export type ValidateSliceCaseReducers<
 function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
 }
+
 export function createSlice<
   State,
   CaseReducers extends SliceCaseReducers<State>,
@@ -110,7 +111,7 @@ export function createSlice<
     const maybeReducerWithPrepare = reducers[reducerName]!
     const type = getType(name, reducerName)
     let caseReducer: CaseReducer<State, any>
-    let prepareCallback: PrepareAction<any> | undefined
+    let prepareCallback: qt.PrepareAction<any> | undefined
     if ("reducer" in maybeReducerWithPrepare) {
       caseReducer = maybeReducerWithPrepare.reducer
       prepareCallback = maybeReducerWithPrepare.prepare
@@ -156,127 +157,19 @@ export function createSlice<
   }
 }
 
-export type PayloadAction<
-  P = void,
-  T extends string = string,
-  M = never,
-  E = never
-> = {
-  payload: P
-  type: T
-} & ([M] extends [never]
-  ? {}
-  : {
-      meta: M
-    }) &
-  ([E] extends [never]
-    ? {}
-    : {
-        error: E
-      })
 
-export type PrepareAction<P> =
-  | ((...args: any[]) => { payload: P })
-  | ((...args: any[]) => { payload: P; meta: any })
-  | ((...args: any[]) => { payload: P; error: any })
-  | ((...args: any[]) => { payload: P; meta: any; error: any })
-export type _ActionCreatorWithPreparedPayload<
-  PA extends PrepareAction<any> | void,
-  T extends string = string
-> = PA extends PrepareAction<infer P>
-  ? ActionCreatorWithPreparedPayload<
-      Parameters<PA>,
-      P,
-      T,
-      ReturnType<PA> extends {
-        error: infer E
-      }
-        ? E
-        : never,
-      ReturnType<PA> extends {
-        meta: infer M
-      }
-        ? M
-        : never
-    >
-  : void
 
-export interface BaseActionCreator<P, T extends string, M = never, E = never> {
-  type: T
-  match: (action: qt.Action<unknown>) => action is PayloadAction<P, T, M, E>
-}
-
-export interface ActionCreatorWithPreparedPayload<
-  Args extends unknown[],
-  P,
-  T extends string = string,
-  E = never,
-  M = never
-> extends BaseActionCreator<P, T, M, E> {
-  (...args: Args): PayloadAction<P, T, M, E>
-}
-
-export interface ActionCreatorWithOptionalPayload<P, T extends string = string>
-  extends BaseActionCreator<P, T> {
-  (payload?: P): PayloadAction<P, T>
-}
-
-export interface ActionCreatorWithoutPayload<T extends string = string>
-  extends BaseActionCreator<undefined, T> {
-  (): PayloadAction<undefined, T>
-}
-
-export interface ActionCreatorWithPayload<P, T extends string = string>
-  extends BaseActionCreator<P, T> {
-  (payload: P): PayloadAction<P, T>
-}
-
-export interface ActionCreatorWithNonInferrablePayload<
-  T extends string = string
-> extends BaseActionCreator<unknown, T> {
-  <PT>(payload: PT): PayloadAction<PT, T>
-}
-
-export type PayloadActionCreator<
-  P = void,
-  T extends string = string,
-  PA extends PrepareAction<P> | void = void
-> = IfPrepareActionMethodProvided<
-  PA,
-  _ActionCreatorWithPreparedPayload<PA, T>,
-  // else
-  qt.IsAny<
-    P,
-    ActionCreatorWithPayload<any, T>,
-    qt.IsUnknownOrNonInferrable<
-      P,
-      ActionCreatorWithNonInferrablePayload<T>,
-      // else
-      qt.IfVoid<
-        P,
-        ActionCreatorWithoutPayload<T>,
-        // else
-        qt.IfMaybeUndefined<
-          P,
-          ActionCreatorWithOptionalPayload<P, T>,
-          // else
-          ActionCreatorWithPayload<P, T>
-        >
-      >
-    >
-  >
->
 
 export function createAction<P = void, T extends string = string>(
   type: T
-): PayloadActionCreator<P, T>
+): qt.PayloadActionCreator<P, T>
 export function createAction<
-  PA extends PrepareAction<any>,
+  PA extends qt.PrepareAction<any>,
   T extends string = string
 >(
   type: T,
   prepareAction: PA
-): PayloadActionCreator<ReturnType<PA>["payload"], T, PA>
+): qt.PayloadActionCreator<ReturnType<PA>["payload"], T, PA>
 export function createAction(type: string, prepareAction?: Function): any {
   function actionCreator(...args: any[]) {
     if (prepareAction) {
@@ -295,7 +188,7 @@ export function createAction(type: string, prepareAction?: Function): any {
   }
   actionCreator.toString = () => `${type}`
   actionCreator.type = type
-  actionCreator.match = (action: qt.Action<unknown>): action is PayloadAction =>
+  actionCreator.match = (action: qt.Action<unknown>): action is qt.PayloadAction =>
     action.type === type
   return actionCreator
 }
@@ -317,17 +210,7 @@ function isValidKey(key: string) {
   return ["type", "payload", "error", "meta"].indexOf(key) > -1
 }
 
-export function getType<T extends string>(
-  actionCreator: PayloadActionCreator<any, T>
-): T {
-  return `${actionCreator}` as T
-}
 
-type IfPrepareActionMethodProvided<
-  PA extends PrepareAction<any> | void,
-  True,
-  False
-> = PA extends (...args: any[]) => any ? True : False
 
 export type Actions<T extends keyof any = string> = Record<T, qt.Action>
 
@@ -451,8 +334,6 @@ export const createDraftSafeSelector: typeof createSelector = (
     selector(qi.isDraft(value) ? qi.current(value) : value, ...rest)
   return wrappedSelector as any
 }
-
-type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
 
 export type BaseThunkAPI<
   S,
@@ -705,7 +586,7 @@ export type AsyncThunkOptions<
 export type AsyncThunkPendingActionCreator<
   ThunkArg,
   ThunkApiConfig = {}
-> = ActionCreatorWithPreparedPayload<
+> = qt.ActionCreatorWithPreparedPayload<
   [string, ThunkArg, GetPendingMeta<ThunkApiConfig>?],
   undefined,
   string,
@@ -720,7 +601,7 @@ export type AsyncThunkPendingActionCreator<
 export type AsyncThunkRejectedActionCreator<
   ThunkArg,
   ThunkApiConfig = {}
-> = ActionCreatorWithPreparedPayload<
+> = qt.ActionCreatorWithPreparedPayload<
   [
     Error | null,
     string,
@@ -749,7 +630,7 @@ export type AsyncThunkFulfilledActionCreator<
   Returned,
   ThunkArg,
   ThunkApiConfig = {}
-> = ActionCreatorWithPreparedPayload<
+> = qt.ActionCreatorWithPreparedPayload<
   [Returned, string, ThunkArg, GetFulfilledMeta<ThunkApiConfig>?],
   Returned,
   string,

@@ -1,61 +1,51 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import type { PatchQueryDataThunk, UpdateQueryDataThunk } from "./buildThunks"
-import { buildThunks } from "./buildThunks"
-import type {
-  ActionCreatorWithPayload,
-  AnyAction,
-  Middleware,
-  Reducer,
-  ThunkAction,
-  ThunkDispatch,
-} from "@reduxjs/toolkit"
-import type {
-  EndpointDefinitions,
-  QueryArgFrom,
-  QueryDefinition,
-  MutationDefinition,
-  AssertTagTypes,
-  TagDescription,
-  isQueryDefinition,
-  isMutationDefinition,
-  Api,
-  Module,
-  BaseQueryFn,
-} from "./types.js"
-import type {
-  CombinedState,
-  QueryKeys,
-  MutationKeys,
-  RootState,
-} from "./core/types.js"
-import { onFocus, onFocusLost, onOnline, onOffline } from "./setupListeners"
-import { buildSlice } from "./buildSlice"
-import { buildMiddleware } from "./buildMiddleware"
-import { buildSelectors } from "./buildSelectors"
-import type {
-  MutationActionCreatorResult,
-  QueryActionCreatorResult,
-} from "./buildInitiate"
-import { buildInitiate } from "./buildInitiate"
-import { assertCast, safeAssign } from "../tsHelpers"
-import type { InternalSerializeQueryArgs } from "../defaultSerializeQueryArgs"
-import type { SliceActions } from "./buildSlice"
-import type { ReferenceCacheLifecycle } from "./buildMiddleware/cacheLifecycle"
-import type { ReferenceQueryLifecycle } from "./buildMiddleware/queryLifecycle"
-import type { ReferenceCacheCollection } from "./buildMiddleware/cacheCollection"
-import { enablePatches } from "immer"
+import {
+  buildThunks,
+  buildSlice,
+  buildInitiate,
+  SliceActions,
+  buildSelectors,
+  PatchQueryDataThunk,
+  UpdateQueryDataThunk,
+  QueryThunk,
+} from "./build.js"
+import * as qt from "./types.js"
+import * as qi from "../../immer/index.js"
+import * as qu from "./utils.js"
+import {
+  ReferenceCacheLifecycle,
+  ReferenceQueryLifecycle,
+  ReferenceCacheCollection,
+  buildMiddleware,
+} from "./middleware.js"
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
+
+export interface ApiContext<Definitions extends qt.EndpointDefinitions> {
+  apiUid: string
+  endpointDefinitions: Definitions
+  batch(cb: () => void): void
+  extractRehydrationInfo: (
+    action: qt.AnyAction
+  ) => qt.CombinedState<any, any, any> | undefined
+  hasRehydrationInfo: (action: qt.AnyAction) => boolean
+}
 
 export type Module<Name extends ModuleName> = {
   name: Name
   init<
-    BaseQuery extends BaseQueryFn,
-    Definitions extends EndpointDefinitions,
+    BaseQuery extends qt.BaseQueryFn,
+    Definitions extends qt.EndpointDefinitions,
     ReducerPath extends string,
     TagTypes extends string
   >(
-    api: Api<BaseQuery, EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
+    api: Api<
+      BaseQuery,
+      qt.EndpointDefinitions,
+      ReducerPath,
+      TagTypes,
+      ModuleName
+    >,
     options: WithRequiredProp<
       CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
       | "reducerPath"
@@ -70,23 +60,23 @@ export type Module<Name extends ModuleName> = {
   ): {
     injectEndpoint(
       endpointName: string,
-      definition: EndpointDefinition<any, any, any, any>
+      definition: qt.EndpointDefinition<any, any, any, any>
     ): void
   }
 }
 
 export type Api<
-  BaseQuery extends BaseQueryFn,
-  Definitions extends EndpointDefinitions,
+  BaseQuery extends qt.BaseQueryFn,
+  Definitions extends qt.EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
   Enhancers extends ModuleName = CoreModule
-> = UnionToIntersection<
+> = qt.UnionToIntersection<
   ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
 > & {
-  injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
+  injectEndpoints<NewDefinitions extends qt.EndpointDefinitions>(_: {
     endpoints: (
-      build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
+      build: qt.EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
     ) => NewDefinitions
     overrideExisting?: boolean
   }): Api<
@@ -98,9 +88,9 @@ export type Api<
   >
   enhanceEndpoints<NewTagTypes extends string = never>(_: {
     addTagTypes?: readonly NewTagTypes[]
-    endpoints?: ReplaceTagTypes<
+    endpoints?: qt.ReplaceTagTypes<
       Definitions,
-      TagTypes | NoInfer<NewTagTypes>
+      TagTypes | qt.NoInfer<NewTagTypes>
     > extends infer NewDefinitions
       ? {
           [K in keyof NewDefinitions]?:
@@ -110,7 +100,7 @@ export type Api<
       : never
   }): Api<
     BaseQuery,
-    ReplaceTagTypes<Definitions, TagTypes | NewTagTypes>,
+    qt.ReplaceTagTypes<Definitions, TagTypes | NewTagTypes>,
     ReducerPath,
     TagTypes | NewTagTypes,
     Enhancers
@@ -118,19 +108,9 @@ export type Api<
 }
 
 export interface ApiEndpointQuery<
-  Definition extends QueryDefinition<any, any, any, any, any>,
-  Definitions extends EndpointDefinitions
-> extends Matchers<QueryThunk, Definition> {}
-
-export interface ApiEndpointMutation<
-  Definition extends MutationDefinition<any, any, any, any, any>,
-  Definitions extends EndpointDefinitions
-> extends Matchers<MutationThunk, Definition> {}
-
-export interface ApiEndpointQuery<
-  Definition extends QueryDefinition<any, any, any, any, any>,
-  Definitions extends EndpointDefinitions
-> {
+  Definition extends qt.QueryDefinition<any, any, any, any, any>,
+  Definitions extends qt.EndpointDefinitions
+> extends Matchers<QueryThunk, Definition> {
   initiate: StartQueryActionCreator<Definition>
   select: QueryResultSelectorFactory<
     Definition,
@@ -141,10 +121,11 @@ export interface ApiEndpointQuery<
     >
   >
 }
+
 export interface ApiEndpointMutation<
-  Definition extends MutationDefinition<any, any, any, any, any>,
-  Definitions extends EndpointDefinitions
-> {
+  Definition extends qt.MutationDefinition<any, any, any, any, any>,
+  Definitions extends qt.EndpointDefinitions
+> extends Matchers<MutationThunk, Definition> {
   initiate: StartMutationActionCreator<Definition>
   select: MutationResultSelectorFactory<
     Definition,
@@ -172,96 +153,98 @@ export const reactHooksModuleName = Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
 
 export interface ApiModules<
-  BaseQuery extends BaseQueryFn,
-  Definitions extends EndpointDefinitions,
+  BaseQuery extends qt.BaseQueryFn,
+  Definitions extends qt.EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string
 > {
   [reactHooksModuleName]: {
     endpoints: {
-      [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+      [K in keyof Definitions]: Definitions[K] extends qt.QueryDefinition<
         any,
         any,
         any,
         any,
         any
       >
-        ? QueryHooks<Definitions[K]>
-        : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-        ? MutationHooks<Definitions[K]>
+        ? qt.QueryHooks<Definitions[K]>
+        : Definitions[K] extends qt.MutationDefinition<any, any, any, any, any>
+        ? qt.MutationHooks<Definitions[K]>
         : never
     }
-    usePrefetch<EndpointName extends QueryKeys<Definitions>>(
+    usePrefetch<EndpointName extends qt.QueryKeys<Definitions>>(
       endpointName: EndpointName,
       options?: PrefetchOptions
     ): (
-      arg: QueryArgFrom<Definitions[EndpointName]>,
+      arg: qt.QueryArgFrom<Definitions[EndpointName]>,
       options?: PrefetchOptions
     ) => void
-  } & HooksWithUniqueNames<Definitions>
+  } & qt.HooksWithUniqueNames<Definitions>
   [coreModuleName]: {
     reducerPath: ReducerPath
     internalActions: InternalActions
-    reducer: Reducer<
-      CombinedState<Definitions, TagTypes, ReducerPath>,
-      AnyAction
+    reducer: qt.Reducer<
+      qt.CombinedState<Definitions, TagTypes, ReducerPath>,
+      qt.AnyAction
     >
-    middleware: Middleware<
+    middleware: qt.Middleware<
       {},
-      RootState<Definitions, string, ReducerPath>,
-      ThunkDispatch<any, any, AnyAction>
+      qt.RootState<Definitions, string, ReducerPath>,
+      qt.ThunkDispatch<any, any, qt.AnyAction>
     >
     util: {
       getRunningOperationPromises: () => Array<Promise<unknown>>
-      getRunningOperationPromise<EndpointName extends QueryKeys<Definitions>>(
+      getRunningOperationPromise<
+        EndpointName extends qt.QueryKeys<Definitions>
+      >(
         endpointName: EndpointName,
-        args: QueryArgFrom<Definitions[EndpointName]>
+        args: qt.QueryArgFrom<Definitions[EndpointName]>
       ):
-        | QueryActionCreatorResult<
+        | qt.QueryActionCreatorResult<
             Definitions[EndpointName] & { type: "query" }
           >
         | undefined
       getRunningOperationPromise<
-        EndpointName extends MutationKeys<Definitions>
+        EndpointName extends qt.MutationKeys<Definitions>
       >(
         endpointName: EndpointName,
         fixedCacheKeyOrRequestId: string
       ):
-        | MutationActionCreatorResult<
+        | qt.MutationActionCreatorResult<
             Definitions[EndpointName] & { type: "mutation" }
           >
         | undefined
-      prefetch<EndpointName extends QueryKeys<Definitions>>(
+      prefetch<EndpointName extends qt.QueryKeys<Definitions>>(
         endpointName: EndpointName,
-        arg: QueryArgFrom<Definitions[EndpointName]>,
+        arg: qt.QueryArgFrom<Definitions[EndpointName]>,
         options: PrefetchOptions
-      ): ThunkAction<void, any, any, AnyAction>
+      ): qt.ThunkAction<void, any, any, qt.AnyAction>
       updateQueryData: UpdateQueryDataThunk<
         Definitions,
-        RootState<Definitions, string, ReducerPath>
+        qt.RootState<Definitions, string, ReducerPath>
       >
       /** @deprecated renamed to `updateQueryData` */
       updateQueryResult: UpdateQueryDataThunk<
         Definitions,
-        RootState<Definitions, string, ReducerPath>
+        qt.RootState<Definitions, string, ReducerPath>
       >
       patchQueryData: PatchQueryDataThunk<
         Definitions,
-        RootState<Definitions, string, ReducerPath>
+        qt.RootState<Definitions, string, ReducerPath>
       >
       /** @deprecated renamed to `patchQueryData` */
       patchQueryResult: PatchQueryDataThunk<
         Definitions,
-        RootState<Definitions, string, ReducerPath>
+        qt.RootState<Definitions, string, ReducerPath>
       >
       resetApiState: SliceActions["resetApiState"]
-      invalidateTags: ActionCreatorWithPayload<
-        Array<TagDescription<TagTypes>>,
+      invalidateTags: qt.ActionCreatorWithPayload<
+        Array<qt.TagDescription<TagTypes>>,
         string
       >
       selectInvalidatedBy: (
-        state: RootState<Definitions, string, ReducerPath>,
-        tags: ReadonlyArray<TagDescription<TagTypes>>
+        state: qt.RootState<Definitions, string, ReducerPath>,
+        tags: ReadonlyArray<qt.TagDescription<TagTypes>>
       ) => Array<{
         endpointName: string
         originalArgs: any
@@ -269,7 +252,7 @@ export interface ApiModules<
       }>
     }
     endpoints: {
-      [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+      [K in keyof Definitions]: Definitions[K] extends qt.QueryDefinition<
         any,
         any,
         any,
@@ -277,26 +260,18 @@ export interface ApiModules<
         any
       >
         ? ApiEndpointQuery<Definitions[K], Definitions>
-        : Definitions[K] extends MutationDefinition<any, any, any, any, any>
+        : Definitions[K] extends qt.MutationDefinition<any, any, any, any, any>
         ? ApiEndpointMutation<Definitions[K], Definitions>
         : never
     }
   }
 }
 
-export interface ApiEndpointQuery<
-  Definition extends QueryDefinition<any, any, any, any, any>,
-  Definitions extends EndpointDefinitions
-> {}
-export interface ApiEndpointMutation<
-  Definition extends MutationDefinition<any, any, any, any, any>,
-  Definitions extends EndpointDefinitions
-> {}
 export type ListenerActions = {
-  onOnline: typeof onOnline
-  onOffline: typeof onOffline
-  onFocus: typeof onFocus
-  onFocusLost: typeof onFocusLost
+  onOnline: typeof qu.onOnline
+  onOffline: typeof qu.onOffline
+  onFocus: typeof qu.onFocus
+  onFocusLost: typeof qu.onFocusLost
 }
 export type InternalActions = SliceActions & ListenerActions
 export const coreModule = (): Module<CoreModule> => ({
@@ -315,9 +290,9 @@ export const coreModule = (): Module<CoreModule> => ({
     },
     context
   ) {
-    enablePatches()
-    assertCast<InternalSerializeQueryArgs>(serializeQueryArgs)
-    const assertTagType: AssertTagTypes = tag => {
+    qi.enablePatches()
+    qt.assertCast<qt.InternalSerializeQueryArgs>(serializeQueryArgs)
+    const assertTagType: qt.AssertTagTypes = tag => {
       if (
         typeof process !== "undefined" &&
         process.env["NODE_ENV"] === "development"
@@ -334,10 +309,10 @@ export const coreModule = (): Module<CoreModule> => ({
       reducerPath,
       endpoints: {},
       internalActions: {
-        onOnline,
-        onOffline,
-        onFocus,
-        onFocusLost,
+        onOnline: qu.onOnline,
+        onOffline: qu.onOffline,
+        onFocus: qu.onFocus,
+        onFocusLost: qu.onFocusLost,
       },
       util: {},
     })
@@ -369,13 +344,13 @@ export const coreModule = (): Module<CoreModule> => ({
         reducerPath,
       },
     })
-    safeAssign(api.util, {
+    qt.safeAssign(api.util, {
       patchQueryData,
       updateQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
     })
-    safeAssign(api.internalActions, sliceActions)
+    qt.safeAssign(api.internalActions, sliceActions)
     Object.defineProperty(api.util, "updateQueryResult", {
       get() {
         if (
@@ -410,14 +385,14 @@ export const coreModule = (): Module<CoreModule> => ({
       api,
       assertTagType,
     })
-    safeAssign(api.util, middlewareActions)
-    safeAssign(api, { reducer: reducer as any, middleware })
+    qt.safeAssign(api.util, middlewareActions)
+    qt.safeAssign(api, { reducer: reducer as any, middleware })
     const { buildQuerySelector, buildMutationSelector, selectInvalidatedBy } =
       buildSelectors({
         serializeQueryArgs: serializeQueryArgs as any,
         reducerPath,
       })
-    safeAssign(api.util, { selectInvalidatedBy })
+    qt.safeAssign(api.util, { selectInvalidatedBy })
     const {
       buildInitiateQuery,
       buildInitiateMutation,
@@ -430,7 +405,7 @@ export const coreModule = (): Module<CoreModule> => ({
       serializeQueryArgs: serializeQueryArgs as any,
       context,
     })
-    safeAssign(api.util, {
+    qt.safeAssign(api.util, {
       getRunningOperationPromises,
       getRunningOperationPromise,
     })
@@ -445,8 +420,8 @@ export const coreModule = (): Module<CoreModule> => ({
           CoreModule
         >
         anyApi.endpoints[endpointName] ??= {} as any
-        if (isQueryDefinition(definition)) {
-          safeAssign(
+        if (qt.isQueryDefinition(definition)) {
+          qt.safeAssign(
             anyApi.endpoints[endpointName],
             {
               select: buildQuerySelector(endpointName, definition),
@@ -454,8 +429,8 @@ export const coreModule = (): Module<CoreModule> => ({
             },
             buildMatchThunkActions(queryThunk, endpointName)
           )
-        } else if (isMutationDefinition(definition)) {
-          safeAssign(
+        } else if (qt.isMutationDefinition(definition)) {
+          qt.safeAssign(
             anyApi.endpoints[endpointName],
             {
               select: buildMutationSelector(),

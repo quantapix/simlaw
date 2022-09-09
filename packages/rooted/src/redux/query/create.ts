@@ -1,34 +1,27 @@
-import type { Api, ApiContext, Module, ModuleName } from "./types.js"
-import type { CombinedState } from "./core/types.js"
-import type { BaseQueryArg, BaseQueryFn } from "./types.js"
-import type { SerializeQueryArgs } from "./types.js"
-import { defaultSerializeQueryArgs } from "./utils.js"
-import type { EndpointBuilder, EndpointDefinitions } from "./types.js"
-import { DefinitionType } from "./types.js"
-import { nanoid } from "../../redux/index.js"
-import type { AnyAction } from "../../redux/types.js"
-import type { NoInfer } from "./types.js"
 import { defaultMemoize } from "reselect"
+import * as qu from "./utils.js"
+import type { Api, ApiContext, Module, ModuleName } from "./module.js"
+import type * as qt from "./types.js"
 
 export interface CreateApiOptions<
-  BaseQuery extends BaseQueryFn,
-  Definitions extends EndpointDefinitions,
+  BaseQuery extends qt.BaseQueryFn,
+  Definitions extends qt.EndpointDefinitions,
   ReducerPath extends string = "api",
   TagTypes extends string = never
 > {
   baseQuery: BaseQuery
   tagTypes?: readonly TagTypes[]
   reducerPath?: ReducerPath
-  serializeQueryArgs?: SerializeQueryArgs<BaseQueryArg<BaseQuery>>
+  serializeQueryArgs?: qt.SerializeQueryArgs<qt.BaseQueryArg<BaseQuery>>
   endpoints(
-    build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
+    build: qt.EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
   ): Definitions
   keepUnusedDataFor?: number
   refetchOnMountOrArgChange?: boolean | number
   refetchOnFocus?: boolean
   refetchOnReconnect?: boolean
   extractRehydrationInfo?: (
-    action: AnyAction,
+    action: qt.AnyAction,
     {
       reducerPath,
     }: {
@@ -36,17 +29,17 @@ export interface CreateApiOptions<
     }
   ) =>
     | undefined
-    | CombinedState<
-        NoInfer<Definitions>,
-        NoInfer<TagTypes>,
-        NoInfer<ReducerPath>
+    | qt.CombinedState<
+        qt.NoInfer<Definitions>,
+        qt.NoInfer<TagTypes>,
+        qt.NoInfer<ReducerPath>
       >
 }
 
 export type CreateApi<Modules extends ModuleName> = {
   <
-    BaseQuery extends BaseQueryFn,
-    Definitions extends EndpointDefinitions,
+    BaseQuery extends qt.BaseQueryFn,
+    Definitions extends qt.EndpointDefinitions,
     ReducerPath extends string = "api",
     TagTypes extends string = never
   >(
@@ -58,7 +51,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   ...modules: Modules
 ): CreateApi<Modules[number]["name"]> {
   return function baseCreateApi(options) {
-    const extractRehydrationInfo = defaultMemoize((action: AnyAction) =>
+    const extractRehydrationInfo = defaultMemoize((action: qt.AnyAction) =>
       options.extractRehydrationInfo?.(action, {
         reducerPath: (options.reducerPath ?? "api") as any,
       })
@@ -66,7 +59,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
 
     const optionsWithDefaults = {
       reducerPath: "api",
-      serializeQueryArgs: defaultSerializeQueryArgs,
+      serializeQueryArgs: qu.defaultSerializeQueryArgs,
       keepUnusedDataFor: 60,
       refetchOnMountOrArgChange: false,
       refetchOnFocus: false,
@@ -76,12 +69,12 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       tagTypes: [...(options.tagTypes || [])],
     }
 
-    const context: ApiContext<EndpointDefinitions> = {
+    const context: ApiContext<qt.EndpointDefinitions> = {
       endpointDefinitions: {},
       batch(fn) {
         fn()
       },
-      apiUid: nanoid(),
+      apiUid: qu.nanoid(),
       extractRehydrationInfo,
       hasRehydrationInfo: defaultMemoize(
         action => extractRehydrationInfo(action) != null
@@ -114,7 +107,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         }
         return api
       },
-    } as Api<BaseQueryFn, {}, string, string, Modules[number]["name"]>
+    } as Api<qt.BaseQueryFn, {}, string, string, Modules[number]["name"]>
 
     const initializedModules = modules.map(m =>
       m.init(api as any, optionsWithDefaults, context)
@@ -124,8 +117,8 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       inject: Parameters<typeof api.injectEndpoints>[0]
     ) {
       const evaluatedEndpoints = inject.endpoints({
-        query: x => ({ ...x, type: DefinitionType.query } as any),
-        mutation: x => ({ ...x, type: DefinitionType.mutation } as any),
+        query: x => ({ ...x, type: qt.DefinitionType.query } as any),
+        mutation: x => ({ ...x, type: qt.DefinitionType.mutation } as any),
       })
 
       for (const [endpointName, definition] of Object.entries(

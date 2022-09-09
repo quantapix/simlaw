@@ -38,7 +38,6 @@ import type { Api, Module } from "../types"
 import { capitalize } from "../utils"
 import { safeAssign } from "../tsHelpers"
 import type { BaseQueryFn } from "./types"
-import type { HooksWithUniqueNames } from "./versionedTypes"
 import {
   useDispatch as rrUseDispatch,
   useSelector as rrUseSelector,
@@ -66,20 +65,6 @@ export const useIsomorphicLayoutEffect =
   window.document.createElement
     ? useLayoutEffect
     : useEffect
-export interface QueryHooks<
-  Definition extends QueryDefinition<any, any, any, any, any>
-> {
-  useQuery: UseQuery<Definition>
-  useLazyQuery: UseLazyQuery<Definition>
-  useQuerySubscription: UseQuerySubscription<Definition>
-  useLazyQuerySubscription: UseLazyQuerySubscription<Definition>
-  useQueryState: UseQueryState<Definition>
-}
-export interface MutationHooks<
-  Definition extends MutationDefinition<any, any, any, any, any>
-> {
-  useMutation: UseMutation<Definition>
-}
 export type TypedUseQueryHookResult<
   ResultType,
   QueryArg,
@@ -592,29 +577,6 @@ export const reactHooksModule = ({
     }
   },
 })
-
-export type HooksWithUniqueNames<Definitions extends EndpointDefinitions> =
-  keyof Definitions extends infer Keys
-    ? Keys extends string
-      ? Definitions[Keys] extends { type: DefinitionType.query }
-        ? {
-            [K in Keys as `use${Capitalize<K>}Query`]: UseQuery<
-              Extract<Definitions[K], QueryDefinition<any, any, any, any>>
-            >
-          } & {
-            [K in Keys as `useLazy${Capitalize<K>}Query`]: UseLazyQuery<
-              Extract<Definitions[K], QueryDefinition<any, any, any, any>>
-            >
-          }
-        : Definitions[Keys] extends { type: DefinitionType.mutation }
-        ? {
-            [K in Keys as `use${Capitalize<K>}Mutation`]: UseMutation<
-              Extract<Definitions[K], MutationDefinition<any, any, any, any>>
-            >
-          }
-        : never
-      : never
-    : never
 
 export function useStableQueryArgs<T>(
   queryArgs: T,

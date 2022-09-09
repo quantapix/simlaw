@@ -1,13 +1,14 @@
-import { ThunkDispatch, isPlainObject as _iPO } from "../../redux/index.js"
-import type * as qt from "./types.js"
+import * as qu from "../utils.js"
+import * as qt from "./types.js"
 import { createAction } from "../../redux/index.js"
-import { BaseQueryEnhancer, HandledError } from "./types.js"
+
+export * from "../utils.js"
 
 export function capitalize(str: string) {
   return str.replace(str[0], str[0].toUpperCase())
 }
 
-const isPlainObject: (_: any) => boolean = _iPO
+const isPlainObject: (_: any) => boolean = qu.isPlainObject
 
 export function copyWithStructuralSharing<T>(oldObj: any, newObj: T): T
 export function copyWithStructuralSharing(oldObj: any, newObj: any): any {
@@ -120,9 +121,9 @@ export const onOffline = createAction("__rtkq/offline")
 let initialized = false
 
 export function setupListeners(
-  dispatch: ThunkDispatch<any, any, any>,
+  dispatch: qt.ThunkDispatch<any, any, any>,
   customHandler?: (
-    dispatch: ThunkDispatch<any, any, any>,
+    dispatch: qt.ThunkDispatch<any, any, any>,
     actions: {
       onFocus: typeof onFocus
       onFocusLost: typeof onFocusLost
@@ -183,12 +184,12 @@ export interface RetryOptions {
 }
 
 function fail(e: any): never {
-  throw Object.assign(new HandledError({ error: e }), {
+  throw Object.assign(new qt.HandledError({ error: e }), {
     throwImmediately: true,
   })
 }
 
-const retryWithBackoff: BaseQueryEnhancer<
+const retryWithBackoff: qt.BaseQueryEnhancer<
   unknown,
   RetryOptions,
   RetryOptions | void
@@ -205,13 +206,13 @@ const retryWithBackoff: BaseQueryEnhancer<
     try {
       const result = await baseQuery(args, api, extraOptions)
       if (result.error) {
-        throw new HandledError(result)
+        throw new qt.HandledError(result)
       }
       return result
     } catch (e: any) {
       retry++
       if (e.throwImmediately || retry > options.maxRetries) {
-        if (e instanceof HandledError) {
+        if (e instanceof qt.HandledError) {
           return e.value
         }
         throw e

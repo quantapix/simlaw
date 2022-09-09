@@ -1,51 +1,12 @@
-import type { InternalSerializeQueryArgs } from "./utils.js"
+import * as qu from "./utils.js"
 import * as qi from "../../immer/index.js"
 import type {
   Api,
   ApiContext,
-  AssertTagTypes,
-  BaseQueryError,
-  BaseQueryFn,
-  calculateProvidedBy,
-  DefinitionType,
-  EndpointDefinition,
-  EndpointDefinitions,
-  expandTagDescription,
-  HandledError,
-  MutationDefinition,
-  QueryArgFrom,
-  QueryDefinition,
-  QueryReturnValue,
-  ResultTypeFrom,
-  TagDescription,
-  UnwrapPromise,
-} from "./types.js"
-import type {
-  CombinedState as CombinedQueryState,
-  ConfigState,
-  getRequestStatusFlags,
-  InvalidationState,
-  MutationState,
-  MutationSubState,
-  MutationSubstateIdentifier,
-  QueryCacheKey,
-  QueryKeys,
-  QueryState,
-  QueryStatus,
-  QuerySubState,
-  QuerySubstateIdentifier,
-  RequestStatusFlags,
-  RootState as _RootState,
-  RootState,
-  Subscribers,
-  SubscriptionOptions,
-  SubscriptionState,
-} from "./core/types.js"
-import { flatten } from "./utils.js"
+  ApiEndpointQuery, PrefetchOptions
+} from "./module.js"
+import * as qt from "./types.js"
 import {
-  AnyAction,
-  AsyncThunk,
-  AsyncThunkPayloadCreator,
   combineReducers,
   createAction,
   createAsyncThunk,
@@ -57,43 +18,30 @@ import {
   isPending,
   isRejected,
   isRejectedWithValue,
-  PayloadAction,
-  SerializedError,
-  ThunkAction,
-  ThunkDispatch,
-} from "@reduxjs/toolkit"
-import type { Patch } from "immer"
-import { isDraftable, produceWithPatches, applyPatches } from "immer"
-import type { ApiEndpointQuery, PrefetchOptions } from "./module.js"
-import { onFocus, onFocusLost, onOffline, onOnline } from "./core/utils.js"
-import {
-  isDocumentVisible,
-  isOnline,
-  copyWithStructuralSharing,
-} from "./utils.js"
+} from "../../redux/index.js"
 
 export interface StartQueryActionCreatorOptions {
   subscribe?: boolean
   forceRefetch?: boolean | number
-  subscriptionOptions?: SubscriptionOptions
+  subscriptionOptions?: qt.SubscriptionOptions
 }
 
 type StartQueryActionCreator<
-  D extends QueryDefinition<any, any, any, any, any>
+  D extends qt.QueryDefinition<any, any, any, any, any>
 > = (
-  arg: QueryArgFrom<D>,
+  arg: qt.QueryArgFrom<D>,
   options?: StartQueryActionCreatorOptions
-) => ThunkAction<QueryActionCreatorResult<D>, any, any, AnyAction>
+) => qt.ThunkAction<qt.QueryActionCreatorResult<D>, any, any, qt.AnyAction>
 
 type StartMutationActionCreator<
-  D extends MutationDefinition<any, any, any, any>
+  D extends qt.MutationDefinition<any, any, any, any>
 > = (
-  arg: QueryArgFrom<D>,
+  arg: qt.QueryArgFrom<D>,
   options?: {
     track?: boolean
     fixedCacheKey?: string
   }
-) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>
+) => qt.ThunkAction<qt.MutationActionCreatorResult<D>, any, any, qt.AnyAction>
 
 export function buildInitiate({
   serializeQueryArgs,
@@ -102,19 +50,19 @@ export function buildInitiate({
   api,
   context,
 }: {
-  serializeQueryArgs: InternalSerializeQueryArgs
+  serializeQueryArgs: qt.InternalSerializeQueryArgs
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
-  api: Api<any, EndpointDefinitions, any, any>
-  context: ApiContext<EndpointDefinitions>
+  api: Api<any, qt.EndpointDefinitions, any, any>
+  context: ApiContext<qt.EndpointDefinitions>
 }) {
   const runningQueries: Record<
     string,
-    QueryActionCreatorResult<any> | undefined
+    qt.QueryActionCreatorResult<any> | undefined
   > = {}
   const runningMutations: Record<
     string,
-    MutationActionCreatorResult<any> | undefined
+    qt.MutationActionCreatorResult<any> | undefined
   > = {}
   const {
     unsubscribeQueryResult,
@@ -132,7 +80,7 @@ export function buildInitiate({
     argOrRequestId: any
   ): any {
     const endpointDefinition = context.endpointDefinitions[endpointName]
-    if (endpointDefinition.type === DefinitionType.query) {
+    if (endpointDefinition?.type === qt.DefinitionType.query) {
       const queryCacheKey = serializeQueryArgs({
         queryArgs: argOrRequestId,
         endpointDefinition,
@@ -149,7 +97,7 @@ export function buildInitiate({
       ...Object.values(runningMutations),
     ].filter(<T>(t: T | undefined): t is T => !!t)
   }
-  function middlewareWarning(getState: () => RootState<{}, string, string>) {
+  function middlewareWarning(getState: () => qt.RootState<{}, string, string>) {
     if (process.env["NODE_ENV"] !== "production") {
       if ((middlewareWarning as any).triggered) return
       const registered =
@@ -167,7 +115,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
   }
   function buildInitiateQuery(
     endpointName: string,
-    endpointDefinition: QueryDefinition<any, any, any, any>
+    endpointDefinition: qt.QueryDefinition<any, any, any, any>
   ) {
     const queryAction: StartQueryActionCreator<any> =
       (arg, { subscribe = true, forceRefetch, subscriptionOptions } = {}) =>
@@ -189,7 +137,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
         const thunkResult = dispatch(thunk)
         middlewareWarning(getState)
         const { requestId, abort } = thunkResult
-        const statePromise: QueryActionCreatorResult<any> = Object.assign(
+        const statePromise: qt.QueryActionCreatorResult<any> = Object.assign(
           Promise.all([runningQueries[queryCacheKey], thunkResult]).then(() =>
             (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).select(
               arg
@@ -222,7 +170,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
                   })
                 )
             },
-            updateSubscriptionOptions(options: SubscriptionOptions) {
+            updateSubscriptionOptions(options: qt.SubscriptionOptions) {
               statePromise.subscriptionOptions = options
               dispatch(
                 updateSubscriptionOptions({
@@ -292,47 +240,47 @@ Features like automatic cache collection, automatic refetching etc. will not be 
 }
 
 type QueryResultSelectorFactory<
-  Definition extends QueryDefinition<any, any, any, any>,
-  RootState
+  Definition extends qt.QueryDefinition<any, any, any, any>,
+  qt.RootState
 > = (
-  queryArg: QueryArgFrom<Definition> | SkipToken
-) => (state: RootState) => QueryResultSelectorResult<Definition>
+  queryArg: qt.QueryArgFrom<Definition> | qt.SkipToken
+) => (state: qt.RootState) => qt.QueryResultSelectorResult<Definition>
 type MutationResultSelectorFactory<
-  Definition extends MutationDefinition<any, any, any, any>,
-  RootState
+  Definition extends qt.MutationDefinition<any, any, any, any>,
+  qt.RootState
 > = (
   requestId:
     | string
     | { requestId: string | undefined; fixedCacheKey: string | undefined }
-    | SkipToken
-) => (state: RootState) => MutationResultSelectorResult<Definition>
-const initialSubState: QuerySubState<any> = {
-  status: QueryStatus.uninitialized as const,
+    | qt.SkipToken
+) => (state: qt.RootState) => qt.MutationResultSelectorResult<Definition>
+const initialSubState: qt.QuerySubState<any> = {
+  status: qt.QueryStatus.uninitialized as const,
 }
 const defaultQuerySubState = qi.produce(initialSubState, () => {})
 const defaultMutationSubState = qi.produce(
-  initialSubState as MutationSubState<any>,
+  initialSubState as qt.MutationSubState<any>,
   () => {}
 )
 
 export function buildSelectors<
-  Definitions extends EndpointDefinitions,
+  Definitions extends qt.EndpointDefinitions,
   ReducerPath extends string
 >({
   serializeQueryArgs,
   reducerPath,
 }: {
-  serializeQueryArgs: InternalSerializeQueryArgs
+  serializeQueryArgs: qt.InternalSerializeQueryArgs
   reducerPath: ReducerPath
 }) {
-  type RootState = _RootState<Definitions, string, string>
+  type RootState = qt.RootState<Definitions, string, string>
   return { buildQuerySelector, buildMutationSelector, selectInvalidatedBy }
-  function withRequestFlags<T extends { status: QueryStatus }>(
+  function withRequestFlags<T extends { status: qt.QueryStatus }>(
     substate: T
-  ): T & RequestStatusFlags {
+  ): T & qt.RequestStatusFlags {
     return {
       ...substate,
-      ...getRequestStatusFlags(substate.status),
+      ...qt.getRequestStatusFlags(substate.status),
     }
   }
   function selectInternalState(rootState: RootState) {
@@ -350,7 +298,7 @@ export function buildSelectors<
   }
   function buildQuerySelector(
     endpointName: string,
-    endpointDefinition: QueryDefinition<any, any, any, any>
+    endpointDefinition: qt.QueryDefinition<any, any, any, any>
   ) {
     return ((queryArgs: any) => {
       const selectQuerySubState = createSelector(
@@ -367,7 +315,7 @@ export function buildSelectors<
               ]) ?? defaultQuerySubState
       )
       return createSelector(selectQuerySubState, withRequestFlags)
-    }) as QueryResultSelectorFactory<any, RootState>
+    }) as QueryResultSelectorFactory<any, qt.RootState>
   }
   function buildMutationSelector() {
     return (id => {
@@ -385,19 +333,19 @@ export function buildSelectors<
             : internalState?.mutations?.[mutationId]) ?? defaultMutationSubState
       )
       return createSelector(selectMutationSubstate, withRequestFlags)
-    }) as MutationResultSelectorFactory<any, RootState>
+    }) as MutationResultSelectorFactory<any, qt.RootState>
   }
   function selectInvalidatedBy(
-    state: RootState,
-    tags: ReadonlyArray<TagDescription<string>>
+    state: qt.RootState,
+    tags: ReadonlyArray<qt.TagDescription<string>>
   ): Array<{
     endpointName: string
     originalArgs: any
-    queryCacheKey: QueryCacheKey
+    queryCacheKey: qt.QueryCacheKey
   }> {
     const apiState = state[reducerPath]
-    const toInvalidate = new Set<QueryCacheKey>()
-    for (const tag of tags.map(expandTagDescription)) {
+    const toInvalidate = new Set<qt.QueryCacheKey>()
+    for (const tag of tags.map(qt.expandTagDescription)) {
       const provided = apiState.provided[tag.type]
       if (!provided) {
         continue
@@ -405,12 +353,12 @@ export function buildSelectors<
       const invalidateSubscriptions =
         (tag.id !== undefined
           ? provided[tag.id]
-          : flatten(Object.values(provided))) ?? []
+          : qu.flatten(Object.values(provided))) ?? []
       for (const invalidate of invalidateSubscriptions) {
         toInvalidate.add(invalidate)
       }
     }
-    return flatten(
+    return qu.flatten(
       Array.from(toInvalidate.values()).map(queryCacheKey => {
         const querySubState = apiState.queries[queryCacheKey]
         return querySubState
@@ -428,44 +376,44 @@ export function buildSelectors<
 }
 type EndpointThunk<
   Thunk extends QueryThunk | MutationThunk,
-  Definition extends EndpointDefinition<any, any, any, any>
-> = Definition extends EndpointDefinition<
+  Definition extends qt.EndpointDefinition<any, any, any, any>
+> = Definition extends qt.EndpointDefinition<
   infer QueryArg,
   infer BaseQueryFn,
   any,
   infer ResultType
 >
-  ? Thunk extends AsyncThunk<unknown, infer ATArg, infer ATConfig>
-    ? AsyncThunk<
+  ? Thunk extends qt.AsyncThunk<unknown, infer ATArg, infer ATConfig>
+    ? qt.AsyncThunk<
         ResultType,
         ATArg & { originalArgs: QueryArg },
-        ATConfig & { rejectValue: BaseQueryError<BaseQueryFn> }
+        ATConfig & { rejectValue: qt.BaseQueryError<BaseQueryFn> }
       >
     : never
   : never
 export type PendingAction<
   Thunk extends QueryThunk | MutationThunk,
-  Definition extends EndpointDefinition<any, any, any, any>
+  Definition extends qt.EndpointDefinition<any, any, any, any>
 > = ReturnType<EndpointThunk<Thunk, Definition>["pending"]>
 export type FulfilledAction<
   Thunk extends QueryThunk | MutationThunk,
-  Definition extends EndpointDefinition<any, any, any, any>
+  Definition extends qt.EndpointDefinition<any, any, any, any>
 > = ReturnType<EndpointThunk<Thunk, Definition>["fulfilled"]>
 export type RejectedAction<
   Thunk extends QueryThunk | MutationThunk,
-  Definition extends EndpointDefinition<any, any, any, any>
+  Definition extends qt.EndpointDefinition<any, any, any, any>
 > = ReturnType<EndpointThunk<Thunk, Definition>["rejected"]>
 export type Matcher<M> = (value: any) => value is M
 export interface Matchers<
   Thunk extends QueryThunk | MutationThunk,
-  Definition extends EndpointDefinition<any, any, any, any>
+  Definition extends qt.EndpointDefinition<any, any, any, any>
 > {
   matchPending: Matcher<PendingAction<Thunk, Definition>>
   matchFulfilled: Matcher<FulfilledAction<Thunk, Definition>>
   matchRejected: Matcher<RejectedAction<Thunk, Definition>>
 }
 export interface QueryThunkArg
-  extends QuerySubstateIdentifier,
+  extends qt.QuerySubstateIdentifier,
     StartQueryActionCreatorOptions {
   type: "query"
   originalArgs: unknown
@@ -489,12 +437,12 @@ export type ThunkApiMetaConfig = {
     baseQueryMeta: unknown
   }
 }
-export type QueryThunk = AsyncThunk<
+export type QueryThunk = qt.AsyncThunk<
   ThunkResult,
   QueryThunkArg,
   ThunkApiMetaConfig
 >
-export type MutationThunk = AsyncThunk<
+export type MutationThunk = qt.AsyncThunk<
   ThunkResult,
   MutationThunkArg,
   ThunkApiMetaConfig
@@ -503,25 +451,25 @@ function defaultTransformResponse(baseQueryReturnValue: unknown) {
   return baseQueryReturnValue
 }
 export type PatchQueryDataThunk<
-  Definitions extends EndpointDefinitions,
+  Definitions extends qt.EndpointDefinitions,
   PartialState
-> = <EndpointName extends QueryKeys<Definitions>>(
+> = <EndpointName extends qt.QueryKeys<Definitions>>(
   endpointName: EndpointName,
-  args: QueryArgFrom<Definitions[EndpointName]>,
-  patches: readonly Patch[]
-) => ThunkAction<void, PartialState, any, AnyAction>
+  args: qt.QueryArgFrom<Definitions[EndpointName]>,
+  patches: readonly qi.Patch[]
+) => qt.ThunkAction<void, PartialState, any, qt.AnyAction>
 export type UpdateQueryDataThunk<
-  Definitions extends EndpointDefinitions,
+  Definitions extends qt.EndpointDefinitions,
   PartialState
-> = <EndpointName extends QueryKeys<Definitions>>(
+> = <EndpointName extends qt.QueryKeys<Definitions>>(
   endpointName: EndpointName,
-  args: QueryArgFrom<Definitions[EndpointName]>,
-  updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
-) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
+  args: qt.QueryArgFrom<Definitions[EndpointName]>,
+  updateRecipe: qt.Recipe<qt.ResultTypeFrom<Definitions[EndpointName]>>
+) => qt.ThunkAction<qt.PatchCollection, PartialState, any, qt.AnyAction>
 export function buildThunks<
-  BaseQuery extends BaseQueryFn,
+  BaseQuery extends qt.BaseQueryFn,
   ReducerPath extends string,
-  Definitions extends EndpointDefinitions
+  Definitions extends qt.EndpointDefinitions
 >({
   reducerPath,
   baseQuery,
@@ -532,11 +480,11 @@ export function buildThunks<
   baseQuery: BaseQuery
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
-  serializeQueryArgs: InternalSerializeQueryArgs
+  serializeQueryArgs: qt.InternalSerializeQueryArgs
   api: Api<BaseQuery, Definitions, ReducerPath, any>
 }) {
-  type State = RootState<any, string, ReducerPath>
-  const patchQueryData: PatchQueryDataThunk<EndpointDefinitions, State> =
+  type State = qt.RootState<any, string, ReducerPath>
+  const patchQueryData: PatchQueryDataThunk<qt.EndpointDefinitions, State> =
     (endpointName, args, patches) => dispatch => {
       const endpointDefinition = endpointDefinitions[endpointName]
       dispatch(
@@ -550,7 +498,7 @@ export function buildThunks<
         })
       )
     }
-  const updateQueryData: UpdateQueryDataThunk<EndpointDefinitions, State> =
+  const updateQueryData: UpdateQueryDataThunk<qt.EndpointDefinitions, State> =
     (endpointName, args, updateRecipe) => (dispatch, getState) => {
       const currentState = (
         api.endpoints[endpointName] as ApiEndpointQuery<any, any>
@@ -563,12 +511,12 @@ export function buildThunks<
             api.util.patchQueryData(endpointName, args, ret.inversePatches)
           ),
       }
-      if (currentState.status === QueryStatus.uninitialized) {
+      if (currentState.status === qt.QueryStatus.uninitialized) {
         return ret
       }
       if ("data" in currentState) {
-        if (isDraftable(currentState.data)) {
-          const [, patches, inversePatches] = produceWithPatches(
+        if (qi.isDraftable(currentState.data)) {
+          const [, patches, inversePatches] = qi.produceWithPatches(
             currentState.data,
             updateRecipe
           )
@@ -587,22 +535,22 @@ export function buildThunks<
       dispatch(api.util.patchQueryData(endpointName, args, ret.patches))
       return ret
     }
-  const executeEndpoint: AsyncThunkPayloadCreator<
+  const executeEndpoint: qt.AsyncThunkPayloadCreator<
     ThunkResult,
     QueryThunkArg | MutationThunkArg,
-    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+    ThunkApiMetaConfig & { state: qt.RootState<any, string, ReducerPath> }
   > = async (
     arg,
     { signal, rejectWithValue, fulfillWithValue, dispatch, getState, extra }
   ) => {
-    const endpointDefinition = endpointDefinitions[arg.endpointName]
+    const endpointDefinition = endpointDefinitions[arg.endpointName]!
     try {
       let transformResponse: (
         baseQueryReturnValue: any,
         meta: any,
         arg: any
       ) => any = defaultTransformResponse
-      let result: QueryReturnValue
+      let result: qt.QueryReturnValue
       const baseQueryApi = {
         signal,
         dispatch,
@@ -663,7 +611,7 @@ export function buildThunks<
           )
         }
       }
-      if (result.error) throw new HandledError(result.error, result.meta)
+      if (result.error) throw new qt.HandledError(result.error, result.meta)
       return fulfillWithValue(
         await transformResponse(result.data, result.meta, arg.originalArgs),
         {
@@ -672,7 +620,7 @@ export function buildThunks<
         }
       )
     } catch (error) {
-      if (error instanceof HandledError) {
+      if (error instanceof qt.HandledError) {
         return rejectWithValue(error.value, { baseQueryMeta: error.meta })
       }
       if (
@@ -692,7 +640,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   }
   function isForcedQuery(
     arg: QueryThunkArg,
-    state: RootState<any, string, ReducerPath>
+    state: qt.RootState<any, string, ReducerPath>
   ) {
     const requestState = state[reducerPath]?.queries?.[arg.queryCacheKey]
     const baseFetchOnMountOrArgChange =
@@ -711,7 +659,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   const queryThunk = createAsyncThunk<
     ThunkResult,
     QueryThunkArg,
-    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+    ThunkApiMetaConfig & { state: qt.RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeQuery`, executeEndpoint, {
     getPendingMeta() {
       return { startedTimeStamp: Date.now() }
@@ -730,7 +678,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   const mutationThunk = createAsyncThunk<
     ThunkResult,
     MutationThunkArg,
-    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+    ThunkApiMetaConfig & { state: qt.RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeMutation`, executeEndpoint, {
     getPendingMeta() {
       return { startedTimeStamp: Date.now() }
@@ -742,12 +690,12 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     options: any
   ): options is { ifOlderThan: false | number } => "ifOlderThan" in options
   const prefetch =
-    <EndpointName extends QueryKeys<Definitions>>(
+    <EndpointName extends qt.QueryKeys<Definitions>>(
       endpointName: EndpointName,
       arg: any,
       options: PrefetchOptions
-    ): ThunkAction<void, any, any, AnyAction> =>
-    (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
+    ): qt.ThunkAction<void, any, any, qt.AnyAction> =>
+    (dispatch: qt.ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
       const queryAction = (force: boolean = true) =>
@@ -777,13 +725,13 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       }
     }
   function matchesEndpoint(endpointName: string) {
-    return (action: any): action is AnyAction =>
+    return (action: any): action is qt.AnyAction =>
       action?.meta?.arg?.endpointName === endpointName
   }
   function buildMatchThunkActions<
     Thunk extends
-      | AsyncThunk<any, QueryThunkArg, ThunkApiMetaConfig>
-      | AsyncThunk<any, MutationThunkArg, ThunkApiMetaConfig>
+      | qt.AsyncThunk<any, QueryThunkArg, ThunkApiMetaConfig>
+      | qt.AsyncThunk<any, MutationThunkArg, ThunkApiMetaConfig>
   >(thunk: Thunk, endpointName: string) {
     return {
       matchPending: isAllOf(isPending(thunk), matchesEndpoint(endpointName)),
@@ -804,15 +752,15 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   }
 }
 export function calculateProvidedByThunk(
-  action: UnwrapPromise<
+  action: qt.UnwrapPromise<
     ReturnType<ReturnType<QueryThunk>> | ReturnType<ReturnType<MutationThunk>>
   >,
   type: "providesTags" | "invalidatesTags",
-  endpointDefinitions: EndpointDefinitions,
-  assertTagType: AssertTagTypes
+  endpointDefinitions: qt.EndpointDefinitions,
+  assertTagType: qt.AssertTagTypes
 ) {
-  return calculateProvidedBy(
-    endpointDefinitions[action.meta.arg.endpointName][type],
+  return qt.calculateProvidedBy(
+    endpointDefinitions[action.meta.arg.endpointName]?[type],
     isFulfilled(action) ? action.payload : undefined,
     isRejectedWithValue(action) ? action.payload : undefined,
     action.meta.arg.originalArgs,
@@ -822,9 +770,9 @@ export function calculateProvidedByThunk(
 }
 
 function updateQuerySubstateIfExists(
-  state: QueryState<any>,
-  queryCacheKey: QueryCacheKey,
-  update: (substate: QuerySubState<any>) => void
+  state: qt.QueryState<any>,
+  queryCacheKey: qt.QueryCacheKey,
+  update: (substate: qt.QuerySubState<any>) => void
 ) {
   const substate = state[queryCacheKey]
   if (substate) {
@@ -833,7 +781,7 @@ function updateQuerySubstateIfExists(
 }
 export function getMutationCacheKey(
   id:
-    | MutationSubstateIdentifier
+    | qt.MutationSubstateIdentifier
     | { requestId: string; arg: { fixedCacheKey?: string | undefined } }
 ): string
 export function getMutationCacheKey(id: {
@@ -843,17 +791,17 @@ export function getMutationCacheKey(id: {
 export function getMutationCacheKey(
   id:
     | { fixedCacheKey?: string; requestId?: string }
-    | MutationSubstateIdentifier
+    | qt.MutationSubstateIdentifier
     | { requestId: string; arg: { fixedCacheKey?: string | undefined } }
 ): string | undefined {
   return ("arg" in id ? id.arg.fixedCacheKey : id.fixedCacheKey) ?? id.requestId
 }
 function updateMutationSubstateIfExists(
-  state: MutationState<any>,
+  state: qt.MutationState<any>,
   id:
-    | MutationSubstateIdentifier
+    | qt.MutationSubstateIdentifier
     | { requestId: string; arg: { fixedCacheKey?: string | undefined } },
-  update: (substate: MutationSubState<any>) => void
+  update: (substate: qt.MutationSubState<any>) => void
 ) {
   const substate = state[getMutationCacheKey(id)]
   if (substate) {
@@ -877,21 +825,21 @@ export function buildSlice({
   reducerPath: string
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
-  context: ApiContext<EndpointDefinitions>
-  assertTagType: AssertTagTypes
+  context: ApiContext<qt.EndpointDefinitions>
+  assertTagType: qt.AssertTagTypes
   config: Omit<
-    ConfigState<string>,
+    qt.ConfigState<string>,
     "online" | "focused" | "middlewareRegistered"
   >
 }) {
   const resetApiState = createAction(`${reducerPath}/resetApiState`)
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
-    initialState: initialState as QueryState<any>,
+    initialState: initialState as qt.QueryState<any>,
     reducers: {
       removeQueryResult(
         draft,
-        { payload: { queryCacheKey } }: PayloadAction<QuerySubstateIdentifier>
+        { payload: { queryCacheKey } }: qt.PayloadAction<qt.QuerySubstateIdentifier>
       ) {
         delete draft[queryCacheKey]
       },
@@ -899,12 +847,12 @@ export function buildSlice({
         draft,
         {
           payload: { queryCacheKey, patches },
-        }: PayloadAction<
-          QuerySubstateIdentifier & { patches: readonly Patch[] }
+        }: qt.PayloadAction<
+          qt.QuerySubstateIdentifier & { patches: readonly qi.Patch[] }
         >
       ) {
         updateQuerySubstateIfExists(draft, queryCacheKey, substate => {
-          substate.data = applyPatches(substate.data as any, patches.concat())
+          substate.data = qi.applyPatches(substate.data as any, patches.concat())
         })
       },
     },
@@ -913,12 +861,12 @@ export function buildSlice({
         .addCase(queryThunk.pending, (draft, { meta, meta: { arg } }) => {
           if (arg.subscribe) {
             draft[arg.queryCacheKey] ??= {
-              status: QueryStatus.uninitialized,
+              status: qt.QueryStatus.uninitialized,
               endpointName: arg.endpointName,
             }
           }
           updateQuerySubstateIfExists(draft, arg.queryCacheKey, substate => {
-            substate.status = QueryStatus.pending
+            substate.status = qt.QueryStatus.pending
             substate.requestId = meta.requestId
             if (arg.originalArgs !== undefined) {
               substate.originalArgs = arg.originalArgs
@@ -932,10 +880,10 @@ export function buildSlice({
             meta.arg.queryCacheKey,
             substate => {
               if (substate.requestId !== meta.requestId) return
-              substate.status = QueryStatus.fulfilled
+              substate.status = qt.QueryStatus.fulfilled
               substate.data =
                 definitions[meta.arg.endpointName].structuralSharing ?? true
-                  ? copyWithStructuralSharing(substate.data, payload)
+                  ? qu.copyWithStructuralSharing(substate.data, payload)
                   : payload
               delete substate.error
               substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
@@ -949,7 +897,7 @@ export function buildSlice({
               if (condition) {
               } else {
                 if (substate.requestId !== requestId) return
-                substate.status = QueryStatus.rejected
+                substate.status = qt.QueryStatus.rejected
                 substate.error = (payload ?? error) as any
               }
             })
@@ -960,8 +908,8 @@ export function buildSlice({
           for (const [key, entry] of Object.entries(queries)) {
             if (
               // do not rehydrate entries that were currently in flight.
-              entry?.status === QueryStatus.fulfilled ||
-              entry?.status === QueryStatus.rejected
+              entry?.status === qt.QueryStatus.fulfilled ||
+              entry?.status === qt.QueryStatus.rejected
             ) {
               draft[key] = entry
             }
@@ -971,11 +919,11 @@ export function buildSlice({
   })
   const mutationSlice = createSlice({
     name: `${reducerPath}/mutations`,
-    initialState: initialState as MutationState<any>,
+    initialState: initialState as qt.MutationState<any>,
     reducers: {
       removeMutationResult(
         draft,
-        { payload }: PayloadAction<MutationSubstateIdentifier>
+        { payload }: qt.PayloadAction<qt.MutationSubstateIdentifier>
       ) {
         const cacheKey = getMutationCacheKey(payload)
         if (cacheKey in draft) {
@@ -991,7 +939,7 @@ export function buildSlice({
             if (!arg.track) return
             draft[getMutationCacheKey(meta)] = {
               requestId,
-              status: QueryStatus.pending,
+              status: qt.QueryStatus.pending,
               endpointName: arg.endpointName,
               startedTimeStamp,
             }
@@ -1001,7 +949,7 @@ export function buildSlice({
           if (!meta.arg.track) return
           updateMutationSubstateIfExists(draft, meta, substate => {
             if (substate.requestId !== meta.requestId) return
-            substate.status = QueryStatus.fulfilled
+            substate.status = qt.QueryStatus.fulfilled
             substate.data = payload
             substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
           })
@@ -1010,7 +958,7 @@ export function buildSlice({
           if (!meta.arg.track) return
           updateMutationSubstateIfExists(draft, meta, substate => {
             if (substate.requestId !== meta.requestId) return
-            substate.status = QueryStatus.rejected
+            substate.status = qt.QueryStatus.rejected
             substate.error = (payload ?? error) as any
           })
         })
@@ -1018,8 +966,8 @@ export function buildSlice({
           const { mutations } = extractRehydrationInfo(action)!
           for (const [key, entry] of Object.entries(mutations)) {
             if (
-              (entry?.status === QueryStatus.fulfilled ||
-                entry?.status === QueryStatus.rejected) &&
+              (entry?.status === qt.QueryStatus.fulfilled ||
+                entry?.status === qt.QueryStatus.rejected) &&
               key !== entry?.requestId
             ) {
               draft[key] = entry
@@ -1030,7 +978,7 @@ export function buildSlice({
   })
   const invalidationSlice = createSlice({
     name: `${reducerPath}/invalidation`,
-    initialState: initialState as InvalidationState<string>,
+    initialState: initialState as qt.InvalidationState<string>,
     reducers: {},
     extraReducers(builder) {
       builder
@@ -1092,18 +1040,18 @@ export function buildSlice({
   })
   const subscriptionSlice = createSlice({
     name: `${reducerPath}/subscriptions`,
-    initialState: initialState as SubscriptionState,
+    initialState: initialState as qt.SubscriptionState,
     reducers: {
       updateSubscriptionOptions(
         draft,
         {
           payload: { queryCacheKey, requestId, options },
-        }: PayloadAction<
+        }: qt.PayloadAction<
           {
             endpointName: string
             requestId: string
-            options: Subscribers[number]
-          } & QuerySubstateIdentifier
+            options: qt.Subscribers[number]
+          } & qt.QuerySubstateIdentifier
         >
       ) {
         if (draft?.[queryCacheKey]?.[requestId]) {
@@ -1114,7 +1062,7 @@ export function buildSlice({
         draft,
         {
           payload: { queryCacheKey, requestId },
-        }: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>
+        }: qt.PayloadAction<{ requestId: string } & qt.QuerySubstateIdentifier>
       ) {
         if (draft[queryCacheKey]) {
           delete draft[queryCacheKey]![requestId]
@@ -1152,13 +1100,13 @@ export function buildSlice({
   const configSlice = createSlice({
     name: `${reducerPath}/config`,
     initialState: {
-      online: isOnline(),
-      focused: isDocumentVisible(),
+      online: qu.isOnline(),
+      focused: qu.isDocumentVisible(),
       middlewareRegistered: false,
       ...config,
-    } as ConfigState<string>,
+    } as qt.ConfigState<string>,
     reducers: {
-      middlewareRegistered(state, { payload }: PayloadAction<string>) {
+      middlewareRegistered(state, { payload }: qt.PayloadAction<string>) {
         state.middlewareRegistered =
           state.middlewareRegistered === "conflict" || apiUid !== payload
             ? "conflict"
@@ -1167,16 +1115,16 @@ export function buildSlice({
     },
     extraReducers: builder => {
       builder
-        .addCase(onOnline, state => {
+        .addCase(qu.onOnline, state => {
           state.online = true
         })
-        .addCase(onOffline, state => {
+        .addCase(qu.onOffline, state => {
           state.online = false
         })
-        .addCase(onFocus, state => {
+        .addCase(qu.onFocus, state => {
           state.focused = true
         })
-        .addCase(onFocusLost, state => {
+        .addCase(qu.onFocusLost, state => {
           state.focused = false
         })
         .addMatcher(hasRehydrationInfo, draft => ({ ...draft }))

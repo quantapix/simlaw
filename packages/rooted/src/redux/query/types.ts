@@ -2,6 +2,8 @@
 import type * as qt from "../types.js"
 import type * as qi from "../../immer/index.js"
 
+export * from "../types.js"
+
 export type QueryCacheKey = string & { _type: "queryCacheKey" }
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey }
 export type MutationSubstateIdentifier =
@@ -236,7 +238,9 @@ export type Id<T> = { [K in keyof T]: T[K] } & {}
 export type WithRequiredProp<T, K extends keyof T> = Omit<T, K> &
   Required<Pick<T, K>>
 export type Override<T1, T2> = T2 extends any ? Omit<T1, keyof T2> & T2 : never
-export function assertCast<T>(v: any): asserts v is T {}
+export function assertCast<T>(v: any): asserts v is T {
+  v
+}
 
 export function safeAssign<T extends object>(
   target: T,
@@ -350,16 +354,6 @@ export type BaseQueryArg<T extends (arg: any, ...args: any[]) => any> =
 
 export type BaseQueryExtraOptions<BaseQuery extends BaseQueryFn> =
   Parameters<BaseQuery>[2]
-
-export interface ApiContext<Definitions extends EndpointDefinitions> {
-  apiUid: string
-  endpointDefinitions: Definitions
-  batch(cb: () => void): void
-  extractRehydrationInfo: (
-    action: qt.AnyAction
-  ) => CombinedState<any, any, any> | undefined
-  hasRehydrationInfo: (action: qt.AnyAction) => boolean
-}
 
 const resultType = Symbol()
 const baseQuery = Symbol()
@@ -1035,6 +1029,20 @@ export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   UseQueryStateResult<D, R>,
   UseLazyQueryLastPromiseInfo<D>
 ]
+export interface QueryHooks<
+  Definition extends QueryDefinition<any, any, any, any, any>
+> {
+  useQuery: UseQuery<Definition>
+  useLazyQuery: UseLazyQuery<Definition>
+  useQuerySubscription: UseQuerySubscription<Definition>
+  useLazyQuerySubscription: UseLazyQuerySubscription<Definition>
+  useQueryState: UseQueryState<Definition>
+}
+export interface MutationHooks<
+  Definition extends MutationDefinition<any, any, any, any, any>
+> {
+  useMutation: UseMutation<Definition>
+}
 
 export type HooksWithUniqueNames<Definitions extends EndpointDefinitions> =
   keyof Definitions extends infer Keys
