@@ -1,7 +1,7 @@
-import { PayloadAction, isFSA, createDraftSafeSelector } from "./create.js"
-import type { IsAny } from "./types.js"
+import { isFSA, createDraftSafeSelector } from "./create.js"
 import * as qi from "../immer/index.js"
-import type { Selector } from "reselect"
+import type { Selector } from "./reselect/index.js"
+import type * as qt from "./types.js"
 
 export function createEntityAdapter<T>(
   options: {
@@ -61,12 +61,12 @@ export interface EntityDefinition<T> {
   selectId: IdSelector<T>
   sortComparer: false | Comparer<T>
 }
-export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
+export type PreventAny<S, T> = qt.IsAny<S, EntityState<T>, S>
 export interface EntityStateAdapter<T> {
   addOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
   addOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    action: PayloadAction<T>
+    action: qt.PayloadAction<T>
   ): S
   addMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
@@ -74,12 +74,12 @@ export interface EntityStateAdapter<T> {
   ): S
   addMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
+    entities: qt.PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
   setOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
   setOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    action: PayloadAction<T>
+    action: qt.PayloadAction<T>
   ): S
   setMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
@@ -87,7 +87,7 @@ export interface EntityStateAdapter<T> {
   ): S
   setMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
+    entities: qt.PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
   setAll<S extends EntityState<T>>(
     state: PreventAny<S, T>,
@@ -95,12 +95,12 @@ export interface EntityStateAdapter<T> {
   ): S
   setAll<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
+    entities: qt.PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
   removeOne<S extends EntityState<T>>(state: PreventAny<S, T>, key: EntityId): S
   removeOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    key: PayloadAction<EntityId>
+    key: qt.PayloadAction<EntityId>
   ): S
   removeMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
@@ -108,7 +108,7 @@ export interface EntityStateAdapter<T> {
   ): S
   removeMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    keys: PayloadAction<readonly EntityId[]>
+    keys: qt.PayloadAction<readonly EntityId[]>
   ): S
   removeAll<S extends EntityState<T>>(state: PreventAny<S, T>): S
   updateOne<S extends EntityState<T>>(
@@ -117,7 +117,7 @@ export interface EntityStateAdapter<T> {
   ): S
   updateOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    update: PayloadAction<Update<T>>
+    update: qt.PayloadAction<Update<T>>
   ): S
   updateMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
@@ -125,12 +125,12 @@ export interface EntityStateAdapter<T> {
   ): S
   updateMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    updates: PayloadAction<ReadonlyArray<Update<T>>>
+    updates: qt.PayloadAction<ReadonlyArray<Update<T>>>
   ): S
   upsertOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
   upsertOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entity: PayloadAction<T>
+    entity: qt.PayloadAction<T>
   ): S
   upsertMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
@@ -138,7 +138,7 @@ export interface EntityStateAdapter<T> {
   ): S
   upsertMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
+    entities: qt.PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
 }
 export interface EntitySelectors<T, V> {
@@ -300,11 +300,11 @@ export function createStateOperator<V, R>(
 ) {
   return function operation<S extends EntityState<V>>(
     state: S,
-    arg: R | PayloadAction<R>
+    arg: R | qt.PayloadAction<R>
   ): S {
     function isPayloadActionArgument(
-      arg: R | PayloadAction<R>
-    ): arg is PayloadAction<R> {
+      arg: R | qt.PayloadAction<R>
+    ): arg is qt.PayloadAction<R> {
       return isFSA(arg)
     }
     const runMutator = (draft: EntityState<V>) => {

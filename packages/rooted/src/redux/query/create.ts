@@ -1,7 +1,7 @@
-import { defaultMemoize } from "reselect"
+import { defaultMemoize } from "../reselect/index.js"
+import * as qt from "./types.js"
 import * as qu from "./utils.js"
 import type { Api, ApiContext, Module, ModuleName } from "./module.js"
-import * as qt from "./types.js"
 
 export interface CreateApiOptions<
   BaseQuery extends qt.BaseQueryFn,

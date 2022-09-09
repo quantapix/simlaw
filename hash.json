@@ -13,5 +13,6 @@
   "https://github.com/ReactiveX/rxjs.git": "4afbc16",
   "https://github.com/reduxjs/redux-thunk.git": "6f392f1",
   "https://github.com/reduxjs/redux-toolkit.git": "3de00f4",
-  "https://github.com/reduxjs/redux.git": "9e0756f"
+  "https://github.com/reduxjs/redux.git": "9e0756f",
+  "https://github.com/reduxjs/reselect.git": "f53eb41"
 }
