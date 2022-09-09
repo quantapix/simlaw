@@ -1,8 +1,233 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import type * as qt from "../types.js"
-import type { CoreModule } from "./core/module.js"
-import type { CreateApiOptions } from "./create.js"
-import type { RootState, CombinedState, QueryCacheKey } from "./core/types.js"
+import type * as qi from "../../immer/index.js"
+
+export type QueryCacheKey = string & { _type: "queryCacheKey" }
+export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey }
+export type MutationSubstateIdentifier =
+  | {
+      requestId: string
+      fixedCacheKey?: string
+    }
+  | {
+      requestId?: string
+      fixedCacheKey: string
+    }
+
+export type RefetchConfigOptions = {
+  refetchOnMountOrArgChange: boolean | number
+  refetchOnReconnect: boolean
+  refetchOnFocus: boolean
+}
+
+export enum QueryStatus {
+  uninitialized = "uninitialized",
+  pending = "pending",
+  fulfilled = "fulfilled",
+  rejected = "rejected",
+}
+
+export type RequestStatusFlags =
+  | {
+      status: QueryStatus.uninitialized
+      isUninitialized: true
+      isLoading: false
+      isSuccess: false
+      isError: false
+    }
+  | {
+      status: QueryStatus.pending
+      isUninitialized: false
+      isLoading: true
+      isSuccess: false
+      isError: false
+    }
+  | {
+      status: QueryStatus.fulfilled
+      isUninitialized: false
+      isLoading: false
+      isSuccess: true
+      isError: false
+    }
+  | {
+      status: QueryStatus.rejected
+      isUninitialized: false
+      isLoading: false
+      isSuccess: false
+      isError: true
+    }
+
+export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
+  return {
+    status,
+    isUninitialized: status === QueryStatus.uninitialized,
+    isLoading: status === QueryStatus.pending,
+    isSuccess: status === QueryStatus.fulfilled,
+    isError: status === QueryStatus.rejected,
+  } as any
+}
+
+export type SubscriptionOptions = {
+  pollingInterval?: number
+  refetchOnReconnect?: boolean
+  refetchOnFocus?: boolean
+}
+
+export type Subscribers = { [requestId: string]: SubscriptionOptions }
+export type QueryKeys<Definitions extends EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+    any,
+    any,
+    any,
+    any
+  >
+    ? K
+    : never
+}[keyof Definitions]
+
+export type MutationKeys<Definitions extends EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<
+    any,
+    any,
+    any,
+    any
+  >
+    ? K
+    : never
+}[keyof Definitions]
+
+type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
+  originalArgs: QueryArgFrom<D>
+  requestId: string
+  data?: ResultTypeFrom<D>
+  error?:
+    | qt.SerializedError
+    | (D extends QueryDefinition<any, infer BaseQuery, any, any>
+        ? BaseQueryError<BaseQuery>
+        : never)
+  endpointName: string
+  startedTimeStamp: number
+  fulfilledTimeStamp?: number
+}
+
+export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
+  | ({
+      status: QueryStatus.fulfilled
+    } & WithRequiredProp<
+      BaseQuerySubState<D>,
+      "data" | "fulfilledTimeStamp"
+    > & { error: undefined })
+  | ({
+      status: QueryStatus.pending
+    } & BaseQuerySubState<D>)
+  | ({
+      status: QueryStatus.rejected
+    } & WithRequiredProp<BaseQuerySubState<D>, "error">)
+  | {
+      status: QueryStatus.uninitialized
+      originalArgs?: undefined
+      data?: undefined
+      error?: undefined
+      requestId?: undefined
+      endpointName?: string
+      startedTimeStamp?: undefined
+      fulfilledTimeStamp?: undefined
+    }
+>
+
+export type QueryResultSelectorResult<
+  Definition extends QueryDefinition<any, any, any, any>
+> = QuerySubState<Definition> & RequestStatusFlags
+
+type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
+  requestId: string
+  data?: ResultTypeFrom<D>
+  error?:
+    | qt.SerializedError
+    | (D extends MutationDefinition<any, infer BaseQuery, any, any>
+        ? BaseQueryError<BaseQuery>
+        : never)
+  endpointName: string
+  startedTimeStamp: number
+  fulfilledTimeStamp?: number
+}
+
+export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
+  | (({
+      status: QueryStatus.fulfilled
+    } & WithRequiredProp<
+      BaseMutationSubState<D>,
+      "data" | "fulfilledTimeStamp"
+    >) & { error: undefined })
+  | (({
+      status: QueryStatus.pending
+    } & BaseMutationSubState<D>) & { data?: undefined })
+  | ({
+      status: QueryStatus.rejected
+    } & WithRequiredProp<BaseMutationSubState<D>, "error">)
+  | {
+      requestId?: undefined
+      status: QueryStatus.uninitialized
+      data?: undefined
+      error?: undefined
+      endpointName?: string
+      startedTimeStamp?: undefined
+      fulfilledTimeStamp?: undefined
+    }
+
+export type MutationResultSelectorResult<
+  Definition extends MutationDefinition<any, any, any, any>
+> = MutationSubState<Definition> & RequestStatusFlags
+
+export type CombinedState<
+  D extends EndpointDefinitions,
+  E extends string,
+  ReducerPath extends string
+> = {
+  queries: QueryState<D>
+  mutations: MutationState<D>
+  provided: InvalidationState<E>
+  subscriptions: SubscriptionState
+  config: ConfigState<ReducerPath>
+}
+
+export type InvalidationState<TagTypes extends string> = {
+  [_ in TagTypes]: {
+    [id: string]: Array<QueryCacheKey>
+    [id: number]: Array<QueryCacheKey>
+  }
+}
+
+export type QueryState<D extends EndpointDefinitions> = {
+  [queryCacheKey: string]: QuerySubState<D[string]> | undefined
+}
+
+export type SubscriptionState = {
+  [queryCacheKey: string]: Subscribers | undefined
+}
+
+export type ConfigState<ReducerPath> = RefetchConfigOptions & {
+  reducerPath: ReducerPath
+  online: boolean
+  focused: boolean
+  middlewareRegistered: boolean | "conflict"
+} & ModifiableConfigState
+
+export type ModifiableConfigState = {
+  keepUnusedDataFor: number
+} & RefetchConfigOptions
+
+export type MutationState<D extends EndpointDefinitions> = {
+  [requestId: string]: MutationSubState<D[string]> | undefined
+}
+
+export type RootState<
+  Definitions extends EndpointDefinitions,
+  TagTypes extends string,
+  ReducerPath extends string
+> = {
+  [P in ReducerPath]: CombinedState<Definitions, TagTypes, P>
+}
 
 const _NEVER = Symbol()
 export type NEVER = typeof _NEVER
@@ -126,36 +351,6 @@ export type BaseQueryArg<T extends (arg: any, ...args: any[]) => any> =
 export type BaseQueryExtraOptions<BaseQuery extends BaseQueryFn> =
   Parameters<BaseQuery>[2]
 
-export type ModuleName = keyof ApiModules<any, any, any, any>
-
-export type Module<Name extends ModuleName> = {
-  name: Name
-  init<
-    BaseQuery extends BaseQueryFn,
-    Definitions extends EndpointDefinitions,
-    ReducerPath extends string,
-    TagTypes extends string
-  >(
-    api: Api<BaseQuery, EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
-    options: WithRequiredProp<
-      CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
-      | "reducerPath"
-      | "serializeQueryArgs"
-      | "keepUnusedDataFor"
-      | "refetchOnMountOrArgChange"
-      | "refetchOnFocus"
-      | "refetchOnReconnect"
-      | "tagTypes"
-    >,
-    context: ApiContext<Definitions>
-  ): {
-    injectEndpoint(
-      endpointName: string,
-      definition: EndpointDefinition<any, any, any, any>
-    ): void
-  }
-}
-
 export interface ApiContext<Definitions extends EndpointDefinitions> {
   apiUid: string
   endpointDefinitions: Definitions
@@ -164,48 +359,6 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
     action: qt.AnyAction
   ) => CombinedState<any, any, any> | undefined
   hasRehydrationInfo: (action: qt.AnyAction) => boolean
-}
-
-export type Api<
-  BaseQuery extends BaseQueryFn,
-  Definitions extends EndpointDefinitions,
-  ReducerPath extends string,
-  TagTypes extends string,
-  Enhancers extends ModuleName = CoreModule
-> = UnionToIntersection<
-  ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
-> & {
-  injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
-    endpoints: (
-      build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
-    ) => NewDefinitions
-    overrideExisting?: boolean
-  }): Api<
-    BaseQuery,
-    Definitions & NewDefinitions,
-    ReducerPath,
-    TagTypes,
-    Enhancers
-  >
-  enhanceEndpoints<NewTagTypes extends string = never>(_: {
-    addTagTypes?: readonly NewTagTypes[]
-    endpoints?: ReplaceTagTypes<
-      Definitions,
-      TagTypes | NoInfer<NewTagTypes>
-    > extends infer NewDefinitions
-      ? {
-          [K in keyof NewDefinitions]?:
-            | Partial<NewDefinitions[K]>
-            | ((definition: NewDefinitions[K]) => void)
-        }
-      : never
-  }): Api<
-    BaseQuery,
-    ReplaceTagTypes<Definitions, TagTypes | NewTagTypes>,
-    ReducerPath,
-    TagTypes | NewTagTypes,
-    Enhancers
-  >
 }
 
 const resultType = Symbol()
@@ -319,6 +472,14 @@ export interface QueryExtraOptions<
   >
   invalidatesTags?: never
   keepUnusedDataFor?: number
+  onQueryStarted?(
+    arg: QueryArg,
+    api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+  ): Promise<void> | void
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+  ): Promise<void> | void
 }
 
 export type QueryDefinition<
@@ -346,7 +507,24 @@ export interface MutationExtraOptions<
     BaseQueryMeta<BaseQuery>
   >
   providesTags?: never
+  onQueryStarted?(
+    arg: QueryArg,
+    api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+  ): Promise<void> | void
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    api: MutationCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+  ): Promise<void> | void
 }
+
+export type PatchCollection = {
+  patches: qi.Patch[]
+  inversePatches: qi.Patch[]
+  undo: () => void
+}
+
+export type MaybeDrafted<T> = T | qi.Draft<T>
+export type Recipe<T> = (data: MaybeDrafted<T>) => void | MaybeDrafted<T>
 
 export interface QueryBaseLifecycleApi<
   QueryArg,
@@ -421,32 +599,6 @@ export interface MutationCacheLifecycleApi<
     >,
     CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
-interface QueryExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string
-> {
-  onCacheEntryAdded?(
-    arg: QueryArg,
-    api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
-  ): Promise<void> | void
-}
-
-interface MutationExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string
-> {
-  onCacheEntryAdded?(
-    arg: QueryArg,
-    api: MutationCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
-  ): Promise<void> | void
-}
-
 export interface QueryLifecyclePromises<
   ResultType,
   BaseQuery extends BaseQueryFn
@@ -470,30 +622,6 @@ type QueryFulfilledRejectionReason<BaseQuery extends BaseQueryFn> =
       meta?: undefined
       isUnhandledError: true
     }
-interface QueryExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string
-> {
-  onQueryStarted?(
-    arg: QueryArg,
-    api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
-  ): Promise<void> | void
-}
-interface MutationExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string
-> {
-  onQueryStarted?(
-    arg: QueryArg,
-    api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
-  ): Promise<void> | void
-}
 export interface QueryLifecycleApi<
   QueryArg,
   BaseQuery extends BaseQueryFn,
@@ -661,13 +789,6 @@ export class HandledError {
   ) {}
 }
 
-export interface ApiModules<
-  BaseQuery extends BaseQueryFn,
-  Definitions extends EndpointDefinitions,
-  ReducerPath extends string,
-  TagTypes extends string
-> {}
-
 export type SerializeQueryArgs<QueryArgs> = (_: {
   queryArgs: QueryArgs
   endpointDefinition: EndpointDefinition<any, any, any, any>
@@ -679,3 +800,261 @@ export type InternalSerializeQueryArgs = (_: {
   endpointDefinition: EndpointDefinition<any, any, any, any>
   endpointName: string
 }) => QueryCacheKey
+
+export interface PromiseConstructorWithKnownReason {
+  new <T, R>(
+    executor: (
+      resolve: (value: T | PromiseLike<T>) => void,
+      reject: (reason?: R) => void
+    ) => void
+  ): PromiseWithKnownReason<T, R>
+}
+export interface PromiseWithKnownReason<T, R>
+  extends Omit<Promise<T>, "then" | "catch"> {
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?:
+      | ((value: T) => TResult1 | PromiseLike<TResult1>)
+      | undefined
+      | null,
+    onrejected?:
+      | ((reason: R) => TResult2 | PromiseLike<TResult2>)
+      | undefined
+      | null
+  ): Promise<TResult1 | TResult2>
+  catch<TResult = never>(
+    onrejected?:
+      | ((reason: R) => TResult | PromiseLike<TResult>)
+      | undefined
+      | null
+  ): Promise<T | TResult>
+}
+
+const neverResolvedError = new Error(
+  "Promise never resolved before cacheEntryRemoved."
+) as Error & {
+  message: "Promise never resolved before cacheEntryRemoved."
+}
+
+export type MutationStateSelector<
+  R extends Record<string, any>,
+  D extends MutationDefinition<any, any, any, any>
+> = (state: MutationResultSelectorResult<D>) => R
+export type UseMutationStateOptions<
+  D extends MutationDefinition<any, any, any, any>,
+  R extends Record<string, any>
+> = {
+  selectFromResult?: MutationStateSelector<R, D>
+  fixedCacheKey?: string
+}
+export type UseMutationStateResult<
+  D extends MutationDefinition<any, any, any, any>,
+  R
+> = NoInfer<R> & {
+  originalArgs?: QueryArgFrom<D>
+  reset: () => void
+}
+
+export type MutationActionCreatorResult<
+  D extends MutationDefinition<any, any, any, any>
+> = Promise<
+  | { data: ResultTypeFrom<D> }
+  | {
+      error:
+        | Exclude<
+            BaseQueryError<
+              D extends MutationDefinition<any, infer BaseQuery, any, any>
+                ? BaseQuery
+                : never
+            >,
+            undefined
+          >
+        | qt.SerializedError
+    }
+> & {
+  arg: {
+    endpointName: string
+    originalArgs: QueryArgFrom<D>
+    track?: boolean
+    fixedCacheKey?: string
+  }
+  requestId: string
+  abort(): void
+  unwrap(): Promise<ResultTypeFrom<D>>
+  reset(): void
+  /** @deprecated has been renamed to `reset` */
+  unsubscribe(): void
+}
+
+export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
+  {
+    (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
+  }
+export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
+  R extends Record<string, any> = MutationResultSelectorResult<D>
+>(
+  options?: UseMutationStateOptions<D, R>
+) => readonly [MutationTrigger<D>, UseMutationStateResult<D, R>]
+interface UseQuerySubscriptionOptions extends SubscriptionOptions {
+  skip?: boolean
+  refetchOnMountOrArgChange?: boolean | number
+}
+export type SkipToken = typeof skipToken
+export const skipToken = Symbol.for("RTKQ/skipToken")
+/** @deprecated renamed to `skipToken` */
+export const skipSelector = skipToken
+
+export type UseQuerySubscription<
+  D extends QueryDefinition<any, any, any, any>
+> = (
+  arg: QueryArgFrom<D> | SkipToken,
+  options?: UseQuerySubscriptionOptions
+) => UseQuerySubscriptionResult<D>
+export type QueryActionCreatorResult<
+  D extends QueryDefinition<any, any, any, any>
+> = Promise<QueryResultSelectorResult<D>> & {
+  arg: QueryArgFrom<D>
+  requestId: string
+  subscriptionOptions: SubscriptionOptions | undefined
+  abort(): void
+  unwrap(): Promise<ResultTypeFrom<D>>
+  unsubscribe(): void
+  refetch(): void
+  updateSubscriptionOptions(options: SubscriptionOptions): void
+  queryCacheKey: string
+}
+
+type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
+  QuerySubState<D> & {
+    currentData?: ResultTypeFrom<D>
+    isUninitialized: false
+    isLoading: false
+    isFetching: false
+    isSuccess: false
+    isError: false
+  }
+
+type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
+  Id<
+    | Override<
+        Extract<
+          UseQueryStateBaseResult<D>,
+          { status: QueryStatus.uninitialized }
+        >,
+        { isUninitialized: true }
+      >
+    | Override<
+        UseQueryStateBaseResult<D>,
+        | { isLoading: true; isFetching: boolean; data: undefined }
+        | ({
+            isSuccess: true
+            isFetching: true
+            error: undefined
+          } & Required<
+            Pick<UseQueryStateBaseResult<D>, "data" | "fulfilledTimeStamp">
+          >)
+        | ({
+            isSuccess: true
+            isFetching: false
+            error: undefined
+          } & Required<
+            Pick<
+              UseQueryStateBaseResult<D>,
+              "data" | "fulfilledTimeStamp" | "currentData"
+            >
+          >)
+        | ({ isError: true } & Required<
+            Pick<UseQueryStateBaseResult<D>, "error">
+          >)
+      >
+  > & {
+    status: QueryStatus
+  }
+
+export type UseQuerySubscriptionResult<
+  D extends QueryDefinition<any, any, any, any>
+> = Pick<QueryActionCreatorResult<D>, "refetch">
+export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
+  R extends Record<string, any> = UseQueryStateDefaultResult<D>
+>(
+  arg: QueryArgFrom<D> | SkipToken,
+  options?: UseQueryStateOptions<D, R>
+) => UseQueryStateResult<D, R>
+export type QueryStateSelector<
+  R extends Record<string, any>,
+  D extends QueryDefinition<any, any, any, any>
+> = (state: UseQueryStateDefaultResult<D>) => R
+
+export type UseQueryStateOptions<
+  D extends QueryDefinition<any, any, any, any>,
+  R extends Record<string, any>
+> = {
+  skip?: boolean
+  selectFromResult?: QueryStateSelector<R, D>
+}
+export type UseQueryStateResult<
+  _ extends QueryDefinition<any, any, any, any>,
+  R
+> = NoInfer<R>
+
+export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
+  R extends Record<string, any> = UseQueryStateDefaultResult<D>
+>(
+  arg: QueryArgFrom<D> | SkipToken,
+  options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
+) => UseQueryHookResult<D, R>
+export type UseQueryHookResult<
+  D extends QueryDefinition<any, any, any, any>,
+  R = UseQueryStateDefaultResult<D>
+> = UseQueryStateResult<D, R> & UseQuerySubscriptionResult<D>
+export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
+  (
+    arg: QueryArgFrom<D>,
+    preferCacheValue?: boolean
+  ): QueryActionCreatorResult<D>
+}
+export const UNINITIALIZED_VALUE = Symbol()
+export type UninitializedValue = typeof UNINITIALIZED_VALUE
+
+export type UseLazyQueryLastPromiseInfo<
+  D extends QueryDefinition<any, any, any, any>
+> = {
+  lastArg: QueryArgFrom<D>
+}
+export type UseLazyQuerySubscription<
+  D extends QueryDefinition<any, any, any, any>
+> = (
+  options?: SubscriptionOptions
+) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
+
+export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
+  R extends Record<string, any> = UseQueryStateDefaultResult<D>
+>(
+  options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, "skip">
+) => [
+  LazyQueryTrigger<D>,
+  UseQueryStateResult<D, R>,
+  UseLazyQueryLastPromiseInfo<D>
+]
+
+export type HooksWithUniqueNames<Definitions extends EndpointDefinitions> =
+  keyof Definitions extends infer Keys
+    ? Keys extends string
+      ? Definitions[Keys] extends { type: DefinitionType.query }
+        ? {
+            [K in Keys as `use${Capitalize<K>}Query`]: UseQuery<
+              Extract<Definitions[K], QueryDefinition<any, any, any, any>>
+            >
+          } & {
+            [K in Keys as `useLazy${Capitalize<K>}Query`]: UseLazyQuery<
+              Extract<Definitions[K], QueryDefinition<any, any, any, any>>
+            >
+          }
+        : Definitions[Keys] extends { type: DefinitionType.mutation }
+        ? {
+            [K in Keys as `use${Capitalize<K>}Mutation`]: UseMutation<
+              Extract<Definitions[K], MutationDefinition<any, any, any, any>>
+            >
+          }
+        : never
+      : never
+    : never

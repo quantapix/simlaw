@@ -1,5 +1,5 @@
-import type { InternalSerializeQueryArgs } from "../utils.js"
-import * as qi from "../../../immer/index.js"
+import type { InternalSerializeQueryArgs } from "./utils.js"
+import * as qi from "../../immer/index.js"
 import type {
   Api,
   ApiContext,
@@ -19,7 +19,7 @@ import type {
   ResultTypeFrom,
   TagDescription,
   UnwrapPromise,
-} from "../types.js"
+} from "./types.js"
 import type {
   CombinedState as CombinedQueryState,
   ConfigState,
@@ -40,8 +40,8 @@ import type {
   Subscribers,
   SubscriptionOptions,
   SubscriptionState,
-} from "./types.js"
-import { flatten } from "../utils.js"
+} from "./core/types.js"
+import { flatten } from "./utils.js"
 import {
   AnyAction,
   AsyncThunk,
@@ -51,7 +51,6 @@ import {
   createAsyncThunk,
   createSelector,
   createSlice,
-  Draft,
   isAllOf,
   isAnyOf,
   isFulfilled,
@@ -66,12 +65,12 @@ import {
 import type { Patch } from "immer"
 import { isDraftable, produceWithPatches, applyPatches } from "immer"
 import type { ApiEndpointQuery, PrefetchOptions } from "./module.js"
-import { onFocus, onFocusLost, onOffline, onOnline } from "./utils.js"
+import { onFocus, onFocusLost, onOffline, onOnline } from "./core/utils.js"
 import {
   isDocumentVisible,
   isOnline,
   copyWithStructuralSharing,
-} from "../utils.js"
+} from "./utils.js"
 
 export interface StartQueryActionCreatorOptions {
   subscribe?: boolean
@@ -86,20 +85,6 @@ type StartQueryActionCreator<
   options?: StartQueryActionCreatorOptions
 ) => ThunkAction<QueryActionCreatorResult<D>, any, any, AnyAction>
 
-export type QueryActionCreatorResult<
-  D extends QueryDefinition<any, any, any, any>
-> = Promise<QueryResultSelectorResult<D>> & {
-  arg: QueryArgFrom<D>
-  requestId: string
-  subscriptionOptions: SubscriptionOptions | undefined
-  abort(): void
-  unwrap(): Promise<ResultTypeFrom<D>>
-  unsubscribe(): void
-  refetch(): void
-  updateSubscriptionOptions(options: SubscriptionOptions): void
-  queryCacheKey: string
-}
-
 type StartMutationActionCreator<
   D extends MutationDefinition<any, any, any, any>
 > = (
@@ -109,37 +94,6 @@ type StartMutationActionCreator<
     fixedCacheKey?: string
   }
 ) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>
-
-export type MutationActionCreatorResult<
-  D extends MutationDefinition<any, any, any, any>
-> = Promise<
-  | { data: ResultTypeFrom<D> }
-  | {
-      error:
-        | Exclude<
-            BaseQueryError<
-              D extends MutationDefinition<any, infer BaseQuery, any, any>
-                ? BaseQuery
-                : never
-            >,
-            undefined
-          >
-        | SerializedError
-    }
-> & {
-  arg: {
-    endpointName: string
-    originalArgs: QueryArgFrom<D>
-    track?: boolean
-    fixedCacheKey?: string
-  }
-  requestId: string
-  abort(): void
-  unwrap(): Promise<ResultTypeFrom<D>>
-  reset(): void
-  /** @deprecated has been renamed to `reset` */
-  unsubscribe(): void
-}
 
 export function buildInitiate({
   serializeQueryArgs,
@@ -337,19 +291,12 @@ Features like automatic cache collection, automatic refetching etc. will not be 
   }
 }
 
-export type SkipToken = typeof skipToken
-export const skipToken = Symbol.for("RTKQ/skipToken")
-/** @deprecated renamed to `skipToken` */
-export const skipSelector = skipToken
 type QueryResultSelectorFactory<
   Definition extends QueryDefinition<any, any, any, any>,
   RootState
 > = (
   queryArg: QueryArgFrom<Definition> | SkipToken
 ) => (state: RootState) => QueryResultSelectorResult<Definition>
-export type QueryResultSelectorResult<
-  Definition extends QueryDefinition<any, any, any, any>
-> = QuerySubState<Definition> & RequestStatusFlags
 type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
   RootState
@@ -359,9 +306,6 @@ type MutationResultSelectorFactory<
     | { requestId: string | undefined; fixedCacheKey: string | undefined }
     | SkipToken
 ) => (state: RootState) => MutationResultSelectorResult<Definition>
-export type MutationResultSelectorResult<
-  Definition extends MutationDefinition<any, any, any, any>
-> = MutationSubState<Definition> & RequestStatusFlags
 const initialSubState: QuerySubState<any> = {
   status: QueryStatus.uninitialized as const,
 }
@@ -558,8 +502,6 @@ export type MutationThunk = AsyncThunk<
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
   return baseQueryReturnValue
 }
-export type MaybeDrafted<T> = T | Draft<T>
-export type Recipe<T> = (data: MaybeDrafted<T>) => void | MaybeDrafted<T>
 export type PatchQueryDataThunk<
   Definitions extends EndpointDefinitions,
   PartialState
@@ -576,11 +518,6 @@ export type UpdateQueryDataThunk<
   args: QueryArgFrom<Definitions[EndpointName]>,
   updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
 ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
-export type PatchCollection = {
-  patches: Patch[]
-  inversePatches: Patch[]
-  undo: () => void
-}
 export function buildThunks<
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string,

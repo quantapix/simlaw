@@ -1,5 +1,7 @@
-import { isPlainObject as _iPO } from "../../redux/index.js"
+import { ThunkDispatch, isPlainObject as _iPO } from "../../redux/index.js"
 import type * as qt from "./types.js"
+import { createAction } from "../../redux/index.js"
+import { BaseQueryEnhancer, HandledError } from "./types.js"
 
 export function capitalize(str: string) {
   return str.replace(str[0], str[0].toUpperCase())
@@ -85,7 +87,7 @@ export const defaultSerializeQueryArgs: qt.SerializeQueryArgs<any> = ({
   endpointName,
   queryArgs,
 }) => {
-  return `${endpointName}(${JSON.stringify(queryArgs, (key, value) =>
+  return `${endpointName}(${JSON.stringify(queryArgs, (_, value) =>
     isPlainObject(value)
       ? Object.keys(value)
           .sort()
@@ -109,3 +111,114 @@ export function fakeBaseQuery<ErrorType>(): qt.BaseQueryFn<
     )
   }
 }
+
+export const onFocus = createAction("__rtkq/focused")
+export const onFocusLost = createAction("__rtkq/unfocused")
+export const onOnline = createAction("__rtkq/online")
+export const onOffline = createAction("__rtkq/offline")
+
+let initialized = false
+
+export function setupListeners(
+  dispatch: ThunkDispatch<any, any, any>,
+  customHandler?: (
+    dispatch: ThunkDispatch<any, any, any>,
+    actions: {
+      onFocus: typeof onFocus
+      onFocusLost: typeof onFocusLost
+      onOnline: typeof onOnline
+      onOffline: typeof onOffline
+    }
+  ) => () => void
+) {
+  function defaultHandler() {
+    const handleFocus = () => dispatch(onFocus())
+    const handleFocusLost = () => dispatch(onFocusLost())
+    const handleOnline = () => dispatch(onOnline())
+    const handleOffline = () => dispatch(onOffline())
+    const handleVisibilityChange = () => {
+      if (window.document.visibilityState === "visible") {
+        handleFocus()
+      } else {
+        handleFocusLost()
+      }
+    }
+    if (!initialized) {
+      if (typeof window !== "undefined" && window.addEventListener) {
+        window.addEventListener(
+          "visibilitychange",
+          handleVisibilityChange,
+          false
+        )
+        window.addEventListener("focus", handleFocus, false)
+        window.addEventListener("online", handleOnline, false)
+        window.addEventListener("offline", handleOffline, false)
+        initialized = true
+      }
+    }
+    const unsubscribe = () => {
+      window.removeEventListener("focus", handleFocus)
+      window.removeEventListener("visibilitychange", handleVisibilityChange)
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+      initialized = false
+    }
+    return unsubscribe
+  }
+  return customHandler
+    ? customHandler(dispatch, { onFocus, onFocusLost, onOffline, onOnline })
+    : defaultHandler()
+}
+
+async function defaultBackoff(attempt: number = 0, maxRetries: number = 5) {
+  const attempts = Math.min(attempt, maxRetries)
+
+  const timeout = ~~((Math.random() + 0.4) * (300 << attempts)) // Force a positive int in the case we make this an option
+  await new Promise(resolve => setTimeout((res: any) => resolve(res), timeout))
+}
+
+export interface RetryOptions {
+  maxRetries?: number
+  backoff?: (attempt: number, maxRetries: number) => Promise<void>
+}
+
+function fail(e: any): never {
+  throw Object.assign(new HandledError({ error: e }), {
+    throwImmediately: true,
+  })
+}
+
+const retryWithBackoff: BaseQueryEnhancer<
+  unknown,
+  RetryOptions,
+  RetryOptions | void
+> = (baseQuery, defaultOptions) => async (args, api, extraOptions) => {
+  const options = {
+    maxRetries: 5,
+    backoff: defaultBackoff,
+    ...defaultOptions,
+    ...extraOptions,
+  }
+  let retry = 0
+
+  while (true) {
+    try {
+      const result = await baseQuery(args, api, extraOptions)
+      if (result.error) {
+        throw new HandledError(result)
+      }
+      return result
+    } catch (e: any) {
+      retry++
+      if (e.throwImmediately || retry > options.maxRetries) {
+        if (e instanceof HandledError) {
+          return e.value
+        }
+        throw e
+      }
+      await options.backoff(retry, options.maxRetries)
+    }
+  }
+}
+
+export const retry = Object.assign(retryWithBackoff, { fail })

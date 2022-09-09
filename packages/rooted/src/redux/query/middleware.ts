@@ -1,13 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import type { BaseQueryFn } from "../../types"
+import type { BaseQueryFn } from "../types.js"
 import type {} from "../../endpointDefinitions"
 import type { ConfigState, QueryCacheKey } from "../apiState"
 import { QuerySubstateIdentifier } from "../apiState"
 import type {
   DefinitionType,
-  PromiseConstructorWithKnownReason,
-  PromiseWithKnownReason,
-  PromiseWithKnownReason,
   QueryDefinition,
   QueryStateMeta,
   QueryStateMeta,
@@ -16,11 +13,11 @@ import type {
   SubMiddlewareApi,
   SubMiddlewareBuilder,
   TimeoutId,
-} from "./types.js"
+} from "./core/types.js"
 import { isAsyncThunkAction, isFulfilled } from "@reduxjs/toolkit"
 import type { AnyAction } from "redux"
 import type { ThunkDispatch } from "redux-thunk"
-import type { BaseQueryFn, BaseQueryMeta } from "../../types"
+import type { BaseQueryFn, BaseQueryMeta } from "../types.js"
 import type { RootState } from "../apiState"
 import { getMutationCacheKey } from "../buildSlice"
 import type { PatchCollection, Recipe } from "../buildThunks"
@@ -36,7 +33,7 @@ import type { QueryThunkArg } from "../buildThunks"
 import { build as buildCacheCollection } from "./cacheCollection"
 import { build as buildInvalidationByTags } from "./invalidationByTags"
 import { build as buildPolling } from "./polling"
-import type { BuildMiddlewareInput } from "./types"
+import type { BuildMiddlewareInput } from "./core/types.js"
 import { build as buildWindowEventHandling } from "./windowEventHandling"
 import { build as buildCacheLifecycle } from "./cacheLifecycle"
 import { build as buildQueryLifecycle } from "./queryLifecycle"
@@ -47,11 +44,11 @@ import { calculateProvidedBy } from "../../endpointDefinitions"
 import type { QueryCacheKey } from "../apiState"
 import { QueryStatus } from "../apiState"
 import { calculateProvidedByThunk } from "../buildThunks"
-import type { SubMiddlewareApi, SubMiddlewareBuilder } from "./types"
+import type { SubMiddlewareApi, SubMiddlewareBuilder } from "./core/types.js"
 import type { QuerySubstateIdentifier, Subscribers } from "../apiState"
 import { QueryStatus } from "../apiState"
 import { isPending, isRejected, isFulfilled } from "@reduxjs/toolkit"
-import type { BaseQueryError, BaseQueryFn, BaseQueryMeta } from "../../types"
+import type { BaseQueryError, BaseQueryFn, BaseQueryMeta } from "../types.js"
 import { DefinitionType } from "../../endpointDefinitions"
 import type { QueryFulfilledRejectionReason } from "../../endpointDefinitions"
 import type { Recipe } from "../buildThunks"
@@ -63,7 +60,7 @@ import type {
   MiddlewareAPI,
   ThunkDispatch,
 } from "@reduxjs/toolkit"
-import type { Api, ApiContext } from "../../types"
+import type { Api, ApiContext } from "../types.js"
 import type {
   AssertTagTypes,
   EndpointDefinitions,
@@ -78,7 +75,7 @@ import type {
 import { QueryStatus } from "../apiState"
 import type { QueryCacheKey } from "../apiState"
 import { onFocus, onOnline } from "../setupListeners"
-import type { SubMiddlewareApi, SubMiddlewareBuilder } from "./types"
+import type { SubMiddlewareApi, SubMiddlewareBuilder } from "./core/types.js"
 
 export type ReferenceCacheCollection = never
 
@@ -152,12 +149,6 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
   }
 }
 export type ReferenceCacheLifecycle = never
-
-const neverResolvedError = new Error(
-  "Promise never resolved before cacheEntryRemoved."
-) as Error & {
-  message: "Promise never resolved before cacheEntryRemoved."
-}
 
 export const build: SubMiddlewareBuilder = ({
   api,
@@ -713,33 +704,6 @@ export type SubMiddlewareBuilder = (
   RootState<EndpointDefinitions, string, string>,
   ThunkDispatch<any, any, AnyAction>
 >
-export interface PromiseConstructorWithKnownReason {
-  new <T, R>(
-    executor: (
-      resolve: (value: T | PromiseLike<T>) => void,
-      reject: (reason?: R) => void
-    ) => void
-  ): PromiseWithKnownReason<T, R>
-}
-export interface PromiseWithKnownReason<T, R>
-  extends Omit<Promise<T>, "then" | "catch"> {
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?:
-      | ((value: T) => TResult1 | PromiseLike<TResult1>)
-      | undefined
-      | null,
-    onrejected?:
-      | ((reason: R) => TResult2 | PromiseLike<TResult2>)
-      | undefined
-      | null
-  ): Promise<TResult1 | TResult2>
-  catch<TResult = never>(
-    onrejected?:
-      | ((reason: R) => TResult | PromiseLike<TResult>)
-      | undefined
-      | null
-  ): Promise<T | TResult>
-}
 export const build: SubMiddlewareBuilder = ({
   reducerPath,
   context,

@@ -12,43 +12,6 @@ import {
   useState,
 } from "react"
 import { QueryStatus, skipToken } from "@reduxjs/toolkit/query"
-import type {
-  QuerySubState,
-  SubscriptionOptions,
-  QueryKeys,
-  RootState,
-} from "./core/apiState"
-import type {
-  EndpointDefinitions,
-  MutationDefinition,
-  QueryDefinition,
-  QueryArgFrom,
-  ResultTypeFrom,
-} from "./endpointDefinitions"
-import type {
-  QueryResultSelectorResult,
-  MutationResultSelectorResult,
-  SkipToken,
-} from "./core/buildSelectors"
-import type {
-  QueryActionCreatorResult,
-  MutationActionCreatorResult,
-} from "./core/buildInitiate"
-import type { SerializeQueryArgs } from "./defaultSerializeQueryArgs"
-import { shallowEqual } from "react-redux"
-import type { Api, ApiContext } from "./types"
-import type { Id, NoInfer, Override } from "./tsHelpers"
-import type {
-  ApiEndpointMutation,
-  ApiEndpointQuery,
-  CoreModule,
-  PrefetchOptions,
-} from "./core/module"
-import type { ReactHooksModuleOptions } from "./module"
-import { useStableQueryArgs } from "./useSerializedStableValue"
-import type { UninitializedValue } from "./constants"
-import { UNINITIALIZED_VALUE } from "./constants"
-import { useShallowStableValue } from "./useShallowStableValue"
 import type { BaseQueryFn } from "../types"
 import { coreModule, buildCreateApi, CreateApi } from "@reduxjs/toolkit/query"
 import { reactHooksModule, reactHooksModuleName } from "./module"
@@ -117,16 +80,6 @@ export interface MutationHooks<
 > {
   useMutation: UseMutation<Definition>
 }
-export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>
->(
-  arg: QueryArgFrom<D> | SkipToken,
-  options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
-) => UseQueryHookResult<D, R>
-export type UseQueryHookResult<
-  D extends QueryDefinition<any, any, any, any>,
-  R = UseQueryStateDefaultResult<D>
-> = UseQueryStateResult<D, R> & UseQuerySubscriptionResult<D>
 export type TypedUseQueryHookResult<
   ResultType,
   QueryArg,
@@ -136,19 +89,6 @@ export type TypedUseQueryHookResult<
   >
 > = TypedUseQueryStateResult<ResultType, QueryArg, BaseQuery, R> &
   TypedUseQuerySubscriptionResult<ResultType, QueryArg, BaseQuery>
-interface UseQuerySubscriptionOptions extends SubscriptionOptions {
-  skip?: boolean
-  refetchOnMountOrArgChange?: boolean | number
-}
-export type UseQuerySubscription<
-  D extends QueryDefinition<any, any, any, any>
-> = (
-  arg: QueryArgFrom<D> | SkipToken,
-  options?: UseQuerySubscriptionOptions
-) => UseQuerySubscriptionResult<D>
-export type UseQuerySubscriptionResult<
-  D extends QueryDefinition<any, any, any, any>
-> = Pick<QueryActionCreatorResult<D>, "refetch">
 export type TypedUseQuerySubscriptionResult<
   ResultType,
   QueryArg,
@@ -156,52 +96,6 @@ export type TypedUseQuerySubscriptionResult<
 > = UseQuerySubscriptionResult<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
-export type UseLazyQueryLastPromiseInfo<
-  D extends QueryDefinition<any, any, any, any>
-> = {
-  lastArg: QueryArgFrom<D>
-}
-export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>
->(
-  options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, "skip">
-) => [
-  LazyQueryTrigger<D>,
-  UseQueryStateResult<D, R>,
-  UseLazyQueryLastPromiseInfo<D>
-]
-export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
-  (
-    arg: QueryArgFrom<D>,
-    preferCacheValue?: boolean
-  ): QueryActionCreatorResult<D>
-}
-export type UseLazyQuerySubscription<
-  D extends QueryDefinition<any, any, any, any>
-> = (
-  options?: SubscriptionOptions
-) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
-export type QueryStateSelector<
-  R extends Record<string, any>,
-  D extends QueryDefinition<any, any, any, any>
-> = (state: UseQueryStateDefaultResult<D>) => R
-export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>
->(
-  arg: QueryArgFrom<D> | SkipToken,
-  options?: UseQueryStateOptions<D, R>
-) => UseQueryStateResult<D, R>
-export type UseQueryStateOptions<
-  D extends QueryDefinition<any, any, any, any>,
-  R extends Record<string, any>
-> = {
-  skip?: boolean
-  selectFromResult?: QueryStateSelector<R, D>
-}
-export type UseQueryStateResult<
-  _ extends QueryDefinition<any, any, any, any>,
-  R
-> = NoInfer<R>
 export type TypedUseQueryStateResult<
   ResultType,
   QueryArg,
@@ -210,69 +104,6 @@ export type TypedUseQueryStateResult<
     QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
   >
 > = NoInfer<R>
-type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
-  QuerySubState<D> & {
-    currentData?: ResultTypeFrom<D>
-    isUninitialized: false
-    isLoading: false
-    isFetching: false
-    isSuccess: false
-    isError: false
-  }
-type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
-  Id<
-    | Override<
-        Extract<
-          UseQueryStateBaseResult<D>,
-          { status: QueryStatus.uninitialized }
-        >,
-        { isUninitialized: true }
-      >
-    | Override<
-        UseQueryStateBaseResult<D>,
-        | { isLoading: true; isFetching: boolean; data: undefined }
-        | ({
-            isSuccess: true
-            isFetching: true
-            error: undefined
-          } & Required<
-            Pick<UseQueryStateBaseResult<D>, "data" | "fulfilledTimeStamp">
-          >)
-        | ({
-            isSuccess: true
-            isFetching: false
-            error: undefined
-          } & Required<
-            Pick<
-              UseQueryStateBaseResult<D>,
-              "data" | "fulfilledTimeStamp" | "currentData"
-            >
-          >)
-        | ({ isError: true } & Required<
-            Pick<UseQueryStateBaseResult<D>, "error">
-          >)
-      >
-  > & {
-    status: QueryStatus
-  }
-export type MutationStateSelector<
-  R extends Record<string, any>,
-  D extends MutationDefinition<any, any, any, any>
-> = (state: MutationResultSelectorResult<D>) => R
-export type UseMutationStateOptions<
-  D extends MutationDefinition<any, any, any, any>,
-  R extends Record<string, any>
-> = {
-  selectFromResult?: MutationStateSelector<R, D>
-  fixedCacheKey?: string
-}
-export type UseMutationStateResult<
-  D extends MutationDefinition<any, any, any, any>,
-  R
-> = NoInfer<R> & {
-  originalArgs?: QueryArgFrom<D>
-  reset: () => void
-}
 export type TypedUseMutationResult<
   ResultType,
   QueryArg,
@@ -284,15 +115,6 @@ export type TypedUseMutationResult<
   MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>,
   R
 >
-export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = MutationResultSelectorResult<D>
->(
-  options?: UseMutationStateOptions<D, R>
-) => readonly [MutationTrigger<D>, UseMutationStateResult<D, R>]
-export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
-  {
-    (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
-  }
 const defaultQueryStateSelector: QueryStateSelector<any, any> = x => x
 const defaultMutationStateSelector: MutationStateSelector<any, any> = x => x
 const noPendingQueryStateSelector: QueryStateSelector<any, any> = selected => {
@@ -696,44 +518,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     }
   }
 }
-export const UNINITIALIZED_VALUE = Symbol()
-export type UninitializedValue = typeof UNINITIALIZED_VALUE
 const createApi = buildCreateApi(coreModule(), reactHooksModule())
 export { createApi, reactHooksModule }
-export const reactHooksModuleName = Symbol()
-export type ReactHooksModule = typeof reactHooksModuleName
-
-declare module "./types" {
-  export interface ApiModules<
-    BaseQuery extends BaseQueryFn,
-    Definitions extends EndpointDefinitions,
-    ReducerPath extends string,
-    TagTypes extends string
-  > {
-    [reactHooksModuleName]: {
-      endpoints: {
-        [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-          any,
-          any,
-          any,
-          any,
-          any
-        >
-          ? QueryHooks<Definitions[K]>
-          : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-          ? MutationHooks<Definitions[K]>
-          : never
-      }
-      usePrefetch<EndpointName extends QueryKeys<Definitions>>(
-        endpointName: EndpointName,
-        options?: PrefetchOptions
-      ): (
-        arg: QueryArgFrom<Definitions[EndpointName]>,
-        options?: PrefetchOptions
-      ) => void
-    } & HooksWithUniqueNames<Definitions>
-  }
-}
 
 type RR = typeof import("react-redux")
 

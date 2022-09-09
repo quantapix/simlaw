@@ -21,13 +21,13 @@ import type {
   Api,
   Module,
   BaseQueryFn,
-} from "../types.js"
+} from "./types.js"
 import type {
   CombinedState,
   QueryKeys,
   MutationKeys,
   RootState,
-} from "./types.js"
+} from "./core/types.js"
 import { onFocus, onFocusLost, onOnline, onOffline } from "./setupListeners"
 import { buildSlice } from "./buildSlice"
 import { buildMiddleware } from "./buildMiddleware"
@@ -44,6 +44,78 @@ import type { ReferenceCacheLifecycle } from "./buildMiddleware/cacheLifecycle"
 import type { ReferenceQueryLifecycle } from "./buildMiddleware/queryLifecycle"
 import type { ReferenceCacheCollection } from "./buildMiddleware/cacheCollection"
 import { enablePatches } from "immer"
+
+export type ModuleName = keyof ApiModules<any, any, any, any>
+
+export type Module<Name extends ModuleName> = {
+  name: Name
+  init<
+    BaseQuery extends BaseQueryFn,
+    Definitions extends EndpointDefinitions,
+    ReducerPath extends string,
+    TagTypes extends string
+  >(
+    api: Api<BaseQuery, EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
+    options: WithRequiredProp<
+      CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
+      | "reducerPath"
+      | "serializeQueryArgs"
+      | "keepUnusedDataFor"
+      | "refetchOnMountOrArgChange"
+      | "refetchOnFocus"
+      | "refetchOnReconnect"
+      | "tagTypes"
+    >,
+    context: ApiContext<Definitions>
+  ): {
+    injectEndpoint(
+      endpointName: string,
+      definition: EndpointDefinition<any, any, any, any>
+    ): void
+  }
+}
+
+export type Api<
+  BaseQuery extends BaseQueryFn,
+  Definitions extends EndpointDefinitions,
+  ReducerPath extends string,
+  TagTypes extends string,
+  Enhancers extends ModuleName = CoreModule
+> = UnionToIntersection<
+  ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
+> & {
+  injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
+    endpoints: (
+      build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
+    ) => NewDefinitions
+    overrideExisting?: boolean
+  }): Api<
+    BaseQuery,
+    Definitions & NewDefinitions,
+    ReducerPath,
+    TagTypes,
+    Enhancers
+  >
+  enhanceEndpoints<NewTagTypes extends string = never>(_: {
+    addTagTypes?: readonly NewTagTypes[]
+    endpoints?: ReplaceTagTypes<
+      Definitions,
+      TagTypes | NoInfer<NewTagTypes>
+    > extends infer NewDefinitions
+      ? {
+          [K in keyof NewDefinitions]?:
+            | Partial<NewDefinitions[K]>
+            | ((definition: NewDefinitions[K]) => void)
+        }
+      : never
+  }): Api<
+    BaseQuery,
+    ReplaceTagTypes<Definitions, TagTypes | NewTagTypes>,
+    ReducerPath,
+    TagTypes | NewTagTypes,
+    Enhancers
+  >
+}
 
 export interface ApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -96,98 +168,122 @@ export type CoreModule =
   | ReferenceQueryLifecycle
   | ReferenceCacheCollection
 
-declare module "../types" {
-  export interface ApiModules<
-    BaseQuery extends BaseQueryFn,
-    Definitions extends EndpointDefinitions,
-    ReducerPath extends string,
-    TagTypes extends string
-  > {
-    [coreModuleName]: {
-      reducerPath: ReducerPath
-      internalActions: InternalActions
-      reducer: Reducer<
-        CombinedState<Definitions, TagTypes, ReducerPath>,
-        AnyAction
+export const reactHooksModuleName = Symbol()
+export type ReactHooksModule = typeof reactHooksModuleName
+
+export interface ApiModules<
+  BaseQuery extends BaseQueryFn,
+  Definitions extends EndpointDefinitions,
+  ReducerPath extends string,
+  TagTypes extends string
+> {
+  [reactHooksModuleName]: {
+    endpoints: {
+      [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+        any,
+        any,
+        any,
+        any,
+        any
       >
-      middleware: Middleware<
-        {},
-        RootState<Definitions, string, ReducerPath>,
-        ThunkDispatch<any, any, AnyAction>
+        ? QueryHooks<Definitions[K]>
+        : Definitions[K] extends MutationDefinition<any, any, any, any, any>
+        ? MutationHooks<Definitions[K]>
+        : never
+    }
+    usePrefetch<EndpointName extends QueryKeys<Definitions>>(
+      endpointName: EndpointName,
+      options?: PrefetchOptions
+    ): (
+      arg: QueryArgFrom<Definitions[EndpointName]>,
+      options?: PrefetchOptions
+    ) => void
+  } & HooksWithUniqueNames<Definitions>
+  [coreModuleName]: {
+    reducerPath: ReducerPath
+    internalActions: InternalActions
+    reducer: Reducer<
+      CombinedState<Definitions, TagTypes, ReducerPath>,
+      AnyAction
+    >
+    middleware: Middleware<
+      {},
+      RootState<Definitions, string, ReducerPath>,
+      ThunkDispatch<any, any, AnyAction>
+    >
+    util: {
+      getRunningOperationPromises: () => Array<Promise<unknown>>
+      getRunningOperationPromise<EndpointName extends QueryKeys<Definitions>>(
+        endpointName: EndpointName,
+        args: QueryArgFrom<Definitions[EndpointName]>
+      ):
+        | QueryActionCreatorResult<
+            Definitions[EndpointName] & { type: "query" }
+          >
+        | undefined
+      getRunningOperationPromise<
+        EndpointName extends MutationKeys<Definitions>
+      >(
+        endpointName: EndpointName,
+        fixedCacheKeyOrRequestId: string
+      ):
+        | MutationActionCreatorResult<
+            Definitions[EndpointName] & { type: "mutation" }
+          >
+        | undefined
+      prefetch<EndpointName extends QueryKeys<Definitions>>(
+        endpointName: EndpointName,
+        arg: QueryArgFrom<Definitions[EndpointName]>,
+        options: PrefetchOptions
+      ): ThunkAction<void, any, any, AnyAction>
+      updateQueryData: UpdateQueryDataThunk<
+        Definitions,
+        RootState<Definitions, string, ReducerPath>
       >
-      util: {
-        getRunningOperationPromises: () => Array<Promise<unknown>>
-        getRunningOperationPromise<EndpointName extends QueryKeys<Definitions>>(
-          endpointName: EndpointName,
-          args: QueryArgFrom<Definitions[EndpointName]>
-        ):
-          | QueryActionCreatorResult<
-              Definitions[EndpointName] & { type: "query" }
-            >
-          | undefined
-        getRunningOperationPromise<
-          EndpointName extends MutationKeys<Definitions>
-        >(
-          endpointName: EndpointName,
-          fixedCacheKeyOrRequestId: string
-        ):
-          | MutationActionCreatorResult<
-              Definitions[EndpointName] & { type: "mutation" }
-            >
-          | undefined
-        prefetch<EndpointName extends QueryKeys<Definitions>>(
-          endpointName: EndpointName,
-          arg: QueryArgFrom<Definitions[EndpointName]>,
-          options: PrefetchOptions
-        ): ThunkAction<void, any, any, AnyAction>
-        updateQueryData: UpdateQueryDataThunk<
-          Definitions,
-          RootState<Definitions, string, ReducerPath>
-        >
-        /** @deprecated renamed to `updateQueryData` */
-        updateQueryResult: UpdateQueryDataThunk<
-          Definitions,
-          RootState<Definitions, string, ReducerPath>
-        >
-        patchQueryData: PatchQueryDataThunk<
-          Definitions,
-          RootState<Definitions, string, ReducerPath>
-        >
-        /** @deprecated renamed to `patchQueryData` */
-        patchQueryResult: PatchQueryDataThunk<
-          Definitions,
-          RootState<Definitions, string, ReducerPath>
-        >
-        resetApiState: SliceActions["resetApiState"]
-        invalidateTags: ActionCreatorWithPayload<
-          Array<TagDescription<TagTypes>>,
-          string
-        >
-        selectInvalidatedBy: (
-          state: RootState<Definitions, string, ReducerPath>,
-          tags: ReadonlyArray<TagDescription<TagTypes>>
-        ) => Array<{
-          endpointName: string
-          originalArgs: any
-          queryCacheKey: string
-        }>
-      }
-      endpoints: {
-        [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-          any,
-          any,
-          any,
-          any,
-          any
-        >
-          ? ApiEndpointQuery<Definitions[K], Definitions>
-          : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-          ? ApiEndpointMutation<Definitions[K], Definitions>
-          : never
-      }
+      /** @deprecated renamed to `updateQueryData` */
+      updateQueryResult: UpdateQueryDataThunk<
+        Definitions,
+        RootState<Definitions, string, ReducerPath>
+      >
+      patchQueryData: PatchQueryDataThunk<
+        Definitions,
+        RootState<Definitions, string, ReducerPath>
+      >
+      /** @deprecated renamed to `patchQueryData` */
+      patchQueryResult: PatchQueryDataThunk<
+        Definitions,
+        RootState<Definitions, string, ReducerPath>
+      >
+      resetApiState: SliceActions["resetApiState"]
+      invalidateTags: ActionCreatorWithPayload<
+        Array<TagDescription<TagTypes>>,
+        string
+      >
+      selectInvalidatedBy: (
+        state: RootState<Definitions, string, ReducerPath>,
+        tags: ReadonlyArray<TagDescription<TagTypes>>
+      ) => Array<{
+        endpointName: string
+        originalArgs: any
+        queryCacheKey: string
+      }>
+    }
+    endpoints: {
+      [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+        any,
+        any,
+        any,
+        any,
+        any
+      >
+        ? ApiEndpointQuery<Definitions[K], Definitions>
+        : Definitions[K] extends MutationDefinition<any, any, any, any, any>
+        ? ApiEndpointMutation<Definitions[K], Definitions>
+        : never
     }
   }
 }
+
 export interface ApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
   Definitions extends EndpointDefinitions
