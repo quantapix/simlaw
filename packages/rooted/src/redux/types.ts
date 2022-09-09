@@ -456,3 +456,306 @@ export function getType<T extends string>(
 ): T {
   return `${actionCreator}` as T
 }
+
+type GetState<ThunkApiConfig> = ThunkApiConfig extends {
+  state: infer State
+}
+  ? State
+  : unknown
+type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
+  ? Extra
+  : unknown
+type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
+  dispatch: infer Dispatch
+}
+  ? FallbackIfUnknown<
+      Dispatch,
+      ThunkDispatch<
+        GetState<ThunkApiConfig>,
+        GetExtra<ThunkApiConfig>,
+        AnyAction
+      >
+    >
+  : ThunkDispatch<GetState<ThunkApiConfig>, GetExtra<ThunkApiConfig>, AnyAction>
+
+export class RejectWithValue<Payload, RejectedMeta> {
+  private readonly _type!: "RejectWithValue"
+  constructor(
+    public readonly payload: Payload,
+    public readonly meta: RejectedMeta
+  ) {}
+}
+
+export class FulfillWithMeta<Payload, FulfilledMeta> {
+  private readonly _type!: "FulfillWithMeta"
+  constructor(
+    public readonly payload: Payload,
+    public readonly meta: FulfilledMeta
+  ) {}
+}
+
+export type BaseThunkAPI<
+  S,
+  E,
+  D extends Dispatch = Dispatch,
+  RejectedValue = undefined,
+  RejectedMeta = unknown,
+  FulfilledMeta = unknown
+> = {
+  dispatch: D
+  getState: () => S
+  extra: E
+  requestId: string
+  signal: AbortSignal
+  rejectWithValue: IsUnknown<
+    RejectedMeta,
+    (value: RejectedValue) => RejectWithValue<RejectedValue, RejectedMeta>,
+    (
+      value: RejectedValue,
+      meta: RejectedMeta
+    ) => RejectWithValue<RejectedValue, RejectedMeta>
+  >
+  fulfillWithValue: IsUnknown<
+    FulfilledMeta,
+    <FulfilledValue>(
+      value: FulfilledValue
+    ) => FulfillWithMeta<FulfilledValue, FulfilledMeta>,
+    <FulfilledValue>(
+      value: FulfilledValue,
+      meta: FulfilledMeta
+    ) => FulfillWithMeta<FulfilledValue, FulfilledMeta>
+  >
+}
+
+export type GetRejectValue<ThunkApiConfig> = ThunkApiConfig extends {
+  rejectValue: infer RejectValue
+}
+  ? RejectValue
+  : unknown
+
+export type GetPendingMeta<ThunkApiConfig> = ThunkApiConfig extends {
+  pendingMeta: infer PendingMeta
+}
+  ? PendingMeta
+  : unknown
+
+export type GetFulfilledMeta<ThunkApiConfig> = ThunkApiConfig extends {
+  fulfilledMeta: infer FulfilledMeta
+}
+  ? FulfilledMeta
+  : unknown
+
+export type GetRejectedMeta<ThunkApiConfig> = ThunkApiConfig extends {
+  rejectedMeta: infer RejectedMeta
+}
+  ? RejectedMeta
+  : unknown
+
+export type GetSerializedErrorType<ThunkApiConfig> = ThunkApiConfig extends {
+  serializedErrorType: infer GetSerializedErrorType
+}
+  ? GetSerializedErrorType
+  : SerializedError
+
+export type MaybePromise<T> =
+  | T
+  | Promise<T>
+  | (T extends any ? Promise<T> : never)
+
+type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
+  GetState<ThunkApiConfig>,
+  GetExtra<ThunkApiConfig>,
+  GetDispatch<ThunkApiConfig>,
+  GetRejectValue<ThunkApiConfig>,
+  GetRejectedMeta<ThunkApiConfig>,
+  GetFulfilledMeta<ThunkApiConfig>
+>
+
+export type AsyncThunkConfig = {
+  state?: unknown
+  dispatch?: Dispatch
+  extra?: unknown
+  rejectValue?: unknown
+  serializedErrorType?: unknown
+  pendingMeta?: unknown
+  fulfilledMeta?: unknown
+  rejectedMeta?: unknown
+}
+
+export type AsyncThunkAction<
+  Returned,
+  ThunkArg,
+  ThunkApiConfig extends AsyncThunkConfig
+> = (
+  dispatch: GetDispatch<ThunkApiConfig>,
+  getState: () => GetState<ThunkApiConfig>,
+  extra: GetExtra<ThunkApiConfig>
+) => Promise<
+  | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
+  | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
+> & {
+  abort: (reason?: string) => void
+  requestId: string
+  arg: ThunkArg
+  unwrap: () => Promise<Returned>
+}
+
+export type AsyncThunkPayloadCreatorReturnValue<
+  Returned,
+  ThunkApiConfig extends AsyncThunkConfig
+> = MaybePromise<
+  | IsUnknown<
+      GetFulfilledMeta<ThunkApiConfig>,
+      Returned,
+      FulfillWithMeta<Returned, GetFulfilledMeta<ThunkApiConfig>>
+    >
+  | RejectWithValue<
+      GetRejectValue<ThunkApiConfig>,
+      GetRejectedMeta<ThunkApiConfig>
+    >
+>
+
+export type AsyncThunkPayloadCreator<
+  Returned,
+  ThunkArg = void,
+  ThunkApiConfig extends AsyncThunkConfig = {}
+> = (
+  arg: ThunkArg,
+  thunkAPI: GetThunkAPI<ThunkApiConfig>
+) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
+
+export type AsyncThunkOptions<
+  ThunkArg = void,
+  ThunkApiConfig extends AsyncThunkConfig = {}
+> = {
+  condition?(
+    arg: ThunkArg,
+    api: Pick<GetThunkAPI<ThunkApiConfig>, "getState" | "extra">
+  ): MaybePromise<boolean | undefined>
+  dispatchConditionRejection?: boolean
+
+  serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>
+
+  idGenerator?: (arg: ThunkArg) => string
+} & IsUnknown<
+  GetPendingMeta<ThunkApiConfig>,
+  {
+    getPendingMeta?(
+      base: {
+        arg: ThunkArg
+        requestId: string
+      },
+      api: Pick<GetThunkAPI<ThunkApiConfig>, "getState" | "extra">
+    ): GetPendingMeta<ThunkApiConfig>
+  },
+  {
+    getPendingMeta(
+      base: {
+        arg: ThunkArg
+        requestId: string
+      },
+      api: Pick<GetThunkAPI<ThunkApiConfig>, "getState" | "extra">
+    ): GetPendingMeta<ThunkApiConfig>
+  }
+>
+
+type WithStrictNullChecks<True, False> = undefined extends boolean
+  ? False
+  : True
+
+export type AsyncThunkActionCreator<
+  Returned,
+  ThunkArg,
+  ThunkApiConfig extends AsyncThunkConfig
+> = IsAny<
+  ThunkArg,
+  (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
+  unknown extends ThunkArg
+    ? (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+    : [ThunkArg] extends [void] | [undefined]
+    ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+    : [void] extends [ThunkArg]
+    ? (arg?: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+    : [undefined] extends [ThunkArg]
+    ? WithStrictNullChecks<
+        (
+          arg?: ThunkArg
+        ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
+        (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+      >
+    : (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+>
+
+export type AsyncThunkPendingActionCreator<
+  ThunkArg,
+  ThunkApiConfig = {}
+> = ActionCreatorWithPreparedPayload<
+  [string, ThunkArg, GetPendingMeta<ThunkApiConfig>?],
+  undefined,
+  string,
+  never,
+  {
+    arg: ThunkArg
+    requestId: string
+    requestStatus: "pending"
+  } & GetPendingMeta<ThunkApiConfig>
+>
+
+export type AsyncThunkRejectedActionCreator<
+  ThunkArg,
+  ThunkApiConfig = {}
+> = ActionCreatorWithPreparedPayload<
+  [
+    Error | null,
+    string,
+    ThunkArg,
+    GetRejectValue<ThunkApiConfig>?,
+    GetRejectedMeta<ThunkApiConfig>?
+  ],
+  GetRejectValue<ThunkApiConfig> | undefined,
+  string,
+  GetSerializedErrorType<ThunkApiConfig>,
+  {
+    arg: ThunkArg
+    requestId: string
+    requestStatus: "rejected"
+    aborted: boolean
+    condition: boolean
+  } & (
+    | ({ rejectedWithValue: false } & {
+        [K in keyof GetRejectedMeta<ThunkApiConfig>]?: undefined
+      })
+    | ({ rejectedWithValue: true } & GetRejectedMeta<ThunkApiConfig>)
+  )
+>
+
+export type AsyncThunkFulfilledActionCreator<
+  Returned,
+  ThunkArg,
+  ThunkApiConfig = {}
+> = ActionCreatorWithPreparedPayload<
+  [Returned, string, ThunkArg, GetFulfilledMeta<ThunkApiConfig>?],
+  Returned,
+  string,
+  never,
+  {
+    arg: ThunkArg
+    requestId: string
+    requestStatus: "fulfilled"
+  } & GetFulfilledMeta<ThunkApiConfig>
+>
+
+export type AsyncThunk<
+  Returned,
+  ThunkArg,
+  ThunkApiConfig extends AsyncThunkConfig
+> = AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig> & {
+  pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig>
+  rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>
+  fulfilled: AsyncThunkFulfilledActionCreator<
+    Returned,
+    ThunkArg,
+    ThunkApiConfig
+  >
+  typePrefix: string
+}

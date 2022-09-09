@@ -269,8 +269,6 @@ export type NoInfer<T> = [T][T extends any ? 0 : never]
 
 export type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T
 
-export type MaybePromise<T> = T | PromiseLike<T>
-
 export type OmitFromUnion<T, K extends keyof T> = T extends any
   ? Omit<T, K>
   : never
@@ -315,7 +313,7 @@ export type BaseQueryFn<
   args: Args,
   api: BaseQueryApi,
   extraOptions: DefinitionExtraOptions
-) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
+) => qt.MaybePromise<QueryReturnValue<Result, Error, Meta>>
 
 export type BaseQueryEnhancer<
   AdditionalArgs = unknown,
@@ -383,7 +381,7 @@ interface EndpointDefinitionWithQueryFn<
     api: BaseQueryApi,
     extraOptions: BaseQueryExtraOptions<BaseQuery>,
     baseQuery: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>
-  ): MaybePromise<QueryReturnValue<ResultType, BaseQueryError<BaseQuery>>>
+  ): qt.MaybePromise<QueryReturnValue<ResultType, BaseQueryError<BaseQuery>>>
   query?: never
   transformResponse?: never
   structuralSharing?: boolean
@@ -1066,3 +1064,81 @@ export type HooksWithUniqueNames<Definitions extends EndpointDefinitions> =
         : never
       : never
     : never
+
+export interface StartQueryActionCreatorOptions {
+  subscribe?: boolean
+  forceRefetch?: boolean | number
+  subscriptionOptions?: SubscriptionOptions
+}
+
+export type StartQueryActionCreator<
+  D extends QueryDefinition<any, any, any, any, any>
+> = (
+  arg: QueryArgFrom<D>,
+  options?: StartQueryActionCreatorOptions
+) => qt.ThunkAction<QueryActionCreatorResult<D>, any, any, qt.AnyAction>
+
+export type StartMutationActionCreator<
+  D extends MutationDefinition<any, any, any, any>
+> = (
+  arg: QueryArgFrom<D>,
+  options?: {
+    track?: boolean
+    fixedCacheKey?: string
+  }
+) => qt.ThunkAction<MutationActionCreatorResult<D>, any, any, qt.AnyAction>
+
+export type QueryResultSelectorFactory<
+  Definition extends QueryDefinition<any, any, any, any>,
+  RootState
+> = (
+  queryArg: QueryArgFrom<Definition> | SkipToken
+) => (state: RootState) => QueryResultSelectorResult<Definition>
+
+export type MutationResultSelectorFactory<
+  Definition extends MutationDefinition<any, any, any, any>,
+  RootState
+> = (
+  requestId:
+    | string
+    | { requestId: string | undefined; fixedCacheKey: string | undefined }
+    | SkipToken
+) => (state: RootState) => MutationResultSelectorResult<Definition>
+
+export interface QueryThunkArg
+  extends QuerySubstateIdentifier,
+    StartQueryActionCreatorOptions {
+  type: "query"
+  originalArgs: unknown
+  endpointName: string
+}
+export interface MutationThunkArg {
+  type: "mutation"
+  originalArgs: unknown
+  endpointName: string
+  track?: boolean
+  fixedCacheKey?: string
+}
+export type ThunkResult = unknown
+export type ThunkApiMetaConfig = {
+  pendingMeta: { startedTimeStamp: number }
+  fulfilledMeta: {
+    fulfilledTimeStamp: number
+    baseQueryMeta: unknown
+  }
+  rejectedMeta: {
+    baseQueryMeta: unknown
+  }
+}
+
+export type QueryThunk = qt.AsyncThunk<
+  ThunkResult,
+  QueryThunkArg,
+  ThunkApiMetaConfig
+>
+
+export type MutationThunk = qt.AsyncThunk<
+  ThunkResult,
+  MutationThunkArg,
+  ThunkApiMetaConfig
+>

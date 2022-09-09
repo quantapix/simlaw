@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import * as qi from "../immer/index.js"
-import type * as qt from "./types.js"
-import type { ActionReducerMapBuilder } from "./builder.js"
-import { executeReducerBuilderCallback } from "./builder.js"
+import * as qt from "./types.js"
+import {
+  ActionReducerMapBuilder,
+  executeReducerBuilderCallback,
+} from "./builder.js"
 import * as qu from "./utils.js"
 import { createSelector } from "reselect"
 
@@ -157,9 +159,6 @@ export function createSlice<
   }
 }
 
-
-
-
 export function createAction<P = void, T extends string = string>(
   type: T
 ): qt.PayloadActionCreator<P, T>
@@ -188,8 +187,9 @@ export function createAction(type: string, prepareAction?: Function): any {
   }
   actionCreator.toString = () => `${type}`
   actionCreator.type = type
-  actionCreator.match = (action: qt.Action<unknown>): action is qt.PayloadAction =>
-    action.type === type
+  actionCreator.match = (
+    action: qt.Action<unknown>
+  ): action is qt.PayloadAction => action.type === type
   return actionCreator
 }
 
@@ -209,8 +209,6 @@ export function isFSA(action: unknown): action is {
 function isValidKey(key: string) {
   return ["type", "payload", "error", "meta"].indexOf(key) > -1
 }
-
-
 
 export type Actions<T extends keyof any = string> = Record<T, qt.Action>
 
@@ -314,9 +312,7 @@ export function createReducer<S extends NotFunction<any>>(
           }
           return result as S
         } else {
-          return qi.produce(previousState, (draft => {
-            return caseReducer(draft, action)
-          })
+          return qi.produce(previousState, draft => caseReducer(draft, action))
         }
       }
       return previousState
@@ -335,61 +331,12 @@ export const createDraftSafeSelector: typeof createSelector = (
   return wrappedSelector as any
 }
 
-export type BaseThunkAPI<
-  S,
-  E,
-  D extends qt.Dispatch = qt.Dispatch,
-  RejectedValue = undefined,
-  RejectedMeta = unknown,
-  FulfilledMeta = unknown
-> = {
-  dispatch: D
-  getState: () => S
-  extra: E
-  requestId: string
-  signal: AbortSignal
-  rejectWithValue: qt.IsUnknown<
-    RejectedMeta,
-    (value: RejectedValue) => RejectWithValue<RejectedValue, RejectedMeta>,
-    (
-      value: RejectedValue,
-      meta: RejectedMeta
-    ) => RejectWithValue<RejectedValue, RejectedMeta>
-  >
-  fulfillWithValue: qt.IsUnknown<
-    FulfilledMeta,
-    <FulfilledValue>(
-      value: FulfilledValue
-    ) => FulfillWithMeta<FulfilledValue, FulfilledMeta>,
-    <FulfilledValue>(
-      value: FulfilledValue,
-      meta: FulfilledMeta
-    ) => FulfillWithMeta<FulfilledValue, FulfilledMeta>
-  >
-}
-
 const commonProperties: Array<keyof qt.SerializedError> = [
   "name",
   "message",
   "stack",
   "code",
 ]
-
-class RejectWithValue<Payload, RejectedMeta> {
-  private readonly _type!: "RejectWithValue"
-  constructor(
-    public readonly payload: Payload,
-    public readonly meta: RejectedMeta
-  ) {}
-}
-
-class FulfillWithMeta<Payload, FulfilledMeta> {
-  private readonly _type!: "FulfillWithMeta"
-  constructor(
-    public readonly payload: Payload,
-    public readonly meta: FulfilledMeta
-  ) {}
-}
 
 export const miniSerializeError = (value: any): qt.SerializedError => {
   if (typeof value === "object" && value !== null) {
@@ -406,288 +353,45 @@ export const miniSerializeError = (value: any): qt.SerializedError => {
   return { message: String(value) }
 }
 
-type AsyncThunkConfig = {
-  state?: unknown
-  dispatch?: qt.Dispatch
-  extra?: unknown
-  rejectValue?: unknown
-  serializedErrorType?: unknown
-  pendingMeta?: unknown
-  fulfilledMeta?: unknown
-  rejectedMeta?: unknown
-}
+export function createAsyncThunk<Returned, ThunkArg = void>(
+  typePrefix: string,
+  payloadCreator: qt.AsyncThunkPayloadCreator<Returned, ThunkArg, {}>,
+  options?: qt.AsyncThunkOptions<ThunkArg, {}>
+): qt.AsyncThunk<Returned, ThunkArg, {}>
 
-type GetState<ThunkApiConfig> = ThunkApiConfig extends {
-  state: infer State
-}
-  ? State
-  : unknown
-type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
-  ? Extra
-  : unknown
-type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
-  dispatch: infer Dispatch
-}
-  ? qt.FallbackIfUnknown<
-      Dispatch,
-      qt.ThunkDispatch<
-        GetState<ThunkApiConfig>,
-        GetExtra<ThunkApiConfig>,
-        qt.AnyAction
-      >
-    >
-  : qt.ThunkDispatch<
-      GetState<ThunkApiConfig>,
-      GetExtra<ThunkApiConfig>,
-      qt.AnyAction
-    >
-
-type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
-  GetState<ThunkApiConfig>,
-  GetExtra<ThunkApiConfig>,
-  GetDispatch<ThunkApiConfig>,
-  GetRejectValue<ThunkApiConfig>,
-  GetRejectedMeta<ThunkApiConfig>,
-  GetFulfilledMeta<ThunkApiConfig>
->
-
-type GetRejectValue<ThunkApiConfig> = ThunkApiConfig extends {
-  rejectValue: infer RejectValue
-}
-  ? RejectValue
-  : unknown
-
-type GetPendingMeta<ThunkApiConfig> = ThunkApiConfig extends {
-  pendingMeta: infer PendingMeta
-}
-  ? PendingMeta
-  : unknown
-
-type GetFulfilledMeta<ThunkApiConfig> = ThunkApiConfig extends {
-  fulfilledMeta: infer FulfilledMeta
-}
-  ? FulfilledMeta
-  : unknown
-
-type GetRejectedMeta<ThunkApiConfig> = ThunkApiConfig extends {
-  rejectedMeta: infer RejectedMeta
-}
-  ? RejectedMeta
-  : unknown
-
-type GetSerializedErrorType<ThunkApiConfig> = ThunkApiConfig extends {
-  serializedErrorType: infer GetSerializedErrorType
-}
-  ? GetSerializedErrorType
-  : qt.SerializedError
-
-type MaybePromise<T> = T | Promise<T> | (T extends any ? Promise<T> : never)
-
-export type AsyncThunkPayloadCreatorReturnValue<
-  Returned,
-  ThunkApiConfig extends AsyncThunkConfig
-> = MaybePromise<
-  | qt.IsUnknown<
-      GetFulfilledMeta<ThunkApiConfig>,
-      Returned,
-      FulfillWithMeta<Returned, GetFulfilledMeta<ThunkApiConfig>>
-    >
-  | RejectWithValue<
-      GetRejectValue<ThunkApiConfig>,
-      GetRejectedMeta<ThunkApiConfig>
-    >
->
-
-export type AsyncThunkPayloadCreator<
-  Returned,
-  ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = {}
-> = (
-  arg: ThunkArg,
-  thunkAPI: GetThunkAPI<ThunkApiConfig>
-) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
-
-export type AsyncThunkAction<
+export function createAsyncThunk<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
-> = (
-  dispatch: GetDispatch<ThunkApiConfig>,
-  getState: () => GetState<ThunkApiConfig>,
-  extra: GetExtra<ThunkApiConfig>
-) => Promise<
-  | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
-  | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
-> & {
-  abort: (reason?: string) => void
-  requestId: string
-  arg: ThunkArg
-  unwrap: () => Promise<Returned>
-}
-
-type AsyncThunkActionCreator<
-  Returned,
-  ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
-> = qt.IsAny<
-  ThunkArg,
-  (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
-  unknown extends ThunkArg
-    ? (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
-    : [ThunkArg] extends [void] | [undefined]
-    ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
-    : [void] extends [ThunkArg]
-    ? (arg?: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
-    : [undefined] extends [ThunkArg]
-    ? WithStrictNullChecks<
-        (
-          arg?: ThunkArg
-        ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
-        (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
-      >
-    : (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
->
-
-export type AsyncThunkOptions<
-  ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = {}
-> = {
-  condition?(
-    arg: ThunkArg,
-    api: Pick<GetThunkAPI<ThunkApiConfig>, "getState" | "extra">
-  ): MaybePromise<boolean | undefined>
-  dispatchConditionRejection?: boolean
-
-  serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>
-
-  idGenerator?: (arg: ThunkArg) => string
-} & qt.IsUnknown<
-  GetPendingMeta<ThunkApiConfig>,
-  {
-    getPendingMeta?(
-      base: {
-        arg: ThunkArg
-        requestId: string
-      },
-      api: Pick<GetThunkAPI<ThunkApiConfig>, "getState" | "extra">
-    ): GetPendingMeta<ThunkApiConfig>
-  },
-  {
-    getPendingMeta(
-      base: {
-        arg: ThunkArg
-        requestId: string
-      },
-      api: Pick<GetThunkAPI<ThunkApiConfig>, "getState" | "extra">
-    ): GetPendingMeta<ThunkApiConfig>
-  }
->
-
-export type AsyncThunkPendingActionCreator<
-  ThunkArg,
-  ThunkApiConfig = {}
-> = qt.ActionCreatorWithPreparedPayload<
-  [string, ThunkArg, GetPendingMeta<ThunkApiConfig>?],
-  undefined,
-  string,
-  never,
-  {
-    arg: ThunkArg
-    requestId: string
-    requestStatus: "pending"
-  } & GetPendingMeta<ThunkApiConfig>
->
-
-export type AsyncThunkRejectedActionCreator<
-  ThunkArg,
-  ThunkApiConfig = {}
-> = qt.ActionCreatorWithPreparedPayload<
-  [
-    Error | null,
-    string,
-    ThunkArg,
-    GetRejectValue<ThunkApiConfig>?,
-    GetRejectedMeta<ThunkApiConfig>?
-  ],
-  GetRejectValue<ThunkApiConfig> | undefined,
-  string,
-  GetSerializedErrorType<ThunkApiConfig>,
-  {
-    arg: ThunkArg
-    requestId: string
-    requestStatus: "rejected"
-    aborted: boolean
-    condition: boolean
-  } & (
-    | ({ rejectedWithValue: false } & {
-        [K in keyof GetRejectedMeta<ThunkApiConfig>]?: undefined
-      })
-    | ({ rejectedWithValue: true } & GetRejectedMeta<ThunkApiConfig>)
-  )
->
-
-export type AsyncThunkFulfilledActionCreator<
-  Returned,
-  ThunkArg,
-  ThunkApiConfig = {}
-> = qt.ActionCreatorWithPreparedPayload<
-  [Returned, string, ThunkArg, GetFulfilledMeta<ThunkApiConfig>?],
-  Returned,
-  string,
-  never,
-  {
-    arg: ThunkArg
-    requestId: string
-    requestStatus: "fulfilled"
-  } & GetFulfilledMeta<ThunkApiConfig>
->
-
-export type AsyncThunk<
-  Returned,
-  ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
-> = AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig> & {
-  pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig>
-  rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>
-  fulfilled: AsyncThunkFulfilledActionCreator<
+  ThunkApiConfig extends qt.AsyncThunkConfig
+>(
+  typePrefix: string,
+  payloadCreator: qt.AsyncThunkPayloadCreator<
     Returned,
     ThunkArg,
     ThunkApiConfig
-  >
-  typePrefix: string
-}
-
-export function createAsyncThunk<Returned, ThunkArg = void>(
-  typePrefix: string,
-  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, {}>,
-  options?: AsyncThunkOptions<ThunkArg, {}>
-): AsyncThunk<Returned, ThunkArg, {}>
+  >,
+  options?: qt.AsyncThunkOptions<ThunkArg, ThunkApiConfig>
+): qt.AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
 
 export function createAsyncThunk<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends qt.AsyncThunkConfig
 >(
   typePrefix: string,
-  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>,
-  options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
-): AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
+  payloadCreator: qt.AsyncThunkPayloadCreator<
+    Returned,
+    ThunkArg,
+    ThunkApiConfig
+  >,
+  options?: qt.AsyncThunkOptions<ThunkArg, ThunkApiConfig>
+): qt.AsyncThunk<Returned, ThunkArg, ThunkApiConfig> {
+  type RejectedValue = qt.GetRejectValue<ThunkApiConfig>
+  type PendingMeta = qt.GetPendingMeta<ThunkApiConfig>
+  type FulfilledMeta = qt.GetFulfilledMeta<ThunkApiConfig>
+  type RejectedMeta = qt.GetRejectedMeta<ThunkApiConfig>
 
-export function createAsyncThunk<
-  Returned,
-  ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
->(
-  typePrefix: string,
-  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>,
-  options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
-): AsyncThunk<Returned, ThunkArg, ThunkApiConfig> {
-  type RejectedValue = GetRejectValue<ThunkApiConfig>
-  type PendingMeta = GetPendingMeta<ThunkApiConfig>
-  type FulfilledMeta = GetFulfilledMeta<ThunkApiConfig>
-  type RejectedMeta = GetRejectedMeta<ThunkApiConfig>
-
-  const fulfilled: AsyncThunkFulfilledActionCreator<
+  const fulfilled: qt.AsyncThunkFulfilledActionCreator<
     Returned,
     ThunkArg,
     ThunkApiConfig
@@ -709,7 +413,7 @@ export function createAsyncThunk<
     })
   )
 
-  const pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig> =
+  const pending: qt.AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig> =
     createAction(
       typePrefix + "/pending",
       (requestId: string, arg: ThunkArg, meta?: PendingMeta) => ({
@@ -723,7 +427,7 @@ export function createAsyncThunk<
       })
     )
 
-  const rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
+  const rejected: qt.AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
     createAction(
       typePrefix + "/rejected",
       (
@@ -736,7 +440,7 @@ export function createAsyncThunk<
         payload,
         error: ((options && options.serializeError) || miniSerializeError)(
           error || "Rejected"
-        ) as GetSerializedErrorType<ThunkApiConfig>,
+        ) as qt.GetSerializedErrorType<ThunkApiConfig>,
         meta: {
           ...((meta as any) || {}),
           arg,
@@ -781,7 +485,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
 
   function actionCreator(
     arg: ThunkArg
-  ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
+  ): qt.AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
     return (dispatch, getState, extra) => {
       const requestId = options?.idGenerator
         ? options.idGenerator(arg)
@@ -838,17 +542,17 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                   value: RejectedValue,
                   meta?: RejectedMeta
                 ) => {
-                  return new RejectWithValue(value, meta)
+                  return new qt.RejectWithValue(value, meta)
                 }) as any,
                 fulfillWithValue: ((value: unknown, meta?: FulfilledMeta) => {
-                  return new FulfillWithMeta(value, meta)
+                  return new qt.FulfillWithMeta(value, meta)
                 }) as any,
               })
             ).then(result => {
-              if (result instanceof RejectWithValue) {
+              if (result instanceof qt.RejectWithValue) {
                 throw result
               }
-              if (result instanceof FulfillWithMeta) {
+              if (result instanceof qt.FulfillWithMeta) {
                 return fulfilled(result.payload, requestId, arg, result.meta)
               }
               return fulfilled(result as any, requestId, arg)
@@ -856,7 +560,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
           ])
         } catch (err) {
           finalAction =
-            err instanceof RejectWithValue
+            err instanceof qt.RejectWithValue
               ? rejected(null, requestId, arg, err.payload, err.meta)
               : rejected(err as any, requestId, arg)
         }
@@ -883,7 +587,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
   }
 
   return Object.assign(
-    actionCreator as AsyncThunkActionCreator<
+    actionCreator as qt.AsyncThunkActionCreator<
       Returned,
       ThunkArg,
       ThunkApiConfig
@@ -919,10 +623,6 @@ export function unwrapResult<R extends UnwrappableAction>(
   }
   return action.payload
 }
-
-type WithStrictNullChecks<True, False> = undefined extends boolean
-  ? False
-  : True
 
 function isThenable(value: any): value is PromiseLike<any> {
   return (

@@ -7,7 +7,6 @@ import {
   buildSelectors,
   PatchQueryDataThunk,
   UpdateQueryDataThunk,
-  QueryThunk,
 } from "./build.js"
 import * as qt from "./types.js"
 import * as qi from "../../immer/index.js"
@@ -110,9 +109,9 @@ export type Api<
 export interface ApiEndpointQuery<
   Definition extends qt.QueryDefinition<any, any, any, any, any>,
   Definitions extends qt.EndpointDefinitions
-> extends Matchers<QueryThunk, Definition> {
-  initiate: StartQueryActionCreator<Definition>
-  select: QueryResultSelectorFactory<
+> extends Matchers<qt.QueryThunk, Definition> {
+  initiate: qt.StartQueryActionCreator<Definition>
+  select: qt.QueryResultSelectorFactory<
     Definition,
     _RootState<
       Definitions,
@@ -125,9 +124,9 @@ export interface ApiEndpointQuery<
 export interface ApiEndpointMutation<
   Definition extends qt.MutationDefinition<any, any, any, any, any>,
   Definitions extends qt.EndpointDefinitions
-> extends Matchers<MutationThunk, Definition> {
-  initiate: StartMutationActionCreator<Definition>
-  select: MutationResultSelectorFactory<
+> extends Matchers<qt.MutationThunk, Definition> {
+  initiate: qt.StartMutationActionCreator<Definition>
+  select: qt.MutationResultSelectorFactory<
     Definition,
     _RootState<
       Definitions,
