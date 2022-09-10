@@ -11,6 +11,7 @@ import type {
 import { createAction } from "@reduxjs/toolkit"
 import type { IsAny } from "@internal/tsHelpers"
 import { expectType } from "./helpers"
+
 {
   const action: PayloadAction<number> = { type: "", payload: 5 }
   const numberPayload: number = action.payload

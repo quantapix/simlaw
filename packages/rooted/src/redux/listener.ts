@@ -1,10 +1,5 @@
 import * as qu from "./utils.js"
-import {
-  createAction,
-  PayloadAction,
-  BaseActionCreator,
-  qt.SerializedError,
-} from "./create.js"
+import { createAction, PayloadAction, BaseActionCreator } from "./create.js"
 import type * as qt from "./types.js"
 
 const task = "task"
@@ -113,7 +108,6 @@ const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
   } else if (matcher) {
     predicate = matcher
   } else if (predicate) {
-
   } else {
     throw new Error(
       "Creating or removing a listener requires one of the known fields for matching an action"

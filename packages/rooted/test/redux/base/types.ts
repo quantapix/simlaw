@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 import {
   ActionCreator,
   Action,
@@ -6,6 +7,34 @@ import {
   ActionCreatorsMapObject,
 } from "../.."
 import { Action as ReduxAction } from "../.."
+import { compose } from "../.."
+import { Dispatch } from "../.."
+import { Dispatch, Action } from "../.."
+import { StoreEnhancer, Action, AnyAction, Reducer, createStore } from "../.."
+import {
+  Middleware,
+  MiddlewareAPI,
+  applyMiddleware,
+  createStore,
+  Dispatch,
+  Reducer,
+  Action,
+  AnyAction,
+} from "../.."
+import { Reducer, Action, combineReducers, ReducersMapObject } from "../.."
+import { combineReducers, createStore } from "../.."
+import {
+  Store,
+  createStore,
+  Reducer,
+  Action,
+  StoreEnhancer,
+  Unsubscribe,
+  Observer,
+  ExtendState,
+} from "../.."
+import "symbol-observable"
+
 interface AddTodoAction extends Action {
   text: string
 }
@@ -47,7 +76,7 @@ function bound() {
   const otherDispatchedAddTodoAction2: AddTodoAction =
     boundActionCreators2.addTodoViaThunk("test")
 }
-namespace FSA {
+export namespace FSA {
   interface Action<P> extends ReduxAction {
     payload: P
   }
@@ -57,7 +86,7 @@ namespace FSA {
   }
   const payload: string = action.payload
 }
-namespace FreeShapeAction {
+export namespace FreeShapeAction {
   interface Action extends ReduxAction {
     [key: string]: any
   }
@@ -67,7 +96,7 @@ namespace FreeShapeAction {
   }
   const text: string = action["text"]
 }
-namespace StringLiteralTypeAction {
+export namespace StringLiteralTypeAction {
   type ActionType = "A" | "B" | "C"
   interface Action extends ReduxAction {
     type: ActionType
@@ -77,7 +106,7 @@ namespace StringLiteralTypeAction {
   }
   const type: ActionType = action.type
 }
-namespace EnumTypeAction {
+export namespace EnumTypeAction {
   enum ActionType {
     A,
     B,
@@ -91,7 +120,6 @@ namespace EnumTypeAction {
   }
   const type: ActionType = action.type
 }
-import { compose } from "../.."
 const numberToNumber = (a: number): number => a + 2
 const numberToString = (a: number): string => "foo"
 const stringToNumber = (a: string): number => 5
@@ -132,7 +160,7 @@ const t11: number = compose(
 )("bar", 42, true)
 const funcs = [stringToNumber, numberToString, stringToNumber]
 const t12 = compose(...funcs)("bar")
-import { Dispatch } from "../.."
+
 function simple() {
   const dispatch: Dispatch = null as any
   const a = dispatch({ type: "INCREMENT", count: 10 })
@@ -156,7 +184,6 @@ function discriminated() {
   dispatch({ type: "DECREMENT", count: "" })
   dispatch({ type: "SOME_OTHER_TYPE" })
 }
-import { StoreEnhancer, Action, AnyAction, Reducer, createStore } from "../.."
 interface State {
   someField: "string"
 }
@@ -392,7 +419,6 @@ function finalHelmersonExample() {
   newStore.getState().whatever
   newStore.getState().wrongField
 }
-import { Dispatch, Action } from "../.."
 interface Component<P> {
   props: P
 }
@@ -450,16 +476,6 @@ function promise() {
     }
   })
 }
-import {
-  Middleware,
-  MiddlewareAPI,
-  applyMiddleware,
-  createStore,
-  Dispatch,
-  Reducer,
-  Action,
-  AnyAction,
-} from "../.."
 function logger() {
   const loggerMiddleware: Middleware =
     ({ getState }: MiddlewareAPI) =>
@@ -578,7 +594,6 @@ function apply() {
   storeWithLotsOfMiddleware.dispatch({ type: "INCREMENT" })
   storeWithLotsOfMiddleware.dispatch(Promise.resolve({ type: "INCREMENT" }))
 }
-import { Reducer, Action, combineReducers, ReducersMapObject } from "../.."
 function simple() {
   type State = number
   const reducer: Reducer<State> = (state = 0, action) => {
@@ -712,7 +727,6 @@ function reducersMapObject() {
     obj[key](undefined, "not-an-action")
   }
 }
-import { combineReducers, createStore } from "../.."
 const bar = (state = { value: "bar" }) => state
 const baz = (state = { value: "baz" }) => state
 const ACTION = {
@@ -728,17 +742,6 @@ const nextStore = store.replaceReducer(combineReducers({ baz })) // returns ->  
 const nextState = nextStore.getState()
 nextState.bar.value
 nextState.baz.value
-import {
-  Store,
-  createStore,
-  Reducer,
-  Action,
-  StoreEnhancer,
-  Unsubscribe,
-  Observer,
-  ExtendState,
-} from "../.."
-import "symbol-observable"
 type BrandedString = string & { _brand: "type" }
 const brandedString = "a string" as BrandedString
 type State = {

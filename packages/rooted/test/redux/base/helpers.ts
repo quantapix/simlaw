@@ -7,7 +7,26 @@ import {
   THROW_ERROR,
   UNKNOWN_ACTION,
 } from "./actionTypes"
+import { MiddlewareAPI, Dispatch, AnyAction } from "../.."
+
 import { Action, AnyAction, Dispatch } from "../.."
+export const ADD_TODO = "ADD_TODO"
+export const DISPATCH_IN_MIDDLE = "DISPATCH_IN_MIDDLE"
+export const GET_STATE_IN_MIDDLE = "GET_STATE_IN_MIDDLE"
+export const SUBSCRIBE_IN_MIDDLE = "SUBSCRIBE_IN_MIDDLE"
+export const UNSUBSCRIBE_IN_MIDDLE = "UNSUBSCRIBE_IN_MIDDLE"
+export const THROW_ERROR = "THROW_ERROR"
+export const UNKNOWN_ACTION = "UNKNOWN_ACTION"
+
+import {
+  ADD_TODO,
+  DISPATCH_IN_MIDDLE,
+  GET_STATE_IN_MIDDLE,
+  SUBSCRIBE_IN_MIDDLE,
+  UNSUBSCRIBE_IN_MIDDLE,
+  THROW_ERROR,
+} from "./actionTypes"
+import { AnyAction } from "../.."
 
 export function addTodo(text: string): AnyAction {
   return { type: ADD_TODO, text }
@@ -62,14 +81,7 @@ export function unknownAction(): Action {
     type: UNKNOWN_ACTION,
   }
 }
-export const ADD_TODO = "ADD_TODO"
-export const DISPATCH_IN_MIDDLE = "DISPATCH_IN_MIDDLE"
-export const GET_STATE_IN_MIDDLE = "GET_STATE_IN_MIDDLE"
-export const SUBSCRIBE_IN_MIDDLE = "SUBSCRIBE_IN_MIDDLE"
-export const UNSUBSCRIBE_IN_MIDDLE = "UNSUBSCRIBE_IN_MIDDLE"
-export const THROW_ERROR = "THROW_ERROR"
-export const UNKNOWN_ACTION = "UNKNOWN_ACTION"
-import { MiddlewareAPI, Dispatch, AnyAction } from "../.."
+
 type ThunkAction<T extends any = any> = T extends AnyAction
   ? AnyAction
   : T extends Function
@@ -80,15 +92,7 @@ export function thunk({ dispatch, getState }: MiddlewareAPI) {
     <_>(action: ThunkAction) =>
       typeof action === "function" ? action(dispatch, getState) : next(action)
 }
-import {
-  ADD_TODO,
-  DISPATCH_IN_MIDDLE,
-  GET_STATE_IN_MIDDLE,
-  SUBSCRIBE_IN_MIDDLE,
-  UNSUBSCRIBE_IN_MIDDLE,
-  THROW_ERROR,
-} from "./actionTypes"
-import { AnyAction } from "../.."
+
 function id(state: { id: number }[]) {
   return (
     state.reduce((result, item) => (item.id > result ? item.id : result), 0) + 1

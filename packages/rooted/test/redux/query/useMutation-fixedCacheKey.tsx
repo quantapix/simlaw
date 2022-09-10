@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
-import { setupApiStore, waitMs } from "./helpers"
+import { setupApiStore, waitMs } from "./helpers.js"
 import React from "react"
 import {
   render,
