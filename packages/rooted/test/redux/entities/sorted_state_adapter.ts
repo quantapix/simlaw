@@ -13,12 +13,10 @@ import {
   TheHobbit,
 } from "./fixtures/book.js"
 import * as qi from "../../../src/immer/index.js"
-
 describe("Sorted State Adapter", () => {
   let adapter: EntityAdapter<BookModel>
   let state: EntityState<BookModel>
   beforeAll(() => {
-    //eslint-disable-next-line
     Object.defineProperty(Array.prototype, "unwantedField", {
       enumerable: true,
       configurable: true,

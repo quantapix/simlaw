@@ -76,6 +76,13 @@ declare const $CombinedState: unique symbol
 interface EmptyObject {
   readonly [$CombinedState]?: undefined
 }
+
+/*
+type EmptyObject = {
+  [K in any]: never
+}
+*/
+
 export type CombinedState<S> = EmptyObject & S
 
 export type PreloadedState<S> = Required<S> extends EmptyObject
@@ -257,7 +264,7 @@ export type ExtractDispatchExtensions<M> = M extends MiddlewareArray<
   : never
 
 export type UnionToIntersection<U> = (
-  U extends any ? (k: U) => void : never
+  U extends unknown ? (k: U) => void : never
 ) extends (k: infer I) => void
   ? I
   : never
@@ -759,3 +766,245 @@ export type AsyncThunk<
   >
   typePrefix: string
 }
+
+export type Selector<
+  State = any,
+  Result = unknown,
+  Params extends never | readonly any[] = any[]
+> = [Params] extends [never]
+  ? (state: State) => Result
+  : (state: State, ...params: Params) => Result
+
+export interface OutputSelectorFields<Combiner extends UnknownFunction> {
+  resultFunc: Combiner
+  memoizedResultFunc: Combiner
+  lastResult: () => ReturnType<Combiner>
+  dependencies: SelectorArray
+  recomputations: () => number
+  resetRecomputations: () => number
+}
+
+export type OutputSelector<
+  S extends SelectorArray,
+  Result,
+  Combiner extends UnknownFunction,
+  Params extends readonly any[] = never // MergeParameters<S>
+> = Selector<GetStateFromSelectors<S>, Result, Params> &
+  OutputSelectorFields<Combiner>
+
+export type ParametricSelector<State, Props, Result> = Selector<
+  State,
+  Result,
+  [Props, ...any]
+>
+
+export type OutputParametricSelector<
+  State,
+  Props,
+  Result,
+  Combiner extends UnknownFunction
+> = ParametricSelector<State, Props, Result> & OutputSelectorFields<Combiner>
+
+export type SelectorArray = ReadonlyArray<Selector>
+
+export type EqualityFn = (a: any, b: any) => boolean
+
+export type SelectorResultArray<Selectors extends SelectorArray> =
+  ExtractReturnType<Selectors>
+
+export type GetStateFromSelectors<S extends SelectorArray> =
+  MergeParameters<S>[0]
+
+export type GetParamsFromSelectors<
+  S extends SelectorArray,
+  RemainingItems extends readonly unknown[] = Tail<MergeParameters<S>>
+> = RemainingItems
+
+export type MergeParameters<
+  T extends readonly UnknownFunction[],
+  ParamsArrays extends readonly any[][] = ExtractParams<T>,
+  TransposedArrays = Transpose<ParamsArrays>,
+  TuplifiedArrays extends any[] = TuplifyUnion<TransposedArrays>,
+  LongestParamsArray extends readonly any[] = LongestArray<TuplifiedArrays>
+> = ExpandItems<
+  RemoveNames<{
+    [index in keyof LongestParamsArray]: LongestParamsArray[index] extends LongestParamsArray[number]
+      ? IgnoreInvalidIntersections<IntersectAll<LongestParamsArray[index]>>
+      : never
+  }>
+>
+
+export type UnknownFunction = (...args: any[]) => any
+
+type IgnoreInvalidIntersections<T> = T extends EmptyObject ? never : T
+
+export type ExtractParams<T extends readonly UnknownFunction[]> = {
+  [index in keyof T]: T[index] extends T[number] ? Parameters<T[index]> : never
+}
+
+export type ExtractReturnType<T extends readonly UnknownFunction[]> = {
+  [index in keyof T]: T[index] extends T[number] ? ReturnType<T[index]> : never
+}
+
+export type ExpandItems<T extends readonly unknown[]> = {
+  [index in keyof T]: T[index] extends T[number] ? Expand<T[index]> : never
+}
+
+export type Head<T> = T extends [any, ...any[]] ? T[0] : never
+export type Tail<A> = A extends [any, ...infer Rest] ? Rest : never
+
+export type AllArrayKeys<A extends readonly any[]> = A extends any
+  ? {
+      [K in keyof A]: K
+    }[number]
+  : never
+
+export type List<A = any> = ReadonlyArray<A>
+
+export type Has<U, U1> = [U1] extends [U] ? 1 : 0
+
+export type Longest<L extends List, L1 extends List> = L extends unknown
+  ? L1 extends unknown
+    ? { 0: L1; 1: L }[Has<keyof L, keyof L1>]
+    : never
+  : never
+
+export type LongestArray<S extends readonly any[][]> = IsTuple<S> extends "0"
+  ? S[0]
+  : S extends [any[], any[]]
+  ? Longest<S[0], S[1]>
+  : S extends [any[], any[], ...infer Rest]
+  ? Longest<Longest<S[0], S[1]>, Rest extends any[][] ? LongestArray<Rest> : []>
+  : S extends [any[]]
+  ? S[0]
+  : never
+
+export type IntersectAll<T extends any[]> = IsTuple<T> extends "0"
+  ? T[0]
+  : _IntersectAll<T>
+
+type IfJustNullish<T, True, False> = [T] extends [undefined | null]
+  ? True
+  : False
+
+type _IntersectAll<T, R = unknown> = T extends [infer First, ...infer Rest]
+  ? _IntersectAll<Rest, IfJustNullish<First, R, R & First>>
+  : R
+
+type RemoveNames<T extends readonly any[]> = [any, ...T] extends [
+  any,
+  ...infer U
+]
+  ? U
+  : never
+
+export type Bool = "0" | "1"
+export type Obj<T> = { [k: string]: T }
+export type And<A extends Bool, B extends Bool> = ({
+  1: { 1: "1" } & Obj<"0">
+} & Obj<Obj<"0">>)[A][B]
+
+export type Matches<V, T> = V extends T ? "1" : "0"
+export type IsArrayType<T> = Matches<T, any[]>
+
+export type Not<T extends Bool> = { "1": "0"; "0": "1" }[T]
+export type InstanceOf<V, T> = And<Matches<V, T>, Not<Matches<T, V>>>
+export type IsTuple<T extends { length: number }> = And<
+  IsArrayType<T>,
+  InstanceOf<T["length"], number>
+>
+
+type Push<T extends any[], V> = [...T, V]
+
+type LastOf<T> = UnionToIntersection<
+  T extends any ? () => T : never
+> extends () => infer R
+  ? R
+  : never
+
+type TuplifyUnion<
+  T,
+  L = LastOf<T>,
+  N = [T] extends [never] ? true : false
+> = true extends N ? [] : Push<TuplifyUnion<Exclude<T, L>>, L>
+
+export type ObjValueTuple<
+  T,
+  KS extends any[] = TuplifyUnion<keyof T>,
+  R extends any[] = []
+> = KS extends [infer K, ...infer KT]
+  ? ObjValueTuple<T, KT, [...R, T[K & keyof T]]>
+  : R
+
+type Transpose<T> = T[Extract<
+  keyof T,
+  T extends readonly any[] ? number : unknown
+>] extends infer V
+  ? {
+      [K in keyof V]: {
+        [L in keyof T]: K extends keyof T[L] ? T[L][K] : undefined
+      }
+    }
+  : never
+
+export type DropFirst<T extends unknown[]> = T extends [unknown, ...infer U]
+  ? U
+  : never
+
+export type Expand<T> = T extends (...args: infer A) => infer R
+  ? (...args: Expand<A>) => Expand<R>
+  : T extends infer O
+  ? { [K in keyof O]: O[K] }
+  : never
+
+export type ExpandRecursively<T> = T extends (...args: infer A) => infer R
+  ? (...args: ExpandRecursively<A>) => ExpandRecursively<R>
+  : T extends object
+  ? T extends infer O
+    ? { [K in keyof O]: ExpandRecursively<O[K]> }
+    : never
+  : T
+
+type Identity<T> = T
+
+export type Mapped<T> = Identity<{ [k in keyof T]: T[k] }>
+
+export type ComputeDeep<A, Seen = never> = A extends BuiltIn
+  ? A
+  : If2<
+      Has<Seen, A>,
+      A,
+      A extends Array<any>
+        ? A extends Array<Record<Key, any>>
+          ? Array<
+              {
+                [K in keyof A[number]]: ComputeDeep<A[number][K], A | Seen>
+              } & unknown
+            >
+          : A
+        : A extends ReadonlyArray<any>
+        ? A extends ReadonlyArray<Record<Key, any>>
+          ? ReadonlyArray<
+              {
+                [K in keyof A[number]]: ComputeDeep<A[number][K], A | Seen>
+              } & unknown
+            >
+          : A
+        : { [K in keyof A]: ComputeDeep<A[K], A | Seen> } & unknown
+    >
+
+export type If2<B extends Boolean2, Then, Else = never> = B extends 1
+  ? Then
+  : Else
+
+export type Boolean2 = 0 | 1
+
+export type Key = string | number | symbol
+
+export type BuiltIn =
+  | Function
+  | Error
+  | Date
+  | { readonly [Symbol.toStringTag]: string }
+  | RegExp
+  | Generator

@@ -3,24 +3,20 @@ import type {
   EnhancedStore,
   Middleware,
   Store,
-} from '@reduxjs/toolkit'
-import { configureStore } from '@reduxjs/toolkit'
-import { setupListeners } from '@reduxjs/toolkit/query'
-import type { Reducer } from 'react'
-import React, { useCallback } from 'react'
-import { Provider } from 'react-redux'
-
+} from "@reduxjs/toolkit"
+import { configureStore } from "@reduxjs/toolkit"
+import { setupListeners } from "@reduxjs/toolkit/query"
+import type { Reducer } from "react"
+import React, { useCallback } from "react"
+import { Provider } from "react-redux"
 import {
   mockConsole,
   createConsole,
   getLog,
-} from 'console-testing-library/pure'
-import { cleanup, act } from '@testing-library/react'
-
+} from "console-testing-library/pure"
+import { cleanup, act } from "@testing-library/react"
 export const ANY = 0 as any
-
 export const DEFAULT_DELAY_MS = 150
-
 export const getSerializedHeaders = (headers: Headers = new Headers()) => {
   let result: Record<string, string> = {}
   headers.forEach((val, key) => {
@@ -28,27 +24,22 @@ export const getSerializedHeaders = (headers: Headers = new Headers()) => {
   })
   return result
 }
-
 export async function waitMs(time = DEFAULT_DELAY_MS) {
   const now = Date.now()
   while (Date.now() < now + time) {
-    await new Promise((res) => process.nextTick(res))
+    await new Promise(res => process.nextTick(res))
   }
 }
-
 export function waitForFakeTimer(time = DEFAULT_DELAY_MS) {
-  return new Promise((resolve) => setTimeout(resolve, time))
+  return new Promise(resolve => setTimeout(resolve, time))
 }
-
 export function withProvider(store: Store<any>) {
   return function Wrapper({ children }: any) {
     return <Provider store={store}>{children}</Provider>
   }
 }
-
 export const hookWaitFor = async (cb: () => void, time = 2000) => {
   const startedAt = Date.now()
-
   while (true) {
     try {
       cb()
@@ -62,23 +53,18 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
   }
 }
 export const fakeTimerWaitFor = hookWaitFor
-
 export const useRenderCounter = () => {
   const countRef = React.useRef(0)
-
   React.useEffect(() => {
     countRef.current += 1
   })
-
   React.useEffect(() => {
     return () => {
       countRef.current = 0
     }
   }, [])
-
   return useCallback(() => countRef.current, [])
 }
-
 declare global {
   namespace jest {
     interface Matchers<R> {
@@ -86,7 +72,6 @@ declare global {
     }
   }
 }
-
 expect.extend({
   toMatchSequence(
     _actions: AnyAction[],
@@ -94,7 +79,6 @@ expect.extend({
   ) {
     const actions = _actions.concat()
     actions.shift() // remove INIT
-
     for (let i = 0; i < matchers.length; i++) {
       if (!matchers[i](actions[i])) {
         return {
@@ -110,7 +94,6 @@ expect.extend({
     }
   },
 })
-
 declare global {
   namespace jest {
     interface Matchers<R> {
@@ -118,14 +101,12 @@ declare global {
     }
   }
 }
-
 function normalize(str: string) {
   return str
     .normalize()
-    .replace(/\s*\r?\n\r?\s*/g, '')
+    .replace(/\s*\r?\n\r?\s*/g, "")
     .trim()
 }
-
 expect.extend({
   async toHaveConsoleOutput(
     fn: () => void | Promise<void>,
@@ -135,7 +116,6 @@ expect.extend({
     await fn()
     const log = getLog().log
     restore()
-
     if (normalize(log) === normalize(expectedOutput))
       return {
         message: () => `Console output matches 
@@ -158,16 +138,14 @@ ${expectedOutput}
       }
   },
 })
-
 export const actionsReducer = {
   actions: (state: AnyAction[] = [], action: AnyAction) => {
     return [...state, action]
   },
 }
-
 export function setupApiStore<
   A extends {
-    reducerPath: 'api'
+    reducerPath: "api"
     reducer: Reducer<any, any>
     middleware: Middleware
     util: { resetApiState(): any }
@@ -181,15 +159,14 @@ export function setupApiStore<
   const getStore = () =>
     configureStore({
       reducer: { api: api.reducer, ...extraReducers },
-      middleware: (gdm) =>
+      middleware: gdm =>
         gdm({ serializableCheck: false, immutableCheck: false }).concat(
           api.middleware
         ),
     })
-
   type StoreType = EnhancedStore<
     {
-      api: ReturnType<A['reducer']>
+      api: ReturnType<A["reducer"]>
     } & {
       [K in keyof R]: ReturnType<R[K]>
     },
@@ -198,7 +175,6 @@ export function setupApiStore<
       ? M
       : never
   >
-
   const initialStore = getStore() as StoreType
   const refObj = {
     api,
@@ -206,7 +182,6 @@ export function setupApiStore<
     wrapper: withProvider(initialStore),
   }
   let cleanupListeners: () => void
-
   if (!options.withoutTestLifecycles) {
     beforeEach(() => {
       const store = getStore() as StoreType
@@ -224,26 +199,19 @@ export function setupApiStore<
       refObj.store.dispatch(api.util.resetApiState())
     })
   }
-
   return refObj
 }
-
-// type test helpers
-
 export declare type IsAny<T, True, False = never> = true | false extends (
   T extends never ? true : false
 )
   ? True
   : False
-
 export declare type IsUnknown<T, True, False = never> = unknown extends T
   ? IsAny<T, False, True>
   : False
-
 export function expectType<T>(t: T): T {
   return t
 }
-
 type Equals<T, U> = IsAny<
   T,
   never,
@@ -252,37 +220,27 @@ type Equals<T, U> = IsAny<
 export function expectExactType<T>(t: T) {
   return <U extends Equals<T, U>>(u: U) => {}
 }
-
 type EnsureUnknown<T extends any> = IsUnknown<T, any, never>
 export function expectUnknown<T extends EnsureUnknown<T>>(t: T) {
   return t
 }
-
 type EnsureAny<T extends any> = IsAny<T, any, never>
 export function expectExactAny<T extends EnsureAny<T>>(t: T) {
   return t
 }
-
 type IsNotAny<T> = IsAny<T, never, any>
 export function expectNotAny<T extends IsNotAny<T>>(t: T): T {
   return t
 }
-
-expectType<string>('5' as string)
-expectType<string>('5' as const)
-expectType<string>('5' as any)
-expectExactType('5' as const)('5' as const)
-// @ts-expect-error
-expectExactType('5' as string)('5' as const)
-// @ts-expect-error
-expectExactType('5' as any)('5' as const)
-expectUnknown('5' as unknown)
-// @ts-expect-error
-expectUnknown('5' as const)
-// @ts-expect-error
-expectUnknown('5' as any)
-expectExactAny('5' as any)
-// @ts-expect-error
-expectExactAny('5' as const)
-// @ts-expect-error
-expectExactAny('5' as unknown)
+expectType<string>("5" as string)
+expectType<string>("5" as const)
+expectType<string>("5" as any)
+expectExactType("5" as const)("5" as const)
+expectExactType("5" as string)("5" as const)
+expectExactType("5" as any)("5" as const)
+expectUnknown("5" as unknown)
+expectUnknown("5" as const)
+expectUnknown("5" as any)
+expectExactAny("5" as any)
+expectExactAny("5" as const)
+expectExactAny("5" as unknown)

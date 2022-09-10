@@ -1,4 +1,4 @@
-import { defaultMemoize } from "../reselect/index.js"
+import { defaultMemoize } from "../reselect.js"
 import * as qt from "./types.js"
 import * as qu from "./utils.js"
 import type { Api, ApiContext, Module, ModuleName } from "./module.js"

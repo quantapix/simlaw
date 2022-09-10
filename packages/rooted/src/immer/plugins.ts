@@ -428,7 +428,7 @@ export function enablePatches() {
               return y.set(k, v)
             case qt.QType.Set:
               qu.die(16)
-            // eslint-disable-next-line no-fallthrough
+
             default:
               return (y[k] = v)
           }

@@ -5,14 +5,13 @@ import {
   SUBSCRIBE_IN_MIDDLE,
   UNSUBSCRIBE_IN_MIDDLE,
   THROW_ERROR,
-  UNKNOWN_ACTION
-} from './actionTypes'
-import { Action, AnyAction, Dispatch } from '../..'
+  UNKNOWN_ACTION,
+} from "./actionTypes"
+import { Action, AnyAction, Dispatch } from "../.."
 
 export function addTodo(text: string): AnyAction {
   return { type: ADD_TODO, text }
 }
-
 export function addTodoAsync(text: string) {
   return (dispatch: Dispatch): Promise<void> =>
     new Promise(resolve =>
@@ -22,7 +21,6 @@ export function addTodoAsync(text: string) {
       })
     )
 }
-
 export function addTodoIfEmpty(text: string) {
   return (dispatch: Dispatch, getState: () => any) => {
     if (!getState().length) {
@@ -30,65 +28,57 @@ export function addTodoIfEmpty(text: string) {
     }
   }
 }
-
 export function dispatchInMiddle(boundDispatchFn: () => void): AnyAction {
   return {
     type: DISPATCH_IN_MIDDLE,
-    boundDispatchFn
+    boundDispatchFn,
   }
 }
-
 export function getStateInMiddle(boundGetStateFn: () => void): AnyAction {
   return {
     type: GET_STATE_IN_MIDDLE,
-    boundGetStateFn
+    boundGetStateFn,
   }
 }
-
 export function subscribeInMiddle(boundSubscribeFn: () => void): AnyAction {
   return {
     type: SUBSCRIBE_IN_MIDDLE,
-    boundSubscribeFn
+    boundSubscribeFn,
   }
 }
-
 export function unsubscribeInMiddle(boundUnsubscribeFn: () => void): AnyAction {
   return {
     type: UNSUBSCRIBE_IN_MIDDLE,
-    boundUnsubscribeFn
+    boundUnsubscribeFn,
   }
 }
-
 export function throwError(): Action {
   return {
-    type: THROW_ERROR
+    type: THROW_ERROR,
   }
 }
-
 export function unknownAction(): Action {
   return {
-    type: UNKNOWN_ACTION
+    type: UNKNOWN_ACTION,
   }
 }
-export const ADD_TODO = 'ADD_TODO'
-export const DISPATCH_IN_MIDDLE = 'DISPATCH_IN_MIDDLE'
-export const GET_STATE_IN_MIDDLE = 'GET_STATE_IN_MIDDLE'
-export const SUBSCRIBE_IN_MIDDLE = 'SUBSCRIBE_IN_MIDDLE'
-export const UNSUBSCRIBE_IN_MIDDLE = 'UNSUBSCRIBE_IN_MIDDLE'
-export const THROW_ERROR = 'THROW_ERROR'
-export const UNKNOWN_ACTION = 'UNKNOWN_ACTION'
-import { MiddlewareAPI, Dispatch, AnyAction } from '../..'
-
+export const ADD_TODO = "ADD_TODO"
+export const DISPATCH_IN_MIDDLE = "DISPATCH_IN_MIDDLE"
+export const GET_STATE_IN_MIDDLE = "GET_STATE_IN_MIDDLE"
+export const SUBSCRIBE_IN_MIDDLE = "SUBSCRIBE_IN_MIDDLE"
+export const UNSUBSCRIBE_IN_MIDDLE = "UNSUBSCRIBE_IN_MIDDLE"
+export const THROW_ERROR = "THROW_ERROR"
+export const UNKNOWN_ACTION = "UNKNOWN_ACTION"
+import { MiddlewareAPI, Dispatch, AnyAction } from "../.."
 type ThunkAction<T extends any = any> = T extends AnyAction
   ? AnyAction
   : T extends Function
   ? T
   : never
-
 export function thunk({ dispatch, getState }: MiddlewareAPI) {
   return (next: Dispatch) =>
     <_>(action: ThunkAction) =>
-      typeof action === 'function' ? action(dispatch, getState) : next(action)
+      typeof action === "function" ? action(dispatch, getState) : next(action)
 }
 import {
   ADD_TODO,
@@ -96,22 +86,19 @@ import {
   GET_STATE_IN_MIDDLE,
   SUBSCRIBE_IN_MIDDLE,
   UNSUBSCRIBE_IN_MIDDLE,
-  THROW_ERROR
-} from './actionTypes'
-import { AnyAction } from '../..'
-
+  THROW_ERROR,
+} from "./actionTypes"
+import { AnyAction } from "../.."
 function id(state: { id: number }[]) {
   return (
     state.reduce((result, item) => (item.id > result ? item.id : result), 0) + 1
   )
 }
-
 export interface Todo {
   id: number
   text: string
 }
-export type TodoAction = { type: 'ADD_TODO'; text: string } | AnyAction
-
+export type TodoAction = { type: "ADD_TODO"; text: string } | AnyAction
 export function todos(state: Todo[] = [], action: TodoAction) {
   switch (action.type) {
     case ADD_TODO:
@@ -119,33 +106,31 @@ export function todos(state: Todo[] = [], action: TodoAction) {
         ...state,
         {
           id: id(state),
-          text: action.text
-        }
+          text: action.text,
+        },
       ]
     default:
       return state
   }
 }
-
 export function todosReverse(state: Todo[] = [], action: TodoAction) {
   switch (action.type) {
     case ADD_TODO:
       return [
         {
           id: id(state),
-          text: action.text
+          text: action.text,
         },
-        ...state
+        ...state,
       ]
     default:
       return state
   }
 }
-
 export function dispatchInTheMiddleOfReducer(
   state = [],
   action:
-    | { type: 'DISPATCH_IN_MIDDLE'; boundDispatchFn: () => void }
+    | { type: "DISPATCH_IN_MIDDLE"; boundDispatchFn: () => void }
     | AnyAction
 ) {
   switch (action.type) {
@@ -156,11 +141,10 @@ export function dispatchInTheMiddleOfReducer(
       return state
   }
 }
-
 export function getStateInTheMiddleOfReducer(
   state = [],
   action:
-    | { type: 'DISPATCH_IN_MIDDLE'; boundGetStateFn: () => void }
+    | { type: "DISPATCH_IN_MIDDLE"; boundGetStateFn: () => void }
     | AnyAction
 ) {
   switch (action.type) {
@@ -171,11 +155,10 @@ export function getStateInTheMiddleOfReducer(
       return state
   }
 }
-
 export function subscribeInTheMiddleOfReducer(
   state = [],
   action:
-    | { type: 'DISPATCH_IN_MIDDLE'; boundSubscribeFn: () => void }
+    | { type: "DISPATCH_IN_MIDDLE"; boundSubscribeFn: () => void }
     | AnyAction
 ) {
   switch (action.type) {
@@ -186,11 +169,10 @@ export function subscribeInTheMiddleOfReducer(
       return state
   }
 }
-
 export function unsubscribeInTheMiddleOfReducer(
   state = [],
   action:
-    | { type: 'DISPATCH_IN_MIDDLE'; boundUnsubscribeFn: () => void }
+    | { type: "DISPATCH_IN_MIDDLE"; boundUnsubscribeFn: () => void }
     | AnyAction
 ) {
   switch (action.type) {
@@ -201,7 +183,6 @@ export function unsubscribeInTheMiddleOfReducer(
       return state
   }
 }
-
 export function errorThrowingReducer(state = [], action: AnyAction) {
   switch (action.type) {
     case THROW_ERROR:

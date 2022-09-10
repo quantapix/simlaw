@@ -92,7 +92,6 @@ export function isPending<
   return (
     action: any
   ): action is PendingActionFromAsyncThunk<AsyncThunks[number]> => {
-    // note: this type will be correct because we have at least 1 asyncThunk
     const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(
       asyncThunk => asyncThunk.pending
     ) as any
@@ -137,7 +136,6 @@ export function isRejected<
   return (
     action: any
   ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
-    // note: this type will be correct because we have at least 1 asyncThunk
     const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(
       asyncThunk => asyncThunk.rejected
     ) as any
@@ -235,7 +233,6 @@ export function isFulfilled<
   return (
     action: any
   ): action is FulfilledActionFromAsyncThunk<AsyncThunks[number]> => {
-    // note: this type will be correct because we have at least 1 asyncThunk
     const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(
       asyncThunk => asyncThunk.fulfilled
     ) as any
@@ -290,7 +287,6 @@ export function isAsyncThunkAction<
   return (
     action: any
   ): action is ActionsFromAsyncThunk<AsyncThunks[number]> => {
-    // note: this type will be correct because we have at least 1 asyncThunk
     const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = [] as any
 
     for (const asyncThunk of asyncThunks) {

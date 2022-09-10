@@ -6,7 +6,7 @@ import {
   executeReducerBuilderCallback,
 } from "./builder.js"
 import * as qu from "./utils.js"
-import { createSelector } from "./reselect/index.js"
+import { createSelector } from "./reselect.js"
 
 export type SliceActionCreator<P> = qt.PayloadActionCreator<P>
 export interface Slice<

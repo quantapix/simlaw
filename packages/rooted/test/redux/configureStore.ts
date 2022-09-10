@@ -8,9 +8,7 @@ import {
 } from "../../src/redux/index.js"
 import { thunkMiddleware as thunk } from "../../src/redux/middleware.js"
 import { expectNotAny, expectType } from "./helpers.js"
-
 const _anyMiddleware: any = () => () => () => {}
-
 {
   configureStore({
     reducer: (state, action) => 0,
@@ -109,7 +107,6 @@ const _anyMiddleware: any = () => () => () => {}
   function thunkA() {
     return (() => {}) as any as qt.ThunkAction<Promise<"A">, StateA, any, any>
   }
-
   type StateB = string
   function thunkB() {
     return (dispatch: qt.Dispatch, getState: () => StateB) => {}

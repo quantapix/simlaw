@@ -854,7 +854,6 @@ export function buildSlice({
           const { queries } = extractRehydrationInfo(action)!
           for (const [key, entry] of Object.entries(queries)) {
             if (
-              // do not rehydrate entries that were currently in flight.
               entry?.status === qt.QueryStatus.fulfilled ||
               entry?.status === qt.QueryStatus.rejected
             ) {

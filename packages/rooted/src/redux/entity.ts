@@ -1,6 +1,6 @@
 import { isFSA, createDraftSafeSelector } from "./create.js"
 import * as qi from "../immer/index.js"
-import type { Selector } from "./reselect/index.js"
+import type { Selector } from "./reselect.js"
 import type * as qt from "./types.js"
 
 export function createEntityAdapter<T>(

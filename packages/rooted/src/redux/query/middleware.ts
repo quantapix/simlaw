@@ -254,8 +254,7 @@ export const build: SubMiddlewareBuilder = ({
           throw neverResolvedError
         }),
       ])
-      // prevent uncaught promise rejections from happening.
-      // if the original promise is used in any way, that will create a new promise that will throw again
+
       cacheDataLoaded.catch(() => {})
       lifecycleMap[queryCacheKey] = lifecycle
       const selector = (api.endpoints[endpointName] as any).select(
@@ -283,7 +282,7 @@ export const build: SubMiddlewareBuilder = ({
         cacheEntryRemoved,
       }
       const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi)
-      // if a `neverResolvedError` was thrown, but not handled in the running handler, do not let it leak out further
+
       Promise.resolve(runningHandler).catch(e => {
         if (e === neverResolvedError) return
         throw e
@@ -301,12 +300,11 @@ export const build: SubMiddlewareBuilder = ({
     return next => action => {
       if (!initialized) {
         initialized = true
-        // dispatch before any other action
+
         mwApi.dispatch(api.internalActions.middlewareRegistered(apiUid))
       }
       const result = next(action)
       if (api.util.resetApiState.match(action)) {
-        // dispatch after api reset
         mwApi.dispatch(api.internalActions.middlewareRegistered(apiUid))
       }
       if (

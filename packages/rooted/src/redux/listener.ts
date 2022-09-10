@@ -113,7 +113,7 @@ const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
   } else if (matcher) {
     predicate = matcher
   } else if (predicate) {
-    // pass
+
   } else {
     throw new Error(
       "Creating or removing a listener requires one of the known fields for matching an action"
@@ -253,7 +253,7 @@ export function createListenerMiddleware<
       await Promise.resolve(
         entry.effect(
           action,
-          // Use assign() rather than ... to avoid extra helper functions added to bundle
+
           assign({}, api, {
             getOriginalState,
             condition: (
