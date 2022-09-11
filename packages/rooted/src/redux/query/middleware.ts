@@ -1,87 +1,121 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import type { BaseQueryFn } from "../types.js"
-import type {} from "../../endpointDefinitions"
-import type { ConfigState, QueryCacheKey } from "../apiState"
-import { QuerySubstateIdentifier } from "../apiState"
-import type {
-  DefinitionType,
-  QueryDefinition,
-  QueryStateMeta,
-  QueryStateMeta,
-  SubMiddlewareApi,
-  SubMiddlewareApi,
-  SubMiddlewareApi,
-  SubMiddlewareBuilder,
-  TimeoutId,
-} from "./core/types.js"
-import { isAsyncThunkAction, isFulfilled } from "@reduxjs/toolkit"
-import type { AnyAction } from "redux"
-import type { ThunkDispatch } from "redux-thunk"
-import type { BaseQueryFn, BaseQueryMeta } from "../types.js"
-import type { RootState } from "../apiState"
-import { getMutationCacheKey } from "../buildSlice"
-import type { PatchCollection, Recipe } from "../buildThunks"
-import { compose } from "redux"
-import type { AnyAction, Middleware, ThunkDispatch } from "@reduxjs/toolkit"
-import { createAction } from "@reduxjs/toolkit"
-import type {
-  EndpointDefinitions,
-  FullTagDescription,
-} from "../../endpointDefinitions"
-import type { QueryStatus, QuerySubState, RootState } from "../apiState"
-import type { QueryThunkArg } from "../buildThunks"
-import { build as buildCacheCollection } from "./cacheCollection"
-import { build as buildInvalidationByTags } from "./invalidationByTags"
-import { build as buildPolling } from "./polling"
-import type { BuildMiddlewareInput } from "./core/types.js"
-import { build as buildWindowEventHandling } from "./windowEventHandling"
-import { build as buildCacheLifecycle } from "./cacheLifecycle"
-import { build as buildQueryLifecycle } from "./queryLifecycle"
-import { build as buildDevMiddleware } from "./devMiddleware"
-import { isAnyOf, isFulfilled, isRejectedWithValue } from "@reduxjs/toolkit"
-import type { FullTagDescription } from "../../endpointDefinitions"
-import { calculateProvidedBy } from "../../endpointDefinitions"
-import type { QueryCacheKey } from "../apiState"
-import { QueryStatus } from "../apiState"
-import { calculateProvidedByThunk } from "../buildThunks"
-import type { SubMiddlewareApi, SubMiddlewareBuilder } from "./core/types.js"
-import type { QuerySubstateIdentifier, Subscribers } from "../apiState"
-import { QueryStatus } from "../apiState"
-import { isPending, isRejected, isFulfilled } from "@reduxjs/toolkit"
-import type { BaseQueryError, BaseQueryFn, BaseQueryMeta } from "../types.js"
-import { DefinitionType } from "../../endpointDefinitions"
-import type { QueryFulfilledRejectionReason } from "../../endpointDefinitions"
-import type { Recipe } from "../buildThunks"
-import type {
-  AnyAction,
-  AsyncThunk,
-  AsyncThunkAction,
-  Middleware,
-  MiddlewareAPI,
-  ThunkDispatch,
-} from "@reduxjs/toolkit"
-import type { Api, ApiContext } from "../types.js"
-import type {
-  AssertTagTypes,
-  EndpointDefinitions,
-} from "../../endpointDefinitions"
-import type { QueryStatus, QuerySubState, RootState } from "../apiState"
-import type {
-  MutationThunk,
-  QueryThunk,
-  QueryThunkArg,
-  ThunkResult,
-} from "../buildThunks"
-import { QueryStatus } from "../apiState"
-import type { QueryCacheKey } from "../apiState"
-import { onFocus, onOnline } from "../setupListeners"
-import type { SubMiddlewareApi, SubMiddlewareBuilder } from "./core/types.js"
-
-export type ReferenceCacheCollection = never
+import { getMutationCacheKey, calculateProvidedByThunk } from "./build.js"
+import * as qr from "../index.js"
+import * as qt from "./types.js"
+import * as qu from "./utils.js"
+import type { Api, ApiContext } from "./module.js"
 
 export const THIRTY_TWO_BIT_MAX_INT = 2_147_483_647
 export const THIRTY_TWO_BIT_MAX_TIMER_SECONDS = 2_147_483_647 / 1_000 - 1
-export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
+
+export interface BuildMiddlewareInput<
+  Definitions extends qt.EndpointDefinitions,
+  ReducerPath extends string,
+  TagTypes extends string
+> {
+  reducerPath: ReducerPath
+  context: ApiContext<Definitions>
+  queryThunk: qt.QueryThunk
+  mutationThunk: qt.MutationThunk
+  api: Api<any, Definitions, ReducerPath, TagTypes>
+  assertTagType: qt.AssertTagTypes
+}
+
+export function buildMiddleware<
+  Definitions extends qt.EndpointDefinitions,
+  ReducerPath extends string,
+  TagTypes extends string
+>(input: BuildMiddlewareInput<Definitions, ReducerPath, TagTypes>) {
+  const { reducerPath, queryThunk } = input
+  const actions = {
+    invalidateTags: qr.createAction<
+      Array<TagTypes | qt.FullTagDescription<TagTypes>>
+    >(`${reducerPath}/invalidateTags`),
+  }
+  const middlewares = [
+    buildDevMiddleware,
+    buildCacheCollection,
+    buildInvalidationByTags,
+    buildPolling,
+    buildWindowEventHandling,
+    buildCacheLifecycle,
+    buildQueryLifecycle,
+  ].map(build =>
+    build({
+      ...(input as any as BuildMiddlewareInput<
+        qt.EndpointDefinitions,
+        string,
+        string
+      >),
+      refetchQuery,
+    })
+  )
+  const middleware: qt.Middleware<
+    {},
+    qt.RootState<Definitions, string, ReducerPath>,
+    qt.ThunkDispatch<any, any, qt.AnyAction>
+  > = mwApi => next => {
+    const applied = qr.compose<typeof next>(
+      ...middlewares.map(middleware => middleware(mwApi))
+    )(next)
+    return action => {
+      if (mwApi.getState()[reducerPath]) {
+        return applied(action)
+      }
+      return next(action)
+    }
+  }
+  return { middleware, actions }
+  function refetchQuery(
+    querySubState: Exclude<
+      qt.QuerySubState<any>,
+      { status: qt.QueryStatus.uninitialized }
+    >,
+    queryCacheKey: string,
+    override: Partial<qt.QueryThunkArg> = {}
+  ) {
+    return queryThunk({
+      type: "query",
+      endpointName: querySubState.endpointName,
+      originalArgs: querySubState.originalArgs,
+      subscribe: false,
+      forceRefetch: true,
+      queryCacheKey: queryCacheKey as any,
+      ...override,
+    })
+  }
+}
+
+type SubMiddlewareApi = qt.MiddlewareAPI<
+  qt.ThunkDispatch<any, any, qt.AnyAction>,
+  qt.RootState<qt.EndpointDefinitions, string, string>
+>
+interface BuildSubMiddlewareInput
+  extends BuildMiddlewareInput<qt.EndpointDefinitions, string, string> {
+  refetchQuery(
+    querySubState: Exclude<
+      qt.QuerySubState<any>,
+      { status: qt.QueryStatus.uninitialized }
+    >,
+    queryCacheKey: string,
+    override?: Partial<qt.QueryThunkArg>
+  ): qt.AsyncThunkAction<qt.ThunkResult, qt.QueryThunkArg, {}>
+}
+type SubMiddlewareBuilder = (
+  input: BuildSubMiddlewareInput
+) => qt.Middleware<
+  {},
+  qt.RootState<qt.EndpointDefinitions, string, string>,
+  qt.ThunkDispatch<any, any, qt.AnyAction>
+>
+
+type TimeoutId = ReturnType<typeof setTimeout>
+type QueryStateMeta<T> = Record<string, undefined | T>
+const buildCacheCollection: SubMiddlewareBuilder = ({
+  reducerPath,
+  api,
+  context,
+}) => {
   const { removeQueryResult, unsubscribeQueryResult } = api.internalActions
   return mwApi => {
     const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {}
@@ -89,7 +123,7 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
       (action): any => {
         const result = next(action)
         if (unsubscribeQueryResult.match(action)) {
-          const state = mwApi.getState()[reducerPath]
+          const state = mwApi.getState()[reducerPath]!
           const { queryCacheKey } = action.payload
           handleUnsubscribe(
             queryCacheKey,
@@ -105,11 +139,11 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
           }
         }
         if (context.hasRehydrationInfo(action)) {
-          const state = mwApi.getState()[reducerPath]
+          const state = mwApi.getState()[reducerPath]!
           const { queries } = context.extractRehydrationInfo(action)!
           for (const [queryCacheKey, queryState] of Object.entries(queries)) {
             handleUnsubscribe(
-              queryCacheKey as QueryCacheKey,
+              queryCacheKey as qt.QueryCacheKey,
               queryState?.endpointName,
               mwApi,
               state.config
@@ -119,14 +153,14 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
         return result
       }
     function handleUnsubscribe(
-      queryCacheKey: QueryCacheKey,
+      queryCacheKey: qt.QueryCacheKey,
       endpointName: string | undefined,
       api: SubMiddlewareApi,
-      config: ConfigState<string>
+      config: qt.ConfigState<string>
     ) {
       const endpointDefinition = context.endpointDefinitions[
         endpointName!
-      ] as QueryDefinition<any, any, any, any>
+      ] as qt.QueryDefinition<any, any, any, any>
       const keepUnusedDataFor =
         endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor
       const finalKeepUnusedDataFor = Math.max(
@@ -139,7 +173,7 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
       }
       currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
         const subscriptions =
-          api.getState()[reducerPath].subscriptions[queryCacheKey]
+          api.getState()[reducerPath]?.subscriptions[queryCacheKey]
         if (!subscriptions || Object.keys(subscriptions).length === 0) {
           api.dispatch(removeQueryResult({ queryCacheKey }))
         }
@@ -148,18 +182,16 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
     }
   }
 }
-export type ReferenceCacheLifecycle = never
-
-export const build: SubMiddlewareBuilder = ({
+const buildCacheLifecycle: SubMiddlewareBuilder = ({
   api,
   reducerPath,
   context,
   queryThunk,
   mutationThunk,
 }) => {
-  const isQueryThunk = isAsyncThunkAction(queryThunk)
-  const isMutationThunk = isAsyncThunkAction(mutationThunk)
-  const isFullfilledThunk = isFulfilled(queryThunk, mutationThunk)
+  const isQueryThunk = qr.isAsyncThunkAction(queryThunk)
+  const isMutationThunk = qr.isAsyncThunkAction(mutationThunk)
+  const isFullfilledThunk = qr.isFulfilled(queryThunk, mutationThunk)
   return mwApi => {
     type CacheLifecycle = {
       valueResolved?(value: { data: unknown; meta: unknown }): unknown
@@ -172,8 +204,8 @@ export const build: SubMiddlewareBuilder = ({
         const result = next(action)
         const cacheKey = getCacheKey(action)
         if (queryThunk.pending.match(action)) {
-          const oldState = stateBefore[reducerPath].queries[cacheKey]
-          const state = mwApi.getState()[reducerPath].queries[cacheKey]
+          const oldState = stateBefore[reducerPath]?.queries[cacheKey]
+          const state = mwApi.getState()[reducerPath]?.queries[cacheKey]
           if (!oldState && state) {
             handleNewKey(
               action.meta.arg.endpointName,
@@ -184,7 +216,7 @@ export const build: SubMiddlewareBuilder = ({
             )
           }
         } else if (mutationThunk.pending.match(action)) {
-          const state = mwApi.getState()[reducerPath].mutations[cacheKey]
+          const state = mwApi.getState()[reducerPath]?.mutations[cacheKey]
           if (state) {
             handleNewKey(
               action.meta.arg.endpointName,
@@ -239,26 +271,25 @@ export const build: SubMiddlewareBuilder = ({
       const endpointDefinition = context.endpointDefinitions[endpointName]
       const onCacheEntryAdded = endpointDefinition?.onCacheEntryAdded
       if (!onCacheEntryAdded) return
-      let lifecycle = {} as CacheLifecycle
+      const lifecycle = {} as CacheLifecycle
       const cacheEntryRemoved = new Promise<void>(resolve => {
         lifecycle.cacheEntryRemoved = resolve
       })
-      const cacheDataLoaded: PromiseWithKnownReason<
+      const cacheDataLoaded: qt.PromiseWithKnownReason<
         { data: unknown; meta: unknown },
-        typeof neverResolvedError
+        typeof qt.neverResolvedError
       > = Promise.race([
         new Promise<{ data: unknown; meta: unknown }>(resolve => {
           lifecycle.valueResolved = resolve
         }),
         cacheEntryRemoved.then(() => {
-          throw neverResolvedError
+          throw qt.neverResolvedError
         }),
       ])
-
       cacheDataLoaded.catch(() => {})
       lifecycleMap[queryCacheKey] = lifecycle
       const selector = (api.endpoints[endpointName] as any).select(
-        endpointDefinition.type === DefinitionType.query
+        endpointDefinition.type === qt.DefinitionType.query
           ? originalArgs
           : queryCacheKey
       )
@@ -268,8 +299,8 @@ export const build: SubMiddlewareBuilder = ({
         getCacheEntry: () => selector(mwApi.getState()),
         requestId,
         extra,
-        updateCachedData: (endpointDefinition.type === DefinitionType.query
-          ? (updateRecipe: Recipe<any>) =>
+        updateCachedData: (endpointDefinition.type === qt.DefinitionType.query
+          ? (updateRecipe: qt.Recipe<any>) =>
               mwApi.dispatch(
                 api.util.updateQueryData(
                   endpointName as never,
@@ -282,15 +313,15 @@ export const build: SubMiddlewareBuilder = ({
         cacheEntryRemoved,
       }
       const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi)
-
       Promise.resolve(runningHandler).catch(e => {
-        if (e === neverResolvedError) return
+        if (e === qt.neverResolvedError) return
         throw e
       })
     }
   }
 }
-export const build: SubMiddlewareBuilder = ({
+
+const buildDevMiddleware: SubMiddlewareBuilder = ({
   api,
   context: { apiUid },
   reducerPath,
@@ -300,7 +331,6 @@ export const build: SubMiddlewareBuilder = ({
     return next => action => {
       if (!initialized) {
         initialized = true
-
         mwApi.dispatch(api.internalActions.middlewareRegistered(apiUid))
       }
       const result = next(action)
@@ -330,71 +360,8 @@ If you have multiple apis, you *have* to specify the reducerPath option when usi
     }
   }
 }
-export function buildMiddleware<
-  Definitions extends EndpointDefinitions,
-  ReducerPath extends string,
-  TagTypes extends string
->(input: BuildMiddlewareInput<Definitions, ReducerPath, TagTypes>) {
-  const { reducerPath, queryThunk } = input
-  const actions = {
-    invalidateTags: createAction<
-      Array<TagTypes | FullTagDescription<TagTypes>>
-    >(`${reducerPath}/invalidateTags`),
-  }
-  const middlewares = [
-    buildDevMiddleware,
-    buildCacheCollection,
-    buildInvalidationByTags,
-    buildPolling,
-    buildWindowEventHandling,
-    buildCacheLifecycle,
-    buildQueryLifecycle,
-  ].map(build =>
-    build({
-      ...(input as any as BuildMiddlewareInput<
-        EndpointDefinitions,
-        string,
-        string
-      >),
-      refetchQuery,
-    })
-  )
-  const middleware: Middleware<
-    {},
-    RootState<Definitions, string, ReducerPath>,
-    ThunkDispatch<any, any, AnyAction>
-  > = mwApi => next => {
-    const applied = compose<typeof next>(
-      ...middlewares.map(middleware => middleware(mwApi))
-    )(next)
-    return action => {
-      if (mwApi.getState()[reducerPath]) {
-        return applied(action)
-      }
-      return next(action)
-    }
-  }
-  return { middleware, actions }
-  function refetchQuery(
-    querySubState: Exclude<
-      QuerySubState<any>,
-      { status: QueryStatus.uninitialized }
-    >,
-    queryCacheKey: string,
-    override: Partial<QueryThunkArg> = {}
-  ) {
-    return queryThunk({
-      type: "query",
-      endpointName: querySubState.endpointName,
-      originalArgs: querySubState.originalArgs,
-      subscribe: false,
-      forceRefetch: true,
-      queryCacheKey: queryCacheKey as any,
-      ...override,
-    })
-  }
-}
-export const build: SubMiddlewareBuilder = ({
+
+const buildInvalidationByTags: SubMiddlewareBuilder = ({
   reducerPath,
   context,
   context: { endpointDefinitions },
@@ -409,9 +376,9 @@ export const build: SubMiddlewareBuilder = ({
     (action): any => {
       const result = next(action)
       if (
-        isAnyOf(
-          isFulfilled(mutationThunk),
-          isRejectedWithValue(mutationThunk)
+        qr.isAnyOf(
+          qr.isFulfilled(mutationThunk),
+          qr.isRejectedWithValue(mutationThunk)
         )(action)
       ) {
         invalidateTags(
@@ -426,7 +393,7 @@ export const build: SubMiddlewareBuilder = ({
       }
       if (api.util.invalidateTags.match(action)) {
         invalidateTags(
-          calculateProvidedBy(
+          qt.calculateProvidedBy(
             action.payload,
             undefined,
             undefined,
@@ -440,11 +407,11 @@ export const build: SubMiddlewareBuilder = ({
       return result
     }
   function invalidateTags(
-    tags: readonly FullTagDescription<string>[],
+    tags: readonly qt.FullTagDescription<string>[],
     mwApi: SubMiddlewareApi
   ) {
     const rootState = mwApi.getState()
-    const state = rootState[reducerPath]
+    const state = rootState[reducerPath]!
     const toInvalidate = api.util.selectInvalidatedBy(rootState, tags)
     context.batch(() => {
       const valuesArray = Array.from(toInvalidate.values())
@@ -455,10 +422,10 @@ export const build: SubMiddlewareBuilder = ({
           if (Object.keys(subscriptionSubState).length === 0) {
             mwApi.dispatch(
               removeQueryResult({
-                queryCacheKey: queryCacheKey as QueryCacheKey,
+                queryCacheKey: queryCacheKey as qt.QueryCacheKey,
               })
             )
-          } else if (querySubState.status !== QueryStatus.uninitialized) {
+          } else if (querySubState.status !== qt.QueryStatus.uninitialized) {
             mwApi.dispatch(refetchQuery(querySubState, queryCacheKey))
           } else {
           }
@@ -467,7 +434,8 @@ export const build: SubMiddlewareBuilder = ({
     })
   }
 }
-export const build: SubMiddlewareBuilder = ({
+
+const buildPolling: SubMiddlewareBuilder = ({
   reducerPath,
   queryThunk,
   api,
@@ -476,7 +444,7 @@ export const build: SubMiddlewareBuilder = ({
   return mwApi => {
     const currentPolls: QueryStateMeta<{
       nextPollTimestamp: number
-      timeout?: TimeoutId
+      timeout?: TimeoutId | undefined
       pollingInterval: number
     }> = {}
     return next =>
@@ -506,13 +474,16 @@ export const build: SubMiddlewareBuilder = ({
         return result
       }
     function startNextPoll(
-      { queryCacheKey }: QuerySubstateIdentifier,
+      { queryCacheKey }: qt.QuerySubstateIdentifier,
       api: SubMiddlewareApi
     ) {
-      const state = api.getState()[reducerPath]
+      const state = api.getState()[reducerPath]!
       const querySubState = state.queries[queryCacheKey]
       const subscriptions = state.subscriptions[queryCacheKey]
-      if (!querySubState || querySubState.status === QueryStatus.uninitialized)
+      if (
+        !querySubState ||
+        querySubState.status === qt.QueryStatus.uninitialized
+      )
         return
       const lowestPollingInterval = findLowestPollingInterval(subscriptions)
       if (!Number.isFinite(lowestPollingInterval)) return
@@ -534,15 +505,15 @@ export const build: SubMiddlewareBuilder = ({
       })
     }
     function updatePollingInterval(
-      { queryCacheKey }: QuerySubstateIdentifier,
+      { queryCacheKey }: qt.QuerySubstateIdentifier,
       api: SubMiddlewareApi
     ) {
-      const state = api.getState()[reducerPath]
+      const state = api.getState()[reducerPath]!
       const querySubState = state.queries[queryCacheKey]
       const subscriptions = state.subscriptions[queryCacheKey]
       if (
         !querySubState ||
-        querySubState.status === QueryStatus.uninitialized
+        querySubState.status === qt.QueryStatus.uninitialized
       ) {
         return
       }
@@ -570,10 +541,10 @@ export const build: SubMiddlewareBuilder = ({
       }
     }
   }
-  function findLowestPollingInterval(subscribers: Subscribers = {}) {
+  function findLowestPollingInterval(subscribers: qt.Subscribers = {}) {
     let lowestPollingInterval = Number.POSITIVE_INFINITY
     for (const subscription of Object.values(subscribers)) {
-      if (!!subscription.pollingInterval)
+      if (subscription.pollingInterval)
         lowestPollingInterval = Math.min(
           subscription.pollingInterval,
           lowestPollingInterval
@@ -582,20 +553,20 @@ export const build: SubMiddlewareBuilder = ({
     return lowestPollingInterval
   }
 }
-export type ReferenceQueryLifecycle = never
-export const build: SubMiddlewareBuilder = ({
+
+const buildQueryLifecycle: SubMiddlewareBuilder = ({
   api,
   context,
   queryThunk,
   mutationThunk,
 }) => {
-  const isPendingThunk = isPending(queryThunk, mutationThunk)
-  const isRejectedThunk = isRejected(queryThunk, mutationThunk)
-  const isFullfilledThunk = isFulfilled(queryThunk, mutationThunk)
+  const isPendingThunk = qr.isPending(queryThunk, mutationThunk)
+  const isRejectedThunk = qr.isRejected(queryThunk, mutationThunk)
+  const isFullfilledThunk = qr.isFulfilled(queryThunk, mutationThunk)
   return mwApi => {
     type CacheLifecycle = {
       resolve(value: { data: unknown; meta: unknown }): unknown
-      reject(value: QueryFulfilledRejectionReason<any>): unknown
+      reject(value: qt.QueryFulfilledRejectionReason<any>): unknown
     }
     const lifecycleMap: Record<string, CacheLifecycle> = {}
     return next =>
@@ -611,9 +582,9 @@ export const build: SubMiddlewareBuilder = ({
           if (onQueryStarted) {
             const lifecycle = {} as CacheLifecycle
             const queryFulfilled =
-              new (Promise as PromiseConstructorWithKnownReason)<
+              new (Promise as qt.PromiseConstructorWithKnownReason)<
                 { data: unknown; meta: unknown },
-                QueryFulfilledRejectionReason<any>
+                qt.QueryFulfilledRejectionReason<any>
               >((resolve, reject) => {
                 lifecycle.resolve = resolve
                 lifecycle.reject = reject
@@ -621,7 +592,7 @@ export const build: SubMiddlewareBuilder = ({
             queryFulfilled.catch(() => {})
             lifecycleMap[requestId] = lifecycle
             const selector = (api.endpoints[endpointName] as any).select(
-              endpointDefinition.type === DefinitionType.query
+              endpointDefinition.type === qt.DefinitionType.query
                 ? originalArgs
                 : requestId
             )
@@ -632,8 +603,8 @@ export const build: SubMiddlewareBuilder = ({
               requestId,
               extra,
               updateCachedData: (endpointDefinition.type ===
-              DefinitionType.query
-                ? (updateRecipe: Recipe<any>) =>
+              qt.DefinitionType.query
+                ? (updateRecipe: qt.Recipe<any>) =>
                     mwApi.dispatch(
                       api.util.updateQueryData(
                         endpointName as never,
@@ -666,43 +637,8 @@ export const build: SubMiddlewareBuilder = ({
       }
   }
 }
-export type QueryStateMeta<T> = Record<string, undefined | T>
-export type TimeoutId = ReturnType<typeof setTimeout>
-export interface BuildMiddlewareInput<
-  Definitions extends EndpointDefinitions,
-  ReducerPath extends string,
-  TagTypes extends string
-> {
-  reducerPath: ReducerPath
-  context: ApiContext<Definitions>
-  queryThunk: QueryThunk
-  mutationThunk: MutationThunk
-  api: Api<any, Definitions, ReducerPath, TagTypes>
-  assertTagType: AssertTagTypes
-}
-export type SubMiddlewareApi = MiddlewareAPI<
-  ThunkDispatch<any, any, AnyAction>,
-  RootState<EndpointDefinitions, string, string>
->
-export interface BuildSubMiddlewareInput
-  extends BuildMiddlewareInput<EndpointDefinitions, string, string> {
-  refetchQuery(
-    querySubState: Exclude<
-      QuerySubState<any>,
-      { status: QueryStatus.uninitialized }
-    >,
-    queryCacheKey: string,
-    override?: Partial<QueryThunkArg>
-  ): AsyncThunkAction<ThunkResult, QueryThunkArg, {}>
-}
-export type SubMiddlewareBuilder = (
-  input: BuildSubMiddlewareInput
-) => Middleware<
-  {},
-  RootState<EndpointDefinitions, string, string>,
-  ThunkDispatch<any, any, AnyAction>
->
-export const build: SubMiddlewareBuilder = ({
+
+const buildWindowEventHandling: SubMiddlewareBuilder = ({
   reducerPath,
   context,
   api,
@@ -713,10 +649,10 @@ export const build: SubMiddlewareBuilder = ({
     next =>
     (action): any => {
       const result = next(action)
-      if (onFocus.match(action)) {
+      if (qu.onFocus.match(action)) {
         refetchValidQueries(mwApi, "refetchOnFocus")
       }
-      if (onOnline.match(action)) {
+      if (qu.onOnline.match(action)) {
         refetchValidQueries(mwApi, "refetchOnReconnect")
       }
       return result
@@ -725,7 +661,7 @@ export const build: SubMiddlewareBuilder = ({
     api: SubMiddlewareApi,
     type: "refetchOnFocus" | "refetchOnReconnect"
   ) {
-    const state = api.getState()[reducerPath]
+    const state = api.getState()[reducerPath]!
     const queries = state.queries
     const subscriptions = state.subscriptions
     context.batch(() => {
@@ -743,10 +679,10 @@ export const build: SubMiddlewareBuilder = ({
           if (Object.keys(subscriptionSubState).length === 0) {
             api.dispatch(
               removeQueryResult({
-                queryCacheKey: queryCacheKey as QueryCacheKey,
+                queryCacheKey: queryCacheKey as qt.QueryCacheKey,
               })
             )
-          } else if (querySubState.status !== QueryStatus.uninitialized) {
+          } else if (querySubState.status !== qt.QueryStatus.uninitialized) {
             api.dispatch(refetchQuery(querySubState, queryCacheKey))
           }
         }

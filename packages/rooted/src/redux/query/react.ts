@@ -1,115 +1,83 @@
-import type { AnyAction, ThunkAction, ThunkDispatch } from "@reduxjs/toolkit"
-import { createSelector } from "@reduxjs/toolkit"
-import type { Selector } from "@reduxjs/toolkit"
-import type { DependencyList } from "react"
+import * as qx from "../index.js"
+import * as qr from "react"
+import * as qt from "./types.js"
+import { buildCreateApi } from "./build.js"
 import {
-  useCallback,
-  useDebugValue,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
-import { QueryStatus, skipToken } from "@reduxjs/toolkit/query"
-import type { BaseQueryFn } from "../types"
-import { coreModule, buildCreateApi, CreateApi } from "@reduxjs/toolkit/query"
-import { reactHooksModule, reactHooksModuleName } from "./module"
-import type { MutationHooks, QueryHooks } from "./buildHooks"
-import type {
-  EndpointDefinitions,
-  QueryDefinition,
-  MutationDefinition,
-  QueryArgFrom,
-} from "./endpointDefinitions"
-import type { BaseQueryFn } from "./types"
-import type { QueryKeys } from "./core/apiState"
-import type { PrefetchOptions } from "./core/module"
-import type { MutationHooks, QueryHooks } from "./buildHooks"
-import { buildHooks } from "./buildHooks"
-import { isQueryDefinition, isMutationDefinition } from "../endpointDefinitions"
-import type {
-  EndpointDefinitions,
-  QueryDefinition,
-  MutationDefinition,
-  QueryArgFrom,
-} from "./endpointDefinitions"
-import type { Api, Module } from "../types"
-import { capitalize } from "../utils"
-import { safeAssign } from "../tsHelpers"
-import type { BaseQueryFn } from "./types"
+  Api,
+  ApiContext,
+  ApiEndpointQuery,
+  ApiEndpointMutation,
+  CoreModule,
+  Module,
+  coreModule,
+  PrefetchOptions,
+  ReactHooksModule,
+  reactHooksModuleName,
+} from "./module.js"
+import * as qu from "./utils.js"
 import {
   useDispatch as rrUseDispatch,
   useSelector as rrUseSelector,
   useStore as rrUseStore,
   batch as rrBatch,
+  shallowEqual,
 } from "react-redux"
-import type { QueryKeys } from "../core/apiState"
-import type { PrefetchOptions } from "../core/module"
-import type { UseMutation, UseLazyQuery, UseQuery } from "../buildHooks"
-import type {
-  DefinitionType,
-  EndpointDefinitions,
-  MutationDefinition,
-  QueryDefinition,
-} from "./endpointDefinitions"
-import { useEffect, useRef, useMemo } from "react"
-import type { SerializeQueryArgs } from "./defaultSerializeQueryArgs"
-import type { EndpointDefinition } from "./endpointDefinitions"
-import { useEffect, useRef } from "react"
-import { shallowEqual } from "react-redux"
+type RR = typeof import("react-redux")
 
 export const useIsomorphicLayoutEffect =
   typeof window !== "undefined" &&
   window.document &&
   window.document.createElement
-    ? useLayoutEffect
-    : useEffect
+    ? qr.useLayoutEffect
+    : qr.useEffect
 export type TypedUseQueryHookResult<
   ResultType,
   QueryArg,
-  BaseQuery extends BaseQueryFn,
-  R = UseQueryStateDefaultResult<
-    QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  BaseQuery extends qt.BaseQueryFn,
+  R = qt.UseQueryStateDefaultResult<
+    qt.QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
   >
 > = TypedUseQueryStateResult<ResultType, QueryArg, BaseQuery, R> &
   TypedUseQuerySubscriptionResult<ResultType, QueryArg, BaseQuery>
 export type TypedUseQuerySubscriptionResult<
   ResultType,
   QueryArg,
-  BaseQuery extends BaseQueryFn
-> = UseQuerySubscriptionResult<
-  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  BaseQuery extends qt.BaseQueryFn
+> = qt.UseQuerySubscriptionResult<
+  qt.QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 export type TypedUseQueryStateResult<
   ResultType,
   QueryArg,
-  BaseQuery extends BaseQueryFn,
-  R = UseQueryStateDefaultResult<
-    QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  BaseQuery extends qt.BaseQueryFn,
+  R = qt.UseQueryStateDefaultResult<
+    qt.QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
   >
-> = NoInfer<R>
+> = qt.NoInfer<R>
 export type TypedUseMutationResult<
   ResultType,
   QueryArg,
-  BaseQuery extends BaseQueryFn,
-  R = MutationResultSelectorResult<
-    MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  BaseQuery extends qt.BaseQueryFn,
+  R = qt.MutationResultSelectorResult<
+    qt.MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>
   >
-> = UseMutationStateResult<
-  MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>,
+> = qt.UseMutationStateResult<
+  qt.MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>,
   R
 >
-const defaultQueryStateSelector: QueryStateSelector<any, any> = x => x
-const defaultMutationStateSelector: MutationStateSelector<any, any> = x => x
-const noPendingQueryStateSelector: QueryStateSelector<any, any> = selected => {
+const defaultQueryStateSelector: qt.QueryStateSelector<any, any> = x => x
+const defaultMutationStateSelector: qt.MutationStateSelector<any, any> = x => x
+const noPendingQueryStateSelector: qt.QueryStateSelector<
+  any,
+  any
+> = selected => {
   if (selected.isUninitialized) {
     return {
       ...selected,
       isUninitialized: false,
       isFetching: true,
       isLoading: selected.data !== undefined ? false : true,
-      status: QueryStatus.pending,
+      status: qt.QueryStatus.pending,
     } as any
   }
   return selected
@@ -118,8 +86,8 @@ type GenericPrefetchThunk = (
   endpointName: any,
   arg: any,
   options: PrefetchOptions
-) => ThunkAction<void, any, any, AnyAction>
-export function buildHooks<Definitions extends EndpointDefinitions>({
+) => qx.ThunkAction<void, any, any, qx.AnyAction>
+export function buildHooks<Definitions extends qt.EndpointDefinitions>({
   api,
   moduleOptions: {
     batch,
@@ -133,19 +101,19 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 }: {
   api: Api<any, Definitions, any, any, CoreModule>
   moduleOptions: Required<ReactHooksModuleOptions>
-  serializeQueryArgs: SerializeQueryArgs<any>
+  serializeQueryArgs: qt.SerializeQueryArgs<any>
   context: ApiContext<Definitions>
 }) {
   const usePossiblyImmediateEffect: (
     effect: () => void | undefined,
-    deps?: DependencyList
-  ) => void = unstable__sideEffectsInRender ? cb => cb() : useEffect
+    deps?: qr.DependencyList
+  ) => void = unstable__sideEffectsInRender ? cb => cb() : qr.useEffect
   return { buildQueryHooks, buildMutationHook, usePrefetch }
   function queryStatePreSelector(
-    currentState: QueryResultSelectorResult<any>,
-    lastResult: UseQueryStateDefaultResult<any> | undefined,
+    currentState: qt.QueryResultSelectorResult<any>,
+    lastResult: qt.UseQueryStateDefaultResult<any> | undefined,
     queryArgs: any
-  ): UseQueryStateDefaultResult<any> {
+  ): qt.UseQueryStateDefaultResult<any> {
     if (lastResult?.endpointName && currentState.isUninitialized) {
       const { endpointName } = lastResult
       const endpointDefinition = context.endpointDefinitions[endpointName]
@@ -176,15 +144,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       isFetching,
       isLoading,
       isSuccess,
-    } as UseQueryStateDefaultResult<any>
+    } as qt.UseQueryStateDefaultResult<any>
   }
-  function usePrefetch<EndpointName extends QueryKeys<Definitions>>(
+  function usePrefetch<EndpointName extends qt.QueryKeys<Definitions>>(
     endpointName: EndpointName,
     defaultOptions?: PrefetchOptions
   ) {
-    const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+    const dispatch = useDispatch<qt.ThunkDispatch<any, any, qx.AnyAction>>()
     const stableDefaultOptions = useShallowStableValue(defaultOptions)
-    return useCallback(
+    return qr.useCallback(
       (arg: any, options?: PrefetchOptions) =>
         dispatch(
           (api.util.prefetch as GenericPrefetchThunk)(endpointName, arg, {
@@ -195,8 +163,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       [endpointName, dispatch, stableDefaultOptions]
     )
   }
-  function buildQueryHooks(name: string): QueryHooks<any> {
-    const useQuerySubscription: UseQuerySubscription<any> = (
+  function buildQueryHooks(name: string): qt.QueryHooks<any> {
+    const useQuerySubscription: qt.UseQuerySubscription<any> = (
       arg: any,
       {
         refetchOnReconnect,
@@ -207,14 +175,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       } = {}
     ) => {
       const { initiate } = api.endpoints[name] as ApiEndpointQuery<
-        QueryDefinition<any, any, any, any, any>,
+        qt.QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+      const dispatch = useDispatch<qt.ThunkDispatch<any, any, qx.AnyAction>>()
       const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
+        skip ? qt.skipToken : arg,
         serializeQueryArgs,
-        context.endpointDefinitions[name],
+        context.endpointDefinitions[name]!,
         name
       )
       const stableSubscriptionOptions = useShallowStableValue({
@@ -222,13 +190,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         refetchOnFocus,
         pollingInterval,
       })
-      const promiseRef = useRef<QueryActionCreatorResult<any>>()
-      let { queryCacheKey, requestId } = promiseRef.current || {}
+      const promiseRef = qr.useRef<qt.QueryActionCreatorResult<any>>()
+      const { queryCacheKey, requestId } = promiseRef.current || {}
       const subscriptionRemoved = useSelector(
-        (state: RootState<Definitions, string, string>) =>
+        (state: qt.RootState<Definitions, string, string>) =>
           !!queryCacheKey &&
           !!requestId &&
-          !state[api.reducerPath].subscriptions[queryCacheKey]?.[requestId]
+          !state[api.reducerPath]?.subscriptions[queryCacheKey]?.[requestId]
       )
       usePossiblyImmediateEffect((): void | undefined => {
         promiseRef.current = undefined
@@ -241,7 +209,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         ) {
           console.log(subscriptionRemoved)
         }
-        if (stableArg === skipToken) {
+        if (stableArg === qt.skipToken) {
           lastPromise?.unsubscribe()
           promiseRef.current = undefined
           return
@@ -267,31 +235,33 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         stableSubscriptionOptions,
         subscriptionRemoved,
       ])
-      useEffect(() => {
+      qr.useEffect(() => {
         return () => {
           promiseRef.current?.unsubscribe()
           promiseRef.current = undefined
         }
       }, [])
-      return useMemo(
+      return qr.useMemo(
         () => ({
           refetch: () => void promiseRef.current?.refetch(),
         }),
         []
       )
     }
-    const useLazyQuerySubscription: UseLazyQuerySubscription<any> = ({
+    const useLazyQuerySubscription: qt.UseLazyQuerySubscription<any> = ({
       refetchOnReconnect,
       refetchOnFocus,
       pollingInterval = 0,
     } = {}) => {
       const { initiate } = api.endpoints[name] as ApiEndpointQuery<
-        QueryDefinition<any, any, any, any, any>,
+        qt.QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
-      const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
-      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>()
+      const dispatch = useDispatch<qt.ThunkDispatch<any, any, qx.AnyAction>>()
+      const [arg, setArg] = qr.useState<any>(qt.UNINITIALIZED_VALUE)
+      const promiseRef = qr.useRef<
+        qt.QueryActionCreatorResult<any> | undefined
+      >()
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
         refetchOnFocus,
@@ -305,13 +275,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           )
         }
       }, [stableSubscriptionOptions])
-      const subscriptionOptionsRef = useRef(stableSubscriptionOptions)
+      const subscriptionOptionsRef = qr.useRef(stableSubscriptionOptions)
       usePossiblyImmediateEffect(() => {
         subscriptionOptionsRef.current = stableSubscriptionOptions
       }, [stableSubscriptionOptions])
-      const trigger = useCallback(
+      const trigger = qr.useCallback(
         function (arg: any, preferCacheValue = false) {
-          let promise: QueryActionCreatorResult<any>
+          let promise: qt.QueryActionCreatorResult<any>
           batch(() => {
             promiseRef.current?.unsubscribe()
             promiseRef.current = promise = dispatch(
@@ -326,56 +296,57 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         },
         [dispatch, initiate]
       )
-      useEffect(() => {
+      qr.useEffect(() => {
         return () => {
           promiseRef?.current?.unsubscribe()
         }
       }, [])
-      useEffect(() => {
-        if (arg !== UNINITIALIZED_VALUE && !promiseRef.current) {
+      qr.useEffect(() => {
+        if (arg !== qt.UNINITIALIZED_VALUE && !promiseRef.current) {
           trigger(arg, true)
         }
       }, [arg, trigger])
-      return useMemo(() => [trigger, arg] as const, [trigger, arg])
+      return qr.useMemo(() => [trigger, arg] as const, [trigger, arg])
     }
-    const useQueryState: UseQueryState<any> = (
+    const useQueryState: qt.UseQueryState<any> = (
       arg: any,
       { skip = false, selectFromResult = defaultQueryStateSelector } = {}
     ) => {
       const { select } = api.endpoints[name] as ApiEndpointQuery<
-        QueryDefinition<any, any, any, any, any>,
+        qt.QueryDefinition<any, any, any, any, any>,
         Definitions
       >
       const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
+        skip ? qt.skipToken : arg,
         serializeQueryArgs,
         context.endpointDefinitions[name],
         name
       )
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
-      const lastValue = useRef<any>()
-      const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
-        () =>
-          createSelector(
-            [
-              select(stableArg),
-              (_: ApiRootState, lastResult: any) => lastResult,
-              (_: ApiRootState) => stableArg,
-            ],
-            queryStatePreSelector
-          ),
-        [select, stableArg]
-      )
-      const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
-        () => createSelector([selectDefaultResult], selectFromResult),
+      const lastValue = qr.useRef<any>()
+      const selectDefaultResult: qx.Selector<ApiRootState, any, [any]> =
+        qr.useMemo(
+          () =>
+            qx.createSelector(
+              [
+                select(stableArg),
+                (_: ApiRootState, lastResult: any) => lastResult,
+                (_: ApiRootState) => stableArg,
+              ],
+              queryStatePreSelector
+            ),
+          [select, stableArg]
+        )
+      const querySelector: qx.Selector<ApiRootState, any, [any]> = qr.useMemo(
+        () => qx.createSelector([selectDefaultResult], selectFromResult),
         [selectDefaultResult, selectFromResult]
       )
       const currentState = useSelector(
-        (state: RootState<Definitions, any, any>) =>
+        (state: qt.RootState<Definitions, any, any>) =>
           querySelector(state, lastValue.current),
         shallowEqual
       )
-      const store = useStore<RootState<Definitions, any, any>>()
+      const store = useStore<qt.RootState<Definitions, any, any>>()
       const newLastValue = selectDefaultResult(
         store.getState(),
         lastValue.current
@@ -393,10 +364,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         const [trigger, arg] = useLazyQuerySubscription(options)
         const queryStateResults = useQueryState(arg, {
           ...options,
-          skip: arg === UNINITIALIZED_VALUE,
+          skip: arg === qt.UNINITIALIZED_VALUE,
         })
-        const info = useMemo(() => ({ lastArg: arg }), [arg])
-        return useMemo(
+        const info = qr.useMemo(() => ({ lastArg: arg }), [arg])
+        return qr.useMemo(
           () => [trigger, queryStateResults, info],
           [trigger, queryStateResults, info]
         )
@@ -405,33 +376,34 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         const querySubscriptionResults = useQuerySubscription(arg, options)
         const queryStateResults = useQueryState(arg, {
           selectFromResult:
-            arg === skipToken || options?.skip
+            arg === qt.skipToken || options?.skip
               ? undefined
               : noPendingQueryStateSelector,
           ...options,
         })
         const { data, status, isLoading, isSuccess, isError, error } =
           queryStateResults
-        useDebugValue({ data, status, isLoading, isSuccess, isError, error })
-        return useMemo(
+        qr.useDebugValue({ data, status, isLoading, isSuccess, isError, error })
+        return qr.useMemo(
           () => ({ ...queryStateResults, ...querySubscriptionResults }),
           [queryStateResults, querySubscriptionResults]
         )
       },
     }
   }
-  function buildMutationHook(name: string): UseMutation<any> {
+  function buildMutationHook(name: string): qt.UseMutation<any> {
     return ({
       selectFromResult = defaultMutationStateSelector,
       fixedCacheKey,
     } = {}) => {
       const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
-        MutationDefinition<any, any, any, any, any>,
+        qt.MutationDefinition<any, any, any, any, any>,
         Definitions
       >
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
-      const [promise, setPromise] = useState<MutationActionCreatorResult<any>>()
-      useEffect(
+      const dispatch = useDispatch<qt.ThunkDispatch<any, any, qx.AnyAction>>()
+      const [promise, setPromise] =
+        qr.useState<qt.MutationActionCreatorResult<any>>()
+      qr.useEffect(
         () => () => {
           if (!promise?.arg.fixedCacheKey) {
             promise?.reset()
@@ -439,7 +411,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         },
         [promise]
       )
-      const triggerMutation = useCallback(
+      const triggerMutation = qr.useCallback(
         function (arg: Parameters<typeof initiate>["0"]) {
           const promise = dispatch(initiate(arg, { fixedCacheKey }))
           setPromise(promise)
@@ -448,9 +420,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [dispatch, initiate, fixedCacheKey]
       )
       const { requestId } = promise || {}
-      const mutationSelector = useMemo(
+      const mutationSelector = qr.useMemo(
         () =>
-          createSelector(
+          qx.createSelector(
             [select({ fixedCacheKey, requestId: promise?.requestId })],
             selectFromResult
           ),
@@ -459,7 +431,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const currentState = useSelector(mutationSelector, shallowEqual)
       const originalArgs =
         fixedCacheKey == null ? promise?.arg.originalArgs : undefined
-      const reset = useCallback(() => {
+      const reset = qr.useCallback(() => {
         batch(() => {
           if (promise) {
             setPromise(undefined)
@@ -483,7 +455,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         isError,
         error,
       } = currentState
-      useDebugValue({
+      qr.useDebugValue({
         endpointName,
         data,
         status,
@@ -492,21 +464,17 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         isError,
         error,
       })
-      const finalState = useMemo(
+      const finalState = qr.useMemo(
         () => ({ ...currentState, originalArgs, reset }),
         [currentState, originalArgs, reset]
       )
-      return useMemo(
+      return qr.useMemo(
         () => [triggerMutation, finalState] as const,
         [triggerMutation, finalState]
       )
     }
   }
 }
-const createApi = buildCreateApi(coreModule(), reactHooksModule())
-export { createApi, reactHooksModule }
-
-type RR = typeof import("react-redux")
 
 export interface ReactHooksModuleOptions {
   batch?: RR["batch"]
@@ -544,11 +512,11 @@ export const reactHooksModule = ({
       serializeQueryArgs,
       context,
     })
-    safeAssign(anyApi, { usePrefetch })
-    safeAssign(context, { batch })
+    qt.safeAssign(anyApi, { usePrefetch })
+    qt.safeAssign(context, { batch })
     return {
       injectEndpoint(endpointName, definition) {
-        if (isQueryDefinition(definition)) {
+        if (qt.isQueryDefinition(definition)) {
           const {
             useQuery,
             useLazyQuery,
@@ -556,35 +524,38 @@ export const reactHooksModule = ({
             useQueryState,
             useQuerySubscription,
           } = buildQueryHooks(endpointName)
-          safeAssign(anyApi.endpoints[endpointName], {
+          qt.safeAssign(anyApi.endpoints[endpointName]!, {
             useQuery,
             useLazyQuery,
             useLazyQuerySubscription,
             useQueryState,
             useQuerySubscription,
           })
-          ;(api as any)[`use${capitalize(endpointName)}Query`] = useQuery
-          ;(api as any)[`useLazy${capitalize(endpointName)}Query`] =
+          ;(api as any)[`use${qu.capitalize(endpointName)}Query`] = useQuery
+          ;(api as any)[`useLazy${qu.capitalize(endpointName)}Query`] =
             useLazyQuery
-        } else if (isMutationDefinition(definition)) {
+        } else if (qt.isMutationDefinition(definition)) {
           const useMutation = buildMutationHook(endpointName)
-          safeAssign(anyApi.endpoints[endpointName], {
+          qt.safeAssign(anyApi.endpoints[endpointName]!, {
             useMutation,
           })
-          ;(api as any)[`use${capitalize(endpointName)}Mutation`] = useMutation
+          ;(api as any)[`use${qu.capitalize(endpointName)}Mutation`] =
+            useMutation
         }
       },
     }
   },
 })
 
+export const createApi = buildCreateApi(coreModule(), reactHooksModule())
+
 export function useStableQueryArgs<T>(
   queryArgs: T,
-  serialize: SerializeQueryArgs<any>,
-  endpointDefinition: EndpointDefinition<any, any, any, any>,
+  serialize: qt.SerializeQueryArgs<any>,
+  endpointDefinition: qt.EndpointDefinition<any, any, any, any>,
   endpointName: string
 ) {
-  const incoming = useMemo(
+  const incoming = qr.useMemo(
     () => ({
       queryArgs,
       serialized:
@@ -594,8 +565,8 @@ export function useStableQueryArgs<T>(
     }),
     [queryArgs, serialize, endpointDefinition, endpointName]
   )
-  const cache = useRef(incoming)
-  useEffect(() => {
+  const cache = qr.useRef(incoming)
+  qr.useEffect(() => {
     if (cache.current.serialized !== incoming.serialized) {
       cache.current = incoming
     }
@@ -606,8 +577,8 @@ export function useStableQueryArgs<T>(
 }
 
 export function useShallowStableValue<T>(value: T) {
-  const cache = useRef(value)
-  useEffect(() => {
+  const cache = qr.useRef(value)
+  qr.useEffect(() => {
     if (!shallowEqual(cache.current, value)) {
       cache.current = value
     }

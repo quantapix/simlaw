@@ -1,3 +1,4 @@
+/* eslint-disable no-constant-condition */
 import * as qu from "../utils.js"
 import * as qt from "./types.js"
 import { createAction } from "../../redux/index.js"
@@ -5,7 +6,7 @@ import { createAction } from "../../redux/index.js"
 export * from "../utils.js"
 
 export function capitalize(str: string) {
-  return str.replace(str[0], str[0].toUpperCase())
+  return str.replace(str[0]!, str[0]!.toUpperCase())
 }
 
 const isPlainObject: (_: any) => boolean = qu.isPlainObject
@@ -171,7 +172,7 @@ export function setupListeners(
     : defaultHandler()
 }
 
-async function defaultBackoff(attempt: number = 0, maxRetries: number = 5) {
+async function defaultBackoff(attempt = 0, maxRetries = 5) {
   const attempts = Math.min(attempt, maxRetries)
 
   const timeout = ~~((Math.random() + 0.4) * (300 << attempts)) // Force a positive int in the case we make this an option

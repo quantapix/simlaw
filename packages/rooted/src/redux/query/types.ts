@@ -603,7 +603,7 @@ export interface QueryLifecyclePromises<
     QueryFulfilledRejectionReason<BaseQuery>
   >
 }
-type QueryFulfilledRejectionReason<BaseQuery extends BaseQueryFn> =
+export type QueryFulfilledRejectionReason<BaseQuery extends BaseQueryFn> =
   | {
       error: BaseQueryError<BaseQuery>
       isUnhandledError: false
@@ -821,7 +821,7 @@ export interface PromiseWithKnownReason<T, R>
   ): Promise<T | TResult>
 }
 
-const neverResolvedError = new Error(
+export const neverResolvedError = new Error(
   "Promise never resolved before cacheEntryRemoved."
 ) as Error & {
   message: "Promise never resolved before cacheEntryRemoved."
@@ -925,42 +925,43 @@ type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
     isError: false
   }
 
-type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
-  Id<
-    | Override<
-        Extract<
-          UseQueryStateBaseResult<D>,
-          { status: QueryStatus.uninitialized }
-        >,
-        { isUninitialized: true }
-      >
-    | Override<
+export type UseQueryStateDefaultResult<
+  D extends QueryDefinition<any, any, any, any>
+> = Id<
+  | Override<
+      Extract<
         UseQueryStateBaseResult<D>,
-        | { isLoading: true; isFetching: boolean; data: undefined }
-        | ({
-            isSuccess: true
-            isFetching: true
-            error: undefined
-          } & Required<
-            Pick<UseQueryStateBaseResult<D>, "data" | "fulfilledTimeStamp">
-          >)
-        | ({
-            isSuccess: true
-            isFetching: false
-            error: undefined
-          } & Required<
-            Pick<
-              UseQueryStateBaseResult<D>,
-              "data" | "fulfilledTimeStamp" | "currentData"
-            >
-          >)
-        | ({ isError: true } & Required<
-            Pick<UseQueryStateBaseResult<D>, "error">
-          >)
-      >
-  > & {
-    status: QueryStatus
-  }
+        { status: QueryStatus.uninitialized }
+      >,
+      { isUninitialized: true }
+    >
+  | Override<
+      UseQueryStateBaseResult<D>,
+      | { isLoading: true; isFetching: boolean; data: undefined }
+      | ({
+          isSuccess: true
+          isFetching: true
+          error: undefined
+        } & Required<
+          Pick<UseQueryStateBaseResult<D>, "data" | "fulfilledTimeStamp">
+        >)
+      | ({
+          isSuccess: true
+          isFetching: false
+          error: undefined
+        } & Required<
+          Pick<
+            UseQueryStateBaseResult<D>,
+            "data" | "fulfilledTimeStamp" | "currentData"
+          >
+        >)
+      | ({ isError: true } & Required<
+          Pick<UseQueryStateBaseResult<D>, "error">
+        >)
+    >
+> & {
+  status: QueryStatus
+}
 
 export type UseQuerySubscriptionResult<
   D extends QueryDefinition<any, any, any, any>

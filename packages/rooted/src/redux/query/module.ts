@@ -1,22 +1,19 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import {
-  buildThunks,
-  buildSlice,
-  buildInitiate,
-  SliceActions,
-  buildSelectors,
-  PatchQueryDataThunk,
-  UpdateQueryDataThunk,
-} from "./build.js"
-import * as qt from "./types.js"
 import * as qi from "../../immer/index.js"
+import * as qt from "./types.js"
 import * as qu from "./utils.js"
 import {
-  ReferenceCacheLifecycle,
-  ReferenceQueryLifecycle,
-  ReferenceCacheCollection,
-  buildMiddleware,
-} from "./middleware.js"
+  buildInitiate,
+  buildSelectors,
+  buildSlice,
+  buildThunks,
+  CreateApiOptions,
+  PatchQueryDataThunk,
+  SliceActions,
+  UpdateQueryDataThunk,
+  Matchers,
+} from "./build.js"
+import { buildMiddleware } from "./middleware.js"
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
 
@@ -45,7 +42,7 @@ export type Module<Name extends ModuleName> = {
       TagTypes,
       ModuleName
     >,
-    options: WithRequiredProp<
+    options: qt.WithRequiredProp<
       CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
       | "reducerPath"
       | "serializeQueryArgs"
@@ -113,10 +110,10 @@ export interface ApiEndpointQuery<
   initiate: qt.StartQueryActionCreator<Definition>
   select: qt.QueryResultSelectorFactory<
     Definition,
-    _RootState<
+    qt.RootState<
       Definitions,
-      TagTypesFrom<Definition>,
-      ReducerPathFrom<Definition>
+      qt.TagTypesFrom<Definition>,
+      qt.ReducerPathFrom<Definition>
     >
   >
 }
@@ -128,10 +125,10 @@ export interface ApiEndpointMutation<
   initiate: qt.StartMutationActionCreator<Definition>
   select: qt.MutationResultSelectorFactory<
     Definition,
-    _RootState<
+    qt.RootState<
       Definitions,
-      TagTypesFrom<Definition>,
-      ReducerPathFrom<Definition>
+      qt.TagTypesFrom<Definition>,
+      qt.ReducerPathFrom<Definition>
     >
   >
 }
@@ -142,6 +139,11 @@ export type PrefetchOptions =
     }
   | { force?: boolean }
 export const coreModuleName = Symbol()
+
+export type ReferenceCacheLifecycle = never
+export type ReferenceQueryLifecycle = never
+export type ReferenceCacheCollection = never
+
 export type CoreModule =
   | typeof coreModuleName
   | ReferenceCacheLifecycle
@@ -421,7 +423,7 @@ export const coreModule = (): Module<CoreModule> => ({
         anyApi.endpoints[endpointName] ??= {} as any
         if (qt.isQueryDefinition(definition)) {
           qt.safeAssign(
-            anyApi.endpoints[endpointName],
+            anyApi.endpoints[endpointName]!,
             {
               select: buildQuerySelector(endpointName, definition),
               initiate: buildInitiateQuery(endpointName, definition),
@@ -430,7 +432,7 @@ export const coreModule = (): Module<CoreModule> => ({
           )
         } else if (qt.isMutationDefinition(definition)) {
           qt.safeAssign(
-            anyApi.endpoints[endpointName],
+            anyApi.endpoints[endpointName]!,
             {
               select: buildMutationSelector(),
               initiate: buildInitiateMutation(endpointName),

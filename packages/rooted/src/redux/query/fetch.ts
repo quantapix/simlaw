@@ -110,7 +110,7 @@ export function fetchBaseQuery({
   }
   return async (arg, api) => {
     const { signal, getState, extra, endpoint, forced, type } = api
-    let {
+    const {
       url,
       method = "GET" as const,
       headers = new Headers({}),
@@ -142,15 +142,15 @@ export function fetchBaseQuery({
     if (isJsonifiable(body) && isJsonContentType(config.headers)) {
       config.body = JSON.stringify(body)
     }
+    let ext = ""
     if (params) {
       const divider = ~url.indexOf("?") ? "&" : "?"
       const query = paramsSerializer
         ? paramsSerializer(params)
         : new URLSearchParams(stripUndefined(params))
-      url += divider + query
+      ext += divider + query
     }
-    url = joinUrls(baseUrl, url)
-    const request = new Request(url, config)
+    const request = new Request(joinUrls(baseUrl, url + ext), config)
     const requestClone = request.clone()
     const meta: FetchBaseQueryMeta | undefined = { request: requestClone }
     let response
@@ -188,16 +188,7 @@ export function fetchBaseQuery({
       }
     }
     return validateStatus(response, resultData)
-      ? {
-          data: resultData,
-          meta,
-        }
-      : {
-          error: {
-            status: response.status,
-            data: resultData,
-          },
-          meta,
-        }
+      ? { data: resultData, meta }
+      : { error: { status: response.status, data: resultData }, meta }
   }
 }
