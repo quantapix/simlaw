@@ -1,7 +1,7 @@
 /* eslint-disable no-constant-condition */
-import * as qu from "../utils.js"
 import * as qt from "./types.js"
-import { createAction } from "../../redux/index.js"
+import * as qu from "../utils.js"
+import * as qx from "../index.js"
 
 export * from "../utils.js"
 
@@ -114,10 +114,10 @@ export function fakeBaseQuery<ErrorType>(): qt.BaseQueryFn<
   }
 }
 
-export const onFocus = createAction("__rtkq/focused")
-export const onFocusLost = createAction("__rtkq/unfocused")
-export const onOnline = createAction("__rtkq/online")
-export const onOffline = createAction("__rtkq/offline")
+export const onFocus = qx.createAction("__rtkq/focused")
+export const onFocusLost = qx.createAction("__rtkq/unfocused")
+export const onOnline = qx.createAction("__rtkq/online")
+export const onOffline = qx.createAction("__rtkq/offline")
 
 let initialized = false
 

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { getMutationCacheKey, calculateProvidedByThunk } from "./build.js"
-import * as qr from "../index.js"
 import * as qt from "./types.js"
 import * as qu from "./utils.js"
+import * as qx from "../index.js"
 import type { Api, ApiContext } from "./module.js"
 
 export const THIRTY_TWO_BIT_MAX_INT = 2_147_483_647
@@ -28,7 +28,7 @@ export function buildMiddleware<
 >(input: BuildMiddlewareInput<Definitions, ReducerPath, TagTypes>) {
   const { reducerPath, queryThunk } = input
   const actions = {
-    invalidateTags: qr.createAction<
+    invalidateTags: qx.createAction<
       Array<TagTypes | qt.FullTagDescription<TagTypes>>
     >(`${reducerPath}/invalidateTags`),
   }
@@ -55,7 +55,7 @@ export function buildMiddleware<
     qt.RootState<Definitions, string, ReducerPath>,
     qt.ThunkDispatch<any, any, qt.AnyAction>
   > = mwApi => next => {
-    const applied = qr.compose<typeof next>(
+    const applied = qx.compose<typeof next>(
       ...middlewares.map(middleware => middleware(mwApi))
     )(next)
     return action => {
@@ -189,9 +189,9 @@ const buildCacheLifecycle: SubMiddlewareBuilder = ({
   queryThunk,
   mutationThunk,
 }) => {
-  const isQueryThunk = qr.isAsyncThunkAction(queryThunk)
-  const isMutationThunk = qr.isAsyncThunkAction(mutationThunk)
-  const isFullfilledThunk = qr.isFulfilled(queryThunk, mutationThunk)
+  const isQueryThunk = qx.isAsyncThunkAction(queryThunk)
+  const isMutationThunk = qx.isAsyncThunkAction(mutationThunk)
+  const isFullfilledThunk = qx.isFulfilled(queryThunk, mutationThunk)
   return mwApi => {
     type CacheLifecycle = {
       valueResolved?(value: { data: unknown; meta: unknown }): unknown
@@ -376,9 +376,9 @@ const buildInvalidationByTags: SubMiddlewareBuilder = ({
     (action): any => {
       const result = next(action)
       if (
-        qr.isAnyOf(
-          qr.isFulfilled(mutationThunk),
-          qr.isRejectedWithValue(mutationThunk)
+        qx.isAnyOf(
+          qx.isFulfilled(mutationThunk),
+          qx.isRejectedWithValue(mutationThunk)
         )(action)
       ) {
         invalidateTags(
@@ -560,9 +560,9 @@ const buildQueryLifecycle: SubMiddlewareBuilder = ({
   queryThunk,
   mutationThunk,
 }) => {
-  const isPendingThunk = qr.isPending(queryThunk, mutationThunk)
-  const isRejectedThunk = qr.isRejected(queryThunk, mutationThunk)
-  const isFullfilledThunk = qr.isFulfilled(queryThunk, mutationThunk)
+  const isPendingThunk = qx.isPending(queryThunk, mutationThunk)
+  const isRejectedThunk = qx.isRejected(queryThunk, mutationThunk)
+  const isFullfilledThunk = qx.isFulfilled(queryThunk, mutationThunk)
   return mwApi => {
     type CacheLifecycle = {
       resolve(value: { data: unknown; meta: unknown }): unknown

@@ -1,6 +1,7 @@
-import * as qx from "../index.js"
 import * as qr from "react"
 import * as qt from "./types.js"
+import * as qu from "./utils.js"
+import * as qx from "../index.js"
 import { buildCreateApi } from "./build.js"
 import {
   Api,
@@ -14,7 +15,6 @@ import {
   ReactHooksModule,
   reactHooksModuleName,
 } from "./module.js"
-import * as qu from "./utils.js"
 import {
   useDispatch as rrUseDispatch,
   useSelector as rrUseSelector,

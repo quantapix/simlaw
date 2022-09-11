@@ -1,7 +1,7 @@
 import * as qi from "../../immer/index.js"
-import * as qr from "../index.js"
 import * as qt from "./types.js"
 import * as qu from "./utils.js"
+import * as qx from "../index.js"
 import type {
   Api,
   ApiContext,
@@ -252,7 +252,7 @@ export function buildSelectors<
     endpointDefinition: qt.QueryDefinition<any, any, any, any>
   ) {
     return ((queryArgs: any) => {
-      const selectQuerySubState = qr.createSelector(
+      const selectQuerySubState = qx.createSelector(
         selectInternalState,
         internalState =>
           (queryArgs === qt.skipToken
@@ -265,7 +265,7 @@ export function buildSelectors<
                 })
               ]) ?? defaultQuerySubState
       )
-      return qr.createSelector(selectQuerySubState, withRequestFlags)
+      return qx.createSelector(selectQuerySubState, withRequestFlags)
     }) as qt.QueryResultSelectorFactory<any, RootState>
   }
   function buildMutationSelector() {
@@ -276,14 +276,14 @@ export function buildSelectors<
       } else {
         mutationId = id
       }
-      const selectMutationSubstate = qr.createSelector(
+      const selectMutationSubstate = qx.createSelector(
         selectInternalState,
         internalState =>
           (mutationId === qt.skipToken
             ? undefined
             : internalState?.mutations?.[mutationId]) ?? defaultMutationSubState
       )
-      return qr.createSelector(selectMutationSubstate, withRequestFlags)
+      return qx.createSelector(selectMutationSubstate, withRequestFlags)
     }) as qt.MutationResultSelectorFactory<any, RootState>
   }
   function selectInvalidatedBy(
@@ -579,7 +579,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     }
     return false
   }
-  const queryThunk = qr.createAsyncThunk<
+  const queryThunk = qx.createAsyncThunk<
     qt.ThunkResult,
     qt.QueryThunkArg,
     qt.ThunkApiMetaConfig & { state: qt.RootState<any, string, ReducerPath> }
@@ -598,7 +598,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     },
     dispatchConditionRejection: true,
   })
-  const mutationThunk = qr.createAsyncThunk<
+  const mutationThunk = qx.createAsyncThunk<
     qt.ThunkResult,
     qt.MutationThunkArg,
     qt.ThunkApiMetaConfig & { state: qt.RootState<any, string, ReducerPath> }
@@ -657,16 +657,16 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       | qt.AsyncThunk<any, qt.MutationThunkArg, qt.ThunkApiMetaConfig>
   >(thunk: Thunk, endpointName: string) {
     return {
-      matchPending: qr.isAllOf(
-        qr.isPending(thunk),
+      matchPending: qx.isAllOf(
+        qx.isPending(thunk),
         matchesEndpoint(endpointName)
       ),
-      matchFulfilled: qr.isAllOf(
-        qr.isFulfilled(thunk),
+      matchFulfilled: qx.isAllOf(
+        qx.isFulfilled(thunk),
         matchesEndpoint(endpointName)
       ),
-      matchRejected: qr.isAllOf(
-        qr.isRejected(thunk),
+      matchRejected: qx.isAllOf(
+        qx.isRejected(thunk),
         matchesEndpoint(endpointName)
       ),
     } as Matchers<Thunk, any>
@@ -692,8 +692,8 @@ export function calculateProvidedByThunk(
 ) {
   return qt.calculateProvidedBy(
     endpointDefinitions[action.meta.arg.endpointName]?.[type],
-    qr.isFulfilled(action) ? action.payload : undefined,
-    qr.isRejectedWithValue(action) ? action.payload : undefined,
+    qx.isFulfilled(action) ? action.payload : undefined,
+    qx.isRejectedWithValue(action) ? action.payload : undefined,
     action.meta.arg.originalArgs,
     "baseQueryMeta" in action.meta ? action.meta.baseQueryMeta : undefined,
     assertTagType
@@ -768,8 +768,8 @@ export function buildSlice({
     "online" | "focused" | "middlewareRegistered"
   >
 }) {
-  const resetApiState = qr.createAction(`${reducerPath}/resetApiState`)
-  const querySlice = qr.createSlice({
+  const resetApiState = qx.createAction(`${reducerPath}/resetApiState`)
+  const querySlice = qx.createSlice({
     name: `${reducerPath}/queries`,
     initialState: initialState as qt.QueryState<any>,
     reducers: {
@@ -857,7 +857,7 @@ export function buildSlice({
         })
     },
   })
-  const mutationSlice = qr.createSlice({
+  const mutationSlice = qx.createSlice({
     name: `${reducerPath}/mutations`,
     initialState: initialState as qt.MutationState<any>,
     reducers: {
@@ -916,7 +916,7 @@ export function buildSlice({
         })
     },
   })
-  const invalidationSlice = qr.createSlice({
+  const invalidationSlice = qx.createSlice({
     name: `${reducerPath}/invalidation`,
     initialState: initialState as qt.InvalidationState<string>,
     reducers: {},
@@ -955,9 +955,9 @@ export function buildSlice({
           }
         })
         .addMatcher(
-          qr.isAnyOf(
-            qr.isFulfilled(queryThunk),
-            qr.isRejectedWithValue(queryThunk)
+          qx.isAnyOf(
+            qx.isFulfilled(queryThunk),
+            qx.isRejectedWithValue(queryThunk)
           ),
           (draft, action) => {
             const providedTags = calculateProvidedByThunk(
@@ -981,7 +981,7 @@ export function buildSlice({
         )
     },
   })
-  const subscriptionSlice = qr.createSlice({
+  const subscriptionSlice = qx.createSlice({
     name: `${reducerPath}/subscriptions`,
     initialState: initialState as qt.SubscriptionState,
     reducers: {
@@ -1040,7 +1040,7 @@ export function buildSlice({
         .addMatcher(hasRehydrationInfo, draft => ({ ...draft }))
     },
   })
-  const configSlice = qr.createSlice({
+  const configSlice = qx.createSlice({
     name: `${reducerPath}/config`,
     initialState: {
       online: qu.isOnline(),
@@ -1073,7 +1073,7 @@ export function buildSlice({
         .addMatcher(hasRehydrationInfo, draft => ({ ...draft }))
     },
   })
-  const combinedReducer = qr.combineReducers<
+  const combinedReducer = qx.combineReducers<
     qt.CombinedState<any, string, string>
   >({
     queries: querySlice.reducer,
@@ -1146,7 +1146,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   ...modules: Modules
 ): CreateApi<Modules[number]["name"]> {
   return function baseCreateApi(options) {
-    const extractRehydrationInfo = qr.defaultMemoize((action: qt.AnyAction) =>
+    const extractRehydrationInfo = qx.defaultMemoize((action: qt.AnyAction) =>
       options.extractRehydrationInfo?.(action, {
         reducerPath: (options.reducerPath ?? "api") as any,
       })
@@ -1171,7 +1171,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       },
       apiUid: qu.nanoid(),
       extractRehydrationInfo,
-      hasRehydrationInfo: qr.defaultMemoize(
+      hasRehydrationInfo: qx.defaultMemoize(
         action => extractRehydrationInfo(action) != null
       ),
     }

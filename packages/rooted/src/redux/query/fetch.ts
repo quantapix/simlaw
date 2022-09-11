@@ -1,5 +1,5 @@
-import { isPlainObject } from "../../redux/index.js"
-import { joinUrls } from "./utils.js"
+import * as qu from "./utils.js"
+import * as qx from "../index.js"
 import type * as qt from "./types.js"
 
 export type ResponseHandler =
@@ -65,7 +65,7 @@ export type FetchBaseQueryError =
       error: string
     }
 function stripUndefined(obj: any) {
-  if (!isPlainObject(obj)) {
+  if (!qx.isPlainObject(obj)) {
     return obj
   }
   const copy: Record<string, any> = { ...obj }
@@ -133,7 +133,7 @@ export function fetchBaseQuery({
     )
     const isJsonifiable = (body: any) =>
       typeof body === "object" &&
-      (isPlainObject(body) ||
+      (qx.isPlainObject(body) ||
         Array.isArray(body) ||
         typeof body.toJSON === "function")
     if (!config.headers.has("content-type") && isJsonifiable(body)) {
@@ -150,7 +150,7 @@ export function fetchBaseQuery({
         : new URLSearchParams(stripUndefined(params))
       ext += divider + query
     }
-    const request = new Request(joinUrls(baseUrl, url + ext), config)
+    const request = new Request(qu.joinUrls(baseUrl, url + ext), config)
     const requestClone = request.clone()
     const meta: FetchBaseQueryMeta | undefined = { request: requestClone }
     let response

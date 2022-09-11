@@ -1,5 +1,5 @@
 import * as qu from "./utils.js"
-import { createAction, PayloadAction, BaseActionCreator } from "./create.js"
+import { createAction } from "./create.js"
 import type * as qt from "./types.js"
 
 const task = "task"
@@ -13,7 +13,7 @@ export const listenerCompleted = `${listener}-${completed}` as const
 export class TaskAbortError implements qt.SerializedError {
   name = "TaskAbortError"
   message: string
-  constructor(public code: string | undefined) {
+  constructor(public code: string) {
     this.message = `${task} ${cancelled} (reason: ${code})`
   }
 }
@@ -641,9 +641,9 @@ export type TypedAddListener<
   ExtraArgument = unknown,
   Payload = ListenerEntry<State, Dispatch>,
   T extends string = "listenerMiddleware/add"
-> = BaseActionCreator<Payload, T> &
+> = qt.BaseActionCreator<Payload, T> &
   AddListenerOverloads<
-    PayloadAction<Payload, T>,
+    qt.PayloadAction<Payload, T>,
     State,
     Dispatch,
     ExtraArgument
@@ -657,9 +657,9 @@ export type TypedRemoveListener<
   >,
   Payload = ListenerEntry<State, Dispatch>,
   T extends string = "listenerMiddleware/remove"
-> = BaseActionCreator<Payload, T> &
+> = qt.BaseActionCreator<Payload, T> &
   AddListenerOverloads<
-    PayloadAction<Payload, T>,
+    qt.PayloadAction<Payload, T>,
     State,
     Dispatch,
     any,

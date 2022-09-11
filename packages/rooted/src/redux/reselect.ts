@@ -37,7 +37,7 @@ function createLruCache(maxSize: number, equals: qt.EqualityFn): Cache {
   function get(key: unknown) {
     const cacheIndex = entries.findIndex(entry => equals(key, entry.key))
     if (cacheIndex > -1) {
-      const entry = entries[cacheIndex]
+      const entry = entries[cacheIndex]!
       if (cacheIndex > 0) {
         entries.splice(cacheIndex, 1)
         entries.unshift(entry)
@@ -140,7 +140,7 @@ function getDependencies(funcs: unknown[]) {
       `createSelector expects all input-selectors to be functions, but received the following types: [${dependencyTypes}]`
     )
   }
-  return dependencies as qt.
+  return dependencies as qt.SelectorArray
 }
 export function createSelectorCreator<
   F extends (...args: unknown[]) => unknown,
@@ -214,7 +214,7 @@ export interface CreateSelectorFunction<
     Pick<ReturnType<MemoizeFunction>, keyof ReturnType<MemoizeFunction>>
   >
 > {
-  <Selectors extends qt., Result>(
+  <Selectors extends qt.SelectorArray, Result>(
     ...items: [
       ...Selectors,
       (...args: qt.SelectorResultArray<Selectors>) => Result
@@ -226,7 +226,7 @@ export interface CreateSelectorFunction<
     qt.GetParamsFromSelectors<Selectors>
   > &
     Keys
-  <Selectors extends qt., Result>(
+  <Selectors extends qt.SelectorArray, Result>(
     ...items: [
       ...Selectors,
       (...args: qt.SelectorResultArray<Selectors>) => Result,
@@ -239,7 +239,7 @@ export interface CreateSelectorFunction<
     qt.GetParamsFromSelectors<Selectors>
   > &
     Keys
-  <Selectors extends qt., Result>(
+  <Selectors extends qt.SelectorArray, Result>(
     selectors: [...Selectors],
     combiner: (...args: qt.SelectorResultArray<Selectors>) => Result,
     options?: CreateSelectorOptions<MemoizeOptions>

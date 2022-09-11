@@ -1,10 +1,4 @@
 import * as qt from "./types.js"
-import type {
-  AsyncThunk,
-  AsyncThunkFulfilledActionCreator,
-  AsyncThunkPendingActionCreator,
-  AsyncThunkRejectedActionCreator,
-} from "./create.js"
 
 export type ActionMatchingAnyOf<
   Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]
@@ -61,7 +55,7 @@ function isAsyncThunkArray(a: [any] | AnyAsyncThunk[]): a is AnyAsyncThunk[] {
 }
 
 export type UnknownAsyncThunkPendingAction = ReturnType<
-  AsyncThunkPendingActionCreator<unknown>
+  qt.AsyncThunkPendingActionCreator<unknown>
 >
 
 export type PendingActionFromAsyncThunk<T extends AnyAsyncThunk> =
@@ -103,7 +97,7 @@ export function isPending<
 }
 
 export type UnknownAsyncThunkRejectedAction = ReturnType<
-  AsyncThunkRejectedActionCreator<unknown, unknown>
+  qt.AsyncThunkRejectedActionCreator<unknown, unknown>
 >
 
 export type RejectedActionFromAsyncThunk<T extends AnyAsyncThunk> =
@@ -147,12 +141,12 @@ export function isRejected<
 }
 
 export type UnknownAsyncThunkRejectedWithValueAction = ReturnType<
-  AsyncThunkRejectedActionCreator<unknown, unknown>
+  qt.AsyncThunkRejectedActionCreator<unknown, unknown>
 >
 
 export type RejectedWithValueActionFromAsyncThunk<T extends AnyAsyncThunk> =
   qt.ActionFromMatcher<T["rejected"]> &
-    (T extends AsyncThunk<any, any, { rejectValue: infer RejectedValue }>
+    (T extends qt.AsyncThunk<any, any, { rejectValue: infer RejectedValue }>
       ? { payload: RejectedValue }
       : unknown)
 
@@ -200,7 +194,7 @@ export function isRejectedWithValue<
 }
 
 export type UnknownAsyncThunkFulfilledAction = ReturnType<
-  AsyncThunkFulfilledActionCreator<unknown, unknown>
+  qt.AsyncThunkFulfilledActionCreator<unknown, unknown>
 >
 
 export type FulfilledActionFromAsyncThunk<T extends AnyAsyncThunk> =
