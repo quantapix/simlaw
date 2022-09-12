@@ -1,32 +1,5 @@
-import {
-  configureStore,
-  createAction,
-  createSlice,
-  isAnyOf,
-} from "@reduxjs/toolkit"
-import type { AnyAction, PayloadAction, Action } from "@reduxjs/toolkit"
-import {
-  createListenerMiddleware,
-  createListenerEntry,
-  addListener,
-  removeListener,
-  TaskAbortError,
-  clearAllListeners,
-} from "../index"
-import type {
-  ListenerEffect,
-  ListenerEffectAPI,
-  TypedAddListener,
-  TypedStartListening,
-  UnsubscribeListener,
-  ListenerMiddleware,
-} from "../index"
-import type {
-  AbortSignalWithReason,
-  AddListenerOverloads,
-  TypedRemoveListener,
-} from "../types"
-import { listenerCancelled, listenerCompleted } from "../exceptions"
+import * as qx from "../../src/redux/index.js"
+
 const middlewareApi = {
   getState: expect.any(Function),
   getOriginalState: expect.any(Function),
@@ -42,6 +15,7 @@ const middlewareApi = {
   subscribe: expect.any(Function),
   cancelActiveListeners: expect.any(Function),
 }
+
 const noop = () => {}
 export interface Deferred<T> extends Promise<T> {
   resolve(value?: T | PromiseLike<T>): void
@@ -73,11 +47,11 @@ type Equals<T, U> = IsAny<
 export function expectExactType<T>(t: T) {
   return <U extends Equals<T, U>>(u: U) => {}
 }
-type EnsureUnknown<T extends any> = IsUnknown<T, any, never>
+type EnsureUnknown<T> = IsUnknown<T, any, never>
 export function expectUnknown<T extends EnsureUnknown<T>>(t: T) {
   return t
 }
-type EnsureAny<T extends any> = IsAny<T, any, never>
+type EnsureAny<T> = IsAny<T, any, never>
 export function expectExactAny<T extends EnsureAny<T>>(t: T) {
   return t
 }
@@ -86,14 +60,14 @@ export function expectNotAny<T extends IsNotAny<T>>(t: T): T {
   return t
 }
 describe("createListenerMiddleware", () => {
-  let store = configureStore({
+  let store = qx.configureStore({
     reducer: () => 42,
-    middleware: gDM => gDM().prepend(createListenerMiddleware().middleware),
+    middleware: gDM => gDM().prepend(qx.createListenerMiddleware().middleware),
   })
   interface CounterState {
     value: number
   }
-  const counterSlice = createSlice({
+  const counterSlice = qx.createSlice({
     name: "counter",
     initialState: { value: 0 } as CounterState,
     reducers: {
@@ -103,7 +77,7 @@ describe("createListenerMiddleware", () => {
       decrement(state) {
         state.value -= 1
       },
-      incrementByAmount: (state, action: PayloadAction<number>) => {
+      incrementByAmount: (state, action: qx.PayloadAction<number>) => {
         state.value += action.payload
       },
     },
@@ -113,52 +87,53 @@ describe("createListenerMiddleware", () => {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
   let reducer: jest.Mock
-  let listenerMiddleware = createListenerMiddleware()
+  let listenerMiddleware = qx.createListenerMiddleware()
   let { middleware, startListening, stopListening, clearListeners } =
     listenerMiddleware
-  let addTypedListenerAction = addListener as TypedAddListener<CounterState>
-  let removeTypedListenerAction =
-    removeListener as TypedRemoveListener<CounterState>
-  const testAction1 = createAction<string>("testAction1")
+  const addTypedListenerAction =
+    qx.addListener as qx.TypedAddListener<CounterState>
+  const removeTypedListenerAction =
+    qx.removeListener as qx.TypedRemoveListener<CounterState>
+  const testAction1 = qx.createAction<string>("testAction1")
   type TestAction1 = ReturnType<typeof testAction1>
-  const testAction2 = createAction<string>("testAction2")
+  const testAction2 = qx.createAction<string>("testAction2")
   type TestAction2 = ReturnType<typeof testAction2>
-  const testAction3 = createAction<string>("testAction3")
+  const testAction3 = qx.createAction<string>("testAction3")
   type TestAction3 = ReturnType<typeof testAction3>
   beforeAll(() => {
     jest.spyOn(console, "error").mockImplementation(noop)
   })
   beforeEach(() => {
-    listenerMiddleware = createListenerMiddleware()
+    listenerMiddleware = qx.createListenerMiddleware()
     middleware = listenerMiddleware.middleware
     startListening = listenerMiddleware.startListening
     stopListening = listenerMiddleware.stopListening
     clearListeners = listenerMiddleware.clearListeners
     reducer = jest.fn(() => ({}))
-    store = configureStore({
+    store = qx.configureStore({
       reducer,
       middleware: gDM => gDM().prepend(middleware),
     })
   })
   describe("Middleware setup", () => {
-    test("Allows passing an extra argument on middleware creation", () => {
+    it("Allows passing an extra argument on middleware creation", () => {
       const originalExtra = 42
-      const listenerMiddleware = createListenerMiddleware({
+      const listenerMiddleware = qx.createListenerMiddleware({
         extra: originalExtra,
       })
-      const store = configureStore({
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(listenerMiddleware.middleware),
       })
       let foundExtra: number | null = null
       const typedAddListener =
-        listenerMiddleware.startListening as TypedStartListening<
+        listenerMiddleware.startListening as qx.TypedStartListening<
           CounterState,
           typeof store.dispatch,
           typeof originalExtra
         >
       typedAddListener({
-        matcher: (action: AnyAction): action is AnyAction => true,
+        matcher: (action: qx.AnyAction): action is qx.AnyAction => true,
         effect: (action, listenerApi) => {
           foundExtra = listenerApi.extra
           expectType<typeof originalExtra>(listenerApi.extra)
@@ -167,14 +142,14 @@ describe("createListenerMiddleware", () => {
       store.dispatch(testAction1("a"))
       expect(foundExtra).toBe(originalExtra)
     })
-    test("Passes through if there are no listeners", () => {
+    it("Passes through if there are no listeners", () => {
       const originalAction = testAction1("a")
       const resultAction = store.dispatch(originalAction)
       expect(resultAction).toBe(originalAction)
     })
   })
   describe("Subscription and unsubscription", () => {
-    test("directly subscribing", () => {
+    it("directly subscribing", () => {
       const effect = jest.fn((_: TestAction1) => {})
       startListening({
         actionCreator: testAction1,
@@ -188,7 +163,7 @@ describe("createListenerMiddleware", () => {
         [testAction1("c"), middlewareApi],
       ])
     })
-    test("stopListening returns true if an entry has been unsubscribed, false otherwise", () => {
+    it("stopListening returns true if an entry has been unsubscribed, false otherwise", () => {
       const effect = jest.fn((_: TestAction1) => {})
       startListening({
         actionCreator: testAction1,
@@ -197,7 +172,7 @@ describe("createListenerMiddleware", () => {
       expect(stopListening({ actionCreator: testAction2, effect })).toBe(false)
       expect(stopListening({ actionCreator: testAction1, effect })).toBe(true)
     })
-    test("dispatch(removeListener({...})) returns true if an entry has been unsubscribed, false otherwise", () => {
+    it("dispatch(removeListener({...})) returns true if an entry has been unsubscribed, false otherwise", () => {
       const effect = jest.fn((_: TestAction1) => {})
       startListening({
         actionCreator: testAction1,
@@ -220,23 +195,23 @@ describe("createListenerMiddleware", () => {
         )
       ).toBe(true)
     })
-    test("can subscribe with a string action type", () => {
-      const effect = jest.fn((_: AnyAction) => {})
+    it("can subscribe with a string action type", () => {
+      const effect = jest.fn((_: qx.AnyAction) => {})
       store.dispatch(
-        addListener({
+        qx.addListener({
           type: testAction2.type,
           effect,
         })
       )
       store.dispatch(testAction2("b"))
       expect(effect.mock.calls).toEqual([[testAction2("b"), middlewareApi]])
-      store.dispatch(removeListener({ type: testAction2.type, effect }))
+      store.dispatch(qx.removeListener({ type: testAction2.type, effect }))
       store.dispatch(testAction2("b"))
       expect(effect.mock.calls).toEqual([[testAction2("b"), middlewareApi]])
     })
-    test("can subscribe with a matcher function", () => {
-      const effect = jest.fn((_: AnyAction) => {})
-      const isAction1Or2 = isAnyOf(testAction1, testAction2)
+    it("can subscribe with a matcher function", () => {
+      const effect = jest.fn((_: qx.AnyAction) => {})
+      const isAction1Or2 = qx.isAnyOf(testAction1, testAction2)
       const unsubscribe = startListening({
         matcher: isAction1Or2,
         effect: effect,
@@ -255,8 +230,8 @@ describe("createListenerMiddleware", () => {
         [testAction2("b"), middlewareApi],
       ])
     })
-    test("Can subscribe with an action predicate function", () => {
-      const store = configureStore({
+    it("Can subscribe with an action predicate function", () => {
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -288,7 +263,7 @@ describe("createListenerMiddleware", () => {
       expect(listener1Calls).toBe(3)
       expect(listener2Calls).toBe(1)
     })
-    test("subscribing with the same listener will not make it trigger twice (like EventTarget.addEventListener())", () => {
+    it("subscribing with the same listener will not make it trigger twice (like EventTarget.addEventListener())", () => {
       const effect = jest.fn((_: TestAction1) => {})
       startListening({
         actionCreator: testAction1,
@@ -306,7 +281,7 @@ describe("createListenerMiddleware", () => {
         [testAction1("c"), middlewareApi],
       ])
     })
-    test("unsubscribing via callback", () => {
+    it("unsubscribing via callback", () => {
       const effect = jest.fn((_: TestAction1) => {})
       const unsubscribe = startListening({
         actionCreator: testAction1,
@@ -318,7 +293,7 @@ describe("createListenerMiddleware", () => {
       store.dispatch(testAction1("c"))
       expect(effect.mock.calls).toEqual([[testAction1("a"), middlewareApi]])
     })
-    test("directly unsubscribing", () => {
+    it("directly unsubscribing", () => {
       const effect = jest.fn((_: TestAction1) => {})
       startListening({
         actionCreator: testAction1,
@@ -330,13 +305,13 @@ describe("createListenerMiddleware", () => {
       store.dispatch(testAction1("c"))
       expect(effect.mock.calls).toEqual([[testAction1("a"), middlewareApi]])
     })
-    test("unsubscribing without any subscriptions does not trigger an error", () => {
+    it("unsubscribing without any subscriptions does not trigger an error", () => {
       stopListening({ matcher: testAction1.match, effect: noop })
     })
-    test("subscribing via action", () => {
+    it("subscribing via action", () => {
       const effect = jest.fn((_: TestAction1) => {})
       store.dispatch(
-        addListener({
+        qx.addListener({
           actionCreator: testAction1,
           effect,
         })
@@ -349,22 +324,22 @@ describe("createListenerMiddleware", () => {
         [testAction1("c"), middlewareApi],
       ])
     })
-    test("unsubscribing via callback from dispatch", () => {
+    it("unsubscribing via callback from dispatch", () => {
       const effect = jest.fn((_: TestAction1) => {})
       const unsubscribe = store.dispatch(
-        addListener({
+        qx.addListener({
           actionCreator: testAction1,
           effect,
         })
       )
-      expectType<UnsubscribeListener>(unsubscribe)
+      expectType<qx.UnsubscribeListener>(unsubscribe)
       store.dispatch(testAction1("a"))
       unsubscribe()
       store.dispatch(testAction2("b"))
       store.dispatch(testAction1("c"))
       expect(effect.mock.calls).toEqual([[testAction1("a"), middlewareApi]])
     })
-    test("unsubscribing via action", () => {
+    it("unsubscribing via action", () => {
       const effect = jest.fn((_: TestAction1) => {})
       startListening({
         actionCreator: testAction1,
@@ -375,12 +350,12 @@ describe("createListenerMiddleware", () => {
         effect,
       })
       store.dispatch(testAction1("a"))
-      store.dispatch(removeListener({ actionCreator: testAction1, effect }))
+      store.dispatch(qx.removeListener({ actionCreator: testAction1, effect }))
       store.dispatch(testAction2("b"))
       store.dispatch(testAction1("c"))
       expect(effect.mock.calls).toEqual([[testAction1("a"), middlewareApi]])
     })
-    test("can cancel an active listener when unsubscribing directly", async () => {
+    it("can cancel an active listener when unsubscribing directly", async () => {
       let wasCancelled = false
       const unsubscribe = startListening({
         actionCreator: testAction1,
@@ -388,7 +363,7 @@ describe("createListenerMiddleware", () => {
           try {
             await listenerApi.condition(testAction2.match)
           } catch (err) {
-            if (err instanceof TaskAbortError) {
+            if (err instanceof qx.TaskAbortError) {
               wasCancelled = true
             }
           }
@@ -400,13 +375,13 @@ describe("createListenerMiddleware", () => {
       await delay(10)
       expect(wasCancelled).toBe(true)
     })
-    test("can cancel an active listener when unsubscribing via stopListening", async () => {
+    it("can cancel an active listener when unsubscribing via stopListening", async () => {
       let wasCancelled = false
       const effect = async (action: any, listenerApi: any) => {
         try {
           await listenerApi.condition(testAction2.match)
         } catch (err) {
-          if (err instanceof TaskAbortError) {
+          if (err instanceof qx.TaskAbortError) {
             wasCancelled = true
           }
         }
@@ -421,13 +396,13 @@ describe("createListenerMiddleware", () => {
       await delay(10)
       expect(wasCancelled).toBe(true)
     })
-    test("can cancel an active listener when unsubscribing via removeListener", async () => {
+    it("can cancel an active listener when unsubscribing via removeListener", async () => {
       let wasCancelled = false
       const effect = async (action: any, listenerApi: any) => {
         try {
           await listenerApi.condition(testAction2.match)
         } catch (err) {
-          if (err instanceof TaskAbortError) {
+          if (err instanceof qx.TaskAbortError) {
             wasCancelled = true
           }
         }
@@ -438,7 +413,7 @@ describe("createListenerMiddleware", () => {
       })
       store.dispatch(testAction1("a"))
       store.dispatch(
-        removeListener({
+        qx.removeListener({
           actionCreator: testAction1,
           effect,
           cancelActive: true,
@@ -451,7 +426,7 @@ describe("createListenerMiddleware", () => {
     const addListenerOptions: [
       string,
       Omit<
-        AddListenerOverloads<
+        qx.AddListenerOverloads<
           () => void,
           typeof store.getState,
           typeof store.dispatch
@@ -461,14 +436,14 @@ describe("createListenerMiddleware", () => {
     ][] = [
       ["predicate", { predicate: () => true }],
       ["actionCreator", { actionCreator: testAction1 }],
-      ["matcher", { matcher: isAnyOf(testAction1, testAction2) }],
+      ["matcher", { matcher: qx.isAnyOf(testAction1, testAction2) }],
       ["type", { type: testAction1.type }],
     ]
     test.each(addListenerOptions)(
       'add and remove listener with "%s" param correctly',
       (_, params) => {
-        const effect: ListenerEffect<
-          AnyAction,
+        const effect: qx.ListenerEffect<
+          qx.AnyAction,
           typeof store.getState,
           typeof store.dispatch
         > = jest.fn()
@@ -480,14 +455,14 @@ describe("createListenerMiddleware", () => {
         expect(effect).toBeCalledTimes(1)
       }
     )
-    const unforwardedActions: [string, AnyAction][] = [
+    const unforwardedActions: [string, qx.AnyAction][] = [
       [
         "addListener",
-        addListener({ actionCreator: testAction1, effect: noop }),
+        qx.addListener({ actionCreator: testAction1, effect: noop }),
       ],
       [
         "removeListener",
-        removeListener({ actionCreator: testAction1, effect: noop }),
+        qx.removeListener({ actionCreator: testAction1, effect: noop }),
       ],
     ]
     test.each(unforwardedActions)(
@@ -503,15 +478,18 @@ describe("createListenerMiddleware", () => {
         ])
       }
     )
-    test("listenerApi.signal has correct reason when listener is cancelled or completes", async () => {
-      const notifyDeferred = createAction<Deferred<string>>("notify-deferred")
+    it("listenerApi.signal has correct reason when listener is cancelled or completes", async () => {
+      const notifyDeferred =
+        qx.createAction<Deferred<string>>("notify-deferred")
       startListening({
         actionCreator: notifyDeferred,
         async effect({ payload }, { signal, cancelActiveListeners, delay }) {
           signal.addEventListener(
             "abort",
             () => {
-              payload.resolve((signal as AbortSignalWithReason<string>).reason)
+              payload.resolve(
+                (signal as qx.AbortSignalWithReason<string>).reason
+              )
             },
             { once: true }
           )
@@ -525,12 +503,12 @@ describe("createListenerMiddleware", () => {
       const deferredCompletedSignalReason = store.dispatch(
         notifyDeferred(deferred<string>())
       ).payload
-      expect(await deferredCancelledSignalReason).toBe(listenerCancelled)
-      expect(await deferredCompletedSignalReason).toBe(listenerCompleted)
+      expect(await deferredCancelledSignalReason).toBe(qx.listenerCancelled)
+      expect(await deferredCompletedSignalReason).toBe(qx.listenerCompleted)
     })
     test('"can unsubscribe via middleware api', () => {
       const effect = jest.fn(
-        (action: TestAction1, api: ListenerEffectAPI<any, any>) => {
+        (action: TestAction1, api: qx.ListenerEffectAPI<any, any>) => {
           if (action.payload === "b") {
             api.unsubscribe()
           }
@@ -548,7 +526,7 @@ describe("createListenerMiddleware", () => {
         [testAction1("b"), middlewareApi],
       ])
     })
-    test("Can re-subscribe via middleware api", async () => {
+    it("Can re-subscribe via middleware api", async () => {
       let numListenerRuns = 0
       startListening({
         actionCreator: testAction1,
@@ -571,7 +549,7 @@ describe("createListenerMiddleware", () => {
     })
   })
   describe("clear listeners", () => {
-    test("dispatch(clearListenerAction()) cancels running listeners and removes all subscriptions", async () => {
+    it("dispatch(clearListenerAction()) cancels running listeners and removes all subscriptions", async () => {
       const listener1Test = deferred()
       let listener1Calls = 0
       let listener2Calls = 0
@@ -590,7 +568,7 @@ describe("createListenerMiddleware", () => {
         },
       })
       startListening({
-        actionCreator: clearAllListeners,
+        actionCreator: qx.clearAllListeners,
         effect() {
           listener2Calls++
         },
@@ -602,14 +580,14 @@ describe("createListenerMiddleware", () => {
         },
       })
       store.dispatch(testAction1("a"))
-      store.dispatch(clearAllListeners())
+      store.dispatch(qx.clearAllListeners())
       store.dispatch(testAction1("b"))
       expect(await listener1Test).toBe(1)
       expect(listener1Calls).toBe(1)
       expect(listener3Calls).toBe(1)
       expect(listener2Calls).toBe(0)
     })
-    test("clear() cancels running listeners and removes all subscriptions", async () => {
+    it("clear() cancels running listeners and removes all subscriptions", async () => {
       const listener1Test = deferred()
       let listener1Calls = 0
       let listener2Calls = 0
@@ -639,8 +617,8 @@ describe("createListenerMiddleware", () => {
       expect(listener2Calls).toBe(0)
       expect(await listener1Test).toBe(1)
     })
-    test("clear() cancels all running forked tasks", async () => {
-      const store = configureStore({
+    it("clear() cancels all running forked tasks", async () => {
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -659,8 +637,8 @@ describe("createListenerMiddleware", () => {
     })
   })
   describe("Listener API", () => {
-    test("Passes both getState and getOriginalState in the API", () => {
-      const store = configureStore({
+    it("Passes both getState and getOriginalState in the API", () => {
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -688,13 +666,13 @@ describe("createListenerMiddleware", () => {
       expect(listener1Calls).toBe(1)
       expect(listener2Calls).toBe(1)
     })
-    test("getOriginalState can only be invoked synchronously", async () => {
+    it("getOriginalState can only be invoked synchronously", async () => {
       const onError = jest.fn()
-      const listenerMiddleware = createListenerMiddleware<CounterState>({
+      const listenerMiddleware = qx.createListenerMiddleware<CounterState>({
         onError,
       })
       const { middleware, startListening } = listenerMiddleware
-      const store = configureStore({
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -726,7 +704,7 @@ describe("createListenerMiddleware", () => {
       )
       expect(store.getState()).toEqual({ value: 3 })
     })
-    test("by default, actions are forwarded to the store", () => {
+    it("by default, actions are forwarded to the store", () => {
       reducer.mockClear()
       const effect = jest.fn((_: TestAction1) => {})
       startListening({
@@ -736,9 +714,9 @@ describe("createListenerMiddleware", () => {
       store.dispatch(testAction1("a"))
       expect(reducer.mock.calls).toEqual([[{}, testAction1("a")]])
     })
-    test("listenerApi.delay does not trigger unhandledRejections for completed or cancelled listners", async () => {
-      let deferredCompletedEvt = deferred()
-      let deferredCancelledEvt = deferred()
+    it("listenerApi.delay does not trigger unhandledRejections for completed or cancelled listners", async () => {
+      const deferredCompletedEvt = deferred()
+      const deferredCancelledEvt = deferred()
       const godotPauseTrigger = deferred()
       startListening({
         actionCreator: increment,
@@ -772,7 +750,7 @@ describe("createListenerMiddleware", () => {
     })
   })
   describe("Error handling", () => {
-    test("Continues running other listeners if one of them raises an error", () => {
+    it("Continues running other listeners if one of them raises an error", () => {
       const matcher = (action: any): action is any => true
       startListening({
         matcher,
@@ -785,7 +763,7 @@ describe("createListenerMiddleware", () => {
       store.dispatch(testAction1("a"))
       expect(effect.mock.calls).toEqual([[testAction1("a"), middlewareApi]])
     })
-    test("Continues running other listeners if a predicate raises an error", () => {
+    it("Continues running other listeners if a predicate raises an error", () => {
       const matcher = (action: any): action is any => true
       const firstListener = jest.fn(() => {})
       const secondListener = jest.fn(() => {})
@@ -802,14 +780,14 @@ describe("createListenerMiddleware", () => {
         [testAction1("a"), middlewareApi],
       ])
     })
-    test("Notifies sync listener errors to `onError`, if provided", async () => {
+    it("Notifies sync listener errors to `onError`, if provided", async () => {
       const onError = jest.fn()
-      const listenerMiddleware = createListenerMiddleware({
+      const listenerMiddleware = qx.createListenerMiddleware({
         onError,
       })
       const { middleware, startListening } = listenerMiddleware
       reducer = jest.fn(() => ({}))
-      store = configureStore({
+      store = qx.configureStore({
         reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -827,14 +805,14 @@ describe("createListenerMiddleware", () => {
         raisedBy: "effect",
       })
     })
-    test("Notifies async listeners errors to `onError`, if provided", async () => {
+    it("Notifies async listeners errors to `onError`, if provided", async () => {
       const onError = jest.fn()
-      const listenerMiddleware = createListenerMiddleware({
+      const listenerMiddleware = qx.createListenerMiddleware({
         onError,
       })
       const { middleware, startListening } = listenerMiddleware
       reducer = jest.fn(() => ({}))
-      store = configureStore({
+      store = qx.configureStore({
         reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -854,12 +832,12 @@ describe("createListenerMiddleware", () => {
     })
   })
   describe("take and condition methods", () => {
-    test("take resolves to the tuple [A, CurrentState, PreviousState] when the predicate matches the action", async () => {
-      const store = configureStore({
+    it("take resolves to the tuple [A, CurrentState, PreviousState] when the predicate matches the action", async () => {
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
-      const typedAddListener = startListening as TypedStartListening<
+      const typedAddListener = startListening as qx.TypedStartListening<
         CounterState,
         typeof store.dispatch
       >
@@ -868,7 +846,7 @@ describe("createListenerMiddleware", () => {
         | null = null
       typedAddListener({
         predicate: incrementByAmount.match,
-        async effect(_: AnyAction, listenerApi) {
+        async effect(_: qx.AnyAction, listenerApi) {
           result = await listenerApi.take(increment.match)
         },
       })
@@ -877,8 +855,8 @@ describe("createListenerMiddleware", () => {
       await delay(10)
       expect(result).toEqual([increment(), { value: 2 }, { value: 1 }])
     })
-    test("take resolves to null if the timeout expires", async () => {
-      const store = configureStore({
+    it("take resolves to null if the timeout expires", async () => {
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -893,8 +871,8 @@ describe("createListenerMiddleware", () => {
       await delay(25)
       expect(takeResult).toBe(null)
     })
-    test("take resolves to [A, CurrentState, PreviousState] if the timeout is provided but doesn't expire", async () => {
-      const store = configureStore({
+    it("take resolves to [A, CurrentState, PreviousState] if the timeout is provided but doesn't expire", async () => {
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -914,8 +892,8 @@ describe("createListenerMiddleware", () => {
       await delay(25)
       expect(takeResult).toEqual([increment(), stateCurrent, stateBefore])
     })
-    test("take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided", async () => {
-      const store = configureStore({
+    it("take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided", async () => {
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -925,7 +903,7 @@ describe("createListenerMiddleware", () => {
       let timeout: number | undefined = undefined
       let done = false
       const startAppListening =
-        startListening as TypedStartListening<CounterState>
+        startListening as qx.TypedStartListening<CounterState>
       startAppListening({
         predicate: incrementByAmount.match,
         effect: async (_, listenerApi) => {
@@ -945,8 +923,8 @@ describe("createListenerMiddleware", () => {
       await delay(25)
       expect(done).toBe(true)
     })
-    test("condition method resolves promise when the predicate succeeds", async () => {
-      const store = configureStore({
+    it("condition method resolves promise when the predicate succeeds", async () => {
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -977,8 +955,8 @@ describe("createListenerMiddleware", () => {
       await delay(25)
       expect(finalCount).toBe(3)
     })
-    test("condition method resolves promise when there is a timeout", async () => {
-      const store = configureStore({
+    it("condition method resolves promise when there is a timeout", async () => {
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -1008,10 +986,10 @@ describe("createListenerMiddleware", () => {
       store.dispatch(increment())
       expect(finalCount).toBe(2)
     })
-    test("take does not trigger unhandledRejections for completed or cancelled tasks", async () => {
-      let deferredCompletedEvt = deferred()
-      let deferredCancelledEvt = deferred()
-      const store = configureStore({
+    it("take does not trigger unhandledRejections for completed or cancelled tasks", async () => {
+      const deferredCompletedEvt = deferred()
+      const deferredCancelledEvt = deferred()
+      const store = qx.configureStore({
         reducer: counterSlice.reducer,
         middleware: gDM => gDM().prepend(middleware),
       })
@@ -1045,7 +1023,7 @@ describe("createListenerMiddleware", () => {
     })
   })
   describe("Job API", () => {
-    test("Allows canceling previous jobs", async () => {
+    it("Allows canceling previous jobs", async () => {
       let jobsStarted = 0
       let jobsContinued = 0
       let jobsCanceled = 0
@@ -1058,7 +1036,7 @@ describe("createListenerMiddleware", () => {
               await listenerApi.condition(decrement.match)
               jobsContinued++
             } catch (err) {
-              if (err instanceof TaskAbortError) {
+              if (err instanceof qx.TaskAbortError) {
                 jobsCanceled++
               }
             }
@@ -1077,19 +1055,19 @@ describe("createListenerMiddleware", () => {
     })
   })
   describe("Type tests", () => {
-    const listenerMiddleware = createListenerMiddleware()
+    const listenerMiddleware = qx.createListenerMiddleware()
     const { middleware, startListening } = listenerMiddleware
-    const store = configureStore({
+    const store = qx.configureStore({
       reducer: counterSlice.reducer,
       middleware: gDM => gDM().prepend(middleware),
     })
-    test("State args default to unknown", () => {
-      createListenerEntry({
+    it("State args default to unknown", () => {
+      qx.createListenerEntry({
         predicate: (
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is qx.AnyAction => {
           expectUnknown(currentState)
           expectUnknown(previousState)
           return true
@@ -1108,7 +1086,7 @@ describe("createListenerMiddleware", () => {
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is qx.AnyAction => {
           expectUnknown(currentState)
           expectUnknown(previousState)
           return true
@@ -1127,12 +1105,12 @@ describe("createListenerMiddleware", () => {
         },
       })
       store.dispatch(
-        addListener({
+        qx.addListener({
           predicate: (
             action,
             currentState,
             previousState
-          ): action is AnyAction => {
+          ): action is qx.AnyAction => {
             expectUnknown(currentState)
             expectUnknown(previousState)
             return true
@@ -1148,7 +1126,7 @@ describe("createListenerMiddleware", () => {
         })
       )
       store.dispatch(
-        addListener({
+        qx.addListener({
           matcher: increment.match,
           effect: (action, listenerApi) => {
             const listenerState = listenerApi.getState()
@@ -1161,7 +1139,7 @@ describe("createListenerMiddleware", () => {
         })
       )
     })
-    test("Action type is inferred from args", () => {
+    it("Action type is inferred from args", () => {
       startListening({
         type: "abcd",
         effect: (action, listenerApi) => {
@@ -1171,13 +1149,13 @@ describe("createListenerMiddleware", () => {
       startListening({
         actionCreator: incrementByAmount,
         effect: (action, listenerApi) => {
-          expectType<PayloadAction<number>>(action)
+          expectType<qx.PayloadAction<number>>(action)
         },
       })
       startListening({
         matcher: incrementByAmount.match,
         effect: (action, listenerApi) => {
-          expectType<PayloadAction<number>>(action)
+          expectType<qx.PayloadAction<number>>(action)
         },
       })
       startListening({
@@ -1185,11 +1163,11 @@ describe("createListenerMiddleware", () => {
           action,
           currentState,
           previousState
-        ): action is PayloadAction<number> => {
+        ): action is qx.PayloadAction<number> => {
           return typeof action.payload === "boolean"
         },
         effect: (action, listenerApi) => {
-          expectExactType<PayloadAction<number>>(action)
+          expectExactType<qx.PayloadAction<number>>(action)
         },
       })
       startListening({
@@ -1197,11 +1175,11 @@ describe("createListenerMiddleware", () => {
           return typeof action.payload === "number"
         },
         effect: (action, listenerApi) => {
-          expectExactType<AnyAction>(action)
+          expectExactType<qx.AnyAction>(action)
         },
       })
       store.dispatch(
-        addListener({
+        qx.addListener({
           type: "abcd",
           effect: (action, listenerApi) => {
             expectType<{ type: "abcd" }>(action)
@@ -1209,30 +1187,30 @@ describe("createListenerMiddleware", () => {
         })
       )
       store.dispatch(
-        addListener({
+        qx.addListener({
           actionCreator: incrementByAmount,
           effect: (action, listenerApi) => {
-            expectType<PayloadAction<number>>(action)
+            expectType<qx.PayloadAction<number>>(action)
           },
         })
       )
       store.dispatch(
-        addListener({
+        qx.addListener({
           matcher: incrementByAmount.match,
           effect: (action, listenerApi) => {
-            expectType<PayloadAction<number>>(action)
+            expectType<qx.PayloadAction<number>>(action)
           },
         })
       )
     })
-    test("Can create a pre-typed middleware", () => {
-      const typedMiddleware = createListenerMiddleware<CounterState>()
+    it("Can create a pre-typed middleware", () => {
+      const typedMiddleware = qx.createListenerMiddleware<CounterState>()
       typedMiddleware.startListening({
         predicate: (
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is qx.AnyAction => {
           expectNotAny(currentState)
           expectNotAny(previousState)
           expectExactType<CounterState>(currentState)
@@ -1250,15 +1228,15 @@ describe("createListenerMiddleware", () => {
       })
       typedMiddleware.startListening({
         predicate: (
-          action: AnyAction,
+          action: qx.AnyAction,
           currentState: CounterState
-        ): action is PayloadAction<number> => {
+        ): action is qx.PayloadAction<number> => {
           expectNotAny(currentState)
           expectExactType<CounterState>(currentState)
           return true
         },
         effect: (action, listenerApi) => {
-          expectType<PayloadAction<number>>(action)
+          expectType<qx.PayloadAction<number>>(action)
           const listenerState = listenerApi.getState()
           expectExactType<CounterState>(listenerState)
           listenerApi.dispatch((dispatch, getState) => {
@@ -1307,7 +1285,7 @@ describe("createListenerMiddleware", () => {
             action,
             currentState,
             previousState
-          ): action is AnyAction => {
+          ): action is qx.AnyAction => {
             expectNotAny(currentState)
             expectNotAny(previousState)
             expectExactType<CounterState>(currentState)
@@ -1325,17 +1303,17 @@ describe("createListenerMiddleware", () => {
         })
       )
     })
-    test("Can create pre-typed versions of startListening and addListener", () => {
+    it("Can create pre-typed versions of startListening and addListener", () => {
       const typedAddListener =
-        startListening as TypedStartListening<CounterState>
+        startListening as qx.TypedStartListening<CounterState>
       const typedAddListenerAction =
-        addListener as TypedAddListener<CounterState>
+        qx.addListener as qx.TypedAddListener<CounterState>
       typedAddListener({
         predicate: (
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is qx.AnyAction => {
           expectNotAny(currentState)
           expectNotAny(previousState)
           expectExactType<CounterState>(currentState)
@@ -1368,7 +1346,7 @@ describe("createListenerMiddleware", () => {
             action,
             currentState,
             previousState
-          ): action is AnyAction => {
+          ): action is qx.AnyAction => {
             expectNotAny(currentState)
             expectNotAny(previousState)
             expectExactType<CounterState>(currentState)
@@ -1399,5 +1377,735 @@ describe("createListenerMiddleware", () => {
         })
       )
     })
+  })
+})
+
+describe("Saga-style Effects Scenarios", () => {
+  interface CounterState {
+    value: number
+  }
+  const counterSlice = qx.createSlice({
+    name: "counter",
+    initialState: { value: 0 } as CounterState,
+    reducers: {
+      increment(state) {
+        state.value += 1
+      },
+      decrement(state) {
+        state.value -= 1
+      },
+      incrementByAmount: (state, action: qx.PayloadAction<number>) => {
+        state.value += action.payload
+      },
+    },
+  })
+  const { increment, decrement, incrementByAmount } = counterSlice.actions
+  const { reducer } = counterSlice
+  let listenerMiddleware = qx.createListenerMiddleware<CounterState>()
+  let { middleware, startListening, stopListening } = listenerMiddleware
+  let store = qx.configureStore({
+    reducer,
+    middleware: gDM => gDM().prepend(middleware),
+  })
+  const testAction1 = qx.createAction<string>("testAction1")
+  type TestAction1 = ReturnType<typeof testAction1>
+  const testAction2 = qx.createAction<string>("testAction2")
+  type TestAction2 = ReturnType<typeof testAction2>
+  const testAction3 = qx.createAction<string>("testAction3")
+  type TestAction3 = ReturnType<typeof testAction3>
+  type RootState = ReturnType<typeof store.getState>
+  function delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+  beforeAll(() => {
+    const noop = () => {}
+    jest.spyOn(console, "error").mockImplementation(noop)
+  })
+  beforeEach(() => {
+    listenerMiddleware = qx.createListenerMiddleware<CounterState>()
+    middleware = listenerMiddleware.middleware
+    startListening = listenerMiddleware.startListening
+    store = qx.configureStore({
+      reducer,
+      middleware: gDM => gDM().prepend(middleware),
+    })
+  })
+  test("throttle", async () => {
+    let listenerCalls = 0
+    let workPerformed = 0
+    startListening({
+      actionCreator: increment,
+      effect: (action, listenerApi) => {
+        listenerCalls++
+        listenerApi.unsubscribe()
+        setTimeout(listenerApi.subscribe, 15)
+        workPerformed++
+      },
+    })
+    store.dispatch(increment())
+    store.dispatch(increment())
+    store.dispatch(increment())
+    await delay(25)
+    store.dispatch(increment())
+    store.dispatch(increment())
+    await delay(5)
+    expect(listenerCalls).toBe(2)
+    expect(workPerformed).toBe(2)
+  })
+  test("debounce / takeLatest", async () => {
+    let listenerCalls = 0
+    let workPerformed = 0
+    startListening({
+      actionCreator: increment,
+      effect: async (action, listenerApi) => {
+        listenerCalls++
+        listenerApi.cancelActiveListeners()
+        await listenerApi.delay(15)
+        workPerformed++
+      },
+    })
+    store.dispatch(increment())
+    store.dispatch(increment())
+    store.dispatch(increment())
+    expect(listenerCalls).toBe(3)
+    expect(workPerformed).toBe(0)
+    await delay(25)
+    expect(listenerCalls).toBe(3)
+    expect(workPerformed).toBe(1)
+  })
+  test("takeEvery", async () => {
+    let listenerCalls = 0
+    startListening({
+      actionCreator: increment,
+      effect: (action, listenerApi) => {
+        listenerCalls++
+      },
+    })
+    store.dispatch(increment())
+    expect(listenerCalls).toBe(1)
+    store.dispatch(increment())
+    expect(listenerCalls).toBe(2)
+  })
+  test("takeLeading", async () => {
+    let listenerCalls = 0
+    let workPerformed = 0
+    startListening({
+      actionCreator: increment,
+      effect: async (action, listenerApi) => {
+        listenerCalls++
+        listenerApi.unsubscribe()
+        await listenerApi.delay(15)
+        workPerformed++
+        listenerApi.subscribe()
+      },
+    })
+    store.dispatch(increment())
+    store.dispatch(increment())
+    expect(listenerCalls).toBe(1)
+    expect(workPerformed).toBe(0)
+    await delay(5)
+    store.dispatch(increment())
+    expect(listenerCalls).toBe(1)
+    expect(workPerformed).toBe(0)
+    await delay(20)
+    expect(workPerformed).toBe(1)
+    store.dispatch(increment())
+    expect(listenerCalls).toBe(2)
+    expect(workPerformed).toBe(1)
+    await delay(20)
+    expect(workPerformed).toBe(2)
+  })
+  test("fork + join", async () => {
+    let childResult = 0
+    startListening({
+      actionCreator: increment,
+      effect: async (_, listenerApi) => {
+        const childOutput = 42
+        const result = await listenerApi.fork(async () => {
+          await listenerApi.delay(5)
+          return childOutput
+        }).result
+        if (result.status === "ok") {
+          childResult = result.value
+        }
+      },
+    })
+    store.dispatch(increment())
+    await delay(10)
+    expect(childResult).toBe(42)
+  })
+  test("fork + cancel", async () => {
+    let childResult = 0
+    let listenerCompleted = false
+    startListening({
+      actionCreator: increment,
+      effect: async (action, listenerApi) => {
+        const forkedTask = listenerApi.fork(async () => {
+          await listenerApi.delay(15)
+          childResult = 42
+          return 0
+        })
+        await listenerApi.delay(5)
+        forkedTask.cancel()
+        listenerCompleted = true
+      },
+    })
+    store.dispatch(increment())
+    await delay(20)
+    expect(listenerCompleted).toBe(true)
+    expect(childResult).toBe(0)
+  })
+  test("canceled", async () => {
+    let canceledAndCaught = false
+    let canceledCheck = false
+    startListening({
+      matcher: qx.isAnyOf(increment, decrement, incrementByAmount),
+      effect: async (action, listenerApi) => {
+        if (increment.match(action)) {
+          try {
+            await listenerApi.delay(10)
+          } catch (err) {
+            if (err instanceof qx.TaskAbortError) {
+              canceledAndCaught = true
+            }
+          }
+        } else if (incrementByAmount.match(action)) {
+          await delay(15)
+          if (listenerApi.signal.aborted) {
+            canceledCheck = true
+          }
+        } else if (decrement.match(action)) {
+          listenerApi.cancelActiveListeners()
+        }
+      },
+    })
+    store.dispatch(increment())
+    store.dispatch(decrement())
+    await delay(15)
+    expect(canceledAndCaught).toBe(true)
+    store.dispatch(incrementByAmount(42))
+    store.dispatch(decrement())
+    expect(canceledCheck).toBe(false)
+    await delay(20)
+    expect(canceledCheck).toBe(true)
+  })
+})
+
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+export interface Deferred<T> extends Promise<T> {
+  resolve(value?: T | PromiseLike<T>): void
+  reject(reason?: any): void
+}
+export function deferred<T>(): Deferred<T> {
+  let methods
+  const promise = new Promise<T>((resolve, reject): void => {
+    methods = { resolve, reject }
+  })
+  return Object.assign(promise, methods) as Deferred<T>
+}
+interface CounterSlice {
+  value: number
+}
+describe("fork", () => {
+  const counterSlice = qx.createSlice({
+    name: "counter",
+    initialState: { value: 0 } as CounterSlice,
+    reducers: {
+      increment(state) {
+        state.value += 1
+      },
+      decrement(state) {
+        state.value -= 1
+      },
+      incrementByAmount: (state, action: qx.PayloadAction<number>) => {
+        state.value += action.payload
+      },
+    },
+  })
+  const { increment, decrement, incrementByAmount } = counterSlice.actions
+  let listenerMiddleware = qx.createListenerMiddleware()
+  let { middleware, startListening, stopListening } = listenerMiddleware
+  let store = qx.configureStore({
+    reducer: counterSlice.reducer,
+    middleware: gDM => gDM().prepend(middleware),
+  })
+  beforeEach(() => {
+    listenerMiddleware = qx.createListenerMiddleware()
+    middleware = listenerMiddleware.middleware
+    startListening = listenerMiddleware.startListening
+    stopListening = listenerMiddleware.stopListening
+    store = qx.configureStore({
+      reducer: counterSlice.reducer,
+      middleware: gDM => gDM().prepend(middleware),
+    })
+  })
+  it("runs executors in the next microtask", async () => {
+    let hasRunSyncExector = false
+    let hasRunAsyncExecutor = false
+    startListening({
+      actionCreator: increment,
+      effect: async (_, listenerApi) => {
+        listenerApi.fork(() => {
+          hasRunSyncExector = true
+        })
+        listenerApi.fork(async () => {
+          hasRunAsyncExecutor = true
+        })
+      },
+    })
+    store.dispatch(increment())
+    expect(hasRunSyncExector).toBe(false)
+    expect(hasRunAsyncExecutor).toBe(false)
+    await Promise.resolve()
+    expect(hasRunSyncExector).toBe(true)
+    expect(hasRunAsyncExecutor).toBe(true)
+  })
+  test("forkedTask.result rejects TaskAbortError if listener is cancelled", async () => {
+    const deferredForkedTaskError = deferred()
+    startListening({
+      actionCreator: increment,
+      async effect(_, listenerApi) {
+        listenerApi.cancelActiveListeners()
+        listenerApi
+          .fork(async () => {
+            await delay(10)
+            throw new Error("unreachable code")
+          })
+          .result.then(
+            deferredForkedTaskError.resolve,
+            deferredForkedTaskError.resolve
+          )
+      },
+    })
+    store.dispatch(increment())
+    store.dispatch(increment())
+    expect(await deferredForkedTaskError).toEqual(
+      new qx.TaskAbortError(qx.listenerCancelled)
+    )
+  })
+  it("synchronously throws TypeError error if the provided executor is not a function", () => {
+    const invalidExecutors = [null, {}, undefined, 1]
+    startListening({
+      predicate: () => true,
+      effect: async (_, listenerApi) => {
+        invalidExecutors.forEach(invalidExecutor => {
+          let caughtError
+          try {
+            listenerApi.fork(invalidExecutor as any)
+          } catch (err) {
+            caughtError = err
+          }
+          expect(caughtError).toBeInstanceOf(TypeError)
+        })
+      },
+    })
+    store.dispatch(increment())
+    expect.assertions(invalidExecutors.length)
+  })
+  it("does not run an executor if the task is synchronously cancelled", async () => {
+    const storeStateAfter = deferred()
+    startListening({
+      actionCreator: increment,
+      effect: async (action, listenerApi) => {
+        const forkedTask = listenerApi.fork(() => {
+          listenerApi.dispatch(decrement())
+          listenerApi.dispatch(decrement())
+          listenerApi.dispatch(decrement())
+        })
+        forkedTask.cancel()
+        const result = await forkedTask.result
+        storeStateAfter.resolve(listenerApi.getState())
+      },
+    })
+    store.dispatch(increment())
+    expect(storeStateAfter).resolves.toEqual({ value: 1 })
+  })
+  it.each<{
+    desc: string
+    executor: qx.ForkedTaskExecutor<any>
+    cancelAfterMs?: number
+    expected: qx.TaskResult<any>
+  }>([
+    {
+      desc: "sync exec - success",
+      executor: () => 42,
+      expected: { status: "ok", value: 42 },
+    },
+    {
+      desc: "sync exec - error",
+      executor: () => {
+        throw new Error("2020")
+      },
+      expected: { status: "rejected", error: new Error("2020") },
+    },
+    {
+      desc: "sync exec - sync cancel",
+      executor: () => 42,
+      cancelAfterMs: -1,
+      expected: {
+        status: "cancelled",
+        error: new qx.TaskAbortError(qx.taskCancelled),
+      },
+    },
+    {
+      desc: "sync exec - async cancel",
+      executor: () => 42,
+      cancelAfterMs: 0,
+      expected: { status: "ok", value: 42 },
+    },
+    {
+      desc: "async exec - async cancel",
+      executor: async forkApi => {
+        await forkApi.delay(100)
+        throw new Error("2020")
+      },
+      cancelAfterMs: 10,
+      expected: {
+        status: "cancelled",
+        error: new qx.TaskAbortError(qx.taskCancelled),
+      },
+    },
+    {
+      desc: "async exec - success",
+      executor: async () => {
+        await delay(20)
+        return Promise.resolve(21)
+      },
+      expected: { status: "ok", value: 21 },
+    },
+    {
+      desc: "async exec - error",
+      executor: async () => {
+        await Promise.resolve()
+        throw new Error("2020")
+      },
+      expected: { status: "rejected", error: new Error("2020") },
+    },
+    {
+      desc: "async exec - success with forkApi.pause",
+      executor: async forkApi => {
+        return forkApi.pause(Promise.resolve(2))
+      },
+      expected: { status: "ok", value: 2 },
+    },
+    {
+      desc: "async exec - error with forkApi.pause",
+      executor: async forkApi => {
+        return forkApi.pause(Promise.reject(22))
+      },
+      expected: { status: "rejected", error: 22 },
+    },
+    {
+      desc: "async exec - success with forkApi.delay",
+      executor: async forkApi => {
+        await forkApi.delay(10)
+        return 5
+      },
+      expected: { status: "ok", value: 5 },
+    },
+  ])("%# - %j", async ({ executor, expected, cancelAfterMs }) => {
+    const deferredResult = deferred()
+    let forkedTask: any = {}
+    startListening({
+      predicate: () => true,
+      effect: async (_, listenerApi) => {
+        forkedTask = listenerApi.fork(executor)
+        deferredResult.resolve(await forkedTask.result)
+      },
+    })
+    store.dispatch({ type: "" })
+    if (typeof cancelAfterMs === "number") {
+      if (cancelAfterMs < 0) {
+        forkedTask.cancel()
+      } else {
+        await delay(cancelAfterMs)
+        forkedTask.cancel()
+      }
+    }
+    const result = await deferredResult
+    expect(result).toEqual(expected)
+  })
+  describe("forkAPI", () => {
+    it("forkApi.delay rejects as soon as the task is cancelled", async () => {
+      const deferredResult = deferred()
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          const forkedTask = listenerApi.fork(async forkApi => {
+            await forkApi.delay(100)
+            return 4
+          })
+          await listenerApi.delay(10)
+          forkedTask.cancel()
+          deferredResult.resolve(await forkedTask.result)
+        },
+      })
+      store.dispatch(increment())
+      expect(await deferredResult).toEqual({
+        status: "cancelled",
+        error: new qx.TaskAbortError(qx.taskCancelled),
+      })
+    })
+    it("forkApi.delay rejects as soon as the parent listener is cancelled", async () => {
+      const deferredResult = deferred()
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          listenerApi.cancelActiveListeners()
+          await listenerApi.fork(async forkApi => {
+            await forkApi
+              .delay(100)
+              .then(deferredResult.resolve, deferredResult.resolve)
+            return 4
+          }).result
+          deferredResult.resolve(new Error("unreachable"))
+        },
+      })
+      store.dispatch(increment())
+      await Promise.resolve()
+      store.dispatch(increment())
+      expect(await deferredResult).toEqual(
+        new qx.TaskAbortError(qx.listenerCancelled)
+      )
+    })
+    it("forkApi.signal listener is invoked as soon as the parent listener is cancelled or completed", async () => {
+      const deferredResult = deferred()
+      startListening({
+        actionCreator: increment,
+        async effect(_, listenerApi) {
+          const wronglyDoNotAwaitResultOfTask = listenerApi.fork(
+            async forkApi => {
+              forkApi.signal.addEventListener("abort", () => {
+                deferredResult.resolve(
+                  (forkApi.signal as qx.AbortSignalWithReason<unknown>).reason
+                )
+              })
+            }
+          )
+        },
+      })
+      store.dispatch(increment)
+      expect(await deferredResult).toBe(qx.listenerCompleted)
+    })
+    it("fork.delay does not trigger unhandledRejections for completed or cancelled tasks", async () => {
+      const deferredCompletedEvt = deferred()
+      const deferredCancelledEvt = deferred()
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          const completedTask = listenerApi.fork(async forkApi => {
+            forkApi.signal.addEventListener(
+              "abort",
+              deferredCompletedEvt.resolve,
+              { once: true }
+            )
+            forkApi.delay(100) // missing await
+            return 4
+          })
+          deferredCompletedEvt.resolve(await completedTask.result)
+          const godotPauseTrigger = deferred()
+          const cancelledTask = listenerApi.fork(async forkApi => {
+            forkApi.signal.addEventListener(
+              "abort",
+              deferredCompletedEvt.resolve,
+              { once: true }
+            )
+            forkApi.delay(1_000) // missing await
+            await forkApi.pause(godotPauseTrigger)
+            return 4
+          })
+          await Promise.resolve()
+          cancelledTask.cancel()
+          deferredCancelledEvt.resolve(await cancelledTask.result)
+        },
+      })
+      store.dispatch(increment())
+      expect(await deferredCompletedEvt).toBeDefined()
+      expect(await deferredCancelledEvt).toBeDefined()
+    })
+  })
+  test("forkApi.pause rejects if task is cancelled", async () => {
+    const deferredResult = deferred()
+    startListening({
+      actionCreator: increment,
+      effect: async (_, listenerApi) => {
+        const forkedTask = listenerApi.fork(async forkApi => {
+          await forkApi.pause(delay(1_000))
+          return 4
+        })
+        await Promise.resolve()
+        forkedTask.cancel()
+        deferredResult.resolve(await forkedTask.result)
+      },
+    })
+    store.dispatch(increment())
+    expect(await deferredResult).toEqual({
+      status: "cancelled",
+      error: new qx.TaskAbortError(qx.taskCancelled),
+    })
+  })
+  test("forkApi.pause rejects as soon as the parent listener is cancelled", async () => {
+    const deferredResult = deferred()
+    startListening({
+      actionCreator: increment,
+      effect: async (_, listenerApi) => {
+        listenerApi.cancelActiveListeners()
+        const forkedTask = listenerApi.fork(async forkApi => {
+          await forkApi
+            .pause(delay(100))
+            .then(deferredResult.resolve, deferredResult.resolve)
+          return 4
+        })
+        await forkedTask.result
+        deferredResult.resolve(new Error("unreachable"))
+      },
+    })
+    store.dispatch(increment())
+    await Promise.resolve()
+    store.dispatch(increment())
+    expect(await deferredResult).toEqual(
+      new qx.TaskAbortError(qx.listenerCancelled)
+    )
+  })
+  test("forkApi.pause rejects if listener is cancelled", async () => {
+    const incrementByInListener = qx.createAction<number>(
+      "incrementByInListener"
+    )
+    startListening({
+      actionCreator: incrementByInListener,
+      async effect({ payload: amountToIncrement }, listenerApi) {
+        listenerApi.cancelActiveListeners()
+        await listenerApi.fork(async forkApi => {
+          await forkApi.pause(delay(10))
+          listenerApi.dispatch(incrementByAmount(amountToIncrement))
+        }).result
+        listenerApi.dispatch(incrementByAmount(2 * amountToIncrement))
+      },
+    })
+    store.dispatch(incrementByInListener(10))
+    store.dispatch(incrementByInListener(100))
+    await delay(50)
+    expect(store.getState().value).toEqual(300)
+  })
+})
+
+interface CounterState {
+  value: number
+}
+const counterSlice = qx.createSlice({
+  name: "counter",
+  initialState: { value: 0 } as CounterState,
+  reducers: {
+    increment(state) {
+      state.value += 1
+    },
+    decrement(state) {
+      state.value -= 1
+    },
+    incrementByAmount: (state, action: qx.PayloadAction<number>) => {
+      state.value += action.payload
+    },
+  },
+})
+const { increment, decrement, incrementByAmount } = counterSlice.actions
+describe("Saga-style Effects Scenarios", () => {
+  let listenerMiddleware = qx.createListenerMiddleware<CounterState>()
+  let { middleware, startListening, stopListening } = listenerMiddleware
+  let store = qx.configureStore({
+    reducer: counterSlice.reducer,
+    middleware: gDM => gDM().prepend(middleware),
+  })
+  const testAction1 = qx.createAction<string>("testAction1")
+  type TestAction1 = ReturnType<typeof testAction1>
+  const testAction2 = qx.createAction<string>("testAction2")
+  type TestAction2 = ReturnType<typeof testAction2>
+  const testAction3 = qx.createAction<string>("testAction3")
+  type TestAction3 = ReturnType<typeof testAction3>
+  type RootState = ReturnType<typeof store.getState>
+  function delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+  beforeEach(() => {
+    listenerMiddleware = qx.createListenerMiddleware<CounterState>()
+    middleware = listenerMiddleware.middleware
+    startListening = listenerMiddleware.startListening
+    store = qx.configureStore({
+      reducer: counterSlice.reducer,
+      middleware: gDM => gDM().prepend(middleware),
+    })
+  })
+  test("Long polling loop", async () => {
+    const eventPollingStarted = qx.createAction("serverPolling/started")
+    const eventPollingStopped = qx.createAction("serverPolling/stopped")
+    const createNanoEvents = () => ({
+      events: {} as Record<string, any>,
+      emit(event: string, ...args: any[]) {
+        ;(this.events[event] || []).forEach((i: any) => i(...args))
+      },
+      on(event: string, cb: (...args: any[]) => void) {
+        ;(this.events[event] = this.events[event] || []).push(cb)
+        return () =>
+          (this.events[event] = (this.events[event] || []).filter(
+            (l: any) => l !== cb
+          ))
+      },
+    })
+    const emitter = createNanoEvents()
+    function pollForEvent() {
+      return new Promise<{ type: string }>((resolve, reject) => {
+        const unsubscribe = emitter.on("serverEvent", (arg1: string) => {
+          unsubscribe()
+          resolve({ type: arg1 })
+        })
+      })
+    }
+    const receivedMessages = {
+      a: 0,
+      b: 0,
+      c: 0,
+    }
+    let pollingTaskStarted = false
+    let pollingTaskCanceled = false
+    startListening({
+      actionCreator: eventPollingStarted,
+      effect: async (action, listenerApi) => {
+        listenerApi.unsubscribe()
+        const pollingTask = listenerApi.fork(async forkApi => {
+          pollingTaskStarted = true
+          try {
+            while (true) {
+              const serverEvent = await forkApi.pause(pollForEvent())
+              if (serverEvent.type in receivedMessages) {
+                receivedMessages[
+                  serverEvent.type as keyof typeof receivedMessages
+                ]++
+              }
+            }
+          } catch (err) {
+            if (err instanceof qx.TaskAbortError) {
+              pollingTaskCanceled = true
+            }
+          }
+          return 0
+        })
+        await listenerApi.condition(eventPollingStopped.match)
+        pollingTask.cancel()
+      },
+    })
+    store.dispatch(eventPollingStarted())
+    await delay(5)
+    expect(pollingTaskStarted).toBe(true)
+    await delay(5)
+    emitter.emit("serverEvent", "a")
+    await delay(1)
+    emitter.emit("serverEvent", "b")
+    await delay(1)
+    store.dispatch(eventPollingStopped())
+    await delay(1)
+    emitter.emit("serverEvent", "c")
+    expect(receivedMessages).toEqual({ a: 1, b: 1, c: 0 })
+    expect(pollingTaskCanceled).toBe(true)
   })
 })

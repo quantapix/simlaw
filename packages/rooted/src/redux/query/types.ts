@@ -273,13 +273,7 @@ export type OmitFromUnion<T, K extends keyof T> = T extends any
   ? Omit<T, K>
   : never
 
-export type IsAny<T, True, False = never> = true | false extends (
-  T extends never ? true : false
-)
-  ? True
-  : False
-
-export type CastAny<T, CastTo> = IsAny<T, CastTo, T>
+export type CastAny<T, CastTo> = qt.IsAny<T, CastTo, T>
 
 export interface BaseQueryApi {
   signal: AbortSignal

@@ -1,4 +1,5 @@
-import type { IsAny, IsUnknown } from "../../src/tsHelpers"
+import type { IsAny, IsUnknown } from "../../src/redux/index.js"
+
 export function expectType<T>(t: T): T {
   return t
 }
@@ -10,11 +11,11 @@ type Equals<T, U> = IsAny<
 export function expectExactType<T>(t: T) {
   return <U extends Equals<T, U>>(u: U) => {}
 }
-type EnsureUnknown<T extends any> = IsUnknown<T, any, never>
+type EnsureUnknown<T> = IsUnknown<T, any, never>
 export function expectUnknown<T extends EnsureUnknown<T>>(t: T) {
   return t
 }
-type EnsureAny<T extends any> = IsAny<T, any, never>
+type EnsureAny<T> = IsAny<T, any, never>
 export function expectExactAny<T extends EnsureAny<T>>(t: T) {
   return t
 }

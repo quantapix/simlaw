@@ -81,7 +81,7 @@ afterEach(() => {
 let getRenderCount: () => number = () => 0
 describe("hooks tests", () => {
   describe("useQuery", () => {
-    test("useQuery hook basic render count assumptions", async () => {
+    it("useQuery hook basic render count assumptions", async () => {
       function User() {
         const { isFetching } = api.endpoints.getUser.useQuery(1)
         getRenderCount = useRenderCounter()
@@ -98,7 +98,7 @@ describe("hooks tests", () => {
       )
       expect(getRenderCount()).toBe(3)
     })
-    test("useQuery hook sets isFetching=true whenever a request is in flight", async () => {
+    it("useQuery hook sets isFetching=true whenever a request is in flight", async () => {
       function User() {
         const [value, setValue] = React.useState(0)
         const { isFetching } = api.endpoints.getUser.useQuery(1, {
@@ -131,7 +131,7 @@ describe("hooks tests", () => {
       expect(screen.getByTestId("isFetching").textContent).toBe("false")
       expect(getRenderCount()).toBe(5) // even though there was no request, the button click updates the state so this is an expected render
     })
-    test("useQuery hook sets isLoading=true only on initial request", async () => {
+    it("useQuery hook sets isLoading=true only on initial request", async () => {
       let refetch: any, isLoading: boolean, isFetching: boolean
       function User() {
         const [value, setValue] = React.useState(0)
@@ -172,7 +172,7 @@ describe("hooks tests", () => {
       )
       expect(screen.getByTestId("isLoading").textContent).toBe("false")
     })
-    test("useQuery hook sets isLoading and isFetching to the correct states", async () => {
+    it("useQuery hook sets isLoading and isFetching to the correct states", async () => {
       let refetchMe: () => void = () => {}
       function User() {
         const [value, setValue] = React.useState(0)
@@ -221,7 +221,7 @@ describe("hooks tests", () => {
       })
       expect(getRenderCount()).toBe(7)
     })
-    test("`isLoading` does not jump back to true, while `isFetching` does", async () => {
+    it("`isLoading` does not jump back to true, while `isFetching` does", async () => {
       const loadingHist: boolean[] = [],
         fetchingHist: boolean[] = []
       function User({ id }: { id: number }) {
@@ -250,7 +250,7 @@ describe("hooks tests", () => {
       expect(loadingHist).toEqual([true, false])
       expect(fetchingHist).toEqual([true, false, true, false])
     })
-    test("useQuery hook respects refetchOnMountOrArgChange: true", async () => {
+    it("useQuery hook respects refetchOnMountOrArgChange: true", async () => {
       let data, isLoading, isFetching
       function User() {
         ;({ data, isLoading, isFetching } =
@@ -288,7 +288,7 @@ describe("hooks tests", () => {
         expect(screen.getByTestId("amount").textContent).toBe("2")
       )
     })
-    test("useQuery does not refetch when refetchOnMountOrArgChange: NUMBER condition is not met", async () => {
+    it("useQuery does not refetch when refetchOnMountOrArgChange: NUMBER condition is not met", async () => {
       let data, isLoading, isFetching
       function User() {
         ;({ data, isLoading, isFetching } =
@@ -320,7 +320,7 @@ describe("hooks tests", () => {
         expect(screen.getByTestId("amount").textContent).toBe("1")
       )
     })
-    test("useQuery refetches when refetchOnMountOrArgChange: NUMBER condition is met", async () => {
+    it("useQuery refetches when refetchOnMountOrArgChange: NUMBER condition is met", async () => {
       let data, isLoading, isFetching
       function User() {
         ;({ data, isLoading, isFetching } =
@@ -358,7 +358,7 @@ describe("hooks tests", () => {
         expect(screen.getByTestId("amount").textContent).toBe("2")
       )
     })
-    test("refetchOnMountOrArgChange works as expected when changing skip from false->true", async () => {
+    it("refetchOnMountOrArgChange works as expected when changing skip from false->true", async () => {
       let data, isLoading, isFetching
       function User() {
         const [skip, setSkip] = React.useState(true)
@@ -390,7 +390,7 @@ describe("hooks tests", () => {
         expect(screen.getByTestId("amount").textContent).toBe("1")
       )
     })
-    test("refetchOnMountOrArgChange works as expected when changing skip from false->true with a cached query", async () => {
+    it("refetchOnMountOrArgChange works as expected when changing skip from false->true with a cached query", async () => {
       let data, isLoading, isFetching
       function User() {
         const [skip, setSkip] = React.useState(true)
@@ -445,7 +445,7 @@ describe("hooks tests", () => {
       )
     })
     describe("api.util.resetApiState resets hook", () => {
-      test("without `selectFromResult`", async () => {
+      it("without `selectFromResult`", async () => {
         const { result } = renderHook(() => api.endpoints.getUser.useQuery(5), {
           wrapper: storeRef.wrapper,
         })
@@ -463,7 +463,7 @@ describe("hooks tests", () => {
           })
         )
       })
-      test("with `selectFromResult`", async () => {
+      it("with `selectFromResult`", async () => {
         const selectFromResult = jest.fn(x => x)
         const { result } = renderHook(
           () => api.endpoints.getUser.useQuery(5, { selectFromResult }),
@@ -491,7 +491,7 @@ describe("hooks tests", () => {
       data = undefined
     })
     let getRenderCount: () => number = () => 0
-    test("useLazyQuery does not automatically fetch when mounted and has undefined data", async () => {
+    it("useLazyQuery does not automatically fetch when mounted and has undefined data", async () => {
       function User() {
         const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
           api.endpoints.getUser.useLazyQuery()
@@ -531,7 +531,7 @@ describe("hooks tests", () => {
       )
       expect(getRenderCount()).toBe(5)
     })
-    test("useLazyQuery accepts updated subscription options and only dispatches updateSubscriptionOptions when values are updated", async () => {
+    it("useLazyQuery accepts updated subscription options and only dispatches updateSubscriptionOptions when values are updated", async () => {
       let interval = 1000
       function User() {
         const [options, setOptions] = React.useState<SubscriptionOptions>()
@@ -601,7 +601,7 @@ describe("hooks tests", () => {
           .actions.filter(api.internalActions.updateSubscriptionOptions.match)
       ).toHaveLength(1)
     })
-    test("useLazyQuery accepts updated args and unsubscribes the original query", async () => {
+    it("useLazyQuery accepts updated args and unsubscribes the original query", async () => {
       function User() {
         const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
           api.endpoints.getUser.useLazyQuery()
@@ -667,7 +667,7 @@ describe("hooks tests", () => {
           .actions.filter(api.internalActions.unsubscribeQueryResult.match)
       ).toHaveLength(4)
     })
-    test("useLazyQuery hook callback returns various properties to handle the result", async () => {
+    it("useLazyQuery hook callback returns various properties to handle the result", async () => {
       function User() {
         const [getUser] = api.endpoints.getUser.useLazyQuery()
         const [{ successMsg, errMsg, isAborted }, setValues] = React.useState({
@@ -748,7 +748,7 @@ describe("hooks tests", () => {
       expect(screen.queryByText(/An error has occurred/i)).toBeNull()
       expect(screen.queryByText("Request was aborted")).toBeNull()
     })
-    test("unwrapping the useLazyQuery trigger result does not throw on ConditionError and instead returns the aggregate error", async () => {
+    it("unwrapping the useLazyQuery trigger result does not throw on ConditionError and instead returns the aggregate error", async () => {
       function User() {
         const [getUser, { data, error }] =
           api.endpoints.getUserAndForceError.useLazyQuery()
@@ -792,7 +792,7 @@ describe("hooks tests", () => {
       })
       expect(screen.getByTestId("result").textContent).toBe("")
     })
-    test("useLazyQuery does not throw on ConditionError and instead returns the aggregate result", async () => {
+    it("useLazyQuery does not throw on ConditionError and instead returns the aggregate result", async () => {
       function User() {
         const [getUser, { data, error }] = api.endpoints.getUser.useLazyQuery()
         const [unwrappedResult, setUnwrappedResult] = React.useState<
@@ -835,7 +835,7 @@ describe("hooks tests", () => {
     })
   })
   describe("useMutation", () => {
-    test("useMutation hook sets and unsets the isLoading flag when running", async () => {
+    it("useMutation hook sets and unsets the isLoading flag when running", async () => {
       function User() {
         const [updateUser, { isLoading }] =
           api.endpoints.updateUser.useMutation()
@@ -860,7 +860,7 @@ describe("hooks tests", () => {
         expect(screen.getByTestId("isLoading").textContent).toBe("false")
       )
     })
-    test("useMutation hook sets data to the resolved response on success", async () => {
+    it("useMutation hook sets data to the resolved response on success", async () => {
       const result = { name: "Banana" }
       function User() {
         const [updateUser, { data }] = api.endpoints.updateUser.useMutation()
@@ -881,7 +881,7 @@ describe("hooks tests", () => {
         )
       )
     })
-    test("useMutation hook callback returns various properties to handle the result", async () => {
+    it("useMutation hook callback returns various properties to handle the result", async () => {
       function User() {
         const [updateUser] = api.endpoints.updateUser.useMutation()
         const [successMsg, setSuccessMsg] = React.useState("")
@@ -947,7 +947,7 @@ describe("hooks tests", () => {
       expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
       screen.getByText("Request was aborted")
     })
-    test("useMutation return value contains originalArgs", async () => {
+    it("useMutation return value contains originalArgs", async () => {
       const { result } = renderHook(
         () => api.endpoints.updateUser.useMutation(),
         {
@@ -962,7 +962,7 @@ describe("hooks tests", () => {
       expect(firstRenderResult[1].originalArgs).toBe(undefined)
       expect(secondRenderResult[1].originalArgs).toBe(arg)
     })
-    test("`reset` sets state back to original state", async () => {
+    it("`reset` sets state back to original state", async () => {
       function User() {
         const [updateUser, result] = api.endpoints.updateUser.useMutation()
         return (
@@ -1001,7 +1001,7 @@ describe("hooks tests", () => {
     })
   })
   describe("usePrefetch", () => {
-    test("usePrefetch respects force arg", async () => {
+    it("usePrefetch respects force arg", async () => {
       const { usePrefetch } = api
       const USER_ID = 4
       function User() {
@@ -1059,7 +1059,7 @@ describe("hooks tests", () => {
         status: QueryStatus.fulfilled,
       })
     })
-    test("usePrefetch does not make an additional request if already in the cache and force=false", async () => {
+    it("usePrefetch does not make an additional request if already in the cache and force=false", async () => {
       const { usePrefetch } = api
       const USER_ID = 2
       function User() {
@@ -1114,7 +1114,7 @@ describe("hooks tests", () => {
         status: QueryStatus.fulfilled,
       })
     })
-    test("usePrefetch respects ifOlderThan when it evaluates to true", async () => {
+    it("usePrefetch respects ifOlderThan when it evaluates to true", async () => {
       const { usePrefetch } = api
       const USER_ID = 47
       function User() {
@@ -1172,7 +1172,7 @@ describe("hooks tests", () => {
         status: QueryStatus.fulfilled,
       })
     })
-    test("usePrefetch returns the last success result when ifOlderThan evalutes to false", async () => {
+    it("usePrefetch returns the last success result when ifOlderThan evalutes to false", async () => {
       const { usePrefetch } = api
       const USER_ID = 2
       function User() {
@@ -1203,7 +1203,7 @@ describe("hooks tests", () => {
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual(latestQueryData)
     })
-    test("usePrefetch executes a query even if conditions fail when the cache is empty", async () => {
+    it("usePrefetch executes a query even if conditions fail when the cache is empty", async () => {
       const { usePrefetch } = api
       const USER_ID = 2
       function User() {
@@ -1256,7 +1256,7 @@ describe("hooks tests", () => {
         return [...state, action]
       },
     })
-    test("initially failed useQueries that provide an tag will refetch after a mutation invalidates it", async () => {
+    it("initially failed useQueries that provide an tag will refetch after a mutation invalidates it", async () => {
       const checkSessionData = { name: "matt" }
       server.use(
         rest.get("https://example.com/me", (req, res, ctx) => {
@@ -1529,7 +1529,7 @@ describe("hooks with createApi defaults set", () => {
       api.endpoints.updatePost.useMutation
     )
     expectExactType(api.useAddPostMutation)(api.endpoints.addPost.useMutation)
-    test("useQueryState serves a deeply memoized value and does not rerender unnecessarily", async () => {
+    it("useQueryState serves a deeply memoized value and does not rerender unnecessarily", async () => {
       function Posts() {
         const { data: posts } = api.endpoints.getPosts.useQuery()
         const [addPost] = api.endpoints.addPost.useMutation()
@@ -1569,7 +1569,7 @@ describe("hooks with createApi defaults set", () => {
       fireEvent.click(addBtn)
       await waitFor(() => expect(getRenderCount()).toBe(2))
     })
-    test("useQuery with selectFromResult with all flags destructured rerenders like the default useQuery behavior", async () => {
+    it("useQuery with selectFromResult with all flags destructured rerenders like the default useQuery behavior", async () => {
       function Posts() {
         const { data: posts } = api.endpoints.getPosts.useQuery()
         const [addPost] = api.endpoints.addPost.useMutation()
@@ -1627,7 +1627,7 @@ describe("hooks with createApi defaults set", () => {
       fireEvent.click(addBtn)
       await waitFor(() => expect(getRenderCount()).toBe(7))
     })
-    test("useQuery with selectFromResult option serves a deeply memoized value and does not rerender unnecessarily", async () => {
+    it("useQuery with selectFromResult option serves a deeply memoized value and does not rerender unnecessarily", async () => {
       function Posts() {
         const { data: posts } = api.endpoints.getPosts.useQuery()
         const [addPost] = api.endpoints.addPost.useMutation()
@@ -1672,7 +1672,7 @@ describe("hooks with createApi defaults set", () => {
       fireEvent.click(addBtn)
       await waitFor(() => expect(getRenderCount()).toBe(2))
     })
-    test("useQuery with selectFromResult option serves a deeply memoized value, then ONLY updates when the underlying data changes", async () => {
+    it("useQuery with selectFromResult option serves a deeply memoized value, then ONLY updates when the underlying data changes", async () => {
       let expectablePost: Post | undefined
       function Posts() {
         const { data: posts } = api.endpoints.getPosts.useQuery()
@@ -1737,7 +1737,7 @@ describe("hooks with createApi defaults set", () => {
       fireEvent.click(addBtn)
       await waitFor(() => expect(getRenderCount()).toBe(3))
     })
-    test("useQuery with selectFromResult option has a type error if the result is not an object", async () => {
+    it("useQuery with selectFromResult option has a type error if the result is not an object", async () => {
       function SelectedPost() {
         const _res1 = api.endpoints.getPosts.useQuery(undefined, {
           selectFromResult: ({ data }) => data?.length ?? 0,

@@ -192,7 +192,7 @@ describe("fetchBaseQuery", () => {
     })
   })
   describe("arg.body", () => {
-    test("an object provided to body will be serialized when content-type is json", async () => {
+    it("an object provided to body will be serialized when content-type is json", async () => {
       const data = {
         test: "value",
       }
@@ -205,7 +205,7 @@ describe("fetchBaseQuery", () => {
       expect(request.headers["content-type"]).toBe("application/json")
       expect(request.body).toEqual(data)
     })
-    test("an array provided to body will be serialized when content-type is json", async () => {
+    it("an array provided to body will be serialized when content-type is json", async () => {
       const data = ["test", "value"]
       let request: any
       ;({ data: request } = await baseQuery(
@@ -216,7 +216,7 @@ describe("fetchBaseQuery", () => {
       expect(request.headers["content-type"]).toBe("application/json")
       expect(request.body).toEqual(data)
     })
-    test("an object provided to body will not be serialized when content-type is not json", async () => {
+    it("an object provided to body will not be serialized when content-type is not json", async () => {
       const data = {
         test: "value",
       }
@@ -234,7 +234,7 @@ describe("fetchBaseQuery", () => {
       expect(request.headers["content-type"]).toBe("text/html")
       expect(request.body).toEqual("[object Object]")
     })
-    test("an array provided to body will not be serialized when content-type is not json", async () => {
+    it("an array provided to body will not be serialized when content-type is not json", async () => {
       const data = ["test", "value"]
       let request: any
       ;({ data: request } = await baseQuery(
@@ -340,7 +340,7 @@ describe("fetchBaseQuery", () => {
     })
   })
   describe("validateStatus", () => {
-    test("validateStatus can return an error even on normal 200 responses", async () => {
+    it("validateStatus can return an error even on normal 200 responses", async () => {
       const res = await baseQuery(
         {
           url: "/nonstandard-error",
@@ -360,7 +360,7 @@ describe("fetchBaseQuery", () => {
     })
   })
   describe("arg.headers and prepareHeaders", () => {
-    test("uses the default headers set in prepareHeaders", async () => {
+    it("uses the default headers set in prepareHeaders", async () => {
       let request: any
       ;({ data: request } = await baseQuery(
         { url: "/echo" },
@@ -371,7 +371,7 @@ describe("fetchBaseQuery", () => {
       expect(request.headers["delete"]).toBe(defaultHeaders["delete"])
       expect(request.headers["delete2"]).toBe(defaultHeaders["delete2"])
     })
-    test("adds endpoint-level headers to the defaults", async () => {
+    it("adds endpoint-level headers to the defaults", async () => {
       let request: any
       ;({ data: request } = await baseQuery(
         { url: "/echo", headers: { authorization: "Bearer banana" } },
@@ -383,7 +383,7 @@ describe("fetchBaseQuery", () => {
       expect(request.headers["delete"]).toBe(defaultHeaders["delete"])
       expect(request.headers["delete2"]).toBe(defaultHeaders["delete2"])
     })
-    test("it does not set application/json when content-type is set", async () => {
+    it("it does not set application/json when content-type is set", async () => {
       let request: any
       ;({ data: request } = await baseQuery(
         {
@@ -402,7 +402,7 @@ describe("fetchBaseQuery", () => {
       expect(request.headers["delete"]).toBe(defaultHeaders["delete"])
       expect(request.headers["delete2"]).toBe(defaultHeaders["delete2"])
     })
-    test("respects the headers from an endpoint over the base headers", async () => {
+    it("respects the headers from an endpoint over the base headers", async () => {
       const fake = "fake endpoint value"
       let request: any
       ;({ data: request } = await baseQuery(
@@ -414,7 +414,7 @@ describe("fetchBaseQuery", () => {
       expect(request.headers["delete"]).toBeUndefined()
       expect(request.headers["delete2"]).toBeUndefined()
     })
-    test("prepareHeaders is able to be an async function", async () => {
+    it("prepareHeaders is able to be an async function", async () => {
       let request: any
       const token = "accessToken"
       const getAccessTokenAsync = async () => token
@@ -430,7 +430,7 @@ describe("fetchBaseQuery", () => {
       ;({ data: request } = await doRequest())
       expect(request.headers["authorization"]).toBe(`Bearer ${token}`)
     })
-    test("prepareHeaders is able to select from a state", async () => {
+    it("prepareHeaders is able to select from a state", async () => {
       let request: any
       const doRequest = async () =>
         baseQuery(
@@ -452,7 +452,7 @@ describe("fetchBaseQuery", () => {
       ;({ data: request } = await doRequest())
       expect(request.headers["authorization"]).toBe(`Bearer ${token}`)
     })
-    test("prepareHeaders provides extra api information for getState, extra, endpoint, type and forced", async () => {
+    it("prepareHeaders provides extra api information for getState, extra, endpoint, type and forced", async () => {
       let _getState, _extra, _endpoint, _type, _forced
       const baseQuery = fetchBaseQuery({
         baseUrl,

@@ -306,7 +306,7 @@ describe("endpoint definition typings", () => {
     beforeEach(() => {
       api = getNewApi()
     })
-    test("pre-modification behaviour", async () => {
+    it("pre-modification behaviour", async () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -363,7 +363,7 @@ describe("endpoint definition typings", () => {
         ],
       ])
     })
-    test("warn on wrong tagType", async () => {
+    it("warn on wrong tagType", async () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -411,7 +411,7 @@ describe("endpoint definition typings", () => {
         })
       }
     })
-    test("modify", () => {
+    it("modify", () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })

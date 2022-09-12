@@ -100,7 +100,7 @@ describe("missing reducer", () => {
     ["production", false],
   ])("%s warns if reducer is missing: %s", ([env, shouldWarn]) => {
     ;(process.env as any).NODE_ENV = env
-    test("middleware not crashing if reducer is missing", async () => {
+    it("middleware not crashing if reducer is missing", async () => {
       const store = configureStore({
         reducer: { x: () => 0 },
         middleware: gdm => gdm().concat(api1.middleware),

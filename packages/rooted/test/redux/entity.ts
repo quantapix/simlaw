@@ -719,7 +719,7 @@ describe("Sorted State Adapter", () => {
     expect(withUpdate.entities["b"]!.title).toBe(book1.title)
   })
   describe("can be used mutably when wrapped in createNextState", () => {
-    test("removeAll", () => {
+    it("removeAll", () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
       const result = qi.produce(withTwo, draft => {
         adapter.removeAll(draft)
@@ -731,7 +731,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("addOne", () => {
+    it("addOne", () => {
       const result = qi.produce(state, draft => {
         adapter.addOne(draft, TheGreatGatsby)
       })
@@ -749,7 +749,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("addMany", () => {
+    it("addMany", () => {
       const result = qi.produce(state, draft => {
         adapter.addMany(draft, [TheGreatGatsby, AnimalFarm])
       })
@@ -772,7 +772,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("setAll", () => {
+    it("setAll", () => {
       const result = qi.produce(state, draft => {
         adapter.setAll(draft, [TheGreatGatsby, AnimalFarm])
       })
@@ -795,7 +795,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("updateOne", () => {
+    it("updateOne", () => {
       const withOne = adapter.addOne(state, TheGreatGatsby)
       const changes = { title: "A New Hope" }
       const result = qi.produce(withOne, draft => {
@@ -818,7 +818,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("updateMany", () => {
+    it("updateMany", () => {
       const firstChange = { title: "First Change" }
       const secondChange = { title: "Second Change" }
       const thirdChange = { title: "Third Change" }
@@ -861,7 +861,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("upsertOne (insert)", () => {
+    it("upsertOne (insert)", () => {
       const result = qi.produce(state, draft => {
         adapter.upsertOne(draft, TheGreatGatsby)
       })
@@ -879,7 +879,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("upsertOne (update)", () => {
+    it("upsertOne (update)", () => {
       const withOne = adapter.upsertOne(state, TheGreatGatsby)
       const result = qi.produce(withOne, draft => {
         adapter.upsertOne(draft, {
@@ -901,7 +901,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("upsertMany", () => {
+    it("upsertMany", () => {
       const withOne = adapter.upsertOne(state, TheGreatGatsby)
       const result = qi.produce(withOne, draft => {
         adapter.upsertMany(draft, [
@@ -931,7 +931,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("setOne (insert)", () => {
+    it("setOne (insert)", () => {
       const result = qi.produce(state, draft => {
         adapter.setOne(draft, TheGreatGatsby)
       })
@@ -949,7 +949,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("setOne (update)", () => {
+    it("setOne (update)", () => {
       const withOne = adapter.setOne(state, TheHobbit)
       const result = qi.produce(withOne, draft => {
         adapter.setOne(draft, {
@@ -971,7 +971,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("setMany", () => {
+    it("setMany", () => {
       const withOne = adapter.setOne(state, TheHobbit)
       const result = qi.produce(withOne, draft => {
         adapter.setMany(draft, [
@@ -1001,7 +1001,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("removeOne", () => {
+    it("removeOne", () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
       const result = qi.produce(withTwo, draft => {
         adapter.removeOne(draft, TheGreatGatsby.id)
@@ -1020,7 +1020,7 @@ describe("Sorted State Adapter", () => {
         }
       `)
     })
-    test("removeMany", () => {
+    it("removeMany", () => {
       const withThree = adapter.addMany(state, [
         TheGreatGatsby,
         AnimalFarm,
@@ -1385,7 +1385,7 @@ describe("Unsorted State Adapter", () => {
     expect(withUpdate.entities["b"]!.title).toBe(book1.title)
   })
   describe("can be used mutably when wrapped in createNextState", () => {
-    test("removeAll", () => {
+    it("removeAll", () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
       const result = qi.produce(withTwo, draft => {
         adapter.removeAll(draft)
@@ -1397,7 +1397,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("addOne", () => {
+    it("addOne", () => {
       const result = qi.produce(state, draft => {
         adapter.addOne(draft, TheGreatGatsby)
       })
@@ -1415,7 +1415,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("addMany", () => {
+    it("addMany", () => {
       const result = qi.produce(state, draft => {
         adapter.addMany(draft, [TheGreatGatsby, AnimalFarm])
       })
@@ -1438,7 +1438,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("setAll", () => {
+    it("setAll", () => {
       const result = qi.produce(state, draft => {
         adapter.setAll(draft, [TheGreatGatsby, AnimalFarm])
       })
@@ -1461,7 +1461,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("updateOne", () => {
+    it("updateOne", () => {
       const withOne = adapter.addOne(state, TheGreatGatsby)
       const changes = { title: "A New Hope" }
       const result = qi.produce(withOne, draft => {
@@ -1484,7 +1484,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("updateMany", () => {
+    it("updateMany", () => {
       const firstChange = { title: "First Change" }
       const secondChange = { title: "Second Change" }
       const thirdChange = { title: "Third Change" }
@@ -1527,7 +1527,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("upsertOne (insert)", () => {
+    it("upsertOne (insert)", () => {
       const result = qi.produce(state, draft => {
         adapter.upsertOne(draft, TheGreatGatsby)
       })
@@ -1545,7 +1545,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("upsertOne (update)", () => {
+    it("upsertOne (update)", () => {
       const withOne = adapter.upsertOne(state, TheGreatGatsby)
       const result = qi.produce(withOne, draft => {
         adapter.upsertOne(draft, {
@@ -1567,7 +1567,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("upsertMany", () => {
+    it("upsertMany", () => {
       const withOne = adapter.upsertOne(state, TheGreatGatsby)
       const result = qi.produce(withOne, draft => {
         adapter.upsertMany(draft, [
@@ -1597,7 +1597,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("setOne (insert)", () => {
+    it("setOne (insert)", () => {
       const result = qi.produce(state, draft => {
         adapter.setOne(draft, TheGreatGatsby)
       })
@@ -1615,7 +1615,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("setOne (update)", () => {
+    it("setOne (update)", () => {
       const withOne = adapter.setOne(state, TheHobbit)
       const result = qi.produce(withOne, draft => {
         adapter.setOne(draft, {
@@ -1637,7 +1637,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("setMany", () => {
+    it("setMany", () => {
       const withOne = adapter.setOne(state, TheHobbit)
       const result = qi.produce(withOne, draft => {
         adapter.setMany(draft, [
@@ -1667,7 +1667,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("removeOne", () => {
+    it("removeOne", () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
       const result = qi.produce(withTwo, draft => {
         adapter.removeOne(draft, TheGreatGatsby.id)
@@ -1686,7 +1686,7 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
-    test("removeMany", () => {
+    it("removeMany", () => {
       const withThree = adapter.addMany(state, [
         TheGreatGatsby,
         AnimalFarm,
@@ -1709,5 +1709,97 @@ describe("Unsorted State Adapter", () => {
         }
       `)
     })
+  })
+})
+
+describe("Combined entity slice", () => {
+  let adapter: qx.EntityAdapter<BookModel>
+  beforeEach(() => {
+    adapter = qx.createEntityAdapter({
+      selectId: (book: BookModel) => book.id,
+      sortComparer: (a, b) => a.title.localeCompare(b.title),
+    })
+  })
+  it("Entity and async features all works together", async () => {
+    const upsertBook = qx.createAction<BookModel>("otherBooks/upsert")
+    type BooksState = ReturnType<typeof adapter.getInitialState> & {
+      loading: "initial" | "pending" | "finished" | "failed"
+      lastRequestId: string | null
+    }
+    const initialState: BooksState = adapter.getInitialState({
+      loading: "initial",
+      lastRequestId: null,
+    })
+    const fakeBooks: BookModel[] = [
+      { id: "b", title: "Second" },
+      { id: "a", title: "First" },
+    ]
+    const fetchBooksTAC = qx.createAsyncThunk<
+      BookModel[],
+      void,
+      {
+        state: { books: BooksState }
+      }
+    >(
+      "books/fetch",
+      async (arg, { getState, dispatch, extra, requestId, signal }) => {
+        const state = getState()
+        return fakeBooks
+      }
+    )
+    const booksSlice = qx.createSlice({
+      name: "books",
+      initialState,
+      reducers: {
+        addOne: adapter.addOne,
+        removeOne(state, action: qx.PayloadAction<string>) {
+          const sizeBefore = state.ids.length
+          const result = adapter.removeOne(state, action)
+          const sizeAfter = state.ids.length
+          if (sizeBefore > 0) {
+            expect(sizeAfter).toBe(sizeBefore - 1)
+          }
+        },
+      },
+      extraReducers: builder => {
+        builder.addCase(upsertBook, (state, action) => {
+          return adapter.upsertOne(state, action)
+        })
+        builder.addCase(fetchBooksTAC.pending, (state, action) => {
+          state.loading = "pending"
+          state.lastRequestId = action.meta.requestId
+        })
+        builder.addCase(fetchBooksTAC.fulfilled, (state, action) => {
+          if (
+            state.loading === "pending" &&
+            action.meta.requestId === state.lastRequestId
+          ) {
+            adapter.setAll(state, action.payload)
+            state.loading = "finished"
+            state.lastRequestId = null
+          }
+        })
+      },
+    })
+    const { addOne, removeOne } = booksSlice.actions
+    const { reducer } = booksSlice
+    const store = qx.configureStore({
+      reducer: {
+        books: reducer,
+      },
+    })
+    await store.dispatch(fetchBooksTAC())
+    const { books: booksAfterLoaded } = store.getState()
+    expect(booksAfterLoaded.ids).toEqual(["a", "b"])
+    expect(booksAfterLoaded.lastRequestId).toBe(null)
+    expect(booksAfterLoaded.loading).toBe("finished")
+    store.dispatch(addOne({ id: "d", title: "Remove Me" }))
+    store.dispatch(removeOne("d"))
+    store.dispatch(addOne({ id: "c", title: "Middle" }))
+    const { books: booksAfterAddOne } = store.getState()
+    expect(booksAfterAddOne.ids).toEqual(["a", "c", "b"])
+    store.dispatch(upsertBook({ id: "c", title: "Zeroth" }))
+    const { books: booksAfterUpsert } = store.getState()
+    expect(booksAfterUpsert.ids).toEqual(["a", "b", "c"])
   })
 })
