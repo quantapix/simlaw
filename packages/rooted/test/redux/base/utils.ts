@@ -1,4 +1,10 @@
+import { expect } from "expect"
+import { expect } from "expect"
 import formatProdErrorMessage from "../../src/utils/formatProdErrorMessage"
+import isPlainObject from "../../src/utils"
+import vm from "vm"
+import vm from "vm"
+
 describe("formatProdErrorMessage", () => {
   it("returns message with expected code references", () => {
     const code = 16
@@ -7,9 +13,6 @@ describe("formatProdErrorMessage", () => {
     expect(errorMessage).toContain(`code=${code}`)
   })
 })
-import { expect } from "expect"
-import isPlainObject from "../../src/utils/isPlainObject"
-import vm from "vm"
 describe("isPlainObject", () => {
   it("returns true only if plain object", () => {
     const sandbox = { fromAnotherRealm: false }
@@ -22,7 +25,6 @@ describe("isPlainObject", () => {
     expect(isPlainObject({ x: 1, y: 2 })).toBe(true)
   })
 })
-import warning from "../../src/utils/warning"
 describe("Utils", () => {
   describe("warning", () => {
     it("calls console.error when available", () => {
