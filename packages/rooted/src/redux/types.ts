@@ -1008,3 +1008,11 @@ export type BuiltIn =
   | { readonly [Symbol.toStringTag]: string }
   | RegExp
   | Generator
+
+export type MatchFunction<T> = (v: any) => v is T
+
+export interface TypedActionCreator<Type extends string> {
+  (...args: any[]): Action<Type>
+  type: Type
+  match: MatchFunction<any>
+}

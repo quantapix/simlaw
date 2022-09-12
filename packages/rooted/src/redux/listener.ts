@@ -398,11 +398,6 @@ export const createDelay = (signal: AbortSignal) => {
   }
 }
 export type AbortSignalWithReason<T> = AbortSignal & { reason?: T }
-export interface TypedActionCreator<Type extends string> {
-  (...args: any[]): qt.Action<Type>
-  type: Type
-  match: MatchFunction<any>
-}
 export type AnyListenerPredicate<State> = (
   action: qt.AnyAction,
   currentState: State,
@@ -418,7 +413,6 @@ export interface ConditionFunction<State> {
   (predicate: AnyListenerPredicate<State>, timeout?: number): Promise<boolean>
   (predicate: () => boolean, timeout?: number): Promise<boolean>
 }
-export type MatchFunction<T> = (v: any) => v is T
 export interface ForkedTaskAPI {
   pause<W>(waitFor: Promise<W>): Promise<W>
   delay(timeoutMs: number): Promise<void>
@@ -524,13 +518,13 @@ export interface ListenerMiddlewareInstance<
 export type TakePatternOutputWithoutTimeout<
   State,
   Predicate extends AnyListenerPredicate<State>
-> = Predicate extends MatchFunction<infer Action>
+> = Predicate extends qt.MatchFunction<infer Action>
   ? Promise<[Action, State, State]>
   : Promise<[qt.AnyAction, State, State]>
 export type TakePatternOutputWithTimeout<
   State,
   Predicate extends AnyListenerPredicate<State>
-> = Predicate extends MatchFunction<infer Action>
+> = Predicate extends qt.MatchFunction<infer Action>
   ? Promise<[Action, State, State] | null>
   : Promise<[qt.AnyAction, State, State] | null>
 export interface TakePattern<State> {
@@ -573,7 +567,7 @@ export interface AddListenerOverloads<
       >
     } & AdditionalOptions
   ): Return
-  <C extends TypedActionCreator<any>>(
+  <C extends qt.TypedActionCreator<any>>(
     options: {
       actionCreator: C
       type?: never
@@ -591,7 +585,7 @@ export interface AddListenerOverloads<
       effect: ListenerEffect<qt.Action<T>, State, Dispatch, ExtraArgument>
     } & AdditionalOptions
   ): Return
-  <MA extends qt.AnyAction, M extends MatchFunction<MA>>(
+  <MA extends qt.AnyAction, M extends qt.MatchFunction<MA>>(
     options: {
       actionCreator?: never
       type?: never
@@ -702,9 +696,9 @@ export type ListenerEntry<
   predicate: ListenerPredicate<qt.AnyAction, State>
 }
 export type FallbackAddListenerOptions = {
-  actionCreator?: TypedActionCreator<string>
+  actionCreator?: qt.TypedActionCreator<string>
   type?: string
-  matcher?: MatchFunction<any>
+  matcher?: qt.MatchFunction<any>
   predicate?: ListenerPredicate<any, any>
 } & { effect: ListenerEffect<any, any, any> }
 export type GuardedType<T> = T extends (
