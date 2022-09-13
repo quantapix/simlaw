@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import type { Action as ReduxAction } from "../../../../src/redux/types.js"
+import type * as qx from "../../../src/redux/types.js"
 
 export namespace N1 {
-  interface A<P> extends ReduxAction {
+  interface A<P> extends qx.Action {
     payload: P
   }
   const action: A<string> = {
@@ -13,7 +13,7 @@ export namespace N1 {
   payload
 }
 export namespace N2 {
-  interface A extends ReduxAction {
+  interface A extends qx.Action {
     [key: string]: any
   }
   const action: A = {
@@ -25,7 +25,7 @@ export namespace N2 {
 }
 export namespace N3 {
   type AT = "A" | "B" | "C"
-  interface A extends ReduxAction {
+  interface A extends qx.Action {
     type: AT
   }
   const action: A = {
@@ -40,7 +40,7 @@ export namespace N4 {
     B,
     C,
   }
-  interface A extends ReduxAction {
+  interface A extends qx.Action {
     type: AT
   }
   const action: A = {
