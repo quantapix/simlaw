@@ -1430,7 +1430,7 @@ describe("Saga-style Effects Scenarios", () => {
       middleware: gDM => gDM().prepend(middleware),
     })
   })
-  test("throttle", async () => {
+  it("throttle", async () => {
     let listenerCalls = 0
     let workPerformed = 0
     startListening({
@@ -1452,7 +1452,7 @@ describe("Saga-style Effects Scenarios", () => {
     expect(listenerCalls).toBe(2)
     expect(workPerformed).toBe(2)
   })
-  test("debounce / takeLatest", async () => {
+  it("debounce / takeLatest", async () => {
     let listenerCalls = 0
     let workPerformed = 0
     startListening({
@@ -1473,7 +1473,7 @@ describe("Saga-style Effects Scenarios", () => {
     expect(listenerCalls).toBe(3)
     expect(workPerformed).toBe(1)
   })
-  test("takeEvery", async () => {
+  it("takeEvery", async () => {
     let listenerCalls = 0
     startListening({
       actionCreator: increment,
@@ -1486,7 +1486,7 @@ describe("Saga-style Effects Scenarios", () => {
     store.dispatch(increment())
     expect(listenerCalls).toBe(2)
   })
-  test("takeLeading", async () => {
+  it("takeLeading", async () => {
     let listenerCalls = 0
     let workPerformed = 0
     startListening({
@@ -1515,7 +1515,7 @@ describe("Saga-style Effects Scenarios", () => {
     await delay(20)
     expect(workPerformed).toBe(2)
   })
-  test("fork + join", async () => {
+  it("fork + join", async () => {
     let childResult = 0
     startListening({
       actionCreator: increment,
@@ -1534,7 +1534,7 @@ describe("Saga-style Effects Scenarios", () => {
     await delay(10)
     expect(childResult).toBe(42)
   })
-  test("fork + cancel", async () => {
+  it("fork + cancel", async () => {
     let childResult = 0
     let listenerCompleted = false
     startListening({
@@ -1555,7 +1555,7 @@ describe("Saga-style Effects Scenarios", () => {
     expect(listenerCompleted).toBe(true)
     expect(childResult).toBe(0)
   })
-  test("canceled", async () => {
+  it("canceled", async () => {
     let canceledAndCaught = false
     let canceledCheck = false
     startListening({
@@ -1662,7 +1662,7 @@ describe("fork", () => {
     expect(hasRunSyncExector).toBe(true)
     expect(hasRunAsyncExecutor).toBe(true)
   })
-  test("forkedTask.result rejects TaskAbortError if listener is cancelled", async () => {
+  it("forkedTask.result rejects TaskAbortError if listener is cancelled", async () => {
     const deferredForkedTaskError = deferred()
     startListening({
       actionCreator: increment,
@@ -1926,7 +1926,7 @@ describe("fork", () => {
       expect(await deferredCancelledEvt).toBeDefined()
     })
   })
-  test("forkApi.pause rejects if task is cancelled", async () => {
+  it("forkApi.pause rejects if task is cancelled", async () => {
     const deferredResult = deferred()
     startListening({
       actionCreator: increment,
@@ -1946,7 +1946,7 @@ describe("fork", () => {
       error: new qx.TaskAbortError(qx.taskCancelled),
     })
   })
-  test("forkApi.pause rejects as soon as the parent listener is cancelled", async () => {
+  it("forkApi.pause rejects as soon as the parent listener is cancelled", async () => {
     const deferredResult = deferred()
     startListening({
       actionCreator: increment,
@@ -1969,7 +1969,7 @@ describe("fork", () => {
       new qx.TaskAbortError(qx.listenerCancelled)
     )
   })
-  test("forkApi.pause rejects if listener is cancelled", async () => {
+  it("forkApi.pause rejects if listener is cancelled", async () => {
     const incrementByInListener = qx.createAction<number>(
       "incrementByInListener"
     )
@@ -2036,7 +2036,7 @@ describe("Saga-style Effects Scenarios", () => {
       middleware: gDM => gDM().prepend(middleware),
     })
   })
-  test("Long polling loop", async () => {
+  it("Long polling loop", async () => {
     const eventPollingStarted = qx.createAction("serverPolling/started")
     const eventPollingStopped = qx.createAction("serverPolling/stopped")
     const createNanoEvents = () => ({

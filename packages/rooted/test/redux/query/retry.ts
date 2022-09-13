@@ -13,7 +13,7 @@ const loopTimers = async (max: number = 12) => {
   }
 }
 describe("configuration", () => {
-  test("retrying without any config options", async () => {
+  it("retrying without any config options", async () => {
     const baseBaseQuery = jest.fn<
       ReturnType<BaseQueryFn>,
       Parameters<BaseQueryFn>
@@ -35,7 +35,7 @@ describe("configuration", () => {
     await loopTimers(7)
     expect(baseBaseQuery).toHaveBeenCalledTimes(6)
   })
-  test("retrying with baseQuery config that overrides default behavior (maxRetries: 5)", async () => {
+  it("retrying with baseQuery config that overrides default behavior (maxRetries: 5)", async () => {
     const baseBaseQuery = jest.fn<
       ReturnType<BaseQueryFn>,
       Parameters<BaseQueryFn>
@@ -57,7 +57,7 @@ describe("configuration", () => {
     await loopTimers(5)
     expect(baseBaseQuery).toHaveBeenCalledTimes(4)
   })
-  test("retrying with endpoint config that overrides baseQuery config", async () => {
+  it("retrying with endpoint config that overrides baseQuery config", async () => {
     const baseBaseQuery = jest.fn<
       ReturnType<BaseQueryFn>,
       Parameters<BaseQueryFn>
@@ -87,7 +87,7 @@ describe("configuration", () => {
     await loopTimers(10)
     expect(baseBaseQuery).toHaveBeenCalledTimes(9)
   })
-  test("stops retrying a query after a success", async () => {
+  it("stops retrying a query after a success", async () => {
     const baseBaseQuery = jest.fn<
       ReturnType<BaseQueryFn>,
       Parameters<BaseQueryFn>
@@ -112,7 +112,7 @@ describe("configuration", () => {
     await loopTimers(6)
     expect(baseBaseQuery).toHaveBeenCalledTimes(3)
   })
-  test("retrying also works with mutations", async () => {
+  it("retrying also works with mutations", async () => {
     const baseBaseQuery = jest.fn<
       ReturnType<BaseQueryFn>,
       Parameters<BaseQueryFn>
@@ -134,7 +134,7 @@ describe("configuration", () => {
     await loopTimers(5)
     expect(baseBaseQuery).toHaveBeenCalledTimes(4)
   })
-  test("retrying stops after a success from a mutation", async () => {
+  it("retrying stops after a success from a mutation", async () => {
     const baseBaseQuery = jest.fn<
       ReturnType<BaseQueryFn>,
       Parameters<BaseQueryFn>
@@ -159,7 +159,7 @@ describe("configuration", () => {
     await loopTimers(5)
     expect(baseBaseQuery).toHaveBeenCalledTimes(3)
   })
-  test("non-error-cases should **not** retry", async () => {
+  it("non-error-cases should **not** retry", async () => {
     const baseBaseQuery = jest.fn<
       ReturnType<BaseQueryFn>,
       Parameters<BaseQueryFn>
@@ -181,7 +181,7 @@ describe("configuration", () => {
     await loopTimers(2)
     expect(baseBaseQuery).toHaveBeenCalledTimes(1)
   })
-  test("calling retry.fail(error) will skip retrying and expose the error directly", async () => {
+  it("calling retry.fail(error) will skip retrying and expose the error directly", async () => {
     const error = { message: "banana" }
     const baseBaseQuery = jest.fn<
       ReturnType<BaseQueryFn>,
@@ -220,7 +220,7 @@ describe("configuration", () => {
       status: "rejected",
     })
   })
-  test("wrapping retry(retry(..., { maxRetries: 3 }), { maxRetries: 3 }) should retry 16 times", async () => {
+  it("wrapping retry(retry(..., { maxRetries: 3 }), { maxRetries: 3 }) should retry 16 times", async () => {
     const baseBaseQuery = jest.fn<
       ReturnType<BaseQueryFn>,
       Parameters<BaseQueryFn>
@@ -244,7 +244,7 @@ describe("configuration", () => {
     await loopTimers(18)
     expect(baseBaseQuery).toHaveBeenCalledTimes(16)
   })
-  test("accepts a custom backoff fn", async () => {
+  it("accepts a custom backoff fn", async () => {
     const baseBaseQuery = jest.fn<
       ReturnType<BaseQueryFn>,
       Parameters<BaseQueryFn>

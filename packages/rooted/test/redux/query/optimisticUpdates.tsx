@@ -70,7 +70,7 @@ describe("basic lifecycle", () => {
     onError.mockReset()
     onSuccess.mockReset()
   })
-  test("success", async () => {
+  it("success", async () => {
     const { result } = renderHook(
       () => extendedApi.endpoints.test.useMutation(),
       {
@@ -89,7 +89,7 @@ describe("basic lifecycle", () => {
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).toHaveBeenCalledWith({ data: "success", meta: "meta" })
   })
-  test("error", async () => {
+  it("error", async () => {
     const { result } = renderHook(
       () => extendedApi.endpoints.test.useMutation(),
       {
@@ -114,7 +114,7 @@ describe("basic lifecycle", () => {
   })
 })
 describe("updateQueryData", () => {
-  test("updates cache values, can apply inverse patch", async () => {
+  it("updates cache values, can apply inverse patch", async () => {
     baseQuery
       .mockResolvedValueOnce({
         id: "3",
@@ -158,7 +158,7 @@ describe("updateQueryData", () => {
     })
     expect(result.current.data).toEqual(dataBefore)
   })
-  test("does not update non-existing values", async () => {
+  it("does not update non-existing values", async () => {
     baseQuery
       .mockImplementationOnce(async () => ({
         id: "3",
@@ -193,7 +193,7 @@ describe("updateQueryData", () => {
   })
 })
 describe("full integration", () => {
-  test("success case", async () => {
+  it("success case", async () => {
     baseQuery
       .mockResolvedValueOnce({
         id: "3",
@@ -242,7 +242,7 @@ describe("full integration", () => {
       })
     )
   })
-  test("error case", async () => {
+  it("error case", async () => {
     baseQuery
       .mockResolvedValueOnce({
         id: "3",

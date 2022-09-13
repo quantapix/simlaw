@@ -436,7 +436,7 @@ describe("createAsyncThunk with abortController", () => {
       },
     })
   })
-  test("normal usage", async () => {
+  it("normal usage", async () => {
     await store.dispatch(asyncThunk({}))
     expect(store.getState()).toEqual([
       expect.any(Object),
@@ -444,7 +444,7 @@ describe("createAsyncThunk with abortController", () => {
       expect.objectContaining({ type: "test/fulfilled" }),
     ])
   })
-  test("abort after dispatch", async () => {
+  it("abort after dispatch", async () => {
     const promise = store.dispatch(asyncThunk({}))
     promise.abort("AbortReason")
     const result = await promise
@@ -466,7 +466,7 @@ describe("createAsyncThunk with abortController", () => {
       expect.objectContaining(expectedAbortedAction.error)
     )
   })
-  test("even when the payloadCreator does not directly support the signal, no further actions are dispatched", async () => {
+  it("even when the payloadCreator does not directly support the signal, no further actions are dispatched", async () => {
     const unawareAsyncThunk = qx.createAsyncThunk("unaware", async () => {
       await new Promise(resolve => setTimeout(resolve, 100))
       return "finished"
@@ -491,7 +491,7 @@ describe("createAsyncThunk with abortController", () => {
       expect.objectContaining(expectedAbortedAction.error)
     )
   })
-  test("dispatch(asyncThunk) returns on abort and does not wait for the promiseProvider to finish", async () => {
+  it("dispatch(asyncThunk) returns on abort and does not wait for the promiseProvider to finish", async () => {
     let running = false
     const longRunningAsyncThunk = qx.createAsyncThunk(
       "longRunning",
@@ -569,7 +569,7 @@ describe("conditional skipping of asyncThunks", () => {
     payloadCreator.mockClear()
     condition.mockClear()
   })
-  test("returning false from condition skips payloadCreator and returns a rejected action", async () => {
+  it("returning false from condition skips payloadCreator and returns a rejected action", async () => {
     const asyncThunk = qx.createAsyncThunk("test", payloadCreator, {
       condition,
     })
@@ -579,7 +579,7 @@ describe("conditional skipping of asyncThunks", () => {
     expect(asyncThunk.rejected.match(result)).toBe(true)
     expect((result as any).meta.condition).toBe(true)
   })
-  test("return falsy from condition does not skip payload creator", async () => {
+  it("return falsy from condition does not skip payload creator", async () => {
     condition.mockReturnValueOnce(undefined as unknown as boolean)
     const asyncThunk = qx.createAsyncThunk("test", payloadCreator, {
       condition,
@@ -590,7 +590,7 @@ describe("conditional skipping of asyncThunks", () => {
     expect(asyncThunk.fulfilled.match(result)).toBe(true)
     expect(result.payload).toBe(10)
   })
-  test("returning true from condition executes payloadCreator", async () => {
+  it("returning true from condition executes payloadCreator", async () => {
     condition.mockReturnValueOnce(true)
     const asyncThunk = qx.createAsyncThunk("test", payloadCreator, {
       condition,
@@ -601,7 +601,7 @@ describe("conditional skipping of asyncThunks", () => {
     expect(asyncThunk.fulfilled.match(result)).toBe(true)
     expect(result.payload).toBe(10)
   })
-  test("condition is called with arg, getState and extra", async () => {
+  it("condition is called with arg, getState and extra", async () => {
     const asyncThunk = qx.createAsyncThunk("test", payloadCreator, {
       condition,
     })
@@ -612,7 +612,7 @@ describe("conditional skipping of asyncThunks", () => {
       expect.objectContaining({ getState, extra })
     )
   })
-  test("pending is dispatched synchronously if condition is synchronous", async () => {
+  it("pending is dispatched synchronously if condition is synchronous", async () => {
     const condition = () => true
     const asyncThunk = qx.createAsyncThunk("test", payloadCreator, {
       condition,
@@ -622,7 +622,7 @@ describe("conditional skipping of asyncThunks", () => {
     await thunkCallPromise
     expect(dispatch).toHaveBeenCalledTimes(2)
   })
-  test("async condition", async () => {
+  it("async condition", async () => {
     const condition = () => Promise.resolve(false)
     const asyncThunk = qx.createAsyncThunk("test", payloadCreator, {
       condition,
@@ -630,7 +630,7 @@ describe("conditional skipping of asyncThunks", () => {
     await asyncThunk(arg)(dispatch, getState, extra)
     expect(dispatch).toHaveBeenCalledTimes(0)
   })
-  test("async condition with rejected promise", async () => {
+  it("async condition with rejected promise", async () => {
     const condition = () => Promise.reject()
     const asyncThunk = qx.createAsyncThunk("test", payloadCreator, {
       condition,
@@ -641,14 +641,14 @@ describe("conditional skipping of asyncThunks", () => {
       expect.objectContaining({ type: "test/rejected" })
     )
   })
-  test("rejected action is not dispatched by default", async () => {
+  it("rejected action is not dispatched by default", async () => {
     const asyncThunk = qx.createAsyncThunk("test", payloadCreator, {
       condition,
     })
     await asyncThunk(arg)(dispatch, getState, extra)
     expect(dispatch).toHaveBeenCalledTimes(0)
   })
-  test("does not fail when attempting to abort a canceled promise", async () => {
+  it("does not fail when attempting to abort a canceled promise", async () => {
     const asyncPayloadCreator = jest.fn(async (x: typeof arg) => {
       await new Promise(resolve => setTimeout(resolve, 2000))
       return 10
@@ -661,7 +661,7 @@ describe("conditional skipping of asyncThunks", () => {
       `If the promise was 1. somehow canceled, 2. in a 'started' state and 3. we attempted to abort, this would crash the tests`
     )
   })
-  test("rejected action can be dispatched via option", async () => {
+  it("rejected action can be dispatched via option", async () => {
     const asyncThunk = qx.createAsyncThunk("test", payloadCreator, {
       condition,
       dispatchConditionRejection: true,
@@ -719,7 +719,7 @@ describe("unwrapResult", () => {
   const getState = jest.fn(() => ({}))
   const dispatch = jest.fn((x: any) => x)
   const extra = {}
-  test("fulfilled case", async () => {
+  it("fulfilled case", async () => {
     const asyncThunk = qx.createAsyncThunk("test", () => {
       return "fulfilled!" as const
     })
@@ -731,7 +731,7 @@ describe("unwrapResult", () => {
     const res = await unwrapPromise2.unwrap()
     expect(res).toBe("fulfilled!")
   })
-  test("error case", async () => {
+  it("error case", async () => {
     const error = new Error("Panic!")
     const asyncThunk = qx.createAsyncThunk("test", () => {
       throw error
@@ -745,7 +745,7 @@ describe("unwrapResult", () => {
       qx.miniSerializeError(error)
     )
   })
-  test("rejectWithValue case", async () => {
+  it("rejectWithValue case", async () => {
     const asyncThunk = qx.createAsyncThunk("test", (_, { rejectWithValue }) => {
       return rejectWithValue("rejectWithValue!")
     })
@@ -761,7 +761,7 @@ describe("idGenerator option", () => {
   const getState = () => ({})
   const dispatch = (x: any) => x
   const extra = {}
-  test("idGenerator implementation - can customizes how request IDs are generated", async () => {
+  it("idGenerator implementation - can customizes how request IDs are generated", async () => {
     function makeFakeIdGenerator() {
       let id = 0
       return jest.fn(() => {
@@ -807,7 +807,7 @@ describe("idGenerator option", () => {
       expect.stringContaining("fake-fandom-id")
     )
   })
-  test("idGenerator should be called with thunkArg", async () => {
+  it("idGenerator should be called with thunkArg", async () => {
     const customIdGenerator = jest.fn(seed => `fake-unique-random-id-${seed}`)
     let generatedRequestId = ""
     const asyncThunk = qx.createAsyncThunk(
@@ -862,7 +862,7 @@ describe("meta", () => {
   beforeEach(() => {
     const store = getNewStore()
   })
-  test("pendingMeta", () => {
+  it("pendingMeta", () => {
     const pendingThunk = qx.createAsyncThunk("test", (arg: string) => {}, {
       getPendingMeta({ arg, requestId }) {
         expect(arg).toBe("testArg")
@@ -882,7 +882,7 @@ describe("meta", () => {
       type: "test/pending",
     })
   })
-  test("fulfilledMeta", async () => {
+  it("fulfilledMeta", async () => {
     const fulfilledThunk = qx.createAsyncThunk<
       string,
       string,
@@ -902,7 +902,7 @@ describe("meta", () => {
       type: "test/fulfilled",
     })
   })
-  test("rejectedMeta", async () => {
+  it("rejectedMeta", async () => {
     const fulfilledThunk = qx.createAsyncThunk<
       string,
       string,

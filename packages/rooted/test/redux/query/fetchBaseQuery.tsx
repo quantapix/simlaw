@@ -494,7 +494,7 @@ describe("fetchBaseQuery", () => {
       expect(_extra).toBe(fakeAuth0Client)
     })
   })
-  test("lets a header be undefined", async () => {
+  it("lets a header be undefined", async () => {
     let request: any
     ;({ data: request } = await baseQuery(
       { url: "/echo", headers: undefined },
@@ -505,7 +505,7 @@ describe("fetchBaseQuery", () => {
     expect(request.headers["delete"]).toBe(defaultHeaders["delete"])
     expect(request.headers["delete2"]).toBe(defaultHeaders["delete2"])
   })
-  test("allows for possibly undefined header key/values", async () => {
+  it("allows for possibly undefined header key/values", async () => {
     const banana = "1" as "1" | undefined
     let request: any
     ;({ data: request } = await baseQuery(
@@ -518,7 +518,7 @@ describe("fetchBaseQuery", () => {
     expect(request.headers["delete"]).toBe(defaultHeaders["delete"])
     expect(request.headers["delete2"]).toBe(defaultHeaders["delete2"])
   })
-  test("strips undefined values from the headers", async () => {
+  it("strips undefined values from the headers", async () => {
     const banana = undefined as "1" | undefined
     let request: any
     ;({ data: request } = await baseQuery(
@@ -533,7 +533,7 @@ describe("fetchBaseQuery", () => {
   })
 })
 describe("fetchFn", () => {
-  test("accepts a custom fetchFn", async () => {
+  it("accepts a custom fetchFn", async () => {
     const baseUrl = "https://example.com"
     const params = new URLSearchParams({ apple: "fruit" })
     const baseQuery = fetchBaseQuery({
@@ -548,7 +548,7 @@ describe("fetchFn", () => {
     ))
     expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit`)
   })
-  test("respects mocking window.fetch after a fetch base query is created", async () => {
+  it("respects mocking window.fetch after a fetch base query is created", async () => {
     const baseUrl = "https://example.com"
     const baseQuery = fetchBaseQuery({ baseUrl })
     const fakeResponse = {
@@ -565,7 +565,7 @@ describe("fetchFn", () => {
   })
 })
 describe("FormData", () => {
-  test("sets the right headers when sending FormData", async () => {
+  it("sets the right headers when sending FormData", async () => {
     const body = new FormData()
     body.append("username", "test")
     body.append(
@@ -584,7 +584,7 @@ describe("FormData", () => {
   })
 })
 describe("still throws on completely unexpected errors", () => {
-  test("", async () => {
+  it("", async () => {
     const error = new Error("some unexpected error")
     const req = baseQuery(
       {

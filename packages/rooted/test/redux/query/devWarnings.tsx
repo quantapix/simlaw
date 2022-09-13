@@ -60,7 +60,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
         : ""
     )
   })
-  test("does not warn if middleware is not missing", () => {
+  it("does not warn if middleware is not missing", () => {
     const store = configureStore({
       reducer: { [api1.reducerPath]: api1.reducer },
       middleware: gdm => gdm().concat(api1.middleware),
@@ -68,7 +68,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
     store.dispatch(api1.endpoints.q1.initiate(undefined))
     expect(getLog().log).toBe(``)
   })
-  test("warns only once per api", () => {
+  it("warns only once per api", () => {
     const store = configureStore({
       reducer: { [api1.reducerPath]: api1.reducer },
     })
@@ -78,7 +78,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
       .toBe(`Warning: Middleware for RTK-Query API at reducerPath "api" has not been added to the store.
 Features like automatic cache collection, automatic refetching etc. will not be available.`)
   })
-  test("warns multiple times for multiple apis", () => {
+  it("warns multiple times for multiple apis", () => {
     const store = configureStore({
       reducer: {
         [api1.reducerPath]: api1.reducer,
@@ -120,7 +120,7 @@ describe("missing reducer", () => {
       )
     })
   })
-  test("does not warn if reducer is not missing", () => {
+  it("does not warn if reducer is not missing", () => {
     const store = configureStore({
       reducer: { [api1.reducerPath]: api1.reducer },
       middleware: gdm => gdm().concat(api1.middleware),
@@ -128,7 +128,7 @@ describe("missing reducer", () => {
     api1.endpoints.q1.select(undefined)(store.getState())
     expect(getLog().log).toBe(``)
   })
-  test("warns only once per api", () => {
+  it("warns only once per api", () => {
     const store = configureStore({
       reducer: { x: () => 0 },
       middleware: gdm => gdm().concat(api1.middleware),
@@ -139,7 +139,7 @@ describe("missing reducer", () => {
       "Error: No data found at `state.api`. Did you forget to add the reducer to the store?"
     )
   })
-  test("warns multiple times for multiple apis", () => {
+  it("warns multiple times for multiple apis", () => {
     const store = configureStore({
       reducer: { x: () => 0 },
       middleware: gdm => gdm().concat(api1.middleware),
@@ -162,7 +162,7 @@ test("warns only for reducer if everything is missing", async () => {
   )
 })
 describe("warns on multiple apis using the same `reducerPath`", () => {
-  test("common: two apis, same order", async () => {
+  it("common: two apis, same order", async () => {
     const store = configureStore({
       reducer: {
         [api1.reducerPath]: api1.reducer,
@@ -177,7 +177,7 @@ You can only have one api per reducer path, this will lead to crashes in various
 If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`
     )
   })
-  test("common: two apis, opposing order", async () => {
+  it("common: two apis, opposing order", async () => {
     const store = configureStore({
       reducer: {
         [api1.reducerPath]: api1.reducer,
@@ -195,7 +195,7 @@ You can only have one api per reducer path, this will lead to crashes in various
 If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`
     )
   })
-  test("common: two apis, only first middleware", async () => {
+  it("common: two apis, only first middleware", async () => {
     const store = configureStore({
       reducer: {
         [api1.reducerPath]: api1.reducer,
@@ -227,7 +227,7 @@ If you have multiple apis, you *have* to specify the reducerPath option when usi
   })
 })
 describe("`console.error` on unhandled errors during `initiate`", () => {
-  test("error thrown in `baseQuery`", async () => {
+  it("error thrown in `baseQuery`", async () => {
     const api = createApi({
       baseQuery(): { data: any } {
         throw new Error("this was kinda expected")
@@ -245,7 +245,7 @@ describe("`console.error` on unhandled errors during `initiate`", () => {
       .toBe(`An unhandled error occurred processing a request for the endpoint "baseQuery".
 In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: this was kinda expected]`)
   })
-  test("error thrown in `queryFn`", async () => {
+  it("error thrown in `queryFn`", async () => {
     const api = createApi({
       baseQuery() {
         return { data: {} }
@@ -267,7 +267,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated". 
       .toBe(`An unhandled error occurred processing a request for the endpoint "queryFn".
 In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: this was kinda expected]`)
   })
-  test("error thrown in `transformResponse`", async () => {
+  it("error thrown in `transformResponse`", async () => {
     const api = createApi({
       baseQuery() {
         return { data: {} }
@@ -290,7 +290,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated". 
       .toBe(`An unhandled error occurred processing a request for the endpoint "transformRspn".
 In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: this was kinda expected]`)
   })
-  test("`fetchBaseQuery`: error thrown in `prepareHeaders`", async () => {
+  it("`fetchBaseQuery`: error thrown in `prepareHeaders`", async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({
         baseUrl,
@@ -315,7 +315,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated". 
       .toBe(`An unhandled error occurred processing a request for the endpoint "prep".
 In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: this was kinda expected]`)
   })
-  test("`fetchBaseQuery`: error thrown in `validateStatus`", async () => {
+  it("`fetchBaseQuery`: error thrown in `validateStatus`", async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({
         baseUrl,

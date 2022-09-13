@@ -30,13 +30,13 @@ const defaultApi = createApi({
   refetchOnReconnect: true,
 })
 const storeRef = setupApiStore(defaultApi)
-let getIncrementedAmountState = () =>
+const getIncrementedAmountState = () =>
   storeRef.store.getState().api.queries["getIncrementedAmount(undefined)"]
 afterEach(() => {
   amount = 0
 })
 describe("refetchOnFocus tests", () => {
-  test("useQuery hook respects refetchOnFocus: true when set in createApi options", async () => {
+  it("useQuery hook respects refetchOnFocus: true when set in createApi options", async () => {
     let data, isLoading, isFetching
     function User() {
       ;({ data, isFetching, isLoading } =
@@ -67,7 +67,7 @@ describe("refetchOnFocus tests", () => {
       expect(screen.getByTestId("amount").textContent).toBe("2")
     )
   })
-  test("useQuery hook respects refetchOnFocus: false from a hook and overrides createApi defaults", async () => {
+  it("useQuery hook respects refetchOnFocus: false from a hook and overrides createApi defaults", async () => {
     let data, isLoading, isFetching
     function User() {
       ;({ data, isFetching, isLoading } =
@@ -100,7 +100,7 @@ describe("refetchOnFocus tests", () => {
       expect(screen.getByTestId("amount").textContent).toBe("1")
     )
   })
-  test("useQuery hook prefers refetchOnFocus: true when multiple components have different configurations", async () => {
+  it("useQuery hook prefers refetchOnFocus: true when multiple components have different configurations", async () => {
     let data, isLoading, isFetching
     function User() {
       ;({ data, isFetching, isLoading } =
@@ -152,7 +152,7 @@ describe("refetchOnFocus tests", () => {
       expect(screen.getByTestId("amount").textContent).toBe("2")
     )
   })
-  test("useQuery hook cleans data if refetch without active subscribers", async () => {
+  it("useQuery hook cleans data if refetch without active subscribers", async () => {
     let data, isLoading, isFetching
     function User() {
       ;({ data, isFetching, isLoading } =
@@ -186,7 +186,7 @@ describe("refetchOnFocus tests", () => {
   })
 })
 describe("refetchOnReconnect tests", () => {
-  test("useQuery hook respects refetchOnReconnect: true when set in createApi options", async () => {
+  it("useQuery hook respects refetchOnReconnect: true when set in createApi options", async () => {
     let data, isLoading, isFetching
     function User() {
       ;({ data, isFetching, isLoading } =
@@ -223,7 +223,7 @@ describe("refetchOnReconnect tests", () => {
       expect(screen.getByTestId("amount").textContent).toBe("2")
     )
   })
-  test("useQuery hook should not refetch when refetchOnReconnect: false from a hook and overrides createApi defaults", async () => {
+  it("useQuery hook should not refetch when refetchOnReconnect: false from a hook and overrides createApi defaults", async () => {
     let data, isLoading, isFetching
     function User() {
       ;({ data, isFetching, isLoading } =
@@ -257,7 +257,7 @@ describe("refetchOnReconnect tests", () => {
       expect(screen.getByTestId("amount").textContent).toBe("1")
     )
   })
-  test("useQuery hook prefers refetchOnReconnect: true when multiple components have different configurations", async () => {
+  it("useQuery hook prefers refetchOnReconnect: true when multiple components have different configurations", async () => {
     let data, isLoading, isFetching
     function User() {
       ;({ data, isFetching, isLoading } =
@@ -314,7 +314,7 @@ describe("customListenersHandler", () => {
   const storeRef = setupApiStore(defaultApi, undefined, {
     withoutListeners: true,
   })
-  test("setupListeners accepts a custom callback and executes it", async () => {
+  it("setupListeners accepts a custom callback and executes it", async () => {
     const consoleSpy = jest.spyOn(console, "log")
     consoleSpy.mockImplementation(() => {})
     const dispatchSpy = jest.spyOn(storeRef.store, "dispatch")

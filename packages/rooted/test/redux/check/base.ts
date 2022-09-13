@@ -1,6 +1,6 @@
-import { assert, _ } from "../../src/spec.js"
-import * as qi from "../../src/immer/index.js"
-import * as redux from "redux"
+import { assert, _ } from "../../../src/spec.js"
+import * as qi from "../../../src/immer/index.js"
+import * as qx from "../../../src/redux/index.js"
 
 {
   interface State {
@@ -37,14 +37,14 @@ import * as redux from "redux"
     },
     initialState
   )
-  const reduce = redux.combineReducers({
+  const reduce = qx.combineReducers({
     counterReducer: reduceCounterProducer,
   })
-  const curredReduce = redux.combineReducers({
+  const curredReduce = qx.combineReducers({
     counterReducer: reduceCounterCurriedProducer,
   })
-  const store = redux.createStore(reduce)
-  const curriedStore = redux.createStore(curredReduce)
+  const store = qx.createStore(reduce)
+  const curriedStore = qx.createStore(curredReduce)
   it("#470 works with Redux combine reducers", () => {
     assert(
       store.getState().counterReducer,
@@ -99,14 +99,14 @@ import * as redux from "redux"
       },
       initialState
     )
-    const reduce = redux.combineReducers({
+    const reduce = qx.combineReducers({
       counterReducer: reduceCounterProducer,
     })
-    const curredReduce = redux.combineReducers({
+    const curredReduce = qx.combineReducers({
       counterReducer: reduceCounterCurriedProducer,
     })
-    const store = redux.createStore(reduce)
-    const curriedStore = redux.createStore(curredReduce)
+    const store = qx.createStore(reduce)
+    const curriedStore = qx.createStore(curredReduce)
     it("#470 works with Redux combine readonly reducers", () => {
       assert(
         store.getState().counterReducer,
@@ -134,7 +134,7 @@ it("works with inferred curried reducer", () => {
   const defaultState = {
     count: 3,
   }
-  const store = redux.createStore(
+  const store = qx.createStore(
     qi.produce((state: State, action: Action) => {
       if (action.type === "inc") state.count += action.count
       state.count2
@@ -161,7 +161,7 @@ it("works with inferred curried reducer - readonly", () => {
   const defaultState: State = {
     count: 3,
   }
-  const store = redux.createStore(
+  const store = qx.createStore(
     qi.produce((state: qi.Draft<State>, action: Action) => {
       if (action.type === "inc") state.count += action.count
       state.count2

@@ -17,7 +17,7 @@ const api = createApi({
   }),
 })
 describe("ApiProvider", () => {
-  test("ApiProvider allows a user to make queries without a traditional Redux setup", async () => {
+  it("ApiProvider allows a user to make queries without a traditional Redux setup", async () => {
     function User() {
       const [value, setValue] = React.useState(0)
       const { isFetching } = api.endpoints.getUser.useQuery(1, {

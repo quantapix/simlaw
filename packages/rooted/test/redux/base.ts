@@ -1,4 +1,4 @@
-import { isPlainObject } from "@reduxjs/toolkit"
+import { isPlainObject } from "../../src/redux/index.js"
 import vm from "vm"
 describe("isPlainObject", () => {
   it("returns true only if plain object", () => {

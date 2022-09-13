@@ -164,7 +164,7 @@ describe("endpoint definition typings", () => {
     endpoints: () => ({}),
     tagTypes: ["typeA", "typeB"],
   })
-  test("query: query & transformResponse types", () => {
+  it("query: query & transformResponse types", () => {
     api.injectEndpoints({
       endpoints: build => ({
         query: build.query<"RetVal", "Arg">({
@@ -220,7 +220,7 @@ describe("endpoint definition typings", () => {
       }),
     })
   })
-  test("mutation: query & transformResponse types", () => {
+  it("mutation: query & transformResponse types", () => {
     api.injectEndpoints({
       endpoints: build => ({
         query: build.mutation<"RetVal", "Arg">({
@@ -524,17 +524,17 @@ describe("additional transformResponse behaviors", () => {
     }),
   })
   const storeRef = setupApiStore(api)
-  test("transformResponse handles an async transformation and returns the merged data (query)", async () => {
+  it("transformResponse handles an async transformation and returns the merged data (query)", async () => {
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(result.data).toEqual({ value: "success", banana: "bread" })
   })
-  test("transformResponse transforms a response from a mutation", async () => {
+  it("transformResponse transforms a response from a mutation", async () => {
     const result = await storeRef.store.dispatch(
       api.endpoints.mutation.initiate({})
     )
     expect("data" in result && result.data).toEqual({ banana: "bread" })
   })
-  test("transformResponse can inject baseQuery meta into the end result from a mutation", async () => {
+  it("transformResponse can inject baseQuery meta into the end result from a mutation", async () => {
     const result = await storeRef.store.dispatch(
       api.endpoints.mutationWithMeta.initiate({})
     )
@@ -555,7 +555,7 @@ describe("additional transformResponse behaviors", () => {
       },
     })
   })
-  test("transformResponse can inject baseQuery meta into the end result from a query", async () => {
+  it("transformResponse can inject baseQuery meta into the end result from a query", async () => {
     const result = await storeRef.store.dispatch(
       api.endpoints.queryWithMeta.initiate()
     )
@@ -619,7 +619,7 @@ describe("query endpoint lifecycles - onStart, onSuccess, onError", () => {
     }),
   })
   const storeRef = setupApiStore(api, { testReducer })
-  test("query lifecycle events fire properly", async () => {
+  it("query lifecycle events fire properly", async () => {
     server.use(
       rest.get("https://example.com/success", (_, res, ctx) =>
         res.once(ctx.status(500), ctx.json({ value: "failed" }))
@@ -639,7 +639,7 @@ describe("query endpoint lifecycles - onStart, onSuccess, onError", () => {
     await waitMs(10)
     expect(storeRef.store.getState().testReducer.count).toBe(1)
   })
-  test("mutation lifecycle events fire properly", async () => {
+  it("mutation lifecycle events fire properly", async () => {
     server.use(
       rest.post("https://example.com/success", (_, res, ctx) =>
         res.once(ctx.status(500), ctx.json({ value: "failed" }))

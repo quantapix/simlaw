@@ -237,7 +237,7 @@ describe("queryFn base implementation tests", () => {
       )
     }
   })
-  test("neither provided", async () => {
+  it("neither provided", async () => {
     {
       const thunk = withNeither.initiate("withNeither")
       let result: QuerySubState<any>

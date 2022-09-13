@@ -89,21 +89,21 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
       keepUnusedDataFor: 29,
     })
   )
-  test("global keepUnusedDataFor", async () => {
+  it("global keepUnusedDataFor", async () => {
     store.dispatch(api.endpoints.query.initiate("arg")).unsubscribe()
     jest.advanceTimersByTime(28000), await waitMs()
     expect(onCleanup).not.toHaveBeenCalled()
     jest.advanceTimersByTime(2000), await waitMs()
     expect(onCleanup).toHaveBeenCalled()
   })
-  test("endpoint keepUnusedDataFor", async () => {
+  it("endpoint keepUnusedDataFor", async () => {
     store.dispatch(api.endpoints.query2.initiate("arg")).unsubscribe()
     jest.advanceTimersByTime(34000), await waitMs()
     expect(onCleanup).not.toHaveBeenCalled()
     jest.advanceTimersByTime(2000), await waitMs()
     expect(onCleanup).toHaveBeenCalled()
   })
-  test("endpoint keepUnusedDataFor: 0 ", async () => {
+  it("endpoint keepUnusedDataFor: 0 ", async () => {
     expect(onCleanup).not.toHaveBeenCalled()
     store.dispatch(api.endpoints.query3.initiate("arg")).unsubscribe()
     expect(onCleanup).not.toHaveBeenCalled()

@@ -81,7 +81,7 @@ describe("re-triggering behavior on arg change", () => {
   })
   const spy = jest.spyOn(getUser, "initiate")
   beforeEach(() => void spy.mockClear())
-  test("re-trigger on literal value change", async () => {
+  it("re-trigger on literal value change", async () => {
     const { result, rerender } = renderHook(props => getUser.useQuery(props), {
       wrapper: withProvider(store),
       initialProps: 5,
@@ -106,7 +106,7 @@ describe("re-triggering behavior on arg change", () => {
       expect(spy).toHaveBeenCalledTimes(3)
     }
   })
-  test("only re-trigger on shallow-equal arg change", async () => {
+  it("only re-trigger on shallow-equal arg change", async () => {
     const { result, rerender } = renderHook(props => getUser.useQuery(props), {
       wrapper: withProvider(store),
       initialProps: { name: "Bob", likes: "iceCream" },
@@ -130,7 +130,7 @@ describe("re-triggering behavior on arg change", () => {
       expect(spy).toHaveBeenCalledTimes(3)
     }
   })
-  test("re-triggers every time on deeper value changes", async () => {
+  it("re-triggers every time on deeper value changes", async () => {
     const name = "Tim"
     const { result, rerender } = renderHook(props => getUser.useQuery(props), {
       wrapper: withProvider(store),
@@ -148,7 +148,7 @@ describe("re-triggering behavior on arg change", () => {
       expect(spy).toHaveBeenCalledTimes(x + 1)
     }
   })
-  test("do not re-trigger if the order of keys change while maintaining the same values", async () => {
+  it("do not re-trigger if the order of keys change while maintaining the same values", async () => {
     const { result, rerender } = renderHook(props => getUser.useQuery(props), {
       wrapper: withProvider(store),
       initialProps: { name: "Tim", likes: "Bananas" },

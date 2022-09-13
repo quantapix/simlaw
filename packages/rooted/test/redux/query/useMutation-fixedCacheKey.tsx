@@ -44,7 +44,7 @@ describe("fixedCacheKey", () => {
       </div>
     )
   }
-  test("two mutations without `fixedCacheKey` do not influence each other", async () => {
+  it("two mutations without `fixedCacheKey` do not influence each other", async () => {
     render(
       <>
         <Component name="C1" />
@@ -65,7 +65,7 @@ describe("fixedCacheKey", () => {
     expect(getByTestId(c1, "data").textContent).toBe("C1")
     expect(getByTestId(c2, "status").textContent).toBe("uninitialized")
   })
-  test("two mutations with the same `fixedCacheKey` do influence each other", async () => {
+  it("two mutations with the same `fixedCacheKey` do influence each other", async () => {
     render(
       <>
         <Component name="C1" fixedCacheKey="test" />
@@ -96,7 +96,7 @@ describe("fixedCacheKey", () => {
       expect(getByTestId(c2, "data").textContent).toBe("")
     })
   })
-  test("resetting from the component that triggered the mutation resets for each shared result", async () => {
+  it("resetting from the component that triggered the mutation resets for each shared result", async () => {
     render(
       <>
         <Component name="C1" fixedCacheKey="test-A" />
@@ -158,7 +158,7 @@ describe("fixedCacheKey", () => {
       expect(getByTestId(c4, "status").textContent).toBe("fulfilled")
     })
   })
-  test("two mutations with different `fixedCacheKey` do not influence each other", async () => {
+  it("two mutations with different `fixedCacheKey` do not influence each other", async () => {
     render(
       <>
         <Component name="C1" fixedCacheKey="test" />
@@ -179,7 +179,7 @@ describe("fixedCacheKey", () => {
     expect(getByTestId(c1, "data").textContent).toBe("C1")
     expect(getByTestId(c2, "status").textContent).toBe("uninitialized")
   })
-  test("unmounting and remounting keeps data intact", async () => {
+  it("unmounting and remounting keeps data intact", async () => {
     const { rerender } = render(<Component name="C1" fixedCacheKey="test" />, {
       wrapper: storeRef.wrapper,
     })
@@ -199,7 +199,7 @@ describe("fixedCacheKey", () => {
     expect(getByTestId(c1, "status").textContent).toBe("fulfilled")
     expect(getByTestId(c1, "data").textContent).toBe("C1")
   })
-  test("(limitation) mutations using `fixedCacheKey` do not return `originalArgs`", async () => {
+  it("(limitation) mutations using `fixedCacheKey` do not return `originalArgs`", async () => {
     render(
       <>
         <Component name="C1" fixedCacheKey="test" />
@@ -221,7 +221,7 @@ describe("fixedCacheKey", () => {
     expect(getByTestId(c2, "status").textContent).toBe("fulfilled")
     expect(getByTestId(c2, "data").textContent).toBe("C1")
   })
-  test("a component without `fixedCacheKey` has `originalArgs`", async () => {
+  it("a component without `fixedCacheKey` has `originalArgs`", async () => {
     render(<Component name="C1" />, {
       wrapper: storeRef.wrapper,
       legacyRoot: true,
@@ -234,7 +234,7 @@ describe("fixedCacheKey", () => {
     })
     expect(getByTestId(c1, "originalArgs").textContent).toBe("C1")
   })
-  test("a component with `fixedCacheKey` does never have `originalArgs`", async () => {
+  it("a component with `fixedCacheKey` does never have `originalArgs`", async () => {
     render(<Component name="C1" fixedCacheKey="test" />, {
       wrapper: storeRef.wrapper,
     })
@@ -246,7 +246,7 @@ describe("fixedCacheKey", () => {
     })
     expect(getByTestId(c1, "originalArgs").textContent).toBe("undefined")
   })
-  test("using `fixedCacheKey` will always use the latest dispatched thunk, prevent races", async () => {
+  it("using `fixedCacheKey` will always use the latest dispatched thunk, prevent races", async () => {
     let resolve1: (str: string) => void, resolve2: (str: string) => void
     const p1 = new Promise<string>(resolve => {
       resolve1 = resolve

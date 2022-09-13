@@ -45,7 +45,7 @@ describe("fetchBaseQuery", () => {
       endpoint: "doesntmatterhere",
     }
   })
-  test("success", async () => {
+  it("success", async () => {
     await expect(
       baseQuery("/success", commonBaseQueryApiArgs, {})
     ).resolves.toEqual({
@@ -56,7 +56,7 @@ describe("fetchBaseQuery", () => {
       },
     })
   })
-  test("error", async () => {
+  it("error", async () => {
     server.use(failQueryOnce)
     await expect(
       baseQuery("/error", commonBaseQueryApiArgs, {})
@@ -73,7 +73,7 @@ describe("fetchBaseQuery", () => {
   })
 })
 describe("query error handling", () => {
-  test("success", async () => {
+  it("success", async () => {
     server.use(
       rest.get("https://example.com/query", (_, res, ctx) =>
         res(ctx.json({ value: "success" }))
@@ -92,7 +92,7 @@ describe("query error handling", () => {
       })
     )
   })
-  test("error", async () => {
+  it("error", async () => {
     server.use(
       rest.get("https://example.com/query", (_, res, ctx) =>
         res(ctx.status(500), ctx.json({ value: "error" }))
@@ -114,7 +114,7 @@ describe("query error handling", () => {
       })
     )
   })
-  test("success -> error", async () => {
+  it("success -> error", async () => {
     server.use(
       rest.get("https://example.com/query", (_, res, ctx) =>
         res(ctx.json({ value: "success" }))
@@ -152,7 +152,7 @@ describe("query error handling", () => {
       })
     )
   })
-  test("error -> success", async () => {
+  it("error -> success", async () => {
     server.use(
       rest.get("https://example.com/query", (_, res, ctx) =>
         res(ctx.json({ value: "success" }))
@@ -191,7 +191,7 @@ describe("query error handling", () => {
   })
 })
 describe("mutation error handling", () => {
-  test("success", async () => {
+  it("success", async () => {
     server.use(
       rest.post("https://example.com/mutation", (_, res, ctx) =>
         res(ctx.json({ value: "success" }))
@@ -212,7 +212,7 @@ describe("mutation error handling", () => {
       })
     )
   })
-  test("error", async () => {
+  it("error", async () => {
     server.use(
       rest.post("https://example.com/mutation", (_, res, ctx) =>
         res(ctx.status(500), ctx.json({ value: "error" }))
@@ -236,7 +236,7 @@ describe("mutation error handling", () => {
       })
     )
   })
-  test("success -> error", async () => {
+  it("success -> error", async () => {
     server.use(
       rest.post("https://example.com/mutation", (_, res, ctx) =>
         res(ctx.json({ value: "success" }))
@@ -281,7 +281,7 @@ describe("mutation error handling", () => {
       expect(result.current[1].data).toBeUndefined()
     }
   })
-  test("error -> success", async () => {
+  it("error -> success", async () => {
     server.use(
       rest.post("https://example.com/mutation", (_, res, ctx) =>
         res(ctx.json({ value: "success" }))
@@ -380,14 +380,14 @@ describe("custom axios baseQuery", () => {
     },
   })
   const storeRef = setupApiStore(api)
-  test("axiosBaseQuery transformResponse uses its custom meta format", async () => {
+  it("axiosBaseQuery transformResponse uses its custom meta format", async () => {
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(result.data).toEqual({
       value: "success",
       metaResponseData: { value: "success" },
     })
   })
-  test("axios errors behave as expected", async () => {
+  it("axios errors behave as expected", async () => {
     server.use(
       rest.get("https://example.com/success", (_, res, ctx) =>
         res(ctx.status(500), ctx.json({ value: "error" }))
@@ -422,7 +422,7 @@ describe("error handling in a component", () => {
     }),
   })
   const storeRef = setupApiStore(api)
-  test("a mutation is unwrappable and has the correct types", async () => {
+  it("a mutation is unwrappable and has the correct types", async () => {
     server.use(
       rest.get("https://example.com/success", (_, res, ctx) =>
         res.once(ctx.status(500), ctx.json(mockErrorResponse))

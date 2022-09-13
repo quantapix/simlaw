@@ -1351,7 +1351,7 @@ describe("hooks with createApi defaults set", () => {
     refetchOnMountOrArgChange: true,
   })
   const storeRef = setupApiStore(defaultApi)
-  test("useQuery hook respects refetchOnMountOrArgChange: true when set in createApi options", async () => {
+  it("useQuery hook respects refetchOnMountOrArgChange: true when set in createApi options", async () => {
     let data, isLoading, isFetching
     function User() {
       ;({ data, isLoading } =
@@ -1397,7 +1397,7 @@ describe("hooks with createApi defaults set", () => {
       expect(screen.getByTestId("amount").textContent).toBe("2")
     )
   })
-  test("useQuery hook overrides default refetchOnMountOrArgChange: false that was set by createApi", async () => {
+  it("useQuery hook overrides default refetchOnMountOrArgChange: false that was set by createApi", async () => {
     let data, isLoading, isFetching
     function User() {
       ;({ data, isLoading } =
@@ -1921,7 +1921,7 @@ describe("skip behaviour", () => {
     return Object.keys(storeRef.store.getState().api.subscriptions[key] || {})
       .length
   }
-  test("normal skip", async () => {
+  it("normal skip", async () => {
     const { result, rerender } = renderHook(
       ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
         api.endpoints.getUser.useQuery(arg, options),
@@ -1939,7 +1939,7 @@ describe("skip behaviour", () => {
     expect(result.current).toEqual(uninitialized)
     expect(subscriptionCount("getUser(1)")).toBe(0)
   })
-  test("skipToken", async () => {
+  it("skipToken", async () => {
     const { result, rerender } = renderHook(
       ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
         api.endpoints.getUser.useQuery(arg, options),

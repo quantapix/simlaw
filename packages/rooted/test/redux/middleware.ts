@@ -131,35 +131,35 @@ describe("MiddlewareArray functionality", () => {
   const middleware2: qx.Middleware = () => next => action => next(action)
   const defaultMiddleware = qx.getDefaultMiddleware()
   const originalDefaultMiddleware = [...defaultMiddleware]
-  test("allows to prepend a single value", () => {
+  it("allows to prepend a single value", () => {
     const prepended = defaultMiddleware.prepend(middleware1)
     expect(prepended).toEqual([middleware1, ...defaultMiddleware])
     expect(prepended).toBeInstanceOf(qx.MiddlewareArray)
     expect(prepended).not.toEqual(defaultMiddleware)
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
-  test("allows to prepend multiple values (array as first argument)", () => {
+  it("allows to prepend multiple values (array as first argument)", () => {
     const prepended = defaultMiddleware.prepend([middleware1, middleware2])
     expect(prepended).toEqual([middleware1, middleware2, ...defaultMiddleware])
     expect(prepended).toBeInstanceOf(qx.MiddlewareArray)
     expect(prepended).not.toEqual(defaultMiddleware)
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
-  test("allows to prepend multiple values (rest)", () => {
+  it("allows to prepend multiple values (rest)", () => {
     const prepended = defaultMiddleware.prepend(middleware1, middleware2)
     expect(prepended).toEqual([middleware1, middleware2, ...defaultMiddleware])
     expect(prepended).toBeInstanceOf(qx.MiddlewareArray)
     expect(prepended).not.toEqual(defaultMiddleware)
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
-  test("allows to concat a single value", () => {
+  it("allows to concat a single value", () => {
     const concatenated = defaultMiddleware.concat(middleware1)
     expect(concatenated).toEqual([...defaultMiddleware, middleware1])
     expect(concatenated).toBeInstanceOf(qx.MiddlewareArray)
     expect(concatenated).not.toEqual(defaultMiddleware)
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
-  test("allows to concat multiple values (array as first argument)", () => {
+  it("allows to concat multiple values (array as first argument)", () => {
     const concatenated = defaultMiddleware.concat([middleware1, middleware2])
     expect(concatenated).toEqual([
       ...defaultMiddleware,
@@ -170,7 +170,7 @@ describe("MiddlewareArray functionality", () => {
     expect(concatenated).not.toEqual(defaultMiddleware)
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
-  test("allows to concat multiple values (rest)", () => {
+  it("allows to concat multiple values (rest)", () => {
     const concatenated = defaultMiddleware.concat(middleware1, middleware2)
     expect(concatenated).toEqual([
       ...defaultMiddleware,
@@ -181,7 +181,7 @@ describe("MiddlewareArray functionality", () => {
     expect(concatenated).not.toEqual(defaultMiddleware)
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
-  test("allows to concat and then prepend", () => {
+  it("allows to concat and then prepend", () => {
     const concatenated = defaultMiddleware
       .concat(middleware1)
       .prepend(middleware2)
@@ -191,7 +191,7 @@ describe("MiddlewareArray functionality", () => {
       middleware1,
     ])
   })
-  test("allows to prepend and then concat", () => {
+  it("allows to prepend and then concat", () => {
     const concatenated = defaultMiddleware
       .prepend(middleware2)
       .concat(middleware1)

@@ -17,7 +17,7 @@ const api = createApi({
   }),
 })
 describe.skip("TS only tests", () => {
-  test("query selector union", () => {
+  it("query selector union", () => {
     const result = api.endpoints.test.select()({} as any)
     if (result.isUninitialized) {
       expectExactType(undefined)(result.data)
@@ -59,7 +59,7 @@ describe.skip("TS only tests", () => {
       expectType<never>(result)
     }
   })
-  test("useQuery union", () => {
+  it("useQuery union", () => {
     const result = api.endpoints.test.useQuery()
     if (result.isUninitialized) {
       expectExactType(undefined)(result.data)
@@ -125,7 +125,7 @@ describe.skip("TS only tests", () => {
       expectType<never>(result)
     }
   })
-  test("useQuery TS4.1 union", () => {
+  it("useQuery TS4.1 union", () => {
     const result = api.useTestQuery()
     if (result.isUninitialized) {
       expectExactType(undefined)(result.data)
@@ -181,7 +181,7 @@ describe.skip("TS only tests", () => {
       expectType<never>(result)
     }
   })
-  test("useLazyQuery union", () => {
+  it("useLazyQuery union", () => {
     const [_trigger, result] = api.endpoints.test.useLazyQuery()
     if (result.isUninitialized) {
       expectExactType(undefined)(result.data)
@@ -237,7 +237,7 @@ describe.skip("TS only tests", () => {
       expectType<never>(result)
     }
   })
-  test("useLazyQuery TS4.1 union", () => {
+  it("useLazyQuery TS4.1 union", () => {
     const [_trigger, result] = api.useLazyTestQuery()
     if (result.isUninitialized) {
       expectExactType(undefined)(result.data)
@@ -293,7 +293,7 @@ describe.skip("TS only tests", () => {
       expectType<never>(result)
     }
   })
-  test("queryHookResult (without selector) union", () => {
+  it("queryHookResult (without selector) union", () => {
     const useQueryStateResult = api.endpoints.test.useQueryState()
     const useQueryResult = api.endpoints.test.useQuery()
     const useQueryStateWithSelectFromResult = api.endpoints.test.useQueryState(
@@ -308,7 +308,7 @@ describe.skip("TS only tests", () => {
       useQueryResultWithoutMethods
     )
   })
-  test("useQueryState (with selectFromResult)", () => {
+  it("useQueryState (with selectFromResult)", () => {
     const result = api.endpoints.test.useQueryState(undefined, {
       selectFromResult({
         data,
@@ -337,7 +337,7 @@ describe.skip("TS only tests", () => {
       isError: false,
     })(result)
   })
-  test("useQuery (with selectFromResult)", () => {
+  it("useQuery (with selectFromResult)", () => {
     const result = api.endpoints.test.useQuery(undefined, {
       selectFromResult({
         data,
@@ -367,7 +367,7 @@ describe.skip("TS only tests", () => {
       refetch: () => {},
     })(result)
   })
-  test("useMutation union", () => {
+  it("useMutation union", () => {
     const [_trigger, result] = api.endpoints.mutation.useMutation()
     if (result.isUninitialized) {
       expectExactType(undefined)(result.data)
@@ -409,7 +409,7 @@ describe.skip("TS only tests", () => {
       expectType<never>(result)
     }
   })
-  test("useMutation (with selectFromResult)", () => {
+  it("useMutation (with selectFromResult)", () => {
     const [_trigger, result] = api.endpoints.mutation.useMutation({
       selectFromResult({
         data,
@@ -436,7 +436,7 @@ describe.skip("TS only tests", () => {
       reset: () => {},
     })(result)
   })
-  test("useMutation TS4.1 union", () => {
+  it("useMutation TS4.1 union", () => {
     const [_trigger, result] = api.useMutationMutation()
     if (result.isUninitialized) {
       expectExactType(undefined)(result.data)
