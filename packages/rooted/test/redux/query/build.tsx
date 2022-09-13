@@ -4,8 +4,21 @@ import {
   fetchBaseQuery,
   QueryStatus,
   skipToken,
+  SerializedError,
+  createSelector,
+  configureStore,
+  createSlice,
+  SubscriptionOptions,
+  AnyAction,
 } from "@reduxjs/toolkit/query/react"
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  renderHook,
+} from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { rest } from "msw"
 import {
@@ -16,12 +29,383 @@ import {
   setupApiStore,
   useRenderCounter,
   waitMs,
-} from "./helpers"
-import { server } from "./mocks/server"
-import type { AnyAction } from "redux"
-import type { SubscriptionOptions } from "@reduxjs/toolkit/dist/query/core/apiState"
-import type { SerializedError } from "@reduxjs/toolkit"
-import { renderHook } from "@testing-library/react"
+  withProvider,
+} from "./helpers.js"
+import { server } from "./mocks/server.js"
+import type { BaseQueryApi } from "../baseQueryTypes"
+
+test("handles a non-async baseQuery without error", async () => {
+  const baseQuery = (args?: any) => ({ data: args })
+  const api = createApi({
+    baseQuery,
+    endpoints: build => ({
+      getUser: build.query<unknown, number>({
+        query(id) {
+          return { url: `user/${id}` }
+        },
+      }),
+    }),
+  })
+  const { getUser } = api.endpoints
+  const store = configureStore({
+    reducer: {
+      [api.reducerPath]: api.reducer,
+    },
+    middleware: gDM => gDM().concat(api.middleware),
+  })
+  const promise = store.dispatch(getUser.initiate(1))
+  const { data } = await promise
+  expect(data).toEqual({
+    url: "user/1",
+  })
+  const storeResult = getUser.select(1)(store.getState())
+  expect(storeResult).toEqual({
+    data: {
+      url: "user/1",
+    },
+    endpointName: "getUser",
+    isError: false,
+    isLoading: false,
+    isSuccess: true,
+    isUninitialized: false,
+    originalArgs: 1,
+    requestId: expect.any(String),
+    status: "fulfilled",
+    startedTimeStamp: expect.any(Number),
+    fulfilledTimeStamp: expect.any(Number),
+  })
+})
+test("passes the extraArgument property to the baseQueryApi", async () => {
+  const baseQuery = (_args: any, api: BaseQueryApi) => ({ data: api.extra })
+  const api = createApi({
+    baseQuery,
+    endpoints: build => ({
+      getUser: build.query<unknown, void>({
+        query: () => "",
+      }),
+    }),
+  })
+  const store = configureStore({
+    reducer: {
+      [api.reducerPath]: api.reducer,
+    },
+    middleware: gDM =>
+      gDM({ thunk: { extraArgument: "cakes" } }).concat(api.middleware),
+  })
+  const { getUser } = api.endpoints
+  const { data } = await store.dispatch(getUser.initiate())
+  expect(data).toBe("cakes")
+})
+describe("re-triggering behavior on arg change", () => {
+  const api = createApi({
+    baseQuery: () => ({ data: null }),
+    endpoints: build => ({
+      getUser: build.query<any, any>({
+        query: obj => obj,
+      }),
+    }),
+  })
+  const { getUser } = api.endpoints
+  const store = configureStore({
+    reducer: { [api.reducerPath]: api.reducer },
+    middleware: gDM => gDM().concat(api.middleware),
+  })
+  const spy = jest.spyOn(getUser, "initiate")
+  beforeEach(() => void spy.mockClear())
+  it("re-trigger on literal value change", async () => {
+    const { result, rerender } = renderHook(props => getUser.useQuery(props), {
+      wrapper: withProvider(store),
+      initialProps: 5,
+    })
+    await waitFor(() => {
+      expect(result.current.status).not.toBe("pending")
+    })
+
+    expect(spy).toHaveBeenCalledTimes(1)
+    for (let x = 1; x < 3; x++) {
+      rerender(6)
+      await waitFor(() => {
+        expect(result.current.status).not.toBe("pending")
+      })
+      expect(spy).toHaveBeenCalledTimes(2)
+    }
+    for (let x = 1; x < 3; x++) {
+      rerender(7)
+      await waitFor(() => {
+        expect(result.current.status).not.toBe("pending")
+      })
+      expect(spy).toHaveBeenCalledTimes(3)
+    }
+  })
+  it("only re-trigger on shallow-equal arg change", async () => {
+    const { result, rerender } = renderHook(props => getUser.useQuery(props), {
+      wrapper: withProvider(store),
+      initialProps: { name: "Bob", likes: "iceCream" },
+    })
+    await waitFor(() => {
+      expect(result.current.status).not.toBe("pending")
+    })
+    expect(spy).toHaveBeenCalledTimes(1)
+    for (let x = 1; x < 3; x++) {
+      rerender({ name: "Bob", likes: "waffles" })
+      await waitFor(() => {
+        expect(result.current.status).not.toBe("pending")
+      })
+      expect(spy).toHaveBeenCalledTimes(2)
+    }
+    for (let x = 1; x < 3; x++) {
+      rerender({ name: "Alice", likes: "waffles" })
+      await waitFor(() => {
+        expect(result.current.status).not.toBe("pending")
+      })
+      expect(spy).toHaveBeenCalledTimes(3)
+    }
+  })
+  it("re-triggers every time on deeper value changes", async () => {
+    const name = "Tim"
+    const { result, rerender } = renderHook(props => getUser.useQuery(props), {
+      wrapper: withProvider(store),
+      initialProps: { person: { name } },
+    })
+    await waitFor(() => {
+      expect(result.current.status).not.toBe("pending")
+    })
+    expect(spy).toHaveBeenCalledTimes(1)
+    for (let x = 1; x < 3; x++) {
+      rerender({ person: { name: name + x } })
+      await waitFor(() => {
+        expect(result.current.status).not.toBe("pending")
+      })
+      expect(spy).toHaveBeenCalledTimes(x + 1)
+    }
+  })
+  it("do not re-trigger if the order of keys change while maintaining the same values", async () => {
+    const { result, rerender } = renderHook(props => getUser.useQuery(props), {
+      wrapper: withProvider(store),
+      initialProps: { name: "Tim", likes: "Bananas" },
+    })
+    await waitFor(() => {
+      expect(result.current.status).not.toBe("pending")
+    })
+    expect(spy).toHaveBeenCalledTimes(1)
+    for (let x = 1; x < 3; x++) {
+      rerender({ likes: "Bananas", name: "Tim" })
+      await waitFor(() => {
+        expect(result.current.status).not.toBe("pending")
+      })
+      expect(spy).toHaveBeenCalledTimes(1)
+    }
+  })
+})
+
+describe("buildSelector", () => {
+  test.skip("buildSelector typetest", () => {
+    interface Todo {
+      userId: number
+      id: number
+      title: string
+      completed: boolean
+    }
+    type Todos = Array<Todo>
+    const exampleApi = createApi({
+      reducerPath: "api",
+      baseQuery: fetchBaseQuery({
+        baseUrl: "https://jsonplaceholder.typicode.com",
+      }),
+      endpoints: build => ({
+        getTodos: build.query<Todos, string>({
+          query: () => "/todos",
+        }),
+      }),
+    })
+    const exampleQuerySelector = exampleApi.endpoints.getTodos.select("/")
+    const todosSelector = createSelector([exampleQuerySelector], queryState => {
+      return queryState?.data?.[0] ?? ({} as Todo)
+    })
+    const firstTodoTitleSelector = createSelector(
+      [todosSelector],
+      todo => todo?.title
+    )
+    const store = configureStore({
+      reducer: {
+        [exampleApi.reducerPath]: exampleApi.reducer,
+        other: () => 1,
+      },
+    })
+    const todoTitle = firstTodoTitleSelector(store.getState())
+    const upperTitle = todoTitle.toUpperCase()
+    expectExactType<string>(upperTitle)
+  })
+})
+const baseQuery = (args?: any) => ({ data: args })
+const api = createApi({
+  baseQuery,
+  endpoints: build => ({
+    getUser: build.query<unknown, number>({
+      query(id) {
+        return { url: `user/${id}` }
+      },
+    }),
+  }),
+})
+const { getUser } = api.endpoints
+const authSlice = createSlice({
+  name: "auth",
+  initialState: {
+    token: "1234",
+  },
+  reducers: {
+    setToken(state, action) {
+      state.token = action.payload
+    },
+  },
+})
+const storeRef = setupApiStore(api, { auth: authSlice.reducer })
+it("only resets the api state when resetApiState is dispatched", async () => {
+  storeRef.store.dispatch({ type: "unrelated" }) // trigger "registered middleware" into place
+  const initialState = storeRef.store.getState()
+  await storeRef.store.dispatch(
+    getUser.initiate(1, { subscriptionOptions: { pollingInterval: 10 } })
+  )
+  expect(storeRef.store.getState()).toEqual({
+    api: {
+      config: {
+        focused: true,
+        keepUnusedDataFor: 60,
+        middlewareRegistered: true,
+        online: true,
+        reducerPath: "api",
+        refetchOnFocus: false,
+        refetchOnMountOrArgChange: false,
+        refetchOnReconnect: false,
+      },
+      mutations: {},
+      provided: {},
+      queries: {
+        "getUser(1)": {
+          data: {
+            url: "user/1",
+          },
+          endpointName: "getUser",
+          fulfilledTimeStamp: expect.any(Number),
+          originalArgs: 1,
+          requestId: expect.any(String),
+          startedTimeStamp: expect.any(Number),
+          status: "fulfilled",
+        },
+      },
+      subscriptions: {
+        "getUser(1)": expect.any(Object),
+      },
+    },
+    auth: {
+      token: "1234",
+    },
+  })
+  storeRef.store.dispatch(api.util.resetApiState())
+  expect(storeRef.store.getState()).toEqual(initialState)
+})
+
+const baseQuery = (args?: any) => ({ data: args })
+const api = createApi({
+  baseQuery,
+  tagTypes: ["Banana", "Bread"],
+  endpoints: build => ({
+    getBanana: build.query<unknown, number>({
+      query(id) {
+        return { url: `banana/${id}` }
+      },
+      providesTags: ["Banana"],
+    }),
+    getBananas: build.query<unknown, void>({
+      query() {
+        return { url: "bananas" }
+      },
+      providesTags: ["Banana"],
+    }),
+    getBread: build.query<unknown, number>({
+      query(id) {
+        return { url: `bread/${id}` }
+      },
+      providesTags: ["Bread"],
+    }),
+  }),
+})
+const { getBanana, getBread } = api.endpoints
+const storeRef = setupApiStore(api, {
+  ...actionsReducer,
+})
+it("invalidates the specified tags", async () => {
+  await storeRef.store.dispatch(getBanana.initiate(1))
+  expect(storeRef.store.getState().actions).toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    getBanana.matchPending,
+    getBanana.matchFulfilled
+  )
+  await storeRef.store.dispatch(api.util.invalidateTags(["Banana", "Bread"]))
+  await waitMs(20)
+  const firstSequence = [
+    api.internalActions.middlewareRegistered.match,
+    getBanana.matchPending,
+    getBanana.matchFulfilled,
+    api.util.invalidateTags.match,
+    getBanana.matchPending,
+    getBanana.matchFulfilled,
+  ]
+  expect(storeRef.store.getState().actions).toMatchSequence(...firstSequence)
+  await storeRef.store.dispatch(getBread.initiate(1))
+  await storeRef.store.dispatch(api.util.invalidateTags([{ type: "Bread" }]))
+  await waitMs(20)
+  expect(storeRef.store.getState().actions).toMatchSequence(
+    ...firstSequence,
+    getBread.matchPending,
+    getBread.matchFulfilled,
+    api.util.invalidateTags.match,
+    getBread.matchPending,
+    getBread.matchFulfilled
+  )
+})
+describe.skip("TS only tests", () => {
+  it("should allow for an array of string TagTypes", () => {
+    api.util.invalidateTags(["Banana", "Bread"])
+  })
+  it("should allow for an array of full TagTypes descriptions", () => {
+    api.util.invalidateTags([{ type: "Banana" }, { type: "Bread", id: 1 }])
+  })
+  it("should allow for a mix of full descriptions as well as plain strings", () => {
+    api.util.invalidateTags(["Banana", { type: "Bread", id: 1 }])
+  })
+  it("should error when using non-existing TagTypes", () => {
+    api.util.invalidateTags(["Missing Tag"])
+  })
+  it("should error when using non-existing TagTypes in the full format", () => {
+    api.util.invalidateTags([{ type: "Missing" }])
+  })
+  it("should allow pre-fetching for an endpoint that takes an arg", () => {
+    api.util.prefetch("getBanana", 5, { force: true })
+    api.util.prefetch("getBanana", 5, { force: false })
+    api.util.prefetch("getBanana", 5, { ifOlderThan: false })
+    api.util.prefetch("getBanana", 5, { ifOlderThan: 30 })
+    api.util.prefetch("getBanana", 5, {})
+  })
+  it("should error when pre-fetching with the incorrect arg type", () => {
+    api.util.prefetch("getBanana", "5", { force: true })
+  })
+  it("should allow pre-fetching for an endpoint with a void arg", () => {
+    api.util.prefetch("getBananas", undefined, { force: true })
+    api.util.prefetch("getBananas", undefined, { force: false })
+    api.util.prefetch("getBananas", undefined, { ifOlderThan: false })
+    api.util.prefetch("getBananas", undefined, { ifOlderThan: 30 })
+    api.util.prefetch("getBananas", undefined, {})
+  })
+  it("should error when pre-fetching with a defined arg when expecting void", () => {
+    api.util.prefetch("getBananas", 5, { force: true })
+  })
+  it("should error when pre-fetching for an incorrect endpoint name", () => {
+    api.util.prefetch("getPomegranates", undefined, { force: true })
+  })
+})
+
 let amount = 0
 const api = createApi({
   baseQuery: async (arg: any) => {

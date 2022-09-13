@@ -13,8 +13,8 @@ import {
   setupApiStore,
   waitMs,
   getSerializedHeaders,
-} from "./helpers"
-import { server } from "./mocks/server"
+} from "./helpers.js"
+import { server } from "./mocks/server.js"
 import { rest } from "msw"
 const originalEnv = process.env["NODE_ENV"]
 beforeAll(() => void ((process.env as any).NODE_ENV = "development"))
