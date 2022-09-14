@@ -67,21 +67,18 @@ export interface OperatorFunction<T, R>
   extends UnaryFunction<Observable<T>, Observable<R>> {}
 export interface MonoTypeOperatorFunction<T> extends OperatorFunction<T, T> {}
 
-export interface NextNotification<T> {
+export interface NextNote<T> {
   kind: "N"
   value: T
 }
-export interface ErrorNotification {
+export interface ErrorNote {
   kind: "E"
   error: any
 }
-export interface CompleteNotification {
+export interface CompleteNote {
   kind: "C"
 }
-export type ObservableNotification<T> =
-  | NextNotification<T>
-  | ErrorNotification
-  | CompleteNotification
+export type ObservableNote<T> = NextNote<T> | ErrorNote | CompleteNote
 
 export interface SubjectLike<T> extends Observer<T>, Subscribable<T> {}
 
@@ -157,8 +154,8 @@ export type ValueFromArray<X extends readonly unknown[]> = X extends Array<
 >
   ? T
   : never
-export type ValueFromNotification<X> = X extends { kind: "N" | "E" | "C" }
-  ? X extends NextNotification<any>
+export type ValueFromNote<X> = X extends { kind: "N" | "E" | "C" }
+  ? X extends NextNote<any>
     ? X extends { value: infer T }
       ? T
       : undefined
@@ -186,11 +183,48 @@ export type AnyCatcher = typeof anyCatcherSymbol
 
 export interface GlobalConfig {
   onUnhandledError: ((x: any) => void) | null
-  onStoppedNotification:
-    | ((n: ObservableNotification<any>, s: Subscriber<any>) => void)
-    | null
-
+  onStoppedNote: ((n: ObservableNote<any>, s: Subscriber<any>) => void) | null
   Promise?: PromiseConstructorLike
   useDeprecatedSynchronousErrorHandling: boolean
   useDeprecatedNextContext: boolean
+}
+
+export interface FirstValueFromConfig<T> {
+  defaultValue: T
+}
+
+export interface LastValueFromConfig<T> {
+  defaultValue: T
+}
+
+export interface EmptyError extends Error {}
+export interface EmptyErrorCtor {
+  new (): EmptyError
+}
+
+export interface NotFoundError extends Error {}
+export interface NotFoundErrorCtor {
+  new (x: string): NotFoundError
+}
+
+export interface ObjectUnsubscribedError extends Error {}
+export interface ObjectUnsubscribedErrorCtor {
+  new (): ObjectUnsubscribedError
+}
+
+export interface SequenceError extends Error {}
+export interface SequenceErrorCtor {
+  new (x: string): SequenceError
+}
+
+export interface UnsubscriptionError extends Error {
+  readonly errors: any[]
+}
+export interface UnsubscriptionErrorCtor {
+  new (xs: any[]): UnsubscriptionError
+}
+
+export interface ArgumentOutOfRangeError extends Error {}
+export interface ArgumentOutOfRangeErrorCtor {
+  new (): ArgumentOutOfRangeError
 }

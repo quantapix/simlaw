@@ -3,13 +3,17 @@ import { async } from "./scheduler.js"
 import { asyncScheduler } from "./scheduler.js"
 import { AsyncSubject, BehaviorSubject, ReplaySubject } from "./subject.js"
 import { dateTimestampProvider } from "./scheduler.js"
-import { Notification, observeNotification } from "./notification.js"
+import { Note, observeNote } from "./note.js"
 import { Observable, innerFrom, EMPTY, from, timer } from "./observable.js"
 import { SafeSubscriber } from "./subscriber.js"
 import { Subject } from "./subject.js"
 import { Subscriber } from "./subscriber.js"
 import { Subscription } from "./subscription.js"
 import type * as qt from "./types.js"
+
+export interface Operator<T, R> {
+  call(x: Subscriber<R>, src: any): qt.Teardown
+}
 
 export const combineAll = combineLatestAll
 
@@ -695,12 +699,12 @@ export function delayWhen<T>(
   )
 }
 export function dematerialize<
-  N extends qt.ObservableNotification<any>
->(): qt.OperatorFunction<N, qt.ValueFromNotification<N>> {
+  N extends qt.ObservableNote<any>
+>(): qt.OperatorFunction<N, qt.ValueFromNote<N>> {
   return qu.operate((source, subscriber) => {
     source.subscribe(
-      createOperatorSubscriber(subscriber, notification =>
-        observeNotification(notification, subscriber)
+      createOperatorSubscriber(subscriber, note =>
+        observeNote(note, subscriber)
       )
     )
   })
@@ -1334,21 +1338,21 @@ export function mapTo<R>(value: R): qt.OperatorFunction<unknown, R> {
 }
 export function materialize<T>(): qt.OperatorFunction<
   T,
-  Notification<T> & qt.ObservableNotification<T>
+  Note<T> & qt.ObservableNote<T>
 > {
   return qu.operate((source, subscriber) => {
     source.subscribe(
       createOperatorSubscriber(
         subscriber,
         value => {
-          subscriber.next(Notification.createNext(value))
+          subscriber.next(Note.createNext(value))
         },
         () => {
-          subscriber.next(Notification.createComplete())
+          subscriber.next(Note.createComplete())
           subscriber.complete()
         },
         err => {
-          subscriber.next(Notification.createError(err))
+          subscriber.next(Note.createError(err))
           subscriber.complete()
         }
       )
@@ -1999,7 +2003,7 @@ export function repeat<T>(
       })
 }
 export function repeatWhen<T>(
-  notifier: (notifications: Observable<void>) => Observable<any>
+  notifier: (notes: Observable<void>) => Observable<any>
 ): qt.MonoTypeOperatorFunction<T> {
   return qu.operate((source, subscriber) => {
     let innerSub: Subscription | null

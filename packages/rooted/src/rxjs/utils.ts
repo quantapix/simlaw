@@ -1,47 +1,82 @@
-import { config } from "./config"
-import { createErrorClass } from "./createErrorClass"
-import { iterator as Symbol_iterator } from "./symbol/iterator"
-import { map } from "./operators/map"
+import { map } from "./operators.js"
 import { Observable } from "./observable.js"
 import type * as qt from "./types.js"
-import { Subscriber } from "./subscriber.js"
+import { Subscriber, SafeSubscriber } from "./subscriber.js"
 import type { Subscription } from "./subscription.js"
 import { timeoutProvider } from "./scheduler.js"
 
-function getPromiseCtor(promiseCtor: PromiseConstructorLike | undefined) {
-  return promiseCtor ?? config.Promise ?? Promise
+export function getPromiseCtor(x?: PromiseConstructorLike) {
+  return x ?? config.Promise ?? Promise
 }
 
-function isObserver<T>(value: any): value is qt.Observer<T> {
+export function isObserver<T>(x: any): x is qt.Observer<T> {
   return (
-    value &&
-    isFunction(value.next) &&
-    isFunction(value.error) &&
-    isFunction(value.complete)
+    x && isFunction(x.next) && isFunction(x.error) && isFunction(x.complete)
   )
 }
 
-function isSubscriber<T>(value: any): value is Subscriber<T> {
-  return (
-    (value && value instanceof Subscriber) ||
-    (isObserver(value) && isSubscription(value))
-  )
+export function firstValueFrom<T, D>(
+  source: Observable<T>,
+  config: qt.FirstValueFromConfig<D>
+): Promise<T | D>
+export function firstValueFrom<T>(source: Observable<T>): Promise<T>
+export function firstValueFrom<T, D>(
+  source: Observable<T>,
+  config?: qt.FirstValueFromConfig<D>
+): Promise<T | D> {
+  const hasConfig = typeof config === "object"
+  return new Promise<T | D>((resolve, reject) => {
+    const subscriber = new SafeSubscriber<T>({
+      next: value => {
+        resolve(value)
+        subscriber.unsubscribe()
+      },
+      error: reject,
+      complete: () => {
+        if (hasConfig) {
+          resolve(config!.defaultValue)
+        } else {
+          reject(new EmptyError())
+        }
+      },
+    })
+    source.subscribe(subscriber)
+  })
 }
 
-export const observable: string | symbol = (() =>
-  (typeof Symbol === "function" && Symbol.observable) || "@@observable")()
-export function getSymbolIterator(): symbol {
-  if (typeof Symbol !== "function" || !Symbol.iterator) {
-    return "@@iterator" as any
-  }
-  return Symbol.iterator
+export function lastValueFrom<T, D>(
+  source: Observable<T>,
+  config: qt.LastValueFromConfig<D>
+): Promise<T | D>
+export function lastValueFrom<T>(source: Observable<T>): Promise<T>
+export function lastValueFrom<T, D>(
+  source: Observable<T>,
+  config?: qt.LastValueFromConfig<D>
+): Promise<T | D> {
+  const hasConfig = typeof config === "object"
+  return new Promise<T | D>((resolve, reject) => {
+    let _hasValue = false
+    let _value: T
+    source.subscribe({
+      next: value => {
+        _value = value
+        _hasValue = true
+      },
+      error: reject,
+      complete: () => {
+        if (_hasValue) {
+          resolve(_value)
+        } else if (hasConfig) {
+          resolve(config!.defaultValue)
+        } else {
+          reject(new EmptyError())
+        }
+      },
+    })
+  })
 }
-export const iterator = getSymbolIterator()
-export interface ArgumentOutOfRangeError extends Error {}
-export interface ArgumentOutOfRangeErrorCtor {
-  new (): ArgumentOutOfRangeError
-}
-export const ArgumentOutOfRangeError: ArgumentOutOfRangeErrorCtor =
+
+export const ArgumentOutOfRangeError: qt.ArgumentOutOfRangeErrorCtor =
   createErrorClass(
     _super =>
       function ArgumentOutOfRangeErrorImpl(this: any) {
@@ -50,20 +85,15 @@ export const ArgumentOutOfRangeError: ArgumentOutOfRangeErrorCtor =
         this.message = "argument out of range"
       }
   )
-export interface EmptyError extends Error {}
-export interface EmptyErrorCtor {
-  new (): EmptyError
-}
-export const EmptyError: EmptyErrorCtor = createErrorClass(
+export const EmptyError: qt.EmptyErrorCtor = createErrorClass(
   _super =>
-    function EmptyErrorImpl(this: any) {
+    function impl(this: any) {
       _super(this)
       this.name = "EmptyError"
       this.message = "no elements in sequence"
     }
 )
 let nextHandle = 1
-
 let resolved: Promise<any>
 const activeHandles: { [key: number]: any } = {}
 function findAndClearHandle(handle: number): boolean {
@@ -73,6 +103,7 @@ function findAndClearHandle(handle: number): boolean {
   }
   return false
 }
+
 export const Immediate = {
   setImmediate(cb: () => void): number {
     const handle = nextHandle++
@@ -87,28 +118,23 @@ export const Immediate = {
     findAndClearHandle(handle)
   },
 }
+
 export const TestTools = {
   pending() {
     return Object.keys(activeHandles).length
   },
 }
-export interface NotFoundError extends Error {}
-export interface NotFoundErrorCtor {
-  new (message: string): NotFoundError
-}
-export const NotFoundError: NotFoundErrorCtor = createErrorClass(
+
+export const NotFoundError: qt.NotFoundErrorCtor = createErrorClass(
   _super =>
-    function NotFoundErrorImpl(this: any, message: string) {
+    function NotFoundErrorImpl(this: any, x: string) {
       _super(this)
       this.name = "NotFoundError"
-      this.message = message
+      this.message = x
     }
 )
-export interface ObjectUnsubscribedError extends Error {}
-export interface ObjectUnsubscribedErrorCtor {
-  new (): ObjectUnsubscribedError
-}
-export const ObjectUnsubscribedError: ObjectUnsubscribedErrorCtor =
+
+export const ObjectUnsubscribedError: qt.ObjectUnsubscribedErrorCtor =
   createErrorClass(
     _super =>
       function ObjectUnsubscribedErrorImpl(this: any) {
@@ -117,11 +143,8 @@ export const ObjectUnsubscribedError: ObjectUnsubscribedErrorCtor =
         this.message = "object unsubscribed"
       }
   )
-export interface SequenceError extends Error {}
-export interface SequenceErrorCtor {
-  new (message: string): SequenceError
-}
-export const SequenceError: SequenceErrorCtor = createErrorClass(
+
+export const SequenceError: qt.SequenceErrorCtor = createErrorClass(
   _super =>
     function SequenceErrorImpl(this: any, message: string) {
       _super(this)
@@ -129,13 +152,8 @@ export const SequenceError: SequenceErrorCtor = createErrorClass(
       this.message = message
     }
 )
-export interface UnsubscriptionError extends Error {
-  readonly errors: any[]
-}
-export interface UnsubscriptionErrorCtor {
-  new (errors: any[]): UnsubscriptionError
-}
-export const UnsubscriptionError: UnsubscriptionErrorCtor = createErrorClass(
+
+export const UnsubscriptionError: qt.UnsubscriptionErrorCtor = createErrorClass(
   _super =>
     function UnsubscriptionErrorImpl(this: any, errors: (Error | string)[]) {
       _super(this)
@@ -147,6 +165,7 @@ ${errors.map((err, i) => `${i + 1}) ${err.toString()}`).join("\n  ")}`
       this.errors = errors
     }
 )
+
 export function applyMixins(derivedCtor: any, baseCtors: any[]) {
   for (let i = 0, len = baseCtors.length; i < len; i++) {
     const baseCtor = baseCtors[i]
@@ -157,20 +176,22 @@ export function applyMixins(derivedCtor: any, baseCtors: any[]) {
     }
   }
 }
+
 function last<T>(arr: T[]): T | undefined {
   return arr[arr.length - 1]
 }
 export function popResultSelector(
-  args: any[]
-): ((...args: unknown[]) => unknown) | undefined {
-  return isFunction(last(args)) ? args.pop() : undefined
+  xs: any[]
+): ((...xs: unknown[]) => unknown) | undefined {
+  return isFunction(last(xs)) ? xs.pop() : undefined
 }
-export function popScheduler(args: any[]): qt.Scheduler | undefined {
-  return isScheduler(last(args)) ? args.pop() : undefined
+export function popScheduler(xs: any[]): qt.Scheduler | undefined {
+  return isScheduler(last(xs)) ? xs.pop() : undefined
 }
-export function popNumber(args: any[], defaultValue: number): number {
-  return typeof last(args) === "number" ? args.pop()! : defaultValue
+export function popNumber(xs: any[], defaultValue: number): number {
+  return typeof last(xs) === "number" ? xs.pop()! : defaultValue
 }
+
 const { isArray } = Array
 const { getPrototypeOf, prototype: objectProto, keys: getKeys } = Object
 export function argsArgArrayOrObject<T, O extends Record<string, T>>(
@@ -209,10 +230,10 @@ export function createErrorClass<T>(createImpl: (_super: any) => any): T {
     Error.call(instance)
     instance.stack = new Error().stack
   }
-  const ctorFunc = createImpl(_super)
-  ctorFunc.prototype = Object.create(Error.prototype)
-  ctorFunc.prototype.constructor = ctorFunc
-  return ctorFunc
+  const y = createImpl(_super)
+  y.prototype = Object.create(Error.prototype)
+  y.prototype.constructor = y
+  return y
 }
 export function createObject(keys: string[], values: any[]) {
   return keys.reduce(
@@ -290,27 +311,26 @@ export const isArrayLike = <T>(x: any): x is ArrayLike<T> =>
 export function isAsyncIterable<T>(obj: any): obj is AsyncIterable<T> {
   return Symbol.asyncIterator && isFunction(obj?.[Symbol.asyncIterator])
 }
-export function isValidDate(value: any): value is Date {
-  return value instanceof Date && !isNaN(value as any)
+export function isValidDate(x: any): x is Date {
+  return x instanceof Date && !isNaN(x as any)
 }
-export function isFunction(value: any): value is (...args: any[]) => any {
-  return typeof value === "function"
+export function isFunction(x: any): x is (...args: any[]) => any {
+  return typeof x === "function"
 }
 export function isInteropObservable(input: any): input is qt.Observable<any> {
   return isFunction(input[Symbol.observable])
 }
-export function isIterable(input: any): input is Iterable<any> {
-  return isFunction(input?.[Symbol_iterator])
+export function isIterable(x: any): x is Iterable<any> {
+  return isFunction(x?.[Symbol.iterator])
 }
-export function isObservable(obj: any): obj is Observable<unknown> {
+export function isObservable(x: any): x is Observable<unknown> {
   return (
-    !!obj &&
-    (obj instanceof Observable ||
-      (isFunction(obj.lift) && isFunction(obj.subscribe)))
+    !!x &&
+    (x instanceof Observable || (isFunction(x.lift) && isFunction(x.subscribe)))
   )
 }
-export function isPromise(value: any): value is PromiseLike<any> {
-  return isFunction(value?.then)
+export function isPromise(x: any): x is PromiseLike<any> {
+  return isFunction(x?.then)
 }
 export async function* readableStreamLikeToAsyncGenerator<T>(
   readableStream: qt.ReadableStreamLike<T>
@@ -333,13 +353,13 @@ export function isReadableStreamLike<T>(
 ): obj is qt.ReadableStreamLike<T> {
   return isFunction(obj?.getReader)
 }
-export function isScheduler(value: any): value is qt.Scheduler {
-  return value && isFunction(value.schedule)
+export function isScheduler(x: any): x is qt.Scheduler {
+  return x && isFunction(x.schedule)
 }
 export function hasLift(
-  source: any
-): source is { lift: InstanceType<typeof Observable>["lift"] } {
-  return isFunction(source?.lift)
+  x: any
+): x is { lift: InstanceType<typeof Observable>["lift"] } {
+  return isFunction(x?.lift)
 }
 export function operate<T, R>(
   init: (
@@ -504,7 +524,7 @@ export function createInvalidObservableTypeError(input: any) {
 
 export const config: qt.GlobalConfig = {
   onUnhandledError: null,
-  onStoppedNotification: null,
+  onStoppedNote: null,
   Promise: undefined,
   useDeprecatedSynchronousErrorHandling: false,
   useDeprecatedNextContext: false,

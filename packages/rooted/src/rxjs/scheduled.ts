@@ -2,8 +2,8 @@ import { innerFrom, Observable } from "./observable.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 import { iterator as Symbol_iterator } from "./symbol/iterator"
-import { observeOn } from "./operators.js"
-import { subscribeOn } from "./operators.js"
+import { observeOn } from "./operator.js"
+import { subscribeOn } from "./operator.js"
 
 export function scheduleArray<T>(input: ArrayLike<T>, scheduler: qt.Scheduler) {
   return new Observable<T>(subscriber => {

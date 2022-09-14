@@ -1,12 +1,8 @@
+import { isSubscription, Subscription } from "./subscription.js"
+import { nextNote, errorNote, COMPLETE_NOTE } from "./note.js"
+import { timeoutProvider } from "./scheduler.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
-import { isSubscription, Subscription } from "./subscription.js"
-import {
-  nextNotification,
-  errorNotification,
-  COMPLETE_NOTIFICATION,
-} from "./notification.js"
-import { timeoutProvider } from "./scheduler.js"
 
 export class Subscriber<T> extends Subscription implements qt.Observer<T> {
   static create<T>(
@@ -33,18 +29,18 @@ export class Subscriber<T> extends Subscription implements qt.Observer<T> {
     }
   }
   next(x?: T) {
-    if (this.isStopped) handleStopped(nextNotification(x), this)
+    if (this.isStopped) handleStopped(nextNote(x), this)
     else this._next(x!)
   }
   error(x?: any) {
-    if (this.isStopped) handleStopped(errorNotification(x), this)
+    if (this.isStopped) handleStopped(errorNote(x), this)
     else {
       this.isStopped = true
       this._error(x)
     }
   }
   complete() {
-    if (this.isStopped) handleStopped(COMPLETE_NOTIFICATION, this)
+    if (this.isStopped) handleStopped(COMPLETE_NOTE, this)
     else {
       this.isStopped = true
       this._complete()
@@ -108,6 +104,12 @@ class ConsumerObserver<T> implements qt.Observer<T> {
   }
 }
 
+export function isSubscriber<T>(x: any): x is Subscriber<T> {
+  return (
+    (x && x instanceof Subscriber) || (qu.isObserver(x) && isSubscription(x))
+  )
+}
+
 export class SafeSubscriber<T> extends Subscriber<T> {
   constructor(
     next?: Partial<qt.Observer<T>> | ((x: T) => void) | null,
@@ -138,13 +140,13 @@ export class SafeSubscriber<T> extends Subscriber<T> {
   }
 }
 
-function handleStopped(
-  x: qt.ObservableNotification<any>,
-  sub: Subscriber<any>
-) {
-  const { onStoppedNotification } = qu.config
-  onStoppedNotification &&
-    timeoutProvider.setTimeout(() => onStoppedNotification(x, sub))
+function defaultHandler(x: any) {
+  throw x
+}
+
+function handleStopped(x: qt.ObservableNote<any>, sub: Subscriber<any>) {
+  const { onStoppedNote } = qu.config
+  onStoppedNote && timeoutProvider.setTimeout(() => onStoppedNote(x, sub))
 }
 
 function handleUnhandled(x: any) {
@@ -155,17 +157,9 @@ function handleUnhandled(x: any) {
   }
 }
 
-function defaultHandler(x: any) {
-  throw x
-}
-
 const EMPTY_OBS: Readonly<qt.Observer<any>> & { closed: true } = {
   closed: true,
   next: qu.noop,
   error: defaultHandler,
   complete: qu.noop,
-}
-
-export interface Operator<T, R> {
-  call(x: Subscriber<R>, src: any): qt.Teardown
 }

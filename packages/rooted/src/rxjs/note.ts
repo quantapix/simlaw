@@ -1,15 +1,15 @@
 import type * as qt from "./types.js"
 import type { Observable } from "./observable.js"
 import { EMPTY, of, throwError } from "./observable.js"
-import { isFunction } from "./utils.js"
+import * as qu from "./utils.js"
 
-export enum NotificationKind {
+export enum Kind {
   NEXT = "N",
   ERROR = "E",
   COMPLETE = "C",
 }
 
-export class Notification<T> {
+export class Note<T> {
   readonly hasValue: boolean
   constructor(kind: "N", value?: T)
   constructor(kind: "E", value: undefined, error: any)
@@ -22,7 +22,7 @@ export class Notification<T> {
     this.hasValue = kind === "N"
   }
   observe(observer: qt.PartialObserver<T>): void {
-    return observeNotification(this as qt.ObservableNotification<T>, observer)
+    return observeNote(this as qt.ObservableNote<T>, observer)
   }
   do(
     next: (value: T) => void,
@@ -56,7 +56,7 @@ export class Notification<T> {
     error?: (err: any) => void,
     complete?: () => void
   ) {
-    return isFunction((nextOrObserver as any)?.next)
+    return qu.isFunction((nextOrObserver as any)?.next)
       ? this.observe(nextOrObserver as qt.PartialObserver<T>)
       : this.do(
           nextOrObserver as (value: T) => void,
@@ -75,34 +75,26 @@ export class Notification<T> {
         ? EMPTY
         : 0
     if (!result) {
-      throw new TypeError(`Unexpected notification kind ${kind}`)
+      throw new TypeError(`Unexpected note kind ${kind}`)
     }
     return result
   }
-  private static completeNotification = new Notification(
-    "C"
-  ) as Notification<never> & qt.CompleteNotification
+  private static completeNote = new Note("C") as Note<never> & qt.CompleteNote
   static createNext<T>(value: T) {
-    return new Notification("N", value) as Notification<T> &
-      qt.NextNotification<T>
+    return new Note("N", value) as Note<T> & qt.NextNote<T>
   }
   static createError(err?: any) {
-    return new Notification("E", undefined, err) as Notification<never> &
-      qt.ErrorNotification
+    return new Note("E", undefined, err) as Note<never> & qt.ErrorNote
   }
-  static createComplete(): Notification<never> & qt.CompleteNotification {
-    return Notification.completeNotification
+  static createComplete(): Note<never> & qt.CompleteNote {
+    return Note.completeNote
   }
 }
 
-export const COMPLETE_NOTIFICATION = (() =>
-  createNotification("C", undefined, undefined) as qt.CompleteNotification)()
+export const COMPLETE_NOTE = (() =>
+  createNote("C", undefined, undefined) as qt.CompleteNote)()
 
-export function createNotification(
-  kind: "N" | "E" | "C",
-  value: any,
-  error: any
-) {
+export function createNote(kind: "N" | "E" | "C", value: any, error: any) {
   return {
     kind,
     value,
@@ -110,21 +102,21 @@ export function createNotification(
   }
 }
 
-export function nextNotification<T>(value: T) {
-  return createNotification("N", value, undefined) as qt.NextNotification<T>
+export function nextNote<T>(value: T) {
+  return createNote("N", value, undefined) as qt.NextNote<T>
 }
 
-export function errorNotification(error: any): qt.ErrorNotification {
-  return createNotification("E", undefined, error) as any
+export function errorNote(error: any): qt.ErrorNote {
+  return createNote("E", undefined, error) as any
 }
 
-export function observeNotification<T>(
-  notification: qt.ObservableNotification<T>,
+export function observeNote<T>(
+  note: qt.ObservableNote<T>,
   observer: qt.PartialObserver<T>
 ) {
-  const { kind, value, error } = notification as any
+  const { kind, value, error } = note as any
   if (typeof kind !== "string") {
-    throw new TypeError('Invalid notification, missing "kind"')
+    throw new TypeError('Invalid note, missing "kind"')
   }
   kind === "N"
     ? observer.next?.(value!)

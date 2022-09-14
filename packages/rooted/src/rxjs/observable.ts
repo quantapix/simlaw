@@ -3,15 +3,15 @@ import { async as asyncScheduler } from "./scheduler.js"
 import { asyncScheduler } from "./scheduler.js"
 import { AsyncSubject } from "./subject.js"
 import { Subscription } from "./subscription.js"
-import type { Operator } from "./operators.js"
+import type { Operator } from "./operator.js"
 import { performanceTimestampProvider } from "./scheduler.js"
 import * as qu from "./utils.js"
-import { refCount as higherOrderRefCount } from "./operators.js"
+import { refCount as higherOrderRefCount } from "./operator.js"
 import { ReplaySubject } from "./subject.js"
 import { SafeSubscriber, Subscriber } from "./subscriber.js"
 import { scheduled, scheduleIterable } from "./scheduled.js"
 import { Subject, AnonymousSubject } from "./subject.js"
-import { subscribeOn } from "./operators.js"
+import { subscribeOn } from "./operator.js"
 import type * as qt from "./types.js"
 import {
   concatAll,
@@ -21,10 +21,10 @@ import {
   createOperatorSubscriber,
   observeOn,
   onErrorResumeNext as onErrorResumeNextWith,
-} from "./operators.js"
+} from "./operator.js"
 
 export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
-  source: Observable<any> | undefined
+  src: Observable<any> | undefined
   operator: Operator<any, T> | undefined
   constructor(
     subscribe?: (this: Observable<T>, subscriber: Subscriber<T>) => qt.Teardown
@@ -40,7 +40,7 @@ export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
   }
   lift<R>(operator?: Operator<T, R>): Observable<R> {
     const observable = new Observable<R>()
-    observable.source = this
+    observable.src = this
     observable.operator = operator
     return observable
   }
@@ -60,7 +60,7 @@ export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
       ? observerOrNext
       : new SafeSubscriber(observerOrNext, error, complete)
     qu.errorContext(() => {
-      const { operator, source } = this
+      const { operator, src: source } = this
       subscriber.add(
         operator
           ? operator.call(subscriber, source)
@@ -105,7 +105,7 @@ export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
     }) as Promise<void>
   }
   protected _subscribe(subscriber: Subscriber<any>): qt.Teardown {
-    return this.source?.subscribe(subscriber)
+    return this.src?.subscribe(subscriber)
   }
   [Symbol.observable]() {
     return this
@@ -208,12 +208,12 @@ export class ConnectableObservable<T> extends Observable<T> {
   protected _refCount: number = 0
   protected _connection: Subscription | null = null
   constructor(
-    public source: Observable<T>,
+    public src: Observable<T>,
     protected subjectFactory: () => Subject<T>
   ) {
     super()
-    if (qu.hasLift(source)) {
-      this.lift = source.lift
+    if (qu.hasLift(src)) {
+      this.lift = src.lift
     }
   }
   protected _subscribe(subscriber: Subscriber<T>) {
@@ -238,7 +238,7 @@ export class ConnectableObservable<T> extends Observable<T> {
       connection = this._connection = new Subscription()
       const subject = this.getSubject()
       connection.add(
-        this.source.subscribe(
+        this.src.subscribe(
           createOperatorSubscriber(
             subject as any,
             undefined,
@@ -582,8 +582,8 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
   ) {
     super()
     if (urlConfigOrSource instanceof Observable) {
-      this.destination = destination
-      this.source = urlConfigOrSource as Observable<T>
+      this.dest = destination
+      this.src = urlConfigOrSource as Observable<T>
     } else {
       const config = (this._config = { ...DEFAULT_WEBSOCKET_CONFIG })
       this._output = new Subject<T>()
@@ -601,22 +601,22 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
       } else if (!config.WebSocketCtor) {
         throw new Error("no WebSocket constructor can be found")
       }
-      this.destination = new ReplaySubject()
+      this.dest = new ReplaySubject()
     }
   }
   lift<R>(operator: Operator<T, R>): WebSocketSubject<R> {
     const sock = new WebSocketSubject<R>(
       this._config as WebSocketSubjectConfig<any>,
-      this.destination as any
+      this.dest as any
     )
     sock.operator = operator
-    sock.source = this
+    sock.src = this
     return sock
   }
   private _resetState() {
     this._socket = null
-    if (!this.source) {
-      this.destination = new ReplaySubject()
+    if (!this.src) {
+      this.dest = new ReplaySubject()
     }
     this._output = new Subject<T>()
   }
@@ -688,15 +688,15 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
       if (openObserver) {
         openObserver.next(evt)
       }
-      const queue = this.destination
-      this.destination = Subscriber.create<T>(
+      const queue = this.dest
+      this.dest = Subscriber.create<T>(
         x => {
           if (socket!.readyState === 1) {
             try {
               const { serializer } = this._config
               socket!.send(serializer!(x!))
             } catch (e) {
-              this.destination!.error(e)
+              this.dest!.error(e)
             }
           }
         },
@@ -722,9 +722,7 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
         }
       ) as Subscriber<any>
       if (queue && queue instanceof ReplaySubject) {
-        subscription.add(
-          (queue as ReplaySubject<T>).subscribe(this.destination)
-        )
+        subscription.add((queue as ReplaySubject<T>).subscribe(this.dest))
       }
     }
     socket.onerror = (e: Event) => {
@@ -755,7 +753,7 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
     }
   }
   protected _subscribe(subscriber: Subscriber<T>): Subscription {
-    const { source } = this
+    const { src: source } = this
     if (source) {
       return source.subscribe(subscriber)
     }

@@ -89,8 +89,8 @@ export function isSubscription(x: any): x is Subscription {
     x instanceof Subscription ||
     (x &&
       "closed" in x &&
-      qu.isFunction(x.remove) &&
       qu.isFunction(x.add) &&
+      qu.isFunction(x.remove) &&
       qu.isFunction(x.unsubscribe))
   )
 }

@@ -6,8 +6,8 @@ import { HotObservable } from "./HotObservable"
 import { immediateProvider } from "./scheduler/immediateProvider"
 import { intervalProvider } from "./scheduler/intervalProvider"
 import { Observable } from "./Observable"
-import { ObservableNotification } from "./types.js"
-import { observeNotification } from "./Notification"
+import { ObservableNote } from "./types.js"
+import { observeNote } from "./Note"
 import { performanceTimestampProvider } from "./scheduler/performanceTimestampProvider"
 import { Scheduler } from "./Scheduler"
 import { Subject } from "./Subject"
@@ -22,11 +22,7 @@ import {
   VirtualTimeScheduler,
   VirtualAction,
 } from "./scheduler/VirtualTimeScheduler"
-import {
-  COMPLETE_NOTIFICATION,
-  errorNotification,
-  nextNotification,
-} from "./NotificationFactories"
+import { COMPLETE_NOTE, errorNote, nextNote } from "./NoteFactories"
 
 export class ColdObservable<T>
   extends Observable<T>
@@ -61,10 +57,10 @@ export class ColdObservable<T>
         this.scheduler.schedule(
           state => {
             const {
-              message: { notification },
+              message: { note },
               subscriber: destination,
             } = state!
-            observeNotification(notification, destination)
+            observeNote(note, destination)
           },
           message.frame,
           { message, subscriber }
@@ -105,9 +101,9 @@ export class HotObservable<T>
     const messagesLength = subject.messages.length
     for (let i = 0; i < messagesLength; i++) {
       ;(() => {
-        const { notification, frame } = subject.messages[i]
+        const { note, frame } = subject.messages[i]
         subject.scheduler.schedule(() => {
-          observeNotification(notification, subject)
+          observeNote(note, subject)
         }, frame)
       })()
     }
@@ -139,7 +135,7 @@ export class SubscriptionLoggable {
 }
 export interface TestMessage {
   frame: number
-  notification: ObservableNotification<any>
+  note: ObservableNote<any>
   isGhost?: boolean
 }
 const defaultMaxFrame: number = 750
@@ -235,19 +231,19 @@ export class TestScheduler extends VirtualTimeScheduler {
       next: value => {
         messages.push({
           frame: this.frame - outerFrame,
-          notification: nextNotification(value),
+          note: nextNote(value),
         })
       },
       error: error => {
         messages.push({
           frame: this.frame - outerFrame,
-          notification: errorNotification(error),
+          note: errorNote(error),
         })
       },
       complete: () => {
         messages.push({
           frame: this.frame - outerFrame,
-          notification: COMPLETE_NOTIFICATION,
+          note: COMPLETE_NOTE,
         })
       },
     })
@@ -278,19 +274,19 @@ export class TestScheduler extends VirtualTimeScheduler {
               : x
           actual.push({
             frame: this.frame,
-            notification: nextNotification(value),
+            note: nextNote(value),
           })
         },
         error: error => {
           actual.push({
             frame: this.frame,
-            notification: errorNotification(error),
+            note: errorNote(error),
           })
         },
         complete: () => {
           actual.push({
             frame: this.frame,
-            notification: COMPLETE_NOTIFICATION,
+            note: COMPLETE_NOTE,
           })
         },
       })
@@ -323,19 +319,19 @@ export class TestScheduler extends VirtualTimeScheduler {
                   : x
               flushTest.expected!.push({
                 frame: this.frame,
-                notification: nextNotification(value),
+                note: nextNote(value),
               })
             },
             error: error => {
               flushTest.expected!.push({
                 frame: this.frame,
-                notification: errorNotification(error),
+                note: errorNote(error),
               })
             },
             complete: () => {
               flushTest.expected!.push({
                 frame: this.frame,
-                notification: COMPLETE_NOTIFICATION,
+                note: COMPLETE_NOTE,
               })
             },
           })
@@ -519,7 +515,7 @@ export class TestScheduler extends VirtualTimeScheduler {
       const advanceFrameBy = (count: number) => {
         nextFrame += count * this.frameTimeFactor
       }
-      let notification: ObservableNotification<any> | undefined
+      let note: ObservableNote<any> | undefined
       const c = characters[i]
       switch (c) {
         case " ":
@@ -539,14 +535,14 @@ export class TestScheduler extends VirtualTimeScheduler {
           advanceFrameBy(1)
           break
         case "|":
-          notification = COMPLETE_NOTIFICATION
+          note = COMPLETE_NOTE
           advanceFrameBy(1)
           break
         case "^":
           advanceFrameBy(1)
           break
         case "#":
-          notification = errorNotification(errorValue || "error")
+          note = errorNote(errorValue || "error")
           advanceFrameBy(1)
           break
         default:
@@ -577,14 +573,14 @@ export class TestScheduler extends VirtualTimeScheduler {
               }
             }
           }
-          notification = nextNotification(getValue(c))
+          note = nextNote(getValue(c))
           advanceFrameBy(1)
           break
       }
-      if (notification) {
+      if (note) {
         testMessages.push({
           frame: groupStart > -1 ? groupStart : frame,
-          notification,
+          note,
         })
       }
       frame = nextFrame
