@@ -1,7 +1,7 @@
-import type * as qt from "../types.js"
+import type * as qt from "./types.js"
 import type { Observable } from "./observable.js"
 import { EMPTY, of, throwError } from "./observable.js"
-import { isFunction } from "../utils.js"
+import { isFunction } from "./utils.js"
 
 export enum NotificationKind {
   NEXT = "N",

@@ -8,7 +8,7 @@ import {
   nextNotification,
   errorNotification,
   COMPLETE_NOTIFICATION,
-} from "./aaa/notification.js"
+} from "./notification.js"
 import { timeoutProvider } from "./scheduler/timeoutProvider"
 import { captureError } from "./util/errorContext"
 import { Subscriber } from "./subscriber.js"
