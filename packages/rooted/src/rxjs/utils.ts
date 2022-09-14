@@ -1,26 +1,18 @@
 import { config } from "./config"
 import { createErrorClass } from "./createErrorClass"
-import { identity } from "./identity"
-import { InteropObservable } from "./types"
-import { isFunction } from "./isFunction"
-import { isScheduler } from "./isScheduler"
 import { iterator as Symbol_iterator } from "./symbol/iterator"
 import { map } from "./operators/map"
-import { Observable } from "./Observable"
-import { observable as Symbol_observable } from "./symbol/observable"
-import { OperatorFunction } from "./types"
-import { ReadableStreamLike } from "./types"
+import { Observable } from "./observable.js"
 import type * as qt from "./types.js"
 import { Subscriber } from "./subscriber.js"
-import { Subscription } from "./Subscription"
-import { timeoutProvider } from "./scheduler/timeoutProvider"
-import { UnaryFunction } from "./types"
+import type { Subscription } from "./subscription.js"
+import { timeoutProvider } from "./scheduler.js"
 
 function getPromiseCtor(promiseCtor: PromiseConstructorLike | undefined) {
   return promiseCtor ?? config.Promise ?? Promise
 }
 
-function isObserver<T>(value: any): value is Observer<T> {
+function isObserver<T>(value: any): value is qt.Observer<T> {
   return (
     value &&
     isFunction(value.next) &&
@@ -304,10 +296,8 @@ export function isValidDate(value: any): value is Date {
 export function isFunction(value: any): value is (...args: any[]) => any {
   return typeof value === "function"
 }
-export function isInteropObservable(
-  input: any
-): input is InteropObservable<any> {
-  return isFunction(input[Symbol_observable])
+export function isInteropObservable(input: any): input is qt.Observable<any> {
+  return isFunction(input[Symbol.observable])
 }
 export function isIterable(input: any): input is Iterable<any> {
   return isFunction(input?.[Symbol_iterator])
@@ -323,7 +313,7 @@ export function isPromise(value: any): value is PromiseLike<any> {
   return isFunction(value?.then)
 }
 export async function* readableStreamLikeToAsyncGenerator<T>(
-  readableStream: ReadableStreamLike<T>
+  readableStream: qt.ReadableStreamLike<T>
 ): AsyncGenerator<T> {
   const reader = readableStream.getReader()
   try {
@@ -340,7 +330,7 @@ export async function* readableStreamLikeToAsyncGenerator<T>(
 }
 export function isReadableStreamLike<T>(
   obj: any
-): obj is ReadableStreamLike<T> {
+): obj is qt.ReadableStreamLike<T> {
   return isFunction(obj?.getReader)
 }
 export function isScheduler(value: any): value is qt.Scheduler {
@@ -356,7 +346,7 @@ export function operate<T, R>(
     liftedSource: Observable<T>,
     subscriber: Subscriber<R>
   ) => (() => void) | void
-): OperatorFunction<T, R> {
+): qt.OperatorFunction<T, R> {
   return (source: Observable<T>) => {
     if (hasLift(source)) {
       return source.lift(function (
@@ -379,7 +369,7 @@ function callOrApply<T, R>(fn: (...values: T[]) => R, args: T | T[]): R {
 }
 export function mapOneOrManyArgs<T, R>(
   fn: (...values: T[]) => R
-): OperatorFunction<T | T[], R> {
+): qt.OperatorFunction<T | T[], R> {
   return map(args => callOrApply(fn, args))
 }
 export function noop() {}
@@ -390,96 +380,96 @@ export function not<T>(
   return (value: T, index: number) => !pred.call(thisArg, value, index)
 }
 export function pipe(): typeof identity
-export function pipe<T, A>(fn1: UnaryFunction<T, A>): UnaryFunction<T, A>
+export function pipe<T, A>(fn1: qt.UnaryFunction<T, A>): qt.UnaryFunction<T, A>
 export function pipe<T, A, B>(
-  fn1: UnaryFunction<T, A>,
-  fn2: UnaryFunction<A, B>
-): UnaryFunction<T, B>
+  fn1: qt.UnaryFunction<T, A>,
+  fn2: qt.UnaryFunction<A, B>
+): qt.UnaryFunction<T, B>
 export function pipe<T, A, B, C>(
-  fn1: UnaryFunction<T, A>,
-  fn2: UnaryFunction<A, B>,
-  fn3: UnaryFunction<B, C>
-): UnaryFunction<T, C>
+  fn1: qt.UnaryFunction<T, A>,
+  fn2: qt.UnaryFunction<A, B>,
+  fn3: qt.UnaryFunction<B, C>
+): qt.UnaryFunction<T, C>
 export function pipe<T, A, B, C, D>(
-  fn1: UnaryFunction<T, A>,
-  fn2: UnaryFunction<A, B>,
-  fn3: UnaryFunction<B, C>,
-  fn4: UnaryFunction<C, D>
-): UnaryFunction<T, D>
+  fn1: qt.UnaryFunction<T, A>,
+  fn2: qt.UnaryFunction<A, B>,
+  fn3: qt.UnaryFunction<B, C>,
+  fn4: qt.UnaryFunction<C, D>
+): qt.UnaryFunction<T, D>
 export function pipe<T, A, B, C, D, E>(
-  fn1: UnaryFunction<T, A>,
-  fn2: UnaryFunction<A, B>,
-  fn3: UnaryFunction<B, C>,
-  fn4: UnaryFunction<C, D>,
-  fn5: UnaryFunction<D, E>
-): UnaryFunction<T, E>
+  fn1: qt.UnaryFunction<T, A>,
+  fn2: qt.UnaryFunction<A, B>,
+  fn3: qt.UnaryFunction<B, C>,
+  fn4: qt.UnaryFunction<C, D>,
+  fn5: qt.UnaryFunction<D, E>
+): qt.UnaryFunction<T, E>
 export function pipe<T, A, B, C, D, E, F>(
-  fn1: UnaryFunction<T, A>,
-  fn2: UnaryFunction<A, B>,
-  fn3: UnaryFunction<B, C>,
-  fn4: UnaryFunction<C, D>,
-  fn5: UnaryFunction<D, E>,
-  fn6: UnaryFunction<E, F>
-): UnaryFunction<T, F>
+  fn1: qt.UnaryFunction<T, A>,
+  fn2: qt.UnaryFunction<A, B>,
+  fn3: qt.UnaryFunction<B, C>,
+  fn4: qt.UnaryFunction<C, D>,
+  fn5: qt.UnaryFunction<D, E>,
+  fn6: qt.UnaryFunction<E, F>
+): qt.UnaryFunction<T, F>
 export function pipe<T, A, B, C, D, E, F, G>(
-  fn1: UnaryFunction<T, A>,
-  fn2: UnaryFunction<A, B>,
-  fn3: UnaryFunction<B, C>,
-  fn4: UnaryFunction<C, D>,
-  fn5: UnaryFunction<D, E>,
-  fn6: UnaryFunction<E, F>,
-  fn7: UnaryFunction<F, G>
-): UnaryFunction<T, G>
+  fn1: qt.UnaryFunction<T, A>,
+  fn2: qt.UnaryFunction<A, B>,
+  fn3: qt.UnaryFunction<B, C>,
+  fn4: qt.UnaryFunction<C, D>,
+  fn5: qt.UnaryFunction<D, E>,
+  fn6: qt.UnaryFunction<E, F>,
+  fn7: qt.UnaryFunction<F, G>
+): qt.UnaryFunction<T, G>
 export function pipe<T, A, B, C, D, E, F, G, H>(
-  fn1: UnaryFunction<T, A>,
-  fn2: UnaryFunction<A, B>,
-  fn3: UnaryFunction<B, C>,
-  fn4: UnaryFunction<C, D>,
-  fn5: UnaryFunction<D, E>,
-  fn6: UnaryFunction<E, F>,
-  fn7: UnaryFunction<F, G>,
-  fn8: UnaryFunction<G, H>
-): UnaryFunction<T, H>
+  fn1: qt.UnaryFunction<T, A>,
+  fn2: qt.UnaryFunction<A, B>,
+  fn3: qt.UnaryFunction<B, C>,
+  fn4: qt.UnaryFunction<C, D>,
+  fn5: qt.UnaryFunction<D, E>,
+  fn6: qt.UnaryFunction<E, F>,
+  fn7: qt.UnaryFunction<F, G>,
+  fn8: qt.UnaryFunction<G, H>
+): qt.UnaryFunction<T, H>
 export function pipe<T, A, B, C, D, E, F, G, H, I>(
-  fn1: UnaryFunction<T, A>,
-  fn2: UnaryFunction<A, B>,
-  fn3: UnaryFunction<B, C>,
-  fn4: UnaryFunction<C, D>,
-  fn5: UnaryFunction<D, E>,
-  fn6: UnaryFunction<E, F>,
-  fn7: UnaryFunction<F, G>,
-  fn8: UnaryFunction<G, H>,
-  fn9: UnaryFunction<H, I>
-): UnaryFunction<T, I>
+  fn1: qt.UnaryFunction<T, A>,
+  fn2: qt.UnaryFunction<A, B>,
+  fn3: qt.UnaryFunction<B, C>,
+  fn4: qt.UnaryFunction<C, D>,
+  fn5: qt.UnaryFunction<D, E>,
+  fn6: qt.UnaryFunction<E, F>,
+  fn7: qt.UnaryFunction<F, G>,
+  fn8: qt.UnaryFunction<G, H>,
+  fn9: qt.UnaryFunction<H, I>
+): qt.UnaryFunction<T, I>
 export function pipe<T, A, B, C, D, E, F, G, H, I>(
-  fn1: UnaryFunction<T, A>,
-  fn2: UnaryFunction<A, B>,
-  fn3: UnaryFunction<B, C>,
-  fn4: UnaryFunction<C, D>,
-  fn5: UnaryFunction<D, E>,
-  fn6: UnaryFunction<E, F>,
-  fn7: UnaryFunction<F, G>,
-  fn8: UnaryFunction<G, H>,
-  fn9: UnaryFunction<H, I>,
-  ...fns: UnaryFunction<any, any>[]
-): UnaryFunction<T, unknown>
+  fn1: qt.UnaryFunction<T, A>,
+  fn2: qt.UnaryFunction<A, B>,
+  fn3: qt.UnaryFunction<B, C>,
+  fn4: qt.UnaryFunction<C, D>,
+  fn5: qt.UnaryFunction<D, E>,
+  fn6: qt.UnaryFunction<E, F>,
+  fn7: qt.UnaryFunction<F, G>,
+  fn8: qt.UnaryFunction<G, H>,
+  fn9: qt.UnaryFunction<H, I>,
+  ...fns: qt.UnaryFunction<any, any>[]
+): qt.UnaryFunction<T, unknown>
 export function pipe(
-  ...fns: Array<UnaryFunction<any, any>>
-): UnaryFunction<any, any> {
+  ...fns: Array<qt.UnaryFunction<any, any>>
+): qt.UnaryFunction<any, any> {
   return pipeFromArray(fns)
 }
 export function pipeFromArray<T, R>(
-  fns: Array<UnaryFunction<T, R>>
-): UnaryFunction<T, R> {
+  fns: Array<qt.UnaryFunction<T, R>>
+): qt.UnaryFunction<T, R> {
   if (fns.length === 0) {
-    return identity as UnaryFunction<any, any>
+    return identity as qt.UnaryFunction<any, any>
   }
   if (fns.length === 1) {
     return fns[0]
   }
   return function piped(input: T): R {
     return fns.reduce(
-      (prev: any, fn: UnaryFunction<T, R>) => fn(prev),
+      (prev: any, fn: qt.UnaryFunction<T, R>) => fn(prev),
       input as any
     )
   }
@@ -512,4 +502,10 @@ export function createInvalidObservableTypeError(input: any) {
   )
 }
 
-export {}
+export const config: qt.GlobalConfig = {
+  onUnhandledError: null,
+  onStoppedNotification: null,
+  Promise: undefined,
+  useDeprecatedSynchronousErrorHandling: false,
+  useDeprecatedNextContext: false,
+}

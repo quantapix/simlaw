@@ -91,7 +91,7 @@ export function scheduleIterable<T>(
 }
 
 export function scheduleObservable<T>(
-  input: qt.InteropObservable<T>,
+  input: qt.Observable<T>,
   scheduler: qt.Scheduler
 ) {
   return innerFrom(input).pipe(subscribeOn(scheduler), observeOn(scheduler))

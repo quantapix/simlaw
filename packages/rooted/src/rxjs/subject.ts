@@ -1,6 +1,6 @@
 import { Operator } from "./Operator"
 import { Observable } from "./Observable.js"
-import { Subscription, EMPTY_SUBSCRIPTION } from "./subscription.js"
+import { Subscription } from "./subscription.js"
 import type * as qt from "./types.js"
 import { arrRemove, errorContext, ObjectUnsubscribedError } from "./utils.js"
 import type { Subscriber } from "./subscriber.js"
@@ -77,9 +77,7 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
   get observed() {
     return this.observers?.length > 0
   }
-  protected override _trySubscribe(
-    subscriber: Subscriber<T>
-  ): qt.TeardownLogic {
+  protected override _trySubscribe(subscriber: Subscriber<T>): qt.Teardown {
     this._throwIfClosed()
     return super._trySubscribe(subscriber)
   }
@@ -91,7 +89,7 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
   protected _innerSubscribe(subscriber: Subscriber<any>) {
     const { hasError, isStopped, observers } = this
     if (hasError || isStopped) {
-      return EMPTY_SUBSCRIPTION
+      return Subscription.EMPTY
     }
     this.currentObservers = null
     observers.push(subscriber)
@@ -130,7 +128,7 @@ export class AnonymousSubject<T> extends Subject<T> {
     this.destination?.complete?.()
   }
   protected override _subscribe(subscriber: Subscriber<T>): Subscription {
-    return this.source?.subscribe(subscriber) ?? EMPTY_SUBSCRIPTION
+    return this.source?.subscribe(subscriber) ?? Subscription.EMPTY
   }
 }
 

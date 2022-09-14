@@ -1,63 +1,71 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
-import { Observable } from "./Observable"
 
-declare global {
-  interface SymbolConstructor {
-    readonly observable: symbol
-  }
-}
-export interface Timestamp<T> {
-  value: T
-  timestamp: number
-}
-export interface TimeInterval<T> {
-  value: T
-  interval: number
+export interface Observer<T> {
+  next: (x: T) => void
+  error: (e: any) => void
+  complete: () => void
 }
 
-export interface UnaryFunction<T, R> {
-  (source: T): R
+export interface NextObserver<T> {
+  closed?: boolean
+  next: (x: T) => void
+  error?: (e: any) => void
+  complete?: () => void
 }
-
-export interface OperatorFunction<T, R>
-  extends UnaryFunction<Observable<T>, Observable<R>> {}
-
-export type FactoryOrValue<T> = T | (() => T)
-export interface MonoTypeOperatorFunction<T> extends OperatorFunction<T, T> {}
+export interface ErrorObserver<T> {
+  closed?: boolean
+  next?: (x: T) => void
+  error: (e: any) => void
+  complete?: () => void
+}
+export interface CompletionObserver<T> {
+  closed?: boolean
+  next?: (x: T) => void
+  error?: (e: any) => void
+  complete: () => void
+}
+export type PartialObserver<T> =
+  | NextObserver<T>
+  | ErrorObserver<T>
+  | CompletionObserver<T>
 
 export interface Unsubscribable {
   unsubscribe(): void
+}
+export interface Subscribable<T> {
+  subscribe(x: Partial<Observer<T>>): Unsubscribable
 }
 
 export interface Subscription extends Unsubscribable {
   unsubscribe(): void
   readonly closed: boolean
 }
+export type Teardown = Subscription | Unsubscribable | (() => void) | void
 
-export interface Subscribable<T> {
-  subscribe(observer: Partial<Observer<T>>): Unsubscribable
+export interface Observable<T> {
+  [Symbol.observable]: () => Subscribable<T>
 }
-
-export type TeardownLogic = Subscription | Unsubscribable | (() => void) | void
 
 export type SubscribableOrPromise<T> =
   | Subscribable<T>
   | Subscribable<never>
   | PromiseLike<T>
-  | InteropObservable<T>
+  | Observable<T>
 
 export type ObservableInput<T> =
   | Observable<T>
-  | InteropObservable<T>
   | AsyncIterable<T>
   | PromiseLike<T>
   | ArrayLike<T>
   | Iterable<T>
   | ReadableStreamLike<T>
-export type ObservableLike<T> = InteropObservable<T>
-export interface InteropObservable<T> {
-  [Symbol.observable]: () => Subscribable<T>
+
+export interface UnaryFunction<T, R> {
+  (x: T): R
 }
+export interface OperatorFunction<T, R>
+  extends UnaryFunction<Observable<T>, Observable<R>> {}
+export interface MonoTypeOperatorFunction<T> extends OperatorFunction<T, T> {}
 
 export interface NextNotification<T> {
   kind: "N"
@@ -70,67 +78,48 @@ export interface ErrorNotification {
 export interface CompleteNotification {
   kind: "C"
 }
-
 export type ObservableNotification<T> =
   | NextNotification<T>
   | ErrorNotification
   | CompleteNotification
 
-export interface NextObserver<T> {
-  closed?: boolean
-  next: (value: T) => void
-  error?: (err: any) => void
-  complete?: () => void
-}
-export interface ErrorObserver<T> {
-  closed?: boolean
-  next?: (value: T) => void
-  error: (err: any) => void
-  complete?: () => void
-}
-export interface CompletionObserver<T> {
-  closed?: boolean
-  next?: (value: T) => void
-  error?: (err: any) => void
-  complete: () => void
-}
-export type PartialObserver<T> =
-  | NextObserver<T>
-  | ErrorObserver<T>
-  | CompletionObserver<T>
-export interface Observer<T> {
-  next: (value: T) => void
-  error: (err: any) => void
-  complete: () => void
-}
-
 export interface SubjectLike<T> extends Observer<T>, Subscribable<T> {}
 
+export interface Timestamp<T> {
+  value: T
+  timestamp: number
+}
+export interface TimeInterval<T> {
+  value: T
+  interval: number
+}
+
 export interface SchedulerAction<T> extends Subscription {
-  schedule(state?: T, delay?: number): Subscription
+  schedule(x?: T, delay?: number): Subscription
 }
 export interface Scheduler extends TimestampProvider {
   schedule<T>(
-    work: (this: SchedulerAction<T>, state: T) => void,
+    work: (this: SchedulerAction<T>, x: T) => void,
     delay: number,
-    state: T
+    x: T
   ): Subscription
   schedule<T>(
-    work: (this: SchedulerAction<T>, state?: T) => void,
+    work: (this: SchedulerAction<T>, x?: T) => void,
     delay: number,
-    state?: T
+    X?: T
   ): Subscription
   schedule<T>(
-    work: (this: SchedulerAction<T>, state?: T) => void,
+    work: (this: SchedulerAction<T>, x?: T) => void,
     delay?: number,
-    state?: T
+    x?: T
   ): Subscription
 }
 
 export interface TimestampProvider {
   now(): number
 }
-export type ObservedValueOf<O> = O extends ObservableInput<infer T> ? T : never
+
+export type ObservedValueOf<X> = X extends ObservableInput<infer T> ? T : never
 export type ObservedValueUnionFromArray<X> = X extends Array<
   ObservableInput<infer T>
 >
@@ -140,36 +129,38 @@ export type ObservedValuesFromArray<X> = ObservedValueUnionFromArray<X>
 export type ObservedValueTupleFromArray<X> = {
   [K in keyof X]: ObservedValueOf<X[K]>
 }
-export type ObservableInputTuple<T> = {
-  [K in keyof T]: ObservableInput<T[K]>
+export type ObservableInputTuple<X> = {
+  [K in keyof X]: ObservableInput<X[K]>
 }
-export type Cons<X, Y extends readonly any[]> = ((
-  arg: X,
-  ...rest: Y
-) => any) extends (...args: infer U) => any
-  ? U
+
+export type Cons<X, XS extends readonly any[]> = ((
+  x: X,
+  ...xs: XS
+) => any) extends (...xs: infer T) => any
+  ? T
   : never
-export type Head<X extends readonly any[]> = ((...args: X) => any) extends (
-  arg: infer U,
-  ...rest: any[]
+export type Head<XS extends readonly any[]> = ((...xs: XS) => any) extends (
+  x: infer T,
+  ...xs: any[]
 ) => any
-  ? U
+  ? T
   : never
-export type Tail<X extends readonly any[]> = ((...args: X) => any) extends (
-  arg: any,
-  ...rest: infer U
+export type Tail<XS extends readonly any[]> = ((...xs: XS) => any) extends (
+  x: any,
+  ...xs: infer T
 ) => any
-  ? U
+  ? T
   : never
-export type ValueFromArray<A extends readonly unknown[]> = A extends Array<
+
+export type ValueFromArray<X extends readonly unknown[]> = X extends Array<
   infer T
 >
   ? T
   : never
-export type ValueFromNotification<T> = T extends { kind: "N" | "E" | "C" }
-  ? T extends NextNotification<any>
-    ? T extends { value: infer V }
-      ? V
+export type ValueFromNotification<X> = X extends { kind: "N" | "E" | "C" }
+  ? X extends NextNotification<any>
+    ? X extends { value: infer T }
+      ? T
       : undefined
     : never
   : never
@@ -178,11 +169,7 @@ export type TruthyTypesOf<T> = T extends Falsy ? never : T
 
 interface ReadableStreamDefaultReaderLike<T> {
   read(): PromiseLike<
-    | {
-        done: false
-        value: T
-      }
-    | { done: true; value?: undefined }
+    { done: false; value: T } | { done: true; value?: undefined }
   >
   releaseLock(): void
 }
@@ -196,3 +183,14 @@ export interface Connectable<T> extends Observable<T> {
 declare const anyCatcherSymbol: unique symbol
 
 export type AnyCatcher = typeof anyCatcherSymbol
+
+export interface GlobalConfig {
+  onUnhandledError: ((x: any) => void) | null
+  onStoppedNotification:
+    | ((n: ObservableNotification<any>, s: Subscriber<any>) => void)
+    | null
+
+  Promise?: PromiseConstructorLike
+  useDeprecatedSynchronousErrorHandling: boolean
+  useDeprecatedNextContext: boolean
+}

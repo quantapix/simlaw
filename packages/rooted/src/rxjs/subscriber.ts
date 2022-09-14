@@ -1,20 +1,14 @@
-import { isFunction } from "./util/isFunction"
-import { Observer, ObservableNotification } from "./types"
+import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 import { isSubscription, Subscription } from "./subscription.js"
-import { config } from "./config"
-import { reportUnhandledError } from "./util/reportUnhandledError"
-import { noop } from "./util/noop"
 import {
   nextNotification,
   errorNotification,
   COMPLETE_NOTIFICATION,
 } from "./notification.js"
-import { timeoutProvider } from "./scheduler/timeoutProvider"
-import { captureError } from "./util/errorContext"
-import { Subscriber } from "./subscriber.js"
-import { TeardownLogic } from "./types"
+import { timeoutProvider } from "./scheduler.js"
 
-export class Subscriber<T> extends Subscription implements Observer<T> {
+export class Subscriber<T> extends Subscription implements qt.Observer<T> {
   static create<T>(
     next?: (x?: T) => void,
     error?: (e?: any) => void,
@@ -22,104 +16,93 @@ export class Subscriber<T> extends Subscription implements Observer<T> {
   ): Subscriber<T> {
     return new SafeSubscriber(next, error, complete)
   }
-  protected isStopped: boolean = false
-  protected destination: Subscriber<any> | Observer<any>
-  constructor(destination?: Subscriber<any> | Observer<any>) {
+  protected isStopped = false
+  protected dest: Subscriber<any> | qt.Observer<any>
+  constructor(x?: Subscriber<any> | qt.Observer<any>) {
     super()
-    if (destination) {
-      this.destination = destination
-
-      if (isSubscription(destination)) {
-        destination.add(this)
-      }
-    } else {
-      this.destination = EMPTY_OBSERVER
-    }
+    if (x) {
+      this.dest = x
+      if (isSubscription(x)) x.add(this)
+    } else this.dest = EMPTY_OBS
   }
-  next(value?: T): void {
-    if (this.isStopped) {
-      handleStoppedNotification(nextNotification(value), this)
-    } else {
-      this._next(value!)
-    }
-  }
-  error(err?: any): void {
-    if (this.isStopped) {
-      handleStoppedNotification(errorNotification(err), this)
-    } else {
+  override unsubscribe(): void {
+    if (!this.closed) {
       this.isStopped = true
-      this._error(err)
+      super.unsubscribe()
+      this.dest = null!
     }
   }
-  complete(): void {
-    if (this.isStopped) {
-      handleStoppedNotification(COMPLETE_NOTIFICATION, this)
-    } else {
+  next(x?: T) {
+    if (this.isStopped) handleStopped(nextNotification(x), this)
+    else this._next(x!)
+  }
+  error(x?: any) {
+    if (this.isStopped) handleStopped(errorNotification(x), this)
+    else {
+      this.isStopped = true
+      this._error(x)
+    }
+  }
+  complete() {
+    if (this.isStopped) handleStopped(COMPLETE_NOTIFICATION, this)
+    else {
       this.isStopped = true
       this._complete()
     }
   }
-  unsubscribe(): void {
-    if (!this.closed) {
-      this.isStopped = true
-      super.unsubscribe()
-      this.destination = null!
-    }
+  protected _next(x: T) {
+    this.dest.next(x)
   }
-  protected _next(value: T): void {
-    this.destination.next(value)
-  }
-  protected _error(err: any): void {
+  protected _error(x: any) {
     try {
-      this.destination.error(err)
+      this.dest.error(x)
     } finally {
       this.unsubscribe()
     }
   }
-  protected _complete(): void {
+  protected _complete() {
     try {
-      this.destination.complete()
+      this.dest.complete()
     } finally {
       this.unsubscribe()
     }
   }
-}
-const _bind = Function.prototype.bind
-function bind<Fn extends (...args: any[]) => any>(fn: Fn, thisArg: any): Fn {
-  return _bind.call(fn, thisArg)
 }
 
-class ConsumerObserver<T> implements Observer<T> {
-  constructor(private partialObserver: Partial<Observer<T>>) {}
-  next(value: T): void {
-    const { partialObserver } = this
-    if (partialObserver.next) {
+const _bind = Function.prototype.bind
+function bind<F extends (...xs: any[]) => any>(f: F, thisArg: any): F {
+  return _bind.call(f, thisArg)
+}
+
+class ConsumerObserver<T> implements qt.Observer<T> {
+  constructor(private obs: Partial<qt.Observer<T>>) {}
+  next(x: T): void {
+    const { obs } = this
+    if (obs.next) {
       try {
-        partialObserver.next(value)
-      } catch (error) {
-        handleUnhandledError(error)
+        obs.next(x)
+      } catch (e) {
+        handleUnhandled(e)
       }
     }
   }
-  error(err: any): void {
-    const { partialObserver } = this
-    if (partialObserver.error) {
+  error(x: any): void {
+    const { obs } = this
+    if (obs.error) {
       try {
-        partialObserver.error(err)
-      } catch (error) {
-        handleUnhandledError(error)
+        obs.error(x)
+      } catch (e) {
+        handleUnhandled(e)
       }
-    } else {
-      handleUnhandledError(err)
-    }
+    } else handleUnhandled(x)
   }
   complete(): void {
-    const { partialObserver } = this
-    if (partialObserver.complete) {
+    const { obs } = this
+    if (obs.complete) {
       try {
-        partialObserver.complete()
+        obs.complete()
       } catch (error) {
-        handleUnhandledError(error)
+        handleUnhandled(error)
       }
     }
   }
@@ -127,64 +110,62 @@ class ConsumerObserver<T> implements Observer<T> {
 
 export class SafeSubscriber<T> extends Subscriber<T> {
   constructor(
-    observerOrNext?: Partial<Observer<T>> | ((value: T) => void) | null,
-    error?: ((e?: any) => void) | null,
+    next?: Partial<qt.Observer<T>> | ((x: T) => void) | null,
+    error?: ((x?: any) => void) | null,
     complete?: (() => void) | null
   ) {
     super()
-    let partialObserver: Partial<Observer<T>>
-    if (isFunction(observerOrNext) || !observerOrNext) {
-      partialObserver = {
-        next: (observerOrNext ?? undefined) as ((value: T) => void) | undefined,
+    let obs: Partial<qt.Observer<T>>
+    if (qu.isFunction(next) || !next) {
+      obs = {
+        next: (next ?? undefined) as ((x: T) => void) | undefined,
         error: error ?? undefined,
         complete: complete ?? undefined,
       }
     } else {
-      let context: any
-      if (this && config.useDeprecatedNextContext) {
-        context = Object.create(observerOrNext)
-        context.unsubscribe = () => this.unsubscribe()
-        partialObserver = {
-          next: observerOrNext.next && bind(observerOrNext.next, context),
-          error: observerOrNext.error && bind(observerOrNext.error, context),
-          complete:
-            observerOrNext.complete && bind(observerOrNext.complete, context),
+      let ctx: any
+      if (this && qu.config.useDeprecatedNextContext) {
+        ctx = Object.create(next)
+        ctx.unsubscribe = () => this.unsubscribe()
+        obs = {
+          next: next.next && bind(next.next, ctx),
+          error: next.error && bind(next.error, ctx),
+          complete: next.complete && bind(next.complete, ctx),
         }
-      } else {
-        partialObserver = observerOrNext
-      }
+      } else obs = next
     }
+    this.dest = new ConsumerObserver(obs)
+  }
+}
 
-    this.destination = new ConsumerObserver(partialObserver)
-  }
-}
-function handleUnhandledError(error: any) {
-  if (config.useDeprecatedSynchronousErrorHandling) {
-    captureError(error)
-  } else {
-    reportUnhandledError(error)
-  }
-}
-function defaultErrorHandler(err: any) {
-  throw err
-}
-function handleStoppedNotification(
-  notification: ObservableNotification<any>,
-  subscriber: Subscriber<any>
+function handleStopped(
+  x: qt.ObservableNotification<any>,
+  sub: Subscriber<any>
 ) {
-  const { onStoppedNotification } = config
+  const { onStoppedNotification } = qu.config
   onStoppedNotification &&
-    timeoutProvider.setTimeout(() =>
-      onStoppedNotification(notification, subscriber)
-    )
+    timeoutProvider.setTimeout(() => onStoppedNotification(x, sub))
 }
-export const EMPTY_OBSERVER: Readonly<Observer<any>> & { closed: true } = {
+
+function handleUnhandled(x: any) {
+  if (qu.config.useDeprecatedSynchronousErrorHandling) {
+    qu.captureError(x)
+  } else {
+    qu.reportUnhandledError(x)
+  }
+}
+
+function defaultHandler(x: any) {
+  throw x
+}
+
+const EMPTY_OBS: Readonly<qt.Observer<any>> & { closed: true } = {
   closed: true,
-  next: noop,
-  error: defaultErrorHandler,
-  complete: noop,
+  next: qu.noop,
+  error: defaultHandler,
+  complete: qu.noop,
 }
 
 export interface Operator<T, R> {
-  call(subscriber: Subscriber<R>, source: any): TeardownLogic
+  call(x: Subscriber<R>, src: any): qt.Teardown
 }

@@ -3,123 +3,99 @@ import type * as qt from "./types.js"
 
 export class Subscription implements qt.Subscription {
   public static EMPTY = (() => {
-    const empty = new Subscription()
-    empty.closed = true
-    return empty
+    const y = new Subscription()
+    y.closed = true
+    return y
   })()
   public closed = false
-  private _parentage: Subscription[] | Subscription | null = null
-  private _finalizers: Exclude<qt.TeardownLogic, void>[] | null = null
-  constructor(private initialTeardown?: () => void) {}
+  private parents: Subscription[] | Subscription | null = null
+  private finalizers: Exclude<qt.Teardown, void>[] | null = null
+  constructor(private teardown?: () => void) {}
   unsubscribe(): void {
-    let errors: any[] | undefined
+    let es: any[] | undefined
     if (!this.closed) {
       this.closed = true
-
-      const { _parentage } = this
-      if (_parentage) {
-        this._parentage = null
-        if (Array.isArray(_parentage)) {
-          for (const parent of _parentage) {
-            parent.remove(this)
+      const { parents } = this
+      if (parents) {
+        this.parents = null
+        if (Array.isArray(parents)) {
+          for (const p of parents) {
+            p.remove(this)
           }
-        } else {
-          _parentage.remove(this)
-        }
+        } else parents.remove(this)
       }
-      const { initialTeardown: initialFinalizer } = this
-      if (qu.isFunction(initialFinalizer)) {
+      const { teardown } = this
+      if (qu.isFunction(teardown)) {
         try {
-          initialFinalizer()
+          teardown()
         } catch (e) {
-          errors = e instanceof qu.UnsubscriptionError ? e.errors : [e]
+          es = e instanceof qu.UnsubscriptionError ? e.errors : [e]
         }
       }
-      const { _finalizers } = this
-      if (_finalizers) {
-        this._finalizers = null
-        for (const finalizer of _finalizers) {
+      const { finalizers } = this
+      if (finalizers) {
+        this.finalizers = null
+        for (const f of finalizers) {
           try {
-            execFinalizer(finalizer)
-          } catch (err) {
-            errors = errors ?? []
-            if (err instanceof qu.UnsubscriptionError) {
-              errors = [...errors, ...err.errors]
-            } else {
-              errors.push(err)
-            }
+            runFinalizer(f)
+          } catch (e) {
+            es = es ?? []
+            if (e instanceof qu.UnsubscriptionError) es = [...es, ...e.errors]
+            else es.push(e)
           }
         }
       }
-      if (errors) {
-        throw new qu.UnsubscriptionError(errors)
-      }
+      if (es) throw new qu.UnsubscriptionError(es)
     }
   }
-  add(teardown: qt.TeardownLogic): void {
-    if (teardown && teardown !== this) {
-      if (this.closed) {
-        execFinalizer(teardown)
-      } else {
-        if (teardown instanceof Subscription) {
-          if (teardown.closed || teardown._hasParent(this)) {
-            return
-          }
-          teardown._addParent(this)
+  add(x: qt.Teardown): void {
+    if (x && x !== this) {
+      if (this.closed) runFinalizer(x)
+      else {
+        if (x instanceof Subscription) {
+          if (x.closed || x.hasParent(this)) return
+          x.addParent(this)
         }
-        ;(this._finalizers = this._finalizers ?? []).push(teardown)
+        ;(this.finalizers = this.finalizers ?? []).push(x)
       }
     }
   }
-  private _hasParent(parent: Subscription) {
-    const { _parentage } = this
-    return (
-      _parentage === parent ||
-      (Array.isArray(_parentage) && _parentage.includes(parent))
-    )
+  remove(x: Exclude<qt.Teardown, void>): void {
+    const { finalizers } = this
+    finalizers && qu.arrRemove(finalizers, x)
+    if (x instanceof Subscription) x.removeParent(this)
   }
-  private _addParent(parent: Subscription) {
-    const { _parentage } = this
-    this._parentage = Array.isArray(_parentage)
-      ? (_parentage.push(parent), _parentage)
-      : _parentage
-      ? [_parentage, parent]
-      : parent
+  private hasParent(x: Subscription) {
+    const { parents } = this
+    return parents === x || (Array.isArray(parents) && parents.includes(x))
   }
-  private _removeParent(parent: Subscription) {
-    const { _parentage } = this
-    if (_parentage === parent) {
-      this._parentage = null
-    } else if (Array.isArray(_parentage)) {
-      qu.arrRemove(_parentage, parent)
-    }
+  private addParent(x: Subscription) {
+    const { parents } = this
+    this.parents = Array.isArray(parents)
+      ? (parents.push(x), parents)
+      : parents
+      ? [parents, x]
+      : x
   }
-  remove(teardown: Exclude<qt.TeardownLogic, void>): void {
-    const { _finalizers } = this
-    _finalizers && qu.arrRemove(_finalizers, teardown)
-    if (teardown instanceof Subscription) {
-      teardown._removeParent(this)
-    }
+  private removeParent(x: Subscription) {
+    const { parents } = this
+    if (parents === x) this.parents = null
+    else if (Array.isArray(parents)) qu.arrRemove(parents, x)
   }
 }
 
-export const EMPTY_SUBSCRIPTION = Subscription.EMPTY
-
-export function isSubscription(value: any): value is Subscription {
+export function isSubscription(x: any): x is Subscription {
   return (
-    value instanceof Subscription ||
-    (value &&
-      "closed" in value &&
-      qu.isFunction(value.remove) &&
-      qu.isFunction(value.add) &&
-      qu.isFunction(value.unsubscribe))
+    x instanceof Subscription ||
+    (x &&
+      "closed" in x &&
+      qu.isFunction(x.remove) &&
+      qu.isFunction(x.add) &&
+      qu.isFunction(x.unsubscribe))
   )
 }
 
-function execFinalizer(finalizer: qt.Unsubscribable | (() => void)) {
-  if (qu.isFunction(finalizer)) {
-    finalizer()
-  } else {
-    finalizer.unsubscribe()
-  }
+function runFinalizer(x: qt.Unsubscribable | (() => void)) {
+  if (qu.isFunction(x)) x()
+  else x.unsubscribe()
 }

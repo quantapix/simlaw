@@ -1,11 +1,9 @@
-import { animationFrameProvider } from "./../scheduler/animationFrameProvider"
+import { animationFrameProvider } from "./scheduler.js"
 import { async as asyncScheduler } from "./scheduler.js"
 import { asyncScheduler } from "./scheduler.js"
 import { AsyncSubject } from "./subject.js"
-import { bindCallbackInternals } from "./bindCallbackInternals"
 import { Subscription } from "./subscription.js"
-import { observable as Symbol_observable } from "./symbol/observable"
-import { Operator } from "./operators.js"
+import type { Operator } from "./operators.js"
 import { performanceTimestampProvider } from "./scheduler.js"
 import * as qu from "./utils.js"
 import { refCount as higherOrderRefCount } from "./operators.js"
@@ -25,21 +23,18 @@ import {
   onErrorResumeNext as onErrorResumeNextWith,
 } from "./operators.js"
 
-export class Observable<T> implements qt.Subscribable<T> {
+export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
   source: Observable<any> | undefined
   operator: Operator<any, T> | undefined
   constructor(
-    subscribe?: (
-      this: Observable<T>,
-      subscriber: Subscriber<T>
-    ) => qt.TeardownLogic
+    subscribe?: (this: Observable<T>, subscriber: Subscriber<T>) => qt.Teardown
   ) {
     if (subscribe) {
       this._subscribe = subscribe
     }
   }
   static create: (...args: any[]) => any = <T>(
-    subscribe?: (subscriber: Subscriber<T>) => qt.TeardownLogic
+    subscribe?: (subscriber: Subscriber<T>) => qt.Teardown
   ) => {
     return new Observable<T>(subscribe)
   }
@@ -76,7 +71,7 @@ export class Observable<T> implements qt.Subscribable<T> {
     })
     return subscriber
   }
-  protected _trySubscribe(sink: Subscriber<T>): qt.TeardownLogic {
+  protected _trySubscribe(sink: Subscriber<T>): qt.Teardown {
     try {
       return this._subscribe(sink)
     } catch (err) {
@@ -109,10 +104,10 @@ export class Observable<T> implements qt.Subscribable<T> {
       this.subscribe(subscriber)
     }) as Promise<void>
   }
-  protected _subscribe(subscriber: Subscriber<any>): qt.TeardownLogic {
+  protected _subscribe(subscriber: Subscriber<any>): qt.Teardown {
     return this.source?.subscribe(subscriber)
   }
-  [Symbol_observable]() {
+  [Symbol.observable]() {
     return this
   }
   pipe(): Observable<T>
@@ -1307,7 +1302,7 @@ export function innerFrom<T>(input: qt.ObservableInput<T>): Observable<T> {
 }
 export function fromInteropObservable<T>(obj: any) {
   return new Observable((subscriber: Subscriber<T>) => {
-    const obs = obj[Symbol_observable]()
+    const obs = obj[Symbol.observable]()
     if (qu.isFunction(obs.subscribe)) {
       return obs.subscribe(subscriber)
     }
