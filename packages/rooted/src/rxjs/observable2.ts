@@ -1,10 +1,77 @@
-import { Subject } from "../Subject"
-import { Observable } from "../Observable"
-import { Subscriber } from "../Subscriber"
-import { Subscription } from "../Subscription"
-import { refCount as higherOrderRefCount } from "../operators/refCount"
+import {
+  ObservableInput,
+  SchedulerLike,
+  ObservedValueOf,
+  ObservableInputTuple,
+} from "../types"
+import {
+  isReadableStreamLike,
+  readableStreamLikeToAsyncGenerator,
+} from "../util/isReadableStreamLike"
+
+import { animationFrameProvider } from "../../scheduler/animationFrameProvider"
+import { AnyCatcher } from "../AnyCatcher"
+import { argsArgArrayOrObject } from "../util/argsArgArrayOrObject"
+import { argsOrArgArray } from "../util/argsOrArgArray"
+import { async as asyncScheduler } from "../scheduler/async"
+import { asyncScheduler } from "../scheduler/async"
+import { AsyncSubject } from "../AsyncSubject"
+import { bindCallbackInternals } from "./bindCallbackInternals"
+import { concatAll } from "../operators/concatAll"
+import { Connectable, ObservableInput, SubjectLike } from "../types"
+import { createInvalidObservableTypeError } from "../util/throwUnobservableError"
+import { createObject } from "../util/createObject"
 import { createOperatorSubscriber } from "../operators/OperatorSubscriber"
+import { defer } from "./defer"
+import { EMPTY } from "./empty"
+import { executeSchedule } from "../util/executeSchedule"
+import { filter } from "../operators/filter"
+import { from } from "./from"
 import { hasLift } from "../util/lift"
+import { identity } from "../util/identity"
+import { innerFrom } from "./innerFrom"
+import { isArrayLike } from "../util/isArrayLike"
+import { isAsyncIterable } from "../util/isAsyncIterable"
+import { isFunction } from "../util/isFunction"
+import { isInteropObservable } from "../util/isInteropObservable"
+import { isIterable } from "../util/isIterable"
+import { isPromise } from "../util/isPromise"
+import { isScheduler } from "../util/isScheduler"
+import { isValidDate } from "../util/isDate"
+import { mapOneOrManyArgs } from "../util/mapOneOrManyArgs"
+import { mergeAll } from "../operators/mergeAll"
+import { mergeMap } from "../operators/mergeMap"
+import { NodeEventHandler } from "./fromEvent"
+import { noop } from "../util/noop"
+import { not } from "../util/not"
+import { Observable } from "../../Observable"
+import { observable as Symbol_observable } from "../symbol/observable"
+import { ObservableInput, ObservableInputTuple, SchedulerLike } from "../types"
+import { ObservableInput, ObservedValueOf, ReadableStreamLike } from "../types"
+import { observeOn } from "../operators/observeOn"
+import { Observer, NextObserver } from "../../types"
+import { onErrorResumeNext as onErrorResumeNextWith } from "../operators/onErrorResumeNext"
+import { Operator } from "../../Operator"
+import { performanceTimestampProvider } from "../../scheduler/performanceTimestampProvider"
+import { popNumber, popScheduler } from "../util/args"
+import { popResultSelector } from "../util/args"
+import { popScheduler } from "../util/args"
+import { refCount as higherOrderRefCount } from "../operators/refCount"
+import { ReplaySubject } from "../../ReplaySubject"
+import { reportUnhandledError } from "../util/reportUnhandledError"
+import { scheduled } from "../scheduled/scheduled"
+import { scheduleIterable } from "../scheduled/scheduleIterable"
+import { SchedulerLike, ValueFromArray } from "../types"
+import { Subject, AnonymousSubject } from "../../Subject"
+import { Subscribable } from "../types"
+import { subscribeOn } from "../operators/subscribeOn"
+import { Subscriber } from "../../Subscriber"
+import { Subscription } from "../../Subscription"
+import { timer } from "./timer"
+import { TimestampProvider } from "../../types"
+import { Unsubscribable, ObservableInput, ObservedValueOf } from "../types"
+import { WebSocketSubject, WebSocketSubjectConfig } from "./WebSocketSubject"
+
 export class ConnectableObservable<T> extends Observable<T> {
   protected _subject: Subject<T> | null = null
   protected _refCount: number = 0
@@ -67,9 +134,6 @@ export class ConnectableObservable<T> extends Observable<T> {
     return higherOrderRefCount()(this) as Observable<T>
   }
 }
-import { SchedulerLike } from "../types"
-import { Observable } from "../Observable"
-import { bindCallbackInternals } from "./bindCallbackInternals"
 export function bindCallback(
   callbackFunc: (...args: any[]) => void,
   resultSelector: (...args: any[]) => any,
@@ -89,13 +153,6 @@ export function bindCallback(
 ): (...args: any[]) => Observable<unknown> {
   return bindCallbackInternals(false, callbackFunc, resultSelector, scheduler)
 }
-import { SchedulerLike } from "../types"
-import { isScheduler } from "../util/isScheduler"
-import { Observable } from "../Observable"
-import { subscribeOn } from "../operators/subscribeOn"
-import { mapOneOrManyArgs } from "../util/mapOneOrManyArgs"
-import { observeOn } from "../operators/observeOn"
-import { AsyncSubject } from "../AsyncSubject"
 export function bindCallbackInternals(
   isNodeStyle: boolean,
   callbackFunc: any,
@@ -170,9 +227,6 @@ export function bindCallbackInternals(
     })
   }
 }
-import { Observable } from "../Observable"
-import { SchedulerLike } from "../types"
-import { bindCallbackInternals } from "./bindCallbackInternals"
 export function bindNodeCallback(
   callbackFunc: (...args: any[]) => void,
   resultSelector: (...args: any[]) => any,
@@ -192,24 +246,6 @@ export function bindNodeCallback(
 ): (...args: any[]) => Observable<any> {
   return bindCallbackInternals(true, callbackFunc, resultSelector, scheduler)
 }
-import { Observable } from "../Observable"
-import {
-  ObservableInput,
-  SchedulerLike,
-  ObservedValueOf,
-  ObservableInputTuple,
-} from "../types"
-import { argsArgArrayOrObject } from "../util/argsArgArrayOrObject"
-import { Subscriber } from "../Subscriber"
-import { from } from "./from"
-import { identity } from "../util/identity"
-import { Subscription } from "../Subscription"
-import { mapOneOrManyArgs } from "../util/mapOneOrManyArgs"
-import { popResultSelector, popScheduler } from "../util/args"
-import { createObject } from "../util/createObject"
-import { createOperatorSubscriber } from "../operators/OperatorSubscriber"
-import { AnyCatcher } from "../AnyCatcher"
-import { executeSchedule } from "../util/executeSchedule"
 export function combineLatest<T extends AnyCatcher>(arg: T): Observable<unknown>
 export function combineLatest(sources: []): Observable<never>
 export function combineLatest<A extends readonly unknown[]>(
@@ -333,11 +369,6 @@ function maybeSchedule(
     execute()
   }
 }
-import { Observable } from "../Observable"
-import { ObservableInputTuple, SchedulerLike } from "../types"
-import { concatAll } from "../operators/concatAll"
-import { popScheduler } from "../util/args"
-import { from } from "./from"
 export function concat<T extends readonly unknown[]>(
   ...inputs: [...ObservableInputTuple<T>]
 ): Observable<T[number]>
@@ -347,11 +378,6 @@ export function concat<T extends readonly unknown[]>(
 export function concat(...args: any[]): Observable<unknown> {
   return concatAll()(from(args, popScheduler(args)))
 }
-import { Connectable, ObservableInput, SubjectLike } from "../types"
-import { Subject } from "../Subject"
-import { Subscription } from "../Subscription"
-import { Observable } from "../Observable"
-import { defer } from "./defer"
 export interface ConnectableConfig<T> {
   connector: () => SubjectLike<T>
   resetOnDisconnect?: boolean
@@ -381,9 +407,6 @@ export function connectable<T>(
   }
   return result
 }
-import { Observable } from "../Observable"
-import { ObservedValueOf, ObservableInput } from "../types"
-import { innerFrom } from "./innerFrom"
 export function defer<R extends ObservableInput<any>>(
   observableFactory: () => R
 ): Observable<ObservedValueOf<R>> {
@@ -391,13 +414,6 @@ export function defer<R extends ObservableInput<any>>(
     innerFrom(observableFactory()).subscribe(subscriber)
   })
 }
-import { Subject, AnonymousSubject } from "../../Subject"
-import { Subscriber } from "../../Subscriber"
-import { Observable } from "../../Observable"
-import { Subscription } from "../../Subscription"
-import { Operator } from "../../Operator"
-import { ReplaySubject } from "../../ReplaySubject"
-import { Observer, NextObserver } from "../../types"
 export interface WebSocketSubjectConfig<T> {
   url: string
   protocol?: string | Array<string>
@@ -631,11 +647,6 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
     super.unsubscribe()
   }
 }
-import { Observable } from "../../Observable"
-import { Subscription } from "../../Subscription"
-import { TimestampProvider } from "../../types"
-import { performanceTimestampProvider } from "../../scheduler/performanceTimestampProvider"
-import { animationFrameProvider } from "../../scheduler/animationFrameProvider"
 export function animationFrames(timestampProvider?: TimestampProvider) {
   return timestampProvider
     ? animationFramesFactory(timestampProvider)
@@ -664,10 +675,6 @@ function animationFramesFactory(timestampProvider?: TimestampProvider) {
   })
 }
 const DEFAULT_ANIMATION_FRAMES = animationFramesFactory()
-import { createOperatorSubscriber } from "../../operators/OperatorSubscriber"
-import { Observable } from "../../Observable"
-import { innerFrom } from "../../observable/innerFrom"
-import { ObservableInput } from "../../types"
 export function fromFetch<T>(
   input: string | Request,
   init: RequestInit & {
@@ -743,14 +750,11 @@ export function fromFetch<T>(
     }
   })
 }
-import { WebSocketSubject, WebSocketSubjectConfig } from "./WebSocketSubject"
 export function webSocket<T>(
   urlConfigOrSource: string | WebSocketSubjectConfig<T>
 ): WebSocketSubject<T> {
   return new WebSocketSubject<T>(urlConfigOrSource)
 }
-import { Observable } from "../Observable"
-import { SchedulerLike } from "../types"
 export const EMPTY = new Observable<never>(subscriber => subscriber.complete())
 export function empty(scheduler?: SchedulerLike) {
   return scheduler ? emptyScheduled(scheduler) : EMPTY
@@ -760,19 +764,6 @@ function emptyScheduled(scheduler: SchedulerLike) {
     scheduler.schedule(() => subscriber.complete())
   )
 }
-import { Observable } from "../Observable"
-import {
-  ObservedValueOf,
-  ObservableInputTuple,
-  ObservableInput,
-} from "../types"
-import { argsArgArrayOrObject } from "../util/argsArgArrayOrObject"
-import { innerFrom } from "./innerFrom"
-import { popResultSelector } from "../util/args"
-import { createOperatorSubscriber } from "../operators/OperatorSubscriber"
-import { mapOneOrManyArgs } from "../util/mapOneOrManyArgs"
-import { createObject } from "../util/createObject"
-import { AnyCatcher } from "../AnyCatcher"
 export function forkJoin<T extends AnyCatcher>(arg: T): Observable<unknown>
 export function forkJoin(scheduler: null | undefined): Observable<never>
 export function forkJoin(sources: readonly []): Observable<never>
@@ -835,10 +826,6 @@ export function forkJoin(...args: any[]): Observable<any> {
   })
   return resultSelector ? result.pipe(mapOneOrManyArgs(resultSelector)) : result
 }
-import { Observable } from "../Observable"
-import { ObservableInput, SchedulerLike, ObservedValueOf } from "../types"
-import { scheduled } from "../scheduled/scheduled"
-import { innerFrom } from "./innerFrom"
 export function from<O extends ObservableInput<any>>(
   input: O
 ): Observable<ObservedValueOf<O>>
@@ -852,12 +839,6 @@ export function from<T>(
 ): Observable<T> {
   return scheduler ? scheduled(input, scheduler) : innerFrom(input)
 }
-import { innerFrom } from "../observable/innerFrom"
-import { Observable } from "../Observable"
-import { mergeMap } from "../operators/mergeMap"
-import { isArrayLike } from "../util/isArrayLike"
-import { isFunction } from "../util/isFunction"
-import { mapOneOrManyArgs } from "../util/mapOneOrManyArgs"
 const nodeEventEmitterMethods = ["addListener", "removeListener"] as const
 const eventTargetMethods = ["addEventListener", "removeEventListener"] as const
 const jqueryMethods = ["on", "off"] as const
@@ -1034,10 +1015,6 @@ function isEventTarget(target: any): target is HasEventTargetAddRemove<any> {
     isFunction(target.removeEventListener)
   )
 }
-import { Observable } from "../Observable"
-import { isFunction } from "../util/isFunction"
-import { NodeEventHandler } from "./fromEvent"
-import { mapOneOrManyArgs } from "../util/mapOneOrManyArgs"
 export function fromEventPattern<T>(
   addHandler: (handler: NodeEventHandler) => any,
   removeHandler?: (handler: NodeEventHandler, signal?: any) => void
@@ -1065,20 +1042,11 @@ export function fromEventPattern<T>(
       : undefined
   })
 }
-import { Observable } from "../Observable"
-import { Subscriber } from "../Subscriber"
-import { Subscribable } from "../types"
 export function fromSubscribable<T>(subscribable: Subscribable<T>) {
   return new Observable((subscriber: Subscriber<T>) =>
     subscribable.subscribe(subscriber)
   )
 }
-import { Observable } from "../Observable"
-import { identity } from "../util/identity"
-import { ObservableInput, SchedulerLike } from "../types"
-import { isScheduler } from "../util/isScheduler"
-import { defer } from "./defer"
-import { scheduleIterable } from "../scheduled/scheduleIterable"
 type ConditionFunc<S> = (state: S) => boolean
 type IterateFunc<S> = (state: S) => S
 type ResultFunc<S, T> = (state: S) => T
@@ -1150,9 +1118,6 @@ export function generate<T, S>(
       : gen) as () => ObservableInput<T>
   )
 }
-import { Observable } from "../Observable"
-import { defer } from "./defer"
-import { ObservableInput } from "../types"
 export function iif<T, F>(
   condition: () => boolean,
   trueResult: ObservableInput<T>,
@@ -1160,22 +1125,6 @@ export function iif<T, F>(
 ): Observable<T | F> {
   return defer(() => (condition() ? trueResult : falseResult))
 }
-import { isArrayLike } from "../util/isArrayLike"
-import { isPromise } from "../util/isPromise"
-import { Observable } from "../Observable"
-import { ObservableInput, ObservedValueOf, ReadableStreamLike } from "../types"
-import { isInteropObservable } from "../util/isInteropObservable"
-import { isAsyncIterable } from "../util/isAsyncIterable"
-import { createInvalidObservableTypeError } from "../util/throwUnobservableError"
-import { isIterable } from "../util/isIterable"
-import {
-  isReadableStreamLike,
-  readableStreamLikeToAsyncGenerator,
-} from "../util/isReadableStreamLike"
-import { Subscriber } from "../Subscriber"
-import { isFunction } from "../util/isFunction"
-import { reportUnhandledError } from "../util/reportUnhandledError"
-import { observable as Symbol_observable } from "../symbol/observable"
 export function innerFrom<O extends ObservableInput<any>>(
   input: O
 ): Observable<ObservedValueOf<O>>
@@ -1274,10 +1223,6 @@ async function process<T>(
   }
   subscriber.complete()
 }
-import { Observable } from "../Observable"
-import { asyncScheduler } from "../scheduler/async"
-import { SchedulerLike } from "../types"
-import { timer } from "./timer"
 export function interval(
   period = 0,
   scheduler: SchedulerLike = asyncScheduler
@@ -1287,13 +1232,6 @@ export function interval(
   }
   return timer(period, period, scheduler)
 }
-import { Observable } from "../Observable"
-import { ObservableInput, ObservableInputTuple, SchedulerLike } from "../types"
-import { mergeAll } from "../operators/mergeAll"
-import { innerFrom } from "./innerFrom"
-import { EMPTY } from "./empty"
-import { popNumber, popScheduler } from "../util/args"
-import { from } from "./from"
 export function merge<A extends readonly unknown[]>(
   ...sources: [...ObservableInputTuple<A>]
 ): Observable<A[number]>
@@ -1322,16 +1260,10 @@ export function merge(
     ? innerFrom(sources[0])
     : mergeAll(concurrent)(from(sources, scheduler))
 }
-import { Observable } from "../Observable"
-import { noop } from "../util/noop"
 export const NEVER = new Observable<never>(noop)
 export function never() {
   return NEVER
 }
-import { SchedulerLike, ValueFromArray } from "../types"
-import { Observable } from "../Observable"
-import { popScheduler } from "../util/args"
-import { from } from "./from"
 export function of(value: null): Observable<null>
 export function of(value: undefined): Observable<undefined>
 export function of(scheduler: SchedulerLike): Observable<never>
@@ -1348,11 +1280,6 @@ export function of<T>(...args: Array<T | SchedulerLike>): Observable<T> {
   const scheduler = popScheduler(args)
   return from(args as T[], scheduler)
 }
-import { Observable } from "../Observable"
-import { ObservableInputTuple } from "../types"
-import { EMPTY } from "./empty"
-import { onErrorResumeNext as onErrorResumeNextWith } from "../operators/onErrorResumeNext"
-import { argsOrArgArray } from "../util/argsOrArgArray"
 export function onErrorResumeNext<A extends readonly unknown[]>(
   sources: [...ObservableInputTuple<A>]
 ): Observable<A[number]>
@@ -1364,9 +1291,6 @@ export function onErrorResumeNext<A extends readonly unknown[]>(
 ): Observable<A[number]> {
   return onErrorResumeNextWith(argsOrArgArray(sources))(EMPTY)
 }
-import { Observable } from "../Observable"
-import { SchedulerLike } from "../types"
-import { from } from "./from"
 export function pairs<T>(
   arr: readonly T[],
   scheduler?: SchedulerLike
@@ -1386,11 +1310,6 @@ export function pairs(
 export function pairs(obj: any, scheduler?: SchedulerLike) {
   return from(Object.entries(obj), scheduler as any)
 }
-import { not } from "../util/not"
-import { filter } from "../operators/filter"
-import { ObservableInput } from "../types"
-import { Observable } from "../Observable"
-import { innerFrom } from "./innerFrom"
 export function partition<T, U extends T, A>(
   source: ObservableInput<T>,
   predicate: (this: A, value: T, index: number) => value is U,
@@ -1419,13 +1338,6 @@ export function partition<T>(
     filter(not(predicate, thisArg))(innerFrom(source)),
   ] as [Observable<T>, Observable<T>]
 }
-import { Observable } from "../Observable"
-import { innerFrom } from "./innerFrom"
-import { Subscription } from "../Subscription"
-import { ObservableInput, ObservableInputTuple } from "../types"
-import { argsOrArgArray } from "../util/argsOrArgArray"
-import { createOperatorSubscriber } from "../operators/OperatorSubscriber"
-import { Subscriber } from "../Subscriber"
 export function race<T extends readonly unknown[]>(
   inputs: [...ObservableInputTuple<T>]
 ): Observable<T[number]>
@@ -1466,9 +1378,6 @@ export function raceInit<T>(sources: ObservableInput<T>[]) {
     }
   }
 }
-import { SchedulerLike } from "../types"
-import { Observable } from "../Observable"
-import { EMPTY } from "./empty"
 export function range(start: number, count?: number): Observable<number>
 export function range(
   start: number,
@@ -1511,10 +1420,6 @@ export function range(
         }
   )
 }
-import { Observable } from "../Observable"
-import { Subscriber } from "../Subscriber"
-import { SchedulerLike } from "../types"
-import { isFunction } from "../util/isFunction"
 export function throwError(errorFactory: () => any): Observable<never>
 export function throwError(error: any): Observable<never>
 export function throwError(
@@ -1536,11 +1441,6 @@ export function throwError(
       : init
   )
 }
-import { Observable } from "../Observable"
-import { SchedulerLike } from "../types"
-import { async as asyncScheduler } from "../scheduler/async"
-import { isScheduler } from "../util/isScheduler"
-import { isValidDate } from "../util/isDate"
 export function timer(
   due: number | Date,
   scheduler?: SchedulerLike
@@ -1588,10 +1488,6 @@ export function timer(
     }, due)
   })
 }
-import { Observable } from "../Observable"
-import { Unsubscribable, ObservableInput, ObservedValueOf } from "../types"
-import { innerFrom } from "./innerFrom"
-import { EMPTY } from "./empty"
 export function using<T extends ObservableInput<any>>(
   resourceFactory: () => Unsubscribable | void,
   observableFactory: (resource: Unsubscribable | void) => T | void
@@ -1608,13 +1504,6 @@ export function using<T extends ObservableInput<any>>(
     }
   })
 }
-import { Observable } from "../Observable"
-import { ObservableInputTuple } from "../types"
-import { innerFrom } from "./innerFrom"
-import { argsOrArgArray } from "../util/argsOrArgArray"
-import { EMPTY } from "./empty"
-import { createOperatorSubscriber } from "../operators/OperatorSubscriber"
-import { popResultSelector } from "../util/args"
 export function zip<A extends readonly unknown[]>(
   sources: [...ObservableInputTuple<A>]
 ): Observable<A>
