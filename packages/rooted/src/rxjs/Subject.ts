@@ -6,6 +6,16 @@ import { Observer, SubscriptionLike, TeardownLogic } from "./types"
 import { ObjectUnsubscribedError } from "./util/ObjectUnsubscribedError"
 import { arrRemove } from "./util/arrRemove"
 import { errorContext } from "./util/errorContext"
+import { Subject } from "./Subject"
+import { Subscriber } from "./Subscriber"
+import { Subject } from "./Subject"
+import { Subscriber } from "./Subscriber"
+import { Subscription } from "./Subscription"
+import { Subject } from "./Subject"
+import { TimestampProvider } from "./types"
+import { Subscriber } from "./Subscriber"
+import { Subscription } from "./Subscription"
+import { dateTimestampProvider } from "./scheduler/dateTimestampProvider"
 
 export class Subject<T> extends Observable<T> implements SubscriptionLike {
   closed = false
@@ -129,5 +139,128 @@ export class AnonymousSubject<T> extends Subject<T> {
   }
   protected _subscribe(subscriber: Subscriber<T>): Subscription {
     return this.source?.subscribe(subscriber) ?? EMPTY_SUBSCRIPTION
+  }
+}
+
+export class AsyncSubject<T> extends Subject<T> {
+  private _value: T | null = null
+  private _hasValue = false
+  private _isComplete = false
+
+  protected _checkFinalizedStatuses(subscriber: Subscriber<T>) {
+    const { hasError, _hasValue, _value, thrownError, isStopped, _isComplete } =
+      this
+    if (hasError) {
+      subscriber.error(thrownError)
+    } else if (isStopped || _isComplete) {
+      _hasValue && subscriber.next(_value!)
+      subscriber.complete()
+    }
+  }
+  next(value: T): void {
+    if (!this.isStopped) {
+      this._value = value
+      this._hasValue = true
+    }
+  }
+  complete(): void {
+    const { _hasValue, _value, _isComplete } = this
+    if (!_isComplete) {
+      this._isComplete = true
+      _hasValue && super.next(_value!)
+      super.complete()
+    }
+  }
+}
+
+export class BehaviorSubject<T> extends Subject<T> {
+  constructor(private _value: T) {
+    super()
+  }
+  get value(): T {
+    return this.getValue()
+  }
+  protected _subscribe(subscriber: Subscriber<T>): Subscription {
+    const subscription = super._subscribe(subscriber)
+    !subscription.closed && subscriber.next(this._value)
+    return subscription
+  }
+  getValue(): T {
+    const { hasError, thrownError, _value } = this
+    if (hasError) {
+      throw thrownError
+    }
+    this._throwIfClosed()
+    return _value
+  }
+  next(value: T): void {
+    super.next((this._value = value))
+  }
+}
+
+export class ReplaySubject<T> extends Subject<T> {
+  private _buffer: (T | number)[] = []
+  private _infiniteTimeWindow = true
+  constructor(
+    private _bufferSize = Infinity,
+    private _windowTime = Infinity,
+    private _timestampProvider: TimestampProvider = dateTimestampProvider
+  ) {
+    super()
+    this._infiniteTimeWindow = _windowTime === Infinity
+    this._bufferSize = Math.max(1, _bufferSize)
+    this._windowTime = Math.max(1, _windowTime)
+  }
+  next(value: T): void {
+    const {
+      isStopped,
+      _buffer,
+      _infiniteTimeWindow,
+      _timestampProvider,
+      _windowTime,
+    } = this
+    if (!isStopped) {
+      _buffer.push(value)
+      !_infiniteTimeWindow &&
+        _buffer.push(_timestampProvider.now() + _windowTime)
+    }
+    this._trimBuffer()
+    super.next(value)
+  }
+  protected _subscribe(subscriber: Subscriber<T>): Subscription {
+    this._throwIfClosed()
+    this._trimBuffer()
+    const subscription = this._innerSubscribe(subscriber)
+    const { _infiniteTimeWindow, _buffer } = this
+    const copy = _buffer.slice()
+    for (
+      let i = 0;
+      i < copy.length && !subscriber.closed;
+      i += _infiniteTimeWindow ? 1 : 2
+    ) {
+      subscriber.next(copy[i] as T)
+    }
+    this._checkFinalizedStatuses(subscriber)
+    return subscription
+  }
+  private _trimBuffer() {
+    const { _bufferSize, _timestampProvider, _buffer, _infiniteTimeWindow } =
+      this
+    const adjustedBufferSize = (_infiniteTimeWindow ? 1 : 2) * _bufferSize
+    _bufferSize < Infinity &&
+      adjustedBufferSize < _buffer.length &&
+      _buffer.splice(0, _buffer.length - adjustedBufferSize)
+    if (!_infiniteTimeWindow) {
+      const now = _timestampProvider.now()
+      let last = 0
+      for (
+        let i = 1;
+        i < _buffer.length && (_buffer[i] as number) <= now;
+        i += 2
+      ) {
+        last = i
+      }
+      last && _buffer.splice(0, last + 1)
+    }
   }
 }

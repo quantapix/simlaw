@@ -1,9 +1,7 @@
-import { isFunction } from "./util/isFunction"
-import { UnsubscriptionError } from "./util/UnsubscriptionError"
-import { SubscriptionLike, TeardownLogic, Unsubscribable } from "./types"
-import { arrRemove } from "./util/arrRemove"
+import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 
-export class Subscription implements SubscriptionLike {
+export class Subscription implements qt.SubscriptionLike {
   public static EMPTY = (() => {
     const empty = new Subscription()
     empty.closed = true
@@ -11,7 +9,7 @@ export class Subscription implements SubscriptionLike {
   })()
   public closed = false
   private _parentage: Subscription[] | Subscription | null = null
-  private _finalizers: Exclude<TeardownLogic, void>[] | null = null
+  private _finalizers: Exclude<qt.TeardownLogic, void>[] | null = null
   constructor(private initialTeardown?: () => void) {}
   unsubscribe(): void {
     let errors: any[] | undefined
@@ -30,11 +28,11 @@ export class Subscription implements SubscriptionLike {
         }
       }
       const { initialTeardown: initialFinalizer } = this
-      if (isFunction(initialFinalizer)) {
+      if (qu.isFunction(initialFinalizer)) {
         try {
           initialFinalizer()
         } catch (e) {
-          errors = e instanceof UnsubscriptionError ? e.errors : [e]
+          errors = e instanceof qu.UnsubscriptionError ? e.errors : [e]
         }
       }
       const { _finalizers } = this
@@ -45,7 +43,7 @@ export class Subscription implements SubscriptionLike {
             execFinalizer(finalizer)
           } catch (err) {
             errors = errors ?? []
-            if (err instanceof UnsubscriptionError) {
+            if (err instanceof qu.UnsubscriptionError) {
               errors = [...errors, ...err.errors]
             } else {
               errors.push(err)
@@ -54,11 +52,11 @@ export class Subscription implements SubscriptionLike {
         }
       }
       if (errors) {
-        throw new UnsubscriptionError(errors)
+        throw new qu.UnsubscriptionError(errors)
       }
     }
   }
-  add(teardown: TeardownLogic): void {
+  add(teardown: qt.TeardownLogic): void {
     if (teardown && teardown !== this) {
       if (this.closed) {
         execFinalizer(teardown)
@@ -93,30 +91,33 @@ export class Subscription implements SubscriptionLike {
     if (_parentage === parent) {
       this._parentage = null
     } else if (Array.isArray(_parentage)) {
-      arrRemove(_parentage, parent)
+      qu.arrRemove(_parentage, parent)
     }
   }
-  remove(teardown: Exclude<TeardownLogic, void>): void {
+  remove(teardown: Exclude<qt.TeardownLogic, void>): void {
     const { _finalizers } = this
-    _finalizers && arrRemove(_finalizers, teardown)
+    _finalizers && qu.arrRemove(_finalizers, teardown)
     if (teardown instanceof Subscription) {
       teardown._removeParent(this)
     }
   }
 }
+
 export const EMPTY_SUBSCRIPTION = Subscription.EMPTY
+
 export function isSubscription(value: any): value is Subscription {
   return (
     value instanceof Subscription ||
     (value &&
       "closed" in value &&
-      isFunction(value.remove) &&
-      isFunction(value.add) &&
-      isFunction(value.unsubscribe))
+      qu.isFunction(value.remove) &&
+      qu.isFunction(value.add) &&
+      qu.isFunction(value.unsubscribe))
   )
 }
-function execFinalizer(finalizer: Unsubscribable | (() => void)) {
-  if (isFunction(finalizer)) {
+
+function execFinalizer(finalizer: qt.Unsubscribable | (() => void)) {
+  if (qu.isFunction(finalizer)) {
     finalizer()
   } else {
     finalizer.unsubscribe()

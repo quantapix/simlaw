@@ -1,9 +1,9 @@
-import {
-  PartialObserver,
-  ObservableNotification,
+import type {
   CompleteNotification,
-  NextNotification,
   ErrorNotification,
+  NextNotification,
+  ObservableNotification,
+  PartialObserver,
 } from "./types"
 import { Observable } from "./Observable"
 import { EMPTY } from "./observable/empty"
@@ -113,4 +113,24 @@ export function observeNotification<T>(
     : kind === "E"
     ? observer.error?.(error)
     : observer.complete?.()
+}
+
+export const COMPLETE_NOTIFICATION = (() =>
+  createNotification("C", undefined, undefined) as CompleteNotification)()
+export function errorNotification(error: any): ErrorNotification {
+  return createNotification("E", undefined, error) as any
+}
+export function nextNotification<T>(value: T) {
+  return createNotification("N", value, undefined) as NextNotification<T>
+}
+export function createNotification(
+  kind: "N" | "E" | "C",
+  value: any,
+  error: any
+) {
+  return {
+    kind,
+    value,
+    error,
+  }
 }

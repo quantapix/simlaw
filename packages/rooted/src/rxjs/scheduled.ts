@@ -1,5 +1,30 @@
+import { createInvalidObservableTypeError } from "../util/throwUnobservableError"
+import { executeSchedule } from "../util/executeSchedule"
+import { innerFrom } from "../observable/innerFrom"
+import type {
+  InteropObservable,
+  SchedulerLike,
+  ObservableInput,
+  ReadableStreamLike,
+} from "../types"
+import { isArrayLike } from "../util/isArrayLike"
+import { isAsyncIterable } from "../util/isAsyncIterable"
+import { isFunction } from "../util/isFunction"
+import { isInteropObservable } from "../util/isInteropObservable"
+import { isIterable } from "../util/isIterable"
+import { isPromise } from "../util/isPromise"
+import { isReadableStreamLike } from "../util/isReadableStreamLike"
+import { iterator as Symbol_iterator } from "../symbol/iterator"
 import { Observable } from "../Observable"
-import { SchedulerLike } from "../types"
+import { observeOn } from "../operators/observeOn"
+import { readableStreamLikeToAsyncGenerator } from "../util/isReadableStreamLike"
+import { scheduleArray } from "./scheduleArray"
+import { scheduleAsyncIterable } from "./scheduleAsyncIterable"
+import { scheduleIterable } from "./scheduleIterable"
+import { scheduleObservable } from "./scheduleObservable"
+import { schedulePromise } from "./schedulePromise"
+import { scheduleReadableStreamLike } from "./scheduleReadableStreamLike"
+import { subscribeOn } from "../operators/subscribeOn"
 
 export function scheduleArray<T>(
   input: ArrayLike<T>,
@@ -21,9 +46,6 @@ export function scheduleArray<T>(
     })
   })
 }
-import { SchedulerLike } from "../types"
-import { Observable } from "../Observable"
-import { executeSchedule } from "../util/executeSchedule"
 
 export function scheduleAsyncIterable<T>(
   input: AsyncIterable<T>,
@@ -53,11 +75,6 @@ export function scheduleAsyncIterable<T>(
     })
   })
 }
-import { Observable } from "../Observable"
-import { SchedulerLike } from "../types"
-import { iterator as Symbol_iterator } from "../symbol/iterator"
-import { isFunction } from "../util/isFunction"
-import { executeSchedule } from "../util/executeSchedule"
 
 export function scheduleIterable<T>(
   input: Iterable<T>,
@@ -96,10 +113,6 @@ export function scheduleIterable<T>(
     return () => isFunction(iterator?.return) && iterator.return()
   })
 }
-import { innerFrom } from "../observable/innerFrom"
-import { observeOn } from "../operators/observeOn"
-import { subscribeOn } from "../operators/subscribeOn"
-import { InteropObservable, SchedulerLike } from "../types"
 
 export function scheduleObservable<T>(
   input: InteropObservable<T>,
@@ -107,10 +120,6 @@ export function scheduleObservable<T>(
 ) {
   return innerFrom(input).pipe(subscribeOn(scheduler), observeOn(scheduler))
 }
-import { innerFrom } from "../observable/innerFrom"
-import { observeOn } from "../operators/observeOn"
-import { subscribeOn } from "../operators/subscribeOn"
-import { SchedulerLike } from "../types"
 
 export function schedulePromise<T>(
   input: PromiseLike<T>,
@@ -118,10 +127,6 @@ export function schedulePromise<T>(
 ) {
   return innerFrom(input).pipe(subscribeOn(scheduler), observeOn(scheduler))
 }
-import { SchedulerLike, ReadableStreamLike } from "../types"
-import { Observable } from "../Observable"
-import { scheduleAsyncIterable } from "./scheduleAsyncIterable"
-import { readableStreamLikeToAsyncGenerator } from "../util/isReadableStreamLike"
 
 export function scheduleReadableStreamLike<T>(
   input: ReadableStreamLike<T>,
@@ -132,21 +137,6 @@ export function scheduleReadableStreamLike<T>(
     scheduler
   )
 }
-import { scheduleObservable } from "./scheduleObservable"
-import { schedulePromise } from "./schedulePromise"
-import { scheduleArray } from "./scheduleArray"
-import { scheduleIterable } from "./scheduleIterable"
-import { scheduleAsyncIterable } from "./scheduleAsyncIterable"
-import { isInteropObservable } from "../util/isInteropObservable"
-import { isPromise } from "../util/isPromise"
-import { isArrayLike } from "../util/isArrayLike"
-import { isIterable } from "../util/isIterable"
-import { ObservableInput, SchedulerLike } from "../types"
-import { Observable } from "../Observable"
-import { isAsyncIterable } from "../util/isAsyncIterable"
-import { createInvalidObservableTypeError } from "../util/throwUnobservableError"
-import { isReadableStreamLike } from "../util/isReadableStreamLike"
-import { scheduleReadableStreamLike } from "./scheduleReadableStreamLike"
 
 export function scheduled<T>(
   input: ObservableInput<T>,

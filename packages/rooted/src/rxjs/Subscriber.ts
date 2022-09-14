@@ -8,9 +8,12 @@ import {
   nextNotification,
   errorNotification,
   COMPLETE_NOTIFICATION,
-} from "./NotificationFactories"
+} from "./Notification.js"
 import { timeoutProvider } from "./scheduler/timeoutProvider"
 import { captureError } from "./util/errorContext"
+import { Subscriber } from "./Subscriber"
+import { TeardownLogic } from "./types"
+
 export class Subscriber<T> extends Subscription implements Observer<T> {
   static create<T>(
     next?: (x?: T) => void,
@@ -85,6 +88,7 @@ const _bind = Function.prototype.bind
 function bind<Fn extends (...args: any[]) => any>(fn: Fn, thisArg: any): Fn {
   return _bind.call(fn, thisArg)
 }
+
 class ConsumerObserver<T> implements Observer<T> {
   constructor(private partialObserver: Partial<Observer<T>>) {}
   next(value: T): void {
@@ -120,6 +124,7 @@ class ConsumerObserver<T> implements Observer<T> {
     }
   }
 }
+
 export class SafeSubscriber<T> extends Subscriber<T> {
   constructor(
     observerOrNext?: Partial<Observer<T>> | ((value: T) => void) | null,
@@ -178,4 +183,8 @@ export const EMPTY_OBSERVER: Readonly<Observer<any>> & { closed: true } = {
   next: noop,
   error: defaultErrorHandler,
   complete: noop,
+}
+
+export interface Operator<T, R> {
+  call(subscriber: Subscriber<R>, source: any): TeardownLogic
 }

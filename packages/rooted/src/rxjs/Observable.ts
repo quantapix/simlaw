@@ -10,8 +10,8 @@ import {
 import { observable as Symbol_observable } from "./symbol/observable"
 import { pipeFromArray } from "./util/pipe"
 import { config } from "./config"
-import { isFunction } from "./util/isFunction"
-import { errorContext } from "./util/errorContext"
+import {} from "./util/isFunction"
+import { isFunction, errorContext } from "./utils.js"
 
 export class Observable<T> implements Subscribable<T> {
   source: Observable<any> | undefined
@@ -194,21 +194,4 @@ export class Observable<T> implements Subscribable<T> {
       )
     }) as Promise<T | undefined>
   }
-}
-function getPromiseCtor(promiseCtor: PromiseConstructorLike | undefined) {
-  return promiseCtor ?? config.Promise ?? Promise
-}
-function isObserver<T>(value: any): value is Observer<T> {
-  return (
-    value &&
-    isFunction(value.next) &&
-    isFunction(value.error) &&
-    isFunction(value.complete)
-  )
-}
-function isSubscriber<T>(value: any): value is Subscriber<T> {
-  return (
-    (value && value instanceof Subscriber) ||
-    (isObserver(value) && isSubscription(value))
-  )
 }

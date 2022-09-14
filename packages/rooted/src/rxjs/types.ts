@@ -1,5 +1,6 @@
 import { Observable } from "./Observable"
 import { Subscription } from "./Subscription"
+
 declare global {
   interface SymbolConstructor {
     readonly observable: symbol
@@ -176,3 +177,7 @@ export interface ReadableStreamLike<T> {
 export interface Connectable<T> extends Observable<T> {
   connect(): Subscription
 }
+
+declare const anyCatcherSymbol: unique symbol
+
+export type AnyCatcher = typeof anyCatcherSymbol

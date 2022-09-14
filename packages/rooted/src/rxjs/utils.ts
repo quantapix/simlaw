@@ -17,6 +17,26 @@ import { Subscription } from "../Subscription"
 import { timeoutProvider } from "../scheduler/timeoutProvider"
 import { UnaryFunction } from "../types"
 
+function getPromiseCtor(promiseCtor: PromiseConstructorLike | undefined) {
+  return promiseCtor ?? config.Promise ?? Promise
+}
+
+function isObserver<T>(value: any): value is Observer<T> {
+  return (
+    value &&
+    isFunction(value.next) &&
+    isFunction(value.error) &&
+    isFunction(value.complete)
+  )
+}
+
+function isSubscriber<T>(value: any): value is Subscriber<T> {
+  return (
+    (value && value instanceof Subscriber) ||
+    (isObserver(value) && isSubscription(value))
+  )
+}
+
 export const observable: string | symbol = (() =>
   (typeof Symbol === "function" && Symbol.observable) || "@@observable")()
 export function getSymbolIterator(): symbol {
