@@ -1,7 +1,7 @@
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-export class Subscription implements qt.SubscriptionLike {
+export class Subscription implements qt.Subscription {
   public static EMPTY = (() => {
     const empty = new Subscription()
     empty.closed = true

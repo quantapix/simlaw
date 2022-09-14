@@ -1,32 +1,32 @@
-import { animationFrameProvider } from "../scheduler/animationFrameProvider"
-import { applyMixins } from "../util/applyMixins"
+import { animationFrameProvider } from "./scheduler/animationFrameProvider"
+import { applyMixins } from "./util/applyMixins"
 import { ColdObservable } from "./ColdObservable"
-import { dateTimestampProvider } from "../scheduler/dateTimestampProvider"
+import { dateTimestampProvider } from "./scheduler/dateTimestampProvider"
 import { HotObservable } from "./HotObservable"
-import { immediateProvider } from "../scheduler/immediateProvider"
-import { intervalProvider } from "../scheduler/intervalProvider"
-import { Observable } from "../Observable"
+import { immediateProvider } from "./scheduler/immediateProvider"
+import { intervalProvider } from "./scheduler/intervalProvider"
+import { Observable } from "./Observable"
 import { ObservableNotification } from "./types.js"
-import { observeNotification } from "../Notification"
-import { performanceTimestampProvider } from "../scheduler/performanceTimestampProvider"
-import { Scheduler } from "../Scheduler"
-import { Subject } from "../Subject"
-import { Subscriber } from "../Subscriber"
-import { Subscription } from "../Subscription"
+import { observeNotification } from "./Notification"
+import { performanceTimestampProvider } from "./scheduler/performanceTimestampProvider"
+import { Scheduler } from "./Scheduler"
+import { Subject } from "./Subject"
+import { Subscriber } from "./Subscriber"
+import { Subscription } from "./Subscription"
 import { SubscriptionLog } from "./SubscriptionLog"
 import { SubscriptionLoggable } from "./SubscriptionLoggable"
 import { TestMessage } from "./TestMessage"
-import { timeoutProvider } from "../scheduler/timeoutProvider"
-import type { TimerHandle } from "../scheduler/timerHandle"
+import { timeoutProvider } from "./scheduler/timeoutProvider"
+import type { TimerHandle } from "./scheduler/timerHandle"
 import {
   VirtualTimeScheduler,
   VirtualAction,
-} from "../scheduler/VirtualTimeScheduler"
+} from "./scheduler/VirtualTimeScheduler"
 import {
   COMPLETE_NOTIFICATION,
   errorNotification,
   nextNotification,
-} from "../NotificationFactories"
+} from "./NotificationFactories"
 
 export class ColdObservable<T>
   extends Observable<T>

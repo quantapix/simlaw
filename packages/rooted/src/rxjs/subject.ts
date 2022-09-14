@@ -1,31 +1,20 @@
 import { Operator } from "./Operator"
 import { Observable } from "./Observable.js"
-import { Subscriber } from "./subscriber.js"
 import { Subscription, EMPTY_SUBSCRIPTION } from "./subscription.js"
-import { Observer, SubscriptionLike, TeardownLogic } from "../types.js"
-import { ObjectUnsubscribedError } from "./util/ObjectUnsubscribedError"
-import { arrRemove } from "./util/arrRemove"
-import { errorContext } from "./util/errorContext"
-import { Subject } from "./subject.js"
-import { Subscriber } from "./subscriber.js"
-import { Subject } from "./subject.js"
-import { Subscriber } from "./subscriber.js"
-import { Subscription } from "./subscription.js"
-import { Subject } from "./subject.js"
-import { TimestampProvider } from "../types.js"
-import { Subscriber } from "./subscriber.js"
-import { Subscription } from "./subscription.js"
-import { dateTimestampProvider } from "./scheduler/dateTimestampProvider"
+import type * as qt from "./types.js"
+import { arrRemove, errorContext, ObjectUnsubscribedError } from "./utils.js"
+import type { Subscriber } from "./subscriber.js"
+import { dateTimestampProvider } from "./scheduler.js"
 
-export class Subject<T> extends Observable<T> implements SubscriptionLike {
+export class Subject<T> extends Observable<T> implements qt.Subscription {
   closed = false
-  private currentObservers: Observer<T>[] | null = null
-  observers: Observer<T>[] = []
+  private currentObservers: qt.Observer<T>[] | null = null
+  observers: qt.Observer<T>[] = []
   isStopped = false
   hasError = false
   thrownError: any = null
-  static create: (...args: any[]) => any = <T>(
-    destination: Observer<T>,
+  static override create: (...args: any[]) => any = <T>(
+    destination: qt.Observer<T>,
     source: Observable<T>
   ): AnonymousSubject<T> => {
     return new AnonymousSubject<T>(destination, source)
@@ -33,7 +22,7 @@ export class Subject<T> extends Observable<T> implements SubscriptionLike {
   constructor() {
     super()
   }
-  lift<R>(operator: Operator<T, R>): Observable<R> {
+  override lift<R>(operator: Operator<T, R>): Observable<R> {
     const subject = new AnonymousSubject(this, this)
     subject.operator = operator as any
     return subject as any
@@ -88,11 +77,13 @@ export class Subject<T> extends Observable<T> implements SubscriptionLike {
   get observed() {
     return this.observers?.length > 0
   }
-  protected _trySubscribe(subscriber: Subscriber<T>): TeardownLogic {
+  protected override _trySubscribe(
+    subscriber: Subscriber<T>
+  ): qt.TeardownLogic {
     this._throwIfClosed()
     return super._trySubscribe(subscriber)
   }
-  protected _subscribe(subscriber: Subscriber<T>): Subscription {
+  protected override _subscribe(subscriber: Subscriber<T>): Subscription {
     this._throwIfClosed()
     this._checkFinalizedStatuses(subscriber)
     return this._innerSubscribe(subscriber)
@@ -123,21 +114,22 @@ export class Subject<T> extends Observable<T> implements SubscriptionLike {
     return observable
   }
 }
+
 export class AnonymousSubject<T> extends Subject<T> {
-  constructor(public destination?: Observer<T>, source?: Observable<T>) {
+  constructor(public destination?: qt.Observer<T>, source?: Observable<T>) {
     super()
     this.source = source
   }
-  next(value: T) {
+  override next(value: T) {
     this.destination?.next?.(value)
   }
-  error(err: any) {
+  override error(err: any) {
     this.destination?.error?.(err)
   }
-  complete() {
+  override complete() {
     this.destination?.complete?.()
   }
-  protected _subscribe(subscriber: Subscriber<T>): Subscription {
+  protected override _subscribe(subscriber: Subscriber<T>): Subscription {
     return this.source?.subscribe(subscriber) ?? EMPTY_SUBSCRIPTION
   }
 }
@@ -147,7 +139,7 @@ export class AsyncSubject<T> extends Subject<T> {
   private _hasValue = false
   private _isComplete = false
 
-  protected _checkFinalizedStatuses(subscriber: Subscriber<T>) {
+  protected override _checkFinalizedStatuses(subscriber: Subscriber<T>) {
     const { hasError, _hasValue, _value, thrownError, isStopped, _isComplete } =
       this
     if (hasError) {
@@ -157,13 +149,13 @@ export class AsyncSubject<T> extends Subject<T> {
       subscriber.complete()
     }
   }
-  next(value: T): void {
+  override next(value: T): void {
     if (!this.isStopped) {
       this._value = value
       this._hasValue = true
     }
   }
-  complete(): void {
+  override complete(): void {
     const { _hasValue, _value, _isComplete } = this
     if (!_isComplete) {
       this._isComplete = true
@@ -180,7 +172,7 @@ export class BehaviorSubject<T> extends Subject<T> {
   get value(): T {
     return this.getValue()
   }
-  protected _subscribe(subscriber: Subscriber<T>): Subscription {
+  protected override _subscribe(subscriber: Subscriber<T>): Subscription {
     const subscription = super._subscribe(subscriber)
     !subscription.closed && subscriber.next(this._value)
     return subscription
@@ -193,7 +185,7 @@ export class BehaviorSubject<T> extends Subject<T> {
     this._throwIfClosed()
     return _value
   }
-  next(value: T): void {
+  override next(value: T): void {
     super.next((this._value = value))
   }
 }
@@ -204,14 +196,14 @@ export class ReplaySubject<T> extends Subject<T> {
   constructor(
     private _bufferSize = Infinity,
     private _windowTime = Infinity,
-    private _timestampProvider: TimestampProvider = dateTimestampProvider
+    private _timestampProvider: qt.TimestampProvider = dateTimestampProvider
   ) {
     super()
     this._infiniteTimeWindow = _windowTime === Infinity
     this._bufferSize = Math.max(1, _bufferSize)
     this._windowTime = Math.max(1, _windowTime)
   }
-  next(value: T): void {
+  override next(value: T): void {
     const {
       isStopped,
       _buffer,
@@ -227,7 +219,7 @@ export class ReplaySubject<T> extends Subject<T> {
     this._trimBuffer()
     super.next(value)
   }
-  protected _subscribe(subscriber: Subscriber<T>): Subscription {
+  protected override _subscribe(subscriber: Subscriber<T>): Subscription {
     this._throwIfClosed()
     this._trimBuffer()
     const subscription = this._innerSubscribe(subscriber)

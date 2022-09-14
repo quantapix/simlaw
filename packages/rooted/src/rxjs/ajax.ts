@@ -1,7 +1,7 @@
 import { AjaxRequest, AjaxResponseType } from "./types"
 import { getXHRResponse } from "./getXHRResponse"
-import { map } from "../operators/map"
-import { Observable } from "../Observable"
+import { map } from "./operators/map"
+import { Observable } from "./Observable"
 import {
   AjaxConfig,
   AjaxRequest,
@@ -12,8 +12,8 @@ import { AjaxResponse } from "./AjaxResponse"
 import { AjaxTimeoutError, AjaxError } from "./errors"
 import { AjaxRequest } from "./types"
 import { getXHRResponse } from "./getXHRResponse"
-import { createErrorClass } from "../util/createErrorClass"
-import { PartialObserver } from "../types"
+import { createErrorClass } from "./util/createErrorClass"
+import { PartialObserver } from "./types"
 
 export class AjaxResponse<T> {
   readonly status: number

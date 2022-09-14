@@ -1,18 +1,11 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 import { Observable } from "./Observable"
-import { Subscription } from "./Subscription"
 
 declare global {
   interface SymbolConstructor {
     readonly observable: symbol
   }
 }
-export interface UnaryFunction<T, R> {
-  (source: T): R
-}
-export interface OperatorFunction<T, R>
-  extends UnaryFunction<Observable<T>, Observable<R>> {}
-export type FactoryOrValue<T> = T | (() => T)
-export interface MonoTypeOperatorFunction<T> extends OperatorFunction<T, T> {}
 export interface Timestamp<T> {
   value: T
   timestamp: number
@@ -21,22 +14,38 @@ export interface TimeInterval<T> {
   value: T
   interval: number
 }
+
+export interface UnaryFunction<T, R> {
+  (source: T): R
+}
+
+export interface OperatorFunction<T, R>
+  extends UnaryFunction<Observable<T>, Observable<R>> {}
+
+export type FactoryOrValue<T> = T | (() => T)
+export interface MonoTypeOperatorFunction<T> extends OperatorFunction<T, T> {}
+
 export interface Unsubscribable {
   unsubscribe(): void
 }
-export type TeardownLogic = Subscription | Unsubscribable | (() => void) | void
-export interface SubscriptionLike extends Unsubscribable {
+
+export interface Subscription extends Unsubscribable {
   unsubscribe(): void
   readonly closed: boolean
 }
+
+export interface Subscribable<T> {
+  subscribe(observer: Partial<Observer<T>>): Unsubscribable
+}
+
+export type TeardownLogic = Subscription | Unsubscribable | (() => void) | void
+
 export type SubscribableOrPromise<T> =
   | Subscribable<T>
   | Subscribable<never>
   | PromiseLike<T>
   | InteropObservable<T>
-export interface Subscribable<T> {
-  subscribe(observer: Partial<Observer<T>>): Unsubscribable
-}
+
 export type ObservableInput<T> =
   | Observable<T>
   | InteropObservable<T>
@@ -49,6 +58,7 @@ export type ObservableLike<T> = InteropObservable<T>
 export interface InteropObservable<T> {
   [Symbol.observable]: () => Subscribable<T>
 }
+
 export interface NextNotification<T> {
   kind: "N"
   value: T
@@ -60,10 +70,12 @@ export interface ErrorNotification {
 export interface CompleteNotification {
   kind: "C"
 }
+
 export type ObservableNotification<T> =
   | NextNotification<T>
   | ErrorNotification
   | CompleteNotification
+
 export interface NextObserver<T> {
   closed?: boolean
   next: (value: T) => void
@@ -91,8 +103,13 @@ export interface Observer<T> {
   error: (err: any) => void
   complete: () => void
 }
+
 export interface SubjectLike<T> extends Observer<T>, Subscribable<T> {}
-export interface SchedulerLike extends TimestampProvider {
+
+export interface SchedulerAction<T> extends Subscription {
+  schedule(state?: T, delay?: number): Subscription
+}
+export interface Scheduler extends TimestampProvider {
   schedule<T>(
     work: (this: SchedulerAction<T>, state: T) => void,
     delay: number,
@@ -109,9 +126,7 @@ export interface SchedulerLike extends TimestampProvider {
     state?: T
   ): Subscription
 }
-export interface SchedulerAction<T> extends Subscription {
-  schedule(state?: T, delay?: number): Subscription
-}
+
 export interface TimestampProvider {
   now(): number
 }

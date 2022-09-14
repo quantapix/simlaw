@@ -1,35 +1,11 @@
-import { createInvalidObservableTypeError } from "../util/throwUnobservableError"
-import { executeSchedule } from "../util/executeSchedule"
-import { innerFrom } from "../observable/innerFrom"
-import type {
-  InteropObservable,
-  SchedulerLike,
-  ObservableInput,
-  ReadableStreamLike,
-} from "../types"
-import { isArrayLike } from "../util/isArrayLike"
-import { isAsyncIterable } from "../util/isAsyncIterable"
-import { isFunction } from "../util/isFunction"
-import { isInteropObservable } from "../util/isInteropObservable"
-import { isIterable } from "../util/isIterable"
-import { isPromise } from "../util/isPromise"
-import { isReadableStreamLike } from "../util/isReadableStreamLike"
-import { iterator as Symbol_iterator } from "../symbol/iterator"
-import { Observable } from "../Observable"
-import { observeOn } from "../operators/observeOn"
-import { readableStreamLikeToAsyncGenerator } from "../util/isReadableStreamLike"
-import { scheduleArray } from "./scheduleArray"
-import { scheduleAsyncIterable } from "./scheduleAsyncIterable"
-import { scheduleIterable } from "./scheduleIterable"
-import { scheduleObservable } from "./scheduleObservable"
-import { schedulePromise } from "./schedulePromise"
-import { scheduleReadableStreamLike } from "./scheduleReadableStreamLike"
-import { subscribeOn } from "../operators/subscribeOn"
+import { innerFrom, Observable } from "./observable.js"
+import type * as qt from "./types.js"
+import * as qu from "./utils.js"
+import { iterator as Symbol_iterator } from "./symbol/iterator"
+import { observeOn } from "./operators.js"
+import { subscribeOn } from "./operators.js"
 
-export function scheduleArray<T>(
-  input: ArrayLike<T>,
-  scheduler: SchedulerLike
-) {
+export function scheduleArray<T>(input: ArrayLike<T>, scheduler: qt.Scheduler) {
   return new Observable<T>(subscriber => {
     let i = 0
 
@@ -49,15 +25,15 @@ export function scheduleArray<T>(
 
 export function scheduleAsyncIterable<T>(
   input: AsyncIterable<T>,
-  scheduler: SchedulerLike
+  scheduler: qt.Scheduler
 ) {
   if (!input) {
     throw new Error("Iterable cannot be null")
   }
   return new Observable<T>(subscriber => {
-    executeSchedule(subscriber, scheduler, () => {
+    qu.executeSchedule(subscriber, scheduler, () => {
       const iterator = input[Symbol.asyncIterator]()
-      executeSchedule(
+      qu.executeSchedule(
         subscriber,
         scheduler,
         () => {
@@ -78,15 +54,15 @@ export function scheduleAsyncIterable<T>(
 
 export function scheduleIterable<T>(
   input: Iterable<T>,
-  scheduler: SchedulerLike
+  scheduler: qt.Scheduler
 ) {
   return new Observable<T>(subscriber => {
     let iterator: Iterator<T, T>
 
-    executeSchedule(subscriber, scheduler, () => {
+    qu.executeSchedule(subscriber, scheduler, () => {
       iterator = (input as any)[Symbol_iterator]()
 
-      executeSchedule(
+      qu.executeSchedule(
         subscriber,
         scheduler,
         () => {
@@ -110,57 +86,57 @@ export function scheduleIterable<T>(
       )
     })
 
-    return () => isFunction(iterator?.return) && iterator.return()
+    return () => qu.isFunction(iterator?.return) && iterator.return()
   })
 }
 
 export function scheduleObservable<T>(
-  input: InteropObservable<T>,
-  scheduler: SchedulerLike
+  input: qt.InteropObservable<T>,
+  scheduler: qt.Scheduler
 ) {
   return innerFrom(input).pipe(subscribeOn(scheduler), observeOn(scheduler))
 }
 
 export function schedulePromise<T>(
   input: PromiseLike<T>,
-  scheduler: SchedulerLike
+  scheduler: qt.Scheduler
 ) {
   return innerFrom(input).pipe(subscribeOn(scheduler), observeOn(scheduler))
 }
 
 export function scheduleReadableStreamLike<T>(
-  input: ReadableStreamLike<T>,
-  scheduler: SchedulerLike
+  input: qt.ReadableStreamLike<T>,
+  scheduler: qt.Scheduler
 ): Observable<T> {
   return scheduleAsyncIterable(
-    readableStreamLikeToAsyncGenerator(input),
+    qu.readableStreamLikeToAsyncGenerator(input),
     scheduler
   )
 }
 
 export function scheduled<T>(
-  input: ObservableInput<T>,
-  scheduler: SchedulerLike
+  input: qt.ObservableInput<T>,
+  scheduler: qt.Scheduler
 ): Observable<T> {
   if (input != null) {
-    if (isInteropObservable(input)) {
+    if (qu.isInteropObservable(input)) {
       return scheduleObservable(input, scheduler)
     }
-    if (isArrayLike(input)) {
+    if (qu.isArrayLike(input)) {
       return scheduleArray(input, scheduler)
     }
-    if (isPromise(input)) {
+    if (qu.isPromise(input)) {
       return schedulePromise(input, scheduler)
     }
-    if (isAsyncIterable(input)) {
+    if (qu.isAsyncIterable(input)) {
       return scheduleAsyncIterable(input, scheduler)
     }
-    if (isIterable(input)) {
+    if (qu.isIterable(input)) {
       return scheduleIterable(input, scheduler)
     }
-    if (isReadableStreamLike(input)) {
+    if (qu.isReadableStreamLike(input)) {
       return scheduleReadableStreamLike(input, scheduler)
     }
   }
-  throw createInvalidObservableTypeError(input)
+  throw qu.createInvalidObservableTypeError(input)
 }

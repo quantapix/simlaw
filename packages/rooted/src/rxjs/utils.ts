@@ -1,21 +1,20 @@
-import { config } from "../config"
+import { config } from "./config"
 import { createErrorClass } from "./createErrorClass"
 import { identity } from "./identity"
-import { InteropObservable } from "../types"
+import { InteropObservable } from "./types"
 import { isFunction } from "./isFunction"
 import { isScheduler } from "./isScheduler"
-import { iterator as Symbol_iterator } from "../symbol/iterator"
-import { map } from "../operators/map"
-import { Observable } from "../Observable"
-import { observable as Symbol_observable } from "../symbol/observable"
-import { OperatorFunction } from "../types"
-import { ReadableStreamLike } from "../types"
-import { SchedulerAction, SchedulerLike } from "../types"
-import { SchedulerLike } from "../types"
-import { Subscriber } from "../Subscriber"
-import { Subscription } from "../Subscription"
-import { timeoutProvider } from "../scheduler/timeoutProvider"
-import { UnaryFunction } from "../types"
+import { iterator as Symbol_iterator } from "./symbol/iterator"
+import { map } from "./operators/map"
+import { Observable } from "./Observable"
+import { observable as Symbol_observable } from "./symbol/observable"
+import { OperatorFunction } from "./types"
+import { ReadableStreamLike } from "./types"
+import type * as qt from "./types.js"
+import { Subscriber } from "./subscriber.js"
+import { Subscription } from "./Subscription"
+import { timeoutProvider } from "./scheduler/timeoutProvider"
+import { UnaryFunction } from "./types"
 
 function getPromiseCtor(promiseCtor: PromiseConstructorLike | undefined) {
   return promiseCtor ?? config.Promise ?? Promise
@@ -174,7 +173,7 @@ export function popResultSelector(
 ): ((...args: unknown[]) => unknown) | undefined {
   return isFunction(last(args)) ? args.pop() : undefined
 }
-export function popScheduler(args: any[]): SchedulerLike | undefined {
+export function popScheduler(args: any[]): qt.Scheduler | undefined {
   return isScheduler(last(args)) ? args.pop() : undefined
 }
 export function popNumber(args: any[], defaultValue: number): number {
@@ -256,27 +255,27 @@ export function captureError(err: any) {
 }
 export function executeSchedule(
   parentSubscription: Subscription,
-  scheduler: SchedulerLike,
+  scheduler: qt.Scheduler,
   work: () => void,
   delay: number,
   repeat: true
 ): void
 export function executeSchedule(
   parentSubscription: Subscription,
-  scheduler: SchedulerLike,
+  scheduler: qt.Scheduler,
   work: () => void,
   delay?: number,
   repeat?: false
 ): Subscription
 export function executeSchedule(
   parentSubscription: Subscription,
-  scheduler: SchedulerLike,
+  scheduler: qt.Scheduler,
   work: () => void,
   delay = 0,
   repeat = false
 ): Subscription | void {
   const scheduleSubscription = scheduler.schedule(function (
-    this: SchedulerAction<any>
+    this: qt.SchedulerAction<any>
   ) {
     work()
     if (repeat) {
@@ -344,7 +343,7 @@ export function isReadableStreamLike<T>(
 ): obj is ReadableStreamLike<T> {
   return isFunction(obj?.getReader)
 }
-export function isScheduler(value: any): value is SchedulerLike {
+export function isScheduler(value: any): value is qt.Scheduler {
   return value && isFunction(value.schedule)
 }
 export function hasLift(
