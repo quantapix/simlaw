@@ -1,6 +1,6 @@
 import { Action } from "./scheduler/Action"
-import { Subscription } from "./Subscription"
-import { SchedulerLike, SchedulerAction } from "./types"
+import { Subscription } from "./Subscription.js"
+import { SchedulerLike, SchedulerAction } from "../types.js"
 import { dateTimestampProvider } from "./scheduler/dateTimestampProvider"
 
 export class Scheduler implements SchedulerLike {

@@ -1,21 +1,14 @@
-import type {
-  CompleteNotification,
-  ErrorNotification,
-  NextNotification,
-  ObservableNotification,
-  PartialObserver,
-} from "./types"
-import { Observable } from "./Observable"
-import { EMPTY } from "./observable/empty"
-import { of } from "./observable/of"
-import { throwError } from "./observable/throwError"
-import { isFunction } from "./util/isFunction"
+import type * as qt from "../types.js"
+import type { Observable } from "./observable.js"
+import { EMPTY, of, throwError } from "./observable.js"
+import { isFunction } from "../utils.js"
 
 export enum NotificationKind {
   NEXT = "N",
   ERROR = "E",
   COMPLETE = "C",
 }
+
 export class Notification<T> {
   readonly hasValue: boolean
   constructor(kind: "N", value?: T)
@@ -28,8 +21,8 @@ export class Notification<T> {
   ) {
     this.hasValue = kind === "N"
   }
-  observe(observer: PartialObserver<T>): void {
-    return observeNotification(this as ObservableNotification<T>, observer)
+  observe(observer: qt.PartialObserver<T>): void {
+    return observeNotification(this as qt.ObservableNotification<T>, observer)
   }
   do(
     next: (value: T) => void,
@@ -57,14 +50,14 @@ export class Notification<T> {
   ): void
   accept(next: (value: T) => void, error: (err: any) => void): void
   accept(next: (value: T) => void): void
-  accept(observer: PartialObserver<T>): void
+  accept(observer: qt.PartialObserver<T>): void
   accept(
-    nextOrObserver: PartialObserver<T> | ((value: T) => void),
+    nextOrObserver: qt.PartialObserver<T> | ((value: T) => void),
     error?: (err: any) => void,
     complete?: () => void
   ) {
     return isFunction((nextOrObserver as any)?.next)
-      ? this.observe(nextOrObserver as PartialObserver<T>)
+      ? this.observe(nextOrObserver as qt.PartialObserver<T>)
       : this.do(
           nextOrObserver as (value: T) => void,
           error as any,
@@ -88,41 +81,23 @@ export class Notification<T> {
   }
   private static completeNotification = new Notification(
     "C"
-  ) as Notification<never> & CompleteNotification
+  ) as Notification<never> & qt.CompleteNotification
   static createNext<T>(value: T) {
-    return new Notification("N", value) as Notification<T> & NextNotification<T>
+    return new Notification("N", value) as Notification<T> &
+      qt.NextNotification<T>
   }
   static createError(err?: any) {
     return new Notification("E", undefined, err) as Notification<never> &
-      ErrorNotification
+      qt.ErrorNotification
   }
-  static createComplete(): Notification<never> & CompleteNotification {
+  static createComplete(): Notification<never> & qt.CompleteNotification {
     return Notification.completeNotification
   }
 }
-export function observeNotification<T>(
-  notification: ObservableNotification<T>,
-  observer: PartialObserver<T>
-) {
-  const { kind, value, error } = notification as any
-  if (typeof kind !== "string") {
-    throw new TypeError('Invalid notification, missing "kind"')
-  }
-  kind === "N"
-    ? observer.next?.(value!)
-    : kind === "E"
-    ? observer.error?.(error)
-    : observer.complete?.()
-}
 
 export const COMPLETE_NOTIFICATION = (() =>
-  createNotification("C", undefined, undefined) as CompleteNotification)()
-export function errorNotification(error: any): ErrorNotification {
-  return createNotification("E", undefined, error) as any
-}
-export function nextNotification<T>(value: T) {
-  return createNotification("N", value, undefined) as NextNotification<T>
-}
+  createNotification("C", undefined, undefined) as qt.CompleteNotification)()
+
 export function createNotification(
   kind: "N" | "E" | "C",
   value: any,
@@ -133,4 +108,27 @@ export function createNotification(
     value,
     error,
   }
+}
+
+export function nextNotification<T>(value: T) {
+  return createNotification("N", value, undefined) as qt.NextNotification<T>
+}
+
+export function errorNotification(error: any): qt.ErrorNotification {
+  return createNotification("E", undefined, error) as any
+}
+
+export function observeNotification<T>(
+  notification: qt.ObservableNotification<T>,
+  observer: qt.PartialObserver<T>
+) {
+  const { kind, value, error } = notification as any
+  if (typeof kind !== "string") {
+    throw new TypeError('Invalid notification, missing "kind"')
+  }
+  kind === "N"
+    ? observer.next?.(value!)
+    : kind === "E"
+    ? observer.error?.(error)
+    : observer.complete?.()
 }

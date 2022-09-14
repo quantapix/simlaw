@@ -1,6 +1,6 @@
 import { isFunction } from "./util/isFunction"
 import { Observer, ObservableNotification } from "./types"
-import { isSubscription, Subscription } from "./Subscription"
+import { isSubscription, Subscription } from "./subscription.js"
 import { config } from "./config"
 import { reportUnhandledError } from "./util/reportUnhandledError"
 import { noop } from "./util/noop"
@@ -8,10 +8,10 @@ import {
   nextNotification,
   errorNotification,
   COMPLETE_NOTIFICATION,
-} from "./Notification.js"
+} from "./aaa/notification.js"
 import { timeoutProvider } from "./scheduler/timeoutProvider"
 import { captureError } from "./util/errorContext"
-import { Subscriber } from "./Subscriber"
+import { Subscriber } from "./subscriber.js"
 import { TeardownLogic } from "./types"
 
 export class Subscriber<T> extends Subscription implements Observer<T> {
