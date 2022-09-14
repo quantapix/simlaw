@@ -1,5 +1,4 @@
 export { Observable } from "./Observable"
-export { ConnectableObservable } from "./observable/ConnectableObservable"
 export { GroupedObservable } from "./operators/groupBy"
 export { Operator } from "./Operator"
 export { observable } from "./symbol/observable"

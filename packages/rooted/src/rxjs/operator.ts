@@ -1587,35 +1587,7 @@ export function min<T>(
       : (x, y) => (x < y ? x : y)
   )
 }
-export function multicast<T>(
-  subject: Subject<T>
-): qt.UnaryFunction<Observable<T>, ConnectableObservable<T>>
-export function multicast<T, O extends qt.ObservableInput<any>>(
-  subject: Subject<T>,
-  selector: (shared: Observable<T>) => O
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
-export function multicast<T>(
-  subjectFactory: () => Subject<T>
-): qt.UnaryFunction<Observable<T>, ConnectableObservable<T>>
-export function multicast<T, O extends qt.ObservableInput<any>>(
-  subjectFactory: () => Subject<T>,
-  selector: (shared: Observable<T>) => O
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
-export function multicast<T, R>(
-  subjectOrSubjectFactory: Subject<T> | (() => Subject<T>),
-  selector?: (source: Observable<T>) => Observable<R>
-): qt.OperatorFunction<T, R> {
-  const subjectFactory = qu.isFunction(subjectOrSubjectFactory)
-    ? subjectOrSubjectFactory
-    : () => subjectOrSubjectFactory
-  if (qu.isFunction(selector)) {
-    return connect(selector, {
-      connector: subjectFactory,
-    })
-  }
-  return (source: Observable<T>) =>
-    new ConnectableObservable<any>(source, subjectFactory)
-}
+
 export function observeOn<T>(
   scheduler: qt.Scheduler,
   delay = 0
@@ -2574,7 +2546,7 @@ export function startWith<T, D>(...values: D[]): qt.OperatorFunction<T, T | D> {
 }
 export function subscribeOn<T>(
   scheduler: qt.Scheduler,
-  delay: number = 0
+  delay = 0
 ): qt.MonoTypeOperatorFunction<T> {
   return qu.operate((source, subscriber) => {
     subscriber.add(
@@ -3171,7 +3143,7 @@ export function window<T>(
 }
 export function windowCount<T>(
   windowSize: number,
-  startWindowEvery: number = 0
+  startWindowEvery = 0
 ): qt.OperatorFunction<T, Observable<T>> {
   const startEvery = startWindowEvery > 0 ? startWindowEvery : windowSize
   return qu.operate((source, subscriber) => {

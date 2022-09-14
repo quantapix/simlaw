@@ -1,19 +1,23 @@
-import { animationFrameProvider } from "./scheduler.js"
-import { async as asyncScheduler } from "./scheduler.js"
-import { asyncScheduler } from "./scheduler.js"
-import { AsyncSubject } from "./subject.js"
 import { Subscription } from "./subscription.js"
-import type { Operator } from "./operator.js"
-import { performanceTimestampProvider } from "./scheduler.js"
+import {
+  asyncScheduler,
+  performanceTimestampProvider,
+  animationFrameProvider,
+  async as asyncScheduler,
+} from "./scheduler.js"
 import * as qu from "./utils.js"
-import { refCount as higherOrderRefCount } from "./operator.js"
-import { ReplaySubject } from "./subject.js"
-import { SafeSubscriber, Subscriber } from "./subscriber.js"
+import {
+  Subject,
+  AnonymousSubject,
+  AsyncSubject,
+  ReplaySubject,
+} from "./subject.js"
+import { SafeSubscriber, Subscriber, isSubscriber } from "./subscriber.js"
 import { scheduled, scheduleIterable } from "./scheduled.js"
-import { Subject, AnonymousSubject } from "./subject.js"
-import { subscribeOn } from "./operator.js"
 import type * as qt from "./types.js"
 import {
+  Operator,
+  subscribeOn,
   concatAll,
   mergeAll,
   mergeMap,
@@ -25,87 +29,63 @@ import {
 
 export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
   src: Observable<any> | undefined
-  operator: Operator<any, T> | undefined
+  op: Operator<any, T> | undefined
   constructor(
-    subscribe?: (this: Observable<T>, subscriber: Subscriber<T>) => qt.Teardown
+    subscribe?: (this: Observable<T>, x: Subscriber<T>) => qt.Teardown
   ) {
-    if (subscribe) {
-      this._subscribe = subscribe
-    }
+    if (subscribe) this._subscribe = subscribe
   }
-  static create: (...args: any[]) => any = <T>(
-    subscribe?: (subscriber: Subscriber<T>) => qt.Teardown
-  ) => {
-    return new Observable<T>(subscribe)
+  lift<R>(x?: Operator<T, R>): Observable<R> {
+    const y = new Observable<R>()
+    y.src = this
+    y.op = x
+    return y
   }
-  lift<R>(operator?: Operator<T, R>): Observable<R> {
-    const observable = new Observable<R>()
-    observable.src = this
-    observable.operator = operator
-    return observable
-  }
-  subscribe(observer?: Partial<qt.Observer<T>>): Subscription
-  subscribe(next: (value: T) => void): Subscription
+  subscribe(x?: Partial<qt.Observer<T>>): Subscription
+  subscribe(next: (x: T) => void): Subscription
   subscribe(
-    next?: ((value: T) => void) | null,
-    error?: ((error: any) => void) | null,
-    complete?: (() => void) | null
-  ): Subscription
-  subscribe(
-    observerOrNext?: Partial<qt.Observer<T>> | ((value: T) => void) | null,
-    error?: ((error: any) => void) | null,
+    next?: Partial<qt.Observer<T>> | ((x: T) => void) | null,
+    error?: ((x: any) => void) | null,
     complete?: (() => void) | null
   ): Subscription {
-    const subscriber = isSubscriber(observerOrNext)
-      ? observerOrNext
-      : new SafeSubscriber(observerOrNext, error, complete)
+    const y = isSubscriber(next)
+      ? next
+      : new SafeSubscriber(next, error, complete)
     qu.errorContext(() => {
-      const { operator, src: source } = this
-      subscriber.add(
-        operator
-          ? operator.call(subscriber, source)
-          : source
-          ? this._subscribe(subscriber)
-          : this._trySubscribe(subscriber)
-      )
+      const { op, src } = this
+      y.add(op ? op.call(y, src) : src ? this._subscribe(y) : this._try(y))
     })
-    return subscriber
+    return y
   }
-  protected _trySubscribe(sink: Subscriber<T>): qt.Teardown {
+  protected _try(x: Subscriber<T>): qt.Teardown {
     try {
-      return this._subscribe(sink)
-    } catch (err) {
-      sink.error(err)
+      return this._subscribe(x)
+    } catch (e) {
+      x.error(e)
     }
   }
-  forEach(next: (value: T) => void): Promise<void>
-  forEach(
-    next: (value: T) => void,
-    promiseCtor: PromiseConstructorLike
-  ): Promise<void>
-  forEach(
-    next: (value: T) => void,
-    promiseCtor?: PromiseConstructorLike
-  ): Promise<void> {
-    promiseCtor = getPromiseCtor(promiseCtor)
-    return new promiseCtor<void>((resolve, reject) => {
-      const subscriber = new SafeSubscriber<T>({
-        next: value => {
+  forEach(next: (x: T) => void): Promise<void>
+  forEach(next: (x: T) => void, p: PromiseConstructorLike): Promise<void>
+  forEach(next: (x: T) => void, p?: PromiseConstructorLike): Promise<void> {
+    p = qu.getPromiseCtor(p)
+    return new p<void>((res, rej) => {
+      const s = new SafeSubscriber<T>({
+        next: x => {
           try {
-            next(value)
-          } catch (err) {
-            reject(err)
-            subscriber.unsubscribe()
+            next(x)
+          } catch (e) {
+            rej(e)
+            s.unsubscribe()
           }
         },
-        error: reject,
-        complete: resolve,
+        error: rej,
+        complete: res,
       })
-      this.subscribe(subscriber)
+      this.subscribe(s)
     }) as Promise<void>
   }
-  protected _subscribe(subscriber: Subscriber<any>): qt.Teardown {
-    return this.src?.subscribe(subscriber)
+  protected _subscribe(x: Subscriber<any>): qt.Teardown {
+    return this.src?.subscribe(x)
   }
   [Symbol.observable]() {
     return this
@@ -182,338 +162,205 @@ export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
     op7: qt.OperatorFunction<F, G>,
     op8: qt.OperatorFunction<G, H>,
     op9: qt.OperatorFunction<H, I>,
-    ...operations: qt.OperatorFunction<any, any>[]
+    ...xs: qt.OperatorFunction<any, any>[]
   ): Observable<unknown>
-  pipe(...operations: qt.OperatorFunction<any, any>[]): Observable<any> {
-    return qu.pipeFromArray(operations)(this)
-  }
-  toPromise(): Promise<T | undefined>
-  toPromise(PromiseCtor: typeof Promise): Promise<T | undefined>
-  toPromise(PromiseCtor: PromiseConstructorLike): Promise<T | undefined>
-  toPromise(promiseCtor?: PromiseConstructorLike): Promise<T | undefined> {
-    promiseCtor = getPromiseCtor(promiseCtor)
-    return new promiseCtor((resolve, reject) => {
-      let value: T | undefined
-      this.subscribe(
-        (x: T) => (value = x),
-        (err: any) => reject(err),
-        () => resolve(value)
-      )
-    }) as Promise<T | undefined>
+  pipe(...xs: qt.OperatorFunction<any, any>[]): Observable<any> {
+    return qu.pipeFromArray(xs)(this)
   }
 }
 
-export class ConnectableObservable<T> extends Observable<T> {
-  protected _subject: Subject<T> | null = null
-  protected _refCount: number = 0
-  protected _connection: Subscription | null = null
-  constructor(
-    public src: Observable<T>,
-    protected subjectFactory: () => Subject<T>
-  ) {
-    super()
-    if (qu.hasLift(src)) {
-      this.lift = src.lift
-    }
-  }
-  protected _subscribe(subscriber: Subscriber<T>) {
-    return this.getSubject().subscribe(subscriber)
-  }
-  protected getSubject(): Subject<T> {
-    const subject = this._subject
-    if (!subject || subject.isStopped) {
-      this._subject = this.subjectFactory()
-    }
-    return this._subject!
-  }
-  protected _teardown() {
-    this._refCount = 0
-    const { _connection } = this
-    this._subject = this._connection = null
-    _connection?.unsubscribe()
-  }
-  connect(): Subscription {
-    let connection = this._connection
-    if (!connection) {
-      connection = this._connection = new Subscription()
-      const subject = this.getSubject()
-      connection.add(
-        this.src.subscribe(
-          createOperatorSubscriber(
-            subject as any,
-            undefined,
-            () => {
-              this._teardown()
-              subject.complete()
-            },
-            err => {
-              this._teardown()
-              subject.error(err)
-            },
-            () => this._teardown()
-          )
-        )
-      )
-      if (connection.closed) {
-        this._connection = null
-        connection = Subscription.EMPTY
-      }
-    }
-    return connection
-  }
-  refCount(): Observable<T> {
-    return higherOrderRefCount()(this) as Observable<T>
-  }
-}
 export function bindCallback(
-  callbackFunc: (...args: any[]) => void,
-  resultSelector: (...args: any[]) => any,
+  cb: (...xs: any[]) => void,
+  res: (...xs: any[]) => any,
   scheduler?: qt.Scheduler
-): (...args: any[]) => Observable<any>
+): (...xs: any[]) => Observable<any>
 export function bindCallback<
-  A extends readonly unknown[],
+  T extends readonly unknown[],
   R extends readonly unknown[]
 >(
-  callbackFunc: (...args: [...A, (...res: R) => void]) => void,
+  cb: (...xs: [...T, (...rs: R) => void]) => void,
   scheduler?: qt.Scheduler
-): (...arg: A) => Observable<R extends [] ? void : R extends [any] ? R[0] : R>
+): (...arg: T) => Observable<R extends [] ? void : R extends [any] ? R[0] : R>
 export function bindCallback(
-  callbackFunc: (...args: [...any[], (...res: any) => void]) => void,
-  resultSelector?: ((...args: any[]) => any) | qt.Scheduler,
+  cb: (...xs: [...any[], (...rs: any) => void]) => void,
+  res?: ((...xs: any[]) => any) | qt.Scheduler,
   scheduler?: qt.Scheduler
-): (...args: any[]) => Observable<unknown> {
-  return bindCallbackInternals(false, callbackFunc, resultSelector, scheduler)
+): (...xs: any[]) => Observable<unknown> {
+  return _bindCallback(false, cb, res, scheduler)
 }
-export function bindCallbackInternals(
-  isNodeStyle: boolean,
-  callbackFunc: any,
-  resultSelector?: any,
+function _bindCallback(
+  nodeStyle: boolean,
+  cb: any,
+  res?: any,
   scheduler?: qt.Scheduler
-): (...args: any[]) => Observable<unknown> {
-  if (resultSelector) {
-    if (qu.isScheduler(resultSelector)) {
-      scheduler = resultSelector
-    } else {
-      return function (this: any, ...args: any[]) {
-        return (
-          bindCallbackInternals(isNodeStyle, callbackFunc, scheduler) as any
-        )
-          .apply(this, args)
-          .pipe(qu.mapOneOrManyArgs(resultSelector as any))
+): (...xs: any[]) => Observable<unknown> {
+  if (res) {
+    if (qu.isScheduler(res)) scheduler = res
+    else {
+      return function (this: any, ...xs: any[]) {
+        return (_bindCallback(nodeStyle, cb, scheduler) as any)
+          .apply(this, xs)
+          .pipe(qu.mapOneOrManyArgs(res as any))
       }
     }
   }
-
   if (scheduler) {
-    return function (this: any, ...args: any[]) {
-      return (bindCallbackInternals(isNodeStyle, callbackFunc) as any)
-        .apply(this, args)
+    return function (this: any, ...xs: any[]) {
+      return (_bindCallback(nodeStyle, cb) as any)
+        .apply(this, xs)
         .pipe(subscribeOn(scheduler!), observeOn(scheduler!))
     }
   }
-  return function (this: any, ...args: any[]): Observable<any> {
-    const subject = new AsyncSubject<any>()
-
-    let uninitialized = true
-    return new Observable(subscriber => {
-      const subs = subject.subscribe(subscriber)
-      if (uninitialized) {
-        uninitialized = false
-
+  return function (this: any, ...xs: any[]): Observable<any> {
+    const s = new AsyncSubject<any>()
+    let done = false
+    return new Observable(x => {
+      const y = s.subscribe(x)
+      if (!done) {
+        done = true
         let isAsync = false
-
         let isComplete = false
-
-        callbackFunc.apply(this, [
-          ...args,
-
-          (...results: any[]) => {
-            if (isNodeStyle) {
-              const err = results.shift()
-              if (err != null) {
-                subject.error(err)
-
+        cb.apply(this, [
+          ...xs,
+          (...rs: any[]) => {
+            if (nodeStyle) {
+              const e = rs.shift()
+              if (e != null) {
+                s.error(e)
                 return
               }
             }
-
-            subject.next(1 < results.length ? results : results[0])
-
+            s.next(1 < rs.length ? rs : rs[0])
             isComplete = true
-
-            if (isAsync) {
-              subject.complete()
-            }
+            if (isAsync) s.complete()
           },
         ])
-
-        if (isComplete) {
-          subject.complete()
-        }
-
+        if (isComplete) s.complete()
         isAsync = true
       }
-
-      return subs
+      return y
     })
   }
 }
+
 export function bindNodeCallback(
-  callbackFunc: (...args: any[]) => void,
-  resultSelector: (...args: any[]) => any,
+  cb: (...xs: any[]) => void,
+  res: (...xs: any[]) => any,
   scheduler?: qt.Scheduler
-): (...args: any[]) => Observable<any>
+): (...xs: any[]) => Observable<any>
 export function bindNodeCallback<
-  A extends readonly unknown[],
+  T extends readonly unknown[],
   R extends readonly unknown[]
 >(
-  callbackFunc: (...args: [...A, (err: any, ...res: R) => void]) => void,
+  cb: (...xs: [...T, (err: any, ...rs: R) => void]) => void,
   scheduler?: qt.Scheduler
-): (...arg: A) => Observable<R extends [] ? void : R extends [any] ? R[0] : R>
+): (...x: T) => Observable<R extends [] ? void : R extends [any] ? R[0] : R>
 export function bindNodeCallback(
-  callbackFunc: (...args: [...any[], (err: any, ...res: any) => void]) => void,
-  resultSelector?: ((...args: any[]) => any) | qt.Scheduler,
+  cb: (...xs: [...any[], (err: any, ...rs: any) => void]) => void,
+  res?: ((...xs: any[]) => any) | qt.Scheduler,
   scheduler?: qt.Scheduler
-): (...args: any[]) => Observable<any> {
-  return bindCallbackInternals(true, callbackFunc, resultSelector, scheduler)
+): (...xs: any[]) => Observable<any> {
+  return _bindCallback(true, cb, res, scheduler)
 }
+
 export function combineLatest<T extends qt.AnyCatcher>(
-  arg: T
+  x: T
 ): Observable<unknown>
-export function combineLatest(sources: []): Observable<never>
-export function combineLatest<A extends readonly unknown[]>(
-  sources: readonly [...qt.ObservableInputTuple<A>]
-): Observable<A>
-export function combineLatest<A extends readonly unknown[], R>(
-  sources: readonly [...qt.ObservableInputTuple<A>],
-  resultSelector: (...values: A) => R,
-  scheduler: qt.Scheduler
+export function combineLatest(xs: []): Observable<never>
+export function combineLatest<T extends readonly unknown[]>(
+  xs: readonly [...qt.ObservableInputTuple<T>]
+): Observable<T>
+export function combineLatest<T extends readonly unknown[], R>(
+  xs: readonly [...qt.ObservableInputTuple<T>],
+  res: (...xs: T) => R
 ): Observable<R>
-export function combineLatest<A extends readonly unknown[], R>(
-  sources: readonly [...qt.ObservableInputTuple<A>],
-  resultSelector: (...values: A) => R
-): Observable<R>
-export function combineLatest<A extends readonly unknown[]>(
-  sources: readonly [...qt.ObservableInputTuple<A>],
-  scheduler: qt.Scheduler
-): Observable<A>
-export function combineLatest<A extends readonly unknown[]>(
-  ...sources: [...qt.ObservableInputTuple<A>]
-): Observable<A>
-export function combineLatest<A extends readonly unknown[], R>(
-  ...sourcesAndResultSelectorAndScheduler: [
-    ...qt.ObservableInputTuple<A>,
-    (...values: A) => R,
-    qt.Scheduler
-  ]
-): Observable<R>
-export function combineLatest<A extends readonly unknown[], R>(
-  ...sourcesAndResultSelector: [
-    ...qt.ObservableInputTuple<A>,
-    (...values: A) => R
-  ]
-): Observable<R>
-export function combineLatest<A extends readonly unknown[]>(
-  ...sourcesAndScheduler: [...qt.ObservableInputTuple<A>, qt.Scheduler]
-): Observable<A>
 export function combineLatest(sourcesObject: {
   [K in any]: never
 }): Observable<never>
 export function combineLatest<
   T extends Record<string, qt.ObservableInput<any>>
->(sourcesObject: T): Observable<{ [K in keyof T]: qt.ObservedValueOf<T[K]> }>
-export function combineLatest<O extends qt.ObservableInput<any>, R>(
-  ...args: any[]
-): Observable<R> | Observable<qt.ObservedValueOf<O>[]> {
-  const scheduler = qu.popScheduler(args)
-  const resultSelector = qu.popResultSelector(args)
-  const { args: observables, keys } = qu.argsArgArrayOrObject(args)
-  if (observables.length === 0) {
-    return from([], scheduler as any)
-  }
-  const result = new Observable<qt.ObservedValueOf<O>[]>(
-    combineLatestInit(
-      observables as qt.ObservableInput<qt.ObservedValueOf<O>>[],
-      scheduler,
-      keys ? values => qu.createObject(keys, values) : qu.identity
+>(x: T): Observable<{ [K in keyof T]: qt.ObservedValueOf<T[K]> }>
+export function combineLatest<T extends qt.ObservableInput<any>, R>(
+  ...xs: any[]
+): Observable<R> | Observable<qt.ObservedValueOf<T>[]> {
+  const s = qu.popScheduler(xs)
+  const res = qu.popResultSelector(xs)
+  const { args: os, keys } = qu.argsArgArrayOrObject(xs)
+  if (os.length === 0) return from([], s as any)
+  const y = new Observable<qt.ObservedValueOf<T>[]>(
+    _combineLatest(
+      os as qt.ObservableInput<qt.ObservedValueOf<T>>[],
+      s,
+      keys ? xs => qu.createObject(keys, xs) : qu.identity
     )
   )
-  return resultSelector
-    ? (result.pipe(qu.mapOneOrManyArgs(resultSelector)) as Observable<R>)
-    : result
+  return res ? (y.pipe(qu.mapOneOrManyArgs(res)) as Observable<R>) : y
 }
-export function combineLatestInit(
-  observables: qt.ObservableInput<any>[],
-  scheduler?: qt.Scheduler,
-  valueTransform: (values: any[]) => any = qu.identity
+
+export function _combineLatest(
+  xs: qt.ObservableInput<any>[],
+  sched?: qt.Scheduler,
+  valueTransform: (xs: any[]) => any = qu.identity
 ) {
-  return (subscriber: Subscriber<any>) => {
+  return (s: Subscriber<any>) => {
     maybeSchedule(
-      scheduler,
+      sched,
       () => {
-        const { length } = observables
-
-        const values = new Array(length)
-
+        const { length } = xs
+        const vs = new Array(length)
         let active = length
-
-        let remainingFirstValues = length
-
+        let remaining = length
         for (let i = 0; i < length; i++) {
           maybeSchedule(
-            scheduler,
+            sched,
             () => {
-              const source = from(observables[i], scheduler as any)
-              let hasFirstValue = false
-              source.subscribe(
+              let hasFirst = false
+              const src = from(xs[i]!, sched as any)
+              src.subscribe(
                 createOperatorSubscriber(
-                  subscriber,
-                  value => {
-                    values[i] = value
-                    if (!hasFirstValue) {
-                      hasFirstValue = true
-                      remainingFirstValues--
+                  s,
+                  v => {
+                    vs[i] = v
+                    if (!hasFirst) {
+                      hasFirst = true
+                      remaining--
                     }
-                    if (!remainingFirstValues) {
-                      subscriber.next(valueTransform(values.slice()))
-                    }
+                    if (!remaining) s.next(valueTransform(vs.slice()))
                   },
                   () => {
-                    if (!--active) {
-                      subscriber.complete()
-                    }
+                    if (!--active) s.complete()
                   }
                 )
               )
             },
-            subscriber
+            s
           )
         }
       },
-      subscriber
+      s
     )
   }
 }
+
 function maybeSchedule(
-  scheduler: qt.Scheduler | undefined,
-  execute: () => void,
-  subscription: Subscription
+  sched: qt.Scheduler | undefined,
+  f: () => void,
+  s: Subscription
 ) {
-  if (scheduler) {
-    qu.executeSchedule(subscription, scheduler, execute)
-  } else {
-    execute()
-  }
+  if (sched) qu.executeSchedule(s, sched, f)
+  else f()
 }
+
 export function concat<T extends readonly unknown[]>(
-  ...inputs: [...qt.ObservableInputTuple<T>]
+  ...xs: [...qt.ObservableInputTuple<T>]
 ): Observable<T[number]>
 export function concat<T extends readonly unknown[]>(
-  ...inputsAndScheduler: [...qt.ObservableInputTuple<T>, qt.Scheduler]
+  ...xs: [...qt.ObservableInputTuple<T>, qt.Scheduler]
 ): Observable<T[number]>
-export function concat(...args: any[]): Observable<unknown> {
-  return concatAll()(from(args, qu.popScheduler(args)))
+export function concat(...xs: any[]): Observable<unknown> {
+  return concatAll()(from(xs, qu.popScheduler(xs)))
 }
+
 export interface ConnectableConfig<T> {
   connector: () => qt.SubjectLike<T>
   resetOnDisconnect?: boolean
@@ -522,27 +369,27 @@ const DEFAULT_CONFIG: ConnectableConfig<unknown> = {
   connector: () => new Subject<unknown>(),
   resetOnDisconnect: true,
 }
+
 export function connectable<T>(
-  source: qt.ObservableInput<T>,
-  config: ConnectableConfig<T> = DEFAULT_CONFIG
+  x: qt.ObservableInput<T>,
+  cfg: ConnectableConfig<T> = DEFAULT_CONFIG
 ): qt.Connectable<T> {
-  let connection: Subscription | null = null
-  const { connector, resetOnDisconnect = true } = config
-  let subject = connector()
-  const result: any = new Observable<T>(subscriber => {
-    return subject.subscribe(subscriber)
+  let c: Subscription | undefined = undefined
+  const { connector, resetOnDisconnect = true } = cfg
+  let s = connector()
+  const y: any = new Observable<T>(x => {
+    return s.subscribe(x)
   })
-  result.connect = () => {
-    if (!connection || connection.closed) {
-      connection = defer(() => source).subscribe(subject)
-      if (resetOnDisconnect) {
-        connection.add(() => (subject = connector()))
-      }
+  y.connect = () => {
+    if (!c || c.closed) {
+      c = defer(() => x).subscribe(s)
+      if (resetOnDisconnect) c.add(() => (s = connector()))
     }
-    return connection
+    return c
   }
-  return result
+  return y
 }
+
 export function defer<R extends qt.ObservableInput<any>>(
   observableFactory: () => R
 ): Observable<qt.ObservedValueOf<R>> {
@@ -604,12 +451,12 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
       this.dest = new ReplaySubject()
     }
   }
-  lift<R>(operator: Operator<T, R>): WebSocketSubject<R> {
+  override lift<R>(operator: Operator<T, R>): WebSocketSubject<R> {
     const sock = new WebSocketSubject<R>(
       this._config as WebSocketSubjectConfig<any>,
       this.dest as any
     )
-    sock.operator = operator
+    sock.op = operator
     sock.src = this
     return sock
   }
@@ -752,7 +599,7 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
       }
     }
   }
-  protected _subscribe(subscriber: Subscriber<T>): Subscription {
+  protected override _subscribe(subscriber: Subscriber<T>): Subscription {
     const { src: source } = this
     if (source) {
       return source.subscribe(subscriber)
@@ -772,7 +619,7 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
     })
     return subscriber
   }
-  unsubscribe() {
+  override unsubscribe() {
     const { _socket } = this
     if (_socket && (_socket.readyState === 1 || _socket.readyState === 0)) {
       _socket.close()
@@ -790,9 +637,7 @@ function animationFramesFactory(timestampProvider?: qt.TimestampProvider) {
   const { schedule } = animationFrameProvider
   return new Observable<{ timestamp: number; elapsed: number }>(subscriber => {
     const subscription = new Subscription()
-
     const provider = timestampProvider || performanceTimestampProvider
-
     const start = provider.now()
     const run = (timestamp: DOMHighResTimeStamp | number) => {
       const now = provider.now()
@@ -829,9 +674,7 @@ export function fromFetch<T>(
   return new Observable<Response | T>(subscriber => {
     const controller = new AbortController()
     const { signal } = controller
-
     let abortable = true
-
     const { signal: outerSignal } = init
     if (outerSignal) {
       if (outerSignal.aborted) {
@@ -848,7 +691,6 @@ export function fromFetch<T>(
         )
       }
     }
-
     const perSubscriberInit: RequestInit = { ...init, signal }
     const handleError = (err: any) => {
       abortable = false
@@ -860,9 +702,7 @@ export function fromFetch<T>(
           innerFrom(selector(response)).subscribe(
             createOperatorSubscriber(
               subscriber,
-
               undefined,
-
               () => {
                 abortable = false
                 subscriber.complete()
@@ -1100,7 +940,6 @@ export function fromEvent<T>(
       options as EventListenerOptions
     ).pipe(qu.mapOneOrManyArgs(resultSelector))
   }
-
   const [add, remove] = isEventTarget(target)
     ? eventTargetMethods.map(
         methodName => (handler: any) =>
@@ -1115,7 +954,6 @@ export function fromEvent<T>(
     : isJQueryStyleEventEmitter(target)
     ? jqueryMethods.map(toCommonHandlerRegistry(target, eventName))
     : []
-
   if (!add) {
     if (qu.isArrayLike(target)) {
       return mergeMap((subTarget: any) =>
@@ -1123,16 +961,13 @@ export function fromEvent<T>(
       )(innerFrom(target)) as Observable<T>
     }
   }
-
   if (!add) {
     throw new TypeError("Invalid event target")
   }
   return new Observable<T>(subscriber => {
     const handler = (...args: any[]) =>
       subscriber.next(1 < args.length ? args : args[0])
-
     add(handler)
-
     return () => remove!(handler)
   })
 }
@@ -1224,7 +1059,6 @@ export function generate<T, S>(
 ): Observable<T> {
   let resultSelector: ResultFunc<S, T>
   let initialState: S
-
   if (arguments.length === 1) {
     ;({
       initialState,
@@ -1245,7 +1079,6 @@ export function generate<T, S>(
       resultSelector = resultSelectorOrScheduler as ResultFunc<S, T>
     }
   }
-
   function* gen() {
     for (
       let state = initialState;
@@ -1255,7 +1088,6 @@ export function generate<T, S>(
       yield resultSelector(state)
     }
   }
-
   return defer(
     (scheduler
       ? () => scheduleIterable(gen(), scheduler!)
@@ -1304,7 +1136,6 @@ export function fromInteropObservable<T>(obj: any) {
     if (qu.isFunction(obs.subscribe)) {
       return obs.subscribe(subscriber)
     }
-
     throw new TypeError(
       "Provided object does not correctly implement Symbol.observable"
     )
@@ -1362,7 +1193,6 @@ async function process<T>(
 ) {
   for await (const value of asyncIterable) {
     subscriber.next(value)
-
     if (subscriber.closed) {
       return
     }
@@ -1496,7 +1326,6 @@ export function race<T>(
   ...sources: (qt.ObservableInput<T> | qt.ObservableInput<T>[])[]
 ): Observable<any> {
   sources = qu.argsOrArgArray(sources)
-
   return sources.length === 1
     ? innerFrom(sources[0] as qt.ObservableInput<T>)
     : new Observable<T>(raceInit(sources as qt.ObservableInput<T>[]))
@@ -1504,7 +1333,6 @@ export function race<T>(
 export function raceInit<T>(sources: qt.ObservableInput<T>[]) {
   return (subscriber: Subscriber<T>) => {
     let subscriptions: Subscription[] = []
-
     for (
       let i = 0;
       subscriptions && !subscriber.closed && i < sources.length;
@@ -1544,7 +1372,6 @@ export function range(
   if (count <= 0) {
     return EMPTY
   }
-
   const end = count + start
   return new Observable(
     scheduler
@@ -1621,9 +1448,7 @@ export function timer(
     if (due < 0) {
       due = 0
     }
-
     let n = 0
-
     return scheduler.schedule(function () {
       if (!subscriber.closed) {
         subscriber.next(n++)
@@ -1674,13 +1499,10 @@ export function zip(...args: unknown[]): Observable<unknown> {
   return sources.length
     ? new Observable<unknown[]>(subscriber => {
         let buffers: unknown[][] = sources.map(() => [])
-
         let completed = sources.map(() => false)
-
         subscriber.add(() => {
           buffers = completed = null!
         })
-
         for (
           let sourceIndex = 0;
           !subscriber.closed && sourceIndex < sources.length;
@@ -1691,14 +1513,11 @@ export function zip(...args: unknown[]): Observable<unknown> {
               subscriber,
               value => {
                 buffers[sourceIndex].push(value)
-
                 if (buffers.every(buffer => buffer.length)) {
                   const result: any = buffers.map(buffer => buffer.shift()!)
-
                   subscriber.next(
                     resultSelector ? resultSelector(...result) : result
                   )
-
                   if (
                     buffers.some((buffer, i) => !buffer.length && completed[i])
                   ) {
@@ -1708,13 +1527,11 @@ export function zip(...args: unknown[]): Observable<unknown> {
               },
               () => {
                 completed[sourceIndex] = true
-
                 !buffers[sourceIndex].length && subscriber.complete()
               }
             )
           )
         }
-
         return () => {
           buffers = completed = null!
         }

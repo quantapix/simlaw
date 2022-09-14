@@ -24,7 +24,7 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
   }
   override lift<R>(x: Operator<T, R>): Observable<R> {
     const y = new AnonymousSubject(this, this)
-    y.operator = x as any
+    y.op = x as any
     return y as any
   }
   protected _throwIfClosed() {
@@ -73,9 +73,9 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
   get observed() {
     return this.observers?.length > 0
   }
-  protected override _trySubscribe(x: Subscriber<T>): qt.Teardown {
+  protected override _try(x: Subscriber<T>): qt.Teardown {
     this._throwIfClosed()
-    return super._trySubscribe(x)
+    return super._try(x)
   }
   protected override _subscribe(x: Subscriber<T>): Subscription {
     this._throwIfClosed()

@@ -1,452 +1,370 @@
-import { Action } from "./Action"
-import { Action } from "./scheduler/Action"
-import { AnimationFrameAction } from "./AnimationFrameAction"
-import { animationFrameProvider } from "./animationFrameProvider"
-import { AnimationFrameScheduler } from "./AnimationFrameScheduler"
-import { arrRemove } from "./util/arrRemove"
-import { AsapAction } from "./AsapAction"
-import { AsapScheduler } from "./AsapScheduler"
-import { AsyncAction } from "./AsyncAction"
-import { AsyncScheduler } from "./AsyncScheduler"
-import { dateTimestampProvider } from "./scheduler/dateTimestampProvider"
-import { Immediate } from "./util/Immediate"
-import { immediateProvider } from "./immediateProvider"
-import { intervalProvider } from "./intervalProvider"
-import { QueueAction } from "./QueueAction"
-import { QueueScheduler } from "./QueueScheduler"
-import { SchedulerAction } from "./types"
+import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 import { Subscription } from "./subscription.js"
-import { TimestampProvider } from "./types"
-import type { TimerHandle } from "./timerHandle"
+
+export const dateTimestampProvider: DateTimestampProvider = {
+  now() {
+    return (dateTimestampProvider.delegate || Date).now()
+  },
+  delegate: undefined,
+}
 
 export class Scheduler implements qt.Scheduler {
   public static now: () => number = dateTimestampProvider.now
-
-  constructor(
-    private schedulerActionCtor: typeof Action,
-    now: () => number = Scheduler.now
-  ) {
+  constructor(private ctor: typeof Action, now: () => number = Scheduler.now) {
     this.now = now
   }
-
   public now: () => number
-
   public schedule<T>(
-    work: (this: SchedulerAction<T>, state?: T) => void,
-    delay: number = 0,
+    work: (this: qt.SchedulerAction<T>, x?: T) => void,
+    delay = 0,
     state?: T
   ): Subscription {
-    return new this.schedulerActionCtor<T>(this, work).schedule(state, delay)
+    return new this.ctor<T>(this, work).schedule(state, delay)
   }
 }
 
 export class Action<T> extends Subscription {
   constructor(
-    scheduler: Scheduler,
-    work: (this: SchedulerAction<T>, state?: T) => void
+    _: Scheduler,
+    _work: (this: qt.SchedulerAction<T>, x?: T) => void
   ) {
     super()
   }
-  public schedule(state?: T, delay: number = 0): Subscription {
+  public schedule(_?: T, _delay = 0): Subscription {
     return this
   }
 }
-export class AnimationFrameAction<T> extends AsyncAction<T> {
-  constructor(
-    protected scheduler: AnimationFrameScheduler,
-    protected work: (this: SchedulerAction<T>, state?: T) => void
-  ) {
-    super(scheduler, work)
-  }
-  protected requestAsyncId(
-    scheduler: AnimationFrameScheduler,
-    id?: any,
-    delay: number = 0
-  ): any {
-    if (delay !== null && delay > 0) {
-      return super.requestAsyncId(scheduler, id, delay)
-    }
 
-    scheduler.actions.push(this)
-
-    return (
-      scheduler._scheduled ||
-      (scheduler._scheduled = animationFrameProvider.requestAnimationFrame(() =>
-        scheduler.flush(undefined)
-      ))
-    )
-  }
-  protected recycleAsyncId(
-    scheduler: AnimationFrameScheduler,
-    id?: any,
-    delay: number = 0
-  ): any {
-    if ((delay != null && delay > 0) || (delay == null && this.delay > 0)) {
-      return super.recycleAsyncId(scheduler, id, delay)
-    }
-
-    if (!scheduler.actions.some(action => action.id === id)) {
-      animationFrameProvider.cancelAnimationFrame(id)
-      scheduler._scheduled = undefined
-    }
-
-    return undefined
-  }
-}
-export class AnimationFrameScheduler extends AsyncScheduler {
-  public flush(action?: AsyncAction<any>): void {
-    this._active = true
-
-    const flushId = this._scheduled
-    this._scheduled = undefined
-    const { actions } = this
-    let error: any
-    action = action || actions.shift()!
-    do {
-      if ((error = action.execute(action.state, action.delay))) {
-        break
-      }
-    } while ((action = actions[0]) && action.id === flushId && actions.shift())
-    this._active = false
-    if (error) {
-      while (
-        (action = actions[0]) &&
-        action.id === flushId &&
-        actions.shift()
-      ) {
-        action.unsubscribe()
-      }
-      throw error
-    }
-  }
-}
-export class AsapAction<T> extends AsyncAction<T> {
-  constructor(
-    protected scheduler: AsapScheduler,
-    protected work: (this: SchedulerAction<T>, state?: T) => void
-  ) {
-    super(scheduler, work)
-  }
-  protected requestAsyncId(
-    scheduler: AsapScheduler,
-    id?: any,
-    delay: number = 0
-  ): any {
-    if (delay !== null && delay > 0) {
-      return super.requestAsyncId(scheduler, id, delay)
-    }
-
-    scheduler.actions.push(this)
-
-    return (
-      scheduler._scheduled ||
-      (scheduler._scheduled = immediateProvider.setImmediate(
-        scheduler.flush.bind(scheduler, undefined)
-      ))
-    )
-  }
-  protected recycleAsyncId(
-    scheduler: AsapScheduler,
-    id?: any,
-    delay: number = 0
-  ): any {
-    if ((delay != null && delay > 0) || (delay == null && this.delay > 0)) {
-      return super.recycleAsyncId(scheduler, id, delay)
-    }
-
-    if (!scheduler.actions.some(action => action.id === id)) {
-      immediateProvider.clearImmediate(id)
-      scheduler._scheduled = undefined
-    }
-
-    return undefined
-  }
-}
-export class AsapScheduler extends AsyncScheduler {
-  public flush(action?: AsyncAction<any>): void {
-    this._active = true
-
-    const flushId = this._scheduled
-    this._scheduled = undefined
-    const { actions } = this
-    let error: any
-    action = action || actions.shift()!
-    do {
-      if ((error = action.execute(action.state, action.delay))) {
-        break
-      }
-    } while ((action = actions[0]) && action.id === flushId && actions.shift())
-    this._active = false
-    if (error) {
-      while (
-        (action = actions[0]) &&
-        action.id === flushId &&
-        actions.shift()
-      ) {
-        action.unsubscribe()
-      }
-      throw error
-    }
-  }
-}
 export class AsyncAction<T> extends Action<T> {
   public id: any
-  public state?: T
-
-  public delay: number
-  protected pending: boolean = false
+  public state?: T | undefined
+  public delay = 0
+  protected pending = false
   constructor(
-    protected scheduler: AsyncScheduler,
-    protected work: (this: SchedulerAction<T>, state?: T) => void
+    protected sched: AsyncScheduler,
+    protected work: (this: qt.SchedulerAction<T>, x?: T) => void
   ) {
-    super(scheduler, work)
+    super(sched, work)
   }
-  public schedule(state?: T, delay: number = 0): Subscription {
-    if (this.closed) {
-      return this
-    }
-    this.state = state
+  public override schedule(x?: T, delay = 0): Subscription {
+    if (this.closed) return this
+    this.state = x
     const id = this.id
-    const scheduler = this.scheduler
-    if (id != null) {
-      this.id = this.recycleAsyncId(scheduler, id, delay)
-    }
-
+    const scheduler = this.sched
+    if (id != null) this.id = this.recycleAsyncId(scheduler, id, delay)
     this.pending = true
     this.delay = delay
-
     this.id = this.id || this.requestAsyncId(scheduler, this.id, delay)
     return this
   }
-  protected requestAsyncId(
-    scheduler: AsyncScheduler,
-    _id?: any,
-    delay: number = 0
-  ): any {
-    return intervalProvider.setInterval(
-      scheduler.flush.bind(scheduler, this),
-      delay
-    )
+  protected requestAsyncId(x: AsyncScheduler, _id?: any, delay = 0): any {
+    return intervalProvider.setInterval(x.flush.bind(x, this), delay)
   }
   protected recycleAsyncId(
-    _scheduler: AsyncScheduler,
+    _x: AsyncScheduler,
     id: any,
     delay: number | null = 0
   ): any {
-    if (delay != null && this.delay === delay && this.pending === false) {
+    if (delay != null && this.delay === delay && this.pending === false)
       return id
-    }
-
     intervalProvider.clearInterval(id)
     return undefined
   }
-  public execute(state: T, delay: number): any {
-    if (this.closed) {
-      return new Error("executing a cancelled action")
-    }
+  public execute(x: T, delay: number): any {
+    if (this.closed) return new Error("executing a cancelled action")
     this.pending = false
-    const error = this._execute(state, delay)
-    if (error) {
-      return error
-    } else if (this.pending === false && this.id != null) {
-      this.id = this.recycleAsyncId(this.scheduler, this.id, null)
+    const e = this._execute(x, delay)
+    if (e) return e
+    else if (this.pending === false && this.id != null) {
+      this.id = this.recycleAsyncId(this.sched, this.id, null)
     }
   }
-  protected _execute(state: T, _delay: number): any {
-    let errored: boolean = false
-    let errorValue: any
+  protected _execute(x: T, _delay: number): any {
+    let err = false
+    let val: any
     try {
-      this.work(state)
+      this.work(x)
     } catch (e) {
-      errored = true
-
-      errorValue = e ? e : new Error("Scheduled action threw falsy error")
+      err = true
+      val = e ? e : new Error("Scheduled action threw falsy error")
     }
-    if (errored) {
+    if (err) {
       this.unsubscribe()
-      return errorValue
+      return val
     }
   }
-  unsubscribe() {
+  override unsubscribe() {
     if (!this.closed) {
-      const { id, scheduler } = this
-      const { actions } = scheduler
-      this.work = this.state = this.scheduler = null!
+      const { id, sched } = this
+      const { actions } = sched
+      this.work = this.state = this.sched = null!
       this.pending = false
-      arrRemove(actions, this)
-      if (id != null) {
-        this.id = this.recycleAsyncId(scheduler, id, null)
-      }
+      qu.arrRemove(actions, this)
+      if (id != null) this.id = this.recycleAsyncId(sched, id, null)
       this.delay = null!
       super.unsubscribe()
     }
   }
 }
+
 export class AsyncScheduler extends Scheduler {
   public actions: Array<AsyncAction<any>> = []
-  public _active: boolean = false
-  public _scheduled: any = undefined
-  constructor(
-    SchedulerAction: typeof Action,
-    now: () => number = Scheduler.now
-  ) {
-    super(SchedulerAction, now)
+  public active = false
+  public scheduled: any = undefined
+  constructor(x: typeof Action, now: () => number = Scheduler.now) {
+    super(x, now)
   }
-  public flush(action: AsyncAction<any>): void {
+  public flush(x: AsyncAction<any>): void {
     const { actions } = this
-    if (this._active) {
-      actions.push(action)
+    if (this.active) {
+      actions.push(x)
       return
     }
-    let error: any
-    this._active = true
+    let e: any
+    this.active = true
     do {
-      if ((error = action.execute(action.state, action.delay))) {
-        break
+      if ((e = x.execute(x.state, x.delay))) break
+    } while ((x = actions.shift()!))
+    this.active = false
+    if (e) {
+      while ((x = actions.shift()!)) {
+        x.unsubscribe()
       }
-    } while ((action = actions.shift()!))
-    this._active = false
-    if (error) {
-      while ((action = actions.shift()!)) {
-        action.unsubscribe()
-      }
-      throw error
+      throw e
     }
   }
 }
 
-/*
-export class QueueAction<T> extends AsyncAction<T> {
-  constructor(    protected scheduler: QueueScheduler,
-    protected work: (this: SchedulerAction<T>, state?: T) => void
+export class AnimationFrameAction<T> extends AsyncAction<T> {
+  constructor(
+    protected override sched: AnimationFrameScheduler,
+    protected override work: (this: qt.SchedulerAction<T>, state?: T) => void
   ) {
-    super(scheduler, work)
-  }  
-  public schedule(state?: T, delay: number = 0): Subscription {
-    if (delay > 0) {
-      return super.schedule(state, delay)
-    }
-    this.delay = delay
-    this.state = state
-    this.scheduler.flush(this)
-    return this
-  }  
-  public execute(state: T, delay: number): any {
-    return delay > 0 || this.closed
-      ? super.execute(state, delay)
-      : this._execute(state, delay)
-  } 
-   protected requestAsyncId(
-    scheduler: QueueScheduler,
+    super(sched, work)
+  }
+  protected override requestAsyncId(
+    x: AnimationFrameScheduler,
     id?: any,
-    delay: number = 0
+    delay = 0
   ): any {
-
-
-
-      return super.requestAsyncId(scheduler, id, delay)
+    if (delay !== null && delay > 0) return super.requestAsyncId(x, id, delay)
+    x.actions.push(this)
+    return (
+      x.scheduled ||
+      (x.scheduled = animationFrameProvider.requestAnimationFrame(() =>
+        x.flush(undefined)
+      ))
+    )
+  }
+  protected override recycleAsyncId(
+    x: AnimationFrameScheduler,
+    id?: any,
+    delay = 0
+  ): any {
+    if ((delay != null && delay > 0) || (delay == null && this.delay > 0)) {
+      return super.recycleAsyncId(x, id, delay)
     }
-    return scheduler.flush(this)
+    if (!x.actions.some(action => action.id === id)) {
+      animationFrameProvider.cancelAnimationFrame(id)
+      x.scheduled = undefined
+    }
+    return undefined
   }
 }
-*/
+
+export class AnimationFrameScheduler extends AsyncScheduler {
+  public override flush(x?: AsyncAction<any>): void {
+    this.active = true
+    const id = this.scheduled
+    this.scheduled = undefined
+    const { actions } = this
+    let e: any
+    x = x || actions.shift()!
+    do {
+      if ((e = x.execute(x.state, x.delay))) break
+    } while ((x = actions[0]) && x.id === id && actions.shift())
+    this.active = false
+    if (e) {
+      while ((x = actions[0]) && x.id === id && actions.shift()) {
+        x.unsubscribe()
+      }
+      throw e
+    }
+  }
+}
+
+export class AsapAction<T> extends AsyncAction<T> {
+  constructor(
+    protected override sched: AsapScheduler,
+    protected override work: (this: qt.SchedulerAction<T>, x?: T) => void
+  ) {
+    super(sched, work)
+  }
+  protected override requestAsyncId(
+    x: AsapScheduler,
+    id?: any,
+    delay = 0
+  ): any {
+    if (delay !== null && delay > 0) return super.requestAsyncId(x, id, delay)
+    x.actions.push(this)
+    return (
+      x.scheduled ||
+      (x.scheduled = immediateProvider.setImmediate(x.flush.bind(x, undefined)))
+    )
+  }
+  protected override recycleAsyncId(
+    x: AsapScheduler,
+    id?: any,
+    delay = 0
+  ): any {
+    if ((delay != null && delay > 0) || (delay == null && this.delay > 0)) {
+      return super.recycleAsyncId(x, id, delay)
+    }
+    if (!x.actions.some(action => action.id === id)) {
+      immediateProvider.clearImmediate(id)
+      x.scheduled = undefined
+    }
+    return undefined
+  }
+}
+
+export class AsapScheduler extends AsyncScheduler {
+  public override flush(x?: AsyncAction<any>): void {
+    this.active = true
+    const is = this.scheduled
+    this.scheduled = undefined
+    const { actions } = this
+    let e: any
+    x = x || actions.shift()!
+    do {
+      if ((e = x.execute(x.state, x.delay))) break
+    } while ((x = actions[0]) && x.id === is && actions.shift())
+    this.active = false
+    if (e) {
+      while ((x = actions[0]) && x.id === is && actions.shift()) {
+        x.unsubscribe()
+      }
+      throw e
+    }
+  }
+}
+
+export class QueueAction<T> extends AsyncAction<T> {
+  constructor(
+    protected override sched: QueueScheduler,
+    protected override work: (this: qt.SchedulerAction<T>, x?: T) => void
+  ) {
+    super(sched, work)
+  }
+  public override schedule(x?: T, delay = 0): Subscription {
+    if (delay > 0) return super.schedule(x, delay)
+
+    this.delay = delay
+    this.state = x
+    this.sched.flush(this)
+    return this
+  }
+  public override execute(x: T, delay: number): any {
+    return delay > 0 || this.closed
+      ? super.execute(x, delay)
+      : this._execute(x, delay)
+  }
+  protected override requestAsyncId(
+    x: QueueScheduler,
+    id?: any,
+    delay = 0
+  ): any {
+    if ((delay != null && delay > 0) || (delay == null && this.delay > 0)) {
+      return super.requestAsyncId(x, id, delay)
+    }
+    return x.flush(this)
+  }
+}
+
 export class QueueScheduler extends AsyncScheduler {}
 
 export class VirtualTimeScheduler extends AsyncScheduler {
   static frameTimeFactor = 10
-  public frame: number = 0
-  public index: number = -1
+  public frame = 0
+  public index = -1
   constructor(
-    schedulerActionCtor: typeof AsyncAction = VirtualAction as any,
+    x: typeof AsyncAction = VirtualAction as any,
     public maxFrames: number = Infinity
   ) {
-    super(schedulerActionCtor, () => this.frame)
+    super(x, () => this.frame)
   }
-  public flush(): void {
+  public override flush(): void {
     const { actions, maxFrames } = this
-    let error: any
-    let action: AsyncAction<any> | undefined
-    while ((action = actions[0]) && action.delay <= maxFrames) {
+    let e: any
+    let x: AsyncAction<any> | undefined
+    while ((x = actions[0]) && x.delay <= maxFrames) {
       actions.shift()
-      this.frame = action.delay
-      if ((error = action.execute(action.state, action.delay))) {
-        break
-      }
+      this.frame = x.delay
+      if ((e = x.execute(x.state, x.delay))) break
     }
-    if (error) {
-      while ((action = actions.shift())) {
-        action.unsubscribe()
+    if (e) {
+      while ((x = actions.shift())) {
+        x.unsubscribe()
       }
-      throw error
+      throw e
     }
   }
 }
-export class VirtualAction<T> extends AsyncAction<T> {
-  protected active: boolean = true
-  constructor(
-    protected scheduler: VirtualTimeScheduler,
-    protected work: (this: SchedulerAction<T>, state?: T) => void,
-    protected index: number = (scheduler.index += 1)
-  ) {
-    super(scheduler, work)
-    this.index = scheduler.index = index
-  }
-  public schedule(state?: T, delay: number = 0): Subscription {
-    if (Number.isFinite(delay)) {
-      if (!this.id) {
-        return super.schedule(state, delay)
-      }
-      this.active = false
 
-      const action = new VirtualAction(this.scheduler, this.work)
-      this.add(action)
-      return action.schedule(state, delay)
-    } else {
-      return Subscription.EMPTY
-    }
+export class VirtualAction<T> extends AsyncAction<T> {
+  protected active = true
+  constructor(
+    protected override sched: VirtualTimeScheduler,
+    protected override work: (this: qt.SchedulerAction<T>, state?: T) => void,
+    protected index: number = (sched.index += 1)
+  ) {
+    super(sched, work)
+    this.index = sched.index = index
   }
-  protected requestAsyncId(
-    scheduler: VirtualTimeScheduler,
-    id?: any,
-    delay: number = 0
+  public override schedule(x?: T, delay = 0): Subscription {
+    if (Number.isFinite(delay)) {
+      if (!this.id) return super.schedule(x, delay)
+      this.active = false
+      const y = new VirtualAction(this.sched, this.work)
+      this.add(y)
+      return y.schedule(x, delay)
+    }
+    return Subscription.EMPTY
+  }
+  protected override requestAsyncId(
+    x: VirtualTimeScheduler,
+    _id?: any,
+    delay = 0
   ): any {
-    this.delay = scheduler.frame + delay
-    const { actions } = scheduler
+    this.delay = x.frame + delay
+    const { actions } = x
     actions.push(this)
     ;(actions as Array<VirtualAction<T>>).sort(VirtualAction.sortActions)
     return true
   }
-  protected recycleAsyncId(
-    scheduler: VirtualTimeScheduler,
-    id?: any,
-    delay: number = 0
+  protected override recycleAsyncId(
+    _x: VirtualTimeScheduler,
+    _id?: any,
+    _delay = 0
   ): any {
     return undefined
   }
-  protected _execute(state: T, delay: number): any {
-    if (this.active === true) {
-      return super._execute(state, delay)
-    }
+  protected override _execute(x: T, delay: number): any {
+    if (this.active === true) return super._execute(x, delay)
   }
   private static sortActions<T>(a: VirtualAction<T>, b: VirtualAction<T>) {
     if (a.delay === b.delay) {
-      if (a.index === b.index) {
-        return 0
-      } else if (a.index > b.index) {
-        return 1
-      } else {
-        return -1
-      }
-    } else if (a.delay > b.delay) {
-      return 1
-    } else {
-      return -1
-    }
+      if (a.index === b.index) return 0
+      else if (a.index > b.index) return 1
+      else return -1
+    } else if (a.delay > b.delay) return 1
+    else return -1
   }
 }
 
 export const animationFrame = animationFrameScheduler
+
 interface AnimationFrameProvider {
   schedule(callback: FrameRequestCallback): Subscription
   requestAnimationFrame: typeof requestAnimationFrame
@@ -458,6 +376,7 @@ interface AnimationFrameProvider {
       }
     | undefined
 }
+
 export const animationFrameProvider: AnimationFrameProvider = {
   schedule(callback) {
     let request = requestAnimationFrame
@@ -483,18 +402,14 @@ export const animationFrameProvider: AnimationFrameProvider = {
   },
   delegate: undefined,
 }
-interface DateTimestampProvider extends TimestampProvider {
-  delegate: TimestampProvider | undefined
+interface DateTimestampProvider extends qt.TimestampProvider {
+  delegate: qt.TimestampProvider | undefined
 }
-export const dateTimestampProvider: DateTimestampProvider = {
-  now() {
-    return (dateTimestampProvider.delegate || Date).now()
-  },
-  delegate: undefined,
-}
-const { setImmediate, clearImmediate } = Immediate
-type SetImmediateFunction = (handler: () => void, ...args: any[]) => TimerHandle
-type ClearImmediateFunction = (handle: TimerHandle) => void
+
+const { setImmediate, clearImmediate } = qu.Immediate
+type SetImmediateFunction = (handler: () => void, ...xs: any[]) => TimerHandle
+type ClearImmediateFunction = (x: TimerHandle) => void
+
 interface ImmediateProvider {
   setImmediate: SetImmediateFunction
   clearImmediate: ClearImmediateFunction
@@ -505,23 +420,27 @@ interface ImmediateProvider {
       }
     | undefined
 }
+
 export const immediateProvider: ImmediateProvider = {
-  setImmediate(...args) {
+  setImmediate(...xs) {
     const { delegate } = immediateProvider
-    return (delegate?.setImmediate || setImmediate)(...args)
+    return (delegate?.setImmediate || setImmediate)(...xs)
   },
-  clearImmediate(handle) {
+  clearImmediate(x) {
     const { delegate } = immediateProvider
-    return (delegate?.clearImmediate || clearImmediate)(handle as any)
+    return (delegate?.clearImmediate || clearImmediate)(x as any)
   },
   delegate: undefined,
 }
+
 type SetIntervalFunction = (
   handler: () => void,
   timeout?: number,
   ...args: any[]
 ) => TimerHandle
-type ClearIntervalFunction = (handle: TimerHandle) => void
+
+type ClearIntervalFunction = (x: TimerHandle) => void
+
 interface IntervalProvider {
   setInterval: SetIntervalFunction
   clearInterval: ClearIntervalFunction
@@ -532,23 +451,26 @@ interface IntervalProvider {
       }
     | undefined
 }
+
 export const intervalProvider: IntervalProvider = {
-  setInterval(handler: () => void, timeout?: number, ...args) {
+  setInterval(handler: () => void, timeout?: number, ...xs) {
     const { delegate } = intervalProvider
     if (delegate?.setInterval) {
-      return delegate.setInterval(handler, timeout, ...args)
+      return delegate.setInterval(handler, timeout, ...xs)
     }
-    return setInterval(handler, timeout, ...args)
+    return setInterval(handler, timeout, ...xs)
   },
-  clearInterval(handle) {
+  clearInterval(x) {
     const { delegate } = intervalProvider
-    return (delegate?.clearInterval || clearInterval)(handle as any)
+    return (delegate?.clearInterval || clearInterval)(x as any)
   },
   delegate: undefined,
 }
-interface PerformanceTimestampProvider extends TimestampProvider {
-  delegate: TimestampProvider | undefined
+
+interface PerformanceTimestampProvider extends qt.TimestampProvider {
+  delegate: qt.TimestampProvider | undefined
 }
+
 export const performanceTimestampProvider: PerformanceTimestampProvider = {
   now() {
     return (performanceTimestampProvider.delegate || performance).now()
@@ -571,13 +493,14 @@ interface TimeoutProvider {
       }
     | undefined
 }
+
 export const timeoutProvider: TimeoutProvider = {
-  setTimeout(handler: () => void, timeout?: number, ...args) {
+  setTimeout(handler: () => void, timeout?: number, ...xs) {
     const { delegate } = timeoutProvider
     if (delegate?.setTimeout) {
-      return delegate.setTimeout(handler, timeout, ...args)
+      return delegate.setTimeout(handler, timeout, ...xs)
     }
-    return setTimeout(handler, timeout, ...args)
+    return setTimeout(handler, timeout, ...xs)
   },
   clearTimeout(handle) {
     const { delegate } = timeoutProvider
@@ -585,4 +508,5 @@ export const timeoutProvider: TimeoutProvider = {
   },
   delegate: undefined,
 }
+
 export type TimerHandle = number | NodeJS.Timeout

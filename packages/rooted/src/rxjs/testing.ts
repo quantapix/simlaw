@@ -480,7 +480,7 @@ export class TestScheduler extends VirtualTimeScheduler {
     marbles: string,
     values?: any,
     errorValue?: any,
-    materializeInnerObservables: boolean = false,
+    materializeInnerObservables = false,
     runMode = false
   ): TestMessage[] {
     if (marbles.indexOf("!") !== -1) {
