@@ -1,6 +1,138 @@
 import { Subscription } from "./subscription.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
+import { innerFrom, Observable } from "./observable.js"
+import { observeOn, subscribeOn } from "./operator.js"
+
+export function executeSchedule(
+  parentSubscription: Subscription,
+  scheduler: qt.Scheduler,
+  work: () => void,
+  delay: number,
+  repeat: true
+): void
+export function executeSchedule(
+  parentSubscription: Subscription,
+  scheduler: qt.Scheduler,
+  work: () => void,
+  delay?: number,
+  repeat?: false
+): Subscription
+export function executeSchedule(
+  parentSubscription: Subscription,
+  scheduler: qt.Scheduler,
+  work: () => void,
+  delay = 0,
+  repeat = false
+): Subscription | void {
+  const scheduleSubscription = scheduler.schedule(function (
+    this: qt.SchedulerAction<any>
+  ) {
+    work()
+    if (repeat) {
+      parentSubscription.add(this.schedule(null, delay))
+    } else {
+      this.unsubscribe()
+    }
+  },
+  delay)
+  parentSubscription.add(scheduleSubscription)
+  if (!repeat) {
+    return scheduleSubscription
+  }
+}
+
+export function scheduleIterable<T>(x: Iterable<T>, sched: qt.Scheduler) {
+  return new Observable<T>(s => {
+    let i: Iterator<T, T>
+    executeSchedule(s, sched, () => {
+      i = (x as any)[Symbol.iterator]()
+      executeSchedule(
+        s,
+        sched,
+        () => {
+          let value: T
+          let done: boolean | undefined
+          try {
+            ;({ value, done } = i.next())
+          } catch (e) {
+            s.error(e)
+            return
+          }
+          if (done) s.complete()
+          else s.next(value)
+        },
+        0,
+        true
+      )
+    })
+    return () => qu.isFunction(i?.return) && i.return()
+  })
+}
+
+export function scheduled<T>(
+  x: qt.ObservableInput<T>,
+  sched: qt.Scheduler
+): Observable<T> {
+  if (x != null) {
+    if (qu.isInteropObservable(x)) return scheduleObservable(x, sched)
+    if (qu.isArrayLike(x)) return scheduleArray(x, sched)
+    if (qu.isPromise(x)) return schedulePromise(x, sched)
+    if (qu.isAsyncIterable(x)) return scheduleAsyncIterable(x, sched)
+    if (qu.isIterable(x)) return scheduleIterable(x, sched)
+    if (qu.isReadableStreamLike(x)) return scheduleReadableStreamLike(x, sched)
+  }
+  throw qu.createInvalidObservableTypeError(x)
+}
+
+function scheduleArray<T>(x: ArrayLike<T>, sched: qt.Scheduler) {
+  return new Observable<T>(s => {
+    let i = 0
+    return sched.schedule(function () {
+      if (i === x.length) s.complete()
+      else {
+        s.next(x[i++])
+        if (!s.closed) this.schedule()
+      }
+    })
+  })
+}
+
+function scheduleAsyncIterable<T>(x: AsyncIterable<T>, sched: qt.Scheduler) {
+  if (!x) throw new Error("Iterable cannot be null")
+  return new Observable<T>(s => {
+    executeSchedule(s, sched, () => {
+      const i = x[Symbol.asyncIterator]()
+      executeSchedule(
+        s,
+        sched,
+        () => {
+          i.next().then(res => {
+            if (res.done) s.complete()
+            else s.next(res.value)
+          })
+        },
+        0,
+        true
+      )
+    })
+  })
+}
+
+function scheduleObservable<T>(x: qt.Observable<T>, sched: qt.Scheduler) {
+  return innerFrom(x).pipe(subscribeOn(sched), observeOn(sched))
+}
+
+function schedulePromise<T>(x: PromiseLike<T>, sched: qt.Scheduler) {
+  return innerFrom(x).pipe(subscribeOn(sched), observeOn(sched))
+}
+
+function scheduleReadableStreamLike<T>(
+  x: qt.ReadableStreamLike<T>,
+  sched: qt.Scheduler
+): Observable<T> {
+  return scheduleAsyncIterable(qu.readableStreamLikeToAsyncGenerator(x), sched)
+}
 
 export const stampProvider: StampProvider = {
   now() {

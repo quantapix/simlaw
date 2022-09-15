@@ -2,7 +2,6 @@ import { map } from "./operators.js"
 import { Observable } from "./observable.js"
 import type * as qt from "./types.js"
 import { Subscriber, SafeSubscriber } from "./subscriber.js"
-import type { Subscription } from "./subscription.js"
 import { timeoutProvider } from "./scheduler.js"
 
 export function getPromiseCtor(x?: PromiseConstructorLike) {
@@ -264,43 +263,6 @@ export function captureError(err: any) {
   if (config.useDeprecatedSynchronousErrorHandling && context) {
     context.errorThrown = true
     context.error = err
-  }
-}
-export function executeSchedule(
-  parentSubscription: Subscription,
-  scheduler: qt.Scheduler,
-  work: () => void,
-  delay: number,
-  repeat: true
-): void
-export function executeSchedule(
-  parentSubscription: Subscription,
-  scheduler: qt.Scheduler,
-  work: () => void,
-  delay?: number,
-  repeat?: false
-): Subscription
-export function executeSchedule(
-  parentSubscription: Subscription,
-  scheduler: qt.Scheduler,
-  work: () => void,
-  delay = 0,
-  repeat = false
-): Subscription | void {
-  const scheduleSubscription = scheduler.schedule(function (
-    this: qt.SchedulerAction<any>
-  ) {
-    work()
-    if (repeat) {
-      parentSubscription.add(this.schedule(null, delay))
-    } else {
-      this.unsubscribe()
-    }
-  },
-  delay)
-  parentSubscription.add(scheduleSubscription)
-  if (!repeat) {
-    return scheduleSubscription
   }
 }
 export function identity<T>(x: T): T {

@@ -13,7 +13,7 @@ import {
   ReplaySubject,
 } from "./subject.js"
 import { SafeSubscriber, Subscriber, isSubscriber } from "./subscriber.js"
-import { scheduled, scheduleIterable } from "./scheduled.js"
+import { scheduled, scheduleIterable, executeSchedule } from "./scheduler.js"
 import type * as qt from "./types.js"
 import {
   Operator,
@@ -347,7 +347,7 @@ function maybeSchedule(
   f: () => void,
   s: Subscription
 ) {
-  if (sched) qu.executeSchedule(s, sched, f)
+  if (sched) executeSchedule(s, sched, f)
   else f()
 }
 

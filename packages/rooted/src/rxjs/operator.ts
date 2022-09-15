@@ -1,8 +1,11 @@
 import * as qu from "./utils.js"
-import { async } from "./scheduler.js"
-import { asyncScheduler } from "./scheduler.js"
+import {
+  async,
+  asyncScheduler,
+  stampProvider,
+  executeSchedule,
+} from "./scheduler.js"
 import { AsyncSubject, BehaviorSubject, ReplaySubject } from "./subject.js"
-import { stampProvider } from "./scheduler.js"
 import { Note, observeNote } from "./note.js"
 import { Observable, innerFrom, EMPTY, from, timer } from "./observable.js"
 import { SafeSubscriber } from "./subscriber.js"
@@ -253,11 +256,11 @@ export function bufferTime<T>(
           subs,
         }
         bufferRecords.push(record)
-        qu.executeSchedule(subs, scheduler, () => emit(record), bufferTimeSpan)
+        executeSchedule(subs, scheduler, () => emit(record), bufferTimeSpan)
       }
     }
     if (bufferCreationInterval !== null && bufferCreationInterval >= 0) {
-      qu.executeSchedule(
+      executeSchedule(
         subscriber,
         scheduler,
         startBuffer,
@@ -1446,7 +1449,7 @@ export function mergeInternals<T, R>(
               while (buffer.length && active < concurrent) {
                 const bufferedValue = buffer.shift()!
                 if (innerSubScheduler) {
-                  qu.executeSchedule(subscriber, innerSubScheduler, () =>
+                  executeSchedule(subscriber, innerSubScheduler, () =>
                     doInnerSub(bufferedValue)
                   )
                 } else {
@@ -1597,21 +1600,21 @@ export function observeOn<T>(
       createOperatorSubscriber(
         subscriber,
         value =>
-          qu.executeSchedule(
+          executeSchedule(
             subscriber,
             scheduler,
             () => subscriber.next(value),
             delay
           ),
         () =>
-          qu.executeSchedule(
+          executeSchedule(
             subscriber,
             scheduler,
             () => subscriber.complete(),
             delay
           ),
         err =>
-          qu.executeSchedule(
+          executeSchedule(
             subscriber,
             scheduler,
             () => subscriber.error(err),
@@ -3001,7 +3004,7 @@ export function timeout<T, O extends qt.ObservableInput<any>, M>(
     let lastValue: T | null = null
     let seen = 0
     const startTimer = (delay: number) => {
-      timerSubscription = qu.executeSchedule(
+      timerSubscription = executeSchedule(
         subscriber,
         scheduler,
         () => {
@@ -3235,7 +3238,7 @@ export function windowTime<T>(
         }
         windowRecords.push(record)
         subscriber.next(window.asObservable())
-        qu.executeSchedule(
+        executeSchedule(
           subs,
           scheduler,
           () => closeWindow(record),
@@ -3244,7 +3247,7 @@ export function windowTime<T>(
       }
     }
     if (windowCreationInterval !== null && windowCreationInterval >= 0) {
-      qu.executeSchedule(
+      executeSchedule(
         subscriber,
         scheduler,
         startWindow,
