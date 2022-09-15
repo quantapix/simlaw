@@ -1,5 +1,5 @@
 import * as qu from "./utils.js"
-import { async, asyncScheduler, stampProvider } from "./scheduler.js"
+import { async, AsyncScheduler, stampProvider, Scheduler } from "./scheduler.js"
 import { AsyncSubject, BehaviorSubject, ReplaySubject } from "./subject.js"
 import { Note, observeNote } from "./note.js"
 import { Observable, innerFrom, EMPTY, from, timer } from "./observable.js"
@@ -130,7 +130,7 @@ export function audit<T>(
 }
 export function auditTime<T>(
   duration: number,
-  scheduler: qt.Scheduler = asyncScheduler
+  scheduler: qt.Scheduler = AsyncScheduler
 ): qt.MonoTypeOperatorFunction<T> {
   return audit(() => timer(duration, scheduler))
 }
@@ -226,11 +226,11 @@ export function bufferTime<T>(
 ): qt.OperatorFunction<T, T[]>
 export function bufferTime<T>(
   bufferTimeSpan: number,
-  ...otherArgs: any[]
+  ...xs: any[]
 ): qt.OperatorFunction<T, T[]> {
-  const scheduler = qu.popScheduler(otherArgs) ?? asyncScheduler
-  const bufferCreationInterval = (otherArgs[0] as number) ?? null
-  const maxBufferSize = (otherArgs[1] as number) || Infinity
+  const sched = Scheduler.pop(xs) ?? AsyncScheduler
+  const bufferCreationInterval = (xs[0] as number) ?? null
+  const maxBufferSize = (xs[1] as number) || Infinity
   return qu.operate((source, subscriber) => {
     let bufferRecords: { buffer: T[]; subs: Subscription }[] | null = []
     let restartOnEmit = false
@@ -251,11 +251,11 @@ export function bufferTime<T>(
           subs,
         }
         bufferRecords.push(record)
-        scheduler.run(subs, () => emit(record), bufferTimeSpan)
+        sched.run(subs, () => emit(record), bufferTimeSpan)
       }
     }
     if (bufferCreationInterval !== null && bufferCreationInterval >= 0) {
-      scheduler.run(subscriber, startBuffer, bufferCreationInterval, true)
+      sched.run(subscriber, startBuffer, bufferCreationInterval, true)
     } else {
       restartOnEmit = true
     }
@@ -446,10 +446,10 @@ export function concat<T, A extends readonly unknown[]>(
 export function concat<T, A extends readonly unknown[]>(
   ...sourcesAndScheduler: [...qt.ObservableInputTuple<A>, qt.Scheduler]
 ): qt.OperatorFunction<T, T | A[number]>
-export function concat<T, R>(...args: any[]): qt.OperatorFunction<T, R> {
-  const scheduler = qu.popScheduler(args)
+export function concat<T, R>(...xs: any[]): qt.OperatorFunction<T, R> {
+  const sched = Scheduler.pop(xs)
   return qu.operate((source, subscriber) => {
-    concatAll()(from([source, ...args], scheduler)).subscribe(subscriber)
+    concatAll()(from([source, ...xs], sched)).subscribe(subscriber)
   })
 }
 export function concatAll<
@@ -591,7 +591,7 @@ export function debounce<T>(
 }
 export function debounceTime<T>(
   dueTime: number,
-  scheduler: qt.Scheduler = asyncScheduler
+  scheduler: qt.Scheduler = AsyncScheduler
 ): qt.MonoTypeOperatorFunction<T> {
   return qu.operate((source, subscriber) => {
     let activeTask: Subscription | null = null
@@ -663,7 +663,7 @@ export function defaultIfEmpty<T, R>(
 }
 export function delay<T>(
   due: number | Date,
-  scheduler: qt.Scheduler = asyncScheduler
+  scheduler: qt.Scheduler = AsyncScheduler
 ): qt.MonoTypeOperatorFunction<T> {
   const duration = timer(due, scheduler)
   return delayWhen(() => duration)
@@ -1376,13 +1376,13 @@ export function merge<T, A extends readonly unknown[]>(
     qt.Scheduler
   ]
 ): qt.OperatorFunction<T, T | A[number]>
-export function merge<T>(...args: unknown[]): qt.OperatorFunction<T, unknown> {
-  const scheduler = qu.popScheduler(args)
-  const concurrent = qu.popNumber(args, Infinity)
-  args = qu.argsOrArgArray(args)
+export function merge<T>(...xs: unknown[]): qt.OperatorFunction<T, unknown> {
+  const sched = Scheduler.pop(xs)
+  const concurrent = qu.popNumber(xs, Infinity)
+  xs = qu.argsOrArgArray(xs)
   return qu.operate((source, subscriber) => {
     mergeAll(concurrent)(
-      from([source, ...(args as qt.ObservableInput<T>[])], scheduler)
+      from([source, ...(xs as qt.ObservableInput<T>[])], sched)
     ).subscribe(subscriber)
   })
 }
@@ -2147,7 +2147,7 @@ export function sample<T>(
 }
 export function sampleTime<T>(
   period: number,
-  scheduler: qt.Scheduler = asyncScheduler
+  scheduler: qt.Scheduler = AsyncScheduler
 ): qt.MonoTypeOperatorFunction<T> {
   return sample(interval(period, scheduler))
 }
@@ -2509,13 +2509,12 @@ export function startWith<T, A extends readonly unknown[] = T[]>(
 export function startWith<T, A extends readonly unknown[] = T[]>(
   ...values: A
 ): qt.OperatorFunction<T, T | qt.ValueFromArray<A>>
-export function startWith<T, D>(...values: D[]): qt.OperatorFunction<T, T | D> {
-  const scheduler = qu.popScheduler(values)
+export function startWith<T, D>(...xs: D[]): qt.OperatorFunction<T, T | D> {
+  const sched = Scheduler.pop(xs)
   return qu.operate((source, subscriber) => {
-    ;(scheduler
-      ? concat(values, source, scheduler)
-      : concat(values, source)
-    ).subscribe(subscriber)
+    ;(sched ? concat(xs, source, sched) : concat(xs, source)).subscribe(
+      subscriber
+    )
   })
 }
 export function subscribeOn<T>(
@@ -2859,7 +2858,7 @@ export function throttle<T>(
 }
 export function throttleTime<T>(
   duration: number,
-  scheduler: qt.Scheduler = asyncScheduler,
+  scheduler: qt.Scheduler = AsyncScheduler,
   config = defaultThrottleConfig
 ): qt.MonoTypeOperatorFunction<T> {
   const duration$ = timer(duration, scheduler)
@@ -2887,7 +2886,7 @@ function defaultErrorFactory() {
   return new qu.EmptyError()
 }
 export function timeInterval<T>(
-  scheduler: qt.Scheduler = asyncScheduler
+  scheduler: qt.Scheduler = AsyncScheduler
 ): qt.OperatorFunction<T, TimeInterval<T>> {
   return qu.operate((source, subscriber) => {
     let last = scheduler.now()
@@ -2957,7 +2956,7 @@ export function timeout<T, O extends qt.ObservableInput<any>, M>(
     first,
     each,
     with: _with = timeoutErrorFactory,
-    scheduler = schedulerArg ?? asyncScheduler,
+    scheduler = schedulerArg ?? AsyncScheduler,
     meta = null!,
   } = (
     qu.isValidDate(config)
@@ -3178,11 +3177,11 @@ export function windowTime<T>(
 ): qt.OperatorFunction<T, Observable<T>>
 export function windowTime<T>(
   windowTimeSpan: number,
-  ...otherArgs: any[]
+  ...xs: any[]
 ): qt.OperatorFunction<T, Observable<T>> {
-  const scheduler = qu.popScheduler(otherArgs) ?? asyncScheduler
-  const windowCreationInterval = (otherArgs[0] as number) ?? null
-  const maxWindowSize = (otherArgs[1] as number) || Infinity
+  const sched = Scheduler.pop(xs) ?? AsyncScheduler
+  const windowCreationInterval = (xs[0] as number) ?? null
+  const maxWindowSize = (xs[1] as number) || Infinity
   return qu.operate((source, subscriber) => {
     let windowRecords: WindowRecord<T>[] | null = []
     let restartOnClose = false
@@ -3208,11 +3207,11 @@ export function windowTime<T>(
         }
         windowRecords.push(record)
         subscriber.next(window.asObservable())
-        scheduler.run(subs, () => closeWindow(record), windowTimeSpan)
+        sched.run(subs, () => closeWindow(record), windowTimeSpan)
       }
     }
     if (windowCreationInterval !== null && windowCreationInterval >= 0) {
-      scheduler.run(subscriber, startWindow, windowCreationInterval, true)
+      sched.run(subscriber, startWindow, windowCreationInterval, true)
     } else {
       restartOnClose = true
     }

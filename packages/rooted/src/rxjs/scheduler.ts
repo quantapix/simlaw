@@ -17,6 +17,9 @@ export const stampProvider: StampProvider = {
 
 export class Scheduler implements qt.Scheduler {
   static now: () => number = stampProvider.now
+  static pop(xs: any[]): qt.Scheduler | undefined {
+    return qu.isScheduler(qu.last(xs)) ? xs.pop() : undefined
+  }
   constructor(private ctor: typeof Action, now: () => number = Scheduler.now) {
     this.now = now
   }

@@ -1,9 +1,9 @@
 import { Subscription } from "./subscription.js"
 import {
-  asyncScheduler,
+  Scheduler,
+  AsyncScheduler,
   perfProvider,
   frameProvider,
-  async as asyncScheduler,
 } from "./scheduler.js"
 import * as qu from "./utils.js"
 import {
@@ -282,14 +282,14 @@ export function combineLatest<
 export function combineLatest<T extends qt.ObservableInput<any>, R>(
   ...xs: any[]
 ): Observable<R> | Observable<qt.ObservedValueOf<T>[]> {
-  const s = qu.popScheduler(xs)
+  const sched = Scheduler.pop(xs)
   const res = qu.popResultSelector(xs)
   const { args: os, keys } = qu.argsArgArrayOrObject(xs)
-  if (os.length === 0) return from([], s as any)
+  if (os.length === 0) return from([], sched as any)
   const y = new Observable<qt.ObservedValueOf<T>[]>(
     _combineLatest(
       os as qt.ObservableInput<qt.ObservedValueOf<T>>[],
-      s,
+      sched,
       keys ? xs => qu.createObject(keys, xs) : qu.identity
     )
   )
@@ -357,7 +357,7 @@ export function concat<T extends readonly unknown[]>(
   ...xs: [...qt.ObservableInputTuple<T>, qt.Scheduler]
 ): Observable<T[number]>
 export function concat(...xs: any[]) {
-  return concatAll()(from(xs, qu.popScheduler(xs)))
+  return concatAll()(from(xs, Scheduler.pop(xs)))
 }
 
 export interface ConnectableConfig<T> {
@@ -881,7 +881,7 @@ async function process<T>(i: AsyncIterable<T>, s: Subscriber<T>) {
 }
 export function interval(
   period = 0,
-  sched: qt.Scheduler = asyncScheduler
+  sched: qt.Scheduler = new AsyncScheduler()
 ): Observable<number> {
   if (period < 0) period = 0
   return timer(period, period, sched)
@@ -896,7 +896,7 @@ export function merge<T extends readonly unknown[]>(
 export function merge(
   ...xs: (qt.ObservableInput<unknown> | number | qt.Scheduler)[]
 ) {
-  const sched = qu.popScheduler(xs)
+  const sched = Scheduler.pop(xs)
   const concurrent = qu.popNumber(xs, Infinity)
   const ys = xs as qt.ObservableInput<unknown>[]
   return !ys.length
@@ -916,8 +916,7 @@ export function of<T extends readonly unknown[]>(
   ...xs: T
 ): Observable<qt.ValueFromArray<T>>
 export function of<T>(...xs: Array<T | qt.Scheduler>): Observable<T> {
-  const scheduler = qu.popScheduler(xs)
-  return from(xs as T[], scheduler)
+  return from(xs as T[], Scheduler.pop(xs))
 }
 
 export function onErrorResumeNext<T extends readonly unknown[]>(
@@ -1036,7 +1035,7 @@ export function timer(
 export function timer(
   x: number | Date = 0,
   ds?: number | qt.Scheduler,
-  sched: qt.Scheduler = asyncScheduler
+  sched: qt.Scheduler = new AsyncScheduler()
 ): Observable<number> {
   let dur = -1
   if (ds != null) {

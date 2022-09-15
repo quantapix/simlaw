@@ -165,30 +165,27 @@ ${errors.map((err, i) => `${i + 1}) ${err.toString()}`).join("\n  ")}`
     }
 )
 
-export function applyMixins(derivedCtor: any, baseCtors: any[]) {
-  for (let i = 0, len = baseCtors.length; i < len; i++) {
-    const baseCtor = baseCtors[i]
-    const propertyKeys = Object.getOwnPropertyNames(baseCtor.prototype)
-    for (let j = 0, len2 = propertyKeys.length; j < len2; j++) {
-      const name = propertyKeys[j]
-      derivedCtor.prototype[name] = baseCtor.prototype[name]
+export function applyMixins(x: any, base: any[]) {
+  for (let i = 0, len = base.length; i < len; i++) {
+    const b = base[i]
+    const ks = Object.getOwnPropertyNames(b.prototype)
+    for (let j = 0, len2 = ks.length; j < len2; j++) {
+      const n = ks[j]!
+      x.prototype[n] = b.prototype[n]
     }
   }
 }
 
-function last<T>(arr: T[]): T | undefined {
-  return arr[arr.length - 1]
+export function last<T>(xs: T[]): T | undefined {
+  return xs[xs.length - 1]
 }
 export function popResultSelector(
   xs: any[]
 ): ((...xs: unknown[]) => unknown) | undefined {
   return isFunction(last(xs)) ? xs.pop() : undefined
 }
-export function popScheduler(xs: any[]): qt.Scheduler | undefined {
-  return isScheduler(last(xs)) ? xs.pop() : undefined
-}
-export function popNumber(xs: any[], defaultValue: number): number {
-  return typeof last(xs) === "number" ? xs.pop()! : defaultValue
+export function popNumber(xs: any[], v: number): number {
+  return typeof last(xs) === "number" ? xs.pop()! : v
 }
 
 const { isArray } = Array
@@ -211,8 +208,8 @@ export function argsArgArrayOrObject<T, O extends Record<string, T>>(
   }
   return { args: args as T[], keys: null }
 }
-function isPOJO(obj: any): obj is object {
-  return obj && typeof obj === "object" && getPrototypeOf(obj) === objectProto
+function isPOJO(x: any): x is object {
+  return x && typeof x === "object" && getPrototypeOf(x) === objectProto
 }
 const { isArray } = Array
 export function argsOrArgArray<T>(args: (T | T[])[]): T[] {
@@ -259,10 +256,10 @@ export function errorContext(cb: () => void) {
     cb()
   }
 }
-export function captureError(err: any) {
+export function captureError(x: any) {
   if (config.useDeprecatedSynchronousErrorHandling && context) {
     context.errorThrown = true
-    context.error = err
+    context.error = x
   }
 }
 export function identity<T>(x: T): T {
@@ -279,8 +276,8 @@ export function isValidDate(x: any): x is Date {
 export function isFunction(x: any): x is (...args: any[]) => any {
   return typeof x === "function"
 }
-export function isInteropObservable(input: any): input is qt.Observable<any> {
-  return isFunction(input[Symbol.observable])
+export function isInteropObservable(x: any): x is qt.Observable<any> {
+  return isFunction(x[Symbol.observable])
 }
 export function isIterable(x: any): x is Iterable<any> {
   return isFunction(x?.[Symbol.iterator])
@@ -297,23 +294,19 @@ export function isPromise(x: any): x is PromiseLike<any> {
 export async function* readableStreamLikeToAsyncGenerator<T>(
   readableStream: qt.ReadableStreamLike<T>
 ): AsyncGenerator<T> {
-  const reader = readableStream.getReader()
+  const r = readableStream.getReader()
   try {
     while (true) {
-      const { value, done } = await reader.read()
-      if (done) {
-        return
-      }
+      const { value, done } = await r.read()
+      if (done) return
       yield value!
     }
   } finally {
-    reader.releaseLock()
+    r.releaseLock()
   }
 }
-export function isReadableStreamLike<T>(
-  obj: any
-): obj is qt.ReadableStreamLike<T> {
-  return isFunction(obj?.getReader)
+export function isReadableStreamLike<T>(x: any): x is qt.ReadableStreamLike<T> {
+  return isFunction(x?.getReader)
 }
 export function isScheduler(x: any): x is qt.Scheduler {
   return x && isFunction(x.schedule)
