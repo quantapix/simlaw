@@ -2,7 +2,7 @@ import * as qu from "./utils.js"
 import { async } from "./scheduler.js"
 import { asyncScheduler } from "./scheduler.js"
 import { AsyncSubject, BehaviorSubject, ReplaySubject } from "./subject.js"
-import { dateTimestampProvider } from "./scheduler.js"
+import { stampProvider } from "./scheduler.js"
 import { Note, observeNote } from "./note.js"
 import { Observable, innerFrom, EMPTY, from, timer } from "./observable.js"
 import { SafeSubscriber } from "./subscriber.js"
@@ -3093,7 +3093,7 @@ export function timeoutWith<T, R>(
   })
 }
 export function timestamp<T>(
-  timestampProvider: qt.TimestampProvider = dateTimestampProvider
+  timestampProvider: qt.TimestampProvider = stampProvider
 ): qt.OperatorFunction<T, Timestamp<T>> {
   return map((value: T) => ({ value, timestamp: timestampProvider.now() }))
 }

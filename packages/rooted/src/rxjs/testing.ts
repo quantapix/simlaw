@@ -1,7 +1,7 @@
 import { animationFrameProvider } from "./scheduler/animationFrameProvider"
 import { applyMixins } from "./util/applyMixins"
 import { ColdObservable } from "./ColdObservable"
-import { dateTimestampProvider } from "./scheduler/dateTimestampProvider"
+import { stampProvider } from "./scheduler/stampProvider"
 import { HotObservable } from "./HotObservable"
 import { immediateProvider } from "./scheduler/immediateProvider"
 import { intervalProvider } from "./scheduler/intervalProvider"
@@ -767,7 +767,7 @@ export class TestScheduler extends VirtualTimeScheduler {
     const animator = this.createAnimator()
     const delegates = this.createDelegates()
     animationFrameProvider.delegate = animator.delegate
-    dateTimestampProvider.delegate = this
+    stampProvider.delegate = this
     immediateProvider.delegate = delegates.immediate
     intervalProvider.delegate = delegates.interval
     timeoutProvider.delegate = delegates.timeout
@@ -790,7 +790,7 @@ export class TestScheduler extends VirtualTimeScheduler {
       this.maxFrames = prevMaxFrames
       this.runMode = false
       animationFrameProvider.delegate = undefined
-      dateTimestampProvider.delegate = undefined
+      stampProvider.delegate = undefined
       immediateProvider.delegate = undefined
       intervalProvider.delegate = undefined
       timeoutProvider.delegate = undefined

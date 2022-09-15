@@ -1,16 +1,16 @@
+import { Subscription } from "./subscription.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
-import { Subscription } from "./subscription.js"
 
-export const dateTimestampProvider: DateTimestampProvider = {
+export const stampProvider: StampProvider = {
   now() {
-    return (dateTimestampProvider.delegate || Date).now()
+    return (stampProvider.delegate || Date).now()
   },
   delegate: undefined,
 }
 
 export class Scheduler implements qt.Scheduler {
-  public static now: () => number = dateTimestampProvider.now
+  public static now: () => number = stampProvider.now
   constructor(private ctor: typeof Action, now: () => number = Scheduler.now) {
     this.now = now
   }
@@ -18,9 +18,9 @@ export class Scheduler implements qt.Scheduler {
   public schedule<T>(
     work: (this: qt.SchedulerAction<T>, x?: T) => void,
     delay = 0,
-    state?: T
+    x?: T
   ): Subscription {
-    return new this.ctor<T>(this, work).schedule(state, delay)
+    return new this.ctor<T>(this, work).schedule(x, delay)
   }
 }
 
@@ -51,11 +51,11 @@ export class AsyncAction<T> extends Action<T> {
     if (this.closed) return this
     this.state = x
     const id = this.id
-    const scheduler = this.sched
-    if (id != null) this.id = this.recycleAsyncId(scheduler, id, delay)
+    const s = this.sched
+    if (id != null) this.id = this.recycleAsyncId(s, id, delay)
     this.pending = true
     this.delay = delay
-    this.id = this.id || this.requestAsyncId(scheduler, this.id, delay)
+    this.id = this.id || this.requestAsyncId(s, this.id, delay)
     return this
   }
   protected requestAsyncId(x: AsyncScheduler, _id?: any, delay = 0): any {
@@ -66,8 +66,9 @@ export class AsyncAction<T> extends Action<T> {
     id: any,
     delay: number | null = 0
   ): any {
-    if (delay != null && this.delay === delay && this.pending === false)
+    if (delay != null && this.delay === delay && this.pending === false) {
       return id
+    }
     intervalProvider.clearInterval(id)
     return undefined
   }
@@ -109,7 +110,7 @@ export class AsyncAction<T> extends Action<T> {
 }
 
 export class AsyncScheduler extends Scheduler {
-  public actions: Array<AsyncAction<any>> = []
+  public actions: AsyncAction<any>[] = []
   public active = false
   public scheduled: any = undefined
   constructor(x: typeof Action, now: () => number = Scheduler.now) {
@@ -340,7 +341,7 @@ export class VirtualAction<T> extends AsyncAction<T> {
     this.delay = x.frame + delay
     const { actions } = x
     actions.push(this)
-    ;(actions as Array<VirtualAction<T>>).sort(VirtualAction.sortActions)
+    ;(actions as VirtualAction<T>[]).sort(VirtualAction.sortActions)
     return true
   }
   protected override recycleAsyncId(
@@ -402,7 +403,7 @@ export const animationFrameProvider: AnimationFrameProvider = {
   },
   delegate: undefined,
 }
-interface DateTimestampProvider extends qt.TimestampProvider {
+interface StampProvider extends qt.TimestampProvider {
   delegate: qt.TimestampProvider | undefined
 }
 

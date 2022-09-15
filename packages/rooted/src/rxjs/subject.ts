@@ -1,4 +1,4 @@
-import { dateTimestampProvider } from "./scheduler.js"
+import { stampProvider } from "./scheduler.js"
 import { Observable } from "./observable.js"
 import { Subscription } from "./subscription.js"
 import * as qu from "./utils.js"
@@ -182,7 +182,7 @@ export class ReplaySubject<T> extends Subject<T> {
   constructor(
     private _bufferSize = Infinity,
     private _windowTime = Infinity,
-    private _timestampProvider: qt.TimestampProvider = dateTimestampProvider
+    private _timestampProvider: qt.TimestampProvider = stampProvider
   ) {
     super()
     this._infiniteTimeWindow = _windowTime === Infinity
