@@ -1,8 +1,8 @@
 import { Subscription } from "./subscription.js"
 import {
   asyncScheduler,
-  performanceTimestampProvider,
-  animationFrameProvider,
+  perfProvider,
+  frameProvider,
   async as asyncScheduler,
 } from "./scheduler.js"
 import * as qu from "./utils.js"
@@ -13,7 +13,6 @@ import {
   ReplaySubject,
 } from "./subject.js"
 import { SafeSubscriber, Subscriber, isSubscriber } from "./subscriber.js"
-import { scheduled, scheduleIterable, executeSchedule } from "./scheduler.js"
 import type * as qt from "./types.js"
 import {
   Operator,
@@ -347,7 +346,7 @@ function maybeSchedule(
   f: () => void,
   s: Subscription
 ) {
-  if (sched) executeSchedule(s, sched, f)
+  if (sched) sched.run(s, f)
   else f()
 }
 
@@ -404,10 +403,10 @@ export function animationFrames(timestampProvider?: qt.TimestampProvider) {
     : DEFAULT_ANIMATION_FRAMES
 }
 function animationFramesFactory(timestampProvider?: qt.TimestampProvider) {
-  const { schedule } = animationFrameProvider
+  const { schedule } = frameProvider
   return new Observable<{ timestamp: number; elapsed: number }>(subscriber => {
     const subscription = new Subscription()
-    const provider = timestampProvider || performanceTimestampProvider
+    const provider = timestampProvider || perfProvider
     const start = provider.now()
     const run = (timestamp: DOMHighResTimeStamp | number) => {
       const now = provider.now()
@@ -569,7 +568,7 @@ export function from<T>(
   x: qt.ObservableInput<T>,
   sched?: qt.Scheduler
 ): Observable<T> {
-  return sched ? scheduled(x, sched) : innerFrom(x)
+  return sched ? (sched.dispatch(x) as Observable<T>) : innerFrom(x)
 }
 
 const nodeEventEmitterMethods = ["addListener", "removeListener"] as const
@@ -796,7 +795,7 @@ export function generate<R, T>(
   }
   return defer(
     (sched
-      ? () => scheduleIterable(gen(), sched!)
+      ? () => sched?.runIterable(gen())
       : gen) as () => qt.ObservableInput<R>
   )
 }

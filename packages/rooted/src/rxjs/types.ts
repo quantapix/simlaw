@@ -96,20 +96,19 @@ export interface SchedulerAction<T> extends Subscription {
 }
 export interface Scheduler extends TimestampProvider {
   schedule<T>(
-    work: (this: SchedulerAction<T>, x: T) => void,
-    delay: number,
-    x: T
-  ): Subscription
-  schedule<T>(
-    work: (this: SchedulerAction<T>, x?: T) => void,
-    delay: number,
-    X?: T
-  ): Subscription
-  schedule<T>(
     work: (this: SchedulerAction<T>, x?: T) => void,
     delay?: number,
     x?: T
   ): Subscription
+  dispatch<T>(x: ObservableInput<T>): Observable<T>
+  run(s: Subscription, work: () => void, delay: number, more: true): void
+  run(
+    s: Subscription,
+    work: () => void,
+    delay?: number,
+    more?: false
+  ): Subscription
+  runIterable<T>(x: Iterable<T>): Observable<T>
 }
 
 export interface TimestampProvider {

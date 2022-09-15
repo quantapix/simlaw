@@ -1,7 +1,7 @@
-import type * as qt from "./types.js"
-import type { Observable } from "./observable.js"
 import { EMPTY, of, throwError } from "./observable.js"
 import * as qu from "./utils.js"
+import type { Observable } from "./observable.js"
+import type * as qt from "./types.js"
 
 export enum Kind {
   NEXT = "N",
