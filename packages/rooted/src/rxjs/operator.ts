@@ -1,60 +1,46 @@
-import * as qu from "./utils.js"
-import { async, AsyncScheduler, stampProvider, Scheduler } from "./scheduler.js"
-import { AsyncSubject, BehaviorSubject, ReplaySubject } from "./subject.js"
+import { AsyncScheduler, stampProvider, Scheduler } from "./scheduler.js"
 import { Note, observeNote } from "./note.js"
 import { Observable, innerFrom, EMPTY, from, timer } from "./observable.js"
-import { SafeSubscriber } from "./subscriber.js"
-import { Subject } from "./subject.js"
-import { Subscriber } from "./subscriber.js"
+import {
+  Subject,
+  AsyncSubject,
+  BehaviorSubject,
+  ReplaySubject,
+} from "./subject.js"
+import { Subscriber, SafeSubscriber } from "./subscriber.js"
 import { Subscription } from "./subscription.js"
+import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-export interface Operator<T, R> {
-  call(x: Subscriber<R>, src: any): qt.Teardown
+export interface Operator<_, T> {
+  call(x: Subscriber<T>, src: any): qt.Teardown
 }
 
-export const combineAll = combineLatestAll
-
-export function createOperatorSubscriber<T>(
-  destination: Subscriber<any>,
-  onNext?: (value: T) => void,
-  onComplete?: () => void,
-  onError?: (err: any) => void,
-  onFinalize?: () => void
-): Subscriber<T> {
-  return new OperatorSubscriber(
-    destination,
-    onNext,
-    onComplete,
-    onError,
-    onFinalize
-  )
-}
 export class OperatorSubscriber<T> extends Subscriber<T> {
   constructor(
-    destination: Subscriber<any>,
-    onNext?: (value: T) => void,
+    s: Subscriber<any>,
+    onNext?: (x: T) => void,
     onComplete?: () => void,
-    onError?: (err: any) => void,
+    onError?: (x: any) => void,
     private onFinalize?: () => void,
     private shouldUnsubscribe?: () => boolean
   ) {
-    super(destination)
+    super(s)
     this._next = onNext
-      ? function (this: OperatorSubscriber<T>, value: T) {
+      ? function (this: OperatorSubscriber<T>, x: T) {
           try {
-            onNext(value)
-          } catch (err) {
-            destination.error(err)
+            onNext(x)
+          } catch (e) {
+            s.error(e)
           }
         }
       : super._next
     this._error = onError
-      ? function (this: OperatorSubscriber<T>, err: any) {
+      ? function (this: OperatorSubscriber<T>, x: any) {
           try {
-            onError(err)
-          } catch (err) {
-            destination.error(err)
+            onError(x)
+          } catch (e) {
+            s.error(e)
           } finally {
             this.unsubscribe()
           }
@@ -64,15 +50,15 @@ export class OperatorSubscriber<T> extends Subscriber<T> {
       ? function (this: OperatorSubscriber<T>) {
           try {
             onComplete()
-          } catch (err) {
-            destination.error(err)
+          } catch (e) {
+            s.error(e)
           } finally {
             this.unsubscribe()
           }
         }
       : super._complete
   }
-  unsubscribe() {
+  override unsubscribe() {
     if (!this.shouldUnsubscribe || this.shouldUnsubscribe()) {
       const { closed } = this
       super.unsubscribe()
@@ -80,171 +66,186 @@ export class OperatorSubscriber<T> extends Subscriber<T> {
     }
   }
 }
+
+export function operate<T, R>(
+  init: (x: Observable<T>, s: Subscriber<R>) => (() => void) | void
+): qt.OperatorFunction<T, R> {
+  return (o: Observable<T>) => {
+    if (qu.hasLift(o)) {
+      return o.lift(function (this: Subscriber<R>, x: Observable<T>) {
+        try {
+          return init(x, this)
+        } catch (e) {
+          this.error(e)
+        }
+      })
+    }
+    throw new TypeError("Unable to lift unknown Observable type")
+  }
+}
+
 export function audit<T>(
-  durationSelector: (value: T) => qt.ObservableInput<any>
+  duration: (x: T) => qt.ObservableInput<any>
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
-    let hasValue = false
-    let lastValue: T | null = null
-    let durationSubscriber: Subscriber<any> | null = null
+  return operate((src, sub) => {
+    let has = false
+    let last: T | null = null
+    let s: Subscriber<any> | null = null
     let isComplete = false
-    const endDuration = () => {
-      durationSubscriber?.unsubscribe()
-      durationSubscriber = null
-      if (hasValue) {
-        hasValue = false
-        const value = lastValue!
-        lastValue = null
-        subscriber.next(value)
+    const end = () => {
+      s?.unsubscribe()
+      s = null
+      if (has) {
+        has = false
+        const y = last!
+        last = null
+        sub.next(y)
       }
-      isComplete && subscriber.complete()
+      isComplete && sub.complete()
     }
-    const cleanupDuration = () => {
-      durationSubscriber = null
-      isComplete && subscriber.complete()
+    const cleanup = () => {
+      s = null
+      isComplete && sub.complete()
     }
-    source.subscribe(
-      createOperatorSubscriber(
-        subscriber,
-        value => {
-          hasValue = true
-          lastValue = value
-          if (!durationSubscriber) {
-            innerFrom(durationSelector(value)).subscribe(
-              (durationSubscriber = createOperatorSubscriber(
-                subscriber,
-                endDuration,
-                cleanupDuration
-              ))
+    src.subscribe(
+      new OperatorSubscriber(
+        sub,
+        x => {
+          has = true
+          last = x
+          if (!s) {
+            innerFrom(duration(x)).subscribe(
+              (s = new OperatorSubscriber(sub, end, cleanup))
             )
           }
         },
         () => {
           isComplete = true
-          ;(!hasValue || !durationSubscriber || durationSubscriber.closed) &&
-            subscriber.complete()
+          ;(!has || !s || s.closed) && sub.complete()
         }
       )
     )
   })
 }
+
 export function auditTime<T>(
   duration: number,
-  scheduler: qt.Scheduler = AsyncScheduler
+  sched: qt.Scheduler = AsyncScheduler
 ): qt.MonoTypeOperatorFunction<T> {
-  return audit(() => timer(duration, scheduler))
+  return audit(() => timer(duration, sched))
 }
+
 export function buffer<T>(
   closingNotifier: Observable<any>
 ): qt.OperatorFunction<T, T[]> {
-  return qu.operate((source, subscriber) => {
-    let currentBuffer: T[] = []
-    source.subscribe(
-      createOperatorSubscriber(
-        subscriber,
-        value => currentBuffer.push(value),
+  return operate((src, sub) => {
+    let buff: T[] = []
+    src.subscribe(
+      new OperatorSubscriber(
+        sub,
+        x => buff.push(x),
         () => {
-          subscriber.next(currentBuffer)
-          subscriber.complete()
+          sub.next(buff)
+          sub.complete()
         }
       )
     )
     closingNotifier.subscribe(
-      createOperatorSubscriber(
-        subscriber,
+      new OperatorSubscriber(
+        sub,
         () => {
-          const b = currentBuffer
-          currentBuffer = []
-          subscriber.next(b)
+          const b = buff
+          buff = []
+          sub.next(b)
         },
         qu.noop
       )
     )
     return () => {
-      currentBuffer = null!
+      buff = null!
     }
   })
 }
+
 export function bufferCount<T>(
   bufferSize: number,
   startBufferEvery: number | null = null
 ): qt.OperatorFunction<T, T[]> {
   startBufferEvery = startBufferEvery ?? bufferSize
-  return qu.operate((source, subscriber) => {
-    let buffers: T[][] = []
+  return operate((src, sub) => {
+    let buffs: T[][] = []
     let count = 0
-    source.subscribe(
-      createOperatorSubscriber(
-        subscriber,
-        value => {
+    src.subscribe(
+      new OperatorSubscriber(
+        sub,
+        x => {
           let toEmit: T[][] | null = null
-          if (count++ % startBufferEvery! === 0) {
-            buffers.push([])
-          }
-          for (const buffer of buffers) {
-            buffer.push(value)
-            if (bufferSize <= buffer.length) {
+          if (count++ % startBufferEvery! === 0) buffs.push([])
+          for (const b of buffs) {
+            b.push(x)
+            if (bufferSize <= b.length) {
               toEmit = toEmit ?? []
-              toEmit.push(buffer)
+              toEmit.push(b)
             }
           }
           if (toEmit) {
             for (const buffer of toEmit) {
-              qu.arrRemove(buffers, buffer)
-              subscriber.next(buffer)
+              qu.arrRemove(buffs, buffer)
+              sub.next(buffer)
             }
           }
         },
         () => {
-          for (const buffer of buffers) {
-            subscriber.next(buffer)
+          for (const buffer of buffs) {
+            sub.next(buffer)
           }
-          subscriber.complete()
+          sub.complete()
         },
         undefined,
         () => {
-          buffers = null!
+          buffs = null!
         }
       )
     )
   })
 }
+
 export function bufferTime<T>(
   bufferTimeSpan: number,
-  scheduler?: qt.Scheduler
+  sched?: qt.Scheduler
 ): qt.OperatorFunction<T, T[]>
 export function bufferTime<T>(
   bufferTimeSpan: number,
   bufferCreationInterval: number | null | undefined,
-  scheduler?: qt.Scheduler
+  sched?: qt.Scheduler
 ): qt.OperatorFunction<T, T[]>
 export function bufferTime<T>(
   bufferTimeSpan: number,
   bufferCreationInterval: number | null | undefined,
   maxBufferSize: number,
-  scheduler?: qt.Scheduler
+  sched?: qt.Scheduler
 ): qt.OperatorFunction<T, T[]>
 export function bufferTime<T>(
   bufferTimeSpan: number,
   ...xs: any[]
 ): qt.OperatorFunction<T, T[]> {
-  const sched = Scheduler.pop(xs) ?? AsyncScheduler
+  const sched = Scheduler.pop(xs) ?? new AsyncScheduler()
   const bufferCreationInterval = (xs[0] as number) ?? null
   const maxBufferSize = (xs[1] as number) || Infinity
-  return qu.operate((source, subscriber) => {
+  return operate((src, sub) => {
     let bufferRecords: { buffer: T[]; subs: Subscription }[] | null = []
     let restartOnEmit = false
     const emit = (record: { buffer: T[]; subs: Subscription }) => {
       const { buffer, subs } = record
       subs.unsubscribe()
       qu.arrRemove(bufferRecords, record)
-      subscriber.next(buffer)
+      sub.next(buffer)
       restartOnEmit && startBuffer()
     }
     const startBuffer = () => {
       if (bufferRecords) {
         const subs = new Subscription()
-        subscriber.add(subs)
+        sub.add(subs)
         const buffer: T[] = []
         const record = {
           buffer,
@@ -255,13 +256,13 @@ export function bufferTime<T>(
       }
     }
     if (bufferCreationInterval !== null && bufferCreationInterval >= 0) {
-      sched.run(subscriber, startBuffer, bufferCreationInterval, true)
+      sched.run(sub, startBuffer, bufferCreationInterval, true)
     } else {
       restartOnEmit = true
     }
     startBuffer()
-    const bufferTimeSubscriber = createOperatorSubscriber(
-      subscriber,
+    const bufferTimeSubscriber = new OperatorSubscriber(
+      sub,
       (value: T) => {
         const recordsCopy = bufferRecords!.slice()
         for (const record of recordsCopy) {
@@ -272,90 +273,88 @@ export function bufferTime<T>(
       },
       () => {
         while (bufferRecords?.length) {
-          subscriber.next(bufferRecords.shift()!.buffer)
+          sub.next(bufferRecords.shift()!.buffer)
         }
         bufferTimeSubscriber?.unsubscribe()
-        subscriber.complete()
-        subscriber.unsubscribe()
+        sub.complete()
+        sub.unsubscribe()
       },
       undefined,
       () => (bufferRecords = null)
     )
-    source.subscribe(bufferTimeSubscriber)
+    src.subscribe(bufferTimeSubscriber)
   })
 }
+
 export function bufferToggle<T, O>(
   openings: qt.ObservableInput<O>,
-  closingSelector: (value: O) => qt.ObservableInput<any>
+  closingSelector: (x: O) => qt.ObservableInput<any>
 ): qt.OperatorFunction<T, T[]> {
-  return qu.operate((source, subscriber) => {
+  return operate((src, sub) => {
     const buffers: T[][] = []
     innerFrom(openings).subscribe(
-      createOperatorSubscriber(
-        subscriber,
-        openValue => {
+      new OperatorSubscriber(
+        sub,
+        x => {
           const buffer: T[] = []
           buffers.push(buffer)
           const closingSubscription = new Subscription()
           const emitBuffer = () => {
             qu.arrRemove(buffers, buffer)
-            subscriber.next(buffer)
+            sub.next(buffer)
             closingSubscription.unsubscribe()
           }
           closingSubscription.add(
-            innerFrom(closingSelector(openValue)).subscribe(
-              createOperatorSubscriber(subscriber, emitBuffer, qu.noop)
+            innerFrom(closingSelector(x)).subscribe(
+              new OperatorSubscriber(sub, emitBuffer, qu.noop)
             )
           )
         },
         qu.noop
       )
     )
-    source.subscribe(
-      createOperatorSubscriber(
-        subscriber,
-        value => {
+    src.subscribe(
+      new OperatorSubscriber(
+        sub,
+        x => {
           for (const buffer of buffers) {
-            buffer.push(value)
+            buffer.push(x)
           }
         },
         () => {
           while (buffers.length > 0) {
-            subscriber.next(buffers.shift()!)
+            sub.next(buffers.shift()!)
           }
-          subscriber.complete()
+          sub.complete()
         }
       )
     )
   })
 }
+
 export function bufferWhen<T>(
   closingSelector: () => qt.ObservableInput<any>
 ): qt.OperatorFunction<T, T[]> {
-  return qu.operate((source, subscriber) => {
+  return operate((src, sub) => {
     let buffer: T[] | null = null
     let closingSubscriber: Subscriber<T> | null = null
     const openBuffer = () => {
       closingSubscriber?.unsubscribe()
       const b = buffer
       buffer = []
-      b && subscriber.next(b)
+      b && sub.next(b)
       innerFrom(closingSelector()).subscribe(
-        (closingSubscriber = createOperatorSubscriber(
-          subscriber,
-          openBuffer,
-          qu.noop
-        ))
+        (closingSubscriber = new OperatorSubscriber(sub, openBuffer, qu.noop))
       )
     }
     openBuffer()
-    source.subscribe(
-      createOperatorSubscriber(
-        subscriber,
-        value => buffer?.push(value),
+    src.subscribe(
+      new OperatorSubscriber(
+        sub,
+        x => buffer?.push(x),
         () => {
-          buffer && subscriber.next(buffer)
-          subscriber.complete()
+          buffer && sub.next(buffer)
+          sub.complete()
         },
         undefined,
         () => (buffer = closingSubscriber = null!)
@@ -363,23 +362,24 @@ export function bufferWhen<T>(
     )
   })
 }
+
 export function catchError<T, O extends qt.ObservableInput<any>>(
   selector: (err: any, caught: Observable<T>) => O
 ): qt.OperatorFunction<T, T | qt.ObservedValueOf<O>>
 export function catchError<T, O extends qt.ObservableInput<any>>(
   selector: (err: any, caught: Observable<T>) => O
 ): qt.OperatorFunction<T, T | qt.ObservedValueOf<O>> {
-  return qu.operate((source, subscriber) => {
+  return operate((src, sub) => {
     let innerSub: Subscription | null = null
     let syncUnsub = false
     let handledResult: Observable<qt.ObservedValueOf<O>>
-    innerSub = source.subscribe(
-      createOperatorSubscriber(subscriber, undefined, undefined, err => {
-        handledResult = innerFrom(selector(err, catchError(selector)(source)))
+    innerSub = src.subscribe(
+      new OperatorSubscriber(sub, undefined, undefined, err => {
+        handledResult = innerFrom(selector(err, catchError(selector)(src)))
         if (innerSub) {
           innerSub.unsubscribe()
           innerSub = null
-          handledResult.subscribe(subscriber)
+          handledResult.subscribe(sub)
         } else {
           syncUnsub = true
         }
@@ -388,10 +388,11 @@ export function catchError<T, O extends qt.ObservableInput<any>>(
     if (syncUnsub) {
       innerSub.unsubscribe()
       innerSub = null
-      handledResult!.subscribe(subscriber)
+      handledResult!.subscribe(sub)
     }
   })
 }
+
 export function combineLatest<T, A extends readonly unknown[], R>(
   sources: [...qt.ObservableInputTuple<A>],
   project: (...values: [T, ...A]) => R
@@ -417,10 +418,13 @@ export function combineLatest<T, R>(
         combineLatest(...(args as Array<qt.ObservableInput<any>>)),
         qu.mapOneOrManyArgs(resultSelector)
       )
-    : qu.operate((source, subscriber) => {
+    : operate((source, subscriber) => {
         combineLatestInit([source, ...qu.argsOrArgArray(args)])(subscriber)
       })
 }
+
+export const combineAll = combineLatestAll
+
 export function combineLatestAll<T>(): qt.OperatorFunction<
   qt.ObservableInput<T>,
   T[]
@@ -448,7 +452,7 @@ export function concat<T, A extends readonly unknown[]>(
 ): qt.OperatorFunction<T, T | A[number]>
 export function concat<T, R>(...xs: any[]): qt.OperatorFunction<T, R> {
   const sched = Scheduler.pop(xs)
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     concatAll()(from([source, ...xs], sched)).subscribe(subscriber)
   })
 }
@@ -531,7 +535,7 @@ export function connect<T, O extends qt.ObservableInput<unknown>>(
   config: ConnectConfig<T> = DEFAULT_CONFIG
 ): qt.OperatorFunction<T, qt.ObservedValueOf<O>> {
   const { connector } = config
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     const subject = connector()
     innerFrom(selector(fromSubscribable(subject))).subscribe(subscriber)
     subscriber.add(source.subscribe(subject))
@@ -549,32 +553,28 @@ export function count<T>(
 export function debounce<T>(
   durationSelector: (value: T) => qt.ObservableInput<any>
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
-    let hasValue = false
+  return operate((source, subscriber) => {
+    let has = false
     let lastValue: T | null = null
     let durationSubscriber: Subscriber<any> | null = null
     const emit = () => {
       durationSubscriber?.unsubscribe()
       durationSubscriber = null
-      if (hasValue) {
-        hasValue = false
+      if (has) {
+        has = false
         const value = lastValue!
         lastValue = null
         subscriber.next(value)
       }
     }
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         (value: T) => {
           durationSubscriber?.unsubscribe()
-          hasValue = true
+          has = true
           lastValue = value
-          durationSubscriber = createOperatorSubscriber(
-            subscriber,
-            emit,
-            qu.noop
-          )
+          durationSubscriber = new OperatorSubscriber(subscriber, emit, qu.noop)
           innerFrom(durationSelector(value)).subscribe(durationSubscriber)
         },
         () => {
@@ -593,7 +593,7 @@ export function debounceTime<T>(
   dueTime: number,
   scheduler: qt.Scheduler = AsyncScheduler
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let activeTask: Subscription | null = null
     let lastValue: T | null = null
     let lastTime: number | null = null
@@ -617,7 +617,7 @@ export function debounceTime<T>(
       emit()
     }
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         (value: T) => {
           lastValue = value
@@ -639,28 +639,25 @@ export function debounceTime<T>(
     )
   })
 }
-export function defaultIfEmpty<T, R>(
-  defaultValue: R
-): qt.OperatorFunction<T, T | R> {
-  return qu.operate((source, subscriber) => {
-    let hasValue = false
-    source.subscribe(
-      createOperatorSubscriber(
-        subscriber,
-        value => {
-          hasValue = true
-          subscriber.next(value)
+export function defaultIfEmpty<T, R>(v: R): qt.OperatorFunction<T, T | R> {
+  return operate((src, sub) => {
+    let has = false
+    src.subscribe(
+      new OperatorSubscriber(
+        sub,
+        x => {
+          has = true
+          sub.next(x)
         },
         () => {
-          if (!hasValue) {
-            subscriber.next(defaultValue!)
-          }
-          subscriber.complete()
+          if (!has) sub.next(v!)
+          sub.complete()
         }
       )
     )
   })
 }
+
 export function delay<T>(
   due: number | Date,
   scheduler: qt.Scheduler = AsyncScheduler
@@ -693,31 +690,27 @@ export function delayWhen<T>(
 export function dematerialize<
   N extends qt.ObservableNote<any>
 >(): qt.OperatorFunction<N, qt.ValueFromNote<N>> {
-  return qu.operate((source, subscriber) => {
-    source.subscribe(
-      createOperatorSubscriber(subscriber, note =>
-        observeNote(note, subscriber)
-      )
-    )
+  return operate((src, sub) => {
+    src.subscribe(new OperatorSubscriber(sub, x => observeNote(x, sub)))
   })
 }
 export function distinct<T, K>(
   keySelector?: (value: T) => K,
   flushes?: Observable<any>
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((src, sub) => {
     const distinctKeys = new Set()
-    source.subscribe(
-      createOperatorSubscriber(subscriber, value => {
-        const key = keySelector ? keySelector(value) : value
-        if (!distinctKeys.has(key)) {
-          distinctKeys.add(key)
-          subscriber.next(value)
+    src.subscribe(
+      new OperatorSubscriber(sub, x => {
+        const k = keySelector ? keySelector(x) : x
+        if (!distinctKeys.has(k)) {
+          distinctKeys.add(k)
+          sub.next(x)
         }
       })
     )
     flushes?.subscribe(
-      createOperatorSubscriber(subscriber, () => distinctKeys.clear(), qu.noop)
+      new OperatorSubscriber(sub, () => distinctKeys.clear(), qu.noop)
     )
   })
 }
@@ -733,11 +726,11 @@ export function distinctUntilChanged<T, K>(
   keySelector: (value: T) => K = qu.identity as (value: T) => K
 ): qt.MonoTypeOperatorFunction<T> {
   comparator = comparator ?? defaultCompare
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let previousKey: K
     let first = true
     source.subscribe(
-      createOperatorSubscriber(subscriber, value => {
+      new OperatorSubscriber(subscriber, value => {
         const currentKey = keySelector(value)
         if (first || !comparator!(previousKey, currentKey)) {
           first = false
@@ -821,10 +814,10 @@ export function every<T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean,
   thisArg?: any
 ): qt.OperatorFunction<T, boolean> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let index = 0
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => {
           if (!predicate.call(thisArg, value, index++, source)) {
@@ -881,16 +874,16 @@ export function exhaustMap<T, R, O extends qt.ObservableInput<any>>(
         )
       )
   }
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let index = 0
     let innerSub: Subscriber<T> | null = null
     let isComplete = false
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         outerValue => {
           if (!innerSub) {
-            innerSub = createOperatorSubscriber(subscriber, undefined, () => {
+            innerSub = new OperatorSubscriber(subscriber, undefined, () => {
               innerSub = null
               isComplete && subscriber.complete()
             })
@@ -921,7 +914,7 @@ export function expand<T, O extends qt.ObservableInput<unknown>>(
   scheduler?: qt.Scheduler
 ): qt.OperatorFunction<T, qt.ObservedValueOf<O>> {
   concurrent = (concurrent || 0) < 1 ? Infinity : concurrent
-  return qu.operate((source, subscriber) =>
+  return operate((source, subscriber) =>
     mergeInternals(
       source,
       subscriber,
@@ -954,10 +947,10 @@ export function filter<T>(
   predicate: (value: T, index: number) => boolean,
   thisArg?: any
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let index = 0
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value =>
           predicate.call(thisArg, value, index++) && subscriber.next(value)
@@ -968,7 +961,7 @@ export function filter<T>(
 export function finalize<T>(
   callback: () => void
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     try {
       source.subscribe(subscriber)
     } finally {
@@ -1007,7 +1000,7 @@ export function find<T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean,
   thisArg?: any
 ): qt.OperatorFunction<T, T | undefined> {
-  return qu.operate(createFind(predicate, thisArg, "value"))
+  return operate(createFind(predicate, thisArg, "value"))
 }
 export function createFind<T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean,
@@ -1018,7 +1011,7 @@ export function createFind<T>(
   return (source: Observable<T>, subscriber: Subscriber<any>) => {
     let index = 0
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => {
           const i = index++
@@ -1058,7 +1051,7 @@ export function findIndex<T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean,
   thisArg?: any
 ): qt.OperatorFunction<T, number> {
-  return qu.operate(createFind(predicate, thisArg, "index"))
+  return operate(createFind(predicate, thisArg, "index"))
 }
 export function first<T, D = T>(
   predicate?: null,
@@ -1153,7 +1146,7 @@ export function groupBy<T, K, R>(
   duration?: (grouped: GroupedObservable<any, any>) => qt.ObservableInput<any>,
   connector?: () => qt.SubjectLike<any>
 ): qt.OperatorFunction<T, GroupedObservable<K, R>> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let element: ((value: any) => any) | void
     if (!elementOrOptions || typeof elementOrOptions === "function") {
       element = elementOrOptions as (value: any) => any
@@ -1182,7 +1175,7 @@ export function groupBy<T, K, R>(
             const grouped = createGroupedObservable(key, group)
             subscriber.next(grouped)
             if (duration) {
-              const durationSubscriber = createOperatorSubscriber(
+              const durationSubscriber = new OperatorSubscriber(
                 group as any,
                 () => {
                   group!.complete()
@@ -1234,14 +1227,14 @@ export interface GroupedObservable<K, T> extends Observable<T> {
   readonly key: K
 }
 export function ignoreElements(): qt.OperatorFunction<unknown, never> {
-  return qu.operate((source, subscriber) => {
-    source.subscribe(createOperatorSubscriber(subscriber, qu.noop))
+  return operate((source, subscriber) => {
+    source.subscribe(new OperatorSubscriber(subscriber, qu.noop))
   })
 }
 export function isEmpty<T>(): qt.OperatorFunction<T, boolean> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         () => {
           subscriber.next(false)
@@ -1314,10 +1307,10 @@ export function map<T, R>(
   project: (value: T, index: number) => R,
   thisArg?: any
 ): qt.OperatorFunction<T, R> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let index = 0
     source.subscribe(
-      createOperatorSubscriber(subscriber, (value: T) => {
+      new OperatorSubscriber(subscriber, (value: T) => {
         subscriber.next(project.call(thisArg, value, index++))
       })
     )
@@ -1332,9 +1325,9 @@ export function materialize<T>(): qt.OperatorFunction<
   T,
   Note<T> & qt.ObservableNote<T>
 > {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => {
           subscriber.next(Note.createNext(value))
@@ -1380,7 +1373,7 @@ export function merge<T>(...xs: unknown[]): qt.OperatorFunction<T, unknown> {
   const sched = Scheduler.pop(xs)
   const concurrent = qu.popNumber(xs, Infinity)
   xs = qu.argsOrArgArray(xs)
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     mergeAll(concurrent)(
       from([source, ...(xs as qt.ObservableInput<T>[])], sched)
     ).subscribe(subscriber)
@@ -1417,7 +1410,7 @@ export function mergeInternals<T, R>(
     active++
     let innerComplete = false
     innerFrom(project(value, index++)).subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         innerValue => {
           onBeforeNext?.(innerValue)
@@ -1455,7 +1448,7 @@ export function mergeInternals<T, R>(
     )
   }
   source.subscribe(
-    createOperatorSubscriber(subscriber, outerNext, () => {
+    new OperatorSubscriber(subscriber, outerNext, () => {
       isComplete = true
       checkComplete()
     })
@@ -1506,7 +1499,7 @@ export function mergeMap<T, R, O extends qt.ObservableInput<any>>(
   } else if (typeof resultSelector === "number") {
     concurrent = resultSelector
   }
-  return qu.operate((source, subscriber) =>
+  return operate((source, subscriber) =>
     mergeInternals(source, subscriber, project, concurrent)
   )
 }
@@ -1549,7 +1542,7 @@ export function mergeScan<T, R>(
   seed: R,
   concurrent = Infinity
 ): qt.OperatorFunction<T, R> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let state = seed
     return mergeInternals(
       source,
@@ -1584,9 +1577,9 @@ export function observeOn<T>(
   scheduler: qt.Scheduler,
   delay = 0
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => scheduler.run(subscriber, () => subscriber.next(value), delay),
         () => scheduler.run(subscriber, () => subscriber.complete(), delay),
@@ -1609,7 +1602,7 @@ export function onErrorResumeNext<T, A extends readonly unknown[]>(
   const nextSources = qu.argsOrArgArray(
     sources
   ) as unknown as qt.ObservableInputTuple<A>
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     const remaining = [source, ...nextSources]
     const subscribeNext = () => {
       if (!subscriber.closed) {
@@ -1621,7 +1614,7 @@ export function onErrorResumeNext<T, A extends readonly unknown[]>(
             subscribeNext()
             return
           }
-          const innerSub = createOperatorSubscriber(
+          const innerSub = new OperatorSubscriber(
             subscriber,
             undefined,
             qu.noop,
@@ -1638,11 +1631,11 @@ export function onErrorResumeNext<T, A extends readonly unknown[]>(
   })
 }
 export function pairwise<T>(): qt.OperatorFunction<T, [T, T]> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let prev: T
     let hasPrev = false
     source.subscribe(
-      createOperatorSubscriber(subscriber, value => {
+      new OperatorSubscriber(subscriber, value => {
         const p = prev
         prev = value
         hasPrev && subscriber.next([p, value])
@@ -1831,7 +1824,7 @@ export function raceWith<T, A extends readonly unknown[]>(
 ): qt.OperatorFunction<T, T | A[number]> {
   return !otherSources.length
     ? qu.identity
-    : qu.operate((source, subscriber) => {
+    : operate((source, subscriber) => {
         raceInit<T | A[number]>([source, ...otherSources])(subscriber)
       })
 }
@@ -1850,15 +1843,15 @@ export function reduce<V, A>(
   accumulator: (acc: V | A, value: V, index: number) => A,
   seed?: any
 ): qt.OperatorFunction<V, V | A> {
-  return qu.operate(
+  return operate(
     scanInternals(accumulator, seed, arguments.length >= 2, false, true)
   )
 }
 export function refCount<T>(): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let connection: Subscription | null = null
     ;(source as any)._refCount++
-    const refCounter = createOperatorSubscriber(
+    const refCounter = new OperatorSubscriber(
       subscriber,
       undefined,
       undefined,
@@ -1905,7 +1898,7 @@ export function repeat<T>(
   }
   return count <= 0
     ? () => EMPTY
-    : qu.operate((source, subscriber) => {
+    : operate((source, subscriber) => {
         let soFar = 0
         let sourceSub: Subscription | null
         const resubscribe = () => {
@@ -1914,7 +1907,7 @@ export function repeat<T>(
           if (delay != null) {
             const notifier =
               typeof delay === "number" ? timer(delay) : innerFrom(delay(soFar))
-            const notifierSubscriber = createOperatorSubscriber(
+            const notifierSubscriber = new OperatorSubscriber(
               subscriber,
               () => {
                 notifierSubscriber.unsubscribe()
@@ -1929,7 +1922,7 @@ export function repeat<T>(
         const subscribeToSource = () => {
           let syncUnsub = false
           sourceSub = source.subscribe(
-            createOperatorSubscriber(subscriber, undefined, () => {
+            new OperatorSubscriber(subscriber, undefined, () => {
               if (++soFar < count) {
                 if (sourceSub) {
                   resubscribe()
@@ -1951,7 +1944,7 @@ export function repeat<T>(
 export function repeatWhen<T>(
   notifier: (notes: Observable<void>) => Observable<any>
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let innerSub: Subscription | null
     let syncResub = false
     let completions$: Subject<void>
@@ -1963,7 +1956,7 @@ export function repeatWhen<T>(
       if (!completions$) {
         completions$ = new Subject()
         notifier(completions$).subscribe(
-          createOperatorSubscriber(
+          new OperatorSubscriber(
             subscriber,
             () => {
               if (innerSub) {
@@ -1984,7 +1977,7 @@ export function repeatWhen<T>(
     const subscribeForRepeatWhen = () => {
       isMainComplete = false
       innerSub = source.subscribe(
-        createOperatorSubscriber(subscriber, undefined, () => {
+        new OperatorSubscriber(subscriber, undefined, () => {
           isMainComplete = true
           !checkComplete() && getCompletionSubject().next()
         })
@@ -2024,13 +2017,13 @@ export function retry<T>(
   } = config
   return count <= 0
     ? qu.identity
-    : qu.operate((source, subscriber) => {
+    : operate((source, subscriber) => {
         let soFar = 0
         let innerSub: Subscription | null
         const subscribeForRetry = () => {
           let syncUnsub = false
           innerSub = source.subscribe(
-            createOperatorSubscriber(
+            new OperatorSubscriber(
               subscriber,
               value => {
                 if (resetOnSuccess) {
@@ -2055,7 +2048,7 @@ export function retry<T>(
                       typeof delay === "number"
                         ? timer(delay)
                         : innerFrom(delay(err, soFar))
-                    const notifierSubscriber = createOperatorSubscriber(
+                    const notifierSubscriber = new OperatorSubscriber(
                       subscriber,
                       () => {
                         notifierSubscriber.unsubscribe()
@@ -2087,17 +2080,17 @@ export function retry<T>(
 export function retryWhen<T>(
   notifier: (errors: Observable<any>) => Observable<any>
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let innerSub: Subscription | null
     let syncResub = false
     let errors$: Subject<any>
     const subscribeForRetryWhen = () => {
       innerSub = source.subscribe(
-        createOperatorSubscriber(subscriber, undefined, undefined, err => {
+        new OperatorSubscriber(subscriber, undefined, undefined, err => {
           if (!errors$) {
             errors$ = new Subject()
             notifier(errors$).subscribe(
-              createOperatorSubscriber(subscriber, () =>
+              new OperatorSubscriber(subscriber, () =>
                 innerSub ? subscribeForRetryWhen() : (syncResub = true)
               )
             )
@@ -2120,21 +2113,21 @@ export function retryWhen<T>(
 export function sample<T>(
   notifier: Observable<any>
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
-    let hasValue = false
+  return operate((source, subscriber) => {
+    let has = false
     let lastValue: T | null = null
     source.subscribe(
-      createOperatorSubscriber(subscriber, value => {
-        hasValue = true
+      new OperatorSubscriber(subscriber, value => {
+        has = true
         lastValue = value
       })
     )
     notifier.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         () => {
-          if (hasValue) {
-            hasValue = false
+          if (has) {
+            has = false
             const value = lastValue!
             lastValue = null
             subscriber.next(value)
@@ -2166,7 +2159,7 @@ export function scan<V, A, S>(
   accumulator: (acc: V | A | S, value: V, index: number) => A,
   seed?: S
 ): qt.OperatorFunction<V, V | A> {
-  return qu.operate(
+  return operate(
     scanInternals(accumulator, seed as S, arguments.length >= 2, true)
   )
 }
@@ -2182,7 +2175,7 @@ export function scanInternals<V, A, S>(
     let state: any = seed
     let index = 0
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => {
           const i = index++
@@ -2204,7 +2197,7 @@ export function sequenceEqual<T>(
   compareTo: Observable<T>,
   comparator: (a: T, b: T) => boolean = (a, b) => a === b
 ): qt.OperatorFunction<T, boolean> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     const aState = createState<T>()
     const bState = createState<T>()
     const emit = (isEqual: boolean) => {
@@ -2215,7 +2208,7 @@ export function sequenceEqual<T>(
       selfState: SequenceState<T>,
       otherState: SequenceState<T>
     ) => {
-      const sequenceEqualSubscriber = createOperatorSubscriber(
+      const sequenceEqualSubscriber = new OperatorSubscriber(
         subscriber,
         (a: T) => {
           const { buffer, complete } = otherState
@@ -2392,25 +2385,25 @@ export function single<T>(
 export function single<T>(
   predicate?: (value: T, index: number, source: Observable<T>) => boolean
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
-    let hasValue = false
+  return operate((source, subscriber) => {
+    let has = false
     let singleValue: T
     let seenValue = false
     let index = 0
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => {
           seenValue = true
           if (!predicate || predicate(value, index++, source)) {
-            hasValue &&
+            has &&
               subscriber.error(new qu.SequenceError("Too many matching values"))
-            hasValue = true
+            has = true
             singleValue = value
           }
         },
         () => {
-          if (hasValue) {
+          if (has) {
             subscriber.next(singleValue)
             subscriber.complete()
           } else {
@@ -2431,11 +2424,11 @@ export function skip<T>(count: number): qt.MonoTypeOperatorFunction<T> {
 export function skipLast<T>(skipCount: number): qt.MonoTypeOperatorFunction<T> {
   return skipCount <= 0
     ? qu.identity
-    : qu.operate((source, subscriber) => {
+    : operate((source, subscriber) => {
         let ring: T[] = new Array(skipCount)
         let seen = 0
         source.subscribe(
-          createOperatorSubscriber(subscriber, value => {
+          new OperatorSubscriber(subscriber, value => {
             const valueIndex = seen++
             if (valueIndex < skipCount) {
               ring[valueIndex] = value
@@ -2455,9 +2448,9 @@ export function skipLast<T>(skipCount: number): qt.MonoTypeOperatorFunction<T> {
 export function skipUntil<T>(
   notifier: Observable<any>
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let taking = false
-    const skipSubscriber = createOperatorSubscriber(
+    const skipSubscriber = new OperatorSubscriber(
       subscriber,
       () => {
         skipSubscriber?.unsubscribe()
@@ -2467,7 +2460,7 @@ export function skipUntil<T>(
     )
     innerFrom(notifier).subscribe(skipSubscriber)
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => taking && subscriber.next(value)
       )
@@ -2486,11 +2479,11 @@ export function skipWhile<T>(
 export function skipWhile<T>(
   predicate: (value: T, index: number) => boolean
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let taking = false
     let index = 0
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value =>
           (taking || (taking = !predicate(value, index++))) &&
@@ -2511,7 +2504,7 @@ export function startWith<T, A extends readonly unknown[] = T[]>(
 ): qt.OperatorFunction<T, T | qt.ValueFromArray<A>>
 export function startWith<T, D>(...xs: D[]): qt.OperatorFunction<T, T | D> {
   const sched = Scheduler.pop(xs)
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     ;(sched ? concat(xs, source, sched) : concat(xs, source)).subscribe(
       subscriber
     )
@@ -2521,7 +2514,7 @@ export function subscribeOn<T>(
   scheduler: qt.Scheduler,
   delay = 0
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     subscriber.add(
       scheduler.schedule(() => source.subscribe(subscriber), delay)
     )
@@ -2557,21 +2550,21 @@ export function switchMap<T, R, O extends qt.ObservableInput<any>>(
     innerIndex: number
   ) => R
 ): qt.OperatorFunction<T, qt.ObservedValueOf<O> | R> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let innerSubscriber: Subscriber<qt.ObservedValueOf<O>> | null = null
     let index = 0
     let isComplete = false
     const checkComplete = () =>
       isComplete && !innerSubscriber && subscriber.complete()
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => {
           innerSubscriber?.unsubscribe()
           let innerIndex = 0
           const outerIndex = index++
           innerFrom(project(value, outerIndex)).subscribe(
-            (innerSubscriber = createOperatorSubscriber(
+            (innerSubscriber = new OperatorSubscriber(
               subscriber,
               innerValue =>
                 subscriber.next(
@@ -2632,7 +2625,7 @@ export function switchScan<T, R, O extends qt.ObservableInput<any>>(
   accumulator: (acc: R, value: T, index: number) => O,
   seed: R
 ): qt.OperatorFunction<T, qt.ObservedValueOf<O>> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let state = seed
     switchMap(
       (value: T, index) => accumulator(state, value, index),
@@ -2646,10 +2639,10 @@ export function switchScan<T, R, O extends qt.ObservableInput<any>>(
 export function take<T>(count: number): qt.MonoTypeOperatorFunction<T> {
   return count <= 0
     ? () => EMPTY
-    : qu.operate((source, subscriber) => {
+    : operate((source, subscriber) => {
         let seen = 0
         source.subscribe(
-          createOperatorSubscriber(subscriber, value => {
+          new OperatorSubscriber(subscriber, value => {
             if (++seen <= count) {
               subscriber.next(value)
               if (count <= seen) {
@@ -2663,10 +2656,10 @@ export function take<T>(count: number): qt.MonoTypeOperatorFunction<T> {
 export function takeLast<T>(count: number): qt.MonoTypeOperatorFunction<T> {
   return count <= 0
     ? () => EMPTY
-    : qu.operate((source, subscriber) => {
+    : operate((source, subscriber) => {
         let buffer: T[] = []
         source.subscribe(
-          createOperatorSubscriber(
+          new OperatorSubscriber(
             subscriber,
             value => {
               buffer.push(value)
@@ -2689,9 +2682,9 @@ export function takeLast<T>(count: number): qt.MonoTypeOperatorFunction<T> {
 export function takeUntil<T>(
   notifier: qt.ObservableInput<any>
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     innerFrom(notifier).subscribe(
-      createOperatorSubscriber(subscriber, () => subscriber.complete(), qu.noop)
+      new OperatorSubscriber(subscriber, () => subscriber.complete(), qu.noop)
     )
     !subscriber.closed && source.subscribe(subscriber)
   })
@@ -2722,10 +2715,10 @@ export function takeWhile<T>(
   predicate: (value: T, index: number) => boolean,
   inclusive = false
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let index = 0
     source.subscribe(
-      createOperatorSubscriber(subscriber, value => {
+      new OperatorSubscriber(subscriber, value => {
         const result = predicate(value, index++)
         ;(result || inclusive) && subscriber.next(value)
         !result && subscriber.complete()
@@ -2764,11 +2757,11 @@ export function tap<T>(
         } as Partial<TapObserver<T>>)
       : observerOrNext
   return tapObserver
-    ? qu.operate((source, subscriber) => {
+    ? operate((source, subscriber) => {
         tapObserver.subscribe?.()
         let isUnsub = true
         source.subscribe(
-          createOperatorSubscriber(
+          new OperatorSubscriber(
             subscriber,
             value => {
               tapObserver.next?.(value)
@@ -2807,9 +2800,9 @@ export function throttle<T>(
   durationSelector: (value: T) => qt.ObservableInput<any>,
   config: ThrottleConfig = defaultThrottleConfig
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     const { leading, trailing } = config
-    let hasValue = false
+    let has = false
     let sendValue: T | null = null
     let throttled: Subscription | null = null
     let isComplete = false
@@ -2827,11 +2820,11 @@ export function throttle<T>(
     }
     const startThrottle = (value: T) =>
       (throttled = innerFrom(durationSelector(value)).subscribe(
-        createOperatorSubscriber(subscriber, endThrottling, cleanupThrottling)
+        new OperatorSubscriber(subscriber, endThrottling, cleanupThrottling)
       ))
     const send = () => {
-      if (hasValue) {
-        hasValue = false
+      if (has) {
+        has = false
         const value = sendValue!
         sendValue = null
         subscriber.next(value)
@@ -2839,17 +2832,17 @@ export function throttle<T>(
       }
     }
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => {
-          hasValue = true
+          has = true
           sendValue = value
           !(throttled && !throttled.closed) &&
             (leading ? send() : startThrottle(value))
         },
         () => {
           isComplete = true
-          !(trailing && hasValue && throttled && !throttled.closed) &&
+          !(trailing && has && throttled && !throttled.closed) &&
             subscriber.complete()
         }
       )
@@ -2867,17 +2860,16 @@ export function throttleTime<T>(
 export function throwIfEmpty<T>(
   errorFactory: () => any = defaultErrorFactory
 ): qt.MonoTypeOperatorFunction<T> {
-  return qu.operate((source, subscriber) => {
-    let hasValue = false
+  return operate((source, subscriber) => {
+    let has = false
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => {
-          hasValue = true
+          has = true
           subscriber.next(value)
         },
-        () =>
-          hasValue ? subscriber.complete() : subscriber.error(errorFactory())
+        () => (has ? subscriber.complete() : subscriber.error(errorFactory()))
       )
     )
   })
@@ -2888,10 +2880,10 @@ function defaultErrorFactory() {
 export function timeInterval<T>(
   scheduler: qt.Scheduler = AsyncScheduler
 ): qt.OperatorFunction<T, TimeInterval<T>> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let last = scheduler.now()
     source.subscribe(
-      createOperatorSubscriber(subscriber, value => {
+      new OperatorSubscriber(subscriber, value => {
         const now = scheduler.now()
         const interval = now - last
         last = now
@@ -2968,7 +2960,7 @@ export function timeout<T, O extends qt.ObservableInput<any>, M>(
   if (first == null && each == null) {
     throw new TypeError("No timeout provided.")
   }
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let originalSourceSubscription: Subscription
     let timerSubscription: Subscription
     let lastValue: T | null = null
@@ -2994,7 +2986,7 @@ export function timeout<T, O extends qt.ObservableInput<any>, M>(
       )
     }
     originalSourceSubscription = source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         (value: T) => {
           timerSubscription?.unsubscribe()
@@ -3043,7 +3035,7 @@ export function timeoutWith<T, R>(
   let first: number | Date | undefined
   let each: number | undefined
   let _with: () => qt.ObservableInput<R>
-  scheduler = scheduler ?? async
+  scheduler = scheduler ?? new AsyncScheduler()
   if (qu.isValidDate(due)) {
     first = due
   } else if (typeof due === "number") {
@@ -3071,14 +3063,14 @@ export function timestamp<T>(
 }
 const arrReducer = (arr: any[], value: any) => (arr.push(value), arr)
 export function toArray<T>(): qt.OperatorFunction<T, T[]> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     reduce(arrReducer, [] as T[])(source).subscribe(subscriber)
   })
 }
 export function window<T>(
   windowBoundaries: Observable<any>
 ): qt.OperatorFunction<T, Observable<T>> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let windowSubject: Subject<T> = new Subject<T>()
     subscriber.next(windowSubject.asObservable())
     const errorHandler = (err: any) => {
@@ -3086,7 +3078,7 @@ export function window<T>(
       subscriber.error(err)
     }
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => windowSubject?.next(value),
         () => {
@@ -3097,7 +3089,7 @@ export function window<T>(
       )
     )
     windowBoundaries.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         () => {
           windowSubject.complete()
@@ -3118,13 +3110,13 @@ export function windowCount<T>(
   startWindowEvery = 0
 ): qt.OperatorFunction<T, Observable<T>> {
   const startEvery = startWindowEvery > 0 ? startWindowEvery : windowSize
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let windows = [new Subject<T>()]
     let starts: number[] = []
     let count = 0
     subscriber.next(windows[0].asObservable())
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         (value: T) => {
           for (const window of windows) {
@@ -3182,7 +3174,7 @@ export function windowTime<T>(
   const sched = Scheduler.pop(xs) ?? AsyncScheduler
   const windowCreationInterval = (xs[0] as number) ?? null
   const maxWindowSize = (xs[1] as number) || Infinity
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let windowRecords: WindowRecord<T>[] | null = []
     let restartOnClose = false
     const closeWindow = (record: {
@@ -3224,7 +3216,7 @@ export function windowTime<T>(
       subscriber.unsubscribe()
     }
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         (value: T) => {
           loop(record => {
@@ -3250,7 +3242,7 @@ export function windowToggle<T, O>(
   openings: qt.ObservableInput<O>,
   closingSelector: (openValue: O) => qt.ObservableInput<any>
 ): qt.OperatorFunction<T, Observable<T>> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     const windows: Subject<T>[] = []
     const handleError = (err: any) => {
       while (0 < windows.length) {
@@ -3259,7 +3251,7 @@ export function windowToggle<T, O>(
       subscriber.error(err)
     }
     innerFrom(openings).subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         openValue => {
           const window = new Subject<T>()
@@ -3280,7 +3272,7 @@ export function windowToggle<T, O>(
           subscriber.next(window.asObservable())
           closingSubscription.add(
             closingNotifier.subscribe(
-              createOperatorSubscriber(
+              new OperatorSubscriber(
                 subscriber,
                 closeWindow,
                 qu.noop,
@@ -3293,7 +3285,7 @@ export function windowToggle<T, O>(
       )
     )
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         (value: T) => {
           const windowsCopy = windows.slice()
@@ -3320,7 +3312,7 @@ export function windowToggle<T, O>(
 export function windowWhen<T>(
   closingSelector: () => qt.ObservableInput<any>
 ): qt.OperatorFunction<T, Observable<T>> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     let window: Subject<T> | null
     let closingSubscriber: Subscriber<any> | undefined
     const handleError = (err: any) => {
@@ -3340,7 +3332,7 @@ export function windowWhen<T>(
         return
       }
       closingNotifier.subscribe(
-        (closingSubscriber = createOperatorSubscriber(
+        (closingSubscriber = new OperatorSubscriber(
           subscriber,
           openWindow,
           openWindow,
@@ -3350,7 +3342,7 @@ export function windowWhen<T>(
     }
     openWindow()
     source.subscribe(
-      createOperatorSubscriber(
+      new OperatorSubscriber(
         subscriber,
         value => window!.next(value),
         () => {
@@ -3378,20 +3370,20 @@ export function withLatestFrom<T, R>(
   const project = qu.popResultSelector(inputs) as
     | ((...args: any[]) => R)
     | undefined
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     const len = inputs.length
     const otherValues = new Array(len)
-    let hasValue = inputs.map(() => false)
+    let has = inputs.map(() => false)
     let ready = false
     for (let i = 0; i < len; i++) {
       innerFrom(inputs[i]).subscribe(
-        createOperatorSubscriber(
+        new OperatorSubscriber(
           subscriber,
           value => {
             otherValues[i] = value
-            if (!ready && !hasValue[i]) {
-              hasValue[i] = true
-              ;(ready = hasValue.every(qu.identity)) && (hasValue = null!)
+            if (!ready && !has[i]) {
+              has[i] = true
+              ;(ready = has.every(qu.identity)) && (has = null!)
             }
           },
           qu.noop
@@ -3399,7 +3391,7 @@ export function withLatestFrom<T, R>(
       )
     }
     source.subscribe(
-      createOperatorSubscriber(subscriber, value => {
+      new OperatorSubscriber(subscriber, value => {
         if (ready) {
           const values = [value, ...otherValues]
           subscriber.next(project ? project(...values) : values)
@@ -3427,7 +3419,7 @@ export function zip<T, A extends readonly unknown[], R>(
 export function zip<T, R>(
   ...sources: Array<qt.ObservableInput<any> | ((...values: Array<any>) => R)>
 ): qt.OperatorFunction<T, any> {
-  return qu.operate((source, subscriber) => {
+  return operate((source, subscriber) => {
     zipStatic(
       source as qt.ObservableInput<any>,
       ...(sources as Array<qt.ObservableInput<any>>)

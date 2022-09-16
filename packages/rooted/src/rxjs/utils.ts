@@ -1,4 +1,4 @@
-import { map } from "./operators.js"
+import { map } from "./operator.js"
 import { Observable } from "./observable.js"
 import type * as qt from "./types.js"
 import { Subscriber, SafeSubscriber } from "./subscriber.js"
@@ -315,28 +315,6 @@ export function hasLift(
   x: any
 ): x is { lift: InstanceType<typeof Observable>["lift"] } {
   return isFunction(x?.lift)
-}
-export function operate<T, R>(
-  init: (
-    liftedSource: Observable<T>,
-    subscriber: Subscriber<R>
-  ) => (() => void) | void
-): qt.OperatorFunction<T, R> {
-  return (source: Observable<T>) => {
-    if (hasLift(source)) {
-      return source.lift(function (
-        this: Subscriber<R>,
-        liftedSource: Observable<T>
-      ) {
-        try {
-          return init(liftedSource, this)
-        } catch (err) {
-          this.error(err)
-        }
-      })
-    }
-    throw new TypeError("Unable to lift unknown Observable type")
-  }
 }
 const { isArray } = Array
 function callOrApply<T, R>(fn: (...values: T[]) => R, args: T | T[]): R {

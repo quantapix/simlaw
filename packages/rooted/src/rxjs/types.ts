@@ -65,6 +65,7 @@ export interface UnaryFunction<T, R> {
 }
 export interface OperatorFunction<T, R>
   extends UnaryFunction<Observable<T>, Observable<R>> {}
+
 export interface MonoTypeOperatorFunction<T> extends OperatorFunction<T, T> {}
 
 export interface NextNote<T> {
