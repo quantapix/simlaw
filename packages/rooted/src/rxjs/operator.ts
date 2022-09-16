@@ -69,7 +69,7 @@ export class OperatorSubscriber<T> extends Subscriber<T> {
 
 export function operate<T, R>(
   init: (x: Observable<T>, s: Subscriber<R>) => (() => void) | void
-): qt.OperatorFunction<T, R> {
+): qt.OpFun<T, R> {
   return (o: Observable<T>) => {
     if (qu.hasLift(o)) {
       return o.lift(function (this: Subscriber<R>, x: Observable<T>) {
@@ -86,7 +86,7 @@ export function operate<T, R>(
 
 export function audit<T>(
   duration: (x: T) => qt.ObservableInput<any>
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((src, sub) => {
     let has = false
     let last: T | null = null
@@ -129,40 +129,38 @@ export function audit<T>(
 }
 
 export function auditTime<T>(
-  duration: number,
-  sched: qt.Scheduler = AsyncScheduler
-): qt.MonoTypeOperatorFunction<T> {
-  return audit(() => timer(duration, sched))
+  x: number,
+  sched: qt.Scheduler = new AsyncScheduler()
+): qt.MonoTypeFun<T> {
+  return audit(() => timer(x, sched))
 }
 
-export function buffer<T>(
-  closingNotifier: Observable<any>
-): qt.OperatorFunction<T, T[]> {
+export function buffer<T>(o: Observable<any>): qt.OpFun<T, T[]> {
   return operate((src, sub) => {
-    let buff: T[] = []
+    let xs: T[] = []
     src.subscribe(
       new OperatorSubscriber(
         sub,
-        x => buff.push(x),
+        x => xs.push(x),
         () => {
-          sub.next(buff)
+          sub.next(xs)
           sub.complete()
         }
       )
     )
-    closingNotifier.subscribe(
+    o.subscribe(
       new OperatorSubscriber(
         sub,
         () => {
-          const b = buff
-          buff = []
-          sub.next(b)
+          const xs2 = xs
+          xs = []
+          sub.next(xs2)
         },
         qu.noop
       )
     )
     return () => {
-      buff = null!
+      xs = null!
     }
   })
 }
@@ -170,7 +168,7 @@ export function buffer<T>(
 export function bufferCount<T>(
   bufferSize: number,
   startBufferEvery: number | null = null
-): qt.OperatorFunction<T, T[]> {
+): qt.OpFun<T, T[]> {
   startBufferEvery = startBufferEvery ?? bufferSize
   return operate((src, sub) => {
     let buffs: T[][] = []
@@ -213,22 +211,22 @@ export function bufferCount<T>(
 export function bufferTime<T>(
   bufferTimeSpan: number,
   sched?: qt.Scheduler
-): qt.OperatorFunction<T, T[]>
+): qt.OpFun<T, T[]>
 export function bufferTime<T>(
   bufferTimeSpan: number,
   bufferCreationInterval: number | null | undefined,
   sched?: qt.Scheduler
-): qt.OperatorFunction<T, T[]>
+): qt.OpFun<T, T[]>
 export function bufferTime<T>(
   bufferTimeSpan: number,
   bufferCreationInterval: number | null | undefined,
   maxBufferSize: number,
   sched?: qt.Scheduler
-): qt.OperatorFunction<T, T[]>
+): qt.OpFun<T, T[]>
 export function bufferTime<T>(
   bufferTimeSpan: number,
   ...xs: any[]
-): qt.OperatorFunction<T, T[]> {
+): qt.OpFun<T, T[]> {
   const sched = Scheduler.pop(xs) ?? new AsyncScheduler()
   const bufferCreationInterval = (xs[0] as number) ?? null
   const maxBufferSize = (xs[1] as number) || Infinity
@@ -289,7 +287,7 @@ export function bufferTime<T>(
 export function bufferToggle<T, O>(
   openings: qt.ObservableInput<O>,
   closingSelector: (x: O) => qt.ObservableInput<any>
-): qt.OperatorFunction<T, T[]> {
+): qt.OpFun<T, T[]> {
   return operate((src, sub) => {
     const buffers: T[][] = []
     innerFrom(openings).subscribe(
@@ -334,7 +332,7 @@ export function bufferToggle<T, O>(
 
 export function bufferWhen<T>(
   closingSelector: () => qt.ObservableInput<any>
-): qt.OperatorFunction<T, T[]> {
+): qt.OpFun<T, T[]> {
   return operate((src, sub) => {
     let buffer: T[] | null = null
     let closingSubscriber: Subscriber<T> | null = null
@@ -365,10 +363,10 @@ export function bufferWhen<T>(
 
 export function catchError<T, O extends qt.ObservableInput<any>>(
   selector: (err: any, caught: Observable<T>) => O
-): qt.OperatorFunction<T, T | qt.ObservedValueOf<O>>
+): qt.OpFun<T, T | qt.ObservedValueOf<O>>
 export function catchError<T, O extends qt.ObservableInput<any>>(
   selector: (err: any, caught: Observable<T>) => O
-): qt.OperatorFunction<T, T | qt.ObservedValueOf<O>> {
+): qt.OpFun<T, T | qt.ObservedValueOf<O>> {
   return operate((src, sub) => {
     let innerSub: Subscription | null = null
     let syncUnsub = false
@@ -396,22 +394,22 @@ export function catchError<T, O extends qt.ObservableInput<any>>(
 export function combineLatest<T, A extends readonly unknown[], R>(
   sources: [...qt.ObservableInputTuple<A>],
   project: (...values: [T, ...A]) => R
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function combineLatest<T, A extends readonly unknown[], R>(
   sources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, [T, ...A]>
+): qt.OpFun<T, [T, ...A]>
 export function combineLatest<T, A extends readonly unknown[], R>(
   ...sourcesAndProject: [
     ...qt.ObservableInputTuple<A>,
     (...values: [T, ...A]) => R
   ]
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function combineLatest<T, A extends readonly unknown[], R>(
   ...sources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, [T, ...A]>
+): qt.OpFun<T, [T, ...A]>
 export function combineLatest<T, R>(
   ...args: (qt.ObservableInput<any> | ((...values: any[]) => R))[]
-): qt.OperatorFunction<T, unknown> {
+): qt.OpFun<T, unknown> {
   const resultSelector = qu.popResultSelector(args)
   return resultSelector
     ? qu.pipe(
@@ -425,49 +423,47 @@ export function combineLatest<T, R>(
 
 export const combineAll = combineLatestAll
 
-export function combineLatestAll<T>(): qt.OperatorFunction<
-  qt.ObservableInput<T>,
-  T[]
->
-export function combineLatestAll<T>(): qt.OperatorFunction<any, T[]>
+export function combineLatestAll<T>(): qt.OpFun<qt.ObservableInput<T>, T[]>
+export function combineLatestAll<T>(): qt.OpFun<any, T[]>
 export function combineLatestAll<T, R>(
   project: (...values: T[]) => R
-): qt.OperatorFunction<qt.ObservableInput<T>, R>
+): qt.OpFun<qt.ObservableInput<T>, R>
 export function combineLatestAll<R>(
   project: (...values: Array<any>) => R
-): qt.OperatorFunction<any, R>
+): qt.OpFun<any, R>
 export function combineLatestAll<R>(project?: (...values: Array<any>) => R) {
   return joinAllInternals(combineLatest, project)
 }
 export function combineLatestWith<T, A extends readonly unknown[]>(
   ...otherSources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, qt.Cons<T, A>> {
+): qt.OpFun<T, qt.Cons<T, A>> {
   return combineLatest(...otherSources)
 }
 export function concat<T, A extends readonly unknown[]>(
   ...sources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, T | A[number]>
+): qt.OpFun<T, T | A[number]>
 export function concat<T, A extends readonly unknown[]>(
   ...sourcesAndScheduler: [...qt.ObservableInputTuple<A>, qt.Scheduler]
-): qt.OperatorFunction<T, T | A[number]>
-export function concat<T, R>(...xs: any[]): qt.OperatorFunction<T, R> {
+): qt.OpFun<T, T | A[number]>
+export function concat<T, R>(...xs: any[]): qt.OpFun<T, R> {
   const sched = Scheduler.pop(xs)
   return operate((source, subscriber) => {
     concatAll()(from([source, ...xs], sched)).subscribe(subscriber)
   })
 }
-export function concatAll<
-  O extends qt.ObservableInput<any>
->(): qt.OperatorFunction<O, qt.ObservedValueOf<O>> {
+export function concatAll<O extends qt.ObservableInput<any>>(): qt.OpFun<
+  O,
+  qt.ObservedValueOf<O>
+> {
   return mergeAll(1)
 }
 export function concatMap<T, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function concatMap<T, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: undefined
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function concatMap<T, R, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: (
@@ -476,7 +472,7 @@ export function concatMap<T, R, O extends qt.ObservableInput<any>>(
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function concatMap<T, R, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector?: (
@@ -485,18 +481,18 @@ export function concatMap<T, R, O extends qt.ObservableInput<any>>(
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OperatorFunction<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
   return qu.isFunction(resultSelector)
     ? mergeMap(project, resultSelector, 1)
     : mergeMap(project, 1)
 }
 export function concatMapTo<O extends qt.ObservableInput<unknown>>(
   observable: O
-): qt.OperatorFunction<unknown, qt.ObservedValueOf<O>>
+): qt.OpFun<unknown, qt.ObservedValueOf<O>>
 export function concatMapTo<O extends qt.ObservableInput<unknown>>(
   observable: O,
   resultSelector: undefined
-): qt.OperatorFunction<unknown, qt.ObservedValueOf<O>>
+): qt.OpFun<unknown, qt.ObservedValueOf<O>>
 export function concatMapTo<T, R, O extends qt.ObservableInput<unknown>>(
   observable: O,
   resultSelector: (
@@ -505,7 +501,7 @@ export function concatMapTo<T, R, O extends qt.ObservableInput<unknown>>(
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function concatMapTo<T, R, O extends qt.ObservableInput<unknown>>(
   innerObservable: O,
   resultSelector?: (
@@ -514,14 +510,14 @@ export function concatMapTo<T, R, O extends qt.ObservableInput<unknown>>(
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OperatorFunction<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
   return qu.isFunction(resultSelector)
     ? concatMap(() => innerObservable, resultSelector)
     : concatMap(() => innerObservable)
 }
 export function concatWith<T, A extends readonly unknown[]>(
   ...otherSources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, T | A[number]> {
+): qt.OpFun<T, T | A[number]> {
   return concat(...otherSources)
 }
 export interface ConnectConfig<T> {
@@ -533,7 +529,7 @@ const DEFAULT_CONFIG: ConnectConfig<unknown> = {
 export function connect<T, O extends qt.ObservableInput<unknown>>(
   selector: (shared: Observable<T>) => O,
   config: ConnectConfig<T> = DEFAULT_CONFIG
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>> {
+): qt.OpFun<T, qt.ObservedValueOf<O>> {
   const { connector } = config
   return operate((source, subscriber) => {
     const subject = connector()
@@ -543,7 +539,7 @@ export function connect<T, O extends qt.ObservableInput<unknown>>(
 }
 export function count<T>(
   predicate?: (value: T, index: number) => boolean
-): qt.OperatorFunction<T, number> {
+): qt.OpFun<T, number> {
   return reduce(
     (total, value, i) =>
       !predicate || predicate(value, i) ? total + 1 : total,
@@ -552,7 +548,7 @@ export function count<T>(
 }
 export function debounce<T>(
   durationSelector: (value: T) => qt.ObservableInput<any>
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let has = false
     let lastValue: T | null = null
@@ -592,7 +588,7 @@ export function debounce<T>(
 export function debounceTime<T>(
   dueTime: number,
   scheduler: qt.Scheduler = AsyncScheduler
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let activeTask: Subscription | null = null
     let lastValue: T | null = null
@@ -639,7 +635,7 @@ export function debounceTime<T>(
     )
   })
 }
-export function defaultIfEmpty<T, R>(v: R): qt.OperatorFunction<T, T | R> {
+export function defaultIfEmpty<T, R>(v: R): qt.OpFun<T, T | R> {
   return operate((src, sub) => {
     let has = false
     src.subscribe(
@@ -661,21 +657,21 @@ export function defaultIfEmpty<T, R>(v: R): qt.OperatorFunction<T, T | R> {
 export function delay<T>(
   due: number | Date,
   scheduler: qt.Scheduler = AsyncScheduler
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   const duration = timer(due, scheduler)
   return delayWhen(() => duration)
 }
 export function delayWhen<T>(
   delayDurationSelector: (value: T, index: number) => Observable<any>,
   subscriptionDelay: Observable<any>
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function delayWhen<T>(
   delayDurationSelector: (value: T, index: number) => Observable<any>
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function delayWhen<T>(
   delayDurationSelector: (value: T, index: number) => Observable<any>,
   subscriptionDelay?: Observable<any>
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   if (subscriptionDelay) {
     return (source: Observable<T>) =>
       concat(
@@ -687,9 +683,10 @@ export function delayWhen<T>(
     delayDurationSelector(value, index).pipe(take(1), mapTo(value))
   )
 }
-export function dematerialize<
-  N extends qt.ObservableNote<any>
->(): qt.OperatorFunction<N, qt.ValueFromNote<N>> {
+export function dematerialize<N extends qt.ObservableNote<any>>(): qt.OpFun<
+  N,
+  qt.ValueFromNote<N>
+> {
   return operate((src, sub) => {
     src.subscribe(new OperatorSubscriber(sub, x => observeNote(x, sub)))
   })
@@ -697,7 +694,7 @@ export function dematerialize<
 export function distinct<T, K>(
   keySelector?: (value: T) => K,
   flushes?: Observable<any>
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((src, sub) => {
     const distinctKeys = new Set()
     src.subscribe(
@@ -716,15 +713,15 @@ export function distinct<T, K>(
 }
 export function distinctUntilChanged<T>(
   comparator?: (previous: T, current: T) => boolean
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function distinctUntilChanged<T, K>(
   comparator: (previous: K, current: K) => boolean,
   keySelector: (value: T) => K
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function distinctUntilChanged<T, K>(
   comparator?: (previous: K, current: K) => boolean,
   keySelector: (value: T) => K = qu.identity as (value: T) => K
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   comparator = comparator ?? defaultCompare
   return operate((source, subscriber) => {
     let previousKey: K
@@ -744,17 +741,15 @@ export function distinctUntilChanged<T, K>(
 function defaultCompare(a: any, b: any) {
   return a === b
 }
-export function distinctUntilKeyChanged<T>(
-  key: keyof T
-): qt.MonoTypeOperatorFunction<T>
+export function distinctUntilKeyChanged<T>(key: keyof T): qt.MonoTypeFun<T>
 export function distinctUntilKeyChanged<T, K extends keyof T>(
   key: K,
   compare: (x: T[K], y: T[K]) => boolean
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function distinctUntilKeyChanged<T, K extends keyof T>(
   key: K,
   compare?: (x: T[K], y: T[K]) => boolean
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return distinctUntilChanged((x: T, y: T) =>
     compare ? compare(x[key], y[key]) : x[key] === y[key]
   )
@@ -762,7 +757,7 @@ export function distinctUntilKeyChanged<T, K extends keyof T>(
 export function elementAt<T, D = T>(
   index: number,
   defaultValue?: D
-): qt.OperatorFunction<T, T | D> {
+): qt.OpFun<T, T | D> {
   if (index < 0) {
     throw new qu.ArgumentOutOfRangeError()
   }
@@ -776,28 +771,26 @@ export function elementAt<T, D = T>(
         : throwIfEmpty(() => new qu.ArgumentOutOfRangeError())
     )
 }
-export function endWith<T>(
-  scheduler: qt.Scheduler
-): qt.MonoTypeOperatorFunction<T>
+export function endWith<T>(scheduler: qt.Scheduler): qt.MonoTypeFun<T>
 export function endWith<T, A extends unknown[] = T[]>(
   ...valuesAndScheduler: [...A, qt.Scheduler]
-): qt.OperatorFunction<T, T | qt.ValueFromArray<A>>
+): qt.OpFun<T, T | qt.ValueFromArray<A>>
 export function endWith<T, A extends unknown[] = T[]>(
   ...values: A
-): qt.OperatorFunction<T, T | qt.ValueFromArray<A>>
+): qt.OpFun<T, T | qt.ValueFromArray<A>>
 export function endWith<T>(
   ...values: Array<T | qt.Scheduler>
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return (source: Observable<T>) =>
     concat(source, of(...values)) as Observable<T>
 }
 export function every<T>(
   predicate: BooleanConstructor
-): qt.OperatorFunction<T, Exclude<T, qt.Falsy> extends never ? false : boolean>
+): qt.OpFun<T, Exclude<T, qt.Falsy> extends never ? false : boolean>
 export function every<T>(
   predicate: BooleanConstructor,
   thisArg: any
-): qt.OperatorFunction<T, Exclude<T, qt.Falsy> extends never ? false : boolean>
+): qt.OpFun<T, Exclude<T, qt.Falsy> extends never ? false : boolean>
 export function every<T, A>(
   predicate: (
     this: A,
@@ -806,14 +799,14 @@ export function every<T, A>(
     source: Observable<T>
   ) => boolean,
   thisArg: A
-): qt.OperatorFunction<T, boolean>
+): qt.OpFun<T, boolean>
 export function every<T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean
-): qt.OperatorFunction<T, boolean>
+): qt.OpFun<T, boolean>
 export function every<T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean,
   thisArg?: any
-): qt.OperatorFunction<T, boolean> {
+): qt.OpFun<T, boolean> {
   return operate((source, subscriber) => {
     let index = 0
     source.subscribe(
@@ -834,18 +827,19 @@ export function every<T>(
   })
 }
 export const exhaust = exhaustAll
-export function exhaustAll<
-  O extends qt.ObservableInput<any>
->(): qt.OperatorFunction<O, qt.ObservedValueOf<O>> {
+export function exhaustAll<O extends qt.ObservableInput<any>>(): qt.OpFun<
+  O,
+  qt.ObservedValueOf<O>
+> {
   return exhaustMap(qu.identity)
 }
 export function exhaustMap<T, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function exhaustMap<T, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: undefined
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function exhaustMap<T, I, R>(
   project: (value: T, index: number) => qt.ObservableInput<I>,
   resultSelector: (
@@ -854,7 +848,7 @@ export function exhaustMap<T, I, R>(
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function exhaustMap<T, R, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector?: (
@@ -863,7 +857,7 @@ export function exhaustMap<T, R, O extends qt.ObservableInput<any>>(
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OperatorFunction<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
   if (resultSelector) {
     return (source: Observable<T>) =>
       source.pipe(
@@ -902,17 +896,17 @@ export function expand<T, O extends qt.ObservableInput<unknown>>(
   project: (value: T, index: number) => O,
   concurrent?: number,
   scheduler?: qt.Scheduler
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function expand<T, O extends qt.ObservableInput<unknown>>(
   project: (value: T, index: number) => O,
   concurrent: number | undefined,
   scheduler: qt.Scheduler
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function expand<T, O extends qt.ObservableInput<unknown>>(
   project: (value: T, index: number) => O,
   concurrent = Infinity,
   scheduler?: qt.Scheduler
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>> {
+): qt.OpFun<T, qt.ObservedValueOf<O>> {
   concurrent = (concurrent || 0) < 1 ? Infinity : concurrent
   return operate((source, subscriber) =>
     mergeInternals(
@@ -929,24 +923,24 @@ export function expand<T, O extends qt.ObservableInput<unknown>>(
 export function filter<T, S extends T, A>(
   predicate: (this: A, value: T, index: number) => value is S,
   thisArg: A
-): qt.OperatorFunction<T, S>
+): qt.OpFun<T, S>
 export function filter<T, S extends T>(
   predicate: (value: T, index: number) => value is S
-): qt.OperatorFunction<T, S>
+): qt.OpFun<T, S>
 export function filter<T>(
   predicate: BooleanConstructor
-): qt.OperatorFunction<T, qt.TruthyTypesOf<T>>
+): qt.OpFun<T, qt.TruthyTypesOf<T>>
 export function filter<T, A>(
   predicate: (this: A, value: T, index: number) => boolean,
   thisArg: A
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function filter<T>(
   predicate: (value: T, index: number) => boolean
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function filter<T>(
   predicate: (value: T, index: number) => boolean,
   thisArg?: any
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let index = 0
     source.subscribe(
@@ -958,9 +952,7 @@ export function filter<T>(
     )
   })
 }
-export function finalize<T>(
-  callback: () => void
-): qt.MonoTypeOperatorFunction<T> {
+export function finalize<T>(callback: () => void): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     try {
       source.subscribe(subscriber)
@@ -971,7 +963,7 @@ export function finalize<T>(
 }
 export function find<T>(
   predicate: BooleanConstructor
-): qt.OperatorFunction<T, qt.TruthyTypesOf<T>>
+): qt.OpFun<T, qt.TruthyTypesOf<T>>
 export function find<T, S extends T, A>(
   predicate: (
     this: A,
@@ -980,10 +972,10 @@ export function find<T, S extends T, A>(
     source: Observable<T>
   ) => value is S,
   thisArg: A
-): qt.OperatorFunction<T, S | undefined>
+): qt.OpFun<T, S | undefined>
 export function find<T, S extends T>(
   predicate: (value: T, index: number, source: Observable<T>) => value is S
-): qt.OperatorFunction<T, S | undefined>
+): qt.OpFun<T, S | undefined>
 export function find<T, A>(
   predicate: (
     this: A,
@@ -992,14 +984,14 @@ export function find<T, A>(
     source: Observable<T>
   ) => boolean,
   thisArg: A
-): qt.OperatorFunction<T, T | undefined>
+): qt.OpFun<T, T | undefined>
 export function find<T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean
-): qt.OperatorFunction<T, T | undefined>
+): qt.OpFun<T, T | undefined>
 export function find<T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean,
   thisArg?: any
-): qt.OperatorFunction<T, T | undefined> {
+): qt.OpFun<T, T | undefined> {
   return operate(createFind(predicate, thisArg, "value"))
 }
 export function createFind<T>(
@@ -1030,11 +1022,11 @@ export function createFind<T>(
 }
 export function findIndex<T>(
   predicate: BooleanConstructor
-): qt.OperatorFunction<T, T extends qt.Falsy ? -1 : number>
+): qt.OpFun<T, T extends qt.Falsy ? -1 : number>
 export function findIndex<T>(
   predicate: BooleanConstructor,
   thisArg: any
-): qt.OperatorFunction<T, T extends qt.Falsy ? -1 : number>
+): qt.OpFun<T, T extends qt.Falsy ? -1 : number>
 export function findIndex<T, A>(
   predicate: (
     this: A,
@@ -1043,45 +1035,45 @@ export function findIndex<T, A>(
     source: Observable<T>
   ) => boolean,
   thisArg: A
-): qt.OperatorFunction<T, number>
+): qt.OpFun<T, number>
 export function findIndex<T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean
-): qt.OperatorFunction<T, number>
+): qt.OpFun<T, number>
 export function findIndex<T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean,
   thisArg?: any
-): qt.OperatorFunction<T, number> {
+): qt.OpFun<T, number> {
   return operate(createFind(predicate, thisArg, "index"))
 }
 export function first<T, D = T>(
   predicate?: null,
   defaultValue?: D
-): qt.OperatorFunction<T, T | D>
+): qt.OpFun<T, T | D>
 export function first<T>(
   predicate: BooleanConstructor
-): qt.OperatorFunction<T, qt.TruthyTypesOf<T>>
+): qt.OpFun<T, qt.TruthyTypesOf<T>>
 export function first<T, D>(
   predicate: BooleanConstructor,
   defaultValue: D
-): qt.OperatorFunction<T, qt.TruthyTypesOf<T> | D>
+): qt.OpFun<T, qt.TruthyTypesOf<T> | D>
 export function first<T, S extends T>(
   predicate: (value: T, index: number, source: Observable<T>) => value is S,
   defaultValue?: S
-): qt.OperatorFunction<T, S>
+): qt.OpFun<T, S>
 export function first<T, S extends T, D>(
   predicate: (value: T, index: number, source: Observable<T>) => value is S,
   defaultValue: D
-): qt.OperatorFunction<T, S | D>
+): qt.OpFun<T, S | D>
 export function first<T, D = T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean,
   defaultValue?: D
-): qt.OperatorFunction<T, T | D>
+): qt.OpFun<T, T | D>
 export function first<T, D>(
   predicate?:
     | ((value: T, index: number, source: Observable<T>) => boolean)
     | null,
   defaultValue?: D
-): qt.OperatorFunction<T, T | D> {
+): qt.OpFun<T, T | D> {
   const hasDefaultValue = arguments.length >= 2
   return (source: Observable<T>) =>
     source.pipe(
@@ -1106,36 +1098,36 @@ export interface GroupByOptionsWithElement<K, E, T> {
 export function groupBy<T, K>(
   key: (value: T) => K,
   options: BasicGroupByOptions<K, T>
-): qt.OperatorFunction<T, GroupedObservable<K, T>>
+): qt.OpFun<T, GroupedObservable<K, T>>
 export function groupBy<T, K, E>(
   key: (value: T) => K,
   options: GroupByOptionsWithElement<K, E, T>
-): qt.OperatorFunction<T, GroupedObservable<K, E>>
+): qt.OpFun<T, GroupedObservable<K, E>>
 export function groupBy<T, K extends T>(
   key: (value: T) => value is K
-): qt.OperatorFunction<
+): qt.OpFun<
   T,
   GroupedObservable<true, K> | GroupedObservable<false, Exclude<T, K>>
 >
 export function groupBy<T, K>(
   key: (value: T) => K
-): qt.OperatorFunction<T, GroupedObservable<K, T>>
+): qt.OpFun<T, GroupedObservable<K, T>>
 export function groupBy<T, K>(
   key: (value: T) => K,
   element: void,
   duration: (grouped: GroupedObservable<K, T>) => Observable<any>
-): qt.OperatorFunction<T, GroupedObservable<K, T>>
+): qt.OpFun<T, GroupedObservable<K, T>>
 export function groupBy<T, K, R>(
   key: (value: T) => K,
   element?: (value: T) => R,
   duration?: (grouped: GroupedObservable<K, R>) => Observable<any>
-): qt.OperatorFunction<T, GroupedObservable<K, R>>
+): qt.OpFun<T, GroupedObservable<K, R>>
 export function groupBy<T, K, R>(
   key: (value: T) => K,
   element?: (value: T) => R,
   duration?: (grouped: GroupedObservable<K, R>) => Observable<any>,
   connector?: () => Subject<R>
-): qt.OperatorFunction<T, GroupedObservable<K, R>>
+): qt.OpFun<T, GroupedObservable<K, R>>
 export function groupBy<T, K, R>(
   keySelector: (value: T) => K,
   elementOrOptions?:
@@ -1145,7 +1137,7 @@ export function groupBy<T, K, R>(
     | GroupByOptionsWithElement<K, R, T>,
   duration?: (grouped: GroupedObservable<any, any>) => qt.ObservableInput<any>,
   connector?: () => qt.SubjectLike<any>
-): qt.OperatorFunction<T, GroupedObservable<K, R>> {
+): qt.OpFun<T, GroupedObservable<K, R>> {
   return operate((source, subscriber) => {
     let element: ((value: any) => any) | void
     if (!elementOrOptions || typeof elementOrOptions === "function") {
@@ -1226,12 +1218,12 @@ export function groupBy<T, K, R>(
 export interface GroupedObservable<K, T> extends Observable<T> {
   readonly key: K
 }
-export function ignoreElements(): qt.OperatorFunction<unknown, never> {
+export function ignoreElements(): qt.OpFun<unknown, never> {
   return operate((source, subscriber) => {
     source.subscribe(new OperatorSubscriber(subscriber, qu.noop))
   })
 }
-export function isEmpty<T>(): qt.OperatorFunction<T, boolean> {
+export function isEmpty<T>(): qt.OpFun<T, boolean> {
   return operate((source, subscriber) => {
     source.subscribe(
       new OperatorSubscriber(
@@ -1253,39 +1245,36 @@ export function joinAllInternals<T, R>(
   project?: (...args: any[]) => R
 ) {
   return qu.pipe(
-    toArray() as qt.OperatorFunction<
-      qt.ObservableInput<T>,
-      qt.ObservableInput<T>[]
-    >,
+    toArray() as qt.OpFun<qt.ObservableInput<T>, qt.ObservableInput<T>[]>,
     mergeMap(sources => joinFn(sources)),
     project ? qu.mapOneOrManyArgs(project) : (qu.identity as any)
   )
 }
 export function last<T>(
   predicate: BooleanConstructor
-): qt.OperatorFunction<T, qt.TruthyTypesOf<T>>
+): qt.OpFun<T, qt.TruthyTypesOf<T>>
 export function last<T, D>(
   predicate: BooleanConstructor,
   defaultValue: D
-): qt.OperatorFunction<T, qt.TruthyTypesOf<T> | D>
+): qt.OpFun<T, qt.TruthyTypesOf<T> | D>
 export function last<T, D = T>(
   predicate?: null,
   defaultValue?: D
-): qt.OperatorFunction<T, T | D>
+): qt.OpFun<T, T | D>
 export function last<T, S extends T>(
   predicate: (value: T, index: number, source: Observable<T>) => value is S,
   defaultValue?: S
-): qt.OperatorFunction<T, S>
+): qt.OpFun<T, S>
 export function last<T, D = T>(
   predicate: (value: T, index: number, source: Observable<T>) => boolean,
   defaultValue?: D
-): qt.OperatorFunction<T, T | D>
+): qt.OpFun<T, T | D>
 export function last<T, D>(
   predicate?:
     | ((value: T, index: number, source: Observable<T>) => boolean)
     | null,
   defaultValue?: D
-): qt.OperatorFunction<T, T | D> {
+): qt.OpFun<T, T | D> {
   const hasDefaultValue = arguments.length >= 2
   return (source: Observable<T>) =>
     source.pipe(
@@ -1298,15 +1287,15 @@ export function last<T, D>(
 }
 export function map<T, R>(
   project: (value: T, index: number) => R
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function map<T, R, A>(
   project: (this: A, value: T, index: number) => R,
   thisArg: A
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function map<T, R>(
   project: (value: T, index: number) => R,
   thisArg?: any
-): qt.OperatorFunction<T, R> {
+): qt.OpFun<T, R> {
   return operate((source, subscriber) => {
     let index = 0
     source.subscribe(
@@ -1316,15 +1305,12 @@ export function map<T, R>(
     )
   })
 }
-export function mapTo<R>(value: R): qt.OperatorFunction<unknown, R>
-export function mapTo<T, R>(value: R): qt.OperatorFunction<T, R>
-export function mapTo<R>(value: R): qt.OperatorFunction<unknown, R> {
+export function mapTo<R>(value: R): qt.OpFun<unknown, R>
+export function mapTo<T, R>(value: R): qt.OpFun<T, R>
+export function mapTo<R>(value: R): qt.OpFun<unknown, R> {
   return map(() => value)
 }
-export function materialize<T>(): qt.OperatorFunction<
-  T,
-  Note<T> & qt.ObservableNote<T>
-> {
+export function materialize<T>(): qt.OpFun<T, Note<T> & qt.ObservableNote<T>> {
   return operate((source, subscriber) => {
     source.subscribe(
       new OperatorSubscriber(
@@ -1344,9 +1330,7 @@ export function materialize<T>(): qt.OperatorFunction<
     )
   })
 }
-export function max<T>(
-  comparer?: (x: T, y: T) => number
-): qt.MonoTypeOperatorFunction<T> {
+export function max<T>(comparer?: (x: T, y: T) => number): qt.MonoTypeFun<T> {
   return reduce(
     qu.isFunction(comparer)
       ? (x, y) => (comparer(x, y) > 0 ? x : y)
@@ -1355,21 +1339,21 @@ export function max<T>(
 }
 export function merge<T, A extends readonly unknown[]>(
   ...sources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, T | A[number]>
+): qt.OpFun<T, T | A[number]>
 export function merge<T, A extends readonly unknown[]>(
   ...sourcesAndConcurrency: [...qt.ObservableInputTuple<A>, number]
-): qt.OperatorFunction<T, T | A[number]>
+): qt.OpFun<T, T | A[number]>
 export function merge<T, A extends readonly unknown[]>(
   ...sourcesAndScheduler: [...qt.ObservableInputTuple<A>, qt.Scheduler]
-): qt.OperatorFunction<T, T | A[number]>
+): qt.OpFun<T, T | A[number]>
 export function merge<T, A extends readonly unknown[]>(
   ...sourcesAndConcurrencyAndScheduler: [
     ...qt.ObservableInputTuple<A>,
     number,
     qt.Scheduler
   ]
-): qt.OperatorFunction<T, T | A[number]>
-export function merge<T>(...xs: unknown[]): qt.OperatorFunction<T, unknown> {
+): qt.OpFun<T, T | A[number]>
+export function merge<T>(...xs: unknown[]): qt.OpFun<T, unknown> {
   const sched = Scheduler.pop(xs)
   const concurrent = qu.popNumber(xs, Infinity)
   xs = qu.argsOrArgArray(xs)
@@ -1381,7 +1365,7 @@ export function merge<T>(...xs: unknown[]): qt.OperatorFunction<T, unknown> {
 }
 export function mergeAll<O extends qt.ObservableInput<any>>(
   concurrent: number = Infinity
-): qt.OperatorFunction<O, qt.ObservedValueOf<O>> {
+): qt.OpFun<O, qt.ObservedValueOf<O>> {
   return mergeMap(qu.identity, concurrent)
 }
 export function mergeInternals<T, R>(
@@ -1460,12 +1444,12 @@ export function mergeInternals<T, R>(
 export function mergeMap<T, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   concurrent?: number
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function mergeMap<T, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: undefined,
   concurrent?: number
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function mergeMap<T, R, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: (
@@ -1475,7 +1459,7 @@ export function mergeMap<T, R, O extends qt.ObservableInput<any>>(
     innerIndex: number
   ) => R,
   concurrent?: number
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function mergeMap<T, R, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector?:
@@ -1487,7 +1471,7 @@ export function mergeMap<T, R, O extends qt.ObservableInput<any>>(
       ) => R)
     | number,
   concurrent: number = Infinity
-): qt.OperatorFunction<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
   if (qu.isFunction(resultSelector)) {
     return mergeMap(
       (a, i) =>
@@ -1506,7 +1490,7 @@ export function mergeMap<T, R, O extends qt.ObservableInput<any>>(
 export function mergeMapTo<O extends qt.ObservableInput<unknown>>(
   innerObservable: O,
   concurrent?: number
-): qt.OperatorFunction<unknown, qt.ObservedValueOf<O>>
+): qt.OpFun<unknown, qt.ObservedValueOf<O>>
 export function mergeMapTo<T, R, O extends qt.ObservableInput<unknown>>(
   innerObservable: O,
   resultSelector: (
@@ -1516,7 +1500,7 @@ export function mergeMapTo<T, R, O extends qt.ObservableInput<unknown>>(
     innerIndex: number
   ) => R,
   concurrent?: number
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function mergeMapTo<T, R, O extends qt.ObservableInput<unknown>>(
   innerObservable: O,
   resultSelector?:
@@ -1528,7 +1512,7 @@ export function mergeMapTo<T, R, O extends qt.ObservableInput<unknown>>(
       ) => R)
     | number,
   concurrent: number = Infinity
-): qt.OperatorFunction<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
   if (qu.isFunction(resultSelector)) {
     return mergeMap(() => innerObservable, resultSelector, concurrent)
   }
@@ -1541,7 +1525,7 @@ export function mergeScan<T, R>(
   accumulator: (acc: R, value: T, index: number) => qt.ObservableInput<R>,
   seed: R,
   concurrent = Infinity
-): qt.OperatorFunction<T, R> {
+): qt.OpFun<T, R> {
   return operate((source, subscriber) => {
     let state = seed
     return mergeInternals(
@@ -1560,12 +1544,10 @@ export function mergeScan<T, R>(
 }
 export function mergeWith<T, A extends readonly unknown[]>(
   ...otherSources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, T | A[number]> {
+): qt.OpFun<T, T | A[number]> {
   return merge(...otherSources)
 }
-export function min<T>(
-  comparer?: (x: T, y: T) => number
-): qt.MonoTypeOperatorFunction<T> {
+export function min<T>(comparer?: (x: T, y: T) => number): qt.MonoTypeFun<T> {
   return reduce(
     qu.isFunction(comparer)
       ? (x, y) => (comparer(x, y) < 0 ? x : y)
@@ -1576,7 +1558,7 @@ export function min<T>(
 export function observeOn<T>(
   scheduler: qt.Scheduler,
   delay = 0
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     source.subscribe(
       new OperatorSubscriber(
@@ -1590,15 +1572,15 @@ export function observeOn<T>(
 }
 export function onErrorResumeNext<T, A extends readonly unknown[]>(
   sources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, T | A[number]>
+): qt.OpFun<T, T | A[number]>
 export function onErrorResumeNext<T, A extends readonly unknown[]>(
   ...sources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, T | A[number]>
+): qt.OpFun<T, T | A[number]>
 export function onErrorResumeNext<T, A extends readonly unknown[]>(
   ...sources:
     | [[...qt.ObservableInputTuple<A>]]
     | [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, T | A[number]> {
+): qt.OpFun<T, T | A[number]> {
   const nextSources = qu.argsOrArgArray(
     sources
   ) as unknown as qt.ObservableInputTuple<A>
@@ -1630,7 +1612,7 @@ export function onErrorResumeNext<T, A extends readonly unknown[]>(
     subscribeNext()
   })
 }
-export function pairwise<T>(): qt.OperatorFunction<T, [T, T]> {
+export function pairwise<T>(): qt.OpFun<T, [T, T]> {
   return operate((source, subscriber) => {
     let prev: T
     let hasPrev = false
@@ -1647,33 +1629,31 @@ export function pairwise<T>(): qt.OperatorFunction<T, [T, T]> {
 export function partition<T>(
   predicate: (value: T, index: number) => boolean,
   thisArg?: any
-): qt.UnaryFunction<Observable<T>, [Observable<T>, Observable<T>]> {
+): qt.UnaryFun<Observable<T>, [Observable<T>, Observable<T>]> {
   return (source: Observable<T>) =>
     [
       filter(predicate, thisArg)(source),
       filter(qu.not(predicate, thisArg))(source),
     ] as [Observable<T>, Observable<T>]
 }
-export function pluck<T, K1 extends keyof T>(
-  k1: K1
-): qt.OperatorFunction<T, T[K1]>
+export function pluck<T, K1 extends keyof T>(k1: K1): qt.OpFun<T, T[K1]>
 export function pluck<T, K1 extends keyof T, K2 extends keyof T[K1]>(
   k1: K1,
   k2: K2
-): qt.OperatorFunction<T, T[K1][K2]>
+): qt.OpFun<T, T[K1][K2]>
 export function pluck<
   T,
   K1 extends keyof T,
   K2 extends keyof T[K1],
   K3 extends keyof T[K1][K2]
->(k1: K1, k2: K2, k3: K3): qt.OperatorFunction<T, T[K1][K2][K3]>
+>(k1: K1, k2: K2, k3: K3): qt.OpFun<T, T[K1][K2][K3]>
 export function pluck<
   T,
   K1 extends keyof T,
   K2 extends keyof T[K1],
   K3 extends keyof T[K1][K2],
   K4 extends keyof T[K1][K2][K3]
->(k1: K1, k2: K2, k3: K3, k4: K4): qt.OperatorFunction<T, T[K1][K2][K3][K4]>
+>(k1: K1, k2: K2, k3: K3, k4: K4): qt.OpFun<T, T[K1][K2][K3][K4]>
 export function pluck<
   T,
   K1 extends keyof T,
@@ -1681,13 +1661,7 @@ export function pluck<
   K3 extends keyof T[K1][K2],
   K4 extends keyof T[K1][K2][K3],
   K5 extends keyof T[K1][K2][K3][K4]
->(
-  k1: K1,
-  k2: K2,
-  k3: K3,
-  k4: K4,
-  k5: K5
-): qt.OperatorFunction<T, T[K1][K2][K3][K4][K5]>
+>(k1: K1, k2: K2, k3: K3, k4: K4, k5: K5): qt.OpFun<T, T[K1][K2][K3][K4][K5]>
 export function pluck<
   T,
   K1 extends keyof T,
@@ -1703,7 +1677,7 @@ export function pluck<
   k4: K4,
   k5: K5,
   k6: K6
-): qt.OperatorFunction<T, T[K1][K2][K3][K4][K5][K6]>
+): qt.OpFun<T, T[K1][K2][K3][K4][K5][K6]>
 export function pluck<
   T,
   K1 extends keyof T,
@@ -1720,13 +1694,11 @@ export function pluck<
   k5: K5,
   k6: K6,
   ...rest: string[]
-): qt.OperatorFunction<T, unknown>
-export function pluck<T>(
-  ...properties: string[]
-): qt.OperatorFunction<T, unknown>
+): qt.OpFun<T, unknown>
+export function pluck<T>(...properties: string[]): qt.OpFun<T, unknown>
 export function pluck<T, R>(
   ...properties: Array<string | number | symbol>
-): qt.OperatorFunction<T, R> {
+): qt.OpFun<T, R> {
   const length = properties.length
   if (length === 0) {
     throw new Error("list of properties cannot be empty.")
@@ -1744,29 +1716,29 @@ export function pluck<T, R>(
     return currentProp
   })
 }
-export function publish<T>(): qt.UnaryFunction<
+export function publish<T>(): qt.UnaryFun<
   Observable<T>,
   ConnectableObservable<T>
 >
 export function publish<T, O extends qt.ObservableInput<any>>(
   selector: (shared: Observable<T>) => O
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function publish<T, R>(
-  selector?: qt.OperatorFunction<T, R>
-): qt.MonoTypeOperatorFunction<T> | qt.OperatorFunction<T, R> {
+  selector?: qt.OpFun<T, R>
+): qt.MonoTypeFun<T> | qt.OpFun<T, R> {
   return selector
     ? source => connect(selector)(source)
     : source => multicast(new Subject<T>())(source)
 }
 export function publishBehavior<T>(
   initialValue: T
-): qt.UnaryFunction<Observable<T>, ConnectableObservable<T>> {
+): qt.UnaryFun<Observable<T>, ConnectableObservable<T>> {
   return source => {
     const subject = new BehaviorSubject<T>(initialValue)
     return new ConnectableObservable(source, () => subject)
   }
 }
-export function publishLast<T>(): qt.UnaryFunction<
+export function publishLast<T>(): qt.UnaryFun<
   Observable<T>,
   ConnectableObservable<T>
 > {
@@ -1779,23 +1751,23 @@ export function publishReplay<T>(
   bufferSize?: number,
   windowTime?: number,
   timestampProvider?: qt.TimestampProvider
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function publishReplay<T, O extends qt.ObservableInput<any>>(
   bufferSize: number | undefined,
   windowTime: number | undefined,
   selector: (shared: Observable<T>) => O,
   timestampProvider?: qt.TimestampProvider
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function publishReplay<T, O extends qt.ObservableInput<any>>(
   bufferSize: number | undefined,
   windowTime: number | undefined,
   selector: undefined,
   timestampProvider: qt.TimestampProvider
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function publishReplay<T, R>(
   bufferSize?: number,
   windowTime?: number,
-  selectorOrScheduler?: qt.TimestampProvider | qt.OperatorFunction<T, R>,
+  selectorOrScheduler?: qt.TimestampProvider | qt.OpFun<T, R>,
   timestampProvider?: qt.TimestampProvider
 ) {
   if (selectorOrScheduler && !qu.isFunction(selectorOrScheduler)) {
@@ -1812,16 +1784,16 @@ export function publishReplay<T, R>(
 }
 export function race<T, A extends readonly unknown[]>(
   otherSources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, T | A[number]>
+): qt.OpFun<T, T | A[number]>
 export function race<T, A extends readonly unknown[]>(
   ...otherSources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, T | A[number]>
-export function race<T>(...args: any[]): qt.OperatorFunction<T, unknown> {
+): qt.OpFun<T, T | A[number]>
+export function race<T>(...args: any[]): qt.OpFun<T, unknown> {
   return raceWith(...qu.argsOrArgArray(args))
 }
 export function raceWith<T, A extends readonly unknown[]>(
   ...otherSources: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, T | A[number]> {
+): qt.OpFun<T, T | A[number]> {
   return !otherSources.length
     ? qu.identity
     : operate((source, subscriber) => {
@@ -1830,24 +1802,24 @@ export function raceWith<T, A extends readonly unknown[]>(
 }
 export function reduce<V, A = V>(
   accumulator: (acc: A | V, value: V, index: number) => A
-): qt.OperatorFunction<V, V | A>
+): qt.OpFun<V, V | A>
 export function reduce<V, A>(
   accumulator: (acc: A, value: V, index: number) => A,
   seed: A
-): qt.OperatorFunction<V, A>
+): qt.OpFun<V, A>
 export function reduce<V, A, S = A>(
   accumulator: (acc: A | S, value: V, index: number) => A,
   seed: S
-): qt.OperatorFunction<V, A>
+): qt.OpFun<V, A>
 export function reduce<V, A>(
   accumulator: (acc: V | A, value: V, index: number) => A,
   seed?: any
-): qt.OperatorFunction<V, V | A> {
+): qt.OpFun<V, V | A> {
   return operate(
     scanInternals(accumulator, seed, arguments.length >= 2, false, true)
   )
 }
-export function refCount<T>(): qt.MonoTypeOperatorFunction<T> {
+export function refCount<T>(): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let connection: Subscription | null = null
     ;(source as any)._refCount++
@@ -1886,7 +1858,7 @@ export interface RepeatConfig {
 }
 export function repeat<T>(
   countOrConfig?: number | RepeatConfig
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   let count = Infinity
   let delay: RepeatConfig["delay"]
   if (countOrConfig != null) {
@@ -1943,7 +1915,7 @@ export function repeat<T>(
 }
 export function repeatWhen<T>(
   notifier: (notes: Observable<void>) => Observable<any>
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let innerSub: Subscription | null
     let syncResub = false
@@ -1997,11 +1969,11 @@ export interface RetryConfig {
   delay?: number | ((error: any, retryCount: number) => qt.ObservableInput<any>)
   resetOnSuccess?: boolean
 }
-export function retry<T>(count?: number): qt.MonoTypeOperatorFunction<T>
-export function retry<T>(config: RetryConfig): qt.MonoTypeOperatorFunction<T>
+export function retry<T>(count?: number): qt.MonoTypeFun<T>
+export function retry<T>(config: RetryConfig): qt.MonoTypeFun<T>
 export function retry<T>(
   configOrCount: number | RetryConfig = Infinity
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   let config: RetryConfig
   if (configOrCount && typeof configOrCount === "object") {
     config = configOrCount
@@ -2079,7 +2051,7 @@ export function retry<T>(
 }
 export function retryWhen<T>(
   notifier: (errors: Observable<any>) => Observable<any>
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let innerSub: Subscription | null
     let syncResub = false
@@ -2110,9 +2082,7 @@ export function retryWhen<T>(
     subscribeForRetryWhen()
   })
 }
-export function sample<T>(
-  notifier: Observable<any>
-): qt.MonoTypeOperatorFunction<T> {
+export function sample<T>(notifier: Observable<any>): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let has = false
     let lastValue: T | null = null
@@ -2141,24 +2111,24 @@ export function sample<T>(
 export function sampleTime<T>(
   period: number,
   scheduler: qt.Scheduler = AsyncScheduler
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return sample(interval(period, scheduler))
 }
 export function scan<V, A = V>(
   accumulator: (acc: A | V, value: V, index: number) => A
-): qt.OperatorFunction<V, V | A>
+): qt.OpFun<V, V | A>
 export function scan<V, A>(
   accumulator: (acc: A, value: V, index: number) => A,
   seed: A
-): qt.OperatorFunction<V, A>
+): qt.OpFun<V, A>
 export function scan<V, A, S>(
   accumulator: (acc: A | S, value: V, index: number) => A,
   seed: S
-): qt.OperatorFunction<V, A>
+): qt.OpFun<V, A>
 export function scan<V, A, S>(
   accumulator: (acc: V | A | S, value: V, index: number) => A,
   seed?: S
-): qt.OperatorFunction<V, V | A> {
+): qt.OpFun<V, V | A> {
   return operate(
     scanInternals(accumulator, seed as S, arguments.length >= 2, true)
   )
@@ -2196,7 +2166,7 @@ export function scanInternals<V, A, S>(
 export function sequenceEqual<T>(
   compareTo: Observable<T>,
   comparator: (a: T, b: T) => boolean = (a, b) => a === b
-): qt.OperatorFunction<T, boolean> {
+): qt.OpFun<T, boolean> {
   return operate((source, subscriber) => {
     const aState = createState<T>()
     const bState = createState<T>()
@@ -2247,13 +2217,9 @@ export interface ShareConfig<T> {
   resetOnComplete?: boolean | (() => Observable<any>)
   resetOnRefCountZero?: boolean | (() => Observable<any>)
 }
-export function share<T>(): qt.MonoTypeOperatorFunction<T>
-export function share<T>(
-  options: ShareConfig<T>
-): qt.MonoTypeOperatorFunction<T>
-export function share<T>(
-  options: ShareConfig<T> = {}
-): qt.MonoTypeOperatorFunction<T> {
+export function share<T>(): qt.MonoTypeFun<T>
+export function share<T>(options: ShareConfig<T>): qt.MonoTypeFun<T>
+export function share<T>(options: ShareConfig<T> = {}): qt.MonoTypeFun<T> {
   const {
     connector = () => new Subject<T>(),
     resetOnError = true,
@@ -2344,19 +2310,17 @@ export interface ShareReplayConfig {
   refCount: boolean
   scheduler?: qt.Scheduler
 }
-export function shareReplay<T>(
-  config: ShareReplayConfig
-): qt.MonoTypeOperatorFunction<T>
+export function shareReplay<T>(config: ShareReplayConfig): qt.MonoTypeFun<T>
 export function shareReplay<T>(
   bufferSize?: number,
   windowTime?: number,
   scheduler?: qt.Scheduler
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function shareReplay<T>(
   configOrBufferSize?: ShareReplayConfig | number,
   windowTime?: number,
   scheduler?: qt.Scheduler
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   let bufferSize: number
   let refCount = false
   if (configOrBufferSize && typeof configOrBufferSize === "object") {
@@ -2378,13 +2342,13 @@ export function shareReplay<T>(
 }
 export function single<T>(
   predicate: BooleanConstructor
-): qt.OperatorFunction<T, qt.TruthyTypesOf<T>>
+): qt.OpFun<T, qt.TruthyTypesOf<T>>
 export function single<T>(
   predicate?: (value: T, index: number, source: Observable<T>) => boolean
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function single<T>(
   predicate?: (value: T, index: number, source: Observable<T>) => boolean
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let has = false
     let singleValue: T
@@ -2418,10 +2382,10 @@ export function single<T>(
     )
   })
 }
-export function skip<T>(count: number): qt.MonoTypeOperatorFunction<T> {
+export function skip<T>(count: number): qt.MonoTypeFun<T> {
   return filter((_, index) => count <= index)
 }
-export function skipLast<T>(skipCount: number): qt.MonoTypeOperatorFunction<T> {
+export function skipLast<T>(skipCount: number): qt.MonoTypeFun<T> {
   return skipCount <= 0
     ? qu.identity
     : operate((source, subscriber) => {
@@ -2445,9 +2409,7 @@ export function skipLast<T>(skipCount: number): qt.MonoTypeOperatorFunction<T> {
         }
       })
 }
-export function skipUntil<T>(
-  notifier: Observable<any>
-): qt.MonoTypeOperatorFunction<T> {
+export function skipUntil<T>(notifier: Observable<any>): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let taking = false
     const skipSubscriber = new OperatorSubscriber(
@@ -2469,16 +2431,16 @@ export function skipUntil<T>(
 }
 export function skipWhile<T>(
   predicate: BooleanConstructor
-): qt.OperatorFunction<T, Extract<T, qt.Falsy> extends never ? never : T>
+): qt.OpFun<T, Extract<T, qt.Falsy> extends never ? never : T>
 export function skipWhile<T>(
   predicate: (value: T, index: number) => true
-): qt.OperatorFunction<T, never>
+): qt.OpFun<T, never>
 export function skipWhile<T>(
   predicate: (value: T, index: number) => boolean
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function skipWhile<T>(
   predicate: (value: T, index: number) => boolean
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let taking = false
     let index = 0
@@ -2492,17 +2454,15 @@ export function skipWhile<T>(
     )
   })
 }
-export function startWith<T>(value: null): qt.OperatorFunction<T, T | null>
-export function startWith<T>(
-  value: undefined
-): qt.OperatorFunction<T, T | undefined>
+export function startWith<T>(value: null): qt.OpFun<T, T | null>
+export function startWith<T>(value: undefined): qt.OpFun<T, T | undefined>
 export function startWith<T, A extends readonly unknown[] = T[]>(
   ...valuesAndScheduler: [...A, qt.Scheduler]
-): qt.OperatorFunction<T, T | qt.ValueFromArray<A>>
+): qt.OpFun<T, T | qt.ValueFromArray<A>>
 export function startWith<T, A extends readonly unknown[] = T[]>(
   ...values: A
-): qt.OperatorFunction<T, T | qt.ValueFromArray<A>>
-export function startWith<T, D>(...xs: D[]): qt.OperatorFunction<T, T | D> {
+): qt.OpFun<T, T | qt.ValueFromArray<A>>
+export function startWith<T, D>(...xs: D[]): qt.OpFun<T, T | D> {
   const sched = Scheduler.pop(xs)
   return operate((source, subscriber) => {
     ;(sched ? concat(xs, source, sched) : concat(xs, source)).subscribe(
@@ -2513,25 +2473,26 @@ export function startWith<T, D>(...xs: D[]): qt.OperatorFunction<T, T | D> {
 export function subscribeOn<T>(
   scheduler: qt.Scheduler,
   delay = 0
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     subscriber.add(
       scheduler.schedule(() => source.subscribe(subscriber), delay)
     )
   })
 }
-export function switchAll<
-  O extends qt.ObservableInput<any>
->(): qt.OperatorFunction<O, qt.ObservedValueOf<O>> {
+export function switchAll<O extends qt.ObservableInput<any>>(): qt.OpFun<
+  O,
+  qt.ObservedValueOf<O>
+> {
   return switchMap(qu.identity)
 }
 export function switchMap<T, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function switchMap<T, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: undefined
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObservedValueOf<O>>
 export function switchMap<T, R, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: (
@@ -2540,7 +2501,7 @@ export function switchMap<T, R, O extends qt.ObservableInput<any>>(
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function switchMap<T, R, O extends qt.ObservableInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector?: (
@@ -2549,7 +2510,7 @@ export function switchMap<T, R, O extends qt.ObservableInput<any>>(
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OperatorFunction<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
   return operate((source, subscriber) => {
     let innerSubscriber: Subscriber<qt.ObservedValueOf<O>> | null = null
     let index = 0
@@ -2594,11 +2555,11 @@ export function switchMap<T, R, O extends qt.ObservableInput<any>>(
 }
 export function switchMapTo<O extends qt.ObservableInput<unknown>>(
   observable: O
-): qt.OperatorFunction<unknown, qt.ObservedValueOf<O>>
+): qt.OpFun<unknown, qt.ObservedValueOf<O>>
 export function switchMapTo<O extends qt.ObservableInput<unknown>>(
   observable: O,
   resultSelector: undefined
-): qt.OperatorFunction<unknown, qt.ObservedValueOf<O>>
+): qt.OpFun<unknown, qt.ObservedValueOf<O>>
 export function switchMapTo<T, R, O extends qt.ObservableInput<unknown>>(
   observable: O,
   resultSelector: (
@@ -2607,7 +2568,7 @@ export function switchMapTo<T, R, O extends qt.ObservableInput<unknown>>(
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function switchMapTo<T, R, O extends qt.ObservableInput<unknown>>(
   innerObservable: O,
   resultSelector?: (
@@ -2616,7 +2577,7 @@ export function switchMapTo<T, R, O extends qt.ObservableInput<unknown>>(
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OperatorFunction<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
   return qu.isFunction(resultSelector)
     ? switchMap(() => innerObservable, resultSelector)
     : switchMap(() => innerObservable)
@@ -2624,7 +2585,7 @@ export function switchMapTo<T, R, O extends qt.ObservableInput<unknown>>(
 export function switchScan<T, R, O extends qt.ObservableInput<any>>(
   accumulator: (acc: R, value: T, index: number) => O,
   seed: R
-): qt.OperatorFunction<T, qt.ObservedValueOf<O>> {
+): qt.OpFun<T, qt.ObservedValueOf<O>> {
   return operate((source, subscriber) => {
     let state = seed
     switchMap(
@@ -2636,7 +2597,7 @@ export function switchScan<T, R, O extends qt.ObservableInput<any>>(
     }
   })
 }
-export function take<T>(count: number): qt.MonoTypeOperatorFunction<T> {
+export function take<T>(count: number): qt.MonoTypeFun<T> {
   return count <= 0
     ? () => EMPTY
     : operate((source, subscriber) => {
@@ -2653,7 +2614,7 @@ export function take<T>(count: number): qt.MonoTypeOperatorFunction<T> {
         )
       })
 }
-export function takeLast<T>(count: number): qt.MonoTypeOperatorFunction<T> {
+export function takeLast<T>(count: number): qt.MonoTypeFun<T> {
   return count <= 0
     ? () => EMPTY
     : operate((source, subscriber) => {
@@ -2681,7 +2642,7 @@ export function takeLast<T>(count: number): qt.MonoTypeOperatorFunction<T> {
 }
 export function takeUntil<T>(
   notifier: qt.ObservableInput<any>
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     innerFrom(notifier).subscribe(
       new OperatorSubscriber(subscriber, () => subscriber.complete(), qu.noop)
@@ -2692,29 +2653,29 @@ export function takeUntil<T>(
 export function takeWhile<T>(
   predicate: BooleanConstructor,
   inclusive: true
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function takeWhile<T>(
   predicate: BooleanConstructor,
   inclusive: false
-): qt.OperatorFunction<T, qt.TruthyTypesOf<T>>
+): qt.OpFun<T, qt.TruthyTypesOf<T>>
 export function takeWhile<T>(
   predicate: BooleanConstructor
-): qt.OperatorFunction<T, qt.TruthyTypesOf<T>>
+): qt.OpFun<T, qt.TruthyTypesOf<T>>
 export function takeWhile<T, S extends T>(
   predicate: (value: T, index: number) => value is S
-): qt.OperatorFunction<T, S>
+): qt.OpFun<T, S>
 export function takeWhile<T, S extends T>(
   predicate: (value: T, index: number) => value is S,
   inclusive: false
-): qt.OperatorFunction<T, S>
+): qt.OpFun<T, S>
 export function takeWhile<T>(
   predicate: (value: T, index: number) => boolean,
   inclusive?: boolean
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function takeWhile<T>(
   predicate: (value: T, index: number) => boolean,
   inclusive = false
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let index = 0
     source.subscribe(
@@ -2731,20 +2692,18 @@ export interface TapObserver<T> extends qt.Observer<T> {
   unsubscribe: () => void
   finalize: () => void
 }
-export function tap<T>(
-  observer?: Partial<TapObserver<T>>
-): qt.MonoTypeOperatorFunction<T>
-export function tap<T>(next: (value: T) => void): qt.MonoTypeOperatorFunction<T>
+export function tap<T>(observer?: Partial<TapObserver<T>>): qt.MonoTypeFun<T>
+export function tap<T>(next: (value: T) => void): qt.MonoTypeFun<T>
 export function tap<T>(
   next?: ((value: T) => void) | null,
   error?: ((error: any) => void) | null,
   complete?: (() => void) | null
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function tap<T>(
   observerOrNext?: Partial<TapObserver<T>> | ((value: T) => void) | null,
   error?: ((e: any) => void) | null,
   complete?: (() => void) | null
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   const tapObserver =
     qu.isFunction(observerOrNext) || error || complete
       ? ({
@@ -2799,7 +2758,7 @@ export const defaultThrottleConfig: ThrottleConfig = {
 export function throttle<T>(
   durationSelector: (value: T) => qt.ObservableInput<any>,
   config: ThrottleConfig = defaultThrottleConfig
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     const { leading, trailing } = config
     let has = false
@@ -2853,13 +2812,13 @@ export function throttleTime<T>(
   duration: number,
   scheduler: qt.Scheduler = AsyncScheduler,
   config = defaultThrottleConfig
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   const duration$ = timer(duration, scheduler)
   return throttle(() => duration$, config)
 }
 export function throwIfEmpty<T>(
   errorFactory: () => any = defaultErrorFactory
-): qt.MonoTypeOperatorFunction<T> {
+): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let has = false
     source.subscribe(
@@ -2879,7 +2838,7 @@ function defaultErrorFactory() {
 }
 export function timeInterval<T>(
   scheduler: qt.Scheduler = AsyncScheduler
-): qt.OperatorFunction<T, TimeInterval<T>> {
+): qt.OpFun<T, TimeInterval<T>> {
   return operate((source, subscriber) => {
     let last = scheduler.now()
     source.subscribe(
@@ -2928,22 +2887,22 @@ export const TimeoutError: TimeoutErrorCtor = qu.createErrorClass(
 )
 export function timeout<T, O extends qt.ObservableInput<unknown>, M = unknown>(
   config: TimeoutConfig<T, O, M> & { with: (info: TimeoutInfo<T, M>) => O }
-): qt.OperatorFunction<T, T | qt.ObservedValueOf<O>>
+): qt.OpFun<T, T | qt.ObservedValueOf<O>>
 export function timeout<T, M = unknown>(
   config: Omit<TimeoutConfig<T, any, M>, "with">
-): qt.OperatorFunction<T, T>
+): qt.OpFun<T, T>
 export function timeout<T>(
   first: Date,
   scheduler?: qt.Scheduler
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function timeout<T>(
   each: number,
   scheduler?: qt.Scheduler
-): qt.MonoTypeOperatorFunction<T>
+): qt.MonoTypeFun<T>
 export function timeout<T, O extends qt.ObservableInput<any>, M>(
   config: number | Date | TimeoutConfig<T, O, M>,
   schedulerArg?: qt.Scheduler
-): qt.OperatorFunction<T, T | qt.ObservedValueOf<O>> {
+): qt.OpFun<T, T | qt.ObservedValueOf<O>> {
   const {
     first,
     each,
@@ -3021,17 +2980,17 @@ export function timeoutWith<T, R>(
   dueBy: Date,
   switchTo: qt.ObservableInput<R>,
   scheduler?: qt.Scheduler
-): qt.OperatorFunction<T, T | R>
+): qt.OpFun<T, T | R>
 export function timeoutWith<T, R>(
   waitFor: number,
   switchTo: qt.ObservableInput<R>,
   scheduler?: qt.Scheduler
-): qt.OperatorFunction<T, T | R>
+): qt.OpFun<T, T | R>
 export function timeoutWith<T, R>(
   due: number | Date,
   withObservable: qt.ObservableInput<R>,
   scheduler?: qt.Scheduler
-): qt.OperatorFunction<T, T | R> {
+): qt.OpFun<T, T | R> {
   let first: number | Date | undefined
   let each: number | undefined
   let _with: () => qt.ObservableInput<R>
@@ -3058,18 +3017,18 @@ export function timeoutWith<T, R>(
 }
 export function timestamp<T>(
   timestampProvider: qt.TimestampProvider = stampProvider
-): qt.OperatorFunction<T, Timestamp<T>> {
+): qt.OpFun<T, Timestamp<T>> {
   return map((value: T) => ({ value, timestamp: timestampProvider.now() }))
 }
 const arrReducer = (arr: any[], value: any) => (arr.push(value), arr)
-export function toArray<T>(): qt.OperatorFunction<T, T[]> {
+export function toArray<T>(): qt.OpFun<T, T[]> {
   return operate((source, subscriber) => {
     reduce(arrReducer, [] as T[])(source).subscribe(subscriber)
   })
 }
 export function window<T>(
   windowBoundaries: Observable<any>
-): qt.OperatorFunction<T, Observable<T>> {
+): qt.OpFun<T, Observable<T>> {
   return operate((source, subscriber) => {
     let windowSubject: Subject<T> = new Subject<T>()
     subscriber.next(windowSubject.asObservable())
@@ -3108,7 +3067,7 @@ export function window<T>(
 export function windowCount<T>(
   windowSize: number,
   startWindowEvery = 0
-): qt.OperatorFunction<T, Observable<T>> {
+): qt.OpFun<T, Observable<T>> {
   const startEvery = startWindowEvery > 0 ? startWindowEvery : windowSize
   return operate((source, subscriber) => {
     let windows = [new Subject<T>()]
@@ -3155,22 +3114,22 @@ export function windowCount<T>(
 export function windowTime<T>(
   windowTimeSpan: number,
   scheduler?: qt.Scheduler
-): qt.OperatorFunction<T, Observable<T>>
+): qt.OpFun<T, Observable<T>>
 export function windowTime<T>(
   windowTimeSpan: number,
   windowCreationInterval: number,
   scheduler?: qt.Scheduler
-): qt.OperatorFunction<T, Observable<T>>
+): qt.OpFun<T, Observable<T>>
 export function windowTime<T>(
   windowTimeSpan: number,
   windowCreationInterval: number | null | void,
   maxWindowSize: number,
   scheduler?: qt.Scheduler
-): qt.OperatorFunction<T, Observable<T>>
+): qt.OpFun<T, Observable<T>>
 export function windowTime<T>(
   windowTimeSpan: number,
   ...xs: any[]
-): qt.OperatorFunction<T, Observable<T>> {
+): qt.OpFun<T, Observable<T>> {
   const sched = Scheduler.pop(xs) ?? AsyncScheduler
   const windowCreationInterval = (xs[0] as number) ?? null
   const maxWindowSize = (xs[1] as number) || Infinity
@@ -3241,7 +3200,7 @@ interface WindowRecord<T> {
 export function windowToggle<T, O>(
   openings: qt.ObservableInput<O>,
   closingSelector: (openValue: O) => qt.ObservableInput<any>
-): qt.OperatorFunction<T, Observable<T>> {
+): qt.OpFun<T, Observable<T>> {
   return operate((source, subscriber) => {
     const windows: Subject<T>[] = []
     const handleError = (err: any) => {
@@ -3311,7 +3270,7 @@ export function windowToggle<T, O>(
 }
 export function windowWhen<T>(
   closingSelector: () => qt.ObservableInput<any>
-): qt.OperatorFunction<T, Observable<T>> {
+): qt.OpFun<T, Observable<T>> {
   return operate((source, subscriber) => {
     let window: Subject<T> | null
     let closingSubscriber: Subscriber<any> | undefined
@@ -3360,13 +3319,11 @@ export function windowWhen<T>(
 }
 export function withLatestFrom<T, O extends unknown[]>(
   ...inputs: [...qt.ObservableInputTuple<O>]
-): qt.OperatorFunction<T, [T, ...O]>
+): qt.OpFun<T, [T, ...O]>
 export function withLatestFrom<T, O extends unknown[], R>(
   ...inputs: [...qt.ObservableInputTuple<O>, (...value: [T, ...O]) => R]
-): qt.OperatorFunction<T, R>
-export function withLatestFrom<T, R>(
-  ...inputs: any[]
-): qt.OperatorFunction<T, R | any[]> {
+): qt.OpFun<T, R>
+export function withLatestFrom<T, R>(...inputs: any[]): qt.OpFun<T, R | any[]> {
   const project = qu.popResultSelector(inputs) as
     | ((...args: any[]) => R)
     | undefined
@@ -3402,23 +3359,23 @@ export function withLatestFrom<T, R>(
 }
 export function zip<T, A extends readonly unknown[]>(
   otherInputs: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, qt.Cons<T, A>>
+): qt.OpFun<T, qt.Cons<T, A>>
 export function zip<T, A extends readonly unknown[], R>(
   otherInputsAndProject: [...qt.ObservableInputTuple<A>],
   project: (...values: qt.Cons<T, A>) => R
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function zip<T, A extends readonly unknown[]>(
   ...otherInputs: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, qt.Cons<T, A>>
+): qt.OpFun<T, qt.Cons<T, A>>
 export function zip<T, A extends readonly unknown[], R>(
   ...otherInputsAndProject: [
     ...qt.ObservableInputTuple<A>,
     (...values: qt.Cons<T, A>) => R
   ]
-): qt.OperatorFunction<T, R>
+): qt.OpFun<T, R>
 export function zip<T, R>(
   ...sources: Array<qt.ObservableInput<any> | ((...values: Array<any>) => R)>
-): qt.OperatorFunction<T, any> {
+): qt.OpFun<T, any> {
   return operate((source, subscriber) => {
     zipStatic(
       source as qt.ObservableInput<any>,
@@ -3426,19 +3383,19 @@ export function zip<T, R>(
     ).subscribe(subscriber)
   })
 }
-export function zipAll<T>(): qt.OperatorFunction<qt.ObservableInput<T>, T[]>
-export function zipAll<T>(): qt.OperatorFunction<any, T[]>
+export function zipAll<T>(): qt.OpFun<qt.ObservableInput<T>, T[]>
+export function zipAll<T>(): qt.OpFun<any, T[]>
 export function zipAll<T, R>(
   project: (...values: T[]) => R
-): qt.OperatorFunction<qt.ObservableInput<T>, R>
+): qt.OpFun<qt.ObservableInput<T>, R>
 export function zipAll<R>(
   project: (...values: Array<any>) => R
-): qt.OperatorFunction<any, R>
+): qt.OpFun<any, R>
 export function zipAll<T, R>(project?: (...values: T[]) => R) {
   return joinAllInternals(zip, project)
 }
 export function zipWith<T, A extends readonly unknown[]>(
   ...otherInputs: [...qt.ObservableInputTuple<A>]
-): qt.OperatorFunction<T, qt.Cons<T, A>> {
+): qt.OpFun<T, qt.Cons<T, A>> {
   return zip(...otherInputs)
 }

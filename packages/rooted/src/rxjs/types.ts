@@ -60,13 +60,12 @@ export type ObservableInput<T> =
   | Iterable<T>
   | ReadableStreamLike<T>
 
-export interface UnaryFunction<T, R> {
+export interface UnaryFun<T, R> {
   (x: T): R
 }
-export interface OperatorFunction<T, R>
-  extends UnaryFunction<Observable<T>, Observable<R>> {}
+export interface OpFun<T, R> extends UnaryFun<Observable<T>, Observable<R>> {}
 
-export interface MonoTypeOperatorFunction<T> extends OperatorFunction<T, T> {}
+export interface MonoTypeFun<T> extends OpFun<T, T> {}
 
 export interface NextNote<T> {
   kind: "N"

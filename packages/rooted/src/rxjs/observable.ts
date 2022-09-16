@@ -90,80 +90,77 @@ export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
     return this
   }
   pipe(): Observable<T>
-  pipe<A>(op1: qt.OperatorFunction<T, A>): Observable<A>
-  pipe<A, B>(
-    op1: qt.OperatorFunction<T, A>,
-    op2: qt.OperatorFunction<A, B>
-  ): Observable<B>
+  pipe<A>(op1: qt.OpFun<T, A>): Observable<A>
+  pipe<A, B>(op1: qt.OpFun<T, A>, op2: qt.OpFun<A, B>): Observable<B>
   pipe<A, B, C>(
-    op1: qt.OperatorFunction<T, A>,
-    op2: qt.OperatorFunction<A, B>,
-    op3: qt.OperatorFunction<B, C>
+    op1: qt.OpFun<T, A>,
+    op2: qt.OpFun<A, B>,
+    op3: qt.OpFun<B, C>
   ): Observable<C>
   pipe<A, B, C, D>(
-    op1: qt.OperatorFunction<T, A>,
-    op2: qt.OperatorFunction<A, B>,
-    op3: qt.OperatorFunction<B, C>,
-    op4: qt.OperatorFunction<C, D>
+    op1: qt.OpFun<T, A>,
+    op2: qt.OpFun<A, B>,
+    op3: qt.OpFun<B, C>,
+    op4: qt.OpFun<C, D>
   ): Observable<D>
   pipe<A, B, C, D, E>(
-    op1: qt.OperatorFunction<T, A>,
-    op2: qt.OperatorFunction<A, B>,
-    op3: qt.OperatorFunction<B, C>,
-    op4: qt.OperatorFunction<C, D>,
-    op5: qt.OperatorFunction<D, E>
+    op1: qt.OpFun<T, A>,
+    op2: qt.OpFun<A, B>,
+    op3: qt.OpFun<B, C>,
+    op4: qt.OpFun<C, D>,
+    op5: qt.OpFun<D, E>
   ): Observable<E>
   pipe<A, B, C, D, E, F>(
-    op1: qt.OperatorFunction<T, A>,
-    op2: qt.OperatorFunction<A, B>,
-    op3: qt.OperatorFunction<B, C>,
-    op4: qt.OperatorFunction<C, D>,
-    op5: qt.OperatorFunction<D, E>,
-    op6: qt.OperatorFunction<E, F>
+    op1: qt.OpFun<T, A>,
+    op2: qt.OpFun<A, B>,
+    op3: qt.OpFun<B, C>,
+    op4: qt.OpFun<C, D>,
+    op5: qt.OpFun<D, E>,
+    op6: qt.OpFun<E, F>
   ): Observable<F>
   pipe<A, B, C, D, E, F, G>(
-    op1: qt.OperatorFunction<T, A>,
-    op2: qt.OperatorFunction<A, B>,
-    op3: qt.OperatorFunction<B, C>,
-    op4: qt.OperatorFunction<C, D>,
-    op5: qt.OperatorFunction<D, E>,
-    op6: qt.OperatorFunction<E, F>,
-    op7: qt.OperatorFunction<F, G>
+    op1: qt.OpFun<T, A>,
+    op2: qt.OpFun<A, B>,
+    op3: qt.OpFun<B, C>,
+    op4: qt.OpFun<C, D>,
+    op5: qt.OpFun<D, E>,
+    op6: qt.OpFun<E, F>,
+    op7: qt.OpFun<F, G>
   ): Observable<G>
   pipe<A, B, C, D, E, F, G, H>(
-    op1: qt.OperatorFunction<T, A>,
-    op2: qt.OperatorFunction<A, B>,
-    op3: qt.OperatorFunction<B, C>,
-    op4: qt.OperatorFunction<C, D>,
-    op5: qt.OperatorFunction<D, E>,
-    op6: qt.OperatorFunction<E, F>,
-    op7: qt.OperatorFunction<F, G>,
-    op8: qt.OperatorFunction<G, H>
+    op1: qt.OpFun<T, A>,
+    op2: qt.OpFun<A, B>,
+    op3: qt.OpFun<B, C>,
+    op4: qt.OpFun<C, D>,
+    op5: qt.OpFun<D, E>,
+    op6: qt.OpFun<E, F>,
+    op7: qt.OpFun<F, G>,
+    op8: qt.OpFun<G, H>
   ): Observable<H>
   pipe<A, B, C, D, E, F, G, H, I>(
-    op1: qt.OperatorFunction<T, A>,
-    op2: qt.OperatorFunction<A, B>,
-    op3: qt.OperatorFunction<B, C>,
-    op4: qt.OperatorFunction<C, D>,
-    op5: qt.OperatorFunction<D, E>,
-    op6: qt.OperatorFunction<E, F>,
-    op7: qt.OperatorFunction<F, G>,
-    op8: qt.OperatorFunction<G, H>,
-    op9: qt.OperatorFunction<H, I>
+    op1: qt.OpFun<T, A>,
+    op2: qt.OpFun<A, B>,
+    op3: qt.OpFun<B, C>,
+    op4: qt.OpFun<C, D>,
+    op5: qt.OpFun<D, E>,
+    op6: qt.OpFun<E, F>,
+    op7: qt.OpFun<F, G>,
+    op8: qt.OpFun<G, H>,
+    op9: qt.OpFun<H, I>
   ): Observable<I>
   pipe<A, B, C, D, E, F, G, H, I>(
-    op1: qt.OperatorFunction<T, A>,
-    op2: qt.OperatorFunction<A, B>,
-    op3: qt.OperatorFunction<B, C>,
-    op4: qt.OperatorFunction<C, D>,
-    op5: qt.OperatorFunction<D, E>,
-    op6: qt.OperatorFunction<E, F>,
-    op7: qt.OperatorFunction<F, G>,
-    op8: qt.OperatorFunction<G, H>,
-    op9: qt.OperatorFunction<H, I>,
-    ...xs: qt.OperatorFunction<any, any>[]
+    op1: qt.OpFun<T, A>,
+    op2: qt.OpFun<A, B>,
+    op3: qt.OpFun<B, C>,
+    op4: qt.OpFun<C, D>,
+    op5: qt.OpFun<D, E>,
+    op6: qt.OpFun<E, F>,
+    op7: qt.OpFun<F, G>,
+    op8: qt.OpFun<G, H>,
+    op9: qt.OpFun<H, I>,
+    ...xs: qt.OpFun<any, any>[]
   ): Observable<unknown>
-  pipe(...xs: qt.OperatorFunction<any, any>[]) {
+  pipe(...xs: qt.OpFun<any, any>[]) {
     return qu.pipeFromArray(xs)(this)
   }
 }

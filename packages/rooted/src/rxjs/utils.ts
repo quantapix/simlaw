@@ -322,7 +322,7 @@ function callOrApply<T, R>(fn: (...values: T[]) => R, args: T | T[]): R {
 }
 export function mapOneOrManyArgs<T, R>(
   fn: (...values: T[]) => R
-): qt.OperatorFunction<T | T[], R> {
+): qt.OpFun<T | T[], R> {
   return map(args => callOrApply(fn, args))
 }
 export function noop() {}
@@ -333,96 +333,96 @@ export function not<T>(
   return (value: T, index: number) => !pred.call(thisArg, value, index)
 }
 export function pipe(): typeof identity
-export function pipe<T, A>(fn1: qt.UnaryFunction<T, A>): qt.UnaryFunction<T, A>
+export function pipe<T, A>(fn1: qt.UnaryFun<T, A>): qt.UnaryFun<T, A>
 export function pipe<T, A, B>(
-  fn1: qt.UnaryFunction<T, A>,
-  fn2: qt.UnaryFunction<A, B>
-): qt.UnaryFunction<T, B>
+  fn1: qt.UnaryFun<T, A>,
+  fn2: qt.UnaryFun<A, B>
+): qt.UnaryFun<T, B>
 export function pipe<T, A, B, C>(
-  fn1: qt.UnaryFunction<T, A>,
-  fn2: qt.UnaryFunction<A, B>,
-  fn3: qt.UnaryFunction<B, C>
-): qt.UnaryFunction<T, C>
+  fn1: qt.UnaryFun<T, A>,
+  fn2: qt.UnaryFun<A, B>,
+  fn3: qt.UnaryFun<B, C>
+): qt.UnaryFun<T, C>
 export function pipe<T, A, B, C, D>(
-  fn1: qt.UnaryFunction<T, A>,
-  fn2: qt.UnaryFunction<A, B>,
-  fn3: qt.UnaryFunction<B, C>,
-  fn4: qt.UnaryFunction<C, D>
-): qt.UnaryFunction<T, D>
+  fn1: qt.UnaryFun<T, A>,
+  fn2: qt.UnaryFun<A, B>,
+  fn3: qt.UnaryFun<B, C>,
+  fn4: qt.UnaryFun<C, D>
+): qt.UnaryFun<T, D>
 export function pipe<T, A, B, C, D, E>(
-  fn1: qt.UnaryFunction<T, A>,
-  fn2: qt.UnaryFunction<A, B>,
-  fn3: qt.UnaryFunction<B, C>,
-  fn4: qt.UnaryFunction<C, D>,
-  fn5: qt.UnaryFunction<D, E>
-): qt.UnaryFunction<T, E>
+  fn1: qt.UnaryFun<T, A>,
+  fn2: qt.UnaryFun<A, B>,
+  fn3: qt.UnaryFun<B, C>,
+  fn4: qt.UnaryFun<C, D>,
+  fn5: qt.UnaryFun<D, E>
+): qt.UnaryFun<T, E>
 export function pipe<T, A, B, C, D, E, F>(
-  fn1: qt.UnaryFunction<T, A>,
-  fn2: qt.UnaryFunction<A, B>,
-  fn3: qt.UnaryFunction<B, C>,
-  fn4: qt.UnaryFunction<C, D>,
-  fn5: qt.UnaryFunction<D, E>,
-  fn6: qt.UnaryFunction<E, F>
-): qt.UnaryFunction<T, F>
+  fn1: qt.UnaryFun<T, A>,
+  fn2: qt.UnaryFun<A, B>,
+  fn3: qt.UnaryFun<B, C>,
+  fn4: qt.UnaryFun<C, D>,
+  fn5: qt.UnaryFun<D, E>,
+  fn6: qt.UnaryFun<E, F>
+): qt.UnaryFun<T, F>
 export function pipe<T, A, B, C, D, E, F, G>(
-  fn1: qt.UnaryFunction<T, A>,
-  fn2: qt.UnaryFunction<A, B>,
-  fn3: qt.UnaryFunction<B, C>,
-  fn4: qt.UnaryFunction<C, D>,
-  fn5: qt.UnaryFunction<D, E>,
-  fn6: qt.UnaryFunction<E, F>,
-  fn7: qt.UnaryFunction<F, G>
-): qt.UnaryFunction<T, G>
+  fn1: qt.UnaryFun<T, A>,
+  fn2: qt.UnaryFun<A, B>,
+  fn3: qt.UnaryFun<B, C>,
+  fn4: qt.UnaryFun<C, D>,
+  fn5: qt.UnaryFun<D, E>,
+  fn6: qt.UnaryFun<E, F>,
+  fn7: qt.UnaryFun<F, G>
+): qt.UnaryFun<T, G>
 export function pipe<T, A, B, C, D, E, F, G, H>(
-  fn1: qt.UnaryFunction<T, A>,
-  fn2: qt.UnaryFunction<A, B>,
-  fn3: qt.UnaryFunction<B, C>,
-  fn4: qt.UnaryFunction<C, D>,
-  fn5: qt.UnaryFunction<D, E>,
-  fn6: qt.UnaryFunction<E, F>,
-  fn7: qt.UnaryFunction<F, G>,
-  fn8: qt.UnaryFunction<G, H>
-): qt.UnaryFunction<T, H>
+  fn1: qt.UnaryFun<T, A>,
+  fn2: qt.UnaryFun<A, B>,
+  fn3: qt.UnaryFun<B, C>,
+  fn4: qt.UnaryFun<C, D>,
+  fn5: qt.UnaryFun<D, E>,
+  fn6: qt.UnaryFun<E, F>,
+  fn7: qt.UnaryFun<F, G>,
+  fn8: qt.UnaryFun<G, H>
+): qt.UnaryFun<T, H>
 export function pipe<T, A, B, C, D, E, F, G, H, I>(
-  fn1: qt.UnaryFunction<T, A>,
-  fn2: qt.UnaryFunction<A, B>,
-  fn3: qt.UnaryFunction<B, C>,
-  fn4: qt.UnaryFunction<C, D>,
-  fn5: qt.UnaryFunction<D, E>,
-  fn6: qt.UnaryFunction<E, F>,
-  fn7: qt.UnaryFunction<F, G>,
-  fn8: qt.UnaryFunction<G, H>,
-  fn9: qt.UnaryFunction<H, I>
-): qt.UnaryFunction<T, I>
+  fn1: qt.UnaryFun<T, A>,
+  fn2: qt.UnaryFun<A, B>,
+  fn3: qt.UnaryFun<B, C>,
+  fn4: qt.UnaryFun<C, D>,
+  fn5: qt.UnaryFun<D, E>,
+  fn6: qt.UnaryFun<E, F>,
+  fn7: qt.UnaryFun<F, G>,
+  fn8: qt.UnaryFun<G, H>,
+  fn9: qt.UnaryFun<H, I>
+): qt.UnaryFun<T, I>
 export function pipe<T, A, B, C, D, E, F, G, H, I>(
-  fn1: qt.UnaryFunction<T, A>,
-  fn2: qt.UnaryFunction<A, B>,
-  fn3: qt.UnaryFunction<B, C>,
-  fn4: qt.UnaryFunction<C, D>,
-  fn5: qt.UnaryFunction<D, E>,
-  fn6: qt.UnaryFunction<E, F>,
-  fn7: qt.UnaryFunction<F, G>,
-  fn8: qt.UnaryFunction<G, H>,
-  fn9: qt.UnaryFunction<H, I>,
-  ...fns: qt.UnaryFunction<any, any>[]
-): qt.UnaryFunction<T, unknown>
+  fn1: qt.UnaryFun<T, A>,
+  fn2: qt.UnaryFun<A, B>,
+  fn3: qt.UnaryFun<B, C>,
+  fn4: qt.UnaryFun<C, D>,
+  fn5: qt.UnaryFun<D, E>,
+  fn6: qt.UnaryFun<E, F>,
+  fn7: qt.UnaryFun<F, G>,
+  fn8: qt.UnaryFun<G, H>,
+  fn9: qt.UnaryFun<H, I>,
+  ...fns: qt.UnaryFun<any, any>[]
+): qt.UnaryFun<T, unknown>
 export function pipe(
-  ...fns: Array<qt.UnaryFunction<any, any>>
-): qt.UnaryFunction<any, any> {
+  ...fns: Array<qt.UnaryFun<any, any>>
+): qt.UnaryFun<any, any> {
   return pipeFromArray(fns)
 }
 export function pipeFromArray<T, R>(
-  fns: Array<qt.UnaryFunction<T, R>>
-): qt.UnaryFunction<T, R> {
+  fns: Array<qt.UnaryFun<T, R>>
+): qt.UnaryFun<T, R> {
   if (fns.length === 0) {
-    return identity as qt.UnaryFunction<any, any>
+    return identity as qt.UnaryFun<any, any>
   }
   if (fns.length === 1) {
     return fns[0]
   }
   return function piped(input: T): R {
     return fns.reduce(
-      (prev: any, fn: qt.UnaryFunction<T, R>) => fn(prev),
+      (prev: any, fn: qt.UnaryFun<T, R>) => fn(prev),
       input as any
     )
   }
