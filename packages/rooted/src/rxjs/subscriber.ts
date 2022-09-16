@@ -6,13 +6,13 @@ import type * as qt from "./types.js"
 
 export class Subscriber<T> extends Subscription implements qt.Observer<T> {
   static create<T>(
-    next?: (x?: T) => void,
-    error?: (e?: any) => void,
+    next?: (x: T) => void,
+    error?: (x: any) => void,
     done?: () => void
   ): Subscriber<T> {
     return new SafeSubscriber(next, error, done)
   }
-  protected isStopped = false
+  protected stopped = false
   protected dest: Subscriber<any> | qt.Observer<any>
   constructor(x?: Subscriber<any> | qt.Observer<any>) {
     super()
@@ -23,26 +23,26 @@ export class Subscriber<T> extends Subscription implements qt.Observer<T> {
   }
   override unsubscribe(): void {
     if (!this.closed) {
-      this.isStopped = true
+      this.stopped = true
       super.unsubscribe()
       this.dest = null!
     }
   }
-  next(x?: T) {
-    if (this.isStopped) handleStopped(nextNote(x), this)
-    else this._next(x!)
+  next(x: T) {
+    if (this.stopped) doStopped(nextNote(x), this)
+    else this._next(x)
   }
-  error(x?: any) {
-    if (this.isStopped) handleStopped(errNote(x), this)
+  error(x: any) {
+    if (this.stopped) doStopped(errNote(x), this)
     else {
-      this.isStopped = true
+      this.stopped = true
       this._error(x)
     }
   }
   done() {
-    if (this.isStopped) handleStopped(DONE_NOTE, this)
+    if (this.stopped) doStopped(DONE_NOTE, this)
     else {
-      this.isStopped = true
+      this.stopped = true
       this._done()
     }
   }
@@ -71,34 +71,34 @@ function bind<F extends (...xs: any[]) => any>(f: F, thisArg: any): F {
 }
 
 class ConsumerObserver<T> implements qt.Observer<T> {
-  constructor(private obs: Partial<qt.Observer<T>>) {}
-  next(x: T): void {
+  constructor(private obs: qt.PartialObserver<T>) {}
+  next(x: T) {
     const { obs } = this
     if (obs.next) {
       try {
         obs.next(x)
       } catch (e) {
-        handleUnhandled(e)
+        doUnhandled(e)
       }
     }
   }
-  error(x: any): void {
+  error(x: any) {
     const { obs } = this
     if (obs.error) {
       try {
         obs.error(x)
       } catch (e) {
-        handleUnhandled(e)
+        doUnhandled(e)
       }
-    } else handleUnhandled(x)
+    } else doUnhandled(x)
   }
-  done(): void {
+  done() {
     const { obs } = this
     if (obs.done) {
       try {
         obs.done()
       } catch (error) {
-        handleUnhandled(error)
+        doUnhandled(error)
       }
     }
   }
@@ -112,44 +112,40 @@ export function isSubscriber<T>(x: any): x is Subscriber<T> {
 
 export class SafeSubscriber<T> extends Subscriber<T> {
   constructor(
-    next?: Partial<qt.Observer<T>> | ((x: T) => void) | null,
+    x?: qt.PartialObserver<T> | ((x: T) => void) | null,
     error?: ((x?: any) => void) | null,
     done?: (() => void) | null
   ) {
     super()
-    let obs: Partial<qt.Observer<T>>
-    if (qu.isFunction(next) || !next) {
-      obs = {
-        next: (next ?? undefined) as ((x: T) => void) | undefined,
+    let y: qt.PartialObserver<T>
+    if (qu.isFunction(x) || !x) {
+      y = {
+        next: x,
         error: error ?? undefined,
         done: done ?? undefined,
-      }
+      } as qt.NextObserver<T>
     } else {
       let ctx: any
       if (this && qu.config.useDeprecatedNextContext) {
-        ctx = Object.create(next)
+        ctx = Object.create(x)
         ctx.unsubscribe = () => this.unsubscribe()
-        obs = {
-          next: next.next && bind(next.next, ctx),
-          error: next.error && bind(next.error, ctx),
-          done: next.done && bind(next.done, ctx),
-        }
-      } else obs = next
+        y = {
+          next: x.next && bind(x.next, ctx),
+          error: x.error && bind(x.error, ctx),
+          done: x.done && bind(x.done, ctx),
+        } as qt.PartialObserver<T>
+      } else y = x
     }
-    this.dest = new ConsumerObserver(obs)
+    this.dest = new ConsumerObserver(y)
   }
 }
 
-function defaultHandler(x: any) {
-  throw x
-}
-
-function handleStopped(x: qt.ObsNote<any>, sub: Subscriber<any>) {
+function doStopped(x: qt.ObsNote<any>, s: Subscriber<any>) {
   const { onStoppedNote } = qu.config
-  onStoppedNote && timeoutProvider.setTimeout(() => onStoppedNote(x, sub))
+  onStoppedNote && timeoutProvider.setTimeout(() => onStoppedNote(x, s))
 }
 
-function handleUnhandled(x: any) {
+function doUnhandled(x: any) {
   if (qu.config.useDeprecatedSynchronousErrorHandling) {
     qu.captureError(x)
   } else {
@@ -157,9 +153,13 @@ function handleUnhandled(x: any) {
   }
 }
 
+function doError(x: any) {
+  throw x
+}
+
 const EMPTY_OBS: Readonly<qt.Observer<any>> & { closed: true } = {
   closed: true,
   next: qu.noop,
-  error: defaultHandler,
+  error: doError,
   done: qu.noop,
 }

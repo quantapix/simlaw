@@ -9,19 +9,19 @@ export interface Observer<T> {
 export interface NextObserver<T> {
   closed?: boolean
   next: (x: T) => void
-  error?: (e: any) => void
-  done?: () => void
+  error?: ((x: any) => void) | undefined
+  done?: (() => void) | undefined
 }
 export interface ErrObserver<T> {
   closed?: boolean
-  next?: (x: T) => void
-  error: (e: any) => void
-  done?: () => void
+  next?: ((x: T) => void) | undefined
+  error: (x: any) => void
+  done?: (() => void) | undefined
 }
 export interface DoneObserver<T> {
   closed?: boolean
-  next?: (x: T) => void
-  error?: (e: any) => void
+  next?: ((x: T) => void) | undefined
+  error?: ((x: any) => void) | undefined
   done: () => void
 }
 export type PartialObserver<T> =

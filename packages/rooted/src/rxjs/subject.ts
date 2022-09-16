@@ -10,10 +10,10 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
   closed = false
   private current: qt.Observer<T>[] | null = null
   observers: qt.Observer<T>[] = []
-  isStopped = false
-  hasError = false
-  thrownError: any = null
-  static override create: (...xs: any[]) => any = <T>(
+  stopped = false
+  erred = false
+  thrown: any = null
+  static create: (...xs: any[]) => any = <T>(
     dest: qt.Observer<T>,
     src: Observable<T>
   ): AnonymousSubject<T> => {
@@ -33,7 +33,7 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
   next(x: T) {
     qu.errorContext(() => {
       this._throwIfClosed()
-      if (!this.isStopped) {
+      if (!this.stopped) {
         if (!this.current) this.current = Array.from(this.observers)
         for (const o of this.current) {
           o.next(x)
@@ -44,9 +44,9 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
   error(x: any) {
     qu.errorContext(() => {
       this._throwIfClosed()
-      if (!this.isStopped) {
-        this.hasError = this.isStopped = true
-        this.thrownError = x
+      if (!this.stopped) {
+        this.erred = this.stopped = true
+        this.thrown = x
         const { observers } = this
         while (observers.length) {
           observers.shift()!.error(x)
@@ -54,20 +54,20 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
       }
     })
   }
-  complete() {
+  done() {
     qu.errorContext(() => {
       this._throwIfClosed()
-      if (!this.isStopped) {
-        this.isStopped = true
+      if (!this.stopped) {
+        this.stopped = true
         const { observers } = this
         while (observers.length) {
-          observers.shift()!.complete()
+          observers.shift()!.done()
         }
       }
     })
   }
   unsubscribe() {
-    this.isStopped = this.closed = true
+    this.stopped = this.closed = true
     this.observers = this.current = null!
   }
   get observed() {
@@ -79,12 +79,12 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
   }
   protected override _subscribe(x: Subscriber<T>): Subscription {
     this._throwIfClosed()
-    this._checkFinalizedStatuses(x)
+    this._checkFinalized(x)
     return this._innerSubscribe(x)
   }
   protected _innerSubscribe(x: Subscriber<any>) {
-    const { hasError, isStopped, observers } = this
-    if (hasError || isStopped) return Subscription.EMPTY
+    const { erred, stopped, observers } = this
+    if (erred || stopped) return Subscription.EMPTY
     this.current = null
     observers.push(x)
     return new Subscription(() => {
@@ -92,10 +92,10 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
       qu.arrRemove(observers, x)
     })
   }
-  protected _checkFinalizedStatuses(x: Subscriber<any>) {
-    const { hasError, thrownError, isStopped } = this
-    if (hasError) x.error(thrownError)
-    else if (isStopped) x.complete()
+  protected _checkFinalized(x: Subscriber<any>) {
+    const { erred, thrown: thrown, stopped } = this
+    if (erred) x.error(thrown)
+    else if (stopped) x.done()
   }
   asObservable(): Observable<T> {
     const y: any = new Observable<T>()
@@ -109,14 +109,14 @@ export class AnonymousSubject<T> extends Subject<T> {
     super()
     this.src = src
   }
-  override next(value: T) {
-    this.dest?.next?.(value)
+  override next(x: T) {
+    this.dest?.next?.(x)
   }
-  override error(err: any) {
-    this.dest?.error?.(err)
+  override error(x: any) {
+    this.dest?.error?.(x)
   }
-  override complete() {
-    this.dest?.complete?.()
+  override done() {
+    this.dest?.done?.()
   }
   protected override _subscribe(x: Subscriber<T>): Subscription {
     return this.src?.subscribe(x) ?? Subscription.EMPTY
@@ -124,37 +124,36 @@ export class AnonymousSubject<T> extends Subject<T> {
 }
 
 export class AsyncSubject<T> extends Subject<T> {
-  private _value: T | null = null
-  private _hasValue = false
-  private _isComplete = false
+  private _val: T | null = null
+  private _hasVal = false
+  private _isDone = false
 
-  protected override _checkFinalizedStatuses(x: Subscriber<T>) {
-    const { hasError, _hasValue, _value, thrownError, isStopped, _isComplete } =
-      this
-    if (hasError) x.error(thrownError)
-    else if (isStopped || _isComplete) {
-      _hasValue && x.next(_value!)
-      x.complete()
+  protected override _checkFinalized(x: Subscriber<T>) {
+    const { erred, _hasVal, _val, thrown, stopped, _isDone } = this
+    if (erred) x.error(thrown)
+    else if (stopped || _isDone) {
+      _hasVal && x.next(_val!)
+      x.done()
     }
   }
   override next(x: T): void {
-    if (!this.isStopped) {
-      this._value = x
-      this._hasValue = true
+    if (!this.stopped) {
+      this._val = x
+      this._hasVal = true
     }
   }
-  override complete(): void {
-    const { _hasValue, _value, _isComplete } = this
-    if (!_isComplete) {
-      this._isComplete = true
-      _hasValue && super.next(_value!)
-      super.complete()
+  override done(): void {
+    const { _hasVal, _val, _isDone } = this
+    if (!_isDone) {
+      this._isDone = true
+      _hasVal && super.next(_val!)
+      super.done()
     }
   }
 }
 
 export class BehaviorSubject<T> extends Subject<T> {
-  constructor(private _value: T) {
+  constructor(private _val: T) {
     super()
   }
   get value(): T {
@@ -162,17 +161,17 @@ export class BehaviorSubject<T> extends Subject<T> {
   }
   protected override _subscribe(x: Subscriber<T>): Subscription {
     const y = super._subscribe(x)
-    !y.closed && x.next(this._value)
+    !y.closed && x.next(this._val)
     return y
   }
   getValue(): T {
-    const { hasError, thrownError, _value } = this
-    if (hasError) throw thrownError
+    const { erred, thrown: thrown, _val } = this
+    if (erred) throw thrown
     this._throwIfClosed()
-    return _value
+    return _val
   }
   override next(x: T): void {
-    super.next((this._value = x))
+    super.next((this._val = x))
   }
 }
 
@@ -191,13 +190,13 @@ export class ReplaySubject<T> extends Subject<T> {
   }
   override next(x: T): void {
     const {
-      isStopped,
+      stopped,
       _buffer,
       _infiniteTimeWindow,
       _timestampProvider,
       _windowTime,
     } = this
-    if (!isStopped) {
+    if (!stopped) {
       _buffer.push(x)
       !_infiniteTimeWindow &&
         _buffer.push(_timestampProvider.now() + _windowTime)
@@ -208,7 +207,7 @@ export class ReplaySubject<T> extends Subject<T> {
   protected override _subscribe(x: Subscriber<T>): Subscription {
     this._throwIfClosed()
     this._trimBuffer()
-    const subscription = this._innerSubscribe(x)
+    const y = this._innerSubscribe(x)
     const { _infiniteTimeWindow, _buffer } = this
     const copy = _buffer.slice()
     for (
@@ -218,9 +217,10 @@ export class ReplaySubject<T> extends Subject<T> {
     ) {
       x.next(copy[i] as T)
     }
-    this._checkFinalizedStatuses(x)
-    return subscription
+    this._checkFinalized(x)
+    return y
   }
+
   private _trimBuffer() {
     const { _bufferSize, _timestampProvider, _buffer, _infiniteTimeWindow } =
       this
