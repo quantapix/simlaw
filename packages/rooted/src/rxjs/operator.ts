@@ -85,13 +85,13 @@ export function operate<T, R>(
 }
 
 export function audit<T>(
-  duration: (x: T) => qt.ObservableInput<any>
+  duration: (x: T) => qt.ObsInput<any>
 ): qt.MonoTypeFun<T> {
   return operate((src, sub) => {
     let has = false
     let last: T | null = null
     let s: Subscriber<any> | null = null
-    let isComplete = false
+    let done = false
     const end = () => {
       s?.unsubscribe()
       s = null
@@ -101,11 +101,11 @@ export function audit<T>(
         last = null
         sub.next(y)
       }
-      isComplete && sub.complete()
+      done && sub.complete()
     }
     const cleanup = () => {
       s = null
-      isComplete && sub.complete()
+      done && sub.complete()
     }
     src.subscribe(
       new OperatorSubscriber(
@@ -120,7 +120,7 @@ export function audit<T>(
           }
         },
         () => {
-          isComplete = true
+          done = true
           ;(!has || !s || s.closed) && sub.complete()
         }
       )
@@ -130,9 +130,9 @@ export function audit<T>(
 
 export function auditTime<T>(
   x: number,
-  sched: qt.Scheduler = new AsyncScheduler()
+  s: qt.Scheduler = new AsyncScheduler()
 ): qt.MonoTypeFun<T> {
-  return audit(() => timer(x, sched))
+  return audit(() => timer(x, s))
 }
 
 export function buffer<T>(o: Observable<any>): qt.OpFun<T, T[]> {
@@ -285,8 +285,8 @@ export function bufferTime<T>(
 }
 
 export function bufferToggle<T, O>(
-  openings: qt.ObservableInput<O>,
-  closingSelector: (x: O) => qt.ObservableInput<any>
+  openings: qt.ObsInput<O>,
+  closingSelector: (x: O) => qt.ObsInput<any>
 ): qt.OpFun<T, T[]> {
   return operate((src, sub) => {
     const buffers: T[][] = []
@@ -331,7 +331,7 @@ export function bufferToggle<T, O>(
 }
 
 export function bufferWhen<T>(
-  closingSelector: () => qt.ObservableInput<any>
+  closingSelector: () => qt.ObsInput<any>
 ): qt.OpFun<T, T[]> {
   return operate((src, sub) => {
     let buffer: T[] | null = null
@@ -361,16 +361,16 @@ export function bufferWhen<T>(
   })
 }
 
-export function catchError<T, O extends qt.ObservableInput<any>>(
+export function catchError<T, O extends qt.ObsInput<any>>(
   selector: (err: any, caught: Observable<T>) => O
-): qt.OpFun<T, T | qt.ObservedValueOf<O>>
-export function catchError<T, O extends qt.ObservableInput<any>>(
+): qt.OpFun<T, T | qt.ObsValueOf<O>>
+export function catchError<T, O extends qt.ObsInput<any>>(
   selector: (err: any, caught: Observable<T>) => O
-): qt.OpFun<T, T | qt.ObservedValueOf<O>> {
+): qt.OpFun<T, T | qt.ObsValueOf<O>> {
   return operate((src, sub) => {
     let innerSub: Subscription | null = null
     let syncUnsub = false
-    let handledResult: Observable<qt.ObservedValueOf<O>>
+    let handledResult: Observable<qt.ObsValueOf<O>>
     innerSub = src.subscribe(
       new OperatorSubscriber(sub, undefined, undefined, err => {
         handledResult = innerFrom(selector(err, catchError(selector)(src)))
@@ -392,28 +392,25 @@ export function catchError<T, O extends qt.ObservableInput<any>>(
 }
 
 export function combineLatest<T, A extends readonly unknown[], R>(
-  sources: [...qt.ObservableInputTuple<A>],
+  sources: [...qt.InputTuple<A>],
   project: (...values: [T, ...A]) => R
 ): qt.OpFun<T, R>
 export function combineLatest<T, A extends readonly unknown[], R>(
-  sources: [...qt.ObservableInputTuple<A>]
+  sources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, [T, ...A]>
 export function combineLatest<T, A extends readonly unknown[], R>(
-  ...sourcesAndProject: [
-    ...qt.ObservableInputTuple<A>,
-    (...values: [T, ...A]) => R
-  ]
+  ...sourcesAndProject: [...qt.InputTuple<A>, (...values: [T, ...A]) => R]
 ): qt.OpFun<T, R>
 export function combineLatest<T, A extends readonly unknown[], R>(
-  ...sources: [...qt.ObservableInputTuple<A>]
+  ...sources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, [T, ...A]>
 export function combineLatest<T, R>(
-  ...args: (qt.ObservableInput<any> | ((...values: any[]) => R))[]
+  ...args: (qt.ObsInput<any> | ((...values: any[]) => R))[]
 ): qt.OpFun<T, unknown> {
   const resultSelector = qu.popResultSelector(args)
   return resultSelector
     ? qu.pipe(
-        combineLatest(...(args as Array<qt.ObservableInput<any>>)),
+        combineLatest(...(args as Array<qt.ObsInput<any>>)),
         qu.mapOneOrManyArgs(resultSelector)
       )
     : operate((source, subscriber) => {
@@ -423,11 +420,11 @@ export function combineLatest<T, R>(
 
 export const combineAll = combineLatestAll
 
-export function combineLatestAll<T>(): qt.OpFun<qt.ObservableInput<T>, T[]>
+export function combineLatestAll<T>(): qt.OpFun<qt.ObsInput<T>, T[]>
 export function combineLatestAll<T>(): qt.OpFun<any, T[]>
 export function combineLatestAll<T, R>(
   project: (...values: T[]) => R
-): qt.OpFun<qt.ObservableInput<T>, R>
+): qt.OpFun<qt.ObsInput<T>, R>
 export function combineLatestAll<R>(
   project: (...values: Array<any>) => R
 ): qt.OpFun<any, R>
@@ -435,15 +432,15 @@ export function combineLatestAll<R>(project?: (...values: Array<any>) => R) {
   return joinAllInternals(combineLatest, project)
 }
 export function combineLatestWith<T, A extends readonly unknown[]>(
-  ...otherSources: [...qt.ObservableInputTuple<A>]
+  ...otherSources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, qt.Cons<T, A>> {
   return combineLatest(...otherSources)
 }
 export function concat<T, A extends readonly unknown[]>(
-  ...sources: [...qt.ObservableInputTuple<A>]
+  ...sources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, T | A[number]>
 export function concat<T, A extends readonly unknown[]>(
-  ...sourcesAndScheduler: [...qt.ObservableInputTuple<A>, qt.Scheduler]
+  ...sourcesAndScheduler: [...qt.InputTuple<A>, qt.Scheduler]
 ): qt.OpFun<T, T | A[number]>
 export function concat<T, R>(...xs: any[]): qt.OpFun<T, R> {
   const sched = Scheduler.pop(xs)
@@ -451,72 +448,72 @@ export function concat<T, R>(...xs: any[]): qt.OpFun<T, R> {
     concatAll()(from([source, ...xs], sched)).subscribe(subscriber)
   })
 }
-export function concatAll<O extends qt.ObservableInput<any>>(): qt.OpFun<
+export function concatAll<O extends qt.ObsInput<any>>(): qt.OpFun<
   O,
-  qt.ObservedValueOf<O>
+  qt.ObsValueOf<O>
 > {
   return mergeAll(1)
 }
-export function concatMap<T, O extends qt.ObservableInput<any>>(
+export function concatMap<T, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O
-): qt.OpFun<T, qt.ObservedValueOf<O>>
-export function concatMap<T, O extends qt.ObservableInput<any>>(
+): qt.OpFun<T, qt.ObsValueOf<O>>
+export function concatMap<T, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: undefined
-): qt.OpFun<T, qt.ObservedValueOf<O>>
-export function concatMap<T, R, O extends qt.ObservableInput<any>>(
+): qt.OpFun<T, qt.ObsValueOf<O>>
+export function concatMap<T, R, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R
 ): qt.OpFun<T, R>
-export function concatMap<T, R, O extends qt.ObservableInput<any>>(
+export function concatMap<T, R, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector?: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObsValueOf<O> | R> {
   return qu.isFunction(resultSelector)
     ? mergeMap(project, resultSelector, 1)
     : mergeMap(project, 1)
 }
-export function concatMapTo<O extends qt.ObservableInput<unknown>>(
+export function concatMapTo<O extends qt.ObsInput<unknown>>(
   observable: O
-): qt.OpFun<unknown, qt.ObservedValueOf<O>>
-export function concatMapTo<O extends qt.ObservableInput<unknown>>(
+): qt.OpFun<unknown, qt.ObsValueOf<O>>
+export function concatMapTo<O extends qt.ObsInput<unknown>>(
   observable: O,
   resultSelector: undefined
-): qt.OpFun<unknown, qt.ObservedValueOf<O>>
-export function concatMapTo<T, R, O extends qt.ObservableInput<unknown>>(
+): qt.OpFun<unknown, qt.ObsValueOf<O>>
+export function concatMapTo<T, R, O extends qt.ObsInput<unknown>>(
   observable: O,
   resultSelector: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R
 ): qt.OpFun<T, R>
-export function concatMapTo<T, R, O extends qt.ObservableInput<unknown>>(
+export function concatMapTo<T, R, O extends qt.ObsInput<unknown>>(
   innerObservable: O,
   resultSelector?: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObsValueOf<O> | R> {
   return qu.isFunction(resultSelector)
     ? concatMap(() => innerObservable, resultSelector)
     : concatMap(() => innerObservable)
 }
 export function concatWith<T, A extends readonly unknown[]>(
-  ...otherSources: [...qt.ObservableInputTuple<A>]
+  ...otherSources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, T | A[number]> {
   return concat(...otherSources)
 }
@@ -526,10 +523,10 @@ export interface ConnectConfig<T> {
 const DEFAULT_CONFIG: ConnectConfig<unknown> = {
   connector: () => new Subject<unknown>(),
 }
-export function connect<T, O extends qt.ObservableInput<unknown>>(
+export function connect<T, O extends qt.ObsInput<unknown>>(
   selector: (shared: Observable<T>) => O,
   config: ConnectConfig<T> = DEFAULT_CONFIG
-): qt.OpFun<T, qt.ObservedValueOf<O>> {
+): qt.OpFun<T, qt.ObsValueOf<O>> {
   const { connector } = config
   return operate((source, subscriber) => {
     const subject = connector()
@@ -547,7 +544,7 @@ export function count<T>(
   )
 }
 export function debounce<T>(
-  durationSelector: (value: T) => qt.ObservableInput<any>
+  durationSelector: (value: T) => qt.ObsInput<any>
 ): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     let has = false
@@ -683,7 +680,7 @@ export function delayWhen<T>(
     delayDurationSelector(value, index).pipe(take(1), mapTo(value))
   )
 }
-export function dematerialize<N extends qt.ObservableNote<any>>(): qt.OpFun<
+export function dematerialize<N extends qt.ObsNote<any>>(): qt.OpFun<
   N,
   qt.ValueFromNote<N>
 > {
@@ -827,21 +824,21 @@ export function every<T>(
   })
 }
 export const exhaust = exhaustAll
-export function exhaustAll<O extends qt.ObservableInput<any>>(): qt.OpFun<
+export function exhaustAll<O extends qt.ObsInput<any>>(): qt.OpFun<
   O,
-  qt.ObservedValueOf<O>
+  qt.ObsValueOf<O>
 > {
   return exhaustMap(qu.identity)
 }
-export function exhaustMap<T, O extends qt.ObservableInput<any>>(
+export function exhaustMap<T, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O
-): qt.OpFun<T, qt.ObservedValueOf<O>>
-export function exhaustMap<T, O extends qt.ObservableInput<any>>(
+): qt.OpFun<T, qt.ObsValueOf<O>>
+export function exhaustMap<T, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: undefined
-): qt.OpFun<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObsValueOf<O>>
 export function exhaustMap<T, I, R>(
-  project: (value: T, index: number) => qt.ObservableInput<I>,
+  project: (value: T, index: number) => qt.ObsInput<I>,
   resultSelector: (
     outerValue: T,
     innerValue: I,
@@ -849,15 +846,15 @@ export function exhaustMap<T, I, R>(
     innerIndex: number
   ) => R
 ): qt.OpFun<T, R>
-export function exhaustMap<T, R, O extends qt.ObservableInput<any>>(
+export function exhaustMap<T, R, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector?: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObsValueOf<O> | R> {
   if (resultSelector) {
     return (source: Observable<T>) =>
       source.pipe(
@@ -871,7 +868,7 @@ export function exhaustMap<T, R, O extends qt.ObservableInput<any>>(
   return operate((source, subscriber) => {
     let index = 0
     let innerSub: Subscriber<T> | null = null
-    let isComplete = false
+    let done = false
     source.subscribe(
       new OperatorSubscriber(
         subscriber,
@@ -879,34 +876,34 @@ export function exhaustMap<T, R, O extends qt.ObservableInput<any>>(
           if (!innerSub) {
             innerSub = new OperatorSubscriber(subscriber, undefined, () => {
               innerSub = null
-              isComplete && subscriber.complete()
+              done && subscriber.complete()
             })
             innerFrom(project(outerValue, index++)).subscribe(innerSub)
           }
         },
         () => {
-          isComplete = true
+          done = true
           !innerSub && subscriber.complete()
         }
       )
     )
   })
 }
-export function expand<T, O extends qt.ObservableInput<unknown>>(
+export function expand<T, O extends qt.ObsInput<unknown>>(
   project: (value: T, index: number) => O,
   concurrent?: number,
   scheduler?: qt.Scheduler
-): qt.OpFun<T, qt.ObservedValueOf<O>>
-export function expand<T, O extends qt.ObservableInput<unknown>>(
+): qt.OpFun<T, qt.ObsValueOf<O>>
+export function expand<T, O extends qt.ObsInput<unknown>>(
   project: (value: T, index: number) => O,
   concurrent: number | undefined,
   scheduler: qt.Scheduler
-): qt.OpFun<T, qt.ObservedValueOf<O>>
-export function expand<T, O extends qt.ObservableInput<unknown>>(
+): qt.OpFun<T, qt.ObsValueOf<O>>
+export function expand<T, O extends qt.ObsInput<unknown>>(
   project: (value: T, index: number) => O,
   concurrent = Infinity,
   scheduler?: qt.Scheduler
-): qt.OpFun<T, qt.ObservedValueOf<O>> {
+): qt.OpFun<T, qt.ObsValueOf<O>> {
   concurrent = (concurrent || 0) < 1 ? Infinity : concurrent
   return operate((source, subscriber) =>
     mergeInternals(
@@ -1087,12 +1084,12 @@ export function first<T, D>(
 export const flatMap = mergeMap
 export interface BasicGroupByOptions<K, T> {
   element?: undefined
-  duration?: (grouped: GroupedObservable<K, T>) => qt.ObservableInput<any>
+  duration?: (grouped: GroupedObservable<K, T>) => qt.ObsInput<any>
   connector?: () => qt.SubjectLike<T>
 }
 export interface GroupByOptionsWithElement<K, E, T> {
   element: (value: T) => E
-  duration?: (grouped: GroupedObservable<K, E>) => qt.ObservableInput<any>
+  duration?: (grouped: GroupedObservable<K, E>) => qt.ObsInput<any>
   connector?: () => qt.SubjectLike<E>
 }
 export function groupBy<T, K>(
@@ -1135,7 +1132,7 @@ export function groupBy<T, K, R>(
     | void
     | BasicGroupByOptions<K, T>
     | GroupByOptionsWithElement<K, R, T>,
-  duration?: (grouped: GroupedObservable<any, any>) => qt.ObservableInput<any>,
+  duration?: (grouped: GroupedObservable<any, any>) => qt.ObsInput<any>,
   connector?: () => qt.SubjectLike<any>
 ): qt.OpFun<T, GroupedObservable<K, R>> {
   return operate((source, subscriber) => {
@@ -1241,11 +1238,11 @@ export function isEmpty<T>(): qt.OpFun<T, boolean> {
   })
 }
 export function joinAllInternals<T, R>(
-  joinFn: (sources: qt.ObservableInput<T>[]) => Observable<T>,
+  joinFn: (sources: qt.ObsInput<T>[]) => Observable<T>,
   project?: (...args: any[]) => R
 ) {
   return qu.pipe(
-    toArray() as qt.OpFun<qt.ObservableInput<T>, qt.ObservableInput<T>[]>,
+    toArray() as qt.OpFun<qt.ObsInput<T>, qt.ObsInput<T>[]>,
     mergeMap(sources => joinFn(sources)),
     project ? qu.mapOneOrManyArgs(project) : (qu.identity as any)
   )
@@ -1310,7 +1307,7 @@ export function mapTo<T, R>(value: R): qt.OpFun<T, R>
 export function mapTo<R>(value: R): qt.OpFun<unknown, R> {
   return map(() => value)
 }
-export function materialize<T>(): qt.OpFun<T, Note<T> & qt.ObservableNote<T>> {
+export function materialize<T>(): qt.OpFun<T, Note<T> & qt.ObsNote<T>> {
   return operate((source, subscriber) => {
     source.subscribe(
       new OperatorSubscriber(
@@ -1319,7 +1316,7 @@ export function materialize<T>(): qt.OpFun<T, Note<T> & qt.ObservableNote<T>> {
           subscriber.next(Note.createNext(value))
         },
         () => {
-          subscriber.next(Note.createComplete())
+          subscriber.next(Note.createDone())
           subscriber.complete()
         },
         err => {
@@ -1338,17 +1335,17 @@ export function max<T>(comparer?: (x: T, y: T) => number): qt.MonoTypeFun<T> {
   )
 }
 export function merge<T, A extends readonly unknown[]>(
-  ...sources: [...qt.ObservableInputTuple<A>]
+  ...sources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, T | A[number]>
 export function merge<T, A extends readonly unknown[]>(
-  ...sourcesAndConcurrency: [...qt.ObservableInputTuple<A>, number]
+  ...sourcesAndConcurrency: [...qt.InputTuple<A>, number]
 ): qt.OpFun<T, T | A[number]>
 export function merge<T, A extends readonly unknown[]>(
-  ...sourcesAndScheduler: [...qt.ObservableInputTuple<A>, qt.Scheduler]
+  ...sourcesAndScheduler: [...qt.InputTuple<A>, qt.Scheduler]
 ): qt.OpFun<T, T | A[number]>
 export function merge<T, A extends readonly unknown[]>(
   ...sourcesAndConcurrencyAndScheduler: [
-    ...qt.ObservableInputTuple<A>,
+    ...qt.InputTuple<A>,
     number,
     qt.Scheduler
   ]
@@ -1359,19 +1356,19 @@ export function merge<T>(...xs: unknown[]): qt.OpFun<T, unknown> {
   xs = qu.argsOrArgArray(xs)
   return operate((source, subscriber) => {
     mergeAll(concurrent)(
-      from([source, ...(xs as qt.ObservableInput<T>[])], sched)
+      from([source, ...(xs as qt.ObsInput<T>[])], sched)
     ).subscribe(subscriber)
   })
 }
-export function mergeAll<O extends qt.ObservableInput<any>>(
+export function mergeAll<O extends qt.ObsInput<any>>(
   concurrent: number = Infinity
-): qt.OpFun<O, qt.ObservedValueOf<O>> {
+): qt.OpFun<O, qt.ObsValueOf<O>> {
   return mergeMap(qu.identity, concurrent)
 }
 export function mergeInternals<T, R>(
   source: Observable<T>,
   subscriber: Subscriber<R>,
-  project: (value: T, index: number) => qt.ObservableInput<R>,
+  project: (value: T, index: number) => qt.ObsInput<R>,
   concurrent: number,
   onBeforeNext?: (innerValue: R) => void,
   expand?: boolean,
@@ -1381,9 +1378,9 @@ export function mergeInternals<T, R>(
   const buffer: T[] = []
   let active = 0
   let index = 0
-  let isComplete = false
+  let done = false
   const checkComplete = () => {
-    if (isComplete && !buffer.length && !active) {
+    if (done && !buffer.length && !active) {
       subscriber.complete()
     }
   }
@@ -1433,7 +1430,7 @@ export function mergeInternals<T, R>(
   }
   source.subscribe(
     new OperatorSubscriber(subscriber, outerNext, () => {
-      isComplete = true
+      done = true
       checkComplete()
     })
   )
@@ -1441,37 +1438,37 @@ export function mergeInternals<T, R>(
     additionalFinalizer?.()
   }
 }
-export function mergeMap<T, O extends qt.ObservableInput<any>>(
+export function mergeMap<T, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   concurrent?: number
-): qt.OpFun<T, qt.ObservedValueOf<O>>
-export function mergeMap<T, O extends qt.ObservableInput<any>>(
+): qt.OpFun<T, qt.ObsValueOf<O>>
+export function mergeMap<T, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: undefined,
   concurrent?: number
-): qt.OpFun<T, qt.ObservedValueOf<O>>
-export function mergeMap<T, R, O extends qt.ObservableInput<any>>(
+): qt.OpFun<T, qt.ObsValueOf<O>>
+export function mergeMap<T, R, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R,
   concurrent?: number
 ): qt.OpFun<T, R>
-export function mergeMap<T, R, O extends qt.ObservableInput<any>>(
+export function mergeMap<T, R, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector?:
     | ((
         outerValue: T,
-        innerValue: qt.ObservedValueOf<O>,
+        innerValue: qt.ObsValueOf<O>,
         outerIndex: number,
         innerIndex: number
       ) => R)
     | number,
   concurrent: number = Infinity
-): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObsValueOf<O> | R> {
   if (qu.isFunction(resultSelector)) {
     return mergeMap(
       (a, i) =>
@@ -1487,32 +1484,32 @@ export function mergeMap<T, R, O extends qt.ObservableInput<any>>(
     mergeInternals(source, subscriber, project, concurrent)
   )
 }
-export function mergeMapTo<O extends qt.ObservableInput<unknown>>(
+export function mergeMapTo<O extends qt.ObsInput<unknown>>(
   innerObservable: O,
   concurrent?: number
-): qt.OpFun<unknown, qt.ObservedValueOf<O>>
-export function mergeMapTo<T, R, O extends qt.ObservableInput<unknown>>(
+): qt.OpFun<unknown, qt.ObsValueOf<O>>
+export function mergeMapTo<T, R, O extends qt.ObsInput<unknown>>(
   innerObservable: O,
   resultSelector: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R,
   concurrent?: number
 ): qt.OpFun<T, R>
-export function mergeMapTo<T, R, O extends qt.ObservableInput<unknown>>(
+export function mergeMapTo<T, R, O extends qt.ObsInput<unknown>>(
   innerObservable: O,
   resultSelector?:
     | ((
         outerValue: T,
-        innerValue: qt.ObservedValueOf<O>,
+        innerValue: qt.ObsValueOf<O>,
         outerIndex: number,
         innerIndex: number
       ) => R)
     | number,
   concurrent: number = Infinity
-): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObsValueOf<O> | R> {
   if (qu.isFunction(resultSelector)) {
     return mergeMap(() => innerObservable, resultSelector, concurrent)
   }
@@ -1522,7 +1519,7 @@ export function mergeMapTo<T, R, O extends qt.ObservableInput<unknown>>(
   return mergeMap(() => innerObservable, concurrent)
 }
 export function mergeScan<T, R>(
-  accumulator: (acc: R, value: T, index: number) => qt.ObservableInput<R>,
+  accumulator: (acc: R, value: T, index: number) => qt.ObsInput<R>,
   seed: R,
   concurrent = Infinity
 ): qt.OpFun<T, R> {
@@ -1543,7 +1540,7 @@ export function mergeScan<T, R>(
   })
 }
 export function mergeWith<T, A extends readonly unknown[]>(
-  ...otherSources: [...qt.ObservableInputTuple<A>]
+  ...otherSources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, T | A[number]> {
   return merge(...otherSources)
 }
@@ -1571,19 +1568,15 @@ export function observeOn<T>(
   })
 }
 export function onErrorResumeNext<T, A extends readonly unknown[]>(
-  sources: [...qt.ObservableInputTuple<A>]
+  sources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, T | A[number]>
 export function onErrorResumeNext<T, A extends readonly unknown[]>(
-  ...sources: [...qt.ObservableInputTuple<A>]
+  ...sources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, T | A[number]>
 export function onErrorResumeNext<T, A extends readonly unknown[]>(
-  ...sources:
-    | [[...qt.ObservableInputTuple<A>]]
-    | [...qt.ObservableInputTuple<A>]
+  ...sources: [[...qt.InputTuple<A>]] | [...qt.InputTuple<A>]
 ): qt.OpFun<T, T | A[number]> {
-  const nextSources = qu.argsOrArgArray(
-    sources
-  ) as unknown as qt.ObservableInputTuple<A>
+  const nextSources = qu.argsOrArgArray(sources) as unknown as qt.InputTuple<A>
   return operate((source, subscriber) => {
     const remaining = [source, ...nextSources]
     const subscribeNext = () => {
@@ -1720,9 +1713,9 @@ export function publish<T>(): qt.UnaryFun<
   Observable<T>,
   ConnectableObservable<T>
 >
-export function publish<T, O extends qt.ObservableInput<any>>(
+export function publish<T, O extends qt.ObsInput<any>>(
   selector: (shared: Observable<T>) => O
-): qt.OpFun<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObsValueOf<O>>
 export function publish<T, R>(
   selector?: qt.OpFun<T, R>
 ): qt.MonoTypeFun<T> | qt.OpFun<T, R> {
@@ -1752,18 +1745,18 @@ export function publishReplay<T>(
   windowTime?: number,
   timestampProvider?: qt.TimestampProvider
 ): qt.MonoTypeFun<T>
-export function publishReplay<T, O extends qt.ObservableInput<any>>(
+export function publishReplay<T, O extends qt.ObsInput<any>>(
   bufferSize: number | undefined,
   windowTime: number | undefined,
   selector: (shared: Observable<T>) => O,
   timestampProvider?: qt.TimestampProvider
-): qt.OpFun<T, qt.ObservedValueOf<O>>
-export function publishReplay<T, O extends qt.ObservableInput<any>>(
+): qt.OpFun<T, qt.ObsValueOf<O>>
+export function publishReplay<T, O extends qt.ObsInput<any>>(
   bufferSize: number | undefined,
   windowTime: number | undefined,
   selector: undefined,
   timestampProvider: qt.TimestampProvider
-): qt.OpFun<T, qt.ObservedValueOf<O>>
+): qt.OpFun<T, qt.ObsValueOf<O>>
 export function publishReplay<T, R>(
   bufferSize?: number,
   windowTime?: number,
@@ -1783,16 +1776,16 @@ export function publishReplay<T, R>(
     )(source)
 }
 export function race<T, A extends readonly unknown[]>(
-  otherSources: [...qt.ObservableInputTuple<A>]
+  otherSources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, T | A[number]>
 export function race<T, A extends readonly unknown[]>(
-  ...otherSources: [...qt.ObservableInputTuple<A>]
+  ...otherSources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, T | A[number]>
 export function race<T>(...args: any[]): qt.OpFun<T, unknown> {
   return raceWith(...qu.argsOrArgArray(args))
 }
 export function raceWith<T, A extends readonly unknown[]>(
-  ...otherSources: [...qt.ObservableInputTuple<A>]
+  ...otherSources: [...qt.InputTuple<A>]
 ): qt.OpFun<T, T | A[number]> {
   return !otherSources.length
     ? qu.identity
@@ -1854,7 +1847,7 @@ export function refCount<T>(): qt.MonoTypeFun<T> {
 }
 export interface RepeatConfig {
   count?: number
-  delay?: number | ((count: number) => qt.ObservableInput<any>)
+  delay?: number | ((count: number) => qt.ObsInput<any>)
 }
 export function repeat<T>(
   countOrConfig?: number | RepeatConfig
@@ -1966,7 +1959,7 @@ export function repeatWhen<T>(
 }
 export interface RetryConfig {
   count?: number
-  delay?: number | ((error: any, retryCount: number) => qt.ObservableInput<any>)
+  delay?: number | ((error: any, retryCount: number) => qt.ObsInput<any>)
   resetOnSuccess?: boolean
 }
 export function retry<T>(count?: number): qt.MonoTypeFun<T>
@@ -2480,43 +2473,43 @@ export function subscribeOn<T>(
     )
   })
 }
-export function switchAll<O extends qt.ObservableInput<any>>(): qt.OpFun<
+export function switchAll<O extends qt.ObsInput<any>>(): qt.OpFun<
   O,
-  qt.ObservedValueOf<O>
+  qt.ObsValueOf<O>
 > {
   return switchMap(qu.identity)
 }
-export function switchMap<T, O extends qt.ObservableInput<any>>(
+export function switchMap<T, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O
-): qt.OpFun<T, qt.ObservedValueOf<O>>
-export function switchMap<T, O extends qt.ObservableInput<any>>(
+): qt.OpFun<T, qt.ObsValueOf<O>>
+export function switchMap<T, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: undefined
-): qt.OpFun<T, qt.ObservedValueOf<O>>
-export function switchMap<T, R, O extends qt.ObservableInput<any>>(
+): qt.OpFun<T, qt.ObsValueOf<O>>
+export function switchMap<T, R, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R
 ): qt.OpFun<T, R>
-export function switchMap<T, R, O extends qt.ObservableInput<any>>(
+export function switchMap<T, R, O extends qt.ObsInput<any>>(
   project: (value: T, index: number) => O,
   resultSelector?: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObsValueOf<O> | R> {
   return operate((source, subscriber) => {
-    let innerSubscriber: Subscriber<qt.ObservedValueOf<O>> | null = null
+    let innerSubscriber: Subscriber<qt.ObsValueOf<O>> | null = null
     let index = 0
-    let isComplete = false
+    let done = false
     const checkComplete = () =>
-      isComplete && !innerSubscriber && subscriber.complete()
+      done && !innerSubscriber && subscriber.complete()
     source.subscribe(
       new OperatorSubscriber(
         subscriber,
@@ -2546,46 +2539,46 @@ export function switchMap<T, R, O extends qt.ObservableInput<any>>(
           )
         },
         () => {
-          isComplete = true
+          done = true
           checkComplete()
         }
       )
     )
   })
 }
-export function switchMapTo<O extends qt.ObservableInput<unknown>>(
+export function switchMapTo<O extends qt.ObsInput<unknown>>(
   observable: O
-): qt.OpFun<unknown, qt.ObservedValueOf<O>>
-export function switchMapTo<O extends qt.ObservableInput<unknown>>(
+): qt.OpFun<unknown, qt.ObsValueOf<O>>
+export function switchMapTo<O extends qt.ObsInput<unknown>>(
   observable: O,
   resultSelector: undefined
-): qt.OpFun<unknown, qt.ObservedValueOf<O>>
-export function switchMapTo<T, R, O extends qt.ObservableInput<unknown>>(
+): qt.OpFun<unknown, qt.ObsValueOf<O>>
+export function switchMapTo<T, R, O extends qt.ObsInput<unknown>>(
   observable: O,
   resultSelector: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R
 ): qt.OpFun<T, R>
-export function switchMapTo<T, R, O extends qt.ObservableInput<unknown>>(
+export function switchMapTo<T, R, O extends qt.ObsInput<unknown>>(
   innerObservable: O,
   resultSelector?: (
     outerValue: T,
-    innerValue: qt.ObservedValueOf<O>,
+    innerValue: qt.ObsValueOf<O>,
     outerIndex: number,
     innerIndex: number
   ) => R
-): qt.OpFun<T, qt.ObservedValueOf<O> | R> {
+): qt.OpFun<T, qt.ObsValueOf<O> | R> {
   return qu.isFunction(resultSelector)
     ? switchMap(() => innerObservable, resultSelector)
     : switchMap(() => innerObservable)
 }
-export function switchScan<T, R, O extends qt.ObservableInput<any>>(
+export function switchScan<T, R, O extends qt.ObsInput<any>>(
   accumulator: (acc: R, value: T, index: number) => O,
   seed: R
-): qt.OpFun<T, qt.ObservedValueOf<O>> {
+): qt.OpFun<T, qt.ObsValueOf<O>> {
   return operate((source, subscriber) => {
     let state = seed
     switchMap(
@@ -2640,9 +2633,7 @@ export function takeLast<T>(count: number): qt.MonoTypeFun<T> {
         )
       })
 }
-export function takeUntil<T>(
-  notifier: qt.ObservableInput<any>
-): qt.MonoTypeFun<T> {
+export function takeUntil<T>(notifier: qt.ObsInput<any>): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
     innerFrom(notifier).subscribe(
       new OperatorSubscriber(subscriber, () => subscriber.complete(), qu.noop)
@@ -2756,7 +2747,7 @@ export const defaultThrottleConfig: ThrottleConfig = {
   trailing: false,
 }
 export function throttle<T>(
-  durationSelector: (value: T) => qt.ObservableInput<any>,
+  durationSelector: (value: T) => qt.ObsInput<any>,
   config: ThrottleConfig = defaultThrottleConfig
 ): qt.MonoTypeFun<T> {
   return operate((source, subscriber) => {
@@ -2764,18 +2755,18 @@ export function throttle<T>(
     let has = false
     let sendValue: T | null = null
     let throttled: Subscription | null = null
-    let isComplete = false
+    let done = false
     const endThrottling = () => {
       throttled?.unsubscribe()
       throttled = null
       if (trailing) {
         send()
-        isComplete && subscriber.complete()
+        done && subscriber.complete()
       }
     }
     const cleanupThrottling = () => {
       throttled = null
-      isComplete && subscriber.complete()
+      done && subscriber.complete()
     }
     const startThrottle = (value: T) =>
       (throttled = innerFrom(durationSelector(value)).subscribe(
@@ -2787,7 +2778,7 @@ export function throttle<T>(
         const value = sendValue!
         sendValue = null
         subscriber.next(value)
-        !isComplete && startThrottle(value)
+        !done && startThrottle(value)
       }
     }
     source.subscribe(
@@ -2800,7 +2791,7 @@ export function throttle<T>(
             (leading ? send() : startThrottle(value))
         },
         () => {
-          isComplete = true
+          done = true
           !(trailing && has && throttled && !throttled.closed) &&
             subscriber.complete()
         }
@@ -2856,7 +2847,7 @@ export class TimeInterval<T> {
 }
 export interface TimeoutConfig<
   T,
-  O extends qt.ObservableInput<unknown> = qt.ObservableInput<T>,
+  O extends qt.ObsInput<unknown> = qt.ObsInput<T>,
   M = unknown
 > {
   each?: number
@@ -2885,9 +2876,9 @@ export const TimeoutError: TimeoutErrorCtor = qu.createErrorClass(
       this.info = info
     }
 )
-export function timeout<T, O extends qt.ObservableInput<unknown>, M = unknown>(
+export function timeout<T, O extends qt.ObsInput<unknown>, M = unknown>(
   config: TimeoutConfig<T, O, M> & { with: (info: TimeoutInfo<T, M>) => O }
-): qt.OpFun<T, T | qt.ObservedValueOf<O>>
+): qt.OpFun<T, T | qt.ObsValueOf<O>>
 export function timeout<T, M = unknown>(
   config: Omit<TimeoutConfig<T, any, M>, "with">
 ): qt.OpFun<T, T>
@@ -2899,10 +2890,10 @@ export function timeout<T>(
   each: number,
   scheduler?: qt.Scheduler
 ): qt.MonoTypeFun<T>
-export function timeout<T, O extends qt.ObservableInput<any>, M>(
+export function timeout<T, O extends qt.ObsInput<any>, M>(
   config: number | Date | TimeoutConfig<T, O, M>,
   schedulerArg?: qt.Scheduler
-): qt.OpFun<T, T | qt.ObservedValueOf<O>> {
+): qt.OpFun<T, T | qt.ObsValueOf<O>> {
   const {
     first,
     each,
@@ -2978,22 +2969,22 @@ function timeoutErrorFactory(info: TimeoutInfo<any>): Observable<never> {
 }
 export function timeoutWith<T, R>(
   dueBy: Date,
-  switchTo: qt.ObservableInput<R>,
+  switchTo: qt.ObsInput<R>,
   scheduler?: qt.Scheduler
 ): qt.OpFun<T, T | R>
 export function timeoutWith<T, R>(
   waitFor: number,
-  switchTo: qt.ObservableInput<R>,
+  switchTo: qt.ObsInput<R>,
   scheduler?: qt.Scheduler
 ): qt.OpFun<T, T | R>
 export function timeoutWith<T, R>(
   due: number | Date,
-  withObservable: qt.ObservableInput<R>,
+  withObservable: qt.ObsInput<R>,
   scheduler?: qt.Scheduler
 ): qt.OpFun<T, T | R> {
   let first: number | Date | undefined
   let each: number | undefined
-  let _with: () => qt.ObservableInput<R>
+  let _with: () => qt.ObsInput<R>
   scheduler = scheduler ?? new AsyncScheduler()
   if (qu.isValidDate(due)) {
     first = due
@@ -3008,7 +2999,7 @@ export function timeoutWith<T, R>(
   if (first == null && each == null) {
     throw new TypeError("No timeout provided.")
   }
-  return timeout<T, qt.ObservableInput<R>>({
+  return timeout<T, qt.ObsInput<R>>({
     first,
     each,
     scheduler,
@@ -3198,8 +3189,8 @@ interface WindowRecord<T> {
   subs: Subscription
 }
 export function windowToggle<T, O>(
-  openings: qt.ObservableInput<O>,
-  closingSelector: (openValue: O) => qt.ObservableInput<any>
+  openings: qt.ObsInput<O>,
+  closingSelector: (openValue: O) => qt.ObsInput<any>
 ): qt.OpFun<T, Observable<T>> {
   return operate((source, subscriber) => {
     const windows: Subject<T>[] = []
@@ -3269,7 +3260,7 @@ export function windowToggle<T, O>(
   })
 }
 export function windowWhen<T>(
-  closingSelector: () => qt.ObservableInput<any>
+  closingSelector: () => qt.ObsInput<any>
 ): qt.OpFun<T, Observable<T>> {
   return operate((source, subscriber) => {
     let window: Subject<T> | null
@@ -3318,10 +3309,10 @@ export function windowWhen<T>(
   })
 }
 export function withLatestFrom<T, O extends unknown[]>(
-  ...inputs: [...qt.ObservableInputTuple<O>]
+  ...inputs: [...qt.InputTuple<O>]
 ): qt.OpFun<T, [T, ...O]>
 export function withLatestFrom<T, O extends unknown[], R>(
-  ...inputs: [...qt.ObservableInputTuple<O>, (...value: [T, ...O]) => R]
+  ...inputs: [...qt.InputTuple<O>, (...value: [T, ...O]) => R]
 ): qt.OpFun<T, R>
 export function withLatestFrom<T, R>(...inputs: any[]): qt.OpFun<T, R | any[]> {
   const project = qu.popResultSelector(inputs) as
@@ -3358,36 +3349,36 @@ export function withLatestFrom<T, R>(...inputs: any[]): qt.OpFun<T, R | any[]> {
   })
 }
 export function zip<T, A extends readonly unknown[]>(
-  otherInputs: [...qt.ObservableInputTuple<A>]
+  otherInputs: [...qt.InputTuple<A>]
 ): qt.OpFun<T, qt.Cons<T, A>>
 export function zip<T, A extends readonly unknown[], R>(
-  otherInputsAndProject: [...qt.ObservableInputTuple<A>],
+  otherInputsAndProject: [...qt.InputTuple<A>],
   project: (...values: qt.Cons<T, A>) => R
 ): qt.OpFun<T, R>
 export function zip<T, A extends readonly unknown[]>(
-  ...otherInputs: [...qt.ObservableInputTuple<A>]
+  ...otherInputs: [...qt.InputTuple<A>]
 ): qt.OpFun<T, qt.Cons<T, A>>
 export function zip<T, A extends readonly unknown[], R>(
   ...otherInputsAndProject: [
-    ...qt.ObservableInputTuple<A>,
+    ...qt.InputTuple<A>,
     (...values: qt.Cons<T, A>) => R
   ]
 ): qt.OpFun<T, R>
 export function zip<T, R>(
-  ...sources: Array<qt.ObservableInput<any> | ((...values: Array<any>) => R)>
+  ...sources: Array<qt.ObsInput<any> | ((...values: Array<any>) => R)>
 ): qt.OpFun<T, any> {
   return operate((source, subscriber) => {
     zipStatic(
-      source as qt.ObservableInput<any>,
-      ...(sources as Array<qt.ObservableInput<any>>)
+      source as qt.ObsInput<any>,
+      ...(sources as Array<qt.ObsInput<any>>)
     ).subscribe(subscriber)
   })
 }
-export function zipAll<T>(): qt.OpFun<qt.ObservableInput<T>, T[]>
+export function zipAll<T>(): qt.OpFun<qt.ObsInput<T>, T[]>
 export function zipAll<T>(): qt.OpFun<any, T[]>
 export function zipAll<T, R>(
   project: (...values: T[]) => R
-): qt.OpFun<qt.ObservableInput<T>, R>
+): qt.OpFun<qt.ObsInput<T>, R>
 export function zipAll<R>(
   project: (...values: Array<any>) => R
 ): qt.OpFun<any, R>
@@ -3395,7 +3386,7 @@ export function zipAll<T, R>(project?: (...values: T[]) => R) {
   return joinAllInternals(zip, project)
 }
 export function zipWith<T, A extends readonly unknown[]>(
-  ...otherInputs: [...qt.ObservableInputTuple<A>]
+  ...otherInputs: [...qt.InputTuple<A>]
 ): qt.OpFun<T, qt.Cons<T, A>> {
   return zip(...otherInputs)
 }

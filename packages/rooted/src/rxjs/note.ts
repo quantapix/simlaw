@@ -6,121 +6,86 @@ import type * as qt from "./types.js"
 export enum Kind {
   NEXT = "N",
   ERROR = "E",
-  COMPLETE = "C",
+  DONE = "D",
 }
 
 export class Note<T> {
-  readonly hasValue: boolean
-  constructor(kind: "N", value?: T)
-  constructor(kind: "E", value: undefined, error: any)
-  constructor(kind: "C")
+  readonly hasVal: boolean
+  constructor(kind: "N", val?: T)
+  constructor(kind: "E", val: undefined, err: any)
+  constructor(kind: "D")
   constructor(
-    public readonly kind: "N" | "E" | "C",
-    public readonly value?: T,
-    public readonly error?: any
+    public readonly kind: "N" | "E" | "D",
+    public readonly val?: T,
+    public readonly err?: any
   ) {
-    this.hasValue = kind === "N"
+    this.hasVal = kind === "N"
   }
   observe(observer: qt.PartialObserver<T>): void {
-    return observeNote(this as qt.ObservableNote<T>, observer)
+    return observeNote(this as qt.ObsNote<T>, observer)
   }
-  do(
-    next: (value: T) => void,
-    error: (err: any) => void,
-    complete: () => void
-  ): void
-  do(next: (value: T) => void, error: (err: any) => void): void
-  do(next: (value: T) => void): void
-  do(
-    nextHandler: (value: T) => void,
-    errorHandler?: (err: any) => void,
-    completeHandler?: () => void
-  ): void {
-    const { kind, value, error } = this
-    return kind === "N"
-      ? nextHandler?.(value!)
-      : kind === "E"
-      ? errorHandler?.(error)
-      : completeHandler?.()
+  do(next: (x: T) => void, error: (x: any) => void, done: () => void): void
+  do(next: (x: T) => void, error: (x: any) => void): void
+  do(next: (x: T) => void): void
+  do(next: (x: T) => void, error?: (x: any) => void, done?: () => void): void {
+    const { kind, val, err } = this
+    return kind === "N" ? next?.(val!) : kind === "E" ? error?.(err) : done?.()
   }
+  accept(next: (x: T) => void, error: (x: any) => void, done: () => void): void
+  accept(next: (x: T) => void, error: (x: any) => void): void
+  accept(next: (x: T) => void): void
+  accept(x: qt.PartialObserver<T>): void
   accept(
-    next: (value: T) => void,
-    error: (err: any) => void,
-    complete: () => void
-  ): void
-  accept(next: (value: T) => void, error: (err: any) => void): void
-  accept(next: (value: T) => void): void
-  accept(observer: qt.PartialObserver<T>): void
-  accept(
-    nextOrObserver: qt.PartialObserver<T> | ((value: T) => void),
-    error?: (err: any) => void,
-    complete?: () => void
+    next: qt.PartialObserver<T> | ((x: T) => void),
+    error?: (x: any) => void,
+    done?: () => void
   ) {
-    return qu.isFunction((nextOrObserver as any)?.next)
-      ? this.observe(nextOrObserver as qt.PartialObserver<T>)
-      : this.do(
-          nextOrObserver as (value: T) => void,
-          error as any,
-          complete as any
-        )
+    return qu.isFunction((next as any)?.next)
+      ? this.observe(next as qt.PartialObserver<T>)
+      : this.do(next as (x: T) => void, error as any, done as any)
   }
   toObservable(): Observable<T> {
-    const { kind, value, error } = this
-    const result =
+    const { kind, val, err } = this
+    const y =
       kind === "N"
-        ? of(value!)
+        ? of(val!)
         : kind === "E"
-        ? throwError(() => error)
-        : kind === "C"
+        ? throwError(() => err)
+        : kind === "D"
         ? EMPTY
         : 0
-    if (!result) {
-      throw new TypeError(`Unexpected note kind ${kind}`)
-    }
-    return result
+    if (!y) throw new TypeError(`Unexpected note kind ${kind}`)
+    return y
   }
-  private static completeNote = new Note("C") as Note<never> & qt.CompleteNote
-  static createNext<T>(value: T) {
-    return new Note("N", value) as Note<T> & qt.NextNote<T>
+  static createNext<T>(x: T) {
+    return new Note("N", x) as Note<T> & qt.NextNote<T>
   }
-  static createError(err?: any) {
-    return new Note("E", undefined, err) as Note<never> & qt.ErrorNote
+  static createError(x?: any) {
+    return new Note("E", undefined, x) as Note<never> & qt.ErrNote
   }
-  static createComplete(): Note<never> & qt.CompleteNote {
-    return Note.completeNote
+  private static doneNote = new Note("D") as Note<never> & qt.DoneNote
+  static createDone(): Note<never> & qt.DoneNote {
+    return Note.doneNote
   }
 }
 
-export const COMPLETE_NOTE = (() =>
-  createNote("C", undefined, undefined) as qt.CompleteNote)()
-
-export function createNote(kind: "N" | "E" | "C", value: any, error: any) {
-  return {
-    kind,
-    value,
-    error,
-  }
+export function createNote(kind: "N" | "E" | "D", val: any, err: any) {
+  return { kind, val, err }
 }
 
-export function nextNote<T>(value: T) {
-  return createNote("N", value, undefined) as qt.NextNote<T>
+export function nextNote<T>(val: T) {
+  return createNote("N", val, undefined) as qt.NextNote<T>
 }
 
-export function errorNote(error: any): qt.ErrorNote {
-  return createNote("E", undefined, error) as any
+export function errNote(err: any): qt.ErrNote {
+  return createNote("E", undefined, err) as any
 }
 
-export function observeNote<T>(
-  note: qt.ObservableNote<T>,
-  observer: qt.PartialObserver<T>
-) {
-  const { kind, value, error } = note as any
-  if (typeof kind !== "string") {
-    throw new TypeError('Invalid note, missing "kind"')
-  }
-  kind === "N"
-    ? observer.next?.(value!)
-    : kind === "E"
-    ? observer.error?.(error)
-    : observer.complete?.()
+export const DONE_NOTE = (() =>
+  createNote("D", undefined, undefined) as qt.DoneNote)()
+
+export function observeNote<T>(x: qt.ObsNote<T>, o: qt.PartialObserver<T>) {
+  const { kind, val, err } = x as any
+  if (typeof kind !== "string") throw new TypeError("Invalid note")
+  kind === "N" ? o.next?.(val!) : kind === "E" ? o.error?.(err) : o.done?.()
 }

@@ -31,7 +31,7 @@ export class Scheduler implements qt.Scheduler {
   ): Subscription {
     return new this.ctor<T>(this, work).schedule(x, delay)
   }
-  dispatch<T>(x: qt.ObservableInput<T>): Observable<T> {
+  dispatch<T>(x: qt.ObsInput<T>): Observable<T> {
     if (x != null) {
       if (qu.isInteropObservable(x)) return this.runObservable(x)
       if (qu.isArrayLike(x)) return this.runArray(x)

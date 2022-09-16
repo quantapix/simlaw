@@ -3,31 +3,31 @@
 export interface Observer<T> {
   next: (x: T) => void
   error: (e: any) => void
-  complete: () => void
+  done: () => void
 }
 
 export interface NextObserver<T> {
   closed?: boolean
   next: (x: T) => void
   error?: (e: any) => void
-  complete?: () => void
+  done?: () => void
 }
-export interface ErrorObserver<T> {
+export interface ErrObserver<T> {
   closed?: boolean
   next?: (x: T) => void
   error: (e: any) => void
-  complete?: () => void
+  done?: () => void
 }
-export interface CompletionObserver<T> {
+export interface DoneObserver<T> {
   closed?: boolean
   next?: (x: T) => void
   error?: (e: any) => void
-  complete: () => void
+  done: () => void
 }
 export type PartialObserver<T> =
   | NextObserver<T>
-  | ErrorObserver<T>
-  | CompletionObserver<T>
+  | ErrObserver<T>
+  | DoneObserver<T>
 
 export interface Unsubscribable {
   unsubscribe(): void
@@ -46,13 +46,13 @@ export interface Observable<T> {
   [Symbol.observable]: () => Subscribable<T>
 }
 
-export type SubscribableOrPromise<T> =
+export type SubOrPromise<T> =
   | Subscribable<T>
   | Subscribable<never>
   | PromiseLike<T>
   | Observable<T>
 
-export type ObservableInput<T> =
+export type ObsInput<T> =
   | Observable<T>
   | AsyncIterable<T>
   | PromiseLike<T>
@@ -69,16 +69,16 @@ export interface MonoTypeFun<T> extends OpFun<T, T> {}
 
 export interface NextNote<T> {
   kind: "N"
-  value: T
+  val: T
 }
-export interface ErrorNote {
+export interface ErrNote {
   kind: "E"
-  error: any
+  err: any
 }
-export interface CompleteNote {
-  kind: "C"
+export interface DoneNote {
+  kind: "D"
 }
-export type ObservableNote<T> = NextNote<T> | ErrorNote | CompleteNote
+export type ObsNote<T> = NextNote<T> | ErrNote | DoneNote
 
 export interface SubjectLike<T> extends Observer<T>, Subscribable<T> {}
 
@@ -100,7 +100,7 @@ export interface Scheduler extends TimestampProvider {
     delay?: number,
     x?: T
   ): Subscription
-  dispatch<T>(x: ObservableInput<T>): Observable<T>
+  dispatch<T>(x: ObsInput<T>): Observable<T>
   run(s: Subscription, work: () => void, delay: number, more: true): void
   run(
     s: Subscription,
@@ -115,18 +115,16 @@ export interface TimestampProvider {
   now(): number
 }
 
-export type ObservedValueOf<X> = X extends ObservableInput<infer T> ? T : never
-export type ObservedValueUnionFromArray<X> = X extends Array<
-  ObservableInput<infer T>
->
+export type ObsValueOf<X> = X extends ObsInput<infer T> ? T : never
+export type ObservedValueUnionFromArray<X> = X extends Array<ObsInput<infer T>>
   ? T
   : never
 export type ObservedValuesFromArray<X> = ObservedValueUnionFromArray<X>
 export type ObservedValueTupleFromArray<X> = {
-  [K in keyof X]: ObservedValueOf<X[K]>
+  [K in keyof X]: ObsValueOf<X[K]>
 }
-export type ObservableInputTuple<X> = {
-  [K in keyof X]: ObservableInput<X[K]>
+export type InputTuple<X> = {
+  [K in keyof X]: ObsInput<X[K]>
 }
 
 export type Cons<X, XS extends readonly any[]> = ((
@@ -160,6 +158,7 @@ export type ValueFromNote<X> = X extends { kind: "N" | "E" | "C" }
       : undefined
     : never
   : never
+
 export type Falsy = null | undefined | false | 0 | -0 | 0n | ""
 export type TruthyTypesOf<T> = T extends Falsy ? never : T
 
@@ -182,7 +181,7 @@ export type AnyCatcher = typeof anyCatcherSymbol
 
 export interface GlobalConfig {
   onUnhandledError: ((x: any) => void) | null
-  onStoppedNote: ((n: ObservableNote<any>, s: Subscriber<any>) => void) | null
+  onStoppedNote: ((n: ObsNote<any>, s: Subscription) => void) | null
   Promise?: PromiseConstructorLike
   useDeprecatedSynchronousErrorHandling: boolean
   useDeprecatedNextContext: boolean
@@ -196,14 +195,14 @@ export interface LastValueFromConfig<T> {
   defaultValue: T
 }
 
-export interface EmptyError extends Error {}
-export interface EmptyErrorCtor {
-  new (): EmptyError
+export interface EmptyErr extends Error {}
+export interface EmptyErrCtor {
+  new (): EmptyErr
 }
 
-export interface NotFoundError extends Error {}
-export interface NotFoundErrorCtor {
-  new (x: string): NotFoundError
+export interface NotFoundErr extends Error {}
+export interface NotFoundErrCtor {
+  new (x: string): NotFoundErr
 }
 
 export interface ObjectUnsubscribedError extends Error {}
@@ -211,19 +210,19 @@ export interface ObjectUnsubscribedErrorCtor {
   new (): ObjectUnsubscribedError
 }
 
-export interface SequenceError extends Error {}
-export interface SequenceErrorCtor {
-  new (x: string): SequenceError
+export interface SequenceErr extends Error {}
+export interface SequenceErrCtor {
+  new (x: string): SequenceErr
 }
 
-export interface UnsubscriptionError extends Error {
+export interface UnsubscriptionErr extends Error {
   readonly errors: any[]
 }
-export interface UnsubscriptionErrorCtor {
-  new (xs: any[]): UnsubscriptionError
+export interface UnsubscriptionErrCtor {
+  new (xs: any[]): UnsubscriptionErr
 }
 
-export interface ArgumentOutOfRangeError extends Error {}
-export interface ArgumentOutOfRangeErrorCtor {
-  new (): ArgumentOutOfRangeError
+export interface ArgOutOfRangeErr extends Error {}
+export interface ArgOutOfRangeErrCtor {
+  new (): ArgOutOfRangeErr
 }

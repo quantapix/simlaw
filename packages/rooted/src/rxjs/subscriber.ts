@@ -1,5 +1,5 @@
 import { isSubscription, Subscription } from "./subscription.js"
-import { nextNote, errorNote, COMPLETE_NOTE } from "./note.js"
+import { nextNote, errNote, DONE_NOTE } from "./note.js"
 import { timeoutProvider } from "./scheduler.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
@@ -8,9 +8,9 @@ export class Subscriber<T> extends Subscription implements qt.Observer<T> {
   static create<T>(
     next?: (x?: T) => void,
     error?: (e?: any) => void,
-    complete?: () => void
+    done?: () => void
   ): Subscriber<T> {
-    return new SafeSubscriber(next, error, complete)
+    return new SafeSubscriber(next, error, done)
   }
   protected isStopped = false
   protected dest: Subscriber<any> | qt.Observer<any>
@@ -33,17 +33,17 @@ export class Subscriber<T> extends Subscription implements qt.Observer<T> {
     else this._next(x!)
   }
   error(x?: any) {
-    if (this.isStopped) handleStopped(errorNote(x), this)
+    if (this.isStopped) handleStopped(errNote(x), this)
     else {
       this.isStopped = true
       this._error(x)
     }
   }
-  complete() {
-    if (this.isStopped) handleStopped(COMPLETE_NOTE, this)
+  done() {
+    if (this.isStopped) handleStopped(DONE_NOTE, this)
     else {
       this.isStopped = true
-      this._complete()
+      this._done()
     }
   }
   protected _next(x: T) {
@@ -56,9 +56,9 @@ export class Subscriber<T> extends Subscription implements qt.Observer<T> {
       this.unsubscribe()
     }
   }
-  protected _complete() {
+  protected _done() {
     try {
-      this.dest.complete()
+      this.dest.done()
     } finally {
       this.unsubscribe()
     }
@@ -92,11 +92,11 @@ class ConsumerObserver<T> implements qt.Observer<T> {
       }
     } else handleUnhandled(x)
   }
-  complete(): void {
+  done(): void {
     const { obs } = this
-    if (obs.complete) {
+    if (obs.done) {
       try {
-        obs.complete()
+        obs.done()
       } catch (error) {
         handleUnhandled(error)
       }
@@ -114,7 +114,7 @@ export class SafeSubscriber<T> extends Subscriber<T> {
   constructor(
     next?: Partial<qt.Observer<T>> | ((x: T) => void) | null,
     error?: ((x?: any) => void) | null,
-    complete?: (() => void) | null
+    done?: (() => void) | null
   ) {
     super()
     let obs: Partial<qt.Observer<T>>
@@ -122,7 +122,7 @@ export class SafeSubscriber<T> extends Subscriber<T> {
       obs = {
         next: (next ?? undefined) as ((x: T) => void) | undefined,
         error: error ?? undefined,
-        complete: complete ?? undefined,
+        done: done ?? undefined,
       }
     } else {
       let ctx: any
@@ -132,7 +132,7 @@ export class SafeSubscriber<T> extends Subscriber<T> {
         obs = {
           next: next.next && bind(next.next, ctx),
           error: next.error && bind(next.error, ctx),
-          complete: next.complete && bind(next.complete, ctx),
+          done: next.done && bind(next.done, ctx),
         }
       } else obs = next
     }
@@ -144,7 +144,7 @@ function defaultHandler(x: any) {
   throw x
 }
 
-function handleStopped(x: qt.ObservableNote<any>, sub: Subscriber<any>) {
+function handleStopped(x: qt.ObsNote<any>, sub: Subscriber<any>) {
   const { onStoppedNote } = qu.config
   onStoppedNote && timeoutProvider.setTimeout(() => onStoppedNote(x, sub))
 }
@@ -161,5 +161,5 @@ const EMPTY_OBS: Readonly<qt.Observer<any>> & { closed: true } = {
   closed: true,
   next: qu.noop,
   error: defaultHandler,
-  complete: qu.noop,
+  done: qu.noop,
 }

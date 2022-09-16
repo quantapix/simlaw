@@ -75,7 +75,7 @@ export function lastValueFrom<T, D>(
   })
 }
 
-export const ArgumentOutOfRangeError: qt.ArgumentOutOfRangeErrorCtor =
+export const ArgumentOutOfRangeError: qt.ArgOutOfRangeErrCtor =
   createErrorClass(
     _super =>
       function ArgumentOutOfRangeErrorImpl(this: any) {
@@ -84,7 +84,7 @@ export const ArgumentOutOfRangeError: qt.ArgumentOutOfRangeErrorCtor =
         this.message = "argument out of range"
       }
   )
-export const EmptyError: qt.EmptyErrorCtor = createErrorClass(
+export const EmptyError: qt.EmptyErrCtor = createErrorClass(
   _super =>
     function impl(this: any) {
       _super(this)
@@ -124,7 +124,7 @@ export const TestTools = {
   },
 }
 
-export const NotFoundError: qt.NotFoundErrorCtor = createErrorClass(
+export const NotFoundError: qt.NotFoundErrCtor = createErrorClass(
   _super =>
     function NotFoundErrorImpl(this: any, x: string) {
       _super(this)
@@ -143,7 +143,7 @@ export const ObjectUnsubscribedError: qt.ObjectUnsubscribedErrorCtor =
       }
   )
 
-export const SequenceError: qt.SequenceErrorCtor = createErrorClass(
+export const SequenceError: qt.SequenceErrCtor = createErrorClass(
   _super =>
     function SequenceErrorImpl(this: any, message: string) {
       _super(this)
@@ -152,7 +152,7 @@ export const SequenceError: qt.SequenceErrorCtor = createErrorClass(
     }
 )
 
-export const UnsubscriptionError: qt.UnsubscriptionErrorCtor = createErrorClass(
+export const UnsubscriptionError: qt.UnsubscriptionErrCtor = createErrorClass(
   _super =>
     function UnsubscriptionErrorImpl(this: any, errors: (Error | string)[]) {
       _super(this)

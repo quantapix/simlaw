@@ -6,7 +6,7 @@ import { HotObservable } from "./HotObservable"
 import { immediateProvider } from "./scheduler/immediateProvider"
 import { intervalProvider } from "./scheduler/intervalProvider"
 import { Observable } from "./Observable"
-import { ObservableNote } from "./types.js"
+import { ObsNote } from "./types.js"
 import { observeNote } from "./Note"
 import { performanceTimestampProvider } from "./scheduler/performanceTimestampProvider"
 import { Scheduler } from "./Scheduler"
@@ -22,7 +22,7 @@ import {
   VirtualTimeScheduler,
   VirtualAction,
 } from "./scheduler/VirtualTimeScheduler"
-import { COMPLETE_NOTE, errorNote, nextNote } from "./NoteFactories"
+import { DONE_NOTE, errorNote, nextNote } from "./NoteFactories"
 
 export class ColdObservable<T>
   extends Observable<T>
@@ -135,7 +135,7 @@ export class SubscriptionLoggable {
 }
 export interface TestMessage {
   frame: number
-  note: ObservableNote<any>
+  note: ObsNote<any>
   isGhost?: boolean
 }
 const defaultMaxFrame: number = 750
@@ -243,7 +243,7 @@ export class TestScheduler extends VirtualTimeScheduler {
       complete: () => {
         messages.push({
           frame: this.frame - outerFrame,
-          note: COMPLETE_NOTE,
+          note: DONE_NOTE,
         })
       },
     })
@@ -286,7 +286,7 @@ export class TestScheduler extends VirtualTimeScheduler {
         complete: () => {
           actual.push({
             frame: this.frame,
-            note: COMPLETE_NOTE,
+            note: DONE_NOTE,
           })
         },
       })
@@ -331,7 +331,7 @@ export class TestScheduler extends VirtualTimeScheduler {
             complete: () => {
               flushTest.expected!.push({
                 frame: this.frame,
-                note: COMPLETE_NOTE,
+                note: DONE_NOTE,
               })
             },
           })
@@ -515,7 +515,7 @@ export class TestScheduler extends VirtualTimeScheduler {
       const advanceFrameBy = (count: number) => {
         nextFrame += count * this.frameTimeFactor
       }
-      let note: ObservableNote<any> | undefined
+      let note: ObsNote<any> | undefined
       const c = characters[i]
       switch (c) {
         case " ":
@@ -535,7 +535,7 @@ export class TestScheduler extends VirtualTimeScheduler {
           advanceFrameBy(1)
           break
         case "|":
-          note = COMPLETE_NOTE
+          note = DONE_NOTE
           advanceFrameBy(1)
           break
         case "^":

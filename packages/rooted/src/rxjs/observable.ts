@@ -45,11 +45,9 @@ export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
   subscribe(
     next?: Partial<qt.Observer<T>> | ((x: T) => void) | null,
     error?: ((x: any) => void) | null,
-    complete?: (() => void) | null
+    done?: (() => void) | null
   ): Subscription {
-    const y = isSubscriber(next)
-      ? next
-      : new SafeSubscriber(next, error, complete)
+    const y = isSubscriber(next) ? next : new SafeSubscriber(next, error, done)
     qu.errorContext(() => {
       const { op, src } = this
       y.add(op ? op.call(y, src) : src ? this._subscribe(y) : this._try(y))
@@ -78,7 +76,7 @@ export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
           }
         },
         error: rej,
-        complete: res,
+        done: res,
       })
       this.subscribe(s)
     }) as Promise<void>
@@ -228,10 +226,10 @@ function _bindCallback(
             }
             s.next(1 < rs.length ? rs : rs[0])
             isComplete = true
-            if (isAsync) s.complete()
+            if (isAsync) s.done()
           },
         ])
-        if (isComplete) s.complete()
+        if (isComplete) s.done()
         isAsync = true
       }
       return y
@@ -264,28 +262,28 @@ export function combineLatest<T extends qt.AnyCatcher>(
 ): Observable<unknown>
 export function combineLatest(xs: []): Observable<never>
 export function combineLatest<T extends readonly unknown[]>(
-  xs: readonly [...qt.ObservableInputTuple<T>]
+  xs: readonly [...qt.InputTuple<T>]
 ): Observable<T>
 export function combineLatest<T extends readonly unknown[], R>(
-  xs: readonly [...qt.ObservableInputTuple<T>],
+  xs: readonly [...qt.InputTuple<T>],
   res: (...xs: T) => R
 ): Observable<R>
 export function combineLatest(sourcesObject: {
   [K in any]: never
 }): Observable<never>
-export function combineLatest<
-  T extends Record<string, qt.ObservableInput<any>>
->(x: T): Observable<{ [K in keyof T]: qt.ObservedValueOf<T[K]> }>
-export function combineLatest<T extends qt.ObservableInput<any>, R>(
+export function combineLatest<T extends Record<string, qt.ObsInput<any>>>(
+  x: T
+): Observable<{ [K in keyof T]: qt.ObsValueOf<T[K]> }>
+export function combineLatest<T extends qt.ObsInput<any>, R>(
   ...xs: any[]
-): Observable<R> | Observable<qt.ObservedValueOf<T>[]> {
+): Observable<R> | Observable<qt.ObsValueOf<T>[]> {
   const sched = Scheduler.pop(xs)
   const res = qu.popResultSelector(xs)
   const { args: os, keys } = qu.argsArgArrayOrObject(xs)
   if (os.length === 0) return from([], sched as any)
-  const y = new Observable<qt.ObservedValueOf<T>[]>(
+  const y = new Observable<qt.ObsValueOf<T>[]>(
     _combineLatest(
-      os as qt.ObservableInput<qt.ObservedValueOf<T>>[],
+      os as qt.ObsInput<qt.ObsValueOf<T>>[],
       sched,
       keys ? xs => qu.createObject(keys, xs) : qu.identity
     )
@@ -294,7 +292,7 @@ export function combineLatest<T extends qt.ObservableInput<any>, R>(
 }
 
 export function _combineLatest(
-  xs: qt.ObservableInput<any>[],
+  xs: qt.ObsInput<any>[],
   sched?: qt.Scheduler,
   valueTransform: (xs: any[]) => any = qu.identity
 ) {
@@ -324,7 +322,7 @@ export function _combineLatest(
                     if (!remaining) s.next(valueTransform(vs.slice()))
                   },
                   () => {
-                    if (!--active) s.complete()
+                    if (!--active) s.done()
                   }
                 )
               )
@@ -348,10 +346,10 @@ function maybeSchedule(
 }
 
 export function concat<T extends readonly unknown[]>(
-  ...xs: [...qt.ObservableInputTuple<T>]
+  ...xs: [...qt.InputTuple<T>]
 ): Observable<T[number]>
 export function concat<T extends readonly unknown[]>(
-  ...xs: [...qt.ObservableInputTuple<T>, qt.Scheduler]
+  ...xs: [...qt.InputTuple<T>, qt.Scheduler]
 ): Observable<T[number]>
 export function concat(...xs: any[]) {
   return concatAll()(from(xs, Scheduler.pop(xs)))
@@ -367,7 +365,7 @@ const DEFAULT_CONFIG: ConnectableConfig<unknown> = {
 }
 
 export function connectable<T>(
-  x: qt.ObservableInput<T>,
+  x: qt.ObsInput<T>,
   cfg: ConnectableConfig<T> = DEFAULT_CONFIG
 ): qt.Connectable<T> {
   let c: Subscription | undefined = undefined
@@ -386,10 +384,10 @@ export function connectable<T>(
   return y
 }
 
-export function defer<R extends qt.ObservableInput<any>>(
+export function defer<R extends qt.ObsInput<any>>(
   observableFactory: () => R
-): Observable<qt.ObservedValueOf<R>> {
-  return new Observable<qt.ObservedValueOf<R>>(subscriber => {
+): Observable<qt.ObsValueOf<R>> {
+  return new Observable<qt.ObsValueOf<R>>(subscriber => {
     innerFrom(observableFactory()).subscribe(subscriber)
   })
 }
@@ -423,7 +421,7 @@ const DEFAULT_ANIMATION_FRAMES = animationFramesFactory()
 export function fromFetch<T>(
   input: string | Request,
   init: RequestInit & {
-    selector: (response: Response) => qt.ObservableInput<T>
+    selector: (response: Response) => qt.ObsInput<T>
   }
 ): Observable<T>
 export function fromFetch(
@@ -433,7 +431,7 @@ export function fromFetch(
 export function fromFetch<T>(
   input: string | Request,
   initWithSelector: RequestInit & {
-    selector?: (response: Response) => qt.ObservableInput<T>
+    selector?: (response: Response) => qt.ObsInput<T>
   } = {}
 ): Observable<Response | T> {
   const { selector, ...init } = initWithSelector
@@ -471,7 +469,7 @@ export function fromFetch<T>(
               undefined,
               () => {
                 abortable = false
-                subscriber.complete()
+                subscriber.done()
               },
               handleError
             )
@@ -479,7 +477,7 @@ export function fromFetch<T>(
         } else {
           abortable = false
           subscriber.next(response)
-          subscriber.complete()
+          subscriber.done()
         }
       })
       .catch(handleError)
@@ -497,31 +495,31 @@ export function webSocket<T>(
   return new WebSocketSubject<T>(urlConfigOrSource)
 }
 
-export const EMPTY = new Observable<never>(x => x.complete())
+export const EMPTY = new Observable<never>(x => x.done())
 
 export function forkJoin<T extends qt.AnyCatcher>(arg: T): Observable<unknown>
 export function forkJoin(_: null | undefined): Observable<never>
 export function forkJoin(xs: readonly []): Observable<never>
 export function forkJoin<T extends readonly unknown[]>(
-  xs: readonly [...qt.ObservableInputTuple<T>]
+  xs: readonly [...qt.InputTuple<T>]
 ): Observable<T>
 export function forkJoin<T extends readonly unknown[], R>(
-  xs: readonly [...qt.ObservableInputTuple<T>],
+  xs: readonly [...qt.InputTuple<T>],
   res: (...xs: T) => R
 ): Observable<R>
 export function forkJoin(x: {
   [K in any]: never
 }): Observable<never>
-export function forkJoin<T extends Record<string, qt.ObservableInput<any>>>(
+export function forkJoin<T extends Record<string, qt.ObsInput<any>>>(
   x: T
-): Observable<{ [K in keyof T]: qt.ObservedValueOf<T[K]> }>
+): Observable<{ [K in keyof T]: qt.ObsValueOf<T[K]> }>
 export function forkJoin(...xs: any[]): Observable<any> {
   const resultSelector = qu.popResultSelector(xs)
   const { args, keys } = qu.argsArgArrayOrObject(xs)
   const y = new Observable(s => {
     const { length } = args
     if (!length) {
-      s.complete()
+      s.done()
       return
     }
     const vs = new Array(length)
@@ -544,7 +542,7 @@ export function forkJoin(...xs: any[]): Observable<any> {
           () => {
             if (!completions || !hasValue) {
               if (!emissions) s.next(keys ? qu.createObject(keys, vs) : vs)
-              s.complete()
+              s.done()
             }
           }
         )
@@ -554,15 +552,15 @@ export function forkJoin(...xs: any[]): Observable<any> {
   return resultSelector ? y.pipe(qu.mapOneOrManyArgs(resultSelector)) : y
 }
 
-export function from<T extends qt.ObservableInput<any>>(
+export function from<T extends qt.ObsInput<any>>(
   x: T
-): Observable<qt.ObservedValueOf<T>>
-export function from<T extends qt.ObservableInput<any>>(
+): Observable<qt.ObsValueOf<T>>
+export function from<T extends qt.ObsInput<any>>(
   x: T,
   sched?: qt.Scheduler
-): Observable<qt.ObservedValueOf<T>>
+): Observable<qt.ObsValueOf<T>>
 export function from<T>(
-  x: qt.ObservableInput<T>,
+  x: qt.ObsInput<T>,
   sched?: qt.Scheduler
 ): Observable<T> {
   return sched ? (sched.dispatch(x) as Observable<T>) : innerFrom(x)
@@ -791,24 +789,22 @@ export function generate<R, T>(
     }
   }
   return defer(
-    (sched
-      ? () => sched?.runIterable(gen())
-      : gen) as () => qt.ObservableInput<R>
+    (sched ? () => sched?.runIterable(gen()) : gen) as () => qt.ObsInput<R>
   )
 }
 
 export function iif<T, F>(
   cond: () => boolean,
-  t: qt.ObservableInput<T>,
-  f: qt.ObservableInput<F>
+  t: qt.ObsInput<T>,
+  f: qt.ObsInput<F>
 ): Observable<T | F> {
   return defer(() => (cond() ? t : f))
 }
 
-export function innerFrom<T extends qt.ObservableInput<any>>(
+export function innerFrom<T extends qt.ObsInput<any>>(
   x: T
-): Observable<qt.ObservedValueOf<T>>
-export function innerFrom<T>(x: qt.ObservableInput<T>): Observable<T> {
+): Observable<qt.ObsValueOf<T>>
+export function innerFrom<T>(x: qt.ObsInput<T>): Observable<T> {
   if (x instanceof Observable) return x
   if (x != null) {
     if (qu.isInteropObservable(x)) return fromInteropObservable(x)
@@ -835,7 +831,7 @@ export function fromArrayLike<T>(x: ArrayLike<T>) {
     for (let i = 0; i < x.length && !s.closed; i++) {
       s.next(x[i])
     }
-    s.complete()
+    s.done()
   })
 }
 export function fromPromise<T>(p: PromiseLike<T>) {
@@ -844,7 +840,7 @@ export function fromPromise<T>(p: PromiseLike<T>) {
       x => {
         if (!s.closed) {
           s.next(x)
-          s.complete()
+          s.done()
         }
       },
       (e: any) => s.error(e)
@@ -857,7 +853,7 @@ export function fromIterable<T>(i: Iterable<T>) {
       s.next(x)
       if (s.closed) return
     }
-    s.complete()
+    s.done()
   })
 }
 export function fromAsyncIterable<T>(x: AsyncIterable<T>) {
@@ -874,7 +870,7 @@ async function process<T>(i: AsyncIterable<T>, s: Subscriber<T>) {
     s.next(x)
     if (s.closed) return
   }
-  s.complete()
+  s.done()
 }
 export function interval(
   period = 0,
@@ -885,17 +881,15 @@ export function interval(
 }
 
 export function merge<T extends readonly unknown[]>(
-  ...xs: [...qt.ObservableInputTuple<T>]
+  ...xs: [...qt.InputTuple<T>]
 ): Observable<T[number]>
 export function merge<T extends readonly unknown[]>(
-  ...xs: [...qt.ObservableInputTuple<T>, number?]
+  ...xs: [...qt.InputTuple<T>, number?]
 ): Observable<T[number]>
-export function merge(
-  ...xs: (qt.ObservableInput<unknown> | number | qt.Scheduler)[]
-) {
+export function merge(...xs: (qt.ObsInput<unknown> | number | qt.Scheduler)[]) {
   const sched = Scheduler.pop(xs)
   const concurrent = qu.popNumber(xs, Infinity)
-  const ys = xs as qt.ObservableInput<unknown>[]
+  const ys = xs as qt.ObsInput<unknown>[]
   return !ys.length
     ? EMPTY
     : ys.length === 1
@@ -917,27 +911,27 @@ export function of<T>(...xs: Array<T | qt.Scheduler>): Observable<T> {
 }
 
 export function onErrorResumeNext<T extends readonly unknown[]>(
-  xs: [...qt.ObservableInputTuple<T>]
+  xs: [...qt.InputTuple<T>]
 ): Observable<T[number]>
 export function onErrorResumeNext<T extends readonly unknown[]>(
-  ...xs: [...qt.ObservableInputTuple<T>]
+  ...xs: [...qt.InputTuple<T>]
 ): Observable<T[number]>
 export function onErrorResumeNext<T extends readonly unknown[]>(
-  ...xs: [[...qt.ObservableInputTuple<T>]] | [...qt.ObservableInputTuple<T>]
+  ...xs: [[...qt.InputTuple<T>]] | [...qt.InputTuple<T>]
 ) {
   return onErrorResumeNextWith(qu.argsOrArgArray(xs))(EMPTY)
 }
 
 export function partition<T, U extends T>(
-  x: qt.ObservableInput<T>,
+  x: qt.ObsInput<T>,
   pred: (x: T, i: number) => x is U
 ): [Observable<U>, Observable<Exclude<T, U>>]
 export function partition<T>(
-  x: qt.ObservableInput<T>,
+  x: qt.ObsInput<T>,
   pred: (x: T, i: number) => boolean
 ): [Observable<T>, Observable<T>]
 export function partition<T>(
-  x: qt.ObservableInput<T>,
+  x: qt.ObsInput<T>,
   pred: (this: any, x: T, i: number) => boolean,
   thisArg?: any
 ): [Observable<T>, Observable<T>] {
@@ -948,26 +942,26 @@ export function partition<T>(
 }
 
 export function race<T extends readonly unknown[]>(
-  xs: [...qt.ObservableInputTuple<T>]
+  xs: [...qt.InputTuple<T>]
 ): Observable<T[number]>
 export function race<T extends readonly unknown[]>(
-  ...xs: [...qt.ObservableInputTuple<T>]
+  ...xs: [...qt.InputTuple<T>]
 ): Observable<T[number]>
 export function race<T>(
-  ...xs: (qt.ObservableInput<T> | qt.ObservableInput<T>[])[]
+  ...xs: (qt.ObsInput<T> | qt.ObsInput<T>[])[]
 ): Observable<any> {
   xs = qu.argsOrArgArray(xs)
   return xs.length === 1
-    ? innerFrom(xs[0] as qt.ObservableInput<T>)
-    : new Observable<T>(raceInit(xs as qt.ObservableInput<T>[]))
+    ? innerFrom(xs[0] as qt.ObsInput<T>)
+    : new Observable<T>(raceInit(xs as qt.ObsInput<T>[]))
 }
 
-export function raceInit<T>(xs: qt.ObservableInput<T>[]) {
+export function raceInit<T>(xs: qt.ObsInput<T>[]) {
   return (s: Subscriber<T>) => {
     let ss: Subscription[] = []
     for (let i = 0; ss && !s.closed && i < xs.length; i++) {
       ss.push(
-        innerFrom(xs[i] as qt.ObservableInput<T>).subscribe(
+        innerFrom(xs[i] as qt.ObsInput<T>).subscribe(
           new OperatorSubscriber(s, x => {
             if (ss) {
               for (let s = 0; s < ss.length; s++) {
@@ -1003,7 +997,7 @@ export function range(
             if (n < end) {
               s.next(n++)
               this.schedule()
-            } else s.complete()
+            } else s.done()
           })
         }
       : subscriber => {
@@ -1011,7 +1005,7 @@ export function range(
           while (n < end && !subscriber.closed) {
             subscriber.next(n++)
           }
-          subscriber.complete()
+          subscriber.done()
         }
   )
 }
@@ -1047,17 +1041,17 @@ export function timer(
       if (!s.closed) {
         s.next(n++)
         if (0 <= dur) this.schedule(undefined, dur)
-        else s.complete()
+        else s.done()
       }
     }, due)
   })
 }
 
-export function using<T extends qt.ObservableInput<any>>(
+export function using<T extends qt.ObsInput<any>>(
   res: () => qt.Unsubscribable | void,
   obs: (x: qt.Unsubscribable | void) => T | void
-): Observable<qt.ObservedValueOf<T>> {
-  return new Observable<qt.ObservedValueOf<T>>(s => {
+): Observable<qt.ObsValueOf<T>> {
+  return new Observable<qt.ObsValueOf<T>>(s => {
     const resource = res()
     const y = obs(resource)
     const src = y ? innerFrom(y) : EMPTY
@@ -1068,17 +1062,17 @@ export function using<T extends qt.ObservableInput<any>>(
   })
 }
 export function zip<T extends readonly unknown[]>(
-  xs: [...qt.ObservableInputTuple<T>]
+  xs: [...qt.InputTuple<T>]
 ): Observable<T>
 export function zip<T extends readonly unknown[], R>(
-  xs: [...qt.ObservableInputTuple<T>],
+  xs: [...qt.InputTuple<T>],
   res: (...xs: T) => R
 ): Observable<R>
 export function zip<T extends readonly unknown[]>(
-  ...xs: [...qt.ObservableInputTuple<T>]
+  ...xs: [...qt.InputTuple<T>]
 ): Observable<T>
 export function zip<A extends readonly unknown[], R>(
-  ...xs: [...qt.ObservableInputTuple<A>, (...xs2: A) => R]
+  ...xs: [...qt.InputTuple<A>, (...xs2: A) => R]
 ): Observable<R>
 export function zip(...xs: unknown[]): Observable<unknown> {
   const res = qu.popResultSelector(xs)
@@ -1086,9 +1080,9 @@ export function zip(...xs: unknown[]): Observable<unknown> {
   return ss.length
     ? new Observable<unknown[]>(s => {
         let buffs: unknown[][] = ss.map(() => [])
-        let completed = ss.map(() => false)
+        let done = ss.map(() => false)
         s.add(() => {
-          buffs = completed = null!
+          buffs = done = null!
         })
         for (let i = 0; !s.closed && i < ss.length; i++) {
           innerFrom(ss[i]!).subscribe(
@@ -1099,20 +1093,20 @@ export function zip(...xs: unknown[]): Observable<unknown> {
                 if (buffs.every(b => b.length)) {
                   const y: any = buffs.map(b => b.shift()!)
                   s.next(res ? res(...y) : y)
-                  if (buffs.some((b, i) => !b.length && completed[i])) {
-                    s.complete()
+                  if (buffs.some((b, i) => !b.length && done[i])) {
+                    s.done()
                   }
                 }
               },
               () => {
-                completed[i] = true
-                !buffs[i]?.length && s.complete()
+                done[i] = true
+                !buffs[i]?.length && s.done()
               }
             )
           )
         }
         return () => {
-          buffs = completed = null!
+          buffs = done = null!
         }
       })
     : EMPTY
@@ -1211,7 +1205,7 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
           }
         },
         error: err => observer.error(err),
-        complete: () => observer.complete(),
+        done: () => observer.done(),
       })
       return () => {
         try {
@@ -1306,7 +1300,7 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
         closeObserver.next(e)
       }
       if (e.wasClean) {
-        observer.complete()
+        observer.done()
       } else {
         observer.error(e)
       }
