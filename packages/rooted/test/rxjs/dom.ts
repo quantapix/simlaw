@@ -1786,3 +1786,1279 @@ class MockXMLHttpRequest extends MockXHREventTarget {
     }
   }
 }
+/** @prettier */
+import { expect } from 'chai';
+import * as sinon from 'sinon';
+import { animationFrames } from 'rxjs';
+import { mergeMapTo, take, takeUntil } from 'rxjs/operators';
+import { TestScheduler } from 'rxjs/testing';
+import { observableMatcher } from '../../helpers/observableMatcher';
+import { animationFrameProvider } from 'rxjs/internal/scheduler/animationFrameProvider';
+
+describe('animationFrames', () => {
+  let testScheduler: TestScheduler;
+
+  beforeEach(() => {
+    testScheduler = new TestScheduler(observableMatcher);
+  });
+
+  it('should animate', function () {
+    testScheduler.run(({ animate, cold, expectObservable, time }) => {
+      animate('            ---x---x---x');
+      const mapped = cold('-m          ');
+      const tm = time('    -|          ');
+      const ta = time('    ---|        ');
+      const tb = time('    -------|    ');
+      const tc = time('    -----------|');
+      const expected = '   ---a---b---c';
+      const subs = '       ^----------!';
+
+      const result = mapped.pipe(mergeMapTo(animationFrames()));
+      expectObservable(result, subs).toBe(expected, {
+        a: { elapsed: ta - tm, timestamp: ta },
+        b: { elapsed: tb - tm, timestamp: tb },
+        c: { elapsed: tc - tm, timestamp: tc },
+      });
+    });
+  });
+
+  it('should use any passed timestampProvider', () => {
+    let i = 0;
+    const timestampProvider = {
+      now: sinon.stub().callsFake(() => {
+        return [50, 100, 200, 300][i++];
+      }),
+    };
+
+    testScheduler.run(({ animate, cold, expectObservable }) => {
+      animate('            ---x---x---x');
+      const mapped = cold('-m          ');
+      const expected = '   ---a---b---c';
+      const subs = '       ^----------!';
+
+      const result = mapped.pipe(mergeMapTo(animationFrames(timestampProvider)));
+      expectObservable(result, subs).toBe(expected, {
+        a: { elapsed: 50, timestamp: 100 },
+        b: { elapsed: 150, timestamp: 200 },
+        c: { elapsed: 250, timestamp: 300 },
+      });
+    });
+  });
+
+  it('should compose with take', () => {
+    testScheduler.run(({ animate, cold, expectObservable, time }) => {
+      const requestSpy = sinon.spy(animationFrameProvider.delegate!, 'requestAnimationFrame');
+      const cancelSpy = sinon.spy(animationFrameProvider.delegate!, 'cancelAnimationFrame');
+
+      animate('            ---x---x---x');
+      const mapped = cold('-m          ');
+      const tm = time('    -|          ');
+      const ta = time('    ---|        ');
+      const tb = time('    -------|    ');
+      const expected = '   ---a---b    ';
+
+      const result = mapped.pipe(mergeMapTo(animationFrames().pipe(take(2))));
+      expectObservable(result).toBe(expected, {
+        a: { elapsed: ta - tm, timestamp: ta },
+        b: { elapsed: tb - tm, timestamp: tb },
+      });
+
+      testScheduler.flush();
+      // Requests are made at times tm and ta
+      expect(requestSpy.callCount).to.equal(2);
+      // No request cancellation is effected, as unsubscription occurs before rescheduling
+      expect(cancelSpy.callCount).to.equal(0);
+    });
+  });
+
+  it('should compose with takeUntil', () => {
+    testScheduler.run(({ animate, cold, expectObservable, hot, time }) => {
+      const requestSpy = sinon.spy(animationFrameProvider.delegate!, 'requestAnimationFrame');
+      const cancelSpy = sinon.spy(animationFrameProvider.delegate!, 'cancelAnimationFrame');
+
+      animate('            ---x---x---x');
+      const mapped = cold('-m          ');
+      const tm = time('    -|          ');
+      const ta = time('    ---|        ');
+      const tb = time('    -------|    ');
+      const signal = hot(' ^--------s--');
+      const expected = '   ---a---b    ';
+
+      const result = mapped.pipe(mergeMapTo(animationFrames().pipe(takeUntil(signal))));
+      expectObservable(result).toBe(expected, {
+        a: { elapsed: ta - tm, timestamp: ta },
+        b: { elapsed: tb - tm, timestamp: tb },
+      });
+
+      testScheduler.flush();
+      // Requests are made at times tm and ta and tb
+      expect(requestSpy.callCount).to.equal(3);
+      // Unsubscription effects request cancellation when signalled
+      expect(cancelSpy.callCount).to.equal(1);
+    });
+  });
+});
+import { fromFetch } from 'rxjs/fetch';
+import { expect } from 'chai';
+
+const root: any = (typeof globalThis !== 'undefined' && globalThis)
+  || (typeof self !== 'undefined' && self)
+  || global;
+
+const OK_RESPONSE = {
+  ok: true,
+} as Response;
+
+function mockFetchImpl(input: string | Request, init?: RequestInit): Promise<Response> {
+  (mockFetchImpl as MockFetch).calls.push({ input, init });
+  return new Promise<any>((resolve, reject) => {
+    if (init) {
+      if (init.signal) {
+        if (init.signal.aborted) {
+          reject(new MockDOMException());
+          return;
+        }
+        init.signal.addEventListener('abort', () => {
+          reject(new MockDOMException());
+        });
+      }
+    }
+    Promise.resolve(null).then(() => {
+      resolve((mockFetchImpl as any).respondWith);
+    });
+  });
+}
+(mockFetchImpl as MockFetch).reset = function (this: any) {
+  this.calls = [] as any[];
+  this.respondWith = OK_RESPONSE;
+};
+(mockFetchImpl as MockFetch).reset();
+
+const mockFetch: MockFetch = mockFetchImpl as MockFetch;
+
+class MockDOMException {}
+
+class MockAbortController {
+  readonly signal = new MockAbortSignal();
+
+  abort() {
+    this.signal._signal();
+  }
+
+  constructor() {
+    MockAbortController.created++;
+  }
+
+  static created = 0;
+
+  static reset() {
+    MockAbortController.created = 0;
+  }
+}
+
+class MockAbortSignal {
+  private _listeners: Function[] = [];
+
+  aborted = false;
+
+  addEventListener(name: 'abort', handler: Function) {
+    this._listeners.push(handler);
+  }
+
+  removeEventListener(name: 'abort', handler: Function) {
+    const index = this._listeners.indexOf(handler);
+    if (index >= 0) {
+      this._listeners.splice(index, 1);
+    }
+  }
+
+  _signal() {
+    this.aborted = true;
+    while (this._listeners.length > 0) {
+      this._listeners.shift()!();
+    }
+  }
+}
+
+interface MockFetch {
+  (input: string | Request, init?: RequestInit): Promise<Response>;
+  calls: { input: string | Request, init: RequestInit | undefined }[];
+  reset(): void;
+  respondWith: Response;
+}
+
+describe('fromFetch', () => {
+  let _fetch: typeof fetch;
+  let _AbortController: AbortController;
+
+  beforeEach(() => {
+    mockFetch.reset();
+    if (root.fetch) {
+      _fetch = root.fetch;
+    }
+    root.fetch = mockFetch;
+
+    MockAbortController.reset();
+    if (root.AbortController) {
+      _AbortController = root.AbortController;
+    }
+    root.AbortController = MockAbortController;
+  });
+
+  afterEach(() => {
+    root.fetch = _fetch;
+    root.AbortController = _AbortController;
+  });
+
+  it('should exist', () => {
+    expect(fromFetch).to.be.a('function');
+  });
+
+  it('should fetch', (done) => {
+    const fetch$ = fromFetch('/foo');
+    expect(mockFetch.calls.length).to.equal(0);
+    expect(MockAbortController.created).to.equal(0);
+
+    fetch$.subscribe({
+      next: response => {
+        expect(response).to.equal(OK_RESPONSE);
+      },
+      error: done,
+      complete: () => {
+        // Wait until the complete and the subsequent unsubscribe are finished
+        // before testing these expectations:
+        setTimeout(() => {
+          expect(MockAbortController.created).to.equal(1);
+          expect(mockFetch.calls.length).to.equal(1);
+          expect(mockFetch.calls[0].input).to.equal('/foo');
+          expect(mockFetch.calls[0].init!.signal).not.to.be.undefined;
+          expect(mockFetch.calls[0].init!.signal!.aborted).to.be.false;
+          done();
+        }, 0);
+      }
+    });
+  });
+
+  it('should handle Response that is not `ok`', (done) => {
+    mockFetch.respondWith = {
+      ok: false,
+      status: 400,
+      body: 'Bad stuff here'
+    } as any as Response;
+
+    const fetch$ = fromFetch('/foo');
+    expect(mockFetch.calls.length).to.equal(0);
+    expect(MockAbortController.created).to.equal(0);
+
+    fetch$.subscribe({
+      next: response => {
+        expect(response).to.equal(mockFetch.respondWith);
+      },
+      complete: done,
+      error: done
+    });
+
+    expect(MockAbortController.created).to.equal(1);
+    expect(mockFetch.calls.length).to.equal(1);
+    expect(mockFetch.calls[0].input).to.equal('/foo');
+    expect(mockFetch.calls[0].init!.signal).not.to.be.undefined;
+    expect(mockFetch.calls[0].init!.signal!.aborted).to.be.false;
+  });
+
+  it('should abort when unsubscribed', () => {
+    const fetch$ = fromFetch('/foo');
+    expect(mockFetch.calls.length).to.equal(0);
+    expect(MockAbortController.created).to.equal(0);
+    const subscription = fetch$.subscribe();
+
+    expect(MockAbortController.created).to.equal(1);
+    expect(mockFetch.calls.length).to.equal(1);
+    expect(mockFetch.calls[0].input).to.equal('/foo');
+    expect(mockFetch.calls[0].init!.signal).not.to.be.undefined;
+    expect(mockFetch.calls[0].init!.signal!.aborted).to.be.false;
+
+    subscription.unsubscribe();
+    expect(mockFetch.calls[0].init!.signal!.aborted).to.be.true;
+  });
+
+  it('should not immediately abort repeat subscribers', () => {
+    const fetch$ = fromFetch('/foo');
+    expect(mockFetch.calls.length).to.equal(0);
+    expect(MockAbortController.created).to.equal(0);
+    let subscription = fetch$.subscribe();
+    expect(MockAbortController.created).to.equal(1);
+    expect(mockFetch.calls[0].init!.signal!.aborted).to.be.false;
+
+    subscription.unsubscribe();
+    expect(mockFetch.calls[0].init!.signal!.aborted).to.be.true;
+
+    subscription = fetch$.subscribe();
+    expect(MockAbortController.created).to.equal(2);
+    expect(mockFetch.calls[1].init!.signal!.aborted).to.be.false;
+
+    subscription.unsubscribe();
+    expect(mockFetch.calls[1].init!.signal!.aborted).to.be.true;
+  });
+
+  it('should allow passing of init object', (done) => {
+    const fetch$ = fromFetch('/foo', {method: 'HEAD'});
+    fetch$.subscribe({
+      error: done,
+      complete: done,
+    });
+    expect(mockFetch.calls[0].init!.method).to.equal('HEAD');
+  });
+
+  it('should add a signal to internal init object without mutating the passed init object', (done) => {
+    const myInit = {method: 'DELETE'};
+    const fetch$ = fromFetch('/bar', myInit);
+    fetch$.subscribe({
+      error: done,
+      complete: done,
+    });
+    expect(mockFetch.calls[0].init!.method).to.equal(myInit.method);
+    expect(mockFetch.calls[0].init).not.to.equal(myInit);
+    expect(mockFetch.calls[0].init!.signal).not.to.be.undefined;
+  });
+
+  it('should treat passed signals as a cancellation token which triggers an error', (done) => {
+    const controller = new MockAbortController();
+    const signal = controller.signal as any;
+    const fetch$ = fromFetch('/foo', { signal });
+    const subscription = fetch$.subscribe({
+      error: err => {
+        expect(err).to.be.instanceof(MockDOMException);
+        done();
+      }
+    });
+    controller.abort();
+    expect(mockFetch.calls[0].init!.signal!.aborted).to.be.true;
+    // The subscription will not be closed until the error fires when the promise resolves.
+    expect(subscription.closed).to.be.false;
+  });
+
+  it('should treat passed already aborted signals as a cancellation token which triggers an error', (done) => {
+    const controller = new MockAbortController();
+    controller.abort();
+    const signal = controller.signal as any;
+    const fetch$ = fromFetch('/foo', { signal });
+    const subscription = fetch$.subscribe({
+      error: err => {
+        expect(err).to.be.instanceof(MockDOMException);
+        done();
+      }
+    });
+    expect(mockFetch.calls[0].init!.signal!.aborted).to.be.true;
+    // The subscription will not be closed until the error fires when the promise resolves.
+    expect(subscription.closed).to.be.false;
+  });
+
+  it('should not leak listeners added to the passed in signal', (done) => {
+    const controller = new MockAbortController();
+    const signal = controller.signal as any;
+    const fetch$ = fromFetch('/foo', { signal });
+    const subscription = fetch$.subscribe();
+    subscription.add(() => {
+      try {
+        expect(signal._listeners).to.be.empty;
+        done();
+      } catch (error) {
+        done(error);
+      }
+    });
+  });
+
+  it('should support a selector', (done) => {
+    mockFetch.respondWith = {
+      ...OK_RESPONSE,
+      text: () => Promise.resolve('bar')
+    };
+    const fetch$ = fromFetch('/foo', {
+      selector: response => response.text()
+    });
+    expect(mockFetch.calls.length).to.equal(0);
+    expect(MockAbortController.created).to.equal(0);
+
+    fetch$.subscribe({
+      next: text => {
+        expect(text).to.equal('bar');
+      },
+      error: done,
+      complete: () => {
+        // Wait until the complete and the subsequent unsubscribe are finished
+        // before testing these expectations:
+        setTimeout(() => {
+          expect(MockAbortController.created).to.equal(1);
+          expect(mockFetch.calls.length).to.equal(1);
+          expect(mockFetch.calls[0].input).to.equal('/foo');
+          expect(mockFetch.calls[0].init!.signal).not.to.be.undefined;
+          expect(mockFetch.calls[0].init!.signal!.aborted).to.be.false;
+          done();
+        }, 0);
+      }
+    });
+  });
+
+  it('should abort when unsubscribed and a selector is specified', () => {
+    mockFetch.respondWith = {
+      ...OK_RESPONSE,
+      text: () => Promise.resolve('bar')
+    };
+    const fetch$ = fromFetch('/foo', {
+      selector: response => response.text()
+    });
+    expect(mockFetch.calls.length).to.equal(0);
+    expect(MockAbortController.created).to.equal(0);
+    const subscription = fetch$.subscribe();
+
+    expect(MockAbortController.created).to.equal(1);
+    expect(mockFetch.calls.length).to.equal(1);
+    expect(mockFetch.calls[0].input).to.equal('/foo');
+    expect(mockFetch.calls[0].init!.signal).not.to.be.undefined;
+    expect(mockFetch.calls[0].init!.signal!.aborted).to.be.false;
+
+    subscription.unsubscribe();
+    expect(mockFetch.calls[0].init!.signal!.aborted).to.be.true;
+  });
+});
+import { expect } from 'chai';
+import * as sinon from 'sinon';
+import { webSocket } from 'rxjs/webSocket';
+import { map, retry, take, repeat, takeWhile } from 'rxjs/operators';
+
+const root: any = (typeof globalThis !== 'undefined' && globalThis)
+  || (typeof self !== 'undefined' && self)
+  || global;
+
+enum WebSocketState {
+  CONNECTING = 0,
+  OPEN = 1,
+  CLOSING = 2,
+  CLOSED = 3
+}
+
+/** @test {webSocket}  */
+describe('webSocket', () => {
+  let __ws: any;
+
+  function setupMockWebSocket() {
+    __ws = root.WebSocket;
+    root.WebSocket = MockWebSocket;
+  }
+
+  function teardownMockWebSocket() {
+    root.WebSocket = __ws;
+    MockWebSocket.clearSockets();
+  }
+
+  describe('basic behavior', () => {
+    beforeEach(() => {
+      setupMockWebSocket();
+    });
+
+    afterEach(() => {
+      teardownMockWebSocket();
+    });
+
+    it('should send and receive messages', () => {
+      let messageReceived = false;
+      const subject = webSocket<string>('ws://mysocket');
+
+      subject.next('ping');
+
+      subject.subscribe(x => {
+        expect(x).to.equal('pong');
+        messageReceived = true;
+      });
+
+      const socket = MockWebSocket.lastSocket;
+      expect(socket.url).to.equal('ws://mysocket');
+
+      socket.open();
+      expect(socket.lastMessageSent).to.equal(JSON.stringify('ping'));
+
+      socket.triggerMessage(JSON.stringify('pong'));
+      expect(messageReceived).to.be.true;
+
+      subject.unsubscribe();
+    });
+
+    it('should allow use of operators and subscribe', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      const results: any[] = [];
+
+      subject.pipe(
+        map(x => x + '!'),
+      )
+      .subscribe(x => results.push(x));
+
+      MockWebSocket.lastSocket.triggerMessage(JSON.stringify('ngconf 2018 bug'));
+
+      expect(results).to.deep.equal(['ngconf 2018 bug!']);
+    });
+
+    it('receive multiple messages', () => {
+      const expected = ['what', 'do', 'you', 'do', 'with', 'a', 'drunken', 'sailor?'];
+      const results: string[] = [];
+      const subject = webSocket<string>('ws://mysocket');
+
+      subject.subscribe(x => {
+        results.push(x);
+      });
+
+      const socket = MockWebSocket.lastSocket;
+
+      socket.open();
+
+      expected.forEach(x => {
+        socket.triggerMessage(JSON.stringify(x));
+      });
+
+      expect(results).to.deep.equal(expected);
+
+      subject.unsubscribe();
+    });
+
+    it('should queue messages prior to subscription', () => {
+      const expected = ['make', 'him', 'walk', 'the', 'plank'];
+      const subject = webSocket<string>('ws://mysocket');
+
+      expected.forEach(x => {
+        subject.next(x);
+      });
+
+      let socket = MockWebSocket.lastSocket;
+      expect(socket).not.exist;
+
+      subject.subscribe();
+
+      socket = MockWebSocket.lastSocket;
+      expect(socket.sent.length).to.equal(0);
+
+      socket.open();
+      expect(socket.sent.length).to.equal(expected.length);
+
+      subject.unsubscribe();
+    });
+
+    it('should send messages immediately if already open', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      subject.subscribe();
+      const socket = MockWebSocket.lastSocket;
+      socket.open();
+
+      subject.next('avast!');
+      expect(socket.lastMessageSent).to.equal(JSON.stringify('avast!'));
+      subject.next('ye swab!');
+      expect(socket.lastMessageSent).to.equal(JSON.stringify('ye swab!'));
+
+      subject.unsubscribe();
+    });
+
+    it('should close the socket when completed', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      subject.subscribe();
+      const socket = MockWebSocket.lastSocket;
+      socket.open();
+
+      expect(socket.readyState).to.equal(WebSocketState.OPEN);
+
+      sinon.spy(socket, 'close');
+
+      expect(socket.close).not.have.been.called;
+
+      subject.complete();
+      expect(socket.close).have.been.called;
+      expect(socket.readyState).to.equal(WebSocketState.CLOSING);
+
+      socket.triggerClose({ wasClean: true });
+      expect(socket.readyState).to.equal(WebSocketState.CLOSED);
+
+      subject.unsubscribe();
+      (<any>socket.close).restore();
+    });
+
+    it('should close the socket when unsubscribed before socket open', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      subject.subscribe();
+      subject.unsubscribe();
+      const socket = MockWebSocket.lastSocket;
+      sinon.spy(socket, 'close');
+      socket.open();
+
+      expect(socket.close).have.been.called;
+      expect(socket.readyState).to.equal(WebSocketState.CLOSING);
+
+      (<any>socket.close).restore();
+    });
+
+    it('should close the socket when subscription is cancelled before socket open', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      const subscription = subject.subscribe();
+      subscription.unsubscribe();
+      const socket = MockWebSocket.lastSocket;
+      sinon.spy(socket, 'close');
+      socket.open();
+
+      expect(socket.close).have.been.called;
+      expect(socket.readyState).to.equal(WebSocketState.CLOSING);
+
+      (<any>socket.close).restore();
+    });
+
+    it('should close the socket when unsubscribed while connecting', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      subject.subscribe();
+      const socket = MockWebSocket.lastSocket;
+      sinon.spy(socket, 'close');
+      subject.unsubscribe();
+
+      expect(socket.close).have.been.called;
+      expect(socket.readyState).to.equal(WebSocketState.CLOSING);
+
+      (<any>socket.close).restore();
+    });
+
+    it('should close the socket when subscription is cancelled while connecting', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      const subscription = subject.subscribe();
+      const socket = MockWebSocket.lastSocket;
+      sinon.spy(socket, 'close');
+      subscription.unsubscribe();
+
+      expect(socket.close).have.been.called;
+      expect(socket.readyState).to.equal(WebSocketState.CLOSING);
+
+      (<any>socket.close).restore();
+    });
+
+    it('should close a socket that opens before the previous socket has closed', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      const subscription = subject.subscribe();
+      const socket = MockWebSocket.lastSocket;
+      sinon.spy(socket, 'close');
+      subscription.unsubscribe();
+
+      expect(socket.close).have.been.called;
+      expect(socket.readyState).to.equal(WebSocketState.CLOSING);
+
+      const subscription2 = subject.subscribe();
+      const socket2 = MockWebSocket.lastSocket;
+      sinon.spy(socket2, 'close');
+
+      // Close socket after socket2 has opened
+      socket2.open();
+      expect(socket2.readyState).to.equal(WebSocketState.OPEN);
+      socket.triggerClose({wasClean: true});
+
+      expect(socket.readyState).to.equal(WebSocketState.CLOSED);
+      expect(socket2.close).have.not.been.called;
+
+      subscription2.unsubscribe();
+      expect(socket2.close).have.been.called;
+      expect(socket2.readyState).to.equal(WebSocketState.CLOSING);
+
+      (<any>socket.close).restore();
+    });
+
+    it('should close the socket with a code and a reason when errored', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      subject.subscribe();
+      const socket = MockWebSocket.lastSocket;
+      socket.open();
+
+      sinon.spy(socket, 'close');
+      expect(socket.close).not.have.been.called;
+
+      subject.error({ code: 1337, reason: 'Too bad, so sad :('});
+      expect(socket.close).have.been.calledWith(1337, 'Too bad, so sad :(');
+
+      subject.unsubscribe();
+      (<any>socket.close).restore();
+    });
+
+    it('should allow resubscription after closure via complete', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      subject.subscribe();
+      const socket1 = MockWebSocket.lastSocket;
+      socket1.open();
+      subject.complete();
+
+      subject.next('a mariner yer not. yarrr.');
+      subject.subscribe();
+      const socket2 = MockWebSocket.lastSocket;
+      socket2.open();
+
+      expect(socket2).not.to.equal(socket1);
+      expect(socket2.lastMessageSent).to.equal(JSON.stringify('a mariner yer not. yarrr.'));
+
+      subject.unsubscribe();
+    });
+
+    it('should allow resubscription after closure via error', () => {
+      const subject = webSocket<string>('ws://mysocket');
+      subject.subscribe();
+      const socket1 = MockWebSocket.lastSocket;
+      socket1.open();
+      subject.error({ code: 1337 });
+
+      subject.next('yo-ho! yo-ho!');
+      subject.subscribe();
+      const socket2 = MockWebSocket.lastSocket;
+      socket2.open();
+
+      expect(socket2).not.to.equal(socket1);
+      expect(socket2.lastMessageSent).to.equal(JSON.stringify('yo-ho! yo-ho!'));
+
+      subject.unsubscribe();
+    });
+
+    it('should have a default resultSelector that parses message data as JSON', () => {
+      let result;
+      const expected = { mork: 'shazbot!' };
+      const subject = webSocket<string>('ws://mysocket');
+
+      subject.subscribe((x: any) => {
+        result = x;
+      });
+
+      const socket = MockWebSocket.lastSocket;
+      socket.open();
+      socket.triggerMessage(JSON.stringify(expected));
+
+      expect(result).to.deep.equal(expected);
+
+      subject.unsubscribe();
+    });
+  });
+
+  describe('with a config object', () => {
+
+    beforeEach(() => {
+      setupMockWebSocket();
+    });
+
+    afterEach(() => {
+      teardownMockWebSocket();
+    });
+
+    it('should send and receive messages', () => {
+      let messageReceived = false;
+      const subject = webSocket<string>({ url: 'ws://mysocket' });
+
+      subject.next('ping');
+
+      subject.subscribe(x => {
+        expect(x).to.equal('pong');
+        messageReceived = true;
+      });
+
+      const socket = MockWebSocket.lastSocket;
+      expect(socket.url).to.equal('ws://mysocket');
+
+      socket.open();
+      expect(socket.lastMessageSent).to.equal(JSON.stringify('ping'));
+
+      socket.triggerMessage(JSON.stringify('pong'));
+      expect(messageReceived).to.be.true;
+
+      subject.unsubscribe();
+    });
+
+    it('should take a protocol and set it properly on the web socket', () => {
+      const subject = webSocket<string>({
+        url: 'ws://mysocket',
+        protocol: 'someprotocol'
+      });
+
+      subject.subscribe();
+
+      const socket = MockWebSocket.lastSocket;
+      expect(socket.protocol).to.equal('someprotocol');
+
+      subject.unsubscribe();
+    });
+
+    it('should take a binaryType and set it properly on the web socket', () => {
+      const subject = webSocket<string>({
+        url: 'ws://mysocket',
+        binaryType: 'blob'
+      });
+
+      subject.subscribe();
+
+      const socket = MockWebSocket.lastSocket;
+      expect(socket.binaryType).to.equal('blob');
+
+      subject.unsubscribe();
+    });
+
+    it('should take a deserializer', () => {
+      const results = [] as string[];
+
+      const subject = webSocket<string>({
+        url: 'ws://mysocket',
+        deserializer: (e: any) => {
+          return e.data + '!';
+        }
+      });
+
+      subject.subscribe((x: any) => {
+        results.push(x);
+      });
+
+      const socket = MockWebSocket.lastSocket;
+      socket.open();
+      ['ahoy', 'yarr', 'shove off'].forEach((x: any) => {
+        socket.triggerMessage(x);
+      });
+
+      expect(results).to.deep.equal(['ahoy!', 'yarr!', 'shove off!']);
+
+      subject.unsubscribe();
+    });
+
+    it('if the deserializer fails it should go down the error path', () => {
+      const subject = webSocket<string>({
+        url: 'ws://mysocket',
+        deserializer: (e: any) => {
+          throw new Error('I am a bad error');
+        }
+      });
+
+      subject.subscribe({ next: (x: any) => {
+        expect(x).to.equal('this should not happen');
+      }, error: (err: any) => {
+        expect(err).to.be.an('error', 'I am a bad error');
+      } });
+
+      const socket = MockWebSocket.lastSocket;
+      socket.open();
+      socket.triggerMessage('weee!');
+
+      subject.unsubscribe();
+    });
+
+    it('should accept a closingObserver', () => {
+      let calls = 0;
+      const subject = webSocket<string>(<any>{
+        url: 'ws://mysocket',
+        closingObserver: {
+          next(x: any) {
+            calls++;
+            expect(x).to.be.an('undefined');
+          }
+        }
+      });
+
+      subject.subscribe();
+      let socket = MockWebSocket.lastSocket;
+      socket.open();
+
+      expect(calls).to.equal(0);
+
+      subject.complete();
+      expect(calls).to.equal(1);
+
+      subject.subscribe();
+      socket = MockWebSocket.lastSocket;
+      socket.open();
+
+      subject.error({ code: 1337 });
+      expect(calls).to.equal(2);
+
+      subject.unsubscribe();
+    });
+
+    it('should accept a closeObserver', () => {
+      const expected = [{ wasClean: true }, { wasClean: false }];
+      const closes = [] as any[];
+      const subject = webSocket<string>(<any>{
+        url: 'ws://mysocket',
+        closeObserver: {
+          next(e: any) {
+            closes.push(e);
+          }
+        }
+      });
+
+      subject.subscribe();
+      let socket = MockWebSocket.lastSocket;
+      socket.open();
+
+      expect(closes.length).to.equal(0);
+
+      socket.triggerClose(expected[0]);
+      expect(closes.length).to.equal(1);
+
+      subject.subscribe({ error: function (err) {
+        expect(err).to.equal(expected[1]);
+      } });
+
+      socket = MockWebSocket.lastSocket;
+      socket.open();
+
+      socket.triggerClose(expected[1]);
+      expect(closes.length).to.equal(2);
+
+      expect(closes[0]).to.equal(expected[0]);
+      expect(closes[1]).to.equal(expected[1]);
+
+      subject.unsubscribe();
+    });
+
+    it('should handle constructor errors', () => {
+      const subject = webSocket<string>(<any>{
+        url: 'bad_url',
+        WebSocketCtor: (url: string, protocol?: string | string[]): WebSocket => {
+          throw new Error(`connection refused`);
+        }
+      });
+
+      subject.subscribe({ next: (x: any) => {
+        expect(x).to.equal('this should not happen');
+      }, error: (err: any) => {
+        expect(err).to.be.an('error', 'connection refused');
+      } });
+
+      subject.unsubscribe();
+    });
+  });
+
+  describe('multiplex', () => {
+
+    beforeEach(() => {
+      setupMockWebSocket();
+    });
+
+    afterEach(() => {
+      teardownMockWebSocket();
+    });
+
+    it('should be retryable', () => {
+      const results = [] as string[];
+      const subject = webSocket<{ name: string, value: string }>('ws://websocket');
+      const source = subject.multiplex(
+        () => ({ sub: 'foo' }),
+        () => ({ unsub: 'foo' }),
+        value => value.name === 'foo'
+      );
+
+      source.pipe(
+        retry(1),
+        map(x => x.value),
+        take(2),
+      ).subscribe(x => {
+        results.push(x);
+      });
+
+      const socket = MockWebSocket.lastSocket;
+      socket.open();
+
+      expect(socket.lastMessageSent).to.deep.equal(JSON.stringify({ sub: 'foo' }));
+      socket.triggerClose({ wasClean: false }); // Bad connection
+
+      const socket2 = MockWebSocket.lastSocket;
+      expect(socket2).not.to.equal(socket);
+
+      socket2.open();
+      expect(socket2.lastMessageSent).to.deep.equal(JSON.stringify({ sub: 'foo' }));
+
+      socket2.triggerMessage(JSON.stringify({ name: 'foo', value: 'test' }));
+      socket2.triggerMessage(JSON.stringify({ name: 'foo', value: 'this' }));
+
+      expect(results).to.deep.equal(['test', 'this']);
+    });
+
+    it('should be repeatable', () => {
+      const results = [] as string[];
+      const subject = webSocket<{ name: string, value: string }>('ws://websocket');
+      const source = subject.multiplex(
+        () => ({ sub: 'foo' }),
+        () => ({ unsub: 'foo' }),
+        value => value.name === 'foo'
+      );
+
+      source
+        .pipe(
+          repeat(2),
+          map(x => x.value)
+        )
+        .subscribe(x => {
+          results.push(x);
+        });
+
+      const socket = MockWebSocket.lastSocket;
+      socket.open();
+
+      expect(socket.lastMessageSent).to.deep.equal(JSON.stringify({ sub: 'foo' }), 'first multiplexed sub');
+      socket.triggerMessage(JSON.stringify({ name: 'foo', value: 'test' }));
+      socket.triggerMessage(JSON.stringify({ name: 'foo', value: 'this' }));
+      socket.triggerClose({ wasClean: true });
+
+      const socket2 = MockWebSocket.lastSocket;
+      expect(socket2).not.to.equal(socket, 'a new socket was not created');
+
+      socket2.open();
+      expect(socket2.lastMessageSent).to.deep.equal(JSON.stringify({ sub: 'foo' }), 'second multiplexed sub');
+      socket2.triggerMessage(JSON.stringify({ name: 'foo', value: 'test' }));
+      socket2.triggerMessage(JSON.stringify({ name: 'foo', value: 'this' }));
+      socket2.triggerClose({ wasClean: true });
+
+      expect(results).to.deep.equal(['test', 'this', 'test', 'this'], 'results were not equal');
+    });
+
+    it('should multiplex over the webSocket', () => {
+      const results = [] as Array<{ value: number, name: string }>;
+      const subject = webSocket<{ value: number, name: string }>('ws://websocket');
+      const source = subject.multiplex(
+        () => ({ sub: 'foo'}),
+        () => ({ unsub: 'foo' }),
+        value => value.name === 'foo'
+      );
+
+      const sub = source.subscribe(function (x: any) {
+        results.push(x.value);
+      });
+      const socket = MockWebSocket.lastSocket;
+      socket.open();
+
+      expect(socket.lastMessageSent).to.deep.equal(JSON.stringify({ sub: 'foo' }));
+
+      [1, 2, 3, 4, 5].map((x: number) => {
+        return {
+          name: x % 3 === 0 ? 'bar' : 'foo',
+          value: x
+        };
+      }).forEach((x: any) => {
+        socket.triggerMessage(JSON.stringify(x));
+      });
+
+      expect(results).to.deep.equal([1, 2, 4, 5]);
+
+      sinon.spy(socket, 'close');
+      sub.unsubscribe();
+      expect(socket.lastMessageSent).to.deep.equal(JSON.stringify({ unsub: 'foo' }));
+
+      expect(socket.close).have.been.called;
+      (<any>socket.close).restore();
+    });
+
+    it('should keep the same socket for multiple multiplex subscriptions', () => {
+      const socketSubject = webSocket<string>({url: 'ws://mysocket'});
+      const results = [] as string[];
+      const socketMessages = [
+        {id: 'A'},
+        {id: 'B'},
+        {id: 'A'},
+        {id: 'B'},
+        {id: 'B'},
+      ];
+
+      const sub1 = socketSubject.multiplex(
+        () => 'no-op',
+        () => results.push('A unsub'),
+        (req: any) => req.id === 'A'
+      ).pipe(
+        takeWhile((req: any) => !req.complete)
+      )
+      .subscribe(
+        { next: () => results.push('A next'), error: (e) => results.push('A error ' + e), complete: () => results.push('A complete') }
+      );
+
+      socketSubject.multiplex(
+        () => 'no-op',
+        () => results.push('B unsub'),
+        (req: any) => req.id === 'B')
+        .subscribe(
+          { next: () => results.push('B next'), error: (e) => results.push('B error ' + e), complete: () => results.push('B complete') }
+        );
+
+      // Setup socket and send messages
+      let socket = MockWebSocket.lastSocket;
+      socket.open();
+      socketMessages.forEach((msg, i) => {
+        if (i === 1) {
+          sub1.unsubscribe();
+          expect((socketSubject as any)._socket).to.equal(socket);
+        }
+        socket.triggerMessage(JSON.stringify(msg));
+      });
+      socket.triggerClose({ wasClean: true });
+
+      expect(results).to.deep.equal([
+        'A next',
+        'A unsub',
+        'B next',
+        'B next',
+        'B next',
+        'B complete',
+        'B unsub',
+      ]);
+    });
+
+    it('should not close the socket until all subscriptions complete', () => {
+      const socketSubject = webSocket<{ id: string, complete: boolean }>({url: 'ws://mysocket'});
+      const results = [] as string[];
+      const socketMessages = [
+        {id: 'A'},
+        {id: 'B'},
+        {id: 'A', complete: true},
+        {id: 'B'},
+        {id: 'B', complete: true},
+      ];
+
+      socketSubject.multiplex(
+        () => 'no-op',
+        () => results.push('A unsub'),
+        req => req.id === 'A'
+      ).pipe(
+        takeWhile(req => !req.complete)
+      ).subscribe(
+        { next: () => results.push('A next'), error: (e) => results.push('A error ' + e), complete: () => results.push('A complete') }
+      );
+
+      socketSubject.multiplex(
+        () => 'no-op',
+        () => results.push('B unsub'),
+        req => req.id === 'B'
+      ).pipe(
+        takeWhile(req => !req.complete)
+      ).subscribe(
+        { next: () => results.push('B next'), error: (e) => results.push('B error ' + e), complete: () => results.push('B complete') }
+      );
+
+      // Setup socket and send messages
+      let socket = MockWebSocket.lastSocket;
+      socket.open();
+      socketMessages.forEach((msg) => {
+        socket.triggerMessage(JSON.stringify(msg));
+      });
+
+      expect(results).to.deep.equal([
+        'A next',
+        'B next',
+        'A complete',
+        'A unsub',
+        'B next',
+        'B complete',
+        'B unsub',
+      ]);
+    });
+  });
+
+  describe('node constructor', () => {
+    it('should send and receive messages', () => {
+      let messageReceived = false;
+      const subject = webSocket<string>(<any>{
+        url: 'ws://mysocket',
+        WebSocketCtor: MockWebSocket
+      });
+
+      subject.next('ping');
+
+      subject.subscribe(x => {
+        expect(x).to.equal('pong');
+        messageReceived = true;
+      });
+
+      const socket = MockWebSocket.lastSocket;
+      expect(socket.url).to.equal('ws://mysocket');
+
+      socket.open();
+      expect(socket.lastMessageSent).to.equal(JSON.stringify('ping'));
+
+      socket.triggerMessage(JSON.stringify('pong'));
+      expect(messageReceived).to.be.true;
+
+      subject.unsubscribe();
+    });
+
+    it('should handle constructor errors if no WebSocketCtor', () => {
+
+      expect(() => {
+        const subject = webSocket<string>(<any>{
+          url: 'ws://mysocket'
+        });
+      }).to.throw('no WebSocket constructor can be found');
+
+    });
+  });
+
+});
+
+class MockWebSocket {
+  static sockets: Array<MockWebSocket> = [];
+  static get lastSocket(): MockWebSocket {
+    const socket = MockWebSocket.sockets;
+    const length = socket.length;
+    return length > 0 ? socket[length - 1] : undefined!;
+  }
+
+  static clearSockets(): void {
+    MockWebSocket.sockets.length = 0;
+  }
+
+  sent: string[] = [];
+  handlers: any = {};
+  readyState: WebSocketState = WebSocketState.CONNECTING;
+  closeCode: any;
+  closeReason: any;
+  binaryType?: string;
+
+  constructor(public url: string, public protocol: string) {
+    MockWebSocket.sockets.push(this);
+  }
+
+  send(data: string): void {
+    this.sent.push(data);
+  }
+
+  get lastMessageSent(): string {
+    const sent = this.sent;
+    const length = sent.length;
+    return length > 0 ? sent[length - 1] : undefined!;
+  }
+
+  triggerClose(e: Partial<CloseEvent>): void {
+    this.readyState = WebSocketState.CLOSED;
+    this.trigger('close', e);
+  }
+
+  triggerMessage(data: any): void {
+    const messageEvent = {
+      data: data,
+      origin: 'mockorigin',
+      ports: undefined as any,
+      source: root,
+    };
+
+    this.trigger('message', messageEvent);
+  }
+
+  open(): void {
+    this.readyState = WebSocketState.OPEN;
+    this.trigger('open', {});
+  }
+
+  close(code: any, reason: any): void {
+    if (this.readyState < WebSocketState.CLOSING) {
+      this.readyState = WebSocketState.CLOSING;
+      this.closeCode = code;
+      this.closeReason = reason;
+    }
+  }
+
+  trigger(this: any, name: string, e: any) {
+    if (this['on' + name]) {
+      this['on' + name](e);
+    }
+
+    const lookup = this.handlers[name];
+    if (lookup) {
+      for (let i = 0; i < lookup.length; i++) {
+        lookup[i](e);
+      }
+    }
+  }
+}
