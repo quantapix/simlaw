@@ -124,15 +124,14 @@ export const NotFoundError: qt.NotFoundErrCtor = createErrorClass(
     }
 )
 
-export const ObjectUnsubscribedError: qt.ObjectUnsubscribedErrorCtor =
-  createErrorClass(
-    _super =>
-      function ObjectUnsubscribedErrorImpl(this: any) {
-        _super(this)
-        this.name = "ObjectUnsubscribedError"
-        this.message = "object unsubscribed"
-      }
-  )
+export const ObjectUnsubscribedError: qt.UnsubscribedErrCtor = createErrorClass(
+  _super =>
+    function ObjectUnsubscribedErrorImpl(this: any) {
+      _super(this)
+      this.name = "ObjectUnsubscribedError"
+      this.message = "object unsubscribed"
+    }
+)
 
 export const SequenceError: qt.SequenceErrCtor = createErrorClass(
   _super =>
@@ -435,7 +434,7 @@ export function createInvalidObservableTypeError(x: any) {
   )
 }
 
-export const config: qt.GlobalConfig = {
+export const config: qt.Config = {
   onUnhandledError: null,
   onStoppedNote: null,
   Promise: undefined,

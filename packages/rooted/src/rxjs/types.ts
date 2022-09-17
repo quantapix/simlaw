@@ -179,7 +179,7 @@ declare const anyCatcherSymbol: unique symbol
 
 export type AnyCatcher = typeof anyCatcherSymbol
 
-export interface GlobalConfig {
+export interface Config {
   onUnhandledError: ((x: any) => void) | null
   onStoppedNote: ((n: ObsNote<any>, s: Subscription) => void) | null
   Promise?: PromiseConstructorLike
@@ -205,9 +205,9 @@ export interface NotFoundErrCtor {
   new (x: string): NotFoundErr
 }
 
-export interface ObjectUnsubscribedError extends Error {}
-export interface ObjectUnsubscribedErrorCtor {
-  new (): ObjectUnsubscribedError
+export interface UnsubscribedErr extends Error {}
+export interface UnsubscribedErrCtor {
+  new (): UnsubscribedErr
 }
 
 export interface SequenceErr extends Error {}
