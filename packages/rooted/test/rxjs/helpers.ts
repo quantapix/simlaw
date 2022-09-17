@@ -2,21 +2,18 @@ import { expect } from "chai"
 import { Observable, of, Subscriber } from "rxjs"
 import { observable as symbolObservable } from "rxjs/internal/symbol/observable"
 import { asInteropObservable, asInteropSubscriber } from "./interop-helper"
-
 describe("interop helper", () => {
   it("should simulate interop observables", () => {
     const observable: any = asInteropObservable(of(42))
     expect(observable).to.not.be.instanceOf(Observable)
     expect(observable[symbolObservable]).to.be.a("function")
   })
-
   it("should simulate interop subscribers", () => {
     const subscriber: any = asInteropSubscriber(new Subscriber())
     expect(subscriber).to.not.be.instanceOf(Subscriber)
   })
 })
 import { Observable, Operator, Subject, Subscriber, Subscription } from "rxjs"
-
 /**
  * Returns an observable that will be deemed by this package's implementation
  * to be an observable that requires interop. The returned observable will fail
@@ -48,7 +45,6 @@ export function asInteropObservable<T>(
     },
   })
 }
-
 /**
  * Returns a subject that will be deemed by this package's implementation to
  * be untrusted. The returned subject will not include the symbol that
@@ -57,7 +53,6 @@ export function asInteropObservable<T>(
 export function asInteropSubject<T>(subject: Subject<T>): Subject<T> {
   return asInteropSubscriber(subject as any) as any
 }
-
 /**
  * Returns a subscriber that will be deemed by this package's implementation to
  * be untrusted. The returned subscriber will fail the `instanceof Subscriber`
@@ -76,7 +71,6 @@ export function asInteropSubscriber<T>(
     },
   })
 }
-
 function interopLift<T, R>(lift: (operator: Operator<T, R>) => Observable<R>) {
   return function (
     this: Observable<T>,
@@ -95,7 +89,6 @@ function interopLift<T, R>(lift: (operator: Operator<T, R>) => Observable<R>) {
     return asInteropObservable(observable)
   }
 }
-
 function interopSubscribe<T>(subscribe: (...args: any[]) => Subscription) {
   return function (this: Observable<T>, ...args: any[]): Subscription {
     const [arg] = args
@@ -113,9 +106,7 @@ import {
   observableToBeFn,
   subscriptionLogsToBeFn,
 } from "../../src/internal/testing/TestScheduler"
-
 declare const global: any
-
 export function hot(
   marbles: string,
   values?: void,
@@ -139,7 +130,6 @@ export function hot<V>(
     arguments
   )
 }
-
 export function cold(
   marbles: string,
   values?: void,
@@ -163,7 +153,6 @@ export function cold(
     arguments
   )
 }
-
 export function expectObservable(
   observable: Observable<any>,
   unsubscriptionMarbles: string | null = null
@@ -176,7 +165,6 @@ export function expectObservable(
     arguments
   )
 }
-
 export function expectSubscriptions(
   actualSubscriptionLogs: SubscriptionLog[]
 ): { toBe: subscriptionLogsToBeFn } {
@@ -188,7 +176,6 @@ export function expectSubscriptions(
     arguments
   )
 }
-
 export function time(marbles: string): number {
   if (!global.rxTestScheduler) {
     throw "tried to use time() in async test"
@@ -200,7 +187,6 @@ export function time(marbles: string): number {
 }
 import * as _ from "lodash"
 import * as chai from "chai"
-
 function stringify(x: any): string {
   return JSON.stringify(x, function (key: string, value: any) {
     if (Array.isArray(value)) {
@@ -218,7 +204,6 @@ function stringify(x: any): string {
     .replace(/\\t/g, "\t")
     .replace(/\\n/g, "\n")
 }
-
 function deleteErrorNotificationStack(marble: any) {
   const { notification } = marble
   if (notification) {
@@ -229,7 +214,6 @@ function deleteErrorNotificationStack(marble: any) {
   }
   return marble
 }
-
 export function observableMatcher(actual: any, expected: any) {
   if (Array.isArray(actual) && Array.isArray(expected)) {
     actual = actual.map(deleteErrorNotificationStack)
@@ -238,13 +222,10 @@ export function observableMatcher(actual: any, expected: any) {
     if (passed) {
       return
     }
-
     let message = "\nExpected \n"
     actual.forEach((x: any) => (message += `\t${stringify(x)}\n`))
-
     message += "\t\nto deep equal \n"
     expected.forEach((x: any) => (message += `\t${stringify(x)}\n`))
-
     chai.assert(passed, message)
   } else {
     chai.assert.deepEqual(actual, expected)
@@ -253,32 +234,24 @@ export function observableMatcher(actual: any, expected: any) {
 /**
  * Setup globals for the mocha unit tests such as injecting polyfills
  **/
-
 import * as chai from "chai"
 import * as sinonChai from "sinon-chai"
-
 if (typeof Symbol !== "function") {
   let id = 0
   const symbolFn: any = (description: string) =>
     `Symbol_${id++} ${description} (RxJS Testing Polyfill)`
-
   Symbol = symbolFn
 }
-
 if (!(Symbol as any).observable) {
   ;(Symbol as any).observable = Symbol(
     "Symbol.observable polyfill from RxJS Testing"
   )
 }
-
 /** Polyfill requestAnimationFrame for testing animationFrame scheduler in Node */
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
-
 // requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
-
 // MIT license
-
 ;(function (this: any, window: any) {
   window = window || this
   let lastTime = 0
@@ -289,7 +262,6 @@ if (!(Symbol as any).observable) {
       window[vendors[x] + "CancelAnimationFrame"] ||
       window[vendors[x] + "CancelRequestAnimationFrame"]
   }
-
   if (!window.requestAnimationFrame) {
     window.requestAnimationFrame = (callback: Function, element: any) => {
       const currTime = new Date().getTime()
@@ -301,19 +273,16 @@ if (!(Symbol as any).observable) {
       return id
     }
   }
-
   if (!window.cancelAnimationFrame) {
     window.cancelAnimationFrame = (id: number) => {
       clearTimeout(id)
     }
   }
 })(global)
-
 //setup sinon-chai
 chai.use(sinonChai)
 /** @prettier */
 import { Teardown } from "rxjs"
-
 export function getRegisteredFinalizers(
   subscription: any
 ): Exclude<Teardown, void>[] {
@@ -332,7 +301,6 @@ import {
 } from "rxjs"
 import { observable } from "rxjs/internal/symbol/observable"
 import { iterator } from "rxjs/internal/symbol/iterator"
-
 if (process && process.on) {
   /**
    * With async/await functions in Node, mocha seems to allow
@@ -345,7 +313,6 @@ if (process && process.on) {
     process.exit(1)
   })
 }
-
 export function lowerCaseO<T>(...args: Array<any>): Observable<T> {
   const o: any = {
     subscribe(observer: any) {
@@ -358,14 +325,11 @@ export function lowerCaseO<T>(...args: Array<any>): Observable<T> {
       }
     },
   }
-
   o[observable] = function (this: any) {
     return this
   }
-
   return <any>o
 }
-
 export const createObservableInputs = <T>(value: T) =>
   of(
     of(value),
@@ -386,7 +350,6 @@ export const createObservableInputs = <T>(value: T) =>
       [observable]: () => of(value),
     } as any
   ) as Observable<ObservableInput<T>>
-
 /**
  * Used to signify no subscriptions took place to `expectSubscriptions` assertions.
  */
@@ -394,20 +357,16 @@ export const NO_SUBS: string[] = []
 import * as _ from "lodash"
 import * as chai from "chai"
 import { TestScheduler } from "rxjs/testing"
-
 //tslint:disable:no-var-requires no-require-imports
 const commonInterface = require("mocha/lib/interfaces/common")
 const escapeRe = require("escape-string-regexp")
 //tslint:enable:no-var-requires no-require-imports
-
 declare const module: any, global: any, Suite: any, Test: any
-
 if (global && !(typeof window !== "undefined")) {
   global.mocha = require("mocha") // tslint:disable-line:no-require-imports no-var-requires
   global.Suite = global.mocha.Suite
   global.Test = global.mocha.Test
 }
-
 /**
  * mocha creates own global context per each test suite, simple patching to global won't deliver its context into test cases.
  * this custom interface is just mimic of existing one amending test scheduler behavior previously test-helper does via global patching.
@@ -416,25 +375,20 @@ if (global && !(typeof window !== "undefined")) {
  */
 module.exports = function (suite: any) {
   const suites = [suite]
-
   suite.on("pre-require", function (context: any, file: any, mocha: any) {
     const common = (<any>commonInterface)(suites, context)
-
     context.before = common.before
     context.after = common.after
     context.beforeEach = common.beforeEach
     context.afterEach = common.afterEach
     context.run = mocha.options.delay && common.runWithSuite(suite)
-
     //setting up per-context test scheduler
     context.rxTestScheduler = null
-
     /**
      * Describe a "suite" with the given `title`
      * and callback `fn` containing nested suites
      * and/or tests.
      */
-
     context.describe = context.context = function (title: any, fn: any) {
       const suite = (<any>Suite).create(suites[0], title)
       suite.file = file
@@ -443,11 +397,9 @@ module.exports = function (suite: any) {
       suites.shift()
       return suite
     }
-
     /**
      * Pending describe.
      */
-
     context.xdescribe =
       context.xcontext =
       context.describe.skip =
@@ -458,17 +410,14 @@ module.exports = function (suite: any) {
           fn.call(suite)
           suites.shift()
         }
-
     /**
      * Exclusive suite.
      */
-
     context.describe.only = function (title: any, fn: any) {
       const suite = context.describe(title, fn)
       mocha.grep(suite.fullTitle())
       return suite
     }
-
     function stringify(x: any): string {
       return JSON.stringify(x, function (key: string, value: any) {
         if (Array.isArray(value)) {
@@ -486,7 +435,6 @@ module.exports = function (suite: any) {
         .replace(/\\t/g, "\t")
         .replace(/\\n/g, "\n")
     }
-
     function deleteErrorNotificationStack(marble: any) {
       const { notification } = marble
       if (notification) {
@@ -497,11 +445,9 @@ module.exports = function (suite: any) {
       }
       return marble
     }
-
     /**
      * custom assertion formatter for expectObservable test
      */
-
     function observableMatcher(actual: any, expected: any) {
       if (Array.isArray(actual) && Array.isArray(expected)) {
         actual = actual.map(deleteErrorNotificationStack)
@@ -510,36 +456,29 @@ module.exports = function (suite: any) {
         if (passed) {
           return
         }
-
         let message = "\nExpected \n"
         actual.forEach((x: any) => (message += `\t${stringify(x)}\n`))
-
         message += "\t\nto deep equal \n"
         expected.forEach((x: any) => (message += `\t${stringify(x)}\n`))
-
         chai.assert(passed, message)
       } else {
         chai.assert.deepEqual(actual, expected)
       }
     }
-
     /**
      * Describe a specification or test-case
      * with the given `title` and callback `fn`
      * acting as a thunk.
      */
-
     const it =
       (context.it =
       context.specify =
         function (title: any, fn: any) {
           context.rxTestScheduler = null
           let modified = fn
-
           if (fn && fn.length === 0) {
             modified = function () {
               context.rxTestScheduler = new TestScheduler(observableMatcher)
-
               try {
                 fn()
                 context.rxTestScheduler.flush()
@@ -548,7 +487,6 @@ module.exports = function (suite: any) {
               }
             }
           }
-
           const suite = suites[0]
           if (suite.pending) {
             modified = null
@@ -558,29 +496,24 @@ module.exports = function (suite: any) {
           suite.addTest(test)
           return test
         })
-
     /**
      * Exclusive test-case.
      */
-
     context.it.only = function (title: any, fn: any) {
       const test = it(title, fn)
       const reString = "^" + (<any>escapeRe)(test.fullTitle()) + "$"
       mocha.grep(new RegExp(reString))
       return test
     }
-
     /**
      * Pending test case.
      */
-
     context.xit =
       context.xspecify =
       context.it.skip =
         function (title: string) {
           context.it(title)
         }
-
     /**
      * Number of attempts to retry.
      */
@@ -589,19 +522,16 @@ module.exports = function (suite: any) {
     }
   })
 }
-
 //register into global instnace if browser test page injects mocha globally
 if (global.Mocha) {
   ;(<any>window).Mocha.interfaces["testschedulerui"] = module.exports
 } else {
   ;(<any>mocha).interfaces["testschedulerui"] = module.exports
 }
-
 //overrides JSON.toStringfy to serialize error object
 Object.defineProperty(Error.prototype, "toJSON", {
   value: function (this: any) {
     const alt: Record<string, any> = {}
-
     Object.getOwnPropertyNames(this).forEach(function (this: any, key: string) {
       if (key !== "stack") {
         alt[key] = this[key]

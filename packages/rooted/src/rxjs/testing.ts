@@ -23,16 +23,13 @@ import {
   VirtualAction,
 } from "./scheduler/VirtualTimeScheduler"
 import { DONE_NOTE, errorNote, nextNote } from "./NoteFactories"
-
 export class ColdObservable<T>
   extends Observable<T>
   implements SubscriptionLoggable
 {
   public subscriptions: SubscriptionLog[] = []
   scheduler: Scheduler
-
   logSubscribedFrame: () => number
-
   logUnsubscribedFrame: (index: number) => void
   constructor(public messages: TestMessage[], scheduler: Scheduler) {
     super(function (this: Observable<T>, subscriber: Subscriber<any>) {
@@ -76,9 +73,7 @@ export class HotObservable<T>
 {
   public subscriptions: SubscriptionLog[] = []
   scheduler: Scheduler
-
   logSubscribedFrame: () => number
-
   logUnsubscribedFrame: (index: number) => void
   constructor(public messages: TestMessage[], scheduler: Scheduler) {
     super()
@@ -118,7 +113,6 @@ export class SubscriptionLog {
 }
 export class SubscriptionLoggable {
   public subscriptions: SubscriptionLog[] = []
-
   scheduler: Scheduler
   logSubscribedFrame(): number {
     this.subscriptions.push(new SubscriptionLog(this.scheduler.now()))
@@ -384,7 +378,6 @@ export class TestScheduler extends VirtualTimeScheduler {
     if (typeof marbles !== "string") {
       return new SubscriptionLog(Infinity)
     }
-
     const characters = [...marbles]
     const len = characters.length
     let groupStart = -1
@@ -489,7 +482,6 @@ export class TestScheduler extends VirtualTimeScheduler {
           'unsubscription marker "!"'
       )
     }
-
     const characters = [...marbles]
     const len = characters.length
     const testMessages: TestMessage[] = []
@@ -591,7 +583,6 @@ export class TestScheduler extends VirtualTimeScheduler {
     if (!this.runMode) {
       throw new Error("animate() must only be used in run mode")
     }
-
     let lastHandle = 0
     let map: Map<number, FrameRequestCallback> | undefined
     const delegate = {
@@ -630,7 +621,6 @@ export class TestScheduler extends VirtualTimeScheduler {
       for (const message of messages) {
         this.schedule(() => {
           const now = this.now()
-
           const callbacks = Array.from(map!.values())
           map!.clear()
           for (const callback of callbacks) {
@@ -676,7 +666,6 @@ export class TestScheduler extends VirtualTimeScheduler {
         const firstDueInterval = dueIntervals[0]
         const { duration, handler } = firstDueInterval
         firstDueInterval.due = now + duration
-
         firstDueInterval.subscription = this.schedule(run, duration)
         handler()
         return
@@ -692,7 +681,6 @@ export class TestScheduler extends VirtualTimeScheduler {
       }
       throw new Error("Expected a due immediate or interval")
     }
-
     const immediate = {
       setImmediate: (handler: () => void) => {
         const handle = ++lastHandle

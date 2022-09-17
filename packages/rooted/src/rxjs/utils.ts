@@ -13,61 +13,54 @@ export function isObserver<T>(x: any): x is qt.Observer<T> {
 }
 
 export function firstValueFrom<T, D>(
-  source: Observable<T>,
-  config: qt.FirstValueFromConfig<D>
+  o: Observable<T>,
+  cfg: qt.FirstValueFromConfig<D>
 ): Promise<T | D>
-export function firstValueFrom<T>(source: Observable<T>): Promise<T>
+export function firstValueFrom<T>(o: Observable<T>): Promise<T>
 export function firstValueFrom<T, D>(
-  source: Observable<T>,
-  config?: qt.FirstValueFromConfig<D>
+  o: Observable<T>,
+  cfg?: qt.FirstValueFromConfig<D>
 ): Promise<T | D> {
-  const hasConfig = typeof config === "object"
-  return new Promise<T | D>((resolve, reject) => {
-    const subscriber = new SafeSubscriber<T>({
-      next: value => {
-        resolve(value)
-        subscriber.unsubscribe()
+  const hasConfig = typeof cfg === "object"
+  return new Promise<T | D>((res, rej) => {
+    const s = new SafeSubscriber<T>({
+      next: x => {
+        res(x)
+        s.unsubscribe()
       },
-      error: reject,
+      error: rej,
       done: () => {
-        if (hasConfig) {
-          resolve(config!.defaultValue)
-        } else {
-          reject(new EmptyError())
-        }
+        if (hasConfig) res(cfg!.defaultValue)
+        else rej(new EmptyError())
       },
     })
-    source.subscribe(subscriber)
+    o.subscribe(s)
   })
 }
 
 export function lastValueFrom<T, D>(
-  source: Observable<T>,
-  config: qt.LastValueFromConfig<D>
+  o: Observable<T>,
+  cfg: qt.LastValueFromConfig<D>
 ): Promise<T | D>
-export function lastValueFrom<T>(source: Observable<T>): Promise<T>
+export function lastValueFrom<T>(o: Observable<T>): Promise<T>
 export function lastValueFrom<T, D>(
-  source: Observable<T>,
-  config?: qt.LastValueFromConfig<D>
+  o: Observable<T>,
+  cfg?: qt.LastValueFromConfig<D>
 ): Promise<T | D> {
-  const hasConfig = typeof config === "object"
-  return new Promise<T | D>((resolve, reject) => {
-    let _hasValue = false
-    let _value: T
-    source.subscribe({
-      next: value => {
-        _value = value
-        _hasValue = true
+  const hasConfig = typeof cfg === "object"
+  return new Promise<T | D>((res, rej) => {
+    let has = false
+    let v: T
+    o.subscribe({
+      next: x => {
+        v = x
+        has = true
       },
-      error: reject,
+      error: rej,
       done: () => {
-        if (_hasValue) {
-          resolve(_value)
-        } else if (hasConfig) {
-          resolve(config!.defaultValue)
-        } else {
-          reject(new EmptyError())
-        }
+        if (has) res(v)
+        else if (hasConfig) res(cfg!.defaultValue)
+        else rej(new EmptyError())
       },
     })
   })

@@ -1,19 +1,7 @@
-import { AjaxRequest, AjaxResponseType } from "./types"
-import { getXHRResponse } from "./getXHRResponse"
-import { map } from "./operators/map"
-import { Observable } from "./Observable"
-import {
-  AjaxConfig,
-  AjaxRequest,
-  AjaxDirection,
-  ProgressEventType,
-} from "./types"
-import { AjaxResponse } from "./AjaxResponse"
-import { AjaxTimeoutError, AjaxError } from "./errors"
-import { AjaxRequest } from "./types"
-import { getXHRResponse } from "./getXHRResponse"
-import { createErrorClass } from "./util/createErrorClass"
-import { PartialObserver } from "./types"
+import { map } from "./operator.js"
+import { Observable } from "./observable.js"
+import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 
 export class AjaxResponse<T> {
   readonly status: number
@@ -121,6 +109,7 @@ function ajaxGetJSON<T>(
     })
   )
 }
+
 export const ajax: AjaxCreationMethod = (() => {
   const create = <T>(urlOrConfig: string | AjaxConfig) => {
     const config: AjaxConfig =
@@ -320,6 +309,7 @@ export function fromAjax<T>(init: AjaxConfig): Observable<AjaxResponse<T>> {
     }
   })
 }
+
 function extractContentTypeAndMaybeSerializeBody(
   body: any,
   headers: Record<string, string>
@@ -373,6 +363,7 @@ function isURLSearchParams(body: any): body is URLSearchParams {
 function isReadableStream(body: any): body is ReadableStream {
   return typeof ReadableStream !== "undefined" && body instanceof ReadableStream
 }
+
 export interface AjaxError extends Error {
   xhr: XMLHttpRequest
   request: AjaxRequest
@@ -383,7 +374,7 @@ export interface AjaxError extends Error {
 export interface AjaxErrorCtor {
   new (message: string, xhr: XMLHttpRequest, request: AjaxRequest): AjaxError
 }
-export const AjaxError: AjaxErrorCtor = createErrorClass(
+export const AjaxError: AjaxErrorCtor = qu.createErrorClass(
   _super =>
     function AjaxErrorImpl(
       this: any,
@@ -477,7 +468,7 @@ export interface AjaxConfig {
   xsrfHeaderName?: string
   responseType?: XMLHttpRequestResponseType
   createXHR?: () => XMLHttpRequest
-  progressSubscriber?: PartialObserver<ProgressEvent>
+  progressSubscriber?: qt.PartialObserver<ProgressEvent>
   includeDownloadProgress?: boolean
   includeUploadProgress?: boolean
   queryParams?:
