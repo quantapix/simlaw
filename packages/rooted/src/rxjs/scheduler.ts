@@ -8,15 +8,15 @@ interface StampProvider extends qt.TimestampProvider {
   delegate: qt.TimestampProvider | undefined
 }
 
-export const stampProvider: StampProvider = {
+export const stamper: StampProvider = {
   now() {
-    return (stampProvider.delegate || Date).now()
+    return (stamper.delegate || Date).now()
   },
   delegate: undefined,
 }
 
 export class Scheduler implements qt.Scheduler {
-  static now: () => number = stampProvider.now
+  static now: () => number = stamper.now
   static pop(xs: any[]): qt.Scheduler | undefined {
     return qu.isScheduler(qu.last(xs)) ? xs.pop() : undefined
   }
@@ -253,6 +253,8 @@ export class AsyncScheduler extends Scheduler {
     }
   }
 }
+
+export const asyncSched = new AsyncScheduler(AsyncAction)
 
 export class FrameAction<T> extends AsyncAction<T> {
   constructor(
