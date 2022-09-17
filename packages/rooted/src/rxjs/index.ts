@@ -1,4 +1,3 @@
-export * from "./ajax.js"
 export * from "./note.js"
 export * from "./observable.js"
 export * from "./operator.js"

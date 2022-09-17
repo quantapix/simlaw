@@ -1,7 +1,8 @@
+/* eslint-disable no-prototype-builtins */
 import { Subscription } from "./subscription.js"
 import {
   Scheduler,
-  AsyncScheduler,
+  asyncSched,
   perfProvider,
   frameProvider,
 } from "./scheduler.js"
@@ -385,114 +386,97 @@ export function connectable<T>(
 }
 
 export function defer<R extends qt.ObsInput<any>>(
-  observableFactory: () => R
+  f: () => R
 ): Observable<qt.ObsValueOf<R>> {
-  return new Observable<qt.ObsValueOf<R>>(subscriber => {
-    innerFrom(observableFactory()).subscribe(subscriber)
+  return new Observable<qt.ObsValueOf<R>>(sub => {
+    innerFrom(f()).subscribe(sub)
   })
 }
 
-export function animationFrames(timestampProvider?: qt.TimestampProvider) {
-  return timestampProvider
-    ? animationFramesFactory(timestampProvider)
-    : DEFAULT_ANIMATION_FRAMES
+export function animationFrames(x?: qt.TimestampProvider) {
+  return x ? animationFramesFactory(x) : DEFAULT_ANIMATION_FRAMES
 }
-function animationFramesFactory(timestampProvider?: qt.TimestampProvider) {
+function animationFramesFactory(x?: qt.TimestampProvider) {
   const { schedule } = frameProvider
-  return new Observable<{ timestamp: number; elapsed: number }>(subscriber => {
-    const subscription = new Subscription()
-    const provider = timestampProvider || perfProvider
+  return new Observable<{ timestamp: number; elapsed: number }>(sub => {
+    const s = new Subscription()
+    const provider = x || perfProvider
     const start = provider.now()
-    const run = (timestamp: DOMHighResTimeStamp | number) => {
+    const run = (x2: DOMHighResTimeStamp | number) => {
       const now = provider.now()
-      subscriber.next({
-        timestamp: timestampProvider ? now : timestamp,
-        elapsed: now - start,
-      })
-      if (!subscriber.closed) {
-        subscription.add(schedule(run))
-      }
+      sub.next({ timestamp: x ? now : x2, elapsed: now - start })
+      if (!sub.closed) s.add(schedule(run))
     }
-    subscription.add(schedule(run))
-    return subscription
+    s.add(schedule(run))
+    return s
   })
 }
+
 const DEFAULT_ANIMATION_FRAMES = animationFramesFactory()
+
 export function fromFetch<T>(
-  input: string | Request,
+  x: string | Request,
   init: RequestInit & {
-    selector: (response: Response) => qt.ObsInput<T>
+    selector: (x: Response) => qt.ObsInput<T>
   }
 ): Observable<T>
 export function fromFetch(
-  input: string | Request,
+  x: string | Request,
   init?: RequestInit
 ): Observable<Response>
 export function fromFetch<T>(
-  input: string | Request,
-  initWithSelector: RequestInit & {
-    selector?: (response: Response) => qt.ObsInput<T>
+  x: string | Request,
+  init0: RequestInit & {
+    selector?: (x: Response) => qt.ObsInput<T>
   } = {}
 ): Observable<Response | T> {
-  const { selector, ...init } = initWithSelector
-  return new Observable<Response | T>(subscriber => {
+  const { selector, ...init } = init0
+  return new Observable<Response | T>(sub => {
     const controller = new AbortController()
     const { signal } = controller
     let abortable = true
-    const { signal: outerSignal } = init
-    if (outerSignal) {
-      if (outerSignal.aborted) {
-        controller.abort()
-      } else {
-        const outerSignalHandler = () => {
-          if (!signal.aborted) {
-            controller.abort()
-          }
+    const { signal: sig2 } = init
+    if (sig2) {
+      if (sig2.aborted) controller.abort()
+      else {
+        const h = () => {
+          if (!signal.aborted) controller.abort()
         }
-        outerSignal.addEventListener("abort", outerSignalHandler)
-        subscriber.add(() =>
-          outerSignal.removeEventListener("abort", outerSignalHandler)
-        )
+        sig2.addEventListener("abort", h)
+        sub.add(() => sig2.removeEventListener("abort", h))
       }
     }
-    const perSubscriberInit: RequestInit = { ...init, signal }
-    const handleError = (err: any) => {
+    const init2: RequestInit = { ...init, signal }
+    const doError = (x: any) => {
       abortable = false
-      subscriber.error(err)
+      sub.error(x)
     }
-    fetch(input, perSubscriberInit)
-      .then(response => {
+    fetch(x, init2)
+      .then(res => {
         if (selector) {
-          innerFrom(selector(response)).subscribe(
-            new OpSubscriber(
-              subscriber,
-              undefined,
-              () => {
-                abortable = false
-                subscriber.done()
-              },
-              handleError
-            )
+          innerFrom(selector(res)).subscribe(
+            new OpSubscriber(sub, undefined, doError, () => {
+              abortable = false
+              sub.done()
+            })
           )
         } else {
           abortable = false
-          subscriber.next(response)
-          subscriber.done()
+          sub.next(res)
+          sub.done()
         }
       })
-      .catch(handleError)
+      .catch(doError)
     return () => {
-      if (abortable) {
-        controller.abort()
-      }
+      if (abortable) controller.abort()
     }
   })
 }
 
 export function webSocket<T>(
-  urlConfigOrSource: string | WebSocketSubjectConfig<T>
+  x: string | WebSocketSubjectConfig<T>
 ): WebSocketSubject<T> {
-  return new WebSocketSubject<T>(urlConfigOrSource)
+  return new WebSocketSubject<T>(x)
 }
 
 export const EMPTY = new Observable<never>(x => x.done())
@@ -735,7 +719,7 @@ export function fromEventPattern<T>(
     )
   }
   return new Observable<T | T[]>(s => {
-    const h = (...x: T[]) => s.next(x.length === 1 ? x[0] : x)
+    const h = (...x: T[]) => s.next(x.length === 1 ? x[0]! : x)
     const y = addHandler(h)
     return qu.isFunction(removeHandler) ? () => removeHandler(h, y) : undefined
   })
@@ -829,7 +813,7 @@ export function fromInteropObservable<T>(x: any) {
 export function fromArrayLike<T>(x: ArrayLike<T>) {
   return new Observable((s: Subscriber<T>) => {
     for (let i = 0; i < x.length && !s.closed; i++) {
-      s.next(x[i])
+      s.next(x[i]!)
     }
     s.done()
   })
@@ -874,7 +858,7 @@ async function process<T>(i: AsyncIterable<T>, s: Subscriber<T>) {
 }
 export function interval(
   period = 0,
-  sched: qt.Scheduler = new AsyncScheduler()
+  sched: qt.Scheduler = asyncSched
 ): Observable<number> {
   if (period < 0) period = 0
   return timer(period, period, sched)
@@ -1026,7 +1010,7 @@ export function timer(
 export function timer(
   x: number | Date = 0,
   ds?: number | qt.Scheduler,
-  sched: qt.Scheduler = new AsyncScheduler()
+  sched: qt.Scheduler = asyncSched
 ): Observable<number> {
   let dur = -1
   if (ds != null) {
@@ -1198,11 +1182,9 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
       const subscription = self.subscribe({
         next: x => {
           try {
-            if (messageFilter(x)) {
-              observer.next(x)
-            }
-          } catch (err) {
-            observer.error(err)
+            if (messageFilter(x)) observer.next(x)
+          } catch (e) {
+            observer.error(e)
           }
         },
         error: err => observer.error(err),
@@ -1218,6 +1200,7 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
       }
     })
   }
+
   private _connectSocket() {
     const { WebSocketCtor, protocol, url, binaryType } = this._config
     const observer = this._output
@@ -1227,18 +1210,14 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
         ? new WebSocketCtor!(url, protocol)
         : new WebSocketCtor!(url)
       this._socket = socket
-      if (binaryType) {
-        this._socket.binaryType = binaryType
-      }
+      if (binaryType) this._socket.binaryType = binaryType
     } catch (e) {
       observer.error(e)
       return
     }
     const subscription = new Subscription(() => {
       this._socket = null
-      if (socket && socket.readyState === 1) {
-        socket.close()
-      }
+      if (socket && socket.readyState === 1) socket.close()
     })
     socket.onopen = (evt: Event) => {
       const { _socket } = this
@@ -1247,10 +1226,8 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
         this._resetState()
         return
       }
-      const { openObserver } = this._config
-      if (openObserver) {
-        openObserver.next(evt)
-      }
+      const { openObserver: open } = this._config
+      if (open) open.next(evt)
       const queue = this.dest
       this.dest = Subscriber.create<T>(
         x => {
@@ -1263,23 +1240,17 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
             }
           }
         },
-        err => {
-          const { closingObserver } = this._config
-          if (closingObserver) {
-            closingObserver.next(undefined)
-          }
-          if (err && err.code) {
-            socket!.close(err.code, err.reason)
-          } else {
+        x => {
+          const { closingObserver: closing } = this._config
+          if (closing) closing.next(undefined)
+          if (x && x.code) socket!.close(x.code, x.reason)
+          else
             observer.error(new TypeError(WEBSOCKETSUBJECT_INVALID_ERROR_OBJECT))
-          }
           this._resetState()
         },
         () => {
-          const { closingObserver } = this._config
-          if (closingObserver) {
-            closingObserver.next(undefined)
-          }
+          const { closingObserver: closing } = this._config
+          if (closing) closing.next(undefined)
           socket!.close()
           this._resetState()
         }
@@ -1288,23 +1259,16 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
         subscription.add((queue as ReplaySubject<T>).subscribe(this.dest))
       }
     }
-    socket.onerror = (e: Event) => {
+    socket.onerror = (x: Event) => {
       this._resetState()
-      observer.error(e)
+      observer.error(x)
     }
-    socket.onclose = (e: CloseEvent) => {
-      if (socket === this._socket) {
-        this._resetState()
-      }
-      const { closeObserver } = this._config
-      if (closeObserver) {
-        closeObserver.next(e)
-      }
-      if (e.wasClean) {
-        observer.done()
-      } else {
-        observer.error(e)
-      }
+    socket.onclose = (x: CloseEvent) => {
+      if (socket === this._socket) this._resetState()
+      const { closeObserver: close } = this._config
+      if (close) close.next(x)
+      if (x.wasClean) observer.done()
+      else observer.error(x)
     }
     socket.onmessage = (e: MessageEvent) => {
       try {
@@ -1315,31 +1279,25 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
       }
     }
   }
-  protected override _subscribe(subscriber: Subscriber<T>): Subscription {
-    const { src: source } = this
-    if (source) {
-      return source.subscribe(subscriber)
-    }
-    if (!this._socket) {
-      this._connectSocket()
-    }
-    this._output.subscribe(subscriber)
-    subscriber.add(() => {
-      const { _socket } = this
+
+  protected override _subscribe(sub: Subscriber<T>): Subscription {
+    const { src } = this
+    if (src) return src.subscribe(sub)
+    if (!this._socket) this._connectSocket()
+    this._output.subscribe(sub)
+    sub.add(() => {
+      const { _socket: s } = this
       if (this._output.observers.length === 0) {
-        if (_socket && (_socket.readyState === 1 || _socket.readyState === 0)) {
-          _socket.close()
-        }
+        if (s && (s.readyState === 1 || s.readyState === 0)) s.close()
         this._resetState()
       }
     })
-    return subscriber
+    return sub
   }
+
   override unsubscribe() {
-    const { _socket } = this
-    if (_socket && (_socket.readyState === 1 || _socket.readyState === 0)) {
-      _socket.close()
-    }
+    const { _socket: s } = this
+    if (s && (s.readyState === 1 || s.readyState === 0)) s.close()
     this._resetState()
     super.unsubscribe()
   }
