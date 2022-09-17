@@ -9,9 +9,7 @@ export function getPromiseCtor(x?: PromiseConstructorLike) {
 }
 
 export function isObserver<T>(x: any): x is qt.Observer<T> {
-  return (
-    x && isFunction(x.next) && isFunction(x.error) && isFunction(x.complete)
-  )
+  return x && isFunction(x.next) && isFunction(x.error) && isFunction(x.done)
 }
 
 export function firstValueFrom<T, D>(
@@ -31,7 +29,7 @@ export function firstValueFrom<T, D>(
         subscriber.unsubscribe()
       },
       error: reject,
-      complete: () => {
+      done: () => {
         if (hasConfig) {
           resolve(config!.defaultValue)
         } else {
@@ -62,7 +60,7 @@ export function lastValueFrom<T, D>(
         _hasValue = true
       },
       error: reject,
-      complete: () => {
+      done: () => {
         if (_hasValue) {
           resolve(_value)
         } else if (hasConfig) {
@@ -189,72 +187,58 @@ export function popNumber(xs: any[], v: number): number {
 }
 
 const { isArray } = Array
-const { getPrototypeOf, prototype: objectProto, keys: getKeys } = Object
-export function argsArgArrayOrObject<T, O extends Record<string, T>>(
-  args: T[] | [O] | [T[]]
-): { args: T[]; keys: string[] | null } {
-  if (args.length === 1) {
-    const first = args[0]
-    if (isArray(first)) {
-      return { args: first, keys: null }
-    }
+const { getPrototypeOf, prototype, keys: getKeys } = Object
+
+export function argsArgArrayOrObject<T, R extends Record<string, T>>(
+  xs: T[] | [R] | [T[]]
+): { xs: T[]; ks: string[] | null } {
+  if (xs.length === 1) {
+    const first = xs[0]
+    if (isArray(first)) return { xs: first, ks: null }
     if (isPOJO(first)) {
-      const keys = getKeys(first)
-      return {
-        args: keys.map(key => first[key]),
-        keys,
-      }
+      const ks = getKeys(first)
+      return { xs: ks.map(k => first[k]!), ks }
     }
   }
-  return { args: args as T[], keys: null }
+  return { xs: xs as T[], ks: null }
 }
 function isPOJO(x: any): x is object {
-  return x && typeof x === "object" && getPrototypeOf(x) === objectProto
+  return x && typeof x === "object" && getPrototypeOf(x) === prototype
 }
-const { isArray } = Array
-export function argsOrArgArray<T>(args: (T | T[])[]): T[] {
-  return args.length === 1 && isArray(args[0]) ? args[0] : (args as T[])
+export function argsOrArgArray<T>(xs: (T | T[])[]): T[] {
+  return xs.length === 1 && isArray(xs[0]) ? xs[0] : (xs as T[])
 }
-export function arrRemove<T>(arr: T[] | undefined | null, item: T) {
-  if (arr) {
-    const index = arr.indexOf(item)
-    0 <= index && arr.splice(index, 1)
+export function arrRemove<T>(xs: T[] | undefined | null, x: T) {
+  if (xs) {
+    const i = xs.indexOf(x)
+    0 <= i && xs.splice(i, 1)
   }
 }
 export function createErrorClass<T>(createImpl: (_super: any) => any): T {
-  const _super = (instance: any) => {
-    Error.call(instance)
-    instance.stack = new Error().stack
+  const _super = (x: any) => {
+    Error.call(x)
+    x.stack = new Error().stack
   }
   const y = createImpl(_super)
   y.prototype = Object.create(Error.prototype)
   y.prototype.constructor = y
   return y
 }
-export function createObject(keys: string[], values: any[]) {
-  return keys.reduce(
-    (result, key, i) => ((result[key] = values[i]), result),
-    {} as any
-  )
+export function createObject(ks: string[], vs: any[]) {
+  return ks.reduce((y, k, i) => ((y[k] = vs[i]), y), {} as any)
 }
 let context: { errorThrown: boolean; error: any } | null = null
 export function errorContext(cb: () => void) {
   if (config.useDeprecatedSynchronousErrorHandling) {
     const isRoot = !context
-    if (isRoot) {
-      context = { errorThrown: false, error: null }
-    }
+    if (isRoot) context = { errorThrown: false, error: null }
     cb()
     if (isRoot) {
       const { errorThrown, error } = context!
       context = null
-      if (errorThrown) {
-        throw error
-      }
+      if (errorThrown) throw error
     }
-  } else {
-    cb()
-  }
+  } else cb()
 }
 export function captureError(x: any) {
   if (config.useDeprecatedSynchronousErrorHandling && context) {
@@ -265,15 +249,16 @@ export function captureError(x: any) {
 export function identity<T>(x: T): T {
   return x
 }
-export const isArrayLike = <T>(x: any): x is ArrayLike<T> =>
-  x && typeof x.length === "number" && typeof x !== "function"
-export function isAsyncIterable<T>(obj: any): obj is AsyncIterable<T> {
-  return Symbol.asyncIterator && isFunction(obj?.[Symbol.asyncIterator])
+export function isArrayLike<T>(x: any): x is ArrayLike<T> {
+  return x && typeof x.length === "number" && typeof x !== "function"
+}
+export function isAsyncIterable<T>(x: any): x is AsyncIterable<T> {
+  return Symbol.asyncIterator && isFunction(x?.[Symbol.asyncIterator])
 }
 export function isValidDate(x: any): x is Date {
   return x instanceof Date && !isNaN(x as any)
 }
-export function isFunction(x: any): x is (...args: any[]) => any {
+export function isFunction(x: any): x is (...xs: any[]) => any {
   return typeof x === "function"
 }
 export function isInteropObservable(x: any): x is qt.Observable<any> {
@@ -291,10 +276,11 @@ export function isObservable(x: any): x is Observable<unknown> {
 export function isPromise(x: any): x is PromiseLike<any> {
   return isFunction(x?.then)
 }
+
 export async function* readableStreamLikeToAsyncGenerator<T>(
-  readableStream: qt.ReadableStreamLike<T>
+  x: qt.ReadableStreamLike<T>
 ): AsyncGenerator<T> {
-  const r = readableStream.getReader()
+  const r = x.getReader()
   try {
     while (true) {
       const { value, done } = await r.read()
@@ -316,22 +302,26 @@ export function hasLift(
 ): x is { lift: InstanceType<typeof Observable>["lift"] } {
   return isFunction(x?.lift)
 }
-const { isArray } = Array
-function callOrApply<T, R>(fn: (...values: T[]) => R, args: T | T[]): R {
-  return isArray(args) ? fn(...args) : fn(args)
+
+function callOrApply<T, R>(f: (...xs: T[]) => R, xs: T | T[]): R {
+  return isArray(xs) ? f(...xs) : f(xs)
 }
+
 export function mapOneOrManyArgs<T, R>(
-  fn: (...values: T[]) => R
+  fn: (...xs: T[]) => R
 ): qt.OpFun<T | T[], R> {
-  return map(args => callOrApply(fn, args))
+  return map(xs => callOrApply(fn, xs))
 }
+
 export function noop() {}
+
 export function not<T>(
-  pred: (value: T, index: number) => boolean,
+  f: (x: T, i: number) => boolean,
   thisArg: any
-): (value: T, index: number) => boolean {
-  return (value: T, index: number) => !pred.call(thisArg, value, index)
+): (x: T, i: number) => boolean {
+  return (x: T, i: number) => !f.call(thisArg, x, i)
 }
+
 export function pipe(): typeof identity
 export function pipe<T, A>(fn1: qt.UnaryFun<T, A>): qt.UnaryFun<T, A>
 export function pipe<T, A, B>(
@@ -404,22 +394,19 @@ export function pipe<T, A, B, C, D, E, F, G, H, I>(
   fn7: qt.UnaryFun<F, G>,
   fn8: qt.UnaryFun<G, H>,
   fn9: qt.UnaryFun<H, I>,
-  ...fns: qt.UnaryFun<any, any>[]
+  ...xs: qt.UnaryFun<any, any>[]
 ): qt.UnaryFun<T, unknown>
 export function pipe(
-  ...fns: Array<qt.UnaryFun<any, any>>
+  ...xs: Array<qt.UnaryFun<any, any>>
 ): qt.UnaryFun<any, any> {
-  return pipeFromArray(fns)
+  return pipeFromArray(xs)
 }
+
 export function pipeFromArray<T, R>(
   fns: Array<qt.UnaryFun<T, R>>
 ): qt.UnaryFun<T, R> {
-  if (fns.length === 0) {
-    return identity as qt.UnaryFun<any, any>
-  }
-  if (fns.length === 1) {
-    return fns[0]
-  }
+  if (fns.length === 0) return identity as qt.UnaryFun<any, any>
+  if (fns.length === 1) return fns[0]!
   return function piped(input: T): R {
     return fns.reduce(
       (prev: any, fn: qt.UnaryFun<T, R>) => fn(prev),
@@ -427,30 +414,28 @@ export function pipeFromArray<T, R>(
     )
   }
 }
-export function reportUnhandledError(err: any) {
+
+export function reportUnhandledError(x: any) {
   timeoutProvider.setTimeout(() => {
     const { onUnhandledError } = config
-    if (onUnhandledError) {
-      onUnhandledError(err)
-    } else {
-      throw err
-    }
+    if (onUnhandledError) onUnhandledError(x)
+    else throw x
   })
 }
+
 export const subscribeToArray =
-  <T>(array: ArrayLike<T>) =>
-  (subscriber: Subscriber<T>) => {
-    for (let i = 0, len = array.length; i < len && !subscriber.closed; i++) {
-      subscriber.next(array[i])
+  <T>(x: ArrayLike<T>) =>
+  (s: Subscriber<T>) => {
+    for (let i = 0, len = x.length; i < len && !s.closed; i++) {
+      s.next(x[i]!)
     }
-    subscriber.complete()
+    s.done()
   }
-export function createInvalidObservableTypeError(input: any) {
+
+export function createInvalidObservableTypeError(x: any) {
   return new TypeError(
     `You provided ${
-      input !== null && typeof input === "object"
-        ? "an invalid object"
-        : `'${input}'`
+      x !== null && typeof x === "object" ? "an invalid object" : `'${x}'`
     } where a stream was expected. You can provide an Observable, Promise, ReadableStream, Array, AsyncIterable, or Iterable.`
   )
 }

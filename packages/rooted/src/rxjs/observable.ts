@@ -279,7 +279,7 @@ export function combineLatest<T extends qt.ObsInput<any>, R>(
 ): Observable<R> | Observable<qt.ObsValueOf<T>[]> {
   const sched = Scheduler.pop(xs)
   const res = qu.popResultSelector(xs)
-  const { args: os, keys } = qu.argsArgArrayOrObject(xs)
+  const { xs: os, ks: keys } = qu.argsArgArrayOrObject(xs)
   if (os.length === 0) return from([], sched as any)
   const y = new Observable<qt.ObsValueOf<T>[]>(
     _combineLatest(
@@ -515,7 +515,7 @@ export function forkJoin<T extends Record<string, qt.ObsInput<any>>>(
 ): Observable<{ [K in keyof T]: qt.ObsValueOf<T[K]> }>
 export function forkJoin(...xs: any[]): Observable<any> {
   const resultSelector = qu.popResultSelector(xs)
-  const { args, keys } = qu.argsArgArrayOrObject(xs)
+  const { xs: args, ks: keys } = qu.argsArgArrayOrObject(xs)
   const y = new Observable(s => {
     const { length } = args
     if (!length) {

@@ -23,7 +23,9 @@ export class Scheduler implements qt.Scheduler {
   constructor(private ctor: typeof Action, now: () => number = Scheduler.now) {
     this.now = now
   }
+
   now: () => number
+
   schedule<T>(
     work: (this: qt.SchedulerAction<T>, x?: T) => void,
     delay = 0,
@@ -31,6 +33,7 @@ export class Scheduler implements qt.Scheduler {
   ): Subscription {
     return new this.ctor<T>(this, work).schedule(x, delay)
   }
+
   dispatch<T>(x: qt.ObsInput<T>): Observable<T> {
     if (x != null) {
       if (qu.isInteropObservable(x)) return this.runObservable(x)
@@ -42,6 +45,7 @@ export class Scheduler implements qt.Scheduler {
     }
     throw qu.createInvalidObservableTypeError(x)
   }
+
   run(s: Subscription, work: () => void, delay: number, more: true): void
   run(
     s: Subscription,
@@ -63,13 +67,14 @@ export class Scheduler implements qt.Scheduler {
     s.add(y)
     if (!more) return y as Subscription
   }
+
   runArray<T>(x: ArrayLike<T>) {
     return new Observable<T>(s => {
       let i = 0
       return this.schedule(function () {
-        if (i === x.length) s.complete()
+        if (i === x.length) s.done()
         else {
-          s.next(x[i++])
+          s.next(x[i++]!)
           if (!s.closed) this.schedule()
         }
       })
@@ -91,7 +96,7 @@ export class Scheduler implements qt.Scheduler {
               s.error(e)
               return
             }
-            if (done) s.complete()
+            if (done) s.done()
             else s.next(value)
           },
           0,
@@ -110,7 +115,7 @@ export class Scheduler implements qt.Scheduler {
           s,
           () => {
             i.next().then(res => {
-              if (res.done) s.complete()
+              if (res.done) s.done()
               else s.next(res.value)
             })
           },
@@ -154,6 +159,7 @@ export class AsyncAction<T> extends Action<T> {
   ) {
     super(sched, work)
   }
+
   override schedule(x?: T, delay = 0): Subscription {
     if (this.closed) return this
     this.state = x
@@ -165,6 +171,7 @@ export class AsyncAction<T> extends Action<T> {
     this.id = this.id || this.requestId(s, this.id, delay)
     return this
   }
+
   do(x: T, delay: number): any {
     if (this.closed) return new Error("executing a cancelled action")
     this.pending = false
@@ -174,6 +181,7 @@ export class AsyncAction<T> extends Action<T> {
       this.id = this.recycleId(this.sched, this.id, null)
     }
   }
+
   override unsubscribe() {
     if (!this.closed) {
       const { id, sched } = this
@@ -186,6 +194,7 @@ export class AsyncAction<T> extends Action<T> {
       super.unsubscribe()
     }
   }
+
   protected requestId(x: AsyncScheduler, _id?: any, delay = 0): any {
     return intervalProvider.setInterval(x.flush.bind(x, this), delay)
   }
@@ -223,6 +232,7 @@ export class AsyncScheduler extends Scheduler {
   constructor(x: typeof Action, now: () => number = Scheduler.now) {
     super(x, now)
   }
+
   flush(x: AsyncAction<any>): void {
     const { actions } = this
     if (this.active) {
@@ -251,6 +261,7 @@ export class FrameAction<T> extends AsyncAction<T> {
   ) {
     super(sched, work)
   }
+
   protected override requestId(x: FrameScheduler, id?: any, delay = 0): any {
     if (delay !== null && delay > 0) return super.requestId(x, id, delay)
     x.actions.push(this)
@@ -301,6 +312,7 @@ export class AsapAction<T> extends AsyncAction<T> {
   ) {
     super(sched, work)
   }
+
   protected override requestId(x: AsapScheduler, id?: any, delay = 0): any {
     if (delay !== null && delay > 0) return super.requestId(x, id, delay)
     x.actions.push(this)
@@ -349,6 +361,7 @@ export class QueueAction<T> extends AsyncAction<T> {
   ) {
     super(sched, work)
   }
+
   override schedule(x?: T, delay = 0): Subscription {
     if (delay > 0) return super.schedule(x, delay)
     this.delay = delay
@@ -356,9 +369,11 @@ export class QueueAction<T> extends AsyncAction<T> {
     this.sched.flush(this)
     return this
   }
+
   override do(x: T, delay: number): any {
     return delay > 0 || this.closed ? super.do(x, delay) : this.doWork(x, delay)
   }
+
   protected override requestId(x: QueueScheduler, id?: any, delay = 0): any {
     if ((delay != null && delay > 0) || (delay == null && this.delay > 0)) {
       return super.requestId(x, id, delay)
@@ -379,6 +394,7 @@ export class VirtualAction<T> extends AsyncAction<T> {
     super(sched, work)
     this.index = sched.index = index
   }
+
   override schedule(x?: T, delay = 0): Subscription {
     if (Number.isFinite(delay)) {
       if (!this.id) return super.schedule(x, delay)
@@ -389,6 +405,7 @@ export class VirtualAction<T> extends AsyncAction<T> {
     }
     return Subscription.EMPTY
   }
+
   protected override requestId(x: VirtualScheduler, _id?: any, delay = 0): any {
     this.delay = x.frame + delay
     const { actions } = x
@@ -426,6 +443,7 @@ export class VirtualScheduler extends AsyncScheduler {
   ) {
     super(x, () => this.frame)
   }
+
   override flush(): void {
     const { actions, maxFrames } = this
     let e: any
