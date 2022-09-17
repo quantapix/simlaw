@@ -128,11 +128,13 @@ export const ajax: AjaxCreationMethod = (() => {
   create.getJSON = ajaxGetJSON
   return create
 })()
+
 const UPLOAD = "upload"
 const DOWNLOAD = "download"
 const LOADSTART = "loadstart"
 const PROGRESS = "progress"
 const LOAD = "load"
+
 export function fromAjax<T>(init: AjaxConfig): Observable<AjaxResponse<T>> {
   return new Observable(destination => {
     const config = {
@@ -336,7 +338,9 @@ function extractContentTypeAndMaybeSerializeBody(
   }
   throw new TypeError("Unknown body type")
 }
+
 const _toString = Object.prototype.toString
+
 function toStringCheck(obj: any, name: string): boolean {
   return _toString.call(obj) === `[object ${name}]`
 }
@@ -371,9 +375,11 @@ export interface AjaxError extends Error {
   responseType: XMLHttpRequestResponseType
   response: any
 }
+
 export interface AjaxErrorCtor {
   new (message: string, xhr: XMLHttpRequest, request: AjaxRequest): AjaxError
 }
+
 export const AjaxError: AjaxErrorCtor = qu.createErrorClass(
   _super =>
     function AjaxErrorImpl(
@@ -397,10 +403,13 @@ export const AjaxError: AjaxErrorCtor = qu.createErrorClass(
       this.response = response
     }
 )
+
 export interface AjaxTimeoutError extends AjaxError {}
+
 export interface AjaxTimeoutErrorCtor {
   new (xhr: XMLHttpRequest, request: AjaxRequest): AjaxTimeoutError
 }
+
 export const AjaxTimeoutError: AjaxTimeoutErrorCtor = (() => {
   function AjaxTimeoutErrorImpl(
     this: any,
@@ -417,9 +426,8 @@ export const AjaxTimeoutError: AjaxTimeoutErrorCtor = (() => {
 export function getXHRResponse(xhr: XMLHttpRequest) {
   switch (xhr.responseType) {
     case "json": {
-      if ("response" in xhr) {
-        return xhr.response
-      } else {
+      if ("response" in xhr) return xhr.response
+      else {
         const ieXHR: any = xhr
         return JSON.parse(ieXHR.responseText)
       }
@@ -428,18 +436,20 @@ export function getXHRResponse(xhr: XMLHttpRequest) {
       return xhr.responseXML
     case "text":
     default: {
-      if ("response" in xhr) {
-        return xhr.response
-      } else {
+      if ("response" in xhr) return xhr.response
+      else {
         const ieXHR: any = xhr
         return ieXHR.responseText
       }
     }
   }
 }
+
 export type AjaxDirection = "upload" | "download"
 export type ProgressEventType = "loadstart" | "progress" | "load"
+
 export type AjaxResponseType = `${AjaxDirection}_${ProgressEventType}`
+
 export interface AjaxRequest {
   url: string
   body?: any

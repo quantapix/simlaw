@@ -9,6 +9,12 @@ export enum Kind {
   DONE = "D",
 }
 
+export function observeNote<T>(x: qt.ObsNote<T>, o: qt.PartialObserver<T>) {
+  const { kind, val, err } = x as any
+  if (typeof kind !== "string") throw new TypeError("Invalid note")
+  kind === "N" ? o.next?.(val) : kind === "E" ? o.error?.(err) : o.done?.()
+}
+
 export class Note<T> {
   static createNext<T>(x: T) {
     return new Note("N", x) as Note<T> & qt.NextNote<T>
@@ -88,9 +94,3 @@ export function errNote(err: any): qt.ErrNote {
 
 export const DONE_NOTE = (() =>
   createNote("D", undefined, undefined) as qt.DoneNote)()
-
-export function observeNote<T>(x: qt.ObsNote<T>, o: qt.PartialObserver<T>) {
-  const { kind, val, err } = x as any
-  if (typeof kind !== "string") throw new TypeError("Invalid note")
-  kind === "N" ? o.next?.(val) : kind === "E" ? o.error?.(err) : o.done?.()
-}

@@ -266,7 +266,7 @@ export function combineLatest<T extends readonly unknown[]>(
 ): Observable<T>
 export function combineLatest<T extends readonly unknown[], R>(
   xs: readonly [...qt.InputTuple<T>],
-  res: (...xs: T) => R
+  sel: (...xs: T) => R
 ): Observable<R>
 export function combineLatest(sourcesObject: {
   [K in any]: never
@@ -278,7 +278,7 @@ export function combineLatest<T extends qt.ObsInput<any>, R>(
   ...xs: any[]
 ): Observable<R> | Observable<qt.ObsValueOf<T>[]> {
   const sched = Scheduler.pop(xs)
-  const res = qu.popResultSelector(xs)
+  const sel = qu.popSelector(xs)
   const { xs: os, ks: keys } = qu.argsArgArrayOrObject(xs)
   if (os.length === 0) return from([], sched as any)
   const y = new Observable<qt.ObsValueOf<T>[]>(
@@ -288,7 +288,7 @@ export function combineLatest<T extends qt.ObsInput<any>, R>(
       keys ? xs => qu.createObject(keys, xs) : qu.identity
     )
   )
-  return res ? (y.pipe(qu.mapOneOrManyArgs(res)) as Observable<R>) : y
+  return sel ? (y.pipe(qu.mapOneOrManyArgs(sel)) as Observable<R>) : y
 }
 
 export function _combineLatest(
@@ -505,7 +505,7 @@ export function forkJoin<T extends readonly unknown[]>(
 ): Observable<T>
 export function forkJoin<T extends readonly unknown[], R>(
   xs: readonly [...qt.InputTuple<T>],
-  res: (...xs: T) => R
+  sel: (...xs: T) => R
 ): Observable<R>
 export function forkJoin(x: {
   [K in any]: never
@@ -514,7 +514,7 @@ export function forkJoin<T extends Record<string, qt.ObsInput<any>>>(
   x: T
 ): Observable<{ [K in keyof T]: qt.ObsValueOf<T[K]> }>
 export function forkJoin(...xs: any[]): Observable<any> {
-  const resultSelector = qu.popResultSelector(xs)
+  const sel = qu.popSelector(xs)
   const { xs: args, ks: keys } = qu.argsArgArrayOrObject(xs)
   const y = new Observable(s => {
     const { length } = args
@@ -526,13 +526,13 @@ export function forkJoin(...xs: any[]): Observable<any> {
     let completions = length
     let emissions = length
     for (let i = 0; i < length; i++) {
-      let hasValue = false
+      let has = false
       innerFrom(args[i]).subscribe(
         new OpSubscriber(
           s,
           v => {
-            if (!hasValue) {
-              hasValue = true
+            if (!has) {
+              has = true
               emissions--
             }
             vs[i] = v
@@ -540,7 +540,7 @@ export function forkJoin(...xs: any[]): Observable<any> {
           () => completions--,
           undefined,
           () => {
-            if (!completions || !hasValue) {
+            if (!completions || !has) {
               if (!emissions) s.next(keys ? qu.createObject(keys, vs) : vs)
               s.done()
             }
@@ -549,7 +549,7 @@ export function forkJoin(...xs: any[]): Observable<any> {
       )
     }
   })
-  return resultSelector ? y.pipe(qu.mapOneOrManyArgs(resultSelector)) : y
+  return sel ? y.pipe(qu.mapOneOrManyArgs(sel)) : y
 }
 
 export function from<T extends qt.ObsInput<any>>(
@@ -1061,12 +1061,13 @@ export function using<T extends qt.ObsInput<any>>(
     }
   })
 }
+
 export function zip<T extends readonly unknown[]>(
   xs: [...qt.InputTuple<T>]
 ): Observable<T>
 export function zip<T extends readonly unknown[], R>(
   xs: [...qt.InputTuple<T>],
-  res: (...xs: T) => R
+  sel: (...xs: T) => R
 ): Observable<R>
 export function zip<T extends readonly unknown[]>(
   ...xs: [...qt.InputTuple<T>]
@@ -1075,7 +1076,7 @@ export function zip<A extends readonly unknown[], R>(
   ...xs: [...qt.InputTuple<A>, (...xs2: A) => R]
 ): Observable<R>
 export function zip(...xs: unknown[]): Observable<unknown> {
-  const res = qu.popResultSelector(xs)
+  const sel = qu.popSelector(xs)
   const ss = qu.argsOrArgArray(xs) as Observable<unknown>[]
   return ss.length
     ? new Observable<unknown[]>(s => {
@@ -1092,7 +1093,7 @@ export function zip(...xs: unknown[]): Observable<unknown> {
                 buffs[i]?.push(x)
                 if (buffs.every(b => b.length)) {
                   const y: any = buffs.map(b => b.shift()!)
-                  s.next(res ? res(...y) : y)
+                  s.next(sel ? sel(...y) : y)
                   if (buffs.some((b, i) => !b.length && done[i])) {
                     s.done()
                   }

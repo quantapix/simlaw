@@ -83,9 +83,11 @@ export const EmptyError: qt.EmptyErrCtor = createErrorClass(
       this.message = "no elements in sequence"
     }
 )
+
 let nextHandle = 1
 let resolved: Promise<any>
-const activeHandles: { [key: number]: any } = {}
+const activeHandles: { [k: number]: any } = {}
+
 function findAndClearHandle(handle: number): boolean {
   if (handle in activeHandles) {
     delete activeHandles[handle]
@@ -98,9 +100,7 @@ export const Immediate = {
   setImmediate(cb: () => void): number {
     const handle = nextHandle++
     activeHandles[handle] = true
-    if (!resolved) {
-      resolved = Promise.resolve()
-    }
+    if (!resolved) resolved = Promise.resolve()
     resolved.then(() => findAndClearHandle(handle) && cb())
     return handle
   },
@@ -170,11 +170,13 @@ export function applyMixins(x: any, base: any[]) {
 export function last<T>(xs: T[]): T | undefined {
   return xs[xs.length - 1]
 }
-export function popResultSelector(
+
+export function popSelector(
   xs: any[]
 ): ((...xs: unknown[]) => unknown) | undefined {
   return isFunction(last(xs)) ? xs.pop() : undefined
 }
+
 export function popNumber(xs: any[], v: number): number {
   return typeof last(xs) === "number" ? xs.pop()! : v
 }

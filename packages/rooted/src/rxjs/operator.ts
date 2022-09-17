@@ -393,11 +393,11 @@ export function combineLatest<T, A extends readonly unknown[], R>(
 export function combineLatest<T, R>(
   ...xs: (qt.ObsInput<any> | ((...xs: any[]) => R))[]
 ): qt.OpFun<T, unknown> {
-  const y = qu.popResultSelector(xs)
-  return y
+  const sel = qu.popSelector(xs)
+  return sel
     ? qu.pipe(
         combineLatest(...(xs as Array<qt.ObsInput<any>>)),
-        qu.mapOneOrManyArgs(y)
+        qu.mapOneOrManyArgs(sel)
       )
     : operate((src, sub) => {
         combineLatestInit([src, ...qu.argsOrArgArray(xs)])(sub)
@@ -3169,7 +3169,7 @@ export function withLatestFrom<T, O extends unknown[], R>(
   ...xs: [...qt.InputTuple<O>, (...xs: [T, ...O]) => R]
 ): qt.OpFun<T, R>
 export function withLatestFrom<T, R>(...xs: any[]): qt.OpFun<T, R | any[]> {
-  const f = qu.popResultSelector(xs) as ((...xs: any[]) => R) | undefined
+  const sel = qu.popSelector(xs) as ((...xs: any[]) => R) | undefined
   return operate((src, sub) => {
     const len = xs.length
     const xs2 = new Array(len)
@@ -3194,7 +3194,7 @@ export function withLatestFrom<T, R>(...xs: any[]): qt.OpFun<T, R | any[]> {
       new OpSubscriber(sub, x => {
         if (ready) {
           const ys = [x, ...xs2]
-          sub.next(f ? f(...ys) : ys)
+          sub.next(sel ? sel(...ys) : ys)
         }
       })
     )
