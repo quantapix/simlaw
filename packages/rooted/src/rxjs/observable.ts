@@ -21,7 +21,7 @@ import {
   mergeAll,
   mergeMap,
   filter,
-  OperatorSubscriber,
+  OpSubscriber,
   observeOn,
   onErrorResumeNext as onErrorResumeNextWith,
 } from "./operator.js"
@@ -311,7 +311,7 @@ export function _combineLatest(
               let hasFirst = false
               const src = from(xs[i]!, sched as any)
               src.subscribe(
-                new OperatorSubscriber(
+                new OpSubscriber(
                   s,
                   v => {
                     vs[i] = v
@@ -464,7 +464,7 @@ export function fromFetch<T>(
       .then(response => {
         if (selector) {
           innerFrom(selector(response)).subscribe(
-            new OperatorSubscriber(
+            new OpSubscriber(
               subscriber,
               undefined,
               () => {
@@ -528,7 +528,7 @@ export function forkJoin(...xs: any[]): Observable<any> {
     for (let i = 0; i < length; i++) {
       let hasValue = false
       innerFrom(args[i]).subscribe(
-        new OperatorSubscriber(
+        new OpSubscriber(
           s,
           v => {
             if (!hasValue) {
@@ -962,7 +962,7 @@ export function raceInit<T>(xs: qt.ObsInput<T>[]) {
     for (let i = 0; ss && !s.closed && i < xs.length; i++) {
       ss.push(
         innerFrom(xs[i] as qt.ObsInput<T>).subscribe(
-          new OperatorSubscriber(s, x => {
+          new OpSubscriber(s, x => {
             if (ss) {
               for (let s = 0; s < ss.length; s++) {
                 s !== i && ss[s]?.unsubscribe()
@@ -1086,7 +1086,7 @@ export function zip(...xs: unknown[]): Observable<unknown> {
         })
         for (let i = 0; !s.closed && i < ss.length; i++) {
           innerFrom(ss[i]!).subscribe(
-            new OperatorSubscriber(
+            new OpSubscriber(
               s,
               x => {
                 buffs[i]?.push(x)
