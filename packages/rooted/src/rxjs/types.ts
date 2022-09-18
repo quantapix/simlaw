@@ -44,6 +44,13 @@ export type Teardown = Subscription | Unsubscribable | (() => void) | void
 
 export interface Observable<T> {
   [Symbol.observable]: () => Subscribable<T>
+  subscribe(x?: PartialObserver<T>): Subscription
+  subscribe(next: (x: T) => void): Subscription
+  subscribe(
+    next?: PartialObserver<T> | ((x: T) => void),
+    error?: (x: any) => void,
+    done?: () => void
+  ): Subscription
 }
 
 export type SubOrPromise<T> =
@@ -193,36 +200,4 @@ export interface FirstValueFromConfig<T> {
 
 export interface LastValueFromConfig<T> {
   defaultValue: T
-}
-
-export interface EmptyErr extends Error {}
-export interface EmptyErrCtor {
-  new (): EmptyErr
-}
-
-export interface NotFoundErr extends Error {}
-export interface NotFoundErrCtor {
-  new (x: string): NotFoundErr
-}
-
-export interface UnsubscribedErr extends Error {}
-export interface UnsubscribedErrCtor {
-  new (): UnsubscribedErr
-}
-
-export interface SequenceErr extends Error {}
-export interface SequenceErrCtor {
-  new (x: string): SequenceErr
-}
-
-export interface UnsubscriptionErr extends Error {
-  readonly errors: any[]
-}
-export interface UnsubscriptionErrCtor {
-  new (xs: any[]): UnsubscriptionErr
-}
-
-export interface ArgOutOfRangeErr extends Error {}
-export interface ArgOutOfRangeErrCtor {
-  new (): ArgOutOfRangeErr
 }

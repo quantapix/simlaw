@@ -66,24 +66,6 @@ export function lastValueFrom<T, D>(
   })
 }
 
-export const ArgumentOutOfRangeError: qt.ArgOutOfRangeErrCtor =
-  createErrorClass(
-    _super =>
-      function ArgumentOutOfRangeErrorImpl(this: any) {
-        _super(this)
-        this.name = "ArgumentOutOfRangeError"
-        this.message = "argument out of range"
-      }
-  )
-export const EmptyError: qt.EmptyErrCtor = createErrorClass(
-  _super =>
-    function impl(this: any) {
-      _super(this)
-      this.name = "EmptyError"
-      this.message = "no elements in sequence"
-    }
-)
-
 let nextHandle = 1
 let resolved: Promise<any>
 const activeHandles: { [k: number]: any } = {}
@@ -114,46 +96,6 @@ export const TestTools = {
     return Object.keys(activeHandles).length
   },
 }
-
-export const NotFoundError: qt.NotFoundErrCtor = createErrorClass(
-  _super =>
-    function NotFoundErrorImpl(this: any, x: string) {
-      _super(this)
-      this.name = "NotFoundError"
-      this.message = x
-    }
-)
-
-export const ObjectUnsubscribedError: qt.UnsubscribedErrCtor = createErrorClass(
-  _super =>
-    function ObjectUnsubscribedErrorImpl(this: any) {
-      _super(this)
-      this.name = "ObjectUnsubscribedError"
-      this.message = "object unsubscribed"
-    }
-)
-
-export const SequenceError: qt.SequenceErrCtor = createErrorClass(
-  _super =>
-    function SequenceErrorImpl(this: any, message: string) {
-      _super(this)
-      this.name = "SequenceError"
-      this.message = message
-    }
-)
-
-export const UnsubscriptionError: qt.UnsubscriptionErrCtor = createErrorClass(
-  _super =>
-    function UnsubscriptionErrorImpl(this: any, errors: (Error | string)[]) {
-      _super(this)
-      this.message = errors
-        ? `${errors.length} errors occurred during unsubscription:
-${errors.map((err, i) => `${i + 1}) ${err.toString()}`).join("\n  ")}`
-        : ""
-      this.name = "UnsubscriptionError"
-      this.errors = errors
-    }
-)
 
 export function applyMixins(x: any, base: any[]) {
   for (let i = 0, len = base.length; i < len; i++) {
@@ -208,16 +150,7 @@ export function arrRemove<T>(xs: T[] | undefined | null, x: T) {
     0 <= i && xs.splice(i, 1)
   }
 }
-export function createErrorClass<T>(createImpl: (_super: any) => any): T {
-  const _super = (x: any) => {
-    Error.call(x)
-    x.stack = new Error().stack
-  }
-  const y = createImpl(_super)
-  y.prototype = Object.create(Error.prototype)
-  y.prototype.constructor = y
-  return y
-}
+
 export function createObject(ks: string[], vs: any[]) {
   return ks.reduce((y, k, i) => ((y[k] = vs[i]), y), {} as any)
 }
@@ -441,3 +374,73 @@ export const config: qt.Config = {
   useDeprecatedSynchronousErrorHandling: false,
   useDeprecatedNextContext: false,
 }
+
+export function createErrorClass<T>(f: (_super: any) => any): T {
+  const _super = (x: any) => {
+    Error.call(x)
+    x.stack = new Error().stack
+  }
+  const y = f(_super)
+  y.prototype = Object.create(Error.prototype)
+  y.prototype.constructor = y
+  return y
+}
+
+export const OutOfRangeError: any = createErrorClass(
+  _super =>
+    function impl(this: any) {
+      _super(this)
+      this.name = "OutOfRangeError"
+      this.message = "argument out of range"
+    }
+)
+
+export const EmptyError: any = createErrorClass(
+  _super =>
+    function impl(this: any) {
+      _super(this)
+      this.name = "EmptyError"
+      this.message = "no elements in sequence"
+    }
+)
+
+export const NotFoundError: any = createErrorClass(
+  _super =>
+    function impl(this: any, x: string) {
+      _super(this)
+      this.name = "NotFoundError"
+      this.message = x
+    }
+)
+
+export const UnsubscribedError: any = createErrorClass(
+  _super =>
+    function impl(this: any) {
+      _super(this)
+      this.name = "UnsubscribedError"
+      this.message = "object unsubscribed"
+    }
+)
+
+export const SequenceError: any = createErrorClass(
+  _super =>
+    function impl(this: any, x: string) {
+      _super(this)
+      this.name = "SequenceError"
+      this.message = x
+    }
+)
+
+export const UnsubscriptionError: any = createErrorClass(
+  _super =>
+    function impl(this: any, xs: (Error | string)[]) {
+      _super(this)
+      this.message = xs
+        ? `${xs.length} errors during unsubscription: ${xs
+            .map((x, i) => `${i + 1}) ${x.toString()}`)
+            .join("\n  ")}`
+        : ""
+      this.name = "UnsubscriptionError"
+      this.errors = xs
+    }
+)

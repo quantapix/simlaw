@@ -28,7 +28,7 @@ export class Subscription implements qt.Subscription {
       if (qu.isFunction(teardown)) {
         try {
           teardown()
-        } catch (e) {
+        } catch (e: any) {
           es = e instanceof qu.UnsubscriptionError ? e.errors : [e]
         }
       }
@@ -38,7 +38,7 @@ export class Subscription implements qt.Subscription {
         for (const f of finalizers) {
           try {
             runFinalizer(f)
-          } catch (e) {
+          } catch (e: any) {
             es = es ?? []
             if (e instanceof qu.UnsubscriptionError) es = [...es, ...e.errors]
             else es.push(e)

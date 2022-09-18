@@ -28,7 +28,7 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
     return y as any
   }
   protected _throwIfClosed() {
-    if (this.closed) throw new qu.ObjectUnsubscribedError()
+    if (this.closed) throw new qu.UnsubscribedError()
   }
   next(x: T) {
     qu.errorContext(() => {

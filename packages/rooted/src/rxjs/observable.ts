@@ -284,7 +284,7 @@ export function combineLatest<T extends qt.ObsInput<any>, R>(
   const { xs: os, ks: keys } = qu.argsArgArrayOrObject(xs)
   if (os.length === 0) return from([], sched as any)
   const y = new Observable<qt.ObsValueOf<T>[]>(
-    _combineLatest(
+    combineLatestInit(
       os as qt.ObsInput<qt.ObsValueOf<T>>[],
       sched,
       keys ? xs => qu.createObject(keys, xs) : qu.identity
@@ -293,7 +293,7 @@ export function combineLatest<T extends qt.ObsInput<any>, R>(
   return sel ? (y.pipe(qu.mapOneOrManyArgs(sel)) as Observable<R>) : y
 }
 
-export function _combineLatest(
+export function combineLatestInit(
   xs: qt.ObsInput<any>[],
   sched?: qt.Scheduler,
   valueTransform: (xs: any[]) => any = qu.identity
@@ -1120,6 +1120,7 @@ const DEFAULT_WEBSOCKET_CONFIG: WebSocketSubjectConfig<any> = {
 const WEBSOCKETSUBJECT_INVALID_ERROR_OBJECT =
   "WebSocketSubject.error must be called with an object with an error code, and an optional reason: { code: number, reason: string }"
 export type WebSocketMessage = string | ArrayBuffer | Blob | ArrayBufferView
+
 export class WebSocketSubject<T> extends AnonymousSubject<T> {
   private _config!: WebSocketSubjectConfig<T>
   _output!: Subject<T>
@@ -1152,15 +1153,17 @@ export class WebSocketSubject<T> extends AnonymousSubject<T> {
       this.dest = new ReplaySubject()
     }
   }
-  override lift<R>(operator: Operator<T, R>): WebSocketSubject<R> {
-    const sock = new WebSocketSubject<R>(
+
+  override lift<R>(x: Operator<T, R>): WebSocketSubject<R> {
+    const y = new WebSocketSubject<R>(
       this._config as WebSocketSubjectConfig<any>,
       this.dest as any
     )
-    sock.op = operator
-    sock.src = this
-    return sock
+    y.op = x
+    y.src = this
+    return y
   }
+
   private _resetState() {
     this._socket = null
     if (!this.src) {

@@ -1,6 +1,14 @@
 import { asyncSched, stamper, Scheduler } from "./scheduler.js"
 import { Note, observeNote } from "./note.js"
-import { Observable, innerFrom, EMPTY, from, timer } from "./observable.js"
+import {
+  Observable,
+  innerFrom,
+  EMPTY,
+  from,
+  timer,
+  combineLatestInit,
+  zip,
+} from "./observable.js"
 import {
   Subject,
   AsyncSubject,
@@ -349,25 +357,30 @@ export function bufferWhen<T>(f: () => qt.ObsInput<any>): qt.OpFun<T, T[]> {
   })
 }
 
-export function catchError<T, O extends qt.ObsInput<any>>(
-  f: (x: any, caught: Observable<T>) => O
-): qt.OpFun<T, T | qt.ObsValueOf<O>>
-export function catchError<T, O extends qt.ObsInput<any>>(
-  f: (x: any, caught: Observable<T>) => O
-): qt.OpFun<T, T | qt.ObsValueOf<O>> {
+export function catchError<T, R extends qt.ObsInput<any>>(
+  f: (x: any, caught: Observable<T>) => R
+): qt.OpFun<T, T | qt.ObsValueOf<R>>
+export function catchError<T, R extends qt.ObsInput<any>>(
+  f: (x: any, caught: Observable<T>) => R
+): qt.OpFun<T, T | qt.ObsValueOf<R>> {
   return operate((src, sub) => {
     let s: Subscription | null = null
     let done = false
-    let y: Observable<qt.ObsValueOf<O>>
+    let y: Observable<qt.ObsValueOf<R>>
     s = src.subscribe(
-      new OpSubscriber(sub, undefined, undefined, x => {
-        y = innerFrom(f(x, catchError(f)(src)))
-        if (s) {
-          s.unsubscribe()
-          s = null
-          y.subscribe(sub)
-        } else done = true
-      })
+      new OpSubscriber(
+        sub,
+        undefined,
+        x => {
+          y = innerFrom(f(x, catchError(f)(src)))
+          if (s) {
+            s.unsubscribe()
+            s = null
+            y.subscribe(sub)
+          } else done = true
+        },
+        undefined
+      )
     )
     if (done) {
       s.unsubscribe()
@@ -748,7 +761,7 @@ export function distinctUntilKeyChanged<T, K extends keyof T>(
 }
 
 export function elementAt<T, D = T>(i: number, v?: D): qt.OpFun<T, T | D> {
-  if (i < 0) throw new qu.ArgumentOutOfRangeError()
+  if (i < 0) throw new qu.OutOfRangeError()
   const hasDefaultValue = arguments.length >= 2
   return (x: Observable<T>) =>
     x.pipe(
@@ -756,7 +769,7 @@ export function elementAt<T, D = T>(i: number, v?: D): qt.OpFun<T, T | D> {
       take(1),
       hasDefaultValue
         ? defaultIfEmpty(v!)
-        : throwIfEmpty(() => new qu.ArgumentOutOfRangeError())
+        : throwIfEmpty(() => new qu.OutOfRangeError())
     )
 }
 
@@ -2802,25 +2815,10 @@ export function timeout<T, O extends qt.ObsInput<any>, M>(
   ) as TimeoutConfig<T, O, M>
   if (first == null && each == null) throw new TypeError("No timeout provided.")
   return operate((src, sub) => {
-    let s: Subscription
     let timer: qt.Subscription
     let last: T | null = null
     let seen = 0
-    const start = (delay: number) => {
-      timer = sched.run(
-        sub,
-        () => {
-          try {
-            s.unsubscribe()
-            innerFrom(_with!({ meta, last, seen })).subscribe(sub)
-          } catch (e) {
-            sub.error(e)
-          }
-        },
-        delay
-      )
-    }
-    s = src.subscribe(
+    const s: Subscription = src.subscribe(
       new OpSubscriber(
         sub,
         (x: T) => {
@@ -2837,6 +2835,20 @@ export function timeout<T, O extends qt.ObsInput<any>, M>(
         }
       )
     )
+    const start = (delay: number) => {
+      timer = sched.run(
+        sub,
+        () => {
+          try {
+            s.unsubscribe()
+            innerFrom(_with!({ meta, last, seen })).subscribe(sub)
+          } catch (e) {
+            sub.error(e)
+          }
+        },
+        delay
+      )
+    }
     !seen &&
       start(
         first != null
@@ -2941,7 +2953,6 @@ export function windowCount<T>(
   const startEvery = every > 0 ? every : size
   return operate((src, sub) => {
     let xs = [new Subject<T>()]
-    let starts: number[] = []
     let count = 0
     sub.next(xs[0]!.asObservable())
     src.subscribe(
@@ -2972,7 +2983,6 @@ export function windowCount<T>(
           sub.done()
         },
         () => {
-          starts = null!
           xs = null!
         }
       )
@@ -3201,30 +3211,6 @@ export function withLatestFrom<T, R>(...xs: any[]): qt.OpFun<T, R | any[]> {
   })
 }
 
-export function zip<T, R extends readonly unknown[]>(
-  xs: [...qt.InputTuple<R>]
-): qt.OpFun<T, qt.Cons<T, R>>
-export function zip<T, R extends readonly unknown[], R>(
-  xs: [...qt.InputTuple<R>],
-  f: (...xs: qt.Cons<T, R>) => R
-): qt.OpFun<T, R>
-export function zip<T, R extends readonly unknown[]>(
-  ...xs: [...qt.InputTuple<R>]
-): qt.OpFun<T, qt.Cons<T, R>>
-export function zip<T, R extends readonly unknown[], R>(
-  ...xs: [...qt.InputTuple<R>, (...xs: qt.Cons<T, R>) => R]
-): qt.OpFun<T, R>
-export function zip<T, R>(
-  ...xs: Array<qt.ObsInput<any> | ((...xs: Array<any>) => R)>
-): qt.OpFun<T, any> {
-  return operate((src, sub) => {
-    zipStatic(
-      src as qt.ObsInput<any>,
-      ...(xs as Array<qt.ObsInput<any>>)
-    ).subscribe(sub)
-  })
-}
-
 export function zipAll<T>(): qt.OpFun<qt.ObsInput<T>, T[]>
 export function zipAll<T>(): qt.OpFun<any, T[]>
 export function zipAll<T, R>(f: (...xs: T[]) => R): qt.OpFun<qt.ObsInput<T>, R>
@@ -3236,5 +3222,15 @@ export function zipAll<T, R>(f?: (...xs: T[]) => R) {
 export function zipWith<T, A extends readonly unknown[]>(
   ...xs: [...qt.InputTuple<A>]
 ): qt.OpFun<T, qt.Cons<T, A>> {
-  return zip(...xs)
+  return _zip(...xs)
+}
+
+function _zip<T, R>(
+  ...xs: Array<qt.ObsInput<any> | ((...xs: Array<any>) => R)>
+): qt.OpFun<T, any> {
+  return operate((src, sub) => {
+    zip(src as qt.ObsInput<any>, ...(xs as Array<qt.ObsInput<any>>)).subscribe(
+      sub
+    )
+  })
 }
