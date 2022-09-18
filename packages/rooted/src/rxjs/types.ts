@@ -33,7 +33,7 @@ export interface Unsubscribable {
   unsubscribe(): void
 }
 export interface Subscribable<T> {
-  subscribe(x: Partial<Observer<T>>): Unsubscribable
+  subscribe(x: PartialObserver<T>): Unsubscribable
 }
 
 export interface Subscription extends Unsubscribable {
@@ -182,7 +182,7 @@ export type AnyCatcher = typeof anyCatcherSymbol
 export interface Config {
   onUnhandledError: ((x: any) => void) | null
   onStoppedNote: ((n: ObsNote<any>, s: Subscription) => void) | null
-  Promise?: PromiseConstructorLike
+  Promise?: PromiseConstructorLike | undefined
   useDeprecatedSynchronousErrorHandling: boolean
   useDeprecatedNextContext: boolean
 }

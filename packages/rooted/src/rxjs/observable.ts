@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable no-prototype-builtins */
 import { Subscription } from "./subscription.js"
 import {
@@ -41,10 +42,10 @@ export class Observable<T> implements qt.Observable<T>, qt.Subscribable<T> {
     y.op = x
     return y
   }
-  subscribe(x?: Partial<qt.Observer<T>>): Subscription
+  subscribe(x?: qt.PartialObserver<T>): Subscription
   subscribe(next: (x: T) => void): Subscription
   subscribe(
-    next?: Partial<qt.Observer<T>> | ((x: T) => void) | null,
+    next?: qt.PartialObserver<T> | ((x: T) => void) | null,
     error?: ((x: any) => void) | null,
     done?: (() => void) | null
   ): Subscription {
@@ -1120,8 +1121,8 @@ const WEBSOCKETSUBJECT_INVALID_ERROR_OBJECT =
   "WebSocketSubject.error must be called with an object with an error code, and an optional reason: { code: number, reason: string }"
 export type WebSocketMessage = string | ArrayBuffer | Blob | ArrayBufferView
 export class WebSocketSubject<T> extends AnonymousSubject<T> {
-  private _config: WebSocketSubjectConfig<T>
-  _output: Subject<T>
+  private _config!: WebSocketSubjectConfig<T>
+  _output!: Subject<T>
   private _socket: WebSocket | null = null
   constructor(
     urlConfigOrSource: string | WebSocketSubjectConfig<T> | Observable<T>,
