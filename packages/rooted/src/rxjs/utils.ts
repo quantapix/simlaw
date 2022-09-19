@@ -444,3 +444,19 @@ export const UnsubscriptionError: any = createErrorClass(
       this.errors = xs
     }
 )
+
+export interface TimeoutInfo<T, M = unknown> {
+  readonly meta: M
+  readonly seen: number
+  readonly last: T | null
+}
+
+export const TimeoutError: any = createErrorClass(
+  _super =>
+    function TimeoutErrorImpl(this: any, x: TimeoutInfo<any> | null = null) {
+      _super(this)
+      this.message = "Timeout has occurred"
+      this.name = "TimeoutError"
+      this.info = x
+    }
+)
