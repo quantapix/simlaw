@@ -10,6 +10,7 @@ import type Keygrip from "keygrip"
 import type * as url from "url"
 
 export type MaybePromise<T> = Promise<T> | T
+
 export interface Dict<T = unknown> {
   readonly [k: string]: T
 }

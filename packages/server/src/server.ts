@@ -1,36 +1,38 @@
+//import { inspect as _inspect, format } from "util"
+//import * as url from "url"
 import { EventEmitter } from "events"
 import { extname } from "path"
-import type { Http2ServerRequest, Http2ServerResponse } from "http2"
-//import { inspect as _inspect, format } from "util"
 import { format } from "util"
+import { HttpError, UnknownError } from "http-errors"
 import { is as typeis } from "type-is"
 import { isIP } from "net"
 import { parse } from "content-type"
+import { ReadStream } from "fs"
 import { Stream, Writable } from "stream"
 import { URL } from "url"
+import * as http from "http"
+import * as mime from "mime-types"
+import * as qs from "querystring"
+import * as qu from "./utils.js"
 import assert from "assert"
 import contentDisposition from "content-disposition"
 import Cookies from "cookies"
 import createError from "http-errors"
 import fresh from "fresh"
-import * as http from "http"
 import httpAssert from "http-assert"
-import type Keygrip from "keygrip"
-import * as mime from "mime-types"
 import onFinish from "on-finished"
 import onFinished from "on-finished"
 import parseurl from "parseurl"
-import * as qs from "querystring"
-import type * as qt from "./types.js"
 import Status from "statuses"
-//import * as url from "url"
-import vary from "vary"
-import { ReadStream } from "fs"
-import * as qu from "./utils.js"
 import type { FileHandle } from "fs/promises"
-import { HttpError, UnknownError } from "http-errors"
+import type { Http2ServerRequest, Http2ServerResponse } from "http2"
+import type * as qt from "./types.js"
 import type * as tls from "tls"
+import type Keygrip from "keygrip"
+import vary from "vary"
+
 export { HttpError } from "http-errors"
+
 export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
   const emitter = new EventEmitter()
   const opts: qt.Options<S, C> = (() => {
@@ -636,11 +638,13 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
     } as qt.App<S, C>)
   return createApp()
 }
+
 /*
 if (_inspect.custom) {
   module.exports[_inspect.custom] = inspect
 }
 */
+
 // prettier-ignore
 export function compose<T1, U1, T2, U2>(xs: [qt.Plugin<T1, U1>, qt.Plugin<T2, U2>]): qt.Plugin<T1 & T2, U1 & U2>
 // prettier-ignore
@@ -678,7 +682,9 @@ export function compose(xs: any) {
     return dispatch(0)
   }
 }
+
 export type Headers = { [k: string]: qt.Stringy | undefined }
+
 export function newAcceptor(x: { headers?: Headers }): qt.Acceptor {
   const neg = newNegotiator(x)
   const { headers } = x
@@ -710,6 +716,7 @@ export function newAcceptor(x: { headers?: Headers }): qt.Acceptor {
   }
   return { charsets, encodings, languages, types }
 }
+
 function only(x: unknown, ks: qt.Stringy) {
   if (typeof ks === "string") ks = ks.split(/ +/)
   x = x || {}
@@ -719,6 +726,7 @@ function only(x: unknown, ks: qt.Stringy) {
     return ys
   }, {} as { [k: string]: unknown })
 }
+
 // prettier-ignore
 const ENCODE_RE = /(?:[^\x21\x25\x26-\x3B\x3D\x3F-\x5B\x5D\x5F\x61-\x7A\x7E]|%(?:[^0-9A-Fa-f]|[0-9A-Fa-f][^0-9A-Fa-f]|$))+/g
 // prettier-ignore
@@ -728,6 +736,7 @@ function encode(x: string) {
   return String(x).replace(PAIR_RE, REPLACE).replace(ENCODE_RE, encodeURI)
 }
 const HTML_RE = /["'&<>]/
+
 function escape(x: string) {
   const m = HTML_RE.exec(x)
   if (!m) return x
@@ -761,7 +770,9 @@ function escape(x: string) {
   }
   return last !== i ? y + x.substring(last, i) : y
 }
+
 const cache = new qu.Cache(100)
+
 function getType(x: string) {
   let y = cache.get(x)
   if (!y) {
@@ -770,6 +781,7 @@ function getType(x: string) {
   }
   return y
 }
+
 function destroy(x: unknown) {
   const destroy = (x: ReadStream) => {
     x.destroy()
@@ -783,6 +795,7 @@ function destroy(x: unknown) {
   if (x instanceof Writable) x.destroy()
   return x
 }
+
 export function newNegotiator(x: { headers?: Headers }) {
   type Spec = { type: string; q: number; i: number; o: number; s: number }
   const { headers } = x
@@ -1098,10 +1111,12 @@ export function newNegotiator(x: { headers?: Headers }) {
     },
   }
 }
+
 function splitPair(x: string) {
   const i = x.indexOf("=")
   return i == -1 ? [x, undefined] : [x.substr(0, i), x.substr(i + 1)]
 }
+
 function numQuotes(x: string) {
   let y = 0
   let i = 0
@@ -1111,6 +1126,7 @@ function numQuotes(x: string) {
   }
   return y
 }
+
 function splitTypes(x: qt.Stringy) {
   const ys = typeof x === "string" ? x.split(",") : x
   let j = 0
@@ -1121,6 +1137,7 @@ function splitTypes(x: qt.Stringy) {
   ys.length = j + 1
   return ys
 }
+
 function splitParams(x: string) {
   const ys = x.split(";")
   let j = 0
