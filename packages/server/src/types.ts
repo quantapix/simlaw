@@ -1,13 +1,13 @@
-import { EventEmitter } from "events"
-import { Http2ServerRequest, Http2ServerResponse } from "http2"
-import { ListenOptions, Socket } from "net"
-import { ParsedUrlQuery } from "querystring"
-import * as contentDisposition from "content-disposition"
-import * as Cookies from "cookies"
-import * as http from "http"
-import * as httpAssert from "http-assert"
-import * as Keygrip from "keygrip"
-import * as url from "url"
+import type { EventEmitter } from "events"
+import type { Http2ServerRequest, Http2ServerResponse } from "http2"
+import type { ListenOptions, Socket } from "net"
+import type { ParsedUrlQuery } from "querystring"
+import type contentDisposition from "content-disposition"
+import type * as Cookies from "cookies"
+import type * as http from "http"
+import type httpAssert from "http-assert"
+import type Keygrip from "keygrip"
+import type * as url from "url"
 
 export type MaybePromise<T> = Promise<T> | T
 export interface Dict<T = unknown> {

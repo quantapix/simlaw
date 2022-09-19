@@ -1,6 +1,6 @@
 import { EventEmitter } from "events"
 import { extname } from "path"
-import { Http2ServerRequest, Http2ServerResponse } from "http2"
+import type { Http2ServerRequest, Http2ServerResponse } from "http2"
 //import { inspect as _inspect, format } from "util"
 import { format } from "util"
 import { is as typeis } from "type-is"
@@ -8,28 +8,28 @@ import { isIP } from "net"
 import { parse } from "content-type"
 import { Stream, Writable } from "stream"
 import { URL } from "url"
-import * as assert from "assert"
-import * as contentDisposition from "content-disposition"
-import * as Cookies from "cookies"
-import * as createError from "http-errors"
-import * as fresh from "fresh"
+import assert from "assert"
+import contentDisposition from "content-disposition"
+import Cookies from "cookies"
+import createError from "http-errors"
+import fresh from "fresh"
 import * as http from "http"
-import * as httpAssert from "http-assert"
-import * as Keygrip from "keygrip"
+import httpAssert from "http-assert"
+import type Keygrip from "keygrip"
 import * as mime from "mime-types"
-import * as onFinish from "on-finished"
-import * as onFinished from "on-finished"
-import * as parseurl from "parseurl"
+import onFinish from "on-finished"
+import onFinished from "on-finished"
+import parseurl from "parseurl"
 import * as qs from "querystring"
-import * as qt from "./types"
-import * as Status from "statuses"
+import type * as qt from "./types.js"
+import Status from "statuses"
 //import * as url from "url"
-import * as vary from "vary"
+import vary from "vary"
 import { ReadStream } from "fs"
-import * as qu from "./utils"
-import { FileHandle } from "fs/promises"
+import * as qu from "./utils.js"
+import type { FileHandle } from "fs/promises"
 import { HttpError, UnknownError } from "http-errors"
-import * as tls from "tls"
+import type * as tls from "tls"
 export { HttpError } from "http-errors"
 export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
   const emitter = new EventEmitter()
@@ -257,7 +257,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           if (x === undefined) return null
           return typeof x === "string"
             ? typeis(x, ...xs)
-            : typeis(x[0], x.slice(1))
+            : typeis(x[0]!, x.slice(1))
         },
         get(x: string | string[]) {
           x = typeof x === "string" ? x.toLowerCase() : x
@@ -443,7 +443,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           if (typeof x === "string") {
             if (v === undefined) return
             if (Array.isArray(v)) {
-              v = v.map(v => (typeof v === "string" ? v : String(v)))
+              v = v.map(x2 => (typeof x2 === "string" ? x2 : String(x2)))
             }
             out.setHeader(x, v)
           } else {
@@ -461,7 +461,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
         },
         inspect() {
           if (!out) return
-          const y = this.toJSON()
+          const y: any = this.toJSON()
           y.body = this.body
           return y
         },
@@ -469,7 +469,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           if (x === undefined) return null
           return typeof x === "string"
             ? typeis(x, ...xs)
-            : typeis(x[0], x.slice(1))
+            : typeis(x[0]!, x.slice(1))
         },
         toJSON() {
           return only(this, ["status", "message", "header"])
@@ -492,7 +492,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           const e: HttpError = x as HttpError
           let sent = false
           if (res.headerSent || !res.writable) {
-            sent = e.headerSent = true
+            sent = e["headerSent"] = true
           }
           emitter.emit("error", x, this)
           if (sent) return
@@ -563,7 +563,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
     if ("HEAD" === req.method) {
       if (!out.headersSent && !res.has("Content-Length")) {
         const { length } = res
-        if (Number.isInteger(length)) res.length = length
+        if (Number.isInteger(length)) res.length = length!
       }
       return out.end()
     }
@@ -598,7 +598,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
         return (inp, out) => this.handleRequest(createContext(inp, out), xs)
       },
       createContext,
-      handleRequest(ctx, f) {
+      handleRequest(ctx, f: any) {
         const { out } = ctx
         out.statusCode = 404
         const handleResponse = () => respond(ctx)
@@ -801,7 +801,7 @@ export function newNegotiator(x: { headers?: Headers }) {
           for (const x of ps) {
             const p = x.trim().split("=")
             if (p[0] === "q") {
-              q = parseFloat(p[1])
+              q = parseFloat(p[1]!)
               break
             }
           }
@@ -870,7 +870,7 @@ export function newNegotiator(x: { headers?: Headers }) {
           for (const x of ps) {
             const p = x.trim().split("=")
             if (p[0] === "q") {
-              q = parseFloat(p[1])
+              q = parseFloat(p[1]!)
               break
             }
           }
@@ -934,7 +934,7 @@ export function newNegotiator(x: { headers?: Headers }) {
         const ps = m[3].split(";")
         for (const x of ps) {
           const p = x.split("=")
-          if (p[0] === "q") q = parseFloat(p[1])
+          if (p[0] === "q") q = parseFloat(p[1]!)
         }
       }
       return { type, pre, suff, q, i, o: 0, s: 0 } as Spec2
@@ -1115,7 +1115,7 @@ function splitTypes(x: qt.Stringy) {
   const ys = typeof x === "string" ? x.split(",") : x
   let j = 0
   for (let i = 1; i < ys.length; i++) {
-    if (numQuotes(ys[j]) % 2 == 0) ys[++j] = ys[i]
+    if (numQuotes(ys[j]!) % 2 == 0) ys[++j] = ys[i]!
     else ys[j] += "," + ys[i]
   }
   ys.length = j + 1
@@ -1125,12 +1125,12 @@ function splitParams(x: string) {
   const ys = x.split(";")
   let j = 0
   for (let i = 1; i < ys.length; i++) {
-    if (numQuotes(ys[j]) % 2 == 0) ys[++j] = ys[i]
+    if (numQuotes(ys[j]!) % 2 == 0) ys[++j] = ys[i]!
     else ys[j] += ";" + ys[i]
   }
   ys.length = j + 1
   for (let i = 0; i < ys.length; i++) {
-    ys[i] = ys[i].trim()
+    ys[i] = ys[i]!.trim()
   }
   return ys
 }
