@@ -79,7 +79,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
     let res: qt.Response
     let _body: unknown
     let _explicitStatus = false
-    const _querycache: { [k: string]: qs.ParsedUrlQuery } = {}
+    const _qcache: { [k: string]: qs.ParsedUrlQuery } = {}
     let _ip: string
     let _memoURL: URL
     let _acceptor: qt.Acceptor
@@ -114,12 +114,12 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
             if (url.pathname === x) return
             url.pathname = x
             url.path = null
-            //url = url.(url)
+            this.url = url.stringify(url)
           }
         },
         get query() {
           const x = this.qstring
-          const c = _querycache
+          const c = _qcache
           return c[x] || (c[x] = qs.parse(x))
         },
         set query(x) {
@@ -136,7 +136,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
             if (url.search === `?${x}`) return
             url.search = x
             url.path = null
-            //url = url.stringify(url)
+            this.url = url.stringify(url)
           }
         },
         get search() {
@@ -176,15 +176,15 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
         },
         get fresh() {
           const m = this.method
-          const s = res.status
           if (m !== "GET" && m !== "HEAD") return false
+          const s = res.status
           if ((s >= 200 && s < 300) || 304 === s) {
             return fresh(this.header, res.header)
           }
           return false
         },
         get stale() {
-          return !fresh
+          return !this.fresh
         },
         get idempotent() {
           const xs = ["GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE"]
@@ -206,7 +206,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           return y === "" ? 0 : ~~y
         },
         get protocol() {
-          const s: tls.TLSSocket = this.socket as tls.TLSSocket
+          const s = this.socket as tls.TLSSocket
           if (s.encrypted) return "https"
           if (!opts.proxy) return "http"
           const x = this.get("X-Forwarded-Proto")
@@ -230,10 +230,10 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           _ip = x
         },
         get subdoms() {
-          const offset = opts.subdomOffset
+          const off = opts.subdomOffset
           const n = this.hostname
           if (isIP(n)) return []
-          return n.split(".").reverse().slice(offset)
+          return n.split(".").reverse().slice(off)
         },
         get acceptor() {
           return (
@@ -666,10 +666,10 @@ export function compose(xs: any) {
     if (typeof x !== "function") throw new TypeError("Needs functions")
   }
   return (ctx: any, next: any) => {
-    let index = -1
+    let n = -1
     function dispatch(i: number): Promise<void> {
-      if (i <= index) return Promise.reject(new Error("Repeated next()"))
-      index = i
+      if (i <= n) return Promise.reject(new Error("Repeated next()"))
+      n = i
       let x = xs[i]
       if (i === xs.length) x = next
       if (!x) return Promise.resolve()

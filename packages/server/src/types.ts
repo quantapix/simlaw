@@ -17,8 +17,8 @@ export interface Dict<T = unknown> {
 
 export type Next = () => Promise<unknown>
 export type Stringy = string | string[]
-export type Servlet<C = Context> = (c: C, next: Next) => unknown
-export type Runner<C = Context> = (c: C, next?: Next) => Promise<void>
+export type Servlet<T = Context> = (c: T, next: Next) => unknown
+export type Runner<T = Context> = (c: T, next?: Next) => Promise<void>
 
 export interface Acceptor {
   charsets(x?: Stringy, ...xs: string[]): Stringy | false
@@ -76,7 +76,7 @@ export interface Response {
   header: http.OutgoingHttpHeaders
   headers: http.OutgoingHttpHeaders
   headerSent: boolean
-  lastModified: Date | string
+  lastModified: Date // | string
   length?: number
   message: string
   out: http.ServerResponse
@@ -84,6 +84,7 @@ export interface Response {
   status: number
   type: string
   writable: boolean
+  append(x: string, v: Stringy): void
   attachment(f?: string, xs?: contentDisposition.Options): void
   flushHeaders(): void
   get(x: string): string
@@ -91,7 +92,6 @@ export interface Response {
   inspect(): unknown
   is(x?: Stringy, ...xs: string[]): string | false | null
   redirect(url: string, alt?: string): void
-  append(x: string, v: Stringy): void
   remove(x: string): void
   serverend(x: string, v: Stringy): void
   set(x: string | Dict<Stringy>, v?: string | number | unknown[]): void
