@@ -1,4 +1,4 @@
-import { getCurrentScope, markChanged, createProxy } from "./immer.js"
+import { getCurrentScope, markChanged, createProxy } from "./main.js"
 import * as qt from "./types.js"
 import * as qu from "./utils.js"
 
