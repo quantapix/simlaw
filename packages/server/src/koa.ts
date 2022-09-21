@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 //import { inspect as _inspect, format } from "util"
 //import * as url from "url"
 import { EventEmitter } from "events"
@@ -35,7 +36,7 @@ export { HttpError } from "http-errors"
 
 export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
   const emitter = new EventEmitter()
-  const opts: qt.Options<S, C> = (() => {
+  const opts: qt.Opts<S, C> = (() => {
     const env = ps["env"] || process.env["NODE_ENV"] || "development"
     const keys: Keygrip | string[] = ps["keys"] as string[]
     const maxIps = ps["maxIps"] || 0
@@ -65,7 +66,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
       get subdomOffset() {
         return subdomOffset
       },
-    } as qt.Options<S, C>
+    } as qt.Opts<S, C>
   })()
   let _nullBody = false
   function createContext(
@@ -168,7 +169,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
             const x = origUrl || ""
             try {
               _memoURL = new URL(`${origin}${x}`)
-            } catch (err) {
+            } catch (e) {
               _memoURL = Object.create(null)
             }
           }
@@ -305,7 +306,13 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           _body = x
           if (x === null) {
             _nullBody = true
-            if (!Status.empty[this.status]) this.status = 204
+            if (!Status.empty[this.status]) {
+              if (this.type === "application/json") {
+                _body = "null"
+                return
+              }
+              this.status = 204
+            }
             this.remove("Content-Type")
             this.remove("Content-Length")
             this.remove("Transfer-Encoding")
@@ -326,7 +333,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           if (x instanceof Stream) {
             onFinish(out as http.OutgoingMessage, destroy.bind(null, x))
             if (old !== x) {
-              x.once("error", err => ctx.onerror(err))
+              x.once("error", e => ctx.onerror(e))
               if (old != null) this.remove("Content-Length")
             }
             if (setType) this.type = "bin"
@@ -381,8 +388,9 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           assert(x >= 100 && x <= 999, `invalid status code: ${x}`)
           _explicitStatus = true
           out.statusCode = x
-          if (inp.httpVersionMajor < 2)
+          if (inp.httpVersionMajor < 2) {
             out.statusMessage = Status.message[x] || ""
+          }
           if (this.body && Status.empty[x]) this.body = null
         },
         get type() {
@@ -443,10 +451,9 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
         set(x, v) {
           if (this.headerSent) return
           if (typeof x === "string") {
-            if (v === undefined) return
-            if (Array.isArray(v)) {
+            if (Array.isArray(v))
               v = v.map(x2 => (typeof x2 === "string" ? x2 : String(x2)))
-            }
+            else if (typeof v !== "string") v = String(v)
             out.setHeader(x, v)
           } else {
             for (const k in x) {
@@ -482,7 +489,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
       ({
         assert: httpAssert,
         inspect() {
-          //if (context === proto) return context
+          // if (this === proto) return this
           return this.toJSON()
         },
         onerror(x) {
@@ -493,12 +500,10 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
           if (!native) x = new HttpError(format("non-error thrown: %j", x))
           const e: HttpError = x as HttpError
           let sent = false
-          if (res.headerSent || !res.writable) {
-            sent = e["headerSent"] = true
-          }
+          if (res.headerSent || !res.writable) sent = e["headerSent"] = true
           emitter.emit("error", x, this)
           if (sent) return
-          out.getHeaderNames().forEach(x => out.removeHeader(x))
+          out.getHeaderNames().forEach(x2 => out.removeHeader(x2))
           res.set(e.headers!)
           res.type = "text"
           let s = e.status || e.statusCode
@@ -516,12 +521,12 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
         },
         toJSON() {
           return {
+            app: this.toJSON(),
+            inp: "<original node input>",
+            origUrl,
+            out: "<original node output>",
             req: req.toJSON(),
             res: res.toJSON(),
-            app: this.toJSON(),
-            origUrl,
-            inp: "<original node input>",
-            out: "<original node output>",
             socket: "<original node socket>",
           }
         },
@@ -552,9 +557,9 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
     res = newRes()
     return (ctx = newCtx())
   }
-  function respond(ctx: qt.Context<S, C>) {
-    if (!ctx.respond) return
-    const { inp, out, req, res } = ctx
+  function respond(x: qt.Context<S, C>) {
+    if (!x.respond) return
+    const { inp, out, req, res } = x
     if (!res.writable) return
     let body = res.body
     const { status } = res
@@ -589,18 +594,19 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
     body = JSON.stringify(body)
     if (!out.headersSent) res.length = Buffer.byteLength(body as string)
     out.end(body)
+    return
   }
   const createApp = () =>
     ({
       emitter,
       ...opts,
       callback() {
-        const xs = compose(opts.plugins)
+        const f = compose(opts.plugins)
         if (!emitter.listenerCount("error")) emitter.on("error", this.onerror)
-        return (inp, out) => this.handleRequest(createContext(inp, out), xs)
+        return (inp, out) => this.handleRequest(createContext(inp, out), f)
       },
       createContext,
-      handleRequest(ctx, f: any) {
+      handleRequest(ctx, f) {
         const { out } = ctx
         out.statusCode = 404
         const handleResponse = () => respond(ctx)
@@ -622,7 +628,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
         if (!x || !native) {
           throw new TypeError(format("non-error thrown: %j", x))
         }
-        const e: HttpError = x as HttpError
+        const e = x as HttpError
         if (e.status === 404 || e.expose) return
         if (opts.silent) return
         const m = x.stack || x.toString()

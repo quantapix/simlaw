@@ -2,23 +2,15 @@ import type { EventEmitter } from "events"
 import type { Http2ServerRequest, Http2ServerResponse } from "http2"
 import type { ListenOptions, Socket } from "net"
 import type { ParsedUrlQuery } from "querystring"
-import type contentDisposition from "content-disposition"
 import type * as Cookies from "cookies"
 import type * as http from "http"
+import type * as url from "url"
+import type contentDisposition from "content-disposition"
 import type httpAssert from "http-assert"
 import type Keygrip from "keygrip"
-import type * as url from "url"
 
 export type MaybePromise<T> = Promise<T> | T
-
-export interface Dict<T = unknown> {
-  readonly [k: string]: T
-}
-
-export type Next = () => Promise<unknown>
 export type Stringy = string | string[]
-export type Servlet<T = Context> = (c: T, next: Next) => unknown
-export type Runner<T = Context> = (c: T, next?: Next) => Promise<void>
 
 export interface Acceptor {
   charsets(x?: Stringy, ...xs: string[]): Stringy | false
@@ -70,6 +62,10 @@ export interface Request {
   toJSON(): unknown
 }
 
+export interface Dict<T = unknown> {
+  readonly [k: string]: T
+}
+
 export interface Response {
   body: unknown
   etag: string
@@ -99,14 +95,14 @@ export interface Response {
   vary(x: string): void
 }
 
-export interface BaseContext {
+export interface Base {
   assert: typeof httpAssert
   cookies: Cookies
   inp: http.IncomingMessage
   out: http.ServerResponse
   req: Request
-  respond?: boolean
   res: Response
+  respond?: boolean
   inspect(): unknown
   onerror(x: Error | null): void
   throw(...xs: Error[]): never
@@ -118,13 +114,17 @@ export interface BaseContext {
 export type State = Record<string, never>
 export type Custom = Record<string, never>
 
-export type Context<S = State, C = Custom, B = unknown> = BaseContext & {
+export type Context<S = State, C = Custom, B = unknown> = Base & {
   state: S
 } & C & { res: { body: B } }
 
+export type Next = () => Promise<unknown>
+export type Servlet<T = Context> = (x: T, n: Next) => unknown
+export type Runner<T = Context> = (x: T, n?: Next) => Promise<void>
+
 export type Plugin<S = State, C = Custom> = Servlet<Context<S, C>>
 
-export interface Options<S = State, C = Custom> {
+export interface Opts<S = State, C = Custom> {
   env: string
   keys: Keygrip | string[]
   maxIps: number
@@ -135,9 +135,9 @@ export interface Options<S = State, C = Custom> {
   subdomOffset: number
 }
 
-export interface App<S = State, C = Custom> extends Readonly<Options<S, C>> {
-  emitter: EventEmitter
+export interface App<S = State, C = Custom> extends Readonly<Opts<S, C>> {
   ctx: Context<S, C>
+  emitter: EventEmitter
   req: Request
   res: Response
   callback(): (
@@ -149,7 +149,7 @@ export interface App<S = State, C = Custom> extends Readonly<Options<S, C>> {
     out: http.ServerResponse | Http2ServerResponse
   ): Context<S, C>
   inspect(): void
-  handleRequest(ctx: Context<S, C>, f: unknown): unknown
+  handleRequest(ctx: Context<S, C>, f: Function): unknown
   listen(
     port?: number,
     host?: string,
@@ -166,5 +166,5 @@ export interface App<S = State, C = Custom> extends Readonly<Options<S, C>> {
   listen(handle: unknown, cb?: () => void): http.Server
   onerror(x: Error | null): void
   toJSON(): unknown
-  use(f: Plugin<S, C>): void
+  use(x: Plugin<S, C>): void
 }
