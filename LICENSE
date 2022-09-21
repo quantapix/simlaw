@@ -27,12 +27,22 @@ by reference:
   Link:                                      Version:
   
   "https://github.com/aleclarson/spec.ts.git": "da3ad6e",
+  "https://github.com/gvergnaud/ts-pattern": "2101ad3",
   "https://github.com/immerjs/immer.git": "e28b53f",
   "https://github.com/immerjs/use-immer.git": "f28200c",
+  "https://github.com/immutable-js/immutable-js.git": "7cf6f8e",
+  "https://github.com/jupyterlab/lumino.git": "73355791",
+  "https://github.com/koajs/koa.git": "eea921a",
+  "https://github.com/memgraph/orb.git": "f3bcb3e",
+  "https://github.com/nrwl/nx.git": "2c407791b",
   "https://github.com/react-bootstrap/dom-helpers.git": "b70c63e",
   "https://github.com/react-bootstrap/react-bootstrap.git": "9b7b078",
   "https://github.com/react-restart/context.git": "fb25d46",
   "https://github.com/react-restart/hooks.git": "77e267b",
-  "https://github.com/react-restart/ui.git": "155aa93"
-  "https://github.com/ReactiveX/rxjs.git": "4afbc16"
-  "https://github.com/reduxjs/redux-toolkit.git": "3de00f4"
+  "https://github.com/react-restart/ui.git": "155aa93",
+  "https://github.com/ReactiveX/rxjs.git": "4afbc16",
+  "https://github.com/reduxjs/redux-thunk.git": "6f392f1",
+  "https://github.com/reduxjs/redux-toolkit.git": "3de00f4",
+  "https://github.com/reduxjs/redux.git": "9e0756f",
+  "https://github.com/reduxjs/reselect.git": "f53eb41"
+
