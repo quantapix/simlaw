@@ -3,24 +3,26 @@ import compose from "koa-compose"
 import HttpError from "http-errors"
 import methods from "methods"
 import { parse as parseUrl, format as formatUrl } from "url"
-import { pathToRegexp, compile, parse } from "path-to-regexp"
+import { PathRegExp, compile, parse } from "path-to-regexp"
+import pathToRegexp from "path-to-regexp"
 
 const debug = debuglog("koa-router")
 
 export class Layer {
+  re: PathRegExp
+  methods = []
+  stack: any[]
   constructor(
-    path: string | RegExp,
+    public path: string | RegExp,
     methods: Array<any>,
     middleware: Array<any>,
-    opts: object | undefined = {}
+    public opts: object | undefined = {}
   ) {
-    this.opts = opts
     this.name = this.opts.name || null
-    this.methods = []
     this.paramNames = []
     this.stack = Array.isArray(middleware) ? middleware : [middleware]
-    for (const method of methods) {
-      const l = this.methods.push(method.toUpperCase())
+    for (const m of methods) {
+      const l = this.methods.push(m.toUpperCase())
       if (this.methods[l - 1] === "GET") this.methods.unshift("HEAD")
     }
     for (let i = 0; i < this.stack.length; i++) {
@@ -34,10 +36,10 @@ export class Layer {
         )
     }
     this.path = path
-    this.regexp = pathToRegexp(path, this.paramNames, this.opts)
+    this.re = pathToRegexp(path, this.paramNames, this.opts)
   }
-  match(path: string): boolean {
-    return this.regexp.test(path)
+  match(x: string): boolean {
+    return this.re.test(x)
   }
   params(
     path: string,
@@ -53,8 +55,8 @@ export class Layer {
     }
     return params
   }
-  captures(path: string): Array<string> {
-    return this.opts.ignoreCaptures ? [] : path.match(this.regexp).slice(1)
+  captures(x: string): Array<string> {
+    return this.opts?.ignoreCaptures ? [] : x.match(this.re).slice(1)
   }
   url(params: object, options): string {
     let args = params
@@ -120,7 +122,7 @@ export class Layer {
           ? `${prefix}${this.path}`
           : prefix
       this.paramNames = []
-      this.regexp = pathToRegexp(this.path, this.paramNames, this.opts)
+      this.re = pathToRegexp(this.path, this.paramNames, this.opts)
     }
     return this
   }

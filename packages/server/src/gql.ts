@@ -22,7 +22,7 @@ import {
   ValidationContext,
 } from "graphql"
 import { getGraphQLParams } from "express-graphql"
-import type { Context, Request, Response } from "koa"
+import type { Context, Request, Response } from "./types.js"
 
 type MaybePromise<T> = Promise<T> | T
 
@@ -66,8 +66,8 @@ export function graphqlHTTP(options: Options): Middleware {
   devAssertIsNonNullable(options, "GraphQL middleware requires options.")
   return async function middleware(ctx): Promise<void> {
     const req = ctx.req
-    const request = ctx.request
-    const response = ctx.response
+    const request = ctx.req
+    const response = ctx.res
     let params: GraphQLParams | undefined
     let showGraphiQL = false
     let graphiqlOptions: GraphiQLOptions | undefined
@@ -88,23 +88,20 @@ export function graphqlHTTP(options: Options): Middleware {
           formatErrorFn
         throw error
       }
-      const optionsData = await resolveOptions(params)
-      const schema = optionsData.schema
-      const rootValue = optionsData.rootValue
-      const validationRules = optionsData.validationRules ?? []
-      const fieldResolver = optionsData.fieldResolver
-      const typeResolver = optionsData.typeResolver
-      const graphiql = optionsData.graphiql ?? false
-      const extensionsFn = optionsData.extensions
-      const context = optionsData.context ?? ctx
-      const parseFn = optionsData.customParseFn ?? parse
-      const executeFn = optionsData.customExecuteFn ?? execute
-      const validateFn = optionsData.customValidateFn ?? validate
-      pretty = optionsData.pretty ?? false
-      formatErrorFn =
-        optionsData.customFormatErrorFn ??
-        optionsData.formatError ??
-        formatErrorFn
+      const o = await resolveOptions(params)
+      const schema = o.schema
+      const rootValue = o.rootValue
+      const validationRules = o.validationRules ?? []
+      const fieldResolver = o.fieldResolver
+      const typeResolver = o.typeResolver
+      const graphiql = o.graphiql ?? false
+      const extensionsFn = o.extensions
+      const context = o.context ?? ctx
+      const parseFn = o.customParseFn ?? parse
+      const executeFn = o.customExecuteFn ?? execute
+      const validateFn = o.customValidateFn ?? validate
+      pretty = o.pretty ?? false
+      formatErrorFn = o.customFormatErrorFn ?? o.formatError ?? formatErrorFn
       devAssertIsObject(
         schema,
         "GraphQL middleware options must contain a schema."
@@ -202,7 +199,7 @@ export function graphqlHTTP(options: Options): Middleware {
           response.set(key, value)
         }
       }
-      if (error.graphqlErrors == null) {
+      if (error["graphqlErrors"] == null) {
         const graphqlError = new GraphQLError(
           error.message,
           undefined,
@@ -213,7 +210,7 @@ export function graphqlHTTP(options: Options): Middleware {
         )
         result = { data: undefined, errors: [graphqlError] }
       } else {
-        result = { data: undefined, errors: error.graphqlErrors }
+        result = { data: undefined, errors: error["graphqlErrors"] }
       }
     }
     if (response.status === 200 && result.data == null) {
@@ -260,34 +257,32 @@ export function graphqlHTTP(options: Options): Middleware {
 
 function respondWithGraphiQL(
   response: Response,
-  options?: GraphiQLOptions,
-  params?: GraphQLParams,
+  os?: GraphiQLOptions,
+  ps?: GraphQLParams,
   result?: FormattedExecutionResult
 ): void {
   const data: GraphiQLData = {
-    query: params?.query,
-    variables: params?.variables,
-    operationName: params?.operationName,
+    query: ps?.query,
+    variables: ps?.variables,
+    operationName: ps?.operationName,
     result,
   }
-  const payload = renderGraphiQL(data, options)
   response.type = "text/html"
-  response.body = payload
+  response.body = renderGraphiQL(data, os)
 }
-function canDisplayGraphiQL(request: Request, params: GraphQLParams): boolean {
-  return !params.raw && request.accepts(["json", "html"]) === "html"
+
+function canDisplayGraphiQL(x: Request, ps: GraphQLParams) {
+  return !ps.raw && x.accepts(["json", "html"]) === "html"
 }
-function devAssertIsObject(value: unknown, message: string): void {
-  devAssert(value != null && typeof value === "object", message)
+function devAssertIsObject(x: unknown, msg: string) {
+  devAssert(x != null && typeof x === "object", msg)
 }
-function devAssertIsNonNullable(value: unknown, message: string): void {
-  devAssert(value != null, message)
+function devAssertIsNonNullable(x: unknown, msg: string) {
+  devAssert(x != null, msg)
 }
-function devAssert(condition: unknown, message: string): void {
-  const booleanCondition = Boolean(condition)
-  if (!booleanCondition) {
-    throw new TypeError(message)
-  }
+function devAssert(x: unknown, msg: string) {
+  const y = Boolean(x)
+  if (!y) throw new TypeError(msg)
 }
 
 export interface GraphiQLData {
@@ -320,66 +315,59 @@ type EditorTheme = {
 
 const CODE_MIRROR_VERSION = "5.53.2"
 
-function safeSerialize(data: string | boolean | null | undefined): string {
-  return data != null ? JSON.stringify(data).replace(/\//g, "\\/") : "undefined"
+function safeSerialize(x: string | boolean | null | undefined) {
+  return x != null ? JSON.stringify(x).replace(/\//g, "\\/") : "undefined"
 }
 
-declare function loadFileStaticallyFromNPM(npmPath: string): string
+declare function loadFileStaticallyFromNPM(x: string): string
 
 function getEditorThemeParams(
-  editorTheme: EditorThemeParam | undefined | null
+  x: EditorThemeParam | undefined | null
 ): EditorTheme | undefined {
-  if (editorTheme == null) {
-    return
-  }
-  if (typeof editorTheme === "string") {
+  if (x == null) return
+  if (typeof x === "string") {
     return {
-      name: editorTheme,
-      link: `<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/${CODE_MIRROR_VERSION}/theme/${editorTheme}.css" rel="stylesheet" />`,
+      name: x,
+      link: `<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/${CODE_MIRROR_VERSION}/theme/${x}.css" rel="stylesheet" />`,
     }
   }
   if (
-    typeof editorTheme === "object" &&
-    editorTheme.name &&
-    typeof editorTheme.name === "string" &&
-    editorTheme.url &&
-    typeof editorTheme.url === "string"
+    typeof x === "object" &&
+    x.name &&
+    typeof x.name === "string" &&
+    x.url &&
+    typeof x.url === "string"
   ) {
     return {
-      link: `<link href="${editorTheme.url}" rel="stylesheet" />`,
-      name: editorTheme.name,
+      link: `<link href="${x.url}" rel="stylesheet" />`,
+      name: x.name,
     }
   }
   throw Error(
     'invalid parameter "editorTheme": should be undefined/null, string or ' +
       `{name: string, url: string} but provided is "${
-        typeof editorTheme === "object"
-          ? JSON.stringify(editorTheme)
-          : editorTheme
+        typeof x === "object" ? JSON.stringify(x) : x
       }"`
   )
 }
 
-export function renderGraphiQL(
-  data: GraphiQLData,
-  options?: GraphiQLOptions
-): string {
-  const queryString = data.query
+export function renderGraphiQL(x: GraphiQLData, os?: GraphiQLOptions): string {
+  const queryString = x.query
   const variablesString =
-    data.variables != null ? JSON.stringify(data.variables, null, 2) : null
+    x.variables != null ? JSON.stringify(x.variables, null, 2) : null
   const resultString =
-    data.result != null ? JSON.stringify(data.result, null, 2) : null
-  const operationName = data.operationName
-  const defaultQuery = options?.defaultQuery
-  const headerEditorEnabled = options?.headerEditorEnabled
-  const shouldPersistHeaders = options?.shouldPersistHeaders
-  const subscriptionEndpoint = options?.subscriptionEndpoint
-  const websocketClient = options?.websocketClient ?? "v0"
-  const editorTheme = getEditorThemeParams(options?.editorTheme)
-  let subscriptionScripts = ""
+    x.result != null ? JSON.stringify(x.result, null, 2) : null
+  const operationName = x.operationName
+  const defaultQuery = os?.defaultQuery
+  const headerEditorEnabled = os?.headerEditorEnabled
+  const shouldPersistHeaders = os?.shouldPersistHeaders
+  const subscriptionEndpoint = os?.subscriptionEndpoint
+  const websocketClient = os?.websocketClient ?? "v0"
+  const editorTheme = getEditorThemeParams(os?.editorTheme)
+  let scripts = ""
   if (subscriptionEndpoint != null) {
     if (websocketClient === "v1") {
-      subscriptionScripts = `
+      scripts = `
       <script>
         ${loadFileStaticallyFromNPM("graphql-ws/umd/graphql-ws.js")}
       </script>
@@ -390,7 +378,7 @@ export function renderGraphiQL(
       </script>
       `
     } else {
-      subscriptionScripts = `
+      scripts = `
       <script>
         ${loadFileStaticallyFromNPM(
           "subscriptions-transport-ws/browser/client.js"
@@ -458,7 +446,7 @@ add "&raw" to the end of the URL within a browser.
     // graphiql/graphiql.min.js
     ${loadFileStaticallyFromNPM("graphiql/graphiql.min.js")}
   </script>
-  ${subscriptionScripts}
+  ${scripts}
 </head>
 <body>
   <div id="graphiql">Loading...</div>
