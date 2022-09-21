@@ -1,6 +1,6 @@
 import * as qg from "graphql"
 import { DefinitionNode, Location } from "graphql/language/ast"
-import {
+import type {
   execute,
   formatError,
   getOperationAST,
@@ -8,8 +8,6 @@ import {
   specifiedRules,
   validate,
   validateSchema,
-} from "graphql"
-import type {
   ASTVisitor,
   DocumentNode,
   ExecutionArgs,
@@ -24,15 +22,15 @@ import type {
   ValidationRule,
 } from "graphql"
 import type { Context, Request, Response } from "./types"
-import * as qt from "./types"
+import type * as qt from "./types.js"
 import * as accepts from "accepts"
 import type { Inflate, Gunzip } from "zlib"
 import * as zlib from "zlib"
 import * as qstring from "querystring"
 import * as getBody from "raw-body"
-import * as HttpError from "http-errors"
+import HttpError from "http-errors"
 import * as contentType from "content-type"
-import * as http from "http"
+import type * as http from "http"
 import { visit, visitInParallel, Kind } from `gatsby/graphql`
 import _ = require(`lodash`)
 import uuidv4 = require(`uuid/v4`)
@@ -47,6 +45,7 @@ import nodeFetch = require(`node-fetch`)
 import DataLoader = require(`dataloader`)
 import { ApolloLink, Observable } from `apollo-link`
 import { print } from `gatsby/graphql`
+
 declare function loadFileStaticallyFromNPM(npmPath: string): string
 
 export namespace gql {
@@ -588,6 +587,7 @@ export namespace graphqlHTTP2 {
     }
   }
 }
+
 export function renderGraphiQL(data: GraphiQLData): string {
   const queryString = data.query
   const variablesString = data.variables ? JSON.stringify(data.variables, null, 2) : null
@@ -737,6 +737,7 @@ add "&raw" to the end of the URL within a browser.
 </body>
 </html>`
 }
+
 export function renderGraphiQL(data: GraphiQLData, options?: GraphiQLOptions): string {
   const queryString = data.query
   const variablesString = data.variables != null ? JSON.stringify(data.variables, null, 2) : null

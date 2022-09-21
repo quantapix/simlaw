@@ -1,33 +1,31 @@
-import type {
-  ASTVisitor,
-  DocumentNode,
-  ExecutionArgs,
-  ExecutionResult,
-  FormattedExecutionResult,
-  GraphQLSchema,
-  GraphQLFieldResolver,
-  GraphQLTypeResolver,
-  GraphQLFormattedError,
-  ValidationContext,
-} from "graphql"
 import type { GraphQLParams, RequestInfo } from "express-graphql"
 import httpError from "http-errors"
 import {
-  Source,
-  GraphQLError,
-  validateSchema,
-  parse,
-  validate,
+  ASTVisitor,
+  DocumentNode,
   execute,
+  ExecutionArgs,
+  ExecutionResult,
   formatError,
+  FormattedExecutionResult,
   getOperationAST,
+  GraphQLError,
+  GraphQLFieldResolver,
+  GraphQLFormattedError,
+  GraphQLSchema,
+  GraphQLTypeResolver,
+  parse,
+  Source,
   specifiedRules,
+  validate,
+  validateSchema,
+  ValidationContext,
 } from "graphql"
 import { getGraphQLParams } from "express-graphql"
 import type { Context, Request, Response } from "koa"
-import { renderGraphiQL } from "./renderGraphiQL"
-import type { GraphiQLOptions, GraphiQLData } from "./renderGraphiQL"
+
 type MaybePromise<T> = Promise<T> | T
+
 export type Options =
   | ((
       request: Request,
@@ -36,7 +34,9 @@ export type Options =
       params?: GraphQLParams
     ) => OptionsResult)
   | OptionsResult
+
 export type OptionsResult = MaybePromise<OptionsData>
+
 export interface OptionsData {
   schema: GraphQLSchema
   context?: unknown
@@ -59,7 +59,9 @@ export interface OptionsData {
   fieldResolver?: GraphQLFieldResolver<unknown, unknown>
   typeResolver?: GraphQLTypeResolver<unknown, unknown>
 }
+
 type Middleware = (ctx: Context) => Promise<void>
+
 export function graphqlHTTP(options: Options): Middleware {
   devAssertIsNonNullable(options, "GraphQL middleware requires options.")
   return async function middleware(ctx): Promise<void> {
@@ -255,6 +257,7 @@ export function graphqlHTTP(options: Options): Middleware {
     }
   }
 }
+
 function respondWithGraphiQL(
   response: Response,
   options?: GraphiQLOptions,
@@ -286,13 +289,14 @@ function devAssert(condition: unknown, message: string): void {
     throw new TypeError(message)
   }
 }
-import type { FormattedExecutionResult } from "graphql"
+
 export interface GraphiQLData {
   query?: string | null
   variables?: { readonly [name: string]: unknown } | null
   operationName?: string | null
   result?: FormattedExecutionResult
 }
+
 export interface GraphiQLOptions {
   defaultQuery?: string
   headerEditorEnabled?: boolean
@@ -301,21 +305,27 @@ export interface GraphiQLOptions {
   websocketClient?: string
   editorTheme?: EditorThemeParam
 }
+
 type EditorThemeParam =
   | {
       name: string
       url: string
     }
   | string
+
 type EditorTheme = {
   name: string
   link: string
 }
+
 const CODE_MIRROR_VERSION = "5.53.2"
+
 function safeSerialize(data: string | boolean | null | undefined): string {
   return data != null ? JSON.stringify(data).replace(/\//g, "\\/") : "undefined"
 }
+
 declare function loadFileStaticallyFromNPM(npmPath: string): string
+
 function getEditorThemeParams(
   editorTheme: EditorThemeParam | undefined | null
 ): EditorTheme | undefined {
@@ -349,6 +359,7 @@ function getEditorThemeParams(
       }"`
   )
 }
+
 export function renderGraphiQL(
   data: GraphiQLData,
   options?: GraphiQLOptions
