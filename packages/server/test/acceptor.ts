@@ -1,4 +1,5 @@
-import { newAcceptor } from "../server"
+import { newAcceptor } from "../src/koa.js"
+
 function charset(x?: string) {
   return { headers: { "accept-charset": x } }
 }
@@ -186,9 +187,16 @@ describe("accepts.types()", () => {
   describe("with no arguments", () => {
     describe("when Accept is populated", () => {
       it("should return all accepted types", () => {
-        const req = type("application/*;q=0.2, image/jpeg;q=0.8, text/html, text/plain")
+        const req = type(
+          "application/*;q=0.2, image/jpeg;q=0.8, text/html, text/plain"
+        )
         const a = newAcceptor(req)
-        expect(a.types()).toEqual(["text/html", "text/plain", "image/jpeg", "application/*"])
+        expect(a.types()).toEqual([
+          "text/html",
+          "text/plain",
+          "image/jpeg",
+          "application/*",
+        ])
       })
     })
     describe("when Accept not in request", () => {
@@ -209,7 +217,9 @@ describe("accepts.types()", () => {
   describe("with no valid types", () => {
     describe("when Accept is populated", () => {
       it("should return false", () => {
-        const req = type("application/*;q=0.2, image/jpeg;q=0.8, text/html, text/plain")
+        const req = type(
+          "application/*;q=0.2, image/jpeg;q=0.8, text/html, text/plain"
+        )
         const a = newAcceptor(req)
         expect(a.types("image/png", "image/tiff")).toBe(false)
       })
@@ -218,7 +228,9 @@ describe("accepts.types()", () => {
       it("should return the first type", () => {
         const req = type()
         const a = newAcceptor(req)
-        expect(a.types("text/html", "text/plain", "image/jpeg", "application/*")).toBe("text/html")
+        expect(
+          a.types("text/html", "text/plain", "image/jpeg", "application/*")
+        ).toBe("text/html")
       })
     })
   })

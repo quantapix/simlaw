@@ -34,7 +34,7 @@ import vary from "vary"
 
 export { HttpError } from "http-errors"
 
-export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
+export function newKoa<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
   const emitter = new EventEmitter()
   const opts: qt.Opts<S, C> = (() => {
     const env = ps["env"] || process.env["NODE_ENV"] || "development"
@@ -596,7 +596,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
     out.end(body)
     return
   }
-  const createApp = () =>
+  return (() =>
     ({
       emitter,
       ...opts,
@@ -641,8 +641,7 @@ export function newApp<S = qt.State, C = qt.Custom>(ps: qt.Dict = {}) {
         if (typeof f !== "function") throw new TypeError("Must be a function!")
         opts.plugins.push(f)
       },
-    } as qt.App<S, C>)
-  return createApp()
+    } as qt.Koa<S, C>))()
 }
 
 /*

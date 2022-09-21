@@ -135,7 +135,7 @@ export interface Opts<S = State, C = Custom> {
   subdomOffset: number
 }
 
-export interface App<S = State, C = Custom> extends Readonly<Opts<S, C>> {
+export interface Koa<S = State, C = Custom> extends Readonly<Opts<S, C>> {
   ctx: Context<S, C>
   emitter: EventEmitter
   req: Request
