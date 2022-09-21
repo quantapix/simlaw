@@ -74,9 +74,9 @@
     "webpack": ""
   },
   "workspaces": [
+    "packages/common",
     "packages/nested",
     "packages/reboot",
-    "packages/rooted",
     "packages/server",
     "packages/simlaw",
     "packages/simnet",
