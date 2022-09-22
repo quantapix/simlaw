@@ -7,7 +7,7 @@ import * as getStream from "get-stream"
 import * as isJSON from "koa-is-json"
 import * as isStream from "is-stream"
 import * as safeStringify from "fast-safe-stringify"
-import * as qt from "./types"
+import * as qt from "./types.js"
 import * as buddy from "co-body"
 import * as forms from "formidable"
 import symbolUnparsed = require("./unparsed.js")

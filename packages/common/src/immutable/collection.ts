@@ -1,8 +1,67 @@
-import { Seq, KeyedSeq, IndexedSeq, SetSeq } from "./Seq.js"
-import { isCollection } from "./predicates/isCollection"
-import { isKeyed } from "./predicates/isKeyed"
-import { isIndexed } from "./predicates/isIndexed"
-import { isAssociative } from "./predicates/isAssociative"
+import { hash } from "./hash.js"
+import {
+  isOrdered,
+  IS_ORDERED_SYMBOL,
+  isAssociative,
+  isCollection,
+  isKeyed,
+  IS_KEYED_SYMBOL,
+  IS_COLLECTION_SYMBOL,
+  isIndexed,
+  IS_INDEXED_SYMBOL,
+} from "./predicates.js"
+import { Seq, KeyedSeq, IndexedSeq, SetSeq, ArraySeq } from "./seq.js"
+import { List } from "./list.js"
+import { Map } from "./map.js"
+import { OrderedMap, OrderedSet } from "./ordered.js"
+import { Range } from "./range.js"
+import { Set } from "./set.js"
+import { Stack } from "./stack.js"
+import { toObject, hasIn, getIn } from "./methods.js"
+import {
+  NOT_SET,
+  ensureSize,
+  wrapIndex,
+  returnTrue,
+  resolveBegin,
+  is,
+  imul,
+  smi,
+  arrCopy,
+  deepEqual,
+  mixin,
+  quoteString,
+  toJS,
+  assertNotInfinite,
+  Iterator,
+  ITERATOR_SYMBOL,
+  ITERATE_KEYS,
+  ITERATE_VALUES,
+  ITERATE_ENTRIES,
+} from "./utils.js"
+import {
+  reify,
+  ToKeyedSequence,
+  ToIndexedSequence,
+  ToSetSequence,
+  FromEntriesSequence,
+  flipFactory,
+  mapFactory,
+  reverseFactory,
+  filterFactory,
+  countByFactory,
+  groupByFactory,
+  sliceFactory,
+  takeWhileFactory,
+  skipWhileFactory,
+  concatFactory,
+  flattenFactory,
+  flatMapFactory,
+  interposeFactory,
+  sortFactory,
+  maxFactory,
+  zipWithFactory,
+} from "./operations.js"
 
 export class Collection {
   constructor(value) {
@@ -31,71 +90,6 @@ export class SetCollection extends Collection {
 Collection.Keyed = KeyedCollection
 Collection.Indexed = IndexedCollection
 Collection.Set = SetCollection
-
-import { isCollection, IS_COLLECTION_SYMBOL } from "./predicates/isCollection"
-import { isAssociative } from "./predicates/isAssociative"
-import { isKeyed, IS_KEYED_SYMBOL } from "./predicates/isKeyed"
-import { isIndexed, IS_INDEXED_SYMBOL } from "./predicates/isIndexed"
-import { isOrdered, IS_ORDERED_SYMBOL } from "./predicates/isOrdered"
-import { is } from "./is"
-import {
-  NOT_SET,
-  ensureSize,
-  wrapIndex,
-  returnTrue,
-  resolveBegin,
-} from "./TrieUtils.js"
-import { hash } from "./hash.js"
-import { imul, smi } from "./Math"
-import {
-  Iterator,
-  ITERATOR_SYMBOL,
-  ITERATE_KEYS,
-  ITERATE_VALUES,
-  ITERATE_ENTRIES,
-} from "./Iterator"
-
-import arrCopy from "./utils/arrCopy"
-import assertNotInfinite from "./utils/assertNotInfinite"
-import deepEqual from "./utils/deepEqual"
-import mixin from "./utils/mixin"
-import quoteString from "./utils/quoteString"
-
-import { toJS } from "./toJS.js"
-import { Map } from "./map.js"
-import { OrderedMap } from "./ordered.js"
-import { List } from "./list.js"
-import { Set } from "./Set.js"
-import { OrderedSet } from "./OrderedSet.js"
-import { Stack } from "./Stack.js"
-import { Range } from "./Range.js"
-import { KeyedSeq, IndexedSeq, SetSeq, ArraySeq } from "./Seq.js"
-import {
-  reify,
-  ToKeyedSequence,
-  ToIndexedSequence,
-  ToSetSequence,
-  FromEntriesSequence,
-  flipFactory,
-  mapFactory,
-  reverseFactory,
-  filterFactory,
-  countByFactory,
-  groupByFactory,
-  sliceFactory,
-  takeWhileFactory,
-  skipWhileFactory,
-  concatFactory,
-  flattenFactory,
-  flatMapFactory,
-  interposeFactory,
-  sortFactory,
-  maxFactory,
-  zipWithFactory,
-} from "./operations.js"
-import { getIn } from "./methods/getIn"
-import { hasIn } from "./methods/hasIn"
-import { toObject } from "./methods/toObject"
 
 export {
   Collection,
