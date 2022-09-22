@@ -1,32 +1,13 @@
-import {
-  DocumentNode,
-  ValidationRule,
-  ExecutionArgs,
-  ExecutionResult,
-  FormattedExecutionResult,
-  GraphQLSchema,
-  GraphQLFieldResolver,
-  GraphQLTypeResolver,
-  GraphQLFormattedError,
-  Source,
-  GraphQLError,
-  parse,
-  validate,
-  execute,
-  formatError,
-  validateSchema,
-  getOperationAST,
-  specifiedRules,
-} from "graphql"
-import httpError from "http-errors"
-import { parseBody } from "./parse.js"
 import { GraphiQLOptions, GraphiQLData, renderGraphiQL } from "./render.js"
-import type { Context, MaybePromise } from "../types.js"
+import { parseBody } from "./parse.js"
+import * as qg from "graphql"
+import httpError from "http-errors"
 import type { IncomingMessage, ServerResponse } from "http"
+import type * as qt from "../types.js"
 
 type Request = IncomingMessage & { url?: string | undefined; body?: unknown }
 type Response = ServerResponse & { json?: (data: unknown) => void }
-type Middleware = (ctx: Context) => Promise<void>
+type Middleware = (ctx: qt.Context) => Promise<void>
 
 export interface GraphQLParams {
   query: string | null
@@ -40,162 +21,153 @@ export type Options =
       request: Request,
       response: Response,
       params?: GraphQLParams
-    ) => MaybePromise<OptionsData>)
-  | MaybePromise<OptionsData>
+    ) => qt.MaybePromise<OptionsData>)
+  | qt.MaybePromise<OptionsData>
 
 export interface RequestInfo {
-  document: DocumentNode
-  variables: { readonly [k: string]: unknown } | null
+  document: qg.DocumentNode
+  variables: qt.Dict | null
   operationName: string | null
-  result: FormattedExecutionResult
+  result: qg.FormattedExecutionResult
   context?: unknown
 }
 
 export interface OptionsData {
-  schema: GraphQLSchema
-  context?: Context
+  schema: qg.GraphQLSchema
+  context?: qt.Context
   rootValue?: unknown
   pretty?: boolean
-  validationRules?: ReadonlyArray<ValidationRule>
+  validationRules?: ReadonlyArray<qg.ValidationRule>
   customValidateFn?: (
-    x: GraphQLSchema,
-    n: DocumentNode,
-    rs: ReadonlyArray<ValidationRule>
-  ) => ReadonlyArray<GraphQLError>
-  customExecuteFn?: (xs: ExecutionArgs) => MaybePromise<ExecutionResult>
-  customFormatErrorFn?: (x: GraphQLError) => GraphQLFormattedError
-  customParseFn?: (x: Source) => DocumentNode
-  formatError?: (x: GraphQLError) => GraphQLFormattedError
-  extensions?: (
-    x: RequestInfo
-  ) => MaybePromise<undefined | { [k: string]: unknown }>
+    x: qg.GraphQLSchema,
+    n: qg.DocumentNode,
+    rs: ReadonlyArray<qg.ValidationRule>
+  ) => ReadonlyArray<qg.GraphQLError>
+  customExecuteFn?: (
+    xs: qg.ExecutionArgs
+  ) => qt.MaybePromise<qg.ExecutionResult>
+  customFormatErrorFn?: (x: qg.GraphQLError) => qg.GraphQLFormattedError
+  customParseFn?: (x: qg.Source) => qg.DocumentNode
+  formatError?: (x: qg.GraphQLError) => qg.GraphQLFormattedError
+  extensions?: (x: RequestInfo) => qt.MaybePromise<undefined | qt.Dict>
   graphiql?: boolean | GraphiQLOptions
-  fieldResolver?: GraphQLFieldResolver<unknown, unknown>
-  typeResolver?: GraphQLTypeResolver<unknown, unknown>
+  fieldResolver?: qg.GraphQLFieldResolver<unknown, unknown>
+  typeResolver?: qg.GraphQLTypeResolver<unknown, unknown>
 }
 
 export function graphqlHTTP(xs: Options): Middleware {
-  if (xs == null) throw new TypeError("GraphQL needs options.")
-  return async (ctx: Context): Promise<void> => {
+  if (xs == null) throw new TypeError("GraphQL needs options")
+  return async (ctx: qt.Context): Promise<void> => {
     const inp = ctx.inp
     const req = ctx.req
     const res = ctx.res
-    async function options(x?: GraphQLParams): Promise<OptionsData> {
+    async function getOptions(x?: GraphQLParams): Promise<OptionsData> {
       const y = await Promise.resolve(
         typeof xs === "function" ? xs(inp, res, x) : xs
       )
       if (typeof y !== "object")
-        throw new TypeError("GraphQL options need an object.")
+        throw new TypeError("GraphQL options need an object")
       return y
     }
     let ps: GraphQLParams | undefined
-    let ios: GraphiQLOptions | undefined
+    let gios: GraphiQLOptions | undefined
     let show = false
     let pretty = false
-    let errFn = formatError
-    let y: ExecutionResult
+    let errFn = qg.formatError
+    let y: qg.ExecutionResult
     try {
       try {
-        ps = await getGraphQLParams(inp)
+        ps = await getParams(inp)
       } catch (e: unknown) {
-        const os = await options()
+        const os = await getOptions()
         pretty = os.pretty ?? pretty
         errFn = os.customFormatErrorFn ?? os.formatError ?? errFn
         throw e
       }
-      const os = await options(ps)
+      const os = await getOptions(ps)
       pretty = os.pretty ?? pretty
       errFn = os.customFormatErrorFn ?? os.formatError ?? errFn
       const schema = os.schema
       if (typeof schema !== "object")
-        throw new TypeError("GraphQL options need a schema.")
+        throw new TypeError("GraphQL options need a schema")
       const fieldResolver = os.fieldResolver
       const typeResolver = os.typeResolver
-      const graphiql = os.graphiql ?? false
-      const context = os.context ?? ctx
+      const ctx2 = os.context ?? ctx
       if (req.method !== "GET" && req.method !== "POST") {
-        throw httpError(405, "GraphQL only supports GET and POST.", {
+        throw httpError(405, "GraphQL only supports GET and POST", {
           headers: { Allow: "GET, POST" },
         })
       }
-      const { query, variables, operationName } = ps
+      const graphiql = os.graphiql ?? false
       show = canDisplayGraphiQL(inp, ps) && graphiql !== false
-      if (typeof graphiql !== "boolean") ios = graphiql
-      if (query == null) {
-        if (show) return respondWithGraphiQL(res, ios)
-        throw httpError(400, "Must provide query string.")
+      if (typeof graphiql !== "boolean") gios = graphiql
+      if (ps.query == null) {
+        if (show) return respondWithGraphiQL(res, gios)
+        throw httpError(400, "GraphQL must provide query string")
       }
-      const se = validateSchema(schema)
+      const se = qg.validateSchema(schema)
       if (se.length > 0) {
-        throw httpError(500, "GraphQL schema error.", {
-          graphqlErrors: se,
-        })
+        throw httpError(500, "GraphQL schema error", { gqlErrors: se })
       }
-      let ast: DocumentNode
+      let ast: qg.DocumentNode
       try {
-        ast = (os.customParseFn ?? parse)(new Source(query, "GraphQL request"))
+        ast = (os.customParseFn ?? qg.parse)(
+          new qg.Source(ps.query, "GraphQL request")
+        )
       } catch (e: unknown) {
-        throw httpError(400, "GraphQL syntax error.", {
-          graphqlErrors: [e],
-        })
+        throw httpError(400, "GraphQL syntax error", { gqlErrors: [e] })
       }
-      const ve = (os.customValidateFn ?? validate)(schema, ast, [
-        ...specifiedRules,
+      const ve = (os.customValidateFn ?? qg.validate)(schema, ast, [
+        ...qg.specifiedRules,
         ...(os.validationRules ?? []),
       ])
       if (ve.length > 0) {
-        throw httpError(400, "GraphQL validation error.", {
-          graphqlErrors: ve,
-        })
+        throw httpError(400, "GraphQL validation error", { gqlErrors: ve })
       }
       if (req.method === "GET") {
-        const op = getOperationAST(ast, operationName)
-        if (op && op.operation !== "query") {
-          if (show) return respondWithGraphiQL(res, ios, ps)
-          throw httpError(
-            405,
-            `Can only perform a ${op.operation} operation from a POST request.`,
-            { headers: { Allow: "POST" } }
-          )
+        const x = qg.getOperationAST(ast, ps.operationName)
+        if (x && x.operation !== "query") {
+          if (show) return respondWithGraphiQL(res, gios, ps)
+          throw httpError(405, `GraphQL can only perform a ${x.operation}`, {
+            headers: { Allow: "POST" },
+          })
         }
       }
       try {
-        y = await (os.customExecuteFn ?? execute)({
+        y = await (os.customExecuteFn ?? qg.execute)({
           schema,
           document: ast,
           rootValue: os.rootValue,
-          contextValue: context,
-          variableValues: variables,
-          operationName,
+          contextValue: ctx2,
+          variableValues: ps.variables,
+          operationName: ps.operationName,
           fieldResolver,
           typeResolver,
         })
       } catch (e: unknown) {
-        throw httpError(400, "GraphQL context error.", {
-          graphqlErrors: [e],
-        })
+        throw httpError(400, "GraphQL context error", { gqlErrors: [e] })
       }
       if (os.extensions) {
         const es = await os.extensions({
           document: ast,
-          variables,
-          operationName,
+          variables: ps.variables,
+          operationName: ps.operationName,
           result: y,
-          context,
+          context: ctx2,
         })
         if (es != null) y = { ...y, extensions: es }
       }
     } catch (e: unknown) {
       const e2 = httpError(500, e instanceof Error ? e : String(e))
-      res.statusCode = e2.status
+      res.status = e2.status
       const { headers } = e2
       if (headers != null) {
         for (const [k, v] of Object.entries(headers)) {
           res.setHeader(k, String(v))
         }
       }
-      if (e2["graphqlErrors"] == null) {
-        const e3 = new GraphQLError(
+      if (e2["gqlErrors"] == null) {
+        const e3 = new qg.GraphQLError(
           e2.message,
           undefined,
           undefined,
@@ -204,11 +176,14 @@ export function graphqlHTTP(xs: Options): Middleware {
           e2
         )
         y = { data: null, errors: [e3] }
-      } else y = { data: null, errors: e2["graphqlErrors"] }
+      } else y = { data: null, errors: e2["gqlErrors"] }
     }
-    if (res.statusCode === 200 && y.data == null) res.statusCode = 500
-    const y2: FormattedExecutionResult = { ...y, errors: y.errors!.map(errFn) }
-    if (show) return respondWithGraphiQL(res, ios, ps, y2)
+    if (res.status === 200 && y.data == null) res.status = 500
+    const y2: qg.FormattedExecutionResult = {
+      ...y,
+      errors: y.errors?.map(errFn),
+    }
+    if (show) return respondWithGraphiQL(res, gios, ps, y2)
     if (!pretty && typeof res.json === "function") res.json(y2)
     else {
       const y3 = JSON.stringify(y2, null, pretty ? 2 : 0)
@@ -217,26 +192,21 @@ export function graphqlHTTP(xs: Options): Middleware {
   }
 }
 
-async function getGraphQLParams(x: Request): Promise<GraphQLParams> {
+async function getParams(x: Request): Promise<GraphQLParams> {
   const url = new URLSearchParams(x.url?.split("?")[1])
   const body = await parseBody(x)
-  let query = url.get("query") ?? (body["query"] as string | null)
-  if (typeof query !== "string") query = null
-  let variables = (url.get("variables") ?? body["variables"]) as {
-    readonly [name: string]: unknown
-  } | null
-  if (typeof variables === "string") {
+  const query = url.get("query") ?? (body["query"] as string | null)
+  let vs = (url.get("variables") ?? body["variables"]) as qt.Dict | null
+  if (typeof vs === "string") {
     try {
-      variables = JSON.parse(variables)
+      vs = JSON.parse(vs)
     } catch {
-      throw httpError(400, "Variables are invalid JSON.")
+      throw httpError(400, "GraphQL variables are invalid JSON")
     }
-  } else if (typeof variables !== "object") variables = null
-  let operationName =
-    url.get("operationName") ?? (body["operationName"] as string | null)
-  if (typeof operationName !== "string") operationName = null
-  const raw = url.get("raw") != null || body["raw"] !== undefined
-  return { query, variables, operationName, raw }
+  } else if (typeof vs !== "object") vs = null
+  const n = url.get("operationName") ?? (body["operationName"] as string | null)
+  const y = url.get("raw") != null || body["raw"] !== undefined
+  return { query, variables: vs, operationName: n, raw: y }
 }
 
 function canDisplayGraphiQL(x: Request, ps: GraphQLParams) {
@@ -254,14 +224,13 @@ function respondWithGraphiQL(
   x: Response,
   os?: GraphiQLOptions,
   ps?: GraphQLParams,
-  result?: FormattedExecutionResult
+  result?: qg.FormattedExecutionResult
 ) {
-  const data: GraphiQLData = {
+  const y: GraphiQLData = {
     query: ps?.query,
     variables: ps?.variables,
     operationName: ps?.operationName,
     result,
   }
-  const y = renderGraphiQL(data, os)
-  return sendResponse(x, "text/html", y)
+  return sendResponse(x, "text/html", renderGraphiQL(y, os))
 }

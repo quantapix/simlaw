@@ -9,6 +9,10 @@ import type contentDisposition from "content-disposition"
 import type httpAssert from "http-assert"
 import type Keygrip from "keygrip"
 
+export interface Dict<T = unknown> {
+  readonly [k: string]: T
+}
+
 export type MaybePromise<T> = Promise<T> | T
 export type Stringy = string | string[]
 
@@ -60,10 +64,6 @@ export interface Request {
   inspect(): unknown
   is(x?: Stringy, ...xs: string[]): string | false | null
   toJSON(): unknown
-}
-
-export interface Dict<T = unknown> {
-  readonly [k: string]: T
 }
 
 export interface Response {
