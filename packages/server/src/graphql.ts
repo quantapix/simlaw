@@ -46,8 +46,6 @@ import DataLoader = require(`dataloader`)
 import { ApolloLink, Observable } from `apollo-link`
 import { print } from `gatsby/graphql`
 
-declare function loadFileStaticallyFromNPM(npmPath: string): string
-
 export namespace gql {
   const cache = new Map<string, DocumentNode>()
   const map = new Map<string, Set<string>>()
@@ -137,11 +135,7 @@ export interface GraphQLParams {
   operationName: string | null
   raw: boolean
 }
-export interface GraphiQLOptions {
-  defaultQuery?: string
-  headerEditorEnabled?: boolean
-  subscriptionEndpoint?: string
-}
+
 export interface RequestInfo {
   document: DocumentNode
   variables: { readonly [k: string]: unknown } | null
@@ -178,15 +172,6 @@ export type Options =
     ) => qt.MaybePromise<OptionsData>)
   | qt.MaybePromise<OptionsData>
 
-type EditorTheme = { name: string; link: string } | {}
-type EditorThemeParam = { name: string; url: string } | string
-export interface GraphiQLData {
-  query?: string | null
-  variables?: qt.Dict | null
-  operationName?: string | null
-  result?: FormattedExecutionResult
-  editorTheme?: EditorThemeParam
-}
 
 export async function getParams(req: Request): Promise<GraphQLParams> {
   const u = new URLSearchParams(req.url.split("?")[1])
@@ -261,9 +246,6 @@ export async function getParams(req: Request): Promise<GraphQLParams> {
 }
 
 export namespace graphqlHTTP {
-  function canDisplayGraphiQL(x: Request, ps: GraphQLParams) {
-    return !ps.raw && x.accepts(["json", "html"]) === "html"
-  }
   export function graphqlHTTP(options: Options): Middleware {
     if (!options) throw new Error("Middleware requires options")
     return async (ctx: qt.Context): Promise<void> => {
@@ -380,13 +362,8 @@ export namespace graphqlHTTP {
     }
   }
 }
-function safeSerialize(x?: string | boolean | null): string {
-  return x != null ? JSON.stringify(x).replace(/\//g, "\\/") : "undefined"
-}
+
 export namespace graphqlHTTP2 {
-  const canDisplayGraphiQL = (x: Request, ps: GraphQLParams) => {
-    return !ps.raw && accepts(x).types(["json", "html"]) === "html"
-  }
   const sendResponse = (x: Response, type: string, data: string) => {
     const chunk = Buffer.from(data, "utf8")
     x.setHeader("Content-Type", type + "; charset=utf-8")
@@ -408,15 +385,6 @@ export namespace graphqlHTTP2 {
     return sendResponse(x, "text/html", renderGraphiQL(data, opts))
   }
   export function graphqlHTTP(opts: Options) {
-    const devAssert = (x: unknown, m: string) => {
-      if (!Boolean(x)) throw new TypeError(m)
-    }
-    const devAssertIsNonNullable = (x: unknown, m: string) => {
-      devAssert(x != null, m)
-    }
-    const devAssertIsObject = (x: unknown, m: string) => {
-      devAssert(x != null && typeof x === "object", m)
-    }
     devAssertIsNonNullable(opts, "GraphQL middleware requires options.")
     return async (request: Request, response: Response): Promise<void> => {
       let params: GraphQLParams | undefined
@@ -588,323 +556,6 @@ export namespace graphqlHTTP2 {
   }
 }
 
-export function renderGraphiQL(data: GraphiQLData): string {
-  const queryString = data.query
-  const variablesString = data.variables ? JSON.stringify(data.variables, null, 2) : null
-  const resultString = data.result ? JSON.stringify(data.result, null, 2) : null
-  const operationName = data.operationName
-  function getEditorThemeParams(editorTheme: EditorThemeParam): EditorTheme {
-    if (!editorTheme) {
-      return {}
-    }
-    if (typeof editorTheme === "string") {
-      return {
-        name: editorTheme,
-        link: `<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/${CODE_MIRROR_VERSION}/theme/${editorTheme}.css" rel="stylesheet" />`,
-      }
-    }
-    if (
-      typeof editorTheme === "object" &&
-      editorTheme.name &&
-      typeof editorTheme.name === "string" &&
-      editorTheme.url &&
-      typeof editorTheme.url === "string"
-    ) {
-      return {
-        link: `<link href="${editorTheme.url}" rel="stylesheet" />`,
-        name: editorTheme.name,
-      }
-    }
-    throw Error(
-      'invalid parameter "editorTheme": should be undefined/null, string or ' +
-        `{name: string, url: string} but provided is "${editorTheme}"`
-    )
-  }
-  const editorTheme = getEditorThemeParams(data.editorTheme)
-  return `<!--
-The request to this GraphQL server provided the header "Accept: text/html"
-and as a result has been presented GraphiQL - an in-browser IDE for
-exploring GraphQL.
-If you wish to receive JSON, provide the header "Accept: application/json" or
-add "&raw" to the end of the URL within a browser.
--->
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>GraphiQL</title>
-  <meta name="robots" content="noindex" />
-  <meta name="referrer" content="origin" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-    }
-    #graphiql {
-      height: 100vh;
-    }
-  </style>
-  <link href="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
-  ${editorTheme.link || ""}
-  <script src="//cdn.jsdelivr.net/es6-promise/4.0.5/es6-promise.auto.min.js"></script>
-  <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
-  <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js"></script>
-  <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.min.js"></script>
-</head>
-<body>
-  <div id="graphiql">Loading...</div>
-  <script>
-    // Collect the URL parameters
-    var parameters = {};
-    window.location.search.substr(1).split('&').forEach(function (entry) {
-      var eq = entry.indexOf('=');
-      if (eq >= 0) {
-        parameters[decodeURIComponent(entry.slice(0, eq))] =
-          decodeURIComponent(entry.slice(eq + 1));
-      }
-    });
-    // Produce a Location query string from a parameter object.
-    function locationQuery(params) {
-      return '?' + Object.keys(params).filter(function (key) {
-        return Boolean(params[key]);
-      }).map(function (key) {
-        return encodeURIComponent(key) + '=' +
-          encodeURIComponent(params[key]);
-      }).join('&');
-    }
-    // Derive a fetch URL from the current URL, sans the GraphQL parameters.
-    var graphqlParamNames = {
-      query: true,
-      variables: true,
-      operationName: true
-    };
-    var otherParams = {};
-    for (var k in parameters) {
-      if (parameters.hasOwnProperty(k) && graphqlParamNames[k] !== true) {
-        otherParams[k] = parameters[k];
-      }
-    }
-    var fetchURL = locationQuery(otherParams);
-    // Defines a GraphQL fetcher using the fetch API.
-    function graphQLFetcher(graphQLParams) {
-      return fetch(fetchURL, {
-        method: 'post',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(graphQLParams),
-        credentials: 'include',
-      }).then(function (response) {
-        return response.json();
-      });
-    }
-    // When the query and variables string is edited, update the URL bar so
-    // that it can be easily shared.
-    function onEditQuery(newQuery) {
-      parameters.query = newQuery;
-      updateURL();
-    }
-    function onEditVariables(newVariables) {
-      parameters.variables = newVariables;
-      updateURL();
-    }
-    function onEditOperationName(newOperationName) {
-      parameters.operationName = newOperationName;
-      updateURL();
-    }
-    function updateURL() {
-      history.replaceState(null, null, locationQuery(parameters));
-    }
-    // Render <GraphiQL /> into the body.
-    ReactDOM.render(
-      React.createElement(GraphiQL, {
-        fetcher: graphQLFetcher,
-        onEditQuery: onEditQuery,
-        onEditVariables: onEditVariables,
-        onEditOperationName: onEditOperationName,
-        editorTheme: ${editorTheme.name && safeSerialize(editorTheme.name)},
-        query: ${safeSerialize(queryString)},
-        response: ${safeSerialize(resultString)},
-        variables: ${safeSerialize(variablesString)},
-        operationName: ${safeSerialize(operationName)},
-      }),
-      document.getElementById('graphiql')
-    );
-  </script>
-</body>
-</html>`
-}
-
-export function renderGraphiQL(data: GraphiQLData, options?: GraphiQLOptions): string {
-  const queryString = data.query
-  const variablesString = data.variables != null ? JSON.stringify(data.variables, null, 2) : null
-  const resultString = data.result != null ? JSON.stringify(data.result, null, 2) : null
-  const operationName = data.operationName
-  const defaultQuery = options?.defaultQuery
-  const headerEditorEnabled = options?.headerEditorEnabled
-  const subscriptionEndpoint = options?.subscriptionEndpoint
-  let subscriptionScripts = ""
-  if (subscriptionEndpoint != null) {
-    subscriptionScripts = `
-    <script>
-      ${loadFileStaticallyFromNPM("subscriptions-transport-ws/browser/client.js")}
-    </script>
-    <script>
-      ${loadFileStaticallyFromNPM("graphiql-subscriptions-fetcher/browser/client.js")}
-    </script>
-    `
-  }
-  return `<!--
-The request to this GraphQL server provided the header "Accept: text/html"
-and as a result has been presented GraphiQL - an in-browser IDE for
-exploring GraphQL.
-If you wish to receive JSON, provide the header "Accept: application/json" or
-add "&raw" to the end of the URL within a browser.
--->
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>GraphiQL</title>
-  <meta name="robots" content="noindex" />
-  <meta name="referrer" content="origin" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-    }
-    #graphiql {
-      height: 100vh;
-    }
-  </style>
-  <style>
-    ${loadFileStaticallyFromNPM("graphiql/graphiql.css")}
-  </style>
-  <script>
-    // promise-polyfill/dist/polyfill.min.js
-    ${loadFileStaticallyFromNPM("promise-polyfill/dist/polyfill.min.js")}
-  </script>
-  <script>
-    // unfetch/dist/unfetch.umd.js
-    ${loadFileStaticallyFromNPM("unfetch/dist/unfetch.umd.js")}
-  </script>
-  <script>
-    // react/umd/react.production.min.js
-    ${loadFileStaticallyFromNPM("react/umd/react.production.min.js")}
-  </script>
-  <script>
-    // react-dom/umd/react-dom.production.min.js
-    ${loadFileStaticallyFromNPM("react-dom/umd/react-dom.production.min.js")}
-  </script>
-  <script>
-    // graphiql/graphiql.min.js
-    ${loadFileStaticallyFromNPM("graphiql/graphiql.min.js")}
-  </script>
-  ${subscriptionScripts}
-</head>
-<body>
-  <div id="graphiql">Loading...</div>
-  <script>
-    // Collect the URL parameters
-    var parameters = {};
-    window.location.search.substr(1).split('&').forEach(function (entry) {
-      var eq = entry.indexOf('=');
-      if (eq >= 0) {
-        parameters[decodeURIComponent(entry.slice(0, eq))] =
-          decodeURIComponent(entry.slice(eq + 1));
-      }
-    });
-    // Produce a Location query string from a parameter object.
-    function locationQuery(params) {
-      return '?' + Object.keys(params).filter(function (key) {
-        return Boolean(params[key]);
-      }).map(function (key) {
-        return encodeURIComponent(key) + '=' +
-          encodeURIComponent(params[key]);
-      }).join('&');
-    }
-    // Derive a fetch URL from the current URL, sans the GraphQL parameters.
-    var graphqlParamNames = {
-      query: true,
-      variables: true,
-      operationName: true
-    };
-    var otherParams = {};
-    for (var k in parameters) {
-      if (parameters.hasOwnProperty(k) && graphqlParamNames[k] !== true) {
-        otherParams[k] = parameters[k];
-      }
-    }
-    var fetchURL = locationQuery(otherParams);
-    // Defines a GraphQL fetcher using the fetch API.
-    function graphQLFetcher(graphQLParams, opts) {
-      return fetch(fetchURL, {
-        method: 'post',
-        headers: Object.assign(
-          {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          opts && opts.headers,
-        ),
-        body: JSON.stringify(graphQLParams),
-        credentials: 'include',
-      }).then(function (response) {
-        return response.json();
-      });
-    }
-    function makeFetcher() {
-      if('${typeof subscriptionEndpoint}' == 'string') {
-        let clientClass = window.SubscriptionsTransportWs.SubscriptionClient;
-        let client = new clientClass(${safeSerialize(subscriptionEndpoint)}, {
-           reconnect: true
-        });
-        return window.GraphiQLSubscriptionsFetcher.graphQLFetcher(client, graphQLFetcher);
-      }else{
-        return graphQLFetcher;
-      }
-    }
-    // When the query and variables string is edited, update the URL bar so
-    // that it can be easily shared.
-    function onEditQuery(newQuery) {
-      parameters.query = newQuery;
-      updateURL();
-    }
-    function onEditVariables(newVariables) {
-      parameters.variables = newVariables;
-      updateURL();
-    }
-    function onEditOperationName(newOperationName) {
-      parameters.operationName = newOperationName;
-      updateURL();
-    }
-    function updateURL() {
-      history.replaceState(null, null, locationQuery(parameters));
-    }
-    // Render <GraphiQL /> into the body.
-    ReactDOM.render(
-      React.createElement(GraphiQL, {
-        fetcher:  makeFetcher(),
-        onEditQuery: onEditQuery,
-        onEditVariables: onEditVariables,
-        onEditOperationName: onEditOperationName,
-        query: ${safeSerialize(queryString)},
-        response: ${safeSerialize(resultString)},
-        variables: ${safeSerialize(variablesString)},
-        operationName: ${safeSerialize(operationName)},
-        defaultQuery: ${safeSerialize(defaultQuery)},
-        headerEditorEnabled: ${safeSerialize(headerEditorEnabled)},
-      }),
-      document.getElementById('graphiql')
-    );
-  </script>
-</body>
-</html>`
-}
 export namespace other {
   export class NamespaceUnderFieldTransform {
     constructor({ typeName, fieldName, resolver }) {
