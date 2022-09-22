@@ -129,49 +129,6 @@ type Request = http.IncomingMessage & { url: string; body?: unknown }
 //type Middleware = (request: Request, response: Response) => Promise<void>
 //type Middleware = (ctx: Context) => Promise<void>
 
-export interface GraphQLParams {
-  query: string | null
-  variables: qt.Dict | null
-  operationName: string | null
-  raw: boolean
-}
-
-export interface RequestInfo {
-  document: DocumentNode
-  variables: { readonly [k: string]: unknown } | null
-  operationName: string | null
-  result: FormattedExecutionResult
-  context?: unknown
-}
-export interface OptionsData {
-  schema: GraphQLSchema
-  context?: qt.Context
-  rootValue?: unknown
-  pretty?: boolean
-  formatError?: (e: GraphQLError, context?: any) => GraphQLFormattedError
-  validationRules?: ReadonlyArray<(ctx: ValidationContext) => ASTVisitor>
-  extensions?: (info: RequestInfo) => qt.MaybePromise<undefined | qt.Dict>
-  graphiql?: boolean | GraphiQLOptions
-  fieldResolver?: GraphQLFieldResolver<unknown, unknown>
-  customValidateFn?: (
-    schema: GraphQLSchema,
-    documentAST: DocumentNode,
-    rules: ReadonlyArray<ValidationRule>
-  ) => ReadonlyArray<GraphQLError>
-  customExecuteFn?: (args: ExecutionArgs) => qt.MaybePromise<ExecutionResult>
-  customFormatErrorFn?: (error: GraphQLError) => GraphQLFormattedError
-  customParseFn?: (source: Source) => DocumentNode
-  typeResolver?: GraphQLTypeResolver<unknown, unknown>
-}
-export type Options =
-  | ((
-      request: Request,
-      response: Response,
-      params?: GraphQLParams,
-      ctx?: Context
-    ) => qt.MaybePromise<OptionsData>)
-  | qt.MaybePromise<OptionsData>
-
 
 export async function getParams(req: Request): Promise<GraphQLParams> {
   const u = new URLSearchParams(req.url.split("?")[1])
