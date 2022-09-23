@@ -113,32 +113,31 @@ export function iteratorValue(type, k, v, iteratorResult) {
 export function iteratorDone() {
   return { value: undefined, done: true }
 }
-export function hasIterator(maybeIterable) {
-  if (Array.isArray(maybeIterable)) return true
-
-  return !!getIteratorFn(maybeIterable)
+export function hasIterator(x) {
+  if (Array.isArray(x)) return true
+  return !!getIteratorFn(x)
 }
-export function isIterator(maybeIterator) {
-  return maybeIterator && typeof maybeIterator.next === "function"
+export function isIterator(x) {
+  return x && typeof x.next === "function"
 }
-export function getIterator(iterable) {
-  const iteratorFn = getIteratorFn(iterable)
-  return iteratorFn && iteratorFn.call(iterable)
+export function getIterator(x) {
+  const f = getIteratorFn(x)
+  return f && f.call(x)
 }
-function getIteratorFn(iterable) {
-  const iteratorFn =
-    iterable &&
-    ((REAL_ITERATOR_SYMBOL && iterable[REAL_ITERATOR_SYMBOL]) ||
-      iterable[FAUX_ITERATOR_SYMBOL])
-  if (typeof iteratorFn === "function") return iteratorFn
+function getIteratorFn(x) {
+  const f =
+    x &&
+    ((REAL_ITERATOR_SYMBOL && x[REAL_ITERATOR_SYMBOL]) ||
+      x[FAUX_ITERATOR_SYMBOL])
+  if (typeof f === "function") return f
 }
-export function isEntriesIterable(maybeIterable) {
-  const iteratorFn = getIteratorFn(maybeIterable)
-  return iteratorFn && iteratorFn === maybeIterable.entries
+export function isEntriesIterable(x) {
+  const iteratorFn = getIteratorFn(x)
+  return iteratorFn && iteratorFn === x.entries
 }
-export function isKeysIterable(maybeIterable) {
-  const iteratorFn = getIteratorFn(maybeIterable)
-  return iteratorFn && iteratorFn === maybeIterable.keys
+export function isKeysIterable(x) {
+  const iteratorFn = getIteratorFn(x)
+  return iteratorFn && iteratorFn === x.keys
 }
 export function arrCopy(arr, offset) {
   offset = offset || 0
@@ -220,34 +219,30 @@ export function deepEqual(a, b) {
 export function invariant(condition, error) {
   if (!condition) throw new Error(error)
 }
-export function isArrayLike(value) {
-  if (Array.isArray(value) || typeof value === "string") return true
+export function isArrayLike(x) {
+  if (Array.isArray(x) || typeof x === "string") return true
   return (
-    value &&
-    typeof value === "object" &&
-    Number.isInteger(value.length) &&
-    value.length >= 0 &&
-    (value.length === 0
-      ? Object.keys(value).length === 1
-      : value.hasOwnProperty(value.length - 1))
+    x &&
+    typeof x === "object" &&
+    Number.isInteger(x.length) &&
+    x.length >= 0 &&
+    (x.length === 0
+      ? Object.keys(x).length === 1
+      : x.hasOwnProperty(x.length - 1))
   )
 }
-export function isDataStructure(value) {
+export function isDataStructure(x) {
   return (
-    typeof value === "object" &&
-    (isImmutable(value) || Array.isArray(value) || isPlainObj(value))
+    typeof x === "object" &&
+    (isImmutable(x) || Array.isArray(x) || isPlainObject(x))
   )
 }
 const toString = Object.prototype.toString
-export function isPlainObject(value) {
-  if (
-    !value ||
-    typeof value !== "object" ||
-    toString.call(value) !== "[object Object]"
-  ) {
+export function isPlainObject(x) {
+  if (!x || typeof x !== "object" || toString.call(x) !== "[object Object]") {
     return false
   }
-  const proto = Object.getPrototypeOf(value)
+  const proto = Object.getPrototypeOf(x)
   if (proto === null) return true
   let parentProto = proto
   let nextProto = Object.getPrototypeOf(proto)
@@ -258,26 +253,27 @@ export function isPlainObject(value) {
   return parentProto === proto
 }
 export function mixin(ctor, methods) {
-  const keyCopier = key => {
-    ctor.prototype[key] = methods[key]
+  const keyCopier = k => {
+    ctor.prototype[k] = methods[k]
   }
   Object.keys(methods).forEach(keyCopier)
   Object.getOwnPropertySymbols &&
     Object.getOwnPropertySymbols(methods).forEach(keyCopier)
   return ctor
 }
-export function quoteString(value) {
+
+export function quoteString(x) {
   try {
-    return typeof value === "string" ? JSON.stringify(value) : String(value)
+    return typeof x === "string" ? JSON.stringify(x) : String(x)
   } catch (_ignoreError) {
-    return JSON.stringify(value)
+    return JSON.stringify(x)
   }
 }
-export function shallowCopy(from) {
-  if (Array.isArray(from)) return arrCopy(from)
+export function shallowCopy(x) {
+  if (Array.isArray(x)) return arrCopy(x)
   const to = {}
-  for (const key in from) {
-    if (hasOwnProperty.call(from, key)) to[key] = from[key]
+  for (const key in x) {
+    if (hasOwnProperty.call(x, key)) to[key] = x[key]
   }
   return to
 }
@@ -291,43 +287,37 @@ export const imul =
         const d = b & 0xffff
         return (c * d + ((((a >>> 16) * d + c * (b >>> 16)) << 16) >>> 0)) | 0
       }
+
 export function smi(i32) {
   return ((i32 >>> 1) & 0x40000000) | (i32 & 0xbfffffff)
 }
-export function is(valueA, valueB) {
-  if (valueA === valueB || (valueA !== valueA && valueB !== valueB)) return true
-  if (!valueA || !valueB) return false
-  if (
-    typeof valueA.valueOf === "function" &&
-    typeof valueB.valueOf === "function"
-  ) {
-    valueA = valueA.valueOf()
-    valueB = valueB.valueOf()
-    if (valueA === valueB || (valueA !== valueA && valueB !== valueB))
-      return true
-    if (!valueA || !valueB) return false
+
+export function is(a, b) {
+  if (a === b || (a !== a && b !== b)) return true
+  if (!a || !b) return false
+  if (typeof a.valueOf === "function" && typeof b.valueOf === "function") {
+    a = a.valueOf()
+    b = b.valueOf()
+    if (a === b || (a !== a && b !== b)) return true
+    if (!a || !b) return false
   }
-  return !!(
-    isValueObject(valueA) &&
-    isValueObject(valueB) &&
-    valueA.equals(valueB)
-  )
+  return !!(isValueObject(a) && isValueObject(b) && a.equals(b))
 }
-export function toJS(value) {
-  if (!value || typeof value !== "object") return value
-  if (!isCollection(value)) {
-    if (!isDataStructure(value)) return value
-    value = Seq(value)
+export function toJS(x) {
+  if (!x || typeof x !== "object") return x
+  if (!isCollection(x)) {
+    if (!isDataStructure(x)) return x
+    x = Seq(x)
   }
-  if (isKeyed(value)) {
+  if (isKeyed(x)) {
     const result = {}
-    value.__iterate((v, k) => {
+    x.__iterate((v, k) => {
       result[k] = toJS(v)
     })
     return result
   }
   const result = []
-  value.__iterate(v => {
+  x.__iterate(v => {
     result.push(toJS(v))
   })
   return result
@@ -340,13 +330,13 @@ export const NOT_SET = {}
 export function MakeRef() {
   return { value: false }
 }
-export function SetRef(ref) {
-  if (ref) ref.value = true
+export function SetRef(x) {
+  if (x) x.value = true
 }
 export function OwnerID() {}
-export function ensureSize(iter) {
-  if (iter.size === undefined) iter.size = iter.__iterate(returnTrue)
-  return iter.size
+export function ensureSize(x) {
+  if (x.size === undefined) x.size = x.__iterate(returnTrue)
+  return x.size
 }
 export function wrapIndex(iter, index) {
   if (typeof index !== "number") {

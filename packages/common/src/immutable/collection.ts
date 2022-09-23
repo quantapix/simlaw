@@ -1,244 +1,243 @@
 import { hash } from "./hash.js"
-import { Seq, KeyedSeq, IndexedSeq, SetSeq, ArraySeq } from "./seq.js"
 import { List } from "./list.js"
 import { Map } from "./map.js"
 import { OrderedMap, OrderedSet } from "./ordered.js"
 import { Range } from "./range.js"
+import { Seq, KeyedSeq, IndexedSeq, SetSeq, ArraySeq } from "./seq.js"
 import { Set } from "./set.js"
 import { Stack } from "./stack.js"
 import { toObject, hasIn, getIn } from "./methods.js"
-import {
-  isOrdered,
-  IS_ORDERED_SYMBOL,
-  isAssociative,
-  isCollection,
-  isKeyed,
-  IS_KEYED_SYMBOL,
-  IS_COLLECTION_SYMBOL,
-  isIndexed,
-  IS_INDEXED_SYMBOL,
-  NOT_SET,
-  ensureSize,
-  wrapIndex,
-  returnTrue,
-  resolveBegin,
-  is,
-  imul,
-  smi,
-  arrCopy,
-  deepEqual,
-  mixin,
-  quoteString,
-  toJS,
-  assertNotInfinite,
-  Iterator,
-  ITERATOR_SYMBOL,
-  ITERATE_KEYS,
-  ITERATE_VALUES,
-  ITERATE_ENTRIES,
-} from "./utils.js"
-import {
-  reify,
-  ToKeyedSequence,
-  ToIndexedSequence,
-  ToSetSequence,
-  FromEntriesSequence,
-  flipFactory,
-  mapFactory,
-  reverseFactory,
-  filterFactory,
-  countByFactory,
-  groupByFactory,
-  sliceFactory,
-  takeWhileFactory,
-  skipWhileFactory,
-  concatFactory,
-  flattenFactory,
-  flatMapFactory,
-  interposeFactory,
-  sortFactory,
-  maxFactory,
-  zipWithFactory,
-} from "./operations.js"
+import * as qo from "./operations.js"
+import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 
-export class Collection {
-  constructor(x) {
-    return isCollection(x) ? x : new Seq(x)
+export class Collection<K, V> implements qt.Collection<K, V> {
+  __toString(head, tail) {
+    if (this.size === 0) return head + tail
+    return head + " " + this.toSeq().map(this.__toStringMapper).join(", ") + " " + tail
   }
-}
-
-export class KeyedCollection extends Collection {
-  constructor(x) {
-    return isKeyed(x) ? x : KeyedSeq(x)
+  butLast() {
+    return this.slice(0, -1)
   }
-}
-
-export class IndexedCollection extends Collection {
-  constructor(x) {
-    return isIndexed(x) ? x : IndexedSeq(x)
+  concat(...xs) {
+    return qo.reify(this, qo.concatFactory(this, xs))
   }
-}
-
-export class SetCollection extends Collection {
-  constructor(value) {
-    return isCollection(value) && !isAssociative(value) ? value : SetSeq(value)
+  count(predicate, ctx) {
+    return qu.ensureSize(predicate ? this.toSeq().filter(predicate, ctx) : this)
   }
-}
-
-Collection.Keyed = KeyedCollection
-Collection.Indexed = IndexedCollection
-Collection.Set = SetCollection
-
-export {
-  Collection,
-  KeyedCollection,
-  IndexedCollection,
-  SetCollection,
-  CollectionPrototype,
-  IndexedCollectionPrototype,
-}
-
-// Note: all of these methods are deprecated.
-Collection.isIterable = isCollection
-Collection.isKeyed = isKeyed
-Collection.isIndexed = isIndexed
-Collection.isAssociative = isAssociative
-Collection.isOrdered = isOrdered
-
-Collection.Iterator = Iterator
-
-mixin(Collection, {
-  // ### Conversion to other types
-
-  toArray() {
-    assertNotInfinite(this.size)
-    const array = new Array(this.size || 0)
-    const useTuples = isKeyed(this)
-    let i = 0
-    this.__iterate((v, k) => {
-      // Keyed collections produce an array of tuples.
-      array[i++] = useTuples ? [k, v] : v
-    })
-    return array
-  },
-
+  countBy(grouper, ctx) {
+    return qo.countByFactory(this, grouper, ctx)
+  }
+  entries() {
+    return this.__iterator(qu.ITERATE_ENTRIES)
+  }
+  equals(x) {
+    return qu.deepEqual(this, x)
+  }
+  filter(predicate, ctx) {
+    return qo.reify(this, qo.filterFactory(this, predicate, ctx, true))
+  }
+  filterNot(predicate, ctx) {
+    return this.filter(not(predicate), ctx)
+  }
+  find(predicate, ctx, v0) {
+    const entry = this.findEntry(predicate, ctx)
+    return entry ? entry[1] : v0
+  }
+  findKey(predicate, ctx) {
+    const entry = this.findEntry(predicate, ctx)
+    return entry && entry[0]
+  }
+  findLast(predicate, ctx, v0) {
+    return this.toKeyedSeq().reverse().find(predicate, ctx, v0)
+  }
+  findLastEntry(predicate, ctx, v0) {
+    return this.toKeyedSeq().reverse().findEntry(predicate, ctx, v0)
+  }
+  findLastKey(predicate, ctx) {
+    return this.toKeyedSeq().reverse().findKey(predicate, ctx)
+  }
+  first(v0) {
+    return this.find(qu.returnTrue, null, v0)
+  }
+  flatMap(mapper, ctx) {
+    return qo.reify(this, qo.flatMapFactory(this, mapper, ctx))
+  }
+  flatten(depth) {
+    return qo.reify(this, qo.flattenFactory(this, depth, true))
+  }
+  forEach(sideEffect, ctx) {
+    qu.assertNotInfinite(this.size)
+    return this.__iterate(ctx ? sideEffect.bind(ctx) : sideEffect)
+  }
+  fromEntrySeq() {
+    return new qo.FromEntriesSequence(this)
+  }
+  get(searchKey, v0) {
+    return this.find((_, key) => qu.is(key, searchKey), undefined, v0)
+  }
+  getIn: getIn
+  groupBy(grouper, ctx) {
+    return qo.groupByFactory(this, grouper, ctx)
+  }
+  has(searchKey) {
+    return this.get(searchKey, qu.NOT_SET) !== qu.NOT_SET
+  }
+  hashCode() {
+    return this.__hash || (this.__hash = hashCollection(this))
+  }
+  hasIn: hasIn
+  includes(searchValue) {
+    return this.some(value => qu.is(value, searchValue))
+  }
+  isEmpty() {
+    return this.size !== undefined ? this.size === 0 : !this.some(() => true)
+  }
+  isSubset(iter) {
+    iter = typeof iter.includes === "function" ? iter : Collection(iter)
+    return this.every(value => iter.includes(value))
+  }
+  isSuperset(iter) {
+    iter = typeof iter.isSubset === "function" ? iter : Collection(iter)
+    return iter.isSubset(this)
+  }
+  keyOf(searchValue) {
+    return this.findKey(value => qu.is(value, searchValue))
+  }
+  keys() {
+    return this.__iterator(qu.ITERATE_KEYS)
+  }
+  keySeq() {
+    return this.toSeq().map(keyMapper).toIndexedSeq()
+  }
+  last(v0) {
+    return this.toSeq().reverse().first(v0)
+  }
+  lastKeyOf(searchValue) {
+    return this.toKeyedSeq().reverse().keyOf(searchValue)
+  }
+  map(mapper, ctx) {
+    return qo.reify(this, qo.mapFactory(this, mapper, ctx))
+  }
+  max(comparator) {
+    return qo.maxFactory(this, comparator)
+  }
+  maxBy(mapper, comparator) {
+    return qo.maxFactory(this, comparator, mapper)
+  }
+  min(comparator) {
+    return qo.maxFactory(this, comparator ? neg(comparator) : defaultNegComparator)
+  }
+  minBy(mapper, comparator) {
+    return qo.maxFactory(this, comparator ? neg(comparator) : defaultNegComparator, mapper)
+  }
+  reduce(reducer, r0, ctx) {
+    return reduce(this, reducer, r0, ctx, arguments.length < 2, false)
+  }
+  reduceRight(reducer, r0, ctx) {
+    return reduce(this, reducer, r0, ctx, arguments.length < 2, true)
+  }
+  rest() {
+    return this.slice(1)
+  }
+  reverse() {
+    return qo.reify(this, qo.reverseFactory(this, true))
+  }
+  skip(amount) {
+    return amount === 0 ? this : this.slice(Math.max(0, amount))
+  }
+  skipLast(amount) {
+    return amount === 0 ? this : this.slice(0, -Math.max(0, amount))
+  }
+  skipUntil(predicate, ctx) {
+    return this.skipWhile(not(predicate), ctx)
+  }
+  skipWhile(predicate, ctx) {
+    return qo.reify(this, qo.skipWhileFactory(this, predicate, ctx, true))
+  }
+  slice(begin, end) {
+    return qo.reify(this, qo.sliceFactory(this, begin, end, true))
+  }
+  some(predicate, ctx) {
+    return !this.every(not(predicate), ctx)
+  }
+  sort(comparator) {
+    return qo.reify(this, qo.sortFactory(this, comparator))
+  }
+  sortBy(mapper, comparator) {
+    return qo.reify(this, qo.sortFactory(this, comparator, mapper))
+  }
+  take(amount) {
+    return this.slice(0, Math.max(0, amount))
+  }
+  takeLast(amount) {
+    return this.slice(-Math.max(0, amount))
+  }
+  takeUntil(predicate, ctx) {
+    return this.takeWhile(not(predicate), ctx)
+  }
+  takeWhile(predicate, ctx) {
+    return qo.reify(this, qo.takeWhileFactory(this, predicate, ctx))
+  }
   toIndexedSeq() {
-    return new ToIndexedSequence(this)
-  },
-
+    return new qo.ToIndexedSequence(this)
+  }
   toJS() {
-    return toJS(this)
-  },
-
+    return qu.toJS(this)
+  }
   toKeyedSeq() {
-    return new ToKeyedSequence(this, true)
-  },
-
-  toMap() {
-    // Use Late Binding here to solve the circular dependency.
-    return Map(this.toKeyedSeq())
-  },
-
-  toObject: toObject,
-
-  toOrderedMap() {
-    // Use Late Binding here to solve the circular dependency.
-    return OrderedMap(this.toKeyedSeq())
-  },
-
-  toOrderedSet() {
-    // Use Late Binding here to solve the circular dependency.
-    return OrderedSet(isKeyed(this) ? this.valueSeq() : this)
-  },
-
-  toSet() {
-    // Use Late Binding here to solve the circular dependency.
-    return Set(isKeyed(this) ? this.valueSeq() : this)
-  },
-
-  toSetSeq() {
-    return new ToSetSequence(this)
-  },
-
-  toSeq() {
-    return isIndexed(this)
-      ? this.toIndexedSeq()
-      : isKeyed(this)
-      ? this.toKeyedSeq()
-      : this.toSetSeq()
-  },
-
-  toStack() {
-    // Use Late Binding here to solve the circular dependency.
-    return Stack(isKeyed(this) ? this.valueSeq() : this)
-  },
-
+    return new qo.ToKeyedSequence(this, true)
+  }
   toList() {
-    // Use Late Binding here to solve the circular dependency.
-    return List(isKeyed(this) ? this.valueSeq() : this)
-  },
-
-  // ### Common JavaScript methods and properties
-
+    return List(qu.isKeyed(this) ? this.valueSeq() : this)
+  }
+  toMap() {
+    return Map(this.toKeyedSeq())
+  }
+  toObject: toObject
+  toOrderedMap() {
+    return OrderedMap(this.toKeyedSeq())
+  }
+  toOrderedSet() {
+    return OrderedSet(qu.isKeyed(this) ? this.valueSeq() : this)
+  }
+  toSeq() {
+    return qu.isIndexed(this) ? this.toIndexedSeq() : qu.isKeyed(this) ? this.toKeyedSeq() : this.toSetSeq()
+  }
+  toSet() {
+    return Set(qu.isKeyed(this) ? this.valueSeq() : this)
+  }
+  toSetSeq() {
+    return new qo.ToSetSequence(this)
+  }
+  toStack() {
+    return Stack(qu.isKeyed(this) ? this.valueSeq() : this)
+  }
   toString() {
     return "[Collection]"
-  },
-
-  __toString(head, tail) {
-    if (this.size === 0) {
-      return head + tail
-    }
-    return (
-      head +
-      " " +
-      this.toSeq().map(this.__toStringMapper).join(", ") +
-      " " +
-      tail
-    )
-  },
-
-  // ### ES6 Collection methods (ES6 Array and Map)
-
-  concat(...values) {
-    return reify(this, concatFactory(this, values))
-  },
-
-  includes(searchValue) {
-    return this.some(value => is(value, searchValue))
-  },
-
-  entries() {
-    return this.__iterator(ITERATE_ENTRIES)
-  },
-
-  every(predicate, context) {
-    assertNotInfinite(this.size)
+  }
+  update(fn) {
+    return fn(this)
+  }
+  values() {
+    return this.__iterator(qu.ITERATE_VALUES)
+  }
+  valueSeq() {
+    return this.toIndexedSeq()
+  }
+  every(predicate, ctx) {
+    qu.assertNotInfinite(this.size)
     let returnValue = true
     this.__iterate((v, k, c) => {
-      if (!predicate.call(context, v, k, c)) {
+      if (!predicate.call(ctx, v, k, c)) {
         returnValue = false
         return false
       }
     })
     return returnValue
-  },
-
-  filter(predicate, context) {
-    return reify(this, filterFactory(this, predicate, context, true))
-  },
-
-  find(predicate, context, notSetValue) {
-    const entry = this.findEntry(predicate, context)
-    return entry ? entry[1] : notSetValue
-  },
-
-  forEach(sideEffect, context) {
-    assertNotInfinite(this.size)
-    return this.__iterate(context ? sideEffect.bind(context) : sideEffect)
-  },
-
+  }
   join(separator) {
-    assertNotInfinite(this.size)
+    qu.assertNotInfinite(this.size)
     separator = separator !== undefined ? "" + separator : ","
     let joined = ""
     let isFirst = true
@@ -247,461 +246,204 @@ mixin(Collection, {
       joined += v !== null && v !== undefined ? v.toString() : ""
     })
     return joined
-  },
-
-  keys() {
-    return this.__iterator(ITERATE_KEYS)
-  },
-
-  map(mapper, context) {
-    return reify(this, mapFactory(this, mapper, context))
-  },
-
-  reduce(reducer, initialReduction, context) {
-    return reduce(
-      this,
-      reducer,
-      initialReduction,
-      context,
-      arguments.length < 2,
-      false
-    )
-  },
-
-  reduceRight(reducer, initialReduction, context) {
-    return reduce(
-      this,
-      reducer,
-      initialReduction,
-      context,
-      arguments.length < 2,
-      true
-    )
-  },
-
-  reverse() {
-    return reify(this, reverseFactory(this, true))
-  },
-
-  slice(begin, end) {
-    return reify(this, sliceFactory(this, begin, end, true))
-  },
-
-  some(predicate, context) {
-    return !this.every(not(predicate), context)
-  },
-
-  sort(comparator) {
-    return reify(this, sortFactory(this, comparator))
-  },
-
-  values() {
-    return this.__iterator(ITERATE_VALUES)
-  },
-
-  // ### More sequential methods
-
-  butLast() {
-    return this.slice(0, -1)
-  },
-
-  isEmpty() {
-    return this.size !== undefined ? this.size === 0 : !this.some(() => true)
-  },
-
-  count(predicate, context) {
-    return ensureSize(
-      predicate ? this.toSeq().filter(predicate, context) : this
-    )
-  },
-
-  countBy(grouper, context) {
-    return countByFactory(this, grouper, context)
-  },
-
-  equals(other) {
-    return deepEqual(this, other)
-  },
+  }
 
   entrySeq() {
     const collection = this
     if (collection._cache) {
-      // We cache as an entries array, so we can just return the cache!
       return new ArraySeq(collection._cache)
     }
     const entriesSequence = collection.toSeq().map(entryMapper).toIndexedSeq()
     entriesSequence.fromEntrySeq = () => collection.toSeq()
     return entriesSequence
-  },
-
-  filterNot(predicate, context) {
-    return this.filter(not(predicate), context)
-  },
-
-  findEntry(predicate, context, notSetValue) {
-    let found = notSetValue
+  }
+  findEntry(predicate, ctx, v0) {
+    let found = v0
     this.__iterate((v, k, c) => {
-      if (predicate.call(context, v, k, c)) {
+      if (predicate.call(ctx, v, k, c)) {
         found = [k, v]
         return false
       }
     })
     return found
-  },
+  }
+  toArray() {
+    qu.assertNotInfinite(this.size)
+    const array = new Array(this.size || 0)
+    const useTuples = qu.isKeyed(this)
+    let i = 0
+    this.__iterate((v, k) => {
+      array[i++] = useTuples ? [k, v] : v
+    })
+    return array
+  }
+}
 
-  findKey(predicate, context) {
-    const entry = this.findEntry(predicate, context)
-    return entry && entry[0]
-  },
-
-  findLast(predicate, context, notSetValue) {
-    return this.toKeyedSeq().reverse().find(predicate, context, notSetValue)
-  },
-
-  findLastEntry(predicate, context, notSetValue) {
-    return this.toKeyedSeq()
-      .reverse()
-      .findEntry(predicate, context, notSetValue)
-  },
-
-  findLastKey(predicate, context) {
-    return this.toKeyedSeq().reverse().findKey(predicate, context)
-  },
-
-  first(notSetValue) {
-    return this.find(returnTrue, null, notSetValue)
-  },
-
-  flatMap(mapper, context) {
-    return reify(this, flatMapFactory(this, mapper, context))
-  },
-
-  flatten(depth) {
-    return reify(this, flattenFactory(this, depth, true))
-  },
-
-  fromEntrySeq() {
-    return new FromEntriesSequence(this)
-  },
-
-  get(searchKey, notSetValue) {
-    return this.find((_, key) => is(key, searchKey), undefined, notSetValue)
-  },
-
-  getIn: getIn,
-
-  groupBy(grouper, context) {
-    return groupByFactory(this, grouper, context)
-  },
-
-  has(searchKey) {
-    return this.get(searchKey, NOT_SET) !== NOT_SET
-  },
-
-  hasIn: hasIn,
-
-  isSubset(iter) {
-    iter = typeof iter.includes === "function" ? iter : Collection(iter)
-    return this.every(value => iter.includes(value))
-  },
-
-  isSuperset(iter) {
-    iter = typeof iter.isSubset === "function" ? iter : Collection(iter)
-    return iter.isSubset(this)
-  },
-
-  keyOf(searchValue) {
-    return this.findKey(value => is(value, searchValue))
-  },
-
-  keySeq() {
-    return this.toSeq().map(keyMapper).toIndexedSeq()
-  },
-
-  last(notSetValue) {
-    return this.toSeq().reverse().first(notSetValue)
-  },
-
-  lastKeyOf(searchValue) {
-    return this.toKeyedSeq().reverse().keyOf(searchValue)
-  },
-
-  max(comparator) {
-    return maxFactory(this, comparator)
-  },
-
-  maxBy(mapper, comparator) {
-    return maxFactory(this, comparator, mapper)
-  },
-
-  min(comparator) {
-    return maxFactory(this, comparator ? neg(comparator) : defaultNegComparator)
-  },
-
-  minBy(mapper, comparator) {
-    return maxFactory(
-      this,
-      comparator ? neg(comparator) : defaultNegComparator,
-      mapper
-    )
-  },
-
-  rest() {
-    return this.slice(1)
-  },
-
-  skip(amount) {
-    return amount === 0 ? this : this.slice(Math.max(0, amount))
-  },
-
-  skipLast(amount) {
-    return amount === 0 ? this : this.slice(0, -Math.max(0, amount))
-  },
-
-  skipWhile(predicate, context) {
-    return reify(this, skipWhileFactory(this, predicate, context, true))
-  },
-
-  skipUntil(predicate, context) {
-    return this.skipWhile(not(predicate), context)
-  },
-
-  sortBy(mapper, comparator) {
-    return reify(this, sortFactory(this, comparator, mapper))
-  },
-
-  take(amount) {
-    return this.slice(0, Math.max(0, amount))
-  },
-
-  takeLast(amount) {
-    return this.slice(-Math.max(0, amount))
-  },
-
-  takeWhile(predicate, context) {
-    return reify(this, takeWhileFactory(this, predicate, context))
-  },
-
-  takeUntil(predicate, context) {
-    return this.takeWhile(not(predicate), context)
-  },
-
-  update(fn) {
-    return fn(this)
-  },
-
-  valueSeq() {
-    return this.toIndexedSeq()
-  },
-
-  // ### Hashable Object
-
-  hashCode() {
-    return this.__hash || (this.__hash = hashCollection(this))
-  },
-
-  // ### Internal
-
-  // abstract __iterate(fn, reverse)
-
-  // abstract __iterator(type, reverse)
-})
+export class Collection {
+  constructor(x) {
+    return qu.isCollection(x) ? x : new Seq(x)
+  }
+}
+export class KeyedCollection extends Collection {
+  constructor(x) {
+    return qu.isKeyed(x) ? x : KeyedSeq(x)
+  }
+}
+export class IndexedCollection extends Collection {
+  constructor(x) {
+    return qu.isIndexed(x) ? x : IndexedSeq(x)
+  }
+}
+export class SetCollection extends Collection {
+  constructor(value) {
+    return qu.isCollection(value) && !qu.isAssociative(value) ? value : SetSeq(value)
+  }
+}
+Collection.Keyed = KeyedCollection
+Collection.Indexed = IndexedCollection
+Collection.Set = SetCollection
 
 const CollectionPrototype = Collection.prototype
-CollectionPrototype[IS_COLLECTION_SYMBOL] = true
-CollectionPrototype[ITERATOR_SYMBOL] = CollectionPrototype.values
+CollectionPrototype[qu.IS_COLLECTION_SYMBOL] = true
+CollectionPrototype[qu.ITERATOR_SYMBOL] = CollectionPrototype.values
 CollectionPrototype.toJSON = CollectionPrototype.toArray
-CollectionPrototype.__toStringMapper = quoteString
+CollectionPrototype.__toStringMapper = qu.quoteString
 CollectionPrototype.inspect = CollectionPrototype.toSource = function () {
   return this.toString()
 }
 CollectionPrototype.chain = CollectionPrototype.flatMap
 CollectionPrototype.contains = CollectionPrototype.includes
 
-mixin(KeyedCollection, {
-  // ### More sequential methods
-
+qu.mixin(KeyedCollection, {
   flip() {
-    return reify(this, flipFactory(this))
+    return qo.reify(this, qo.flipFactory(this))
   },
-
-  mapEntries(mapper, context) {
+  mapEntries(mapper, ctx) {
     let iterations = 0
-    return reify(
+    return qo.reify(
       this,
       this.toSeq()
-        .map((v, k) => mapper.call(context, [k, v], iterations++, this))
+        .map((v, k) => mapper.call(ctx, [k, v], iterations++, this))
         .fromEntrySeq()
     )
   },
-
-  mapKeys(mapper, context) {
-    return reify(
+  mapKeys(mapper, ctx) {
+    return qo.reify(
       this,
       this.toSeq()
         .flip()
-        .map((k, v) => mapper.call(context, k, v, this))
+        .map((k, v) => mapper.call(ctx, k, v, this))
         .flip()
     )
   },
 })
 
 const KeyedCollectionPrototype = KeyedCollection.prototype
-KeyedCollectionPrototype[IS_KEYED_SYMBOL] = true
-KeyedCollectionPrototype[ITERATOR_SYMBOL] = CollectionPrototype.entries
+KeyedCollectionPrototype[qu.IS_KEYED_SYMBOL] = true
+KeyedCollectionPrototype[qu.ITERATOR_SYMBOL] = CollectionPrototype.entries
 KeyedCollectionPrototype.toJSON = toObject
-KeyedCollectionPrototype.__toStringMapper = (v, k) =>
-  quoteString(k) + ": " + quoteString(v)
+KeyedCollectionPrototype.__toStringMapper = (v, k) => qu.quoteString(k) + ": " + qu.quoteString(v)
 
-mixin(IndexedCollection, {
-  // ### Conversion to other types
-
+qu.mixin(IndexedCollection, {
   toKeyedSeq() {
-    return new ToKeyedSequence(this, false)
+    return new qo.ToKeyedSequence(this, false)
   },
-
-  // ### ES6 Collection methods (ES6 Array and Map)
-
-  filter(predicate, context) {
-    return reify(this, filterFactory(this, predicate, context, false))
+  filter(predicate, ctx) {
+    return qo.reify(this, qo.filterFactory(this, predicate, ctx, false))
   },
-
-  findIndex(predicate, context) {
-    const entry = this.findEntry(predicate, context)
+  findIndex(predicate, ctx) {
+    const entry = this.findEntry(predicate, ctx)
     return entry ? entry[0] : -1
   },
-
   indexOf(searchValue) {
     const key = this.keyOf(searchValue)
     return key === undefined ? -1 : key
   },
-
   lastIndexOf(searchValue) {
     const key = this.lastKeyOf(searchValue)
     return key === undefined ? -1 : key
   },
-
   reverse() {
-    return reify(this, reverseFactory(this, false))
+    return qo.reify(this, qo.reverseFactory(this, false))
   },
-
   slice(begin, end) {
-    return reify(this, sliceFactory(this, begin, end, false))
+    return qo.reify(this, qo.sliceFactory(this, begin, end, false))
   },
-
   splice(index, removeNum /*, ...values*/) {
     const numArgs = arguments.length
     removeNum = Math.max(removeNum || 0, 0)
     if (numArgs === 0 || (numArgs === 2 && !removeNum)) {
       return this
     }
-    // If index is negative, it should resolve relative to the size of the
-    // collection. However size may be expensive to compute if not cached, so
-    // only call count() if the number is in fact negative.
-    index = resolveBegin(index, index < 0 ? this.count() : this.size)
+    index = qu.resolveBegin(index, index < 0 ? this.count() : this.size)
     const spliced = this.slice(0, index)
-    return reify(
-      this,
-      numArgs === 1
-        ? spliced
-        : spliced.concat(arrCopy(arguments, 2), this.slice(index + removeNum))
-    )
+    return qo.reify(this, numArgs === 1 ? spliced : spliced.concat(qu.arrCopy(arguments, 2), this.slice(index + removeNum)))
   },
-
-  // ### More collection methods
-
-  findLastIndex(predicate, context) {
-    const entry = this.findLastEntry(predicate, context)
+  findLastIndex(predicate, ctx) {
+    const entry = this.findLastEntry(predicate, ctx)
     return entry ? entry[0] : -1
   },
-
-  first(notSetValue) {
-    return this.get(0, notSetValue)
+  first(v0) {
+    return this.get(0, v0)
   },
-
   flatten(depth) {
-    return reify(this, flattenFactory(this, depth, false))
+    return qo.reify(this, qo.flattenFactory(this, depth, false))
   },
-
-  get(index, notSetValue) {
-    index = wrapIndex(this, index)
-    return index < 0 ||
-      this.size === Infinity ||
-      (this.size !== undefined && index > this.size)
-      ? notSetValue
-      : this.find((_, key) => key === index, undefined, notSetValue)
+  get(index, v0) {
+    index = qu.wrapIndex(this, index)
+    return index < 0 || this.size === Infinity || (this.size !== undefined && index > this.size) ? v0 : this.find((_, key) => key === index, undefined, v0)
   },
-
   has(index) {
-    index = wrapIndex(this, index)
-    return (
-      index >= 0 &&
-      (this.size !== undefined
-        ? this.size === Infinity || index < this.size
-        : this.indexOf(index) !== -1)
-    )
+    index = qu.wrapIndex(this, index)
+    return index >= 0 && (this.size !== undefined ? this.size === Infinity || index < this.size : this.indexOf(index) !== -1)
   },
-
   interpose(separator) {
-    return reify(this, interposeFactory(this, separator))
+    return qo.reify(this, qo.interposeFactory(this, separator))
   },
-
   interleave(/*...collections*/) {
-    const collections = [this].concat(arrCopy(arguments))
-    const zipped = zipWithFactory(this.toSeq(), IndexedSeq.of, collections)
+    const collections = [this].concat(qu.arrCopy(arguments))
+    const zipped = qo.zipWithFactory(this.toSeq(), IndexedSeq.of, collections)
     const interleaved = zipped.flatten(true)
     if (zipped.size) {
       interleaved.size = zipped.size * collections.length
     }
-    return reify(this, interleaved)
+    return qo.reify(this, interleaved)
   },
-
   keySeq() {
     return Range(0, this.size)
   },
-
-  last(notSetValue) {
-    return this.get(-1, notSetValue)
+  last(v0) {
+    return this.get(-1, v0)
   },
-
-  skipWhile(predicate, context) {
-    return reify(this, skipWhileFactory(this, predicate, context, false))
+  skipWhile(predicate, ctx) {
+    return qo.reify(this, qo.skipWhileFactory(this, predicate, ctx, false))
   },
-
   zip(/*, ...collections */) {
-    const collections = [this].concat(arrCopy(arguments))
-    return reify(this, zipWithFactory(this, defaultZipper, collections))
+    const collections = [this].concat(qu.arrCopy(arguments))
+    return qo.reify(this, qo.zipWithFactory(this, defaultZipper, collections))
   },
-
   zipAll(/*, ...collections */) {
-    const collections = [this].concat(arrCopy(arguments))
-    return reify(this, zipWithFactory(this, defaultZipper, collections, true))
+    const collections = [this].concat(qu.arrCopy(arguments))
+    return qo.reify(this, qo.zipWithFactory(this, defaultZipper, collections, true))
   },
-
   zipWith(zipper /*, ...collections */) {
-    const collections = arrCopy(arguments)
+    const collections = qu.arrCopy(arguments)
     collections[0] = this
-    return reify(this, zipWithFactory(this, zipper, collections))
+    return qo.reify(this, qo.zipWithFactory(this, zipper, collections))
   },
 })
 
 const IndexedCollectionPrototype = IndexedCollection.prototype
-IndexedCollectionPrototype[IS_INDEXED_SYMBOL] = true
-IndexedCollectionPrototype[IS_ORDERED_SYMBOL] = true
+IndexedCollectionPrototype[qu.IS_INDEXED_SYMBOL] = true
+IndexedCollectionPrototype[qu.IS_ORDERED_SYMBOL] = true
 
-mixin(SetCollection, {
-  // ### ES6 Collection methods (ES6 Array and Map)
-
-  get(value, notSetValue) {
-    return this.has(value) ? value : notSetValue
+qu.mixin(SetCollection, {
+  get(value, v0) {
+    return this.has(value) ? value : v0
   },
-
   includes(value) {
     return this.has(value)
   },
-
-  // ### More sequential methods
-
   keySeq() {
     return this.valueSeq()
   },
@@ -712,61 +454,50 @@ SetCollectionPrototype.has = CollectionPrototype.includes
 SetCollectionPrototype.contains = SetCollectionPrototype.includes
 SetCollectionPrototype.keys = SetCollectionPrototype.values
 
-// Mixin subclasses
+qu.mixin(KeyedSeq, KeyedCollectionPrototype)
+qu.mixin(IndexedSeq, IndexedCollectionPrototype)
+qu.mixin(SetSeq, SetCollectionPrototype)
 
-mixin(KeyedSeq, KeyedCollectionPrototype)
-mixin(IndexedSeq, IndexedCollectionPrototype)
-mixin(SetSeq, SetCollectionPrototype)
-
-// #pragma Helper functions
-
-function reduce(collection, reducer, reduction, context, useFirst, reverse) {
-  assertNotInfinite(collection.size)
+function reduce(collection, reducer, reduction, ctx, useFirst, reverse) {
+  qu.assertNotInfinite(collection.size)
   collection.__iterate((v, k, c) => {
     if (useFirst) {
       useFirst = false
       reduction = v
     } else {
-      reduction = reducer.call(context, reduction, v, k, c)
+      reduction = reducer.call(ctx, reduction, v, k, c)
     }
   }, reverse)
   return reduction
 }
-
 function keyMapper(v, k) {
   return k
 }
-
 function entryMapper(v, k) {
   return [k, v]
 }
-
 function not(predicate) {
   return function () {
     return !predicate.apply(this, arguments)
   }
 }
-
 function neg(predicate) {
   return function () {
     return -predicate.apply(this, arguments)
   }
 }
-
 function defaultZipper() {
-  return arrCopy(arguments)
+  return qu.arrCopy(arguments)
 }
-
 function defaultNegComparator(a, b) {
   return a < b ? 1 : a > b ? -1 : 0
 }
-
 function hashCollection(collection) {
   if (collection.size === Infinity) {
     return 0
   }
-  const ordered = isOrdered(collection)
-  const keyed = isKeyed(collection)
+  const ordered = qu.isOrdered(collection)
+  const keyed = qu.isKeyed(collection)
   let h = ordered ? 1 : 0
   const size = collection.__iterate(
     keyed
@@ -787,18 +518,16 @@ function hashCollection(collection) {
   )
   return murmurHashOfSize(size, h)
 }
-
 function murmurHashOfSize(size, h) {
-  h = imul(h, 0xcc9e2d51)
-  h = imul((h << 15) | (h >>> -15), 0x1b873593)
-  h = imul((h << 13) | (h >>> -13), 5)
+  h = qu.imul(h, 0xcc9e2d51)
+  h = qu.imul((h << 15) | (h >>> -15), 0x1b873593)
+  h = qu.imul((h << 13) | (h >>> -13), 5)
   h = ((h + 0xe6546b64) | 0) ^ size
-  h = imul(h ^ (h >>> 16), 0x85ebca6b)
-  h = imul(h ^ (h >>> 13), 0xc2b2ae35)
-  h = smi(h ^ (h >>> 16))
+  h = qu.imul(h ^ (h >>> 16), 0x85ebca6b)
+  h = qu.imul(h ^ (h >>> 13), 0xc2b2ae35)
+  h = qu.smi(h ^ (h >>> 16))
   return h
 }
-
 function hashMerge(a, b) {
   return (a ^ (b + 0x9e3779b9 + (a << 6) + (a >> 2))) | 0 // int
 }

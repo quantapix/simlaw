@@ -1,282 +1,165 @@
-import { isImmutable } from '../predicates/isImmutable';
-import { has } from './has';
+import { emptyMap } from "./map.js"
+import { IndexedCollection, KeyedCollection } from "./collection.js"
+import * as qu from "./utils.js"
+import { Seq } from "./seq.js"
+import { set } from "./set.js"
 
-export function get(collection, key, notSetValue) {
-  return isImmutable(collection)
-    ? collection.get(key, notSetValue)
-    : !has(collection, key)
-    ? notSetValue
-    : typeof collection.get === 'function'
-    ? collection.get(key)
-    : collection[key];
+export function get(x, k, v0) {
+  return qu.isImmutable(x) ? x.get(k, v0) : !has(x, k) ? v0 : typeof x.get === "function" ? x.get(k) : x[k]
 }
-import coerceKeyPath from '../utils/coerceKeyPath';
-import { NOT_SET } from '../TrieUtils';
-import { get } from './get';
 
-export function getIn(collection, searchKeyPath, notSetValue) {
-  const keyPath = coerceKeyPath(searchKeyPath);
-  let i = 0;
+export function getIn(x, searchKeyPath, v0) {
+  const keyPath = qu.coerceKeyPath(searchKeyPath)
+  let i = 0
   while (i !== keyPath.length) {
-    collection = get(collection, keyPath[i++], NOT_SET);
-    if (collection === NOT_SET) {
-      return notSetValue;
-    }
+    x = get(x, keyPath[i++], qu.NOT_SET)
+    if (x === qu.NOT_SET) return v0
   }
-  return collection;
-}
-import { isImmutable } from '../predicates/isImmutable';
-import hasOwnProperty from '../utils/hasOwnProperty';
-import isDataStructure from '../utils/isDataStructure';
-
-export function has(collection, key) {
-  return isImmutable(collection)
-    ? collection.has(key)
-    : isDataStructure(collection) && hasOwnProperty.call(collection, key);
-}
-import { getIn } from './getIn';
-import { NOT_SET } from '../TrieUtils';
-
-export function hasIn(collection, keyPath) {
-  return getIn(collection, keyPath, NOT_SET) !== NOT_SET;
-}
-import { isImmutable } from '../predicates/isImmutable';
-import { isIndexed } from '../predicates/isIndexed';
-import { isKeyed } from '../predicates/isKeyed';
-import { IndexedCollection, KeyedCollection } from '../Collection';
-import { Seq } from '../Seq';
-import hasOwnProperty from '../utils/hasOwnProperty';
-import isDataStructure from '../utils/isDataStructure';
-import shallowCopy from '../utils/shallowCopy';
-
-export function merge(collection, ...sources) {
-  return mergeWithSources(collection, sources);
+  return x
 }
 
-export function mergeWith(merger, collection, ...sources) {
-  return mergeWithSources(collection, sources, merger);
+export function has(x, k) {
+  return qu.isImmutable(x) ? x.has(k) : qu.isDataStructure(x) && qu.hasOwnProperty.call(x, k)
+}
+
+export function hasIn(x, keyPath) {
+  return getIn(x, keyPath, qu.NOT_SET) !== qu.NOT_SET
+}
+
+export function merge(x, ...xs) {
+  return mergeWithSources(x, xs)
+}
+
+export function mergeWith(merger, x, ...xs) {
+  return mergeWithSources(x, xs, merger)
 }
 
 export function mergeDeep(collection, ...sources) {
-  return mergeDeepWithSources(collection, sources);
+  return mergeDeepWithSources(collection, sources)
 }
 
 export function mergeDeepWith(merger, collection, ...sources) {
-  return mergeDeepWithSources(collection, sources, merger);
+  return mergeDeepWithSources(collection, sources, merger)
 }
 
 export function mergeDeepWithSources(collection, sources, merger) {
-  return mergeWithSources(collection, sources, deepMergerWith(merger));
+  return mergeWithSources(collection, sources, deepMergerWith(merger))
 }
 
-export function mergeWithSources(collection, sources, merger) {
-  if (!isDataStructure(collection)) {
-    throw new TypeError(
-      'Cannot merge into non-data-structure value: ' + collection
-    );
+export function mergeWithSources(x, xs, f) {
+  if (!qu.isDataStructure(x)) {
+    throw new TypeError("Cannot merge into non-data-structure value: " + x)
   }
-  if (isImmutable(collection)) {
-    return typeof merger === 'function' && collection.mergeWith
-      ? collection.mergeWith(merger, ...sources)
-      : collection.merge
-      ? collection.merge(...sources)
-      : collection.concat(...sources);
+  if (qu.isImmutable(x)) {
+    return typeof f === "function" && x.mergeWith ? x.mergeWith(f, ...xs) : x.merge ? x.merge(...xs) : x.concat(...xs)
   }
-  const isArray = Array.isArray(collection);
-  let merged = collection;
-  const Collection = isArray ? IndexedCollection : KeyedCollection;
+  const isArray = Array.isArray(x)
+  let y = x
+  const Collection = isArray ? IndexedCollection : KeyedCollection
   const mergeItem = isArray
-    ? value => {
-        // Copy on write
-        if (merged === collection) {
-          merged = shallowCopy(merged);
-        }
-        merged.push(value);
+    ? v => {
+        if (y === x) y = qu.shallowCopy(y)
+        y.push(v)
       }
-    : (value, key) => {
-        const hasVal = hasOwnProperty.call(merged, key);
-        const nextVal =
-          hasVal && merger ? merger(merged[key], value, key) : value;
-        if (!hasVal || nextVal !== merged[key]) {
-          // Copy on write
-          if (merged === collection) {
-            merged = shallowCopy(merged);
-          }
-          merged[key] = nextVal;
+    : (v, k) => {
+        const hasVal = qu.hasOwnProperty.call(y, k)
+        const nextVal = hasVal && f ? f(y[k], v, k) : v
+        if (!hasVal || nextVal !== y[k]) {
+          if (y === x) y = qu.shallowCopy(y)
+          y[k] = nextVal
         }
-      };
-  for (let i = 0; i < sources.length; i++) {
-    Collection(sources[i]).forEach(mergeItem);
+      }
+  for (let i = 0; i < xs.length; i++) {
+    Collection(xs[i]).forEach(mergeItem)
   }
-  return merged;
+  return y
 }
 
 function deepMergerWith(merger) {
   function deepMerger(oldValue, newValue, key) {
-    return isDataStructure(oldValue) &&
-      isDataStructure(newValue) &&
-      areMergeable(oldValue, newValue)
+    return qu.isDataStructure(oldValue) && qu.isDataStructure(newValue) && areMergeable(oldValue, newValue)
       ? mergeWithSources(oldValue, [newValue], deepMerger)
       : merger
       ? merger(oldValue, newValue, key)
-      : newValue;
+      : newValue
   }
-  return deepMerger;
+  return deepMerger
 }
 
-/**
- * It's unclear what the desired behavior is for merging two collections that
- * fall into separate categories between keyed, indexed, or set-like, so we only
- * consider them mergeable if they fall into the same category.
- */
 function areMergeable(oldDataStructure, newDataStructure) {
-  const oldSeq = Seq(oldDataStructure);
-  const newSeq = Seq(newDataStructure);
-  // This logic assumes that a sequence can only fall into one of the three
-  // categories mentioned above (since there's no `isSetLike()` method).
-  return (
-    isIndexed(oldSeq) === isIndexed(newSeq) &&
-    isKeyed(oldSeq) === isKeyed(newSeq)
-  );
+  const oldSeq = Seq(oldDataStructure)
+  const newSeq = Seq(newDataStructure)
+  return qu.isIndexed(oldSeq) === qu.isIndexed(newSeq) && qu.isKeyed(oldSeq) === qu.isKeyed(newSeq)
 }
-import { isImmutable } from '../predicates/isImmutable';
-import hasOwnProperty from '../utils/hasOwnProperty';
-import isDataStructure from '../utils/isDataStructure';
-import shallowCopy from '../utils/shallowCopy';
 
-export function remove(collection, key) {
-  if (!isDataStructure(collection)) {
-    throw new TypeError(
-      'Cannot update non-data-structure value: ' + collection
-    );
+export function remove(x, k) {
+  if (!qu.isDataStructure(x)) {
+    throw new TypeError("Cannot update non-data-structure value: " + x)
   }
-  if (isImmutable(collection)) {
-    if (!collection.remove) {
-      throw new TypeError(
-        'Cannot update immutable value without .remove() method: ' + collection
-      );
+  if (qu.isImmutable(x)) {
+    if (!x.remove) {
+      throw new TypeError("Cannot update immutable value without .remove() method: " + x)
     }
-    return collection.remove(key);
+    return x.remove(k)
   }
-  if (!hasOwnProperty.call(collection, key)) {
-    return collection;
-  }
-  const collectionCopy = shallowCopy(collection);
-  if (Array.isArray(collectionCopy)) {
-    collectionCopy.splice(key, 1);
-  } else {
-    delete collectionCopy[key];
-  }
-  return collectionCopy;
+  if (!qu.hasOwnProperty.call(x, k)) return x
+  const y = qu.shallowCopy(x)
+  if (Array.isArray(y)) y.splice(k, 1)
+  else delete y[k]
+  return y
 }
-import { updateIn } from './updateIn';
-import { NOT_SET } from '../TrieUtils';
 
 export function removeIn(collection, keyPath) {
-  return updateIn(collection, keyPath, () => NOT_SET);
+  return updateIn(collection, keyPath, () => qu.NOT_SET)
 }
-import { isImmutable } from '../predicates/isImmutable';
-import hasOwnProperty from '../utils/hasOwnProperty';
-import isDataStructure from '../utils/isDataStructure';
-import shallowCopy from '../utils/shallowCopy';
 
 export function set(collection, key, value) {
-  if (!isDataStructure(collection)) {
-    throw new TypeError(
-      'Cannot update non-data-structure value: ' + collection
-    );
+  if (!qu.isDataStructure(collection)) {
+    throw new TypeError("Cannot update non-data-structure value: " + collection)
   }
-  if (isImmutable(collection)) {
+  if (qu.isImmutable(collection)) {
     if (!collection.set) {
-      throw new TypeError(
-        'Cannot update immutable value without .set() method: ' + collection
-      );
+      throw new TypeError("Cannot update immutable value without .set() method: " + collection)
     }
-    return collection.set(key, value);
+    return collection.set(key, value)
   }
-  if (hasOwnProperty.call(collection, key) && value === collection[key]) {
-    return collection;
+  if (qu.hasOwnProperty.call(collection, key) && value === collection[key]) {
+    return collection
   }
-  const collectionCopy = shallowCopy(collection);
-  collectionCopy[key] = value;
-  return collectionCopy;
+  const collectionCopy = qu.shallowCopy(collection)
+  collectionCopy[key] = value
+  return collectionCopy
 }
-import { updateIn } from './updateIn';
-import { NOT_SET } from '../TrieUtils';
 
-export function setIn(collection, keyPath, value) {
-  return updateIn(collection, keyPath, NOT_SET, () => value);
+export function setIn(x, keyPath, v) {
+  return updateIn(x, keyPath, qu.NOT_SET, () => v)
 }
-import { updateIn } from './updateIn';
 
-export function update(collection, key, notSetValue, updater) {
-  return updateIn(collection, [key], notSetValue, updater);
+export function update(x, k, v0, f) {
+  return updateIn(x, [k], v0, f)
 }
-import { isImmutable } from '../predicates/isImmutable';
-import coerceKeyPath from '../utils/coerceKeyPath';
-import isDataStructure from '../utils/isDataStructure';
-import quoteString from '../utils/quoteString';
-import { NOT_SET } from '../TrieUtils';
-import { emptyMap } from '../Map';
-import { get } from './get';
-import { remove } from './remove';
-import { set } from './set';
 
-export function updateIn(collection, keyPath, notSetValue, updater) {
-  if (!updater) {
-    updater = notSetValue;
-    notSetValue = undefined;
+export function updateIn(x, keyPath, v0, f) {
+  if (!f) {
+    f = v0
+    v0 = undefined
   }
-  const updatedValue = updateInDeeply(
-    isImmutable(collection),
-    collection,
-    coerceKeyPath(keyPath),
-    0,
-    notSetValue,
-    updater
-  );
-  return updatedValue === NOT_SET ? notSetValue : updatedValue;
+  const y = updateInDeeply(qu.isImmutable(x), x, qu.coerceKeyPath(keyPath), 0, v0, f)
+  return y === qu.NOT_SET ? v0 : y
 }
 
-function updateInDeeply(
-  inImmutable,
-  existing,
-  keyPath,
-  i,
-  notSetValue,
-  updater
-) {
-  const wasNotSet = existing === NOT_SET;
+function updateInDeeply(inImmutable, existing, keyPath, i, notSetValue, updater) {
+  const wasNotSet = existing === qu.NOT_SET
   if (i === keyPath.length) {
-    const existingValue = wasNotSet ? notSetValue : existing;
-    const newValue = updater(existingValue);
-    return newValue === existingValue ? existing : newValue;
+    const existingValue = wasNotSet ? notSetValue : existing
+    const newValue = updater(existingValue)
+    return newValue === existingValue ? existing : newValue
   }
-  if (!wasNotSet && !isDataStructure(existing)) {
-    throw new TypeError(
-      'Cannot update within non-data-structure value in path [' +
-        keyPath.slice(0, i).map(quoteString) +
-        ']: ' +
-        existing
-    );
+  if (!wasNotSet && !qu.isDataStructure(existing)) {
+    throw new TypeError("Cannot update within non-data-structure value in path [" + keyPath.slice(0, i).map(qu.quoteString) + "]: " + existing)
   }
-  const key = keyPath[i];
-  const nextExisting = wasNotSet ? NOT_SET : get(existing, key, NOT_SET);
-  const nextUpdated = updateInDeeply(
-    nextExisting === NOT_SET ? inImmutable : isImmutable(nextExisting),
-    nextExisting,
-    keyPath,
-    i + 1,
-    notSetValue,
-    updater
-  );
-  return nextUpdated === nextExisting
-    ? existing
-    : nextUpdated === NOT_SET
-    ? remove(existing, key)
-    : set(
-        wasNotSet ? (inImmutable ? emptyMap() : {}) : existing,
-        key,
-        nextUpdated
-      );
+  const key = keyPath[i]
+  const nextExisting = wasNotSet ? qu.NOT_SET : get(existing, key, qu.NOT_SET)
+  const nextUpdated = updateInDeeply(nextExisting === qu.NOT_SET ? inImmutable : qu.isImmutable(nextExisting), nextExisting, keyPath, i + 1, notSetValue, updater)
+  return nextUpdated === nextExisting ? existing : nextUpdated === qu.NOT_SET ? remove(existing, key) : set(wasNotSet ? (inImmutable ? emptyMap() : {}) : existing, key, nextUpdated)
 }
