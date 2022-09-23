@@ -1,4 +1,4 @@
-import { hash } from "./hash.js"
+/* eslint-disable @typescript-eslint/no-namespace */
 import { List } from "./list.js"
 import { Map } from "./map.js"
 import { OrderedMap, OrderedSet } from "./ordered.js"
@@ -12,6 +12,10 @@ import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
 export class Collection<K, V> implements qt.Collection<K, V> {
+  constructor(x) {
+    return qu.isCollection(x) ? x : new Seq(x)
+  }
+
   __toString(head, tail) {
     if (this.size === 0) return head + tail
     return head + " " + this.toSeq().map(this.__toStringMapper).join(", ") + " " + tail
@@ -279,11 +283,26 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   }
 }
 
-export class Collection {
-  constructor(x) {
-    return qu.isCollection(x) ? x : new Seq(x)
-  }
+export namespace Collection {
+  export function isKeyed(x: unknown): x is qt.Collection.Keyed<unknown, unknown>
+  export function isIndexed(x: unknown): x is qt.Collection.Indexed<unknown>
+  export function isAssociative(x: unknown): x is qt.Collection.Keyed<unknown, unknown> | Collection.Indexed<unknown>
+  export function isOrdered(x: unknown): boolean
+  export namespace Keyed {}
+  export function Keyed<K, V>(x?: Iterable<[K, V]>): qt.Collection.Keyed<K, V>
+  export function Keyed<V>(x: qt.Dict<V>): qt.Collection.Keyed<string, V>
+  export namespace Indexed {}
+  export function Indexed<V>(x?: Iterable<V> | ArrayLike<V>): qt.Collection.Indexed<V>
+  export namespace Set {}
+  export function Set<K>(x?: Iterable<K> | ArrayLike<K>): qt.Collection.Set<K>
 }
+/*
+export function Collection<T extends Collection<unknown, unknown>>(x: T): T
+export function Collection<T>(x: Iterable<T> | ArrayLike<T>): qt.Collection.Indexed<T>
+export function Collection<V>(x: qt.Dict<V>): qt.Collection.Keyed<string, V>
+export function Collection<K = unknown, V = unknown>(): Collection<K, V>
+*/
+
 export class KeyedCollection extends Collection {
   constructor(x) {
     return qu.isKeyed(x) ? x : KeyedSeq(x)
@@ -299,6 +318,7 @@ export class SetCollection extends Collection {
     return qu.isCollection(value) && !qu.isAssociative(value) ? value : SetSeq(value)
   }
 }
+
 Collection.Keyed = KeyedCollection
 Collection.Indexed = IndexedCollection
 Collection.Set = SetCollection
@@ -503,17 +523,17 @@ function hashCollection(collection) {
     keyed
       ? ordered
         ? (v, k) => {
-            h = (31 * h + hashMerge(hash(v), hash(k))) | 0
+            h = (31 * h + hashMerge(qu.hash(v), qu.hash(k))) | 0
           }
         : (v, k) => {
-            h = (h + hashMerge(hash(v), hash(k))) | 0
+            h = (h + hashMerge(qu.hash(v), qu.hash(k))) | 0
           }
       : ordered
       ? v => {
-          h = (31 * h + hash(v)) | 0
+          h = (31 * h + qu.hash(v)) | 0
         }
       : v => {
-          h = (h + hash(v)) | 0
+          h = (h + qu.hash(v)) | 0
         }
   )
   return murmurHashOfSize(size, h)

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 import { toJS } from "./toJS.js"
 import { KeyedCollection } from "./Collection.js"
 import { keyedSeqFromValue } from "./Seq.js"
@@ -18,37 +19,25 @@ import { mergeDeepIn } from "./methods/mergeDeepIn"
 import { withMutations } from "./methods/withMutations"
 import { asMutable } from "./methods/asMutable"
 import { asImmutable } from "./methods/asImmutable"
-
 import invariant from "./utils/invariant"
 import quoteString from "./utils/quoteString"
 import { isImmutable } from "./predicates/isImmutable"
 
 function throwOnInvalidDefaultValues(defaultValues) {
   if (isRecord(defaultValues)) {
-    throw new Error(
-      "Can not call `Record` with an immutable Record as default values. Use a plain javascript object instead."
-    )
+    throw new Error("Can not call `Record` with an immutable Record as default values. Use a plain javascript object instead.")
   }
-
   if (isImmutable(defaultValues)) {
-    throw new Error(
-      "Can not call `Record` with an immutable Collection as default values. Use a plain javascript object instead."
-    )
+    throw new Error("Can not call `Record` with an immutable Collection as default values. Use a plain javascript object instead.")
   }
-
   if (defaultValues === null || typeof defaultValues !== "object") {
-    throw new Error(
-      "Can not call `Record` with a non-object as default values. Use a plain javascript object instead."
-    )
+    throw new Error("Can not call `Record` with a non-object as default values. Use a plain javascript object instead.")
   }
 }
-
 export class Record {
   constructor(defaultValues, name) {
     let hasInitialized
-
     throwOnInvalidDefaultValues(defaultValues)
-
     const RecordType = function Record(values) {
       if (values instanceof RecordType) {
         return values
@@ -71,15 +60,7 @@ export class Record {
           indices[propName] = i
           if (RecordTypePrototype[propName]) {
             /* eslint-disable no-console */
-            typeof console === "object" &&
-              console.warn &&
-              console.warn(
-                "Cannot define " +
-                  recordName(this) +
-                  ' with property "' +
-                  propName +
-                  '" since that property name is part of the Record API.'
-              )
+            typeof console === "object" && console.warn && console.warn("Cannot define " + recordName(this) + ' with property "' + propName + '" since that property name is part of the Record API.')
             /* eslint-enable no-console */
           } else {
             setProp(RecordTypePrototype, propName)
@@ -95,18 +76,13 @@ export class Record {
       })
       return this
     }
-
-    const RecordTypePrototype = (RecordType.prototype =
-      Object.create(RecordPrototype))
+    const RecordTypePrototype = (RecordType.prototype = Object.create(RecordPrototype))
     RecordTypePrototype.constructor = RecordType
-
     if (name) {
       RecordType.displayName = name
     }
-
     return RecordType
   }
-
   toString() {
     let str = recordName(this) + " { "
     const keys = this._keys
@@ -117,24 +93,16 @@ export class Record {
     }
     return str + " }"
   }
-
   equals(other) {
-    return (
-      this === other ||
-      (isRecord(other) && recordSeq(this).equals(recordSeq(other)))
-    )
+    return this === other || (isRecord(other) && recordSeq(this).equals(recordSeq(other)))
   }
-
   hashCode() {
     return recordSeq(this).hashCode()
   }
-
   // @pragma Access
-
   has(k) {
     return this._indices.hasOwnProperty(k)
   }
-
   get(k, notSetValue) {
     if (!this.has(k)) {
       return notSetValue
@@ -143,56 +111,41 @@ export class Record {
     const value = this._values.get(index)
     return value === undefined ? this._defaultValues[k] : value
   }
-
   // @pragma Modification
-
   set(k, v) {
     if (this.has(k)) {
-      const newValues = this._values.set(
-        this._indices[k],
-        v === this._defaultValues[k] ? undefined : v
-      )
+      const newValues = this._values.set(this._indices[k], v === this._defaultValues[k] ? undefined : v)
       if (newValues !== this._values && !this.__ownerID) {
         return makeRecord(this, newValues)
       }
     }
     return this
   }
-
   remove(k) {
     return this.set(k)
   }
-
   clear() {
     const newValues = this._values.clear().setSize(this._keys.length)
-
     return this.__ownerID ? this : makeRecord(this, newValues)
   }
-
   wasAltered() {
     return this._values.wasAltered()
   }
-
   toSeq() {
     return recordSeq(this)
   }
-
   toJS() {
     return toJS(this)
   }
-
   entries() {
     return this.__iterator(ITERATE_ENTRIES)
   }
-
   __iterator(type, reverse) {
     return recordSeq(this).__iterator(type, reverse)
   }
-
   __iterate(fn, reverse) {
     return recordSeq(this).__iterate(fn, reverse)
   }
-
   __ensureOwner(ownerID) {
     if (ownerID === this.__ownerID) {
       return this
@@ -206,6 +159,15 @@ export class Record {
     return makeRecord(this, newValues, ownerID)
   }
 }
+
+export namespace Record {
+  function isRecord(maybeRecord: unknown): maybeRecord is Record<{}>
+  function getDescriptiveName(record: Record<any>): string
+  namespace Factory {}
+  function Factory<TProps extends object>(values?: Partial<TProps> | Iterable<[string, unknown]>): Record<TProps> & Readonly<TProps>
+}
+
+//function Record<TProps extends object>(defaultValues: TProps, name?: string): Record.Factory<TProps>
 
 Record.isRecord = isRecord
 Record.getDescriptiveName = recordName
@@ -232,22 +194,18 @@ RecordPrototype.toJSON = RecordPrototype.toObject = CollectionPrototype.toObject
 RecordPrototype.inspect = RecordPrototype.toSource = function () {
   return this.toString()
 }
-
 function makeRecord(likeRecord, values, ownerID) {
   const record = Object.create(Object.getPrototypeOf(likeRecord))
   record._values = values
   record.__ownerID = ownerID
   return record
 }
-
 function recordName(record) {
   return record.constructor.displayName || record.constructor.name || "Record"
 }
-
 function recordSeq(record) {
   return keyedSeqFromValue(record._keys.map(k => [k, record.get(k)]))
 }
-
 function setProp(prototype, name) {
   try {
     Object.defineProperty(prototype, name, {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 import { wrapIndex } from "./TrieUtils.js"
 import { Collection } from "./Collection.js"
 import { IS_SEQ_SYMBOL, isSeq } from "./predicates/isSeq"
@@ -7,37 +8,20 @@ import { isKeyed } from "./predicates/isKeyed"
 import { isAssociative } from "./predicates/isAssociative"
 import { isRecord } from "./predicates/isRecord"
 import { IS_ORDERED_SYMBOL } from "./predicates/isOrdered"
-import {
-  Iterator,
-  iteratorValue,
-  iteratorDone,
-  hasIterator,
-  isIterator,
-  getIterator,
-  isEntriesIterable,
-  isKeysIterable,
-} from "./Iterator"
-
+import { Iterator, iteratorValue, iteratorDone, hasIterator, isIterator, getIterator, isEntriesIterable, isKeysIterable } from "./Iterator"
 import hasOwnProperty from "./utils/hasOwnProperty"
 import isArrayLike from "./utils/isArrayLike"
 
 export class Seq extends Collection {
   constructor(value) {
-    return value === undefined || value === null
-      ? emptySequence()
-      : isImmutable(value)
-      ? value.toSeq()
-      : seqFromValue(value)
+    return value === undefined || value === null ? emptySequence() : isImmutable(value) ? value.toSeq() : seqFromValue(value)
   }
-
   toSeq() {
     return this
   }
-
   toString() {
     return this.__toString("Seq {", "}")
   }
-
   cacheResult() {
     if (!this._cache && this.__iterateUncached) {
       this._cache = this.entrySeq().toArray()
@@ -45,9 +29,7 @@ export class Seq extends Collection {
     }
     return this
   }
-
   // abstract __iterateUncached(fn, reverse)
-
   __iterate(fn, reverse) {
     const cache = this._cache
     if (cache) {
@@ -63,9 +45,7 @@ export class Seq extends Collection {
     }
     return this.__iterateUncached(fn, reverse)
   }
-
   // abstract __iteratorUncached(type, reverse)
-
   __iterator(type, reverse) {
     const cache = this._cache
     if (cache) {
@@ -83,6 +63,29 @@ export class Seq extends Collection {
   }
 }
 
+export namespace Seq {
+  function isSeq(maybeSeq: unknown): maybeSeq is Seq.Indexed<unknown> | Seq.Keyed<unknown, unknown> | Seq.Set<unknown>
+  namespace Keyed {}
+  function Keyed<K, V>(collection?: Iterable<[K, V]>): Seq.Keyed<K, V>
+  function Keyed<V>(obj: Dict<V>): Seq.Keyed<string, V>
+  namespace Indexed {
+    function of<T>(...xs: Array<T>): Seq.Indexed<T>
+  }
+  function Indexed<T>(collection?: Iterable<T> | ArrayLike<T>): Seq.Indexed<T>
+  namespace Set {
+    function of<T>(...xs: Array<T>): Seq.Set<T>
+  }
+  function Set<T>(collection?: Iterable<T> | ArrayLike<T>): Seq.Set<T>
+}
+/*
+function Seq<S extends Seq<unknown, unknown>>(seq: S): S
+function Seq<K, V>(collection: Collection.Keyed<K, V>): Seq.Keyed<K, V>
+function Seq<T>(collection: Collection.Set<T>): Seq.Set<T>
+function Seq<T>(collection: Collection.Indexed<T> | Iterable<T> | ArrayLike<T>): Seq.Indexed<T>
+function Seq<V>(obj: Dict<V>): Seq.Keyed<string, V>
+function Seq<K = unknown, V = unknown>(): Seq<K, V>
+*/
+
 export class KeyedSeq extends Seq {
   constructor(value) {
     return value === undefined || value === null
@@ -95,12 +98,10 @@ export class KeyedSeq extends Seq {
       ? value.toSeq()
       : keyedSeqFromValue(value)
   }
-
   toKeyedSeq() {
     return this
   }
 }
-
 export class IndexedSeq extends Seq {
   constructor(value) {
     return value === undefined || value === null
@@ -113,55 +114,41 @@ export class IndexedSeq extends Seq {
       ? value.toSeq().entrySeq()
       : indexedSeqFromValue(value)
   }
-
   static of(/*...values*/) {
     return IndexedSeq(arguments)
   }
-
   toIndexedSeq() {
     return this
   }
-
   toString() {
     return this.__toString("Seq [", "]")
   }
 }
-
 export class SetSeq extends Seq {
   constructor(value) {
-    return (
-      isCollection(value) && !isAssociative(value) ? value : IndexedSeq(value)
-    ).toSetSeq()
+    return (isCollection(value) && !isAssociative(value) ? value : IndexedSeq(value)).toSetSeq()
   }
-
   static of(/*...values*/) {
     return SetSeq(arguments)
   }
-
   toSetSeq() {
     return this
   }
 }
-
 Seq.isSeq = isSeq
 Seq.Keyed = KeyedSeq
 Seq.Set = SetSeq
 Seq.Indexed = IndexedSeq
-
 Seq.prototype[IS_SEQ_SYMBOL] = true
-
 // #pragma Root Sequences
-
 export class ArraySeq extends IndexedSeq {
   constructor(array) {
     this._array = array
     this.size = array.length
   }
-
   get(index, notSetValue) {
     return this.has(index) ? this._array[wrapIndex(this, index)] : notSetValue
   }
-
   __iterate(fn, reverse) {
     const array = this._array
     const size = array.length
@@ -174,7 +161,6 @@ export class ArraySeq extends IndexedSeq {
     }
     return i
   }
-
   __iterator(type, reverse) {
     const array = this._array
     const size = array.length
@@ -188,28 +174,22 @@ export class ArraySeq extends IndexedSeq {
     })
   }
 }
-
 class ObjectSeq extends KeyedSeq {
   constructor(object) {
-    const keys = Object.keys(object).concat(
-      Object.getOwnPropertySymbols ? Object.getOwnPropertySymbols(object) : []
-    )
+    const keys = Object.keys(object).concat(Object.getOwnPropertySymbols ? Object.getOwnPropertySymbols(object) : [])
     this._object = object
     this._keys = keys
     this.size = keys.length
   }
-
   get(key, notSetValue) {
     if (notSetValue !== undefined && !this.has(key)) {
       return notSetValue
     }
     return this._object[key]
   }
-
   has(key) {
     return hasOwnProperty.call(this._object, key)
   }
-
   __iterate(fn, reverse) {
     const object = this._object
     const keys = this._keys
@@ -223,7 +203,6 @@ class ObjectSeq extends KeyedSeq {
     }
     return i
   }
-
   __iterator(type, reverse) {
     const object = this._object
     const keys = this._keys
@@ -239,13 +218,11 @@ class ObjectSeq extends KeyedSeq {
   }
 }
 ObjectSeq.prototype[IS_ORDERED_SYMBOL] = true
-
 class CollectionSeq extends IndexedSeq {
   constructor(collection) {
     this._collection = collection
     this.size = collection.length || collection.size
   }
-
   __iterateUncached(fn, reverse) {
     if (reverse) {
       return this.cacheResult().__iterate(fn, reverse)
@@ -263,7 +240,6 @@ class CollectionSeq extends IndexedSeq {
     }
     return iterations
   }
-
   __iteratorUncached(type, reverse) {
     if (reverse) {
       return this.cacheResult().__iterator(type, reverse)
@@ -280,15 +256,11 @@ class CollectionSeq extends IndexedSeq {
     })
   }
 }
-
 // # pragma Helper functions
-
 let EMPTY_SEQ
-
 function emptySequence() {
   return EMPTY_SEQ || (EMPTY_SEQ = new ArraySeq([]))
 }
-
 export function keyedSeqFromValue(value) {
   const seq = maybeIndexedSeqFromValue(value)
   if (seq) {
@@ -297,12 +269,8 @@ export function keyedSeqFromValue(value) {
   if (typeof value === "object") {
     return new ObjectSeq(value)
   }
-  throw new TypeError(
-    "Expected Array or collection object of [k, v] entries, or keyed object: " +
-      value
-  )
+  throw new TypeError("Expected Array or collection object of [k, v] entries, or keyed object: " + value)
 }
-
 export function indexedSeqFromValue(value) {
   const seq = maybeIndexedSeqFromValue(value)
   if (seq) {
@@ -310,28 +278,16 @@ export function indexedSeqFromValue(value) {
   }
   throw new TypeError("Expected Array or collection object of values: " + value)
 }
-
 function seqFromValue(value) {
   const seq = maybeIndexedSeqFromValue(value)
   if (seq) {
-    return isEntriesIterable(value)
-      ? seq.fromEntrySeq()
-      : isKeysIterable(value)
-      ? seq.toSetSeq()
-      : seq
+    return isEntriesIterable(value) ? seq.fromEntrySeq() : isKeysIterable(value) ? seq.toSetSeq() : seq
   }
   if (typeof value === "object") {
     return new ObjectSeq(value)
   }
-  throw new TypeError(
-    "Expected Array or collection object of values, or keyed object: " + value
-  )
+  throw new TypeError("Expected Array or collection object of values, or keyed object: " + value)
 }
-
 function maybeIndexedSeqFromValue(value) {
-  return isArrayLike(value)
-    ? new ArraySeq(value)
-    : hasIterator(value)
-    ? new CollectionSeq(value)
-    : undefined
+  return isArrayLike(value) ? new ArraySeq(value) : hasIterator(value) ? new CollectionSeq(value) : undefined
 }

@@ -1,14 +1,12 @@
-import { KeyedCollection } from "./Collection.js"
-import { IS_ORDERED_SYMBOL } from "./predicates/isOrdered"
-import { isOrderedMap } from "./predicates/isOrderedMap"
-import { Map, emptyMap } from "./Map.js"
-import { emptyList } from "./List.js"
-import { DELETE, NOT_SET, SIZE } from "./TrieUtils.js"
-import assertNotInfinite from "./utils/assertNotInfinite"
+/* eslint-disable @typescript-eslint/no-namespace */
+import { assertNotInfinite, DELETE, NOT_SET, SIZE, IS_ORDERED_SYMBOL, isOrderedMap, isOrderedSet } from "./utils.js"
+import { emptyList } from "./list.js"
+import { IndexedCollectionPrototype } from "./collection.js"
+import { Map, emptyMap } from "./map.js"
+import { Set } from "./set.js"
+import { SetCollection, KeyedCollection } from "./collection.js"
 
 export class OrderedMap extends Map {
-  // @pragma Construction
-
   constructor(value) {
     return value === undefined || value === null
       ? emptyOrderedMap()
@@ -20,24 +18,16 @@ export class OrderedMap extends Map {
           iter.forEach((v, k) => map.set(k, v))
         })
   }
-
   static of(/*...values*/) {
     return this(arguments)
   }
-
   toString() {
     return this.__toString("OrderedMap {", "}")
   }
-
-  // @pragma Access
-
   get(k, notSetValue) {
     const index = this._map.get(k)
     return index !== undefined ? this._list.get(index)[1] : notSetValue
   }
-
-  // @pragma Modification
-
   clear() {
     if (this.size === 0) {
       return this
@@ -51,26 +41,18 @@ export class OrderedMap extends Map {
     }
     return emptyOrderedMap()
   }
-
   set(k, v) {
     return updateOrderedMap(this, k, v)
   }
-
   remove(k) {
     return updateOrderedMap(this, k, NOT_SET)
   }
-
   __iterate(fn, reverse) {
-    return this._list.__iterate(
-      entry => entry && fn(entry[1], entry[0], this),
-      reverse
-    )
+    return this._list.__iterate(entry => entry && fn(entry[1], entry[0], this), reverse)
   }
-
   __iterator(type, reverse) {
     return this._list.fromEntrySeq().__iterator(type, reverse)
   }
-
   __ensureOwner(ownerID) {
     if (ownerID === this.__ownerID) {
       return this
@@ -91,11 +73,16 @@ export class OrderedMap extends Map {
   }
 }
 
+export namespace OrderedMap {
+  export function isOrderedMap(x: unknown): x is OrderedMap<unknown, unknown>
+}
+/*
+function OrderedMap<K, V>(x?: Iterable<[K, V]>): OrderedMap<K, V>
+function OrderedMap<V>(x: Dict<V>): OrderedMap<string, V>
+*/
 OrderedMap.isOrderedMap = isOrderedMap
-
 OrderedMap.prototype[IS_ORDERED_SYMBOL] = true
 OrderedMap.prototype[DELETE] = OrderedMap.prototype.remove
-
 function makeOrderedMap(map, list, ownerID, hash) {
   const omap = Object.create(OrderedMap.prototype)
   omap.size = map ? map.size : 0
@@ -106,15 +93,10 @@ function makeOrderedMap(map, list, ownerID, hash) {
   omap.__altered = false
   return omap
 }
-
 let EMPTY_ORDERED_MAP
 export function emptyOrderedMap() {
-  return (
-    EMPTY_ORDERED_MAP ||
-    (EMPTY_ORDERED_MAP = makeOrderedMap(emptyMap(), emptyList()))
-  )
+  return EMPTY_ORDERED_MAP || (EMPTY_ORDERED_MAP = makeOrderedMap(emptyMap(), emptyList()))
 }
-
 function updateOrderedMap(omap, k, v) {
   const map = omap._map
   const list = omap._list
@@ -162,17 +144,7 @@ function updateOrderedMap(omap, k, v) {
   return makeOrderedMap(newMap, newList)
 }
 
-import { SetCollection, KeyedCollection } from "./Collection.js"
-import { IS_ORDERED_SYMBOL } from "./predicates/isOrdered"
-import { isOrderedSet } from "./predicates/isOrderedSet"
-import { IndexedCollectionPrototype } from "./CollectionImpl"
-import { Set } from "./Set.js"
-import { emptyOrderedMap } from "./ordered.js"
-import assertNotInfinite from "./utils/assertNotInfinite"
-
 export class OrderedSet extends Set {
-  // @pragma Construction
-
   constructor(value) {
     return value === undefined || value === null
       ? emptyOrderedSet()
@@ -184,31 +156,35 @@ export class OrderedSet extends Set {
           iter.forEach(v => set.add(v))
         })
   }
-
   static of(/*...values*/) {
     return this(arguments)
   }
-
   static fromKeys(value) {
     return this(KeyedCollection(value).keySeq())
   }
-
   toString() {
     return this.__toString("OrderedSet {", "}")
   }
 }
 
-OrderedSet.isOrderedSet = isOrderedSet
+export namespace OrderedSet {
+  function isOrderedSet(maybeOrderedSet: unknown): boolean
+  function of<T>(...xs: Array<T>): OrderedSet<T>
+  function fromKeys<T>(iter: Collection<T, unknown>): OrderedSet<T>
+  function fromKeys(obj: Dict): OrderedSet<string>
+}
+/*
+export function OrderedSet<T>(collection?: Iterable<T> | ArrayLike<T>): OrderedSet<T>
+*/
 
+OrderedSet.isOrderedSet = isOrderedSet
 const OrderedSetPrototype = OrderedSet.prototype
 OrderedSetPrototype[IS_ORDERED_SYMBOL] = true
 OrderedSetPrototype.zip = IndexedCollectionPrototype.zip
 OrderedSetPrototype.zipWith = IndexedCollectionPrototype.zipWith
 OrderedSetPrototype.zipAll = IndexedCollectionPrototype.zipAll
-
 OrderedSetPrototype.__empty = emptyOrderedSet
 OrderedSetPrototype.__make = makeOrderedSet
-
 function makeOrderedSet(map, ownerID) {
   const set = Object.create(OrderedSetPrototype)
   set.size = map ? map.size : 0
@@ -216,10 +192,7 @@ function makeOrderedSet(map, ownerID) {
   set.__ownerID = ownerID
   return set
 }
-
 let EMPTY_ORDERED_SET
 function emptyOrderedSet() {
-  return (
-    EMPTY_ORDERED_SET || (EMPTY_ORDERED_SET = makeOrderedSet(emptyOrderedMap()))
-  )
+  return EMPTY_ORDERED_SET || (EMPTY_ORDERED_SET = makeOrderedSet(emptyOrderedMap()))
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 import { wholeSlice, resolveBegin, resolveEnd, wrapIndex } from "./TrieUtils.js"
 import { IndexedCollection } from "./Collection.js"
 import { ArraySeq } from "./Seq.js"
@@ -10,26 +11,15 @@ import { wasAltered } from "./methods/wasAltered"
 import { withMutations } from "./methods/withMutations"
 
 export class Stack extends IndexedCollection {
-  // @pragma Construction
-
   constructor(value) {
-    return value === undefined || value === null
-      ? emptyStack()
-      : isStack(value)
-      ? value
-      : emptyStack().pushAll(value)
+    return value === undefined || value === null ? emptyStack() : isStack(value) ? value : emptyStack().pushAll(value)
   }
-
   static of(/*...values*/) {
     return this(arguments)
   }
-
   toString() {
     return this.__toString("Stack [", "]")
   }
-
-  // @pragma Access
-
   get(index, notSetValue) {
     let head = this._head
     index = wrapIndex(this, index)
@@ -38,13 +28,9 @@ export class Stack extends IndexedCollection {
     }
     return head ? head.value : notSetValue
   }
-
   peek() {
     return this._head && this._head.value
   }
-
-  // @pragma Modification
-
   push(/*...values*/) {
     if (arguments.length === 0) {
       return this
@@ -66,7 +52,6 @@ export class Stack extends IndexedCollection {
     }
     return makeStack(newSize, head)
   }
-
   pushAll(iter) {
     iter = IndexedCollection(iter)
     if (iter.size === 0) {
@@ -94,11 +79,9 @@ export class Stack extends IndexedCollection {
     }
     return makeStack(newSize, head)
   }
-
   pop() {
     return this.slice(1)
   }
-
   clear() {
     if (this.size === 0) {
       return this
@@ -112,7 +95,6 @@ export class Stack extends IndexedCollection {
     }
     return emptyStack()
   }
-
   slice(begin, end) {
     if (wholeSlice(begin, end, this.size)) {
       return this
@@ -137,9 +119,7 @@ export class Stack extends IndexedCollection {
     }
     return makeStack(newSize, head)
   }
-
   // @pragma Mutability
-
   __ensureOwner(ownerID) {
     if (ownerID === this.__ownerID) {
       return this
@@ -154,15 +134,10 @@ export class Stack extends IndexedCollection {
     }
     return makeStack(this.size, this._head, ownerID, this.__hash)
   }
-
   // @pragma Iteration
-
   __iterate(fn, reverse) {
     if (reverse) {
-      return new ArraySeq(this.toArray()).__iterate(
-        (v, k) => fn(v, k, this),
-        reverse
-      )
+      return new ArraySeq(this.toArray()).__iterate((v, k) => fn(v, k, this), reverse)
     }
     let iterations = 0
     let node = this._head
@@ -174,7 +149,6 @@ export class Stack extends IndexedCollection {
     }
     return iterations
   }
-
   __iterator(type, reverse) {
     if (reverse) {
       return new ArraySeq(this.toArray()).__iterator(type, reverse)
@@ -192,8 +166,15 @@ export class Stack extends IndexedCollection {
   }
 }
 
-Stack.isStack = isStack
+export namespace Stack {
+  export function isStack(x: unknown): x is Stack<unknown>
+  export function of<V>(...xs: Array<V>): Stack<V>
+}
+/*
+function Stack<V>(x?: Iterable<V> | ArrayLike<V>): Stack<V>
+*/
 
+Stack.isStack = isStack
 const StackPrototype = Stack.prototype
 StackPrototype[IS_STACK_SYMBOL] = true
 StackPrototype.shift = StackPrototype.pop
@@ -209,7 +190,6 @@ StackPrototype["@@transducer/step"] = function (result, arr) {
 StackPrototype["@@transducer/result"] = function (obj) {
   return obj.asImmutable()
 }
-
 function makeStack(size, head, ownerID, hash) {
   const map = Object.create(StackPrototype)
   map.size = size
@@ -219,7 +199,6 @@ function makeStack(size, head, ownerID, hash) {
   map.__altered = false
   return map
 }
-
 let EMPTY_STACK
 function emptyStack() {
   return EMPTY_STACK || (EMPTY_STACK = makeStack(0))

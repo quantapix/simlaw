@@ -69,9 +69,7 @@ export function isStack(x: any) {
 }
 
 export function isValueObject(x: any) {
-  return Boolean(
-    x && typeof x.equals === "function" && typeof x.hashCode === "function"
-  )
+  return Boolean(x && typeof x.equals === "function" && typeof x.hashCode === "function")
 }
 
 export const ITERATE_KEYS = 0
@@ -125,10 +123,7 @@ export function getIterator(x) {
   return f && f.call(x)
 }
 function getIteratorFn(x) {
-  const f =
-    x &&
-    ((REAL_ITERATOR_SYMBOL && x[REAL_ITERATOR_SYMBOL]) ||
-      x[FAUX_ITERATOR_SYMBOL])
+  const f = x && ((REAL_ITERATOR_SYMBOL && x[REAL_ITERATOR_SYMBOL]) || x[FAUX_ITERATOR_SYMBOL])
   if (typeof f === "function") return f
 }
 export function isEntriesIterable(x) {
@@ -149,17 +144,12 @@ export function arrCopy(arr, offset) {
   return newArr
 }
 export function assertNotInfinite(size) {
-  invariant(
-    size !== Infinity,
-    "Cannot perform this action with an infinite size."
-  )
+  invariant(size !== Infinity, "Cannot perform this action with an infinite size.")
 }
 export function coerceKeyPath(keyPath) {
   if (isArrayLike(keyPath) && typeof keyPath !== "string") return keyPath
   if (isOrdered(keyPath)) return keyPath.toArray()
-  throw new TypeError(
-    "Invalid keyPath: expected Ordered Collection or Array: " + keyPath
-  )
+  throw new TypeError("Invalid keyPath: expected Ordered Collection or Array: " + keyPath)
 }
 export function createClass(ctor, superClass) {
   if (superClass) ctor.prototype = Object.create(superClass.prototype)
@@ -170,9 +160,7 @@ export function deepEqual(a, b) {
   if (
     !isCollection(b) ||
     (a.size !== undefined && b.size !== undefined && a.size !== b.size) ||
-    (a.__hash !== undefined &&
-      b.__hash !== undefined &&
-      a.__hash !== b.__hash) ||
+    (a.__hash !== undefined && b.__hash !== undefined && a.__hash !== b.__hash) ||
     isKeyed(a) !== isKeyed(b) ||
     isIndexed(a) !== isIndexed(b) ||
     isOrdered(a) !== isOrdered(b)
@@ -203,13 +191,7 @@ export function deepEqual(a, b) {
   }
   let allEqual = true
   const bSize = b.__iterate((v, k) => {
-    if (
-      notAssociative
-        ? !a.has(v)
-        : flipped
-        ? !is(v, a.get(k, NOT_SET))
-        : !is(a.get(k, NOT_SET), v)
-    ) {
+    if (notAssociative ? !a.has(v) : flipped ? !is(v, a.get(k, NOT_SET)) : !is(a.get(k, NOT_SET), v)) {
       allEqual = false
       return false
     }
@@ -221,21 +203,10 @@ export function invariant(condition, error) {
 }
 export function isArrayLike(x) {
   if (Array.isArray(x) || typeof x === "string") return true
-  return (
-    x &&
-    typeof x === "object" &&
-    Number.isInteger(x.length) &&
-    x.length >= 0 &&
-    (x.length === 0
-      ? Object.keys(x).length === 1
-      : x.hasOwnProperty(x.length - 1))
-  )
+  return x && typeof x === "object" && Number.isInteger(x.length) && x.length >= 0 && (x.length === 0 ? Object.keys(x).length === 1 : x.hasOwnProperty(x.length - 1))
 }
 export function isDataStructure(x) {
-  return (
-    typeof x === "object" &&
-    (isImmutable(x) || Array.isArray(x) || isPlainObject(x))
-  )
+  return typeof x === "object" && (isImmutable(x) || Array.isArray(x) || isPlainObject(x))
 }
 const toString = Object.prototype.toString
 export function isPlainObject(x) {
@@ -257,8 +228,7 @@ export function mixin(ctor, methods) {
     ctor.prototype[k] = methods[k]
   }
   Object.keys(methods).forEach(keyCopier)
-  Object.getOwnPropertySymbols &&
-    Object.getOwnPropertySymbols(methods).forEach(keyCopier)
+  Object.getOwnPropertySymbols && Object.getOwnPropertySymbols(methods).forEach(keyCopier)
   return ctor
 }
 
@@ -350,11 +320,7 @@ export function returnTrue() {
   return true
 }
 export function wholeSlice(begin, end, size) {
-  return (
-    ((begin === 0 && !isNeg(begin)) ||
-      (size !== undefined && begin <= -size)) &&
-    (end === undefined || (size !== undefined && end >= size))
-  )
+  return ((begin === 0 && !isNeg(begin)) || (size !== undefined && begin <= -size)) && (end === undefined || (size !== undefined && end >= size))
 }
 export function resolveBegin(begin, size) {
   return resolveIndex(begin, size, 0)
@@ -363,16 +329,237 @@ export function resolveEnd(end, size) {
   return resolveIndex(end, size, size)
 }
 function resolveIndex(index, size, defaultIndex) {
-  return index === undefined
-    ? defaultIndex
-    : isNeg(index)
-    ? size === Infinity
-      ? size
-      : Math.max(0, size + index) | 0
-    : size === undefined || size === index
-    ? index
-    : Math.min(size, index) | 0
+  return index === undefined ? defaultIndex : isNeg(index) ? (size === Infinity ? size : Math.max(0, size + index) | 0) : size === undefined || size === index ? index : Math.min(size, index) | 0
 }
 function isNeg(value) {
   return value < 0 || (value === 0 && 1 / value === -Infinity)
 }
+
+export function fromJS(value, converter) {
+  return fromJSWith([], converter || defaultConverter, value, "", converter && converter.length > 2 ? [] : undefined, { "": value })
+}
+
+function fromJSWith(stack, converter, value, key, keyPath, parentValue) {
+  if (typeof value !== "string" && !isImmutable(value) && (isArrayLike(value) || hasIterator(value) || isPlainObj(value))) {
+    if (~stack.indexOf(value)) {
+      throw new TypeError("Cannot convert circular structure to Immutable")
+    }
+    stack.push(value)
+    keyPath && key !== "" && keyPath.push(key)
+    const converted = converter.call(
+      parentValue,
+      key,
+      Seq(value).map((v, k) => fromJSWith(stack, converter, v, k, keyPath, value)),
+      keyPath && keyPath.slice()
+    )
+    stack.pop()
+    keyPath && keyPath.pop()
+    return converted
+  }
+  return value
+}
+
+function defaultConverter(k, v) {
+  // Effectively the opposite of "Collection.toSeq()"
+  return isIndexed(v) ? v.toList() : isKeyed(v) ? v.toMap() : v.toSet()
+}
+
+const defaultValueOf = Object.prototype.valueOf
+export function hash(o) {
+  if (o == null) return hashNullish(o)
+  if (typeof o.hashCode === "function") return smi(o.hashCode(o))
+  const v = valueOf(o)
+  if (v == null) return hashNullish(v)
+  switch (typeof v) {
+    case "boolean":
+      return v ? 0x42108421 : 0x42108420
+    case "number":
+      return hashNumber(v)
+    case "string":
+      return v.length > STRING_HASH_CACHE_MIN_STRLEN ? cachedHashString(v) : hashString(v)
+    case "object":
+    case "function":
+      return hashJSObj(v)
+    case "symbol":
+      return hashSymbol(v)
+    default:
+      if (typeof v.toString === "function") {
+        return hashString(v.toString())
+      }
+      throw new Error("Value type " + typeof v + " cannot be hashed.")
+  }
+}
+function hashNullish(nullish) {
+  return nullish === null ? 0x42108422 : /* undefined */ 0x42108423
+}
+function hashNumber(n) {
+  if (n !== n || n === Infinity) return 0
+  let hash = n | 0
+  if (hash !== n) hash ^= n * 0xffffffff
+  while (n > 0xffffffff) {
+    n /= 0xffffffff
+    hash ^= n
+  }
+  return smi(hash)
+}
+function cachedHashString(string) {
+  let hashed = stringHashCache[string]
+  if (hashed === undefined) {
+    hashed = hashString(string)
+    if (STRING_HASH_CACHE_SIZE === STRING_HASH_CACHE_MAX_SIZE) {
+      STRING_HASH_CACHE_SIZE = 0
+      stringHashCache = {}
+    }
+    STRING_HASH_CACHE_SIZE++
+    stringHashCache[string] = hashed
+  }
+  return hashed
+}
+function hashString(string) {
+  let hashed = 0
+  for (let ii = 0; ii < string.length; ii++) {
+    hashed = (31 * hashed + string.charCodeAt(ii)) | 0
+  }
+  return smi(hashed)
+}
+function hashSymbol(sym) {
+  let hashed = symbolMap[sym]
+  if (hashed !== undefined) return hashed
+  hashed = nextHash()
+  symbolMap[sym] = hashed
+  return hashed
+}
+function hashJSObj(obj) {
+  let hashed
+  if (usingWeakMap) {
+    hashed = weakMap.get(obj)
+    if (hashed !== undefined) return hashed
+  }
+  hashed = obj[UID_HASH_KEY]
+  if (hashed !== undefined) return hashed
+  if (!canDefineProperty) {
+    hashed = obj.propertyIsEnumerable && obj.propertyIsEnumerable[UID_HASH_KEY]
+    if (hashed !== undefined) return hashed
+    hashed = getIENodeHash(obj)
+    if (hashed !== undefined) return hashed
+  }
+  hashed = nextHash()
+  if (usingWeakMap) {
+    weakMap.set(obj, hashed)
+  } else if (isExtensible !== undefined && isExtensible(obj) === false) {
+    throw new Error("Non-extensible objects are not allowed as keys.")
+  } else if (canDefineProperty) {
+    Object.defineProperty(obj, UID_HASH_KEY, {
+      enumerable: false,
+      configurable: false,
+      writable: false,
+      value: hashed,
+    })
+  } else if (obj.propertyIsEnumerable !== undefined && obj.propertyIsEnumerable === obj.constructor.prototype.propertyIsEnumerable) {
+    obj.propertyIsEnumerable = function () {
+      return this.constructor.prototype.propertyIsEnumerable.apply(this, arguments)
+    }
+    obj.propertyIsEnumerable[UID_HASH_KEY] = hashed
+  } else if (obj.nodeType !== undefined) obj[UID_HASH_KEY] = hashed
+  else throw new Error("Unable to set a non-enumerable property on object.")
+  return hashed
+}
+const isExtensible = Object.isExtensible
+const canDefineProperty = (function () {
+  try {
+    Object.defineProperty({}, "@", {})
+    return true
+  } catch (e) {
+    return false
+  }
+})()
+function getIENodeHash(node) {
+  if (node && node.nodeType > 0) {
+    switch (node.nodeType) {
+      case 1:
+        return node.uniqueID
+      case 9:
+        return node.documentElement && node.documentElement.uniqueID
+    }
+  }
+}
+function valueOf(obj) {
+  return obj.valueOf !== defaultValueOf && typeof obj.valueOf === "function" ? obj.valueOf(obj) : obj
+}
+function nextHash() {
+  const nextHash = ++_objHashUID
+  if (_objHashUID & 0x40000000) _objHashUID = 0
+  return nextHash
+}
+const usingWeakMap = typeof WeakMap === "function"
+let weakMap
+if (usingWeakMap) weakMap = new WeakMap()
+const symbolMap = Object.create(null)
+let _objHashUID = 0
+let UID_HASH_KEY = "__immutablehash__"
+if (typeof Symbol === "function") UID_HASH_KEY = Symbol(UID_HASH_KEY)
+const STRING_HASH_CACHE_MIN_STRLEN = 16
+const STRING_HASH_CACHE_MAX_SIZE = 255
+let STRING_HASH_CACHE_SIZE = 0
+let stringHashCache = {}
+
+function fromJS(
+  jsValue: unknown,
+  reviver?: (k: string | number, sequence: Collection.Keyed<string, unknown> | Collection.Indexed<unknown>, path?: Array<string | number>) => unknown
+): Collection<unknown, unknown>
+function is(first: unknown, second: unknown): boolean
+function hash(value: unknown): number
+function isImmutable(maybeImmutable: unknown): maybeImmutable is Collection<unknown, unknown>
+function isCollection(maybeCollection: unknown): maybeCollection is Collection<unknown, unknown>
+function isKeyed(maybeKeyed: unknown): maybeKeyed is Collection.Keyed<unknown, unknown>
+function isIndexed(maybeIndexed: unknown): maybeIndexed is Collection.Indexed<unknown>
+function isAssociative(maybeAssociative: unknown): maybeAssociative is Collection.Keyed<unknown, unknown> | Collection.Indexed<unknown>
+function isOrdered(maybeOrdered: unknown): boolean
+function isValueObject(maybeValue: unknown): maybeValue is ValueObject
+function isSeq(maybeSeq: unknown): maybeSeq is Seq.Indexed<unknown> | Seq.Keyed<unknown, unknown> | Seq.Set<unknown>
+function isList(maybeList: unknown): maybeList is List<unknown>
+function isMap(maybeMap: unknown): maybeMap is Map<unknown, unknown>
+function isOrderedMap(maybeOrderedMap: unknown): maybeOrderedMap is OrderedMap<unknown, unknown>
+function isStack(maybeStack: unknown): maybeStack is Stack<unknown>
+function isSet(maybeSet: unknown): maybeSet is Set<unknown>
+function isOrderedSet(maybeOrderedSet: unknown): maybeOrderedSet is OrderedSet<unknown>
+function isRecord(maybeRecord: unknown): maybeRecord is Record<{}>
+function get<K, V>(collection: Collection<K, V>, k: K): V | undefined
+function get<K, V, NSV>(collection: Collection<K, V>, k: K, v0: NSV): V | NSV
+function get<TProps extends object, K extends keyof TProps>(record: Record<TProps>, k: K, v0: unknown): TProps[K]
+function get<V>(collection: Array<V>, key: number): V | undefined
+function get<V, NSV>(collection: Array<V>, key: number, v0: NSV): V | NSV
+function get<C extends object, K extends keyof C>(object: C, k: K, v0: unknown): C[K]
+function get<V>(collection: Dict<V>, k: string): V | undefined
+function get<V, NSV>(collection: Dict<V>, k: string, v0: NSV): V | NSV
+function has(collection: object, key: unknown): boolean
+function remove<K, C extends Collection<K, unknown>>(collection: C, k: K): C
+function remove<TProps extends object, C extends Record<TProps>, K extends keyof TProps>(collection: C, k: K): C
+function remove<C extends Array<unknown>>(collection: C, key: number): C
+function remove<C, K extends keyof C>(collection: C, k: K): C
+function remove<C extends Dict, K extends keyof C>(collection: C, k: K): C
+function set<K, V, C extends Collection<K, V>>(collection: C, k: K, v: V): C
+function set<TProps extends object, C extends Record<TProps>, K extends keyof TProps>(record: C, k: K, value: TProps[K]): C
+function set<V, C extends Array<V>>(collection: C, key: number, v: V): C
+function set<C, K extends keyof C>(object: C, k: K, value: C[K]): C
+function set<V, C extends Dict<V>>(collection: C, k: string, v: V): C
+function update<K, V, C extends Collection<K, V>>(collection: C, k: K, f: (v: V | undefined) => V): C
+function update<K, V, C extends Collection<K, V>, NSV>(collection: C, k: K, v0: NSV, f: (v: V | NSV) => V): C
+function update<TProps extends object, C extends Record<TProps>, K extends keyof TProps>(record: C, k: K, f: (value: TProps[K]) => TProps[K]): C
+function update<TProps extends object, C extends Record<TProps>, K extends keyof TProps, NSV>(record: C, k: K, v0: NSV, f: (value: TProps[K] | NSV) => TProps[K]): C
+function update<V>(collection: Array<V>, key: number, f: (v: V) => V): Array<V>
+function update<V, NSV>(collection: Array<V>, key: number, v0: NSV, f: (v: V | NSV) => V): Array<V>
+function update<C, K extends keyof C>(object: C, k: K, f: (value: C[K]) => C[K]): C
+function update<C, K extends keyof C, NSV>(object: C, k: K, v0: NSV, f: (value: C[K] | NSV) => C[K]): C
+function update<V, C extends Dict<V>, K extends keyof C>(collection: C, k: K, f: (v: V) => V): Dict<V>
+function update<V, C extends Dict<V>, K extends keyof C, NSV>(collection: C, k: K, v0: NSV, f: (v: V | NSV) => V): Dict<V>
+function getIn(collection: unknown, x: Iterable<unknown>, v0?: unknown): unknown
+function hasIn(collection: unknown, x: Iterable<unknown>): boolean
+function removeIn<C>(collection: C, x: Iterable<unknown>): C
+function setIn<C>(collection: C, x: Iterable<unknown>, value: unknown): C
+function updateIn<C>(collection: C, x: Iterable<unknown>, f: (value: unknown) => unknown): C
+function updateIn<C>(collection: C, x: Iterable<unknown>, v0: unknown, f: (value: unknown) => unknown): C
+function merge<C>(collection: C, ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | Dict>): C
+function mergeWith<C>(merger: (old: unknown, newVal: unknown, key: unknown) => unknown, collection: C, ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | Dict>): C
+function mergeDeep<C>(collection: C, ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | Dict>): C
+function mergeDeepWith<C>(merger: (old: unknown, newVal: unknown, key: unknown) => unknown, collection: C, ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | Dict>): C
