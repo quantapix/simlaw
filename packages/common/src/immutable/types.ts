@@ -1,25 +1,29 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-interface ValueObject {
-  equals(other: unknown): boolean
+
+export interface Dict<T = unknown> {
+  [k: string]: T
+}
+export interface ValueObject {
+  equals(x: unknown): boolean
   hashCode(): number
 }
 export interface Collection<K, V> extends ValueObject {
-  equals(other: unknown): boolean
+  equals(x: unknown): boolean
   hashCode(): number
-  get<NSV>(key: K, notSetValue: NSV): V | NSV
-  get(key: K): V | undefined
-  has(key: K): boolean
-  includes(value: V): boolean
-  contains(value: V): boolean
+  get<NSV>(k: K, notSetValue: NSV): V | NSV
+  get(k: K): V | undefined
+  has(k: K): boolean
+  includes(v: V): boolean
+  contains(v: V): boolean
   first<NSV = undefined>(notSetValue?: NSV): V | NSV
   last<NSV = undefined>(notSetValue?: NSV): V | NSV
   getIn(searchKeyPath: Iterable<unknown>, notSetValue?: unknown): unknown
   hasIn(searchKeyPath: Iterable<unknown>): boolean
   update<R>(updater: (value: this) => R): R
-  toJS(): Array<unknown> | { [key: string]: unknown }
-  toJSON(): Array<V> | { [key: string]: V }
+  toJS(): Array<unknown> | Dict<unknown>
+  toJSON(): Array<V> | Dict<V>
   toArray(): Array<V> | Array<[K, V]>
-  toObject(): { [key: string]: V }
+  toObject(): Dict<V>
   toMap(): Map<K, V>
   toOrderedMap(): OrderedMap<K, V>
   toSet(): Set<V>
@@ -38,34 +42,34 @@ export interface Collection<K, V> extends ValueObject {
   valueSeq(): Seq.Indexed<V>
   entrySeq(): Seq.Indexed<[K, V]>
   map<M>(
-    mapper: (value: V, key: K, iter: this) => M,
+    mapper: (v: V, k: K, iter: this) => M,
     context?: unknown
   ): Collection<K, M>
   map(...args: Array<never>): unknown
   filter<F extends V>(
-    predicate: (value: V, key: K, iter: this) => value is F,
+    predicate: (v: V, k: K, iter: this) => v is F,
     context?: unknown
   ): Collection<K, F>
   filter(
-    predicate: (value: V, key: K, iter: this) => unknown,
+    predicate: (v: V, k: K, iter: this) => unknown,
     context?: unknown
   ): this
   filterNot(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown
   ): this
   reverse(): this
-  sort(comparator?: (valueA: V, valueB: V) => number): this
+  sort(comparator?: (a: V, b: V) => number): this
   sortBy<C>(
-    comparatorValueMapper: (value: V, key: K, iter: this) => C,
-    comparator?: (valueA: C, valueB: C) => number
+    comparatorValueMapper: (v: V, k: K, iter: this) => C,
+    comparator?: (a: C, b: C) => number
   ): this
   groupBy<G>(
-    grouper: (value: V, key: K, iter: this) => G,
+    grouper: (v: V, k: K, iter: this) => G,
     context?: unknown
   ): /*Map*/ Seq.Keyed<G, /*this*/ Collection<K, V>>
   forEach(
-    sideEffect: (value: V, key: K, iter: this) => unknown,
+    sideEffect: (v: V, k: K, iter: this) => unknown,
     context?: unknown
   ): number
   slice(begin?: number, end?: number): this
@@ -74,148 +78,136 @@ export interface Collection<K, V> extends ValueObject {
   skip(amount: number): this
   skipLast(amount: number): this
   skipWhile(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown
   ): this
   skipUntil(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown
   ): this
   take(amount: number): this
   takeLast(amount: number): this
   takeWhile(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown
   ): this
   takeUntil(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown
   ): this
-  concat(...valuesOrCollections: Array<unknown>): Collection<unknown, unknown>
+  concat(...xs: Array<unknown>): Collection<unknown, unknown>
   flatten(depth?: number): Collection<unknown, unknown>
   flatten(shallow?: boolean): Collection<unknown, unknown>
   flatMap<M>(
-    mapper: (value: V, key: K, iter: this) => Iterable<M>,
+    mapper: (v: V, k: K, iter: this) => Iterable<M>,
     context?: unknown
   ): Collection<K, M>
   flatMap<KM, VM>(
-    mapper: (value: V, key: K, iter: this) => Iterable<[KM, VM]>,
+    mapper: (v: V, k: K, iter: this) => Iterable<[KM, VM]>,
     context?: unknown
   ): Collection<KM, VM>
   reduce<R>(
-    reducer: (reduction: R, value: V, key: K, iter: this) => R,
+    reducer: (r: R, v: V, k: K, iter: this) => R,
     initialReduction: R,
     context?: unknown
   ): R
-  reduce<R>(reducer: (reduction: V | R, value: V, key: K, iter: this) => R): R
+  reduce<R>(reducer: (r: V | R, v: V, k: K, iter: this) => R): R
   reduceRight<R>(
-    reducer: (reduction: R, value: V, key: K, iter: this) => R,
+    reducer: (r: R, v: V, k: K, iter: this) => R,
     initialReduction: R,
     context?: unknown
   ): R
-  reduceRight<R>(
-    reducer: (reduction: V | R, value: V, key: K, iter: this) => R
-  ): R
+  reduceRight<R>(reducer: (r: V | R, v: V, k: K, iter: this) => R): R
   every(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown
   ): boolean
   some(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown
   ): boolean
   join(separator?: string): string
   isEmpty(): boolean
   count(): number
   count(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown
   ): number
   countBy<G>(
-    grouper: (value: V, key: K, iter: this) => G,
+    grouper: (v: V, k: K, iter: this) => G,
     context?: unknown
   ): Map<G, number>
   find(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown,
     notSetValue?: V
   ): V | undefined
   findLast(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown,
     notSetValue?: V
   ): V | undefined
   findEntry(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown,
     notSetValue?: V
   ): [K, V] | undefined
   findLastEntry(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown,
     notSetValue?: V
   ): [K, V] | undefined
   findKey(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown
   ): K | undefined
   findLastKey(
-    predicate: (value: V, key: K, iter: this) => boolean,
+    predicate: (v: V, k: K, iter: this) => boolean,
     context?: unknown
   ): K | undefined
-  keyOf(searchValue: V): K | undefined
-  lastKeyOf(searchValue: V): K | undefined
-  max(comparator?: (valueA: V, valueB: V) => number): V | undefined
+  keyOf(v: V): K | undefined
+  lastKeyOf(v: V): K | undefined
+  max(comparator?: (a: V, b: V) => number): V | undefined
   maxBy<C>(
-    comparatorValueMapper: (value: V, key: K, iter: this) => C,
-    comparator?: (valueA: C, valueB: C) => number
+    comparatorValueMapper: (v: V, k: K, iter: this) => C,
+    comparator?: (a: C, b: C) => number
   ): V | undefined
-  min(comparator?: (valueA: V, valueB: V) => number): V | undefined
+  min(comparator?: (a: V, b: V) => number): V | undefined
   minBy<C>(
-    comparatorValueMapper: (value: V, key: K, iter: this) => C,
-    comparator?: (valueA: C, valueB: C) => number
+    comparatorValueMapper: (v: V, k: K, iter: this) => C,
+    comparator?: (a: C, b: C) => number
   ): V | undefined
   isSubset(iter: Iterable<V>): boolean
   isSuperset(iter: Iterable<V>): boolean
 }
 export namespace Collection {
-  export function isKeyed(
-    maybeKeyed: unknown
-  ): maybeKeyed is Collection.Keyed<unknown, unknown>
-  export function isIndexed(
-    maybeIndexed: unknown
-  ): maybeIndexed is Collection.Indexed<unknown>
+  export function isKeyed(x: unknown): x is Collection.Keyed<unknown, unknown>
+  export function isIndexed(x: unknown): x is Collection.Indexed<unknown>
   export function isAssociative(
-    maybeAssociative: unknown
-  ): maybeAssociative is
-    | Collection.Keyed<unknown, unknown>
-    | Collection.Indexed<unknown>
-  export function isOrdered(maybeOrdered: unknown): boolean
+    x: unknown
+  ): x is Collection.Keyed<unknown, unknown> | Collection.Indexed<unknown>
+  export function isOrdered(x: unknown): boolean
   export namespace Keyed {}
   export function Keyed<K, V>(
     collection?: Iterable<[K, V]>
   ): Collection.Keyed<K, V>
-  export function Keyed<V>(obj: {
-    [key: string]: V
-  }): Collection.Keyed<string, V>
+  export function Keyed<V>(x: Dict<V>): Collection.Keyed<string, V>
   export interface Keyed<K, V> extends Collection<K, V> {
-    toJS(): { [key: string]: unknown }
-    toJSON(): { [key: string]: V }
+    toJS(): Dict
+    toJSON(): Dict<V>
     toArray(): Array<[K, V]>
     toSeq(): Seq.Keyed<K, V>
     flip(): Collection.Keyed<V, K>
     concat<KC, VC>(
-      ...collections: Array<Iterable<[KC, VC]>>
+      ...xs: Array<Iterable<[KC, VC]>>
     ): Collection.Keyed<K | KC, V | VC>
-    concat<C>(
-      ...collections: Array<{ [key: string]: C }>
-    ): Collection.Keyed<K | string, V | C>
+    concat<C>(...xs: Array<Dict<C>>): Collection.Keyed<K | string, V | C>
     map<M>(
-      mapper: (value: V, key: K, iter: this) => M,
+      mapper: (v: V, k: K, iter: this) => M,
       context?: unknown
     ): Collection.Keyed<K, M>
     mapKeys<M>(
-      mapper: (key: K, value: V, iter: this) => M,
+      mapper: (k: K, v: V, iter: this) => M,
       context?: unknown
     ): Collection.Keyed<M, V>
     mapEntries<KM, VM>(
@@ -227,15 +219,15 @@ export namespace Collection {
       context?: unknown
     ): Collection.Keyed<KM, VM>
     flatMap<KM, VM>(
-      mapper: (value: V, key: K, iter: this) => Iterable<[KM, VM]>,
+      mapper: (v: V, k: K, iter: this) => Iterable<[KM, VM]>,
       context?: unknown
     ): Collection.Keyed<KM, VM>
     filter<F extends V>(
-      predicate: (value: V, key: K, iter: this) => value is F,
+      predicate: (v: V, k: K, iter: this) => v is F,
       context?: unknown
     ): Collection.Keyed<K, F>
     filter(
-      predicate: (value: V, key: K, iter: this) => unknown,
+      predicate: (v: V, k: K, iter: this) => unknown,
       context?: unknown
     ): this
     [Symbol.iterator](): IterableIterator<[K, V]>
@@ -324,21 +316,21 @@ export namespace Collection {
     toJSON(): Array<T>
     toArray(): Array<T>
     toSeq(): Seq.Set<T>
-    concat<U>(...collections: Array<Iterable<U>>): Collection.Set<T | U>
+    concat<U>(...xs: Array<Iterable<U>>): Collection.Set<T | U>
     map<M>(
-      mapper: (value: T, key: T, iter: this) => M,
+      mapper: (v: T, k: T, iter: this) => M,
       context?: unknown
     ): Collection.Set<M>
     flatMap<M>(
-      mapper: (value: T, key: T, iter: this) => Iterable<M>,
+      mapper: (v: T, k: T, iter: this) => Iterable<M>,
       context?: unknown
     ): Collection.Set<M>
     filter<F extends T>(
-      predicate: (value: T, key: T, iter: this) => value is F,
+      predicate: (v: T, k: T, iter: this) => v is F,
       context?: unknown
     ): Collection.Set<F>
     filter(
-      predicate: (value: T, key: T, iter: this) => unknown,
+      predicate: (v: T, k: T, iter: this) => unknown,
       context?: unknown
     ): this
     [Symbol.iterator](): IterableIterator<T>
@@ -350,9 +342,7 @@ export function Collection<I extends Collection<unknown, unknown>>(
 export function Collection<T>(
   collection: Iterable<T> | ArrayLike<T>
 ): Collection.Indexed<T>
-export function Collection<V>(obj: {
-  [key: string]: V
-}): Collection.Keyed<string, V>
+export function Collection<V>(obj: Dict<V>): Collection.Keyed<string, V>
 export function Collection<K = unknown, V = unknown>(): Collection<K, V>
 
 export interface List<T> extends Collection.Indexed<T> {
@@ -442,33 +432,31 @@ namespace Map {
   function of(...keyValues: Array<unknown>): Map<unknown, unknown>
 }
 function Map<K, V>(collection?: Iterable<[K, V]>): Map<K, V>
-function Map<V>(obj: { [key: string]: V }): Map<string, V>
+function Map<V>(obj: Dict<V>): Map<string, V>
 function Map<K extends string | symbol, V>(obj: { [P in K]?: V }): Map<K, V>
 interface Map<K, V> extends Collection.Keyed<K, V> {
   readonly size: number
-  set(key: K, value: V): this
-  delete(key: K): this
-  remove(key: K): this
+  set(k: K, v: V): this
+  delete(k: K): this
+  remove(k: K): this
   deleteAll(keys: Iterable<K>): this
   removeAll(keys: Iterable<K>): this
   clear(): this
-  update(key: K, notSetValue: V, updater: (value: V) => V): this
-  update(key: K, updater: (value: V | undefined) => V): this
+  update(k: K, notSetValue: V, updater: (v: V) => V): this
+  update(k: K, updater: (v: V | undefined) => V): this
   update<R>(updater: (value: this) => R): R
   merge<KC, VC>(...collections: Array<Iterable<[KC, VC]>>): Map<K | KC, V | VC>
-  merge<C>(...collections: Array<{ [key: string]: C }>): Map<K | string, V | C>
+  merge<C>(...collections: Array<Dict<C>>): Map<K | string, V | C>
   concat<KC, VC>(...collections: Array<Iterable<[KC, VC]>>): Map<K | KC, V | VC>
-  concat<C>(...collections: Array<{ [key: string]: C }>): Map<K | string, V | C>
+  concat<C>(...collections: Array<Dict<C>>): Map<K | string, V | C>
   mergeWith(
-    merger: (oldVal: V, newVal: V, key: K) => V,
-    ...collections: Array<Iterable<[K, V]> | { [key: string]: V }>
+    merger: (oldVal: V, newVal: V, k: K) => V,
+    ...collections: Array<Iterable<[K, V]> | Dict<V>>
   ): this
-  mergeDeep(
-    ...collections: Array<Iterable<[K, V]> | { [key: string]: V }>
-  ): this
+  mergeDeep(...collections: Array<Iterable<[K, V]> | Dict<V>>): this
   mergeDeepWith(
     merger: (oldVal: unknown, newVal: unknown, key: unknown) => unknown,
-    ...collections: Array<Iterable<[K, V]> | { [key: string]: V }>
+    ...collections: Array<Iterable<[K, V]> | Dict<V>>
   ): this
   setIn(keyPath: Iterable<unknown>, value: unknown): this
   deleteIn(keyPath: Iterable<unknown>): this
@@ -488,12 +476,9 @@ interface Map<K, V> extends Collection.Keyed<K, V> {
   asMutable(): this
   wasAltered(): boolean
   asImmutable(): this
-  map<M>(
-    mapper: (value: V, key: K, iter: this) => M,
-    context?: unknown
-  ): Map<K, M>
+  map<M>(mapper: (v: V, k: K, iter: this) => M, context?: unknown): Map<K, M>
   mapKeys<M>(
-    mapper: (key: K, value: V, iter: this) => M,
+    mapper: (k: K, v: V, iter: this) => M,
     context?: unknown
   ): Map<M, V>
   mapEntries<KM, VM>(
@@ -501,15 +486,15 @@ interface Map<K, V> extends Collection.Keyed<K, V> {
     context?: unknown
   ): Map<KM, VM>
   flatMap<KM, VM>(
-    mapper: (value: V, key: K, iter: this) => Iterable<[KM, VM]>,
+    mapper: (v: V, k: K, iter: this) => Iterable<[KM, VM]>,
     context?: unknown
   ): Map<KM, VM>
   filter<F extends V>(
-    predicate: (value: V, key: K, iter: this) => value is F,
+    predicate: (v: V, k: K, iter: this) => value is F,
     context?: unknown
   ): Map<K, F>
   filter(
-    predicate: (value: V, key: K, iter: this) => unknown,
+    predicate: (v: V, k: K, iter: this) => unknown,
     context?: unknown
   ): this
   flip(): Map<V, K>
@@ -520,28 +505,24 @@ namespace OrderedMap {
   ): maybeOrderedMap is OrderedMap<unknown, unknown>
 }
 function OrderedMap<K, V>(collection?: Iterable<[K, V]>): OrderedMap<K, V>
-function OrderedMap<V>(obj: { [key: string]: V }): OrderedMap<string, V>
+function OrderedMap<V>(obj: Dict<V>): OrderedMap<string, V>
 interface OrderedMap<K, V> extends Map<K, V> {
   readonly size: number
-  set(key: K, value: V): this
+  set(k: K, v: V): this
   merge<KC, VC>(
     ...collections: Array<Iterable<[KC, VC]>>
   ): OrderedMap<K | KC, V | VC>
-  merge<C>(
-    ...collections: Array<{ [key: string]: C }>
-  ): OrderedMap<K | string, V | C>
+  merge<C>(...collections: Array<Dict<C>>): OrderedMap<K | string, V | C>
   concat<KC, VC>(
     ...collections: Array<Iterable<[KC, VC]>>
   ): OrderedMap<K | KC, V | VC>
-  concat<C>(
-    ...collections: Array<{ [key: string]: C }>
-  ): OrderedMap<K | string, V | C>
+  concat<C>(...collections: Array<Dict<C>>): OrderedMap<K | string, V | C>
   map<M>(
-    mapper: (value: V, key: K, iter: this) => M,
+    mapper: (v: V, k: K, iter: this) => M,
     context?: unknown
   ): OrderedMap<K, M>
   mapKeys<M>(
-    mapper: (key: K, value: V, iter: this) => M,
+    mapper: (k: K, v: V, iter: this) => M,
     context?: unknown
   ): OrderedMap<M, V>
   mapEntries<KM, VM>(
@@ -549,15 +530,15 @@ interface OrderedMap<K, V> extends Map<K, V> {
     context?: unknown
   ): OrderedMap<KM, VM>
   flatMap<KM, VM>(
-    mapper: (value: V, key: K, iter: this) => Iterable<[KM, VM]>,
+    mapper: (v: V, k: K, iter: this) => Iterable<[KM, VM]>,
     context?: unknown
   ): OrderedMap<KM, VM>
   filter<F extends V>(
-    predicate: (value: V, key: K, iter: this) => value is F,
+    predicate: (v: V, k: K, iter: this) => value is F,
     context?: unknown
   ): OrderedMap<K, F>
   filter(
-    predicate: (value: V, key: K, iter: this) => unknown,
+    predicate: (v: V, k: K, iter: this) => unknown,
     context?: unknown
   ): this
   flip(): OrderedMap<V, K>
@@ -566,7 +547,7 @@ namespace Set {
   function isSet(maybeSet: unknown): maybeSet is Set<unknown>
   function of<T>(...values: Array<T>): Set<T>
   function fromKeys<T>(iter: Collection<T, unknown>): Set<T>
-  function fromKeys(obj: { [key: string]: unknown }): Set<string>
+  function fromKeys(obj: Dict): Set<string>
   function intersect<T>(sets: Iterable<Iterable<T>>): Set<T>
   function union<T>(sets: Iterable<Iterable<T>>): Set<T>
 }
@@ -604,7 +585,7 @@ namespace OrderedSet {
   function isOrderedSet(maybeOrderedSet: unknown): boolean
   function of<T>(...values: Array<T>): OrderedSet<T>
   function fromKeys<T>(iter: Collection<T, unknown>): OrderedSet<T>
-  function fromKeys(obj: { [key: string]: unknown }): OrderedSet<string>
+  function fromKeys(obj: Dict): OrderedSet<string>
 }
 function OrderedSet<T>(collection?: Iterable<T> | ArrayLike<T>): OrderedSet<T>
 interface OrderedSet<T> extends Set<T> {
@@ -740,17 +721,18 @@ function Record<TProps extends object>(
   defaultValues: TProps,
   name?: string
 ): Record.Factory<TProps>
+
 interface Record<TProps extends object> {
-  has(key: string): key is keyof TProps & string
-  get<K extends keyof TProps>(key: K, notSetValue?: unknown): TProps[K]
-  get<T>(key: string, notSetValue: T): T
+  has(k: string): k is keyof TProps & string
+  get<K extends keyof TProps>(k: K, notSetValue?: unknown): TProps[K]
+  get<T>(k: string, notSetValue: T): T
   hasIn(keyPath: Iterable<unknown>): boolean
   getIn(keyPath: Iterable<unknown>): unknown
   equals(other: unknown): boolean
   hashCode(): number
-  set<K extends keyof TProps>(key: K, value: TProps[K]): this
+  set<K extends keyof TProps>(k: K, value: TProps[K]): this
   update<K extends keyof TProps>(
-    key: K,
+    k: K,
     updater: (value: TProps[K]) => TProps[K]
   ): this
   merge(
@@ -760,15 +742,15 @@ interface Record<TProps extends object> {
     ...collections: Array<Partial<TProps> | Iterable<[string, unknown]>>
   ): this
   mergeWith(
-    merger: (oldVal: unknown, newVal: unknown, key: keyof TProps) => unknown,
+    merger: (oldVal: unknown, newVal: unknown, k: keyof TProps) => unknown,
     ...collections: Array<Partial<TProps> | Iterable<[string, unknown]>>
   ): this
   mergeDeepWith(
     merger: (oldVal: unknown, newVal: unknown, key: unknown) => unknown,
     ...collections: Array<Partial<TProps> | Iterable<[string, unknown]>>
   ): this
-  delete<K extends keyof TProps>(key: K): this
-  remove<K extends keyof TProps>(key: K): this
+  delete<K extends keyof TProps>(k: K): this
+  remove<K extends keyof TProps>(k: K): this
   clear(): this
   setIn(keyPath: Iterable<unknown>, value: unknown): this
   updateIn(
@@ -799,24 +781,22 @@ namespace Seq {
     | Seq.Set<unknown>
   namespace Keyed {}
   function Keyed<K, V>(collection?: Iterable<[K, V]>): Seq.Keyed<K, V>
-  function Keyed<V>(obj: { [key: string]: V }): Seq.Keyed<string, V>
+  function Keyed<V>(obj: Dict<V>): Seq.Keyed<string, V>
   interface Keyed<K, V> extends Seq<K, V>, Collection.Keyed<K, V> {
-    toJS(): { [key: string]: unknown }
-    toJSON(): { [key: string]: V }
+    toJS(): Dict
+    toJSON(): Dict<V>
     toArray(): Array<[K, V]>
     toSeq(): this
     concat<KC, VC>(
       ...collections: Array<Iterable<[KC, VC]>>
     ): Seq.Keyed<K | KC, V | VC>
-    concat<C>(
-      ...collections: Array<{ [key: string]: C }>
-    ): Seq.Keyed<K | string, V | C>
+    concat<C>(...collections: Array<Dict<C>>): Seq.Keyed<K | string, V | C>
     map<M>(
-      mapper: (value: V, key: K, iter: this) => M,
+      mapper: (v: V, k: K, iter: this) => M,
       context?: unknown
     ): Seq.Keyed<K, M>
     mapKeys<M>(
-      mapper: (key: K, value: V, iter: this) => M,
+      mapper: (k: K, v: V, iter: this) => M,
       context?: unknown
     ): Seq.Keyed<M, V>
     mapEntries<KM, VM>(
@@ -828,15 +808,15 @@ namespace Seq {
       context?: unknown
     ): Seq.Keyed<KM, VM>
     flatMap<KM, VM>(
-      mapper: (value: V, key: K, iter: this) => Iterable<[KM, VM]>,
+      mapper: (v: V, k: K, iter: this) => Iterable<[KM, VM]>,
       context?: unknown
     ): Seq.Keyed<KM, VM>
     filter<F extends V>(
-      predicate: (value: V, key: K, iter: this) => value is F,
+      predicate: (v: V, k: K, iter: this) => value is F,
       context?: unknown
     ): Seq.Keyed<K, F>
     filter(
-      predicate: (value: V, key: K, iter: this) => unknown,
+      predicate: (v: V, k: K, iter: this) => unknown,
       context?: unknown
     ): this
     flip(): Seq.Keyed<V, K>
@@ -936,40 +916,34 @@ function Seq<T>(collection: Collection.Set<T>): Seq.Set<T>
 function Seq<T>(
   collection: Collection.Indexed<T> | Iterable<T> | ArrayLike<T>
 ): Seq.Indexed<T>
-function Seq<V>(obj: { [key: string]: V }): Seq.Keyed<string, V>
+function Seq<V>(obj: Dict<V>): Seq.Keyed<string, V>
 function Seq<K = unknown, V = unknown>(): Seq<K, V>
 interface Seq<K, V> extends Collection<K, V> {
   readonly size: number | undefined
   cacheResult(): this
-  map<M>(
-    mapper: (value: V, key: K, iter: this) => M,
-    context?: unknown
-  ): Seq<K, M>
-  map<M>(
-    mapper: (value: V, key: K, iter: this) => M,
-    context?: unknown
-  ): Seq<M, M>
+  map<M>(mapper: (v: V, k: K, iter: this) => M, context?: unknown): Seq<K, M>
+  map<M>(mapper: (v: V, k: K, iter: this) => M, context?: unknown): Seq<M, M>
   flatMap<M>(
-    mapper: (value: V, key: K, iter: this) => Iterable<M>,
+    mapper: (v: V, k: K, iter: this) => Iterable<M>,
     context?: unknown
   ): Seq<K, M>
   flatMap<M>(
-    mapper: (value: V, key: K, iter: this) => Iterable<M>,
+    mapper: (v: V, k: K, iter: this) => Iterable<M>,
     context?: unknown
   ): Seq<M, M>
   filter<F extends V>(
-    predicate: (value: V, key: K, iter: this) => value is F,
+    predicate: (v: V, k: K, iter: this) => value is F,
     context?: unknown
   ): Seq<K, F>
   filter(
-    predicate: (value: V, key: K, iter: this) => unknown,
+    predicate: (v: V, k: K, iter: this) => unknown,
     context?: unknown
   ): this
 }
 function fromJS(
   jsValue: unknown,
   reviver?: (
-    key: string | number,
+    k: string | number,
     sequence: Collection.Keyed<string, unknown> | Collection.Indexed<unknown>,
     path?: Array<string | number>
   ) => unknown
@@ -1012,15 +986,15 @@ function isOrderedSet(
   maybeOrderedSet: unknown
 ): maybeOrderedSet is OrderedSet<unknown>
 function isRecord(maybeRecord: unknown): maybeRecord is Record<{}>
-function get<K, V>(collection: Collection<K, V>, key: K): V | undefined
+function get<K, V>(collection: Collection<K, V>, k: K): V | undefined
 function get<K, V, NSV>(
   collection: Collection<K, V>,
-  key: K,
+  k: K,
   notSetValue: NSV
 ): V | NSV
 function get<TProps extends object, K extends keyof TProps>(
   record: Record<TProps>,
-  key: K,
+  k: K,
   notSetValue: unknown
 ): TProps[K]
 function get<V>(collection: Array<V>, key: number): V | undefined
@@ -1031,61 +1005,46 @@ function get<V, NSV>(
 ): V | NSV
 function get<C extends object, K extends keyof C>(
   object: C,
-  key: K,
+  k: K,
   notSetValue: unknown
 ): C[K]
-function get<V>(collection: { [key: string]: V }, key: string): V | undefined
-function get<V, NSV>(
-  collection: { [key: string]: V },
-  key: string,
-  notSetValue: NSV
-): V | NSV
+function get<V>(collection: Dict<V>, k: string): V | undefined
+function get<V, NSV>(collection: Dict<V>, k: string, notSetValue: NSV): V | NSV
 function has(collection: object, key: unknown): boolean
-function remove<K, C extends Collection<K, unknown>>(collection: C, key: K): C
+function remove<K, C extends Collection<K, unknown>>(collection: C, k: K): C
 function remove<
   TProps extends object,
   C extends Record<TProps>,
   K extends keyof TProps
->(collection: C, key: K): C
+>(collection: C, k: K): C
 function remove<C extends Array<unknown>>(collection: C, key: number): C
-function remove<C, K extends keyof C>(collection: C, key: K): C
-function remove<C extends { [key: string]: unknown }, K extends keyof C>(
-  collection: C,
-  key: K
-): C
-function set<K, V, C extends Collection<K, V>>(
-  collection: C,
-  key: K,
-  value: V
-): C
+function remove<C, K extends keyof C>(collection: C, k: K): C
+function remove<C extends Dict, K extends keyof C>(collection: C, k: K): C
+function set<K, V, C extends Collection<K, V>>(collection: C, k: K, v: V): C
 function set<
   TProps extends object,
   C extends Record<TProps>,
   K extends keyof TProps
->(record: C, key: K, value: TProps[K]): C
-function set<V, C extends Array<V>>(collection: C, key: number, value: V): C
-function set<C, K extends keyof C>(object: C, key: K, value: C[K]): C
-function set<V, C extends { [key: string]: V }>(
-  collection: C,
-  key: string,
-  value: V
-): C
+>(record: C, k: K, value: TProps[K]): C
+function set<V, C extends Array<V>>(collection: C, key: number, v: V): C
+function set<C, K extends keyof C>(object: C, k: K, value: C[K]): C
+function set<V, C extends Dict<V>>(collection: C, k: string, v: V): C
 function update<K, V, C extends Collection<K, V>>(
   collection: C,
-  key: K,
-  updater: (value: V | undefined) => V
+  k: K,
+  updater: (v: V | undefined) => V
 ): C
 function update<K, V, C extends Collection<K, V>, NSV>(
   collection: C,
-  key: K,
+  k: K,
   notSetValue: NSV,
-  updater: (value: V | NSV) => V
+  updater: (v: V | NSV) => V
 ): C
 function update<
   TProps extends object,
   C extends Record<TProps>,
   K extends keyof TProps
->(record: C, key: K, updater: (value: TProps[K]) => TProps[K]): C
+>(record: C, k: K, updater: (value: TProps[K]) => TProps[K]): C
 function update<
   TProps extends object,
   C extends Record<TProps>,
@@ -1093,43 +1052,43 @@ function update<
   NSV
 >(
   record: C,
-  key: K,
+  k: K,
   notSetValue: NSV,
   updater: (value: TProps[K] | NSV) => TProps[K]
 ): C
 function update<V>(
   collection: Array<V>,
   key: number,
-  updater: (value: V) => V
+  updater: (v: V) => V
 ): Array<V>
 function update<V, NSV>(
   collection: Array<V>,
   key: number,
   notSetValue: NSV,
-  updater: (value: V | NSV) => V
+  updater: (v: V | NSV) => V
 ): Array<V>
 function update<C, K extends keyof C>(
   object: C,
-  key: K,
+  k: K,
   updater: (value: C[K]) => C[K]
 ): C
 function update<C, K extends keyof C, NSV>(
   object: C,
-  key: K,
+  k: K,
   notSetValue: NSV,
   updater: (value: C[K] | NSV) => C[K]
 ): C
-function update<V, C extends { [key: string]: V }, K extends keyof C>(
+function update<V, C extends Dict<V>, K extends keyof C>(
   collection: C,
-  key: K,
-  updater: (value: V) => V
-): { [key: string]: V }
-function update<V, C extends { [key: string]: V }, K extends keyof C, NSV>(
+  k: K,
+  updater: (v: V) => V
+): Dict<V>
+function update<V, C extends Dict<V>, K extends keyof C, NSV>(
   collection: C,
-  key: K,
+  k: K,
   notSetValue: NSV,
-  updater: (value: V | NSV) => V
-): { [key: string]: V }
+  updater: (v: V | NSV) => V
+): Dict<V>
 function getIn(
   collection: unknown,
   keyPath: Iterable<unknown>,
@@ -1151,35 +1110,19 @@ function updateIn<C>(
 ): C
 function merge<C>(
   collection: C,
-  ...collections: Array<
-    | Iterable<unknown>
-    | Iterable<[unknown, unknown]>
-    | { [key: string]: unknown }
-  >
+  ...collections: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | Dict>
 ): C
 function mergeWith<C>(
   merger: (oldVal: unknown, newVal: unknown, key: unknown) => unknown,
   collection: C,
-  ...collections: Array<
-    | Iterable<unknown>
-    | Iterable<[unknown, unknown]>
-    | { [key: string]: unknown }
-  >
+  ...collections: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | Dict>
 ): C
 function mergeDeep<C>(
   collection: C,
-  ...collections: Array<
-    | Iterable<unknown>
-    | Iterable<[unknown, unknown]>
-    | { [key: string]: unknown }
-  >
+  ...collections: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | Dict>
 ): C
 function mergeDeepWith<C>(
   merger: (oldVal: unknown, newVal: unknown, key: unknown) => unknown,
   collection: C,
-  ...collections: Array<
-    | Iterable<unknown>
-    | Iterable<[unknown, unknown]>
-    | { [key: string]: unknown }
-  >
+  ...collections: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | Dict>
 ): C

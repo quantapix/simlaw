@@ -181,7 +181,6 @@ export function deepEqual(a, b) {
     return false
   }
   if (a.size === 0 && b.size === 0) return true
-
   const notAssociative = !isAssociative(a)
   if (isOrdered(a)) {
     const entries = a.entries()
