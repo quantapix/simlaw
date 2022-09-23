@@ -1,14 +1,78 @@
 /* eslint-disable no-prototype-builtins */
-import {
-  isAssociative,
-  isCollection,
-  isImmutable,
-  isIndexed,
-  isKeyed,
-  isOrdered,
-  isValueObject,
-} from "./predicates.js"
 import { Seq } from "./seq.js"
+
+export const IS_COLLECTION_SYMBOL = "@@__IMMUTABLE_ITERABLE__@@"
+export const IS_INDEXED_SYMBOL = "@@__IMMUTABLE_INDEXED__@@"
+export const IS_KEYED_SYMBOL = "@@__IMMUTABLE_KEYED__@@"
+export const IS_LIST_SYMBOL = "@@__IMMUTABLE_LIST__@@"
+export const IS_MAP_SYMBOL = "@@__IMMUTABLE_MAP__@@"
+export const IS_ORDERED_SYMBOL = "@@__IMMUTABLE_ORDERED__@@"
+export const IS_RECORD_SYMBOL = "@@__IMMUTABLE_RECORD__@@"
+export const IS_SEQ_SYMBOL = "@@__IMMUTABLE_SEQ__@@"
+export const IS_SET_SYMBOL = "@@__IMMUTABLE_SET__@@"
+export const IS_STACK_SYMBOL = "@@__IMMUTABLE_STACK__@@"
+
+export function isAssociative(x: any) {
+  return isKeyed(x) || isIndexed(x)
+}
+
+export function isCollection(x: any) {
+  return Boolean(x && x[IS_COLLECTION_SYMBOL])
+}
+
+export function isImmutable(x: any) {
+  return isCollection(x) || isRecord(x)
+}
+
+export function isIndexed(x: any) {
+  return Boolean(x && x[IS_INDEXED_SYMBOL])
+}
+
+export function isKeyed(x: any) {
+  return Boolean(x && x[IS_KEYED_SYMBOL])
+}
+
+export function isList(x: any) {
+  return Boolean(x && x[IS_LIST_SYMBOL])
+}
+
+export function isMap(x: any) {
+  return Boolean(x && x[IS_MAP_SYMBOL])
+}
+
+export function isOrdered(x: any) {
+  return Boolean(x && x[IS_ORDERED_SYMBOL])
+}
+
+export function isOrderedMap(x: any) {
+  return isMap(x) && isOrdered(x)
+}
+
+export function isOrderedSet(x: any) {
+  return isSet(x) && isOrdered(x)
+}
+
+export function isRecord(x: any) {
+  return Boolean(x && x[IS_RECORD_SYMBOL])
+}
+
+export function isSeq(x: any) {
+  return Boolean(x && x[IS_SEQ_SYMBOL])
+}
+
+export function isSet(x: any) {
+  return Boolean(x && x[IS_SET_SYMBOL])
+}
+
+export function isStack(x: any) {
+  return Boolean(x && x[IS_STACK_SYMBOL])
+}
+
+export function isValueObject(x: any) {
+  return Boolean(
+    x && typeof x.equals === "function" && typeof x.hashCode === "function"
+  )
+}
 
 export const ITERATE_KEYS = 0
 export const ITERATE_VALUES = 1

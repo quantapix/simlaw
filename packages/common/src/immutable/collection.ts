@@ -1,4 +1,12 @@
 import { hash } from "./hash.js"
+import { Seq, KeyedSeq, IndexedSeq, SetSeq, ArraySeq } from "./seq.js"
+import { List } from "./list.js"
+import { Map } from "./map.js"
+import { OrderedMap, OrderedSet } from "./ordered.js"
+import { Range } from "./range.js"
+import { Set } from "./set.js"
+import { Stack } from "./stack.js"
+import { toObject, hasIn, getIn } from "./methods.js"
 import {
   isOrdered,
   IS_ORDERED_SYMBOL,
@@ -9,16 +17,6 @@ import {
   IS_COLLECTION_SYMBOL,
   isIndexed,
   IS_INDEXED_SYMBOL,
-} from "./predicates.js"
-import { Seq, KeyedSeq, IndexedSeq, SetSeq, ArraySeq } from "./seq.js"
-import { List } from "./list.js"
-import { Map } from "./map.js"
-import { OrderedMap, OrderedSet } from "./ordered.js"
-import { Range } from "./range.js"
-import { Set } from "./set.js"
-import { Stack } from "./stack.js"
-import { toObject, hasIn, getIn } from "./methods.js"
-import {
   NOT_SET,
   ensureSize,
   wrapIndex,
@@ -64,20 +62,20 @@ import {
 } from "./operations.js"
 
 export class Collection {
-  constructor(value) {
-    return isCollection(value) ? value : Seq(value)
+  constructor(x) {
+    return isCollection(x) ? x : new Seq(x)
   }
 }
 
 export class KeyedCollection extends Collection {
-  constructor(value) {
-    return isKeyed(value) ? value : KeyedSeq(value)
+  constructor(x) {
+    return isKeyed(x) ? x : KeyedSeq(x)
   }
 }
 
 export class IndexedCollection extends Collection {
-  constructor(value) {
-    return isIndexed(value) ? value : IndexedSeq(value)
+  constructor(x) {
+    return isIndexed(x) ? x : IndexedSeq(x)
   }
 }
 
