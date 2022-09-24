@@ -3,7 +3,6 @@ import { List } from "./list.js"
 import { Map } from "./map.js"
 import { OrderedMap, OrderedSet } from "./ordered.js"
 import { Range } from "./range.js"
-import { Seq, KeyedSeq, IndexedSeq, SetSeq, ArraySeq } from "./seq.js"
 import { Set } from "./set.js"
 import { Stack } from "./stack.js"
 import * as qf from "./functions.js"
@@ -450,6 +449,234 @@ export namespace Collection {
   }
 }
 
+export class Seq extends Collection {
+  static create<S extends Seq<unknown, unknown>>(seq: S): S
+  static create<K, V>(collection: qt.Collection.Keyed<K, V>): Seq.Keyed<K, V>
+  static create<T>(collection: qt.Collection.Set<T>): Seq.Set<T>
+  static create<T>(collection: qt.Collection.Indexed<T> | Iterable<T> | ArrayLike<T>): Seq.Indexed<T>
+  static create<V>(obj: qt.Dict<V>): Seq.Keyed<string, V>
+  static create<K = unknown, V = unknown>(): Seq<K, V>
+  static create(x) {
+    return x === undefined || x === null ? emptySequence() : qu.isImmutable(x) ? x.toSeq() : seqFromValue(x)
+  }
+
+  [qu.IS_SEQ_SYMBOL] = true
+
+  isSeq = qu.isSeq
+  toSeq() {
+    return this
+  }
+  toString() {
+    return this.__toString("Seq {", "}")
+  }
+  cacheResult() {
+    if (!this._cache && this.__iterateUncached) {
+      this._cache = this.entrySeq().toArray()
+      this.size = this._cache.length
+    }
+    return this
+  }
+  __iterate(fn, reverse) {
+    const cache = this._cache
+    if (cache) {
+      const size = cache.length
+      let i = 0
+      while (i !== size) {
+        const entry = cache[reverse ? size - ++i : i++]
+        if (fn(entry[1], entry[0], this) === false) break
+      }
+      return i
+    }
+    return this.__iterateUncached(fn, reverse)
+  }
+  __iterator(type, reverse) {
+    const cache = this._cache
+    if (cache) {
+      const size = cache.length
+      let i = 0
+      return new qu.Iterator(() => {
+        if (i === size) return qu.iteratorDone()
+        const entry = cache[reverse ? size - ++i : i++]
+        return qu.iteratorValue(type, entry[0], entry[1])
+      })
+    }
+    return this.__iteratorUncached(type, reverse)
+  }
+}
+
+export namespace Seq {
+  function isSeq(maybeSeq: unknown): maybeSeq is Seq.Indexed<unknown> | Seq.Keyed<unknown, unknown> | Seq.Set<unknown>
+  namespace Keyed {}
+  function Keyed<K, V>(collection?: Iterable<[K, V]>): Seq.Keyed<K, V>
+  function Keyed<V>(obj: Dict<V>): Seq.Keyed<string, V>
+  namespace Indexed {
+    function of<T>(...xs: Array<T>): Seq.Indexed<T>
+  }
+  function Indexed<T>(collection?: Iterable<T> | ArrayLike<T>): Seq.Indexed<T>
+  namespace Set {
+    function of<T>(...xs: Array<T>): Seq.Set<T>
+  }
+  function Set<T>(collection?: Iterable<T> | ArrayLike<T>): Seq.Set<T>
+}
+
+export class KeyedSeq extends Seq {
+  constructor(value) {
+    return value === undefined || value === null
+      ? emptySequence().toKeyedSeq()
+      : qu.isCollection(value)
+      ? qu.isKeyed(value)
+        ? value.toSeq()
+        : value.fromEntrySeq()
+      : qu.isRecord(value)
+      ? value.toSeq()
+      : keyedSeqFromValue(value)
+  }
+  toKeyedSeq() {
+    return this
+  }
+}
+export class IndexedSeq extends Seq {
+  constructor(value) {
+    return value === undefined || value === null
+      ? emptySequence()
+      : qu.isCollection(value)
+      ? qu.isKeyed(value)
+        ? value.entrySeq()
+        : value.toIndexedSeq()
+      : qu.isRecord(value)
+      ? value.toSeq().entrySeq()
+      : indexedSeqFromValue(value)
+  }
+  static of(/*...values*/) {
+    return IndexedSeq(arguments)
+  }
+  toIndexedSeq() {
+    return this
+  }
+  toString() {
+    return this.__toString("Seq [", "]")
+  }
+}
+export class SetSeq extends Seq {
+  constructor(value) {
+    return (qu.isCollection(value) && !qu.isAssociative(value) ? value : IndexedSeq(value)).toSetSeq()
+  }
+  static of(/*...values*/) {
+    return SetSeq(arguments)
+  }
+  toSetSeq() {
+    return this
+  }
+}
+Seq.Keyed = KeyedSeq
+Seq.Set = SetSeq
+Seq.Indexed = IndexedSeq
+
+export class ArraySeq extends IndexedSeq {
+  constructor(array) {
+    this._array = array
+    this.size = array.length
+  }
+  get(index, notSetValue) {
+    return this.has(index) ? this._array[qu.wrapIndex(this, index)] : notSetValue
+  }
+  __iterate(fn, reverse) {
+    const array = this._array
+    const size = array.length
+    let i = 0
+    while (i !== size) {
+      const ii = reverse ? size - ++i : i++
+      if (fn(array[ii], ii, this) === false) {
+        break
+      }
+    }
+    return i
+  }
+  __iterator(type, reverse) {
+    const array = this._array
+    const size = array.length
+    let i = 0
+    return new qu.Iterator(() => {
+      if (i === size) {
+        return qu.iteratorDone()
+      }
+      const ii = reverse ? size - ++i : i++
+      return qu.iteratorValue(type, ii, array[ii])
+    })
+  }
+}
+class ObjectSeq extends KeyedSeq {
+  [qu.IS_ORDERED_SYMBOL] = true
+  constructor(x) {
+    super()
+    const keys = Object.keys(x).concat(Object.getOwnPropertySymbols ? Object.getOwnPropertySymbols(x) : [])
+    this._object = x
+    this._keys = keys
+    this.size = keys.length
+  }
+  get(key, notSetValue) {
+    if (notSetValue !== undefined && !this.has(key)) return notSetValue
+    return this._object[key]
+  }
+  has(key) {
+    return qu.hasOwnProperty.call(this._object, key)
+  }
+  __iterate(f, reverse) {
+    const object = this._object
+    const ks = this._keys
+    const size = ks.length
+    let i = 0
+    while (i !== size) {
+      const k = ks[reverse ? size - ++i : i++]
+      if (f(object[k], k, this) === false) break
+    }
+    return i
+  }
+  __iterator(type, reverse) {
+    const object = this._object
+    const ks = this._keys
+    const size = ks.length
+    let i = 0
+    return new qu.Iterator(() => {
+      if (i === size) return qu.iteratorDone()
+      const k = ks[reverse ? size - ++i : i++]
+      return qu.iteratorValue(type, k, object[k])
+    })
+  }
+}
+
+class CollectionSeq extends IndexedSeq {
+  constructor(x) {
+    super()
+    this._collection = x
+    this.size = x.length || x.size
+  }
+  __iterateUncached(fn, reverse) {
+    if (reverse) return this.cacheResult().__iterate(fn, reverse)
+    const collection = this._collection
+    const iterator = qu.getIterator(collection)
+    let iterations = 0
+    if (qu.isIterator(iterator)) {
+      let step
+      while (!(step = iterator.next()).done) {
+        if (fn(step.value, iterations++, this) === false) break
+      }
+    }
+    return iterations
+  }
+  __iteratorUncached(type, reverse) {
+    if (reverse) return this.cacheResult().__iterator(type, reverse)
+    const collection = this._collection
+    const iterator = qu.getIterator(collection)
+    if (!qu.isIterator(iterator)) return new qu.Iterator(qu.iteratorDone)
+    let iterations = 0
+    return new qu.Iterator(() => {
+      const step = iterator.next()
+      return step.done ? step : qu.iteratorValue(type, iterations++, step.value)
+    })
+  }
+}
+
 qu.mixin(KeyedSeq, Collection.Keyed.prototype)
 qu.mixin(IndexedSeq, Collection.Indexed.prototype)
 qu.mixin(SetSeq, Collection.Set.prototype)
@@ -535,4 +762,38 @@ function murmurHashOfSize(size, h) {
 
 function hashMerge(a, b) {
   return (a ^ (b + 0x9e3779b9 + (a << 6) + (a >> 2))) | 0 // int
+}
+
+let EMPTY_SEQ
+
+function emptySequence() {
+  return EMPTY_SEQ || (EMPTY_SEQ = new ArraySeq([]))
+}
+
+export function keyedSeqFromValue(x) {
+  const y = maybeIndexedSeqFromValue(x)
+  if (!y) {
+    if (typeof x === "object") return new ObjectSeq(x)
+    throw new TypeError("Expected Array or collection object of [k, v] entries, or keyed object: " + x)
+  }
+  return y.fromEntrySeq()
+}
+
+export function indexedSeqFromValue(x) {
+  const y = maybeIndexedSeqFromValue(x)
+  if (!y) throw new TypeError("Expected Array or collection object of values: " + x)
+  return y
+}
+
+function seqFromValue(x) {
+  const y = maybeIndexedSeqFromValue(x)
+  if (!y) {
+    if (typeof x === "object") return new ObjectSeq(x)
+    throw new TypeError("Expected Array or collection object of values, or keyed object: " + x)
+  }
+  return qu.isEntriesIterable(x) ? y.fromEntrySeq() : qu.isKeysIterable(x) ? y.toSetSeq() : y
+}
+
+function maybeIndexedSeqFromValue(x) {
+  return qu.isArrayLike(x) ? new ArraySeq(x) : qu.hasIterator(x) ? new CollectionSeq(x) : undefined
 }
