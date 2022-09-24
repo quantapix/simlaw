@@ -1,77 +1,60 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import { is } from "./is.js"
-import { Collection, KeyedCollection } from "./collection.js"
-import { IS_MAP_SYMBOL, isMap } from "./predicates/isMap"
-import { isOrdered } from "./predicates/isOrdered"
-import { DELETE, SHIFT, SIZE, MASK, NOT_SET, OwnerID, MakeRef, SetRef } from "./TrieUtils.js"
-import { hash } from "./hash.js"
-import { Iterator, iteratorValue, iteratorDone } from "./Iterator.js"
-import { sortFactory } from "./operations.js"
-import arrCopy from "./utils/arrCopy"
-import assertNotInfinite from "./utils/assertNotInfinite"
-import { setIn } from "./methods/setIn"
-import { deleteIn } from "./methods/deleteIn"
-import { update } from "./methods/update"
-import { updateIn } from "./methods/updateIn"
-import { merge, mergeWith } from "./methods/merge"
-import { mergeDeep, mergeDeepWith } from "./methods/mergeDeep"
-import { mergeIn } from "./methods/mergeIn"
-import { mergeDeepIn } from "./methods/mergeDeepIn"
-import { withMutations } from "./methods/withMutations"
-import { asMutable } from "./methods/asMutable"
-import { asImmutable } from "./methods/asImmutable"
-import { wasAltered } from "./methods/wasAltered"
+import { Collection } from "./main.js"
 import { OrderedMap } from "./ordered.js"
+import { sortFactory } from "./operations.js"
+import * as qf from "./functions.js"
+import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 
-export class Map extends KeyedCollection {
-  constructor(value) {
-    return value === undefined || value === null
-      ? emptyMap()
-      : isMap(value) && !isOrdered(value)
-      ? value
-      : emptyMap().withMutations(map => {
-          const iter = KeyedCollection(value)
-          assertNotInfinite(iter.size)
-          iter.forEach((v, k) => map.set(k, v))
-        })
-  }
-  static of(...keyValues) {
-    return emptyMap().withMutations(map => {
-      for (let i = 0; i < keyValues.length; i += 2) {
-        if (i + 1 >= keyValues.length) {
-          throw new Error("Missing value for key: " + keyValues[i])
-        }
-        map.set(keyValues[i], keyValues[i + 1])
+export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
+  static isMap = qu.isMap
+  static of(...xs: Array<unknown>): Map<unknown, unknown> {
+    return emptyMap().withMutations(x => {
+      for (let i = 0; i < xs.length; i += 2) {
+        if (i + 1 >= xs.length) throw new Error("Missing value for key: " + xs[i])
+        x.set(xs[i], xs[i + 1])
       }
     })
   }
-  toString() {
+
+  static override create<K, V>(x?: Iterable<[K, V]>): Map<K, V>
+  static override create<V>(x: Dict<V>): Map<string, V>
+  static override create<K extends string | symbol, V>(x: { [P in K]?: V }): Map<K, V>
+  static override create(x: any): any {
+    return x === undefined || x === null
+      ? emptyMap()
+      : qu.isMap(x) && !qu.isOrdered(x)
+      ? x
+      : emptyMap().withMutations(x2 => {
+          const iter = new Collection.Keyed(x)
+          qu.assertNotInfinite(iter.size)
+          iter.forEach((v, k) => x2.set(k, v))
+        })
+  }
+  [qu.IS_MAP_SYMBOL] = true;
+  [qu.DELETE] = this.remove
+
+  override toString() {
     return this.__toString("Map {", "}")
   }
-  // @pragma Access
-  get(k, notSetValue) {
+  override get(k, notSetValue) {
     return this._root ? this._root.get(0, undefined, k, notSetValue) : notSetValue
   }
-  // @pragma Modification
   set(k, v) {
     return updateMap(this, k, v)
   }
   remove(k) {
-    return updateMap(this, k, NOT_SET)
+    return updateMap(this, k, qu.NOT_SET)
   }
   deleteAll(keys) {
     const collection = Collection(keys)
-    if (collection.size === 0) {
-      return this
-    }
+    if (collection.size === 0) return this
     return this.withMutations(map => {
       collection.forEach(key => map.remove(key))
     })
   }
   clear() {
-    if (this.size === 0) {
-      return this
-    }
+    if (this.size === 0) return this
     if (this.__ownerID) {
       this.size = 0
       this._root = null
@@ -81,23 +64,19 @@ export class Map extends KeyedCollection {
     }
     return emptyMap()
   }
-  // @pragma Composition
-  sort(comparator) {
-    // Late binding
+  override sort(comparator) {
     return OrderedMap(sortFactory(this, comparator))
   }
-  sortBy(mapper, comparator) {
-    // Late binding
+  override sortBy(mapper, comparator) {
     return OrderedMap(sortFactory(this, comparator, mapper))
   }
-  map(mapper, context) {
+  override map(mapper, context) {
     return this.withMutations(map => {
       map.forEach((value, key) => {
         map.set(key, mapper.call(context, value, key, this))
       })
     })
   }
-  // @pragma Mutability
   __iterator(type, reverse) {
     return new MapIterator(this, type, reverse)
   }
@@ -111,56 +90,40 @@ export class Map extends KeyedCollection {
     return iterations
   }
   __ensureOwner(ownerID) {
-    if (ownerID === this.__ownerID) {
-      return this
-    }
+    if (ownerID === this.__ownerID) return this
     if (!ownerID) {
-      if (this.size === 0) {
-        return emptyMap()
-      }
+      if (this.size === 0) return emptyMap()
       this.__ownerID = ownerID
       this.__altered = false
       return this
     }
     return makeMap(this.size, this._root, ownerID, this.__hash)
   }
+  removeAll = this.deleteAll
+  setIn = qf.setIn
+  deleteIn = qf.deleteIn
+  removeIn = qf.deleteIn
+  override update = qf.update
+  updateIn = qf.updateIn
+  merge = (this.concat = qf.merge)
+  mergeWith = qf.mergeWith
+  mergeDeep = qf.mergeDeep
+  mergeDeepWith = qf.mergeDeepWith
+  mergeIn = qf.mergeIn
+  mergeDeepIn = qf.mergeDeepIn
+  withMutations = qf.withMutations
+  wasAltered = qf.wasAltered
+  asImmutable = qf.asImmutable
+  asMutable = qf.asMutable;
+  ["@@transducer/init"] = qf.asMutable;
+  ["@@transducer/step"] = function (result, arr) {
+    return result.set(arr[0], arr[1])
+  };
+  ["@@transducer/result"] = function (x) {
+    return x.asImmutable()
+  }
 }
 
-export namespace Map {
-  export function isMap(x: unknown): x is Map<unknown, unknown>
-  export function of(...xs: Array<unknown>): Map<unknown, unknown>
-}
-/*
-function Map<K, V>(x?: Iterable<[K, V]>): Map<K, V>
-function Map<V>(x: Dict<V>): Map<string, V>
-function Map<K extends string | symbol, V>(x: { [P in K]?: V }): Map<K, V>
-*/
-Map.isMap = isMap
-export const MapPrototype = Map.prototype
-MapPrototype[IS_MAP_SYMBOL] = true
-MapPrototype[DELETE] = MapPrototype.remove
-MapPrototype.removeAll = MapPrototype.deleteAll
-MapPrototype.setIn = setIn
-MapPrototype.removeIn = MapPrototype.deleteIn = deleteIn
-MapPrototype.update = update
-MapPrototype.updateIn = updateIn
-MapPrototype.merge = MapPrototype.concat = merge
-MapPrototype.mergeWith = mergeWith
-MapPrototype.mergeDeep = mergeDeep
-MapPrototype.mergeDeepWith = mergeDeepWith
-MapPrototype.mergeIn = mergeIn
-MapPrototype.mergeDeepIn = mergeDeepIn
-MapPrototype.withMutations = withMutations
-MapPrototype.wasAltered = wasAltered
-MapPrototype.asImmutable = asImmutable
-MapPrototype["@@transducer/init"] = MapPrototype.asMutable = asMutable
-MapPrototype["@@transducer/step"] = function (result, arr) {
-  return result.set(arr[0], arr[1])
-}
-MapPrototype["@@transducer/result"] = function (obj) {
-  return obj.asImmutable()
-}
-// #pragma Trie Nodes
 class ArrayMapNode {
   constructor(ownerID, entries) {
     this.ownerID = ownerID
@@ -169,45 +132,32 @@ class ArrayMapNode {
   get(shift, keyHash, key, notSetValue) {
     const entries = this.entries
     for (let ii = 0, len = entries.length; ii < len; ii++) {
-      if (is(key, entries[ii][0])) {
-        return entries[ii][1]
-      }
+      if (qu.is(key, entries[ii][0])) return entries[ii][1]
     }
     return notSetValue
   }
   update(ownerID, shift, keyHash, key, value, didChangeSize, didAlter) {
-    const removed = value === NOT_SET
+    const removed = value === qu.NOT_SET
     const entries = this.entries
     let idx = 0
     const len = entries.length
     for (; idx < len; idx++) {
-      if (is(key, entries[idx][0])) {
-        break
-      }
+      if (qu.is(key, entries[idx][0])) break
     }
     const exists = idx < len
-    if (exists ? entries[idx][1] === value : removed) {
-      return this
-    }
-    SetRef(didAlter)
-    ;(removed || !exists) && SetRef(didChangeSize)
-    if (removed && entries.length === 1) {
-      return // undefined
-    }
+    if (exists ? entries[idx][1] === value : removed) return this
+    qu.SetRef(didAlter)
+    ;(removed || !exists) && qu.SetRef(didChangeSize)
+    if (removed && entries.length === 1) return
     if (!exists && !removed && entries.length >= MAX_ARRAY_MAP_SIZE) {
       return createNodes(ownerID, entries, key, value)
     }
     const isEditable = ownerID && ownerID === this.ownerID
-    const newEntries = isEditable ? entries : arrCopy(entries)
+    const newEntries = isEditable ? entries : qu.arrCopy(entries)
     if (exists) {
-      if (removed) {
-        idx === len - 1 ? newEntries.pop() : (newEntries[idx] = newEntries.pop())
-      } else {
-        newEntries[idx] = [key, value]
-      }
-    } else {
-      newEntries.push([key, value])
-    }
+      if (removed) idx === len - 1 ? newEntries.pop() : (newEntries[idx] = newEntries.pop())
+      else newEntries[idx] = [key, value]
+    } else newEntries.push([key, value])
     if (isEditable) {
       this.entries = newEntries
       return this
@@ -215,6 +165,7 @@ class ArrayMapNode {
     return new ArrayMapNode(ownerID, newEntries)
   }
 }
+
 class BitmapIndexedNode {
   constructor(ownerID, bitmap, nodes) {
     this.ownerID = ownerID
@@ -222,40 +173,28 @@ class BitmapIndexedNode {
     this.nodes = nodes
   }
   get(shift, keyHash, key, notSetValue) {
-    if (keyHash === undefined) {
-      keyHash = hash(key)
-    }
-    const bit = 1 << ((shift === 0 ? keyHash : keyHash >>> shift) & MASK)
+    if (keyHash === undefined) keyHash = qu.hash(key)
+    const bit = 1 << ((shift === 0 ? keyHash : keyHash >>> shift) & qu.MASK)
     const bitmap = this.bitmap
-    return (bitmap & bit) === 0 ? notSetValue : this.nodes[popCount(bitmap & (bit - 1))].get(shift + SHIFT, keyHash, key, notSetValue)
+    return (bitmap & bit) === 0 ? notSetValue : this.nodes[popCount(bitmap & (bit - 1))].get(shift + qu.SHIFT, keyHash, key, notSetValue)
   }
   update(ownerID, shift, keyHash, key, value, didChangeSize, didAlter) {
-    if (keyHash === undefined) {
-      keyHash = hash(key)
-    }
-    const keyHashFrag = (shift === 0 ? keyHash : keyHash >>> shift) & MASK
+    if (keyHash === undefined) keyHash = qu.hash(key)
+    const keyHashFrag = (shift === 0 ? keyHash : keyHash >>> shift) & qu.MASK
     const bit = 1 << keyHashFrag
     const bitmap = this.bitmap
     const exists = (bitmap & bit) !== 0
-    if (!exists && value === NOT_SET) {
-      return this
-    }
+    if (!exists && value === qu.NOT_SET) return this
     const idx = popCount(bitmap & (bit - 1))
     const nodes = this.nodes
     const node = exists ? nodes[idx] : undefined
-    const newNode = updateNode(node, ownerID, shift + SHIFT, keyHash, key, value, didChangeSize, didAlter)
-    if (newNode === node) {
-      return this
-    }
+    const newNode = updateNode(node, ownerID, shift + qu.SHIFT, keyHash, key, value, didChangeSize, didAlter)
+    if (newNode === node) return this
     if (!exists && newNode && nodes.length >= MAX_BITMAP_INDEXED_SIZE) {
       return expandNodes(ownerID, nodes, bitmap, keyHashFrag, newNode)
     }
-    if (exists && !newNode && nodes.length === 2 && isLeafNode(nodes[idx ^ 1])) {
-      return nodes[idx ^ 1]
-    }
-    if (exists && newNode && nodes.length === 1 && isLeafNode(newNode)) {
-      return newNode
-    }
+    if (exists && !newNode && nodes.length === 2 && isLeafNode(nodes[idx ^ 1])) return nodes[idx ^ 1]
+    if (exists && newNode && nodes.length === 1 && isLeafNode(newNode)) return newNode
     const isEditable = ownerID && ownerID === this.ownerID
     const newBitmap = exists ? (newNode ? bitmap : bitmap ^ bit) : bitmap | bit
     const newNodes = exists ? (newNode ? setAt(nodes, idx, newNode, isEditable) : spliceOut(nodes, idx, isEditable)) : spliceIn(nodes, idx, newNode, isEditable)
@@ -267,6 +206,7 @@ class BitmapIndexedNode {
     return new BitmapIndexedNode(ownerID, newBitmap, newNodes)
   }
 }
+
 class HashArrayMapNode {
   constructor(ownerID, count, nodes) {
     this.ownerID = ownerID
@@ -274,36 +214,25 @@ class HashArrayMapNode {
     this.nodes = nodes
   }
   get(shift, keyHash, key, notSetValue) {
-    if (keyHash === undefined) {
-      keyHash = hash(key)
-    }
-    const idx = (shift === 0 ? keyHash : keyHash >>> shift) & MASK
+    if (keyHash === undefined) keyHash = qu.hash(key)
+    const idx = (shift === 0 ? keyHash : keyHash >>> shift) & qu.MASK
     const node = this.nodes[idx]
-    return node ? node.get(shift + SHIFT, keyHash, key, notSetValue) : notSetValue
+    return node ? node.get(shift + qu.SHIFT, keyHash, key, notSetValue) : notSetValue
   }
   update(ownerID, shift, keyHash, key, value, didChangeSize, didAlter) {
-    if (keyHash === undefined) {
-      keyHash = hash(key)
-    }
-    const idx = (shift === 0 ? keyHash : keyHash >>> shift) & MASK
-    const removed = value === NOT_SET
+    if (keyHash === undefined) keyHash = qu.hash(key)
+    const idx = (shift === 0 ? keyHash : keyHash >>> shift) & qu.MASK
+    const removed = value === qu.NOT_SET
     const nodes = this.nodes
     const node = nodes[idx]
-    if (removed && !node) {
-      return this
-    }
-    const newNode = updateNode(node, ownerID, shift + SHIFT, keyHash, key, value, didChangeSize, didAlter)
-    if (newNode === node) {
-      return this
-    }
+    if (removed && !node) return this
+    const newNode = updateNode(node, ownerID, shift + qu.SHIFT, keyHash, key, value, didChangeSize, didAlter)
+    if (newNode === node) return this
     let newCount = this.count
-    if (!node) {
-      newCount++
-    } else if (!newNode) {
+    if (!node) newCount++
+    else if (!newNode) {
       newCount--
-      if (newCount < MIN_HASH_ARRAY_MAP_SIZE) {
-        return packNodes(ownerID, nodes, newCount, idx)
-      }
+      if (newCount < MIN_HASH_ARRAY_MAP_SIZE) return packNodes(ownerID, nodes, newCount, idx)
     }
     const isEditable = ownerID && ownerID === this.ownerID
     const newNodes = setAt(nodes, idx, newNode, isEditable)
@@ -315,6 +244,7 @@ class HashArrayMapNode {
     return new HashArrayMapNode(ownerID, newCount, newNodes)
   }
 }
+
 class HashCollisionNode {
   constructor(ownerID, keyHash, entries) {
     this.ownerID = ownerID
@@ -324,53 +254,36 @@ class HashCollisionNode {
   get(shift, keyHash, key, notSetValue) {
     const entries = this.entries
     for (let ii = 0, len = entries.length; ii < len; ii++) {
-      if (is(key, entries[ii][0])) {
-        return entries[ii][1]
-      }
+      if (qu.is(key, entries[ii][0])) return entries[ii][1]
     }
     return notSetValue
   }
   update(ownerID, shift, keyHash, key, value, didChangeSize, didAlter) {
-    if (keyHash === undefined) {
-      keyHash = hash(key)
-    }
-    const removed = value === NOT_SET
+    if (keyHash === undefined) keyHash = qu.hash(key)
+    const removed = value === qu.NOT_SET
     if (keyHash !== this.keyHash) {
-      if (removed) {
-        return this
-      }
-      SetRef(didAlter)
-      SetRef(didChangeSize)
+      if (removed) return this
+      qu.SetRef(didAlter)
+      qu.SetRef(didChangeSize)
       return mergeIntoNode(this, ownerID, shift, keyHash, [key, value])
     }
     const entries = this.entries
     let idx = 0
     const len = entries.length
     for (; idx < len; idx++) {
-      if (is(key, entries[idx][0])) {
-        break
-      }
+      if (qu.is(key, entries[idx][0])) break
     }
     const exists = idx < len
-    if (exists ? entries[idx][1] === value : removed) {
-      return this
-    }
-    SetRef(didAlter)
-    ;(removed || !exists) && SetRef(didChangeSize)
-    if (removed && len === 2) {
-      return new ValueNode(ownerID, this.keyHash, entries[idx ^ 1])
-    }
+    if (exists ? entries[idx][1] === value : removed) return this
+    qu.SetRef(didAlter)
+    ;(removed || !exists) && qu.SetRef(didChangeSize)
+    if (removed && len === 2) return new ValueNode(ownerID, this.keyHash, entries[idx ^ 1])
     const isEditable = ownerID && ownerID === this.ownerID
-    const newEntries = isEditable ? entries : arrCopy(entries)
+    const newEntries = isEditable ? entries : qu.arrCopy(entries)
     if (exists) {
-      if (removed) {
-        idx === len - 1 ? newEntries.pop() : (newEntries[idx] = newEntries.pop())
-      } else {
-        newEntries[idx] = [key, value]
-      }
-    } else {
-      newEntries.push([key, value])
-    }
+      if (removed) idx === len - 1 ? newEntries.pop() : (newEntries[idx] = newEntries.pop())
+      else newEntries[idx] = [key, value]
+    } else newEntries.push([key, value])
     if (isEditable) {
       this.entries = newEntries
       return this
@@ -378,6 +291,7 @@ class HashCollisionNode {
     return new HashCollisionNode(ownerID, this.keyHash, newEntries)
   }
 }
+
 class ValueNode {
   constructor(ownerID, keyHash, entry) {
     this.ownerID = ownerID
@@ -385,18 +299,17 @@ class ValueNode {
     this.entry = entry
   }
   get(shift, keyHash, key, notSetValue) {
-    return is(key, this.entry[0]) ? this.entry[1] : notSetValue
+    return qu.is(key, this.entry[0]) ? this.entry[1] : notSetValue
   }
   update(ownerID, shift, keyHash, key, value, didChangeSize, didAlter) {
-    const removed = value === NOT_SET
-    const keyMatch = is(key, this.entry[0])
-    if (keyMatch ? value === this.entry[1] : removed) {
-      return this
-    }
-    SetRef(didAlter)
+    const removed = value === qu.NOT_SET
+    const keyMatch = qu.is(key, this.entry[0])
+    if (keyMatch ? value === this.entry[1] : removed) return this
+
+    qu.SetRef(didAlter)
     if (removed) {
-      SetRef(didChangeSize)
-      return // undefined
+      qu.SetRef(didChangeSize)
+      return
     }
     if (keyMatch) {
       if (ownerID && ownerID === this.ownerID) {
@@ -405,33 +318,31 @@ class ValueNode {
       }
       return new ValueNode(ownerID, this.keyHash, [key, value])
     }
-    SetRef(didChangeSize)
-    return mergeIntoNode(this, ownerID, shift, hash(key), [key, value])
+    qu.SetRef(didChangeSize)
+    return mergeIntoNode(this, ownerID, shift, qu.hash(key), [key, value])
   }
 }
-// #pragma Iterators
+
 ArrayMapNode.prototype.iterate = HashCollisionNode.prototype.iterate = function (fn, reverse) {
   const entries = this.entries
   for (let ii = 0, maxIndex = entries.length - 1; ii <= maxIndex; ii++) {
-    if (fn(entries[reverse ? maxIndex - ii : ii]) === false) {
-      return false
-    }
+    if (fn(entries[reverse ? maxIndex - ii : ii]) === false) return false
   }
 }
+
 BitmapIndexedNode.prototype.iterate = HashArrayMapNode.prototype.iterate = function (fn, reverse) {
   const nodes = this.nodes
   for (let ii = 0, maxIndex = nodes.length - 1; ii <= maxIndex; ii++) {
     const node = nodes[reverse ? maxIndex - ii : ii]
-    if (node && node.iterate(fn, reverse) === false) {
-      return false
-    }
+    if (node && node.iterate(fn, reverse) === false) return false
   }
 }
-// eslint-disable-next-line no-unused-vars
+
 ValueNode.prototype.iterate = function (fn, reverse) {
   return fn(this.entry)
 }
-class MapIterator extends Iterator {
+
+class MapIterator extends qu.Iterator {
   constructor(map, type, reverse) {
     this._type = type
     this._reverse = reverse
@@ -445,22 +356,16 @@ class MapIterator extends Iterator {
       const index = stack.index++
       let maxIndex
       if (node.entry) {
-        if (index === 0) {
-          return mapIteratorValue(type, node.entry)
-        }
+        if (index === 0) return mapIteratorValue(type, node.entry)
       } else if (node.entries) {
         maxIndex = node.entries.length - 1
-        if (index <= maxIndex) {
-          return mapIteratorValue(type, node.entries[this._reverse ? maxIndex - index : index])
-        }
+        if (index <= maxIndex) return mapIteratorValue(type, node.entries[this._reverse ? maxIndex - index : index])
       } else {
         maxIndex = node.nodes.length - 1
         if (index <= maxIndex) {
           const subNode = node.nodes[this._reverse ? maxIndex - index : index]
           if (subNode) {
-            if (subNode.entry) {
-              return mapIteratorValue(type, subNode.entry)
-            }
+            if (subNode.entry) return mapIteratorValue(type, subNode.entry)
             stack = this._stack = mapIteratorFrame(subNode, stack)
           }
           continue
@@ -468,19 +373,18 @@ class MapIterator extends Iterator {
       }
       stack = this._stack = this._stack.__prev
     }
-    return iteratorDone()
+    return qu.iteratorDone()
   }
 }
+
 function mapIteratorValue(type, entry) {
-  return iteratorValue(type, entry[0], entry[1])
+  return qu.iteratorValue(type, entry[0], entry[1])
 }
+
 function mapIteratorFrame(node, prev) {
-  return {
-    node: node,
-    index: 0,
-    __prev: prev,
-  }
+  return { node: node, index: 0, __prev: prev }
 }
+
 function makeMap(size, root, ownerID, hash) {
   const map = Object.create(MapPrototype)
   map.size = size
@@ -490,27 +394,25 @@ function makeMap(size, root, ownerID, hash) {
   map.__altered = false
   return map
 }
+
 let EMPTY_MAP
 export function emptyMap() {
   return EMPTY_MAP || (EMPTY_MAP = makeMap(0))
 }
+
 function updateMap(map, k, v) {
   let newRoot
   let newSize
   if (!map._root) {
-    if (v === NOT_SET) {
-      return map
-    }
+    if (v === qu.NOT_SET) return map
     newSize = 1
     newRoot = new ArrayMapNode(map.__ownerID, [[k, v]])
   } else {
-    const didChangeSize = MakeRef()
-    const didAlter = MakeRef()
+    const didChangeSize = qu.MakeRef()
+    const didAlter = qu.MakeRef()
     newRoot = updateNode(map._root, map.__ownerID, 0, undefined, k, v, didChangeSize, didAlter)
-    if (!didAlter.value) {
-      return map
-    }
-    newSize = map.size + (didChangeSize.value ? (v === NOT_SET ? -1 : 1) : 0)
+    if (!didAlter.value) return map
+    newSize = map.size + (didChangeSize.value ? (v === qu.NOT_SET ? -1 : 1) : 0)
   }
   if (map.__ownerID) {
     map.size = newSize
@@ -521,41 +423,40 @@ function updateMap(map, k, v) {
   }
   return newRoot ? makeMap(newSize, newRoot) : emptyMap()
 }
+
 function updateNode(node, ownerID, shift, keyHash, key, value, didChangeSize, didAlter) {
   if (!node) {
-    if (value === NOT_SET) {
-      return node
-    }
-    SetRef(didAlter)
-    SetRef(didChangeSize)
+    if (value === qu.NOT_SET) return node
+    qu.SetRef(didAlter)
+    qu.SetRef(didChangeSize)
     return new ValueNode(ownerID, keyHash, [key, value])
   }
   return node.update(ownerID, shift, keyHash, key, value, didChangeSize, didAlter)
 }
+
 function isLeafNode(node) {
   return node.constructor === ValueNode || node.constructor === HashCollisionNode
 }
+
 function mergeIntoNode(node, ownerID, shift, keyHash, entry) {
-  if (node.keyHash === keyHash) {
-    return new HashCollisionNode(ownerID, keyHash, [node.entry, entry])
-  }
-  const idx1 = (shift === 0 ? node.keyHash : node.keyHash >>> shift) & MASK
-  const idx2 = (shift === 0 ? keyHash : keyHash >>> shift) & MASK
+  if (node.keyHash === keyHash) return new HashCollisionNode(ownerID, keyHash, [node.entry, entry])
+  const idx1 = (shift === 0 ? node.keyHash : node.keyHash >>> shift) & qu.MASK
+  const idx2 = (shift === 0 ? keyHash : keyHash >>> shift) & qu.MASK
   let newNode
-  const nodes = idx1 === idx2 ? [mergeIntoNode(node, ownerID, shift + SHIFT, keyHash, entry)] : ((newNode = new ValueNode(ownerID, keyHash, entry)), idx1 < idx2 ? [node, newNode] : [newNode, node])
+  const nodes = idx1 === idx2 ? [mergeIntoNode(node, ownerID, shift + qu.SHIFT, keyHash, entry)] : ((newNode = new ValueNode(ownerID, keyHash, entry)), idx1 < idx2 ? [node, newNode] : [newNode, node])
   return new BitmapIndexedNode(ownerID, (1 << idx1) | (1 << idx2), nodes)
 }
+
 function createNodes(ownerID, entries, key, value) {
-  if (!ownerID) {
-    ownerID = new OwnerID()
-  }
-  let node = new ValueNode(ownerID, hash(key), [key, value])
+  if (!ownerID) ownerID = new qu.OwnerID()
+  let node = new ValueNode(ownerID, qu.hash(key), [key, value])
   for (let ii = 0; ii < entries.length; ii++) {
     const entry = entries[ii]
     node = node.update(ownerID, 0, undefined, entry[0], entry[1])
   }
   return node
 }
+
 function packNodes(ownerID, nodes, count, excluding) {
   let bitmap = 0
   let packedII = 0
@@ -569,15 +470,17 @@ function packNodes(ownerID, nodes, count, excluding) {
   }
   return new BitmapIndexedNode(ownerID, bitmap, packedNodes)
 }
+
 function expandNodes(ownerID, nodes, bitmap, including, node) {
   let count = 0
-  const expandedNodes = new Array(SIZE)
+  const expandedNodes = new Array(qu.SIZE)
   for (let ii = 0; bitmap !== 0; ii++, bitmap >>>= 1) {
     expandedNodes[ii] = bitmap & 1 ? nodes[count++] : undefined
   }
   expandedNodes[including] = node
   return new HashArrayMapNode(ownerID, count + 1, expandedNodes)
 }
+
 function popCount(x) {
   x -= (x >> 1) & 0x55555555
   x = (x & 0x33333333) + ((x >> 2) & 0x33333333)
@@ -586,11 +489,13 @@ function popCount(x) {
   x += x >> 16
   return x & 0x7f
 }
+
 function setAt(array, idx, val, canEdit) {
-  const newArray = canEdit ? array : arrCopy(array)
+  const newArray = canEdit ? array : qu.arrCopy(array)
   newArray[idx] = val
   return newArray
 }
+
 function spliceIn(array, idx, val, canEdit) {
   const newLen = array.length + 1
   if (canEdit && idx + 1 === newLen) {
@@ -603,12 +508,11 @@ function spliceIn(array, idx, val, canEdit) {
     if (ii === idx) {
       newArray[ii] = val
       after = -1
-    } else {
-      newArray[ii] = array[ii + after]
-    }
+    } else newArray[ii] = array[ii + after]
   }
   return newArray
 }
+
 function spliceOut(array, idx, canEdit) {
   const newLen = array.length - 1
   if (canEdit && idx === newLen) {
@@ -618,13 +522,12 @@ function spliceOut(array, idx, canEdit) {
   const newArray = new Array(newLen)
   let after = 0
   for (let ii = 0; ii < newLen; ii++) {
-    if (ii === idx) {
-      after = 1
-    }
+    if (ii === idx) after = 1
     newArray[ii] = array[ii + after]
   }
   return newArray
 }
-const MAX_ARRAY_MAP_SIZE = SIZE / 4
-const MAX_BITMAP_INDEXED_SIZE = SIZE / 2
-const MIN_HASH_ARRAY_MAP_SIZE = SIZE / 4
+
+const MAX_ARRAY_MAP_SIZE = qu.SIZE / 4
+const MAX_BITMAP_INDEXED_SIZE = qu.SIZE / 2
+const MIN_HASH_ARRAY_MAP_SIZE = qu.SIZE / 4

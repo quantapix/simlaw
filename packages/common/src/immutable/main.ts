@@ -430,7 +430,7 @@ export namespace Collection {
     }
   }
 
-  export class Set<K, V> extends Collection<K, V> implements qt.Collection.Set<K> {
+  export class Set<K> extends Collection<K, K> implements qt.Collection.Set<K> {
     static override create<K>(x?: Iterable<K> | ArrayLike<K>): qt.Collection.Set<K> {
       return qu.isCollection(x) && !qu.isAssociative(x) ? x : new SetSeq(x)
     }
@@ -521,6 +521,7 @@ export namespace Seq {
 
 export class KeyedSeq extends Seq {
   constructor(value) {
+    super()
     return value === undefined || value === null
       ? emptySequence().toKeyedSeq()
       : qu.isCollection(value)
@@ -537,6 +538,7 @@ export class KeyedSeq extends Seq {
 }
 export class IndexedSeq extends Seq {
   constructor(value) {
+    super()
     return value === undefined || value === null
       ? emptySequence()
       : qu.isCollection(value)
@@ -559,6 +561,7 @@ export class IndexedSeq extends Seq {
 }
 export class SetSeq extends Seq {
   constructor(value) {
+    super()
     return (qu.isCollection(value) && !qu.isAssociative(value) ? value : IndexedSeq(value)).toSetSeq()
   }
   static of(/*...values*/) {
@@ -574,6 +577,7 @@ Seq.Indexed = IndexedSeq
 
 export class ArraySeq extends IndexedSeq {
   constructor(array) {
+    super()
     this._array = array
     this.size = array.length
   }

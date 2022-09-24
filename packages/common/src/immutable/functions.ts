@@ -1,5 +1,5 @@
 import { emptyMap } from "./map.js"
-import { Collection } from "./collection.js"
+import { Collection } from "./main.js"
 import { Seq } from "./seq.js"
 import { set } from "./set.js"
 import * as qu from "./utils.js"

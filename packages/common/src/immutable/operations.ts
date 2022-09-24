@@ -1,5 +1,5 @@
 import * as qu from "./utils.js"
-import { Collection, KeyedCollection, SetCollection, IndexedCollection } from "./collection.js"
+import { Collection, KeyedCollection, SetCollection, IndexedCollection } from "./main.js"
 import { Seq, KeyedSeq, SetSeq, IndexedSeq, keyedSeqFromValue, indexedSeqFromValue, ArraySeq } from "./seq.js"
 import { Map } from "./map.js"
 import { OrderedMap } from "./ordered.js"

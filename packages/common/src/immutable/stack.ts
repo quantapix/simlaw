@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import { wholeSlice, resolveBegin, resolveEnd, wrapIndex } from "./TrieUtils.js"
-import { IndexedCollection } from "./Collection.js"
+import { IndexedCollection } from "./main.js"
 import { ArraySeq } from "./Seq.js"
 import { Iterator, iteratorValue, iteratorDone } from "./Iterator"
 import { IS_STACK_SYMBOL, isStack } from "./predicates/isStack"

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import { IndexedCollection } from "./collection.js"
+import { IndexedCollection } from "./main.js"
 import { setIn, deleteIn, update, updateIn, mergeIn, mergeDeepIn, withMutations, asMutable, asImmutable, wasAltered } from "./methods.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"

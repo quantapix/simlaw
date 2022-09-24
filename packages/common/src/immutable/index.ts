@@ -1,2 +1,2 @@
 export * from "./types.js"
-export * from "./collection.js"
+export * from "./main.js"

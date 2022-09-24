@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import { toJS } from "./toJS.js"
-import { KeyedCollection } from "./Collection.js"
+import { KeyedCollection } from "./main.js"
 import { keyedSeqFromValue } from "./Seq.js"
 import { List } from "./List.js"
 import { ITERATE_ENTRIES, ITERATOR_SYMBOL } from "./Iterator"
