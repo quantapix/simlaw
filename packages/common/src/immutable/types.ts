@@ -334,38 +334,38 @@ export namespace Record {
   }
 }
 
-export interface Record<TProps extends object> {
-  [Symbol.iterator](): IterableIterator<[keyof TProps, TProps[keyof TProps]]>
+export interface Record<T extends object> {
+  [Symbol.iterator](): IterableIterator<[keyof T, T[keyof T]]>
   asImmutable(): this
   asMutable(): this
   clear(): this
-  delete<K extends keyof TProps>(k: K): this
+  delete<K extends keyof T>(k: K): this
   deleteIn(x: Iterable<unknown>): this
   equals(x: unknown): boolean
-  get<K extends keyof TProps>(k: K, v0?: unknown): TProps[K]
-  get<T>(k: string, v0: T): T
+  get<K extends keyof T>(k: K, v0?: unknown): T[K]
+  get<V>(k: string, v0: V): V
   getIn(x: Iterable<unknown>): unknown
-  has(k: string): k is keyof TProps & string
+  has(k: string): k is keyof T & string
   hashCode(): number
   hasIn(x: Iterable<unknown>): boolean
-  merge(...xs: Array<Partial<TProps> | Iterable<[string, unknown]>>): this
-  mergeDeep(...xs: Array<Partial<TProps> | Iterable<[string, unknown]>>): this
+  merge(...xs: Array<Partial<T> | Iterable<[string, unknown]>>): this
+  mergeDeep(...xs: Array<Partial<T> | Iterable<[string, unknown]>>): this
   mergeDeepIn(x: Iterable<unknown>, ...xs: Array<unknown>): this
-  mergeDeepWith(merger: (old: unknown, newVal: unknown, key: unknown) => unknown, ...xs: Array<Partial<TProps> | Iterable<[string, unknown]>>): this
+  mergeDeepWith(f: (old: unknown, x: unknown, k: unknown) => unknown, ...xs: Array<Partial<T> | Iterable<[string, unknown]>>): this
   mergeIn(x: Iterable<unknown>, ...xs: Array<unknown>): this
-  mergeWith(merger: (old: unknown, newVal: unknown, k: keyof TProps) => unknown, ...xs: Array<Partial<TProps> | Iterable<[string, unknown]>>): this
-  remove<K extends keyof TProps>(k: K): this
+  mergeWith(f: (old: unknown, x: unknown, k: keyof T) => unknown, ...xs: Array<Partial<T> | Iterable<[string, unknown]>>): this
+  remove<K extends keyof T>(k: K): this
   removeIn(x: Iterable<unknown>): this
-  set<K extends keyof TProps>(k: K, value: TProps[K]): this
-  setIn(x: Iterable<unknown>, value: unknown): this
-  toJS(): { [K in keyof TProps]: unknown }
-  toJSON(): TProps
-  toObject(): TProps
-  toSeq(): Seq.Keyed<keyof TProps, TProps[keyof TProps]>
-  update<K extends keyof TProps>(k: K, f: (value: TProps[K]) => TProps[K]): this
-  updateIn(x: Iterable<unknown>, f: (value: unknown) => unknown): this
+  set<K extends keyof T>(k: K, v: T[K]): this
+  setIn(x: Iterable<unknown>, v: unknown): this
+  toJS(): { [K in keyof T]: unknown }
+  toJSON(): T
+  toObject(): T
+  toSeq(): Seq.Keyed<keyof T, T[keyof T]>
+  update<K extends keyof T>(k: K, f: (v: T[K]) => T[K]): this
+  updateIn(x: Iterable<unknown>, f: (v: unknown) => unknown): this
   wasAltered(): boolean
-  withMutations(mutator: (mutable: this) => unknown): this
+  withMutations(f: (x: this) => unknown): this
 }
 
 export type RecordOf<TProps extends object> = Record<TProps> & Readonly<TProps>

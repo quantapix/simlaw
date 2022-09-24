@@ -1,27 +1,27 @@
 import { emptyMap } from "./map.js"
-import { IndexedCollection, KeyedCollection } from "./collection.js"
+import { Collection } from "./collection.js"
 import { Seq } from "./seq.js"
 import { set } from "./set.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-export function get<K, V>(collection: qt.Collection<K, V>, k: K): V | undefined
-export function get<K, V, NSV>(collection: qt.Collection<K, V>, k: K, v0: NSV): V | NSV
-export function get<TProps extends object, K extends keyof TProps>(record: qt.Record<TProps>, k: K, v0: unknown): TProps[K]
-export function get<V>(collection: Array<V>, key: number): V | undefined
-export function get<V, NSV>(collection: Array<V>, key: number, v0: NSV): V | NSV
-export function get<C extends object, K extends keyof C>(object: C, k: K, v0: unknown): C[K]
-export function get<V>(collection: qt.Dict<V>, k: string): V | undefined
-export function get<V, NSV>(collection: qt.Dict<V>, k: string, v0: NSV): V | NSV
-export function get(x, k, v0) {
+export function get<K, V>(x: qt.Collection<K, V>, k: K): V | undefined
+export function get<K, V, T>(x: qt.Collection<K, V>, k: K, v0: T): V | T
+export function get<T extends object, K extends keyof T>(x: qt.Record<T>, k: K, v0: unknown): T[K]
+export function get<V>(x: Array<V>, i: number): V | undefined
+export function get<V, T>(x: Array<V>, i: number, v0: T): V | T
+export function get<T extends object, K extends keyof T>(x: T, k: K, v0: unknown): T[K]
+export function get<V>(x: qt.Dict<V>, k: string): V | undefined
+export function get<V, T>(x: qt.Dict<V>, k: string, v0: T): V | T
+export function get(x: any, k: any, v0?: unknown) {
   return qu.isImmutable(x) ? x.get(k, v0) : !has(x, k) ? v0 : typeof x.get === "function" ? x.get(k) : x[k]
 }
 
-export function getIn(x: unknown, xs: Iterable<unknown>, v0?: unknown): unknown {
-  const keyPath = qu.coerceKeyPath(xs)
+export function getIn(x: any, xs: Iterable<unknown>, v0?: unknown): unknown {
+  const p = qu.coerceKeyPath(xs)
   let i = 0
-  while (i !== keyPath.length) {
-    x = get(x, keyPath[i++], qu.NOT_SET)
+  while (i !== p.length) {
+    x = get(x, p[i++], qu.NOT_SET)
     if (x === qu.NOT_SET) return v0
   }
   return x
@@ -64,7 +64,7 @@ export function mergeWithSources(x: any, xs: any, f?: any) {
   }
   const isArray = Array.isArray(x)
   let y = x
-  const Collection = isArray ? IndexedCollection : KeyedCollection
+  const C = isArray ? Collection.Indexed : Collection.Keyed
   const mergeItem = isArray
     ? v => {
         if (y === x) y = qu.shallowCopy(y)
@@ -79,7 +79,7 @@ export function mergeWithSources(x: any, xs: any, f?: any) {
         }
       }
   for (let i = 0; i < xs.length; i++) {
-    Collection(xs[i]).forEach(mergeItem)
+    new C(xs[i]).forEach(mergeItem)
   }
   return y
 }
@@ -189,4 +189,104 @@ function updateInDeeply(isImmutable: boolean, x: unknown, xs: any, i: number, v0
   const x2 = notSet ? qu.NOT_SET : get(x, k, qu.NOT_SET)
   const y = updateInDeeply(x2 === qu.NOT_SET ? isImmutable : qu.isImmutable(x2), x2, xs, i + 1, v0, f)
   return y === x2 ? x : y === qu.NOT_SET ? remove(x, k) : set(notSet ? (isImmutable ? emptyMap() : {}) : x, k, y)
+}
+
+export function asImmutable() {
+  return this.__ensureOwner()
+}
+
+export function asMutable() {
+  return this.__ownerID ? this : this.__ensureOwner(new qu.OwnerID())
+}
+
+export function deleteIn(keyPath) {
+  return removeIn(this, keyPath)
+}
+
+export function getIn2(searchKeyPath, notSetValue) {
+  return getIn(this, searchKeyPath, notSetValue)
+}
+
+export function hasIn2(searchKeyPath) {
+  return hasIn(this, searchKeyPath)
+}
+
+export function merge2(...iters) {
+  return mergeIntoKeyedWith(this, iters)
+}
+
+export function mergeWith2(merger, ...iters) {
+  if (typeof merger !== "function") {
+    throw new TypeError("Invalid merger function: " + merger)
+  }
+  return mergeIntoKeyedWith(this, iters, merger)
+}
+
+function mergeIntoKeyedWith(x, xs, f?) {
+  const iters = []
+  for (let ii = 0; ii < xs.length; ii++) {
+    const collection = KeyedCollection(xs[ii])
+    if (collection.size !== 0) iters.push(collection)
+  }
+  if (iters.length === 0) return x
+  if (x.toSeq().size === 0 && !x.__ownerID && iters.length === 1) return x.constructor(iters[0])
+  return x.withMutations(x2 => {
+    const mergeIntoCollection = f
+      ? (v, k) => {
+          update(x2, k, qu.NOT_SET, oldVal => (oldVal === qu.NOT_SET ? v : f(oldVal, v, k)))
+        }
+      : (v, k) => {
+          x2.set(k, v)
+        }
+    for (let ii = 0; ii < iters.length; ii++) {
+      iters[ii].forEach(mergeIntoCollection)
+    }
+  })
+}
+
+export function mergeDeep2(...iters) {
+  return mergeDeepWithSources(this, iters)
+}
+
+export function mergeDeepWith2(merger, ...iters) {
+  return mergeDeepWithSources(this, iters, merger)
+}
+
+export function mergeDeepIn(keyPath, ...iters) {
+  return updateIn(this, keyPath, emptyMap(), m => mergeDeepWithSources(m, iters))
+}
+
+export function mergeIn(keyPath, ...iters) {
+  return updateIn(this, keyPath, emptyMap(), m => mergeWithSources(m, iters))
+}
+
+export function setIn2(keyPath, v) {
+  return setIn(this, keyPath, v)
+}
+
+export function toObject() {
+  qu.assertNotInfinite(this.size)
+  const y = {}
+  this.__iterate((v, k) => {
+    y[k] = v
+  })
+  return y
+}
+
+export function update2(key, notSetValue, updater) {
+  return arguments.length === 1 ? key(this) : update(this, key, notSetValue, updater)
+}
+
+export function updateIn2(keyPath, notSetValue, updater) {
+  return updateIn(this, keyPath, notSetValue, updater)
+}
+
+export function wasAltered() {
+  return this.__altered
+}
+
+export function withMutations(fn) {
+  const y = this.asMutable()
+  fn(y)
+  return y.wasAltered() ? y.__ensureOwner(this.__ownerID) : this
 }

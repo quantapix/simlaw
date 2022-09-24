@@ -6,15 +6,27 @@ import { Range } from "./range.js"
 import { Seq, KeyedSeq, IndexedSeq, SetSeq, ArraySeq } from "./seq.js"
 import { Set } from "./set.js"
 import { Stack } from "./stack.js"
-import { toObject, hasIn, getIn } from "./methods.js"
+import * as qf from "./functions.js"
 import * as qo from "./operations.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
 export class Collection<K, V> implements qt.Collection<K, V> {
-  constructor(x) {
+  static isAssociative = qu.isAssociative
+  static isIndexed = qu.isIndexed
+  static isKeyed = qu.isKeyed
+  static isOrdered = qu.isOrdered
+
+  static create<T extends Collection<unknown, unknown>>(x: T): T
+  static create<T>(x: Iterable<T> | ArrayLike<T>): qt.Collection.Indexed<T>
+  static create<V>(x: qt.Dict<V>): qt.Collection.Keyed<string, V>
+  static create<K = unknown, V = unknown>(): Collection<K, V>
+  static create(x?: unknown): unknown {
     return qu.isCollection(x) ? x : new Seq(x)
   }
+
+  [Symbol.iterator] = this.values;
+  [qu.IS_COLLECTION_SYMBOL] = true
 
   __toString(head, tail) {
     if (this.size === 0) return head + tail
@@ -80,7 +92,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   get(searchKey, v0) {
     return this.find((_, key) => qu.is(key, searchKey), undefined, v0)
   }
-  getIn: getIn
+  getIn: qf.getIn
   groupBy(grouper, ctx) {
     return qo.groupByFactory(this, grouper, ctx)
   }
@@ -90,7 +102,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   hashCode() {
     return this.__hash || (this.__hash = hashCollection(this))
   }
-  hasIn: hasIn
+  hasIn: qf.hasIn
   includes(searchValue) {
     return this.some(value => qu.is(value, searchValue))
   }
@@ -198,7 +210,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   toMap() {
     return Map(this.toKeyedSeq())
   }
-  toObject: toObject
+  toObject: qf.toObject
   toOrderedMap() {
     return OrderedMap(this.toKeyedSeq())
   }
@@ -223,7 +235,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   update(fn) {
     return fn(this)
   }
-  values() {
+  values(): IterableIterator<V> {
     return this.__iterator(qu.ITERATE_VALUES)
   }
   valueSeq() {
@@ -281,202 +293,166 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     })
     return array
   }
+  toJSON = this.toArray
+  __toStringMapper = qu.quoteString
+  toSource = () => {
+    return this.toString()
+  }
+  inspect = this.toSource
+  chain = this.flatMap
+  contains = this.includes
 }
 
 export namespace Collection {
-  export function isKeyed(x: unknown): x is qt.Collection.Keyed<unknown, unknown>
-  export function isIndexed(x: unknown): x is qt.Collection.Indexed<unknown>
-  export function isAssociative(x: unknown): x is qt.Collection.Keyed<unknown, unknown> | Collection.Indexed<unknown>
-  export function isOrdered(x: unknown): boolean
-  export namespace Keyed {}
-  export function Keyed<K, V>(x?: Iterable<[K, V]>): qt.Collection.Keyed<K, V>
-  export function Keyed<V>(x: qt.Dict<V>): qt.Collection.Keyed<string, V>
-  export namespace Indexed {}
-  export function Indexed<V>(x?: Iterable<V> | ArrayLike<V>): qt.Collection.Indexed<V>
-  export namespace Set {}
-  export function Set<K>(x?: Iterable<K> | ArrayLike<K>): qt.Collection.Set<K>
-}
-/*
-export function Collection<T extends Collection<unknown, unknown>>(x: T): T
-export function Collection<T>(x: Iterable<T> | ArrayLike<T>): qt.Collection.Indexed<T>
-export function Collection<V>(x: qt.Dict<V>): qt.Collection.Keyed<string, V>
-export function Collection<K = unknown, V = unknown>(): Collection<K, V>
-*/
-
-export class KeyedCollection extends Collection {
-  constructor(x) {
-    return qu.isKeyed(x) ? x : KeyedSeq(x)
-  }
-}
-export class IndexedCollection extends Collection {
-  constructor(x) {
-    return qu.isIndexed(x) ? x : IndexedSeq(x)
-  }
-}
-export class SetCollection extends Collection {
-  constructor(value) {
-    return qu.isCollection(value) && !qu.isAssociative(value) ? value : SetSeq(value)
-  }
-}
-
-Collection.Keyed = KeyedCollection
-Collection.Indexed = IndexedCollection
-Collection.Set = SetCollection
-
-const CollectionPrototype = Collection.prototype
-CollectionPrototype[qu.IS_COLLECTION_SYMBOL] = true
-CollectionPrototype[qu.ITERATOR_SYMBOL] = CollectionPrototype.values
-CollectionPrototype.toJSON = CollectionPrototype.toArray
-CollectionPrototype.__toStringMapper = qu.quoteString
-CollectionPrototype.inspect = CollectionPrototype.toSource = function () {
-  return this.toString()
-}
-CollectionPrototype.chain = CollectionPrototype.flatMap
-CollectionPrototype.contains = CollectionPrototype.includes
-
-qu.mixin(KeyedCollection, {
-  flip() {
-    return qo.reify(this, qo.flipFactory(this))
-  },
-  mapEntries(mapper, ctx) {
-    let iterations = 0
-    return qo.reify(
-      this,
-      this.toSeq()
-        .map((v, k) => mapper.call(ctx, [k, v], iterations++, this))
-        .fromEntrySeq()
-    )
-  },
-  mapKeys(mapper, ctx) {
-    return qo.reify(
-      this,
-      this.toSeq()
-        .flip()
-        .map((k, v) => mapper.call(ctx, k, v, this))
-        .flip()
-    )
-  },
-})
-
-const KeyedCollectionPrototype = KeyedCollection.prototype
-KeyedCollectionPrototype[qu.IS_KEYED_SYMBOL] = true
-KeyedCollectionPrototype[qu.ITERATOR_SYMBOL] = CollectionPrototype.entries
-KeyedCollectionPrototype.toJSON = toObject
-KeyedCollectionPrototype.__toStringMapper = (v, k) => qu.quoteString(k) + ": " + qu.quoteString(v)
-
-qu.mixin(IndexedCollection, {
-  toKeyedSeq() {
-    return new qo.ToKeyedSequence(this, false)
-  },
-  filter(predicate, ctx) {
-    return qo.reify(this, qo.filterFactory(this, predicate, ctx, false))
-  },
-  findIndex(predicate, ctx) {
-    const entry = this.findEntry(predicate, ctx)
-    return entry ? entry[0] : -1
-  },
-  indexOf(searchValue) {
-    const key = this.keyOf(searchValue)
-    return key === undefined ? -1 : key
-  },
-  lastIndexOf(searchValue) {
-    const key = this.lastKeyOf(searchValue)
-    return key === undefined ? -1 : key
-  },
-  reverse() {
-    return qo.reify(this, qo.reverseFactory(this, false))
-  },
-  slice(begin, end) {
-    return qo.reify(this, qo.sliceFactory(this, begin, end, false))
-  },
-  splice(index, removeNum /*, ...values*/) {
-    const numArgs = arguments.length
-    removeNum = Math.max(removeNum || 0, 0)
-    if (numArgs === 0 || (numArgs === 2 && !removeNum)) {
-      return this
+  export class Keyed<K, V> extends Collection<K, V> implements qt.Collection.Keyed<K, V> {
+    static override create<K, V>(x?: Iterable<[K, V]>): qt.Collection.Keyed<K, V>
+    static override create<V>(x: qt.Dict<V>): qt.Collection.Keyed<string, V>
+    static override create(x?: any): any {
+      return qu.isKeyed(x) ? x : new KeyedSeq(x)
     }
-    index = qu.resolveBegin(index, index < 0 ? this.count() : this.size)
-    const spliced = this.slice(0, index)
-    return qo.reify(this, numArgs === 1 ? spliced : spliced.concat(qu.arrCopy(arguments, 2), this.slice(index + removeNum)))
-  },
-  findLastIndex(predicate, ctx) {
-    const entry = this.findLastEntry(predicate, ctx)
-    return entry ? entry[0] : -1
-  },
-  first(v0) {
-    return this.get(0, v0)
-  },
-  flatten(depth) {
-    return qo.reify(this, qo.flattenFactory(this, depth, false))
-  },
-  get(index, v0) {
-    index = qu.wrapIndex(this, index)
-    return index < 0 || this.size === Infinity || (this.size !== undefined && index > this.size) ? v0 : this.find((_, key) => key === index, undefined, v0)
-  },
-  has(index) {
-    index = qu.wrapIndex(this, index)
-    return index >= 0 && (this.size !== undefined ? this.size === Infinity || index < this.size : this.indexOf(index) !== -1)
-  },
-  interpose(separator) {
-    return qo.reify(this, qo.interposeFactory(this, separator))
-  },
-  interleave(/*...collections*/) {
-    const collections = [this].concat(qu.arrCopy(arguments))
-    const zipped = qo.zipWithFactory(this.toSeq(), IndexedSeq.of, collections)
-    const interleaved = zipped.flatten(true)
-    if (zipped.size) {
-      interleaved.size = zipped.size * collections.length
+    [Symbol.iterator] = this.entries;
+    [qu.IS_KEYED_SYMBOL] = true
+    flip() {
+      return qo.reify(this, qo.flipFactory(this))
     }
-    return qo.reify(this, interleaved)
-  },
-  keySeq() {
-    return Range(0, this.size)
-  },
-  last(v0) {
-    return this.get(-1, v0)
-  },
-  skipWhile(predicate, ctx) {
-    return qo.reify(this, qo.skipWhileFactory(this, predicate, ctx, false))
-  },
-  zip(/*, ...collections */) {
-    const collections = [this].concat(qu.arrCopy(arguments))
-    return qo.reify(this, qo.zipWithFactory(this, defaultZipper, collections))
-  },
-  zipAll(/*, ...collections */) {
-    const collections = [this].concat(qu.arrCopy(arguments))
-    return qo.reify(this, qo.zipWithFactory(this, defaultZipper, collections, true))
-  },
-  zipWith(zipper /*, ...collections */) {
-    const collections = qu.arrCopy(arguments)
-    collections[0] = this
-    return qo.reify(this, qo.zipWithFactory(this, zipper, collections))
-  },
-})
+    mapEntries(mapper, ctx) {
+      let iterations = 0
+      return qo.reify(
+        this,
+        this.toSeq()
+          .map((v, k) => mapper.call(ctx, [k, v], iterations++, this))
+          .fromEntrySeq()
+      )
+    }
+    mapKeys(mapper, ctx) {
+      return qo.reify(
+        this,
+        this.toSeq()
+          .flip()
+          .map((k, v) => mapper.call(ctx, k, v, this))
+          .flip()
+      )
+    }
+    override toJSON = qf.toObject
+    override __toStringMapper = (v, k) => qu.quoteString(k) + ": " + qu.quoteString(v)
+  }
 
-const IndexedCollectionPrototype = IndexedCollection.prototype
-IndexedCollectionPrototype[qu.IS_INDEXED_SYMBOL] = true
-IndexedCollectionPrototype[qu.IS_ORDERED_SYMBOL] = true
+  export class Indexed<V> extends Collection<number, V> implements qt.Collection.Indexed<V> {
+    static override create<V>(x?: Iterable<V> | ArrayLike<V>): qt.Collection.Indexed<V> {
+      return qu.isIndexed(x) ? x : new IndexedSeq(x)
+    }
+    [qu.IS_INDEXED_SYMBOL] = true;
+    [qu.IS_ORDERED_SYMBOL] = true
+    override toKeyedSeq() {
+      return new qo.ToKeyedSequence(this, false)
+    }
+    override filter(predicate, ctx) {
+      return qo.reify(this, qo.filterFactory(this, predicate, ctx, false))
+    }
+    findIndex(predicate, ctx) {
+      const entry = this.findEntry(predicate, ctx)
+      return entry ? entry[0] : -1
+    }
+    indexOf(searchValue) {
+      const key = this.keyOf(searchValue)
+      return key === undefined ? -1 : key
+    }
+    lastIndexOf(searchValue) {
+      const key = this.lastKeyOf(searchValue)
+      return key === undefined ? -1 : key
+    }
+    override reverse() {
+      return qo.reify(this, qo.reverseFactory(this, false))
+    }
+    override slice(begin, end) {
+      return qo.reify(this, qo.sliceFactory(this, begin, end, false))
+    }
+    splice(index, removeNum /*, ...values*/) {
+      const numArgs = arguments.length
+      removeNum = Math.max(removeNum || 0, 0)
+      if (numArgs === 0 || (numArgs === 2 && !removeNum)) {
+        return this
+      }
+      index = qu.resolveBegin(index, index < 0 ? this.count() : this.size)
+      const spliced = this.slice(0, index)
+      return qo.reify(this, numArgs === 1 ? spliced : spliced.concat(qu.arrCopy(arguments, 2), this.slice(index + removeNum)))
+    }
+    findLastIndex(predicate, ctx) {
+      const entry = this.findLastEntry(predicate, ctx)
+      return entry ? entry[0] : -1
+    }
+    override first(v0) {
+      return this.get(0, v0)
+    }
+    override flatten(depth) {
+      return qo.reify(this, qo.flattenFactory(this, depth, false))
+    }
+    override get(index, v0) {
+      index = qu.wrapIndex(this, index)
+      return index < 0 || this.size === Infinity || (this.size !== undefined && index > this.size) ? v0 : this.find((_, key) => key === index, undefined, v0)
+    }
+    override has(index) {
+      index = qu.wrapIndex(this, index)
+      return index >= 0 && (this.size !== undefined ? this.size === Infinity || index < this.size : this.indexOf(index) !== -1)
+    }
+    interpose(separator) {
+      return qo.reify(this, qo.interposeFactory(this, separator))
+    }
+    interleave(/*...collections*/) {
+      const collections = [this].concat(qu.arrCopy(arguments))
+      const zipped = qo.zipWithFactory(this.toSeq(), IndexedSeq.of, collections)
+      const interleaved = zipped.flatten(true)
+      if (zipped.size) {
+        interleaved.size = zipped.size * collections.length
+      }
+      return qo.reify(this, interleaved)
+    }
+    override keySeq() {
+      return Range(0, this.size)
+    }
+    override last(v0) {
+      return this.get(-1, v0)
+    }
+    override skipWhile(predicate, ctx) {
+      return qo.reify(this, qo.skipWhileFactory(this, predicate, ctx, false))
+    }
+    zip(/*, ...collections */) {
+      const collections = [this].concat(qu.arrCopy(arguments))
+      return qo.reify(this, qo.zipWithFactory(this, defaultZipper, collections))
+    }
+    zipAll(/*, ...collections */) {
+      const collections = [this].concat(qu.arrCopy(arguments))
+      return qo.reify(this, qo.zipWithFactory(this, defaultZipper, collections, true))
+    }
+    zipWith(f /*, ...collections */) {
+      const collections = qu.arrCopy(arguments)
+      collections[0] = this
+      return qo.reify(this, qo.zipWithFactory(this, f, collections))
+    }
+  }
 
-qu.mixin(SetCollection, {
-  get(value, v0) {
-    return this.has(value) ? value : v0
-  },
-  includes(value) {
-    return this.has(value)
-  },
-  keySeq() {
-    return this.valueSeq()
-  },
-})
+  export class Set<K, V> extends Collection<K, V> implements qt.Collection.Set<K> {
+    static override create<K>(x?: Iterable<K> | ArrayLike<K>): qt.Collection.Set<K> {
+      return qu.isCollection(x) && !qu.isAssociative(x) ? x : new SetSeq(x)
+    }
+    override get(value, v0) {
+      return this.has(value) ? value : v0
+    }
+    override includes(value) {
+      return this.has(value)
+    }
+    override keySeq() {
+      return this.valueSeq()
+    }
+    override has = this.includes
+    override contains = this.includes
+    override keys = this.values
+  }
+}
 
-const SetCollectionPrototype = SetCollection.prototype
-SetCollectionPrototype.has = CollectionPrototype.includes
-SetCollectionPrototype.contains = SetCollectionPrototype.includes
-SetCollectionPrototype.keys = SetCollectionPrototype.values
-
-qu.mixin(KeyedSeq, KeyedCollectionPrototype)
-qu.mixin(IndexedSeq, IndexedCollectionPrototype)
-qu.mixin(SetSeq, SetCollectionPrototype)
+qu.mixin(KeyedSeq, Collection.Keyed.prototype)
+qu.mixin(IndexedSeq, Collection.Indexed.prototype)
+qu.mixin(SetSeq, Collection.Set.prototype)
 
 function reduce(collection, reducer, reduction, ctx, useFirst, reverse) {
   qu.assertNotInfinite(collection.size)
@@ -490,28 +466,35 @@ function reduce(collection, reducer, reduction, ctx, useFirst, reverse) {
   }, reverse)
   return reduction
 }
+
 function keyMapper(v, k) {
   return k
 }
+
 function entryMapper(v, k) {
   return [k, v]
 }
+
 function not(predicate) {
   return function () {
     return !predicate.apply(this, arguments)
   }
 }
+
 function neg(predicate) {
   return function () {
     return -predicate.apply(this, arguments)
   }
 }
+
 function defaultZipper() {
   return qu.arrCopy(arguments)
 }
+
 function defaultNegComparator(a, b) {
   return a < b ? 1 : a > b ? -1 : 0
 }
+
 function hashCollection(collection) {
   if (collection.size === Infinity) {
     return 0
@@ -538,6 +521,7 @@ function hashCollection(collection) {
   )
   return murmurHashOfSize(size, h)
 }
+
 function murmurHashOfSize(size, h) {
   h = qu.imul(h, 0xcc9e2d51)
   h = qu.imul((h << 15) | (h >>> -15), 0x1b873593)
@@ -548,6 +532,7 @@ function murmurHashOfSize(size, h) {
   h = qu.smi(h ^ (h >>> 16))
   return h
 }
+
 function hashMerge(a, b) {
   return (a ^ (b + 0x9e3779b9 + (a << 6) + (a >> 2))) | 0 // int
 }
