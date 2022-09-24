@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import { toJS } from "./toJS.js"
-import { KeyedCollection } from "./main.js"
-import { keyedSeqFromValue } from "./Seq.js"
+import { KeyedCollection, seqKeyedFrom } from "./main.js"
 import { List } from "./List.js"
 import { ITERATE_ENTRIES, ITERATOR_SYMBOL } from "./Iterator"
 import { isRecord, IS_RECORD_SYMBOL } from "./predicates/isRecord"
@@ -204,7 +203,7 @@ function recordName(record) {
   return record.constructor.displayName || record.constructor.name || "Record"
 }
 function recordSeq(record) {
-  return keyedSeqFromValue(record._keys.map(k => [k, record.get(k)]))
+  return seqKeyedFrom(record._keys.map(k => [k, record.get(k)]))
 }
 function setProp(prototype, name) {
   try {

@@ -108,7 +108,7 @@ function updateOrderedMap(omap, k, v) {
     if (list.size >= qu.SIZE && list.size >= map.size * 2) {
       newList = list.filter((entry, idx) => entry !== undefined && i !== idx)
       newMap = newList
-        .toKeyedSeq()
+        .toSeqKeyed()
         .map(entry => entry[0])
         .flip()
         .toMap()

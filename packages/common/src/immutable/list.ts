@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import { IndexedCollection } from "./main.js"
-import { setIn, deleteIn, update, updateIn, mergeIn, mergeDeepIn, withMutations, asMutable, asImmutable, wasAltered } from "./methods.js"
+import { Collection } from "./main.js"
+import * as qf from "./functions.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-export class List<V> extends IndexedCollection implements qt.List<V> {
-  readonly size = 0
-  constructor(value) {
-    super()
+export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
+  static isList = qu.isList
+
+  static override create<T>(x?: Iterable<T> | ArrayLike<T>): List<T> {
     const empty = emptyList()
-    if (value === undefined || value === null) return empty
-    if (qu.isList(value)) return value
-    const iter = IndexedCollection(value)
+    if (x === undefined || x === null) return empty
+    if (qu.isList(x)) return x
+    const iter = new Collection.Indexed(x)
     const size = iter.size
     if (size === 0) return empty
     qu.assertNotInfinite(size)
@@ -21,13 +21,18 @@ export class List<V> extends IndexedCollection implements qt.List<V> {
       iter.forEach((v, i) => list.set(i, v))
     })
   }
-  static of(/*...values*/) {
-    return this(arguments)
+  static of<T>(...xs: Array<T>): List<T> {
+    return this(...xs)
   }
+  [qu.IS_LIST_SYMBOL] = true;
+  [qu.DELETE] = this.remove
+
+  readonly size = 0
+
   override toString() {
     return this.__toString("List [", "]")
   }
-  get(index, notSetValue) {
+  override get(index, notSetValue) {
     index = qu.wrapIndex(this, index)
     if (index >= 0 && index < this.size) {
       index += this._origin
@@ -83,11 +88,11 @@ export class List<V> extends IndexedCollection implements qt.List<V> {
   shift() {
     return setListBounds(this, 1)
   }
-  concat(/*...collections*/) {
+  override concat(/*...collections*/) {
     const seqs = []
     for (let i = 0; i < arguments.length; i++) {
       const argument = arguments[i]
-      const seq = IndexedCollection(typeof argument !== "string" && qu.hasIterator(argument) ? argument : [argument])
+      const seq = Collection.Indexed(typeof argument !== "string" && qu.hasIterator(argument) ? argument : [argument])
       if (seq.size !== 0) {
         seqs.push(seq)
       }
@@ -105,15 +110,14 @@ export class List<V> extends IndexedCollection implements qt.List<V> {
   setSize(size) {
     return setListBounds(this, 0, size)
   }
-  map(mapper, context) {
+  override map(mapper, context) {
     return this.withMutations(list => {
       for (let i = 0; i < this.size; i++) {
         list.set(i, mapper.call(context, list.get(i), i, this))
       }
     })
   }
-  // @pragma Iteration
-  slice(begin, end) {
+  override slice(begin, end) {
     const size = this.size
     if (qu.wholeSlice(begin, end, size)) {
       return this
@@ -153,33 +157,27 @@ export class List<V> extends IndexedCollection implements qt.List<V> {
     }
     return makeList(this._origin, this._capacity, this._level, this._root, this._tail, ownerID, this.__hash)
   }
+  merge = this.concat
+  setIn = qf.setIn
+  removeIn = qf.deleteIn
+  deleteIn = qf.deleteIn
+  override update = qf.update
+  updateIn = qf.updateIn
+  mergeIn = qf.mergeIn
+  mergeDeepIn = qf.mergeDeepIn
+  withMutations = qf.withMutations
+  wasAltered = qf.wasAltered
+  asImmutable = qf.asImmutable
+  asMutable = qf.asMutable;
+  ["@@transducer/init"] = qf.asMutable;
+  ["@@transducer/step"] = function (result, arr) {
+    return result.push(arr)
+  };
+  ["@@transducer/result"] = function (obj) {
+    return obj.asImmutable()
+  }
 }
-export namespace List {
-  export function isList(x: unknown): x is List<unknown>
-  export function of<T>(...xs: Array<T>): List<T>
-}
-//function List<T>(x?: Iterable<T> | ArrayLike<T>): List<T>
-List.isList = qu.isList
-export const ListPrototype = List.prototype
-ListPrototype[qu.IS_LIST_SYMBOL] = true
-ListPrototype[qu.DELETE] = ListPrototype.remove
-ListPrototype.merge = ListPrototype.concat
-ListPrototype.setIn = setIn
-ListPrototype.deleteIn = ListPrototype.removeIn = deleteIn
-ListPrototype.update = update
-ListPrototype.updateIn = updateIn
-ListPrototype.mergeIn = mergeIn
-ListPrototype.mergeDeepIn = mergeDeepIn
-ListPrototype.withMutations = withMutations
-ListPrototype.wasAltered = wasAltered
-ListPrototype.asImmutable = asImmutable
-ListPrototype["@@transducer/init"] = ListPrototype.asMutable = asMutable
-ListPrototype["@@transducer/step"] = function (result, arr) {
-  return result.push(arr)
-}
-ListPrototype["@@transducer/result"] = function (obj) {
-  return obj.asImmutable()
-}
+
 class VNode {
   constructor(array, ownerID) {
     this.array = array
@@ -222,7 +220,9 @@ class VNode {
     return editable
   }
 }
+
 const DONE = {}
+
 function iterateList(list, reverse) {
   const left = list._origin
   const right = list._capacity
@@ -263,6 +263,7 @@ function iterateList(list, reverse) {
     }
   }
 }
+
 function makeList(origin, capacity, level, root, tail, ownerID, hash) {
   const list = Object.create(ListPrototype)
   list.size = capacity - origin

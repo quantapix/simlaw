@@ -69,7 +69,7 @@ export interface Collection<K, V> {
   skipLast(x: number): this
   skipUntil(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): this
   skipWhile(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): this
-  slice(begin?: number, end?: number): this
+  slice(beg?: number, end?: number): this
   some(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): boolean
   sort(comparator?: (a: V, b: V) => number): this
   sortBy<T>(f: (v: V, k: K, iter: this) => T, c?: (a: T, b: T) => number): this
@@ -78,10 +78,10 @@ export interface Collection<K, V> {
   takeUntil(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): this
   takeWhile(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): this
   toArray(): Array<V> | Array<[K, V]>
-  toIndexedSeq(): Seq.Indexed<V>
+  toSeqIndexed(): Seq.Indexed<V>
   toJS(): Array<unknown> | Dict<unknown>
   toJSON(): Array<V> | Dict<V>
-  toKeyedSeq(): Seq.Keyed<K, V>
+  toSeqKeyed(): Seq.Keyed<K, V>
   toList(): List<V>
   toMap(): Map<K, V>
   toObject(): Dict<V>
@@ -89,7 +89,7 @@ export interface Collection<K, V> {
   toOrderedSet(): OrderedSet<V>
   toSeq(): Seq<K, V>
   toSet(): Set<V>
-  toSetSeq(): Seq.Set<V>
+  toSeqSet(): Seq.Set<V>
   toStack(): Stack<V>
   update<R>(f: (x: this) => R): R
   values(): IterableIterator<V>
@@ -155,6 +155,69 @@ export namespace Collection {
     toJS(): Array<unknown>
     toJSON(): Array<K>
     toSeq(): Seq.Set<K>
+  }
+}
+
+export interface Seq<K, V> extends Collection<K, V> {
+  readonly size: number | undefined
+  cacheResult(): this
+  filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
+  filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): Seq<K, T>
+  flatMap<T>(f: (v: V, k: K, iter: this) => Iterable<T>, ctx?: unknown): Seq<K, T>
+  flatMap<T>(f: (v: V, k: K, iter: this) => Iterable<T>, ctx?: unknown): Seq<T, T>
+  map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Seq<K, T>
+  map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Seq<T, T>
+}
+
+export namespace Seq {
+  export interface Keyed<K, V> extends Seq<K, V>, Collection.Keyed<K, V> {
+    [Symbol.iterator](): IterableIterator<[K, V]>
+    concat<K2, V2>(...xs: Array<Iterable<[K2, V2]>>): Seq.Keyed<K | K2, V | V2>
+    concat<T>(...xs: Array<Dict<T>>): Seq.Keyed<K | string, V | T>
+    filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
+    filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): Seq.Keyed<K, T>
+    flatMap<K2, V2>(f: (v: V, k: K, iter: this) => Iterable<[K2, V2]>, ctx?: unknown): Seq.Keyed<K2, V2>
+    flip(): Seq.Keyed<V, K>
+    map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Seq.Keyed<K, T>
+    mapEntries<K2, V2>(f: (x: [K, V], i: number, iter: this) => [K2, V2] | undefined, ctx?: unknown): Seq.Keyed<K2, V2>
+    mapKeys<T>(f: (k: K, v: V, iter: this) => T, ctx?: unknown): Seq.Keyed<T, V>
+    toArray(): Array<[K, V]>
+    toJS(): Dict
+    toJSON(): Dict<V>
+    toSeq(): this
+  }
+  export interface Indexed<V> extends Seq<number, V>, Collection.Indexed<V> {
+    [Symbol.iterator](): IterableIterator<V>
+    concat<T>(...xs: Array<Iterable<T> | T>): Seq.Indexed<V | T>
+    filter(f: (v: V, i: number, iter: this) => unknown, ctx?: unknown): this
+    filter<T extends V>(f: (v: V, i: number, iter: this) => v is T, ctx?: unknown): Seq.Indexed<T>
+    flatMap<T>(f: (v: V, i: number, iter: this) => Iterable<T>, ctx?: unknown): Seq.Indexed<T>
+    map<T>(f: (v: V, i: number, iter: this) => T, ctx?: unknown): Seq.Indexed<T>
+    toArray(): Array<V>
+    toJS(): Array<unknown>
+    toJSON(): Array<V>
+    toSeq(): this
+    zip(...xs: Array<Collection<unknown, unknown>>): Seq.Indexed<unknown>
+    zip<T, U>(x: Collection<unknown, T>, x2: Collection<unknown, U>): Seq.Indexed<[U, T, U]>
+    zip<T>(x: Collection<unknown, T>): Seq.Indexed<[V, T]>
+    zipAll(...xs: Array<Collection<unknown, unknown>>): Seq.Indexed<unknown>
+    zipAll<T, U>(x: Collection<unknown, T>, x2: Collection<unknown, U>): Seq.Indexed<[U, T, U]>
+    zipAll<T>(x: Collection<unknown, T>): Seq.Indexed<[V, T]>
+    zipWith<T, U, Z>(f: (v: V, x: T, x2: U) => Z, x: Collection<unknown, T>, x2: Collection<unknown, U>): Seq.Indexed<Z>
+    zipWith<T, U>(f: (v: V, x: T) => U, x: Collection<unknown, T>): Seq.Indexed<U>
+    zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Seq.Indexed<T>
+  }
+  export interface Set<K> extends Seq<K, K>, Collection.Set<K> {
+    [Symbol.iterator](): IterableIterator<K>
+    concat<T>(...xs: Array<Iterable<T>>): Seq.Set<K | T>
+    filter(f: (v: K, k: K, iter: this) => unknown, ctx?: unknown): this
+    filter<T extends K>(f: (v: K, k: K, iter: this) => v is T, ctx?: unknown): Seq.Set<T>
+    flatMap<T>(f: (v: K, k: K, iter: this) => Iterable<T>, ctx?: unknown): Seq.Set<T>
+    map<T>(f: (v: K, k: K, iter: this) => T, ctx?: unknown): Seq.Set<T>
+    toArray(): Array<K>
+    toJS(): Array<unknown>
+    toJSON(): Array<K>
+    toSeq(): this
   }
 }
 
@@ -369,66 +432,3 @@ export interface Record<T extends object> {
 }
 
 export type RecordOf<TProps extends object> = Record<TProps> & Readonly<TProps>
-
-export namespace Seq {
-  export interface Keyed<K, V> extends Seq<K, V>, Collection.Keyed<K, V> {
-    [Symbol.iterator](): IterableIterator<[K, V]>
-    concat<K2, V2>(...xs: Array<Iterable<[K2, V2]>>): Seq.Keyed<K | K2, V | V2>
-    concat<T>(...xs: Array<Dict<T>>): Seq.Keyed<K | string, V | T>
-    filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
-    filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): Seq.Keyed<K, T>
-    flatMap<K2, V2>(f: (v: V, k: K, iter: this) => Iterable<[K2, V2]>, ctx?: unknown): Seq.Keyed<K2, V2>
-    flip(): Seq.Keyed<V, K>
-    map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Seq.Keyed<K, T>
-    mapEntries<K2, V2>(f: (x: [K, V], i: number, iter: this) => [K2, V2] | undefined, ctx?: unknown): Seq.Keyed<K2, V2>
-    mapKeys<T>(f: (k: K, v: V, iter: this) => T, ctx?: unknown): Seq.Keyed<T, V>
-    toArray(): Array<[K, V]>
-    toJS(): Dict
-    toJSON(): Dict<V>
-    toSeq(): this
-  }
-  export interface Indexed<V> extends Seq<number, V>, Collection.Indexed<V> {
-    [Symbol.iterator](): IterableIterator<V>
-    concat<T>(...xs: Array<Iterable<T> | T>): Seq.Indexed<V | T>
-    filter(f: (v: V, i: number, iter: this) => unknown, ctx?: unknown): this
-    filter<T extends V>(f: (v: V, i: number, iter: this) => v is T, ctx?: unknown): Seq.Indexed<T>
-    flatMap<T>(f: (v: V, i: number, iter: this) => Iterable<T>, ctx?: unknown): Seq.Indexed<T>
-    map<T>(f: (v: V, i: number, iter: this) => T, ctx?: unknown): Seq.Indexed<T>
-    toArray(): Array<V>
-    toJS(): Array<unknown>
-    toJSON(): Array<V>
-    toSeq(): this
-    zip(...xs: Array<Collection<unknown, unknown>>): Seq.Indexed<unknown>
-    zip<T, U>(x: Collection<unknown, T>, x2: Collection<unknown, U>): Seq.Indexed<[U, T, U]>
-    zip<T>(x: Collection<unknown, T>): Seq.Indexed<[V, T]>
-    zipAll(...xs: Array<Collection<unknown, unknown>>): Seq.Indexed<unknown>
-    zipAll<T, U>(x: Collection<unknown, T>, x2: Collection<unknown, U>): Seq.Indexed<[U, T, U]>
-    zipAll<T>(x: Collection<unknown, T>): Seq.Indexed<[V, T]>
-    zipWith<T, U, Z>(f: (v: V, x: T, x2: U) => Z, x: Collection<unknown, T>, x2: Collection<unknown, U>): Seq.Indexed<Z>
-    zipWith<T, U>(f: (v: V, x: T) => U, x: Collection<unknown, T>): Seq.Indexed<U>
-    zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Seq.Indexed<T>
-  }
-  export interface Set<K> extends Seq<K, K>, Collection.Set<K> {
-    [Symbol.iterator](): IterableIterator<K>
-    concat<T>(...xs: Array<Iterable<T>>): Seq.Set<K | T>
-    filter(f: (v: K, k: K, iter: this) => unknown, ctx?: unknown): this
-    filter<T extends K>(f: (v: K, k: K, iter: this) => v is T, ctx?: unknown): Seq.Set<T>
-    flatMap<T>(f: (v: K, k: K, iter: this) => Iterable<T>, ctx?: unknown): Seq.Set<T>
-    map<T>(f: (v: K, k: K, iter: this) => T, ctx?: unknown): Seq.Set<T>
-    toArray(): Array<K>
-    toJS(): Array<unknown>
-    toJSON(): Array<K>
-    toSeq(): this
-  }
-}
-
-export interface Seq<K, V> extends Collection<K, V> {
-  cacheResult(): this
-  filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
-  filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): Seq<K, T>
-  flatMap<T>(f: (v: V, k: K, iter: this) => Iterable<T>, ctx?: unknown): Seq<K, T>
-  flatMap<T>(f: (v: V, k: K, iter: this) => Iterable<T>, ctx?: unknown): Seq<T, T>
-  map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Seq<K, T>
-  map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Seq<T, T>
-  readonly size: number | undefined
-}

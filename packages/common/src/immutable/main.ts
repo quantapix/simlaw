@@ -64,13 +64,13 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return entry && entry[0]
   }
   findLast(predicate, ctx, v0) {
-    return this.toKeyedSeq().reverse().find(predicate, ctx, v0)
+    return this.toSeqKeyed().reverse().find(predicate, ctx, v0)
   }
   findLastEntry(predicate, ctx, v0) {
-    return this.toKeyedSeq().reverse().findEntry(predicate, ctx, v0)
+    return this.toSeqKeyed().reverse().findEntry(predicate, ctx, v0)
   }
   findLastKey(predicate, ctx) {
-    return this.toKeyedSeq().reverse().findKey(predicate, ctx)
+    return this.toSeqKeyed().reverse().findKey(predicate, ctx)
   }
   first(v0) {
     return this.find(qu.returnTrue, null, v0)
@@ -123,13 +123,13 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return this.__iterator(qu.ITERATE_KEYS)
   }
   keySeq() {
-    return this.toSeq().map(keyMapper).toIndexedSeq()
+    return this.toSeq().map(keyMapper).toSeqIndexed()
   }
   last(v0) {
     return this.toSeq().reverse().first(v0)
   }
   lastKeyOf(searchValue) {
-    return this.toKeyedSeq().reverse().keyOf(searchValue)
+    return this.toSeqKeyed().reverse().keyOf(searchValue)
   }
   map(mapper, ctx) {
     return qo.reify(this, qo.mapFactory(this, mapper, ctx))
@@ -194,36 +194,36 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   takeWhile(predicate, ctx) {
     return qo.reify(this, qo.takeWhileFactory(this, predicate, ctx))
   }
-  toIndexedSeq() {
-    return new qo.ToIndexedSequence(this)
+  toSeqIndexed() {
+    return new qo.ToSeqIndexed(this)
   }
   toJS() {
     return qu.toJS(this)
   }
-  toKeyedSeq() {
-    return new qo.ToKeyedSequence(this, true)
+  toSeqKeyed() {
+    return new qo.ToSeqKeyed(this, true)
   }
   toList() {
     return List(qu.isKeyed(this) ? this.valueSeq() : this)
   }
   toMap() {
-    return Map(this.toKeyedSeq())
+    return Map(this.toSeqKeyed())
   }
   toObject: qf.toObject
   toOrderedMap() {
-    return OrderedMap(this.toKeyedSeq())
+    return OrderedMap(this.toSeqKeyed())
   }
   toOrderedSet() {
     return OrderedSet(qu.isKeyed(this) ? this.valueSeq() : this)
   }
   toSeq() {
-    return qu.isIndexed(this) ? this.toIndexedSeq() : qu.isKeyed(this) ? this.toKeyedSeq() : this.toSetSeq()
+    return qu.isIndexed(this) ? this.toSeqIndexed() : qu.isKeyed(this) ? this.toSeqKeyed() : this.toSeqSet()
   }
   toSet() {
     return Set(qu.isKeyed(this) ? this.valueSeq() : this)
   }
-  toSetSeq() {
-    return new qo.ToSetSequence(this)
+  toSeqSet() {
+    return new qo.ToSeqSet(this)
   }
   toStack() {
     return Stack(qu.isKeyed(this) ? this.valueSeq() : this)
@@ -238,7 +238,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return this.__iterator(qu.ITERATE_VALUES)
   }
   valueSeq() {
-    return this.toIndexedSeq()
+    return this.toSeqIndexed()
   }
   every(predicate, ctx) {
     qu.assertNotInfinite(this.size)
@@ -268,7 +268,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     if (collection._cache) {
       return new ArraySeq(collection._cache)
     }
-    const entriesSequence = collection.toSeq().map(entryMapper).toIndexedSeq()
+    const entriesSequence = collection.toSeq().map(entryMapper).toSeqIndexed()
     entriesSequence.fromEntrySeq = () => collection.toSeq()
     return entriesSequence
   }
@@ -307,7 +307,7 @@ export namespace Collection {
     static override create<K, V>(x?: Iterable<[K, V]>): qt.Collection.Keyed<K, V>
     static override create<V>(x: qt.Dict<V>): qt.Collection.Keyed<string, V>
     static override create(x?: any): any {
-      return qu.isKeyed(x) ? x : new KeyedSeq(x)
+      return qu.isKeyed(x) ? x : new Seq.Keyed(x)
     }
     [Symbol.iterator] = this.entries;
     [qu.IS_KEYED_SYMBOL] = true
@@ -338,12 +338,12 @@ export namespace Collection {
 
   export class Indexed<V> extends Collection<number, V> implements qt.Collection.Indexed<V> {
     static override create<V>(x?: Iterable<V> | ArrayLike<V>): qt.Collection.Indexed<V> {
-      return qu.isIndexed(x) ? x : new IndexedSeq(x)
+      return qu.isIndexed(x) ? x : new Seq.Indexed(x)
     }
     [qu.IS_INDEXED_SYMBOL] = true;
     [qu.IS_ORDERED_SYMBOL] = true
-    override toKeyedSeq() {
-      return new qo.ToKeyedSequence(this, false)
+    override toSeqKeyed() {
+      return new qo.ToSeqKeyed(this, false)
     }
     override filter(predicate, ctx) {
       return qo.reify(this, qo.filterFactory(this, predicate, ctx, false))
@@ -399,7 +399,7 @@ export namespace Collection {
     }
     interleave(/*...collections*/) {
       const collections = [this].concat(qu.arrCopy(arguments))
-      const zipped = qo.zipWithFactory(this.toSeq(), IndexedSeq.of, collections)
+      const zipped = qo.zipWithFactory(this.toSeq(), Seq.Indexed.of, collections)
       const interleaved = zipped.flatten(true)
       if (zipped.size) {
         interleaved.size = zipped.size * collections.length
@@ -432,7 +432,7 @@ export namespace Collection {
 
   export class Set<K> extends Collection<K, K> implements qt.Collection.Set<K> {
     static override create<K>(x?: Iterable<K> | ArrayLike<K>): qt.Collection.Set<K> {
-      return qu.isCollection(x) && !qu.isAssociative(x) ? x : new SetSeq(x)
+      return qu.isCollection(x) && !qu.isAssociative(x) ? x : new Seq.Set(x)
     }
     override get(value, v0) {
       return this.has(value) ? value : v0
@@ -449,24 +449,25 @@ export namespace Collection {
   }
 }
 
-export class Seq extends Collection {
-  static create<S extends Seq<unknown, unknown>>(seq: S): S
-  static create<K, V>(collection: qt.Collection.Keyed<K, V>): Seq.Keyed<K, V>
-  static create<T>(collection: qt.Collection.Set<T>): Seq.Set<T>
-  static create<T>(collection: qt.Collection.Indexed<T> | Iterable<T> | ArrayLike<T>): Seq.Indexed<T>
-  static create<V>(obj: qt.Dict<V>): Seq.Keyed<string, V>
-  static create<K = unknown, V = unknown>(): Seq<K, V>
-  static create(x) {
-    return x === undefined || x === null ? emptySequence() : qu.isImmutable(x) ? x.toSeq() : seqFromValue(x)
+export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
+  static isSeq = qu.isSeq
+
+  static override create<T extends Seq<unknown, unknown>>(seq: T): T
+  static override create<K, V>(x: qt.Collection.Keyed<K, V>): Seq.Keyed<K, V>
+  static override create<T>(x: qt.Collection.Indexed<T> | Iterable<T> | ArrayLike<T>): Seq.Indexed<T>
+  static override create<T>(x: qt.Collection.Set<T>): Seq.Set<T>
+  static override create<V>(x: qt.Dict<V>): Seq.Keyed<string, V>
+  static override create<K = unknown, V = unknown>(): Seq<K, V>
+  static override create(x?: unknown): unknown {
+    return x === undefined || x === null ? emptySeq() : qu.isImmutable(x) ? x.toSeq() : seqFromValue(x)
   }
 
   [qu.IS_SEQ_SYMBOL] = true
 
-  isSeq = qu.isSeq
-  toSeq() {
+  override toSeq() {
     return this
   }
-  toString() {
+  override toString() {
     return this.__toString("Seq {", "}")
   }
   cacheResult() {
@@ -505,77 +506,46 @@ export class Seq extends Collection {
 }
 
 export namespace Seq {
-  function isSeq(maybeSeq: unknown): maybeSeq is Seq.Indexed<unknown> | Seq.Keyed<unknown, unknown> | Seq.Set<unknown>
-  namespace Keyed {}
-  function Keyed<K, V>(collection?: Iterable<[K, V]>): Seq.Keyed<K, V>
-  function Keyed<V>(obj: Dict<V>): Seq.Keyed<string, V>
-  namespace Indexed {
-    function of<T>(...xs: Array<T>): Seq.Indexed<T>
+  export class Keyed<K, V> extends Seq<K, V> implements Collection.Keyed<K, V> {
+    static override create<K, V>(x?: Iterable<[K, V]>): Seq.Keyed<K, V>
+    static override create<V>(x: qt.Dict<V>): Seq.Keyed<string, V>
+    static override create(x?: any): any {
+      return x === undefined || x === null ? emptySeq().toSeqKeyed() : qu.isCollection(x) ? (qu.isKeyed(x) ? x.toSeq() : x.fromEntrySeq()) : qu.isRecord(x) ? x.toSeq() : seqKeyedFrom(x)
+    }
+    override toSeqKeyed() {
+      return this
+    }
   }
-  function Indexed<T>(collection?: Iterable<T> | ArrayLike<T>): Seq.Indexed<T>
-  namespace Set {
-    function of<T>(...xs: Array<T>): Seq.Set<T>
+  export class Indexed<V> extends Seq<number, V> implements Collection.Indexed<V> {
+    static override create<T>(x?: Iterable<T> | ArrayLike<T>): Seq.Indexed<T> {
+      return x === undefined || x === null ? emptySeq() : qu.isCollection(x) ? (qu.isKeyed(x) ? x.entrySeq() : x.toSeqIndexed()) : qu.isRecord(x) ? x.toSeq().entrySeq() : seqIndexedFrom(x)
+    }
+    static of<T>(...xs: Array<T>): Seq.Indexed<T> {
+      return new Seq.Indexed(...xs)
+    }
+    override toSeqIndexed() {
+      return this
+    }
+    override toString() {
+      return this.__toString("Seq [", "]")
+    }
   }
-  function Set<T>(collection?: Iterable<T> | ArrayLike<T>): Seq.Set<T>
+  export class Set<K> extends Seq<K, K> implements Collection.Set<K> {
+    static override create<T>(x?: Iterable<T> | ArrayLike<T>): Seq.Set<T> {
+      return (qu.isCollection(x) && !qu.isAssociative(x) ? x : new Seq.Indexed(x)).toSeqSet()
+    }
+    static of<T>(...xs: Array<T>): Seq.Set<T> {
+      return new Seq.Set(...xs)
+    }
+    override toSeqSet() {
+      return this
+    }
+  }
+
+  namespace Set {}
 }
 
-export class KeyedSeq extends Seq {
-  constructor(value) {
-    super()
-    return value === undefined || value === null
-      ? emptySequence().toKeyedSeq()
-      : qu.isCollection(value)
-      ? qu.isKeyed(value)
-        ? value.toSeq()
-        : value.fromEntrySeq()
-      : qu.isRecord(value)
-      ? value.toSeq()
-      : keyedSeqFromValue(value)
-  }
-  toKeyedSeq() {
-    return this
-  }
-}
-export class IndexedSeq extends Seq {
-  constructor(value) {
-    super()
-    return value === undefined || value === null
-      ? emptySequence()
-      : qu.isCollection(value)
-      ? qu.isKeyed(value)
-        ? value.entrySeq()
-        : value.toIndexedSeq()
-      : qu.isRecord(value)
-      ? value.toSeq().entrySeq()
-      : indexedSeqFromValue(value)
-  }
-  static of(/*...values*/) {
-    return IndexedSeq(arguments)
-  }
-  toIndexedSeq() {
-    return this
-  }
-  toString() {
-    return this.__toString("Seq [", "]")
-  }
-}
-export class SetSeq extends Seq {
-  constructor(value) {
-    super()
-    return (qu.isCollection(value) && !qu.isAssociative(value) ? value : IndexedSeq(value)).toSetSeq()
-  }
-  static of(/*...values*/) {
-    return SetSeq(arguments)
-  }
-  toSetSeq() {
-    return this
-  }
-}
-Seq.Keyed = KeyedSeq
-Seq.Set = SetSeq
-Seq.Indexed = IndexedSeq
-
-export class ArraySeq extends IndexedSeq {
+export class ArraySeq<V> extends Seq.Indexed<V> {
   constructor(array) {
     super()
     this._array = array
@@ -609,7 +579,8 @@ export class ArraySeq extends IndexedSeq {
     })
   }
 }
-class ObjectSeq extends KeyedSeq {
+
+class ObjectSeq<K, V> extends Seq.Keyed<K, V> {
   [qu.IS_ORDERED_SYMBOL] = true
   constructor(x) {
     super()
@@ -649,7 +620,7 @@ class ObjectSeq extends KeyedSeq {
   }
 }
 
-class CollectionSeq extends IndexedSeq {
+class CollectionSeq<V> extends Seq.Indexed<V> {
   constructor(x) {
     super()
     this._collection = x
@@ -681,9 +652,140 @@ class CollectionSeq extends IndexedSeq {
   }
 }
 
-qu.mixin(KeyedSeq, Collection.Keyed.prototype)
-qu.mixin(IndexedSeq, Collection.Indexed.prototype)
-qu.mixin(SetSeq, Collection.Set.prototype)
+qu.mixin(Seq.Keyed, Collection.Keyed.prototype)
+qu.mixin(Seq.Indexed, Collection.Indexed.prototype)
+qu.mixin(Seq.Set, Collection.Set.prototype)
+
+export class Range<V> extends Seq.Indexed<V> {
+  static override create(beg?: number, end?: number, step?: number): Seq.Indexed<number> {
+    if (!(this instanceof Range)) return new Range(beg, end, step)
+    qu.invariant(step !== 0, "Cannot step a Range by 0")
+    beg = beg || 0
+    if (end === undefined) end = Infinity
+    step = step === undefined ? 1 : Math.abs(step)
+    if (end < beg) step = -step
+    this._start = beg
+    this._end = end
+    this._step = step
+    this.size = Math.max(0, Math.ceil((end - beg) / step - 1) + 1)
+    if (this.size === 0) {
+      if (EMPTY_RANGE) return EMPTY_RANGE
+      EMPTY_RANGE = this
+    }
+  }
+  override toString() {
+    if (this.size === 0) return "Range []"
+    return "Range [ " + this._start + "..." + this._end + (this._step !== 1 ? " by " + this._step : "") + " ]"
+  }
+  override get(index, notSetValue) {
+    return this.has(index) ? this._start + qu.wrapIndex(this, index) * this._step : notSetValue
+  }
+  override includes(searchValue) {
+    const possibleIndex = (searchValue - this._start) / this._step
+    return possibleIndex >= 0 && possibleIndex < this.size && possibleIndex === Math.floor(possibleIndex)
+  }
+  override slice(begin, end) {
+    if (qu.wholeSlice(begin, end, this.size)) return this
+    begin = qu.resolveBegin(begin, this.size)
+    end = qu.resolveEnd(end, this.size)
+    if (end <= begin) return new Range(0, 0)
+    return new Range(this.get(begin, this._end), this.get(end, this._end), this._step)
+  }
+  indexOf(searchValue) {
+    const offsetValue = searchValue - this._start
+    if (offsetValue % this._step === 0) {
+      const index = offsetValue / this._step
+      if (index >= 0 && index < this.size) return index
+    }
+    return -1
+  }
+  lastIndexOf(searchValue) {
+    return this.indexOf(searchValue)
+  }
+  override __iterate(fn, reverse) {
+    const size = this.size
+    const step = this._step
+    let value = reverse ? this._start + (size - 1) * step : this._start
+    let i = 0
+    while (i !== size) {
+      if (fn(value, reverse ? size - ++i : i++, this) === false) break
+      value += reverse ? -step : step
+    }
+    return i
+  }
+  override __iterator(type, reverse) {
+    const size = this.size
+    const step = this._step
+    let value = reverse ? this._start + (size - 1) * step : this._start
+    let i = 0
+    return new qu.Iterator(() => {
+      if (i === size) return qu.iteratorDone()
+      const v = value
+      value += reverse ? -step : step
+      return qu.iteratorValue(type, reverse ? size - ++i : i++, v)
+    })
+  }
+  override equals(other) {
+    return other instanceof Range ? this._start === other._start && this._end === other._end && this._step === other._step : qu.deepEqual(this, other)
+  }
+}
+
+let EMPTY_RANGE
+
+export class Repeat<V> extends Seq.Indexed<V> {
+  static override create<T>(x: T, times?: number): Seq.Indexed<T> {
+    if (!(this instanceof Repeat)) return new Repeat(x, times)
+    this._value = x
+    this.size = times === undefined ? Infinity : Math.max(0, times)
+    if (this.size === 0) {
+      if (EMPTY_REPEAT) return EMPTY_REPEAT
+      EMPTY_REPEAT = this
+    }
+  }
+  override toString() {
+    if (this.size === 0) return "Repeat []"
+    return "Repeat [ " + this._value + " " + this.size + " times ]"
+  }
+  override get(index, notSetValue) {
+    return this.has(index) ? this._value : notSetValue
+  }
+  override includes(searchValue) {
+    return qu.is(this._value, searchValue)
+  }
+  override slice(begin, end) {
+    const size = this.size
+    return qu.wholeSlice(begin, end, size) ? this : new Repeat(this._value, qu.resolveEnd(end, size) - qu.resolveBegin(begin, size))
+  }
+  override reverse() {
+    return this
+  }
+  indexOf(searchValue) {
+    if (qu.is(this._value, searchValue)) return 0
+    return -1
+  }
+  lastIndexOf(searchValue) {
+    if (qu.is(this._value, searchValue)) return this.size
+    return -1
+  }
+  override __iterate(fn, reverse) {
+    const size = this.size
+    let i = 0
+    while (i !== size) {
+      if (fn(this._value, reverse ? size - ++i : i++, this) === false) break
+    }
+    return i
+  }
+  override __iterator(type, reverse) {
+    const size = this.size
+    let i = 0
+    return new qu.Iterator(() => (i === size ? qu.iteratorDone() : qu.iteratorValue(type, reverse ? size - ++i : i++, this._value)))
+  }
+  override equals(other) {
+    return other instanceof Repeat ? qu.is(this._value, other._value) : qu.deepEqual(other)
+  }
+}
+
+let EMPTY_REPEAT
 
 function reduce(collection, reducer, reduction, ctx, useFirst, reverse) {
   qu.assertNotInfinite(collection.size)
@@ -770,12 +872,12 @@ function hashMerge(a, b) {
 
 let EMPTY_SEQ
 
-function emptySequence() {
+function emptySeq() {
   return EMPTY_SEQ || (EMPTY_SEQ = new ArraySeq([]))
 }
 
-export function keyedSeqFromValue(x) {
-  const y = maybeIndexedSeqFromValue(x)
+export function seqKeyedFrom(x) {
+  const y = maybeSeqIndexedFrom(x)
   if (!y) {
     if (typeof x === "object") return new ObjectSeq(x)
     throw new TypeError("Expected Array or collection object of [k, v] entries, or keyed object: " + x)
@@ -783,21 +885,21 @@ export function keyedSeqFromValue(x) {
   return y.fromEntrySeq()
 }
 
-export function indexedSeqFromValue(x) {
-  const y = maybeIndexedSeqFromValue(x)
+export function seqIndexedFrom(x) {
+  const y = maybeSeqIndexedFrom(x)
   if (!y) throw new TypeError("Expected Array or collection object of values: " + x)
   return y
 }
 
 function seqFromValue(x) {
-  const y = maybeIndexedSeqFromValue(x)
+  const y = maybeSeqIndexedFrom(x)
   if (!y) {
     if (typeof x === "object") return new ObjectSeq(x)
     throw new TypeError("Expected Array or collection object of values, or keyed object: " + x)
   }
-  return qu.isEntriesIterable(x) ? y.fromEntrySeq() : qu.isKeysIterable(x) ? y.toSetSeq() : y
+  return qu.isEntriesIterable(x) ? y.fromEntrySeq() : qu.isKeysIterable(x) ? y.toSeqSet() : y
 }
 
-function maybeIndexedSeqFromValue(x) {
+function maybeSeqIndexedFrom(x) {
   return qu.isArrayLike(x) ? new ArraySeq(x) : qu.hasIterator(x) ? new CollectionSeq(x) : undefined
 }
