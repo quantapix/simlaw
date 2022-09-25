@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-interface */
-/* eslint-disable no-prototype-builtins */
 import { map } from "./operator.js"
 import { Observable } from "./observable.js"
 import * as qu from "./utils.js"
@@ -23,14 +21,7 @@ export interface Config {
   progressSubscriber?: qt.PartialObserver<ProgressEvent>
   downloadProgress?: boolean
   uploadProgress?: boolean
-  queryParams?:
-    | string
-    | URLSearchParams
-    | Record<
-        string,
-        string | number | boolean | string[] | number[] | boolean[]
-      >
-    | [string, string | number | boolean | string[] | number[] | boolean[]][]
+  queryParams?: string | URLSearchParams | Record<string, string | number | boolean | string[] | number[] | boolean[]> | [string, string | number | boolean | string[] | number[] | boolean[]][]
 }
 
 export interface Request {
@@ -59,12 +50,7 @@ export class Response<T> {
   readonly loaded: number
   readonly total: number
   readonly responseHeaders: Record<string, string>
-  constructor(
-    public readonly originalEvent: ProgressEvent,
-    public readonly xhr: XMLHttpRequest,
-    public readonly request: Request,
-    public readonly type: ResponseType = "download_load"
-  ) {
+  constructor(public readonly originalEvent: ProgressEvent, public readonly xhr: XMLHttpRequest, public readonly request: Request, public readonly type: ResponseType = "download_load") {
     const { status, responseType } = xhr
     this.status = status ?? 0
     this.responseType = responseType ?? ""
@@ -87,59 +73,26 @@ export interface CreationMethod {
   <T>(x: Config): Observable<Response<T>>
   <T>(url: string): Observable<Response<T>>
   get<T>(url: string, headers?: Record<string, string>): Observable<Response<T>>
-  post<T>(
-    url: string,
-    body?: any,
-    headers?: Record<string, string>
-  ): Observable<Response<T>>
-  put<T>(
-    url: string,
-    body?: any,
-    headers?: Record<string, string>
-  ): Observable<Response<T>>
-  patch<T>(
-    url: string,
-    body?: any,
-    headers?: Record<string, string>
-  ): Observable<Response<T>>
-  delete<T>(
-    url: string,
-    headers?: Record<string, string>
-  ): Observable<Response<T>>
+  post<T>(url: string, body?: any, headers?: Record<string, string>): Observable<Response<T>>
+  put<T>(url: string, body?: any, headers?: Record<string, string>): Observable<Response<T>>
+  patch<T>(url: string, body?: any, headers?: Record<string, string>): Observable<Response<T>>
+  delete<T>(url: string, headers?: Record<string, string>): Observable<Response<T>>
   getJSON<T>(url: string, headers?: Record<string, string>): Observable<T>
 }
 
-function get<T>(
-  url: string,
-  headers?: Record<string, string>
-): Observable<Response<T>> {
+function get<T>(url: string, headers?: Record<string, string>): Observable<Response<T>> {
   return ajax({ method: "GET", url, headers })
 }
-function post<T>(
-  url: string,
-  body?: any,
-  headers?: Record<string, string>
-): Observable<Response<T>> {
+function post<T>(url: string, body?: any, headers?: Record<string, string>): Observable<Response<T>> {
   return ajax({ method: "POST", url, body, headers })
 }
-function delete2<T>(
-  url: string,
-  headers?: Record<string, string>
-): Observable<Response<T>> {
+function delete2<T>(url: string, headers?: Record<string, string>): Observable<Response<T>> {
   return ajax({ method: "DELETE", url, headers })
 }
-function put<T>(
-  url: string,
-  body?: any,
-  headers?: Record<string, string>
-): Observable<Response<T>> {
+function put<T>(url: string, body?: any, headers?: Record<string, string>): Observable<Response<T>> {
   return ajax({ method: "PUT", url, body, headers })
 }
-function patch<T>(
-  url: string,
-  body?: any,
-  headers?: Record<string, string>
-): Observable<Response<T>> {
+function patch<T>(url: string, body?: any, headers?: Record<string, string>): Observable<Response<T>> {
   return ajax({ method: "PATCH", url, body, headers })
 }
 
@@ -203,15 +156,11 @@ export function fromAjax<T>(cfg: Config): Observable<Response<T>> {
       }
     }
     const cross = cfg2.crossDomain
-    if (!cross && !("x-requested-with" in headers))
-      headers["x-requested-with"] = "XMLHttpRequest"
+    if (!cross && !("x-requested-with" in headers)) headers["x-requested-with"] = "XMLHttpRequest"
 
     const { withCredentials, xsrfCookieName, xsrfHeaderName } = cfg2
     if ((withCredentials || !cross) && xsrfCookieName && xsrfHeaderName) {
-      const cookie =
-        document?.cookie
-          .match(new RegExp(`(^|;\\s*)(${xsrfCookieName})=([^;]*)`))
-          ?.pop() ?? ""
+      const cookie = document?.cookie.match(new RegExp(`(^|;\\s*)(${xsrfCookieName})=([^;]*)`))?.pop() ?? ""
       if (cookie) headers[xsrfHeaderName] = cookie
     }
     const body = extract(b, headers)
@@ -221,15 +170,9 @@ export function fromAjax<T>(cfg: Config): Observable<Response<T>> {
       headers,
       body,
     }
-    const y: XMLHttpRequest = cfg.createXHR
-      ? cfg.createXHR()
-      : new XMLHttpRequest()
+    const y: XMLHttpRequest = cfg.createXHR ? cfg.createXHR() : new XMLHttpRequest()
     {
-      const {
-        progressSubscriber: sub,
-        downloadProgress: download = false,
-        uploadProgress: upload = false,
-      } = cfg
+      const { progressSubscriber: sub, downloadProgress: download = false, uploadProgress: upload = false } = cfg
       const addError = (type: string, errorFactory: () => any) => {
         y.addEventListener(type, () => {
           const y2 = errorFactory()
@@ -239,22 +182,17 @@ export function fromAjax<T>(cfg: Config): Observable<Response<T>> {
       }
       addError("timeout", () => new timeoutError(y, req))
       addError("abort", () => new error("aborted", y, req))
-      const createResponse = (d: Direction, x: ProgressEvent) =>
-        new Response<T>(x, y, req, `${d}_${x.type as ProgressType}` as const)
+      const createResponse = (d: Direction, x: ProgressEvent) => new Response<T>(x, y, req, `${d}_${x.type as ProgressType}` as const)
       const addProgress = (x: any, type: string, d: Direction) => {
         x.addEventListener(type, (e: ProgressEvent) => {
           dest.next(createResponse(d, e))
         })
       }
       if (upload) {
-        ;[LOADSTART, PROGRESS, LOAD].forEach(x =>
-          addProgress(y.upload, x, UPLOAD)
-        )
+        ;[LOADSTART, PROGRESS, LOAD].forEach(x => addProgress(y.upload, x, UPLOAD))
       }
       if (sub) {
-        ;[LOADSTART, PROGRESS].forEach(x =>
-          y.upload.addEventListener(x, (e: any) => sub?.next?.(e))
-        )
+        ;[LOADSTART, PROGRESS].forEach(x => y.upload.addEventListener(x, (e: any) => sub?.next?.(e)))
       }
       if (download) {
         ;[LOADSTART, PROGRESS].forEach(x => addProgress(y, x, DOWNLOAD))
@@ -306,16 +244,7 @@ export function fromAjax<T>(cfg: Config): Observable<Response<T>> {
 }
 
 function extract(x: any, xs: Record<string, string>) {
-  if (
-    !x ||
-    typeof x === "string" ||
-    isFormData(x) ||
-    isURLSearchParams(x) ||
-    isArrayBuffer(x) ||
-    isFile(x) ||
-    isBlob(x) ||
-    isReadableStream(x)
-  ) {
+  if (!x || typeof x === "string" || isFormData(x) || isURLSearchParams(x) || isArrayBuffer(x) || isFile(x) || isBlob(x) || isReadableStream(x)) {
     return x
   }
   if (isArrayBufferView(x)) return x.buffer

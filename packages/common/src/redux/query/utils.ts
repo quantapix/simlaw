@@ -1,4 +1,3 @@
-/* eslint-disable no-constant-condition */
 import * as qt from "./types.js"
 import * as qu from "../utils.js"
 import * as qx from "../index.js"
@@ -13,13 +12,7 @@ const isPlainObject: (_: any) => boolean = qu.isPlainObject
 
 export function copyWithStructuralSharing<T>(oldObj: any, newObj: T): T
 export function copyWithStructuralSharing(oldObj: any, newObj: any): any {
-  if (
-    oldObj === newObj ||
-    !(
-      (isPlainObject(oldObj) && isPlainObject(newObj)) ||
-      (Array.isArray(oldObj) && Array.isArray(newObj))
-    )
-  ) {
+  if (oldObj === newObj || !((isPlainObject(oldObj) && isPlainObject(newObj)) || (Array.isArray(oldObj) && Array.isArray(newObj)))) {
     return newObj
   }
   const newKeys = Object.keys(newObj)
@@ -47,11 +40,7 @@ export function isDocumentVisible(): boolean {
 }
 
 export function isOnline() {
-  return typeof navigator === "undefined"
-    ? true
-    : navigator.onLine === undefined
-    ? true
-    : navigator.onLine
+  return typeof navigator === "undefined" ? true : navigator.onLine === undefined ? true : navigator.onLine
 }
 
 export function isValidUrl(string: string) {
@@ -66,10 +55,7 @@ export function isValidUrl(string: string) {
 const withoutTrailingSlash = (url: string) => url.replace(/\/$/, "")
 const withoutLeadingSlash = (url: string) => url.replace(/^\//, "")
 
-export function joinUrls(
-  base: string | undefined,
-  url: string | undefined
-): string {
+export function joinUrls(base: string | undefined, url: string | undefined): string {
   if (!base) {
     return url!
   }
@@ -85,10 +71,7 @@ export function joinUrls(
   return `${base}${delimiter}${url}`
 }
 
-export const defaultSerializeQueryArgs: qt.SerializeQueryArgs<any> = ({
-  endpointName,
-  queryArgs,
-}) => {
+export const defaultSerializeQueryArgs: qt.SerializeQueryArgs<any> = ({ endpointName, queryArgs }) => {
   return `${endpointName}(${JSON.stringify(queryArgs, (_, value) =>
     isPlainObject(value)
       ? Object.keys(value)
@@ -101,16 +84,9 @@ export const defaultSerializeQueryArgs: qt.SerializeQueryArgs<any> = ({
   )})`
 }
 
-export function fakeBaseQuery<ErrorType>(): qt.BaseQueryFn<
-  void,
-  qt.NEVER,
-  ErrorType,
-  {}
-> {
+export function fakeBaseQuery<ErrorType>(): qt.BaseQueryFn<void, qt.NEVER, ErrorType, {}> {
   return function () {
-    throw new Error(
-      "When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax."
-    )
+    throw new Error("When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax.")
   }
 }
 
@@ -147,11 +123,7 @@ export function setupListeners(
     }
     if (!initialized) {
       if (typeof window !== "undefined" && window.addEventListener) {
-        window.addEventListener(
-          "visibilitychange",
-          handleVisibilityChange,
-          false
-        )
+        window.addEventListener("visibilitychange", handleVisibilityChange, false)
         window.addEventListener("focus", handleFocus, false)
         window.addEventListener("online", handleOnline, false)
         window.addEventListener("offline", handleOffline, false)
@@ -167,9 +139,7 @@ export function setupListeners(
     }
     return unsubscribe
   }
-  return customHandler
-    ? customHandler(dispatch, { onFocus, onFocusLost, onOffline, onOnline })
-    : defaultHandler()
+  return customHandler ? customHandler(dispatch, { onFocus, onFocusLost, onOffline, onOnline }) : defaultHandler()
 }
 
 async function defaultBackoff(attempt = 0, maxRetries = 5) {
@@ -190,11 +160,7 @@ function fail(e: any): never {
   })
 }
 
-const retryWithBackoff: qt.BaseQueryEnhancer<
-  unknown,
-  RetryOptions,
-  RetryOptions | void
-> = (baseQuery, defaultOptions) => async (args, api, extraOptions) => {
+const retryWithBackoff: qt.BaseQueryEnhancer<unknown, RetryOptions, RetryOptions | void> = (baseQuery, defaultOptions) => async (args, api, extraOptions) => {
   const options = {
     maxRetries: 5,
     backoff: defaultBackoff,

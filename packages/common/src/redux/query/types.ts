@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import type * as qt from "../types.js"
 import type * as qi from "../../immer/index.js"
 
@@ -77,36 +76,18 @@ export type SubscriptionOptions = {
 
 export type Subscribers = { [requestId: string]: SubscriptionOptions }
 export type QueryKeys<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-    any,
-    any,
-    any,
-    any
-  >
-    ? K
-    : never
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any> ? K : never
 }[keyof Definitions]
 
 export type MutationKeys<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<
-    any,
-    any,
-    any,
-    any
-  >
-    ? K
-    : never
+  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, any> ? K : never
 }[keyof Definitions]
 
 type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
   originalArgs: QueryArgFrom<D>
   requestId: string
   data?: ResultTypeFrom<D>
-  error?:
-    | qt.SerializedError
-    | (D extends QueryDefinition<any, infer BaseQuery, any, any>
-        ? BaseQueryError<BaseQuery>
-        : never)
+  error?: qt.SerializedError | (D extends QueryDefinition<any, infer BaseQuery, any, any> ? BaseQueryError<BaseQuery> : never)
   endpointName: string
   startedTimeStamp: number
   fulfilledTimeStamp?: number
@@ -115,10 +96,7 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
 export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
   | ({
       status: QueryStatus.fulfilled
-    } & WithRequiredProp<
-      BaseQuerySubState<D>,
-      "data" | "fulfilledTimeStamp"
-    > & { error: undefined })
+    } & WithRequiredProp<BaseQuerySubState<D>, "data" | "fulfilledTimeStamp"> & { error: undefined })
   | ({
       status: QueryStatus.pending
     } & BaseQuerySubState<D>)
@@ -137,18 +115,12 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
     }
 >
 
-export type QueryResultSelectorResult<
-  Definition extends QueryDefinition<any, any, any, any>
-> = QuerySubState<Definition> & RequestStatusFlags
+export type QueryResultSelectorResult<Definition extends QueryDefinition<any, any, any, any>> = QuerySubState<Definition> & RequestStatusFlags
 
 type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
   requestId: string
   data?: ResultTypeFrom<D>
-  error?:
-    | qt.SerializedError
-    | (D extends MutationDefinition<any, infer BaseQuery, any, any>
-        ? BaseQueryError<BaseQuery>
-        : never)
+  error?: qt.SerializedError | (D extends MutationDefinition<any, infer BaseQuery, any, any> ? BaseQueryError<BaseQuery> : never)
   endpointName: string
   startedTimeStamp: number
   fulfilledTimeStamp?: number
@@ -157,10 +129,7 @@ type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
 export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
   | (({
       status: QueryStatus.fulfilled
-    } & WithRequiredProp<
-      BaseMutationSubState<D>,
-      "data" | "fulfilledTimeStamp"
-    >) & { error: undefined })
+    } & WithRequiredProp<BaseMutationSubState<D>, "data" | "fulfilledTimeStamp">) & { error: undefined })
   | (({
       status: QueryStatus.pending
     } & BaseMutationSubState<D>) & { data?: undefined })
@@ -177,15 +146,9 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
       fulfilledTimeStamp?: undefined
     }
 
-export type MutationResultSelectorResult<
-  Definition extends MutationDefinition<any, any, any, any>
-> = MutationSubState<Definition> & RequestStatusFlags
+export type MutationResultSelectorResult<Definition extends MutationDefinition<any, any, any, any>> = MutationSubState<Definition> & RequestStatusFlags
 
-export type CombinedState<
-  D extends EndpointDefinitions,
-  E extends string,
-  ReducerPath extends string
-> = {
+export type CombinedState<D extends EndpointDefinitions, E extends string, ReducerPath extends string> = {
   queries: QueryState<D>
   mutations: MutationState<D>
   provided: InvalidationState<E>
@@ -223,11 +186,7 @@ export type MutationState<D extends EndpointDefinitions> = {
   [requestId: string]: MutationSubState<D[string]> | undefined
 }
 
-export type RootState<
-  Definitions extends EndpointDefinitions,
-  TagTypes extends string,
-  ReducerPath extends string
-> = {
+export type RootState<Definitions extends EndpointDefinitions, TagTypes extends string, ReducerPath extends string> = {
   [P in ReducerPath]: CombinedState<Definitions, TagTypes, P>
 }
 
@@ -235,33 +194,23 @@ const _NEVER = Symbol()
 export type NEVER = typeof _NEVER
 
 export type Id<T> = { [K in keyof T]: T[K] } & {}
-export type WithRequiredProp<T, K extends keyof T> = Omit<T, K> &
-  Required<Pick<T, K>>
+export type WithRequiredProp<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
 export type Override<T1, T2> = T2 extends any ? Omit<T1, keyof T2> & T2 : never
 export function assertCast<T>(v: any): asserts v is T {
   v
 }
 
-export function safeAssign<T extends object>(
-  target: T,
-  ...args: Array<Partial<NoInfer<T>>>
-) {
+export function safeAssign<T extends object>(target: T, ...args: Array<Partial<NoInfer<T>>>) {
   Object.assign(target, ...args)
 }
 
-export type UnionToIntersection<U> = (
-  U extends any ? (k: U) => void : never
-) extends (k: infer I) => void
-  ? I
-  : never
+export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never
 
 export type NonOptionalKeys<T> = {
   [K in keyof T]-?: undefined extends T[K] ? never : K
 }[keyof T]
 
-export type HasRequiredProps<T, True, False> = NonOptionalKeys<T> extends never
-  ? False
-  : True
+export type HasRequiredProps<T, True, False> = NonOptionalKeys<T> extends never ? False : True
 
 export type OptionalIfAllPropsOptional<T> = HasRequiredProps<T, T, T | never>
 
@@ -269,9 +218,7 @@ export type NoInfer<T> = [T][T extends any ? 0 : never]
 
 export type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T
 
-export type OmitFromUnion<T, K extends keyof T> = T extends any
-  ? Omit<T, K>
-  : never
+export type OmitFromUnion<T, K extends keyof T> = T extends any ? Omit<T, K> : never
 
 export type CastAny<T, CastTo> = qt.IsAny<T, CastTo, T>
 
@@ -297,23 +244,13 @@ export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
       meta?: M
     }
 
-export type BaseQueryFn<
-  Args = any,
-  Result = unknown,
-  Error = unknown,
-  DefinitionExtraOptions = {},
-  Meta = {}
-> = (
+export type BaseQueryFn<Args = any, Result = unknown, Error = unknown, DefinitionExtraOptions = {}, Meta = {}> = (
   args: Args,
   api: BaseQueryApi,
   extraOptions: DefinitionExtraOptions
 ) => qt.MaybePromise<QueryReturnValue<Result, Error, Meta>>
 
-export type BaseQueryEnhancer<
-  AdditionalArgs = unknown,
-  AdditionalDefinitionExtraOptions = unknown,
-  Config = void
-> = <BaseQuery extends BaseQueryFn>(
+export type BaseQueryEnhancer<AdditionalArgs = unknown, AdditionalDefinitionExtraOptions = unknown, Config = void> = <BaseQuery extends BaseQueryFn>(
   baseQuery: BaseQuery,
   config: Config
 ) => BaseQueryFn<
@@ -324,52 +261,27 @@ export type BaseQueryEnhancer<
   NonNullable<BaseQueryMeta<BaseQuery>>
 >
 
-export type BaseQueryResult<BaseQuery extends BaseQueryFn> = UnwrapPromise<
-  ReturnType<BaseQuery>
-> extends infer Unwrapped
-  ? Unwrapped extends { data: any }
-    ? Unwrapped["data"]
-    : never
-  : never
+export type BaseQueryResult<BaseQuery extends BaseQueryFn> = UnwrapPromise<ReturnType<BaseQuery>> extends infer Unwrapped ? (Unwrapped extends { data: any } ? Unwrapped["data"] : never) : never
 
-export type BaseQueryMeta<BaseQuery extends BaseQueryFn> = UnwrapPromise<
-  ReturnType<BaseQuery>
->["meta"]
+export type BaseQueryMeta<BaseQuery extends BaseQueryFn> = UnwrapPromise<ReturnType<BaseQuery>>["meta"]
 
-export type BaseQueryError<BaseQuery extends BaseQueryFn> = Exclude<
-  UnwrapPromise<ReturnType<BaseQuery>>,
-  { error?: undefined }
->["error"]
+export type BaseQueryError<BaseQuery extends BaseQueryFn> = Exclude<UnwrapPromise<ReturnType<BaseQuery>>, { error?: undefined }>["error"]
 
-export type BaseQueryArg<T extends (arg: any, ...args: any[]) => any> =
-  T extends (arg: infer A, ...args: any[]) => any ? A : any
+export type BaseQueryArg<T extends (arg: any, ...args: any[]) => any> = T extends (arg: infer A, ...args: any[]) => any ? A : any
 
-export type BaseQueryExtraOptions<BaseQuery extends BaseQueryFn> =
-  Parameters<BaseQuery>[2]
+export type BaseQueryExtraOptions<BaseQuery extends BaseQueryFn> = Parameters<BaseQuery>[2]
 
 const resultType = Symbol()
 const baseQuery = Symbol()
 
-interface EndpointDefinitionWithQuery<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType
-> {
+interface EndpointDefinitionWithQuery<QueryArg, BaseQuery extends BaseQueryFn, ResultType> {
   query(arg: QueryArg): BaseQueryArg<BaseQuery>
   queryFn?: never
-  transformResponse?(
-    baseQueryReturnValue: BaseQueryResult<BaseQuery>,
-    meta: BaseQueryMeta<BaseQuery>,
-    arg: QueryArg
-  ): ResultType | Promise<ResultType>
+  transformResponse?(baseQueryReturnValue: BaseQueryResult<BaseQuery>, meta: BaseQueryMeta<BaseQuery>, arg: QueryArg): ResultType | Promise<ResultType>
   structuralSharing?: boolean
 }
 
-interface EndpointDefinitionWithQueryFn<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType
-> {
+interface EndpointDefinitionWithQueryFn<QueryArg, BaseQuery extends BaseQueryFn, ResultType> {
   queryFn(
     arg: QueryArg,
     api: BaseQueryApi,
@@ -381,36 +293,20 @@ interface EndpointDefinitionWithQueryFn<
   structuralSharing?: boolean
 }
 
-export type BaseEndpointDefinition<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType
-> = (
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
-      ? never
-      : EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>)
+export type BaseEndpointDefinition<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = (
+  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER] ? never : EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>)
   | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
 ) & {
   [resultType]?: ResultType
   [baseQuery]?: BaseQuery
-} & HasRequiredProps<
-    BaseQueryExtraOptions<BaseQuery>,
-    { extraOptions: BaseQueryExtraOptions<BaseQuery> },
-    { extraOptions?: BaseQueryExtraOptions<BaseQuery> }
-  >
+} & HasRequiredProps<BaseQueryExtraOptions<BaseQuery>, { extraOptions: BaseQueryExtraOptions<BaseQuery> }, { extraOptions?: BaseQueryExtraOptions<BaseQuery> }>
 
 export enum DefinitionType {
   query = "query",
   mutation = "mutation",
 }
 
-export type GetResultDescriptionFn<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  ErrorType,
-  MetaType
-> = (
+export type GetResultDescriptionFn<TagTypes extends string, ResultType, QueryArg, ErrorType, MetaType> = (
   result: ResultType | undefined,
   error: ErrorType | undefined,
   arg: QueryArg,
@@ -422,13 +318,7 @@ export type FullTagDescription<TagType> = {
   id?: number | string
 }
 export type TagDescription<TagType> = TagType | FullTagDescription<TagType>
-export type ResultDescription<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  ErrorType,
-  MetaType
-> =
+export type ResultDescription<TagTypes extends string, ResultType, QueryArg, ErrorType, MetaType> =
   | ReadonlyArray<TagDescription<TagTypes>>
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType, MetaType>
 
@@ -441,66 +331,28 @@ export interface QueryApi<ReducerPath extends string, Context extends {}> {
   context: Context
 }
 
-export interface QueryExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string
-> {
+export interface QueryExtraOptions<TagTypes extends string, ResultType, QueryArg, BaseQuery extends BaseQueryFn, ReducerPath extends string = string> {
   type: DefinitionType.query
-  providesTags?: ResultDescription<
-    TagTypes,
-    ResultType,
-    QueryArg,
-    BaseQueryError<BaseQuery>,
-    BaseQueryMeta<BaseQuery>
-  >
+  providesTags?: ResultDescription<TagTypes, ResultType, QueryArg, BaseQueryError<BaseQuery>, BaseQueryMeta<BaseQuery>>
   invalidatesTags?: never
   keepUnusedDataFor?: number
-  onQueryStarted?(
-    arg: QueryArg,
-    api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
-  ): Promise<void> | void
-  onCacheEntryAdded?(
-    arg: QueryArg,
-    api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
-  ): Promise<void> | void
+  onQueryStarted?(arg: QueryArg, api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>): Promise<void> | void
+  onCacheEntryAdded?(arg: QueryArg, api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>): Promise<void> | void
 }
 
-export type QueryDefinition<
+export type QueryDefinition<QueryArg, BaseQuery extends BaseQueryFn, TagTypes extends string, ResultType, ReducerPath extends string = string> = BaseEndpointDefinition<
   QueryArg,
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ResultType,
-  ReducerPath extends string = string
-> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
+  BaseQuery,
+  ResultType
+> &
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
-export interface MutationExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string
-> {
+export interface MutationExtraOptions<TagTypes extends string, ResultType, QueryArg, BaseQuery extends BaseQueryFn, ReducerPath extends string = string> {
   type: DefinitionType.mutation
-  invalidatesTags?: ResultDescription<
-    TagTypes,
-    ResultType,
-    QueryArg,
-    BaseQueryError<BaseQuery>,
-    BaseQueryMeta<BaseQuery>
-  >
+  invalidatesTags?: ResultDescription<TagTypes, ResultType, QueryArg, BaseQueryError<BaseQuery>, BaseQueryMeta<BaseQuery>>
   providesTags?: never
-  onQueryStarted?(
-    arg: QueryArg,
-    api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
-  ): Promise<void> | void
-  onCacheEntryAdded?(
-    arg: QueryArg,
-    api: MutationCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
-  ): Promise<void> | void
+  onQueryStarted?(arg: QueryArg, api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>): Promise<void> | void
+  onCacheEntryAdded?(arg: QueryArg, api: MutationCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>): Promise<void> | void
 }
 
 export type PatchCollection = {
@@ -512,35 +364,13 @@ export type PatchCollection = {
 export type MaybeDrafted<T> = T | qi.Draft<T>
 export type Recipe<T> = (data: MaybeDrafted<T>) => void | MaybeDrafted<T>
 
-export interface QueryBaseLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string
-> extends LifecycleApi<ReducerPath> {
-  getCacheEntry(): QueryResultSelectorResult<
-    { type: DefinitionType.query } & BaseEndpointDefinition<
-      QueryArg,
-      BaseQuery,
-      ResultType
-    >
-  >
+export interface QueryBaseLifecycleApi<QueryArg, BaseQuery extends BaseQueryFn, ResultType, ReducerPath extends string = string> extends LifecycleApi<ReducerPath> {
+  getCacheEntry(): QueryResultSelectorResult<{ type: DefinitionType.query } & BaseEndpointDefinition<QueryArg, BaseQuery, ResultType>>
   updateCachedData(updateRecipe: Recipe<ResultType>): PatchCollection
 }
 
-export interface MutationBaseLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string
-> extends LifecycleApi<ReducerPath> {
-  getCacheEntry(): MutationResultSelectorResult<
-    { type: DefinitionType.mutation } & BaseEndpointDefinition<
-      QueryArg,
-      BaseQuery,
-      ResultType
-    >
-  >
+export interface MutationBaseLifecycleApi<QueryArg, BaseQuery extends BaseQueryFn, ResultType, ReducerPath extends string = string> extends LifecycleApi<ReducerPath> {
+  getCacheEntry(): MutationResultSelectorResult<{ type: DefinitionType.mutation } & BaseEndpointDefinition<QueryArg, BaseQuery, ResultType>>
 }
 
 export interface LifecycleApi<ReducerPath extends string = string> {
@@ -550,10 +380,7 @@ export interface LifecycleApi<ReducerPath extends string = string> {
   requestId: string
 }
 
-export interface CacheLifecyclePromises<
-  ResultType = unknown,
-  MetaType = unknown
-> {
+export interface CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> {
   cacheDataLoaded: PromiseWithKnownReason<
     {
       data: ResultType
@@ -564,31 +391,15 @@ export interface CacheLifecyclePromises<
   cacheEntryRemoved: Promise<void>
 }
 
-export interface QueryCacheLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string
-> extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+export interface QueryCacheLifecycleApi<QueryArg, BaseQuery extends BaseQueryFn, ResultType, ReducerPath extends string = string>
+  extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
-export interface MutationCacheLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string
-> extends MutationBaseLifecycleApi<
-      QueryArg,
-      BaseQuery,
-      ResultType,
-      ReducerPath
-    >,
+export interface MutationCacheLifecycleApi<QueryArg, BaseQuery extends BaseQueryFn, ResultType, ReducerPath extends string = string>
+  extends MutationBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
-export interface QueryLifecyclePromises<
-  ResultType,
-  BaseQuery extends BaseQueryFn
-> {
+export interface QueryLifecyclePromises<ResultType, BaseQuery extends BaseQueryFn> {
   queryFulfilled: PromiseWithKnownReason<
     {
       data: ResultType
@@ -608,93 +419,47 @@ export type QueryFulfilledRejectionReason<BaseQuery extends BaseQueryFn> =
       meta?: undefined
       isUnhandledError: true
     }
-export interface QueryLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string
-> extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+export interface QueryLifecycleApi<QueryArg, BaseQuery extends BaseQueryFn, ResultType, ReducerPath extends string = string>
+  extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     QueryLifecyclePromises<ResultType, BaseQuery> {}
-export interface MutationLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string
-> extends MutationBaseLifecycleApi<
-      QueryArg,
-      BaseQuery,
-      ResultType,
-      ReducerPath
-    >,
+export interface MutationLifecycleApi<QueryArg, BaseQuery extends BaseQueryFn, ResultType, ReducerPath extends string = string>
+  extends MutationBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     QueryLifecyclePromises<ResultType, BaseQuery> {}
 
-export type MutationDefinition<
+export type MutationDefinition<QueryArg, BaseQuery extends BaseQueryFn, TagTypes extends string, ResultType, ReducerPath extends string = string> = BaseEndpointDefinition<
   QueryArg,
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ResultType,
-  ReducerPath extends string = string
-> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
+  BaseQuery,
+  ResultType
+> &
   MutationExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
-export type EndpointDefinition<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ResultType,
-  ReducerPath extends string = string
-> =
+export type EndpointDefinition<QueryArg, BaseQuery extends BaseQueryFn, TagTypes extends string, ResultType, ReducerPath extends string = string> =
   | QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
   | MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
 
-export type EndpointDefinitions = Record<
-  string,
-  EndpointDefinition<any, any, any, any>
->
+export type EndpointDefinitions = Record<string, EndpointDefinition<any, any, any, any>>
 
-export function isQueryDefinition(
-  e: EndpointDefinition<any, any, any, any>
-): e is QueryDefinition<any, any, any, any> {
+export function isQueryDefinition(e: EndpointDefinition<any, any, any, any>): e is QueryDefinition<any, any, any, any> {
   return e.type === DefinitionType.query
 }
 
-export function isMutationDefinition(
-  e: EndpointDefinition<any, any, any, any>
-): e is MutationDefinition<any, any, any, any> {
+export function isMutationDefinition(e: EndpointDefinition<any, any, any, any>): e is MutationDefinition<any, any, any, any> {
   return e.type === DefinitionType.mutation
 }
 
-export type EndpointBuilder<
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ReducerPath extends string
-> = {
+export type EndpointBuilder<BaseQuery extends BaseQueryFn, TagTypes extends string, ReducerPath extends string> = {
   query<ResultType, QueryArg>(
-    definition: OmitFromUnion<
-      QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>,
-      "type"
-    >
+    definition: OmitFromUnion<QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>, "type">
   ): QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
   mutation<ResultType, QueryArg>(
-    definition: OmitFromUnion<
-      MutationDefinition<
-        QueryArg,
-        BaseQuery,
-        TagTypes,
-        ResultType,
-        ReducerPath
-      >,
-      "type"
-    >
+    definition: OmitFromUnion<MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>, "type">
   ): MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
 }
 
 export type AssertTagTypes = <T extends FullTagDescription<string>>(t: T) => T
 
 export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
-  description:
-    | ResultDescription<string, ResultType, QueryArg, ErrorType, MetaType>
-    | undefined,
+  description: ResultDescription<string, ResultType, QueryArg, ErrorType, MetaType> | undefined,
   result: ResultType | undefined,
   error: ErrorType | undefined,
   queryArg: QueryArg,
@@ -702,12 +467,7 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
   assertTagTypes: AssertTagTypes
 ): readonly FullTagDescription<string>[] {
   if (isFunction(description)) {
-    return description(
-      result as ResultType,
-      error as undefined,
-      queryArg,
-      meta as MetaType
-    )
+    return description(result as ResultType, error as undefined, queryArg, meta as MetaType)
       .map(expandTagDescription)
       .map(assertTagTypes)
   }
@@ -721,140 +481,62 @@ function isFunction<T>(t: T): t is Extract<T, Function> {
   return typeof t === "function"
 }
 
-export function expandTagDescription(
-  description: TagDescription<string>
-): FullTagDescription<string> {
+export function expandTagDescription(description: TagDescription<string>): FullTagDescription<string> {
   return typeof description === "string" ? { type: description } : description
 }
 
-export type QueryArgFrom<D extends BaseEndpointDefinition<any, any, any>> =
-  D extends BaseEndpointDefinition<infer QA, any, any> ? QA : unknown
-export type ResultTypeFrom<D extends BaseEndpointDefinition<any, any, any>> =
-  D extends BaseEndpointDefinition<any, any, infer RT> ? RT : unknown
+export type QueryArgFrom<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<infer QA, any, any> ? QA : unknown
+export type ResultTypeFrom<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<any, any, infer RT> ? RT : unknown
 
-export type ReducerPathFrom<
-  D extends EndpointDefinition<any, any, any, any, any>
-> = D extends EndpointDefinition<any, any, any, any, infer RP> ? RP : unknown
+export type ReducerPathFrom<D extends EndpointDefinition<any, any, any, any, any>> = D extends EndpointDefinition<any, any, any, any, infer RP> ? RP : unknown
 
-export type TagTypesFrom<D extends EndpointDefinition<any, any, any, any>> =
-  D extends EndpointDefinition<any, any, infer RP, any> ? RP : unknown
+export type TagTypesFrom<D extends EndpointDefinition<any, any, any, any>> = D extends EndpointDefinition<any, any, infer RP, any> ? RP : unknown
 
-export type ReplaceTagTypes<
-  Definitions extends EndpointDefinitions,
-  NewTagTypes extends string
-> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-    infer QueryArg,
-    infer BaseQuery,
-    any,
-    infer ResultType,
-    infer ReducerPath
-  >
+export type ReplaceTagTypes<Definitions extends EndpointDefinitions, NewTagTypes extends string> = {
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, infer BaseQuery, any, infer ResultType, infer ReducerPath>
     ? QueryDefinition<QueryArg, BaseQuery, NewTagTypes, ResultType, ReducerPath>
-    : Definitions[K] extends MutationDefinition<
-        infer QueryArg,
-        infer BaseQuery,
-        any,
-        infer ResultType,
-        infer ReducerPath
-      >
-    ? MutationDefinition<
-        QueryArg,
-        BaseQuery,
-        NewTagTypes,
-        ResultType,
-        ReducerPath
-      >
+    : Definitions[K] extends MutationDefinition<infer QueryArg, infer BaseQuery, any, infer ResultType, infer ReducerPath>
+    ? MutationDefinition<QueryArg, BaseQuery, NewTagTypes, ResultType, ReducerPath>
     : never
 }
 
 export class HandledError {
-  constructor(
-    public readonly value: any,
-    public readonly meta: any = undefined
-  ) {}
+  constructor(public readonly value: any, public readonly meta: any = undefined) {}
 }
 
-export type SerializeQueryArgs<QueryArgs> = (_: {
-  queryArgs: QueryArgs
-  endpointDefinition: EndpointDefinition<any, any, any, any>
-  endpointName: string
-}) => string
+export type SerializeQueryArgs<QueryArgs> = (_: { queryArgs: QueryArgs; endpointDefinition: EndpointDefinition<any, any, any, any>; endpointName: string }) => string
 
-export type InternalSerializeQueryArgs = (_: {
-  queryArgs: any
-  endpointDefinition: EndpointDefinition<any, any, any, any>
-  endpointName: string
-}) => QueryCacheKey
+export type InternalSerializeQueryArgs = (_: { queryArgs: any; endpointDefinition: EndpointDefinition<any, any, any, any>; endpointName: string }) => QueryCacheKey
 
 export interface PromiseConstructorWithKnownReason {
-  new <T, R>(
-    executor: (
-      resolve: (value: T | PromiseLike<T>) => void,
-      reject: (reason?: R) => void
-    ) => void
-  ): PromiseWithKnownReason<T, R>
+  new <T, R>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: R) => void) => void): PromiseWithKnownReason<T, R>
 }
-export interface PromiseWithKnownReason<T, R>
-  extends Omit<Promise<T>, "then" | "catch"> {
+export interface PromiseWithKnownReason<T, R> extends Omit<Promise<T>, "then" | "catch"> {
   then<TResult1 = T, TResult2 = never>(
-    onfulfilled?:
-      | ((value: T) => TResult1 | PromiseLike<TResult1>)
-      | undefined
-      | null,
-    onrejected?:
-      | ((reason: R) => TResult2 | PromiseLike<TResult2>)
-      | undefined
-      | null
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: R) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): Promise<TResult1 | TResult2>
-  catch<TResult = never>(
-    onrejected?:
-      | ((reason: R) => TResult | PromiseLike<TResult>)
-      | undefined
-      | null
-  ): Promise<T | TResult>
+  catch<TResult = never>(onrejected?: ((reason: R) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>
 }
 
-export const neverResolvedError = new Error(
-  "Promise never resolved before cacheEntryRemoved."
-) as Error & {
+export const neverResolvedError = new Error("Promise never resolved before cacheEntryRemoved.") as Error & {
   message: "Promise never resolved before cacheEntryRemoved."
 }
 
-export type MutationStateSelector<
-  R extends Record<string, any>,
-  D extends MutationDefinition<any, any, any, any>
-> = (state: MutationResultSelectorResult<D>) => R
-export type UseMutationStateOptions<
-  D extends MutationDefinition<any, any, any, any>,
-  R extends Record<string, any>
-> = {
+export type MutationStateSelector<R extends Record<string, any>, D extends MutationDefinition<any, any, any, any>> = (state: MutationResultSelectorResult<D>) => R
+export type UseMutationStateOptions<D extends MutationDefinition<any, any, any, any>, R extends Record<string, any>> = {
   selectFromResult?: MutationStateSelector<R, D>
   fixedCacheKey?: string
 }
-export type UseMutationStateResult<
-  D extends MutationDefinition<any, any, any, any>,
-  R
-> = NoInfer<R> & {
+export type UseMutationStateResult<D extends MutationDefinition<any, any, any, any>, R> = NoInfer<R> & {
   originalArgs?: QueryArgFrom<D>
   reset: () => void
 }
 
-export type MutationActionCreatorResult<
-  D extends MutationDefinition<any, any, any, any>
-> = Promise<
+export type MutationActionCreatorResult<D extends MutationDefinition<any, any, any, any>> = Promise<
   | { data: ResultTypeFrom<D> }
   | {
-      error:
-        | Exclude<
-            BaseQueryError<
-              D extends MutationDefinition<any, infer BaseQuery, any, any>
-                ? BaseQuery
-                : never
-            >,
-            undefined
-          >
-        | qt.SerializedError
+      error: Exclude<BaseQueryError<D extends MutationDefinition<any, infer BaseQuery, any, any> ? BaseQuery : never>, undefined> | qt.SerializedError
     }
 > & {
   arg: {
@@ -871,13 +553,10 @@ export type MutationActionCreatorResult<
   unsubscribe(): void
 }
 
-export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
-  {
-    (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
-  }
-export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = MutationResultSelectorResult<D>
->(
+export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> = {
+  (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
+}
+export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <R extends Record<string, any> = MutationResultSelectorResult<D>>(
   options?: UseMutationStateOptions<D, R>
 ) => readonly [MutationTrigger<D>, UseMutationStateResult<D, R>]
 interface UseQuerySubscriptionOptions extends SubscriptionOptions {
@@ -889,15 +568,8 @@ export const skipToken = Symbol.for("RTKQ/skipToken")
 /** @deprecated renamed to `skipToken` */
 export const skipSelector = skipToken
 
-export type UseQuerySubscription<
-  D extends QueryDefinition<any, any, any, any>
-> = (
-  arg: QueryArgFrom<D> | SkipToken,
-  options?: UseQuerySubscriptionOptions
-) => UseQuerySubscriptionResult<D>
-export type QueryActionCreatorResult<
-  D extends QueryDefinition<any, any, any, any>
-> = Promise<QueryResultSelectorResult<D>> & {
+export type UseQuerySubscription<D extends QueryDefinition<any, any, any, any>> = (arg: QueryArgFrom<D> | SkipToken, options?: UseQuerySubscriptionOptions) => UseQuerySubscriptionResult<D>
+export type QueryActionCreatorResult<D extends QueryDefinition<any, any, any, any>> = Promise<QueryResultSelectorResult<D>> & {
   arg: QueryArgFrom<D>
   requestId: string
   subscriptionOptions: SubscriptionOptions | undefined
@@ -909,26 +581,17 @@ export type QueryActionCreatorResult<
   queryCacheKey: string
 }
 
-type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
-  QuerySubState<D> & {
-    currentData?: ResultTypeFrom<D>
-    isUninitialized: false
-    isLoading: false
-    isFetching: false
-    isSuccess: false
-    isError: false
-  }
+type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> = QuerySubState<D> & {
+  currentData?: ResultTypeFrom<D>
+  isUninitialized: false
+  isLoading: false
+  isFetching: false
+  isSuccess: false
+  isError: false
+}
 
-export type UseQueryStateDefaultResult<
-  D extends QueryDefinition<any, any, any, any>
-> = Id<
-  | Override<
-      Extract<
-        UseQueryStateBaseResult<D>,
-        { status: QueryStatus.uninitialized }
-      >,
-      { isUninitialized: true }
-    >
+export type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> = Id<
+  | Override<Extract<UseQueryStateBaseResult<D>, { status: QueryStatus.uninitialized }>, { isUninitialized: true }>
   | Override<
       UseQueryStateBaseResult<D>,
       | { isLoading: true; isFetching: boolean; data: undefined }
@@ -936,129 +599,76 @@ export type UseQueryStateDefaultResult<
           isSuccess: true
           isFetching: true
           error: undefined
-        } & Required<
-          Pick<UseQueryStateBaseResult<D>, "data" | "fulfilledTimeStamp">
-        >)
+        } & Required<Pick<UseQueryStateBaseResult<D>, "data" | "fulfilledTimeStamp">>)
       | ({
           isSuccess: true
           isFetching: false
           error: undefined
-        } & Required<
-          Pick<
-            UseQueryStateBaseResult<D>,
-            "data" | "fulfilledTimeStamp" | "currentData"
-          >
-        >)
-      | ({ isError: true } & Required<
-          Pick<UseQueryStateBaseResult<D>, "error">
-        >)
+        } & Required<Pick<UseQueryStateBaseResult<D>, "data" | "fulfilledTimeStamp" | "currentData">>)
+      | ({ isError: true } & Required<Pick<UseQueryStateBaseResult<D>, "error">>)
     >
 > & {
   status: QueryStatus
 }
 
-export type UseQuerySubscriptionResult<
-  D extends QueryDefinition<any, any, any, any>
-> = Pick<QueryActionCreatorResult<D>, "refetch">
-export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>
->(
+export type UseQuerySubscriptionResult<D extends QueryDefinition<any, any, any, any>> = Pick<QueryActionCreatorResult<D>, "refetch">
+export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <R extends Record<string, any> = UseQueryStateDefaultResult<D>>(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQueryStateOptions<D, R>
 ) => UseQueryStateResult<D, R>
-export type QueryStateSelector<
-  R extends Record<string, any>,
-  D extends QueryDefinition<any, any, any, any>
-> = (state: UseQueryStateDefaultResult<D>) => R
+export type QueryStateSelector<R extends Record<string, any>, D extends QueryDefinition<any, any, any, any>> = (state: UseQueryStateDefaultResult<D>) => R
 
-export type UseQueryStateOptions<
-  D extends QueryDefinition<any, any, any, any>,
-  R extends Record<string, any>
-> = {
+export type UseQueryStateOptions<D extends QueryDefinition<any, any, any, any>, R extends Record<string, any>> = {
   skip?: boolean
   selectFromResult?: QueryStateSelector<R, D>
 }
-export type UseQueryStateResult<
-  _ extends QueryDefinition<any, any, any, any>,
-  R
-> = NoInfer<R>
+export type UseQueryStateResult<_ extends QueryDefinition<any, any, any, any>, R> = NoInfer<R>
 
-export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>
->(
+export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <R extends Record<string, any> = UseQueryStateDefaultResult<D>>(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
 ) => UseQueryHookResult<D, R>
-export type UseQueryHookResult<
-  D extends QueryDefinition<any, any, any, any>,
-  R = UseQueryStateDefaultResult<D>
-> = UseQueryStateResult<D, R> & UseQuerySubscriptionResult<D>
+export type UseQueryHookResult<D extends QueryDefinition<any, any, any, any>, R = UseQueryStateDefaultResult<D>> = UseQueryStateResult<D, R> & UseQuerySubscriptionResult<D>
 export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
-  (
-    arg: QueryArgFrom<D>,
-    preferCacheValue?: boolean
-  ): QueryActionCreatorResult<D>
+  (arg: QueryArgFrom<D>, preferCacheValue?: boolean): QueryActionCreatorResult<D>
 }
 export const UNINITIALIZED_VALUE = Symbol()
 export type UninitializedValue = typeof UNINITIALIZED_VALUE
 
-export type UseLazyQueryLastPromiseInfo<
-  D extends QueryDefinition<any, any, any, any>
-> = {
+export type UseLazyQueryLastPromiseInfo<D extends QueryDefinition<any, any, any, any>> = {
   lastArg: QueryArgFrom<D>
 }
-export type UseLazyQuerySubscription<
-  D extends QueryDefinition<any, any, any, any>
-> = (
-  options?: SubscriptionOptions
-) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
+export type UseLazyQuerySubscription<D extends QueryDefinition<any, any, any, any>> = (options?: SubscriptionOptions) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
 
-export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>
->(
+export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <R extends Record<string, any> = UseQueryStateDefaultResult<D>>(
   options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, "skip">
-) => [
-  LazyQueryTrigger<D>,
-  UseQueryStateResult<D, R>,
-  UseLazyQueryLastPromiseInfo<D>
-]
-export interface QueryHooks<
-  Definition extends QueryDefinition<any, any, any, any, any>
-> {
+) => [LazyQueryTrigger<D>, UseQueryStateResult<D, R>, UseLazyQueryLastPromiseInfo<D>]
+export interface QueryHooks<Definition extends QueryDefinition<any, any, any, any, any>> {
   useQuery: UseQuery<Definition>
   useLazyQuery: UseLazyQuery<Definition>
   useQuerySubscription: UseQuerySubscription<Definition>
   useLazyQuerySubscription: UseLazyQuerySubscription<Definition>
   useQueryState: UseQueryState<Definition>
 }
-export interface MutationHooks<
-  Definition extends MutationDefinition<any, any, any, any, any>
-> {
+export interface MutationHooks<Definition extends MutationDefinition<any, any, any, any, any>> {
   useMutation: UseMutation<Definition>
 }
 
-export type HooksWithUniqueNames<Definitions extends EndpointDefinitions> =
-  keyof Definitions extends infer Keys
-    ? Keys extends string
-      ? Definitions[Keys] extends { type: DefinitionType.query }
-        ? {
-            [K in Keys as `use${Capitalize<K>}Query`]: UseQuery<
-              Extract<Definitions[K], QueryDefinition<any, any, any, any>>
-            >
-          } & {
-            [K in Keys as `useLazy${Capitalize<K>}Query`]: UseLazyQuery<
-              Extract<Definitions[K], QueryDefinition<any, any, any, any>>
-            >
-          }
-        : Definitions[Keys] extends { type: DefinitionType.mutation }
-        ? {
-            [K in Keys as `use${Capitalize<K>}Mutation`]: UseMutation<
-              Extract<Definitions[K], MutationDefinition<any, any, any, any>>
-            >
-          }
-        : never
+export type HooksWithUniqueNames<Definitions extends EndpointDefinitions> = keyof Definitions extends infer Keys
+  ? Keys extends string
+    ? Definitions[Keys] extends { type: DefinitionType.query }
+      ? {
+          [K in Keys as `use${Capitalize<K>}Query`]: UseQuery<Extract<Definitions[K], QueryDefinition<any, any, any, any>>>
+        } & {
+          [K in Keys as `useLazy${Capitalize<K>}Query`]: UseLazyQuery<Extract<Definitions[K], QueryDefinition<any, any, any, any>>>
+        }
+      : Definitions[Keys] extends { type: DefinitionType.mutation }
+      ? {
+          [K in Keys as `use${Capitalize<K>}Mutation`]: UseMutation<Extract<Definitions[K], MutationDefinition<any, any, any, any>>>
+        }
       : never
     : never
+  : never
 
 export interface StartQueryActionCreatorOptions {
   subscribe?: boolean
@@ -1066,16 +676,12 @@ export interface StartQueryActionCreatorOptions {
   subscriptionOptions?: SubscriptionOptions
 }
 
-export type StartQueryActionCreator<
-  D extends QueryDefinition<any, any, any, any, any>
-> = (
+export type StartQueryActionCreator<D extends QueryDefinition<any, any, any, any, any>> = (
   arg: QueryArgFrom<D>,
   options?: StartQueryActionCreatorOptions
 ) => qt.ThunkAction<QueryActionCreatorResult<D>, any, any, qt.AnyAction>
 
-export type StartMutationActionCreator<
-  D extends MutationDefinition<any, any, any, any>
-> = (
+export type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>> = (
   arg: QueryArgFrom<D>,
   options?: {
     track?: boolean
@@ -1083,26 +689,15 @@ export type StartMutationActionCreator<
   }
 ) => qt.ThunkAction<MutationActionCreatorResult<D>, any, any, qt.AnyAction>
 
-export type QueryResultSelectorFactory<
-  Definition extends QueryDefinition<any, any, any, any>,
-  RootState
-> = (
+export type QueryResultSelectorFactory<Definition extends QueryDefinition<any, any, any, any>, RootState> = (
   queryArg: QueryArgFrom<Definition> | SkipToken
 ) => (state: RootState) => QueryResultSelectorResult<Definition>
 
-export type MutationResultSelectorFactory<
-  Definition extends MutationDefinition<any, any, any, any>,
-  RootState
-> = (
-  requestId:
-    | string
-    | { requestId: string | undefined; fixedCacheKey: string | undefined }
-    | SkipToken
+export type MutationResultSelectorFactory<Definition extends MutationDefinition<any, any, any, any>, RootState> = (
+  requestId: string | { requestId: string | undefined; fixedCacheKey: string | undefined } | SkipToken
 ) => (state: RootState) => MutationResultSelectorResult<Definition>
 
-export interface QueryThunkArg
-  extends QuerySubstateIdentifier,
-    StartQueryActionCreatorOptions {
+export interface QueryThunkArg extends QuerySubstateIdentifier, StartQueryActionCreatorOptions {
   type: "query"
   originalArgs: unknown
   endpointName: string
@@ -1126,14 +721,6 @@ export type ThunkApiMetaConfig = {
   }
 }
 
-export type QueryThunk = qt.AsyncThunk<
-  ThunkResult,
-  QueryThunkArg,
-  ThunkApiMetaConfig
->
+export type QueryThunk = qt.AsyncThunk<ThunkResult, QueryThunkArg, ThunkApiMetaConfig>
 
-export type MutationThunk = qt.AsyncThunk<
-  ThunkResult,
-  MutationThunkArg,
-  ThunkApiMetaConfig
->
+export type MutationThunk = qt.AsyncThunk<ThunkResult, MutationThunkArg, ThunkApiMetaConfig>

@@ -1,4 +1,3 @@
-/* eslint-disable no-lone-blocks */
 import * as qi from "../../../src/immer/index.js"
 import * as qx from "../../../src/redux/index.js"
 import { expectExactType, expectNotAny, expectType } from "../helpers.js"
@@ -53,8 +52,7 @@ import apiRequest from "axios"
     }),
     { type: "action" }
   ) as qx.PayloadActionCreator<number>
-  const actionCreator2: qx.ActionCreator<qx.PayloadAction<number>> =
-    payloadActionCreator2
+  const actionCreator2: qx.ActionCreator<qx.PayloadAction<number>> = payloadActionCreator2
 }
 {
   const increment = qx.createAction<number, "increment">("increment")
@@ -179,18 +177,12 @@ import apiRequest from "axios"
   {
     const actionCreator = qx.createAction<string, "test">("test")
     const x: Array<qx.Action<unknown>> = []
-    expectType<Array<qx.PayloadAction<string, "test">>>(
-      x.filter(actionCreator.match)
-    )
-    expectType<Array<qx.PayloadAction<number, "test">>>(
-      x.filter(actionCreator.match)
-    )
+    expectType<Array<qx.PayloadAction<string, "test">>>(x.filter(actionCreator.match))
+    expectType<Array<qx.PayloadAction<number, "test">>>(x.filter(actionCreator.match))
   }
 }
 {
-  expectType<qx.ActionCreatorWithOptionalPayload<string | undefined>>(
-    qx.createAction<string | undefined>("")
-  )
+  expectType<qx.ActionCreatorWithOptionalPayload<string | undefined>>(qx.createAction<string | undefined>(""))
   expectType<qx.ActionCreatorWithoutPayload>(qx.createAction<void>(""))
   expectType<qx.ActionCreatorWithNonInferrablePayload>(qx.createAction(""))
   expectType<qx.ActionCreatorWithPayload<string>>(qx.createAction<string>(""))
@@ -210,9 +202,7 @@ import apiRequest from "axios"
 const defaultDispatch = (() => {}) as qx.ThunkDispatch<{}, any, qx.AnyAction>
 const anyAction = { type: "foo" } as qx.AnyAction
 ;(async function () {
-  const async = qx.createAsyncThunk("test", (id: number) =>
-    Promise.resolve(id * 2)
-  )
+  const async = qx.createAsyncThunk("test", (id: number) => Promise.resolve(id * 2))
   const reducer = qx.createReducer({}, builder =>
     builder
       .addCase(async.pending, (_, action) => {
@@ -257,11 +247,7 @@ const anyAction = { type: "foo" } as qx.AnyAction
     { id: "b", title: "Second" },
     { id: "a", title: "First" },
   ]
-  const correctDispatch = (() => {}) as qx.ThunkDispatch<
-    BookModel[],
-    { userAPI: Function },
-    qx.AnyAction
-  >
+  const correctDispatch = (() => {}) as qx.ThunkDispatch<BookModel[], { userAPI: Function }, qx.AnyAction>
   const fetchBooksTAC = qx.createAsyncThunk<
     BookModel[],
     number,
@@ -269,16 +255,13 @@ const anyAction = { type: "foo" } as qx.AnyAction
       state: BooksState
       extra: { userAPI: Function }
     }
-  >(
-    "books/fetch",
-    async (arg, { getState, dispatch, extra, requestId, signal }) => {
-      const state = getState()
-      expectType<number>(arg)
-      expectType<BookModel[]>(state)
-      expectType<{ userAPI: Function }>(extra)
-      return fakeBooks
-    }
-  )
+  >("books/fetch", async (arg, { getState, dispatch, extra, requestId, signal }) => {
+    const state = getState()
+    expectType<number>(arg)
+    expectType<BookModel[]>(state)
+    expectType<{ userAPI: Function }>(extra)
+    return fakeBooks
+  })
   correctDispatch(fetchBooksTAC(1))
   defaultDispatch(fetchBooksTAC(1))
 })()
@@ -314,8 +297,7 @@ const anyAction = { type: "foo" } as qx.AnyAction
   type ResultType = {
     text: string
   }
-  const demoPromise = async (): Promise<ResultType> =>
-    new Promise((resolve, _) => resolve({ text: "" }))
+  const demoPromise = async (): Promise<ResultType> => new Promise((resolve, _) => resolve({ text: "" }))
   const thunk = qx.createAsyncThunk("thunk", async (args, thunkAPI) => {
     try {
       const result = await demoPromise()
@@ -348,9 +330,7 @@ const anyAction = { type: "foo" } as qx.AnyAction
     }
   >("calls/fetchLiveCalls", async (organizationId, { rejectWithValue }) => {
     try {
-      const result = await apiRequest.get<CallsResponse>(
-        `organizations/${organizationId}/calls/live/iwill404`
-      )
+      const result = await apiRequest.get<CallsResponse>(`organizations/${organizationId}/calls/live/iwill404`)
       return result.data.data
     } catch (err) {
       let error: AxiosError<ErrorFromServer> = err as any // cast for access to AxiosError properties
@@ -411,10 +391,7 @@ const anyAction = { type: "foo" } as qx.AnyAction
     asyncThunk("string")
   }
   {
-    const asyncThunk = qx.createAsyncThunk(
-      "test",
-      (arg: number | undefined) => 0
-    )
+    const asyncThunk = qx.createAsyncThunk("test", (arg: number | undefined) => 0)
     expectType<(arg?: number) => any>(asyncThunk)
     asyncThunk()
     asyncThunk(5)
@@ -435,9 +412,7 @@ const anyAction = { type: "foo" } as qx.AnyAction
   }
   {
     const asyncThunk = qx.createAsyncThunk("test", (arg: unknown) => 0)
-    expectType<qx.IsUnknown<Parameters<typeof asyncThunk>[0], true, false>>(
-      true
-    )
+    expectType<qx.IsUnknown<Parameters<typeof asyncThunk>[0], true, false>>(true)
     asyncThunk(5)
     asyncThunk()
   }
@@ -448,10 +423,7 @@ const anyAction = { type: "foo" } as qx.AnyAction
     asyncThunk()
   }
   {
-    const asyncThunk = qx.createAsyncThunk(
-      "test",
-      (arg: undefined, thunkApi) => 0
-    )
+    const asyncThunk = qx.createAsyncThunk("test", (arg: undefined, thunkApi) => 0)
     expectType<() => any>(asyncThunk)
     asyncThunk(0 as any)
   }
@@ -461,20 +433,14 @@ const anyAction = { type: "foo" } as qx.AnyAction
     asyncThunk(0 as any)
   }
   {
-    const asyncThunk = qx.createAsyncThunk(
-      "test",
-      (arg: number | undefined, thunkApi) => 0
-    )
+    const asyncThunk = qx.createAsyncThunk("test", (arg: number | undefined, thunkApi) => 0)
     expectType<(arg?: number) => any>(asyncThunk)
     asyncThunk()
     asyncThunk(5)
     asyncThunk("string")
   }
   {
-    const asyncThunk = qx.createAsyncThunk(
-      "test",
-      (arg: number | void, thunkApi) => 0
-    )
+    const asyncThunk = qx.createAsyncThunk("test", (arg: number | void, thunkApi) => 0)
     expectType<(arg?: number) => any>(asyncThunk)
     asyncThunk()
     asyncThunk(5)
@@ -487,13 +453,8 @@ const anyAction = { type: "foo" } as qx.AnyAction
     asyncThunk()
   }
   {
-    const asyncThunk = qx.createAsyncThunk(
-      "test",
-      (arg: unknown, thunkApi) => 0
-    )
-    expectType<qx.IsUnknown<Parameters<typeof asyncThunk>[0], true, false>>(
-      true
-    )
+    const asyncThunk = qx.createAsyncThunk("test", (arg: unknown, thunkApi) => 0)
+    expectType<qx.IsUnknown<Parameters<typeof asyncThunk>[0], true, false>>(true)
     asyncThunk(5)
     asyncThunk()
   }
@@ -518,28 +479,21 @@ const anyAction = { type: "foo" } as qx.AnyAction
   expectType<qx.AsyncThunk<"ret", void, {}>>(thunk)
 }
 {
-  const asyncThunk = qx.createAsyncThunk(
-    "test",
-    (_: void, { rejectWithValue }) => {
-      try {
-        return Promise.resolve(true)
-      } catch (e) {
-        return rejectWithValue(e)
-      }
+  const asyncThunk = qx.createAsyncThunk("test", (_: void, { rejectWithValue }) => {
+    try {
+      return Promise.resolve(true)
+    } catch (e) {
+      return rejectWithValue(e)
     }
-  )
+  })
   defaultDispatch(asyncThunk())
     .then(result => {
       if (asyncThunk.fulfilled.match(result)) {
-        expectType<
-          ReturnType<qx.AsyncThunkFulfilledActionCreator<boolean, void>>
-        >(result)
+        expectType<ReturnType<qx.AsyncThunkFulfilledActionCreator<boolean, void>>>(result)
         expectType<boolean>(result.payload)
         expectType<any>(result.error)
       } else {
-        expectType<
-          ReturnType<qx.AsyncThunkRejectedActionCreator<unknown, void>>
-        >(result)
+        expectType<ReturnType<qx.AsyncThunkRejectedActionCreator<unknown, void>>>(result)
         expectType<qx.SerializedError>(result.error)
         expectType<unknown>(result.payload)
       }
@@ -558,11 +512,7 @@ const anyAction = { type: "foo" } as qx.AnyAction
   const shouldFail = qx.createAsyncThunk("without generics", () => {}, {
     serializeError: funkySerializeError,
   })
-  const shouldWork = qx.createAsyncThunk<
-    any,
-    void,
-    { serializedErrorType: Funky }
-  >("with generics", () => {}, {
+  const shouldWork = qx.createAsyncThunk<any, void, { serializedErrorType: Funky }>("with generics", () => {}, {
     serializeError: funkySerializeError,
   })
   if (shouldWork.rejected.match(anyAction)) {
@@ -583,13 +533,9 @@ const anyAction = { type: "foo" } as qx.AnyAction
     idGenerator: returnsStrWithNumberArg,
   })
   const returnsStrWithStringArg = (foo: string) => "foo"
-  const shoulducceedCorrectArgs = qx.createAsyncThunk(
-    "foo",
-    (arg: string) => {},
-    {
-      idGenerator: returnsStrWithStringArg,
-    }
-  )
+  const shoulducceedCorrectArgs = qx.createAsyncThunk("foo", (arg: string) => {}, {
+    idGenerator: returnsStrWithStringArg,
+  })
   const returnsStrWithoutArgs = () => "foo"
   const shouldSucceed = qx.createAsyncThunk("foo", () => {}, {
     idGenerator: returnsStrWithoutArgs,
@@ -598,22 +544,10 @@ const anyAction = { type: "foo" } as qx.AnyAction
 {
   qx.createAsyncThunk<"ret", void, {}>("test", (_, api) => "ret" as const)
   qx.createAsyncThunk<"ret", void, {}>("test", async (_, api) => "ret" as const)
-  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>(
-    "test",
-    (_, api) => api.fulfillWithValue("ret" as const, "")
-  )
-  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>(
-    "test",
-    async (_, api) => api.fulfillWithValue("ret" as const, "")
-  )
-  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>(
-    "test",
-    (_, api) => "ret" as const
-  )
-  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>(
-    "test",
-    async (_, api) => "ret" as const
-  )
+  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>("test", (_, api) => api.fulfillWithValue("ret" as const, ""))
+  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>("test", async (_, api) => api.fulfillWithValue("ret" as const, ""))
+  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>("test", (_, api) => "ret" as const)
+  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>("test", async (_, api) => "ret" as const)
   qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>(
     "test", // @ts-expect-error should only allow returning with 'test'
     (_, api) => api.fulfillWithValue(5, "")
@@ -622,55 +556,19 @@ const anyAction = { type: "foo" } as qx.AnyAction
     "test", // @ts-expect-error should only allow returning with 'test'
     async (_, api) => api.fulfillWithValue(5, "")
   )
-  qx.createAsyncThunk<"ret", void, { rejectValue: string }>("test", (_, api) =>
-    api.rejectWithValue("ret")
-  )
-  qx.createAsyncThunk<"ret", void, { rejectValue: string }>(
-    "test",
-    async (_, api) => api.rejectWithValue("ret")
-  )
-  qx.createAsyncThunk<
-    "ret",
-    void,
-    { rejectValue: string; rejectedMeta: number }
-  >("test", (_, api) => api.rejectWithValue("ret", 5))
-  qx.createAsyncThunk<
-    "ret",
-    void,
-    { rejectValue: string; rejectedMeta: number }
-  >("test", async (_, api) => api.rejectWithValue("ret", 5))
-  qx.createAsyncThunk<
-    "ret",
-    void,
-    { rejectValue: string; rejectedMeta: number }
-  >("test", (_, api) => api.rejectWithValue("ret", 5))
-  qx.createAsyncThunk<
-    "ret",
-    void,
-    { rejectValue: string; rejectedMeta: number }
-  >("test", (_, api) => api.rejectWithValue("ret", ""))
-  qx.createAsyncThunk<
-    "ret",
-    void,
-    { rejectValue: string; rejectedMeta: number }
-  >("test", async (_, api) => api.rejectWithValue("ret", ""))
-  qx.createAsyncThunk<
-    "ret",
-    void,
-    { rejectValue: string; rejectedMeta: number }
-  >("test", (_, api) => api.rejectWithValue(5, ""))
-  qx.createAsyncThunk<
-    "ret",
-    void,
-    { rejectValue: string; rejectedMeta: number }
-  >("test", async (_, api) => api.rejectWithValue(5, ""))
+  qx.createAsyncThunk<"ret", void, { rejectValue: string }>("test", (_, api) => api.rejectWithValue("ret"))
+  qx.createAsyncThunk<"ret", void, { rejectValue: string }>("test", async (_, api) => api.rejectWithValue("ret"))
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) => api.rejectWithValue("ret", 5))
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", async (_, api) => api.rejectWithValue("ret", 5))
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) => api.rejectWithValue("ret", 5))
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) => api.rejectWithValue("ret", ""))
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", async (_, api) => api.rejectWithValue("ret", ""))
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) => api.rejectWithValue(5, ""))
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", async (_, api) => api.rejectWithValue(5, ""))
 }
 
-function extractReducers<T>(
-  adapter: qx.EntityAdapter<T>
-): Omit<qx.EntityStateAdapter<T>, "map"> {
-  const { selectId, sortComparer, getInitialState, getSelectors, ...rest } =
-    adapter
+function extractReducers<T>(adapter: qx.EntityAdapter<T>): Omit<qx.EntityStateAdapter<T>, "map"> {
+  const { selectId, sortComparer, getInitialState, getSelectors, ...rest } = adapter
   return rest
 }
 {
@@ -686,42 +584,20 @@ function extractReducers<T>(
     },
   })
   expectType<qx.ActionCreatorWithPayload<Entity>>(slice.actions.addOne)
-  expectType<
-    qx.ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
-  >(slice.actions.addMany)
-  expectType<
-    qx.ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
-  >(slice.actions.setAll)
-  expectType<qx.ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(
-    slice.actions.addMany
-  )
-  expectType<qx.ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(
-    slice.actions.setAll
-  )
+  expectType<qx.ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>>(slice.actions.addMany)
+  expectType<qx.ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>>(slice.actions.setAll)
+  expectType<qx.ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(slice.actions.addMany)
+  expectType<qx.ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(slice.actions.setAll)
   expectType<qx.ActionCreatorWithPayload<qx.EntityId>>(slice.actions.removeOne)
-  expectType<qx.ActionCreatorWithPayload<ReadonlyArray<qx.EntityId>>>(
-    slice.actions.removeMany
-  )
-  expectType<qx.ActionCreatorWithPayload<qx.EntityId[]>>(
-    slice.actions.removeMany
-  )
+  expectType<qx.ActionCreatorWithPayload<ReadonlyArray<qx.EntityId>>>(slice.actions.removeMany)
+  expectType<qx.ActionCreatorWithPayload<qx.EntityId[]>>(slice.actions.removeMany)
   expectType<qx.ActionCreatorWithoutPayload>(slice.actions.removeAll)
-  expectType<qx.ActionCreatorWithPayload<qx.Update<Entity>>>(
-    slice.actions.updateOne
-  )
-  expectType<qx.ActionCreatorWithPayload<qx.Update<Entity>[]>>(
-    slice.actions.updateMany
-  )
-  expectType<qx.ActionCreatorWithPayload<ReadonlyArray<qx.Update<Entity>>>>(
-    slice.actions.updateMany
-  )
+  expectType<qx.ActionCreatorWithPayload<qx.Update<Entity>>>(slice.actions.updateOne)
+  expectType<qx.ActionCreatorWithPayload<qx.Update<Entity>[]>>(slice.actions.updateMany)
+  expectType<qx.ActionCreatorWithPayload<ReadonlyArray<qx.Update<Entity>>>>(slice.actions.updateMany)
   expectType<qx.ActionCreatorWithPayload<Entity>>(slice.actions.upsertOne)
-  expectType<
-    qx.ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
-  >(slice.actions.upsertMany)
-  expectType<qx.ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(
-    slice.actions.upsertMany
-  )
+  expectType<qx.ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>>(slice.actions.upsertMany)
+  expectType<qx.ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(slice.actions.upsertMany)
 }
 {
   type Entity = {
@@ -769,9 +645,7 @@ function extractReducers<T>(
 }
 
 {
-  type CounterAction =
-    | { type: "increment"; payload: number }
-    | { type: "decrement"; payload: number }
+  type CounterAction = { type: "increment"; payload: number } | { type: "decrement"; payload: number }
   const incrementHandler = (state: number, action: CounterAction) => state + 1
   const decrementHandler = (state: number, action: CounterAction) => state - 1
   const reducer = qx.createReducer(0 as number, {
@@ -782,13 +656,9 @@ function extractReducers<T>(
   const stringReducer: qx.Reducer<string> = reducer
 }
 {
-  type CounterAction =
-    | { type: "increment"; payload: number }
-    | { type: "decrement"; payload: number }
-  const incrementHandler = (state: number, action: CounterAction) =>
-    state + action.payload
-  const decrementHandler = (state: number, action: CounterAction) =>
-    state - action.payload
+  type CounterAction = { type: "increment"; payload: number } | { type: "decrement"; payload: number }
+  const incrementHandler = (state: number, action: CounterAction) => state + action.payload
+  const decrementHandler = (state: number, action: CounterAction) => state - action.payload
   qx.createReducer<number>(0, {
     increment: incrementHandler,
     decrement: decrementHandler,
@@ -808,9 +678,7 @@ function extractReducers<T>(
 }
 {
   const increment = qx.createAction<number, "increment">("increment")
-  const reducer = qx.createReducer(0, builder =>
-    expectType<qx.ActionReducerMapBuilder<number>>(builder)
-  )
+  const reducer = qx.createReducer(0, builder => expectType<qx.ActionReducerMapBuilder<number>>(builder))
   expectType<number>(reducer(0, increment(5)))
   expectType<string>(reducer(0, increment(5)))
 }
@@ -848,8 +716,7 @@ const value = actionCreators.anyKey
       decrement: (state: number, action) => state - action.payload,
     },
     extraReducers: {
-      [firstAction.type]: (state: number, action) =>
-        state + action.payload.count,
+      [firstAction.type]: (state: number, action) => state + action.payload.count,
     },
   })
   const reducer: qx.Reducer<number, qx.PayloadAction> = slice.reducer
@@ -865,14 +732,8 @@ const value = actionCreators.anyKey
     initialState: 0,
     reducers: {
       increment: state => state + 1,
-      decrement: (
-        state,
-        { payload = 1 }: qx.PayloadAction<number | undefined>
-      ) => state - payload,
-      multiply: (state, { payload }: qx.PayloadAction<number | number[]>) =>
-        Array.isArray(payload)
-          ? payload.reduce((acc, val) => acc * val, state)
-          : state * payload,
+      decrement: (state, { payload = 1 }: qx.PayloadAction<number | undefined>) => state - payload,
+      multiply: (state, { payload }: qx.PayloadAction<number | number[]>) => (Array.isArray(payload) ? payload.reduce((acc, val) => acc * val, state) : state * payload),
       addTwo: {
         reducer: (s, { payload }: qx.PayloadAction<number>) => s + payload,
         prepare: (a: number, b: number) => ({
@@ -883,19 +744,13 @@ const value = actionCreators.anyKey
   })
   expectType<qx.ActionCreatorWithoutPayload>(counter.actions.increment)
   counter.actions.increment()
-  expectType<qx.ActionCreatorWithOptionalPayload<number | undefined>>(
-    counter.actions.decrement
-  )
+  expectType<qx.ActionCreatorWithOptionalPayload<number | undefined>>(counter.actions.decrement)
   counter.actions.decrement()
   counter.actions.decrement(2)
-  expectType<qx.ActionCreatorWithPayload<number | number[]>>(
-    counter.actions.multiply
-  )
+  expectType<qx.ActionCreatorWithPayload<number | number[]>>(counter.actions.multiply)
   counter.actions.multiply(2)
   counter.actions.multiply([2, 3, 4])
-  expectType<qx.ActionCreatorWithPreparedPayload<[number, number], number>>(
-    counter.actions.addTwo
-  )
+  expectType<qx.ActionCreatorWithPreparedPayload<[number, number], number>>(counter.actions.addTwo)
   counter.actions.addTwo(1, 2)
   counter.actions.multiply()
   counter.actions.multiply("2")
@@ -908,10 +763,7 @@ const value = actionCreators.anyKey
     reducers: {
       increment: state => state + 1,
       decrement: state => state - 1,
-      multiply: (state, { payload }: qx.PayloadAction<number | number[]>) =>
-        Array.isArray(payload)
-          ? payload.reduce((acc, val) => acc * val, state)
-          : state * payload,
+      multiply: (state, { payload }: qx.PayloadAction<number | number[]>) => (Array.isArray(payload) ? payload.reduce((acc, val) => acc * val, state) : state * payload),
     },
   })
   const s: string = counter.actions.increment.type
@@ -965,10 +817,7 @@ const value = actionCreators.anyKey
         }),
       },
       testUnknownMetaAndError: {
-        reducer(
-          _,
-          action: qx.PayloadAction<number, string, unknown, unknown>
-        ) {},
+        reducer(_, action: qx.PayloadAction<number, string, unknown, unknown>) {},
         prepare: (payload: number) => ({
           payload,
           meta: "meta" as "meta",
@@ -976,10 +825,7 @@ const value = actionCreators.anyKey
         }),
       },
       testMetaAndError: {
-        reducer(
-          _,
-          action: qx.PayloadAction<number, string, "meta", "error">
-        ) {},
+        reducer(_, action: qx.PayloadAction<number, string, "meta", "error">) {},
         prepare: (payload: number) => ({
           payload,
           meta: "meta" as "meta",
@@ -987,10 +833,7 @@ const value = actionCreators.anyKey
         }),
       },
       testErroneousMeta: {
-        reducer(
-          _,
-          action: qx.PayloadAction<number, string, "meta", "error">
-        ) {},
+        reducer(_, action: qx.PayloadAction<number, string, "meta", "error">) {},
         prepare: (payload: number) => ({
           payload,
           meta: 1,
@@ -998,10 +841,7 @@ const value = actionCreators.anyKey
         }),
       },
       testErroneousError: {
-        reducer(
-          _,
-          action: qx.PayloadAction<number, string, "meta", "error">
-        ) {},
+        reducer(_, action: qx.PayloadAction<number, string, "meta", "error">) {},
         prepare: (payload: number) => ({
           payload,
           meta: "meta" as "meta",
@@ -1029,21 +869,11 @@ const value = actionCreators.anyKey
       },
     },
   })
-  expectType<
-    (state: number, action: qx.PayloadAction<number>) => number | void
-  >(counter.caseReducers.increment)
-  expectType<
-    (state: number, action: qx.PayloadAction<number>) => number | void
-  >(counter.caseReducers.decrement)
-  expectType<
-    (state: number, action: qx.PayloadAction<string>) => number | void
-  >(counter.caseReducers.increment)
-  expectType<
-    (state: number, action: qx.PayloadAction<string>) => number | void
-  >(counter.caseReducers.decrement)
-  expectType<
-    (state: number, action: qx.PayloadAction<string>) => number | void
-  >(counter.caseReducers.someThingNonExistant)
+  expectType<(state: number, action: qx.PayloadAction<number>) => number | void>(counter.caseReducers.increment)
+  expectType<(state: number, action: qx.PayloadAction<number>) => number | void>(counter.caseReducers.decrement)
+  expectType<(state: number, action: qx.PayloadAction<string>) => number | void>(counter.caseReducers.increment)
+  expectType<(state: number, action: qx.PayloadAction<string>) => number | void>(counter.caseReducers.decrement)
+  expectType<(state: number, action: qx.PayloadAction<string>) => number | void>(counter.caseReducers.someThingNonExistant)
 }
 {
   const counter = qx.createSlice({
@@ -1116,10 +946,7 @@ const value = actionCreators.anyKey
     data?: T
     status: "loading" | "finished" | "error"
   }
-  const createGenericSlice = <
-    T,
-    Reducers extends qx.SliceCaseReducers<GenericState<T>>
-  >({
+  const createGenericSlice = <T, Reducers extends qx.SliceCaseReducers<GenericState<T>>>({
     name = "",
     initialState,
     reducers,
@@ -1162,14 +989,7 @@ const value = actionCreators.anyKey
   interface GenericState<T> {
     data: T | null
   }
-  function createDataSlice<
-    T,
-    Reducers extends qx.SliceCaseReducers<GenericState<T>>
-  >(
-    name: string,
-    reducers: qx.ValidateSliceCaseReducers<GenericState<T>, Reducers>,
-    initialState: GenericState<T>
-  ) {
+  function createDataSlice<T, Reducers extends qx.SliceCaseReducers<GenericState<T>>>(name: string, reducers: qx.ValidateSliceCaseReducers<GenericState<T>, Reducers>, initialState: GenericState<T>) {
     const doNothing = qx.createAction<undefined>("doNothing")
     const setData = qx.createAction<T>("setData")
     const slice = qx.createSlice({
@@ -1288,22 +1108,10 @@ declare const thunkCreator: () => () => ThunkReturn
       expectType<{ type: "decrement" }>(action)
       expectType<{ type: "increment"; payload: number }>(action)
     })
-    builder.addCase(
-      increment,
-      (state, action: ReturnType<typeof increment>) => state
-    )
-    builder.addCase(
-      increment,
-      (state, action: ReturnType<typeof decrement>) => state
-    )
-    builder.addCase(
-      "increment",
-      (state, action: ReturnType<typeof increment>) => state
-    )
-    builder.addCase(
-      "decrement",
-      (state, action: ReturnType<typeof increment>) => state
-    )
+    builder.addCase(increment, (state, action: ReturnType<typeof increment>) => state)
+    builder.addCase(increment, (state, action: ReturnType<typeof decrement>) => state)
+    builder.addCase("increment", (state, action: ReturnType<typeof increment>) => state)
+    builder.addCase("decrement", (state, action: ReturnType<typeof increment>) => state)
     builder.addMatcher(increment.match, (state, action) => {
       expectType<ReturnType<typeof increment>>(action)
     })
@@ -1333,18 +1141,12 @@ declare const thunkCreator: () => () => ThunkReturn
       }
     )
     builder
-      .addCase(
-        "increment",
-        (state, action: ReturnType<typeof increment>) => state
-      )
+      .addCase("increment", (state, action: ReturnType<typeof increment>) => state)
       .addMatcher(decrement.match, (state, action) => {
         expectType<ReturnType<typeof decrement>>(action)
       })
     builder
-      .addCase(
-        "increment",
-        (state, action: ReturnType<typeof increment>) => state
-      )
+      .addCase("increment", (state, action: ReturnType<typeof increment>) => state)
       .addDefaultCase((state, action) => {
         expectType<qx.AnyAction>(action)
       })
@@ -1657,11 +1459,7 @@ const _anyMiddleware: any = () => () => () => {}
     const result2: string = store.dispatch(5)
   }
   {
-    const middleware = [] as any as [
-      qx.Middleware<(a: "a") => "A", StateA>,
-      qx.Middleware<(b: "b") => "B", StateA>,
-      qx.ThunkMiddleware<StateA>
-    ]
+    const middleware = [] as any as [qx.Middleware<(a: "a") => "A", StateA>, qx.Middleware<(b: "b") => "B", StateA>, qx.ThunkMiddleware<StateA>]
     const store = qx.configureStore({
       reducer: reducerA,
       middleware,
@@ -1672,35 +1470,13 @@ const _anyMiddleware: any = () => () => () => {}
   }
   {
     const store = qx.configureStore({ reducer: {} })
-    store.dispatch(function () {} as qx.ThunkAction<
-      void,
-      {},
-      undefined,
-      qx.AnyAction
-    >)
-    store.dispatch(function () {} as qx.ThunkAction<
-      void,
-      {},
-      null,
-      qx.AnyAction
-    >)
-    store.dispatch(function () {} as qx.ThunkAction<
-      void,
-      {},
-      unknown,
-      qx.AnyAction
-    >)
-    store.dispatch(function () {} as qx.ThunkAction<
-      void,
-      {},
-      boolean,
-      qx.AnyAction
-    >)
+    store.dispatch(function () {} as qx.ThunkAction<void, {}, undefined, qx.AnyAction>)
+    store.dispatch(function () {} as qx.ThunkAction<void, {}, null, qx.AnyAction>)
+    store.dispatch(function () {} as qx.ThunkAction<void, {}, unknown, qx.AnyAction>)
+    store.dispatch(function () {} as qx.ThunkAction<void, {}, boolean, qx.AnyAction>)
   }
   {
-    const middleware = qx
-      .getDefaultMiddleware<StateA>()
-      .prepend((() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>)
+    const middleware = qx.getDefaultMiddleware<StateA>().prepend((() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>)
     const store = qx.configureStore({
       reducer: reducerA,
       middleware,
@@ -1710,16 +1486,9 @@ const _anyMiddleware: any = () => () => () => {}
     store.dispatch(thunkB())
   }
   {
-    const otherMiddleware: qx.Middleware<(a: "a") => "A", StateA> =
-      _anyMiddleware
-    const concatenated = qx
-      .getDefaultMiddleware<StateA>()
-      .prepend(otherMiddleware)
-    expectType<
-      ReadonlyArray<
-        typeof otherMiddleware | qx.ThunkMiddleware | qx.Middleware<{}>
-      >
-    >(concatenated)
+    const otherMiddleware: qx.Middleware<(a: "a") => "A", StateA> = _anyMiddleware
+    const concatenated = qx.getDefaultMiddleware<StateA>().prepend(otherMiddleware)
+    expectType<ReadonlyArray<typeof otherMiddleware | qx.ThunkMiddleware | qx.Middleware<{}>>>(concatenated)
     const store = qx.configureStore({
       reducer: reducerA,
       middleware: concatenated,
@@ -1729,16 +1498,9 @@ const _anyMiddleware: any = () => () => () => {}
     store.dispatch(thunkB())
   }
   {
-    const otherMiddleware: qx.Middleware<(a: "a") => "A", StateA> =
-      _anyMiddleware
-    const concatenated = qx
-      .getDefaultMiddleware<StateA>()
-      .concat(otherMiddleware)
-    expectType<
-      ReadonlyArray<
-        typeof otherMiddleware | qx.ThunkMiddleware | qx.Middleware<{}>
-      >
-    >(concatenated)
+    const otherMiddleware: qx.Middleware<(a: "a") => "A", StateA> = _anyMiddleware
+    const concatenated = qx.getDefaultMiddleware<StateA>().concat(otherMiddleware)
+    expectType<ReadonlyArray<typeof otherMiddleware | qx.ThunkMiddleware | qx.Middleware<{}>>>(concatenated)
     const store = qx.configureStore({
       reducer: reducerA,
       middleware: concatenated,
@@ -1750,27 +1512,18 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = qx.configureStore({
       reducer: reducerA,
-      middleware: getDefaultMiddleware =>
-        getDefaultMiddleware().prepend((() => {}) as any as qx.Middleware<
-          (a: "a") => "A",
-          StateA
-        >),
+      middleware: getDefaultMiddleware => getDefaultMiddleware().prepend((() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>),
     })
     const result1: "A" = store.dispatch("a")
     const result2: Promise<"A"> = store.dispatch(thunkA())
     store.dispatch(thunkB())
   }
   {
-    const otherMiddleware: qx.Middleware<(a: "a") => "A", StateA> =
-      _anyMiddleware
-    const otherMiddleware2: qx.Middleware<(a: "b") => "B", StateA> =
-      _anyMiddleware
+    const otherMiddleware: qx.Middleware<(a: "a") => "A", StateA> = _anyMiddleware
+    const otherMiddleware2: qx.Middleware<(a: "b") => "B", StateA> = _anyMiddleware
     const store = qx.configureStore({
       reducer: reducerA,
-      middleware: getDefaultMiddleware =>
-        getDefaultMiddleware()
-          .concat(otherMiddleware)
-          .prepend(otherMiddleware2),
+      middleware: getDefaultMiddleware => getDefaultMiddleware().concat(otherMiddleware).prepend(otherMiddleware2),
     })
     const result1: "A" = store.dispatch("a")
     const result2: Promise<"A"> = store.dispatch(thunkA())
@@ -1780,10 +1533,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = qx.configureStore({
       reducer: reducerA,
-      middleware: getDefaultMiddleware =>
-        getDefaultMiddleware({ thunk: false }).prepend(
-          (() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>
-        ),
+      middleware: getDefaultMiddleware => getDefaultMiddleware({ thunk: false }).prepend((() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>),
     })
     const result1: "A" = store.dispatch("a")
     store.dispatch(thunkA())
@@ -1791,8 +1541,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = qx.configureStore({
       reducer: reducerA,
-      middleware: getDefaultMiddleware =>
-        getDefaultMiddleware().concat(_anyMiddleware as qx.Middleware<any>),
+      middleware: getDefaultMiddleware => getDefaultMiddleware().concat(_anyMiddleware as qx.Middleware<any>),
     })
     expectNotAny(store.dispatch)
   }
@@ -1826,11 +1575,7 @@ const _anyMiddleware: any = () => () => () => {}
       reducer: counterSlice.reducer,
       middleware: gDM => gDM().prepend(dummyMiddleware),
     })
-    expectType<
-      ((action: qx.Action<"actionListenerMiddleware/add">) => Unsubscribe) &
-        qx.ThunkDispatch<CounterState, undefined, qx.AnyAction> &
-        qx.Dispatch<qx.AnyAction>
-    >(store.dispatch)
+    expectType<((action: qx.Action<"actionListenerMiddleware/add">) => Unsubscribe) & qx.ThunkDispatch<CounterState, undefined, qx.AnyAction> & qx.Dispatch<qx.AnyAction>>(store.dispatch)
     const unsubscribe = store.dispatch({
       type: "actionListenerMiddleware/add",
     } as const)

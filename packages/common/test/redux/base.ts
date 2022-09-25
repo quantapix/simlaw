@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import * as qx from "../../src/redux/index.js"
 import { expect } from "expect"
 import vm from "vm"
@@ -12,11 +11,7 @@ describe("applyMiddleware", () => {
       store.dispatch(qh.addTodo("Don't dispatch in middleware setup"))
       return (next: qx.Dispatch) => (action: qx.Action) => next(action)
     }
-    expect(() =>
-      qx.applyMiddleware(dispatchingMiddleware as qx.Middleware)(
-        qx.createStore
-      )(qh.reducers.todos)
-    ).toThrow()
+    expect(() => qx.applyMiddleware(dispatchingMiddleware as qx.Middleware)(qx.createStore)(qh.reducers.todos)).toThrow()
   })
   it("wraps dispatch method with middleware once", () => {
     function test(spyOnMethods: any) {
@@ -26,9 +21,7 @@ describe("applyMiddleware", () => {
       }
     }
     const spy = jest.fn()
-    const store = qx.applyMiddleware(test(spy), qh.thunk)(qx.createStore)(
-      qh.reducers.todos
-    )
+    const store = qx.applyMiddleware(test(spy), qh.thunk)(qx.createStore)(qh.reducers.todos)
     store.dispatch(qh.addTodo("Use Redux"))
     store.dispatch(qh.addTodo("Flux FTW!"))
     expect(spy.mock.calls.length).toEqual(1)
@@ -47,20 +40,14 @@ describe("applyMiddleware", () => {
       }
     }
     const spy = jest.fn()
-    const store = qx.applyMiddleware(test(spy), qh.thunk)(qx.createStore)(
-      qh.reducers.todos
-    )
-    const dispatchedValue = store.dispatch(
-      qh.addTodoAsync("Use Redux") as any
-    ) as unknown as Promise<void>
+    const store = qx.applyMiddleware(test(spy), qh.thunk)(qx.createStore)(qh.reducers.todos)
+    const dispatchedValue = store.dispatch(qh.addTodoAsync("Use Redux") as any) as unknown as Promise<void>
     return dispatchedValue.then(() => {
       expect(spy.mock.calls.length).toEqual(2)
     })
   })
   it("works with thunk middleware", done => {
-    const store = qx.applyMiddleware(qh.thunk)(qx.createStore)(
-      qh.reducers.todos
-    )
+    const store = qx.applyMiddleware(qh.thunk)(qx.createStore)(qh.reducers.todos)
     store.dispatch(qh.addTodoIfEmpty("Hello") as any)
     expect(store.getState()).toEqual([{ id: 1, text: "Hello" }])
     store.dispatch(qh.addTodoIfEmpty("Hello") as any)
@@ -70,9 +57,7 @@ describe("applyMiddleware", () => {
       { id: 1, text: "Hello" },
       { id: 2, text: "World" },
     ])
-    const dispatchedValue = store.dispatch(
-      qh.addTodoAsync("Maybe") as any
-    ) as unknown as Promise<void>
+    const dispatchedValue = store.dispatch(qh.addTodoAsync("Maybe") as any) as unknown as Promise<void>
     dispatchedValue.then(() => {
       expect(store.getState()).toEqual([
         { id: 1, text: "Hello" },
@@ -88,11 +73,7 @@ describe("applyMiddleware", () => {
     interface MultiDispatch<A extends qx.Action = qx.AnyAction> {
       <T extends A>(action: T, extraArg?: string[]): T
     }
-    const multiArgMiddleware: qx.Middleware<
-      MultiDispatch,
-      any,
-      MultiDispatch
-    > = _store => {
+    const multiArgMiddleware: qx.Middleware<MultiDispatch, any, MultiDispatch> = _store => {
       return next => (action: any, callArgs?: any) => {
         if (Array.isArray(callArgs)) {
           return action(...callArgs)
@@ -101,13 +82,9 @@ describe("applyMiddleware", () => {
       }
     }
     function dummyMiddleware({ dispatch }: qx.MiddlewareAPI) {
-      return (_next: qx.Dispatch) => (action: qx.Action) =>
-        dispatch(action, testCallArgs)
+      return (_next: qx.Dispatch) => (action: qx.Action) => dispatch(action, testCallArgs)
     }
-    const store = qx.createStore(
-      qh.reducers.todos,
-      qx.applyMiddleware(multiArgMiddleware, dummyMiddleware)
-    )
+    const store = qx.createStore(qh.reducers.todos, qx.applyMiddleware(multiArgMiddleware, dummyMiddleware))
     store.dispatch(spy as any)
     expect(spy.mock.calls[0]).toEqual(testCallArgs)
   })
@@ -125,13 +102,8 @@ describe("bindActionCreators", () => {
     })
   })
   it("wraps the action creators with the dispatch function", () => {
-    const boundActionCreators = qx.bindActionCreators(
-      qh.actionCreators,
-      store.dispatch
-    )
-    expect(Object.keys(boundActionCreators)).toEqual(
-      Object.keys(actionCreatorFunctions)
-    )
+    const boundActionCreators = qx.bindActionCreators(qh.actionCreators, store.dispatch)
+    expect(Object.keys(boundActionCreators)).toEqual(Object.keys(actionCreatorFunctions))
     const action = boundActionCreators.addTodo("Hello")
     expect(action).toEqual(qh.actionCreators.addTodo("Hello"))
     expect(store.getState()).toEqual([{ id: 1, text: "Hello" }])
@@ -142,10 +114,7 @@ describe("bindActionCreators", () => {
     function actionCreator(this: any) {
       return { type: "UNKNOWN_ACTION", this: this, args: [...arguments] }
     }
-    const boundActionCreator = qx.bindActionCreators(
-      actionCreator,
-      store.dispatch
-    )
+    const boundActionCreator = qx.bindActionCreators(actionCreator, store.dispatch)
     const boundAction = boundActionCreator.apply(uniqueThis, argArray as [])
     const action = actionCreator.apply(uniqueThis, argArray as [])
     expect(boundAction).toEqual(action)
@@ -164,16 +133,11 @@ describe("bindActionCreators", () => {
       } as unknown as qx.ActionCreator<any>,
       store.dispatch
     )
-    expect(Object.keys(boundActionCreators)).toEqual(
-      Object.keys(actionCreatorFunctions)
-    )
+    expect(Object.keys(boundActionCreators)).toEqual(Object.keys(actionCreatorFunctions))
   })
   it("supports wrapping a single function only", () => {
     const actionCreator = qh.actionCreators.addTodo
-    const boundActionCreator = qx.bindActionCreators(
-      actionCreator,
-      store.dispatch
-    )
+    const boundActionCreator = qx.bindActionCreators(actionCreator, store.dispatch)
     const action = boundActionCreator("Hello")
     expect(action).toEqual(actionCreator("Hello"))
     expect(store.getState()).toEqual([{ id: 1, text: "Hello" }])
@@ -181,29 +145,17 @@ describe("bindActionCreators", () => {
   it("throws for an undefined actionCreator", () => {
     expect(() => {
       qx.bindActionCreators(undefined, store.dispatch)
-    }).toThrow(
-      `bindActionCreators expected an object or a function, but instead received: 'undefined'. ` +
-        `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`
-    )
+    }).toThrow(`bindActionCreators expected an object or a function, but instead received: 'undefined'. ` + `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`)
   })
   it("throws for a null actionCreator", () => {
     expect(() => {
       qx.bindActionCreators(null, store.dispatch)
-    }).toThrow(
-      `bindActionCreators expected an object or a function, but instead received: 'null'. ` +
-        `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`
-    )
+    }).toThrow(`bindActionCreators expected an object or a function, but instead received: 'null'. ` + `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`)
   })
   it("throws for a primitive actionCreator", () => {
     expect(() => {
-      qx.bindActionCreators(
-        "string" as unknown as qx.ActionCreator<any>,
-        store.dispatch
-      )
-    }).toThrow(
-      `bindActionCreators expected an object or a function, but instead received: 'string'. ` +
-        `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`
-    )
+      qx.bindActionCreators("string" as unknown as qx.ActionCreator<any>, store.dispatch)
+    }).toThrow(`bindActionCreators expected an object or a function, but instead received: 'string'. ` + `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`)
   })
 })
 describe("createStore", () => {
@@ -445,8 +397,7 @@ describe("createStore", () => {
   it("notifies all subscribers about current dispatch regardless if any of them gets unsubscribed in the process", () => {
     const store = qx.createStore(qh.reducers.todos)
     const unsubscribeHandles: any[] = []
-    const doUnsubscribeAll = () =>
-      unsubscribeHandles.forEach(unsubscribe => unsubscribe())
+    const doUnsubscribeAll = () => unsubscribeHandles.forEach(unsubscribe => unsubscribe())
     const listener1 = jest.fn()
     const listener2 = jest.fn()
     const listener3 = jest.fn()
@@ -553,9 +504,7 @@ describe("createStore", () => {
     const store = qx.createStore(qh.reducers.todos)
     expect(() => store.dispatch(qh.unknownAction())).not.toThrow()
     function AwesomeMap() {}
-    ;[null, undefined, 42, "hey", new AwesomeMap()].forEach(nonObject =>
-      expect(() => store.dispatch(nonObject)).toThrow(/plain/)
-    )
+    ;[null, undefined, 42, "hey", new AwesomeMap()].forEach(nonObject => expect(() => store.dispatch(nonObject)).toThrow(/plain/))
   })
   it("handles nested dispatches gracefully", () => {
     function foo(state = 0, action: qx.Action) {
@@ -579,35 +528,23 @@ describe("createStore", () => {
   })
   it("does not allow dispatch() from within a reducer", () => {
     const store = qx.createStore(qh.reducers.dispatchInTheMiddleOfReducer)
-    expect(() =>
-      store.dispatch(
-        qh.dispatchInMiddle(store.dispatch.bind(store, qh.unknownAction()))
-      )
-    ).toThrow(/may not dispatch/)
+    expect(() => store.dispatch(qh.dispatchInMiddle(store.dispatch.bind(store, qh.unknownAction())))).toThrow(/may not dispatch/)
     expect(() => store.dispatch(qh.dispatchInMiddle(() => {}))).not.toThrow()
   })
   it("does not allow getState() from within a reducer", () => {
     const store = qx.createStore(qh.reducers.getStateInTheMiddleOfReducer)
-    expect(() =>
-      store.dispatch(qh.getStateInMiddle(store.getState.bind(store)))
-    ).toThrow(/You may not call store.getState()/)
+    expect(() => store.dispatch(qh.getStateInMiddle(store.getState.bind(store)))).toThrow(/You may not call store.getState()/)
     expect(() => store.dispatch(qh.getStateInMiddle(() => {}))).not.toThrow()
   })
   it("does not allow subscribe() from within a reducer", () => {
     const store = qx.createStore(qh.reducers.subscribeInTheMiddleOfReducer)
-    expect(() =>
-      store.dispatch(
-        qh.subscribeInMiddle(store.subscribe.bind(store, () => {}))
-      )
-    ).toThrow(/You may not call store.subscribe()/)
+    expect(() => store.dispatch(qh.subscribeInMiddle(store.subscribe.bind(store, () => {})))).toThrow(/You may not call store.subscribe()/)
     expect(() => store.dispatch(qh.subscribeInMiddle(() => {}))).not.toThrow()
   })
   it("does not allow unsubscribe from subscribe() from within a reducer", () => {
     const store = qx.createStore(qh.reducers.unsubscribeInTheMiddleOfReducer)
     const unsubscribe = store.subscribe(() => {})
-    expect(() =>
-      store.dispatch(qh.unsubscribeInMiddle(unsubscribe.bind(store)))
-    ).toThrow(/You may not unsubscribe from a store/)
+    expect(() => store.dispatch(qh.unsubscribeInMiddle(unsubscribe.bind(store)))).toThrow(/You may not unsubscribe from a store/)
     expect(() => store.dispatch(qh.unsubscribeInMiddle(() => {}))).not.toThrow()
   })
   it("recovers from an error within a reducer", () => {
@@ -617,31 +554,19 @@ describe("createStore", () => {
   })
   it("throws if action type is missing", () => {
     const store = qx.createStore(qh.reducers.todos)
-    expect(() => store.dispatch({})).toThrow(
-      /Actions may not have an undefined "type" property/
-    )
+    expect(() => store.dispatch({})).toThrow(/Actions may not have an undefined "type" property/)
   })
   it("throws an error that correctly describes the type of item dispatched", () => {
     const store = qx.createStore(qh.reducers.todos)
-    expect(() => store.dispatch(Promise.resolve(42))).toThrow(
-      /the actual type was: 'Promise'/
-    )
-    expect(() => store.dispatch(() => {})).toThrow(
-      /the actual type was: 'function'/
-    )
-    expect(() => store.dispatch(new Date())).toThrow(
-      /the actual type was: 'date'/
-    )
+    expect(() => store.dispatch(Promise.resolve(42))).toThrow(/the actual type was: 'Promise'/)
+    expect(() => store.dispatch(() => {})).toThrow(/the actual type was: 'function'/)
+    expect(() => store.dispatch(new Date())).toThrow(/the actual type was: 'date'/)
     expect(() => store.dispatch(null)).toThrow(/the actual type was: 'null'/)
-    expect(() => store.dispatch(undefined)).toThrow(
-      /the actual type was: 'undefined'/
-    )
+    expect(() => store.dispatch(undefined)).toThrow(/the actual type was: 'undefined'/)
   })
   it("throws if action type is undefined", () => {
     const store = qx.createStore(qh.reducers.todos)
-    expect(() => store.dispatch({ type: undefined })).toThrow(
-      /Actions may not have an undefined "type" property/
-    )
+    expect(() => store.dispatch({ type: undefined })).toThrow(/Actions may not have an undefined "type" property/)
   })
   it("does not throw if action type is falsy", () => {
     const store = qx.createStore(qh.reducers.todos)
@@ -700,45 +625,19 @@ describe("createStore", () => {
     ])
   })
   it("throws if enhancer is neither undefined nor a function", () => {
-    expect(() =>
-      qx.createStore(
-        qh.reducers.todos,
-        undefined,
-        {} as unknown as qx.StoreEnhancer
-      )
-    ).toThrow()
-    expect(() =>
-      qx.createStore(
-        qh.reducers.todos,
-        undefined,
-        [] as unknown as qx.StoreEnhancer
-      )
-    ).toThrow()
+    expect(() => qx.createStore(qh.reducers.todos, undefined, {} as unknown as qx.StoreEnhancer)).toThrow()
+    expect(() => qx.createStore(qh.reducers.todos, undefined, [] as unknown as qx.StoreEnhancer)).toThrow()
     expect(() => qx.createStore(qh.reducers.todos, undefined, null)).toThrow()
-    expect(() =>
-      qx.createStore(
-        qh.reducers.todos,
-        undefined,
-        false as unknown as qx.StoreEnhancer
-      )
-    ).toThrow()
-    expect(() =>
-      qx.createStore(qh.reducers.todos, undefined, undefined)
-    ).not.toThrow()
-    expect(() =>
-      qx.createStore(qh.reducers.todos, undefined, x => x)
-    ).not.toThrow()
+    expect(() => qx.createStore(qh.reducers.todos, undefined, false as unknown as qx.StoreEnhancer)).toThrow()
+    expect(() => qx.createStore(qh.reducers.todos, undefined, undefined)).not.toThrow()
+    expect(() => qx.createStore(qh.reducers.todos, undefined, x => x)).not.toThrow()
     expect(() => qx.createStore(qh.reducers.todos, x => x)).not.toThrow()
     expect(() => qx.createStore(qh.reducers.todos, [])).not.toThrow()
-    expect(() =>
-      qx.createStore<any, qx.Action, {}, {}>(qh.reducers.todos, {})
-    ).not.toThrow()
+    expect(() => qx.createStore<any, qx.Action, {}, {}>(qh.reducers.todos, {})).not.toThrow()
   })
   it("throws if nextReducer is not a function", () => {
     const store = qx.createStore(qh.reducers.todos)
-    expect(() => store.replaceReducer(undefined)).toThrow(
-      "Expected the nextReducer to be a function."
-    )
+    expect(() => store.replaceReducer(undefined)).toThrow("Expected the nextReducer to be a function.")
     expect(() => store.replaceReducer(() => [])).not.toThrow()
   })
   it("throws if listener is not a function", () => {
@@ -769,25 +668,13 @@ describe("createStore", () => {
         const obs = store[qx.$$observable]()
         expect(function () {
           obs.subscribe()
-        }).toThrowError(
-          new TypeError(
-            `Expected the observer to be an object. Instead, received: 'undefined'`
-          )
-        )
+        }).toThrowError(new TypeError(`Expected the observer to be an object. Instead, received: 'undefined'`))
         expect(function () {
           obs.subscribe(null)
-        }).toThrowError(
-          new TypeError(
-            `Expected the observer to be an object. Instead, received: 'null'`
-          )
-        )
+        }).toThrowError(new TypeError(`Expected the observer to be an object. Instead, received: 'null'`))
         expect(function () {
           obs.subscribe(() => {})
-        }).toThrowError(
-          new TypeError(
-            `Expected the observer to be an object. Instead, received: 'function'`
-          )
-        )
+        }).toThrowError(new TypeError(`Expected the observer to be an object. Instead, received: 'function'`))
         expect(function () {
           obs.subscribe({})
         }).not.toThrow()
@@ -852,13 +739,10 @@ describe("createStore", () => {
       function bar(state = 0, action: qx.Action) {
         return action.type === "bar" ? 2 : state
       }
-      const store: ObservableInput<{ foo: number; bar: number }> =
-        qx.createStore(qx.combineReducers({ foo, bar }))
+      const store: ObservableInput<{ foo: number; bar: number }> = qx.createStore(qx.combineReducers({ foo, bar }))
       const observable = from(store)
       const results: any[] = []
-      const sub = observable
-        .pipe(map(state => ({ fromRx: true, ...state })))
-        .subscribe(state => results.push(state))
+      const sub = observable.pipe(map(state => ({ fromRx: true, ...state }))).subscribe(state => results.push(state))
       ;(store as unknown as qx.Store).dispatch({ type: "foo" })
       sub.unsubscribe()
       ;(store as unknown as qx.Store).dispatch({ type: "bar" })
@@ -893,21 +777,12 @@ describe("createStore", () => {
   it("throws if passing several enhancer functions without preloaded state", () => {
     const rootReducer = qx.combineReducers(qh.reducers)
     const dummyEnhancer = (f: any) => f
-    expect(() =>
-      qx.createStore(rootReducer, dummyEnhancer as unknown as {}, dummyEnhancer)
-    ).toThrow()
+    expect(() => qx.createStore(rootReducer, dummyEnhancer as unknown as {}, dummyEnhancer)).toThrow()
   })
   it("throws if passing several enhancer functions with preloaded state", () => {
     const rootReducer = qx.combineReducers(qh.reducers)
     const dummyEnhancer = (f: any) => f
-    expect(() =>
-      (qx.createStore as any)(
-        rootReducer,
-        { todos: [] },
-        dummyEnhancer,
-        dummyEnhancer
-      )
-    ).toThrow()
+    expect(() => (qx.createStore as any)(rootReducer, { todos: [] }, dummyEnhancer, dummyEnhancer)).toThrow()
   })
 })
 describe("replaceReducers test", () => {
@@ -966,19 +841,11 @@ describe("Utils", () => {
       type sFunc = (x: number, y: number) => number
       const square = (x: number, _: number) => x * x
       const add = (x: number, y: number) => x + y
-      expect(() =>
-        qx.compose(square, add, false as unknown as sFunc)(1, 2)
-      ).toThrow()
+      expect(() => qx.compose(square, add, false as unknown as sFunc)(1, 2)).toThrow()
       expect(() => qx.compose(square, add, undefined)(1, 2)).toThrow()
-      expect(() =>
-        qx.compose(square, add, true as unknown as sFunc)(1, 2)
-      ).toThrow()
-      expect(() =>
-        qx.compose(square, add, NaN as unknown as sFunc)(1, 2)
-      ).toThrow()
-      expect(() =>
-        qx.compose(square, add, "42" as unknown as sFunc)(1, 2)
-      ).toThrow()
+      expect(() => qx.compose(square, add, true as unknown as sFunc)(1, 2)).toThrow()
+      expect(() => qx.compose(square, add, NaN as unknown as sFunc)(1, 2)).toThrow()
+      expect(() => qx.compose(square, add, "42" as unknown as sFunc)(1, 2)).toThrow()
     })
     it("can be seeded with multiple arguments", () => {
       const square = (x: number, _: number) => x * x
@@ -998,10 +865,8 @@ describe("Utils", () => {
   describe("combineReducers", () => {
     it("returns a composite reducer that maps the state keys to given reducers", () => {
       const reducer = qx.combineReducers({
-        counter: (state: number = 0, action) =>
-          action.type === "increment" ? state + 1 : state,
-        stack: (state: any[] = [], action) =>
-          action.type === "push" ? [...state, action.value] : state,
+        counter: (state: number = 0, action) => (action.type === "increment" ? state + 1 : state),
+        stack: (state: any[] = [], action) => (action.type === "push" ? [...state, action.value] : state),
       })
       const s1 = reducer(undefined, { type: "increment" })
       expect(s1).toEqual({ counter: 1, stack: [] })
@@ -1015,9 +880,7 @@ describe("Utils", () => {
         another: { nested: "object" } as unknown as qx.Reducer,
         stack: (state = []) => state,
       })
-      expect(Object.keys(reducer(undefined, { type: "push" }))).toEqual([
-        "stack",
-      ])
+      expect(Object.keys(reducer(undefined, { type: "push" }))).toEqual(["stack"])
     })
     it("warns if a reducer prop is undefined", () => {
       const preSpy = console.error
@@ -1025,14 +888,10 @@ describe("Utils", () => {
       console.error = spy
       let isNotDefined: any
       qx.combineReducers({ isNotDefined })
-      expect(spy.mock.calls[0][0]).toMatch(
-        /No reducer provided for key "isNotDefined"/
-      )
+      expect(spy.mock.calls[0][0]).toMatch(/No reducer provided for key "isNotDefined"/)
       spy.mockClear()
       qx.combineReducers({ thing: undefined })
-      expect(spy.mock.calls[0][0]).toMatch(
-        /No reducer provided for key "thing"/
-      )
+      expect(spy.mock.calls[0][0]).toMatch(/No reducer provided for key "thing"/)
       spy.mockClear()
       console.error = preSpy
     })
@@ -1053,15 +912,9 @@ describe("Utils", () => {
           }
         },
       })
-      expect(() => reducer({ counter: 0 }, { type: "whatever" })).toThrow(
-        /"whatever".*"counter"/
-      )
-      expect(() => reducer({ counter: 0 }, null)).toThrow(
-        /"counter".*an action/
-      )
-      expect(() =>
-        reducer({ counter: 0 }, {} as unknown as qx.AnyAction)
-      ).toThrow(/"counter".*an action/)
+      expect(() => reducer({ counter: 0 }, { type: "whatever" })).toThrow(/"whatever".*"counter"/)
+      expect(() => reducer({ counter: 0 }, null)).toThrow(/"counter".*an action/)
+      expect(() => reducer({ counter: 0 }, {} as unknown as qx.AnyAction)).toThrow(/"counter".*an action/)
     })
     it("throws an error on first call if a reducer returns undefined initializing", () => {
       const reducer = qx.combineReducers({
@@ -1076,9 +929,7 @@ describe("Utils", () => {
           }
         },
       })
-      expect(() => reducer(undefined, { type: "" })).toThrow(
-        /"counter".*initialization/
-      )
+      expect(() => reducer(undefined, { type: "" })).toThrow(/"counter".*initialization/)
     })
     it("catches error thrown in reducer when initializing and re-throw", () => {
       const reducer = qx.combineReducers({
@@ -1086,9 +937,7 @@ describe("Utils", () => {
           throw new Error("Error thrown in reducer")
         },
       })
-      expect(() =>
-        reducer(undefined, undefined as unknown as qx.AnyAction)
-      ).toThrow(/Error thrown in reducer/)
+      expect(() => reducer(undefined, undefined as unknown as qx.AnyAction)).toThrow(/Error thrown in reducer/)
     })
     it("allows a symbol to be used as an action type", () => {
       const increment = Symbol("INCREMENT")
@@ -1137,9 +986,7 @@ describe("Utils", () => {
         },
       })
       const initialState = reducer(undefined, { type: "@@INIT" })
-      expect(reducer(initialState, { type: "increment" })).not.toBe(
-        initialState
-      )
+      expect(reducer(initialState, { type: "increment" })).not.toBe(initialState)
     })
     it("throws an error on first call if a reducer attempts to handle a private action", () => {
       const reducer = qx.combineReducers({
@@ -1156,9 +1003,7 @@ describe("Utils", () => {
           }
         },
       })
-      expect(() =>
-        reducer(undefined, undefined as unknown as qx.AnyAction)
-      ).toThrow(/"counter".*private/)
+      expect(() => reducer(undefined, undefined as unknown as qx.AnyAction)).toThrow(/"counter".*private/)
     })
     it("warns if no reducers are passed to combineReducers", () => {
       const preSpy = console.error
@@ -1166,9 +1011,7 @@ describe("Utils", () => {
       console.error = spy
       const reducer = qx.combineReducers({})
       reducer(undefined, { type: "" })
-      expect(spy.mock.calls[0][0]).toMatch(
-        /Store does not have a valid reducer/
-      )
+      expect(spy.mock.calls[0][0]).toMatch(/Store does not have a valid reducer/)
       spy.mockClear()
       console.error = preSpy
     })
@@ -1203,33 +1046,21 @@ describe("Utils", () => {
       )
       expect(spy.mock.calls.length).toBe(0)
       qx.createStore(reducer, { bar: 2 } as unknown as ShapeState)
-      expect(spy.mock.calls[0][0]).toMatch(
-        /Unexpected key "bar".*createStore.*instead: "foo", "baz"/
-      )
+      expect(spy.mock.calls[0][0]).toMatch(/Unexpected key "bar".*createStore.*instead: "foo", "baz"/)
       qx.createStore(reducer, {
         bar: 2,
         qux: 4,
         thud: 5,
       } as unknown as ShapeState)
-      expect(spy.mock.calls[1][0]).toMatch(
-        /Unexpected keys "qux", "thud".*createStore.*instead: "foo", "baz"/
-      )
+      expect(spy.mock.calls[1][0]).toMatch(/Unexpected keys "qux", "thud".*createStore.*instead: "foo", "baz"/)
       qx.createStore(reducer, 1 as unknown as ShapeState)
-      expect(spy.mock.calls[2][0]).toMatch(
-        /createStore has unexpected type of "number".*keys: "foo", "baz"/
-      )
+      expect(spy.mock.calls[2][0]).toMatch(/createStore has unexpected type of "number".*keys: "foo", "baz"/)
       reducer({ corge: 2 } as unknown as ShapeState, nullAction)
-      expect(spy.mock.calls[3][0]).toMatch(
-        /Unexpected key "corge".*reducer.*instead: "foo", "baz"/
-      )
+      expect(spy.mock.calls[3][0]).toMatch(/Unexpected key "corge".*reducer.*instead: "foo", "baz"/)
       reducer({ fred: 2, grault: 4 } as unknown as ShapeState, nullAction)
-      expect(spy.mock.calls[4][0]).toMatch(
-        /Unexpected keys "fred", "grault".*reducer.*instead: "foo", "baz"/
-      )
+      expect(spy.mock.calls[4][0]).toMatch(/Unexpected keys "fred", "grault".*reducer.*instead: "foo", "baz"/)
       reducer(1 as unknown as ShapeState, nullAction)
-      expect(spy.mock.calls[5][0]).toMatch(
-        /reducer has unexpected type of "number".*keys: "foo", "baz"/
-      )
+      expect(spy.mock.calls[5][0]).toMatch(/reducer has unexpected type of "number".*keys: "foo", "baz"/)
       spy.mockClear()
       console.error = preSpy
     })

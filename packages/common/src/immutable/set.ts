@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import { Collection } from "./main.js"
 import { emptyMap } from "./map.js"
 import { OrderedSet } from "./ordered.js"

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import type * as qx from "../../../src/redux/types.js"
 
 export namespace N1 {

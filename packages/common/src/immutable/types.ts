@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
-
 export interface Dict<T = unknown> {
   [k: string]: T
 }

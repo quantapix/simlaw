@@ -2,7 +2,6 @@ import { assert, _ } from "../../../src/spec.js"
 import * as qi from "../../../src/immer/index.js"
 import * as qx from "../../../src/redux/index.js"
 
-/* eslint-disable @typescript-eslint/no-namespace */
 import {
   Action as ReduxAction,
   Action,
@@ -45,15 +44,10 @@ declare const dispatch: Dispatch
 function bound() {
   const boundAddTodo = bindActionCreators(addTodo, dispatch)
   const dispatchedAddTodoAction: AddTodoAction = boundAddTodo("test")
-  const boundAddTodoViaThunk = bindActionCreators<
-    ActionCreator<AddTodoThunk, [string]>,
-    ActionCreator<AddTodoAction, [string]>
-  >(addTodoViaThunk, dispatch)
-  const dispatchedAddTodoViaThunkAction: AddTodoAction =
-    boundAddTodoViaThunk("test")
+  const boundAddTodoViaThunk = bindActionCreators<ActionCreator<AddTodoThunk, [string]>, ActionCreator<AddTodoAction, [string]>>(addTodoViaThunk, dispatch)
+  const dispatchedAddTodoViaThunkAction: AddTodoAction = boundAddTodoViaThunk("test")
   const boundActionCreators = bindActionCreators({ addTodo }, dispatch)
-  const otherDispatchedAddTodoAction: AddTodoAction =
-    boundActionCreators.addTodo("test")
+  const otherDispatchedAddTodoAction: AddTodoAction = boundActionCreators.addTodo("test")
   interface M extends ActionCreatorsMapObject {
     addTodoViaThunk: ActionCreator<AddTodoThunk, [string]>
   }
@@ -66,8 +60,7 @@ function bound() {
     },
     dispatch
   )
-  const otherDispatchedAddTodoAction2: AddTodoAction =
-    boundActionCreators2.addTodoViaThunk("test")
+  const otherDispatchedAddTodoAction2: AddTodoAction = boundActionCreators2.addTodoViaThunk("test")
 }
 export namespace FSA {
   interface Action<P> extends ReduxAction {
@@ -124,33 +117,13 @@ const t4: (a: string) => number = compose(
   (f: (a: number) => string) => (p: string) => 4
 )(numberToString)
 const t5: number = compose(stringToNumber, numberToString, numberToNumber)(5)
-const t6: string = compose(
-  numberToString,
-  stringToNumber,
-  numberToString,
-  numberToNumber
-)(5)
-const t7: string = compose<string>(
-  numberToString,
-  numberToNumber,
-  stringToNumber,
-  numberToString,
-  stringToNumber
-)("fo")
+const t6: string = compose(numberToString, stringToNumber, numberToString, numberToNumber)(5)
+const t7: string = compose<string>(numberToString, numberToNumber, stringToNumber, numberToString, stringToNumber)("fo")
 const multiArgFn = (a: string, b: number, c: boolean): string => "foo"
 const t8: string = compose(multiArgFn)("bar", 42, true)
 const t9: number = compose(stringToNumber, multiArgFn)("bar", 42, true)
-const t10: string = compose(numberToString, stringToNumber, multiArgFn)(
-  "bar",
-  42,
-  true
-)
-const t11: number = compose(
-  stringToNumber,
-  numberToString,
-  stringToNumber,
-  multiArgFn
-)("bar", 42, true)
+const t10: string = compose(numberToString, stringToNumber, multiArgFn)("bar", 42, true)
+const t11: number = compose(stringToNumber, numberToString, stringToNumber, multiArgFn)("bar", 42, true)
 const funcs = [stringToNumber, numberToString, stringToNumber]
 const t12 = compose(...funcs)("bar")
 
@@ -187,10 +160,7 @@ function dispatchExtension() {
     dispatch: PromiseDispatch
   }> =
     createStore =>
-    <S, A extends Action = AnyAction>(
-      reducer: Reducer<S, A>,
-      preloadedState?: any
-    ) => {
+    <S, A extends Action = AnyAction>(reducer: Reducer<S, A>, preloadedState?: any) => {
       const store = createStore(reducer, preloadedState)
       return {
         ...store,
@@ -216,10 +186,7 @@ function stateExtension() {
   }
   const enhancer: StoreEnhancer<{}, ExtraState> =
     createStore =>
-    <S, A extends Action = AnyAction>(
-      reducer: Reducer<S, A>,
-      preloadedState?: any
-    ) => {
+    <S, A extends Action = AnyAction>(reducer: Reducer<S, A>, preloadedState?: any) => {
       const wrappedReducer: Reducer<S & ExtraState, A> = (state, action) => {
         const newState = reducer(state, action)
         return {
@@ -259,10 +226,7 @@ function replaceReducerExtender() {
   }
   const enhancer: StoreEnhancer<{ method(): string }, ExtraState> =
     createStore =>
-    <S, A extends Action = AnyAction>(
-      reducer: Reducer<S, A>,
-      preloadedState?: any
-    ) => {
+    <S, A extends Action = AnyAction>(reducer: Reducer<S, A>, preloadedState?: any) => {
       const wrappedReducer: Reducer<S & ExtraState, A> = (state, action) => {
         const newState = reducer(state, action)
         return {
@@ -279,10 +243,7 @@ function replaceReducerExtender() {
       return createStore(wrappedReducer, wrappedPreloadedState)
     }
   const store = createStore(reducer, enhancer)
-  const newReducer = (
-    state: { test: boolean } = { test: true },
-    _: AnyAction
-  ) => state
+  const newReducer = (state: { test: boolean } = { test: true }, _: AnyAction) => state
   const newStore = store.replaceReducer(newReducer)
   newStore.getState().test
   newStore.getState().extraField
@@ -304,10 +265,7 @@ function mhelmersonExample() {
     }
     const enhancer: StoreEnhancer<{}, ExtraState> =
       createStore =>
-      <S, A extends Action = AnyAction>(
-        reducer: Reducer<S, A>,
-        preloadedState?: any
-      ) => {
+      <S, A extends Action = AnyAction>(reducer: Reducer<S, A>, preloadedState?: any) => {
         const wrappedReducer: Reducer<S & ExtraState, A> = (state, action) => {
           const newState = reducer(state, action)
           return {
@@ -324,16 +282,8 @@ function mhelmersonExample() {
         const store = createStore(wrappedReducer, wrappedPreloadedState)
         return {
           ...store,
-          replaceReducer<NS, NA extends Action = AnyAction>(
-            nextReducer: (
-              state: (NS & ExtraState) | undefined,
-              action: NA
-            ) => NS & ExtraState
-          ) {
-            const nextWrappedReducer: Reducer<NS & ExtraState, NA> = (
-              state,
-              action
-            ) => {
+          replaceReducer<NS, NA extends Action = AnyAction>(nextReducer: (state: (NS & ExtraState) | undefined, action: NA) => NS & ExtraState) {
+            const nextWrappedReducer: Reducer<NS & ExtraState, NA> = (state, action) => {
               const newState = nextReducer(state, action)
               return {
                 ...newState,
@@ -349,10 +299,7 @@ function mhelmersonExample() {
     store.getState().extraField
     store.getState().wrongField
     store.getState().test
-    const newReducer = (
-      state: { test: boolean } = { test: true },
-      _: AnyAction
-    ) => state
+    const newReducer = (state: { test: boolean } = { test: true }, _: AnyAction) => state
     const newStore = store.replaceReducer(newReducer)
     newStore.getState().test
     newStore.getState().extraField
@@ -363,10 +310,7 @@ function finalHelmersonExample() {
   interface ExtraState {
     foo: string
   }
-  function persistReducer<S, A extends AnyAction>(
-    config: any,
-    reducer: Reducer<S, A>
-  ) {
+  function persistReducer<S, A extends AnyAction>(config: any, reducer: Reducer<S, A>) {
     return (state: (S & ExtraState) | undefined, action: AnyAction) => {
       const newState = reducer(state, action as unknown as A)
       return {
@@ -378,23 +322,16 @@ function finalHelmersonExample() {
   function persistStore<S>(store: S) {
     return store
   }
-  function createPersistEnhancer(
-    persistConfig: any
-  ): StoreEnhancer<{}, ExtraState> {
+  function createPersistEnhancer(persistConfig: any): StoreEnhancer<{}, ExtraState> {
     return createStore =>
-      <S, A extends Action = AnyAction>(
-        reducer: Reducer<S, A>,
-        preloadedState?: any
-      ) => {
+      <S, A extends Action = AnyAction>(reducer: Reducer<S, A>, preloadedState?: any) => {
         const persistedReducer = persistReducer<S, A>(persistConfig, reducer)
         const store = createStore(persistedReducer, preloadedState)
         const persistor = persistStore(store)
         return {
           ...store,
           replaceReducer: nextReducer => {
-            return store.replaceReducer(
-              persistReducer(persistConfig, nextReducer)
-            )
+            return store.replaceReducer(persistReducer(persistConfig, nextReducer))
           },
           persistor,
         }
@@ -403,10 +340,7 @@ function finalHelmersonExample() {
   const store = createStore(reducer, createPersistEnhancer("hi"))
   store.getState().foo
   store.getState().wrongField
-  const newReducer = (
-    state: { test: boolean } = { test: true },
-    _: AnyAction
-  ) => state
+  const newReducer = (state: { test: boolean } = { test: true }, _: AnyAction) => state
   const newStore = store.replaceReducer(newReducer)
   newStore.getState().test
   newStore.getState().whatever
@@ -418,9 +352,7 @@ interface Component<P> {
 interface HOC<T> {
   <P>(wrapped: Component<P & T>): Component<P>
 }
-declare function connect<T, D extends Dispatch = Dispatch>(
-  mapDispatchToProps: (dispatch: D) => T
-): HOC<T>
+declare function connect<T, D extends Dispatch = Dispatch>(mapDispatchToProps: (dispatch: D) => T): HOC<T>
 function simple() {
   const hoc: HOC<{ onClick(): void }> = connect(dispatch => {
     return {
@@ -442,19 +374,17 @@ function discriminated() {
     count?: number
   }
   type MyAction = IncrementAction | DecrementAction
-  const hoc: HOC<{ onClick(): void }> = connect(
-    (dispatch: Dispatch<MyAction>) => {
-      return {
-        onClick() {
-          dispatch({ type: "INCREMENT" })
-          dispatch({ type: "DECREMENT", count: 10 })
-          dispatch({ type: "DECREMENT", count: "" })
-          dispatch({ type: "SOME_OTHER_TYPE" })
-          dispatch("not-an-action")
-        },
-      }
+  const hoc: HOC<{ onClick(): void }> = connect((dispatch: Dispatch<MyAction>) => {
+    return {
+      onClick() {
+        dispatch({ type: "INCREMENT" })
+        dispatch({ type: "DECREMENT", count: 10 })
+        dispatch({ type: "DECREMENT", count: "" })
+        dispatch({ type: "SOME_OTHER_TYPE" })
+        dispatch("not-an-action")
+      },
     }
-  )
+  })
 }
 function promise() {
   type PromiseDispatch = <T extends Action>(promise: Promise<T>) => Promise<T>
@@ -502,38 +432,30 @@ interface ThunkDispatch<S, DispatchExt = {}> {
   <R>(thunk: Thunk<R, S, DispatchExt>): R
 }
 function thunk<S, DispatchExt>() {
-  const thunkMiddleware: Middleware<
-    ThunkDispatch<S, DispatchExt>,
-    S,
-    Dispatch & ThunkDispatch<S>
-  > =
+  const thunkMiddleware: Middleware<ThunkDispatch<S, DispatchExt>, S, Dispatch & ThunkDispatch<S>> =
     api =>
     (next: Dispatch) =>
     <R>(action: AnyAction | Thunk<R, any>) =>
-      typeof action === "function"
-        ? action(api.dispatch, api.getState)
-        : next(action)
+      typeof action === "function" ? action(api.dispatch, api.getState) : next(action)
   return thunkMiddleware
 }
 function customState() {
   type State = { field: "string" }
-  const customMiddleware: Middleware<{}, State> =
-    api => (next: Dispatch) => action => {
-      api.getState().field
-      api.getState().wrongField
-      return next(action)
-    }
+  const customMiddleware: Middleware<{}, State> = api => (next: Dispatch) => action => {
+    api.getState().field
+    api.getState().wrongField
+    return next(action)
+  }
   return customMiddleware
 }
 function customDispatch() {
   type MyAction = { type: "INCREMENT" } | { type: "DECREMENT" }
   type MyDispatch = Dispatch<MyAction>
-  const customDispatch: Middleware =
-    (api: MiddlewareAPI<MyDispatch>) => next => action => {
-      api.dispatch({ type: "INCREMENT" })
-      api.dispatch({ type: "DECREMENT" })
-      api.dispatch({ type: "UNKNOWN" })
-    }
+  const customDispatch: Middleware = (api: MiddlewareAPI<MyDispatch>) => next => action => {
+    api.dispatch({ type: "INCREMENT" })
+    api.dispatch({ type: "DECREMENT" })
+    api.dispatch({ type: "UNKNOWN" })
+  }
 }
 function apply() {
   interface State {
@@ -549,18 +471,12 @@ function apply() {
   storeWithPromise.dispatch(Promise.resolve({ type: "INCREMENT" }))
   storeWithPromise.dispatch("not-an-action")
   storeWithPromise.dispatch(Promise.resolve("not-an-action"))
-  const storeWithPromiseAndLogger = createStore(
-    reducer,
-    applyMiddleware(promise(), logger())
-  )
+  const storeWithPromiseAndLogger = createStore(reducer, applyMiddleware(promise(), logger()))
   storeWithPromiseAndLogger.dispatch({ type: "INCREMENT" })
   storeWithPromiseAndLogger.dispatch(Promise.resolve({ type: "INCREMENT" }))
   storeWithPromiseAndLogger.dispatch("not-an-action")
   storeWithPromiseAndLogger.dispatch(Promise.resolve("not-an-action"))
-  const storeWithPromiseAndThunk = createStore(
-    reducer,
-    applyMiddleware(promise(), thunk<State, PromiseDispatch>(), logger())
-  )
+  const storeWithPromiseAndThunk = createStore(reducer, applyMiddleware(promise(), thunk<State, PromiseDispatch>(), logger()))
   storeWithPromiseAndThunk.dispatch({ type: "INCREMENT" })
   storeWithPromiseAndThunk.dispatch(Promise.resolve({ type: "INCREMENT" }))
   storeWithPromiseAndThunk.dispatch((dispatch, getState) => {
@@ -573,17 +489,7 @@ function apply() {
   })
   storeWithPromiseAndThunk.dispatch("not-an-action")
   storeWithPromiseAndThunk.dispatch(Promise.resolve("not-an-action"))
-  const storeWithLotsOfMiddleware = createStore(
-    reducer,
-    applyMiddleware<PromiseDispatch>(
-      promise(),
-      logger(),
-      logger(),
-      logger(),
-      logger(),
-      logger()
-    )
-  )
+  const storeWithLotsOfMiddleware = createStore(reducer, applyMiddleware<PromiseDispatch>(promise(), logger(), logger(), logger(), logger(), logger()))
   storeWithLotsOfMiddleware.dispatch({ type: "INCREMENT" })
   storeWithLotsOfMiddleware.dispatch(Promise.resolve({ type: "INCREMENT" }))
 }
@@ -830,13 +736,10 @@ const storeWithActionReducerAndPreloadedState = createStore(reducerWithAction, {
 })
 funcWithStore(storeWithActionReducer)
 funcWithStore(storeWithActionReducerAndPreloadedState)
-const storeWithActionReducerAndBadPreloadedState = createStore(
-  reducerWithAction,
-  {
-    b: { c: "c" },
-    e: brandedString,
-  }
-)
+const storeWithActionReducerAndBadPreloadedState = createStore(reducerWithAction, {
+  b: { c: "c" },
+  e: brandedString,
+})
 const enhancer: StoreEnhancer = next => next
 const storeWithSpecificEnhancer: Store<State> = createStore(reducer, enhancer)
 const storeWithPreloadedStateAndEnhancer: Store<State> = createStore(
@@ -898,19 +801,16 @@ unsubscribeFromObservable()
           break
       }
     })
-  const reduceCounterCurriedProducer = qi.produce(
-    (draftState: State, action: Action) => {
-      switch (action.type) {
-        case "ADD_TO_COUNTER":
-          draftState.counter += action.payload
-          break
-        case "SUB_FROM_COUNTER":
-          draftState.counter -= action.payload
-          break
-      }
-    },
-    initialState
-  )
+  const reduceCounterCurriedProducer = qi.produce((draftState: State, action: Action) => {
+    switch (action.type) {
+      case "ADD_TO_COUNTER":
+        draftState.counter += action.payload
+        break
+      case "SUB_FROM_COUNTER":
+        draftState.counter -= action.payload
+        break
+    }
+  }, initialState)
   const reduce = qx.combineReducers({
     counterReducer: reduceCounterProducer,
   })
@@ -946,10 +846,7 @@ unsubscribeFromObservable()
     const initialState: State = {
       counter: 0,
     }
-    const reduceCounterProducer = (
-      state: State = initialState,
-      action: Action
-    ) =>
+    const reduceCounterProducer = (state: State = initialState, action: Action) =>
       qi.produce(state, draftState => {
         switch (action.type) {
           case "ADD_TO_COUNTER":
@@ -960,19 +857,16 @@ unsubscribeFromObservable()
             break
         }
       })
-    const reduceCounterCurriedProducer = qi.produce(
-      (draftState: qi.Draft<State>, action: Action) => {
-        switch (action.type) {
-          case "ADD_TO_COUNTER":
-            draftState.counter += action.payload
-            break
-          case "SUB_FROM_COUNTER":
-            draftState.counter -= action.payload
-            break
-        }
-      },
-      initialState
-    )
+    const reduceCounterCurriedProducer = qi.produce((draftState: qi.Draft<State>, action: Action) => {
+      switch (action.type) {
+        case "ADD_TO_COUNTER":
+          draftState.counter += action.payload
+          break
+        case "SUB_FROM_COUNTER":
+          draftState.counter -= action.payload
+          break
+      }
+    }, initialState)
     const reduce = qx.combineReducers({
       counterReducer: reduceCounterProducer,
     })

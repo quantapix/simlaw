@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import { Collection, seqKeyedFrom } from "./main.js"
 import { List } from "./list.js"
 import * as qf from "./functions.js"

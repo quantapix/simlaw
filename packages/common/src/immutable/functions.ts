@@ -56,12 +56,8 @@ export function mergeDeepWithSources(x: unknown, xs: unknown, f?: any) {
 }
 
 export function mergeWithSources(x: any, xs: any, f?: any) {
-  if (!qu.isDataStructure(x)) {
-    throw new TypeError("Cannot merge into non-data-structure value: " + x)
-  }
-  if (qu.isImmutable(x)) {
-    return typeof f === "function" && x.mergeWith ? x.mergeWith(f, ...xs) : x.merge ? x.merge(...xs) : x.concat(...xs)
-  }
+  if (!qu.isDataStructure(x)) throw new TypeError("Cannot merge into non-data-structure value: " + x)
+  if (qu.isImmutable(x)) return typeof f === "function" && x.mergeWith ? x.mergeWith(f, ...xs) : x.merge ? x.merge(...xs) : x.concat(...xs)
   const isArray = Array.isArray(x)
   let y = x
   const C = isArray ? Collection.Indexed : Collection.Keyed
@@ -103,13 +99,9 @@ export function remove<C extends Array<unknown>>(collection: C, key: number): C
 export function remove<C, K extends keyof C>(collection: C, k: K): C
 export function remove<C extends qt.Dict, K extends keyof C>(collection: C, k: K): C
 export function remove(x: unknown, k: unknown) {
-  if (!qu.isDataStructure(x)) {
-    throw new TypeError("Cannot update non-data-structure value: " + x)
-  }
+  if (!qu.isDataStructure(x)) throw new TypeError("Cannot update non-data-structure value: " + x)
   if (qu.isImmutable(x)) {
-    if (!x.remove) {
-      throw new TypeError("Cannot update immutable value without .remove() method: " + x)
-    }
+    if (!x.remove) throw new TypeError("Cannot update immutable value without .remove() method: " + x)
     return x.remove(k)
   }
   if (!qu.hasOwnProperty.call(x, k)) return x
@@ -129,21 +121,15 @@ export function set<V, C extends Array<V>>(collection: C, key: number, v: V): C
 export function set<C, K extends keyof C>(object: C, k: K, value: C[K]): C
 export function set<V, C extends qt.Dict<V>>(collection: C, k: string, v: V): C
 export function set(x, k, v) {
-  if (!qu.isDataStructure(x)) {
-    throw new TypeError("Cannot update non-data-structure value: " + x)
-  }
+  if (!qu.isDataStructure(x)) throw new TypeError("Cannot update non-data-structure value: " + x)
   if (qu.isImmutable(x)) {
-    if (!x.set) {
-      throw new TypeError("Cannot update immutable value without .set() method: " + x)
-    }
+    if (!x.set) throw new TypeError("Cannot update immutable value without .set() method: " + x)
     return x.set(k, v)
   }
-  if (qu.hasOwnProperty.call(x, k) && v === x[k]) {
-    return x
-  }
-  const collectionCopy = qu.shallowCopy(x)
-  collectionCopy[k] = v
-  return collectionCopy
+  if (qu.hasOwnProperty.call(x, k) && v === x[k]) return x
+  const y = qu.shallowCopy(x)
+  y[k] = v
+  return y
 }
 
 export function setIn<T>(x: T, xs: Iterable<unknown>, v: unknown): T {
@@ -182,9 +168,7 @@ function updateInDeeply(isImmutable: boolean, x: unknown, xs: any, i: number, v0
     const y = f(x2)
     return y === x2 ? x : y
   }
-  if (!notSet && !qu.isDataStructure(x)) {
-    throw new TypeError("Cannot update within non-data-structure value in path [" + xs.slice(0, i).map(qu.quoteString) + "]: " + x)
-  }
+  if (!notSet && !qu.isDataStructure(x)) throw new TypeError("Cannot update within non-data-structure value in path [" + xs.slice(0, i).map(qu.quoteString) + "]: " + x)
   const k = xs[i]
   const x2 = notSet ? qu.NOT_SET : get(x, k, qu.NOT_SET)
   const y = updateInDeeply(x2 === qu.NOT_SET ? isImmutable : qu.isImmutable(x2), x2, xs, i + 1, v0, f)
@@ -216,20 +200,18 @@ export function merge2(...iters) {
 }
 
 export function mergeWith2(merger, ...iters) {
-  if (typeof merger !== "function") {
-    throw new TypeError("Invalid merger function: " + merger)
-  }
+  if (typeof merger !== "function") throw new TypeError("Invalid merger function: " + merger)
   return mergeIntoKeyedWith(this, iters, merger)
 }
 
 function mergeIntoKeyedWith(x, xs, f?) {
-  const iters = []
+  const y = []
   for (let ii = 0; ii < xs.length; ii++) {
-    const collection = KeyedCollection(xs[ii])
-    if (collection.size !== 0) iters.push(collection)
+    const collection = Collection.Keyed.create(xs[ii])
+    if (collection.size !== 0) y.push(collection)
   }
-  if (iters.length === 0) return x
-  if (x.toSeq().size === 0 && !x.__ownerID && iters.length === 1) return x.constructor(iters[0])
+  if (y.length === 0) return x
+  if (x.toSeq().size === 0 && !x.__ownerID && y.length === 1) return x.constructor(y[0])
   return x.withMutations(x2 => {
     const mergeIntoCollection = f
       ? (v, k) => {
@@ -238,8 +220,8 @@ function mergeIntoKeyedWith(x, xs, f?) {
       : (v, k) => {
           x2.set(k, v)
         }
-    for (let ii = 0; ii < iters.length; ii++) {
-      iters[ii].forEach(mergeIntoCollection)
+    for (let ii = 0; ii < y.length; ii++) {
+      y[ii].forEach(mergeIntoCollection)
     }
   })
 }

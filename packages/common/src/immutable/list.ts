@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import { Collection } from "./main.js"
 import * as qf from "./functions.js"
 import * as qu from "./utils.js"

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import { Collection } from "./main.js"
 import { OrderedMap } from "./ordered.js"
 import { sortFactory } from "./operations.js"

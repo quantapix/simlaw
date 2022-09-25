@@ -1,28 +1,23 @@
-/* eslint-disable @typescript-eslint/no-namespace */
-import { wholeSlice, resolveBegin, resolveEnd, wrapIndex } from "./TrieUtils.js"
-import { IndexedCollection } from "./main.js"
-import { ArraySeq } from "./Seq.js"
-import { Iterator, iteratorValue, iteratorDone } from "./Iterator"
-import { IS_STACK_SYMBOL, isStack } from "./predicates/isStack"
-import assertNotInfinite from "./utils/assertNotInfinite"
-import { asImmutable } from "./methods/asImmutable"
-import { asMutable } from "./methods/asMutable"
-import { wasAltered } from "./methods/wasAltered"
-import { withMutations } from "./methods/withMutations"
+import { Collection, ArraySeq } from "./main.js"
+import * as qf from "./functions.js"
+import * as qu from "./utils.js"
 
-export class Stack extends IndexedCollection {
-  constructor(value) {
-    return value === undefined || value === null ? emptyStack() : isStack(value) ? value : emptyStack().pushAll(value)
+export class Stack extends Collection.Indexed {
+  static isStack = qu.isStack
+  
+  static create<V>(x?: Iterable<V> | ArrayLike<V>): Stack<V> {
+    return x === undefined || x === null ? emptyStack() : isStack(x) ? x : emptyStack().pushAll(x)
   }
-  static of(/*...values*/) {
-    return this(arguments)
+  static of<V>(...xs: Array<V>): Stack<V> {
+    return this(...xs)
   }
+  ;[qu.IS_STACK_SYMBOL] = true
   toString() {
     return this.__toString("Stack [", "]")
   }
   get(index, notSetValue) {
     let head = this._head
-    index = wrapIndex(this, index)
+    index = qu.wrapIndex(this, index)
     while (head && index--) {
       head = head.next
     }
@@ -31,10 +26,8 @@ export class Stack extends IndexedCollection {
   peek() {
     return this._head && this._head.value
   }
-  push(/*...values*/) {
-    if (arguments.length === 0) {
-      return this
-    }
+  push(...xs) {
+    if (xs.length === 0) return this
     const newSize = this.size + arguments.length
     let head = this._head
     for (let ii = arguments.length - 1; ii >= 0; ii--) {
@@ -53,14 +46,10 @@ export class Stack extends IndexedCollection {
     return makeStack(newSize, head)
   }
   pushAll(iter) {
-    iter = IndexedCollection(iter)
-    if (iter.size === 0) {
-      return this
-    }
-    if (this.size === 0 && isStack(iter)) {
-      return iter
-    }
-    assertNotInfinite(iter.size)
+    iter = Collection.Indexed.create(iter)
+    if (iter.size === 0) return this
+    if (this.size === 0 && isStack(iter)) return iter
+    qu.assertNotInfinite(iter.size)
     let newSize = this.size
     let head = this._head
     iter.__iterate(value => {
@@ -69,7 +58,7 @@ export class Stack extends IndexedCollection {
         value: value,
         next: head,
       }
-    }, /* reverse */ true)
+    }, true)
     if (this.__ownerID) {
       this.size = newSize
       this._head = head
@@ -83,9 +72,9 @@ export class Stack extends IndexedCollection {
     return this.slice(1)
   }
   clear() {
-    if (this.size === 0) {
+    if (this.size === 0) 
       return this
-    }
+    
     if (this.__ownerID) {
       this.size = 0
       this._head = undefined
@@ -96,14 +85,12 @@ export class Stack extends IndexedCollection {
     return emptyStack()
   }
   slice(begin, end) {
-    if (wholeSlice(begin, end, this.size)) {
-      return this
-    }
-    let resolvedBegin = resolveBegin(begin, this.size)
-    const resolvedEnd = resolveEnd(end, this.size)
+    if (qu.wholeSlice(begin, end, this.size)) return this
+    let resolvedBegin = qu.resolveBegin(begin, this.size)
+    const resolvedEnd = qu.resolveEnd(end, this.size)
     if (resolvedEnd !== this.size) {
       // super.slice(begin, end);
-      return IndexedCollection.prototype.slice.call(this, begin, end)
+      return Collection.Indexed.prototype.slice.call(this, begin, end)
     }
     const newSize = this.size - resolvedBegin
     let head = this._head
@@ -119,77 +106,56 @@ export class Stack extends IndexedCollection {
     }
     return makeStack(newSize, head)
   }
-  // @pragma Mutability
   __ensureOwner(ownerID) {
-    if (ownerID === this.__ownerID) {
-      return this
-    }
+    if (ownerID === this.__ownerID) return this
     if (!ownerID) {
-      if (this.size === 0) {
-        return emptyStack()
-      }
+      if (this.size === 0) return emptyStack()
       this.__ownerID = ownerID
       this.__altered = false
       return this
     }
     return makeStack(this.size, this._head, ownerID, this.__hash)
   }
-  // @pragma Iteration
   __iterate(fn, reverse) {
-    if (reverse) {
-      return new ArraySeq(this.toArray()).__iterate((v, k) => fn(v, k, this), reverse)
-    }
+    if (reverse) return new ArraySeq(this.toArray()).__iterate((v, k) => fn(v, k, this), reverse)
     let iterations = 0
     let node = this._head
     while (node) {
-      if (fn(node.value, iterations++, this) === false) {
-        break
-      }
+      if (fn(node.value, iterations++, this) === false) break
       node = node.next
     }
     return iterations
   }
   __iterator(type, reverse) {
-    if (reverse) {
-      return new ArraySeq(this.toArray()).__iterator(type, reverse)
-    }
+    if (reverse) return new ArraySeq(this.toArray()).__iterator(type, reverse)
     let iterations = 0
     let node = this._head
-    return new Iterator(() => {
+    return new qu.Iterator(() => {
       if (node) {
         const value = node.value
         node = node.next
-        return iteratorValue(type, iterations++, value)
+        return qu.iteratorValue(type, iterations++, value)
       }
-      return iteratorDone()
+      return qu.iteratorDone()
     })
   }
+  StackPrototype.shift = StackPrototype.pop
+  StackPrototype.unshift = StackPrototype.push
+  StackPrototype.unshiftAll = StackPrototype.pushAll
+  StackPrototype.withMutations = qf.withMutations
+  StackPrototype.wasAltered = qf.wasAltered
+  StackPrototype.asImmutable = qf.asImmutable
+  StackPrototype["@@transducer/init"] = StackPrototype.asMutable = qf.asMutable
+  StackPrototype["@@transducer/step"] = function (result, arr) {
+    return result.unshift(arr)
+  }
+  StackPrototype["@@transducer/result"] = function (obj) {
+    return obj.asImmutable()
+  }
+  
 }
 
-export namespace Stack {
-  export function isStack(x: unknown): x is Stack<unknown>
-  export function of<V>(...xs: Array<V>): Stack<V>
-}
-/*
-function Stack<V>(x?: Iterable<V> | ArrayLike<V>): Stack<V>
-*/
 
-Stack.isStack = isStack
-const StackPrototype = Stack.prototype
-StackPrototype[IS_STACK_SYMBOL] = true
-StackPrototype.shift = StackPrototype.pop
-StackPrototype.unshift = StackPrototype.push
-StackPrototype.unshiftAll = StackPrototype.pushAll
-StackPrototype.withMutations = withMutations
-StackPrototype.wasAltered = wasAltered
-StackPrototype.asImmutable = asImmutable
-StackPrototype["@@transducer/init"] = StackPrototype.asMutable = asMutable
-StackPrototype["@@transducer/step"] = function (result, arr) {
-  return result.unshift(arr)
-}
-StackPrototype["@@transducer/result"] = function (obj) {
-  return obj.asImmutable()
-}
 function makeStack(size, head, ownerID, hash) {
   const map = Object.create(StackPrototype)
   map.size = size

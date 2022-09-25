@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import * as qu from "./utils.js"
 import { emptyList } from "./list.js"
 import { Map, emptyMap } from "./map.js"

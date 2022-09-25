@@ -1,4 +1,3 @@
-/* eslint-disable no-prototype-builtins */
 import { Seq } from "./main.js"
 import type * as qt from "./types.js"
 

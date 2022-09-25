@@ -1,75 +1,44 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import * as qi from "../immer/index.js"
 import * as qt from "./types.js"
 import * as qu from "./utils.js"
 import { createSelector } from "./reselect.js"
 
 export interface ActionReducerMapBuilder<State> {
-  addCase<ActionCreator extends qt.TypedActionCreator<string>>(
-    actionCreator: ActionCreator,
-    reducer: CaseReducer<State, ReturnType<ActionCreator>>
-  ): ActionReducerMapBuilder<State>
-  addCase<Type extends string, A extends qt.Action<Type>>(
-    type: Type,
-    reducer: CaseReducer<State, A>
-  ): ActionReducerMapBuilder<State>
+  addCase<ActionCreator extends qt.TypedActionCreator<string>>(actionCreator: ActionCreator, reducer: CaseReducer<State, ReturnType<ActionCreator>>): ActionReducerMapBuilder<State>
+  addCase<Type extends string, A extends qt.Action<Type>>(type: Type, reducer: CaseReducer<State, A>): ActionReducerMapBuilder<State>
 
-  addMatcher<A>(
-    matcher: qt.TypeGuard<A> | ((action: any) => boolean),
-    reducer: CaseReducer<State, A extends qt.AnyAction ? A : A & qt.AnyAction>
-  ): Omit<ActionReducerMapBuilder<State>, "addCase">
+  addMatcher<A>(matcher: qt.TypeGuard<A> | ((action: any) => boolean), reducer: CaseReducer<State, A extends qt.AnyAction ? A : A & qt.AnyAction>): Omit<ActionReducerMapBuilder<State>, "addCase">
 
   addDefaultCase(reducer: CaseReducer<State, qt.AnyAction>): {}
 }
 
 export function executeReducerBuilderCallback<S>(
   builderCallback: (builder: ActionReducerMapBuilder<S>) => void
-): [
-  CaseReducers<S, any>,
-  ActionMatcherDescriptionCollection<S>,
-  CaseReducer<S, qt.AnyAction> | undefined
-] {
+): [CaseReducers<S, any>, ActionMatcherDescriptionCollection<S>, CaseReducer<S, qt.AnyAction> | undefined] {
   const actionsMap: CaseReducers<S, any> = {}
   const actionMatchers: ActionMatcherDescriptionCollection<S> = []
   let defaultCaseReducer: CaseReducer<S, qt.AnyAction> | undefined
   const builder = {
-    addCase(
-      typeOrActionCreator: string | qt.TypedActionCreator<any>,
-      reducer: CaseReducer<S>
-    ) {
+    addCase(typeOrActionCreator: string | qt.TypedActionCreator<any>, reducer: CaseReducer<S>) {
       if (process.env["NODE_ENV"] !== "production") {
         if (actionMatchers.length > 0) {
-          throw new Error(
-            "`builder.addCase` should only be called before calling `builder.addMatcher`"
-          )
+          throw new Error("`builder.addCase` should only be called before calling `builder.addMatcher`")
         }
         if (defaultCaseReducer) {
-          throw new Error(
-            "`builder.addCase` should only be called before calling `builder.addDefaultCase`"
-          )
+          throw new Error("`builder.addCase` should only be called before calling `builder.addDefaultCase`")
         }
       }
-      const type =
-        typeof typeOrActionCreator === "string"
-          ? typeOrActionCreator
-          : typeOrActionCreator.type
+      const type = typeof typeOrActionCreator === "string" ? typeOrActionCreator : typeOrActionCreator.type
       if (type in actionsMap) {
-        throw new Error(
-          "addCase cannot be called with two reducers for the same action type"
-        )
+        throw new Error("addCase cannot be called with two reducers for the same action type")
       }
       actionsMap[type] = reducer
       return builder
     },
-    addMatcher<A>(
-      matcher: qt.TypeGuard<A>,
-      reducer: CaseReducer<S, A extends qt.AnyAction ? A : A & qt.AnyAction>
-    ) {
+    addMatcher<A>(matcher: qt.TypeGuard<A>, reducer: CaseReducer<S, A extends qt.AnyAction ? A : A & qt.AnyAction>) {
       if (process.env["NODE_ENV"] !== "production") {
         if (defaultCaseReducer) {
-          throw new Error(
-            "`builder.addMatcher` should only be called before calling `builder.addDefaultCase`"
-          )
+          throw new Error("`builder.addMatcher` should only be called before calling `builder.addDefaultCase`")
         }
       }
       actionMatchers.push({ matcher, reducer })
@@ -90,49 +59,31 @@ export function executeReducerBuilderCallback<S>(
 }
 
 export type SliceActionCreator<P> = qt.PayloadActionCreator<P>
-export interface Slice<
-  State = any,
-  CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-  Name extends string = string
-> {
+export interface Slice<State = any, CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>, Name extends string = string> {
   name: Name
   reducer: qt.Reducer<State>
   actions: CaseReducerActions<CaseReducers>
   caseReducers: SliceDefinedCaseReducers<CaseReducers>
   getInitialState: () => State
 }
-export interface CreateSliceOptions<
-  State = any,
-  CR extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-  Name extends string = string
-> {
+export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<State> = SliceCaseReducers<State>, Name extends string = string> {
   name: Name
   initialState: State | (() => State)
   reducers: ValidateSliceCaseReducers<State, CR>
-  extraReducers?:
-    | CaseReducers<qt.NoInfer<State>, any>
-    | ((builder: ActionReducerMapBuilder<qt.NoInfer<State>>) => void)
+  extraReducers?: CaseReducers<qt.NoInfer<State>, any> | ((builder: ActionReducerMapBuilder<qt.NoInfer<State>>) => void)
 }
 export type CaseReducerWithPrepare<State, Action extends qt.PayloadAction> = {
   reducer: CaseReducer<State, Action>
   prepare: qt.PrepareAction<Action["payload"]>
 }
 export type SliceCaseReducers<State> = {
-  [K: string]:
-    | CaseReducer<State, qt.PayloadAction<any>>
-    | CaseReducerWithPrepare<State, qt.PayloadAction<any, string, any, any>>
+  [K: string]: CaseReducer<State, qt.PayloadAction<any>> | CaseReducerWithPrepare<State, qt.PayloadAction<any, string, any, any>>
 }
 export type CaseReducerActions<CaseReducers extends SliceCaseReducers<any>> = {
-  [Type in keyof CaseReducers]: CaseReducers[Type] extends { prepare: any }
-    ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]>
-    : ActionCreatorForCaseReducer<CaseReducers[Type]>
+  [Type in keyof CaseReducers]: CaseReducers[Type] extends { prepare: any } ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]> : ActionCreatorForCaseReducer<CaseReducers[Type]>
 }
-type ActionCreatorForCaseReducerWithPrepare<CR extends { prepare: any }> =
-  _ActionCreatorWithPreparedPayload<CR["prepare"], string>
-type ActionCreatorForCaseReducer<CR> = CR extends (
-  state: any,
-  action: infer Action
-) => any
+type ActionCreatorForCaseReducerWithPrepare<CR extends { prepare: any }> = _ActionCreatorWithPreparedPayload<CR["prepare"], string>
+type ActionCreatorForCaseReducer<CR> = CR extends (state: any, action: infer Action) => any
   ? Action extends { payload: infer P }
     ? qt.PayloadActionCreator<P>
     : qt.ActionCreatorWithoutPayload
@@ -144,10 +95,7 @@ type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
     ? Reducer
     : CaseReducers[Type]
 }
-export type ValidateSliceCaseReducers<
-  S,
-  ACR extends SliceCaseReducers<S>
-> = ACR & {
+export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR & {
   [T in keyof ACR]: ACR[T] extends {
     reducer(s: S, action?: infer A): any
   }
@@ -160,31 +108,19 @@ function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
 }
 
-export function createSlice<
-  State,
-  CaseReducers extends SliceCaseReducers<State>,
-  Name extends string = string
->(
+export function createSlice<State, CaseReducers extends SliceCaseReducers<State>, Name extends string = string>(
   options: CreateSliceOptions<State, CaseReducers, Name>
 ): Slice<State, CaseReducers, Name> {
   const { name } = options
   if (!name) {
     throw new Error("`name` is a required option for createSlice")
   }
-  if (
-    typeof process !== "undefined" &&
-    process.env["NODE_ENV"] === "development"
-  ) {
+  if (typeof process !== "undefined" && process.env["NODE_ENV"] === "development") {
     if (options.initialState === undefined) {
-      console.error(
-        "You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`"
-      )
+      console.error("You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`")
     }
   }
-  const initialState =
-    typeof options.initialState == "function"
-      ? options.initialState
-      : qu.freezeDraftable(options.initialState)
+  const initialState = typeof options.initialState == "function" ? options.initialState : qu.freezeDraftable(options.initialState)
   const reducers = options.reducers || {}
   const reducerNames = Object.keys(reducers)
   const sliceCaseReducersByName: Record<string, CaseReducer> = {}
@@ -203,26 +139,13 @@ export function createSlice<
     }
     sliceCaseReducersByName[reducerName] = caseReducer
     sliceCaseReducersByType[type] = caseReducer
-    actionCreators[reducerName] = prepareCallback
-      ? createAction(type, prepareCallback)
-      : createAction(type)
+    actionCreators[reducerName] = prepareCallback ? createAction(type, prepareCallback) : createAction(type)
   })
   function buildReducer() {
-    const [
-      extraReducers = {},
-      actionMatchers = [],
-      defaultCaseReducer = undefined,
-    ] =
-      typeof options.extraReducers === "function"
-        ? executeReducerBuilderCallback(options.extraReducers)
-        : [options.extraReducers]
+    const [extraReducers = {}, actionMatchers = [], defaultCaseReducer = undefined] =
+      typeof options.extraReducers === "function" ? executeReducerBuilderCallback(options.extraReducers) : [options.extraReducers]
     const finalCaseReducers = { ...extraReducers, ...sliceCaseReducersByType }
-    return createReducer(
-      initialState,
-      finalCaseReducers as any,
-      actionMatchers,
-      defaultCaseReducer
-    )
+    return createReducer(initialState, finalCaseReducers as any, actionMatchers, defaultCaseReducer)
   }
   let _reducer: ReducerWithInitialState<State>
   return {
@@ -240,16 +163,8 @@ export function createSlice<
   }
 }
 
-export function createAction<P = void, T extends string = string>(
-  type: T
-): qt.PayloadActionCreator<P, T>
-export function createAction<
-  PA extends qt.PrepareAction<any>,
-  T extends string = string
->(
-  type: T,
-  prepareAction: PA
-): qt.PayloadActionCreator<ReturnType<PA>["payload"], T, PA>
+export function createAction<P = void, T extends string = string>(type: T): qt.PayloadActionCreator<P, T>
+export function createAction<PA extends qt.PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): qt.PayloadActionCreator<ReturnType<PA>["payload"], T, PA>
 export function createAction(type: string, prepareAction?: Function): any {
   function actionCreator(...args: any[]) {
     if (prepareAction) {
@@ -268,9 +183,7 @@ export function createAction(type: string, prepareAction?: Function): any {
   }
   actionCreator.toString = () => `${type}`
   actionCreator.type = type
-  actionCreator.match = (
-    action: qt.Action<unknown>
-  ): action is qt.PayloadAction => action.type === type
+  actionCreator.match = (action: qt.Action<unknown>): action is qt.PayloadAction => action.type === type
   return actionCreator
 }
 
@@ -280,11 +193,7 @@ export function isFSA(action: unknown): action is {
   error?: unknown
   meta?: unknown
 } {
-  return (
-    qu.isPlainObject(action) &&
-    typeof (action as any).type === "string" &&
-    Object.keys(action).every(isValidKey)
-  )
+  return qu.isPlainObject(action) && typeof (action as any).type === "string" && Object.keys(action).every(isValidKey)
 }
 
 function isValidKey(key: string) {
@@ -302,18 +211,11 @@ export type ActionMatcherDescription<S, A extends qt.AnyAction> = {
   reducer: CaseReducer<S, qt.NoInfer<A>>
 }
 
-export type ReadonlyActionMatcherDescriptionCollection<S> = ReadonlyArray<
-  ActionMatcherDescription<S, any>
->
+export type ReadonlyActionMatcherDescriptionCollection<S> = ReadonlyArray<ActionMatcherDescription<S, any>>
 
-export type ActionMatcherDescriptionCollection<S> = Array<
-  ActionMatcherDescription<S, any>
->
+export type ActionMatcherDescriptionCollection<S> = Array<ActionMatcherDescription<S, any>>
 
-export type CaseReducer<S = any, A extends qt.Action = qt.AnyAction> = (
-  state: qi.Draft<S>,
-  action: A
-) => S | void | qi.Draft<S>
+export type CaseReducer<S = any, A extends qt.Action = qt.AnyAction> = (state: qi.Draft<S>, action: A) => S | void | qi.Draft<S>
 export type CaseReducers<S, AS extends Actions> = {
   [T in keyof AS]: AS[T] extends qt.Action ? CaseReducer<S, AS[T]> : void
 }
@@ -324,19 +226,12 @@ function isStateFunction<S>(x: unknown): x is () => S {
   return typeof x === "function"
 }
 
-export type ReducerWithInitialState<S extends NotFunction<any>> =
-  qt.Reducer<S> & {
-    getInitialState: () => S
-  }
+export type ReducerWithInitialState<S extends NotFunction<any>> = qt.Reducer<S> & {
+  getInitialState: () => S
+}
 
-export function createReducer<S extends NotFunction<any>>(
-  initialState: S | (() => S),
-  builderCallback: (builder: ActionReducerMapBuilder<S>) => void
-): ReducerWithInitialState<S>
-export function createReducer<
-  S extends NotFunction<any>,
-  CR extends CaseReducers<S, any> = CaseReducers<S, any>
->(
+export function createReducer<S extends NotFunction<any>>(initialState: S | (() => S), builderCallback: (builder: ActionReducerMapBuilder<S>) => void): ReducerWithInitialState<S>
+export function createReducer<S extends NotFunction<any>, CR extends CaseReducers<S, any> = CaseReducers<S, any>>(
   initialState: S | (() => S),
   actionsMap: CR,
   actionMatchers?: ActionMatcherDescriptionCollection<S>,
@@ -344,16 +239,12 @@ export function createReducer<
 ): ReducerWithInitialState<S>
 export function createReducer<S extends NotFunction<any>>(
   initialState: S | (() => S),
-  mapOrBuilderCallback:
-    | CaseReducers<S, any>
-    | ((builder: ActionReducerMapBuilder<S>) => void),
+  mapOrBuilderCallback: CaseReducers<S, any> | ((builder: ActionReducerMapBuilder<S>) => void),
   actionMatchers: ReadonlyActionMatcherDescriptionCollection<S> = [],
   defaultCaseReducer?: CaseReducer<S>
 ): ReducerWithInitialState<S> {
   const [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
-    typeof mapOrBuilderCallback === "function"
-      ? executeReducerBuilderCallback(mapOrBuilderCallback)
-      : [mapOrBuilderCallback, actionMatchers, defaultCaseReducer]
+    typeof mapOrBuilderCallback === "function" ? executeReducerBuilderCallback(mapOrBuilderCallback) : [mapOrBuilderCallback, actionMatchers, defaultCaseReducer]
   let getInitialState: () => S
   if (isStateFunction(initialState)) {
     getInitialState = () => qu.freezeDraftable(initialState())
@@ -363,12 +254,7 @@ export function createReducer<S extends NotFunction<any>>(
   }
 
   function reducer(state = getInitialState(), action: any): S {
-    let caseReducers = [
-      actionsMap[action.type],
-      ...finalActionMatchers
-        .filter(({ matcher }) => matcher(action))
-        .map(({ reducer }) => reducer),
-    ]
+    let caseReducers = [actionsMap[action.type], ...finalActionMatchers.filter(({ matcher }) => matcher(action)).map(({ reducer }) => reducer)]
     if (caseReducers.filter(cr => !!cr).length === 0) {
       caseReducers = [finalDefaultCaseReducer]
     }
@@ -387,9 +273,7 @@ export function createReducer<S extends NotFunction<any>>(
             if (previousState === null) {
               return previousState
             }
-            throw Error(
-              "A case reducer on a non-draftable value must not return undefined"
-            )
+            throw Error("A case reducer on a non-draftable value must not return undefined")
           }
           return result as S
         } else {
@@ -403,21 +287,13 @@ export function createReducer<S extends NotFunction<any>>(
   return reducer as ReducerWithInitialState<S>
 }
 
-export const createDraftSafeSelector: typeof createSelector = (
-  ...args: unknown[]
-) => {
+export const createDraftSafeSelector: typeof createSelector = (...args: unknown[]) => {
   const selector = (createSelector as any)(...args)
-  const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
-    selector(qi.isDraft(value) ? qi.current(value) : value, ...rest)
+  const wrappedSelector = (value: unknown, ...rest: unknown[]) => selector(qi.isDraft(value) ? qi.current(value) : value, ...rest)
   return wrappedSelector as any
 }
 
-const commonProperties: Array<keyof qt.SerializedError> = [
-  "name",
-  "message",
-  "stack",
-  "code",
-]
+const commonProperties: Array<keyof qt.SerializedError> = ["name", "message", "stack", "code"]
 
 export const miniSerializeError = (value: any): qt.SerializedError => {
   if (typeof value === "object" && value !== null) {
@@ -440,31 +316,15 @@ export function createAsyncThunk<Returned, ThunkArg = void>(
   options?: qt.AsyncThunkOptions<ThunkArg, {}>
 ): qt.AsyncThunk<Returned, ThunkArg, {}>
 
-export function createAsyncThunk<
-  Returned,
-  ThunkArg,
-  ThunkApiConfig extends qt.AsyncThunkConfig
->(
+export function createAsyncThunk<Returned, ThunkArg, ThunkApiConfig extends qt.AsyncThunkConfig>(
   typePrefix: string,
-  payloadCreator: qt.AsyncThunkPayloadCreator<
-    Returned,
-    ThunkArg,
-    ThunkApiConfig
-  >,
+  payloadCreator: qt.AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>,
   options?: qt.AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 ): qt.AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
 
-export function createAsyncThunk<
-  Returned,
-  ThunkArg,
-  ThunkApiConfig extends qt.AsyncThunkConfig
->(
+export function createAsyncThunk<Returned, ThunkArg, ThunkApiConfig extends qt.AsyncThunkConfig>(
   typePrefix: string,
-  payloadCreator: qt.AsyncThunkPayloadCreator<
-    Returned,
-    ThunkArg,
-    ThunkApiConfig
-  >,
+  payloadCreator: qt.AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>,
   options?: qt.AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 ): qt.AsyncThunk<Returned, ThunkArg, ThunkApiConfig> {
   type RejectedValue = qt.GetRejectValue<ThunkApiConfig>
@@ -472,18 +332,9 @@ export function createAsyncThunk<
   type FulfilledMeta = qt.GetFulfilledMeta<ThunkApiConfig>
   type RejectedMeta = qt.GetRejectedMeta<ThunkApiConfig>
 
-  const fulfilled: qt.AsyncThunkFulfilledActionCreator<
-    Returned,
-    ThunkArg,
-    ThunkApiConfig
-  > = createAction(
+  const fulfilled: qt.AsyncThunkFulfilledActionCreator<Returned, ThunkArg, ThunkApiConfig> = createAction(
     typePrefix + "/fulfilled",
-    (
-      payload: Returned,
-      requestId: string,
-      arg: ThunkArg,
-      meta?: FulfilledMeta
-    ) => ({
+    (payload: Returned, requestId: string, arg: ThunkArg, meta?: FulfilledMeta) => ({
       payload,
       meta: {
         ...((meta as any) || {}),
@@ -494,45 +345,32 @@ export function createAsyncThunk<
     })
   )
 
-  const pending: qt.AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig> =
-    createAction(
-      typePrefix + "/pending",
-      (requestId: string, arg: ThunkArg, meta?: PendingMeta) => ({
-        payload: undefined,
-        meta: {
-          ...((meta as any) || {}),
-          arg,
-          requestId,
-          requestStatus: "pending" as const,
-        },
-      })
-    )
+  const pending: qt.AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig> = createAction(typePrefix + "/pending", (requestId: string, arg: ThunkArg, meta?: PendingMeta) => ({
+    payload: undefined,
+    meta: {
+      ...((meta as any) || {}),
+      arg,
+      requestId,
+      requestStatus: "pending" as const,
+    },
+  }))
 
-  const rejected: qt.AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
-    createAction(
-      typePrefix + "/rejected",
-      (
-        error: Error | null,
-        requestId: string,
-        arg: ThunkArg,
-        payload?: RejectedValue,
-        meta?: RejectedMeta
-      ) => ({
-        payload,
-        error: ((options && options.serializeError) || miniSerializeError)(
-          error || "Rejected"
-        ) as qt.GetSerializedErrorType<ThunkApiConfig>,
-        meta: {
-          ...((meta as any) || {}),
-          arg,
-          requestId,
-          rejectedWithValue: !!payload,
-          requestStatus: "rejected" as const,
-          aborted: error?.name === "AbortError",
-          condition: error?.name === "ConditionError",
-        },
-      })
-    )
+  const rejected: qt.AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> = createAction(
+    typePrefix + "/rejected",
+    (error: Error | null, requestId: string, arg: ThunkArg, payload?: RejectedValue, meta?: RejectedMeta) => ({
+      payload,
+      error: ((options && options.serializeError) || miniSerializeError)(error || "Rejected") as qt.GetSerializedErrorType<ThunkApiConfig>,
+      meta: {
+        ...((meta as any) || {}),
+        arg,
+        requestId,
+        rejectedWithValue: !!payload,
+        requestStatus: "rejected" as const,
+        aborted: error?.name === "AbortError",
+        condition: error?.name === "ConditionError",
+      },
+    })
+  )
 
   let displayedWarning = false
 
@@ -564,22 +402,14 @@ If you want to use the AbortController to react to \`abort\` events, please cons
           }
         }
 
-  function actionCreator(
-    arg: ThunkArg
-  ): qt.AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
+  function actionCreator(arg: ThunkArg): qt.AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
     return (dispatch, getState, extra) => {
-      const requestId = options?.idGenerator
-        ? options.idGenerator(arg)
-        : qu.nanoid()
+      const requestId = options?.idGenerator ? options.idGenerator(arg) : qu.nanoid()
 
       const abortController = new AC()
       let abortReason: string | undefined
 
-      const abortedPromise = new Promise<never>((_, reject) =>
-        abortController.signal.addEventListener("abort", () =>
-          reject({ name: "AbortError", message: abortReason || "Aborted" })
-        )
-      )
+      const abortedPromise = new Promise<never>((_, reject) => abortController.signal.addEventListener("abort", () => reject({ name: "AbortError", message: abortReason || "Aborted" })))
 
       let started = false
       function abort(reason?: string) {
@@ -603,13 +433,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
             }
           }
           started = true
-          dispatch(
-            pending(
-              requestId,
-              arg,
-              options?.getPendingMeta?.({ requestId, arg }, { getState, extra })
-            )
-          )
+          dispatch(pending(requestId, arg, options?.getPendingMeta?.({ requestId, arg }, { getState, extra })))
           finalAction = await Promise.race([
             abortedPromise,
             Promise.resolve(
@@ -619,10 +443,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                 extra,
                 requestId,
                 signal: abortController.signal,
-                rejectWithValue: ((
-                  value: RejectedValue,
-                  meta?: RejectedMeta
-                ) => {
+                rejectWithValue: ((value: RejectedValue, meta?: RejectedMeta) => {
                   return new qt.RejectWithValue(value, meta)
                 }) as any,
                 fulfillWithValue: ((value: unknown, meta?: FulfilledMeta) => {
@@ -640,16 +461,9 @@ If you want to use the AbortController to react to \`abort\` events, please cons
             }),
           ])
         } catch (err) {
-          finalAction =
-            err instanceof qt.RejectWithValue
-              ? rejected(null, requestId, arg, err.payload, err.meta)
-              : rejected(err as any, requestId, arg)
+          finalAction = err instanceof qt.RejectWithValue ? rejected(null, requestId, arg, err.payload, err.meta) : rejected(err as any, requestId, arg)
         }
-        const skipDispatch =
-          options &&
-          !options.dispatchConditionRejection &&
-          rejected.match(finalAction) &&
-          (finalAction as any).meta.condition
+        const skipDispatch = options && !options.dispatchConditionRejection && rejected.match(finalAction) && (finalAction as any).meta.condition
 
         if (!skipDispatch) {
           dispatch(finalAction)
@@ -667,19 +481,12 @@ If you want to use the AbortController to react to \`abort\` events, please cons
     }
   }
 
-  return Object.assign(
-    actionCreator as qt.AsyncThunkActionCreator<
-      Returned,
-      ThunkArg,
-      ThunkApiConfig
-    >,
-    {
-      pending,
-      rejected,
-      fulfilled,
-      typePrefix,
-    }
-  )
+  return Object.assign(actionCreator as qt.AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig>, {
+    pending,
+    rejected,
+    fulfilled,
+    typePrefix,
+  })
 }
 
 interface UnwrappableAction {
@@ -688,14 +495,9 @@ interface UnwrappableAction {
   error?: any
 }
 
-type UnwrappedActionPayload<T extends UnwrappableAction> = Exclude<
-  T,
-  { error: any }
->["payload"]
+type UnwrappedActionPayload<T extends UnwrappableAction> = Exclude<T, { error: any }>["payload"]
 
-export function unwrapResult<R extends UnwrappableAction>(
-  action: R
-): UnwrappedActionPayload<R> {
+export function unwrapResult<R extends UnwrappableAction>(action: R): UnwrappedActionPayload<R> {
   if (action.meta && action.meta.rejectedWithValue) {
     throw action.payload
   }
@@ -706,9 +508,5 @@ export function unwrapResult<R extends UnwrappableAction>(
 }
 
 function isThenable(value: any): value is PromiseLike<any> {
-  return (
-    value !== null &&
-    typeof value === "object" &&
-    typeof value.then === "function"
-  )
+  return value !== null && typeof value === "object" && typeof value.then === "function"
 }

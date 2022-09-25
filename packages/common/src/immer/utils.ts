@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import * as qt from "./types.js"
 
 export function is(x: any, y: any): boolean {
@@ -20,14 +19,7 @@ export function isDraft(x: any): boolean {
 
 export function isDraftable(x: any): boolean {
   if (!x) return false
-  return (
-    isPlain(x) ||
-    Array.isArray(x) ||
-    !!x[qt.immerable] ||
-    !!x.constructor[qt.immerable] ||
-    isMap(x) ||
-    isSet(x)
-  )
+  return isPlain(x) || Array.isArray(x) || !!x[qt.immerable] || !!x.constructor[qt.immerable] || isMap(x) || isSet(x)
 }
 
 export function isFrozen(x: any): boolean {
@@ -58,32 +50,17 @@ export function latest(x: qt.State): any {
 
 export function getType(x: any): qt.QType {
   const s: undefined | qt.State = x[qt.DRAFT_STATE]
-  return s
-    ? (s.type as any)
-    : Array.isArray(x)
-    ? qt.QType.Array
-    : isMap(x)
-    ? qt.QType.Map
-    : isSet(x)
-    ? qt.QType.Set
-    : qt.QType.Obj
+  return s ? (s.type as any) : Array.isArray(x) ? qt.QType.Array : isMap(x) ? qt.QType.Map : isSet(x) ? qt.QType.Set : qt.QType.Obj
 }
 
 export const ownKeys: (x: qt.AnyObj) => PropertyKey[] =
   typeof Reflect !== "undefined" && Reflect.ownKeys
     ? Reflect.ownKeys
     : typeof Object.getOwnPropertySymbols !== "undefined"
-    ? x =>
-        Object.getOwnPropertyNames(x).concat(
-          Object.getOwnPropertySymbols(x) as any
-        )
+    ? x => Object.getOwnPropertyNames(x).concat(Object.getOwnPropertySymbols(x) as any)
     : Object.getOwnPropertyNames
 
-export function each<T extends qt.Objectish>(
-  x: T,
-  iter: (k: string | number, v: any, src: T) => void,
-  enumOnly?: boolean
-): void
+export function each<T extends qt.Objectish>(x: T, iter: (k: string | number, v: any, src: T) => void, enumOnly?: boolean): void
 export function each(x: any, iter: any, enumOnly = false) {
   if (getType(x) === qt.QType.Obj) {
     ;(enumOnly ? Object.keys : ownKeys)(x).forEach(k => {
@@ -93,9 +70,7 @@ export function each(x: any, iter: any, enumOnly = false) {
 }
 
 export function has(x: any, k: PropertyKey): boolean {
-  return getType(x) === qt.QType.Map
-    ? x.has(k)
-    : Object.prototype.hasOwnProperty.call(x, k)
+  return getType(x) === qt.QType.Map ? x.has(k) : Object.prototype.hasOwnProperty.call(x, k)
 }
 
 export function get(x: qt.AnyMap | qt.AnyObj, k: PropertyKey): any {
@@ -157,9 +132,7 @@ export function freeze<T>(x: any, deep = false): T {
   return x
 }
 
-export type DeepReadonly<T> = T extends (...xs: any) => any
-  ? T
-  : { readonly [P in keyof T]: DeepReadonly<T[P]> }
+export type DeepReadonly<T> = T extends (...xs: any) => any ? T : { readonly [P in keyof T]: DeepReadonly<T[P]> }
 
 export function deepFreeze<T>(x: T[]): ReadonlyArray<DeepReadonly<T>>
 export function deepFreeze<T extends Function>(x: T): T
@@ -167,12 +140,7 @@ export function deepFreeze<T>(x: T): DeepReadonly<T>
 export function deepFreeze(x: any) {
   Object.freeze(x)
   Object.getOwnPropertyNames(x).forEach(k => {
-    if (
-      Object.hasOwnProperty.call(x, k) &&
-      x[k] !== null &&
-      (typeof x[k] === "object" || typeof x[k] === "function") &&
-      !Object.isFrozen(x[k])
-    ) {
+    if (Object.hasOwnProperty.call(x, k) && x[k] !== null && (typeof x[k] === "object" || typeof x[k] === "function") && !Object.isFrozen(x[k])) {
       deepFreeze(x[k])
     }
   })
@@ -181,18 +149,8 @@ export function deepFreeze(x: any) {
 
 const plugins: {
   Patches?: {
-    generatePatches(
-      s: qt.State,
-      path: qt.PatchPath,
-      patches: qt.Patch[],
-      inverses: qt.Patch[]
-    ): void
-    substitutePatches(
-      base: any,
-      sub: any,
-      ps: qt.Patch[],
-      inverses: qt.Patch[]
-    ): void
+    generatePatches(s: qt.State, path: qt.PatchPath, patches: qt.Patch[], inverses: qt.Patch[]): void
+    substitutePatches(base: any, sub: any, ps: qt.Patch[], inverses: qt.Patch[]): void
     applyPatches<T>(x: T, ps: qt.Patch[]): T
   }
   MapSet?: {
@@ -203,9 +161,7 @@ const plugins: {
 
 type Plugins = typeof plugins
 
-export function getPlugin<K extends keyof Plugins>(
-  k: K
-): NonNullable<Plugins[K]> {
+export function getPlugin<K extends keyof Plugins>(k: K): NonNullable<Plugins[K]> {
   const y = plugins[k]
   if (!y) die(18, k)
   return y
@@ -220,10 +176,7 @@ const errors = {
   1: "Immer drafts cannot have computed properties",
   2: "This object has been frozen and should not be mutated",
   3(data: any) {
-    return (
-      "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
-      data
-    )
+    return "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " + data
   },
   4: "An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.",
   5: "Immer forbids circular references",
@@ -262,16 +215,8 @@ const errors = {
 export function die(k: keyof typeof errors, ...xs: any[]): never {
   if (__DEV__) {
     const e = errors[k]
-    const m = !e
-      ? "unknown error nr: " + k
-      : typeof e === "function"
-      ? (e as (...xs: any[]) => any)(xs)
-      : e
+    const m = !e ? "unknown error nr: " + k : typeof e === "function" ? (e as (...xs: any[]) => any)(xs) : e
     throw new Error(`[Immer] ${m}`)
   }
-  throw new Error(
-    `[Immer] minified error nr: ${k}${
-      xs.length ? " " + xs.map(s => `'${s}'`).join(",") : ""
-    }. Find the full error at: https://bit.ly/3cXEKWf`
-  )
+  throw new Error(`[Immer] minified error nr: ${k}${xs.length ? " " + xs.map(s => `'${s}'`).join(",") : ""}. Find the full error at: https://bit.ly/3cXEKWf`)
 }

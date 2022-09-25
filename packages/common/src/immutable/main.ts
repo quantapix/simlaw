@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import { List } from "./list.js"
 import { Map } from "./map.js"
 import { OrderedMap, OrderedSet } from "./ordered.js"
