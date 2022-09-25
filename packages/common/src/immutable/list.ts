@@ -2,6 +2,7 @@ import { Collection } from "./main.js"
 import * as qf from "./functions.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
+import { unknownAction } from "packages/common/test/redux/helpers.js"
 
 export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
   static isList = qu.isList
@@ -148,11 +149,12 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
     return makeList(this._origin, this._capacity, this._level, this._root, this._tail, ownerID, this.__hash)
   }
   merge = this.concat
-  setIn = qf.setIn
+  setIn = (x: any, v: unknown) => qf.setIn(this, x, v)
   removeIn = qf.deleteIn
   deleteIn = qf.deleteIn
-  override update = qf.update
-  updateIn = qf.updateIn
+  override update = (x: any, v0?: unknown, f?: any) =>
+    v0 === undefined && f === undefined ? x(this) : qf.update(this, x, v0, f)
+  updateIn = (x: any, v0: unknown, f?: any) => qf.updateIn(this, x, v0, f)
   mergeIn = qf.mergeIn
   mergeDeepIn = qf.mergeDeepIn
   withMutations = qf.withMutations

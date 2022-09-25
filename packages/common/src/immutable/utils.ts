@@ -233,14 +233,16 @@ export function quoteString(x: unknown) {
   }
 }
 
-export function shallowCopy(x) {
+export function shallowCopy(x: any) {
   if (Array.isArray(x)) return arrCopy(x)
-  const y = {}
+  const y: any = {}
   for (const k in x) {
     if (hasOwnProperty.call(x, k)) y[k] = x[k]
   }
   return y
 }
+
+export const hasOwnProperty = Object.hasOwnProperty
 
 export const imul =
   typeof Math.imul === "function" && Math.imul(0xffffffff, 2) === -2
@@ -303,17 +305,17 @@ export function SetRef(x: any) {
 }
 export function OwnerID() {}
 
-export function ensureSize(x: any) {
+export function ensureSize(x: any): number {
   if (x.size === undefined) x.size = x.__iterate(returnTrue)
   return x.size
 }
-export function wrapIndex(iter, i: any) {
+export function wrapIndex(x: unknown, i: any): number {
   if (typeof i !== "number") {
     const uint32Index = i >>> 0 // N >>> 0 is shorthand for ToUint32
     if ("" + uint32Index !== i || uint32Index === 4294967295) return NaN
     i = uint32Index
   }
-  return i < 0 ? ensureSize(iter) + i : i
+  return i < 0 ? ensureSize(x) + i : i
 }
 export function returnTrue() {
   return true

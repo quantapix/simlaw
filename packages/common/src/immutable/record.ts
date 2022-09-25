@@ -25,13 +25,13 @@ export class Record<T extends object> implements qt.Record<T> {
   static getDescriptiveName = recordName
 
   static create<T extends object>(vs0: T, name?: string): Record.Factory<T> {
-    let hasInitialized
+    let ready = false
     throwOnInvalidDefaultValues(vs0)
     const y = function Record(values) {
       if (values instanceof y) return values
       if (!(this instanceof y)) return new y(values)
-      if (!hasInitialized) {
-        hasInitialized = true
+      if (!ready) {
+        ready = true
         const keys = Object.keys(vs0)
         const indices = (RecordTypePrototype._indices = {})
         RecordTypePrototype._keys = keys
@@ -139,17 +139,18 @@ export class Record<T extends object> implements qt.Record<T> {
   }
   deleteIn = qf.deleteIn
   removeIn = qf.deleteIn
-  getIn = qf.getIn
-  hasIn = Collection.prototype.hasIn
-  merge = qf.merge
-  mergeWith = qf.mergeWith
+  getIn = (x: any, v0?: unknown) => qf.getIn(this, x, v0)
+  hasIn = (x: any) => qf.hasIn(this, x)
+  merge = (...xs: unknown[]) => qf.mergeIntoKeyedWith(this, xs)
+  mergeWith = (f: any, ...xs: unknown[]) => qf.mergeIntoKeyedWith(this, xs, f)
   mergeIn = qf.mergeIn
-  mergeDeep = qf.mergeDeep
-  mergeDeepWith = qf.mergeDeepWith
+  mergeDeep = (...xs: unknown[]) => qf.mergeDeep(this, xs)
+  mergeDeepWith = (f: any, ...xs: unknown[]) => qf.mergeDeepWith(f, this, xs)
   mergeDeepIn = qf.mergeDeepIn
-  setIn = qf.setIn
-  update = qf.update
-  updateIn = qf.updateIn
+  setIn = (x: any, v: unknown) => qf.setIn(this, x, v)
+  update = (x: any, v0?: unknown, f?: any) =>
+    v0 === undefined && f === undefined ? x(this) : qf.update(this, x, v0, f)
+  updateIn = (x: any, v0: unknown, f?: any) => qf.updateIn(this, x, v0, f)
   withMutations = qf.withMutations
   asMutable = qf.asMutable
   asImmutable = qf.asImmutable;

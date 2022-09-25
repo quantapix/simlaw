@@ -13,22 +13,18 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   static isKeyed = qu.isKeyed
   static isOrdered = qu.isOrdered
 
+  static create<T = unknown, U = unknown>(): Collection<T, U>
   static create<T extends Collection<unknown, unknown>>(x: T): T
   static create<T>(x: Iterable<T> | ArrayLike<T>): qt.Collection.Indexed<T>
-  static create<V>(x: qt.Dict<V>): qt.Collection.Keyed<string, V>
-  static create<K = unknown, V = unknown>(): Collection<K, V>
+  static create<T>(x: qt.Dict<T>): qt.Collection.Keyed<string, T>
   static create(x?: any): any {
     return qu.isCollection(x) ? x : Seq.create(x)
   }
 
-  readonly size: number | undefined;
-  [Symbol.iterator] = this.values;
-  [qu.IS_COLLECTION_SYMBOL] = true
+  [qu.IS_COLLECTION_SYMBOL] = true;
+  [Symbol.iterator] = this.values
+  readonly size: number | undefined
 
-  __toString(head, tail) {
-    if (this.size === 0) return head + tail
-    return head + " " + this.toSeq().map(this.__toStringMapper).join(", ") + " " + tail
-  }
   butLast() {
     return this.slice(0, -1)
   }
@@ -36,7 +32,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return qo.reify(this, qo.concatFactory(this, xs))
   }
   contains = this.includes
-  count(f: unknown, ctx?: unknown) {
+  count(f?: unknown, ctx?: unknown): number {
     return qu.ensureSize(f ? this.toSeq().filter(f, ctx) : this)
   }
   countBy(f: unknown, ctx?: unknown) {
@@ -117,7 +113,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   get(k: unknown, v0?: unknown) {
     return this.find((_, x) => qu.is(x, k), undefined, v0)
   }
-  getIn: qf.getIn
+  getIn = (x: any, v0?: unknown) => qf.getIn(this, x, v0)
   groupBy(f: unknown, ctx?: unknown) {
     return qo.groupByFactory(this, f, ctx)
   }
@@ -127,7 +123,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   hashCode() {
     return this.__hash || (this.__hash = hashCollection(this))
   }
-  hasIn: qf.hasIn
+  hasIn = (x: any) => qf.hasIn(this, x)
   includes(v: unknown) {
     return this.some(x => qu.is(x, v))
   }
@@ -257,7 +253,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   toMap() {
     return Map.create(this.toSeqKeyed())
   }
-  toObject: qf.toObject
+  toObject = qf.toObject
   toOrderedMap() {
     return OrderedMap.create(this.toSeqKeyed())
   }
@@ -288,12 +284,16 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   valueSeq() {
     return this.toSeqIndexed()
   }
-  __toStringMapper = qu.quoteString
   toSource = () => {
     return this.toString()
   }
   inspect = this.toSource
   chain = this.flatMap
+  __toString(head, tail) {
+    if (this.size === 0) return head + tail
+    return head + " " + this.toSeq().map(this.__toStringMapper).join(", ") + " " + tail
+  }
+  __toStringMapper = qu.quoteString
 }
 
 export namespace Collection {
@@ -471,28 +471,28 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
     }
     return this
   }
-  __iterate(fn, reverse: boolean) {
-    const cache = this._cache
-    if (cache) {
-      const size = cache.length
+  __iterate(f: any, reverse: boolean) {
+    const xs = this._cache
+    if (xs) {
+      const size = xs.length
       let i = 0
       while (i !== size) {
-        const entry = cache[reverse ? size - ++i : i++]
-        if (fn(entry[1], entry[0], this) === false) break
+        const x = xs[reverse ? size - ++i : i++]
+        if (f(x[1], x[0], this) === false) break
       }
       return i
     }
-    return this.__iterateUncached(fn, reverse)
+    return this.__iterateUncached(f, reverse)
   }
   __iterator(type, reverse: boolean) {
-    const cache = this._cache
-    if (cache) {
-      const size = cache.length
+    const xs = this._cache
+    if (xs) {
+      const size = xs.length
       let i = 0
       return new qu.Iterator(() => {
         if (i === size) return qu.iteratorDone()
-        const entry = cache[reverse ? size - ++i : i++]
-        return qu.iteratorValue(type, entry[0], entry[1])
+        const x = xs[reverse ? size - ++i : i++]
+        return qu.iteratorValue(type, x[0], x[1])
       })
     }
     return this.__iteratorUncached(type, reverse)

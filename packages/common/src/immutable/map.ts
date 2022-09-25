@@ -98,16 +98,18 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
     }
     return makeMap(this.size, this._root, ownerID, this.__hash)
   }
+  concat = this.merge
   removeAll = this.deleteAll
-  setIn = qf.setIn
+  setIn = (x: any, v: unknown) => qf.setIn(this, x, v)
   deleteIn = qf.deleteIn
   removeIn = qf.deleteIn
-  override update = qf.update
-  updateIn = qf.updateIn
-  merge = (this.concat = qf.merge)
-  mergeWith = qf.mergeWith
-  mergeDeep = qf.mergeDeep
-  mergeDeepWith = qf.mergeDeepWith
+  override update = (x: any, v0?: unknown, f?: any) =>
+    v0 === undefined && f === undefined ? x(this) : qf.update(this, x, v0, f)
+  updateIn = (x: any, v0: unknown, f?: any) => qf.updateIn(this, x, v0, f)
+  merge = (...xs: unknown[]) => qf.mergeIntoKeyedWith(this, xs)
+  mergeWith = (f: any, ...xs: unknown[]) => qf.mergeIntoKeyedWith(this, xs, f)
+  mergeDeep = (...xs: unknown[]) => qf.mergeDeep(this, xs)
+  mergeDeepWith = (f: any, ...xs: unknown[]) => qf.mergeDeepWith(f, this, xs)
   mergeIn = qf.mergeIn
   mergeDeepIn = qf.mergeDeepIn
   withMutations = qf.withMutations

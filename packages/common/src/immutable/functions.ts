@@ -1,18 +1,17 @@
 import { emptyMap } from "./map.js"
-import { Collection } from "./main.js"
-import { Seq } from "./seq.js"
+import { Collection, Seq } from "./main.js"
 import { set } from "./set.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-export function get<K, V>(x: qt.Collection<K, V>, k: K): V | undefined
 export function get<K, V, T>(x: qt.Collection<K, V>, k: K, v0: T): V | T
+export function get<K, V>(x: qt.Collection<K, V>, k: K): V | undefined
 export function get<T extends object, K extends keyof T>(x: qt.Record<T>, k: K, v0: unknown): T[K]
-export function get<V>(x: Array<V>, i: number): V | undefined
-export function get<V, T>(x: Array<V>, i: number, v0: T): V | T
 export function get<T extends object, K extends keyof T>(x: T, k: K, v0: unknown): T[K]
-export function get<V>(x: qt.Dict<V>, k: string): V | undefined
+export function get<V, T>(x: Array<V>, i: number, v0: T): V | T
 export function get<V, T>(x: qt.Dict<V>, k: string, v0: T): V | T
+export function get<V>(x: Array<V>, i: number): V | undefined
+export function get<V>(x: qt.Dict<V>, k: string): V | undefined
 export function get(x: any, k: any, v0?: unknown) {
   return qu.isImmutable(x) ? x.get(k, v0) : !has(x, k) ? v0 : typeof x.get === "function" ? x.get(k) : x[k]
 }
@@ -27,7 +26,7 @@ export function getIn(x: any, xs: Iterable<unknown>, v0?: unknown): unknown {
   return x
 }
 
-export function has(x: object, k: unknown): boolean {
+export function has(x: object, k: any): boolean {
   return qu.isImmutable(x) ? x.has(k) : qu.isDataStructure(x) && qu.hasOwnProperty.call(x, k)
 }
 
@@ -100,21 +99,18 @@ function deepMergerWith(f: any) {
   return y
 }
 
-function areMergeable(old, x) {
-  const oldSeq = Seq(old)
-  const newSeq = Seq(x)
-  return qu.isIndexed(oldSeq) === qu.isIndexed(newSeq) && qu.isKeyed(oldSeq) === qu.isKeyed(newSeq)
+function areMergeable(a: any, b: any) {
+  const a2 = Seq.create(a)
+  const b2 = Seq.create(b)
+  return qu.isIndexed(a2) === qu.isIndexed(b2) && qu.isKeyed(a2) === qu.isKeyed(b2)
 }
 
-export function remove<K, C extends qt.Collection<K, unknown>>(collection: C, k: K): C
-export function remove<TProps extends object, C extends qt.Record<TProps>, K extends keyof TProps>(
-  collection: C,
-  k: K
-): C
-export function remove<C extends Array<unknown>>(collection: C, key: number): C
-export function remove<C, K extends keyof C>(collection: C, k: K): C
-export function remove<C extends qt.Dict, K extends keyof C>(collection: C, k: K): C
-export function remove(x: unknown, k: unknown) {
+export function remove<K, T extends qt.Collection<K, unknown>>(x: T, k: K): T
+export function remove<T extends Array<unknown>>(x: T, k: number): T
+export function remove<T extends object, U extends qt.Record<T>, K extends keyof T>(x: U, k: K): U
+export function remove<T extends qt.Dict, K extends keyof T>(x: T, k: K): T
+export function remove<T, K extends keyof T>(x: T, k: K): T
+export function remove(x: unknown, k: any) {
   if (!qu.isDataStructure(x)) throw new TypeError("Cannot update non-data-structure value: " + x)
   if (qu.isImmutable(x)) {
     if (!x.remove) throw new TypeError("Cannot update immutable value without .remove() method: " + x)
@@ -131,16 +127,12 @@ export function removeIn<T>(x: T, xs: Iterable<unknown>): T {
   return updateIn(x, xs, () => qu.NOT_SET)
 }
 
-export function set<K, V, C extends qt.Collection<K, V>>(collection: C, k: K, v: V): C
-export function set<TProps extends object, C extends qt.Record<TProps>, K extends keyof TProps>(
-  record: C,
-  k: K,
-  value: TProps[K]
-): C
-export function set<V, C extends Array<V>>(collection: C, key: number, v: V): C
-export function set<C, K extends keyof C>(object: C, k: K, value: C[K]): C
-export function set<V, C extends qt.Dict<V>>(collection: C, k: string, v: V): C
-export function set(x, k, v) {
+export function set<K, V, T extends qt.Collection<K, V>>(x: T, k: K, v: V): T
+export function set<T extends object, U extends qt.Record<T>, K extends keyof T>(x: U, k: K, v: T[K]): U
+export function set<V, T extends Array<V>>(x: T, k: number, v: V): T
+export function set<T, K extends keyof T>(x: T, k: K, v: T[K]): T
+export function set<V, T extends qt.Dict<V>>(x: T, k: string, v: V): T
+export function set(x: any, k: any, v: unknown) {
   if (!qu.isDataStructure(x)) throw new TypeError("Cannot update non-data-structure value: " + x)
   if (qu.isImmutable(x)) {
     if (!x.set) throw new TypeError("Cannot update immutable value without .set() method: " + x)
@@ -157,35 +149,31 @@ export function setIn<T>(x: T, xs: Iterable<unknown>, v: unknown): T {
 }
 
 export function update<K, V, T extends qt.Collection<K, V>>(x: T, k: K, f: (v: V | undefined) => V): T
-export function update<K, V, T extends qt.Collection<K, V>, V2>(x: T, k: K, v0: V2, f: (v: V | V2) => V): T
-export function update<TProps extends object, C extends qt.Record<TProps>, K extends keyof TProps>(
-  record: C,
+export function update<K, V, T extends qt.Collection<K, V>, V0>(x: T, k: K, v0: V0, f: (v: V | V0) => V): T
+export function update<T extends object, U extends qt.Record<T>, K extends keyof T>(x: U, k: K, f: (x: T[K]) => T[K]): U
+export function update<V>(x: Array<V>, k: number, f: (v: V) => V): Array<V>
+export function update<V, V0>(x: Array<V>, k: number, v0: V0, f: (v: V | V0) => V): Array<V>
+export function update<T, K extends keyof T>(x: T, k: K, f: (x: T[K]) => T[K]): T
+export function update<T, K extends keyof T, V0>(x: T, k: K, v0: V0, f: (x: T[K] | V0) => T[K]): T
+export function update<V, T extends qt.Dict<V>, K extends keyof T>(x: T, k: K, f: (v: V) => V): qt.Dict<V>
+export function update<V, T extends qt.Dict<V>, K extends keyof T, V0>(
+  x: T,
   k: K,
-  f: (value: TProps[K]) => TProps[K]
-): C
-export function update<TProps extends object, C extends qt.Record<TProps>, K extends keyof TProps, NSV>(
-  record: C,
-  k: K,
-  v0: NSV,
-  f: (value: TProps[K] | NSV) => TProps[K]
-): C
-export function update<V>(collection: Array<V>, key: number, f: (v: V) => V): Array<V>
-export function update<V, NSV>(collection: Array<V>, key: number, v0: NSV, f: (v: V | NSV) => V): Array<V>
-export function update<C, K extends keyof C>(object: C, k: K, f: (value: C[K]) => C[K]): C
-export function update<C, K extends keyof C, NSV>(object: C, k: K, v0: NSV, f: (value: C[K] | NSV) => C[K]): C
-export function update<V, C extends qt.Dict<V>, K extends keyof C>(collection: C, k: K, f: (v: V) => V): qt.Dict<V>
-export function update<V, C extends qt.Dict<V>, K extends keyof C, NSV>(
-  collection: C,
-  k: K,
-  v0: NSV,
-  f: (v: V | NSV) => V
+  v0: V0,
+  f: (v: V | V0) => V
 ): qt.Dict<V>
-export function update(x: unknown, k: unknown, v0: unknown, f: (x: unknown) => unknown) {
+export function update<T extends object, U extends qt.Record<T>, K extends keyof T, V0>(
+  x: U,
+  k: K,
+  v0: V0,
+  f: (x: T[K] | V0) => T[K]
+): U
+export function update(x: unknown, k: unknown, v0: unknown, f?: (x: unknown) => unknown) {
   return updateIn(x, [k], v0, f)
 }
 
 export function updateIn<T>(x: T, xs: Iterable<unknown>, f: (x: unknown) => unknown): T
-export function updateIn<T>(x: T, xs: Iterable<unknown>, v0: unknown, f: (x: unknown) => unknown): T
+export function updateIn<T>(x: T, xs: Iterable<unknown>, v0: unknown, f?: (x: unknown) => unknown): T
 export function updateIn(x: unknown, xs: unknown, v0: unknown, f?: unknown) {
   if (!f) {
     f = v0
@@ -195,7 +183,7 @@ export function updateIn(x: unknown, xs: unknown, v0: unknown, f?: unknown) {
   return y === qu.NOT_SET ? v0 : y
 }
 
-function updateInDeeply(isImmutable: boolean, x: unknown, xs: any, i: number, v0: unknown, f: any): any {
+function updateInDeeply(isImmutable: boolean, x: any, xs: any, i: number, v0: unknown, f: any): any {
   const notSet = x === qu.NOT_SET
   if (i === xs.length) {
     const x2 = notSet ? v0 : x
@@ -212,100 +200,63 @@ function updateInDeeply(isImmutable: boolean, x: unknown, xs: any, i: number, v0
   return y === x2 ? x : y === qu.NOT_SET ? remove(x, k) : set(notSet ? (isImmutable ? emptyMap() : {}) : x, k, y)
 }
 
-export function asImmutable() {
+export function asImmutable(this: any) {
   return this.__ensureOwner()
 }
 
-export function asMutable() {
+export function asMutable(this: any) {
   return this.__ownerID ? this : this.__ensureOwner(new qu.OwnerID())
 }
 
-export function deleteIn(keyPath) {
-  return removeIn(this, keyPath)
+export function deleteIn(this: any, x) {
+  return removeIn(this, x)
 }
 
-export function getIn2(searchKeyPath, notSetValue) {
-  return getIn(this, searchKeyPath, notSetValue)
-}
-
-export function hasIn2(searchKeyPath) {
-  return hasIn(this, searchKeyPath)
-}
-
-export function merge2(...iters) {
-  return mergeIntoKeyedWith(this, iters)
-}
-
-export function mergeWith2(merger, ...iters) {
-  if (typeof merger !== "function") throw new TypeError("Invalid merger function: " + merger)
-  return mergeIntoKeyedWith(this, iters, merger)
-}
-
-function mergeIntoKeyedWith(x, xs, f?) {
-  const y = []
-  for (let ii = 0; ii < xs.length; ii++) {
-    const collection = Collection.Keyed.create(xs[ii])
-    if (collection.size !== 0) y.push(collection)
+export function mergeIntoKeyedWith(x: any, xs: any, f?: Function) {
+  const ys: any[] = []
+  for (let i = 0; i < xs.length; i++) {
+    const y = Collection.Keyed.create(xs[i])
+    if (y.size !== 0) ys.push(y)
   }
-  if (y.length === 0) return x
-  if (x.toSeq().size === 0 && !x.__ownerID && y.length === 1) return x.constructor(y[0])
+  if (ys.length === 0) return x
+  if (x.toSeq().size === 0 && !x.__ownerID && ys.length === 1) return x.constructor(ys[0])
   return x.withMutations(x2 => {
     const mergeIntoCollection = f
       ? (v, k) => {
-          update(x2, k, qu.NOT_SET, oldVal => (oldVal === qu.NOT_SET ? v : f(oldVal, v, k)))
+          update(x2, k, qu.NOT_SET, v0 => (v0 === qu.NOT_SET ? v : f(v0, v, k)))
         }
       : (v, k) => {
           x2.set(k, v)
         }
-    for (let ii = 0; ii < y.length; ii++) {
-      y[ii].forEach(mergeIntoCollection)
+    for (let i = 0; i < ys.length; i++) {
+      ys[i].forEach(mergeIntoCollection)
     }
   })
 }
 
-export function mergeDeep2(...iters) {
-  return mergeDeepWithSources(this, iters)
+export function mergeIn(this: any, x: any, ...xs: unknown[]) {
+  return updateIn(this, x, emptyMap(), m => mergeWithSources(m, xs))
 }
 
-export function mergeDeepWith2(merger, ...iters) {
-  return mergeDeepWithSources(this, iters, merger)
+export function mergeDeepIn(this: any, x: any, ...xs: unknown[]) {
+  return updateIn(this, x, emptyMap(), m => mergeDeepWithSources(m, xs))
 }
 
-export function mergeDeepIn(keyPath, ...iters) {
-  return updateIn(this, keyPath, emptyMap(), m => mergeDeepWithSources(m, iters))
-}
-
-export function mergeIn(keyPath, ...iters) {
-  return updateIn(this, keyPath, emptyMap(), m => mergeWithSources(m, iters))
-}
-
-export function setIn2(keyPath, v) {
-  return setIn(this, keyPath, v)
-}
-
-export function toObject() {
+export function toObject(this: any) {
   qu.assertNotInfinite(this.size)
-  const y = {}
+  const y: any = {}
   this.__iterate((v, k) => {
     y[k] = v
   })
   return y
 }
 
-export function update2(key, notSetValue, updater) {
-  return arguments.length === 1 ? key(this) : update(this, key, notSetValue, updater)
-}
-
-export function updateIn2(keyPath, notSetValue, updater) {
-  return updateIn(this, keyPath, notSetValue, updater)
-}
-
-export function wasAltered() {
+export function wasAltered(this: any) {
   return this.__altered
 }
 
-export function withMutations(fn) {
+export function withMutations(this: any, f: Function) {
   const y = this.asMutable()
-  fn(y)
+  f(y)
   return y.wasAltered() ? y.__ensureOwner(this.__ownerID) : this
 }

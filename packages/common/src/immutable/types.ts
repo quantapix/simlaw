@@ -8,8 +8,8 @@ export interface ValueObject {
 }
 
 export interface Collection<K, V> {
-  readonly size: number | undefined
   [Symbol.iterator](): IterableIterator<unknown>
+  readonly size: number | undefined
   butLast(): this
   concat(...xs: Array<unknown>): Collection<unknown, unknown>
   contains(v: V): boolean
