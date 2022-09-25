@@ -61,7 +61,7 @@ export class Record<T extends object> implements qt.Record<T> {
       })
       return this
     }
-    const RecordTypePrototype = (y.prototype = Object.create(RecordPrototype))
+    const RecordTypePrototype = (y.prototype = Object.create(Record.prototype))
     RecordTypePrototype.constructor = y
     if (name) y.displayName = name
     return y
@@ -169,10 +169,10 @@ export namespace Record {
   ): Record<TProps> & Readonly<TProps>
 }
 
-function makeRecord(likeRecord, values, ownerID) {
+function makeRecord(likeRecord, values, owner) {
   const y = Object.create(Object.getPrototypeOf(likeRecord))
   y._values = values
-  y.__ownerID = ownerID
+  y.__ownerID = owner
   return y
 }
 

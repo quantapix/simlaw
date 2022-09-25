@@ -156,13 +156,14 @@ function updateSet(set, newMap) {
   return newMap === set._map ? set : newMap.size === 0 ? set.__empty() : set.__make(newMap)
 }
 
-function makeSet(map, ownerID) {
-  const y = Object.create(SetPrototype)
+function makeSet(map, owner) {
+  const y = Object.create(Set.prototype)
   y.size = map ? map.size : 0
   y._map = map
-  y.__ownerID = ownerID
+  y.__ownerID = owner
   return y
 }
+
 let EMPTY_SET
 
 function emptySet() {
