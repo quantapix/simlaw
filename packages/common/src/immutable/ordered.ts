@@ -8,9 +8,9 @@ import type * as qt from "./types.js"
 
 export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
   static isOrderedMap = qu.isOrderedMap
-  static create<K, V>(x?: Iterable<[K, V]>): qt.OrderedMap<K, V>
-  static create<V>(x: qt.Dict<V>): qt.OrderedMap<string, V>
-  static create(x: any): any {
+  static override create<K, V>(x?: Iterable<[K, V]>): qt.OrderedMap<K, V>
+  static override create<V>(x: qt.Dict<V>): qt.OrderedMap<string, V>
+  static override create(x: any): any {
     return x === undefined || x === null
       ? emptyOrderedMap()
       : qu.isOrderedMap(x)
@@ -21,12 +21,12 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
           iter.forEach((v, k) => x2.set(k, v))
         })
   }
-  static of<K, V>(...xs) {
+  static override of<K, V>(...xs) {
     return new OrderedMap<K, V>(...xs)
   }
 
   [qu.IS_ORDERED_SYMBOL] = true;
-  [qu.DELETE] = this.remove
+  override [qu.DELETE] = this.remove
 
   override toString() {
     return this.__toString("OrderedMap {", "}")
@@ -92,6 +92,7 @@ function makeOrderedMap(map, list, ownerID, hash) {
 }
 
 let EMPTY_ORDERED_MAP
+
 export function emptyOrderedMap() {
   return EMPTY_ORDERED_MAP || (EMPTY_ORDERED_MAP = makeOrderedMap(emptyMap(), emptyList()))
 }
@@ -136,50 +137,44 @@ function updateOrderedMap(omap, k, v) {
   return makeOrderedMap(newMap, newList)
 }
 
-export class OrderedSet extends Set {
-  constructor(value) {
-    return value === undefined || value === null
+export class OrderedSet<K> extends Set<K> implements qt.OrderedSet<K> {
+  static isOrderedSet = qu.isOrderedSet
+
+  static override create<T>(x?: Iterable<T> | ArrayLike<T>): OrderedSet<T> {
+    return x === undefined || x === null
       ? emptyOrderedSet()
-      : qu.isOrderedSet(value)
-      ? value
-      : emptyOrderedSet().withMutations(set => {
-          const iter = new Collection.Set(value)
-          qu.assertNotInfinite(iter.size)
-          iter.forEach(v => set.add(v))
+      : qu.isOrderedSet(x)
+      ? x
+      : emptyOrderedSet().withMutations(x2 => {
+          const y = new Collection.Set(x)
+          qu.assertNotInfinite(y.size)
+          y.forEach(v => x2.add(v))
         })
   }
-  static of(...xs) {
+
+  static override of<T>(...xs: Array<T>): OrderedSet<T> {
     return this(...xs)
   }
-  static fromKeys(value) {
-    return this(KeyedCollection(value).keySeq())
+  static override fromKeys<T>(x: Collection<T, unknown>): OrderedSet<T>
+  static override fromKeys(x: qt.Dict): OrderedSet<string>
+  static override fromKeys(x: any): any {
+    return this(new Collection.Keyed(x).keySeq())
   }
-  toString() {
+
+  [qu.IS_ORDERED_SYMBOL] = true
+
+  override toString() {
     return this.__toString("OrderedSet {", "}")
   }
+  zip = Collection.Indexed.prototype.zip
+  zipWith = Collection.Indexed.prototype.zipWith
+  zipAll = Collection.Indexed.prototype.zipAll
+  override __empty = emptyOrderedSet
+  override __make = makeOrderedSet
 }
-
-export namespace OrderedSet {
-  function isOrderedSet(maybeOrderedSet: unknown): boolean
-  function of<T>(...xs: Array<T>): OrderedSet<T>
-  function fromKeys<T>(iter: Collection<T, unknown>): OrderedSet<T>
-  function fromKeys(obj: Dict): OrderedSet<string>
-}
-/*
-export function OrderedSet<T>(collection?: Iterable<T> | ArrayLike<T>): OrderedSet<T>
-*/
-
-OrderedSet.isOrderedSet = qu.isOrderedSet
-const OrderedSetPrototype = OrderedSet.prototype
-OrderedSetPrototype[qu.IS_ORDERED_SYMBOL] = true
-OrderedSetPrototype.zip = Collection.Indexed.prototype.zip
-OrderedSetPrototype.zipWith = Collection.Indexed.prototype.zipWith
-OrderedSetPrototype.zipAll = Collection.Indexed.prototype.zipAll
-OrderedSetPrototype.__empty = emptyOrderedSet
-OrderedSetPrototype.__make = makeOrderedSet
 
 function makeOrderedSet(map, ownerID) {
-  const y = Object.create(OrderedSetPrototype)
+  const y = Object.create(OrderedSet.prototype)
   y.size = map ? map.size : 0
   y._map = map
   y.__ownerID = ownerID
@@ -187,6 +182,7 @@ function makeOrderedSet(map, ownerID) {
 }
 
 let EMPTY_ORDERED_SET
+
 function emptyOrderedSet() {
   return EMPTY_ORDERED_SET || (EMPTY_ORDERED_SET = makeOrderedSet(emptyOrderedMap()))
 }

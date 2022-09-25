@@ -10,6 +10,7 @@ export interface ValueObject {
 }
 
 export interface Collection<K, V> {
+  readonly size: number | undefined
   [Symbol.iterator](): IterableIterator<unknown>
   butLast(): this
   concat(...xs: Array<unknown>): Collection<unknown, unknown>
@@ -71,7 +72,7 @@ export interface Collection<K, V> {
   skipWhile(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): this
   slice(beg?: number, end?: number): this
   some(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): boolean
-  sort(comparator?: (a: V, b: V) => number): this
+  sort(c?: (a: V, b: V) => number): this
   sortBy<T>(f: (v: V, k: K, iter: this) => T, c?: (a: T, b: T) => number): this
   take(x: number): this
   takeLast(x: number): this
@@ -159,7 +160,6 @@ export namespace Collection {
 }
 
 export interface Seq<K, V> extends Collection<K, V> {
-  readonly size: number | undefined
   cacheResult(): this
   filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
   filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): Seq<K, T>
@@ -389,14 +389,6 @@ export interface Stack<V> extends Collection.Indexed<V> {
   zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Stack<T>
 }
 
-export namespace Record {
-  export interface Factory<TProps extends object> {
-    (values?: Partial<TProps> | Iterable<[string, unknown]>): Record<TProps> & Readonly<TProps>
-    new (values?: Partial<TProps> | Iterable<[string, unknown]>): Record<TProps> & Readonly<TProps>
-    displayName: string
-  }
-}
-
 export interface Record<T extends object> {
   [Symbol.iterator](): IterableIterator<[keyof T, T[keyof T]]>
   asImmutable(): this
@@ -431,4 +423,12 @@ export interface Record<T extends object> {
   withMutations(f: (x: this) => unknown): this
 }
 
-export type RecordOf<TProps extends object> = Record<TProps> & Readonly<TProps>
+export type RecordOf<T extends object> = Record<T> & Readonly<T>
+
+export namespace Record {
+  export interface Factory<T extends object> {
+    (xs?: Partial<T> | Iterable<[string, unknown]>): Record<T> & Readonly<T>
+    new (xs?: Partial<T> | Iterable<[string, unknown]>): Record<T> & Readonly<T>
+    displayName: string
+  }
+}

@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-import { Seq } from "./seq.js"
+import { Seq } from "./main.js"
 import type * as qt from "./types.js"
 
 export const IS_COLLECTION_SYMBOL = "@@__IMMUTABLE_ITERABLE__@@"
@@ -62,57 +62,49 @@ export function isValueObject(x: any): x is qt.ValueObject {
 export const ITERATE_KEYS = 0
 export const ITERATE_VALUES = 1
 export const ITERATE_ENTRIES = 2
-const REAL_ITERATOR_SYMBOL = typeof Symbol === "function" && Symbol.iterator
-const FAUX_ITERATOR_SYMBOL = "@@iterator"
-export const ITERATOR_SYMBOL = REAL_ITERATOR_SYMBOL || FAUX_ITERATOR_SYMBOL
 
 export class Iterator {
-  constructor(next) {
-    this.next = next
-  }
+  KEYS = ITERATE_KEYS
+  VALUES = ITERATE_VALUES
+  ENTRIES = ITERATE_ENTRIES;
+  [Symbol.iterator] = () => this
+  constructor(public next: unknown) {}
+  toSource = () => this.toString()
+  inspect = this.toSource
   toString() {
     return "[Iterator]"
   }
 }
 
-Iterator.KEYS = ITERATE_KEYS
-Iterator.VALUES = ITERATE_VALUES
-Iterator.ENTRIES = ITERATE_ENTRIES
-Iterator.prototype.inspect = Iterator.prototype.toSource = function () {
-  return this.toString()
-}
-Iterator.prototype[ITERATOR_SYMBOL] = function () {
-  return this
+export function iteratorValue(type, k, v, y) {
+  const value = type === 0 ? k : type === 1 ? v : [k, v]
+  y ? (y.value = value) : (y = { value, done: false })
+  return y
 }
 
-export function iteratorValue(type, k, v, iteratorResult) {
-  const value = type === 0 ? k : type === 1 ? v : [k, v]
-  iteratorResult
-    ? (iteratorResult.value = value)
-    : (iteratorResult = {
-        value: value,
-        done: false,
-      })
-  return iteratorResult
-}
 export function iteratorDone() {
   return { value: undefined, done: true }
 }
+
 export function hasIterator(x: unknown) {
   if (Array.isArray(x)) return true
   return !!getIteratorFn(x)
 }
+
 export function isIterator(x: any) {
   return x && typeof x.next === "function"
 }
+
 export function getIterator(x: unknown) {
   const f = getIteratorFn(x)
   return f && f.call(x)
 }
+
 function getIteratorFn(x: any) {
-  const f = x && ((REAL_ITERATOR_SYMBOL && x[REAL_ITERATOR_SYMBOL]) || x[FAUX_ITERATOR_SYMBOL])
+  const f = x && x[Symbol.iterator]
   if (typeof f === "function") return f
 }
+
 export function isEntriesIterable(x: any) {
   const f = getIteratorFn(x)
   return f && f === x.entries
@@ -121,7 +113,8 @@ export function isKeysIterable(x: any) {
   const f = getIteratorFn(x)
   return f && f === x.keys
 }
-export function arrCopy(x: any, offset: number) {
+
+export function arrCopy(x: any, offset?: number) {
   offset = offset || 0
   const len = Math.max(0, x.length - offset)
   const y = new Array(len)
@@ -130,19 +123,23 @@ export function arrCopy(x: any, offset: number) {
   }
   return y
 }
-export function assertNotInfinite(size: number) {
+
+export function assertNotInfinite(size?: number) {
   invariant(size !== Infinity, "Cannot perform this action with an infinite size.")
 }
+
 export function coerceKeyPath(x: any) {
   if (isArrayLike(x) && typeof x !== "string") return x
   if (isOrdered(x)) return x.toArray()
   throw new TypeError("Invalid keyPath: expected Ordered Collection or Array: " + x)
 }
+
 export function createClass(x, superClass) {
   if (superClass) x.prototype = Object.create(superClass.prototype)
   x.prototype.constructor = x
 }
-export function deepEqual(a: any, b: any) {
+
+export function deepEqual(a: any, b: any): boolean {
   if (a === b) return true
   if (
     !isCollection(b) ||
@@ -182,16 +179,20 @@ export function deepEqual(a: any, b: any) {
       allEqual = false
       return false
     }
+    return
   })
   return allEqual && a.size === bSize
 }
+
 export function invariant(cond: unknown, x: any) {
   if (!cond) throw new Error(x)
 }
+
 export function isArrayLike(x: any) {
   if (Array.isArray(x) || typeof x === "string") return true
   return x && typeof x === "object" && Number.isInteger(x.length) && x.length >= 0 && (x.length === 0 ? Object.keys(x).length === 1 : x.hasOwnProperty(x.length - 1))
 }
+
 export function isDataStructure(x: unknown) {
   return typeof x === "object" && (isImmutable(x) || Array.isArray(x) || isPlainObject(x))
 }
@@ -239,7 +240,7 @@ export function shallowCopy(x) {
 export const imul =
   typeof Math.imul === "function" && Math.imul(0xffffffff, 2) === -2
     ? Math.imul
-    : function imul(a, b) {
+    : function imul(a: number, b: number) {
         a |= 0
         b |= 0
         const c = a & 0xffff
@@ -267,20 +268,20 @@ export function toJS(x) {
   if (!x || typeof x !== "object") return x
   if (!isCollection(x)) {
     if (!isDataStructure(x)) return x
-    x = Seq(x)
+    x = new Seq(x)
   }
   if (isKeyed(x)) {
-    const result = {}
+    const y = {}
     x.__iterate((v, k) => {
-      result[k] = toJS(v)
+      y[k] = toJS(v)
     })
-    return result
+    return y
   }
-  const result = []
+  const y = []
   x.__iterate(v => {
-    result.push(toJS(v))
+    y.push(toJS(v))
   })
-  return result
+  return y
 }
 
 export const DELETE = "delete"

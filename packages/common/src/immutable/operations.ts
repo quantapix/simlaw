@@ -3,7 +3,7 @@ import { Collection, Seq, seqKeyedFrom, seqIndexedFrom, ArraySeq } from "./main.
 import { Map } from "./map.js"
 import { OrderedMap } from "./ordered.js"
 
-export class ToSeqKeyed extends Seq.Keyed {
+export class ToSeqKeyed<K, V> extends Seq.Keyed<K, V> {
   [qu.IS_ORDERED_SYMBOL] = true
   constructor(indexed, useKeys) {
     super()
@@ -11,23 +11,23 @@ export class ToSeqKeyed extends Seq.Keyed {
     this._useKeys = useKeys
     this.size = indexed.size
   }
-  get(key, notSetValue) {
+  override get(key, notSetValue) {
     return this._iter.get(key, notSetValue)
   }
-  has(key) {
+  override has(key) {
     return this._iter.has(key)
   }
-  valueSeq() {
+  override valueSeq() {
     return this._iter.valueSeq()
   }
-  reverse() {
+  override reverse() {
     const reversedSequence = reverseFactory(this, true)
     if (!this._useKeys) {
       reversedSequence.valueSeq = () => this._iter.toSeq().reverse()
     }
     return reversedSequence
   }
-  map(mapper, context) {
+  override map(mapper, context) {
     const mappedSequence = mapFactory(this, mapper, context)
     if (!this._useKeys) {
       mappedSequence.valueSeq = () => this._iter.toSeq().map(mapper, context)
@@ -40,15 +40,16 @@ export class ToSeqKeyed extends Seq.Keyed {
   override __iterator(type, reverse) {
     return this._iter.__iterator(type, reverse)
   }
+  override cacheResult = cacheResult
 }
 
-export class ToSeqIndexed extends Seq.Indexed {
+export class ToSeqIndexed<V> extends Seq.Indexed<V> {
   constructor(iter) {
     super()
     this._iter = iter
     this.size = iter.size
   }
-  includes(value) {
+  override includes(value) {
     return this._iter.includes(value)
   }
   override __iterate(fn, reverse) {
@@ -65,15 +66,16 @@ export class ToSeqIndexed extends Seq.Indexed {
       return step.done ? step : qu.iteratorValue(type, reverse ? this.size - ++i : i++, step.value, step)
     })
   }
+  override cacheResult = cacheResult
 }
 
-export class ToSeqSet extends Seq.Set {
+export class ToSeqSet<K> extends Seq.Set<K> {
   constructor(iter) {
     super()
     this._iter = iter
     this.size = iter.size
   }
-  has(key) {
+  override has(key) {
     return this._iter.includes(key)
   }
   override __iterate(fn, reverse) {
@@ -86,6 +88,7 @@ export class ToSeqSet extends Seq.Set {
       return step.done ? step : qu.iteratorValue(type, step.value, step.value, step)
     })
   }
+  override cacheResult = cacheResult
 }
 
 export class FromEntriesSequence extends Seq.Keyed {
@@ -122,8 +125,8 @@ export class FromEntriesSequence extends Seq.Keyed {
       }
     })
   }
+  cacheResult = cacheResult
 }
-ToSeqIndexed.prototype.cacheResult = ToSeqKeyed.prototype.cacheResult = ToSeqSet.prototype.cacheResult = FromEntriesSequence.prototype.cacheResult = cacheResultThrough
 
 export function flipFactory(x) {
   const y = makeSequence(x)
@@ -137,7 +140,7 @@ export function flipFactory(x) {
   }
   y.has = key => x.includes(key)
   y.includes = key => x.has(key)
-  y.cacheResult = cacheResultThrough
+  y.cacheResult = cacheResult
   y.__iterateUncached = function (fn, reverse) {
     return x.__iterate((v, k) => fn(k, v, this) !== false, reverse)
   }
@@ -200,7 +203,7 @@ export function reverseFactory(x, useKeys) {
   y.get = (key, notSetValue) => x.get(useKeys ? key : -1 - key, notSetValue)
   y.has = key => x.has(useKeys ? key : -1 - key)
   y.includes = value => x.includes(value)
-  y.cacheResult = cacheResultThrough
+  y.cacheResult = cacheResult
   y.__iterate = function (fn, reverse) {
     let i = 0
     reverse && qu.ensureSize(x)
@@ -282,6 +285,7 @@ export function groupByFactory(x, grouper, context) {
   const coerce = collectionClass(x)
   return y.map(arr => reify(x, coerce(arr))).asImmutable()
 }
+
 export function sliceFactory(x, begin, end, useKeys) {
   const originalSize = x.size
   if (qu.wholeSlice(begin, end, originalSize)) return x
@@ -336,6 +340,7 @@ export function sliceFactory(x, begin, end, useKeys) {
   }
   return y
 }
+
 export function takeWhileFactory(x, f, context) {
   const y = makeSequence(x)
   y.__iterateUncached = function (fn, reverse) {
@@ -522,42 +527,40 @@ export function interposeFactory(x, separator) {
 
 export function sortFactory(x, comparator, mapper) {
   if (!comparator) comparator = defaultComparator
-  const y = qu.isKeyed(x)
+  const isKeyed = qu.isKeyed(x)
   let index = 0
-  const entries = x
+  const y = x
     .toSeq()
     .map((v, k) => [k, v, index++, mapper ? mapper(v, k, x) : v])
     .valueSeq()
     .toArray()
-  entries
-    .sort((a, b) => comparator(a[3], b[3]) || a[2] - b[2])
-    .forEach(
-      y
-        ? (v, i) => {
-            entries[i].length = 2
-          }
-        : (v, i) => {
-            entries[i] = v[1]
-          }
-    )
-  return y ? Seq.Keyed(entries) : qu.isIndexed(x) ? Seq.Indexed(entries) : Seq.Set(entries)
+  y.sort((a, b) => comparator(a[3], b[3]) || a[2] - b[2]).forEach(
+    isKeyed
+      ? (v, i) => {
+          y[i].length = 2
+        }
+      : (v, i) => {
+          y[i] = v[1]
+        }
+  )
+  return isKeyed ? new Seq.Keyed(y) : qu.isIndexed(x) ? new Seq.Indexed(y) : new Seq.Set(y)
 }
 
 export function maxFactory(collection, comparator, mapper) {
   if (!comparator) comparator = defaultComparator
   if (mapper) {
-    const entry = collection
+    const y = collection
       .toSeq()
       .map((v, k) => [v, mapper(v, k, collection)])
       .reduce((a, b) => (maxCompare(comparator, a[1], b[1]) ? b : a))
-    return entry && entry[0]
+    return y && y[0]
   }
   return collection.reduce((a, b) => (maxCompare(comparator, a, b) ? b : a))
 }
 
 function maxCompare(comparator, a, b) {
-  const comp = comparator(b, a)
-  return (comp === 0 && b !== a && (b === undefined || b === null || b !== b)) || comp > 0
+  const y = comparator(b, a)
+  return (y === 0 && b !== a && (b === undefined || b === null || b !== b)) || y > 0
 }
 
 export function zipWithFactory(keyIter, zipper, iters, zipAll) {
@@ -613,7 +616,7 @@ function makeSequence(x) {
   return Object.create((qu.isKeyed(x) ? Seq.Keyed : qu.isIndexed(x) ? Seq.Indexed : Seq.Set).prototype)
 }
 
-function cacheResultThrough() {
+function cacheResult() {
   if (this._iter.cacheResult) {
     this._iter.cacheResult()
     this.size = this._iter.size
