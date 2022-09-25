@@ -2,12 +2,7 @@ import type { SerializedError } from "@reduxjs/toolkit"
 import { createSlice } from "@reduxjs/toolkit"
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import { renderHook, act } from "@testing-library/react"
-import {
-  actionsReducer,
-  expectExactType,
-  hookWaitFor,
-  setupApiStore,
-} from "./helpers"
+import { actionsReducer, expectExactType, hookWaitFor, setupApiStore } from "./helpers"
 interface ResultType {
   result: "complex"
 }
@@ -40,14 +35,7 @@ const api = createApi({
 const storeRef = setupApiStore(api, {
   ...actionsReducer,
 })
-const {
-  mutationFail,
-  mutationSuccess,
-  mutationSuccess2,
-  queryFail,
-  querySuccess,
-  querySuccess2,
-} = api.endpoints
+const { mutationFail, mutationSuccess, mutationSuccess2, queryFail, querySuccess, querySuccess2 } = api.endpoints
 test("matches query pending & fulfilled actions for the given endpoint", async () => {
   const endpoint = querySuccess2
   const otherEndpoint = queryFail
@@ -203,30 +191,21 @@ test("inferred types", () => {
     reducers: {},
     extraReducers: builder => {
       builder
-        .addMatcher(
-          api.endpoints.querySuccess.matchPending,
-          (state, action) => {
-            expectExactType(undefined)(action.payload)
-            console.log(action.error)
-            expectExactType({} as ArgType)(action.meta.arg.originalArgs)
-          }
-        )
-        .addMatcher(
-          api.endpoints.querySuccess.matchFulfilled,
-          (state, action) => {
-            expectExactType({} as ResultType)(action.payload)
-            expectExactType(0 as number)(action.meta.fulfilledTimeStamp)
-            console.log(action.error)
-            expectExactType({} as ArgType)(action.meta.arg.originalArgs)
-          }
-        )
-        .addMatcher(
-          api.endpoints.querySuccess.matchRejected,
-          (state, action) => {
-            expectExactType({} as SerializedError)(action.error)
-            expectExactType({} as ArgType)(action.meta.arg.originalArgs)
-          }
-        )
+        .addMatcher(api.endpoints.querySuccess.matchPending, (state, action) => {
+          expectExactType(undefined)(action.payload)
+          console.log(action.error)
+          expectExactType({} as ArgType)(action.meta.arg.originalArgs)
+        })
+        .addMatcher(api.endpoints.querySuccess.matchFulfilled, (state, action) => {
+          expectExactType({} as ResultType)(action.payload)
+          expectExactType(0 as number)(action.meta.fulfilledTimeStamp)
+          console.log(action.error)
+          expectExactType({} as ArgType)(action.meta.arg.originalArgs)
+        })
+        .addMatcher(api.endpoints.querySuccess.matchRejected, (state, action) => {
+          expectExactType({} as SerializedError)(action.error)
+          expectExactType({} as ArgType)(action.meta.arg.originalArgs)
+        })
     },
   })
 })

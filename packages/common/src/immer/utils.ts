@@ -50,7 +50,15 @@ export function latest(x: qt.State): any {
 
 export function getType(x: any): qt.QType {
   const s: undefined | qt.State = x[qt.DRAFT_STATE]
-  return s ? (s.type as any) : Array.isArray(x) ? qt.QType.Array : isMap(x) ? qt.QType.Map : isSet(x) ? qt.QType.Set : qt.QType.Obj
+  return s
+    ? (s.type as any)
+    : Array.isArray(x)
+    ? qt.QType.Array
+    : isMap(x)
+    ? qt.QType.Map
+    : isSet(x)
+    ? qt.QType.Set
+    : qt.QType.Obj
 }
 
 export const ownKeys: (x: qt.AnyObj) => PropertyKey[] =
@@ -60,7 +68,11 @@ export const ownKeys: (x: qt.AnyObj) => PropertyKey[] =
     ? x => Object.getOwnPropertyNames(x).concat(Object.getOwnPropertySymbols(x) as any)
     : Object.getOwnPropertyNames
 
-export function each<T extends qt.Objectish>(x: T, iter: (k: string | number, v: any, src: T) => void, enumOnly?: boolean): void
+export function each<T extends qt.Objectish>(
+  x: T,
+  iter: (k: string | number, v: any, src: T) => void,
+  enumOnly?: boolean
+): void
 export function each(x: any, iter: any, enumOnly = false) {
   if (getType(x) === qt.QType.Obj) {
     ;(enumOnly ? Object.keys : ownKeys)(x).forEach(k => {
@@ -140,7 +152,12 @@ export function deepFreeze<T>(x: T): DeepReadonly<T>
 export function deepFreeze(x: any) {
   Object.freeze(x)
   Object.getOwnPropertyNames(x).forEach(k => {
-    if (Object.hasOwnProperty.call(x, k) && x[k] !== null && (typeof x[k] === "object" || typeof x[k] === "function") && !Object.isFrozen(x[k])) {
+    if (
+      Object.hasOwnProperty.call(x, k) &&
+      x[k] !== null &&
+      (typeof x[k] === "object" || typeof x[k] === "function") &&
+      !Object.isFrozen(x[k])
+    ) {
       deepFreeze(x[k])
     }
   })
@@ -176,7 +193,10 @@ const errors = {
   1: "Immer drafts cannot have computed properties",
   2: "This object has been frozen and should not be mutated",
   3(data: any) {
-    return "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " + data
+    return (
+      "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " +
+      data
+    )
   },
   4: "An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.",
   5: "Immer forbids circular references",
@@ -218,5 +238,9 @@ export function die(k: keyof typeof errors, ...xs: any[]): never {
     const m = !e ? "unknown error nr: " + k : typeof e === "function" ? (e as (...xs: any[]) => any)(xs) : e
     throw new Error(`[Immer] ${m}`)
   }
-  throw new Error(`[Immer] minified error nr: ${k}${xs.length ? " " + xs.map(s => `'${s}'`).join(",") : ""}. Find the full error at: https://bit.ly/3cXEKWf`)
+  throw new Error(
+    `[Immer] minified error nr: ${k}${
+      xs.length ? " " + xs.map(s => `'${s}'`).join(",") : ""
+    }. Find the full error at: https://bit.ly/3cXEKWf`
+  )
 }

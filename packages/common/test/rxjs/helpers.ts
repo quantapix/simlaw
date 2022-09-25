@@ -20,9 +20,7 @@ import { Observable, Operator, Subject, Subscriber, Subscription } from "rxjs"
  * the `instanceof Observable` test and will deem any `Subscriber` passed to
  * its `subscribe` method to be untrusted.
  */
-export function asInteropObservable<T>(
-  observable: Observable<T>
-): Observable<T> {
+export function asInteropObservable<T>(observable: Observable<T>): Observable<T> {
   return new Proxy(observable, {
     get(target: Observable<T>, key: string | number | symbol) {
       if (key === "lift") {
@@ -58,9 +56,7 @@ export function asInteropSubject<T>(subject: Subject<T>): Subject<T> {
  * be untrusted. The returned subscriber will fail the `instanceof Subscriber`
  * test and will not include the symbol that identifies trusted subscribers.
  */
-export function asInteropSubscriber<T>(
-  subscriber: Subscriber<T>
-): Subscriber<T> {
+export function asInteropSubscriber<T>(subscriber: Subscriber<T>): Subscriber<T> {
   return new Proxy(subscriber, {
     get(target: Subscriber<T>, key: string | number | symbol) {
       return Reflect.get(target, key)
@@ -72,17 +68,10 @@ export function asInteropSubscriber<T>(
   })
 }
 function interopLift<T, R>(lift: (operator: Operator<T, R>) => Observable<R>) {
-  return function (
-    this: Observable<T>,
-    operator: Operator<T, R>
-  ): Observable<R> {
+  return function (this: Observable<T>, operator: Operator<T, R>): Observable<R> {
     const observable = lift.call(this, operator)
     const { call } = observable.operator!
-    observable.operator!.call = function (
-      this: Operator<T, R>,
-      subscriber: Subscriber<R>,
-      source: any
-    ) {
+    observable.operator!.call = function (this: Operator<T, R>, subscriber: Subscriber<R>, source: any) {
       return call.call(this, asInteropSubscriber(subscriber), source)
     }
     observable.source = asInteropObservable(observable.source!)
@@ -102,56 +91,23 @@ import { Observable } from "rxjs"
 import { SubscriptionLog } from "../../src/internal/testing/SubscriptionLog"
 import { ColdObservable } from "../../src/internal/testing/ColdObservable"
 import { HotObservable } from "../../src/internal/testing/HotObservable"
-import {
-  observableToBeFn,
-  subscriptionLogsToBeFn,
-} from "../../src/internal/testing/TestScheduler"
+import { observableToBeFn, subscriptionLogsToBeFn } from "../../src/internal/testing/TestScheduler"
 declare const global: any
-export function hot(
-  marbles: string,
-  values?: void,
-  error?: any
-): HotObservable<string>
-export function hot<V>(
-  marbles: string,
-  values?: { [index: string]: V },
-  error?: any
-): HotObservable<V>
-export function hot<V>(
-  marbles: string,
-  values?: { [index: string]: V } | void,
-  error?: any
-): HotObservable<any> {
+export function hot(marbles: string, values?: void, error?: any): HotObservable<string>
+export function hot<V>(marbles: string, values?: { [index: string]: V }, error?: any): HotObservable<V>
+export function hot<V>(marbles: string, values?: { [index: string]: V } | void, error?: any): HotObservable<any> {
   if (!global.rxTestScheduler) {
     throw "tried to use hot() in async test"
   }
-  return global.rxTestScheduler.createHotObservable.apply(
-    global.rxTestScheduler,
-    arguments
-  )
+  return global.rxTestScheduler.createHotObservable.apply(global.rxTestScheduler, arguments)
 }
-export function cold(
-  marbles: string,
-  values?: void,
-  error?: any
-): ColdObservable<string>
-export function cold<V>(
-  marbles: string,
-  values?: { [index: string]: V },
-  error?: any
-): ColdObservable<V>
-export function cold(
-  marbles: string,
-  values?: any,
-  error?: any
-): ColdObservable<any> {
+export function cold(marbles: string, values?: void, error?: any): ColdObservable<string>
+export function cold<V>(marbles: string, values?: { [index: string]: V }, error?: any): ColdObservable<V>
+export function cold(marbles: string, values?: any, error?: any): ColdObservable<any> {
   if (!global.rxTestScheduler) {
     throw "tried to use cold() in async test"
   }
-  return global.rxTestScheduler.createColdObservable.apply(
-    global.rxTestScheduler,
-    arguments
-  )
+  return global.rxTestScheduler.createColdObservable.apply(global.rxTestScheduler, arguments)
 }
 export function expectObservable(
   observable: Observable<any>,
@@ -160,30 +116,19 @@ export function expectObservable(
   if (!global.rxTestScheduler) {
     throw "tried to use expectObservable() in async test"
   }
-  return global.rxTestScheduler.expectObservable.apply(
-    global.rxTestScheduler,
-    arguments
-  )
+  return global.rxTestScheduler.expectObservable.apply(global.rxTestScheduler, arguments)
 }
-export function expectSubscriptions(
-  actualSubscriptionLogs: SubscriptionLog[]
-): { toBe: subscriptionLogsToBeFn } {
+export function expectSubscriptions(actualSubscriptionLogs: SubscriptionLog[]): { toBe: subscriptionLogsToBeFn } {
   if (!global.rxTestScheduler) {
     throw "tried to use expectSubscriptions() in async test"
   }
-  return global.rxTestScheduler.expectSubscriptions.apply(
-    global.rxTestScheduler,
-    arguments
-  )
+  return global.rxTestScheduler.expectSubscriptions.apply(global.rxTestScheduler, arguments)
 }
 export function time(marbles: string): number {
   if (!global.rxTestScheduler) {
     throw "tried to use time() in async test"
   }
-  return global.rxTestScheduler.createTime.apply(
-    global.rxTestScheduler,
-    arguments
-  )
+  return global.rxTestScheduler.createTime.apply(global.rxTestScheduler, arguments)
 }
 import * as _ from "lodash"
 import * as chai from "chai"
@@ -238,14 +183,11 @@ import * as chai from "chai"
 import * as sinonChai from "sinon-chai"
 if (typeof Symbol !== "function") {
   let id = 0
-  const symbolFn: any = (description: string) =>
-    `Symbol_${id++} ${description} (RxJS Testing Polyfill)`
+  const symbolFn: any = (description: string) => `Symbol_${id++} ${description} (RxJS Testing Polyfill)`
   Symbol = symbolFn
 }
 if (!(Symbol as any).observable) {
-  ;(Symbol as any).observable = Symbol(
-    "Symbol.observable polyfill from RxJS Testing"
-  )
+  ;(Symbol as any).observable = Symbol("Symbol.observable polyfill from RxJS Testing")
 }
 /** Polyfill requestAnimationFrame for testing animationFrame scheduler in Node */
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
@@ -259,8 +201,7 @@ if (!(Symbol as any).observable) {
   for (let x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
     window.requestAnimationFrame = window[vendors[x] + "RequestAnimationFrame"]
     window.cancelAnimationFrame =
-      window[vendors[x] + "CancelAnimationFrame"] ||
-      window[vendors[x] + "CancelRequestAnimationFrame"]
+      window[vendors[x] + "CancelAnimationFrame"] || window[vendors[x] + "CancelRequestAnimationFrame"]
   }
   if (!window.requestAnimationFrame) {
     window.requestAnimationFrame = (callback: Function, element: any) => {
@@ -283,22 +224,14 @@ if (!(Symbol as any).observable) {
 chai.use(sinonChai)
 /** @prettier */
 import { Teardown } from "rxjs"
-export function getRegisteredFinalizers(
-  subscription: any
-): Exclude<Teardown, void>[] {
+export function getRegisteredFinalizers(subscription: any): Exclude<Teardown, void>[] {
   if ("_finalizers" in subscription) {
     return subscription._finalizers ?? []
   } else {
     throw new TypeError("Invalid Subscription")
   }
 }
-import {
-  of,
-  asyncScheduler,
-  Observable,
-  scheduled,
-  ObservableInput,
-} from "rxjs"
+import { of, asyncScheduler, Observable, scheduled, ObservableInput } from "rxjs"
 import { observable } from "rxjs/internal/symbol/observable"
 import { iterator } from "rxjs/internal/symbol/iterator"
 if (process && process.on) {

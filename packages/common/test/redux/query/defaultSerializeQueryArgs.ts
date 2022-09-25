@@ -35,7 +35,5 @@ test("nested object arg is sorted recursively", () => {
       endpointName,
       queryArgs: { name: { last: "Split", first: "Banana" }, age: 5 },
     })
-  ).toMatchInlineSnapshot(
-    `"test({\\"age\\":5,\\"name\\":{\\"first\\":\\"Banana\\",\\"last\\":\\"Split\\"}})"`
-  )
+  ).toMatchInlineSnapshot(`"test({\\"age\\":5,\\"name\\":{\\"first\\":\\"Banana\\",\\"last\\":\\"Split\\"}})"`)
 })

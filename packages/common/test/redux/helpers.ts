@@ -32,11 +32,7 @@ import { AnyAction } from "../.."
 export function expectType<T>(t: T): T {
   return t
 }
-type Equals<T, U> = IsAny<
-  T,
-  never,
-  IsAny<U, never, [T] extends [U] ? ([U] extends [T] ? any : never) : never>
->
+type Equals<T, U> = IsAny<T, never, IsAny<U, never, [T] extends [U] ? ([U] extends [T] ? any : never) : never>>
 export function expectExactType<T>(t: T) {
   return <U extends Equals<T, U>>(u: U) => {}
 }
@@ -119,11 +115,7 @@ export function unknownAction(): Action {
   }
 }
 
-type ThunkAction<T extends any = any> = T extends AnyAction
-  ? AnyAction
-  : T extends Function
-  ? T
-  : never
+type ThunkAction<T extends any = any> = T extends AnyAction ? AnyAction : T extends Function ? T : never
 export function thunk({ dispatch, getState }: MiddlewareAPI) {
   return (next: Dispatch) =>
     <_>(action: ThunkAction) =>
@@ -131,9 +123,7 @@ export function thunk({ dispatch, getState }: MiddlewareAPI) {
 }
 
 function id(state: { id: number }[]) {
-  return (
-    state.reduce((result, item) => (item.id > result ? item.id : result), 0) + 1
-  )
+  return state.reduce((result, item) => (item.id > result ? item.id : result), 0) + 1
 }
 export interface Todo {
   id: number
@@ -170,9 +160,7 @@ export function todosReverse(state: Todo[] = [], action: TodoAction) {
 }
 export function dispatchInTheMiddleOfReducer(
   state = [],
-  action:
-    | { type: "DISPATCH_IN_MIDDLE"; boundDispatchFn: () => void }
-    | AnyAction
+  action: { type: "DISPATCH_IN_MIDDLE"; boundDispatchFn: () => void } | AnyAction
 ) {
   switch (action.type) {
     case DISPATCH_IN_MIDDLE:
@@ -184,9 +172,7 @@ export function dispatchInTheMiddleOfReducer(
 }
 export function getStateInTheMiddleOfReducer(
   state = [],
-  action:
-    | { type: "DISPATCH_IN_MIDDLE"; boundGetStateFn: () => void }
-    | AnyAction
+  action: { type: "DISPATCH_IN_MIDDLE"; boundGetStateFn: () => void } | AnyAction
 ) {
   switch (action.type) {
     case GET_STATE_IN_MIDDLE:
@@ -198,9 +184,7 @@ export function getStateInTheMiddleOfReducer(
 }
 export function subscribeInTheMiddleOfReducer(
   state = [],
-  action:
-    | { type: "DISPATCH_IN_MIDDLE"; boundSubscribeFn: () => void }
-    | AnyAction
+  action: { type: "DISPATCH_IN_MIDDLE"; boundSubscribeFn: () => void } | AnyAction
 ) {
   switch (action.type) {
     case SUBSCRIBE_IN_MIDDLE:
@@ -212,9 +196,7 @@ export function subscribeInTheMiddleOfReducer(
 }
 export function unsubscribeInTheMiddleOfReducer(
   state = [],
-  action:
-    | { type: "DISPATCH_IN_MIDDLE"; boundUnsubscribeFn: () => void }
-    | AnyAction
+  action: { type: "DISPATCH_IN_MIDDLE"; boundUnsubscribeFn: () => void } | AnyAction
 ) {
   switch (action.type) {
     case UNSUBSCRIBE_IN_MIDDLE:

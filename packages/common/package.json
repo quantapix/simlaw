@@ -10,7 +10,8 @@
     "prep": "(cd ../lib/react; rm package-lock.json; yarn; yarn build react/index,react/jsx,react-dom/index,scheduler --type=NODE)",
     "build": "../../node_modules/.bin/tsc -b",
     "clean": "../../node_modules/.bin/tsc -b --clean",
-    "test": "node --experimental-vm-modules ../../node_modules/.bin/jest"
+    "test": "node --experimental-vm-modules ../../node_modules/.bin/jest",
+    "pretty": "prettier --write \"**/*{.ts,.tsx,.css,.json}\""
   },
   "dependencies": {
     "@popperjs/core": "",

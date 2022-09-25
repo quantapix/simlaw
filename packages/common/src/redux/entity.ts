@@ -35,9 +35,7 @@ export function getInitialEntityState<V>(): EntityState<V> {
 }
 export function createInitialStateFactory<V>() {
   function getInitialState(): EntityState<V>
-  function getInitialState<S extends object>(
-    additionalState: S
-  ): EntityState<V> & S
+  function getInitialState<S extends object>(additionalState: S): EntityState<V> & S
   function getInitialState(additionalState: any = {}): any {
     return Object.assign(getInitialEntityState(), additionalState)
   }
@@ -64,78 +62,36 @@ export interface EntityDefinition<T> {
 export type PreventAny<S, T> = qt.IsAny<S, EntityState<T>, S>
 export interface EntityStateAdapter<T> {
   addOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
-  addOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    action: qt.PayloadAction<T>
-  ): S
-  addMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
-  ): S
+  addOne<S extends EntityState<T>>(state: PreventAny<S, T>, action: qt.PayloadAction<T>): S
+  addMany<S extends EntityState<T>>(state: PreventAny<S, T>, entities: readonly T[] | Record<EntityId, T>): S
   addMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
     entities: qt.PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
   setOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
-  setOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    action: qt.PayloadAction<T>
-  ): S
-  setMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
-  ): S
+  setOne<S extends EntityState<T>>(state: PreventAny<S, T>, action: qt.PayloadAction<T>): S
+  setMany<S extends EntityState<T>>(state: PreventAny<S, T>, entities: readonly T[] | Record<EntityId, T>): S
   setMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
     entities: qt.PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
-  setAll<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
-  ): S
+  setAll<S extends EntityState<T>>(state: PreventAny<S, T>, entities: readonly T[] | Record<EntityId, T>): S
   setAll<S extends EntityState<T>>(
     state: PreventAny<S, T>,
     entities: qt.PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
   removeOne<S extends EntityState<T>>(state: PreventAny<S, T>, key: EntityId): S
-  removeOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    key: qt.PayloadAction<EntityId>
-  ): S
-  removeMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    keys: readonly EntityId[]
-  ): S
-  removeMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    keys: qt.PayloadAction<readonly EntityId[]>
-  ): S
+  removeOne<S extends EntityState<T>>(state: PreventAny<S, T>, key: qt.PayloadAction<EntityId>): S
+  removeMany<S extends EntityState<T>>(state: PreventAny<S, T>, keys: readonly EntityId[]): S
+  removeMany<S extends EntityState<T>>(state: PreventAny<S, T>, keys: qt.PayloadAction<readonly EntityId[]>): S
   removeAll<S extends EntityState<T>>(state: PreventAny<S, T>): S
-  updateOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    update: Update<T>
-  ): S
-  updateOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    update: qt.PayloadAction<Update<T>>
-  ): S
-  updateMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    updates: ReadonlyArray<Update<T>>
-  ): S
-  updateMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    updates: qt.PayloadAction<ReadonlyArray<Update<T>>>
-  ): S
+  updateOne<S extends EntityState<T>>(state: PreventAny<S, T>, update: Update<T>): S
+  updateOne<S extends EntityState<T>>(state: PreventAny<S, T>, update: qt.PayloadAction<Update<T>>): S
+  updateMany<S extends EntityState<T>>(state: PreventAny<S, T>, updates: ReadonlyArray<Update<T>>): S
+  updateMany<S extends EntityState<T>>(state: PreventAny<S, T>, updates: qt.PayloadAction<ReadonlyArray<Update<T>>>): S
   upsertOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
-  upsertOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entity: qt.PayloadAction<T>
-  ): S
-  upsertMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
-  ): S
+  upsertOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: qt.PayloadAction<T>): S
+  upsertMany<S extends EntityState<T>>(state: PreventAny<S, T>, entities: readonly T[] | Record<EntityId, T>): S
   upsertMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
     entities: qt.PayloadAction<readonly T[] | Record<EntityId, T>>
@@ -154,28 +110,17 @@ export interface EntityAdapter<T> extends EntityStateAdapter<T> {
   getInitialState(): EntityState<T>
   getInitialState<S extends object>(state: S): EntityState<T> & S
   getSelectors(): EntitySelectors<T, EntityState<T>>
-  getSelectors<V>(
-    selectState: (state: V) => EntityState<T>
-  ): EntitySelectors<T, V>
+  getSelectors<V>(selectState: (state: V) => EntityState<T>): EntitySelectors<T, V>
 }
-export function createSortedStateAdapter<T>(
-  selectId: IdSelector<T>,
-  sort: Comparer<T>
-): EntityStateAdapter<T> {
+export function createSortedStateAdapter<T>(selectId: IdSelector<T>, sort: Comparer<T>): EntityStateAdapter<T> {
   type R = EntityState<T>
-  const { removeOne, removeMany, removeAll } =
-    createUnsortedStateAdapter(selectId)
+  const { removeOne, removeMany, removeAll } = createUnsortedStateAdapter(selectId)
   function addOneMutably(entity: T, state: R): void {
     return addManyMutably([entity], state)
   }
-  function addManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
-    state: R
-  ): void {
+  function addManyMutably(newEntities: readonly T[] | Record<EntityId, T>, state: R): void {
     newEntities = ensureEntitiesArray(newEntities)
-    const models = newEntities.filter(
-      model => !(selectIdValue(model, selectId) in state.entities)
-    )
+    const models = newEntities.filter(model => !(selectIdValue(model, selectId) in state.entities))
     if (models.length !== 0) {
       merge(models, state)
     }
@@ -183,19 +128,13 @@ export function createSortedStateAdapter<T>(
   function setOneMutably(entity: T, state: R): void {
     return setManyMutably([entity], state)
   }
-  function setManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
-    state: R
-  ): void {
+  function setManyMutably(newEntities: readonly T[] | Record<EntityId, T>, state: R): void {
     newEntities = ensureEntitiesArray(newEntities)
     if (newEntities.length !== 0) {
       merge(newEntities, state)
     }
   }
-  function setAllMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
-    state: R
-  ): void {
+  function setAllMutably(newEntities: readonly T[] | Record<EntityId, T>, state: R): void {
     newEntities = ensureEntitiesArray(newEntities)
     state.entities = {}
     state.ids = []
@@ -204,10 +143,7 @@ export function createSortedStateAdapter<T>(
   function updateOneMutably(update: Update<T>, state: R): void {
     return updateManyMutably([update], state)
   }
-  function updateManyMutably(
-    updates: ReadonlyArray<Update<T>>,
-    state: R
-  ): void {
+  function updateManyMutably(updates: ReadonlyArray<Update<T>>, state: R): void {
     let appliedUpdates = false
     for (const update of updates) {
       const entity = state.entities[update.id]
@@ -229,15 +165,8 @@ export function createSortedStateAdapter<T>(
   function upsertOneMutably(entity: T, state: R): void {
     return upsertManyMutably([entity], state)
   }
-  function upsertManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
-    state: R
-  ): void {
-    const [added, updated] = splitAddedUpdatedEntities<T>(
-      newEntities,
-      selectId,
-      state
-    )
+  function upsertManyMutably(newEntities: readonly T[] | Record<EntityId, T>, state: R): void {
+    const [added, updated] = splitAddedUpdatedEntities<T>(newEntities, selectId, state)
     updateManyMutably(updated, state)
     addManyMutably(added, state)
   }
@@ -283,28 +212,15 @@ export function createSortedStateAdapter<T>(
     upsertMany: createStateOperator(upsertManyMutably),
   }
 }
-export function createSingleArgumentStateOperator<V>(
-  mutator: (state: EntityState<V>) => void
-) {
-  const operator = createStateOperator((_: undefined, state: EntityState<V>) =>
-    mutator(state)
-  )
-  return function operation<S extends EntityState<V>>(
-    state: PreventAny<S, V>
-  ): S {
+export function createSingleArgumentStateOperator<V>(mutator: (state: EntityState<V>) => void) {
+  const operator = createStateOperator((_: undefined, state: EntityState<V>) => mutator(state))
+  return function operation<S extends EntityState<V>>(state: PreventAny<S, V>): S {
     return operator(state as S, undefined)
   }
 }
-export function createStateOperator<V, R>(
-  mutator: (arg: R, state: EntityState<V>) => void
-) {
-  return function operation<S extends EntityState<V>>(
-    state: S,
-    arg: R | qt.PayloadAction<R>
-  ): S {
-    function isPayloadActionArgument(
-      arg: R | qt.PayloadAction<R>
-    ): arg is qt.PayloadAction<R> {
+export function createStateOperator<V, R>(mutator: (arg: R, state: EntityState<V>) => void) {
+  return function operation<S extends EntityState<V>>(state: S, arg: R | qt.PayloadAction<R>): S {
+    function isPayloadActionArgument(arg: R | qt.PayloadAction<R>): arg is qt.PayloadAction<R> {
       return isFSA(arg)
     }
     const runMutator = (draft: EntityState<V>) => {
@@ -324,59 +240,37 @@ export function createStateOperator<V, R>(
 }
 export function createSelectorsFactory<T>() {
   function getSelectors(): EntitySelectors<T, EntityState<T>>
-  function getSelectors<V>(
-    selectState: (state: V) => EntityState<T>
-  ): EntitySelectors<T, V>
-  function getSelectors<V>(
-    selectState?: (state: V) => EntityState<T>
-  ): EntitySelectors<T, any> {
+  function getSelectors<V>(selectState: (state: V) => EntityState<T>): EntitySelectors<T, V>
+  function getSelectors<V>(selectState?: (state: V) => EntityState<T>): EntitySelectors<T, any> {
     const selectIds = (state: EntityState<T>) => state.ids
     const selectEntities = (state: EntityState<T>) => state.entities
-    const selectAll = createDraftSafeSelector(
-      selectIds,
-      selectEntities,
-      (ids: any, entities: any): T[] => ids.map((id: any) => entities[id]!)
+    const selectAll = createDraftSafeSelector(selectIds, selectEntities, (ids: any, entities: any): T[] =>
+      ids.map((id: any) => entities[id]!)
     )
     const selectId = (_: unknown, id: EntityId) => id
     const selectById = (entities: Dictionary<T>, id: EntityId) => entities[id]
-    const selectTotal = createDraftSafeSelector(
-      selectIds,
-      (ids: any) => ids.length
-    )
+    const selectTotal = createDraftSafeSelector(selectIds, (ids: any) => ids.length)
     if (!selectState) {
       return {
         selectIds,
         selectEntities,
         selectAll,
         selectTotal,
-        selectById: createDraftSafeSelector(
-          selectEntities,
-          selectId,
-          selectById
-        ),
+        selectById: createDraftSafeSelector(selectEntities, selectId, selectById),
       }
     }
-    const selectGlobalizedEntities = createDraftSafeSelector(
-      selectState as Selector<V, EntityState<T>>,
-      selectEntities
-    )
+    const selectGlobalizedEntities = createDraftSafeSelector(selectState as Selector<V, EntityState<T>>, selectEntities)
     return {
       selectIds: createDraftSafeSelector(selectState, selectIds),
       selectEntities: selectGlobalizedEntities,
       selectAll: createDraftSafeSelector(selectState, selectAll),
       selectTotal: createDraftSafeSelector(selectState, selectTotal),
-      selectById: createDraftSafeSelector(
-        selectGlobalizedEntities,
-        selectId,
-        selectById
-      ),
+      selectById: createDraftSafeSelector(selectGlobalizedEntities, selectId, selectById),
     }
   }
   return { getSelectors }
 }
-export function createUnsortedStateAdapter<T>(
-  selectId: IdSelector<T>
-): EntityStateAdapter<T> {
+export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): EntityStateAdapter<T> {
   type R = EntityState<T>
   function addOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
@@ -386,10 +280,7 @@ export function createUnsortedStateAdapter<T>(
     state.ids.push(key)
     state.entities[key] = entity
   }
-  function addManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
-    state: R
-  ): void {
+  function addManyMutably(newEntities: readonly T[] | Record<EntityId, T>, state: R): void {
     newEntities = ensureEntitiesArray(newEntities)
     for (const entity of newEntities) {
       addOneMutably(entity, state)
@@ -402,19 +293,13 @@ export function createUnsortedStateAdapter<T>(
     }
     state.entities[key] = entity
   }
-  function setManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
-    state: R
-  ): void {
+  function setManyMutably(newEntities: readonly T[] | Record<EntityId, T>, state: R): void {
     newEntities = ensureEntitiesArray(newEntities)
     for (const entity of newEntities) {
       setOneMutably(entity, state)
     }
   }
-  function setAllMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
-    state: R
-  ): void {
+  function setAllMutably(newEntities: readonly T[] | Record<EntityId, T>, state: R): void {
     newEntities = ensureEntitiesArray(newEntities)
     state.ids = []
     state.entities = {}
@@ -441,11 +326,7 @@ export function createUnsortedStateAdapter<T>(
       entities: {},
     })
   }
-  function takeNewKey(
-    keys: { [id: string]: EntityId },
-    update: Update<T>,
-    state: R
-  ): boolean {
+  function takeNewKey(keys: { [id: string]: EntityId }, update: Update<T>, state: R): boolean {
     const original = state.entities[update.id]
     const updated: T = Object.assign({}, original, update.changes)
     const newKey = selectIdValue(updated, selectId)
@@ -460,10 +341,7 @@ export function createUnsortedStateAdapter<T>(
   function updateOneMutably(update: Update<T>, state: R): void {
     return updateManyMutably([update], state)
   }
-  function updateManyMutably(
-    updates: ReadonlyArray<Update<T>>,
-    state: R
-  ): void {
+  function updateManyMutably(updates: ReadonlyArray<Update<T>>, state: R): void {
     const newKeys: { [id: string]: EntityId } = {}
     const updatesPerEntity: { [id: string]: Update<T> } = {}
     updates.forEach(update => {
@@ -471,9 +349,7 @@ export function createUnsortedStateAdapter<T>(
         updatesPerEntity[update.id] = {
           id: update.id,
           changes: {
-            ...(updatesPerEntity[update.id]
-              ? updatesPerEntity[update.id]?.changes
-              : null),
+            ...(updatesPerEntity[update.id] ? updatesPerEntity[update.id]?.changes : null),
             ...update.changes,
           },
         }
@@ -482,8 +358,7 @@ export function createUnsortedStateAdapter<T>(
     updates = Object.values(updatesPerEntity)
     const didMutateEntities = updates.length > 0
     if (didMutateEntities) {
-      const didMutateIds =
-        updates.filter(update => takeNewKey(newKeys, update, state)).length > 0
+      const didMutateIds = updates.filter(update => takeNewKey(newKeys, update, state)).length > 0
       if (didMutateIds) {
         state.ids = Object.keys(state.entities)
       }
@@ -492,15 +367,8 @@ export function createUnsortedStateAdapter<T>(
   function upsertOneMutably(entity: T, state: R): void {
     return upsertManyMutably([entity], state)
   }
-  function upsertManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
-    state: R
-  ): void {
-    const [added, updated] = splitAddedUpdatedEntities<T>(
-      newEntities,
-      selectId,
-      state
-    )
+  function upsertManyMutably(newEntities: readonly T[] | Record<EntityId, T>, state: R): void {
+    const [added, updated] = splitAddedUpdatedEntities<T>(newEntities, selectId, state)
     updateManyMutably(updated, state)
     addManyMutably(added, state)
   }
@@ -533,9 +401,7 @@ export function selectIdValue<T>(entity: T, selectId: IdSelector<T>) {
   }
   return key
 }
-export function ensureEntitiesArray<T>(
-  entities: readonly T[] | Record<EntityId, T>
-): readonly T[] {
+export function ensureEntitiesArray<T>(entities: readonly T[] | Record<EntityId, T>): readonly T[] {
   if (!Array.isArray(entities)) {
     entities = Object.values(entities)
   }

@@ -1,19 +1,8 @@
 import { configureStore, createAction, createReducer } from "@reduxjs/toolkit"
-import type {
-  Api,
-  MutationDefinition,
-  QueryDefinition,
-} from "@reduxjs/toolkit/query"
+import type { Api, MutationDefinition, QueryDefinition } from "@reduxjs/toolkit/query"
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query"
 import type { FetchBaseQueryMeta } from "@reduxjs/toolkit/dist/query/fetchBaseQuery"
-import {
-  ANY,
-  expectType,
-  expectExactType,
-  setupApiStore,
-  waitMs,
-  getSerializedHeaders,
-} from "./helpers.js"
+import { ANY, expectType, expectExactType, setupApiStore, waitMs, getSerializedHeaders } from "./helpers.js"
 import { server } from "./mocks/server.js"
 import { rest } from "msw"
 const originalEnv = process.env["NODE_ENV"]
@@ -48,9 +37,7 @@ test("sensible defaults", () => {
   })
   expect(api.reducerPath).toBe("api")
   expectType<"api">(api.reducerPath)
-  type TagTypes = typeof api extends Api<any, any, any, infer E>
-    ? E
-    : "no match"
+  type TagTypes = typeof api extends Api<any, any, any, infer E> ? E : "no match"
   expectType<TagTypes>(ANY as never)
   expectType<TagTypes>(0)
 })
@@ -148,9 +135,7 @@ describe("wrong tagTypes log errors", () => {
       result = api.endpoints[endpoint].select()(store.getState())
     } while (result.status === "pending")
     if (shouldError) {
-      expect(spy).toHaveBeenCalledWith(
-        "Tag type 'Users' was used, but not specified in `tagTypes`!"
-      )
+      expect(spy).toHaveBeenCalledWith("Tag type 'Users' was used, but not specified in `tagTypes`!")
     } else {
       expect(spy).not.toHaveBeenCalled()
     }
@@ -395,9 +380,7 @@ describe("endpoint definition typings", () => {
       expect(spy).not.toHaveBeenCalled()
       storeRef.store.dispatch(api.endpoints.query2.initiate("in2"))
       await waitMs(1)
-      expect(spy).toHaveBeenCalledWith(
-        "Tag type 'missing' was used, but not specified in `tagTypes`!"
-      )
+      expect(spy).toHaveBeenCalledWith("Tag type 'missing' was used, but not specified in `tagTypes`!")
       if (2 > 1) {
         enhanced.enhanceEndpoints({
           endpoints: {
@@ -472,8 +455,7 @@ describe("additional transformResponse behaviors", () => {
           method: "POST",
           body: { nested: { banana: "bread" } },
         }),
-        transformResponse: (response: { body: { nested: EchoResponseData } }) =>
-          response.body.nested,
+        transformResponse: (response: { body: { nested: EchoResponseData } }) => response.body.nested,
       }),
       mutationWithMeta: build.mutation({
         query: () => ({
@@ -481,10 +463,7 @@ describe("additional transformResponse behaviors", () => {
           method: "POST",
           body: { nested: { banana: "bread" } },
         }),
-        transformResponse: (
-          response: { body: { nested: EchoResponseData } },
-          meta
-        ) => {
+        transformResponse: (response: { body: { nested: EchoResponseData } }, meta) => {
           return {
             ...response.body.nested,
             meta: {
@@ -529,15 +508,11 @@ describe("additional transformResponse behaviors", () => {
     expect(result.data).toEqual({ value: "success", banana: "bread" })
   })
   it("transformResponse transforms a response from a mutation", async () => {
-    const result = await storeRef.store.dispatch(
-      api.endpoints.mutation.initiate({})
-    )
+    const result = await storeRef.store.dispatch(api.endpoints.mutation.initiate({}))
     expect("data" in result && result.data).toEqual({ banana: "bread" })
   })
   it("transformResponse can inject baseQuery meta into the end result from a mutation", async () => {
-    const result = await storeRef.store.dispatch(
-      api.endpoints.mutationWithMeta.initiate({})
-    )
+    const result = await storeRef.store.dispatch(api.endpoints.mutationWithMeta.initiate({}))
     expect("data" in result && result.data).toEqual({
       banana: "bread",
       meta: {
@@ -556,9 +531,7 @@ describe("additional transformResponse behaviors", () => {
     })
   })
   it("transformResponse can inject baseQuery meta into the end result from a query", async () => {
-    const result = await storeRef.store.dispatch(
-      api.endpoints.queryWithMeta.initiate()
-    )
+    const result = await storeRef.store.dispatch(api.endpoints.queryWithMeta.initiate())
     expect(result.data).toEqual({
       value: "success",
       meta: {
@@ -621,9 +594,7 @@ describe("query endpoint lifecycles - onStart, onSuccess, onError", () => {
   const storeRef = setupApiStore(api, { testReducer })
   it("query lifecycle events fire properly", async () => {
     server.use(
-      rest.get("https://example.com/success", (_, res, ctx) =>
-        res.once(ctx.status(500), ctx.json({ value: "failed" }))
-      )
+      rest.get("https://example.com/success", (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: "failed" })))
     )
     expect(storeRef.store.getState().testReducer.count).toBe(null)
     const failAttempt = storeRef.store.dispatch(api.endpoints.query.initiate())
@@ -631,9 +602,7 @@ describe("query endpoint lifecycles - onStart, onSuccess, onError", () => {
     await failAttempt
     await waitMs(10)
     expect(storeRef.store.getState().testReducer.count).toBe(-1)
-    const successAttempt = storeRef.store.dispatch(
-      api.endpoints.query.initiate()
-    )
+    const successAttempt = storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await successAttempt
     await waitMs(10)
@@ -646,15 +615,11 @@ describe("query endpoint lifecycles - onStart, onSuccess, onError", () => {
       )
     )
     expect(storeRef.store.getState().testReducer.count).toBe(null)
-    const failAttempt = storeRef.store.dispatch(
-      api.endpoints.mutation.initiate()
-    )
+    const failAttempt = storeRef.store.dispatch(api.endpoints.mutation.initiate())
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await failAttempt
     expect(storeRef.store.getState().testReducer.count).toBe(-1)
-    const successAttempt = storeRef.store.dispatch(
-      api.endpoints.mutation.initiate()
-    )
+    const successAttempt = storeRef.store.dispatch(api.endpoints.mutation.initiate())
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await successAttempt
     expect(storeRef.store.getState().testReducer.count).toBe(1)
@@ -711,9 +676,7 @@ describe("structuralSharing flag behaviors", () => {
   it("enables structural sharing for query endpoints by default", async () => {
     await storeRef.store.dispatch(api.endpoints.enabled.initiate())
     const firstRef = api.endpoints.enabled.select()(storeRef.store.getState())
-    await storeRef.store.dispatch(
-      api.endpoints.enabled.initiate(undefined, { forceRefetch: true })
-    )
+    await storeRef.store.dispatch(api.endpoints.enabled.initiate(undefined, { forceRefetch: true }))
     const secondRef = api.endpoints.enabled.select()(storeRef.store.getState())
     expect(firstRef.requestId).not.toEqual(secondRef.requestId)
     expect(firstRef.data === secondRef.data).toBeTruthy()
@@ -721,9 +684,7 @@ describe("structuralSharing flag behaviors", () => {
   it("allows a query endpoint to opt-out of structural sharing", async () => {
     await storeRef.store.dispatch(api.endpoints.disabled.initiate())
     const firstRef = api.endpoints.disabled.select()(storeRef.store.getState())
-    await storeRef.store.dispatch(
-      api.endpoints.disabled.initiate(undefined, { forceRefetch: true })
-    )
+    await storeRef.store.dispatch(api.endpoints.disabled.initiate(undefined, { forceRefetch: true }))
     const secondRef = api.endpoints.disabled.select()(storeRef.store.getState())
     expect(firstRef.requestId).not.toEqual(secondRef.requestId)
     expect(firstRef.data === secondRef.data).toBeFalsy()

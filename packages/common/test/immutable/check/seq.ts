@@ -1,18 +1,18 @@
-import { Seq } from 'immutable';
+import { Seq } from "immutable"
 
 {
   // #constructor
 
   // $ExpectType Indexed<number>
-  Seq([1, 2, 3]);
+  Seq([1, 2, 3])
 }
 
 {
   // #size
 
   // $ExpectType number | undefined
-  Seq().size;
+  Seq().size
 
   // $ExpectError
-  Seq().size = 10;
+  Seq().size = 10
 }

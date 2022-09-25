@@ -544,8 +544,12 @@ const anyAction = { type: "foo" } as qx.AnyAction
 {
   qx.createAsyncThunk<"ret", void, {}>("test", (_, api) => "ret" as const)
   qx.createAsyncThunk<"ret", void, {}>("test", async (_, api) => "ret" as const)
-  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>("test", (_, api) => api.fulfillWithValue("ret" as const, ""))
-  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>("test", async (_, api) => api.fulfillWithValue("ret" as const, ""))
+  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>("test", (_, api) =>
+    api.fulfillWithValue("ret" as const, "")
+  )
+  qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>("test", async (_, api) =>
+    api.fulfillWithValue("ret" as const, "")
+  )
   qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>("test", (_, api) => "ret" as const)
   qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>("test", async (_, api) => "ret" as const)
   qx.createAsyncThunk<"ret", void, { fulfilledMeta: string }>(
@@ -558,13 +562,27 @@ const anyAction = { type: "foo" } as qx.AnyAction
   )
   qx.createAsyncThunk<"ret", void, { rejectValue: string }>("test", (_, api) => api.rejectWithValue("ret"))
   qx.createAsyncThunk<"ret", void, { rejectValue: string }>("test", async (_, api) => api.rejectWithValue("ret"))
-  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) => api.rejectWithValue("ret", 5))
-  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", async (_, api) => api.rejectWithValue("ret", 5))
-  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) => api.rejectWithValue("ret", 5))
-  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) => api.rejectWithValue("ret", ""))
-  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", async (_, api) => api.rejectWithValue("ret", ""))
-  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) => api.rejectWithValue(5, ""))
-  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", async (_, api) => api.rejectWithValue(5, ""))
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) =>
+    api.rejectWithValue("ret", 5)
+  )
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", async (_, api) =>
+    api.rejectWithValue("ret", 5)
+  )
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) =>
+    api.rejectWithValue("ret", 5)
+  )
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) =>
+    api.rejectWithValue("ret", "")
+  )
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", async (_, api) =>
+    api.rejectWithValue("ret", "")
+  )
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", (_, api) =>
+    api.rejectWithValue(5, "")
+  )
+  qx.createAsyncThunk<"ret", void, { rejectValue: string; rejectedMeta: number }>("test", async (_, api) =>
+    api.rejectWithValue(5, "")
+  )
 }
 
 function extractReducers<T>(adapter: qx.EntityAdapter<T>): Omit<qx.EntityStateAdapter<T>, "map"> {
@@ -733,7 +751,8 @@ const value = actionCreators.anyKey
     reducers: {
       increment: state => state + 1,
       decrement: (state, { payload = 1 }: qx.PayloadAction<number | undefined>) => state - payload,
-      multiply: (state, { payload }: qx.PayloadAction<number | number[]>) => (Array.isArray(payload) ? payload.reduce((acc, val) => acc * val, state) : state * payload),
+      multiply: (state, { payload }: qx.PayloadAction<number | number[]>) =>
+        Array.isArray(payload) ? payload.reduce((acc, val) => acc * val, state) : state * payload,
       addTwo: {
         reducer: (s, { payload }: qx.PayloadAction<number>) => s + payload,
         prepare: (a: number, b: number) => ({
@@ -763,7 +782,8 @@ const value = actionCreators.anyKey
     reducers: {
       increment: state => state + 1,
       decrement: state => state - 1,
-      multiply: (state, { payload }: qx.PayloadAction<number | number[]>) => (Array.isArray(payload) ? payload.reduce((acc, val) => acc * val, state) : state * payload),
+      multiply: (state, { payload }: qx.PayloadAction<number | number[]>) =>
+        Array.isArray(payload) ? payload.reduce((acc, val) => acc * val, state) : state * payload,
     },
   })
   const s: string = counter.actions.increment.type
@@ -873,7 +893,9 @@ const value = actionCreators.anyKey
   expectType<(state: number, action: qx.PayloadAction<number>) => number | void>(counter.caseReducers.decrement)
   expectType<(state: number, action: qx.PayloadAction<string>) => number | void>(counter.caseReducers.increment)
   expectType<(state: number, action: qx.PayloadAction<string>) => number | void>(counter.caseReducers.decrement)
-  expectType<(state: number, action: qx.PayloadAction<string>) => number | void>(counter.caseReducers.someThingNonExistant)
+  expectType<(state: number, action: qx.PayloadAction<string>) => number | void>(
+    counter.caseReducers.someThingNonExistant
+  )
 }
 {
   const counter = qx.createSlice({
@@ -989,7 +1011,11 @@ const value = actionCreators.anyKey
   interface GenericState<T> {
     data: T | null
   }
-  function createDataSlice<T, Reducers extends qx.SliceCaseReducers<GenericState<T>>>(name: string, reducers: qx.ValidateSliceCaseReducers<GenericState<T>, Reducers>, initialState: GenericState<T>) {
+  function createDataSlice<T, Reducers extends qx.SliceCaseReducers<GenericState<T>>>(
+    name: string,
+    reducers: qx.ValidateSliceCaseReducers<GenericState<T>, Reducers>,
+    initialState: GenericState<T>
+  ) {
     const doNothing = qx.createAction<undefined>("doNothing")
     const setData = qx.createAction<T>("setData")
     const slice = qx.createSlice({
@@ -1459,7 +1485,11 @@ const _anyMiddleware: any = () => () => () => {}
     const result2: string = store.dispatch(5)
   }
   {
-    const middleware = [] as any as [qx.Middleware<(a: "a") => "A", StateA>, qx.Middleware<(b: "b") => "B", StateA>, qx.ThunkMiddleware<StateA>]
+    const middleware = [] as any as [
+      qx.Middleware<(a: "a") => "A", StateA>,
+      qx.Middleware<(b: "b") => "B", StateA>,
+      qx.ThunkMiddleware<StateA>
+    ]
     const store = qx.configureStore({
       reducer: reducerA,
       middleware,
@@ -1476,7 +1506,9 @@ const _anyMiddleware: any = () => () => () => {}
     store.dispatch(function () {} as qx.ThunkAction<void, {}, boolean, qx.AnyAction>)
   }
   {
-    const middleware = qx.getDefaultMiddleware<StateA>().prepend((() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>)
+    const middleware = qx
+      .getDefaultMiddleware<StateA>()
+      .prepend((() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>)
     const store = qx.configureStore({
       reducer: reducerA,
       middleware,
@@ -1512,7 +1544,8 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = qx.configureStore({
       reducer: reducerA,
-      middleware: getDefaultMiddleware => getDefaultMiddleware().prepend((() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>),
+      middleware: getDefaultMiddleware =>
+        getDefaultMiddleware().prepend((() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>),
     })
     const result1: "A" = store.dispatch("a")
     const result2: Promise<"A"> = store.dispatch(thunkA())
@@ -1533,7 +1566,8 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = qx.configureStore({
       reducer: reducerA,
-      middleware: getDefaultMiddleware => getDefaultMiddleware({ thunk: false }).prepend((() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>),
+      middleware: getDefaultMiddleware =>
+        getDefaultMiddleware({ thunk: false }).prepend((() => {}) as any as qx.Middleware<(a: "a") => "A", StateA>),
     })
     const result1: "A" = store.dispatch("a")
     store.dispatch(thunkA())
@@ -1575,7 +1609,11 @@ const _anyMiddleware: any = () => () => () => {}
       reducer: counterSlice.reducer,
       middleware: gDM => gDM().prepend(dummyMiddleware),
     })
-    expectType<((action: qx.Action<"actionListenerMiddleware/add">) => Unsubscribe) & qx.ThunkDispatch<CounterState, undefined, qx.AnyAction> & qx.Dispatch<qx.AnyAction>>(store.dispatch)
+    expectType<
+      ((action: qx.Action<"actionListenerMiddleware/add">) => Unsubscribe) &
+        qx.ThunkDispatch<CounterState, undefined, qx.AnyAction> &
+        qx.Dispatch<qx.AnyAction>
+    >(store.dispatch)
     const unsubscribe = store.dispatch({
       type: "actionListenerMiddleware/add",
     } as const)

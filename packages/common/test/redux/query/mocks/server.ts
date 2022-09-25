@@ -12,25 +12,13 @@ export const posts: Record<number, Post> = {
 }
 
 export const server = setupServer(
-  rest.get("https://example.com/echo", (req, res, ctx) =>
-    res(ctx.json({ ...req, headers: req.headers.all() }))
-  ),
-  rest.post("https://example.com/echo", (req, res, ctx) =>
-    res(ctx.json({ ...req, headers: req.headers.all() }))
-  ),
-  rest.get("https://example.com/success", (_, res, ctx) =>
-    res(ctx.json({ value: "success" }))
-  ),
-  rest.post("https://example.com/success", (_, res, ctx) =>
-    res(ctx.json({ value: "success" }))
-  ),
+  rest.get("https://example.com/echo", (req, res, ctx) => res(ctx.json({ ...req, headers: req.headers.all() }))),
+  rest.post("https://example.com/echo", (req, res, ctx) => res(ctx.json({ ...req, headers: req.headers.all() }))),
+  rest.get("https://example.com/success", (_, res, ctx) => res(ctx.json({ value: "success" }))),
+  rest.post("https://example.com/success", (_, res, ctx) => res(ctx.json({ value: "success" }))),
   rest.get("https://example.com/empty", (_, res, ctx) => res(ctx.body(""))),
-  rest.get("https://example.com/error", (_, res, ctx) =>
-    res(ctx.status(500), ctx.json({ value: "error" }))
-  ),
-  rest.post("https://example.com/error", (_, res, ctx) =>
-    res(ctx.status(500), ctx.json({ value: "error" }))
-  ),
+  rest.get("https://example.com/error", (_, res, ctx) => res(ctx.status(500), ctx.json({ value: "error" }))),
+  rest.post("https://example.com/error", (_, res, ctx) => res(ctx.status(500), ctx.json({ value: "error" }))),
   rest.get("https://example.com/nonstandard-error", (_, res, ctx) =>
     res(
       ctx.status(200),
@@ -40,20 +28,13 @@ export const server = setupServer(
       })
     )
   ),
-  rest.get("https://example.com/mirror", (req, res, ctx) =>
-    res(ctx.json(req.params))
-  ),
-  rest.post("https://example.com/mirror", (req, res, ctx) =>
-    res(ctx.json(req.params))
-  ),
+  rest.get("https://example.com/mirror", (req, res, ctx) => res(ctx.json(req.params))),
+  rest.post("https://example.com/mirror", (req, res, ctx) => res(ctx.json(req.params))),
   rest.get("https://example.com/posts/random", (req, res, ctx) => {
     const { id, ..._post } = posts[1]
     return res(ctx.json({ id }))
   }),
-  rest.get<Post, any, { id: number }>(
-    "https://example.com/post/:id",
-    (req, res, ctx) => {
-      return res(ctx.json(posts[req.params.id]))
-    }
-  )
+  rest.get<Post, any, { id: number }>("https://example.com/post/:id", (req, res, ctx) => {
+    return res(ctx.json(posts[req.params.id]))
+  })
 )

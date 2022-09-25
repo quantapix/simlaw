@@ -39,24 +39,18 @@ function isAnyOfActionTest(action: AnyAction) {
   }
 }
 function isAnyOfThunkTest(action: AnyAction) {
-  const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>(
-    "asyncThunk1",
-    async () => {
-      return {
-        prop1: 1,
-        prop3: 3,
-      }
+  const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>("asyncThunk1", async () => {
+    return {
+      prop1: 1,
+      prop3: 3,
     }
-  )
-  const asyncThunk2 = createAsyncThunk<{ prop1: number; prop2: number }>(
-    "asyncThunk2",
-    async () => {
-      return {
-        prop1: 1,
-        prop2: 2,
-      }
+  })
+  const asyncThunk2 = createAsyncThunk<{ prop1: number; prop2: number }>("asyncThunk2", async () => {
+    return {
+      prop1: 1,
+      prop2: 2,
     }
-  )
+  })
   if (isAnyOf(asyncThunk1.fulfilled, asyncThunk2.fulfilled)(action)) {
     return {
       prop1: action.payload.prop1,
@@ -121,15 +115,12 @@ function isAllOfActionTest(action: AnyAction) {
   }
 }
 function isAllOfThunkTest(action: AnyAction) {
-  const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>(
-    "asyncThunk1",
-    async () => {
-      return {
-        prop1: 1,
-        prop3: 3,
-      }
+  const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>("asyncThunk1", async () => {
+    return {
+      prop1: 1,
+      prop3: 3,
     }
-  )
+  })
   if (isAllOf(asyncThunk1.fulfilled, isSpecialAction)(action)) {
     return {
       prop1: action.payload.prop1,
@@ -208,11 +199,7 @@ function isRejectedWithValueTest(action: AnyAction) {
     expectUnknown(action.payload)
     expectExactType<SerializedError>(action.error)
   }
-  const thunk = createAsyncThunk<
-    string,
-    void,
-    { rejectValue: { message: string } }
-  >("a", () => "result")
+  const thunk = createAsyncThunk<string, void, { rejectValue: { message: string } }>("a", () => "result")
   if (isRejectedWithValue(thunk)(action)) {
     expectExactType({ message: "" as string })(action.payload)
     expectExactType<SerializedError>(action.error)

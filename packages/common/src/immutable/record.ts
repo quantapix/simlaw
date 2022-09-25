@@ -6,10 +6,14 @@ import type * as qt from "./types.js"
 
 function throwOnInvalidDefaultValues(x) {
   if (qu.isRecord(x)) {
-    throw new Error("Can not call `Record` with an immutable Record as default values. Use a plain javascript object instead.")
+    throw new Error(
+      "Can not call `Record` with an immutable Record as default values. Use a plain javascript object instead."
+    )
   }
   if (qu.isImmutable(x)) {
-    throw new Error("Can not call `Record` with an immutable Collection as default values. Use a plain javascript object instead.")
+    throw new Error(
+      "Can not call `Record` with an immutable Collection as default values. Use a plain javascript object instead."
+    )
   }
   if (x === null || typeof x !== "object") {
     throw new Error("Can not call `Record` with a non-object as default values. Use a plain javascript object instead.")
@@ -36,7 +40,15 @@ export class Record<T extends object> implements qt.Record<T> {
           const propName = keys[i]
           indices[propName] = i
           if (RecordTypePrototype[propName]) {
-            typeof console === "object" && console.warn && console.warn("Cannot define " + recordName(this) + ' with property "' + propName + '" since that property name is part of the Record API.')
+            typeof console === "object" &&
+              console.warn &&
+              console.warn(
+                "Cannot define " +
+                  recordName(this) +
+                  ' with property "' +
+                  propName +
+                  '" since that property name is part of the Record API.'
+              )
           } else setProp(RecordTypePrototype, propName)
         }
       }
@@ -152,7 +164,9 @@ export class Record<T extends object> implements qt.Record<T> {
 
 export namespace Record {
   namespace Factory {}
-  function Factory<TProps extends object>(values?: Partial<TProps> | Iterable<[string, unknown]>): Record<TProps> & Readonly<TProps>
+  function Factory<TProps extends object>(
+    values?: Partial<TProps> | Iterable<[string, unknown]>
+  ): Record<TProps> & Readonly<TProps>
 }
 
 function makeRecord(likeRecord, values, ownerID) {

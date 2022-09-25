@@ -1,19 +1,10 @@
-import type {
-  AnyAction,
-  EnhancedStore,
-  Middleware,
-  Store,
-} from "@reduxjs/toolkit"
+import type { AnyAction, EnhancedStore, Middleware, Store } from "@reduxjs/toolkit"
 import { configureStore } from "@reduxjs/toolkit"
 import { setupListeners } from "@reduxjs/toolkit/query"
 import type { Reducer } from "react"
 import React, { useCallback } from "react"
 import { Provider } from "react-redux"
-import {
-  mockConsole,
-  createConsole,
-  getLog,
-} from "console-testing-library/pure"
+import { mockConsole, createConsole, getLog } from "console-testing-library/pure"
 import { cleanup, act } from "@testing-library/react"
 export const ANY = 0 as any
 export const DEFAULT_DELAY_MS = 150
@@ -73,17 +64,13 @@ declare global {
   }
 }
 expect.extend({
-  toMatchSequence(
-    _actions: AnyAction[],
-    ...matchers: Array<(arg: any) => boolean>
-  ) {
+  toMatchSequence(_actions: AnyAction[], ...matchers: Array<(arg: any) => boolean>) {
     const actions = _actions.concat()
     actions.shift() // remove INIT
     for (let i = 0; i < matchers.length; i++) {
       if (!matchers[i](actions[i])) {
         return {
-          message: () =>
-            `Action ${actions[i].type} does not match sequence at position ${i}.`,
+          message: () => `Action ${actions[i].type} does not match sequence at position ${i}.`,
           pass: false,
         }
       }
@@ -108,10 +95,7 @@ function normalize(str: string) {
     .trim()
 }
 expect.extend({
-  async toHaveConsoleOutput(
-    fn: () => void | Promise<void>,
-    expectedOutput: string
-  ) {
+  async toHaveConsoleOutput(fn: () => void | Promise<void>, expectedOutput: string) {
     const restore = mockConsole(createConsole())
     await fn()
     const log = getLog().log
@@ -151,18 +135,11 @@ export function setupApiStore<
     util: { resetApiState(): any }
   },
   R extends Record<string, Reducer<any, any>> = Record<never, never>
->(
-  api: A,
-  extraReducers?: R,
-  options: { withoutListeners?: boolean; withoutTestLifecycles?: boolean } = {}
-) {
+>(api: A, extraReducers?: R, options: { withoutListeners?: boolean; withoutTestLifecycles?: boolean } = {}) {
   const getStore = () =>
     configureStore({
       reducer: { api: api.reducer, ...extraReducers },
-      middleware: gdm =>
-        gdm({ serializableCheck: false, immutableCheck: false }).concat(
-          api.middleware
-        ),
+      middleware: gdm => gdm({ serializableCheck: false, immutableCheck: false }).concat(api.middleware),
     })
   type StoreType = EnhancedStore<
     {
@@ -171,9 +148,7 @@ export function setupApiStore<
       [K in keyof R]: ReturnType<R[K]>
     },
     AnyAction,
-    ReturnType<typeof getStore> extends EnhancedStore<any, any, infer M>
-      ? M
-      : never
+    ReturnType<typeof getStore> extends EnhancedStore<any, any, infer M> ? M : never
   >
   const initialStore = getStore() as StoreType
   const refObj = {
@@ -201,22 +176,12 @@ export function setupApiStore<
   }
   return refObj
 }
-export declare type IsAny<T, True, False = never> = true | false extends (
-  T extends never ? true : false
-)
-  ? True
-  : False
-export declare type IsUnknown<T, True, False = never> = unknown extends T
-  ? IsAny<T, False, True>
-  : False
+export declare type IsAny<T, True, False = never> = true | false extends (T extends never ? true : false) ? True : False
+export declare type IsUnknown<T, True, False = never> = unknown extends T ? IsAny<T, False, True> : False
 export function expectType<T>(t: T): T {
   return t
 }
-type Equals<T, U> = IsAny<
-  T,
-  never,
-  IsAny<U, never, [T] extends [U] ? ([U] extends [T] ? any : never) : never>
->
+type Equals<T, U> = IsAny<T, never, IsAny<U, never, [T] extends [U] ? ([U] extends [T] ? any : never) : never>>
 export function expectExactType<T>(t: T) {
   return <U extends Equals<T, U>>(u: U) => {}
 }

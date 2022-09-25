@@ -13,10 +13,7 @@ export class Subject<T> extends Observable<T> implements qt.Subscription {
   stopped = false
   erred = false
   thrown: any = null
-  static create: (...xs: any[]) => any = <T>(
-    dest: qt.Observer<T>,
-    src: Observable<T>
-  ): AnonymousSubject<T> => {
+  static create: (...xs: any[]) => any = <T>(dest: qt.Observer<T>, src: Observable<T>): AnonymousSubject<T> => {
     return new AnonymousSubject<T>(dest, src)
   }
   constructor() {
@@ -189,17 +186,10 @@ export class ReplaySubject<T> extends Subject<T> {
     this._windowTime = Math.max(1, _windowTime)
   }
   override next(x: T): void {
-    const {
-      stopped,
-      _buffer,
-      _infiniteTimeWindow,
-      _timestampProvider,
-      _windowTime,
-    } = this
+    const { stopped, _buffer, _infiniteTimeWindow, _timestampProvider, _windowTime } = this
     if (!stopped) {
       _buffer.push(x)
-      !_infiniteTimeWindow &&
-        _buffer.push(_timestampProvider.now() + _windowTime)
+      !_infiniteTimeWindow && _buffer.push(_timestampProvider.now() + _windowTime)
     }
     this._trimBuffer()
     super.next(x)
@@ -210,11 +200,7 @@ export class ReplaySubject<T> extends Subject<T> {
     const y = this._innerSubscribe(x)
     const { _infiniteTimeWindow, _buffer } = this
     const copy = _buffer.slice()
-    for (
-      let i = 0;
-      i < copy.length && !x.closed;
-      i += _infiniteTimeWindow ? 1 : 2
-    ) {
+    for (let i = 0; i < copy.length && !x.closed; i += _infiniteTimeWindow ? 1 : 2) {
       x.next(copy[i] as T)
     }
     this._checkFinalized(x)
@@ -222,8 +208,7 @@ export class ReplaySubject<T> extends Subject<T> {
   }
 
   private _trimBuffer() {
-    const { _bufferSize, _timestampProvider, _buffer, _infiniteTimeWindow } =
-      this
+    const { _bufferSize, _timestampProvider, _buffer, _infiniteTimeWindow } = this
     const adjustedBufferSize = (_infiniteTimeWindow ? 1 : 2) * _bufferSize
     _bufferSize < Infinity &&
       adjustedBufferSize < _buffer.length &&
@@ -231,11 +216,7 @@ export class ReplaySubject<T> extends Subject<T> {
     if (!_infiniteTimeWindow) {
       const now = _timestampProvider.now()
       let last = 0
-      for (
-        let i = 1;
-        i < _buffer.length && (_buffer[i] as number) <= now;
-        i += 2
-      ) {
+      for (let i = 1; i < _buffer.length && (_buffer[i] as number) <= now; i += 2) {
         last = i
       }
       last && _buffer.splice(0, last + 1)

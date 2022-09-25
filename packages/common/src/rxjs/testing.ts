@@ -18,15 +18,9 @@ import { SubscriptionLoggable } from "./SubscriptionLoggable"
 import { TestMessage } from "./TestMessage"
 import { timeoutProvider } from "./scheduler/timeoutProvider"
 import type { TimerHandle } from "./scheduler/timerHandle"
-import {
-  VirtualTimeScheduler,
-  VirtualAction,
-} from "./scheduler/VirtualTimeScheduler"
+import { VirtualTimeScheduler, VirtualAction } from "./scheduler/VirtualTimeScheduler"
 import { DONE_NOTE, errorNote, nextNote } from "./NoteFactories"
-export class ColdObservable<T>
-  extends Observable<T>
-  implements SubscriptionLoggable
-{
+export class ColdObservable<T> extends Observable<T> implements SubscriptionLoggable {
   public subscriptions: SubscriptionLog[] = []
   scheduler: Scheduler
   logSubscribedFrame: () => number
@@ -67,10 +61,7 @@ export class ColdObservable<T>
   }
 }
 applyMixins(ColdObservable, [SubscriptionLoggable])
-export class HotObservable<T>
-  extends Subject<T>
-  implements SubscriptionLoggable
-{
+export class HotObservable<T> extends Subject<T> implements SubscriptionLoggable {
   public subscriptions: SubscriptionLog[] = []
   scheduler: Scheduler
   logSubscribedFrame: () => number
@@ -106,10 +97,7 @@ export class HotObservable<T>
 }
 applyMixins(HotObservable, [SubscriptionLoggable])
 export class SubscriptionLog {
-  constructor(
-    public subscribedFrame: number,
-    public unsubscribedFrame: number = Infinity
-  ) {}
+  constructor(public subscribedFrame: number, public unsubscribedFrame: number = Infinity) {}
 }
 export class SubscriptionLoggable {
   public subscriptions: SubscriptionLog[] = []
@@ -121,10 +109,7 @@ export class SubscriptionLoggable {
   logUnsubscribedFrame(index: number) {
     const subscriptionLogs = this.subscriptions
     const oldSubscriptionLog = subscriptionLogs[index]
-    subscriptionLogs[index] = new SubscriptionLog(
-      oldSubscriptionLog.subscribedFrame,
-      this.scheduler.now()
-    )
+    subscriptionLogs[index] = new SubscriptionLog(oldSubscriptionLog.subscribedFrame, this.scheduler.now())
   }
 }
 export interface TestMessage {
@@ -147,11 +132,7 @@ interface FlushableTest {
   actual?: any[]
   expected?: any[]
 }
-export type observableToBeFn = (
-  marbles: string,
-  values?: any,
-  errorValue?: any
-) => void
+export type observableToBeFn = (marbles: string, values?: any, errorValue?: any) => void
 export type subscriptionLogsToBeFn = (marbles: string | string[]) => void
 export class TestScheduler extends VirtualTimeScheduler {
   static frameTimeFactor = 10
@@ -159,67 +140,38 @@ export class TestScheduler extends VirtualTimeScheduler {
   public readonly coldObservables: ColdObservable<any>[] = []
   private flushTests: FlushableTest[] = []
   private runMode = false
-  constructor(
-    public assertDeepEqual: (actual: any, expected: any) => boolean | void
-  ) {
+  constructor(public assertDeepEqual: (actual: any, expected: any) => boolean | void) {
     super(VirtualAction, defaultMaxFrame)
   }
   createTime(marbles: string): number {
-    const indexOf = this.runMode
-      ? marbles.trim().indexOf("|")
-      : marbles.indexOf("|")
+    const indexOf = this.runMode ? marbles.trim().indexOf("|") : marbles.indexOf("|")
     if (indexOf === -1) {
-      throw new Error(
-        'marble diagram for time should have a completion marker "|"'
-      )
+      throw new Error('marble diagram for time should have a completion marker "|"')
     }
     return indexOf * TestScheduler.frameTimeFactor
   }
-  createColdObservable<T = string>(
-    marbles: string,
-    values?: { [marble: string]: T },
-    error?: any
-  ): ColdObservable<T> {
+  createColdObservable<T = string>(marbles: string, values?: { [marble: string]: T }, error?: any): ColdObservable<T> {
     if (marbles.indexOf("^") !== -1) {
       throw new Error('cold observable cannot have subscription offset "^"')
     }
     if (marbles.indexOf("!") !== -1) {
       throw new Error('cold observable cannot have unsubscription marker "!"')
     }
-    const messages = TestScheduler.parseMarbles(
-      marbles,
-      values,
-      error,
-      undefined,
-      this.runMode
-    )
+    const messages = TestScheduler.parseMarbles(marbles, values, error, undefined, this.runMode)
     const cold = new ColdObservable<T>(messages, this)
     this.coldObservables.push(cold)
     return cold
   }
-  createHotObservable<T = string>(
-    marbles: string,
-    values?: { [marble: string]: T },
-    error?: any
-  ): HotObservable<T> {
+  createHotObservable<T = string>(marbles: string, values?: { [marble: string]: T }, error?: any): HotObservable<T> {
     if (marbles.indexOf("!") !== -1) {
       throw new Error('hot observable cannot have unsubscription marker "!"')
     }
-    const messages = TestScheduler.parseMarbles(
-      marbles,
-      values,
-      error,
-      undefined,
-      this.runMode
-    )
+    const messages = TestScheduler.parseMarbles(marbles, values, error, undefined, this.runMode)
     const subject = new HotObservable<T>(messages, this)
     this.hotObservables.push(subject)
     return subject
   }
-  private materializeInnerObservable(
-    observable: Observable<any>,
-    outerFrame: number
-  ): TestMessage[] {
+  private materializeInnerObservable(observable: Observable<any>, outerFrame: number): TestMessage[] {
     const messages: TestMessage[] = []
     observable.subscribe({
       next: value => {
@@ -243,29 +195,17 @@ export class TestScheduler extends VirtualTimeScheduler {
     })
     return messages
   }
-  expectObservable<T>(
-    observable: Observable<T>,
-    subscriptionMarbles: string | null = null
-  ) {
+  expectObservable<T>(observable: Observable<T>, subscriptionMarbles: string | null = null) {
     const actual: TestMessage[] = []
     const flushTest: FlushableTest = { actual, ready: false }
-    const subscriptionParsed = TestScheduler.parseMarblesAsSubscriptions(
-      subscriptionMarbles,
-      this.runMode
-    )
-    const subscriptionFrame =
-      subscriptionParsed.subscribedFrame === Infinity
-        ? 0
-        : subscriptionParsed.subscribedFrame
+    const subscriptionParsed = TestScheduler.parseMarblesAsSubscriptions(subscriptionMarbles, this.runMode)
+    const subscriptionFrame = subscriptionParsed.subscribedFrame === Infinity ? 0 : subscriptionParsed.subscribedFrame
     const unsubscriptionFrame = subscriptionParsed.unsubscribedFrame
     let subscription: Subscription
     this.schedule(() => {
       subscription = observable.subscribe({
         next: x => {
-          const value =
-            x instanceof Observable
-              ? this.materializeInnerObservable(x, this.frame)
-              : x
+          const value = x instanceof Observable ? this.materializeInnerObservable(x, this.frame) : x
           actual.push({
             frame: this.frame,
             note: nextNote(value),
@@ -293,13 +233,7 @@ export class TestScheduler extends VirtualTimeScheduler {
     return {
       toBe(marbles: string, values?: any, errorValue?: any) {
         flushTest.ready = true
-        flushTest.expected = TestScheduler.parseMarbles(
-          marbles,
-          values,
-          errorValue,
-          true,
-          runMode
-        )
+        flushTest.expected = TestScheduler.parseMarbles(marbles, values, errorValue, true, runMode)
       },
       toEqual: (other: Observable<T>) => {
         flushTest.ready = true
@@ -307,10 +241,7 @@ export class TestScheduler extends VirtualTimeScheduler {
         this.schedule(() => {
           subscription = other.subscribe({
             next: x => {
-              const value =
-                x instanceof Observable
-                  ? this.materializeInnerObservable(x, this.frame)
-                  : x
+              const value = x instanceof Observable ? this.materializeInnerObservable(x, this.frame) : x
               flushTest.expected!.push({
                 frame: this.frame,
                 note: nextNote(value),
@@ -345,14 +276,10 @@ export class TestScheduler extends VirtualTimeScheduler {
     return {
       toBe(marblesOrMarblesArray: string | string[]) {
         const marblesArray: string[] =
-          typeof marblesOrMarblesArray === "string"
-            ? [marblesOrMarblesArray]
-            : marblesOrMarblesArray
+          typeof marblesOrMarblesArray === "string" ? [marblesOrMarblesArray] : marblesOrMarblesArray
         flushTest.ready = true
         flushTest.expected = marblesArray
-          .map(marbles =>
-            TestScheduler.parseMarblesAsSubscriptions(marbles, runMode)
-          )
+          .map(marbles => TestScheduler.parseMarblesAsSubscriptions(marbles, runMode))
           .filter(marbles => marbles.subscribedFrame !== Infinity)
       },
     }
@@ -371,10 +298,7 @@ export class TestScheduler extends VirtualTimeScheduler {
       return true
     })
   }
-  static parseMarblesAsSubscriptions(
-    marbles: string | null,
-    runMode = false
-  ): SubscriptionLog {
+  static parseMarblesAsSubscriptions(marbles: string | null, runMode = false): SubscriptionLog {
     if (typeof marbles !== "string") {
       return new SubscriptionLog(Infinity)
     }
@@ -410,8 +334,7 @@ export class TestScheduler extends VirtualTimeScheduler {
         case "^":
           if (subscriptionFrame !== Infinity) {
             throw new Error(
-              "found a second subscription point '^' in a " +
-                "subscription marble diagram. There can only be one."
+              "found a second subscription point '^' in a " + "subscription marble diagram. There can only be one."
             )
           }
           subscriptionFrame = groupStart > -1 ? groupStart : frame
@@ -420,8 +343,7 @@ export class TestScheduler extends VirtualTimeScheduler {
         case "!":
           if (unsubscriptionFrame !== Infinity) {
             throw new Error(
-              "found a second unsubscription point '!' in a " +
-                "subscription marble diagram. There can only be one."
+              "found a second unsubscription point '!' in a " + "subscription marble diagram. There can only be one."
             )
           }
           unsubscriptionFrame = groupStart > -1 ? groupStart : frame
@@ -455,10 +377,7 @@ export class TestScheduler extends VirtualTimeScheduler {
             }
           }
           throw new Error(
-            "there can only be '^' and '!' markers in a " +
-              "subscription marble diagram. Found instead '" +
-              c +
-              "'."
+            "there can only be '^' and '!' markers in a " + "subscription marble diagram. Found instead '" + c + "'."
           )
       }
       frame = nextFrame
@@ -477,26 +396,18 @@ export class TestScheduler extends VirtualTimeScheduler {
     runMode = false
   ): TestMessage[] {
     if (marbles.indexOf("!") !== -1) {
-      throw new Error(
-        "conventional marble diagrams cannot have the " +
-          'unsubscription marker "!"'
-      )
+      throw new Error("conventional marble diagrams cannot have the " + 'unsubscription marker "!"')
     }
     const characters = [...marbles]
     const len = characters.length
     const testMessages: TestMessage[] = []
-    const subIndex = runMode
-      ? marbles.replace(/^[ ]+/, "").indexOf("^")
-      : marbles.indexOf("^")
+    const subIndex = runMode ? marbles.replace(/^[ ]+/, "").indexOf("^") : marbles.indexOf("^")
     let frame = subIndex === -1 ? 0 : subIndex * -this.frameTimeFactor
     const getValue =
       typeof values !== "object"
         ? (x: any) => x
         : (x: any) => {
-            if (
-              materializeInnerObservables &&
-              values[x] instanceof ColdObservable
-            ) {
+            if (materializeInnerObservables && values[x] instanceof ColdObservable) {
               return values[x].messages
             }
             return values[x]
@@ -603,21 +514,13 @@ export class TestScheduler extends VirtualTimeScheduler {
     }
     const animate = (marbles: string) => {
       if (map) {
-        throw new Error(
-          "animate() must not be called more than once within run()"
-        )
+        throw new Error("animate() must not be called more than once within run()")
       }
       if (/[|#]/.test(marbles)) {
         throw new Error("animate() must not complete or error")
       }
       map = new Map<number, FrameRequestCallback>()
-      const messages = TestScheduler.parseMarbles(
-        marbles,
-        undefined,
-        undefined,
-        undefined,
-        true
-      )
+      const messages = TestScheduler.parseMarbles(marbles, undefined, undefined, undefined, true)
       for (const message of messages) {
         this.schedule(() => {
           const now = this.now()
@@ -647,21 +550,15 @@ export class TestScheduler extends VirtualTimeScheduler {
     const run = () => {
       const now = this.now()
       const scheduledRecords = Array.from(scheduleLookup.values())
-      const scheduledRecordsDue = scheduledRecords.filter(
-        ({ due }) => due <= now
-      )
-      const dueImmediates = scheduledRecordsDue.filter(
-        ({ type }) => type === "immediate"
-      )
+      const scheduledRecordsDue = scheduledRecords.filter(({ due }) => due <= now)
+      const dueImmediates = scheduledRecordsDue.filter(({ type }) => type === "immediate")
       if (dueImmediates.length > 0) {
         const { handle, handler } = dueImmediates[0]
         scheduleLookup.delete(handle)
         handler()
         return
       }
-      const dueIntervals = scheduledRecordsDue.filter(
-        ({ type }) => type === "interval"
-      )
+      const dueIntervals = scheduledRecordsDue.filter(({ type }) => type === "interval")
       if (dueIntervals.length > 0) {
         const firstDueInterval = dueIntervals[0]
         const { duration, handler } = firstDueInterval
@@ -670,9 +567,7 @@ export class TestScheduler extends VirtualTimeScheduler {
         handler()
         return
       }
-      const dueTimeouts = scheduledRecordsDue.filter(
-        ({ type }) => type === "timeout"
-      )
+      const dueTimeouts = scheduledRecordsDue.filter(({ type }) => type === "timeout")
       if (dueTimeouts.length > 0) {
         const { handle, handler } = dueTimeouts[0]
         scheduleLookup.delete(handle)

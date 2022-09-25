@@ -4,9 +4,7 @@ import * as qu from "./utils.js"
 
 export interface DevToolsOptions {
   name?: string
-  actionCreators?:
-    | qt.ActionCreator<any>[]
-    | { [key: string]: qt.ActionCreator<any> }
+  actionCreators?: qt.ActionCreator<any>[] | { [key: string]: qt.ActionCreator<any> }
   latency?: number
   maxAge?: number
   serialize?:
@@ -67,8 +65,7 @@ interface ComposeWithDevTools {
 }
 
 export const composeWithDevTools: ComposeWithDevTools =
-  typeof window !== "undefined" &&
-  (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
+  typeof window !== "undefined" && (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
     ? (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
     : function () {
         if (arguments.length === 0) return undefined
@@ -100,26 +97,16 @@ function invariant(condition: any, message?: string) {
   }
   throw new Error(`${prefix}: ${message || ""}`)
 }
-function stringify(
-  obj: any,
-  serializer?: EntryProcessor,
-  indent?: string | number,
-  decycler?: EntryProcessor
-): string {
+function stringify(obj: any, serializer?: EntryProcessor, indent?: string | number, decycler?: EntryProcessor): string {
   return JSON.stringify(obj, getSerialize(serializer, decycler), indent)
 }
-function getSerialize(
-  serializer?: EntryProcessor,
-  decycler?: EntryProcessor
-): EntryProcessor {
+function getSerialize(serializer?: EntryProcessor, decycler?: EntryProcessor): EntryProcessor {
   const stack: any[] = [],
     keys: any[] = []
   if (!decycler)
     decycler = function (_: string, value: any) {
       if (stack[0] === value) return "[Circular ~]"
-      return (
-        "[Circular ~." + keys.slice(0, stack.indexOf(value)).join(".") + "]"
-      )
+      return "[Circular ~." + keys.slice(0, stack.indexOf(value)).join(".") + "]"
     }
   return function (this: any, key: string, value: any) {
     if (stack.length > 0) {
@@ -134,11 +121,7 @@ function getSerialize(
 export function isImmutableDefault(value: unknown): boolean {
   return typeof value !== "object" || value == null || Object.isFrozen(value)
 }
-export function trackForMutations(
-  isImmutable: IsImmutableFunc,
-  ignorePaths: string[] | undefined,
-  obj: any
-) {
+export function trackForMutations(isImmutable: IsImmutableFunc, ignorePaths: string[] | undefined, obj: any) {
   const trackedProperties = trackProperties(isImmutable, ignorePaths, obj)
   return {
     detectMutations() {
@@ -164,12 +147,7 @@ function trackProperties(
       if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
         continue
       }
-      tracked.children[key] = trackProperties(
-        isImmutable,
-        ignorePaths,
-        obj[key],
-        childPath
-      )
+      tracked.children[key] = trackProperties(isImmutable, ignorePaths, obj[key], childPath)
     }
   }
   return tracked as TrackedProperty
@@ -231,26 +209,14 @@ export function createImmutableStateInvariantMiddleware(
   if (process.env["NODE_ENV"] === "production") {
     return () => next => action => next(action)
   }
-  const {
-    isImmutable = isImmutableDefault,
-    ignoredPaths,
-    warnAfter = 32,
-    ignore,
-  } = options
-  const track = trackForMutations.bind(
-    null,
-    isImmutable,
-    ignoredPaths || ignore
-  )
+  const { isImmutable = isImmutableDefault, ignoredPaths, warnAfter = 32, ignore } = options
+  const track = trackForMutations.bind(null, isImmutable, ignoredPaths || ignore)
   return ({ getState }) => {
     let state = getState()
     let tracker = track(state)
     let result
     return next => action => {
-      const measureUtils = qu.getTimeMeasureUtils(
-        warnAfter,
-        "ImmutableStateInvariantMiddleware"
-      )
+      const measureUtils = qu.getTimeMeasureUtils(warnAfter, "ImmutableStateInvariantMiddleware")
       measureUtils.measureTime(() => {
         state = getState()
         result = tracker.detectMutations()
@@ -371,14 +337,8 @@ export function createSerializableStateInvariantMiddleware(
   } = options
   return storeAPI => next => action => {
     const result = next(action)
-    const measureUtils = qu.getTimeMeasureUtils(
-      warnAfter,
-      "SerializableStateInvariantMiddleware"
-    )
-    if (
-      !ignoreActions &&
-      !(ignoredActions.length && ignoredActions.indexOf(action.type) !== -1)
-    ) {
+    const measureUtils = qu.getTimeMeasureUtils(warnAfter, "SerializableStateInvariantMiddleware")
+    if (!ignoreActions && !(ignoredActions.length && ignoredActions.indexOf(action.type) !== -1)) {
       measureUtils.measureTime(() => {
         const foundActionNonSerializableValue = findNonSerializableValue(
           action,
@@ -427,11 +387,9 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   }
 }
 
-function createThunkMiddleware<
-  State = any,
-  BasicAction extends qt.Action = qt.AnyAction,
-  ExtraThunkArg = undefined
->(extraArgument?: ExtraThunkArg) {
+function createThunkMiddleware<State = any, BasicAction extends qt.Action = qt.AnyAction, ExtraThunkArg = undefined>(
+  extraArgument?: ExtraThunkArg
+) {
   const middleware: qt.ThunkMiddleware<State, BasicAction, ExtraThunkArg> =
     ({ dispatch, getState }) =>
     next =>
@@ -445,11 +403,7 @@ function createThunkMiddleware<
 }
 
 export const thunkMiddleware = createThunkMiddleware() as qt.ThunkMiddleware & {
-  withExtraArgument<
-    ExtraThunkArg,
-    State = any,
-    BasicAction extends qt.Action = qt.AnyAction
-  >(
+  withExtraArgument<ExtraThunkArg, State = any, BasicAction extends qt.Action = qt.AnyAction>(
     extraArgument: ExtraThunkArg
   ): qt.ThunkMiddleware<State, BasicAction, ExtraThunkArg>
 }
@@ -470,10 +424,7 @@ interface GetDefaultMiddlewareOptions {
   serializableCheck?: boolean | SerializableStateInvariantMiddlewareOptions
 }
 
-export type ThunkMiddlewareFor<
-  S,
-  O extends GetDefaultMiddlewareOptions = {}
-> = O extends {
+export type ThunkMiddlewareFor<S, O extends GetDefaultMiddlewareOptions = {}> = O extends {
   thunk: false
 }
   ? never
@@ -491,9 +442,7 @@ export type CurriedGetDefaultMiddleware<S = any> = <
   options?: O
 ) => qt.MiddlewareArray<qt.ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
 
-export function curryGetDefaultMiddleware<
-  S = any
->(): CurriedGetDefaultMiddleware<S> {
+export function curryGetDefaultMiddleware<S = any>(): CurriedGetDefaultMiddleware<S> {
   return function curriedGetDefaultMiddleware(options) {
     return getDefaultMiddleware(options)
   }
@@ -506,22 +455,14 @@ export function getDefaultMiddleware<
     immutableCheck: true
     serializableCheck: true
   }
->(
-  options: O = {} as O
-): qt.MiddlewareArray<qt.ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>> {
-  const {
-    thunk = true,
-    immutableCheck = true,
-    serializableCheck = true,
-  } = options
+>(options: O = {} as O): qt.MiddlewareArray<qt.ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>> {
+  const { thunk = true, immutableCheck = true, serializableCheck = true } = options
   const middlewareArray = new qt.MiddlewareArray<qt.Middleware[]>()
   if (thunk) {
     if (isBoolean(thunk)) {
       middlewareArray.push(thunkMiddleware)
     } else {
-      middlewareArray.push(
-        thunkMiddleware.withExtraArgument(thunk.extraArgument)
-      )
+      middlewareArray.push(thunkMiddleware.withExtraArgument(thunk.extraArgument))
     }
   }
   if (process.env["NODE_ENV"] !== "production") {
@@ -530,18 +471,14 @@ export function getDefaultMiddleware<
       if (!isBoolean(immutableCheck)) {
         immutableOptions = immutableCheck
       }
-      middlewareArray.unshift(
-        createImmutableStateInvariantMiddleware(immutableOptions)
-      )
+      middlewareArray.unshift(createImmutableStateInvariantMiddleware(immutableOptions))
     }
     if (serializableCheck) {
       let serializableOptions: SerializableStateInvariantMiddlewareOptions = {}
       if (!isBoolean(serializableCheck)) {
         serializableOptions = serializableCheck
       }
-      middlewareArray.push(
-        createSerializableStateInvariantMiddleware(serializableOptions)
-      )
+      middlewareArray.push(createSerializableStateInvariantMiddleware(serializableOptions))
     }
   }
   return middlewareArray as any
@@ -549,9 +486,7 @@ export function getDefaultMiddleware<
 
 const IS_PRODUCTION = process.env["NODE_ENV"] === "production"
 
-export type ConfigureEnhancersCallback = (
-  defaultEnhancers: readonly qt.StoreEnhancer[]
-) => qt.StoreEnhancer[]
+export type ConfigureEnhancersCallback = (defaultEnhancers: readonly qt.StoreEnhancer[]) => qt.StoreEnhancer[]
 
 export interface ConfigureStoreOptions<
   S = any,
@@ -567,11 +502,8 @@ export interface ConfigureStoreOptions<
 
 type Middlewares<S> = ReadonlyArray<qt.Middleware<{}, S>>
 
-export interface EnhancedStore<
-  S = any,
-  A extends qt.Action = qt.AnyAction,
-  M extends Middlewares<S> = Middlewares<S>
-> extends qt.Store<S, A> {
+export interface EnhancedStore<S = any, A extends qt.Action = qt.AnyAction, M extends Middlewares<S> = Middlewares<S>>
+  extends qt.Store<S, A> {
   dispatch: qt.ExtractDispatchExtensions<M> & qt.Dispatch<A>
 }
 export function configureStore<
@@ -601,18 +533,11 @@ export function configureStore<
   if (typeof finalMiddleware === "function") {
     finalMiddleware = finalMiddleware(curriedGetDefaultMiddleware)
     if (!IS_PRODUCTION && !Array.isArray(finalMiddleware)) {
-      throw new Error(
-        "when using a middleware builder function, an array of middleware must be returned"
-      )
+      throw new Error("when using a middleware builder function, an array of middleware must be returned")
     }
   }
-  if (
-    !IS_PRODUCTION &&
-    finalMiddleware.some((item: any) => typeof item !== "function")
-  ) {
-    throw new Error(
-      "each middleware provided to configureStore must be a function"
-    )
+  if (!IS_PRODUCTION && finalMiddleware.some((item: any) => typeof item !== "function")) {
+    throw new Error("each middleware provided to configureStore must be a function")
   }
   const middlewareEnhancer = qb.applyMiddleware(...finalMiddleware)
   let finalCompose = qb.compose

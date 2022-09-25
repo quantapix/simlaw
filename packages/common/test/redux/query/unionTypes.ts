@@ -30,9 +30,7 @@ describe.skip("TS only tests", () => {
     }
     if (result.isLoading) {
       expectExactType("" as string | undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isError)
       expectExactType(false)(result.isSuccess)
@@ -52,12 +50,7 @@ describe.skip("TS only tests", () => {
       expectExactType(false)(result.isError)
     }
     expectType<never>(result)
-    if (
-      !result.isUninitialized &&
-      !result.isLoading &&
-      !result.isError &&
-      !result.isSuccess
-    ) {
+    if (!result.isUninitialized && !result.isLoading && !result.isError && !result.isSuccess) {
       expectType<never>(result)
     }
   })
@@ -73,9 +66,7 @@ describe.skip("TS only tests", () => {
     }
     if (result.isLoading) {
       expectExactType(undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isError)
       expectExactType(false)(result.isSuccess)
@@ -99,9 +90,7 @@ describe.skip("TS only tests", () => {
     }
     if (result.isFetching) {
       expectExactType("" as string | undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isLoading)
       expectExactType(false)(result.isSuccess)
@@ -118,12 +107,7 @@ describe.skip("TS only tests", () => {
       }
     }
     expectType<never>(result)
-    if (
-      !result.isUninitialized &&
-      !result.isLoading &&
-      !result.isError &&
-      !result.isSuccess
-    ) {
+    if (!result.isUninitialized && !result.isLoading && !result.isError && !result.isSuccess) {
       expectType<never>(result)
     }
   })
@@ -139,9 +123,7 @@ describe.skip("TS only tests", () => {
     }
     if (result.isLoading) {
       expectExactType(undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isError)
       expectExactType(false)(result.isSuccess)
@@ -165,21 +147,14 @@ describe.skip("TS only tests", () => {
     }
     if (result.isFetching) {
       expectExactType("" as string | undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isLoading)
       expectExactType(false)(result.isSuccess)
       expectExactType(false)(result.isError)
     }
     expectType<never>(result)
-    if (
-      !result.isUninitialized &&
-      !result.isLoading &&
-      !result.isError &&
-      !result.isSuccess
-    ) {
+    if (!result.isUninitialized && !result.isLoading && !result.isError && !result.isSuccess) {
       expectType<never>(result)
     }
   })
@@ -195,9 +170,7 @@ describe.skip("TS only tests", () => {
     }
     if (result.isLoading) {
       expectExactType(undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isError)
       expectExactType(false)(result.isSuccess)
@@ -221,21 +194,14 @@ describe.skip("TS only tests", () => {
     }
     if (result.isFetching) {
       expectExactType("" as string | undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isLoading)
       expectExactType(false)(result.isSuccess)
       expectExactType(false)(result.isError)
     }
     expectType<never>(result)
-    if (
-      !result.isUninitialized &&
-      !result.isLoading &&
-      !result.isError &&
-      !result.isSuccess
-    ) {
+    if (!result.isUninitialized && !result.isLoading && !result.isError && !result.isSuccess) {
       expectType<never>(result)
     }
   })
@@ -251,9 +217,7 @@ describe.skip("TS only tests", () => {
     }
     if (result.isLoading) {
       expectExactType(undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isError)
       expectExactType(false)(result.isSuccess)
@@ -277,49 +241,30 @@ describe.skip("TS only tests", () => {
     }
     if (result.isFetching) {
       expectExactType("" as string | undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isLoading)
       expectExactType(false)(result.isSuccess)
       expectExactType(false)(result.isError)
     }
     expectType<never>(result)
-    if (
-      !result.isUninitialized &&
-      !result.isLoading &&
-      !result.isError &&
-      !result.isSuccess
-    ) {
+    if (!result.isUninitialized && !result.isLoading && !result.isError && !result.isSuccess) {
       expectType<never>(result)
     }
   })
   it("queryHookResult (without selector) union", () => {
     const useQueryStateResult = api.endpoints.test.useQueryState()
     const useQueryResult = api.endpoints.test.useQuery()
-    const useQueryStateWithSelectFromResult = api.endpoints.test.useQueryState(
-      undefined,
-      {
-        selectFromResult: () => ({ x: true }),
-      }
-    )
+    const useQueryStateWithSelectFromResult = api.endpoints.test.useQueryState(undefined, {
+      selectFromResult: () => ({ x: true }),
+    })
     const { refetch: _omit, ...useQueryResultWithoutMethods } = useQueryResult
     expectExactType(useQueryStateResult)(useQueryResultWithoutMethods)
-    expectExactType(useQueryStateWithSelectFromResult)(
-      useQueryResultWithoutMethods
-    )
+    expectExactType(useQueryStateWithSelectFromResult)(useQueryResultWithoutMethods)
   })
   it("useQueryState (with selectFromResult)", () => {
     const result = api.endpoints.test.useQueryState(undefined, {
-      selectFromResult({
-        data,
-        isLoading,
-        isFetching,
-        isError,
-        isSuccess,
-        isUninitialized,
-      }) {
+      selectFromResult({ data, isLoading, isFetching, isError, isSuccess, isUninitialized }) {
         return {
           data: data ?? 1,
           isLoading,
@@ -341,14 +286,7 @@ describe.skip("TS only tests", () => {
   })
   it("useQuery (with selectFromResult)", () => {
     const result = api.endpoints.test.useQuery(undefined, {
-      selectFromResult({
-        data,
-        isLoading,
-        isFetching,
-        isError,
-        isSuccess,
-        isUninitialized,
-      }) {
+      selectFromResult({ data, isLoading, isFetching, isError, isSuccess, isUninitialized }) {
         return {
           data: data ?? 1,
           isLoading,
@@ -380,9 +318,7 @@ describe.skip("TS only tests", () => {
     }
     if (result.isLoading) {
       expectExactType(undefined as undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isError)
       expectExactType(false)(result.isSuccess)
@@ -402,24 +338,13 @@ describe.skip("TS only tests", () => {
       expectExactType(false)(result.isError)
     }
     expectType<never>(result)
-    if (
-      !result.isUninitialized &&
-      !result.isLoading &&
-      !result.isError &&
-      !result.isSuccess
-    ) {
+    if (!result.isUninitialized && !result.isLoading && !result.isError && !result.isSuccess) {
       expectType<never>(result)
     }
   })
   it("useMutation (with selectFromResult)", () => {
     const [_trigger, result] = api.endpoints.mutation.useMutation({
-      selectFromResult({
-        data,
-        isLoading,
-        isError,
-        isSuccess,
-        isUninitialized,
-      }) {
+      selectFromResult({ data, isLoading, isError, isSuccess, isUninitialized }) {
         return {
           data: data ?? "hi",
           isLoading,
@@ -449,9 +374,7 @@ describe.skip("TS only tests", () => {
     }
     if (result.isLoading) {
       expectExactType(undefined as undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectExactType(undefined as SerializedError | FetchBaseQueryError | undefined)(result.error)
       expectExactType(false)(result.isUninitialized)
       expectExactType(false)(result.isError)
       expectExactType(false)(result.isSuccess)
@@ -471,49 +394,34 @@ describe.skip("TS only tests", () => {
       expectExactType(false)(result.isError)
     }
     expectType<never>(result)
-    if (
-      !result.isUninitialized &&
-      !result.isLoading &&
-      !result.isError &&
-      !result.isSuccess
-    ) {
+    if (!result.isUninitialized && !result.isLoading && !result.isError && !result.isSuccess) {
       expectType<never>(result)
     }
   })
   test('"Typed" helper types', () => {
     {
       const result = api.endpoints.test.useQuery()
-      expectType<TypedUseQueryHookResult<string, void, typeof baseQuery>>(
-        result
-      )
+      expectType<TypedUseQueryHookResult<string, void, typeof baseQuery>>(result)
     }
     {
       const result = api.endpoints.test.useQuery(undefined, {
         selectFromResult: () => ({ x: true }),
       })
-      expectType<
-        TypedUseQueryHookResult<string, void, typeof baseQuery, { x: boolean }>
-      >(result)
+      expectType<TypedUseQueryHookResult<string, void, typeof baseQuery, { x: boolean }>>(result)
     }
     {
       const result = api.endpoints.test.useQueryState()
-      expectType<TypedUseQueryStateResult<string, void, typeof baseQuery>>(
-        result
-      )
+      expectType<TypedUseQueryStateResult<string, void, typeof baseQuery>>(result)
     }
     {
       const result = api.endpoints.test.useQueryState(undefined, {
         selectFromResult: () => ({ x: true }),
       })
-      expectType<
-        TypedUseQueryStateResult<string, void, typeof baseQuery, { x: boolean }>
-      >(result)
+      expectType<TypedUseQueryStateResult<string, void, typeof baseQuery, { x: boolean }>>(result)
     }
     {
       const result = api.endpoints.test.useQuerySubscription()
-      expectType<
-        TypedUseQuerySubscriptionResult<string, void, typeof baseQuery>
-      >(result)
+      expectType<TypedUseQuerySubscriptionResult<string, void, typeof baseQuery>>(result)
     }
     {
       const [trigger, result] = api.endpoints.mutation.useMutation()

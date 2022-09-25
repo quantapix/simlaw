@@ -149,23 +149,15 @@ describe("curried producer", () => {
     }
     {
       type Recipe = (x?: State | undefined, ...xs: number[]) => State
-      const y = qi.produce((_x: qi.Draft<State>, ..._xs: number[]) => {},
-      _ as State)
+      const y = qi.produce((_x: qi.Draft<State>, ..._xs: number[]) => {}, _ as State)
       assert(y, _ as Recipe)
       y(_ as State, 1, 2)
       y(_ as State)
       y()
     }
     {
-      type Recipe = (
-        x: State | undefined,
-        first: string,
-        ...xs: number[]
-      ) => State
-      const y = qi.produce(
-        (_x: qi.Draft<State>, ..._xs: [string, ...number[]]) => {},
-        _ as State
-      )
+      type Recipe = (x: State | undefined, first: string, ...xs: number[]) => State
+      const y = qi.produce((_x: qi.Draft<State>, ..._xs: [string, ...number[]]) => {}, _ as State)
       assert(y, _ as Recipe)
       y({ a: 1 }, "", 2)
       y(undefined, "", 2)
@@ -366,9 +358,7 @@ it("works with ReadonlyMap and ReadonlySet", () => {
 it("shows error in production if called incorrectly", () => {
   expect(() => {
     qi.produce(null as any)
-  }).toThrow(
-    "[Immer] The first or second argument to `produce` must be a function"
-  )
+  }).toThrow("[Immer] The first or second argument to `produce` must be a function")
 })
 it("#749 types Immer", () => {
   const t = { x: 3 }

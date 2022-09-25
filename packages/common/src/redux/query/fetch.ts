@@ -2,18 +2,11 @@ import * as qu from "./utils.js"
 import * as qx from "../index.js"
 import type * as qt from "./types.js"
 
-export type ResponseHandler =
-  | "json"
-  | "text"
-  | ((response: Response) => Promise<any>)
+export type ResponseHandler = "json" | "text" | ((response: Response) => Promise<any>)
 type CustomRequestInit = qt.Override<
   RequestInit,
   {
-    headers?:
-      | Headers
-      | string[][]
-      | Record<string, string | undefined>
-      | undefined
+    headers?: Headers | string[][] | Record<string, string | undefined> | undefined
   }
 >
 export interface FetchArgs extends CustomRequestInit {
@@ -24,14 +17,9 @@ export interface FetchArgs extends CustomRequestInit {
   validateStatus?: (response: Response, body: any) => boolean
 }
 const defaultFetchFn: typeof fetch = (...args) => fetch(...args)
-const defaultValidateStatus = (response: Response) =>
-  response.status >= 200 && response.status <= 299
-const isJsonContentType = (headers: Headers) =>
-  headers.get("content-type")?.trim()?.startsWith("application/json")
-const handleResponse = async (
-  response: Response,
-  responseHandler: ResponseHandler
-) => {
+const defaultValidateStatus = (response: Response) => response.status >= 200 && response.status <= 299
+const isJsonContentType = (headers: Headers) => headers.get("content-type")?.trim()?.startsWith("application/json")
+const handleResponse = async (response: Response, responseHandler: ResponseHandler) => {
   if (typeof responseHandler === "function") {
     return responseHandler(response)
   }
@@ -78,15 +66,9 @@ export type FetchBaseQueryArgs = {
   baseUrl?: string
   prepareHeaders?: (
     headers: Headers,
-    api: Pick<
-      qt.BaseQueryApi,
-      "getState" | "extra" | "endpoint" | "type" | "forced"
-    >
+    api: Pick<qt.BaseQueryApi, "getState" | "extra" | "endpoint" | "type" | "forced">
   ) => qt.MaybePromise<Headers>
-  fetchFn?: (
-    input: RequestInfo,
-    init?: RequestInit | undefined
-  ) => Promise<Response>
+  fetchFn?: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>
   paramsSerializer?: (params: Record<string, any>) => string
 } & RequestInit
 export type FetchBaseQueryMeta = { request: Request; response?: Response }
@@ -96,13 +78,7 @@ export function fetchBaseQuery({
   fetchFn = defaultFetchFn,
   paramsSerializer,
   ...baseFetchOptions
-}: FetchBaseQueryArgs = {}): qt.BaseQueryFn<
-  string | FetchArgs,
-  unknown,
-  FetchBaseQueryError,
-  {},
-  FetchBaseQueryMeta
-> {
+}: FetchBaseQueryArgs = {}): qt.BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, {}, FetchBaseQueryMeta> {
   if (typeof fetch === "undefined" && fetchFn === defaultFetchFn) {
     console.warn(
       "Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments."
@@ -127,15 +103,15 @@ export function fetchBaseQuery({
       body,
       ...rest,
     }
-    config.headers = await prepareHeaders(
-      new Headers(stripUndefined(headers)),
-      { getState, extra, endpoint, forced, type }
-    )
+    config.headers = await prepareHeaders(new Headers(stripUndefined(headers)), {
+      getState,
+      extra,
+      endpoint,
+      forced,
+      type,
+    })
     const isJsonifiable = (body: any) =>
-      typeof body === "object" &&
-      (qx.isPlainObject(body) ||
-        Array.isArray(body) ||
-        typeof body.toJSON === "function")
+      typeof body === "object" && (qx.isPlainObject(body) || Array.isArray(body) || typeof body.toJSON === "function")
     if (!config.headers.has("content-type") && isJsonifiable(body)) {
       config.headers.set("content-type", "application/json")
     }
@@ -145,9 +121,7 @@ export function fetchBaseQuery({
     let ext = ""
     if (params) {
       const divider = ~url.indexOf("?") ? "&" : "?"
-      const query = paramsSerializer
-        ? paramsSerializer(params)
-        : new URLSearchParams(stripUndefined(params))
+      const query = paramsSerializer ? paramsSerializer(params) : new URLSearchParams(stripUndefined(params))
       ext += divider + query
     }
     const request = new Request(qu.joinUrls(baseUrl, url + ext), config)

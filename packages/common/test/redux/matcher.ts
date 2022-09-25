@@ -41,9 +41,7 @@ describe("isAnyOf", () => {
     })
     const action = thunkA.fulfilled("fakeRequestId", "test")
     expect(qx.isAnyOf(thunkA.fulfilled, thunkB.fulfilled)(action)).toEqual(true)
-    expect(
-      qx.isAnyOf(thunkA.pending, thunkA.rejected, thunkB.fulfilled)(action)
-    ).toEqual(false)
+    expect(qx.isAnyOf(thunkA.pending, thunkA.rejected, thunkB.fulfilled)(action)).toEqual(false)
   })
   it("works with reducers", () => {
     const actionA = qx.createAction<string>("a")
@@ -87,13 +85,9 @@ describe("isAllOf", () => {
     expect(qx.isAllOf(actionA, isActionSpecial)(falseAction)).toEqual(false)
     const thunkA = qx.createAsyncThunk<string>("a", () => "result")
     const specialThunkAction = thunkA.fulfilled("SPECIAL", "fakeRequestId")
-    expect(
-      qx.isAllOf(thunkA.fulfilled, isActionSpecial)(specialThunkAction)
-    ).toBe(true)
+    expect(qx.isAllOf(thunkA.fulfilled, isActionSpecial)(specialThunkAction)).toBe(true)
     const ordinaryThunkAction = thunkA.fulfilled("ORDINARY", "fakeRequestId")
-    expect(
-      qx.isAllOf(thunkA.fulfilled, isActionSpecial)(ordinaryThunkAction)
-    ).toBe(false)
+    expect(qx.isAllOf(thunkA.fulfilled, isActionSpecial)(ordinaryThunkAction)).toBe(false)
   })
 })
 describe("isPending", () => {
@@ -108,10 +102,7 @@ describe("isPending", () => {
     const pendingAction = thunk.pending("fakeRequestId")
     expect(qx.isPending()(pendingAction)).toBe(true)
     expect(qx.isPending(pendingAction)).toBe(true)
-    const rejectedAction = thunk.rejected(
-      new Error("rejected"),
-      "fakeRequestId"
-    )
+    const rejectedAction = thunk.rejected(new Error("rejected"), "fakeRequestId")
     expect(qx.isPending()(rejectedAction)).toBe(false)
     const fulfilledAction = thunk.fulfilled("result", "fakeRequestId")
     expect(qx.isPending()(fulfilledAction)).toBe(false)
@@ -122,17 +113,11 @@ describe("isPending", () => {
     const thunkC = qx.createAsyncThunk<string>("c", () => "result")
     const matchAC = qx.isPending(thunkA, thunkC)
     const matchB = qx.isPending(thunkB)
-    function testPendingAction(
-      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean
-    ) {
+    function testPendingAction(thunk: typeof thunkA | typeof thunkB | typeof thunkC, expected: boolean) {
       const pendingAction = thunk.pending("fakeRequestId")
       expect(matchAC(pendingAction)).toBe(expected)
       expect(matchB(pendingAction)).toBe(!expected)
-      const rejectedAction = thunk.rejected(
-        new Error("rejected"),
-        "fakeRequestId"
-      )
+      const rejectedAction = thunk.rejected(new Error("rejected"), "fakeRequestId")
       expect(matchAC(rejectedAction)).toBe(false)
       const fulfilledAction = thunk.fulfilled("result", "fakeRequestId")
       expect(matchAC(fulfilledAction)).toBe(false)
@@ -153,10 +138,7 @@ describe("isRejected", () => {
     const thunk = qx.createAsyncThunk<string>("a", () => "result")
     const pendingAction = thunk.pending("fakeRequestId")
     expect(qx.isRejected()(pendingAction)).toBe(false)
-    const rejectedAction = thunk.rejected(
-      new Error("rejected"),
-      "fakeRequestId"
-    )
+    const rejectedAction = thunk.rejected(new Error("rejected"), "fakeRequestId")
     expect(qx.isRejected()(rejectedAction)).toBe(true)
     expect(qx.isRejected(rejectedAction)).toBe(true)
     const fulfilledAction = thunk.fulfilled("result", "fakeRequestId")
@@ -168,16 +150,10 @@ describe("isRejected", () => {
     const thunkC = qx.createAsyncThunk<string>("c", () => "result")
     const matchAC = qx.isRejected(thunkA, thunkC)
     const matchB = qx.isRejected(thunkB)
-    function testRejectedAction(
-      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean
-    ) {
+    function testRejectedAction(thunk: typeof thunkA | typeof thunkB | typeof thunkC, expected: boolean) {
       const pendingAction = thunk.pending("fakeRequestId")
       expect(matchAC(pendingAction)).toBe(false)
-      const rejectedAction = thunk.rejected(
-        new Error("rejected"),
-        "fakeRequestId"
-      )
+      const rejectedAction = thunk.rejected(new Error("rejected"), "fakeRequestId")
       expect(matchAC(rejectedAction)).toBe(expected)
       expect(matchB(rejectedAction)).toBe(!expected)
       const fulfilledAction = thunk.fulfilled("result", "fakeRequestId")
@@ -201,10 +177,7 @@ describe("isRejectedWithValue", () => {
     })
     const pendingAction = thunk.pending("fakeRequestId")
     expect(qx.isRejectedWithValue()(pendingAction)).toBe(false)
-    const rejectedAction = thunk.rejected(
-      new Error("rejected"),
-      "fakeRequestId"
-    )
+    const rejectedAction = thunk.rejected(new Error("rejected"), "fakeRequestId")
     expect(qx.isRejectedWithValue()(rejectedAction)).toBe(false)
     const getState = jest.fn(() => ({}))
     const dispatch = jest.fn((x: any) => x)
@@ -223,16 +196,10 @@ describe("isRejectedWithValue", () => {
     const thunkC = qx.createAsyncThunk<string>("c", payloadCreator)
     const matchAC = qx.isRejectedWithValue(thunkA, thunkC)
     const matchB = qx.isRejectedWithValue(thunkB)
-    async function testRejectedAction(
-      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean
-    ) {
+    async function testRejectedAction(thunk: typeof thunkA | typeof thunkB | typeof thunkC, expected: boolean) {
       const pendingAction = thunk.pending("fakeRequestId")
       expect(matchAC(pendingAction)).toBe(false)
-      const rejectedAction = thunk.rejected(
-        new Error("rejected"),
-        "fakeRequestId"
-      )
+      const rejectedAction = thunk.rejected(new Error("rejected"), "fakeRequestId")
       expect(matchAC(rejectedAction)).toBe(false)
       const getState = jest.fn(() => ({}))
       const dispatch = jest.fn((x: any) => x)
@@ -259,10 +226,7 @@ describe("isFulfilled", () => {
     const thunk = qx.createAsyncThunk<string>("a", () => "result")
     const pendingAction = thunk.pending("fakeRequestId")
     expect(qx.isFulfilled()(pendingAction)).toBe(false)
-    const rejectedAction = thunk.rejected(
-      new Error("rejected"),
-      "fakeRequestId"
-    )
+    const rejectedAction = thunk.rejected(new Error("rejected"), "fakeRequestId")
     expect(qx.isFulfilled()(rejectedAction)).toBe(false)
     const fulfilledAction = thunk.fulfilled("result", "fakeRequestId")
     expect(qx.isFulfilled()(fulfilledAction)).toBe(true)
@@ -274,16 +238,10 @@ describe("isFulfilled", () => {
     const thunkC = qx.createAsyncThunk<string>("c", () => "result")
     const matchAC = qx.isFulfilled(thunkA, thunkC)
     const matchB = qx.isFulfilled(thunkB)
-    function testFulfilledAction(
-      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean
-    ) {
+    function testFulfilledAction(thunk: typeof thunkA | typeof thunkB | typeof thunkC, expected: boolean) {
       const pendingAction = thunk.pending("fakeRequestId")
       expect(matchAC(pendingAction)).toBe(false)
-      const rejectedAction = thunk.rejected(
-        new Error("rejected"),
-        "fakeRequestId"
-      )
+      const rejectedAction = thunk.rejected(new Error("rejected"), "fakeRequestId")
       expect(matchAC(rejectedAction)).toBe(false)
       const fulfilledAction = thunk.fulfilled("result", "fakeRequestId")
       expect(matchAC(fulfilledAction)).toBe(expected)
@@ -306,10 +264,7 @@ describe("isAsyncThunkAction", () => {
     const matcher = qx.isAsyncThunkAction()
     const pendingAction = thunk.pending("fakeRequestId")
     expect(matcher(pendingAction)).toBe(true)
-    const rejectedAction = thunk.rejected(
-      new Error("rejected"),
-      "fakeRequestId"
-    )
+    const rejectedAction = thunk.rejected(new Error("rejected"), "fakeRequestId")
     expect(matcher(rejectedAction)).toBe(true)
     const fulfilledAction = thunk.fulfilled("result", "fakeRequestId")
     expect(matcher(fulfilledAction)).toBe(true)
@@ -320,17 +275,11 @@ describe("isAsyncThunkAction", () => {
     const thunkC = qx.createAsyncThunk<string>("c", () => "result")
     const matchAC = qx.isAsyncThunkAction(thunkA, thunkC)
     const matchB = qx.isAsyncThunkAction(thunkB)
-    function testAllActions(
-      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean
-    ) {
+    function testAllActions(thunk: typeof thunkA | typeof thunkB | typeof thunkC, expected: boolean) {
       const pendingAction = thunk.pending("fakeRequestId")
       expect(matchAC(pendingAction)).toBe(expected)
       expect(matchB(pendingAction)).toBe(!expected)
-      const rejectedAction = thunk.rejected(
-        new Error("rejected"),
-        "fakeRequestId"
-      )
+      const rejectedAction = thunk.rejected(new Error("rejected"), "fakeRequestId")
       expect(matchAC(rejectedAction)).toBe(expected)
       expect(matchB(rejectedAction)).toBe(!expected)
       const fulfilledAction = thunk.fulfilled("result", "fakeRequestId")

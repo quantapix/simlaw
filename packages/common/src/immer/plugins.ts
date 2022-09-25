@@ -11,8 +11,7 @@ export function enableMapSet() {
           d.__proto__ = b
         }) ||
       function (d, b) {
-        for (const p in b)
-          if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]
+        for (const p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]
       }
     return statics(d, b)
   }
@@ -88,10 +87,7 @@ export function enableMapSet() {
         s.copy!.clear()
       }
     }
-    p.forEach = function (
-      cb: (x: any, k: any, self: any) => void,
-      thisArg?: any
-    ) {
+    p.forEach = function (cb: (x: any, k: any, self: any) => void, thisArg?: any) {
       const s: qt.MapState = this[qt.DRAFT_STATE]
       qu.latest(s).forEach((_x: any, k: any, _map: any) => {
         cb.call(thisArg, this.get(k), k, this)
@@ -200,10 +196,7 @@ export function enableMapSet() {
       assertUnrevoked(s)
       prepSetCopy(s)
       markChanged(s)
-      return (
-        s.copy!.delete(x) ||
-        (s.drafts.has(x) ? s.copy!.delete(s.drafts.get(x)) : false)
-      )
+      return s.copy!.delete(x) || (s.drafts.has(x) ? s.copy!.delete(s.drafts.get(x)) : false)
     }
     p.clear = function () {
       const s: qt.SetState = this[qt.DRAFT_STATE]
@@ -272,12 +265,7 @@ export function enablePatches() {
   const REMOVE = "remove"
   const REPLACE = "replace"
 
-  function generatePatches(
-    s: qt.State,
-    path: qt.PatchPath,
-    ps: qt.Patch[],
-    inverses: qt.Patch[]
-  ): void {
+  function generatePatches(s: qt.State, path: qt.PatchPath, ps: qt.Patch[], inverses: qt.Patch[]): void {
     switch (s.type) {
       case qt.ProxyType.Obj:
       case qt.ProxyType.Map:
@@ -289,12 +277,7 @@ export function enablePatches() {
     }
   }
 
-  function fromAssigned(
-    s: qt.MapState | qt.ProxyObj,
-    basePath: qt.PatchPath,
-    ps: qt.Patch[],
-    inverses: qt.Patch[]
-  ) {
+  function fromAssigned(s: qt.MapState | qt.ProxyObj, basePath: qt.PatchPath, ps: qt.Patch[], inverses: qt.Patch[]) {
     const { base, copy } = s
     qu.each(s.assigned!, (k, x) => {
       const v0 = qu.get(base, k)
@@ -313,12 +296,7 @@ export function enablePatches() {
     })
   }
 
-  function arrayPatches(
-    s: qt.ProxyArray,
-    basePath: qt.PatchPath,
-    ps: qt.Patch[],
-    inverses: qt.Patch[]
-  ) {
+  function arrayPatches(s: qt.ProxyArray, basePath: qt.PatchPath, ps: qt.Patch[], inverses: qt.Patch[]) {
     let base = s.base
     let copy = s.copy!
     if (copy.length < base.length) {
@@ -342,12 +320,7 @@ export function enablePatches() {
     }
   }
 
-  function setPatches(
-    state: qt.SetState,
-    basePath: qt.PatchPath,
-    ps: qt.Patch[],
-    inverses: qt.Patch[]
-  ) {
+  function setPatches(state: qt.SetState, basePath: qt.PatchPath, ps: qt.Patch[], inverses: qt.Patch[]) {
     const { base, copy } = state
     let i = 0
     base.forEach((value: any) => {
@@ -369,12 +342,7 @@ export function enablePatches() {
     })
   }
 
-  function substitutePatches(
-    base: any,
-    sub: any,
-    ps: qt.Patch[],
-    inverses: qt.Patch[]
-  ): void {
+  function substitutePatches(base: any, sub: any, ps: qt.Patch[], inverses: qt.Patch[]): void {
     const value = sub === qt.nothing ? undefined : sub
     ps.push({ op: REPLACE, path: [], value })
     inverses.push({ op: REPLACE, path: [], value: base })
@@ -387,11 +355,7 @@ export function enablePatches() {
       for (let i = 0; i < path.length - 1; i++) {
         const t = qu.getType(y)
         const n = "" + path[i]
-        if (
-          (t === qt.QType.Obj || t === qt.QType.Array) &&
-          (n === "__proto__" || n === "constructor")
-        )
-          qu.die(24)
+        if ((t === qt.QType.Obj || t === qt.QType.Array) && (n === "__proto__" || n === "constructor")) qu.die(24)
         if (typeof y === "function" && n === "prototype") qu.die(24)
         y = qu.get(y, n)
         if (typeof y !== "object") qu.die(15, path.join("/"))
@@ -449,8 +413,7 @@ export function enablePatches() {
   function deepClone(x: any) {
     if (!qu.isDraftable(x)) return x
     if (Array.isArray(x)) return x.map(deepClone)
-    if (qu.isMap(x))
-      return new Map(Array.from(x.entries()).map(([k, v]) => [k, deepClone(v)]))
+    if (qu.isMap(x)) return new Map(Array.from(x.entries()).map(([k, v]) => [k, deepClone(v)]))
     if (qu.isSet(x)) return new Set(Array.from(x).map(deepClone))
     const y = Object.create(Object.getPrototypeOf(x))
     for (const k in x) y[k] = deepClone(x[k])

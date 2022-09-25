@@ -79,126 +79,117 @@ describe("Subject", () => {
     subject.next("bar")
     subject.complete()
   })
+  it("should handle subscribers that arrive and leave at different times, " + "subject does not complete", () => {
+    const subject = new Subject<number>()
+    const results1: (number | string)[] = []
+    const results2: (number | string)[] = []
+    const results3: (number | string)[] = []
+    subject.next(1)
+    subject.next(2)
+    subject.next(3)
+    subject.next(4)
+    const subscription1 = subject.subscribe({
+      next: function (x) {
+        results1.push(x)
+      },
+      error: function (e) {
+        results1.push("E")
+      },
+      complete: () => {
+        results1.push("C")
+      },
+    })
+    subject.next(5)
+    const subscription2 = subject.subscribe({
+      next: function (x) {
+        results2.push(x)
+      },
+      error: function (e) {
+        results2.push("E")
+      },
+      complete: () => {
+        results2.push("C")
+      },
+    })
+    subject.next(6)
+    subject.next(7)
+    subscription1.unsubscribe()
+    subject.next(8)
+    subscription2.unsubscribe()
+    subject.next(9)
+    subject.next(10)
+    const subscription3 = subject.subscribe({
+      next: function (x) {
+        results3.push(x)
+      },
+      error: function (e) {
+        results3.push("E")
+      },
+      complete: () => {
+        results3.push("C")
+      },
+    })
+    subject.next(11)
+    subscription3.unsubscribe()
+    expect(results1).to.deep.equal([5, 6, 7])
+    expect(results2).to.deep.equal([6, 7, 8])
+    expect(results3).to.deep.equal([11])
+  })
+  it("should handle subscribers that arrive and leave at different times, " + "subject completes", () => {
+    const subject = new Subject<number>()
+    const results1: (number | string)[] = []
+    const results2: (number | string)[] = []
+    const results3: (number | string)[] = []
+    subject.next(1)
+    subject.next(2)
+    subject.next(3)
+    subject.next(4)
+    const subscription1 = subject.subscribe({
+      next: function (x) {
+        results1.push(x)
+      },
+      error: function (e) {
+        results1.push("E")
+      },
+      complete: () => {
+        results1.push("C")
+      },
+    })
+    subject.next(5)
+    const subscription2 = subject.subscribe({
+      next: function (x) {
+        results2.push(x)
+      },
+      error: function (e) {
+        results2.push("E")
+      },
+      complete: () => {
+        results2.push("C")
+      },
+    })
+    subject.next(6)
+    subject.next(7)
+    subscription1.unsubscribe()
+    subject.complete()
+    subscription2.unsubscribe()
+    const subscription3 = subject.subscribe({
+      next: function (x) {
+        results3.push(x)
+      },
+      error: function (e) {
+        results3.push("E")
+      },
+      complete: () => {
+        results3.push("C")
+      },
+    })
+    subscription3.unsubscribe()
+    expect(results1).to.deep.equal([5, 6, 7])
+    expect(results2).to.deep.equal([6, 7, "C"])
+    expect(results3).to.deep.equal(["C"])
+  })
   it(
-    "should handle subscribers that arrive and leave at different times, " +
-      "subject does not complete",
-    () => {
-      const subject = new Subject<number>()
-      const results1: (number | string)[] = []
-      const results2: (number | string)[] = []
-      const results3: (number | string)[] = []
-      subject.next(1)
-      subject.next(2)
-      subject.next(3)
-      subject.next(4)
-      const subscription1 = subject.subscribe({
-        next: function (x) {
-          results1.push(x)
-        },
-        error: function (e) {
-          results1.push("E")
-        },
-        complete: () => {
-          results1.push("C")
-        },
-      })
-      subject.next(5)
-      const subscription2 = subject.subscribe({
-        next: function (x) {
-          results2.push(x)
-        },
-        error: function (e) {
-          results2.push("E")
-        },
-        complete: () => {
-          results2.push("C")
-        },
-      })
-      subject.next(6)
-      subject.next(7)
-      subscription1.unsubscribe()
-      subject.next(8)
-      subscription2.unsubscribe()
-      subject.next(9)
-      subject.next(10)
-      const subscription3 = subject.subscribe({
-        next: function (x) {
-          results3.push(x)
-        },
-        error: function (e) {
-          results3.push("E")
-        },
-        complete: () => {
-          results3.push("C")
-        },
-      })
-      subject.next(11)
-      subscription3.unsubscribe()
-      expect(results1).to.deep.equal([5, 6, 7])
-      expect(results2).to.deep.equal([6, 7, 8])
-      expect(results3).to.deep.equal([11])
-    }
-  )
-  it(
-    "should handle subscribers that arrive and leave at different times, " +
-      "subject completes",
-    () => {
-      const subject = new Subject<number>()
-      const results1: (number | string)[] = []
-      const results2: (number | string)[] = []
-      const results3: (number | string)[] = []
-      subject.next(1)
-      subject.next(2)
-      subject.next(3)
-      subject.next(4)
-      const subscription1 = subject.subscribe({
-        next: function (x) {
-          results1.push(x)
-        },
-        error: function (e) {
-          results1.push("E")
-        },
-        complete: () => {
-          results1.push("C")
-        },
-      })
-      subject.next(5)
-      const subscription2 = subject.subscribe({
-        next: function (x) {
-          results2.push(x)
-        },
-        error: function (e) {
-          results2.push("E")
-        },
-        complete: () => {
-          results2.push("C")
-        },
-      })
-      subject.next(6)
-      subject.next(7)
-      subscription1.unsubscribe()
-      subject.complete()
-      subscription2.unsubscribe()
-      const subscription3 = subject.subscribe({
-        next: function (x) {
-          results3.push(x)
-        },
-        error: function (e) {
-          results3.push("E")
-        },
-        complete: () => {
-          results3.push("C")
-        },
-      })
-      subscription3.unsubscribe()
-      expect(results1).to.deep.equal([5, 6, 7])
-      expect(results2).to.deep.equal([6, 7, "C"])
-      expect(results3).to.deep.equal(["C"])
-    }
-  )
-  it(
-    "should handle subscribers that arrive and leave at different times, " +
-      "subject terminates with an error",
+    "should handle subscribers that arrive and leave at different times, " + "subject terminates with an error",
     () => {
       const subject = new Subject<number>()
       const results1: (number | string)[] = []
@@ -673,9 +664,7 @@ describe("useDeprecatedSynchronousErrorHandling", () => {
   })
   it("should throw an error when notifying an error with catchError returning an erroring inner observable", () => {
     const subject = new Subject<string>()
-    subject
-      .pipe(catchError(() => throwError(() => new Error("bad"))))
-      .subscribe()
+    subject.pipe(catchError(() => throwError(() => new Error("bad")))).subscribe()
     expect(() => {
       subject.error("wee")
     }).to.throw(Error, "bad")
@@ -983,12 +972,7 @@ describe("AsyncSubject", () => {
     subject.next(1)
     expect(results).to.deep.equal([])
     subject.complete()
-    expect(results).to.deep.equal([
-      "inner: 2",
-      "inner: done",
-      "outer: 1",
-      "outer: done",
-    ])
+    expect(results).to.deep.equal(["inner: 2", "inner: done", "outer: 1", "outer: done"])
   })
 })
 import { expect } from "chai"
@@ -1118,19 +1102,13 @@ describe("BehaviorSubject", () => {
         behaviorSubject.complete()
       }
       const sourceTemplate = " -1-2-3----4------5-6---7--8----9--|"
-      const subscriber1 = hot("------(a|)                         ").pipe(
-        mergeMapTo(behaviorSubject)
-      )
+      const subscriber1 = hot("------(a|)                         ").pipe(mergeMapTo(behaviorSubject))
       const unsub1 = "         ---------------------!             "
       const expected1 = "      ------3---4------5-6--             "
-      const subscriber2 = hot("------------(b|)                   ").pipe(
-        mergeMapTo(behaviorSubject)
-      )
+      const subscriber2 = hot("------------(b|)                   ").pipe(mergeMapTo(behaviorSubject))
       const unsub2 = "         -------------------------!         "
       const expected2 = "      ------------4----5-6---7--         "
-      const subscriber3 = hot("---------------------------(c|)    ").pipe(
-        mergeMapTo(behaviorSubject)
-      )
+      const subscriber3 = hot("---------------------------(c|)    ").pipe(mergeMapTo(behaviorSubject))
       const expected3 = "      ---------------------------8---9--|"
       expectObservable(
         hot(sourceTemplate).pipe(
@@ -1159,9 +1137,7 @@ describe("BehaviorSubject", () => {
         behaviorSubject.complete()
       }
       const sourceTemplate = " -1-2-3--4--|       "
-      const subscriber1 = hot("---------------(a|)").pipe(
-        mergeMapTo(behaviorSubject)
-      )
+      const subscriber1 = hot("---------------(a|)").pipe(mergeMapTo(behaviorSubject))
       const expected1 = "      ---------------|   "
       expectObservable(
         hot(sourceTemplate).pipe(
@@ -1334,19 +1310,13 @@ describe("ReplaySubject", () => {
           replaySubject.complete()
         }
         const sourceTemplate = " -1-2-3----4------5-6---7--8----9--|"
-        const subscriber1 = hot("------(a|)                         ").pipe(
-          mergeMapTo(replaySubject)
-        )
+        const subscriber1 = hot("------(a|)                         ").pipe(mergeMapTo(replaySubject))
         const unsub1 = "         ---------------------!             "
         const expected1 = "      ------(23)4------5-6--             "
-        const subscriber2 = hot("------------(b|)                   ").pipe(
-          mergeMapTo(replaySubject)
-        )
+        const subscriber2 = hot("------------(b|)                   ").pipe(mergeMapTo(replaySubject))
         const unsub2 = "         -------------------------!         "
         const expected2 = "      ------------(34)-5-6---7--         "
-        const subscriber3 = hot("---------------------------(c|)    ").pipe(
-          mergeMapTo(replaySubject)
-        )
+        const subscriber3 = hot("---------------------------(c|)    ").pipe(mergeMapTo(replaySubject))
         const expected3 = "      ---------------------------(78)9--|"
         expectObservable(
           hot(sourceTemplate).pipe(
@@ -1375,9 +1345,7 @@ describe("ReplaySubject", () => {
           replaySubject.complete()
         }
         const sourceTemplate = " -1-2-3--4--|"
-        const subscriber1 = hot("---------------(a|) ").pipe(
-          mergeMapTo(replaySubject)
-        )
+        const subscriber1 = hot("---------------(a|) ").pipe(mergeMapTo(replaySubject))
         const expected1 = "      ---------------(34|)"
         expectObservable(
           hot(sourceTemplate).pipe(
@@ -1391,76 +1359,68 @@ describe("ReplaySubject", () => {
         expectObservable(subscriber1).toBe(expected1)
       })
     })
-    it(
-      "should handle subscribers that arrive and leave at different times, " +
-        "subject does not complete",
-      () => {
-        const subject = new ReplaySubject<number>(2)
-        const results1: (number | string)[] = []
-        const results2: (number | string)[] = []
-        const results3: (number | string)[] = []
-        subject.next(1)
-        subject.next(2)
-        subject.next(3)
-        subject.next(4)
-        const subscription1 = subject.subscribe({
-          next: (x: number) => {
-            results1.push(x)
-          },
-          error: (err: any) => {
-            results1.push("E")
-          },
-          complete: () => {
-            results1.push("C")
-          },
-        })
-        subject.next(5)
-        const subscription2 = subject.subscribe({
-          next: (x: number) => {
-            results2.push(x)
-          },
-          error: (err: any) => {
-            results2.push("E")
-          },
-          complete: () => {
-            results2.push("C")
-          },
-        })
-        subject.next(6)
-        subject.next(7)
-        subscription1.unsubscribe()
-        subject.next(8)
-        subscription2.unsubscribe()
-        subject.next(9)
-        subject.next(10)
-        const subscription3 = subject.subscribe({
-          next: (x: number) => {
-            results3.push(x)
-          },
-          error: (err: any) => {
-            results3.push("E")
-          },
-          complete: () => {
-            results3.push("C")
-          },
-        })
-        subject.next(11)
-        subscription3.unsubscribe()
-        expect(results1).to.deep.equal([3, 4, 5, 6, 7])
-        expect(results2).to.deep.equal([4, 5, 6, 7, 8])
-        expect(results3).to.deep.equal([9, 10, 11])
-        subject.complete()
-      }
-    )
+    it("should handle subscribers that arrive and leave at different times, " + "subject does not complete", () => {
+      const subject = new ReplaySubject<number>(2)
+      const results1: (number | string)[] = []
+      const results2: (number | string)[] = []
+      const results3: (number | string)[] = []
+      subject.next(1)
+      subject.next(2)
+      subject.next(3)
+      subject.next(4)
+      const subscription1 = subject.subscribe({
+        next: (x: number) => {
+          results1.push(x)
+        },
+        error: (err: any) => {
+          results1.push("E")
+        },
+        complete: () => {
+          results1.push("C")
+        },
+      })
+      subject.next(5)
+      const subscription2 = subject.subscribe({
+        next: (x: number) => {
+          results2.push(x)
+        },
+        error: (err: any) => {
+          results2.push("E")
+        },
+        complete: () => {
+          results2.push("C")
+        },
+      })
+      subject.next(6)
+      subject.next(7)
+      subscription1.unsubscribe()
+      subject.next(8)
+      subscription2.unsubscribe()
+      subject.next(9)
+      subject.next(10)
+      const subscription3 = subject.subscribe({
+        next: (x: number) => {
+          results3.push(x)
+        },
+        error: (err: any) => {
+          results3.push("E")
+        },
+        complete: () => {
+          results3.push("C")
+        },
+      })
+      subject.next(11)
+      subscription3.unsubscribe()
+      expect(results1).to.deep.equal([3, 4, 5, 6, 7])
+      expect(results2).to.deep.equal([4, 5, 6, 7, 8])
+      expect(results3).to.deep.equal([9, 10, 11])
+      subject.complete()
+    })
   })
   describe("with windowTime=4", () => {
     it("should replay previous values since 4 time units ago when subscribed", () => {
       rxTestScheduler.run(({ hot, expectObservable }) => {
-        const replaySubject = new ReplaySubject<string>(
-          Infinity,
-          4,
-          rxTestScheduler
-        )
+        const replaySubject = new ReplaySubject<string>(Infinity, 4, rxTestScheduler)
         function feedNextIntoSubject(x: string) {
           replaySubject.next(x)
         }
@@ -1471,19 +1431,13 @@ describe("ReplaySubject", () => {
           replaySubject.complete()
         }
         const sourceTemplate = " -1-2-3----4------5-6----7-8----9--|"
-        const subscriber1 = hot("------(a|)                         ").pipe(
-          mergeMapTo(replaySubject)
-        )
+        const subscriber1 = hot("------(a|)                         ").pipe(mergeMapTo(replaySubject))
         const unsub1 = "         ---------------------!             "
         const expected1 = "      ------(23)4------5-6--             "
-        const subscriber2 = hot("------------(b|)                   ").pipe(
-          mergeMapTo(replaySubject)
-        )
+        const subscriber2 = hot("------------(b|)                   ").pipe(mergeMapTo(replaySubject))
         const unsub2 = "         -------------------------!         "
         const expected2 = "      ------------4----5-6----7-         "
-        const subscriber3 = hot("---------------------------(c|)    ").pipe(
-          mergeMapTo(replaySubject)
-        )
+        const subscriber3 = hot("---------------------------(c|)    ").pipe(mergeMapTo(replaySubject))
         const expected3 = "      ---------------------------(78)9--|"
         expectObservable(
           hot(sourceTemplate).pipe(
@@ -1501,11 +1455,7 @@ describe("ReplaySubject", () => {
     })
     it("should replay last values since 4 time units ago when subscribed", () => {
       rxTestScheduler.run(({ hot, expectObservable }) => {
-        const replaySubject = new ReplaySubject<string>(
-          Infinity,
-          4,
-          rxTestScheduler
-        )
+        const replaySubject = new ReplaySubject<string>(Infinity, 4, rxTestScheduler)
         function feedNextIntoSubject(x: string) {
           replaySubject.next(x)
         }
@@ -1516,9 +1466,7 @@ describe("ReplaySubject", () => {
           replaySubject.complete()
         }
         const sourceTemplate = " -1-2-3----4|"
-        const subscriber1 = hot("-------------(a|)").pipe(
-          mergeMapTo(replaySubject)
-        )
+        const subscriber1 = hot("-------------(a|)").pipe(mergeMapTo(replaySubject))
         const expected1 = "      -------------(4|)"
         expectObservable(
           hot(sourceTemplate).pipe(

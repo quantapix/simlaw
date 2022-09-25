@@ -2,10 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query"
 import { configureStore } from "@reduxjs/toolkit"
 import { waitMs } from "./helpers"
 import type { Middleware, Reducer } from "redux"
-import {
-  THIRTY_TWO_BIT_MAX_INT,
-  THIRTY_TWO_BIT_MAX_TIMER_SECONDS,
-} from "../core/buildMiddleware/cacheCollection"
+import { THIRTY_TWO_BIT_MAX_INT, THIRTY_TWO_BIT_MAX_TIMER_SECONDS } from "../core/buildMiddleware/cacheCollection"
 beforeAll(() => {
   jest.useFakeTimers("legacy")
 })
@@ -65,8 +62,7 @@ test(`query: handles large keepUnuseDataFor values over 32-bit ms`, async () => 
   expect(onCleanup).not.toHaveBeenCalled()
   jest.advanceTimersByTime(1_000_000), await waitMs()
   expect(onCleanup).not.toHaveBeenCalled()
-  jest.advanceTimersByTime(THIRTY_TWO_BIT_MAX_TIMER_SECONDS * 1000),
-    await waitMs()
+  jest.advanceTimersByTime(THIRTY_TWO_BIT_MAX_TIMER_SECONDS * 1000), await waitMs()
   expect(onCleanup).toHaveBeenCalled()
 })
 describe(`query: await cleanup, keepUnusedDataFor set`, () => {
@@ -121,10 +117,7 @@ function storeForApi<
 >(api: A) {
   const store = configureStore({
     reducer: { api: api.reducer },
-    middleware: gdm =>
-      gdm({ serializableCheck: false, immutableCheck: false }).concat(
-        api.middleware
-      ),
+    middleware: gdm => gdm({ serializableCheck: false, immutableCheck: false }).concat(api.middleware),
   })
   let hadQueries = false
   store.subscribe(() => {

@@ -31,11 +31,7 @@ export class Note<T> {
   constructor(kind: "N", val?: T)
   constructor(kind: "E", val: undefined, err: any)
   constructor(kind: "D")
-  constructor(
-    public readonly kind: "N" | "E" | "D",
-    public readonly val?: T,
-    public readonly err?: any
-  ) {
+  constructor(public readonly kind: "N" | "E" | "D", public readonly val?: T, public readonly err?: any) {
     this.hasVal = kind === "N"
   }
 
@@ -55,11 +51,7 @@ export class Note<T> {
   accept(next: (x: T) => void, error: (x: any) => void): void
   accept(next: (x: T) => void): void
   accept(x: qt.PartialObserver<T>): void
-  accept(
-    next: qt.PartialObserver<T> | ((x: T) => void),
-    error?: (x: any) => void,
-    done?: () => void
-  ) {
+  accept(next: qt.PartialObserver<T> | ((x: T) => void), error?: (x: any) => void, done?: () => void) {
     return qu.isFunction((next as any)?.next)
       ? this.observe(next as qt.PartialObserver<T>)
       : this.do(next as (x: T) => void, error as any, done as any)
@@ -67,14 +59,7 @@ export class Note<T> {
 
   toObservable(): Observable<T> {
     const { kind, val, err } = this
-    const y =
-      kind === "N"
-        ? of(val!)
-        : kind === "E"
-        ? throwError(() => err)
-        : kind === "D"
-        ? EMPTY
-        : 0
+    const y = kind === "N" ? of(val!) : kind === "E" ? throwError(() => err) : kind === "D" ? EMPTY : 0
     if (!y) throw new TypeError(`Unexpected note kind ${kind}`)
     return y
   }
@@ -92,5 +77,4 @@ export function errNote(err: any): qt.ErrNote {
   return createNote("E", undefined, err) as any
 }
 
-export const DONE_NOTE = (() =>
-  createNote("D", undefined, undefined) as qt.DoneNote)()
+export const DONE_NOTE = (() => createNote("D", undefined, undefined) as qt.DoneNote)()

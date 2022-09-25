@@ -1,7 +1,17 @@
 import * as qi from "../../immer/index.js"
 import * as qt from "./types.js"
 import * as qu from "./utils.js"
-import { buildInitiate, buildSelectors, buildSlice, buildThunks, CreateApiOptions, PatchQueryDataThunk, SliceActions, UpdateQueryDataThunk, Matchers } from "./build.js"
+import {
+  buildInitiate,
+  buildSelectors,
+  buildSlice,
+  buildThunks,
+  CreateApiOptions,
+  PatchQueryDataThunk,
+  SliceActions,
+  UpdateQueryDataThunk,
+  Matchers,
+} from "./build.js"
 import { buildMiddleware } from "./middleware.js"
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
@@ -16,11 +26,22 @@ export interface ApiContext<Definitions extends qt.EndpointDefinitions> {
 
 export type Module<Name extends ModuleName> = {
   name: Name
-  init<BaseQuery extends qt.BaseQueryFn, Definitions extends qt.EndpointDefinitions, ReducerPath extends string, TagTypes extends string>(
+  init<
+    BaseQuery extends qt.BaseQueryFn,
+    Definitions extends qt.EndpointDefinitions,
+    ReducerPath extends string,
+    TagTypes extends string
+  >(
     api: Api<BaseQuery, qt.EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
     options: qt.WithRequiredProp<
       CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
-      "reducerPath" | "serializeQueryArgs" | "keepUnusedDataFor" | "refetchOnMountOrArgChange" | "refetchOnFocus" | "refetchOnReconnect" | "tagTypes"
+      | "reducerPath"
+      | "serializeQueryArgs"
+      | "keepUnusedDataFor"
+      | "refetchOnMountOrArgChange"
+      | "refetchOnFocus"
+      | "refetchOnReconnect"
+      | "tagTypes"
     >,
     context: ApiContext<Definitions>
   ): {
@@ -46,17 +67,35 @@ export type Api<
           [K in keyof NewDefinitions]?: Partial<NewDefinitions[K]> | ((definition: NewDefinitions[K]) => void)
         }
       : never
-  }): Api<BaseQuery, qt.ReplaceTagTypes<Definitions, TagTypes | NewTagTypes>, ReducerPath, TagTypes | NewTagTypes, Enhancers>
+  }): Api<
+    BaseQuery,
+    qt.ReplaceTagTypes<Definitions, TagTypes | NewTagTypes>,
+    ReducerPath,
+    TagTypes | NewTagTypes,
+    Enhancers
+  >
 }
 
-export interface ApiEndpointQuery<Definition extends qt.QueryDefinition<any, any, any, any, any>, Definitions extends qt.EndpointDefinitions> extends Matchers<qt.QueryThunk, Definition> {
+export interface ApiEndpointQuery<
+  Definition extends qt.QueryDefinition<any, any, any, any, any>,
+  Definitions extends qt.EndpointDefinitions
+> extends Matchers<qt.QueryThunk, Definition> {
   initiate: qt.StartQueryActionCreator<Definition>
-  select: qt.QueryResultSelectorFactory<Definition, qt.RootState<Definitions, qt.TagTypesFrom<Definition>, qt.ReducerPathFrom<Definition>>>
+  select: qt.QueryResultSelectorFactory<
+    Definition,
+    qt.RootState<Definitions, qt.TagTypesFrom<Definition>, qt.ReducerPathFrom<Definition>>
+  >
 }
 
-export interface ApiEndpointMutation<Definition extends qt.MutationDefinition<any, any, any, any, any>, Definitions extends qt.EndpointDefinitions> extends Matchers<qt.MutationThunk, Definition> {
+export interface ApiEndpointMutation<
+  Definition extends qt.MutationDefinition<any, any, any, any, any>,
+  Definitions extends qt.EndpointDefinitions
+> extends Matchers<qt.MutationThunk, Definition> {
   initiate: qt.StartMutationActionCreator<Definition>
-  select: qt.MutationResultSelectorFactory<Definition, qt.RootState<Definitions, qt.TagTypesFrom<Definition>, qt.ReducerPathFrom<Definition>>>
+  select: qt.MutationResultSelectorFactory<
+    Definition,
+    qt.RootState<Definitions, qt.TagTypesFrom<Definition>, qt.ReducerPathFrom<Definition>>
+  >
 }
 
 export type PrefetchOptions =
@@ -70,12 +109,21 @@ export type ReferenceCacheLifecycle = never
 export type ReferenceQueryLifecycle = never
 export type ReferenceCacheCollection = never
 
-export type CoreModule = typeof coreModuleName | ReferenceCacheLifecycle | ReferenceQueryLifecycle | ReferenceCacheCollection
+export type CoreModule =
+  | typeof coreModuleName
+  | ReferenceCacheLifecycle
+  | ReferenceQueryLifecycle
+  | ReferenceCacheCollection
 
 export const reactHooksModuleName = Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
 
-export interface ApiModules<BaseQuery extends qt.BaseQueryFn, Definitions extends qt.EndpointDefinitions, ReducerPath extends string, TagTypes extends string> {
+export interface ApiModules<
+  BaseQuery extends qt.BaseQueryFn,
+  Definitions extends qt.EndpointDefinitions,
+  ReducerPath extends string,
+  TagTypes extends string
+> {
   [reactHooksModuleName]: {
     endpoints: {
       [K in keyof Definitions]: Definitions[K] extends qt.QueryDefinition<any, any, any, any, any>
@@ -93,7 +141,11 @@ export interface ApiModules<BaseQuery extends qt.BaseQueryFn, Definitions extend
     reducerPath: ReducerPath
     internalActions: InternalActions
     reducer: qt.Reducer<qt.CombinedState<Definitions, TagTypes, ReducerPath>, qt.AnyAction>
-    middleware: qt.Middleware<{}, qt.RootState<Definitions, string, ReducerPath>, qt.ThunkDispatch<any, any, qt.AnyAction>>
+    middleware: qt.Middleware<
+      {},
+      qt.RootState<Definitions, string, ReducerPath>,
+      qt.ThunkDispatch<any, any, qt.AnyAction>
+    >
     util: {
       getRunningOperationPromises: () => Array<Promise<unknown>>
       getRunningOperationPromise<EndpointName extends qt.QueryKeys<Definitions>>(
@@ -145,7 +197,20 @@ export type ListenerActions = {
 export type InternalActions = SliceActions & ListenerActions
 export const coreModule = (): Module<CoreModule> => ({
   name: coreModuleName,
-  init(api, { baseQuery, tagTypes, reducerPath, serializeQueryArgs, keepUnusedDataFor, refetchOnMountOrArgChange, refetchOnFocus, refetchOnReconnect }, context) {
+  init(
+    api,
+    {
+      baseQuery,
+      tagTypes,
+      reducerPath,
+      serializeQueryArgs,
+      keepUnusedDataFor,
+      refetchOnMountOrArgChange,
+      refetchOnFocus,
+      refetchOnReconnect,
+    },
+    context
+  ) {
     qi.enablePatches()
     qt.assertCast<qt.InternalSerializeQueryArgs>(serializeQueryArgs)
     const assertTagType: qt.AssertTagTypes = tag => {
@@ -167,13 +232,14 @@ export const coreModule = (): Module<CoreModule> => ({
       },
       util: {},
     })
-    const { queryThunk, mutationThunk, patchQueryData, updateQueryData, prefetch, buildMatchThunkActions } = buildThunks({
-      baseQuery,
-      reducerPath,
-      context,
-      api,
-      serializeQueryArgs,
-    })
+    const { queryThunk, mutationThunk, patchQueryData, updateQueryData, prefetch, buildMatchThunkActions } =
+      buildThunks({
+        baseQuery,
+        reducerPath,
+        context,
+        api,
+        serializeQueryArgs,
+      })
     const { reducer, actions: sliceActions } = buildSlice({
       context,
       queryThunk,
@@ -198,7 +264,9 @@ export const coreModule = (): Module<CoreModule> => ({
     Object.defineProperty(api.util, "updateQueryResult", {
       get() {
         if (typeof process !== "undefined" && process.env["NODE_ENV"] === "development") {
-          console.warn("`api.util.updateQueryResult` has been renamed to `api.util.updateQueryData`, please change your code accordingly")
+          console.warn(
+            "`api.util.updateQueryResult` has been renamed to `api.util.updateQueryData`, please change your code accordingly"
+          )
         }
         return api.util.updateQueryData
       },
@@ -206,7 +274,9 @@ export const coreModule = (): Module<CoreModule> => ({
     Object.defineProperty(api.util, "patchQueryResult", {
       get() {
         if (typeof process !== "undefined" && process.env["NODE_ENV"] === "development") {
-          console.warn("`api.util.patchQueryResult` has been renamed to `api.util.patchQueryData`, please change your code accordingly")
+          console.warn(
+            "`api.util.patchQueryResult` has been renamed to `api.util.patchQueryData`, please change your code accordingly"
+          )
         }
         return api.util.patchQueryData
       },
@@ -226,13 +296,14 @@ export const coreModule = (): Module<CoreModule> => ({
       reducerPath,
     })
     qt.safeAssign(api.util, { selectInvalidatedBy })
-    const { buildInitiateQuery, buildInitiateMutation, getRunningOperationPromises, getRunningOperationPromise } = buildInitiate({
-      queryThunk,
-      mutationThunk,
-      api,
-      serializeQueryArgs: serializeQueryArgs as any,
-      context,
-    })
+    const { buildInitiateQuery, buildInitiateMutation, getRunningOperationPromises, getRunningOperationPromise } =
+      buildInitiate({
+        queryThunk,
+        mutationThunk,
+        api,
+        serializeQueryArgs: serializeQueryArgs as any,
+        context,
+      })
     qt.safeAssign(api.util, {
       getRunningOperationPromises,
       getRunningOperationPromise,

@@ -11,8 +11,7 @@ export { Immer } from "./main.js"
 const immer = new Immer()
 
 export const produce: qt.Produce = immer.produce
-export const produceWithPatches: qt.ProduceWithPatches =
-  immer.produceWithPatches.bind(immer)
+export const produceWithPatches: qt.ProduceWithPatches = immer.produceWithPatches.bind(immer)
 
 export const setAutoFreeze = immer.setAutoFreeze.bind(immer)
 export const applyPatches = immer.applyPatches.bind(immer)

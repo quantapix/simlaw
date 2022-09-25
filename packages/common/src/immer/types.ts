@@ -81,19 +81,11 @@ export type Produced<X, Y> = Y extends void
 
 type PatchesTuple<T> = readonly [T, Patch[], Patch[]]
 
-type RecipeReturn<T> =
-  | T
-  | void
-  | undefined
-  | (T extends undefined ? Nothing : never)
+type RecipeReturn<T> = T | void | undefined | (T extends undefined ? Nothing : never)
 
 type ReturnOrPromise<T> = RecipeReturn<T> | Promise<RecipeReturn<T>>
 
-type PromisifyReturn<
-  T,
-  Recipe extends AnyFunc,
-  UsePatches extends boolean
-> = ReturnType<Recipe> extends Promise<any>
+type PromisifyReturn<T, Recipe extends AnyFunc, UsePatches extends boolean> = ReturnType<Recipe> extends Promise<any>
   ? Promise<UsePatches extends true ? PatchesTuple<T> : T>
   : UsePatches extends true
   ? PatchesTuple<T>
@@ -105,23 +97,15 @@ type RecipeFromCurried<T> = T extends (x: infer X, ...xs: infer Xs) => any
     : never
   : never
 
-type StateFromCurried<T> = T extends (x: infer X, ...xs: any[]) => any
-  ? X
-  : never
+type StateFromCurried<T> = T extends (x: infer X, ...xs: any[]) => any ? X : never
 
-type CurriedFromRecipe<R, UsePatches extends boolean> = R extends (
-  x: infer X,
-  ...xs: infer Xs
-) => any
+type CurriedFromRecipe<R, UsePatches extends boolean> = R extends (x: infer X, ...xs: infer Xs) => any
   ? ReturnType<R> extends ReturnOrPromise<X>
     ? (x: Immutable<X>, ...xs: Xs) => PromisifyReturn<X, R, UsePatches>
     : never
   : never
 
-type CurriedFromState<S, R, UsePatches extends boolean> = R extends (
-  s: Draft<S>,
-  ...xs: infer Xs
-) => ReturnOrPromise<S>
+type CurriedFromState<S, R, UsePatches extends boolean> = R extends (s: Draft<S>, ...xs: infer Xs) => ReturnOrPromise<S>
   ? (s?: S | undefined, ...xs: Xs) => PromisifyReturn<S, R, UsePatches>
   : never
 
@@ -134,29 +118,15 @@ export interface Produce {
 
   <T>(recipe: RecipeFromCurried<T>, s0?: StateFromCurried<T>): T
 
-  <X, Xs extends any[]>(
-    recipe: (x: Draft<X>, ...xs: Xs) => RecipeReturn<X>,
-    x0: X
-  ): (x?: X, ...xs: Xs) => X
+  <X, Xs extends any[]>(recipe: (x: Draft<X>, ...xs: Xs) => RecipeReturn<X>, x0: X): (x?: X, ...xs: Xs) => X
 
   <X>(recipe: (x: Draft<X>) => RecipeReturn<X>): (x: X) => X
 
-  <X, Xs extends any[]>(recipe: (x: Draft<X>, ...xs: Xs) => RecipeReturn<X>): (
-    x: X,
-    ...xs: Xs
-  ) => X
+  <X, Xs extends any[]>(recipe: (x: Draft<X>, ...xs: Xs) => RecipeReturn<X>): (x: X, ...xs: Xs) => X
 
-  <X, D = Draft<X>>(
-    x: X,
-    recipe: (d: D) => RecipeReturn<D>,
-    listener?: Listener
-  ): X
+  <X, D = Draft<X>>(x: X, recipe: (d: D) => RecipeReturn<D>, listener?: Listener): X
 
-  <X, D = Draft<X>>(
-    x: X,
-    recipe: (d: D) => Promise<RecipeReturn<D>>,
-    listener?: Listener
-  ): Promise<X>
+  <X, D = Draft<X>>(x: X, recipe: (d: D) => Promise<RecipeReturn<D>>, listener?: Listener): Promise<X>
 }
 
 export interface ProduceWithPatches {
@@ -164,17 +134,9 @@ export interface ProduceWithPatches {
 
   <S, R extends AnyFunc>(recipe: R, s0: S): CurriedFromState<S, R, true>
 
-  <X, D = Draft<X>>(
-    x: X,
-    recipe: (d: D) => RecipeReturn<D>,
-    listener?: Listener
-  ): PatchesTuple<X>
+  <X, D = Draft<X>>(x: X, recipe: (d: D) => RecipeReturn<D>, listener?: Listener): PatchesTuple<X>
 
-  <X, D = Draft<X>>(
-    x: X,
-    recipe: (d: D) => Promise<RecipeReturn<D>>,
-    listener?: Listener
-  ): Promise<PatchesTuple<X>>
+  <X, D = Draft<X>>(x: X, recipe: (d: D) => Promise<RecipeReturn<D>>, listener?: Listener): Promise<PatchesTuple<X>>
 }
 
 export interface Immer {

@@ -44,7 +44,10 @@ declare const dispatch: Dispatch
 function bound() {
   const boundAddTodo = bindActionCreators(addTodo, dispatch)
   const dispatchedAddTodoAction: AddTodoAction = boundAddTodo("test")
-  const boundAddTodoViaThunk = bindActionCreators<ActionCreator<AddTodoThunk, [string]>, ActionCreator<AddTodoAction, [string]>>(addTodoViaThunk, dispatch)
+  const boundAddTodoViaThunk = bindActionCreators<
+    ActionCreator<AddTodoThunk, [string]>,
+    ActionCreator<AddTodoAction, [string]>
+  >(addTodoViaThunk, dispatch)
   const dispatchedAddTodoViaThunkAction: AddTodoAction = boundAddTodoViaThunk("test")
   const boundActionCreators = bindActionCreators({ addTodo }, dispatch)
   const otherDispatchedAddTodoAction: AddTodoAction = boundActionCreators.addTodo("test")
@@ -282,7 +285,9 @@ function mhelmersonExample() {
         const store = createStore(wrappedReducer, wrappedPreloadedState)
         return {
           ...store,
-          replaceReducer<NS, NA extends Action = AnyAction>(nextReducer: (state: (NS & ExtraState) | undefined, action: NA) => NS & ExtraState) {
+          replaceReducer<NS, NA extends Action = AnyAction>(
+            nextReducer: (state: (NS & ExtraState) | undefined, action: NA) => NS & ExtraState
+          ) {
             const nextWrappedReducer: Reducer<NS & ExtraState, NA> = (state, action) => {
               const newState = nextReducer(state, action)
               return {
@@ -476,7 +481,10 @@ function apply() {
   storeWithPromiseAndLogger.dispatch(Promise.resolve({ type: "INCREMENT" }))
   storeWithPromiseAndLogger.dispatch("not-an-action")
   storeWithPromiseAndLogger.dispatch(Promise.resolve("not-an-action"))
-  const storeWithPromiseAndThunk = createStore(reducer, applyMiddleware(promise(), thunk<State, PromiseDispatch>(), logger()))
+  const storeWithPromiseAndThunk = createStore(
+    reducer,
+    applyMiddleware(promise(), thunk<State, PromiseDispatch>(), logger())
+  )
   storeWithPromiseAndThunk.dispatch({ type: "INCREMENT" })
   storeWithPromiseAndThunk.dispatch(Promise.resolve({ type: "INCREMENT" }))
   storeWithPromiseAndThunk.dispatch((dispatch, getState) => {
@@ -489,7 +497,10 @@ function apply() {
   })
   storeWithPromiseAndThunk.dispatch("not-an-action")
   storeWithPromiseAndThunk.dispatch(Promise.resolve("not-an-action"))
-  const storeWithLotsOfMiddleware = createStore(reducer, applyMiddleware<PromiseDispatch>(promise(), logger(), logger(), logger(), logger(), logger()))
+  const storeWithLotsOfMiddleware = createStore(
+    reducer,
+    applyMiddleware<PromiseDispatch>(promise(), logger(), logger(), logger(), logger(), logger())
+  )
   storeWithLotsOfMiddleware.dispatch({ type: "INCREMENT" })
   storeWithLotsOfMiddleware.dispatch(Promise.resolve({ type: "INCREMENT" }))
 }

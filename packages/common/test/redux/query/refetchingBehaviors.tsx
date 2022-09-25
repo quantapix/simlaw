@@ -11,9 +11,7 @@ const defaultApi = createApi({
       amount += 1
     }
     return {
-      data: arg?.body
-        ? { ...arg.body, ...(amount ? { amount } : {}) }
-        : undefined,
+      data: arg?.body ? { ...arg.body, ...(amount ? { amount } : {}) } : undefined,
     }
   },
   endpoints: build => ({
@@ -30,8 +28,7 @@ const defaultApi = createApi({
   refetchOnReconnect: true,
 })
 const storeRef = setupApiStore(defaultApi)
-const getIncrementedAmountState = () =>
-  storeRef.store.getState().api.queries["getIncrementedAmount(undefined)"]
+const getIncrementedAmountState = () => storeRef.store.getState().api.queries["getIncrementedAmount(undefined)"]
 afterEach(() => {
   amount = 0
 })
@@ -39,8 +36,7 @@ describe("refetchOnFocus tests", () => {
   it("useQuery hook respects refetchOnFocus: true when set in createApi options", async () => {
     let data, isLoading, isFetching
     function User() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery())
+      ;({ data, isFetching, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery())
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -50,30 +46,21 @@ describe("refetchOnFocus tests", () => {
       )
     }
     render(<User />, { wrapper: storeRef.wrapper })
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     await act(async () => {
       fireEvent.focus(window)
     })
     await waitMs()
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("2")
-    )
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("2"))
   })
   it("useQuery hook respects refetchOnFocus: false from a hook and overrides createApi defaults", async () => {
     let data, isLoading, isFetching
     function User() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnFocus: false,
-        }))
+      ;({ data, isFetching, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnFocus: false,
+      }))
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -83,30 +70,21 @@ describe("refetchOnFocus tests", () => {
       )
     }
     render(<User />, { wrapper: storeRef.wrapper })
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     act(() => {
       fireEvent.focus(window)
     })
     await waitMs()
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
   })
   it("useQuery hook prefers refetchOnFocus: true when multiple components have different configurations", async () => {
     let data, isLoading, isFetching
     function User() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnFocus: false,
-        }))
+      ;({ data, isFetching, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnFocus: false,
+      }))
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -116,10 +94,9 @@ describe("refetchOnFocus tests", () => {
       )
     }
     function UserWithRefetchTrue() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnFocus: true,
-        }))
+      ;({ data, isFetching, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnFocus: true,
+      }))
       return <div />
     }
     render(
@@ -129,36 +106,23 @@ describe("refetchOnFocus tests", () => {
       </div>,
       { wrapper: storeRef.wrapper }
     )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     act(() => {
       fireEvent.focus(window)
     })
     expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("2")
-    )
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("2"))
   })
   it("useQuery hook cleans data if refetch without active subscribers", async () => {
     let data, isLoading, isFetching
     function User() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnFocus: true,
-        }))
+      ;({ data, isFetching, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnFocus: true,
+      }))
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -168,15 +132,9 @@ describe("refetchOnFocus tests", () => {
       )
     }
     const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     unmount()
     expect(getIncrementedAmountState()).not.toBeUndefined()
     act(() => {
@@ -189,8 +147,7 @@ describe("refetchOnReconnect tests", () => {
   it("useQuery hook respects refetchOnReconnect: true when set in createApi options", async () => {
     let data, isLoading, isFetching
     function User() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery())
+      ;({ data, isFetching, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery())
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -200,36 +157,23 @@ describe("refetchOnReconnect tests", () => {
       )
     }
     render(<User />, { wrapper: storeRef.wrapper })
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     act(() => {
       window.dispatchEvent(new Event("offline"))
       window.dispatchEvent(new Event("online"))
     })
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("2")
-    )
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("2"))
   })
   it("useQuery hook should not refetch when refetchOnReconnect: false from a hook and overrides createApi defaults", async () => {
     let data, isLoading, isFetching
     function User() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnReconnect: false,
-        }))
+      ;({ data, isFetching, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnReconnect: false,
+      }))
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -239,31 +183,22 @@ describe("refetchOnReconnect tests", () => {
       )
     }
     render(<User />, { wrapper: storeRef.wrapper })
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     act(() => {
       window.dispatchEvent(new Event("offline"))
       window.dispatchEvent(new Event("online"))
     })
     expect(screen.getByTestId("isFetching").textContent).toBe("false")
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
   })
   it("useQuery hook prefers refetchOnReconnect: true when multiple components have different configurations", async () => {
     let data, isLoading, isFetching
     function User() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnReconnect: false,
-        }))
+      ;({ data, isFetching, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnReconnect: false,
+      }))
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -273,10 +208,9 @@ describe("refetchOnReconnect tests", () => {
       )
     }
     function UserWithRefetchTrue() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnReconnect: true,
-        }))
+      ;({ data, isFetching, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnReconnect: true,
+      }))
       return <div />
     }
     render(
@@ -286,28 +220,16 @@ describe("refetchOnReconnect tests", () => {
       </div>,
       { wrapper: storeRef.wrapper }
     )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     act(() => {
       window.dispatchEvent(new Event("offline"))
       window.dispatchEvent(new Event("online"))
     })
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("2")
-    )
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("2"))
   })
 })
 describe("customListenersHandler", () => {
@@ -319,26 +241,21 @@ describe("customListenersHandler", () => {
     consoleSpy.mockImplementation(() => {})
     const dispatchSpy = jest.spyOn(storeRef.store, "dispatch")
     let unsubscribe = () => {}
-    unsubscribe = setupListeners(
-      storeRef.store.dispatch,
-      (dispatch, actions) => {
-        const handleOnline = () =>
-          dispatch(defaultApi.internalActions.onOnline())
-        window.addEventListener("online", handleOnline, false)
-        console.log("setup!")
-        return () => {
-          window.removeEventListener("online", handleOnline)
-          console.log("cleanup!")
-        }
+    unsubscribe = setupListeners(storeRef.store.dispatch, (dispatch, actions) => {
+      const handleOnline = () => dispatch(defaultApi.internalActions.onOnline())
+      window.addEventListener("online", handleOnline, false)
+      console.log("setup!")
+      return () => {
+        window.removeEventListener("online", handleOnline)
+        console.log("cleanup!")
       }
-    )
+    })
     await waitMs()
     let data, isLoading, isFetching
     function User() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnReconnect: true,
-        }))
+      ;({ data, isFetching, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnReconnect: true,
+      }))
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -349,34 +266,18 @@ describe("customListenersHandler", () => {
     }
     render(<User />, { wrapper: storeRef.wrapper })
     expect(consoleSpy).toHaveBeenCalledWith("setup!")
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     act(() => {
       window.dispatchEvent(new Event("offline"))
       window.dispatchEvent(new Event("online"))
     })
     expect(dispatchSpy).toHaveBeenCalled()
-    expect(
-      defaultApi.internalActions.onOnline.match(
-        dispatchSpy.mock.calls[1][0] as any
-      )
-    ).toBe(true)
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("2")
-    )
+    expect(defaultApi.internalActions.onOnline.match(dispatchSpy.mock.calls[1][0] as any)).toBe(true)
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("2"))
     unsubscribe()
     expect(consoleSpy).toHaveBeenCalledWith("cleanup!")
   })

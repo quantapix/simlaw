@@ -1,67 +1,67 @@
-import { Record } from 'immutable';
+import { Record } from "immutable"
 
 {
   // Factory
-  const PointXY = Record({ x: 0, y: 0 });
+  const PointXY = Record({ x: 0, y: 0 })
 
   // $ExpectType Factory<{ x: number; y: number; }>
-  PointXY;
+  PointXY
 
   // $ExpectError
-  PointXY({ x: 'a' });
+  PointXY({ x: "a" })
 
-  const pointXY = PointXY();
+  const pointXY = PointXY()
 
   // $ExpectType Record<{ x: number; y: number; }> & Readonly<{ x: number; y: number; }>
-  pointXY;
+  pointXY
 
   // $ExpectType number
-  pointXY.x;
+  pointXY.x
 
   // $ExpectError
-  pointXY.x = 10;
+  pointXY.x = 10
 
   // $ExpectType number
-  pointXY.y;
+  pointXY.y
 
   // $ExpectError
-  pointXY.y = 10;
+  pointXY.y = 10
 
   class PointClass extends PointXY {
     setX(x: number) {
-      return this.set('x', x);
+      return this.set("x", x)
     }
 
     setY(y: number) {
-      return this.set('y', y);
+      return this.set("y", y)
     }
   }
 
-  const point = new PointClass();
+  const point = new PointClass()
 
   // $ExpectType PointClass
-  point;
+  point
 
   // $ExpectType number
-  point.x;
+  point.x
 
   // $ExpectType number
-  point.y;
+  point.y
 
   // $ExpectType PointClass
-  point.setX(10);
+  point.setX(10)
 
   // $ExpectType PointClass
-  point.setY(10);
+  point.setY(10)
 }
 
 {
   // .getDescriptiveName
-  const PointXY = Record({ x: 0, y: 0 });
+  const PointXY = Record({ x: 0, y: 0 })
 
   // $ExpectType string
-  Record.getDescriptiveName(PointXY());
+  Record.getDescriptiveName(PointXY())
 
   // $ExpectError
-  Record.getDescriptiveName({});
+  Record.getDescriptiveName({})
 }

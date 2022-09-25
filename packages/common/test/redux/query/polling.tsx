@@ -1,8 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query"
 import { setupApiStore, waitMs } from "./helpers"
-const mockBaseQuery = jest
-  .fn()
-  .mockImplementation((args: any) => ({ data: args }))
+const mockBaseQuery = jest.fn().mockImplementation((args: any) => ({ data: args }))
 const api = createApi({
   baseQuery: mockBaseQuery,
   tagTypes: ["Posts"],
@@ -19,8 +17,7 @@ const { getPosts } = api.endpoints
 const storeRef = setupApiStore(api)
 const getSubscribersForQueryCacheKey = (queryCacheKey: string) =>
   storeRef.store.getState()[api.reducerPath].subscriptions[queryCacheKey] || {}
-const createSubscriptionGetter = (queryCacheKey: string) => () =>
-  getSubscribersForQueryCacheKey(queryCacheKey)
+const createSubscriptionGetter = (queryCacheKey: string) => () => getSubscribersForQueryCacheKey(queryCacheKey)
 describe("polling tests", () => {
   it("clears intervals when seeing a resetApiState action", async () => {
     await storeRef.store.dispatch(
@@ -35,13 +32,12 @@ describe("polling tests", () => {
     expect(mockBaseQuery).toHaveBeenCalledTimes(1)
   })
   it("replaces polling interval when the subscription options are updated", async () => {
-    const { requestId, queryCacheKey, ...subscription } =
-      storeRef.store.dispatch(
-        getPosts.initiate(1, {
-          subscriptionOptions: { pollingInterval: 10 },
-          subscribe: true,
-        })
-      )
+    const { requestId, queryCacheKey, ...subscription } = storeRef.store.dispatch(
+      getPosts.initiate(1, {
+        subscriptionOptions: { pollingInterval: 10 },
+        subscribe: true,
+      })
+    )
     const getSubs = createSubscriptionGetter(queryCacheKey)
     expect(Object.keys(getSubs())).toHaveLength(1)
     expect(getSubs()[requestId].pollingInterval).toBe(10)

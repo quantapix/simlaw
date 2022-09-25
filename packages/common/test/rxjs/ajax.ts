@@ -1,18 +1,9 @@
 import * as index from "rxjs/ajax"
-import {
-  ajax,
-  AjaxConfig,
-  AjaxResponse,
-  AjaxError,
-  AjaxTimeoutError,
-} from "rxjs/ajax"
+import { ajax, AjaxConfig, AjaxResponse, AjaxError, AjaxTimeoutError } from "rxjs/ajax"
 import { TestScheduler } from "rxjs/testing"
 import { noop } from "rxjs"
 import * as nodeFormData from "form-data"
-const root: any =
-  (typeof globalThis !== "undefined" && globalThis) ||
-  (typeof self !== "undefined" && self) ||
-  global
+const root: any = (typeof globalThis !== "undefined" && globalThis) || (typeof self !== "undefined" && self) || global
 if (typeof root.FormData === "undefined") {
   root.FormData = nodeFormData as any
 }
@@ -203,9 +194,7 @@ describe("ajax", () => {
       },
     }).subscribe()
     const request = MockXMLHttpRequest.mostRecent
-    expect(request.requestHeaders["x-requested-with"]).to.equal(
-      "Custom-XMLHttpRequest"
-    )
+    expect(request.requestHeaders["x-requested-with"]).to.equal("Custom-XMLHttpRequest")
   })
   it("should not set default Content-Type header when no body is sent", () => {
     const obj: AjaxConfig = {
@@ -1215,8 +1204,7 @@ describe("ajax", () => {
         but: "I am doing open source for no good reason",
       }),
     })
-    expect(mockXHR.getAllResponseHeaders()).to
-      .equal(`content-type: application/json
+    expect(mockXHR.getAllResponseHeaders()).to.equal(`content-type: application/json
 x-custom-header: test
 x-headers-are-fun: <whatever/> {"weird": "things"}`)
   })
@@ -1290,9 +1278,7 @@ x-headers-are-fun: <whatever/> {"weird": "things"}`)
         status: 200,
         responseText: JSON.stringify({ whatever: "I want" }),
       })
-      expect(mockXHR.url).to.equal(
-        "/whatever?jays_face=is+a+param&lol=haha&foo=bar&whatever=123"
-      )
+      expect(mockXHR.url).to.equal("/whatever?jays_face=is+a+param&lol=haha&foo=bar&whatever=123")
     })
     it("should overwrite existing args from existing search strings in the url passed", () => {
       ajax({
@@ -1305,9 +1291,7 @@ x-headers-are-fun: <whatever/> {"weird": "things"}`)
         status: 200,
         responseText: JSON.stringify({ whatever: "I want" }),
       })
-      expect(mockXHR.url).to.equal(
-        "/whatever?terminator=2&uncle_bob=...okayyyyyyy&movie_quote=yes"
-      )
+      expect(mockXHR.url).to.equal("/whatever?terminator=2&uncle_bob=...okayyyyyyy&movie_quote=yes")
     })
     it("should properly encode values", () => {
       ajax({
@@ -1322,9 +1306,7 @@ x-headers-are-fun: <whatever/> {"weird": "things"}`)
         status: 200,
         responseText: JSON.stringify({ whatever: "I want" }),
       })
-      expect(mockXHR.url).to.equal(
-        "/whatever?this+is+a+weird+param+name=%3F%23*+value+here+rofl+%21%21%21"
-      )
+      expect(mockXHR.url).to.equal("/whatever?this+is+a+weird+param+name=%3F%23*+value+here+rofl+%21%21%21")
     })
     it("should handle dictionaries that have numbers, booleans, and arrays of numbers, strings or booleans", () => {
       ajax({
@@ -1343,9 +1325,7 @@ x-headers-are-fun: <whatever/> {"weird": "things"}`)
         status: 200,
         responseText: JSON.stringify({ whatever: "I want" }),
       })
-      expect(mockXHR.url).to.equal(
-        "/whatever?a=123&b=true&c=one%2Ctwo%2Cthree&d=1%2C3%2C3%2C7&e=true%2Cfalse%2Ctrue"
-      )
+      expect(mockXHR.url).to.equal("/whatever?a=123&b=true&c=one%2Ctwo%2Cthree&d=1%2C3%2C3%2C7&e=true%2Cfalse%2Ctrue")
     })
     it("should handle entries that have numbers, booleans, and arrays of numbers, strings or booleans", () => {
       ajax({
@@ -1364,9 +1344,7 @@ x-headers-are-fun: <whatever/> {"weird": "things"}`)
         status: 200,
         responseText: JSON.stringify({ whatever: "I want" }),
       })
-      expect(mockXHR.url).to.equal(
-        "/whatever?a=123&b=true&c=one%2Ctwo%2Cthree&d=1%2C3%2C3%2C7&e=true%2Cfalse%2Ctrue"
-      )
+      expect(mockXHR.url).to.equal("/whatever?a=123&b=true&c=one%2Ctwo%2Cthree&d=1%2C3%2C3%2C7&e=true%2Cfalse%2Ctrue")
     })
   })
 })
@@ -1554,9 +1532,7 @@ class MockXMLHttpRequest extends MockXHREventTarget {
       case "arraybuffer":
       case "document":
       case "blob":
-        throw new Error(
-          "Test harness does not support the responseType: " + this.responseType
-        )
+        throw new Error("Test harness does not support the responseType: " + this.responseType)
       case "text":
       case "":
       default:
@@ -1644,14 +1620,8 @@ describe("animationFrames", () => {
   })
   it("should compose with take", () => {
     testScheduler.run(({ animate, cold, expectObservable, time }) => {
-      const requestSpy = sinon.spy(
-        animationFrameProvider.delegate!,
-        "requestAnimationFrame"
-      )
-      const cancelSpy = sinon.spy(
-        animationFrameProvider.delegate!,
-        "cancelAnimationFrame"
-      )
+      const requestSpy = sinon.spy(animationFrameProvider.delegate!, "requestAnimationFrame")
+      const cancelSpy = sinon.spy(animationFrameProvider.delegate!, "cancelAnimationFrame")
       animate("            ---x---x---x")
       const mapped = cold("-m          ")
       const tm = time("    -|          ")
@@ -1672,14 +1642,8 @@ describe("animationFrames", () => {
   })
   it("should compose with takeUntil", () => {
     testScheduler.run(({ animate, cold, expectObservable, hot, time }) => {
-      const requestSpy = sinon.spy(
-        animationFrameProvider.delegate!,
-        "requestAnimationFrame"
-      )
-      const cancelSpy = sinon.spy(
-        animationFrameProvider.delegate!,
-        "cancelAnimationFrame"
-      )
+      const requestSpy = sinon.spy(animationFrameProvider.delegate!, "requestAnimationFrame")
+      const cancelSpy = sinon.spy(animationFrameProvider.delegate!, "cancelAnimationFrame")
       animate("            ---x---x---x")
       const mapped = cold("-m          ")
       const tm = time("    -|          ")
@@ -1687,9 +1651,7 @@ describe("animationFrames", () => {
       const tb = time("    -------|    ")
       const signal = hot(" ^--------s--")
       const expected = "   ---a---b    "
-      const result = mapped.pipe(
-        mergeMapTo(animationFrames().pipe(takeUntil(signal)))
-      )
+      const result = mapped.pipe(mergeMapTo(animationFrames().pipe(takeUntil(signal))))
       expectObservable(result).toBe(expected, {
         a: { elapsed: ta - tm, timestamp: ta },
         b: { elapsed: tb - tm, timestamp: tb },
@@ -1704,17 +1666,11 @@ describe("animationFrames", () => {
 })
 import { fromFetch } from "rxjs/fetch"
 import { expect } from "chai"
-const root: any =
-  (typeof globalThis !== "undefined" && globalThis) ||
-  (typeof self !== "undefined" && self) ||
-  global
+const root: any = (typeof globalThis !== "undefined" && globalThis) || (typeof self !== "undefined" && self) || global
 const OK_RESPONSE = {
   ok: true,
 } as Response
-function mockFetchImpl(
-  input: string | Request,
-  init?: RequestInit
-): Promise<Response> {
+function mockFetchImpl(input: string | Request, init?: RequestInit): Promise<Response> {
   ;(mockFetchImpl as MockFetch).calls.push({ input, init })
   return new Promise<any>((resolve, reject) => {
     if (init) {
@@ -1989,10 +1945,7 @@ import { expect } from "chai"
 import * as sinon from "sinon"
 import { webSocket } from "rxjs/webSocket"
 import { map, retry, take, repeat, takeWhile } from "rxjs/operators"
-const root: any =
-  (typeof globalThis !== "undefined" && globalThis) ||
-  (typeof self !== "undefined" && self) ||
-  global
+const root: any = (typeof globalThis !== "undefined" && globalThis) || (typeof self !== "undefined" && self) || global
 enum WebSocketState {
   CONNECTING = 0,
   OPEN = 1,
@@ -2041,16 +1994,7 @@ describe("webSocket", () => {
       expect(results).to.deep.equal(["ngconf 2018 bug!"])
     })
     it("receive multiple messages", () => {
-      const expected = [
-        "what",
-        "do",
-        "you",
-        "do",
-        "with",
-        "a",
-        "drunken",
-        "sailor?",
-      ]
+      const expected = ["what", "do", "you", "do", "with", "a", "drunken", "sailor?"]
       const results: string[] = []
       const subject = webSocket<string>("ws://mysocket")
       subject.subscribe(x => {
@@ -2193,9 +2137,7 @@ describe("webSocket", () => {
       const socket2 = MockWebSocket.lastSocket
       socket2.open()
       expect(socket2).not.to.equal(socket1)
-      expect(socket2.lastMessageSent).to.equal(
-        JSON.stringify("a mariner yer not. yarrr.")
-      )
+      expect(socket2.lastMessageSent).to.equal(JSON.stringify("a mariner yer not. yarrr."))
       subject.unsubscribe()
     })
     it("should allow resubscription after closure via error", () => {
@@ -2365,10 +2307,7 @@ describe("webSocket", () => {
     it("should handle constructor errors", () => {
       const subject = webSocket<string>(<any>{
         url: "bad_url",
-        WebSocketCtor: (
-          url: string,
-          protocol?: string | string[]
-        ): WebSocket => {
+        WebSocketCtor: (url: string, protocol?: string | string[]): WebSocket => {
           throw new Error(`connection refused`)
         },
       })
@@ -2392,9 +2331,7 @@ describe("webSocket", () => {
     })
     it("should be retryable", () => {
       const results = [] as string[]
-      const subject = webSocket<{ name: string; value: string }>(
-        "ws://websocket"
-      )
+      const subject = webSocket<{ name: string; value: string }>("ws://websocket")
       const source = subject.multiplex(
         () => ({ sub: "foo" }),
         () => ({ unsub: "foo" }),
@@ -2411,25 +2348,19 @@ describe("webSocket", () => {
         })
       const socket = MockWebSocket.lastSocket
       socket.open()
-      expect(socket.lastMessageSent).to.deep.equal(
-        JSON.stringify({ sub: "foo" })
-      )
+      expect(socket.lastMessageSent).to.deep.equal(JSON.stringify({ sub: "foo" }))
       socket.triggerClose({ wasClean: false }) // Bad connection
       const socket2 = MockWebSocket.lastSocket
       expect(socket2).not.to.equal(socket)
       socket2.open()
-      expect(socket2.lastMessageSent).to.deep.equal(
-        JSON.stringify({ sub: "foo" })
-      )
+      expect(socket2.lastMessageSent).to.deep.equal(JSON.stringify({ sub: "foo" }))
       socket2.triggerMessage(JSON.stringify({ name: "foo", value: "test" }))
       socket2.triggerMessage(JSON.stringify({ name: "foo", value: "this" }))
       expect(results).to.deep.equal(["test", "this"])
     })
     it("should be repeatable", () => {
       const results = [] as string[]
-      const subject = webSocket<{ name: string; value: string }>(
-        "ws://websocket"
-      )
+      const subject = webSocket<{ name: string; value: string }>("ws://websocket")
       const source = subject.multiplex(
         () => ({ sub: "foo" }),
         () => ({ unsub: "foo" }),
@@ -2445,33 +2376,22 @@ describe("webSocket", () => {
         })
       const socket = MockWebSocket.lastSocket
       socket.open()
-      expect(socket.lastMessageSent).to.deep.equal(
-        JSON.stringify({ sub: "foo" }),
-        "first multiplexed sub"
-      )
+      expect(socket.lastMessageSent).to.deep.equal(JSON.stringify({ sub: "foo" }), "first multiplexed sub")
       socket.triggerMessage(JSON.stringify({ name: "foo", value: "test" }))
       socket.triggerMessage(JSON.stringify({ name: "foo", value: "this" }))
       socket.triggerClose({ wasClean: true })
       const socket2 = MockWebSocket.lastSocket
       expect(socket2).not.to.equal(socket, "a new socket was not created")
       socket2.open()
-      expect(socket2.lastMessageSent).to.deep.equal(
-        JSON.stringify({ sub: "foo" }),
-        "second multiplexed sub"
-      )
+      expect(socket2.lastMessageSent).to.deep.equal(JSON.stringify({ sub: "foo" }), "second multiplexed sub")
       socket2.triggerMessage(JSON.stringify({ name: "foo", value: "test" }))
       socket2.triggerMessage(JSON.stringify({ name: "foo", value: "this" }))
       socket2.triggerClose({ wasClean: true })
-      expect(results).to.deep.equal(
-        ["test", "this", "test", "this"],
-        "results were not equal"
-      )
+      expect(results).to.deep.equal(["test", "this", "test", "this"], "results were not equal")
     })
     it("should multiplex over the webSocket", () => {
       const results = [] as Array<{ value: number; name: string }>
-      const subject = webSocket<{ value: number; name: string }>(
-        "ws://websocket"
-      )
+      const subject = webSocket<{ value: number; name: string }>("ws://websocket")
       const source = subject.multiplex(
         () => ({ sub: "foo" }),
         () => ({ unsub: "foo" }),
@@ -2482,9 +2402,7 @@ describe("webSocket", () => {
       })
       const socket = MockWebSocket.lastSocket
       socket.open()
-      expect(socket.lastMessageSent).to.deep.equal(
-        JSON.stringify({ sub: "foo" })
-      )
+      expect(socket.lastMessageSent).to.deep.equal(JSON.stringify({ sub: "foo" }))
       ;[1, 2, 3, 4, 5]
         .map((x: number) => {
           return {
@@ -2498,22 +2416,14 @@ describe("webSocket", () => {
       expect(results).to.deep.equal([1, 2, 4, 5])
       sinon.spy(socket, "close")
       sub.unsubscribe()
-      expect(socket.lastMessageSent).to.deep.equal(
-        JSON.stringify({ unsub: "foo" })
-      )
+      expect(socket.lastMessageSent).to.deep.equal(JSON.stringify({ unsub: "foo" }))
       expect(socket.close).have.been.called
       ;(<any>socket.close).restore()
     })
     it("should keep the same socket for multiple multiplex subscriptions", () => {
       const socketSubject = webSocket<string>({ url: "ws://mysocket" })
       const results = [] as string[]
-      const socketMessages = [
-        { id: "A" },
-        { id: "B" },
-        { id: "A" },
-        { id: "B" },
-        { id: "B" },
-      ]
+      const socketMessages = [{ id: "A" }, { id: "B" }, { id: "A" }, { id: "B" }, { id: "B" }]
       const sub1 = socketSubject
         .multiplex(
           () => "no-op",
@@ -2548,15 +2458,7 @@ describe("webSocket", () => {
         socket.triggerMessage(JSON.stringify(msg))
       })
       socket.triggerClose({ wasClean: true })
-      expect(results).to.deep.equal([
-        "A next",
-        "A unsub",
-        "B next",
-        "B next",
-        "B next",
-        "B complete",
-        "B unsub",
-      ])
+      expect(results).to.deep.equal(["A next", "A unsub", "B next", "B next", "B next", "B complete", "B unsub"])
     })
     it("should not close the socket until all subscriptions complete", () => {
       const socketSubject = webSocket<{ id: string; complete: boolean }>({
@@ -2600,15 +2502,7 @@ describe("webSocket", () => {
       socketMessages.forEach(msg => {
         socket.triggerMessage(JSON.stringify(msg))
       })
-      expect(results).to.deep.equal([
-        "A next",
-        "B next",
-        "A complete",
-        "A unsub",
-        "B next",
-        "B complete",
-        "B unsub",
-      ])
+      expect(results).to.deep.equal(["A next", "B next", "A complete", "A unsub", "B next", "B complete", "B unsub"])
     })
   })
   describe("node constructor", () => {

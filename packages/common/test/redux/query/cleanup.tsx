@@ -31,20 +31,14 @@ beforeAll(() => {
 test("data stays in store when component stays rendered", async () => {
   expect(getSubStateA()).toBeUndefined()
   render(<UsingA />, { wrapper: storeRef.wrapper })
-  await waitFor(() =>
-    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
-  )
+  await waitFor(() => expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled))
   jest.advanceTimersByTime(120000)
-  await waitFor(() =>
-    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
-  )
+  await waitFor(() => expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled))
 })
 test("data is removed from store after 60 seconds", async () => {
   expect(getSubStateA()).toBeUndefined()
   const { unmount } = render(<UsingA />, { wrapper: storeRef.wrapper })
-  await waitFor(() =>
-    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
-  )
+  await waitFor(() => expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled))
   unmount()
   jest.advanceTimersByTime(59000)
   expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)

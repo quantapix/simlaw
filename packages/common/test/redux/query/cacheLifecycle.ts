@@ -42,10 +42,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
       endpoints: build => ({
         injected: build[type as "mutation"]<unknown, string>({
           query: () => "/success",
-          async onCacheEntryAdded(
-            arg,
-            { dispatch, getState, cacheEntryRemoved }
-          ) {
+          async onCacheEntryAdded(arg, { dispatch, getState, cacheEntryRemoved }) {
             onNewCacheEntry(arg)
             await cacheEntryRemoved
             onCleanup()
@@ -53,9 +50,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
         }),
       }),
     })
-    const promise = storeRef.store.dispatch(
-      extended.endpoints.injected.initiate("arg")
-    )
+    const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
     expect(onNewCacheEntry).toHaveBeenCalledWith("arg")
     expect(onCleanup).not.toHaveBeenCalled()
     promise.unsubscribe(), await waitMs()
@@ -72,10 +67,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
       endpoints: build => ({
         injected: build[type as "mutation"]<number, string>({
           query: () => "/success",
-          async onCacheEntryAdded(
-            arg,
-            { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
-          ) {
+          async onCacheEntryAdded(arg, { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }) {
             onNewCacheEntry(arg)
             const firstValue = await cacheDataLoaded
             expectType<{ data: number; meta?: FetchBaseQueryMeta }>(firstValue)
@@ -86,9 +78,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
         }),
       }),
     })
-    const promise = storeRef.store.dispatch(
-      extended.endpoints.injected.initiate("arg")
-    )
+    const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
     expect(onNewCacheEntry).toHaveBeenCalledWith("arg")
     expect(gotFirstValue).not.toHaveBeenCalled()
     expect(onCleanup).not.toHaveBeenCalled()
@@ -117,10 +107,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
       endpoints: build => ({
         injected: build[type as "mutation"]<unknown, string>({
           query: () => "/error", // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
-          async onCacheEntryAdded(
-            arg,
-            { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
-          ) {
+          async onCacheEntryAdded(arg, { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }) {
             onNewCacheEntry(arg)
             const firstValue = await cacheDataLoaded
             gotFirstValue(firstValue)
@@ -130,9 +117,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
         }),
       }),
     })
-    const promise = storeRef.store.dispatch(
-      extended.endpoints.injected.initiate("arg")
-    )
+    const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
     expect(onNewCacheEntry).toHaveBeenCalledWith("arg")
     promise.unsubscribe(), await waitMs()
     if (type === "query") {
@@ -147,10 +132,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
       endpoints: build => ({
         injected: build[type as "mutation"]<unknown, string>({
           query: () => "/error", // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
-          async onCacheEntryAdded(
-            arg,
-            { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
-          ) {
+          async onCacheEntryAdded(arg, { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }) {
             onNewCacheEntry(arg)
             try {
               const firstValue = await cacheDataLoaded
@@ -164,9 +146,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
         }),
       }),
     })
-    const promise = storeRef.store.dispatch(
-      extended.endpoints.injected.initiate("arg")
-    )
+    const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
     expect(onNewCacheEntry).toHaveBeenCalledWith("arg")
     promise.unsubscribe(), await waitMs()
     if (type === "query") {
@@ -186,10 +166,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
       endpoints: build => ({
         injected: build[type as "mutation"]<unknown, string>({
           query: () => "/error", // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
-          async onCacheEntryAdded(
-            arg,
-            { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
-          ) {
+          async onCacheEntryAdded(arg, { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }) {
             onNewCacheEntry(arg)
             try {
               const firstValue = await cacheDataLoaded
@@ -203,9 +180,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
         }),
       }),
     })
-    const promise = storeRef.store.dispatch(
-      extended.endpoints.injected.initiate("arg")
-    )
+    const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
     expect(onNewCacheEntry).toHaveBeenCalledWith("arg")
     promise.unsubscribe(), await waitMs()
     if (type === "query") {
@@ -225,10 +200,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
       endpoints: build => ({
         injected: build[type as "mutation"]<unknown, string>({
           query: () => "/error", // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
-          async onCacheEntryAdded(
-            arg,
-            { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
-          ) {
+          async onCacheEntryAdded(arg, { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }) {
             onNewCacheEntry(arg)
             try {
               const firstValue = await cacheDataLoaded
@@ -243,9 +215,7 @@ describe.each([["query"], ["mutation"]] as const)("generic cases: %s", type => {
         }),
       }),
     })
-    const promise = storeRef.store.dispatch(
-      extended.endpoints.injected.initiate("arg")
-    )
+    const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
     expect(onNewCacheEntry).toHaveBeenCalledWith("arg")
     promise.unsubscribe(), await waitMs()
     if (type === "query") {
@@ -267,16 +237,7 @@ test(`query: getCacheEntry`, async () => {
     endpoints: build => ({
       injected: build.query<unknown, string>({
         query: () => "/success",
-        async onCacheEntryAdded(
-          arg,
-          {
-            dispatch,
-            getState,
-            getCacheEntry,
-            cacheEntryRemoved,
-            cacheDataLoaded,
-          }
-        ) {
+        async onCacheEntryAdded(arg, { dispatch, getState, getCacheEntry, cacheEntryRemoved, cacheDataLoaded }) {
           snapshot(getCacheEntry())
           gotFirstValue(await cacheDataLoaded)
           snapshot(getCacheEntry())
@@ -286,9 +247,7 @@ test(`query: getCacheEntry`, async () => {
       }),
     }),
   })
-  const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg")
-  )
+  const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
   promise.unsubscribe()
   await fakeTimerWaitFor(() => {
     expect(gotFirstValue).toHaveBeenCalled()
@@ -336,16 +295,7 @@ test(`mutation: getCacheEntry`, async () => {
     endpoints: build => ({
       injected: build.mutation<unknown, string>({
         query: () => "/success",
-        async onCacheEntryAdded(
-          arg,
-          {
-            dispatch,
-            getState,
-            getCacheEntry,
-            cacheEntryRemoved,
-            cacheDataLoaded,
-          }
-        ) {
+        async onCacheEntryAdded(arg, { dispatch, getState, getCacheEntry, cacheEntryRemoved, cacheDataLoaded }) {
           snapshot(getCacheEntry())
           gotFirstValue(await cacheDataLoaded)
           snapshot(getCacheEntry())
@@ -355,9 +305,7 @@ test(`mutation: getCacheEntry`, async () => {
       }),
     }),
   })
-  const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg")
-  )
+  const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
   await fakeTimerWaitFor(() => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
@@ -402,14 +350,7 @@ test("updateCachedData", async () => {
         query: () => "/success",
         async onCacheEntryAdded(
           arg,
-          {
-            dispatch,
-            getState,
-            getCacheEntry,
-            updateCachedData,
-            cacheEntryRemoved,
-            cacheDataLoaded,
-          }
+          { dispatch, getState, getCacheEntry, updateCachedData, cacheEntryRemoved, cacheDataLoaded }
         ) {
           expect(getCacheEntry().data).toEqual(undefined)
           updateCachedData(draft => {
@@ -439,9 +380,7 @@ test("updateCachedData", async () => {
       }),
     }),
   })
-  const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg")
-  )
+  const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
   promise.unsubscribe()
   await fakeTimerWaitFor(() => {
     expect(gotFirstValue).toHaveBeenCalled()
@@ -467,9 +406,7 @@ test("dispatching further actions does not trigger another lifecycle", async () 
   expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
   await storeRef.store.dispatch(extended.endpoints.injected.initiate())
   expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
-  await storeRef.store.dispatch(
-    extended.endpoints.injected.initiate(undefined, { forceRefetch: true })
-  )
+  await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined, { forceRefetch: true }))
   expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
 })
 test("dispatching a query initializer with `subscribe: false` does not start a lifecycle", async () => {
@@ -484,9 +421,7 @@ test("dispatching a query initializer with `subscribe: false` does not start a l
       }),
     }),
   })
-  await storeRef.store.dispatch(
-    extended.endpoints.injected.initiate(undefined, { subscribe: false })
-  )
+  await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined, { subscribe: false }))
   expect(onNewCacheEntry).toHaveBeenCalledTimes(0)
   await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined))
   expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
@@ -503,9 +438,7 @@ test("dispatching a mutation initializer with `track: false` does not start a li
       }),
     }),
   })
-  await storeRef.store.dispatch(
-    extended.endpoints.injected.initiate(undefined, { track: false })
-  )
+  await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined, { track: false }))
   expect(onNewCacheEntry).toHaveBeenCalledTimes(0)
   await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined))
   expect(onNewCacheEntry).toHaveBeenCalledTimes(1)

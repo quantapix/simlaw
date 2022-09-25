@@ -6,14 +6,7 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios"
 import axios from "axios"
 import { expectExactType, hookWaitFor, setupApiStore } from "./helpers"
 import { server } from "./mocks/server"
-import {
-  fireEvent,
-  render,
-  waitFor,
-  screen,
-  act,
-  renderHook,
-} from "@testing-library/react"
+import { fireEvent, render, waitFor, screen, act, renderHook } from "@testing-library/react"
 import { useDispatch } from "react-redux"
 import type { AnyAction, ThunkDispatch } from "@reduxjs/toolkit"
 import type { BaseQueryApi } from "../baseQueryTypes"
@@ -30,9 +23,7 @@ const api = createApi({
   },
 })
 const storeRef = setupApiStore(api)
-const failQueryOnce = rest.get("/query", (_, req, ctx) =>
-  req.once(ctx.status(500), ctx.json({ value: "failed" }))
-)
+const failQueryOnce = rest.get("/query", (_, req, ctx) => req.once(ctx.status(500), ctx.json({ value: "failed" })))
 describe("fetchBaseQuery", () => {
   let commonBaseQueryApiArgs: BaseQueryApi = {} as any
   beforeEach(() => {
@@ -46,9 +37,7 @@ describe("fetchBaseQuery", () => {
     }
   })
   it("success", async () => {
-    await expect(
-      baseQuery("/success", commonBaseQueryApiArgs, {})
-    ).resolves.toEqual({
+    await expect(baseQuery("/success", commonBaseQueryApiArgs, {})).resolves.toEqual({
       data: { value: "success" },
       meta: {
         request: expect.any(Object),
@@ -58,9 +47,7 @@ describe("fetchBaseQuery", () => {
   })
   it("error", async () => {
     server.use(failQueryOnce)
-    await expect(
-      baseQuery("/error", commonBaseQueryApiArgs, {})
-    ).resolves.toEqual({
+    await expect(baseQuery("/error", commonBaseQueryApiArgs, {})).resolves.toEqual({
       error: {
         data: { value: "error" },
         status: 500,
@@ -74,11 +61,7 @@ describe("fetchBaseQuery", () => {
 })
 describe("query error handling", () => {
   it("success", async () => {
-    server.use(
-      rest.get("https://example.com/query", (_, res, ctx) =>
-        res(ctx.json({ value: "success" }))
-      )
-    )
+    server.use(rest.get("https://example.com/query", (_, res, ctx) => res(ctx.json({ value: "success" }))))
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
       wrapper: storeRef.wrapper,
     })
@@ -94,9 +77,7 @@ describe("query error handling", () => {
   })
   it("error", async () => {
     server.use(
-      rest.get("https://example.com/query", (_, res, ctx) =>
-        res(ctx.status(500), ctx.json({ value: "error" }))
-      )
+      rest.get("https://example.com/query", (_, res, ctx) => res(ctx.status(500), ctx.json({ value: "error" })))
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
       wrapper: storeRef.wrapper,
@@ -115,11 +96,7 @@ describe("query error handling", () => {
     )
   })
   it("success -> error", async () => {
-    server.use(
-      rest.get("https://example.com/query", (_, res, ctx) =>
-        res(ctx.json({ value: "success" }))
-      )
-    )
+    server.use(rest.get("https://example.com/query", (_, res, ctx) => res(ctx.json({ value: "success" }))))
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
       wrapper: storeRef.wrapper,
     })
@@ -133,9 +110,7 @@ describe("query error handling", () => {
       })
     )
     server.use(
-      rest.get("https://example.com/query", (_, res, ctx) =>
-        res.once(ctx.status(500), ctx.json({ value: "error" }))
-      )
+      rest.get("https://example.com/query", (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: "error" })))
     )
     act(result.current.refetch)
     await hookWaitFor(() => expect(result.current.isFetching).toBeFalsy())
@@ -153,15 +128,9 @@ describe("query error handling", () => {
     )
   })
   it("error -> success", async () => {
+    server.use(rest.get("https://example.com/query", (_, res, ctx) => res(ctx.json({ value: "success" }))))
     server.use(
-      rest.get("https://example.com/query", (_, res, ctx) =>
-        res(ctx.json({ value: "success" }))
-      )
-    )
-    server.use(
-      rest.get("https://example.com/query", (_, res, ctx) =>
-        res.once(ctx.status(500), ctx.json({ value: "error" }))
-      )
+      rest.get("https://example.com/query", (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: "error" })))
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
       wrapper: storeRef.wrapper,
@@ -192,11 +161,7 @@ describe("query error handling", () => {
 })
 describe("mutation error handling", () => {
   it("success", async () => {
-    server.use(
-      rest.post("https://example.com/mutation", (_, res, ctx) =>
-        res(ctx.json({ value: "success" }))
-      )
-    )
+    server.use(rest.post("https://example.com/mutation", (_, res, ctx) => res(ctx.json({ value: "success" }))))
     const { result } = renderHook(() => api.endpoints.mutation.useMutation(), {
       wrapper: storeRef.wrapper,
     })
@@ -214,9 +179,7 @@ describe("mutation error handling", () => {
   })
   it("error", async () => {
     server.use(
-      rest.post("https://example.com/mutation", (_, res, ctx) =>
-        res(ctx.status(500), ctx.json({ value: "error" }))
-      )
+      rest.post("https://example.com/mutation", (_, res, ctx) => res(ctx.status(500), ctx.json({ value: "error" })))
     )
     const { result } = renderHook(() => api.endpoints.mutation.useMutation(), {
       wrapper: storeRef.wrapper,
@@ -237,11 +200,7 @@ describe("mutation error handling", () => {
     )
   })
   it("success -> error", async () => {
-    server.use(
-      rest.post("https://example.com/mutation", (_, res, ctx) =>
-        res(ctx.json({ value: "success" }))
-      )
-    )
+    server.use(rest.post("https://example.com/mutation", (_, res, ctx) => res(ctx.json({ value: "success" }))))
     const { result } = renderHook(() => api.endpoints.mutation.useMutation(), {
       wrapper: storeRef.wrapper,
     })
@@ -282,11 +241,7 @@ describe("mutation error handling", () => {
     }
   })
   it("error -> success", async () => {
-    server.use(
-      rest.post("https://example.com/mutation", (_, res, ctx) =>
-        res(ctx.json({ value: "success" }))
-      )
-    )
+    server.use(rest.post("https://example.com/mutation", (_, res, ctx) => res(ctx.json({ value: "success" }))))
     server.use(
       rest.post("https://example.com/mutation", (_, res, ctx) =>
         res.once(ctx.status(500), ctx.json({ value: "error" }))
@@ -389,9 +344,7 @@ describe("custom axios baseQuery", () => {
   })
   it("axios errors behave as expected", async () => {
     server.use(
-      rest.get("https://example.com/success", (_, res, ctx) =>
-        res(ctx.status(500), ctx.json({ value: "error" }))
-      )
+      rest.get("https://example.com/success", (_, res, ctx) => res(ctx.status(500), ctx.json({ value: "error" })))
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery(), {
       wrapper: storeRef.wrapper,
@@ -424,22 +377,17 @@ describe("error handling in a component", () => {
   const storeRef = setupApiStore(api)
   it("a mutation is unwrappable and has the correct types", async () => {
     server.use(
-      rest.get("https://example.com/success", (_, res, ctx) =>
-        res.once(ctx.status(500), ctx.json(mockErrorResponse))
-      )
+      rest.get("https://example.com/success", (_, res, ctx) => res.once(ctx.status(500), ctx.json(mockErrorResponse)))
     )
     function User() {
       const [manualError, setManualError] = React.useState<any>()
-      const [update, { isLoading, data, error }] =
-        api.endpoints.update.useMutation()
+      const [update, { isLoading, data, error }] = api.endpoints.update.useMutation()
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
           <div data-testid="data">{JSON.stringify(data)}</div>
           <div data-testid="error">{JSON.stringify(error)}</div>
-          <div data-testid="manuallySetError">
-            {JSON.stringify(manualError)}
-          </div>
+          <div data-testid="manuallySetError">{JSON.stringify(manualError)}</div>
           <button
             onClick={() => {
               update({ name: "hello" })
@@ -457,47 +405,27 @@ describe("error handling in a component", () => {
       )
     }
     render(<User />, { wrapper: storeRef.wrapper })
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    fireEvent.click(screen.getByText("Update User"))
+    expect(screen.getByTestId("isLoading").textContent).toBe("true")
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
     await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
+      expect(screen.getByTestId("error").textContent).toEqual(screen.getByTestId("manuallySetError").textContent)
     )
     fireEvent.click(screen.getByText("Update User"))
     expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("error").textContent).toEqual(
-        screen.getByTestId("manuallySetError").textContent
-      )
-    )
-    fireEvent.click(screen.getByText("Update User"))
-    expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("error").textContent).toBeFalsy()
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("manuallySetError").textContent).toBeFalsy()
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("data").textContent).toEqual(
-        JSON.stringify(mockSuccessResponse)
-      )
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("error").textContent).toBeFalsy())
+    await waitFor(() => expect(screen.getByTestId("manuallySetError").textContent).toBeFalsy())
+    await waitFor(() => expect(screen.getByTestId("data").textContent).toEqual(JSON.stringify(mockSuccessResponse)))
   })
   for (const track of [true, false]) {
     test(`an un-subscribed mutation will still return something useful (success case, track: ${track})`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationqueryFulfilled: ReturnType<
-        ReturnType<typeof api.endpoints.update.initiate>
-      >
+      let mutationqueryFulfilled: ReturnType<ReturnType<typeof api.endpoints.update.initiate>>
       act(() => {
-        mutationqueryFulfilled = dispatch(
-          api.endpoints.update.initiate({}, { track })
-        )
+        mutationqueryFulfilled = dispatch(api.endpoints.update.initiate({}, { track }))
       })
       const result = await mutationqueryFulfilled!
       expect(result).toMatchObject({
@@ -507,13 +435,9 @@ describe("error handling in a component", () => {
     test(`an un-subscribed mutation will still return something useful (error case, track: ${track})`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationqueryFulfilled: ReturnType<
-        ReturnType<typeof api.endpoints.failedUpdate.initiate>
-      >
+      let mutationqueryFulfilled: ReturnType<ReturnType<typeof api.endpoints.failedUpdate.initiate>>
       act(() => {
-        mutationqueryFulfilled = dispatch(
-          api.endpoints.failedUpdate.initiate({}, { track })
-        )
+        mutationqueryFulfilled = dispatch(api.endpoints.failedUpdate.initiate({}, { track }))
       })
       const result = await mutationqueryFulfilled!
       expect(result).toMatchObject({
@@ -526,13 +450,9 @@ describe("error handling in a component", () => {
     test(`an un-subscribed mutation will still be unwrappable (success case), track: ${track}`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationqueryFulfilled: ReturnType<
-        ReturnType<typeof api.endpoints.update.initiate>
-      >
+      let mutationqueryFulfilled: ReturnType<ReturnType<typeof api.endpoints.update.initiate>>
       act(() => {
-        mutationqueryFulfilled = dispatch(
-          api.endpoints.update.initiate({}, { track })
-        )
+        mutationqueryFulfilled = dispatch(api.endpoints.update.initiate({}, { track }))
       })
       const result = await mutationqueryFulfilled!.unwrap()
       expect(result).toMatchObject({
@@ -542,13 +462,9 @@ describe("error handling in a component", () => {
     test(`an un-subscribed mutation will still be unwrappable (error case, track: ${track})`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationqueryFulfilled: ReturnType<
-        ReturnType<typeof api.endpoints.failedUpdate.initiate>
-      >
+      let mutationqueryFulfilled: ReturnType<ReturnType<typeof api.endpoints.failedUpdate.initiate>>
       act(() => {
-        mutationqueryFulfilled = dispatch(
-          api.endpoints.failedUpdate.initiate({}, { track })
-        )
+        mutationqueryFulfilled = dispatch(api.endpoints.failedUpdate.initiate({}, { track }))
       })
       const unwrappedPromise = mutationqueryFulfilled!.unwrap()
       expect(unwrappedPromise).rejects.toMatchObject({

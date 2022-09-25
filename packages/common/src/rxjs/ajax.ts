@@ -21,7 +21,11 @@ export interface Config {
   progressSubscriber?: qt.PartialObserver<ProgressEvent>
   downloadProgress?: boolean
   uploadProgress?: boolean
-  queryParams?: string | URLSearchParams | Record<string, string | number | boolean | string[] | number[] | boolean[]> | [string, string | number | boolean | string[] | number[] | boolean[]][]
+  queryParams?:
+    | string
+    | URLSearchParams
+    | Record<string, string | number | boolean | string[] | number[] | boolean[]>
+    | [string, string | number | boolean | string[] | number[] | boolean[]][]
 }
 
 export interface Request {
@@ -50,7 +54,12 @@ export class Response<T> {
   readonly loaded: number
   readonly total: number
   readonly responseHeaders: Record<string, string>
-  constructor(public readonly originalEvent: ProgressEvent, public readonly xhr: XMLHttpRequest, public readonly request: Request, public readonly type: ResponseType = "download_load") {
+  constructor(
+    public readonly originalEvent: ProgressEvent,
+    public readonly xhr: XMLHttpRequest,
+    public readonly request: Request,
+    public readonly type: ResponseType = "download_load"
+  ) {
     const { status, responseType } = xhr
     this.status = status ?? 0
     this.responseType = responseType ?? ""
@@ -182,7 +191,8 @@ export function fromAjax<T>(cfg: Config): Observable<Response<T>> {
       }
       addError("timeout", () => new timeoutError(y, req))
       addError("abort", () => new error("aborted", y, req))
-      const createResponse = (d: Direction, x: ProgressEvent) => new Response<T>(x, y, req, `${d}_${x.type as ProgressType}` as const)
+      const createResponse = (d: Direction, x: ProgressEvent) =>
+        new Response<T>(x, y, req, `${d}_${x.type as ProgressType}` as const)
       const addProgress = (x: any, type: string, d: Direction) => {
         x.addEventListener(type, (e: ProgressEvent) => {
           dest.next(createResponse(d, e))
@@ -244,7 +254,16 @@ export function fromAjax<T>(cfg: Config): Observable<Response<T>> {
 }
 
 function extract(x: any, xs: Record<string, string>) {
-  if (!x || typeof x === "string" || isFormData(x) || isURLSearchParams(x) || isArrayBuffer(x) || isFile(x) || isBlob(x) || isReadableStream(x)) {
+  if (
+    !x ||
+    typeof x === "string" ||
+    isFormData(x) ||
+    isURLSearchParams(x) ||
+    isArrayBuffer(x) ||
+    isFile(x) ||
+    isBlob(x) ||
+    isReadableStream(x)
+  ) {
     return x
   }
   if (isArrayBufferView(x)) return x.buffer

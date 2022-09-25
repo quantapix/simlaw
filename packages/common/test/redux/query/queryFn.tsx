@@ -7,10 +7,9 @@ import { posts } from "./mocks/server"
 import { actionsReducer, setupApiStore } from "./helpers"
 import type { QuerySubState } from "@reduxjs/toolkit/dist/query/core/apiState"
 describe("queryFn base implementation tests", () => {
-  const baseQuery: BaseQueryFn<string, { wrappedByBaseQuery: string }, string> =
-    jest.fn((arg: string) => ({
-      data: { wrappedByBaseQuery: arg },
-    }))
+  const baseQuery: BaseQueryFn<string, { wrappedByBaseQuery: string }, string> = jest.fn((arg: string) => ({
+    data: { wrappedByBaseQuery: arg },
+  }))
   const api = createApi({
     baseQuery,
     endpoints: build => ({
@@ -196,17 +195,10 @@ describe("queryFn base implementation tests", () => {
     ["mutationWithThrowingQueryFn", mutationWithThrowingQueryFn, "throw"],
     ["mutationWithAsyncQueryFn", mutationWithAsyncQueryFn, "data"],
     ["mutationWithAsyncErrorQueryFn", mutationWithAsyncErrorQueryFn, "error"],
-    [
-      "mutationWithAsyncThrowingQueryFn",
-      mutationWithAsyncThrowingQueryFn,
-      "throw",
-    ],
+    ["mutationWithAsyncThrowingQueryFn", mutationWithAsyncThrowingQueryFn, "throw"],
   ])("%s", async (endpointName, endpoint, expectedResult) => {
     const thunk = endpoint.initiate(endpointName)
-    let result:
-      | undefined
-      | { data: string }
-      | { error: string | SerializedError } = undefined
+    let result: undefined | { data: string } | { error: string | SerializedError } = undefined
     await expect(async () => {
       result = await store.dispatch(thunk)
     }).toHaveConsoleOutput(
@@ -254,10 +246,7 @@ describe("queryFn base implementation tests", () => {
       )
     }
     {
-      let result:
-        | undefined
-        | { data: string }
-        | { error: string | SerializedError } = undefined
+      let result: undefined | { data: string } | { error: string | SerializedError } = undefined
       const thunk = mutationWithNeither.initiate("mutationWithNeither")
       await expect(async () => {
         result = await store.dispatch(thunk)
@@ -299,9 +288,7 @@ describe("usage scenario tests", () => {
           }
           const post = randomResult.data as Post
           const result = await fetchWithBQ(`/post/${post.id}`)
-          return result.data
-            ? { data: result.data as Post }
-            : { error: result.error as FetchBaseQueryError }
+          return result.data ? { data: result.data as Post } : { error: result.error as FetchBaseQueryError }
         },
       }),
       getFirebaseUser: build.query<typeof mockData, number>({
@@ -328,25 +315,18 @@ describe("usage scenario tests", () => {
     ...actionsReducer,
   })
   it("can chain multiple queries together", async () => {
-    const result = await storeRef.store.dispatch(
-      api.endpoints.getRandomUser.initiate()
-    )
+    const result = await storeRef.store.dispatch(api.endpoints.getRandomUser.initiate())
     expect(result.data).toEqual(posts[1])
   })
   it("can wrap a service like Firebase", async () => {
-    const result = await storeRef.store.dispatch(
-      api.endpoints.getFirebaseUser.initiate(1)
-    )
+    const result = await storeRef.store.dispatch(api.endpoints.getFirebaseUser.initiate(1))
     expect(result.data).toEqual(mockData)
   })
   it("can wrap a service like Firebase and handle errors", async () => {
     let result: QuerySubState<any>
     await expect(async () => {
-      result = await storeRef.store.dispatch(
-        api.endpoints.getMissingFirebaseUser.initiate(1)
-      )
-    })
-      .toHaveConsoleOutput(`An unhandled error occurred processing a request for the endpoint "getMissingFirebaseUser".
+      result = await storeRef.store.dispatch(api.endpoints.getMissingFirebaseUser.initiate(1))
+    }).toHaveConsoleOutput(`An unhandled error occurred processing a request for the endpoint "getMissingFirebaseUser".
     In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: Missing user]`)
     expect(result!.data).toBeUndefined()
     expect(result!.error).toEqual(

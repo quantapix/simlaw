@@ -1,23 +1,13 @@
 import * as qt from "./types.js"
 
-export const isObject = (value: unknown): value is Object =>
-  Boolean(value && typeof value === "object")
+export const isObject = (value: unknown): value is Object => Boolean(value && typeof value === "object")
 
-export const isMatcher = (
-  x: unknown
-): x is qt.Matcher<unknown, unknown, qt.MatcherType, qt.SelectionType> => {
-  const pattern = x as qt.Matcher<
-    unknown,
-    unknown,
-    qt.MatcherType,
-    qt.SelectionType
-  >
+export const isMatcher = (x: unknown): x is qt.Matcher<unknown, unknown, qt.MatcherType, qt.SelectionType> => {
+  const pattern = x as qt.Matcher<unknown, unknown, qt.MatcherType, qt.SelectionType>
   return pattern && !!pattern[qt.matcher]
 }
 
-const isOptionalPattern = (
-  x: unknown
-): x is qt.Matcher<unknown, unknown, "optional", qt.SelectionType> => {
+const isOptionalPattern = (x: unknown): x is qt.Matcher<unknown, unknown, "optional", qt.SelectionType> => {
   return isMatcher(x) && x[qt.matcher]().matcherType === "optional"
 }
 
@@ -39,16 +29,12 @@ export const matchPattern = (
     if (Array.isArray(pattern)) {
       if (!Array.isArray(value)) return false
       return pattern.length === value.length
-        ? pattern.every((subPattern, i) =>
-            matchPattern(subPattern, value[i], select)
-          )
+        ? pattern.every((subPattern, i) => matchPattern(subPattern, value[i], select))
         : false
     }
     if (pattern instanceof Map) {
       if (!(value instanceof Map)) return false
-      return Array.from(pattern.keys()).every(key =>
-        matchPattern(pattern.get(key), value.get(key), select)
-      )
+      return Array.from(pattern.keys()).every(key => matchPattern(pattern.get(key), value.get(key), select))
     }
     if (pattern instanceof Set) {
       if (!(value instanceof Set)) return false
@@ -56,21 +42,14 @@ export const matchPattern = (
       if (pattern.size === 1) {
         const [subPattern] = Array.from(pattern.values())
         return isMatcher(subPattern)
-          ? Array.from(value.values()).every(v =>
-              matchPattern(subPattern, v, select)
-            )
+          ? Array.from(value.values()).every(v => matchPattern(subPattern, v, select))
           : value.has(subPattern)
       }
-      return Array.from(pattern.values()).every(subPattern =>
-        value.has(subPattern)
-      )
+      return Array.from(pattern.values()).every(subPattern => value.has(subPattern))
     }
     return Object.keys(pattern).every((k: string): boolean => {
       const subPattern = pattern[k]
-      return (
-        (k in value || isOptionalPattern(subPattern)) &&
-        matchPattern(subPattern, value[k], select)
-      )
+      return (k in value || isOptionalPattern(subPattern)) && matchPattern(subPattern, value[k], select)
     })
   }
   return Object.is(value, pattern)
@@ -87,5 +66,4 @@ export const getSelectionKeys = (pattern: qt.Pattern<any>): string[] => {
   return []
 }
 
-export const flatMap = <a, b>(xs: a[], f: (v: a) => b[]): b[] =>
-  xs.reduce<b[]>((acc, p) => acc.concat(f(p)), [])
+export const flatMap = <a, b>(xs: a[], f: (v: a) => b[]): b[] => xs.reduce<b[]>((acc, p) => acc.concat(f(p)), [])

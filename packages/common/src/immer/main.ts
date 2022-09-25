@@ -95,12 +95,7 @@ export function processResult(x: any, s: qt.Scope) {
       if (!s.parent) maybeFreeze(s, x)
     }
     if (s.patches) {
-      qu.getPlugin("Patches").substitutePatches(
-        d0[qt.DRAFT_STATE].base,
-        x,
-        s.patches,
-        s.inverses!
-      )
+      qu.getPlugin("Patches").substitutePatches(d0[qt.DRAFT_STATE].base, x, s.patches, s.inverses!)
     }
   } else x = finalize(s, d0, [])
   revokeScope(s)
@@ -123,10 +118,7 @@ function finalizeProp(
   if (__DEV__ && v === x) qu.die(5)
   if (qu.isDraft(v)) {
     const p =
-      path &&
-      s &&
-      s.type !== qt.ProxyType.Set &&
-      !qu.has((s as Exclude<qt.State, qt.SetState>).assigned!, k)
+      path && s && s.type !== qt.ProxyType.Set && !qu.has((s as Exclude<qt.State, qt.SetState>).assigned!, k)
         ? path!.concat(k)
         : undefined
     const y = finalize(root, v, p)
@@ -157,17 +149,10 @@ function finalize(root: qt.Scope, x: any, path?: qt.PatchPath) {
     s.finalized = true
     s.scope.unfinalized--
     const y = s.copy
-    qu.each(s.type === qt.ProxyType.Set ? new Set(y) : y, (k, v) =>
-      finalizeProp(root, s, y, k, v, path)
-    )
+    qu.each(s.type === qt.ProxyType.Set ? new Set(y) : y, (k, v) => finalizeProp(root, s, y, k, v, path))
     maybeFreeze(root, y, false)
     if (path && root.patches) {
-      qu.getPlugin("Patches").generatePatches(
-        s,
-        path,
-        root.patches,
-        root.inverses!
-      )
+      qu.getPlugin("Patches").generatePatches(s, path, root.patches, root.inverses!)
     }
   }
   return s.copy
@@ -243,12 +228,7 @@ export const objTraps: ProxyHandler<qt.ProxyState> = {
       prepCopy(x)
       markChanged(x)
     }
-    if (
-      x.copy![k] === v &&
-      typeof v !== "number" &&
-      (v !== undefined || k in x.copy)
-    )
-      return true
+    if (x.copy![k] === v && typeof v !== "number" && (v !== undefined || k in x.copy)) return true
     x.copy![k] = v
     x.assigned[k] = true
     return true
@@ -305,8 +285,7 @@ export class Immer implements qt.Immer {
   autoFreeze = true
 
   constructor(cfg?: { autoFreeze?: boolean }) {
-    if (typeof cfg?.autoFreeze === "boolean")
-      this.setAutoFreeze(cfg!.autoFreeze)
+    if (typeof cfg?.autoFreeze === "boolean") this.setAutoFreeze(cfg!.autoFreeze)
   }
 
   setAutoFreeze(x: boolean) {
@@ -317,14 +296,8 @@ export class Immer implements qt.Immer {
     if (typeof base === "function" && typeof recipe !== "function") {
       const defaultBase = recipe
       recipe = base
-      return function curriedProduce(
-        this: any,
-        base = defaultBase,
-        ...xs: any[]
-      ) {
-        return this.produce(base, (x: qt.Drafted) =>
-          recipe.call(this, x, ...xs)
-        )
+      return function curriedProduce(this: any, base = defaultBase, ...xs: any[]) {
+        return this.produce(base, (x: qt.Drafted) => recipe.call(this, x, ...xs))
       }
     }
     if (typeof recipe !== "function") qu.die(6)
@@ -370,14 +343,9 @@ export class Immer implements qt.Immer {
     } else qu.die(21, base)
   }
 
-  produceWithPatches: qt.ProduceWithPatches = (
-    arg1: any,
-    arg2?: any,
-    _?: any
-  ): any => {
+  produceWithPatches: qt.ProduceWithPatches = (arg1: any, arg2?: any, _?: any): any => {
     if (typeof arg1 === "function") {
-      return (x: any, ...xs: any[]) =>
-        this.produceWithPatches(x, (draft: any) => arg1(draft, ...xs))
+      return (x: any, ...xs: any[]) => this.produceWithPatches(x, (draft: any) => arg1(draft, ...xs))
     }
     let ps: qt.Patch[], inverses: qt.Patch[]
     const y = this.produce(arg1, arg2, (p: qt.Patch[], ip: qt.Patch[]) => {
@@ -400,10 +368,7 @@ export class Immer implements qt.Immer {
     return y as any
   }
 
-  finishDraft<D extends qt.Draft<any>>(
-    x: D,
-    listener?: qt.Listener
-  ): D extends qt.Draft<infer T> ? T : never {
+  finishDraft<D extends qt.Draft<any>>(x: D, listener?: qt.Listener): D extends qt.Draft<infer T> ? T : never {
     const s: qt.State = x && (x as any)[qt.DRAFT_STATE]
     if (__DEV__) {
       if (!s || !s.manual) qu.die(9)
@@ -430,10 +395,7 @@ export class Immer implements qt.Immer {
   }
 }
 
-function createProxyProxy<T extends qt.Objectish>(
-  base: T,
-  parent?: qt.State
-): qt.Drafted<T, qt.ProxyState> {
+function createProxyProxy<T extends qt.Objectish>(base: T, parent?: qt.State): qt.Drafted<T, qt.ProxyState> {
   const isArray = Array.isArray(base)
   const state = {
     assigned: {},
@@ -460,10 +422,7 @@ function createProxyProxy<T extends qt.Objectish>(
   return proxy as any
 }
 
-export function createProxy<T extends qt.Objectish>(
-  x: T,
-  s?: qt.State
-): qt.Drafted<T, qt.State> {
+export function createProxy<T extends qt.Objectish>(x: T, s?: qt.State): qt.Drafted<T, qt.State> {
   const y: qt.Drafted = qu.isMap(x)
     ? qu.getPlugin("MapSet").proxyMap(x, s)
     : qu.isSet(x)

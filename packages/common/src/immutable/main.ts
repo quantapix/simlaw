@@ -382,7 +382,9 @@ export namespace Collection {
     }
     override get(i: number, v0?: unknown) {
       i = qu.wrapIndex(this, i)
-      return i < 0 || this.size === Infinity || (this.size !== undefined && i > this.size) ? v0 : this.find((_, k) => k === i, undefined, v0)
+      return i < 0 || this.size === Infinity || (this.size !== undefined && i > this.size)
+        ? v0
+        : this.find((_, k) => k === i, undefined, v0)
     }
     override has(i: number) {
       i = qu.wrapIndex(this, i)
@@ -503,7 +505,15 @@ export namespace Seq {
     static override create<K, V>(x?: Iterable<[K, V]>): Seq.Keyed<K, V>
     static override create<V>(x: qt.Dict<V>): Seq.Keyed<string, V>
     static override create(x?: any): any {
-      return x === undefined || x === null ? emptySeq().toSeqKeyed() : qu.isCollection(x) ? (qu.isKeyed(x) ? x.toSeq() : x.fromEntrySeq()) : qu.isRecord(x) ? x.toSeq() : seqKeyedFrom(x)
+      return x === undefined || x === null
+        ? emptySeq().toSeqKeyed()
+        : qu.isCollection(x)
+        ? qu.isKeyed(x)
+          ? x.toSeq()
+          : x.fromEntrySeq()
+        : qu.isRecord(x)
+        ? x.toSeq()
+        : seqKeyedFrom(x)
     }
     override toSeqKeyed() {
       return this
@@ -512,7 +522,15 @@ export namespace Seq {
   export class Indexed<V> extends Seq<number, V> implements Collection.Indexed<V> {
     static override create<T>(x?: Iterable<T> | ArrayLike<T>): Seq.Indexed<T>
     static override create(x?: any): any {
-      return x === undefined || x === null ? emptySeq() : qu.isCollection(x) ? (qu.isKeyed(x) ? x.entrySeq() : x.toSeqIndexed()) : qu.isRecord(x) ? x.toSeq().entrySeq() : seqIndexedFrom(x)
+      return x === undefined || x === null
+        ? emptySeq()
+        : qu.isCollection(x)
+        ? qu.isKeyed(x)
+          ? x.entrySeq()
+          : x.toSeqIndexed()
+        : qu.isRecord(x)
+        ? x.toSeq().entrySeq()
+        : seqIndexedFrom(x)
     }
     static of<T>(...xs: Array<T>): Seq.Indexed<T> {
       return Seq.Indexed.create(...xs)
@@ -715,7 +733,9 @@ export class Range<V> extends Seq.Indexed<V> {
     })
   }
   override equals(other) {
-    return other instanceof Range ? this._start === other._start && this._end === other._end && this._step === other._step : qu.deepEqual(this, other)
+    return other instanceof Range
+      ? this._start === other._start && this._end === other._end && this._step === other._step
+      : qu.deepEqual(this, other)
   }
 }
 
@@ -743,7 +763,9 @@ export class Repeat<V> extends Seq.Indexed<V> {
   }
   override slice(begin, end) {
     const size = this.size
-    return qu.wholeSlice(begin, end, size) ? this : new Repeat(this._value, qu.resolveEnd(end, size) - qu.resolveBegin(begin, size))
+    return qu.wholeSlice(begin, end, size)
+      ? this
+      : new Repeat(this._value, qu.resolveEnd(end, size) - qu.resolveBegin(begin, size))
   }
   override reverse() {
     return this
@@ -767,7 +789,9 @@ export class Repeat<V> extends Seq.Indexed<V> {
   override __iterator(type, reverse: boolean) {
     const size = this.size
     let i = 0
-    return new qu.Iterator(() => (i === size ? qu.iteratorDone() : qu.iteratorValue(type, reverse ? size - ++i : i++, this._value)))
+    return new qu.Iterator(() =>
+      i === size ? qu.iteratorDone() : qu.iteratorValue(type, reverse ? size - ++i : i++, this._value)
+    )
   }
   override equals(other) {
     return other instanceof Repeat ? qu.is(this._value, other._value) : qu.deepEqual(other)

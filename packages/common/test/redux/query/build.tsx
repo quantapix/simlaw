@@ -11,14 +11,7 @@ import {
   SubscriptionOptions,
   AnyAction,
 } from "@reduxjs/toolkit/query/react"
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  renderHook,
-} from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor, renderHook } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { rest } from "msw"
 import {
@@ -89,8 +82,7 @@ test("passes the extraArgument property to the baseQueryApi", async () => {
     reducer: {
       [api.reducerPath]: api.reducer,
     },
-    middleware: gDM =>
-      gDM({ thunk: { extraArgument: "cakes" } }).concat(api.middleware),
+    middleware: gDM => gDM({ thunk: { extraArgument: "cakes" } }).concat(api.middleware),
   })
   const { getUser } = api.endpoints
   const { data } = await store.dispatch(getUser.initiate())
@@ -222,10 +214,7 @@ describe("buildSelector", () => {
     const todosSelector = createSelector([exampleQuerySelector], queryState => {
       return queryState?.data?.[0] ?? ({} as Todo)
     })
-    const firstTodoTitleSelector = createSelector(
-      [todosSelector],
-      todo => todo?.title
-    )
+    const firstTodoTitleSelector = createSelector([todosSelector], todo => todo?.title)
     const store = configureStore({
       reducer: {
         [exampleApi.reducerPath]: exampleApi.reducer,
@@ -264,9 +253,7 @@ const storeRef = setupApiStore(api, { auth: authSlice.reducer })
 it("only resets the api state when resetApiState is dispatched", async () => {
   storeRef.store.dispatch({ type: "unrelated" }) // trigger "registered middleware" into place
   const initialState = storeRef.store.getState()
-  await storeRef.store.dispatch(
-    getUser.initiate(1, { subscriptionOptions: { pollingInterval: 10 } })
-  )
+  await storeRef.store.dispatch(getUser.initiate(1, { subscriptionOptions: { pollingInterval: 10 } }))
   expect(storeRef.store.getState()).toEqual({
     api: {
       config: {
@@ -477,9 +464,7 @@ describe("hooks tests", () => {
       }
       render(<User />, { wrapper: storeRef.wrapper })
       expect(getRenderCount()).toBe(2) // By the time this runs, the initial render will happen, and the query will start immediately running by the time we can expect this
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       expect(getRenderCount()).toBe(3)
     })
     it("useQuery hook sets isFetching=true whenever a request is in flight", async () => {
@@ -492,24 +477,16 @@ describe("hooks tests", () => {
         return (
           <div>
             <div data-testid="isFetching">{String(isFetching)}</div>
-            <button onClick={() => setValue(val => val + 1)}>
-              Increment value
-            </button>
+            <button onClick={() => setValue(val => val + 1)}>Increment value</button>
           </div>
         )
       }
       render(<User />, { wrapper: storeRef.wrapper })
       expect(getRenderCount()).toBe(1)
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       fireEvent.click(screen.getByText("Increment value")) // setState = 1, perform request = 2
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       expect(getRenderCount()).toBe(4)
       fireEvent.click(screen.getByText("Increment value"))
       expect(screen.getByTestId("isFetching").textContent).toBe("false")
@@ -519,41 +496,26 @@ describe("hooks tests", () => {
       let refetch: any, isLoading: boolean, isFetching: boolean
       function User() {
         const [value, setValue] = React.useState(0)
-        ;({ isLoading, isFetching, refetch } = api.endpoints.getUser.useQuery(
-          2,
-          {
-            skip: value < 1,
-          }
-        ))
+        ;({ isLoading, isFetching, refetch } = api.endpoints.getUser.useQuery(2, {
+          skip: value < 1,
+        }))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
             <div data-testid="isFetching">{String(isFetching)}</div>
-            <button onClick={() => setValue(val => val + 1)}>
-              Increment value
-            </button>
+            <button onClick={() => setValue(val => val + 1)}>Increment value</button>
           </div>
         )
       }
       render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
       fireEvent.click(screen.getByText("Increment value"))
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("false")
-      ) // Make sure the original loading has completed.
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false")) // Make sure the original loading has completed.
       fireEvent.click(screen.getByText("Increment value"))
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
       act(() => refetch())
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
       expect(screen.getByTestId("isLoading").textContent).toBe("false")
     })
     it("useQuery hook sets isLoading and isFetching to the correct states", async () => {
@@ -561,16 +523,13 @@ describe("hooks tests", () => {
       function User() {
         const [value, setValue] = React.useState(0)
         getRenderCount = useRenderCounter()
-        const { isLoading, isFetching, refetch } =
-          api.endpoints.getUser.useQuery(22, { skip: value < 1 })
+        const { isLoading, isFetching, refetch } = api.endpoints.getUser.useQuery(22, { skip: value < 1 })
         refetchMe = refetch
         return (
           <div>
             <div data-testid="isFetching">{String(isFetching)}</div>
             <div data-testid="isLoading">{String(isLoading)}</div>
-            <button onClick={() => setValue(val => val + 1)}>
-              Increment value
-            </button>
+            <button onClick={() => setValue(val => val + 1)}>Increment value</button>
           </div>
         )
       }
@@ -609,38 +568,28 @@ describe("hooks tests", () => {
       const loadingHist: boolean[] = [],
         fetchingHist: boolean[] = []
       function User({ id }: { id: number }) {
-        const { isLoading, isFetching, status } =
-          api.endpoints.getUser.useQuery(id)
+        const { isLoading, isFetching, status } = api.endpoints.getUser.useQuery(id)
         React.useEffect(() => {
           loadingHist.push(isLoading)
         }, [isLoading])
         React.useEffect(() => {
           fetchingHist.push(isFetching)
         }, [isFetching])
-        return (
-          <div data-testid="status">
-            {status === QueryStatus.fulfilled && id}
-          </div>
-        )
+        return <div data-testid="status">{status === QueryStatus.fulfilled && id}</div>
       }
       let { rerender } = render(<User id={1} />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("status").textContent).toBe("1")
-      )
+      await waitFor(() => expect(screen.getByTestId("status").textContent).toBe("1"))
       rerender(<User id={2} />)
-      await waitFor(() =>
-        expect(screen.getByTestId("status").textContent).toBe("2")
-      )
+      await waitFor(() => expect(screen.getByTestId("status").textContent).toBe("2"))
       expect(loadingHist).toEqual([true, false])
       expect(fetchingHist).toEqual([true, false, true, false])
     })
     it("useQuery hook respects refetchOnMountOrArgChange: true", async () => {
       let data, isLoading, isFetching
       function User() {
-        ;({ data, isLoading, isFetching } =
-          api.endpoints.getIncrementedAmount.useQuery(undefined, {
-            refetchOnMountOrArgChange: true,
-          }))
+        ;({ data, isLoading, isFetching } = api.endpoints.getIncrementedAmount.useQuery(undefined, {
+          refetchOnMountOrArgChange: true,
+        }))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
@@ -650,35 +599,22 @@ describe("hooks tests", () => {
         )
       }
       const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("amount").textContent).toBe("1")
-      )
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
       unmount()
       render(<User />, { wrapper: storeRef.wrapper })
       expect(screen.getByTestId("isLoading").textContent).toBe("false")
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("amount").textContent).toBe("2")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("2"))
     })
     it("useQuery does not refetch when refetchOnMountOrArgChange: NUMBER condition is not met", async () => {
       let data, isLoading, isFetching
       function User() {
-        ;({ data, isLoading, isFetching } =
-          api.endpoints.getIncrementedAmount.useQuery(undefined, {
-            refetchOnMountOrArgChange: 10,
-          }))
+        ;({ data, isLoading, isFetching } = api.endpoints.getIncrementedAmount.useQuery(undefined, {
+          refetchOnMountOrArgChange: 10,
+        }))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
@@ -688,29 +624,20 @@ describe("hooks tests", () => {
         )
       }
       const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("amount").textContent).toBe("1")
-      )
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
       unmount()
       render(<User />, { wrapper: storeRef.wrapper })
       expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      await waitFor(() =>
-        expect(screen.getByTestId("amount").textContent).toBe("1")
-      )
+      await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     })
     it("useQuery refetches when refetchOnMountOrArgChange: NUMBER condition is met", async () => {
       let data, isLoading, isFetching
       function User() {
-        ;({ data, isLoading, isFetching } =
-          api.endpoints.getIncrementedAmount.useQuery(undefined, {
-            refetchOnMountOrArgChange: 0.5,
-          }))
+        ;({ data, isLoading, isFetching } = api.endpoints.getIncrementedAmount.useQuery(undefined, {
+          refetchOnMountOrArgChange: 0.5,
+        }))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
@@ -720,37 +647,24 @@ describe("hooks tests", () => {
         )
       }
       const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("amount").textContent).toBe("1")
-      )
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
       unmount()
       await waitMs(510)
       render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("amount").textContent).toBe("2")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("2"))
     })
     it("refetchOnMountOrArgChange works as expected when changing skip from false->true", async () => {
       let data, isLoading, isFetching
       function User() {
         const [skip, setSkip] = React.useState(true)
-        ;({ data, isLoading, isFetching } =
-          api.endpoints.getIncrementedAmount.useQuery(undefined, {
-            refetchOnMountOrArgChange: 0.5,
-            skip,
-          }))
+        ;({ data, isLoading, isFetching } = api.endpoints.getIncrementedAmount.useQuery(undefined, {
+          refetchOnMountOrArgChange: 0.5,
+          skip,
+        }))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
@@ -764,25 +678,18 @@ describe("hooks tests", () => {
       expect(screen.getByTestId("isLoading").textContent).toBe("false")
       expect(screen.getByTestId("amount").textContent).toBe("undefined")
       fireEvent.click(screen.getByText("change skip"))
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("amount").textContent).toBe("1")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     })
     it("refetchOnMountOrArgChange works as expected when changing skip from false->true with a cached query", async () => {
       let data, isLoading, isFetching
       function User() {
         const [skip, setSkip] = React.useState(true)
-        ;({ data, isLoading, isFetching } =
-          api.endpoints.getIncrementedAmount.useQuery(undefined, {
-            skip,
-            refetchOnMountOrArgChange: 0.5,
-          }))
+        ;({ data, isLoading, isFetching } = api.endpoints.getIncrementedAmount.useQuery(undefined, {
+          skip,
+          refetchOnMountOrArgChange: 0.5,
+        }))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
@@ -795,9 +702,7 @@ describe("hooks tests", () => {
       let { unmount } = render(<User />, { wrapper: storeRef.wrapper })
       expect(screen.getByTestId("isFetching").textContent).toBe("false")
       fireEvent.click(screen.getByText("change skip"))
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
       await waitFor(() => {
         expect(screen.getByTestId("amount").textContent).toBe("1")
         expect(screen.getByTestId("isFetching").textContent).toBe("false")
@@ -818,15 +723,9 @@ describe("hooks tests", () => {
         wrapper: storeRef.wrapper,
       }))
       fireEvent.click(screen.getByText("change skip"))
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("amount").textContent).toBe("2")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("2"))
     })
     describe("api.util.resetApiState resets hook", () => {
       it("without `selectFromResult`", async () => {
@@ -849,12 +748,9 @@ describe("hooks tests", () => {
       })
       it("with `selectFromResult`", async () => {
         const selectFromResult = jest.fn(x => x)
-        const { result } = renderHook(
-          () => api.endpoints.getUser.useQuery(5, { selectFromResult }),
-          {
-            wrapper: storeRef.wrapper,
-          }
-        )
+        const { result } = renderHook(() => api.endpoints.getUser.useQuery(5, { selectFromResult }), {
+          wrapper: storeRef.wrapper,
+        })
         await waitFor(() => expect(result.current.isSuccess).toBe(true))
         selectFromResult.mockClear()
         act(() => void storeRef.store.dispatch(api.util.resetApiState()))
@@ -877,8 +773,7 @@ describe("hooks tests", () => {
     let getRenderCount: () => number = () => 0
     it("useLazyQuery does not automatically fetch when mounted and has undefined data", async () => {
       function User() {
-        const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
-          api.endpoints.getUser.useLazyQuery()
+        const [fetchUser, { data: hookData, isFetching, isUninitialized }] = api.endpoints.getUser.useLazyQuery()
         getRenderCount = useRenderCounter()
         data = hookData
         return (
@@ -893,34 +788,23 @@ describe("hooks tests", () => {
       }
       render(<User />, { wrapper: storeRef.wrapper })
       expect(getRenderCount()).toBe(1)
-      await waitFor(() =>
-        expect(screen.getByTestId("isUninitialized").textContent).toBe("true")
-      )
+      await waitFor(() => expect(screen.getByTestId("isUninitialized").textContent).toBe("true"))
       await waitFor(() => expect(data).toBeUndefined())
       fireEvent.click(screen.getByTestId("fetchButton"))
       expect(getRenderCount()).toBe(2)
-      await waitFor(() =>
-        expect(screen.getByTestId("isUninitialized").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isUninitialized").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       expect(getRenderCount()).toBe(3)
       fireEvent.click(screen.getByTestId("fetchButton"))
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       expect(getRenderCount()).toBe(5)
     })
     it("useLazyQuery accepts updated subscription options and only dispatches updateSubscriptionOptions when values are updated", async () => {
       let interval = 1000
       function User() {
         const [options, setOptions] = React.useState<SubscriptionOptions>()
-        const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
-          api.endpoints.getUser.useLazyQuery(options)
+        const [fetchUser, { data: hookData, isFetching, isUninitialized }] = api.endpoints.getUser.useLazyQuery(options)
         getRenderCount = useRenderCounter()
         data = hookData
         return (
@@ -945,50 +829,33 @@ describe("hooks tests", () => {
       }
       render(<User />, { wrapper: storeRef.wrapper })
       expect(getRenderCount()).toBe(1) // hook mount
-      await waitFor(() =>
-        expect(screen.getByTestId("isUninitialized").textContent).toBe("true")
-      )
+      await waitFor(() => expect(screen.getByTestId("isUninitialized").textContent).toBe("true"))
       await waitFor(() => expect(data).toBeUndefined())
       fireEvent.click(screen.getByTestId("fetchButton"))
       expect(getRenderCount()).toBe(2)
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       expect(getRenderCount()).toBe(3)
       fireEvent.click(screen.getByTestId("updateOptions")) // setState = 1
       expect(getRenderCount()).toBe(4)
       fireEvent.click(screen.getByTestId("fetchButton")) // perform new request = 2
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       expect(getRenderCount()).toBe(6)
       interval = 1000
       fireEvent.click(screen.getByTestId("updateOptions")) // setState = 1
       expect(getRenderCount()).toBe(7)
       fireEvent.click(screen.getByTestId("fetchButton"))
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       expect(getRenderCount()).toBe(9)
       expect(
-        storeRef.store
-          .getState()
-          .actions.filter(api.internalActions.updateSubscriptionOptions.match)
+        storeRef.store.getState().actions.filter(api.internalActions.updateSubscriptionOptions.match)
       ).toHaveLength(1)
     })
     it("useLazyQuery accepts updated args and unsubscribes the original query", async () => {
       function User() {
-        const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
-          api.endpoints.getUser.useLazyQuery()
+        const [fetchUser, { data: hookData, isFetching, isUninitialized }] = api.endpoints.getUser.useLazyQuery()
         data = hookData
         return (
           <div>
@@ -1004,52 +871,22 @@ describe("hooks tests", () => {
         )
       }
       const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isUninitialized").textContent).toBe("true")
-      )
+      await waitFor(() => expect(screen.getByTestId("isUninitialized").textContent).toBe("true"))
       await waitFor(() => expect(data).toBeUndefined())
       fireEvent.click(screen.getByTestId("fetchUser1"))
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
-      expect(
-        storeRef.store
-          .getState()
-          .actions.filter(api.internalActions.unsubscribeQueryResult.match)
-      ).toHaveLength(0)
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+      expect(storeRef.store.getState().actions.filter(api.internalActions.unsubscribeQueryResult.match)).toHaveLength(0)
       fireEvent.click(screen.getByTestId("fetchUser2"))
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
-      expect(
-        storeRef.store
-          .getState()
-          .actions.filter(api.internalActions.unsubscribeQueryResult.match)
-      ).toHaveLength(1)
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+      expect(storeRef.store.getState().actions.filter(api.internalActions.unsubscribeQueryResult.match)).toHaveLength(1)
       fireEvent.click(screen.getByTestId("fetchUser1"))
-      expect(
-        storeRef.store
-          .getState()
-          .actions.filter(api.internalActions.unsubscribeQueryResult.match)
-      ).toHaveLength(2)
+      expect(storeRef.store.getState().actions.filter(api.internalActions.unsubscribeQueryResult.match)).toHaveLength(2)
       fireEvent.click(screen.getByTestId("fetchUser1"))
-      expect(
-        storeRef.store
-          .getState()
-          .actions.filter(api.internalActions.unsubscribeQueryResult.match)
-      ).toHaveLength(3)
+      expect(storeRef.store.getState().actions.filter(api.internalActions.unsubscribeQueryResult.match)).toHaveLength(3)
       unmount()
-      expect(
-        storeRef.store
-          .getState()
-          .actions.filter(api.internalActions.unsubscribeQueryResult.match)
-      ).toHaveLength(4)
+      expect(storeRef.store.getState().actions.filter(api.internalActions.unsubscribeQueryResult.match)).toHaveLength(4)
     })
     it("useLazyQuery hook callback returns various properties to handle the result", async () => {
       function User() {
@@ -1080,9 +917,7 @@ describe("hooks tests", () => {
           expectType<() => void>(res.abort)
           expectType<() => Promise<{ name: string }>>(res.unwrap)
           expectType<() => void>(res.unsubscribe)
-          expectType<(options: SubscriptionOptions) => void>(
-            res.updateSubscriptionOptions
-          )
+          expectType<(options: SubscriptionOptions) => void>(res.updateSubscriptionOptions)
           expectType<() => void>(res.refetch)
           if (abort) res.abort()
           res
@@ -1105,9 +940,7 @@ describe("hooks tests", () => {
         }
         return (
           <div>
-            <button onClick={handleClick(false)}>
-              Fetch User successfully
-            </button>
+            <button onClick={handleClick(false)}>Fetch User successfully</button>
             <button onClick={handleClick(true)}>Fetch User and abort</button>
             <div>{successMsg}</div>
             <div>{errMsg}</div>
@@ -1119,23 +952,18 @@ describe("hooks tests", () => {
       expect(screen.queryByText(/An error has occurred/i)).toBeNull()
       expect(screen.queryByText(/Successfully fetched user/i)).toBeNull()
       expect(screen.queryByText("Request was aborted")).toBeNull()
-      fireEvent.click(
-        screen.getByRole("button", { name: "Fetch User and abort" })
-      )
+      fireEvent.click(screen.getByRole("button", { name: "Fetch User and abort" }))
       await screen.findByText("An error has occurred fetching userId: 1")
       expect(screen.queryByText(/Successfully fetched user/i)).toBeNull()
       screen.getByText("Request was aborted")
-      fireEvent.click(
-        screen.getByRole("button", { name: "Fetch User successfully" })
-      )
+      fireEvent.click(screen.getByRole("button", { name: "Fetch User successfully" }))
       await screen.findByText("Successfully fetched user Timmy")
       expect(screen.queryByText(/An error has occurred/i)).toBeNull()
       expect(screen.queryByText("Request was aborted")).toBeNull()
     })
     it("unwrapping the useLazyQuery trigger result does not throw on ConditionError and instead returns the aggregate error", async () => {
       function User() {
-        const [getUser, { data, error }] =
-          api.endpoints.getUserAndForceError.useLazyQuery()
+        const [getUser, { data, error }] = api.endpoints.getUserAndForceError.useLazyQuery()
         const [unwrappedError, setUnwrappedError] = React.useState<any>()
         const handleClick = async () => {
           const res = getUser(1)
@@ -1150,9 +978,7 @@ describe("hooks tests", () => {
             <button onClick={handleClick}>Fetch User</button>
             <div data-testid="result">{JSON.stringify(data)}</div>
             <div data-testid="error">{JSON.stringify(error)}</div>
-            <div data-testid="unwrappedError">
-              {JSON.stringify(unwrappedError)}
-            </div>
+            <div data-testid="unwrappedError">{JSON.stringify(unwrappedError)}</div>
           </div>
         )
       }
@@ -1162,16 +988,13 @@ describe("hooks tests", () => {
       fireEvent.click(fetchButton) // This technically dispatches a ConditionError, but we don't want to see that here. We want the real error to resolve.
       await waitFor(() => {
         const errorResult = screen.getByTestId("error")?.textContent
-        const unwrappedErrorResult =
-          screen.getByTestId("unwrappedError")?.textContent
+        const unwrappedErrorResult = screen.getByTestId("unwrappedError")?.textContent
         if (errorResult && unwrappedErrorResult) {
           expect(JSON.parse(errorResult)).toMatchObject({
             status: 500,
             data: null,
           })
-          expect(JSON.parse(unwrappedErrorResult)).toMatchObject(
-            JSON.parse(errorResult)
-          )
+          expect(JSON.parse(unwrappedErrorResult)).toMatchObject(JSON.parse(errorResult))
         }
       })
       expect(screen.getByTestId("result").textContent).toBe("")
@@ -1179,9 +1002,7 @@ describe("hooks tests", () => {
     it("useLazyQuery does not throw on ConditionError and instead returns the aggregate result", async () => {
       function User() {
         const [getUser, { data, error }] = api.endpoints.getUser.useLazyQuery()
-        const [unwrappedResult, setUnwrappedResult] = React.useState<
-          undefined | { name: string }
-        >()
+        const [unwrappedResult, setUnwrappedResult] = React.useState<undefined | { name: string }>()
         const handleClick = async () => {
           const res = getUser(1)
           const result = await res.unwrap()
@@ -1192,9 +1013,7 @@ describe("hooks tests", () => {
             <button onClick={handleClick}>Fetch User</button>
             <div data-testid="result">{JSON.stringify(data)}</div>
             <div data-testid="error">{JSON.stringify(error)}</div>
-            <div data-testid="unwrappedResult">
-              {JSON.stringify(unwrappedResult)}
-            </div>
+            <div data-testid="unwrappedResult">{JSON.stringify(unwrappedResult)}</div>
           </div>
         )
       }
@@ -1204,15 +1023,12 @@ describe("hooks tests", () => {
       fireEvent.click(fetchButton) // This technically dispatches a ConditionError, but we don't want to see that here. We want the real result to resolve and ignore the error.
       await waitFor(() => {
         const dataResult = screen.getByTestId("error")?.textContent
-        const unwrappedDataResult =
-          screen.getByTestId("unwrappedResult")?.textContent
+        const unwrappedDataResult = screen.getByTestId("unwrappedResult")?.textContent
         if (dataResult && unwrappedDataResult) {
           expect(JSON.parse(dataResult)).toMatchObject({
             name: "Timmy",
           })
-          expect(JSON.parse(unwrappedDataResult)).toMatchObject(
-            JSON.parse(dataResult)
-          )
+          expect(JSON.parse(unwrappedDataResult)).toMatchObject(JSON.parse(dataResult))
         }
       })
       expect(screen.getByTestId("error").textContent).toBe("")
@@ -1221,28 +1037,19 @@ describe("hooks tests", () => {
   describe("useMutation", () => {
     it("useMutation hook sets and unsets the isLoading flag when running", async () => {
       function User() {
-        const [updateUser, { isLoading }] =
-          api.endpoints.updateUser.useMutation()
+        const [updateUser, { isLoading }] = api.endpoints.updateUser.useMutation()
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
-            <button onClick={() => updateUser({ name: "Banana" })}>
-              Update User
-            </button>
+            <button onClick={() => updateUser({ name: "Banana" })}>Update User</button>
           </div>
         )
       }
       render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
       fireEvent.click(screen.getByText("Update User"))
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
     })
     it("useMutation hook sets data to the resolved response on success", async () => {
       const result = { name: "Banana" }
@@ -1251,19 +1058,13 @@ describe("hooks tests", () => {
         return (
           <div>
             <div data-testid="result">{JSON.stringify(data)}</div>
-            <button onClick={() => updateUser({ name: "Banana" })}>
-              Update User
-            </button>
+            <button onClick={() => updateUser({ name: "Banana" })}>Update User</button>
           </div>
         )
       }
       render(<User />, { wrapper: storeRef.wrapper })
       fireEvent.click(screen.getByText("Update User"))
-      await waitFor(() =>
-        expect(screen.getByTestId("result").textContent).toBe(
-          JSON.stringify(result)
-        )
-      )
+      await waitFor(() => expect(screen.getByTestId("result").textContent).toBe(JSON.stringify(result)))
     })
     it("useMutation hook callback returns various properties to handle the result", async () => {
       function User() {
@@ -1303,9 +1104,7 @@ describe("hooks tests", () => {
               setSuccessMsg(`Successfully updated user ${result.name}`)
             })
             .catch(err => {
-              setErrMsg(
-                `An error has occurred updating user ${res.arg.originalArgs.name}`
-              )
+              setErrMsg(`An error has occurred updating user ${res.arg.originalArgs.name}`)
               if (err.name === "AbortError") {
                 setIsAborted(true)
               }
@@ -1324,20 +1123,15 @@ describe("hooks tests", () => {
       expect(screen.queryByText(/An error has occurred/i)).toBeNull()
       expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
       expect(screen.queryByText("Request was aborted")).toBeNull()
-      fireEvent.click(
-        screen.getByRole("button", { name: "Update User and abort" })
-      )
+      fireEvent.click(screen.getByRole("button", { name: "Update User and abort" }))
       await screen.findByText("An error has occurred updating user Banana")
       expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
       screen.getByText("Request was aborted")
     })
     it("useMutation return value contains originalArgs", async () => {
-      const { result } = renderHook(
-        () => api.endpoints.updateUser.useMutation(),
-        {
-          wrapper: storeRef.wrapper,
-        }
-      )
+      const { result } = renderHook(() => api.endpoints.updateUser.useMutation(), {
+        wrapper: storeRef.wrapper,
+      })
       const arg = { name: "Foo" }
       const firstRenderResult = result.current
       expect(firstRenderResult[1].originalArgs).toBe(undefined)
@@ -1351,13 +1145,7 @@ describe("hooks tests", () => {
         const [updateUser, result] = api.endpoints.updateUser.useMutation()
         return (
           <>
-            <span>
-              {result.isUninitialized
-                ? "isUninitialized"
-                : result.isSuccess
-                ? "isSuccess"
-                : "other"}
-            </span>
+            <span>{result.isUninitialized ? "isUninitialized" : result.isSuccess ? "isSuccess" : "other"}</span>
             <span>{result.originalArgs?.name}</span>
             <button onClick={() => updateUser({ name: "Yay" })}>trigger</button>
             <button onClick={result.reset}>reset</button>
@@ -1367,21 +1155,15 @@ describe("hooks tests", () => {
       render(<User />, { wrapper: storeRef.wrapper })
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText("Yay")).toBeNull()
-      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
-        0
-      )
+      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(0)
       userEvent.click(screen.getByRole("button", { name: "trigger" }))
       await screen.findByText(/isSuccess/i)
       expect(screen.queryByText("Yay")).not.toBeNull()
-      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
-        1
-      )
+      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(1)
       userEvent.click(screen.getByRole("button", { name: "reset" }))
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText("Yay")).toBeNull()
-      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
-        0
-      )
+      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(0)
     })
   })
   describe("usePrefetch", () => {
@@ -1394,23 +1176,16 @@ describe("hooks tests", () => {
         return (
           <div>
             <div data-testid="isFetching">{String(isFetching)}</div>
-            <button
-              onMouseEnter={() => prefetchUser(USER_ID, { force: true })}
-              data-testid="highPriority"
-            >
+            <button onMouseEnter={() => prefetchUser(USER_ID, { force: true })} data-testid="highPriority">
               High priority action intent
             </button>
           </div>
         )
       }
       render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       userEvent.hover(screen.getByTestId("highPriority"))
-      expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
-      ).toEqual({
+      expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)).toEqual({
         data: { name: "Timmy" },
         endpointName: "getUser",
         error: undefined,
@@ -1424,12 +1199,8 @@ describe("hooks tests", () => {
         startedTimeStamp: expect.any(Number),
         status: QueryStatus.pending,
       })
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
-      expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
-      ).toEqual({
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+      expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)).toEqual({
         data: { name: "Timmy" },
         endpointName: "getUser",
         fulfilledTimeStamp: expect.any(Number),
@@ -1452,23 +1223,16 @@ describe("hooks tests", () => {
         return (
           <div>
             <div data-testid="isFetching">{String(isFetching)}</div>
-            <button
-              onMouseEnter={() => prefetchUser(USER_ID)}
-              data-testid="lowPriority"
-            >
+            <button onMouseEnter={() => prefetchUser(USER_ID)} data-testid="lowPriority">
               Low priority user action intent
             </button>
           </div>
         )
       }
       render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       userEvent.hover(screen.getByTestId("lowPriority"))
-      expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
-      ).toEqual({
+      expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)).toEqual({
         data: { name: "Timmy" },
         endpointName: "getUser",
         fulfilledTimeStamp: expect.any(Number),
@@ -1482,9 +1246,7 @@ describe("hooks tests", () => {
         status: QueryStatus.fulfilled,
       })
       await waitMs()
-      expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
-      ).toEqual({
+      expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)).toEqual({
         data: { name: "Timmy" },
         endpointName: "getUser",
         fulfilledTimeStamp: expect.any(Number),
@@ -1507,24 +1269,17 @@ describe("hooks tests", () => {
         return (
           <div>
             <div data-testid="isFetching">{String(isFetching)}</div>
-            <button
-              onMouseEnter={() => prefetchUser(USER_ID)}
-              data-testid="lowPriority"
-            >
+            <button onMouseEnter={() => prefetchUser(USER_ID)} data-testid="lowPriority">
               Low priority user action intent
             </button>
           </div>
         )
       }
       render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       await waitMs(400)
       userEvent.hover(screen.getByTestId("lowPriority"))
-      expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
-      ).toEqual({
+      expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)).toEqual({
         data: { name: "Timmy" },
         endpointName: "getUser",
         fulfilledTimeStamp: expect.any(Number),
@@ -1537,12 +1292,8 @@ describe("hooks tests", () => {
         startedTimeStamp: expect.any(Number),
         status: QueryStatus.pending,
       })
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
-      expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
-      ).toEqual({
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+      expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)).toEqual({
         data: { name: "Timmy" },
         endpointName: "getUser",
         fulfilledTimeStamp: expect.any(Number),
@@ -1565,27 +1316,18 @@ describe("hooks tests", () => {
         return (
           <div>
             <div data-testid="isFetching">{String(isFetching)}</div>
-            <button
-              onMouseEnter={() => prefetchUser(USER_ID)}
-              data-testid="lowPriority"
-            >
+            <button onMouseEnter={() => prefetchUser(USER_ID)} data-testid="lowPriority">
               Low priority user action intent
             </button>
           </div>
         )
       }
       render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isFetching").textContent).toBe("false")
-      )
+      await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
       await waitMs()
-      const latestQueryData = api.endpoints.getUser.select(USER_ID)(
-        storeRef.store.getState() as any
-      )
+      const latestQueryData = api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       userEvent.hover(screen.getByTestId("lowPriority"))
-      expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
-      ).toEqual(latestQueryData)
+      expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)).toEqual(latestQueryData)
     })
     it("usePrefetch executes a query even if conditions fail when the cache is empty", async () => {
       const { usePrefetch } = api
@@ -1594,10 +1336,7 @@ describe("hooks tests", () => {
         const prefetchUser = usePrefetch("getUser", { ifOlderThan: 10 })
         return (
           <div>
-            <button
-              onMouseEnter={() => prefetchUser(USER_ID)}
-              data-testid="lowPriority"
-            >
+            <button onMouseEnter={() => prefetchUser(USER_ID)} data-testid="lowPriority">
               Low priority user action intent
             </button>
           </div>
@@ -1605,9 +1344,7 @@ describe("hooks tests", () => {
       }
       render(<User />, { wrapper: storeRef.wrapper })
       userEvent.hover(screen.getByTestId("lowPriority"))
-      expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
-      ).toEqual({
+      expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)).toEqual({
         endpointName: "getUser",
         isError: false,
         isLoading: true,
@@ -1656,8 +1393,7 @@ describe("hooks tests", () => {
       let data, isLoading, isError
       function User() {
         ;({ data, isError, isLoading } = api.endpoints.checkSession.useQuery())
-        const [login, { isLoading: loginLoading }] =
-          api.endpoints.login.useMutation()
+        const [login, { isLoading: loginLoading }] = api.endpoints.login.useMutation()
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
@@ -1669,33 +1405,15 @@ describe("hooks tests", () => {
         )
       }
       render(<User />, { wrapper: storeRef.wrapper })
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isLoading").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isError").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("user").textContent).toBe("")
-      )
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("isError").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("user").textContent).toBe(""))
       fireEvent.click(screen.getByRole("button", { name: /Login/i }))
-      await waitFor(() =>
-        expect(screen.getByTestId("loginLoading").textContent).toBe("true")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("loginLoading").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("isError").textContent).toBe("false")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("user").textContent).toBe(
-          JSON.stringify(checkSessionData)
-        )
-      )
+      await waitFor(() => expect(screen.getByTestId("loginLoading").textContent).toBe("true"))
+      await waitFor(() => expect(screen.getByTestId("loginLoading").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("isError").textContent).toBe("false"))
+      await waitFor(() => expect(screen.getByTestId("user").textContent).toBe(JSON.stringify(checkSessionData)))
       const { checkSession, login } = api.endpoints
       expect(storeRef.store.getState().actions).toMatchSequence(
         api.internalActions.middlewareRegistered.match,
@@ -1717,9 +1435,7 @@ describe("hooks with createApi defaults set", () => {
         amount += 1
       }
       return {
-        data: arg?.body
-          ? { ...arg.body, ...(amount ? { amount } : {}) }
-          : undefined,
+        data: arg?.body ? { ...arg.body, ...(amount ? { amount } : {}) } : undefined,
       }
     },
     endpoints: build => ({
@@ -1738,8 +1454,7 @@ describe("hooks with createApi defaults set", () => {
   it("useQuery hook respects refetchOnMountOrArgChange: true when set in createApi options", async () => {
     let data, isLoading, isFetching
     function User() {
-      ;({ data, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery())
+      ;({ data, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery())
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -1748,21 +1463,14 @@ describe("hooks with createApi defaults set", () => {
       )
     }
     const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     unmount()
     function OtherUser() {
-      ;({ data, isFetching } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnMountOrArgChange: true,
-        }))
+      ;({ data, isFetching } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+      }))
       return (
         <div>
           <div data-testid="isFetching">{String(isFetching)}</div>
@@ -1771,21 +1479,14 @@ describe("hooks with createApi defaults set", () => {
       )
     }
     render(<OtherUser />, { wrapper: storeRef.wrapper })
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("2")
-    )
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("2"))
   })
   it("useQuery hook overrides default refetchOnMountOrArgChange: false that was set by createApi", async () => {
     let data, isLoading, isFetching
     function User() {
-      ;({ data, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery())
+      ;({ data, isLoading } = defaultApi.endpoints.getIncrementedAmount.useQuery())
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -1794,21 +1495,14 @@ describe("hooks with createApi defaults set", () => {
       )
     }
     let { unmount } = render(<User />, { wrapper: storeRef.wrapper })
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("isLoading").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("true"))
+    await waitFor(() => expect(screen.getByTestId("isLoading").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
     unmount()
     function OtherUser() {
-      ;({ data, isFetching } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnMountOrArgChange: false,
-        }))
+      ;({ data, isFetching } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnMountOrArgChange: false,
+      }))
       return (
         <div>
           <div data-testid="isFetching">{String(isFetching)}</div>
@@ -1817,12 +1511,8 @@ describe("hooks with createApi defaults set", () => {
       )
     }
     render(<OtherUser />, { wrapper: storeRef.wrapper })
-    await waitFor(() =>
-      expect(screen.getByTestId("isFetching").textContent).toBe("false")
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("amount").textContent).toBe("1")
-    )
+    await waitFor(() => expect(screen.getByTestId("isFetching").textContent).toBe("false"))
+    await waitFor(() => expect(screen.getByTestId("amount").textContent).toBe("1"))
   })
   describe("selectFromResult (query) behaviors", () => {
     let startingId = 3
@@ -1842,25 +1532,22 @@ describe("hooks with createApi defaults set", () => {
         rest.get("https://example.com/posts", (req, res, ctx) => {
           return res(ctx.json(posts))
         }),
-        rest.put<Partial<Post>>(
-          "https://example.com/post/:id",
-          (req, res, ctx) => {
-            const id = Number(req.params.id)
-            const idx = posts.findIndex(post => post.id === id)
-            const newPosts = posts.map((post, index) =>
-              index !== idx
-                ? post
-                : {
-                    ...req.body,
-                    id,
-                    name: req.body.name || post.name,
-                    fetched_at: new Date().toUTCString(),
-                  }
-            )
-            posts = [...newPosts]
-            return res(ctx.json(posts))
-          }
-        ),
+        rest.put<Partial<Post>>("https://example.com/post/:id", (req, res, ctx) => {
+          const id = Number(req.params.id)
+          const idx = posts.findIndex(post => post.id === id)
+          const newPosts = posts.map((post, index) =>
+            index !== idx
+              ? post
+              : {
+                  ...req.body,
+                  id,
+                  name: req.body.name || post.name,
+                  fetched_at: new Date().toUTCString(),
+                }
+          )
+          posts = [...newPosts]
+          return res(ctx.json(posts))
+        }),
         rest.post("https://example.com/post", (req, res, ctx) => {
           let post = req.body as Omit<Post, "id">
           startingId += 1
@@ -1886,8 +1573,7 @@ describe("hooks with createApi defaults set", () => {
       endpoints: build => ({
         getPosts: build.query<PostsResponse, void>({
           query: () => ({ url: "posts" }),
-          providesTags: result =>
-            result ? result.map(({ id }) => ({ type: "Posts", id })) : [],
+          providesTags: result => (result ? result.map(({ id }) => ({ type: "Posts", id })) : []),
         }),
         updatePost: build.mutation<Post, Partial<Post>>({
           query: ({ id, ...body }) => ({
@@ -1909,9 +1595,7 @@ describe("hooks with createApi defaults set", () => {
     })
     const storeRef = setupApiStore(api)
     expectExactType(api.useGetPostsQuery)(api.endpoints.getPosts.useQuery)
-    expectExactType(api.useUpdatePostMutation)(
-      api.endpoints.updatePost.useMutation
-    )
+    expectExactType(api.useUpdatePostMutation)(api.endpoints.updatePost.useMutation)
     expectExactType(api.useAddPostMutation)(api.endpoints.addPost.useMutation)
     it("useQueryState serves a deeply memoized value and does not rerender unnecessarily", async () => {
       function Posts() {
@@ -1919,10 +1603,7 @@ describe("hooks with createApi defaults set", () => {
         const [addPost] = api.endpoints.addPost.useMutation()
         return (
           <div>
-            <button
-              data-testid="addPost"
-              onClick={() => addPost({ name: `some text ${posts?.length}` })}
-            >
+            <button data-testid="addPost" onClick={() => addPost({ name: `some text ${posts?.length}` })}>
               Add random post
             </button>
           </div>
@@ -1977,14 +1658,7 @@ describe("hooks with createApi defaults set", () => {
       function SelectedPost() {
         getRenderCount = useRenderCounter()
         const { post } = api.endpoints.getPosts.useQuery(undefined, {
-          selectFromResult: ({
-            data,
-            isUninitialized,
-            isLoading,
-            isFetching,
-            isSuccess,
-            isError,
-          }) => ({
+          selectFromResult: ({ data, isUninitialized, isLoading, isFetching, isSuccess, isError }) => ({
             post: data?.find(post => post.id === 1),
             isUninitialized,
             isLoading,
@@ -2075,10 +1749,7 @@ describe("hooks with createApi defaults set", () => {
             >
               Add random post
             </button>
-            <button
-              data-testid="updatePost"
-              onClick={() => updatePost({ id: 1, name: "supercoooll!" })}
-            >
+            <button data-testid="updatePost" onClick={() => updatePost({ id: 1, name: "supercoooll!" })}>
               Update post
             </button>
           </div>
@@ -2152,9 +1823,7 @@ describe("hooks with createApi defaults set", () => {
           amount += 1
         }
         return {
-          data: arg?.body
-            ? { ...arg.body, ...(amount ? { amount } : {}) }
-            : undefined,
+          data: arg?.body ? { ...arg.body, ...(amount ? { amount } : {}) } : undefined,
         }
       },
       endpoints: build => ({
@@ -2180,10 +1849,7 @@ describe("hooks with createApi defaults set", () => {
         getRenderCount = useRenderCounter()
         return (
           <div>
-            <button
-              data-testid="incrementButton"
-              onClick={() => increment(1)}
-            ></button>
+            <button data-testid="incrementButton" onClick={() => increment(1)}></button>
           </div>
         )
       }
@@ -2213,10 +1879,7 @@ describe("hooks with createApi defaults set", () => {
         getRenderCount = useRenderCounter()
         return (
           <div>
-            <button
-              data-testid="incrementButton"
-              onClick={() => increment(1)}
-            ></button>
+            <button data-testid="incrementButton" onClick={() => increment(1)}></button>
             <div data-testid="data">{JSON.stringify(data)}</div>
           </div>
         )
@@ -2224,18 +1887,10 @@ describe("hooks with createApi defaults set", () => {
       render(<Counter />, { wrapper: storeRef.wrapper })
       expect(getRenderCount()).toBe(1)
       fireEvent.click(screen.getByTestId("incrementButton"))
-      await waitFor(() =>
-        expect(screen.getByTestId("data").textContent).toBe(
-          JSON.stringify({ amount: 1 })
-        )
-      )
+      await waitFor(() => expect(screen.getByTestId("data").textContent).toBe(JSON.stringify({ amount: 1 })))
       expect(getRenderCount()).toBe(3)
       fireEvent.click(screen.getByTestId("incrementButton"))
-      await waitFor(() =>
-        expect(screen.getByTestId("data").textContent).toBe(
-          JSON.stringify({ amount: 2 })
-        )
-      )
+      await waitFor(() => expect(screen.getByTestId("data").textContent).toBe(JSON.stringify({ amount: 2 })))
       expect(getRenderCount()).toBe(5)
     })
     it("causes the expected # of rerenders when NOT using selectFromResult", async () => {
@@ -2244,10 +1899,7 @@ describe("hooks with createApi defaults set", () => {
         getRenderCount = useRenderCounter()
         return (
           <div>
-            <button
-              data-testid="incrementButton"
-              onClick={() => increment(1)}
-            ></button>
+            <button data-testid="incrementButton" onClick={() => increment(1)}></button>
             <div data-testid="status">{String(data.status)}</div>
           </div>
         )
@@ -2256,20 +1908,12 @@ describe("hooks with createApi defaults set", () => {
       expect(getRenderCount()).toBe(1) // mount, uninitialized status in substate
       fireEvent.click(screen.getByTestId("incrementButton"))
       expect(getRenderCount()).toBe(2) // will be pending, isLoading: true,
-      await waitFor(() =>
-        expect(screen.getByTestId("status").textContent).toBe("pending")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("status").textContent).toBe("fulfilled")
-      )
+      await waitFor(() => expect(screen.getByTestId("status").textContent).toBe("pending"))
+      await waitFor(() => expect(screen.getByTestId("status").textContent).toBe("fulfilled"))
       expect(getRenderCount()).toBe(3)
       fireEvent.click(screen.getByTestId("incrementButton"))
-      await waitFor(() =>
-        expect(screen.getByTestId("status").textContent).toBe("pending")
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId("status").textContent).toBe("fulfilled")
-      )
+      await waitFor(() => expect(screen.getByTestId("status").textContent).toBe("pending"))
+      await waitFor(() => expect(screen.getByTestId("status").textContent).toBe("fulfilled"))
       expect(getRenderCount()).toBe(5)
     })
     it("useMutation with selectFromResult option has a type error if the result is not an object", async () => {
@@ -2279,10 +1923,7 @@ describe("hooks with createApi defaults set", () => {
         })
         return (
           <div>
-            <button
-              data-testid="incrementButton"
-              onClick={() => increment(1)}
-            ></button>
+            <button data-testid="incrementButton" onClick={() => increment(1)}></button>
           </div>
         )
       }
@@ -2302,8 +1943,7 @@ describe("skip behaviour", () => {
     isUninitialized: true,
   }
   function subscriptionCount(key: string) {
-    return Object.keys(storeRef.store.getState().api.subscriptions[key] || {})
-      .length
+    return Object.keys(storeRef.store.getState().api.subscriptions[key] || {}).length
   }
   it("normal skip", async () => {
     const { result, rerender } = renderHook(

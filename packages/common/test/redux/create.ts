@@ -1,11 +1,7 @@
 import * as qi from "../../src/immer/index.js"
 import * as qx from "../../src/redux/index.js"
 import { expectType } from "./helpers.js"
-import {
-  createConsole,
-  getLog,
-  mockConsole,
-} from "console-testing-library/pure"
+import { createConsole, getLog, mockConsole } from "console-testing-library/pure"
 
 declare global {
   interface Window {
@@ -27,10 +23,7 @@ test("handles normal values correctly", () => {
 })
 test("handles drafts correctly", () => {
   const unsafeSelector = qx.createSelector(selectSelf, state => state.value)
-  const draftSafeSelector = qx.createDraftSafeSelector(
-    selectSelf,
-    state => state.value
-  )
+  const draftSafeSelector = qx.createDraftSafeSelector(selectSelf, state => state.value)
   qi.produce({ value: 1 }, state => {
     expect(unsafeSelector(state)).toBe(1)
     expect(draftSafeSelector(state)).toBe(1)
@@ -128,12 +121,9 @@ describe("createAction", () => {
   })
   describe("when passing a prepareAction that accepts multiple arguments", () => {
     it("should pass all arguments of the resulting actionCreator to prepareAction", () => {
-      const actionCreator = qx.createAction(
-        "A_TYPE",
-        (a: string, b: string, c: string) => ({
-          payload: a + b + c,
-        })
-      )
+      const actionCreator = qx.createAction("A_TYPE", (a: string, b: string, c: string) => ({
+        payload: a + b + c,
+      }))
       expect(actionCreator("1", "2", "3").payload).toBe("123")
     })
   })
@@ -189,49 +179,34 @@ describe("createAsyncThunk", () => {
     const result = 42
     const args = 123
     let generatedRequestId = ""
-    const thunkActionCreator = qx.createAsyncThunk(
-      "testType",
-      async (arg: number, { requestId }) => {
-        passedArg = arg
-        generatedRequestId = requestId
-        return result
-      }
-    )
+    const thunkActionCreator = qx.createAsyncThunk("testType", async (arg: number, { requestId }) => {
+      passedArg = arg
+      generatedRequestId = requestId
+      return result
+    })
     const thunkFunction = thunkActionCreator(args)
     const thunkPromise = thunkFunction(dispatch, () => {}, undefined)
     expect(thunkPromise.requestId).toBe(generatedRequestId)
     expect(thunkPromise.arg).toBe(args)
     await thunkPromise
     expect(passedArg).toBe(args)
-    expect(dispatch).toHaveBeenNthCalledWith(
-      1,
-      thunkActionCreator.pending(generatedRequestId, args)
-    )
-    expect(dispatch).toHaveBeenNthCalledWith(
-      2,
-      thunkActionCreator.fulfilled(result, generatedRequestId, args)
-    )
+    expect(dispatch).toHaveBeenNthCalledWith(1, thunkActionCreator.pending(generatedRequestId, args))
+    expect(dispatch).toHaveBeenNthCalledWith(2, thunkActionCreator.fulfilled(result, generatedRequestId, args))
   })
   it("accepts arguments and dispatches the actions on reject", async () => {
     const dispatch = jest.fn()
     const args = 123
     let generatedRequestId = ""
     const error = new Error("Panic!")
-    const thunkActionCreator = qx.createAsyncThunk(
-      "testType",
-      async (args: number, { requestId }) => {
-        generatedRequestId = requestId
-        throw error
-      }
-    )
+    const thunkActionCreator = qx.createAsyncThunk("testType", async (args: number, { requestId }) => {
+      generatedRequestId = requestId
+      throw error
+    })
     const thunkFunction = thunkActionCreator(args)
     try {
       await thunkFunction(dispatch, () => {}, undefined)
     } catch (e) {}
-    expect(dispatch).toHaveBeenNthCalledWith(
-      1,
-      thunkActionCreator.pending(generatedRequestId, args)
-    )
+    expect(dispatch).toHaveBeenNthCalledWith(1, thunkActionCreator.pending(generatedRequestId, args))
     expect(dispatch).toHaveBeenCalledTimes(2)
     const errorAction = dispatch.mock.calls[1][0]
     expect(errorAction.error).toEqual(qx.miniSerializeError(error))
@@ -243,21 +218,15 @@ describe("createAsyncThunk", () => {
     const args = 123
     let generatedRequestId = ""
     const errorObject = { wny: "dothis" }
-    const thunkActionCreator = qx.createAsyncThunk(
-      "testType",
-      async (args: number, { requestId }) => {
-        generatedRequestId = requestId
-        throw errorObject
-      }
-    )
+    const thunkActionCreator = qx.createAsyncThunk("testType", async (args: number, { requestId }) => {
+      generatedRequestId = requestId
+      throw errorObject
+    })
     const thunkFunction = thunkActionCreator(args)
     try {
       await thunkFunction(dispatch, () => {}, undefined)
     } catch (e) {}
-    expect(dispatch).toHaveBeenNthCalledWith(
-      1,
-      thunkActionCreator.pending(generatedRequestId, args)
-    )
+    expect(dispatch).toHaveBeenNthCalledWith(1, thunkActionCreator.pending(generatedRequestId, args))
     expect(dispatch).toHaveBeenCalledTimes(2)
     const errorAction = dispatch.mock.calls[1][0]
     expect(errorAction.error).toEqual({})
@@ -273,21 +242,15 @@ describe("createAsyncThunk", () => {
       message: "This is not necessary",
       code: "400",
     }
-    const thunkActionCreator = qx.createAsyncThunk(
-      "testType",
-      async (args: number, { requestId }) => {
-        generatedRequestId = requestId
-        throw errorObject
-      }
-    )
+    const thunkActionCreator = qx.createAsyncThunk("testType", async (args: number, { requestId }) => {
+      generatedRequestId = requestId
+      throw errorObject
+    })
     const thunkFunction = thunkActionCreator(args)
     try {
       await thunkFunction(dispatch, () => {}, undefined)
     } catch (e) {}
-    expect(dispatch).toHaveBeenNthCalledWith(
-      1,
-      thunkActionCreator.pending(generatedRequestId, args)
-    )
+    expect(dispatch).toHaveBeenNthCalledWith(1, thunkActionCreator.pending(generatedRequestId, args))
     expect(dispatch).toHaveBeenCalledTimes(2)
     const errorAction = dispatch.mock.calls[1][0]
     expect(errorAction.error).toEqual(qx.miniSerializeError(errorObject))
@@ -300,28 +263,18 @@ describe("createAsyncThunk", () => {
     const args = 123
     let generatedRequestId = ""
     const errorPayload = {
-      errorMessage:
-        "I am a fake server-provided 400 payload with validation details",
-      errors: [
-        { field_one: "Must be a string" },
-        { field_two: "Must be a number" },
-      ],
+      errorMessage: "I am a fake server-provided 400 payload with validation details",
+      errors: [{ field_one: "Must be a string" }, { field_two: "Must be a number" }],
     }
-    const thunkActionCreator = qx.createAsyncThunk(
-      "testType",
-      async (args: number, { requestId, rejectWithValue }) => {
-        generatedRequestId = requestId
-        return rejectWithValue(errorPayload)
-      }
-    )
+    const thunkActionCreator = qx.createAsyncThunk("testType", async (args: number, { requestId, rejectWithValue }) => {
+      generatedRequestId = requestId
+      return rejectWithValue(errorPayload)
+    })
     const thunkFunction = thunkActionCreator(args)
     try {
       await thunkFunction(dispatch, () => {}, undefined)
     } catch (e) {}
-    expect(dispatch).toHaveBeenNthCalledWith(
-      1,
-      thunkActionCreator.pending(generatedRequestId, args)
-    )
+    expect(dispatch).toHaveBeenNthCalledWith(1, thunkActionCreator.pending(generatedRequestId, args))
     expect(dispatch).toHaveBeenCalledTimes(2)
     const errorAction = dispatch.mock.calls[1][0]
     expect(errorAction.error.message).toEqual("Rejected")
@@ -333,28 +286,18 @@ describe("createAsyncThunk", () => {
     const args = 123
     let generatedRequestId = ""
     const errorPayload = {
-      errorMessage:
-        "I am a fake server-provided 400 payload with validation details",
-      errors: [
-        { field_one: "Must be a string" },
-        { field_two: "Must be a number" },
-      ],
+      errorMessage: "I am a fake server-provided 400 payload with validation details",
+      errors: [{ field_one: "Must be a string" }, { field_two: "Must be a number" }],
     }
-    const thunkActionCreator = qx.createAsyncThunk(
-      "testType",
-      async (args: number, { requestId, rejectWithValue }) => {
-        generatedRequestId = requestId
-        throw rejectWithValue(errorPayload)
-      }
-    )
+    const thunkActionCreator = qx.createAsyncThunk("testType", async (args: number, { requestId, rejectWithValue }) => {
+      generatedRequestId = requestId
+      throw rejectWithValue(errorPayload)
+    })
     const thunkFunction = thunkActionCreator(args)
     try {
       await thunkFunction(dispatch, () => {}, undefined)
     } catch (e) {}
-    expect(dispatch).toHaveBeenNthCalledWith(
-      1,
-      thunkActionCreator.pending(generatedRequestId, args)
-    )
+    expect(dispatch).toHaveBeenNthCalledWith(1, thunkActionCreator.pending(generatedRequestId, args))
     expect(dispatch).toHaveBeenCalledTimes(2)
     const errorAction = dispatch.mock.calls[1][0]
     expect(errorAction.error.message).toEqual("Rejected")
@@ -367,35 +310,25 @@ describe("createAsyncThunk", () => {
     let generatedRequestId = ""
     const error = new Error("Panic!")
     const errorPayload = {
-      errorMessage:
-        "I am a fake server-provided 400 payload with validation details",
-      errors: [
-        { field_one: "Must be a string" },
-        { field_two: "Must be a number" },
-      ],
+      errorMessage: "I am a fake server-provided 400 payload with validation details",
+      errors: [{ field_one: "Must be a string" }, { field_two: "Must be a number" }],
     }
-    const thunkActionCreator = qx.createAsyncThunk(
-      "testType",
-      async (args: number, { requestId, rejectWithValue }) => {
-        generatedRequestId = requestId
-        try {
-          throw error
-        } catch (err) {
-          if (!(err as any).response) {
-            throw err
-          }
-          return rejectWithValue(errorPayload)
+    const thunkActionCreator = qx.createAsyncThunk("testType", async (args: number, { requestId, rejectWithValue }) => {
+      generatedRequestId = requestId
+      try {
+        throw error
+      } catch (err) {
+        if (!(err as any).response) {
+          throw err
         }
+        return rejectWithValue(errorPayload)
       }
-    )
+    })
     const thunkFunction = thunkActionCreator(args)
     try {
       await thunkFunction(dispatch, () => {}, undefined)
     } catch (e) {}
-    expect(dispatch).toHaveBeenNthCalledWith(
-      1,
-      thunkActionCreator.pending(generatedRequestId, args)
-    )
+    expect(dispatch).toHaveBeenNthCalledWith(1, thunkActionCreator.pending(generatedRequestId, args))
     expect(dispatch).toHaveBeenCalledTimes(2)
     const errorAction = dispatch.mock.calls[1][0]
     expect(errorAction.error).toEqual(qx.miniSerializeError(error))
@@ -405,25 +338,17 @@ describe("createAsyncThunk", () => {
   })
 })
 describe("createAsyncThunk with abortController", () => {
-  const asyncThunk = qx.createAsyncThunk(
-    "test",
-    function abortablePayloadCreator(_: any, { signal }) {
-      return new Promise((resolve, reject) => {
-        if (signal.aborted) {
-          reject(
-            new DOMException(
-              "This should never be reached as it should already be handled.",
-              "AbortError"
-            )
-          )
-        }
-        signal.addEventListener("abort", () => {
-          reject(new DOMException("Was aborted while running", "AbortError"))
-        })
-        setTimeout(resolve, 100)
+  const asyncThunk = qx.createAsyncThunk("test", function abortablePayloadCreator(_: any, { signal }) {
+    return new Promise((resolve, reject) => {
+      if (signal.aborted) {
+        reject(new DOMException("This should never be reached as it should already be handled.", "AbortError"))
+      }
+      signal.addEventListener("abort", () => {
+        reject(new DOMException("Was aborted while running", "AbortError"))
       })
-    }
-  )
+      setTimeout(resolve, 100)
+    })
+  })
   let store = qx.configureStore({
     reducer(store: qx.AnyAction[] = []) {
       return store
@@ -456,15 +381,9 @@ describe("createAsyncThunk with abortController", () => {
       },
       meta: { aborted: true, requestId: promise.requestId },
     }
-    expect(store.getState()).toMatchObject([
-      {},
-      { type: "test/pending" },
-      expectedAbortedAction,
-    ])
+    expect(store.getState()).toMatchObject([{}, { type: "test/pending" }, expectedAbortedAction])
     expect(result).toMatchObject(expectedAbortedAction)
-    expect(() => qx.unwrapResult(result)).toThrowError(
-      expect.objectContaining(expectedAbortedAction.error)
-    )
+    expect(() => qx.unwrapResult(result)).toThrowError(expect.objectContaining(expectedAbortedAction.error))
   })
   it("even when the payloadCreator does not directly support the signal, no further actions are dispatched", async () => {
     const unawareAsyncThunk = qx.createAsyncThunk("unaware", async () => {
@@ -487,20 +406,15 @@ describe("createAsyncThunk with abortController", () => {
       expect.objectContaining(expectedAbortedAction),
     ])
     expect(result).toMatchObject(expectedAbortedAction)
-    expect(() => qx.unwrapResult(result)).toThrowError(
-      expect.objectContaining(expectedAbortedAction.error)
-    )
+    expect(() => qx.unwrapResult(result)).toThrowError(expect.objectContaining(expectedAbortedAction.error))
   })
   it("dispatch(asyncThunk) returns on abort and does not wait for the promiseProvider to finish", async () => {
     let running = false
-    const longRunningAsyncThunk = qx.createAsyncThunk(
-      "longRunning",
-      async () => {
-        running = true
-        await new Promise(resolve => setTimeout(resolve, 30000))
-        running = false
-      }
-    )
+    const longRunningAsyncThunk = qx.createAsyncThunk("longRunning", async () => {
+      running = true
+      await new Promise(resolve => setTimeout(resolve, 30000))
+      running = false
+    })
     const promise = store.dispatch(longRunningAsyncThunk())
     expect(running).toBeTruthy()
     promise.abort()
@@ -531,12 +445,9 @@ describe("createAsyncThunk with abortController", () => {
       jest.resetModules()
     })
     it("calling `abort` on an asyncThunk works with a FallbackAbortController if no global abortController is not available", async () => {
-      const longRunningAsyncThunk = qx.createAsyncThunk(
-        "longRunning",
-        async () => {
-          await new Promise(resolve => setTimeout(resolve, 30000))
-        }
-      )
+      const longRunningAsyncThunk = qx.createAsyncThunk("longRunning", async () => {
+        await new Promise(resolve => setTimeout(resolve, 30000))
+      })
       store.dispatch(longRunningAsyncThunk()).abort()
       store.dispatch(longRunningAsyncThunk()).abort()
       expect(getLog().log).toMatchInlineSnapshot(`
@@ -607,10 +518,7 @@ describe("conditional skipping of asyncThunks", () => {
     })
     await asyncThunk(arg)(dispatch, getState, extra)
     expect(condition).toHaveBeenCalledTimes(1)
-    expect(condition).toHaveBeenLastCalledWith(
-      arg,
-      expect.objectContaining({ getState, extra })
-    )
+    expect(condition).toHaveBeenLastCalledWith(arg, expect.objectContaining({ getState, extra }))
   })
   it("pending is dispatched synchronously if condition is synchronous", async () => {
     const condition = () => true
@@ -637,9 +545,7 @@ describe("conditional skipping of asyncThunks", () => {
     })
     await asyncThunk(arg)(dispatch, getState, extra)
     expect(dispatch).toHaveBeenCalledTimes(1)
-    expect(dispatch).toHaveBeenLastCalledWith(
-      expect.objectContaining({ type: "test/rejected" })
-    )
+    expect(dispatch).toHaveBeenLastCalledWith(expect.objectContaining({ type: "test/rejected" }))
   })
   it("rejected action is not dispatched by default", async () => {
     const asyncThunk = qx.createAsyncThunk("test", payloadCreator, {
@@ -696,11 +602,11 @@ test("serializeError implementation", async () => {
   const store = qx.configureStore({
     reducer: (state = [], action) => [...state, action],
   })
-  const asyncThunk = qx.createAsyncThunk<
-    unknown,
-    void,
-    { serializedErrorType: string }
-  >("test", () => Promise.reject(errorObject), { serializeError })
+  const asyncThunk = qx.createAsyncThunk<unknown, void, { serializedErrorType: string }>(
+    "test",
+    () => Promise.reject(errorObject),
+    { serializeError }
+  )
   const rejected = await store.dispatch(asyncThunk())
   if (!asyncThunk.rejected.match(rejected)) {
     throw new Error()
@@ -723,9 +629,7 @@ describe("unwrapResult", () => {
     const asyncThunk = qx.createAsyncThunk("test", () => {
       return "fulfilled!" as const
     })
-    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
-      qx.unwrapResult
-    )
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(qx.unwrapResult)
     await expect(unwrapPromise).resolves.toBe("fulfilled!")
     const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
     const res = await unwrapPromise2.unwrap()
@@ -736,22 +640,16 @@ describe("unwrapResult", () => {
     const asyncThunk = qx.createAsyncThunk("test", () => {
       throw error
     })
-    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
-      qx.unwrapResult
-    )
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(qx.unwrapResult)
     await expect(unwrapPromise).rejects.toEqual(qx.miniSerializeError(error))
     const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
-    await expect(unwrapPromise2.unwrap()).rejects.toEqual(
-      qx.miniSerializeError(error)
-    )
+    await expect(unwrapPromise2.unwrap()).rejects.toEqual(qx.miniSerializeError(error))
   })
   it("rejectWithValue case", async () => {
     const asyncThunk = qx.createAsyncThunk("test", (_, { rejectWithValue }) => {
       return rejectWithValue("rejectWithValue!")
     })
-    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
-      qx.unwrapResult
-    )
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(qx.unwrapResult)
     await expect(unwrapPromise).rejects.toBe("rejectWithValue!")
     const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
     await expect(unwrapPromise2.unwrap()).rejects.toBe("rejectWithValue!")
@@ -791,21 +689,14 @@ describe("idGenerator option", () => {
     expect(promise2.requestId).toEqual("fake-random-id-3")
     expect((await promise2).meta.requestId).toEqual("fake-random-id-3")
     generatedRequestId = ""
-    const defaultAsyncThunk = qx.createAsyncThunk(
-      "test",
-      async (args: void, { requestId }) => {
-        generatedRequestId = requestId
-      }
-    )
+    const defaultAsyncThunk = qx.createAsyncThunk("test", async (args: void, { requestId }) => {
+      generatedRequestId = requestId
+    })
     const promise3 = defaultAsyncThunk()(dispatch, getState, extra)
     expect(generatedRequestId).toEqual(promise3.requestId)
     expect(promise3.requestId).not.toEqual("")
-    expect(promise3.requestId).not.toEqual(
-      expect.stringContaining("fake-random-id")
-    )
-    expect((await promise3).meta.requestId).not.toEqual(
-      expect.stringContaining("fake-fandom-id")
-    )
+    expect(promise3.requestId).not.toEqual(expect.stringContaining("fake-random-id"))
+    expect((await promise3).meta.requestId).not.toEqual(expect.stringContaining("fake-fandom-id"))
   })
   it("idGenerator should be called with thunkArg", async () => {
     const customIdGenerator = jest.fn(seed => `fake-unique-random-id-${seed}`)
@@ -828,11 +719,7 @@ describe("idGenerator option", () => {
 test("`condition` will see state changes from a synchronously invoked asyncThunk", () => {
   type State = ReturnType<typeof store.getState>
   const onStart = jest.fn()
-  const asyncThunk = qx.createAsyncThunk<
-    void,
-    { force?: boolean },
-    { state: State }
-  >("test", onStart, {
+  const asyncThunk = qx.createAsyncThunk<void, { force?: boolean }, { state: State }>("test", onStart, {
     condition({ force }, { getState }) {
       return force || !getState().started
     },
@@ -883,13 +770,12 @@ describe("meta", () => {
     })
   })
   it("fulfilledMeta", async () => {
-    const fulfilledThunk = qx.createAsyncThunk<
-      string,
-      string,
-      { fulfilledMeta: { extraProp: string } }
-    >("test", (arg: string, { fulfillWithValue }) => {
-      return fulfillWithValue("hooray!", { extraProp: "bar" })
-    })
+    const fulfilledThunk = qx.createAsyncThunk<string, string, { fulfilledMeta: { extraProp: string } }>(
+      "test",
+      (arg: string, { fulfillWithValue }) => {
+        return fulfillWithValue("hooray!", { extraProp: "bar" })
+      }
+    )
     const ret = store.dispatch(fulfilledThunk("testArg"))
     expect(await ret).toEqual({
       meta: {
@@ -903,13 +789,12 @@ describe("meta", () => {
     })
   })
   it("rejectedMeta", async () => {
-    const fulfilledThunk = qx.createAsyncThunk<
-      string,
-      string,
-      { rejectedMeta: { extraProp: string } }
-    >("test", (arg: string, { rejectWithValue }) => {
-      return rejectWithValue("damn!", { extraProp: "baz" })
-    })
+    const fulfilledThunk = qx.createAsyncThunk<string, string, { rejectedMeta: { extraProp: string } }>(
+      "test",
+      (arg: string, { rejectWithValue }) => {
+        return rejectWithValue("damn!", { extraProp: "baz" })
+      }
+    )
     const promise = store.dispatch(fulfilledThunk("testArg"))
     const ret = await promise
     expect(ret).toEqual({
@@ -946,14 +831,8 @@ interface ToggleTodoPayload {
 }
 type TodoState = Todo[]
 type TodosReducer = qx.Reducer<TodoState, qx.PayloadAction<any>>
-type AddTodoReducer = qx.CaseReducer<
-  TodoState,
-  qx.PayloadAction<AddTodoPayload>
->
-type ToggleTodoReducer = qx.CaseReducer<
-  TodoState,
-  qx.PayloadAction<ToggleTodoPayload>
->
+type AddTodoReducer = qx.CaseReducer<TodoState, qx.PayloadAction<AddTodoPayload>>
+type ToggleTodoReducer = qx.CaseReducer<TodoState, qx.PayloadAction<ToggleTodoPayload>>
 describe("createReducer", () => {
   describe("given impure reducers with immer", () => {
     const addTodo: AddTodoReducer = (state, action) => {
@@ -999,24 +878,17 @@ describe("createReducer", () => {
         payload: { text: "Buy milk" },
       })
       const mutateStateOutsideReducer = () => (result[0]!.text = "edited")
-      expect(mutateStateOutsideReducer).toThrowError(
-        "Cannot add property text, object is not extensible"
-      )
+      expect(mutateStateOutsideReducer).toThrowError("Cannot add property text, object is not extensible")
     })
     it("Freezes initial state", () => {
       const initialState = [{ text: "Buy milk" }]
       const todosReducer = qx.createReducer(initialState, {})
       const frozenInitialState = todosReducer(undefined, { type: "dummy" })
-      const mutateStateOutsideReducer = () =>
-        (frozenInitialState[0]!.text = "edited")
-      expect(mutateStateOutsideReducer).toThrowError(
-        /Cannot assign to read only property/
-      )
+      const mutateStateOutsideReducer = () => (frozenInitialState[0]!.text = "edited")
+      expect(mutateStateOutsideReducer).toThrowError(/Cannot assign to read only property/)
     })
     it("does not throw error if initial state is not draftable", () => {
-      expect(() =>
-        qx.createReducer(new URLSearchParams(), {})
-      ).not.toThrowError()
+      expect(() => qx.createReducer(new URLSearchParams(), {})).not.toThrowError()
     })
   })
   describe("given pure reducers with immutable updates", () => {
@@ -1093,13 +965,9 @@ describe("createReducer", () => {
       payload,
       meta: { type: "string_action" },
     })
-    const numberActionMatcher = (
-      a: qx.AnyAction
-    ): a is qx.PayloadAction<number> =>
+    const numberActionMatcher = (a: qx.AnyAction): a is qx.PayloadAction<number> =>
       a.meta && a.meta.type === "number_action"
-    const stringActionMatcher = (
-      a: qx.AnyAction
-    ): a is qx.PayloadAction<string> =>
+    const stringActionMatcher = (a: qx.AnyAction): a is qx.PayloadAction<string> =>
       a.meta && a.meta.type === "string_action"
     const incrementBy = qx.createAction("increment", prepareNumberAction)
     const decrementBy = qx.createAction("decrement", prepareNumberAction)
@@ -1118,10 +986,7 @@ describe("createReducer", () => {
       },
     }
     it("uses the reducer of matching actionMatchers", () => {
-      const reducer = qx.createReducer(initialState, {}, [
-        numberActionsCounter,
-        stringActionsCounter,
-      ])
+      const reducer = qx.createReducer(initialState, {}, [numberActionsCounter, stringActionsCounter])
       expect(reducer(undefined, incrementBy(1))).toEqual({
         numberActions: 1,
         stringActions: 0,
@@ -1136,15 +1001,10 @@ describe("createReducer", () => {
       })
     })
     it("fallback to default case", () => {
-      const reducer = qx.createReducer(
-        initialState,
-        {},
-        [numberActionsCounter, stringActionsCounter],
-        state => {
-          state.numberActions = -1
-          state.stringActions = -1
-        }
-      )
+      const reducer = qx.createReducer(initialState, {}, [numberActionsCounter, stringActionsCounter], state => {
+        state.numberActions = -1
+        state.stringActions = -1
+      })
       expect(reducer(undefined, { type: "somethingElse" })).toEqual({
         numberActions: -1,
         stringActions: -1,
@@ -1212,16 +1072,8 @@ describe("createReducer", () => {
     it("can be used with string types", () => {
       const reducer = qx.createReducer(0, builder =>
         builder
-          .addCase(
-            "increment",
-            (state, action: { type: "increment"; payload: number }) =>
-              state + action.payload
-          )
-          .addCase(
-            "decrement",
-            (state, action: { type: "decrement"; payload: number }) =>
-              state - action.payload
-          )
+          .addCase("increment", (state, action: { type: "increment"; payload: number }) => state + action.payload)
+          .addCase("decrement", (state, action: { type: "decrement"; payload: number }) => state - action.payload)
       )
       expect(reducer(0, increment(5))).toBe(5)
       expect(reducer(5, decrement(5))).toBe(0)
@@ -1230,21 +1082,14 @@ describe("createReducer", () => {
       const reducer = qx.createReducer(0, builder =>
         builder
           .addCase(increment, (state, action) => state + action.payload)
-          .addCase(
-            "decrement",
-            (state, action: { type: "decrement"; payload: number }) =>
-              state - action.payload
-          )
+          .addCase("decrement", (state, action: { type: "decrement"; payload: number }) => state - action.payload)
       )
       expect(reducer(0, increment(5))).toBe(5)
       expect(reducer(5, decrement(5))).toBe(0)
     })
     it("will throw an error when returning undefined from a non-draftable state", () => {
       const reducer = qx.createReducer(0, builder =>
-        builder.addCase(
-          "decrement",
-          (state, action: { type: "decrement"; payload: number }) => {}
-        )
+        builder.addCase("decrement", (state, action: { type: "decrement"; payload: number }) => {})
       )
       expect(() => reducer(5, decrement(5))).toThrowErrorMatchingInlineSnapshot(
         `"A case reducer on a non-draftable value must not return undefined"`
@@ -1252,37 +1097,27 @@ describe("createReducer", () => {
     })
     it("allows you to return undefined if the state was null, thus skipping an update", () => {
       const reducer = qx.createReducer(null as number | null, builder =>
-        builder.addCase(
-          "decrement",
-          (state, action: { type: "decrement"; payload: number }) => {
-            if (typeof state === "number") {
-              return state - action.payload
-            }
-            return undefined
+        builder.addCase("decrement", (state, action: { type: "decrement"; payload: number }) => {
+          if (typeof state === "number") {
+            return state - action.payload
           }
-        )
+          return undefined
+        })
       )
       expect(reducer(0, decrement(5))).toBe(-5)
       expect(reducer(null, decrement(5))).toBe(null)
     })
     it("allows you to return null", () => {
       const reducer = qx.createReducer(0 as number | null, builder =>
-        builder.addCase(
-          "decrement",
-          (state, action: { type: "decrement"; payload: number }) => {
-            return null
-          }
-        )
+        builder.addCase("decrement", (state, action: { type: "decrement"; payload: number }) => {
+          return null
+        })
       )
       expect(reducer(5, decrement(5))).toBe(null)
     })
     it("allows you to return 0", () => {
       const reducer = qx.createReducer(0, builder =>
-        builder.addCase(
-          "decrement",
-          (state, action: { type: "decrement"; payload: number }) =>
-            state - action.payload
-        )
+        builder.addCase("decrement", (state, action: { type: "decrement"; payload: number }) => state - action.payload)
       )
       expect(reducer(5, decrement(5))).toBe(0)
     })
@@ -1294,9 +1129,7 @@ describe("createReducer", () => {
             .addCase(increment, (state, action) => state + action.payload)
             .addCase(decrement, (state, action) => state - action.payload)
         )
-      ).toThrowErrorMatchingInlineSnapshot(
-        `"addCase cannot be called with two reducers for the same action type"`
-      )
+      ).toThrowErrorMatchingInlineSnapshot(`"addCase cannot be called with two reducers for the same action type"`)
       expect(() =>
         qx.createReducer(0, builder =>
           builder
@@ -1304,9 +1137,7 @@ describe("createReducer", () => {
             .addCase("increment", state => state + 1)
             .addCase(decrement, (state, action) => state - action.payload)
         )
-      ).toThrowErrorMatchingInlineSnapshot(
-        `"addCase cannot be called with two reducers for the same action type"`
-      )
+      ).toThrowErrorMatchingInlineSnapshot(`"addCase cannot be called with two reducers for the same action type"`)
     })
   })
   describe('builder "addMatcher" method', () => {
@@ -1318,13 +1149,9 @@ describe("createReducer", () => {
       payload,
       meta: { type: "string_action" },
     })
-    const numberActionMatcher = (
-      a: qx.AnyAction
-    ): a is qx.PayloadAction<number> =>
+    const numberActionMatcher = (a: qx.AnyAction): a is qx.PayloadAction<number> =>
       a.meta && a.meta.type === "number_action"
-    const stringActionMatcher = (
-      a: qx.AnyAction
-    ): a is qx.PayloadAction<string> =>
+    const stringActionMatcher = (a: qx.AnyAction): a is qx.PayloadAction<string> =>
       a.meta && a.meta.type === "string_action"
     const incrementBy = qx.createAction("increment", prepareNumberAction)
     const decrementBy = qx.createAction("decrement", prepareNumberAction)
@@ -1415,9 +1242,7 @@ describe("createReducer", () => {
     it("calling addCase, addMatcher and addDefaultCase in a nonsensical order should result in an error in development mode", () => {
       expect(() =>
         qx.createReducer(initialState, (builder: any) =>
-          builder
-            .addMatcher(numberActionMatcher, () => {})
-            .addCase(incrementBy, () => {})
+          builder.addMatcher(numberActionMatcher, () => {}).addCase(incrementBy, () => {})
         )
       ).toThrowErrorMatchingInlineSnapshot(
         `"\`builder.addCase\` should only be called before calling \`builder.addMatcher\`"`
@@ -1431,20 +1256,14 @@ describe("createReducer", () => {
       )
       expect(() =>
         qx.createReducer(initialState, (builder: any) =>
-          builder
-            .addDefaultCase(() => {})
-            .addMatcher(numberActionMatcher, () => {})
+          builder.addDefaultCase(() => {}).addMatcher(numberActionMatcher, () => {})
         )
       ).toThrowErrorMatchingInlineSnapshot(
         `"\`builder.addMatcher\` should only be called before calling \`builder.addDefaultCase\`"`
       )
       expect(() =>
-        qx.createReducer(initialState, (builder: any) =>
-          builder.addDefaultCase(() => {}).addDefaultCase(() => {})
-        )
-      ).toThrowErrorMatchingInlineSnapshot(
-        `"\`builder.addDefaultCase\` can only be called once"`
-      )
+        qx.createReducer(initialState, (builder: any) => builder.addDefaultCase(() => {}).addDefaultCase(() => {}))
+      ).toThrowErrorMatchingInlineSnapshot(`"\`builder.addDefaultCase\` can only be called once"`)
     })
   })
 })
@@ -1561,8 +1380,7 @@ describe("createSlice", () => {
         qx.createSlice({
           reducers: {
             increment: state => state + 1,
-            multiply: (state, action: qx.PayloadAction<number>) =>
-              state * action.payload,
+            multiply: (state, action: qx.PayloadAction<number>) => state * action.payload,
           },
           initialState: 0,
         })
@@ -1576,8 +1394,7 @@ describe("createSlice", () => {
           name: "",
           reducers: {
             increment: state => state + 1,
-            multiply: (state, action: qx.PayloadAction<number>) =>
-              state * action.payload,
+            multiply: (state, action: qx.PayloadAction<number>) => state * action.payload,
           },
           initialState: 0,
         })
@@ -1716,11 +1533,7 @@ describe("createSlice", () => {
           name: "counter",
           initialState: 0,
           reducers: {},
-          extraReducers: builder =>
-            builder.addCase(
-              increment,
-              (state, action) => state + action.payload
-            ),
+          extraReducers: builder => builder.addCase(increment, (state, action) => state + action.payload),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
       })
@@ -1732,8 +1545,7 @@ describe("createSlice", () => {
           extraReducers: builder =>
             builder.addCase(
               "increment",
-              (state, action: { type: "increment"; payload: number }) =>
-                state + action.payload
+              (state, action: { type: "increment"; payload: number }) => state + action.payload
             ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
@@ -1745,14 +1557,10 @@ describe("createSlice", () => {
             initialState: 0,
             reducers: {},
             extraReducers: builder =>
-              builder
-                .addCase("increment", state => state + 1)
-                .addCase("increment", state => state + 1),
+              builder.addCase("increment", state => state + 1).addCase("increment", state => state + 1),
           })
           slice.reducer(undefined, { type: "unrelated" })
-        }).toThrowErrorMatchingInlineSnapshot(
-          `"addCase cannot be called with two reducers for the same action type"`
-        )
+        }).toThrowErrorMatchingInlineSnapshot(`"addCase cannot be called with two reducers for the same action type"`)
       })
       it("can be used with addMatcher and type guard functions", () => {
         const slice = qx.createSlice({
@@ -1762,8 +1570,7 @@ describe("createSlice", () => {
           extraReducers: builder =>
             builder.addMatcher(
               increment.match,
-              (state, action: { type: "increment"; payload: number }) =>
-                state + action.payload
+              (state, action: { type: "increment"; payload: number }) => state + action.payload
             ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
@@ -1773,8 +1580,7 @@ describe("createSlice", () => {
           name: "counter",
           initialState: 0,
           reducers: {},
-          extraReducers: builder =>
-            builder.addDefaultCase((state, action) => state + action.payload),
+          extraReducers: builder => builder.addDefaultCase((state, action) => state + action.payload),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
       })
@@ -1812,10 +1618,7 @@ describe("createSlice", () => {
         },
       })
       testSlice.reducer(0, testSlice.actions.testReducer("testPayload"))
-      expect(reducer).toHaveBeenCalledWith(
-        0,
-        expect.objectContaining({ payload: "testPayload" })
-      )
+      expect(reducer).toHaveBeenCalledWith(0, expect.objectContaining({ payload: "testPayload" }))
     })
   })
   describe("circularity", () => {
@@ -1848,24 +1651,12 @@ describe("createSlice", () => {
           })
         },
       })
-      expect(first.reducer(undefined, { type: "unrelated" })).toBe(
-        "firstInitial"
-      )
-      expect(first.reducer(undefined, first.actions.something())).toBe(
-        "firstSomething"
-      )
-      expect(first.reducer(undefined, second.actions.other())).toBe(
-        "firstOther"
-      )
-      expect(second.reducer(undefined, { type: "unrelated" })).toBe(
-        "secondInitial"
-      )
-      expect(second.reducer(undefined, first.actions.something())).toBe(
-        "secondSomething"
-      )
-      expect(second.reducer(undefined, second.actions.other())).toBe(
-        "secondOther"
-      )
+      expect(first.reducer(undefined, { type: "unrelated" })).toBe("firstInitial")
+      expect(first.reducer(undefined, first.actions.something())).toBe("firstSomething")
+      expect(first.reducer(undefined, second.actions.other())).toBe("firstOther")
+      expect(second.reducer(undefined, { type: "unrelated" })).toBe("secondInitial")
+      expect(second.reducer(undefined, first.actions.something())).toBe("secondSomething")
+      expect(second.reducer(undefined, second.actions.other())).toBe("secondOther")
     })
   })
 })
@@ -1886,11 +1677,7 @@ describe("configureStore", () => {
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
       expect(qx.applyMiddleware).toHaveBeenCalled()
       expect(qx.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line
-      expect(qx.createStore).toHaveBeenCalledWith(
-        reducer,
-        undefined,
-        expect.any(Function)
-      )
+      expect(qx.createStore).toHaveBeenCalledWith(reducer, undefined, expect.any(Function))
     })
   })
   describe("given an object of reducers", () => {
@@ -1904,11 +1691,7 @@ describe("configureStore", () => {
       expect(qx.combineReducers).toHaveBeenCalledWith(reducer)
       expect(qx.applyMiddleware).toHaveBeenCalled()
       expect(qx.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line-line
-      expect(qx.createStore).toHaveBeenCalledWith(
-        expect.any(Function),
-        undefined,
-        expect.any(Function)
-      )
+      expect(qx.createStore).toHaveBeenCalledWith(expect.any(Function), undefined, expect.any(Function))
     })
   })
   describe("given no reducer", () => {
@@ -1923,37 +1706,25 @@ describe("configureStore", () => {
       expect(configureStore({ middleware: [], reducer })).toBeInstanceOf(Object)
       expect(qx.applyMiddleware).toHaveBeenCalledWith()
       expect(qx.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line-line
-      expect(qx.createStore).toHaveBeenCalledWith(
-        reducer,
-        undefined,
-        expect.any(Function)
-      )
+      expect(qx.createStore).toHaveBeenCalledWith(reducer, undefined, expect.any(Function))
     })
   })
   describe("given undefined middleware", () => {
     it("calls createStore with default middleware", () => {
-      expect(configureStore({ middleware: undefined, reducer })).toBeInstanceOf(
-        Object
-      )
+      expect(configureStore({ middleware: undefined, reducer })).toBeInstanceOf(Object)
       expect(qx.applyMiddleware).toHaveBeenCalledWith(
         expect.any(Function), // thunk
         expect.any(Function), // immutableCheck
         expect.any(Function) // serializableCheck
       )
       expect(qx.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line-line
-      expect(qx.createStore).toHaveBeenCalledWith(
-        reducer,
-        undefined,
-        expect.any(Function)
-      )
+      expect(qx.createStore).toHaveBeenCalledWith(reducer, undefined, expect.any(Function))
     })
   })
   describe("given a middleware creation function that returns undefined", () => {
     it("throws an error", () => {
       const invalidBuilder = jest.fn(getDefaultMiddleware => undefined as any)
-      expect(() =>
-        configureStore({ middleware: invalidBuilder, reducer })
-      ).toThrow(
+      expect(() => configureStore({ middleware: invalidBuilder, reducer })).toThrow(
         "when using a middleware builder function, an array of middleware must be returned"
       )
     })
@@ -1961,38 +1732,30 @@ describe("configureStore", () => {
   describe("given a middleware creation function that returns an array with non-functions", () => {
     it("throws an error", () => {
       const invalidBuilder = jest.fn(getDefaultMiddleware => [true] as any)
-      expect(() =>
-        configureStore({ middleware: invalidBuilder, reducer })
-      ).toThrow("each middleware provided to configureStore must be a function")
+      expect(() => configureStore({ middleware: invalidBuilder, reducer })).toThrow(
+        "each middleware provided to configureStore must be a function"
+      )
     })
   })
   describe("given custom middleware that contains non-functions", () => {
     it("throws an error", () => {
-      expect(() =>
-        configureStore({ middleware: [true] as any, reducer })
-      ).toThrow("each middleware provided to configureStore must be a function")
+      expect(() => configureStore({ middleware: [true] as any, reducer })).toThrow(
+        "each middleware provided to configureStore must be a function"
+      )
     })
   })
   describe("given custom middleware", () => {
     it("calls createStore with custom middleware and without default middleware", () => {
       const thank: qx.Middleware = _store => next => action => next(action)
-      expect(configureStore({ middleware: [thank], reducer })).toBeInstanceOf(
-        Object
-      )
+      expect(configureStore({ middleware: [thank], reducer })).toBeInstanceOf(Object)
       expect(qx.applyMiddleware).toHaveBeenCalledWith(thank)
       expect(qx.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line-line
-      expect(qx.createStore).toHaveBeenCalledWith(
-        reducer,
-        undefined,
-        expect.any(Function)
-      )
+      expect(qx.createStore).toHaveBeenCalledWith(reducer, undefined, expect.any(Function))
     })
   })
   describe("middleware builder notation", () => {
     it("calls builder, passes getDefaultMiddleware and uses returned middlewares", () => {
-      const thank = jest.fn(
-        (_store => next => action => "foobar") as qx.Middleware
-      )
+      const thank = jest.fn((_store => next => action => "foobar") as qx.Middleware)
       const builder = jest.fn(getDefaultMiddleware => {
         expect(getDefaultMiddleware).toEqual(expect.any(Function))
         expect(getDefaultMiddleware()).toEqual(expect.any(Array))
@@ -2005,16 +1768,10 @@ describe("configureStore", () => {
   })
   describe("with devTools disabled", () => {
     it("calls createStore without devTools enhancer", () => {
-      expect(configureStore({ devTools: false, reducer })).toBeInstanceOf(
-        Object
-      )
+      expect(configureStore({ devTools: false, reducer })).toBeInstanceOf(Object)
       expect(qx.applyMiddleware).toHaveBeenCalled()
       expect(qx.compose).toHaveBeenCalled()
-      expect(qx.createStore).toHaveBeenCalledWith(
-        reducer,
-        undefined,
-        expect.any(Function)
-      )
+      expect(qx.createStore).toHaveBeenCalledWith(reducer, undefined, expect.any(Function))
     })
   })
   describe("with devTools options", () => {
@@ -2023,16 +1780,10 @@ describe("configureStore", () => {
         name: "myApp",
         trace: true,
       }
-      expect(configureStore({ devTools: options, reducer })).toBeInstanceOf(
-        Object
-      )
+      expect(configureStore({ devTools: options, reducer })).toBeInstanceOf(Object)
       expect(qx.applyMiddleware).toHaveBeenCalled()
       expect(qx.composeWithDevTools).toHaveBeenCalledWith(options) // @remap-prod-remove-line
-      expect(qx.createStore).toHaveBeenCalledWith(
-        reducer,
-        undefined,
-        expect.any(Function)
-      )
+      expect(qx.createStore).toHaveBeenCalledWith(reducer, undefined, expect.any(Function))
     })
   })
   describe("given preloadedState", () => {
@@ -2040,26 +1791,16 @@ describe("configureStore", () => {
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
       expect(qx.applyMiddleware).toHaveBeenCalled()
       expect(qx.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line
-      expect(qx.createStore).toHaveBeenCalledWith(
-        reducer,
-        undefined,
-        expect.any(Function)
-      )
+      expect(qx.createStore).toHaveBeenCalledWith(reducer, undefined, expect.any(Function))
     })
   })
   describe("given enhancers", () => {
     it("calls createStore with enhancers", () => {
       const enhancer: qx.StoreEnhancer = next => next
-      expect(configureStore({ enhancers: [enhancer], reducer })).toBeInstanceOf(
-        Object
-      )
+      expect(configureStore({ enhancers: [enhancer], reducer })).toBeInstanceOf(Object)
       expect(qx.applyMiddleware).toHaveBeenCalled()
       expect(qx.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line
-      expect(qx.createStore).toHaveBeenCalledWith(
-        reducer,
-        undefined,
-        expect.any(Function)
-      )
+      expect(qx.createStore).toHaveBeenCalledWith(reducer, undefined, expect.any(Function))
     })
     it("accepts a callback for customizing enhancers", () => {
       let dummyEnhancerCalled = false

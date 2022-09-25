@@ -92,28 +92,17 @@ export function defaultMemoize<F extends (...args: any[]) => any>(
   equalityCheckOrOptions?: qt.EqualityFn | DefaultMemoizeOptions
 ) {
   const providedOptions =
-    typeof equalityCheckOrOptions === "object"
-      ? equalityCheckOrOptions
-      : { equalityCheck: equalityCheckOrOptions }
-  const {
-    equalityCheck = defaultEqualityCheck,
-    maxSize = 1,
-    resultEqualityCheck,
-  } = providedOptions
+    typeof equalityCheckOrOptions === "object" ? equalityCheckOrOptions : { equalityCheck: equalityCheckOrOptions }
+  const { equalityCheck = defaultEqualityCheck, maxSize = 1, resultEqualityCheck } = providedOptions
   const comparator = createCacheKeyComparator(equalityCheck)
-  const cache =
-    maxSize === 1
-      ? createSingletonCache(comparator)
-      : createLruCache(maxSize, comparator)
+  const cache = maxSize === 1 ? createSingletonCache(comparator) : createLruCache(maxSize, comparator)
   function memoized() {
     let value = cache.get(arguments)
     if (value === NOT_FOUND) {
       value = func.apply(null, arguments)
       if (resultEqualityCheck) {
         const entries = cache.getEntries()
-        const matchingEntry = entries.find(entry =>
-          resultEqualityCheck(entry.value, value)
-        )
+        const matchingEntry = entries.find(entry => resultEqualityCheck(entry.value, value))
         if (matchingEntry) {
           value = matchingEntry.value
         }
@@ -130,11 +119,7 @@ function getDependencies(funcs: unknown[]) {
   const dependencies = Array.isArray(funcs[0]) ? funcs[0] : funcs
   if (!dependencies.every(dep => typeof dep === "function")) {
     const dependencyTypes = dependencies
-      .map(dep =>
-        typeof dep === "function"
-          ? `function ${dep.name || "unnamed"}()`
-          : typeof dep
-      )
+      .map(dep => (typeof dep === "function" ? `function ${dep.name || "unnamed"}()` : typeof dep))
       .join(", ")
     throw new Error(
       `createSelector expects all input-selectors to be functions, but received the following types: [${dependencyTypes}]`
@@ -146,10 +131,7 @@ export function createSelectorCreator<
   F extends (...args: unknown[]) => unknown,
   MemoizeFunction extends (func: F, ...options: any[]) => F,
   MemoizeOptions extends unknown[] = qt.DropFirst<Parameters<MemoizeFunction>>
->(
-  memoize: MemoizeFunction,
-  ...memoizeOptionsFromArgs: qt.DropFirst<Parameters<MemoizeFunction>>
-) {
+>(memoize: MemoizeFunction, ...memoizeOptionsFromArgs: qt.DropFirst<Parameters<MemoizeFunction>>) {
   const createSelector = (...funcs: Function[]) => {
     let recomputations = 0
     let lastResult: unknown
@@ -167,9 +149,7 @@ export function createSelectorCreator<
       )
     }
     const { memoizeOptions = memoizeOptionsFromArgs } = directlyPassedOptions
-    const finalMemoizeOptions = Array.isArray(memoizeOptions)
-      ? memoizeOptions
-      : ([memoizeOptions] as MemoizeOptions)
+    const finalMemoizeOptions = Array.isArray(memoizeOptions) ? memoizeOptions : ([memoizeOptions] as MemoizeOptions)
     const dependencies = getDependencies(funcs)
     const memoizedResultFunc = memoize(
       function recomputationWrapper() {
@@ -197,11 +177,7 @@ export function createSelectorCreator<
     })
     return selector
   }
-  return createSelector as CreateSelectorFunction<
-    F,
-    MemoizeFunction,
-    MemoizeOptions
-  >
+  return createSelector as CreateSelectorFunction<F, MemoizeFunction, MemoizeOptions>
 }
 export interface CreateSelectorOptions<MemoizeOptions extends unknown[]> {
   memoizeOptions: MemoizeOptions[0] | MemoizeOptions
@@ -210,15 +186,10 @@ export interface CreateSelectorFunction<
   F extends (...args: unknown[]) => unknown,
   MemoizeFunction extends (func: F, ...options: any[]) => F,
   MemoizeOptions extends unknown[] = qt.DropFirst<Parameters<MemoizeFunction>>,
-  Keys = qt.Expand<
-    Pick<ReturnType<MemoizeFunction>, keyof ReturnType<MemoizeFunction>>
-  >
+  Keys = qt.Expand<Pick<ReturnType<MemoizeFunction>, keyof ReturnType<MemoizeFunction>>>
 > {
   <Selectors extends qt.SelectorArray, Result>(
-    ...items: [
-      ...Selectors,
-      (...args: qt.SelectorResultArray<Selectors>) => Result
-    ]
+    ...items: [...Selectors, (...args: qt.SelectorResultArray<Selectors>) => Result]
   ): qt.OutputSelector<
     Selectors,
     Result,
@@ -254,10 +225,7 @@ export interface CreateSelectorFunction<
 export const createSelector = createSelectorCreator(defaultMemoize)
 type SelectorsObject = { [key: string]: (...args: any[]) => any }
 export interface StructuredSelectorCreator {
-  <
-    SelectorMap extends SelectorsObject,
-    SelectorParams = qt.MergeParameters<qt.ObjValueTuple<SelectorMap>>
-  >(
+  <SelectorMap extends SelectorsObject, SelectorParams = qt.MergeParameters<qt.ObjValueTuple<SelectorMap>>>(
     selectorMap: SelectorMap,
     selectorCreator?: CreateSelectorFunction<any, any, any>
   ): (
@@ -271,10 +239,7 @@ export interface StructuredSelectorCreator {
     selectorCreator?: CreateSelectorFunction<any, any, any>
   ): qt.Selector<State, Result, never>
 }
-export const createStructuredSelector = ((
-  selectors: SelectorsObject,
-  selectorCreator = createSelector
-) => {
+export const createStructuredSelector = ((selectors: SelectorsObject, selectorCreator = createSelector) => {
   if (typeof selectors !== "object") {
     throw new Error(
       "createStructuredSelector expects first argument to be an object " +

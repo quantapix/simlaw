@@ -1,24 +1,9 @@
 import { expect } from "chai"
 import { ArgumentOutOfRangeError } from "rxjs"
-import {
-  interval,
-  firstValueFrom,
-  EMPTY,
-  EmptyError,
-  throwError,
-  of,
-  Observable,
-} from "rxjs"
+import { interval, firstValueFrom, EMPTY, EmptyError, throwError, of, Observable } from "rxjs"
 import { expect } from "chai"
 import { finalize } from "rxjs/operators"
-import {
-  interval,
-  lastValueFrom,
-  EMPTY,
-  EmptyError,
-  throwError,
-  of,
-} from "rxjs"
+import { interval, lastValueFrom, EMPTY, EmptyError, throwError, of } from "rxjs"
 import { expect } from "chai"
 import { finalize, take } from "rxjs/operators"
 /** @prettier */
@@ -276,9 +261,7 @@ describe("firstValueFrom", () => {
   })
   it("should work with a synchronous observable", async () => {
     let finalized = false
-    const source = of("apples", "bananas").pipe(
-      finalize(() => (finalized = true))
-    )
+    const source = of("apples", "bananas").pipe(finalize(() => (finalized = true)))
     const result = await firstValueFrom(source)
     expect(result).to.equal("apples")
     expect(finalized).to.be.true
@@ -346,9 +329,7 @@ describe("lastValueFrom", () => {
   })
   it("should work with a synchronous observable", async () => {
     let finalized = false
-    const source = of("apples", "bananas").pipe(
-      finalize(() => (finalized = true))
-    )
+    const source = of("apples", "bananas").pipe(finalize(() => (finalized = true)))
     const result = await lastValueFrom(source)
     expect(result).to.equal("bananas")
     expect(finalized).to.be.true

@@ -46,7 +46,13 @@ export interface Observable<T> {
 
 export type SubOrPromise<T> = Subscribable<T> | Subscribable<never> | PromiseLike<T> | Observable<T>
 
-export type ObsInput<T> = Observable<T> | AsyncIterable<T> | PromiseLike<T> | ArrayLike<T> | Iterable<T> | ReadableStreamLike<T>
+export type ObsInput<T> =
+  | Observable<T>
+  | AsyncIterable<T>
+  | PromiseLike<T>
+  | ArrayLike<T>
+  | Iterable<T>
+  | ReadableStreamLike<T>
 
 export interface UnaryFun<T, R> {
   (x: T): R
@@ -109,7 +115,13 @@ export type Head<XS extends readonly any[]> = ((...xs: XS) => any) extends (x: i
 export type Tail<XS extends readonly any[]> = ((...xs: XS) => any) extends (x: any, ...xs: infer T) => any ? T : never
 
 export type ValueFromArray<X extends readonly unknown[]> = X extends Array<infer T> ? T : never
-export type ValueFromNote<X> = X extends { kind: "N" | "E" | "C" } ? (X extends NextNote<any> ? (X extends { value: infer T } ? T : undefined) : never) : never
+export type ValueFromNote<X> = X extends { kind: "N" | "E" | "C" }
+  ? X extends NextNote<any>
+    ? X extends { value: infer T }
+      ? T
+      : undefined
+    : never
+  : never
 
 export type Falsy = null | undefined | false | 0 | -0 | 0n | ""
 export type TruthyTypesOf<T> = T extends Falsy ? never : T

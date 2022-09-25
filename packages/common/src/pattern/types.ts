@@ -12,32 +12,18 @@ export type anonymousSelectKey = typeof anonymousSelectKey
 
 export type DeepExclude<a, b> = Exclude<DistributeMatchingUnions<a, b>, b>
 
-export type BuildMany<data, xs extends any[]> = xs extends any
-  ? BuildOne<data, xs>
-  : never
+export type BuildMany<data, xs extends any[]> = xs extends any ? BuildOne<data, xs> : never
 
-type BuildOne<data, xs extends any[]> = xs extends [
-  [infer value, infer path],
-  ...infer tail
-]
+type BuildOne<data, xs extends any[]> = xs extends [[infer value, infer path], ...infer tail]
   ? BuildOne<Update<data, value, Cast<path, PropertyKey[]>>, tail>
   : data
 
-type SafeGet<data, k extends PropertyKey, def> = k extends keyof data
-  ? data[k]
-  : def
+type SafeGet<data, k extends PropertyKey, def> = k extends keyof data ? data[k] : def
 
-type Update<data, value, path extends PropertyKey[]> = path extends [
-  infer head,
-  ...infer tail
-]
+type Update<data, value, path extends PropertyKey[]> = path extends [infer head, ...infer tail]
   ? data extends readonly [any, ...any]
     ? head extends number
-      ? UpdateAt<
-          data,
-          Iterator<head>,
-          Update<data[head], value, Cast<tail, PropertyKey[]>>
-        >
+      ? UpdateAt<data, Iterator<head>, Update<data[head], value, Cast<tail, PropertyKey[]>>>
       : never
     : data extends readonly (infer a)[]
     ? Update<a, value, Cast<tail, PropertyKey[]>>[]
@@ -47,11 +33,7 @@ type Update<data, value, path extends PropertyKey[]> = path extends [
     ? Map<k, Update<v, value, Cast<tail, PropertyKey[]>>>
     : Compute<
         Omit<data, Cast<head, PropertyKey>> & {
-          [k in Cast<head, PropertyKey>]: Update<
-            SafeGet<data, k, {}>,
-            value,
-            Cast<tail, PropertyKey[]>
-          >
+          [k in Cast<head, PropertyKey>]: Update<SafeGet<data, k, {}>, value, Cast<tail, PropertyKey[]>>
         }
       >
   : value
@@ -60,27 +42,13 @@ export type DistributeMatchingUnions<a, p> = IsAny<a> extends true
   ? any
   : BuildMany<a, Distribute<FindUnionsMany<a, p>>>
 
-export type FindUnionsMany<
-  a,
-  p,
-  path extends PropertyKey[] = []
-> = UnionToTuple<
-  (
-    p extends any
-      ? IsMatching<a, p> extends true
-        ? FindUnions<a, p, path>
-        : []
-      : never
-  ) extends (infer T)[]
+export type FindUnionsMany<a, p, path extends PropertyKey[] = []> = UnionToTuple<
+  (p extends any ? (IsMatching<a, p> extends true ? FindUnions<a, p, path> : []) : never) extends (infer T)[]
     ? T
     : never
 >
 
-export type FindUnions<
-  a,
-  p,
-  path extends PropertyKey[] = []
-> = unknown extends p
+export type FindUnions<a, p, path extends PropertyKey[] = []> = unknown extends p
   ? []
   : IsAny<p> extends true
   ? []
@@ -120,19 +88,9 @@ export type FindUnions<
         ...FindUnions<a3, p3, [...path, 2]>,
         ...FindUnions<a4, p4, [...path, 3]>
       ]
-    : [a, p] extends [
-        readonly [infer a1, infer a2, infer a3],
-        readonly [infer p1, infer p2, infer p3]
-      ]
-    ? [
-        ...FindUnions<a1, p1, [...path, 0]>,
-        ...FindUnions<a2, p2, [...path, 1]>,
-        ...FindUnions<a3, p3, [...path, 2]>
-      ]
-    : [a, p] extends [
-        readonly [infer a1, infer a2],
-        readonly [infer p1, infer p2]
-      ]
+    : [a, p] extends [readonly [infer a1, infer a2, infer a3], readonly [infer p1, infer p2, infer p3]]
+    ? [...FindUnions<a1, p1, [...path, 0]>, ...FindUnions<a2, p2, [...path, 1]>, ...FindUnions<a3, p3, [...path, 2]>]
+    : [a, p] extends [readonly [infer a1, infer a2], readonly [infer p1, infer p2]]
     ? [...FindUnions<a1, p1, [...path, 0]>, ...FindUnions<a2, p2, [...path, 1]>]
     : [a, p] extends [readonly [infer a1], readonly [infer p1]]
     ? FindUnions<a1, p1, [...path, 0]>
@@ -149,16 +107,9 @@ export type FindUnions<
     >
   : []
 
-export type Distribute<unions extends any[]> = unions extends [
-  { cases: infer cases; path: infer path },
-  ...infer tail
-]
+export type Distribute<unions extends any[]> = unions extends [{ cases: infer cases; path: infer path }, ...infer tail]
   ? cases extends { value: infer value; subUnions: infer subUnions }
-    ? [
-        [value, path],
-        ...Distribute<Cast<subUnions, any[]>>,
-        ...Distribute<tail>
-      ]
+    ? [[value, path], ...Distribute<Cast<subUnions, any[]>>, ...Distribute<tail>]
     : never
   : []
 
@@ -200,20 +151,13 @@ export type ExtractPreciseValue<a, b> = unknown extends b
       : b extends readonly [infer b1, infer b2, infer b3]
       ? a extends readonly [infer a1, infer a2, infer a3]
         ? ExcludeObjectIfContainsNever<
-            [
-              ExtractPreciseValue<a1, b1>,
-              ExtractPreciseValue<a2, b2>,
-              ExtractPreciseValue<a3, b3>
-            ],
+            [ExtractPreciseValue<a1, b1>, ExtractPreciseValue<a2, b2>, ExtractPreciseValue<a3, b3>],
             "0" | "1" | "2"
           >
         : LeastUpperBound<a, b>
       : b extends readonly [infer b1, infer b2]
       ? a extends readonly [infer a1, infer a2]
-        ? ExcludeObjectIfContainsNever<
-            [ExtractPreciseValue<a1, b1>, ExtractPreciseValue<a2, b2>],
-            "0" | "1"
-          >
+        ? ExcludeObjectIfContainsNever<[ExtractPreciseValue<a1, b1>, ExtractPreciseValue<a2, b2>], "0" | "1">
         : LeastUpperBound<a, b>
       : b extends readonly [infer b1]
       ? a extends readonly [infer a1]
@@ -246,9 +190,7 @@ export type ExtractPreciseValue<a, b> = unknown extends b
             {
               [k in Exclude<keyof a, keyof b>]: a[k]
             } & {
-              [k in keyof b]: k extends keyof a
-                ? ExtractPreciseValue<a[k], b[k]>
-                : b[k]
+              [k in keyof b]: k extends keyof a ? ExtractPreciseValue<a[k], b[k]> : b[k]
             }
           >,
           keyof b & string
@@ -269,39 +211,23 @@ export type Some<key extends string> = {
 export type SelectionType = None | Some<string>
 
 type MapOptional<selections> = {
-  [k in keyof selections]: selections[k] extends [infer v, infer subpath]
-    ? [v | undefined, subpath]
-    : never
+  [k in keyof selections]: selections[k] extends [infer v, infer subpath] ? [v | undefined, subpath] : never
 }
 
 type MapList<selections> = {
-  [k in keyof selections]: selections[k] extends [infer v, infer subpath]
-    ? [v[], subpath]
-    : never
+  [k in keyof selections]: selections[k] extends [infer v, infer subpath] ? [v[], subpath] : never
 }
 
-type ReduceFindSelectionUnion<
-  i,
-  ps extends any[],
-  output = never
-> = ps extends [infer head, ...infer tail]
+type ReduceFindSelectionUnion<i, ps extends any[], output = never> = ps extends [infer head, ...infer tail]
   ? ReduceFindSelectionUnion<i, tail, output | FindSelectionUnion<i, head>>
   : output
 
-export type FindSelectionUnion<
-  i,
-  p,
-  path extends any[] = []
-> = IsAny<i> extends true
+export type FindSelectionUnion<i, p, path extends any[] = []> = IsAny<i> extends true
   ? never
   : p extends Matcher<any, infer pattern, infer matcherType, infer sel>
   ? {
-      select: sel extends Some<infer k>
-        ? { [kk in k]: [i, path] } | FindSelectionUnion<i, pattern, path>
-        : never
-      array: i extends (infer ii)[]
-        ? MapList<FindSelectionUnion<ii, pattern>>
-        : never
+      select: sel extends Some<infer k> ? { [kk in k]: [i, path] } | FindSelectionUnion<i, pattern, path> : never
+      array: i extends (infer ii)[] ? MapList<FindSelectionUnion<ii, pattern>> : never
       optional: MapOptional<FindSelectionUnion<i, pattern>>
       or: MapOptional<ReduceFindSelectionUnion<i, Cast<pattern, any[]>>>
       and: ReduceFindSelectionUnion<i, Cast<pattern, any[]>>
@@ -313,11 +239,7 @@ export type FindSelectionUnion<
     ? p extends readonly [any, ...any[]]
       ? i extends readonly [any, ...any[]]
         ? {
-            [k in TupleKeys & keyof i & keyof p]: FindSelectionUnion<
-              i[k],
-              p[k],
-              [...path, k]
-            >
+            [k in TupleKeys & keyof i & keyof p]: FindSelectionUnion<i[k], p[k], [...path, k]>
           }[TupleKeys & keyof i & keyof p]
         : FindSelectionUnion<ii, p[number], [...path, 0]>
       : FindSelectionUnion<ii, pp, [...path, 0]>
@@ -325,9 +247,7 @@ export type FindSelectionUnion<
   : p extends object
   ? i extends object
     ? {
-        [k in keyof p]: k extends keyof i
-          ? FindSelectionUnion<i[k], p[k], [...path, k]>
-          : never
+        [k in keyof p]: k extends keyof i ? FindSelectionUnion<i[k], p[k], [...path, k]> : never
       }[keyof p]
     : never
   : never
@@ -344,19 +264,15 @@ export type MixedNamedAndAnonymousSelectError<
   __error: never
 } & a
 
-export type SelectionToArgs<selections extends SelectionsRecord> =
-  anonymousSelectKey extends keyof selections
-    ? [selections[anonymousSelectKey][1]] extends [never]
-      ? SeveralAnonymousSelectError
-      : keyof selections extends anonymousSelectKey
-      ? selections[anonymousSelectKey][0]
-      : MixedNamedAndAnonymousSelectError
-    : { [k in keyof selections]: selections[k][0] }
+export type SelectionToArgs<selections extends SelectionsRecord> = anonymousSelectKey extends keyof selections
+  ? [selections[anonymousSelectKey][1]] extends [never]
+    ? SeveralAnonymousSelectError
+    : keyof selections extends anonymousSelectKey
+    ? selections[anonymousSelectKey][0]
+    : MixedNamedAndAnonymousSelectError
+  : { [k in keyof selections]: selections[k][0] }
 
-type ConcatSelections<
-  a extends SelectionsRecord,
-  b extends SelectionsRecord
-> = {
+type ConcatSelections<a extends SelectionsRecord, b extends SelectionsRecord> = {
   [k in keyof a & keyof b]: [a[k][0] | b[k][0], a[k][1] & b[k][1]]
 } & {
   [k in Exclude<keyof a, keyof b>]: a[k]
@@ -364,10 +280,10 @@ type ConcatSelections<
   [k in Exclude<keyof b, keyof a>]: b[k]
 }
 
-type ReduceToRecord<
-  selections extends any[],
-  output extends SelectionsRecord = {}
-> = selections extends [infer sel, ...infer rest]
+type ReduceToRecord<selections extends any[], output extends SelectionsRecord = {}> = selections extends [
+  infer sel,
+  ...infer rest
+]
   ? ReduceToRecord<rest, ConcatSelections<Cast<sel, SelectionsRecord>, output>>
   : output
 
@@ -377,9 +293,7 @@ export type Selections<i, p> = FindSelectionUnion<i, p> extends infer u
     : SelectionToArgs<ReduceToRecord<UnionToTuple<u>>>
   : i
 
-export type FindSelected<i, p> = Equal<p, Pattern<i>> extends true
-  ? i
-  : Selections<i, p>
+export type FindSelected<i, p> = Equal<p, Pattern<i>> extends true ? i : Selections<i, p>
 
 type OptionalKeys<p> = ValueOf<{
   [k in keyof p]: p[k] extends Matcher<any, any, infer matcherType>
@@ -389,26 +303,15 @@ type OptionalKeys<p> = ValueOf<{
     : never
 }>
 
-type ReduceUnion<tuple extends any[], output = never> = tuple extends readonly [
-  infer p,
-  ...infer tail
-]
+type ReduceUnion<tuple extends any[], output = never> = tuple extends readonly [infer p, ...infer tail]
   ? ReduceUnion<tail, output | InvertPattern<p>>
   : output
 
-type ReduceIntersection<
-  tuple extends any[],
-  output = unknown
-> = tuple extends readonly [infer p, ...infer tail]
+type ReduceIntersection<tuple extends any[], output = unknown> = tuple extends readonly [infer p, ...infer tail]
   ? ReduceIntersection<tail, output & InvertPattern<p>>
   : output
 
-export type InvertPattern<p> = p extends Matcher<
-  infer input,
-  infer narrowed,
-  infer matcherType,
-  any
->
+export type InvertPattern<p> = p extends Matcher<infer input, infer narrowed, infer matcherType, any>
   ? {
       not: ToExclude<InvertPattern<narrowed>>
       select: InvertPattern<narrowed>
@@ -422,20 +325,9 @@ export type InvertPattern<p> = p extends Matcher<
   ? p
   : p extends readonly (infer pp)[]
   ? p extends readonly [infer p1, infer p2, infer p3, infer p4, infer p5]
-    ? [
-        InvertPattern<p1>,
-        InvertPattern<p2>,
-        InvertPattern<p3>,
-        InvertPattern<p4>,
-        InvertPattern<p5>
-      ]
+    ? [InvertPattern<p1>, InvertPattern<p2>, InvertPattern<p3>, InvertPattern<p4>, InvertPattern<p5>]
     : p extends readonly [infer p1, infer p2, infer p3, infer p4]
-    ? [
-        InvertPattern<p1>,
-        InvertPattern<p2>,
-        InvertPattern<p3>,
-        InvertPattern<p4>
-      ]
+    ? [InvertPattern<p1>, InvertPattern<p2>, InvertPattern<p3>, InvertPattern<p4>]
     : p extends readonly [infer p1, infer p2, infer p3]
     ? [InvertPattern<p1>, InvertPattern<p2>, InvertPattern<p3>]
     : p extends readonly [infer p1, infer p2]
@@ -465,28 +357,18 @@ export type InvertPattern<p> = p extends Matcher<
     : never
   : p
 
-export type ReduceIntersectionForExclude<
-  tuple extends any[],
-  i,
-  output = unknown
-> = tuple extends readonly [infer p, ...infer tail]
-  ? ReduceIntersectionForExclude<
-      tail,
-      i,
-      output & InvertPatternForExclude<p, i, unknown>
-    >
+export type ReduceIntersectionForExclude<tuple extends any[], i, output = unknown> = tuple extends readonly [
+  infer p,
+  ...infer tail
+]
+  ? ReduceIntersectionForExclude<tail, i, output & InvertPatternForExclude<p, i, unknown>>
   : output
 
-export type ReduceUnionForExclude<
-  tuple extends any[],
-  i,
-  output = never
-> = tuple extends readonly [infer p, ...infer tail]
-  ? ReduceUnionForExclude<
-      tail,
-      i,
-      output | InvertPatternForExclude<p, i, never>
-    >
+export type ReduceUnionForExclude<tuple extends any[], i, output = never> = tuple extends readonly [
+  infer p,
+  ...infer tail
+]
+  ? ReduceUnionForExclude<tail, i, output | InvertPatternForExclude<p, i, never>>
   : output
 
 type ExcludeIfExists<a, b> = [b] extends [never]
@@ -506,16 +388,11 @@ export type InvertPatternForExclude<p, i, empty = never> = p extends Matcher<
 >
   ? {
       select: InvertPatternForExclude<subpattern, i, empty>
-      array: i extends readonly (infer ii)[]
-        ? InvertPatternForExclude<subpattern, ii, empty>[]
-        : empty
+      array: i extends readonly (infer ii)[] ? InvertPatternForExclude<subpattern, ii, empty>[] : empty
       optional: InvertPatternForExclude<subpattern, i, empty> | undefined
       and: ReduceIntersectionForExclude<Cast<subpattern, any[]>, i>
       or: ReduceUnionForExclude<Cast<subpattern, any[]>, i>
-      not: ExcludeIfExists<
-        unknown extends matchableInput ? i : matchableInput,
-        InvertPatternForExclude<subpattern, i>
-      >
+      not: ExcludeIfExists<unknown extends matchableInput ? i : matchableInput, InvertPatternForExclude<subpattern, i>>
       default: excluded
     }[matcherType]
   : p extends Primitives
@@ -555,10 +432,7 @@ export type InvertPatternForExclude<p, i, empty = never> = p extends Matcher<
         : empty
       : p extends readonly [infer p1, infer p2]
       ? i extends readonly [infer i1, infer i2]
-        ? readonly [
-            InvertPatternForExclude<p1, i1, empty>,
-            InvertPatternForExclude<p2, i2, empty>
-          ]
+        ? readonly [InvertPatternForExclude<p1, i1, empty>, InvertPatternForExclude<p2, i2, empty>]
         : empty
       : p extends readonly [infer p1]
       ? i extends readonly [infer i1]
@@ -603,9 +477,7 @@ export type InvertPatternForExclude<p, i, empty = never> = p extends Matcher<
   : empty
 
 export type IsMatching<a, p> = true extends IsUnion<a> | IsUnion<p>
-  ? true extends (
-      p extends any ? (a extends any ? IsMatching<a, p> : never) : never
-    )
+  ? true extends (p extends any ? (a extends any ? IsMatching<a, p> : never) : never)
     ? true
     : false
   : unknown extends p
@@ -619,32 +491,9 @@ export type IsMatching<a, p> = true extends IsUnion<a> | IsUnion<p>
       readonly [infer p1, infer p2, infer p3, infer p4, infer p5],
       readonly [infer a1, infer a2, infer a3, infer a4, infer a5]
     ]
-    ? [
-        IsMatching<a1, p1>,
-        IsMatching<a2, p2>,
-        IsMatching<a3, p3>,
-        IsMatching<a4, p4>,
-        IsMatching<a5, p5>
-      ] extends [true, true, true, true, true]
-      ? true
-      : false
-    : [p, a] extends [
-        readonly [infer p1, infer p2, infer p3, infer p4],
-        readonly [infer a1, infer a2, infer a3, infer a4]
-      ]
-    ? [
-        IsMatching<a1, p1>,
-        IsMatching<a2, p2>,
-        IsMatching<a3, p3>,
-        IsMatching<a4, p4>
-      ] extends [true, true, true, true]
-      ? true
-      : false
-    : [p, a] extends [
-        readonly [infer p1, infer p2, infer p3],
-        readonly [infer a1, infer a2, infer a3]
-      ]
-    ? [IsMatching<a1, p1>, IsMatching<a2, p2>, IsMatching<a3, p3>] extends [
+    ? [IsMatching<a1, p1>, IsMatching<a2, p2>, IsMatching<a3, p3>, IsMatching<a4, p4>, IsMatching<a5, p5>] extends [
+        true,
+        true,
         true,
         true,
         true
@@ -652,9 +501,17 @@ export type IsMatching<a, p> = true extends IsUnion<a> | IsUnion<p>
       ? true
       : false
     : [p, a] extends [
-        readonly [infer p1, infer p2],
-        readonly [infer a1, infer a2]
+        readonly [infer p1, infer p2, infer p3, infer p4],
+        readonly [infer a1, infer a2, infer a3, infer a4]
       ]
+    ? [IsMatching<a1, p1>, IsMatching<a2, p2>, IsMatching<a3, p3>, IsMatching<a4, p4>] extends [true, true, true, true]
+      ? true
+      : false
+    : [p, a] extends [readonly [infer p1, infer p2, infer p3], readonly [infer a1, infer a2, infer a3]]
+    ? [IsMatching<a1, p1>, IsMatching<a2, p2>, IsMatching<a3, p3>] extends [true, true, true]
+      ? true
+      : false
+    : [p, a] extends [readonly [infer p1, infer p2], readonly [infer a1, infer a2]]
     ? [IsMatching<a1, p1>, IsMatching<a2, p2>] extends [true, true]
       ? true
       : false
@@ -668,8 +525,7 @@ export type IsMatching<a, p> = true extends IsUnion<a> | IsUnion<p>
       a extends any
         ? [keyof p & keyof a] extends [never]
           ? false
-          : { [k in keyof p & keyof a]: IsMatching<a[k], p[k]> }[keyof p &
-              keyof a] extends true
+          : { [k in keyof p & keyof a]: IsMatching<a[k], p[k]> }[keyof p & keyof a] extends true
           ? true
           : false
         : never
@@ -680,31 +536,16 @@ export type IsMatching<a, p> = true extends IsUnion<a> | IsUnion<p>
   ? true
   : false
 
-export type MatchedValue<a, invpattern> = WithDefault<
-  ExtractPreciseValue<a, invpattern>,
-  a
->
+export type MatchedValue<a, invpattern> = WithDefault<ExtractPreciseValue<a, invpattern>, a>
 
 export type PickReturnValue<a, b> = a extends unset ? b : a
 
 type NonExhaustiveError<i> = { __nonExhaustive: never } & i
 
-export type Match<
-  i,
-  o,
-  patternValueTuples extends [any, any][] = [],
-  inferredOutput = never
-> = {
-  with<
-    p extends Pattern<i>,
-    c,
-    value extends MatchedValue<i, InvertPattern<p>>
-  >(
+export type Match<i, o, patternValueTuples extends [any, any][] = [], inferredOutput = never> = {
+  with<p extends Pattern<i>, c, value extends MatchedValue<i, InvertPattern<p>>>(
     pattern: p,
-    handler: (
-      selections: FindSelected<value, p>,
-      value: value
-    ) => PickReturnValue<o, c>
+    handler: (selections: FindSelected<value, p>, value: value) => PickReturnValue<o, c>
   ): Match<i, o, [...patternValueTuples, [p, value]], Union<inferredOutput, c>>
 
   with<
@@ -717,12 +558,7 @@ export type Match<
     p1: p1,
     p2: p2,
     handler: (value: value) => PickReturnValue<o, c>
-  ): Match<
-    i,
-    o,
-    [...patternValueTuples, [p1, value], [p2, value]],
-    Union<inferredOutput, c>
-  >
+  ): Match<i, o, [...patternValueTuples, [p1, value], [p2, value]], Union<inferredOutput, c>>
 
   with<
     p1 extends Pattern<i>,
@@ -733,23 +569,11 @@ export type Match<
     p extends p1 | p2 | p3 | ps[number],
     value extends p extends any ? MatchedValue<i, InvertPattern<p>> : never
   >(
-    ...args: [
-      p1: p1,
-      p2: p2,
-      p3: p3,
-      ...patterns: ps,
-      handler: (value: value) => PickReturnValue<o, c>
-    ]
+    ...args: [p1: p1, p2: p2, p3: p3, ...patterns: ps, handler: (value: value) => PickReturnValue<o, c>]
   ): Match<
     i,
     o,
-    [
-      ...patternValueTuples,
-      [p1, value],
-      [p2, value],
-      [p3, value],
-      ...MakeTuples<ps, value>
-    ],
+    [...patternValueTuples, [p1, value], [p2, value], [p3, value], ...MakeTuples<ps, value>],
     Union<inferredOutput, c>
   >
 
@@ -761,10 +585,7 @@ export type Match<
   >(
     pattern: pat,
     predicate: pred,
-    handler: (
-      selections: FindSelected<value, pat>,
-      value: value
-    ) => PickReturnValue<o, c>
+    handler: (selections: FindSelected<value, pat>, value: value) => PickReturnValue<o, c>
   ): Match<
     i,
     o,
@@ -785,9 +606,7 @@ export type Match<
       : patternValueTuples,
     Union<inferredOutput, c>
   >
-  otherwise<c>(
-    handler: (value: i) => PickReturnValue<o, c>
-  ): PickReturnValue<o, Union<inferredOutput, c>>
+  otherwise<c>(handler: (value: i) => PickReturnValue<o, c>): PickReturnValue<o, Union<inferredOutput, c>>
   exhaustive: DeepExcludeAll<i, patternValueTuples> extends infer remainingCases
     ? [remainingCases] extends [never]
       ? () => PickReturnValue<o, inferredOutput>
@@ -797,10 +616,7 @@ export type Match<
   run(): PickReturnValue<o, inferredOutput>
 }
 
-type DeepExcludeAll<a, tupleList extends any[]> = tupleList extends [
-  [infer p, infer v],
-  ...infer tail
-]
+type DeepExcludeAll<a, tupleList extends any[]> = tupleList extends [[infer p, infer v], ...infer tail]
   ? DeepExcludeAll<DeepExclude<a, InvertPatternForExclude<p, v>>, tail>
   : a
 
@@ -808,14 +624,7 @@ type MakeTuples<ps extends any[], value> = {
   -readonly [index in keyof ps]: [ps[index], value]
 }
 
-export type MatcherType =
-  | "not"
-  | "optional"
-  | "or"
-  | "and"
-  | "array"
-  | "select"
-  | "default"
+export type MatcherType = "not" | "optional" | "or" | "and" | "array" | "select" | "default"
 
 export type MatcherProtocol<
   input,
@@ -841,13 +650,7 @@ export interface Matcher<
   selections extends SelectionType = None,
   excluded = narrowed
 > {
-  [matcher](): MatcherProtocol<
-    input,
-    narrowed,
-    matcherType,
-    selections,
-    excluded
-  >
+  [matcher](): MatcherProtocol<input, narrowed, matcherType, selections, excluded>
 }
 
 type UnknownMatcher = Matcher<unknown, unknown, any, any>
@@ -864,19 +667,14 @@ export type NotP<input, p> = Matcher<input, p, "not">
 
 export type GuardP<input, narrowed> = Matcher<input, narrowed>
 
-export type GuardExcludeP<input, narrowed, excluded> = Matcher<
-  input,
-  narrowed,
-  "default",
-  None,
-  excluded
->
+export type GuardExcludeP<input, narrowed, excluded> = Matcher<input, narrowed, "default", None, excluded>
 
-export type SelectP<
-  key extends string,
-  input = unknown,
-  p = Matcher<unknown, unknown>
-> = Matcher<input, p, "select", Some<key>>
+export type SelectP<key extends string, input = unknown, p = Matcher<unknown, unknown>> = Matcher<
+  input,
+  p,
+  "select",
+  Some<key>
+>
 
 export type AnonymousSelectP = SelectP<anonymousSelectKey>
 
@@ -924,31 +722,23 @@ export type ExcludeIfContainsNever<a, b> = b extends Map<any, any> | Set<any>
   ? ExcludeObjectIfContainsNever<a, keyof b & number>
   : ExcludeObjectIfContainsNever<a, keyof b & string>
 
-export type ExcludeObjectIfContainsNever<
-  a,
-  keyConstraint = unknown
-> = a extends any
+export type ExcludeObjectIfContainsNever<a, keyConstraint = unknown> = a extends any
   ? "exclude" extends {
-      [k in keyConstraint & keyof a]-?: [a[k]] extends [never]
-        ? "exclude"
-        : "include"
+      [k in keyConstraint & keyof a]-?: [a[k]] extends [never] ? "exclude" : "include"
     }[keyConstraint & keyof a]
     ? never
     : a
   : never
 
-export type UnionToIntersection<union> = (
-  union extends any ? (k: union) => void : never
-) extends (k: infer intersection) => void
+export type UnionToIntersection<union> = (union extends any ? (k: union) => void : never) extends (
+  k: infer intersection
+) => void
   ? intersection
   : never
 
 export type IsUnion<a> = [a] extends [UnionToIntersection<a>] ? false : true
 
-export type UnionToTuple<
-  union,
-  output extends any[] = []
-> = UnionToIntersection<
+export type UnionToTuple<union, output extends any[] = []> = UnionToIntersection<
   union extends any ? (t: union) => union : never
 > extends (_: any) => infer elem
   ? UnionToTuple<Exclude<union, elem>, [elem, ...output]>
@@ -956,18 +746,11 @@ export type UnionToTuple<
 
 export type Cast<a, b> = a extends b ? a : never
 
-export type Flatten<
-  xs extends any[],
-  output extends any[] = []
-> = xs extends readonly [infer head, ...infer tail]
+export type Flatten<xs extends any[], output extends any[] = []> = xs extends readonly [infer head, ...infer tail]
   ? Flatten<tail, [...output, ...Cast<head, any[]>]>
   : output
 
-export type Equal<a, b> = (<T>() => T extends a ? 1 : 2) extends <
-  T
->() => T extends b ? 1 : 2
-  ? true
-  : false
+export type Equal<a, b> = (<T>() => T extends a ? 1 : 2) extends <T>() => T extends b ? 1 : 2 ? true : false
 
 export type Expect<a extends true> = a
 
@@ -975,30 +758,18 @@ export type IsAny<a> = 0 extends 1 & a ? true : false
 
 export type Length<it extends readonly any[]> = it["length"]
 
-export type Iterator<
-  n extends number,
-  it extends any[] = []
-> = it["length"] extends n ? it : Iterator<n, [any, ...it]>
+export type Iterator<n extends number, it extends any[] = []> = it["length"] extends n ? it : Iterator<n, [any, ...it]>
 
 export type Next<it extends any[]> = [any, ...it]
-export type Prev<it extends any[]> = it extends readonly [any, ...infer tail]
-  ? tail
-  : []
+export type Prev<it extends any[]> = it extends readonly [any, ...infer tail] ? tail : []
 
-export type Take<
-  xs extends readonly any[],
-  it extends any[],
-  output extends any[] = []
-> = Length<it> extends 0
+export type Take<xs extends readonly any[], it extends any[], output extends any[] = []> = Length<it> extends 0
   ? output
   : xs extends readonly [infer head, ...infer tail]
   ? Take<tail, Prev<it>, [...output, head]>
   : output
 
-export type Drop<
-  xs extends readonly any[],
-  n extends any[]
-> = Length<n> extends 0
+export type Drop<xs extends readonly any[], n extends any[]> = Length<n> extends 0
   ? xs
   : xs extends readonly [any, ...infer tail]
   ? Drop<tail, Prev<n>>
@@ -1017,13 +788,7 @@ export type UpdateAt<
   ? UpdateAt<tail, Prev<n>, value, [...inits, head]>
   : inits
 
-export type BuiltInObjects =
-  | Function
-  | Date
-  | RegExp
-  | Generator
-  | { readonly [Symbol.toStringTag]: string }
-  | any[]
+export type BuiltInObjects = Function | Date | RegExp | Generator | { readonly [Symbol.toStringTag]: string } | any[]
 
 export type IsPlainObject<o, excludeUnion = BuiltInObjects> = o extends object
   ? o extends string | excludeUnion
@@ -1033,15 +798,9 @@ export type IsPlainObject<o, excludeUnion = BuiltInObjects> = o extends object
 
 export type Compute<a> = a extends BuiltInObjects ? a : { [k in keyof a]: a[k] }
 
-export type IntersectObjects<a> = (
-  a extends any ? keyof a : never
-) extends infer allKeys
+export type IntersectObjects<a> = (a extends any ? keyof a : never) extends infer allKeys
   ? {
-      [k in Cast<allKeys, PropertyKey>]: a extends any
-        ? k extends keyof a
-          ? a[k]
-          : never
-        : never
+      [k in Cast<allKeys, PropertyKey>]: a extends any ? (k extends keyof a ? a[k] : never) : never
     }
   : never
 
@@ -1071,14 +830,7 @@ export type IsLiteral<a> = a extends null | undefined
     : true
   : false
 
-export type Primitives =
-  | number
-  | boolean
-  | string
-  | undefined
-  | null
-  | symbol
-  | bigint
+export type Primitives = number | boolean | string | undefined | null | symbol | bigint
 
 export type TupleKeys = 0 | 1 | 2 | 3 | 4
 

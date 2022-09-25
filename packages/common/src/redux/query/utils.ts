@@ -12,7 +12,10 @@ const isPlainObject: (_: any) => boolean = qu.isPlainObject
 
 export function copyWithStructuralSharing<T>(oldObj: any, newObj: T): T
 export function copyWithStructuralSharing(oldObj: any, newObj: any): any {
-  if (oldObj === newObj || !((isPlainObject(oldObj) && isPlainObject(newObj)) || (Array.isArray(oldObj) && Array.isArray(newObj)))) {
+  if (
+    oldObj === newObj ||
+    !((isPlainObject(oldObj) && isPlainObject(newObj)) || (Array.isArray(oldObj) && Array.isArray(newObj)))
+  ) {
     return newObj
   }
   const newKeys = Object.keys(newObj)
@@ -160,33 +163,34 @@ function fail(e: any): never {
   })
 }
 
-const retryWithBackoff: qt.BaseQueryEnhancer<unknown, RetryOptions, RetryOptions | void> = (baseQuery, defaultOptions) => async (args, api, extraOptions) => {
-  const options = {
-    maxRetries: 5,
-    backoff: defaultBackoff,
-    ...defaultOptions,
-    ...extraOptions,
-  }
-  let retry = 0
+const retryWithBackoff: qt.BaseQueryEnhancer<unknown, RetryOptions, RetryOptions | void> =
+  (baseQuery, defaultOptions) => async (args, api, extraOptions) => {
+    const options = {
+      maxRetries: 5,
+      backoff: defaultBackoff,
+      ...defaultOptions,
+      ...extraOptions,
+    }
+    let retry = 0
 
-  while (true) {
-    try {
-      const result = await baseQuery(args, api, extraOptions)
-      if (result.error) {
-        throw new qt.HandledError(result)
-      }
-      return result
-    } catch (e: any) {
-      retry++
-      if (e.throwImmediately || retry > options.maxRetries) {
-        if (e instanceof qt.HandledError) {
-          return e.value
+    while (true) {
+      try {
+        const result = await baseQuery(args, api, extraOptions)
+        if (result.error) {
+          throw new qt.HandledError(result)
         }
-        throw e
+        return result
+      } catch (e: any) {
+        retry++
+        if (e.throwImmediately || retry > options.maxRetries) {
+          if (e instanceof qt.HandledError) {
+            return e.value
+          }
+          throw e
+        }
+        await options.backoff(retry, options.maxRetries)
       }
-      await options.backoff(retry, options.maxRetries)
     }
   }
-}
 
 export const retry = Object.assign(retryWithBackoff, { fail })

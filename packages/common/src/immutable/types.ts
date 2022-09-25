@@ -105,7 +105,10 @@ export namespace Collection {
     flatMap<K2, V2>(f: (v: V, k: K, iter: this) => Iterable<[K2, V2]>, ctx?: unknown): Collection.Keyed<K2, V2>
     flip(): Collection.Keyed<V, K>
     map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Collection.Keyed<K, T>
-    mapEntries<K2, V2>(f: (x: [K, V], i: number, iter: this) => [K2, V2] | undefined, ctx?: unknown): Collection.Keyed<K2, V2>
+    mapEntries<K2, V2>(
+      f: (x: [K, V], i: number, iter: this) => [K2, V2] | undefined,
+      ctx?: unknown
+    ): Collection.Keyed<K2, V2>
     mapKeys<T>(f: (k: K, v: V, iter: this) => T, ctx?: unknown): Collection.Keyed<T, V>
     toArray(): Array<[K, V]>
     toJS(): Dict
@@ -139,7 +142,11 @@ export namespace Collection {
     zipAll(...xs: Array<Collection<unknown, unknown>>): Collection.Indexed<unknown>
     zipAll<T, U>(x: Collection<unknown, T>, x2: Collection<unknown, U>): Collection.Indexed<[V, T, U]>
     zipAll<T>(x: Collection<unknown, T>): Collection.Indexed<[V, T]>
-    zipWith<T, U, Z>(f: (v: V, x: T, x2: U) => Z, x: Collection<unknown, T>, x2: Collection<unknown, U>): Collection.Indexed<Z>
+    zipWith<T, U, Z>(
+      f: (v: V, x: T, x2: U) => Z,
+      x: Collection<unknown, T>,
+      x2: Collection<unknown, U>
+    ): Collection.Indexed<Z>
     zipWith<T, U>(f: (v: V, x: T) => U, x: Collection<unknown, T>): Collection.Indexed<U>
     zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Collection.Indexed<T>
   }
@@ -404,9 +411,15 @@ export interface Record<T extends object> {
   merge(...xs: Array<Partial<T> | Iterable<[string, unknown]>>): this
   mergeDeep(...xs: Array<Partial<T> | Iterable<[string, unknown]>>): this
   mergeDeepIn(x: Iterable<unknown>, ...xs: Array<unknown>): this
-  mergeDeepWith(f: (old: unknown, x: unknown, k: unknown) => unknown, ...xs: Array<Partial<T> | Iterable<[string, unknown]>>): this
+  mergeDeepWith(
+    f: (old: unknown, x: unknown, k: unknown) => unknown,
+    ...xs: Array<Partial<T> | Iterable<[string, unknown]>>
+  ): this
   mergeIn(x: Iterable<unknown>, ...xs: Array<unknown>): this
-  mergeWith(f: (old: unknown, x: unknown, k: keyof T) => unknown, ...xs: Array<Partial<T> | Iterable<[string, unknown]>>): this
+  mergeWith(
+    f: (old: unknown, x: unknown, k: keyof T) => unknown,
+    ...xs: Array<Partial<T> | Iterable<[string, unknown]>>
+  ): this
   remove<K extends keyof T>(k: K): this
   removeIn(x: Iterable<unknown>): this
   set<K extends keyof T>(k: K, v: T[K]): this

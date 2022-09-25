@@ -913,9 +913,7 @@ it("#521", () => {
   const [_, patches2] = qi.produceWithPatches(y, x => {
     x.get("hello").add("immer")
   })
-  expect(qi.applyPatches(y, patches2)).toEqual(
-    new Map([["hello", new Set(["world", "immer"])]])
-  )
+  expect(qi.applyPatches(y, patches2)).toEqual(new Map([["hello", new Set(["world", "immer"])]]))
 })
 it("#559 patches works in a nested reducer with proxies", () => {
   const base = {
@@ -976,9 +974,7 @@ it("#676 patching Date objects", () => {
     x.date = new Date("2020-11-10T08:08:08.003Z")
     x.test = new Test()
   })
-  expect((y as any).date.toJSON()).toMatchInlineSnapshot(
-    `"2020-11-10T08:08:08.003Z"`
-  )
+  expect((y as any).date.toJSON()).toMatchInlineSnapshot(`"2020-11-10T08:08:08.003Z"`)
   expect((y as any).test.perform()).toBe("tested!")
   const y2: any = qi.applyPatches({}, patches)
   expect(y2.date).toBeInstanceOf(Date)
@@ -989,14 +985,8 @@ it("do not allow __proto__ polution - 738", () => {
   const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
-    qi.applyPatches({}, [
-      { op: "add", path: ["__proto__", "polluted"], value: "yes" },
-    ])
-  }).toThrow(
-    isProd
-      ? "24"
-      : "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
-  )
+    qi.applyPatches({}, [{ op: "add", path: ["__proto__", "polluted"], value: "yes" }])
+  }).toThrow(isProd ? "24" : "Patching reserved attributes like __proto__, prototype and constructor is not allowed")
   expect(obj.polluted).toBe(undefined)
 })
 it("do not allow __proto__ polution using arrays - 738", () => {
@@ -1005,15 +995,8 @@ it("do not allow __proto__ polution using arrays - 738", () => {
   expect(obj.polluted).toBe(undefined)
   expect(ar.polluted).toBe(undefined)
   expect(() => {
-    qi.applyPatches(
-      [],
-      [{ op: "add", path: ["__proto__", "polluted"], value: "yes" }]
-    )
-  }).toThrow(
-    isProd
-      ? "24"
-      : "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
-  )
+    qi.applyPatches([], [{ op: "add", path: ["__proto__", "polluted"], value: "yes" }])
+  }).toThrow(isProd ? "24" : "Patching reserved attributes like __proto__, prototype and constructor is not allowed")
   expect(obj.polluted).toBe(undefined)
   expect(ar.polluted).toBe(undefined)
 })
@@ -1021,14 +1004,8 @@ it("do not allow prototype polution - 738", () => {
   const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
-    qi.applyPatches(Object, [
-      { op: "add", path: ["prototype", "polluted"], value: "yes" },
-    ])
-  }).toThrow(
-    isProd
-      ? "24"
-      : "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
-  )
+    qi.applyPatches(Object, [{ op: "add", path: ["prototype", "polluted"], value: "yes" }])
+  }).toThrow(isProd ? "24" : "Patching reserved attributes like __proto__, prototype and constructor is not allowed")
   expect(obj.polluted).toBe(undefined)
 })
 it("do not allow constructor polution - 738", () => {
@@ -1050,11 +1027,7 @@ it("do not allow constructor.prototype polution - 738", () => {
         value: "yes",
       },
     ])
-  }).toThrow(
-    isProd
-      ? "24"
-      : "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
-  )
+  }).toThrow(isProd ? "24" : "Patching reserved attributes like __proto__, prototype and constructor is not allowed")
   expect((Object as any).polluted).toBe(undefined)
 })
 it("maps can store __proto__, prototype and constructor props", () => {
@@ -1077,14 +1050,8 @@ it("CVE-2020-28477 (https://snyk.io/vuln/SNYK-JS-IMMER-1019369) follow up", () =
   const obj: any = {}
   expect(obj.polluted).toBe(undefined)
   expect(() => {
-    qi.applyPatches({}, [
-      { op: "add", path: ["__proto__", "polluted"], value: "yes" },
-    ])
-  }).toThrow(
-    isProd
-      ? "24"
-      : "Patching reserved attributes like __proto__, prototype and constructor is not allowed"
-  )
+    qi.applyPatches({}, [{ op: "add", path: ["__proto__", "polluted"], value: "yes" }])
+  }).toThrow(isProd ? "24" : "Patching reserved attributes like __proto__, prototype and constructor is not allowed")
   expect(obj.polluted).toBe(undefined)
 })
 it("#648 assigning object to itself should not change patches", () => {
@@ -1151,9 +1118,7 @@ it("#888 patch to a primitive produces the primitive", () => {
   {
     const [y, patches] = qi.produceWithPatches("foobar", _ => "something else")
     expect(y).toEqual("something else")
-    expect(patches).toEqual([
-      { op: "replace", path: [], value: "something else" },
-    ])
+    expect(patches).toEqual([{ op: "replace", path: [], value: "something else" }])
   }
   {
     const [y, patches] = qi.produceWithPatches(false, _ => true)

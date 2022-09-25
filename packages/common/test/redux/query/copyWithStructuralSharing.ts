@@ -34,14 +34,7 @@ test("equal object from JSON Object", () => {
   expect(newCopy.a.b).toStrictEqual(objB.a.b)
 })
 test("equal object from JSON Array", () => {
-  const json = JSON.stringify([
-    1,
-    "a",
-    { 2: "b" },
-    { 3: { 4: "c" }, d: null },
-    null,
-    5,
-  ])
+  const json = JSON.stringify([1, "a", { 2: "b" }, { 3: { 4: "c" }, d: null }, null, 5])
   const objA = JSON.parse(json)
   const objB = JSON.parse(json)
   expect(objA).toStrictEqual(objB)
@@ -52,14 +45,7 @@ test("equal object from JSON Array", () => {
   expect(newCopy).toStrictEqual(objB)
 })
 test("equal object from JSON Array", () => {
-  const json = JSON.stringify([
-    1,
-    "a",
-    { 2: "b" },
-    { 3: { 4: "c" }, d: null },
-    null,
-    5,
-  ])
+  const json = JSON.stringify([1, "a", { 2: "b" }, { 3: { 4: "c" }, d: null }, null, 5])
   const objA = JSON.parse(json)
   const objB = JSON.parse(json)
   objB[2][2] = "x"

@@ -113,8 +113,7 @@ test("fakeBaseQuery throws when invoking query", async () => {
     In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: When using \`fakeBaseQuery\`, all queries & mutations must use the \`queryFn\` definition syntax.]`
   )
   expect(result!.error).toEqual({
-    message:
-      "When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax.",
+    message: "When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax.",
     name: "Error",
     stack: expect.any(String),
   })

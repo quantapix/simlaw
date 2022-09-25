@@ -14,9 +14,7 @@ export type Reducer<T = any, A = any> = (
 
 export function useImmer<T = any>(x: T | (() => T)): Hook<T>
 export function useImmer(x: any) {
-  const [val, setVal] = qr.useState(() =>
-    qu.freeze(typeof x === "function" ? x() : x, true)
-  )
+  const [val, setVal] = qr.useState(() => qu.freeze(typeof x === "function" ? x() : x, true))
   return [
     val,
     qr.useCallback((x: any) => {

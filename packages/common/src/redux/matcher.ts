@@ -1,12 +1,12 @@
 import * as qt from "./types.js"
 
-export type ActionMatchingAnyOf<
-  Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]
-> = qt.ActionFromMatcher<Matchers[number]>
+export type ActionMatchingAnyOf<Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]> = qt.ActionFromMatcher<
+  Matchers[number]
+>
 
-export type ActionMatchingAllOf<
-  Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]
-> = qt.UnionToIntersection<ActionMatchingAnyOf<Matchers>>
+export type ActionMatchingAllOf<Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]> = qt.UnionToIntersection<
+  ActionMatchingAnyOf<Matchers>
+>
 
 const matches = (matcher: qt.Matcher<any>, action: any) => {
   if (qt.hasMatchFunction(matcher)) {
@@ -16,65 +16,45 @@ const matches = (matcher: qt.Matcher<any>, action: any) => {
   }
 }
 
-export function isAnyOf<
-  Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]
->(...matchers: Matchers) {
+export function isAnyOf<Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]>(...matchers: Matchers) {
   return (action: any): action is ActionMatchingAnyOf<Matchers> => {
     return matchers.some(matcher => matches(matcher, action))
   }
 }
 
-export function isAllOf<
-  Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]
->(...matchers: Matchers) {
+export function isAllOf<Matchers extends [qt.Matcher<any>, ...qt.Matcher<any>[]]>(...matchers: Matchers) {
   return (action: any): action is ActionMatchingAllOf<Matchers> => {
     return matchers.every(matcher => matches(matcher, action))
   }
 }
 
-export function hasExpectedRequestMetadata(
-  action: any,
-  validStatus: readonly string[]
-) {
+export function hasExpectedRequestMetadata(action: any, validStatus: readonly string[]) {
   if (!action || !action.meta) return false
 
   const hasValidRequestId = typeof action.meta.requestId === "string"
-  const hasValidRequestStatus =
-    validStatus.indexOf(action.meta.requestStatus) > -1
+  const hasValidRequestStatus = validStatus.indexOf(action.meta.requestStatus) > -1
 
   return hasValidRequestId && hasValidRequestStatus
 }
 
 function isAsyncThunkArray(a: [any] | AnyAsyncThunk[]): a is AnyAsyncThunk[] {
-  return (
-    typeof a[0] === "function" &&
-    "pending" in a[0] &&
-    "fulfilled" in a[0] &&
-    "rejected" in a[0]
-  )
+  return typeof a[0] === "function" && "pending" in a[0] && "fulfilled" in a[0] && "rejected" in a[0]
 }
 
-export type UnknownAsyncThunkPendingAction = ReturnType<
-  qt.AsyncThunkPendingActionCreator<unknown>
->
+export type UnknownAsyncThunkPendingAction = ReturnType<qt.AsyncThunkPendingActionCreator<unknown>>
 
-export type PendingActionFromAsyncThunk<T extends AnyAsyncThunk> =
-  qt.ActionFromMatcher<T["pending"]>
+export type PendingActionFromAsyncThunk<T extends AnyAsyncThunk> = qt.ActionFromMatcher<T["pending"]>
 
-export function isPending(): (
-  action: any
-) => action is UnknownAsyncThunkPendingAction
+export function isPending(): (action: any) => action is UnknownAsyncThunkPendingAction
 
-export function isPending<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(
+export function isPending<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is PendingActionFromAsyncThunk<AsyncThunks[number]>
 
 export function isPending(action: any): action is UnknownAsyncThunkPendingAction
-export function isPending<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(...asyncThunks: AsyncThunks | [any]) {
+export function isPending<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(
+  ...asyncThunks: AsyncThunks | [any]
+) {
   if (asyncThunks.length === 0) {
     return (action: any) => hasExpectedRequestMetadata(action, ["pending"])
   }
@@ -83,12 +63,8 @@ export function isPending<
     return isPending()(asyncThunks[0])
   }
 
-  return (
-    action: any
-  ): action is PendingActionFromAsyncThunk<AsyncThunks[number]> => {
-    const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(
-      asyncThunk => asyncThunk.pending
-    ) as any
+  return (action: any): action is PendingActionFromAsyncThunk<AsyncThunks[number]> => {
+    const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(asyncThunk => asyncThunk.pending) as any
 
     const combinedMatcher = isAnyOf(...matchers)
 
@@ -96,29 +72,20 @@ export function isPending<
   }
 }
 
-export type UnknownAsyncThunkRejectedAction = ReturnType<
-  qt.AsyncThunkRejectedActionCreator<unknown, unknown>
->
+export type UnknownAsyncThunkRejectedAction = ReturnType<qt.AsyncThunkRejectedActionCreator<unknown, unknown>>
 
-export type RejectedActionFromAsyncThunk<T extends AnyAsyncThunk> =
-  qt.ActionFromMatcher<T["rejected"]>
+export type RejectedActionFromAsyncThunk<T extends AnyAsyncThunk> = qt.ActionFromMatcher<T["rejected"]>
 
-export function isRejected(): (
-  action: any
-) => action is UnknownAsyncThunkRejectedAction
+export function isRejected(): (action: any) => action is UnknownAsyncThunkRejectedAction
 
-export function isRejected<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(
+export function isRejected<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>
 
-export function isRejected(
-  action: any
-): action is UnknownAsyncThunkRejectedAction
-export function isRejected<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(...asyncThunks: AsyncThunks | [any]) {
+export function isRejected(action: any): action is UnknownAsyncThunkRejectedAction
+export function isRejected<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(
+  ...asyncThunks: AsyncThunks | [any]
+) {
   if (asyncThunks.length === 0) {
     return (action: any) => hasExpectedRequestMetadata(action, ["rejected"])
   }
@@ -127,12 +94,8 @@ export function isRejected<
     return isRejected()(asyncThunks[0])
   }
 
-  return (
-    action: any
-  ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
-    const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(
-      asyncThunk => asyncThunk.rejected
-    ) as any
+  return (action: any): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
+    const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(asyncThunk => asyncThunk.rejected) as any
 
     const combinedMatcher = isAnyOf(...matchers)
 
@@ -140,34 +103,21 @@ export function isRejected<
   }
 }
 
-export type UnknownAsyncThunkRejectedWithValueAction = ReturnType<
-  qt.AsyncThunkRejectedActionCreator<unknown, unknown>
->
+export type UnknownAsyncThunkRejectedWithValueAction = ReturnType<qt.AsyncThunkRejectedActionCreator<unknown, unknown>>
 
-export type RejectedWithValueActionFromAsyncThunk<T extends AnyAsyncThunk> =
-  qt.ActionFromMatcher<T["rejected"]> &
-    (T extends qt.AsyncThunk<any, any, { rejectValue: infer RejectedValue }>
-      ? { payload: RejectedValue }
-      : unknown)
+export type RejectedWithValueActionFromAsyncThunk<T extends AnyAsyncThunk> = qt.ActionFromMatcher<T["rejected"]> &
+  (T extends qt.AsyncThunk<any, any, { rejectValue: infer RejectedValue }> ? { payload: RejectedValue } : unknown)
 
-export function isRejectedWithValue(): (
-  action: any
-) => action is UnknownAsyncThunkRejectedAction
+export function isRejectedWithValue(): (action: any) => action is UnknownAsyncThunkRejectedAction
 
-export function isRejectedWithValue<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(
+export function isRejectedWithValue<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(
   ...asyncThunks: AsyncThunks
-): (
-  action: any
-) => action is RejectedWithValueActionFromAsyncThunk<AsyncThunks[number]>
+): (action: any) => action is RejectedWithValueActionFromAsyncThunk<AsyncThunks[number]>
 
-export function isRejectedWithValue(
-  action: any
-): action is UnknownAsyncThunkRejectedAction
-export function isRejectedWithValue<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(...asyncThunks: AsyncThunks | [any]) {
+export function isRejectedWithValue(action: any): action is UnknownAsyncThunkRejectedAction
+export function isRejectedWithValue<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(
+  ...asyncThunks: AsyncThunks | [any]
+) {
   const hasFlag = (action: any): action is any => {
     return action && action.meta && action.meta.rejectedWithValue
   }
@@ -184,38 +134,27 @@ export function isRejectedWithValue<
     return isRejectedWithValue()(asyncThunks[0])
   }
 
-  return (
-    action: any
-  ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
+  return (action: any): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
     const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasFlag)
 
     return combinedMatcher(action)
   }
 }
 
-export type UnknownAsyncThunkFulfilledAction = ReturnType<
-  qt.AsyncThunkFulfilledActionCreator<unknown, unknown>
->
+export type UnknownAsyncThunkFulfilledAction = ReturnType<qt.AsyncThunkFulfilledActionCreator<unknown, unknown>>
 
-export type FulfilledActionFromAsyncThunk<T extends AnyAsyncThunk> =
-  qt.ActionFromMatcher<T["fulfilled"]>
+export type FulfilledActionFromAsyncThunk<T extends AnyAsyncThunk> = qt.ActionFromMatcher<T["fulfilled"]>
 
-export function isFulfilled(): (
-  action: any
-) => action is UnknownAsyncThunkFulfilledAction
+export function isFulfilled(): (action: any) => action is UnknownAsyncThunkFulfilledAction
 
-export function isFulfilled<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(
+export function isFulfilled<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is FulfilledActionFromAsyncThunk<AsyncThunks[number]>
 
-export function isFulfilled(
-  action: any
-): action is UnknownAsyncThunkFulfilledAction
-export function isFulfilled<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(...asyncThunks: AsyncThunks | [any]) {
+export function isFulfilled(action: any): action is UnknownAsyncThunkFulfilledAction
+export function isFulfilled<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(
+  ...asyncThunks: AsyncThunks | [any]
+) {
   if (asyncThunks.length === 0) {
     return (action: any) => hasExpectedRequestMetadata(action, ["fulfilled"])
   }
@@ -224,12 +163,8 @@ export function isFulfilled<
     return isFulfilled()(asyncThunks[0])
   }
 
-  return (
-    action: any
-  ): action is FulfilledActionFromAsyncThunk<AsyncThunks[number]> => {
-    const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(
-      asyncThunk => asyncThunk.fulfilled
-    ) as any
+  return (action: any): action is FulfilledActionFromAsyncThunk<AsyncThunks[number]> => {
+    const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = asyncThunks.map(asyncThunk => asyncThunk.fulfilled) as any
 
     const combinedMatcher = isAnyOf(...matchers)
 
@@ -253,42 +188,29 @@ export type ActionsFromAsyncThunk<T extends AnyAsyncThunk> =
   | qt.ActionFromMatcher<T["fulfilled"]>
   | qt.ActionFromMatcher<T["rejected"]>
 
-export function isAsyncThunkAction(): (
-  action: any
-) => action is UnknownAsyncThunkAction
+export function isAsyncThunkAction(): (action: any) => action is UnknownAsyncThunkAction
 
-export function isAsyncThunkAction<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(
+export function isAsyncThunkAction<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is ActionsFromAsyncThunk<AsyncThunks[number]>
 
-export function isAsyncThunkAction(
-  action: any
-): action is UnknownAsyncThunkAction
-export function isAsyncThunkAction<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(...asyncThunks: AsyncThunks | [any]) {
+export function isAsyncThunkAction(action: any): action is UnknownAsyncThunkAction
+export function isAsyncThunkAction<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(
+  ...asyncThunks: AsyncThunks | [any]
+) {
   if (asyncThunks.length === 0) {
-    return (action: any) =>
-      hasExpectedRequestMetadata(action, ["pending", "fulfilled", "rejected"])
+    return (action: any) => hasExpectedRequestMetadata(action, ["pending", "fulfilled", "rejected"])
   }
 
   if (!isAsyncThunkArray(asyncThunks)) {
     return isAsyncThunkAction()(asyncThunks[0])
   }
 
-  return (
-    action: any
-  ): action is ActionsFromAsyncThunk<AsyncThunks[number]> => {
+  return (action: any): action is ActionsFromAsyncThunk<AsyncThunks[number]> => {
     const matchers: [qt.Matcher<any>, ...qt.Matcher<any>[]] = [] as any
 
     for (const asyncThunk of asyncThunks) {
-      matchers.push(
-        asyncThunk.pending,
-        asyncThunk.rejected,
-        asyncThunk.fulfilled
-      )
+      matchers.push(asyncThunk.pending, asyncThunk.rejected, asyncThunk.fulfilled)
     }
 
     const combinedMatcher = isAnyOf(...matchers)

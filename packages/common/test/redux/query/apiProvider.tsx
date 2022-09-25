@@ -26,9 +26,7 @@ describe("ApiProvider", () => {
       return (
         <div>
           <div data-testid="isFetching">{String(isFetching)}</div>
-          <button onClick={() => setValue(val => val + 1)}>
-            Increment value
-          </button>
+          <button onClick={() => setValue(val => val + 1)}>Increment value</button>
         </div>
       )
     }
@@ -37,16 +35,10 @@ describe("ApiProvider", () => {
         <User />
       </ApiProvider>
     )
-    await waitFor(() =>
-      expect(getByTestId("isFetching").textContent).toBe("false")
-    )
+    await waitFor(() => expect(getByTestId("isFetching").textContent).toBe("false"))
     fireEvent.click(getByText("Increment value"))
-    await waitFor(() =>
-      expect(getByTestId("isFetching").textContent).toBe("true")
-    )
-    await waitFor(() =>
-      expect(getByTestId("isFetching").textContent).toBe("false")
-    )
+    await waitFor(() => expect(getByTestId("isFetching").textContent).toBe("true"))
+    await waitFor(() => expect(getByTestId("isFetching").textContent).toBe("false"))
     fireEvent.click(getByText("Increment value"))
     expect(getByTestId("isFetching").textContent).toBe("false")
   })

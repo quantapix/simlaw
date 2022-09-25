@@ -70,9 +70,7 @@ describe("Basic selector behavior", () => {
     ).toThrow(
       "createSelector expects all input-selectors to be functions, but received the following types: [function unnamed(), function input2(), string]"
     )
-    expect(() =>
-      qx.createSelector((state: StateAB) => state.a, "not a function")
-    ).toThrow(
+    expect(() => qx.createSelector((state: StateAB) => state.a, "not a function")).toThrow(
       "createSelector expects an output function after the inputs, but received: [string]"
     )
   })
@@ -127,12 +125,9 @@ describe("Basic selector behavior", () => {
     expect(selector.recomputations()).toBe(2)
   })
   it("first argument can be an array", () => {
-    const selector = qx.createSelector(
-      [state => state.a, state => state.b],
-      (a, b) => {
-        return a + b
-      }
-    )
+    const selector = qx.createSelector([state => state.a, state => state.b], (a, b) => {
+      return a + b
+    })
     expect(selector({ a: 1, b: 2 })).toBe(3)
     expect(selector({ a: 1, b: 2 })).toBe(3)
     expect(selector.recomputations()).toBe(1)
@@ -220,8 +215,7 @@ describe("Combining selectors", () => {
   it("chained selector with variadic args", () => {
     const selector1 = qx.createSelector(
       (state: StateSub) => state.sub,
-      (state: StateSub, props: { x: number; y: number }, another: number) =>
-        props.x + another,
+      (state: StateSub, props: { x: number; y: number }, another: number) => props.x + another,
       (sub, x) => ({ sub, x })
     )
     const selector2 = qx.createSelector(
@@ -238,10 +232,7 @@ describe("Combining selectors", () => {
     expect(selector2.recomputations()).toBe(2)
   })
   it("override valueEquals", () => {
-    const createOverridenSelector = qx.createSelectorCreator(
-      qx.defaultMemoize,
-      (a, b) => typeof a === typeof b
-    )
+    const createOverridenSelector = qx.createSelectorCreator(qx.defaultMemoize, (a, b) => typeof a === typeof b)
     const selector = createOverridenSelector(
       (state: StateA) => state.a,
       a => a
@@ -255,12 +246,8 @@ describe("Combining selectors", () => {
 })
 describe("Customizing selectors", () => {
   it("custom memoize", () => {
-    const hashFn = (...args: any[]) =>
-      args.reduce((acc, val) => acc + "-" + JSON.stringify(val))
-    const customSelectorCreator = qx.createSelectorCreator(
-      lodashMemoize,
-      hashFn
-    )
+    const hashFn = (...args: any[]) => args.reduce((acc, val) => acc + "-" + JSON.stringify(val))
+    const customSelectorCreator = qx.createSelectorCreator(lodashMemoize, hashFn)
     const selector = customSelectorCreator(
       (state: StateAB) => state.a,
       (state: StateAB) => state.b,
@@ -310,13 +297,10 @@ describe("Customizing selectors", () => {
     defaultMemoizeAcceptsArgsAsArray({ a: 1, b: 2 })
     defaultMemoizeAcceptsArgsAsArray({ a: 1, b: 3 })
     expect(memoizer2Calls).toBeGreaterThan(0)
-    const createSelectorWithSeparateArg = qx.createSelectorCreator(
-      qx.defaultMemoize,
-      (a, b) => {
-        memoizer3Calls++
-        return a === b
-      }
-    )
+    const createSelectorWithSeparateArg = qx.createSelectorCreator(qx.defaultMemoize, (a, b) => {
+      memoizer3Calls++
+      return a === b
+    })
     const defaultMemoizeAcceptsArgFromCSC = createSelectorWithSeparateArg(
       (state: StateAB) => state.a,
       (state: StateAB) => state.b,
@@ -343,9 +327,7 @@ describe("defaultMemoize", () => {
     expect(called).toBe(2)
   })
   it("Memoizes with multiple arguments", () => {
-    const memoized = qx.defaultMemoize((...args) =>
-      args.reduce((sum, value) => sum + value, 0)
-    )
+    const memoized = qx.defaultMemoize((...args) => args.reduce((sum, value) => sum + value, 0))
     expect(memoized(1, 2)).toBe(3)
     expect(memoized(1)).toBe(1)
   })
@@ -370,11 +352,7 @@ describe("defaultMemoize", () => {
       let countA = 0
       let countB = 0
       for (const key in newVal) {
-        if (
-          Object.hasOwnProperty.call(newVal, key) &&
-          newVal[key] !== oldVal[key]
-        )
-          return false
+        if (Object.hasOwnProperty.call(newVal, key) && newVal[key] !== oldVal[key]) return false
         countA++
       }
       for (const key in oldVal) {
@@ -441,22 +419,14 @@ describe("defaultMemoize", () => {
     }
     function shallowEqual(objA: any, objB: any) {
       if (is(objA, objB)) return true
-      if (
-        typeof objA !== "object" ||
-        objA === null ||
-        typeof objB !== "object" ||
-        objB === null
-      ) {
+      if (typeof objA !== "object" || objA === null || typeof objB !== "object" || objB === null) {
         return false
       }
       const keysA = Object.keys(objA)
       const keysB = Object.keys(objB)
       if (keysA.length !== keysB.length) return false
       for (let i = 0; i < keysA.length; i++) {
-        if (
-          !Object.prototype.hasOwnProperty.call(objB, keysA[i]!) ||
-          !is(objA[keysA[i]!], objB[keysA[i]!])
-        ) {
+        if (!Object.prototype.hasOwnProperty.call(objB, keysA[i]!) || !is(objA[keysA[i]!], objB[keysA[i]!])) {
           return false
         }
       }
@@ -511,10 +481,7 @@ describe("defaultMemoize", () => {
       bar: "qux",
     }
     const fooChangeSpy = jest.fn()
-    const fooChangeHandler = qx.createSelector(
-      (state: any) => state.foo,
-      fooChangeSpy
-    )
+    const fooChangeHandler = qx.createSelector((state: any) => state.foo, fooChangeSpy)
     fooChangeHandler(state)
     expect(fooChangeSpy.mock.calls.length).toEqual(1)
     fooChangeHandler(state)
@@ -633,10 +600,7 @@ describe("createStructureSelector", () => {
     )
   })
   it("structured selector with custom selector creator", () => {
-    const customSelectorCreator = qx.createSelectorCreator(
-      qx.defaultMemoize,
-      (a, b) => a === b
-    )
+    const customSelectorCreator = qx.createSelectorCreator(qx.defaultMemoize, (a, b) => a === b)
     const selector = qx.createStructuredSelector(
       {
         x: (state: StateAB) => state.a,

@@ -12,15 +12,9 @@ export function isObserver<T>(x: any): x is qt.Observer<T> {
   return x && isFunction(x.next) && isFunction(x.error) && isFunction(x.done)
 }
 
-export function firstValueFrom<T, D>(
-  o: Observable<T>,
-  cfg: qt.FirstValueFromConfig<D>
-): Promise<T | D>
+export function firstValueFrom<T, D>(o: Observable<T>, cfg: qt.FirstValueFromConfig<D>): Promise<T | D>
 export function firstValueFrom<T>(o: Observable<T>): Promise<T>
-export function firstValueFrom<T, D>(
-  o: Observable<T>,
-  cfg?: qt.FirstValueFromConfig<D>
-): Promise<T | D> {
+export function firstValueFrom<T, D>(o: Observable<T>, cfg?: qt.FirstValueFromConfig<D>): Promise<T | D> {
   const hasConfig = typeof cfg === "object"
   return new Promise<T | D>((res, rej) => {
     const s = new SafeSubscriber<T>({
@@ -38,15 +32,9 @@ export function firstValueFrom<T, D>(
   })
 }
 
-export function lastValueFrom<T, D>(
-  o: Observable<T>,
-  cfg: qt.LastValueFromConfig<D>
-): Promise<T | D>
+export function lastValueFrom<T, D>(o: Observable<T>, cfg: qt.LastValueFromConfig<D>): Promise<T | D>
 export function lastValueFrom<T>(o: Observable<T>): Promise<T>
-export function lastValueFrom<T, D>(
-  o: Observable<T>,
-  cfg?: qt.LastValueFromConfig<D>
-): Promise<T | D> {
+export function lastValueFrom<T, D>(o: Observable<T>, cfg?: qt.LastValueFromConfig<D>): Promise<T | D> {
   const hasConfig = typeof cfg === "object"
   return new Promise<T | D>((res, rej) => {
     let has = false
@@ -112,9 +100,7 @@ export function last<T>(xs: T[]): T | undefined {
   return xs[xs.length - 1]
 }
 
-export function popSelector(
-  xs: any[]
-): ((...xs: unknown[]) => unknown) | undefined {
+export function popSelector(xs: any[]): ((...xs: unknown[]) => unknown) | undefined {
   return isFunction(last(xs)) ? xs.pop() : undefined
 }
 
@@ -195,18 +181,13 @@ export function isIterable(x: any): x is Iterable<any> {
   return isFunction(x?.[Symbol.iterator])
 }
 export function isObservable(x: any): x is Observable<unknown> {
-  return (
-    !!x &&
-    (x instanceof Observable || (isFunction(x.lift) && isFunction(x.subscribe)))
-  )
+  return !!x && (x instanceof Observable || (isFunction(x.lift) && isFunction(x.subscribe)))
 }
 export function isPromise(x: any): x is PromiseLike<any> {
   return isFunction(x?.then)
 }
 
-export async function* readableStreamLikeToAsyncGenerator<T>(
-  x: qt.ReadableStreamLike<T>
-): AsyncGenerator<T> {
+export async function* readableStreamLikeToAsyncGenerator<T>(x: qt.ReadableStreamLike<T>): AsyncGenerator<T> {
   const r = x.getReader()
   try {
     while (true) {
@@ -224,9 +205,7 @@ export function isReadableStreamLike<T>(x: any): x is qt.ReadableStreamLike<T> {
 export function isScheduler(x: any): x is qt.Scheduler {
   return x && isFunction(x.schedule)
 }
-export function hasLift(
-  x: any
-): x is { lift: InstanceType<typeof Observable>["lift"] } {
+export function hasLift(x: any): x is { lift: InstanceType<typeof Observable>["lift"] } {
   return isFunction(x?.lift)
 }
 
@@ -234,27 +213,19 @@ function callOrApply<T, R>(f: (...xs: T[]) => R, xs: T | T[]): R {
   return isArray(xs) ? f(...xs) : f(xs)
 }
 
-export function mapOneOrManyArgs<T, R>(
-  fn: (...xs: T[]) => R
-): qt.OpFun<T | T[], R> {
+export function mapOneOrManyArgs<T, R>(fn: (...xs: T[]) => R): qt.OpFun<T | T[], R> {
   return map(xs => callOrApply(fn, xs))
 }
 
 export function noop() {}
 
-export function not<T>(
-  f: (x: T, i: number) => boolean,
-  thisArg: any
-): (x: T, i: number) => boolean {
+export function not<T>(f: (x: T, i: number) => boolean, thisArg: any): (x: T, i: number) => boolean {
   return (x: T, i: number) => !f.call(thisArg, x, i)
 }
 
 export function pipe(): typeof identity
 export function pipe<T, A>(fn1: qt.UnaryFun<T, A>): qt.UnaryFun<T, A>
-export function pipe<T, A, B>(
-  fn1: qt.UnaryFun<T, A>,
-  fn2: qt.UnaryFun<A, B>
-): qt.UnaryFun<T, B>
+export function pipe<T, A, B>(fn1: qt.UnaryFun<T, A>, fn2: qt.UnaryFun<A, B>): qt.UnaryFun<T, B>
 export function pipe<T, A, B, C>(
   fn1: qt.UnaryFun<T, A>,
   fn2: qt.UnaryFun<A, B>,
@@ -323,22 +294,15 @@ export function pipe<T, A, B, C, D, E, F, G, H, I>(
   fn9: qt.UnaryFun<H, I>,
   ...xs: qt.UnaryFun<any, any>[]
 ): qt.UnaryFun<T, unknown>
-export function pipe(
-  ...xs: Array<qt.UnaryFun<any, any>>
-): qt.UnaryFun<any, any> {
+export function pipe(...xs: Array<qt.UnaryFun<any, any>>): qt.UnaryFun<any, any> {
   return pipeFromArray(xs)
 }
 
-export function pipeFromArray<T, R>(
-  fns: Array<qt.UnaryFun<T, R>>
-): qt.UnaryFun<T, R> {
+export function pipeFromArray<T, R>(fns: Array<qt.UnaryFun<T, R>>): qt.UnaryFun<T, R> {
   if (fns.length === 0) return identity as qt.UnaryFun<any, any>
   if (fns.length === 1) return fns[0]!
   return function piped(input: T): R {
-    return fns.reduce(
-      (prev: any, fn: qt.UnaryFun<T, R>) => fn(prev),
-      input as any
-    )
+    return fns.reduce((prev: any, fn: qt.UnaryFun<T, R>) => fn(prev), input as any)
   }
 }
 
@@ -436,9 +400,7 @@ export const UnsubscriptionError: any = createErrorClass(
     function impl(this: any, xs: (Error | string)[]) {
       _super(this)
       this.message = xs
-        ? `${xs.length} errors during unsubscription: ${xs
-            .map((x, i) => `${i + 1}) ${x.toString()}`)
-            .join("\n  ")}`
+        ? `${xs.length} errors during unsubscription: ${xs.map((x, i) => `${i + 1}) ${x.toString()}`).join("\n  ")}`
         : ""
       this.name = "UnsubscriptionError"
       this.errors = xs

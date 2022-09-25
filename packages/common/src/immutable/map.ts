@@ -175,7 +175,9 @@ class BitmapIndexedNode {
     if (keyHash === undefined) keyHash = qu.hash(key)
     const bit = 1 << ((shift === 0 ? keyHash : keyHash >>> shift) & qu.MASK)
     const bitmap = this.bitmap
-    return (bitmap & bit) === 0 ? notSetValue : this.nodes[popCount(bitmap & (bit - 1))].get(shift + qu.SHIFT, keyHash, key, notSetValue)
+    return (bitmap & bit) === 0
+      ? notSetValue
+      : this.nodes[popCount(bitmap & (bit - 1))].get(shift + qu.SHIFT, keyHash, key, notSetValue)
   }
   update(ownerID, shift, keyHash, key, value, didChangeSize, didAlter) {
     if (keyHash === undefined) keyHash = qu.hash(key)
@@ -196,7 +198,11 @@ class BitmapIndexedNode {
     if (exists && newNode && nodes.length === 1 && isLeafNode(newNode)) return newNode
     const isEditable = ownerID && ownerID === this.ownerID
     const newBitmap = exists ? (newNode ? bitmap : bitmap ^ bit) : bitmap | bit
-    const newNodes = exists ? (newNode ? setAt(nodes, idx, newNode, isEditable) : spliceOut(nodes, idx, isEditable)) : spliceIn(nodes, idx, newNode, isEditable)
+    const newNodes = exists
+      ? newNode
+        ? setAt(nodes, idx, newNode, isEditable)
+        : spliceOut(nodes, idx, isEditable)
+      : spliceIn(nodes, idx, newNode, isEditable)
     if (isEditable) {
       this.bitmap = newBitmap
       this.nodes = newNodes
@@ -442,7 +448,10 @@ function mergeIntoNode(node, ownerID, shift, keyHash, entry) {
   const idx1 = (shift === 0 ? node.keyHash : node.keyHash >>> shift) & qu.MASK
   const idx2 = (shift === 0 ? keyHash : keyHash >>> shift) & qu.MASK
   let newNode
-  const nodes = idx1 === idx2 ? [mergeIntoNode(node, ownerID, shift + qu.SHIFT, keyHash, entry)] : ((newNode = new ValueNode(ownerID, keyHash, entry)), idx1 < idx2 ? [node, newNode] : [newNode, node])
+  const nodes =
+    idx1 === idx2
+      ? [mergeIntoNode(node, ownerID, shift + qu.SHIFT, keyHash, entry)]
+      : ((newNode = new ValueNode(ownerID, keyHash, entry)), idx1 < idx2 ? [node, newNode] : [newNode, node])
   return new BitmapIndexedNode(ownerID, (1 << idx1) | (1 << idx2), nodes)
 }
 

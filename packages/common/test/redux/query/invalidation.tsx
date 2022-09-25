@@ -2,15 +2,7 @@ import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query"
 import { setupApiStore, waitMs } from "./helpers"
 import type { TagDescription } from "@reduxjs/toolkit/dist/query/endpointDefinitions"
 import { waitFor } from "@testing-library/react"
-const tagTypes = [
-  "apple",
-  "pear",
-  "banana",
-  "tomato",
-  "cat",
-  "dog",
-  "giraffe",
-] as const
+const tagTypes = ["apple", "pear", "banana", "tomato", "cat", "dog", "giraffe"] as const
 type TagTypes = typeof tagTypes[number]
 type Tags = TagDescription<TagTypes>[]
 const caseMatrix: [Tags, Tags, boolean][] = [
@@ -90,17 +82,10 @@ test.each(caseMatrix)(
     store.dispatch(unrelated.initiate())
     expect(queryCount).toBe(1)
     await waitFor(() => {
-      expect(api.endpoints.providing.select()(store.getState()).status).toBe(
-        "fulfilled"
-      )
-      expect(api.endpoints.unrelated.select()(store.getState()).status).toBe(
-        "fulfilled"
-      )
+      expect(api.endpoints.providing.select()(store.getState()).status).toBe("fulfilled")
+      expect(api.endpoints.unrelated.select()(store.getState()).status).toBe("fulfilled")
     })
-    const toInvalidate = api.util.selectInvalidatedBy(
-      store.getState(),
-      invalidatesTags
-    )
+    const toInvalidate = api.util.selectInvalidatedBy(store.getState(), invalidatesTags)
     if (shouldInvalidate) {
       expect(toInvalidate).toEqual([
         {

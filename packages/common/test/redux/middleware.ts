@@ -1,10 +1,6 @@
 import * as qx from "../../src/redux/index.js"
 import { expectType } from "./helpers.js"
-import {
-  mockConsole,
-  createConsole,
-  getLog,
-} from "console-testing-library/pure"
+import { mockConsole, createConsole, getLog } from "console-testing-library/pure"
 
 describe("getDefaultMiddleware", () => {
   const ORIGINAL_NODE_ENV = process.env["NODE_ENV"]
@@ -69,11 +65,7 @@ describe("getDefaultMiddleware", () => {
         ]
       >
     >(m3)
-    const testThunk: qx.ThunkAction<void, {}, number, qx.AnyAction> = (
-      dispatch,
-      getState,
-      extraArg
-    ) => {
+    const testThunk: qx.ThunkAction<void, {}, number, qx.AnyAction> = (dispatch, getState, extraArg) => {
       expect(extraArg).toBe(extraArgument)
     }
     const reducer = () => ({})
@@ -81,9 +73,7 @@ describe("getDefaultMiddleware", () => {
       reducer,
       middleware,
     })
-    expectType<
-      qx.ThunkDispatch<any, 42, qx.AnyAction> & qx.Dispatch<qx.AnyAction>
-    >(store.dispatch)
+    expectType<qx.ThunkDispatch<any, 42, qx.AnyAction> & qx.Dispatch<qx.AnyAction>>(store.dispatch)
     store.dispatch(testThunk)
   })
   it("allows passing options to immutableCheck", () => {
@@ -161,45 +151,25 @@ describe("MiddlewareArray functionality", () => {
   })
   it("allows to concat multiple values (array as first argument)", () => {
     const concatenated = defaultMiddleware.concat([middleware1, middleware2])
-    expect(concatenated).toEqual([
-      ...defaultMiddleware,
-      middleware1,
-      middleware2,
-    ])
+    expect(concatenated).toEqual([...defaultMiddleware, middleware1, middleware2])
     expect(concatenated).toBeInstanceOf(qx.MiddlewareArray)
     expect(concatenated).not.toEqual(defaultMiddleware)
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
   it("allows to concat multiple values (rest)", () => {
     const concatenated = defaultMiddleware.concat(middleware1, middleware2)
-    expect(concatenated).toEqual([
-      ...defaultMiddleware,
-      middleware1,
-      middleware2,
-    ])
+    expect(concatenated).toEqual([...defaultMiddleware, middleware1, middleware2])
     expect(concatenated).toBeInstanceOf(qx.MiddlewareArray)
     expect(concatenated).not.toEqual(defaultMiddleware)
     expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
   })
   it("allows to concat and then prepend", () => {
-    const concatenated = defaultMiddleware
-      .concat(middleware1)
-      .prepend(middleware2)
-    expect(concatenated).toEqual([
-      middleware2,
-      ...defaultMiddleware,
-      middleware1,
-    ])
+    const concatenated = defaultMiddleware.concat(middleware1).prepend(middleware2)
+    expect(concatenated).toEqual([middleware2, ...defaultMiddleware, middleware1])
   })
   it("allows to prepend and then concat", () => {
-    const concatenated = defaultMiddleware
-      .prepend(middleware2)
-      .concat(middleware1)
-    expect(concatenated).toEqual([
-      middleware2,
-      ...defaultMiddleware,
-      middleware1,
-    ])
+    const concatenated = defaultMiddleware.prepend(middleware2).concat(middleware1)
+    expect(concatenated).toEqual([middleware2, ...defaultMiddleware, middleware1])
   })
 })
 
@@ -266,8 +236,7 @@ describe("findNonSerializableValue", () => {
 describe("serializableStateInvariantMiddleware", () => {
   it("Should log an error when a non-serializable action is dispatched", () => {
     const reducer: qx.Reducer = (state = 0, _action) => state + 1
-    const serializableStateInvariantMiddleware =
-      qx.createSerializableStateInvariantMiddleware()
+    const serializableStateInvariantMiddleware = qx.createSerializableStateInvariantMiddleware()
     const store = qx.configureStore({
       reducer,
       middleware: [serializableStateInvariantMiddleware],
@@ -301,8 +270,7 @@ describe("serializableStateInvariantMiddleware", () => {
           return state
       }
     }
-    const serializableStateInvariantMiddleware =
-      qx.createSerializableStateInvariantMiddleware()
+    const serializableStateInvariantMiddleware = qx.createSerializableStateInvariantMiddleware()
     const store = qx.configureStore({
       reducer: {
         testSlice: reducer,
@@ -350,8 +318,7 @@ describe("serializableStateInvariantMiddleware", () => {
             return state
         }
       }
-      const serializableStateInvariantMiddleware =
-        qx.createSerializableStateInvariantMiddleware()
+      const serializableStateInvariantMiddleware = qx.createSerializableStateInvariantMiddleware()
       const store = qx.configureStore({
         reducer: {
           testSlice: reducer,
@@ -370,10 +337,8 @@ describe("serializableStateInvariantMiddleware", () => {
       const initialState = {
         a: 0,
       }
-      const isSerializable = (val: any): boolean =>
-        val.isSerializable || qx.isPlain(val)
-      const getEntries = (val: any): [string, any][] =>
-        val.isSerializable ? val.entries() : Object.entries(val)
+      const isSerializable = (val: any): boolean => val.isSerializable || qx.isPlain(val)
+      const getEntries = (val: any): [string, any][] => (val.isSerializable ? val.entries() : Object.entries(val))
       const reducer: qx.Reducer = (state = initialState, action) => {
         switch (action.type) {
           case ACTION_TYPE: {
@@ -385,11 +350,10 @@ describe("serializableStateInvariantMiddleware", () => {
             return state
         }
       }
-      const serializableStateInvariantMiddleware =
-        qx.createSerializableStateInvariantMiddleware({
-          isSerializable,
-          getEntries,
-        })
+      const serializableStateInvariantMiddleware = qx.createSerializableStateInvariantMiddleware({
+        isSerializable,
+        getEntries,
+      })
       const store = qx.configureStore({
         reducer: {
           testSlice: reducer,
@@ -421,10 +385,9 @@ describe("serializableStateInvariantMiddleware", () => {
           return state
       }
     }
-    const serializableStateInvariantMiddleware =
-      qx.createSerializableStateInvariantMiddleware({
-        isSerializable: () => true,
-      })
+    const serializableStateInvariantMiddleware = qx.createSerializableStateInvariantMiddleware({
+      isSerializable: () => true,
+    })
     const store = qx.configureStore({
       reducer: {
         testSlice: reducer,
@@ -436,14 +399,13 @@ describe("serializableStateInvariantMiddleware", () => {
   })
   it("should not check serializability for ignored action types", () => {
     let numTimesCalled = 0
-    const serializableStateMiddleware =
-      qx.createSerializableStateInvariantMiddleware({
-        isSerializable: () => {
-          numTimesCalled++
-          return true
-        },
-        ignoredActions: ["IGNORE_ME"],
-      })
+    const serializableStateMiddleware = qx.createSerializableStateInvariantMiddleware({
+      isSerializable: () => {
+        numTimesCalled++
+        return true
+      },
+      ignoredActions: ["IGNORE_ME"],
+    })
     const store = qx.configureStore({
       reducer: () => ({}),
       middleware: [serializableStateMiddleware],
@@ -505,14 +467,13 @@ describe("serializableStateInvariantMiddleware", () => {
   })
   it("allows ignoring actions entirely", () => {
     let numTimesCalled = 0
-    const serializableStateMiddleware =
-      qx.createSerializableStateInvariantMiddleware({
-        isSerializable: () => {
-          numTimesCalled++
-          return true
-        },
-        ignoreActions: true,
-      })
+    const serializableStateMiddleware = qx.createSerializableStateInvariantMiddleware({
+      isSerializable: () => {
+        numTimesCalled++
+        return true
+      },
+      ignoreActions: true,
+    })
     const store = qx.configureStore({
       reducer: () => ({}),
       middleware: [serializableStateMiddleware],
@@ -545,10 +506,9 @@ describe("serializableStateInvariantMiddleware", () => {
           return state
       }
     }
-    const serializableStateInvariantMiddleware =
-      qx.createSerializableStateInvariantMiddleware({
-        ignoredPaths: ["testSlice.a", "testSlice.b.c", "testSlice.e"],
-      })
+    const serializableStateInvariantMiddleware = qx.createSerializableStateInvariantMiddleware({
+      ignoredPaths: ["testSlice.a", "testSlice.b.c", "testSlice.e"],
+    })
     const store = qx.configureStore({
       reducer: {
         testSlice: reducer,
@@ -609,8 +569,7 @@ describe("serializableStateInvariantMiddleware", () => {
     const reducer: qx.Reducer = (state = 42, action) => {
       return state
     }
-    const serializableStateInvariantMiddleware =
-      qx.createSerializableStateInvariantMiddleware({ warnAfter: 4 })
+    const serializableStateInvariantMiddleware = qx.createSerializableStateInvariantMiddleware({ warnAfter: 4 })
     const store = qx.configureStore({
       reducer: {
         testSlice: reducer,
@@ -631,8 +590,7 @@ describe("serializableStateInvariantMiddleware", () => {
       while (Date.now() - started < 8) {}
       return state
     }
-    const serializableStateInvariantMiddleware =
-      qx.createSerializableStateInvariantMiddleware({ warnAfter: 4 })
+    const serializableStateInvariantMiddleware = qx.createSerializableStateInvariantMiddleware({ warnAfter: 4 })
     const store = qx.configureStore({
       reducer: {
         testSlice: reducer,
@@ -647,9 +605,7 @@ describe("serializableStateInvariantMiddleware", () => {
 describe("createImmutableStateInvariantMiddleware", () => {
   let state: { foo: { bar: number[]; baz: string } }
   const getState: qx.Store["getState"] = () => state
-  function middleware(
-    options: qx.ImmutableStateInvariantMiddlewareOptions = {}
-  ) {
+  function middleware(options: qx.ImmutableStateInvariantMiddlewareOptions = {}) {
     return qx.createImmutableStateInvariantMiddleware(options)({
       getState,
     } as qx.MiddlewareAPI)
@@ -902,33 +858,30 @@ describe("trackForMutations", () => {
       },
       path: ["mutation"],
     },
-    "mutating previous state with non immutable type and returning new state without that property":
-      {
-        getState: () => ({ counter: 0 }),
-        fn: s => {
-          s.mutation = [1, 2, 3]
-          return { counter: s.counter + 1 }
-        },
-        path: ["mutation"],
+    "mutating previous state with non immutable type and returning new state without that property": {
+      getState: () => ({ counter: 0 }),
+      fn: s => {
+        s.mutation = [1, 2, 3]
+        return { counter: s.counter + 1 }
       },
-    "mutating previous state with non immutable type and returning new simple state":
-      {
-        getState: () => ({ counter: 0 }),
-        fn: s => {
-          s.mutation = [1, 2, 3]
-          return 1
-        },
-        path: ["mutation"],
+      path: ["mutation"],
+    },
+    "mutating previous state with non immutable type and returning new simple state": {
+      getState: () => ({ counter: 0 }),
+      fn: s => {
+        s.mutation = [1, 2, 3]
+        return 1
       },
-    "mutating previous state by deleting property and returning new state without that property":
-      {
-        getState: () => ({ counter: 0, toBeDeleted: true }),
-        fn: s => {
-          delete s.toBeDeleted
-          return { counter: s.counter + 1 }
-        },
-        path: ["toBeDeleted"],
+      path: ["mutation"],
+    },
+    "mutating previous state by deleting property and returning new state without that property": {
+      getState: () => ({ counter: 0, toBeDeleted: true }),
+      fn: s => {
+        delete s.toBeDeleted
+        return { counter: s.counter + 1 }
       },
+      path: ["toBeDeleted"],
+    },
     "mutating previous state by deleting nested property": {
       getState: () => ({ nested: { counter: 0, toBeDeleted: true }, foo: 1 }),
       fn: s => {

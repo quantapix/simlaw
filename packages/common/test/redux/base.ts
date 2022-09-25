@@ -11,7 +11,9 @@ describe("applyMiddleware", () => {
       store.dispatch(qh.addTodo("Don't dispatch in middleware setup"))
       return (next: qx.Dispatch) => (action: qx.Action) => next(action)
     }
-    expect(() => qx.applyMiddleware(dispatchingMiddleware as qx.Middleware)(qx.createStore)(qh.reducers.todos)).toThrow()
+    expect(() =>
+      qx.applyMiddleware(dispatchingMiddleware as qx.Middleware)(qx.createStore)(qh.reducers.todos)
+    ).toThrow()
   })
   it("wraps dispatch method with middleware once", () => {
     function test(spyOnMethods: any) {
@@ -145,17 +147,26 @@ describe("bindActionCreators", () => {
   it("throws for an undefined actionCreator", () => {
     expect(() => {
       qx.bindActionCreators(undefined, store.dispatch)
-    }).toThrow(`bindActionCreators expected an object or a function, but instead received: 'undefined'. ` + `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`)
+    }).toThrow(
+      `bindActionCreators expected an object or a function, but instead received: 'undefined'. ` +
+        `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`
+    )
   })
   it("throws for a null actionCreator", () => {
     expect(() => {
       qx.bindActionCreators(null, store.dispatch)
-    }).toThrow(`bindActionCreators expected an object or a function, but instead received: 'null'. ` + `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`)
+    }).toThrow(
+      `bindActionCreators expected an object or a function, but instead received: 'null'. ` +
+        `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`
+    )
   })
   it("throws for a primitive actionCreator", () => {
     expect(() => {
       qx.bindActionCreators("string" as unknown as qx.ActionCreator<any>, store.dispatch)
-    }).toThrow(`bindActionCreators expected an object or a function, but instead received: 'string'. ` + `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`)
+    }).toThrow(
+      `bindActionCreators expected an object or a function, but instead received: 'string'. ` +
+        `Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?`
+    )
   })
 })
 describe("createStore", () => {
@@ -504,7 +515,9 @@ describe("createStore", () => {
     const store = qx.createStore(qh.reducers.todos)
     expect(() => store.dispatch(qh.unknownAction())).not.toThrow()
     function AwesomeMap() {}
-    ;[null, undefined, 42, "hey", new AwesomeMap()].forEach(nonObject => expect(() => store.dispatch(nonObject)).toThrow(/plain/))
+    ;[null, undefined, 42, "hey", new AwesomeMap()].forEach(nonObject =>
+      expect(() => store.dispatch(nonObject)).toThrow(/plain/)
+    )
   })
   it("handles nested dispatches gracefully", () => {
     function foo(state = 0, action: qx.Action) {
@@ -528,23 +541,31 @@ describe("createStore", () => {
   })
   it("does not allow dispatch() from within a reducer", () => {
     const store = qx.createStore(qh.reducers.dispatchInTheMiddleOfReducer)
-    expect(() => store.dispatch(qh.dispatchInMiddle(store.dispatch.bind(store, qh.unknownAction())))).toThrow(/may not dispatch/)
+    expect(() => store.dispatch(qh.dispatchInMiddle(store.dispatch.bind(store, qh.unknownAction())))).toThrow(
+      /may not dispatch/
+    )
     expect(() => store.dispatch(qh.dispatchInMiddle(() => {}))).not.toThrow()
   })
   it("does not allow getState() from within a reducer", () => {
     const store = qx.createStore(qh.reducers.getStateInTheMiddleOfReducer)
-    expect(() => store.dispatch(qh.getStateInMiddle(store.getState.bind(store)))).toThrow(/You may not call store.getState()/)
+    expect(() => store.dispatch(qh.getStateInMiddle(store.getState.bind(store)))).toThrow(
+      /You may not call store.getState()/
+    )
     expect(() => store.dispatch(qh.getStateInMiddle(() => {}))).not.toThrow()
   })
   it("does not allow subscribe() from within a reducer", () => {
     const store = qx.createStore(qh.reducers.subscribeInTheMiddleOfReducer)
-    expect(() => store.dispatch(qh.subscribeInMiddle(store.subscribe.bind(store, () => {})))).toThrow(/You may not call store.subscribe()/)
+    expect(() => store.dispatch(qh.subscribeInMiddle(store.subscribe.bind(store, () => {})))).toThrow(
+      /You may not call store.subscribe()/
+    )
     expect(() => store.dispatch(qh.subscribeInMiddle(() => {}))).not.toThrow()
   })
   it("does not allow unsubscribe from subscribe() from within a reducer", () => {
     const store = qx.createStore(qh.reducers.unsubscribeInTheMiddleOfReducer)
     const unsubscribe = store.subscribe(() => {})
-    expect(() => store.dispatch(qh.unsubscribeInMiddle(unsubscribe.bind(store)))).toThrow(/You may not unsubscribe from a store/)
+    expect(() => store.dispatch(qh.unsubscribeInMiddle(unsubscribe.bind(store)))).toThrow(
+      /You may not unsubscribe from a store/
+    )
     expect(() => store.dispatch(qh.unsubscribeInMiddle(() => {}))).not.toThrow()
   })
   it("recovers from an error within a reducer", () => {

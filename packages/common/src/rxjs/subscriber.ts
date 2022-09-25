@@ -5,11 +5,7 @@ import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
 export class Subscriber<T> extends Subscription implements qt.Observer<T> {
-  static create<T>(
-    next?: (x: T) => void,
-    error?: (x: any) => void,
-    done?: () => void
-  ): Subscriber<T> {
+  static create<T>(next?: (x: T) => void, error?: (x: any) => void, done?: () => void): Subscriber<T> {
     return new SafeSubscriber(next, error, done)
   }
   protected stopped = false
@@ -105,9 +101,7 @@ class ConsumerObserver<T> implements qt.Observer<T> {
 }
 
 export function isSubscriber<T>(x: any): x is Subscriber<T> {
-  return (
-    (x && x instanceof Subscriber) || (qu.isObserver(x) && isSubscription(x))
-  )
+  return (x && x instanceof Subscriber) || (qu.isObserver(x) && isSubscription(x))
 }
 
 export class SafeSubscriber<T> extends Subscriber<T> {

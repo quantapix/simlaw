@@ -1,13 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
 import { setupApiStore, waitMs } from "./helpers.js"
 import React from "react"
-import {
-  render,
-  screen,
-  getByTestId,
-  waitFor,
-  act,
-} from "@testing-library/react"
+import { render, screen, getByTestId, waitFor, act } from "@testing-library/react"
 describe("fixedCacheKey", () => {
   const api = createApi({
     async baseQuery(arg: string | Promise<string>) {
@@ -59,9 +53,7 @@ describe("fixedCacheKey", () => {
     act(() => {
       getByTestId(c1, "trigger").click()
     })
-    await waitFor(() =>
-      expect(getByTestId(c1, "status").textContent).toBe("fulfilled")
-    )
+    await waitFor(() => expect(getByTestId(c1, "status").textContent).toBe("fulfilled"))
     expect(getByTestId(c1, "data").textContent).toBe("C1")
     expect(getByTestId(c2, "status").textContent).toBe("uninitialized")
   })
@@ -117,9 +109,7 @@ describe("fixedCacheKey", () => {
     act(() => {
       getByTestId(c1, "trigger").click()
     })
-    await waitFor(() =>
-      expect(getByTestId(c1, "status").textContent).toBe("fulfilled")
-    )
+    await waitFor(() => expect(getByTestId(c1, "status").textContent).toBe("fulfilled"))
     expect(getByTestId(c1, "data").textContent).toBe("C1")
     expect(getByTestId(c2, "status").textContent).toBe("fulfilled")
     expect(getByTestId(c2, "data").textContent).toBe("C1")
@@ -131,9 +121,7 @@ describe("fixedCacheKey", () => {
     act(() => {
       getByTestId(c3, "trigger").click()
     })
-    await waitFor(() =>
-      expect(getByTestId(c3, "status").textContent).toBe("fulfilled")
-    )
+    await waitFor(() => expect(getByTestId(c3, "status").textContent).toBe("fulfilled"))
     await waitFor(() => {
       expect(getByTestId(c1, "data").textContent).toBe("C1")
       expect(getByTestId(c2, "status").textContent).toBe("fulfilled")
@@ -173,9 +161,7 @@ describe("fixedCacheKey", () => {
     act(() => {
       getByTestId(c1, "trigger").click()
     })
-    await waitFor(() =>
-      expect(getByTestId(c1, "status").textContent).toBe("fulfilled")
-    )
+    await waitFor(() => expect(getByTestId(c1, "status").textContent).toBe("fulfilled"))
     expect(getByTestId(c1, "data").textContent).toBe("C1")
     expect(getByTestId(c2, "status").textContent).toBe("uninitialized")
   })
@@ -188,9 +174,7 @@ describe("fixedCacheKey", () => {
     act(() => {
       getByTestId(c1, "trigger").click()
     })
-    await waitFor(() =>
-      expect(getByTestId(c1, "status").textContent).toBe("fulfilled")
-    )
+    await waitFor(() => expect(getByTestId(c1, "status").textContent).toBe("fulfilled"))
     expect(getByTestId(c1, "data").textContent).toBe("C1")
     rerender(<div />)
     expect(screen.queryByTestId("C1")).toBe(null)
@@ -214,9 +198,7 @@ describe("fixedCacheKey", () => {
     act(() => {
       getByTestId(c1, "trigger").click()
     })
-    await waitFor(() =>
-      expect(getByTestId(c1, "status").textContent).toBe("fulfilled")
-    )
+    await waitFor(() => expect(getByTestId(c1, "status").textContent).toBe("fulfilled"))
     expect(getByTestId(c1, "data").textContent).toBe("C1")
     expect(getByTestId(c2, "status").textContent).toBe("fulfilled")
     expect(getByTestId(c2, "data").textContent).toBe("C1")

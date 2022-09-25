@@ -114,16 +114,8 @@ describe("fetchBaseQuery", () => {
   })
   describe("non-JSON-body", () => {
     it('success: should return data ("text" responseHandler)', async () => {
-      server.use(
-        rest.get("https://example.com/success", (_, res, ctx) =>
-          res.once(ctx.text(`this is not json!`))
-        )
-      )
-      const req = baseQuery(
-        { url: "/success", responseHandler: "text" },
-        commonBaseQueryApi,
-        {}
-      )
+      server.use(rest.get("https://example.com/success", (_, res, ctx) => res.once(ctx.text(`this is not json!`))))
+      const req = baseQuery({ url: "/success", responseHandler: "text" }, commonBaseQueryApi, {})
       expect(req).toBeInstanceOf(Promise)
       const res = await req
       expect(res).toBeInstanceOf(Object)
@@ -132,11 +124,7 @@ describe("fetchBaseQuery", () => {
       expect(res.data).toEqual(`this is not json!`)
     })
     it('success: should fail gracefully (default="json" responseHandler)', async () => {
-      server.use(
-        rest.get("https://example.com/success", (_, res, ctx) =>
-          res.once(ctx.text(`this is not json!`))
-        )
-      )
+      server.use(rest.get("https://example.com/success", (_, res, ctx) => res.once(ctx.text(`this is not json!`))))
       const req = baseQuery("/success", commonBaseQueryApi, {})
       expect(req).toBeInstanceOf(Promise)
       const res = await req
@@ -152,15 +140,9 @@ describe("fetchBaseQuery", () => {
     })
     it('server error: should fail normally with a 500 status ("text" responseHandler)', async () => {
       server.use(
-        rest.get("https://example.com/error", (_, res, ctx) =>
-          res(ctx.status(500), ctx.text(`this is not json!`))
-        )
+        rest.get("https://example.com/error", (_, res, ctx) => res(ctx.status(500), ctx.text(`this is not json!`)))
       )
-      const req = baseQuery(
-        { url: "/error", responseHandler: "text" },
-        commonBaseQueryApi,
-        {}
-      )
+      const req = baseQuery({ url: "/error", responseHandler: "text" }, commonBaseQueryApi, {})
       expect(req).toBeInstanceOf(Promise)
       const res = await req
       expect(res).toBeInstanceOf(Object)
@@ -173,9 +155,7 @@ describe("fetchBaseQuery", () => {
     })
     it('server error: should fail gracefully (default="json" responseHandler)', async () => {
       server.use(
-        rest.get("https://example.com/error", (_, res, ctx) =>
-          res(ctx.status(500), ctx.text(`this is not json!`))
-        )
+        rest.get("https://example.com/error", (_, res, ctx) => res(ctx.status(500), ctx.text(`this is not json!`)))
       )
       const req = baseQuery("/error", commonBaseQueryApi, {})
       expect(req).toBeInstanceOf(Promise)
@@ -208,11 +188,7 @@ describe("fetchBaseQuery", () => {
     it("an array provided to body will be serialized when content-type is json", async () => {
       const data = ["test", "value"]
       let request: any
-      ;({ data: request } = await baseQuery(
-        { url: "/echo", body: data, method: "POST" },
-        commonBaseQueryApi,
-        {}
-      ))
+      ;({ data: request } = await baseQuery({ url: "/echo", body: data, method: "POST" }, commonBaseQueryApi, {}))
       expect(request.headers["content-type"]).toBe("application/json")
       expect(request.body).toEqual(data)
     })
@@ -254,51 +230,31 @@ describe("fetchBaseQuery", () => {
   describe("arg.params", () => {
     it("should not serialize missing params", async () => {
       let request: any
-      ;({ data: request } = await baseQuery(
-        { url: "/echo" },
-        commonBaseQueryApi,
-        {}
-      ))
+      ;({ data: request } = await baseQuery({ url: "/echo" }, commonBaseQueryApi, {}))
       expect(request.url).toEqual(`${baseUrl}/echo`)
     })
     it("should serialize numeric and boolean params", async () => {
       const params = { a: 1, b: true }
       let request: any
-      ;({ data: request } = await baseQuery(
-        { url: "/echo", params },
-        commonBaseQueryApi,
-        {}
-      ))
+      ;({ data: request } = await baseQuery({ url: "/echo", params }, commonBaseQueryApi, {}))
       expect(request.url).toEqual(`${baseUrl}/echo?a=1&b=true`)
     })
     it("should merge params into existing url querystring", async () => {
       const params = { a: 1, b: true }
       let request: any
-      ;({ data: request } = await baseQuery(
-        { url: "/echo?banana=pudding", params },
-        commonBaseQueryApi,
-        {}
-      ))
+      ;({ data: request } = await baseQuery({ url: "/echo?banana=pudding", params }, commonBaseQueryApi, {}))
       expect(request.url).toEqual(`${baseUrl}/echo?banana=pudding&a=1&b=true`)
     })
     it("should accept a URLSearchParams instance", async () => {
       const params = new URLSearchParams({ apple: "fruit" })
       let request: any
-      ;({ data: request } = await baseQuery(
-        { url: "/echo", params },
-        commonBaseQueryApi,
-        {}
-      ))
+      ;({ data: request } = await baseQuery({ url: "/echo", params }, commonBaseQueryApi, {}))
       expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit`)
     })
     it("should strip undefined values from the end params", async () => {
       const params = { apple: "fruit", banana: undefined, randy: null }
       let request: any
-      ;({ data: request } = await baseQuery(
-        { url: "/echo", params },
-        commonBaseQueryApi,
-        {}
-      ))
+      ;({ data: request } = await baseQuery({ url: "/echo", params }, commonBaseQueryApi, {}))
       expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit&randy=null`)
     })
     it("should support a paramsSerializer", async () => {
@@ -329,14 +285,8 @@ describe("fetchBaseQuery", () => {
         someArray: ["a", "b", "c"],
       }
       let request: any
-      ;({ data: request } = await baseQuery(
-        { url: "/echo", params },
-        commonBaseQueryApi,
-        {}
-      ))
-      expect(request.url).toEqual(
-        `${baseUrl}/echo?someArray[]=a&someArray[]=b&someArray[]=c`
-      )
+      ;({ data: request } = await baseQuery({ url: "/echo", params }, commonBaseQueryApi, {}))
+      expect(request.url).toEqual(`${baseUrl}/echo?someArray[]=a&someArray[]=b&someArray[]=c`)
     })
   })
   describe("validateStatus", () => {
@@ -344,8 +294,7 @@ describe("fetchBaseQuery", () => {
       const res = await baseQuery(
         {
           url: "/nonstandard-error",
-          validateStatus: (response, body) =>
-            response.status === 200 && body.success === false ? false : true,
+          validateStatus: (response, body) => (response.status === 200 && body.success === false ? false : true),
         },
         commonBaseQueryApi,
         {}
@@ -362,11 +311,7 @@ describe("fetchBaseQuery", () => {
   describe("arg.headers and prepareHeaders", () => {
     it("uses the default headers set in prepareHeaders", async () => {
       let request: any
-      ;({ data: request } = await baseQuery(
-        { url: "/echo" },
-        commonBaseQueryApi,
-        {}
-      ))
+      ;({ data: request } = await baseQuery({ url: "/echo" }, commonBaseQueryApi, {}))
       expect(request.headers["fake"]).toBe(defaultHeaders["fake"])
       expect(request.headers["delete"]).toBe(defaultHeaders["delete"])
       expect(request.headers["delete2"]).toBe(defaultHeaders["delete2"])
@@ -425,8 +370,7 @@ describe("fetchBaseQuery", () => {
           return headers
         },
       })
-      const doRequest = async () =>
-        _baseQuery({ url: "/echo" }, commonBaseQueryApi, {})
+      const doRequest = async () => _baseQuery({ url: "/echo" }, commonBaseQueryApi, {})
       ;({ data: request } = await doRequest())
       expect(request.headers["authorization"]).toBe(`Bearer ${token}`)
     })
@@ -457,10 +401,7 @@ describe("fetchBaseQuery", () => {
       const baseQuery = fetchBaseQuery({
         baseUrl,
         fetchFn: fetchFn as any,
-        prepareHeaders: (
-          headers,
-          { getState, extra, endpoint, type, forced }
-        ) => {
+        prepareHeaders: (headers, { getState, extra, endpoint, type, forced }) => {
           _getState = getState
           _endpoint = endpoint
           _type = type
@@ -496,11 +437,7 @@ describe("fetchBaseQuery", () => {
   })
   it("lets a header be undefined", async () => {
     let request: any
-    ;({ data: request } = await baseQuery(
-      { url: "/echo", headers: undefined },
-      commonBaseQueryApi,
-      {}
-    ))
+    ;({ data: request } = await baseQuery({ url: "/echo", headers: undefined }, commonBaseQueryApi, {}))
     expect(request.headers["fake"]).toBe(defaultHeaders["fake"])
     expect(request.headers["delete"]).toBe(defaultHeaders["delete"])
     expect(request.headers["delete2"]).toBe(defaultHeaders["delete2"])
@@ -508,11 +445,7 @@ describe("fetchBaseQuery", () => {
   it("allows for possibly undefined header key/values", async () => {
     const banana = "1" as "1" | undefined
     let request: any
-    ;({ data: request } = await baseQuery(
-      { url: "/echo", headers: { banana } },
-      commonBaseQueryApi,
-      {}
-    ))
+    ;({ data: request } = await baseQuery({ url: "/echo", headers: { banana } }, commonBaseQueryApi, {}))
     expect(request.headers["banana"]).toBe("1")
     expect(request.headers["fake"]).toBe(defaultHeaders["fake"])
     expect(request.headers["delete"]).toBe(defaultHeaders["delete"])
@@ -521,11 +454,7 @@ describe("fetchBaseQuery", () => {
   it("strips undefined values from the headers", async () => {
     const banana = undefined as "1" | undefined
     let request: any
-    ;({ data: request } = await baseQuery(
-      { url: "/echo", headers: { banana } },
-      commonBaseQueryApi,
-      {}
-    ))
+    ;({ data: request } = await baseQuery({ url: "/echo", headers: { banana } }, commonBaseQueryApi, {}))
     expect(request.headers["banana"]).toBeUndefined()
     expect(request.headers["fake"]).toBe(defaultHeaders["fake"])
     expect(request.headers["delete"]).toBe(defaultHeaders["delete"])
@@ -541,11 +470,7 @@ describe("fetchFn", () => {
       fetchFn: nodeFetch as any,
     })
     let request: any
-    ;({ data: request } = await baseQuery(
-      { url: "/echo", params },
-      commonBaseQueryApi,
-      {}
-    ))
+    ;({ data: request } = await baseQuery({ url: "/echo", params }, commonBaseQueryApi, {}))
     expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit`)
   })
   it("respects mocking window.fetch after a fetch base query is created", async () => {
@@ -574,11 +499,7 @@ describe("FormData", () => {
         type: "application/json",
       })
     )
-    const res = await baseQuery(
-      { url: "/echo", method: "POST", body },
-      commonBaseQueryApi,
-      {}
-    )
+    const res = await baseQuery({ url: "/echo", method: "POST", body }, commonBaseQueryApi, {})
     const request: any = res.data
     expect(request.headers["content-type"]).not.toContain("application/json")
   })

@@ -1,9 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query"
 import { waitFor } from "@testing-library/react"
-import type {
-  FetchBaseQueryMeta,
-  FetchBaseQueryError,
-} from "@reduxjs/toolkit/query"
+import type { FetchBaseQueryMeta, FetchBaseQueryError } from "@reduxjs/toolkit/query"
 import { fetchBaseQuery } from "@reduxjs/toolkit/query"
 import { expectType, setupApiStore } from "./helpers"
 import { server } from "./mocks/server"
@@ -107,10 +104,7 @@ test("query: getCacheEntry (success)", async () => {
     endpoints: build => ({
       injected: build.query<unknown, string>({
         query: () => "/success",
-        async onQueryStarted(
-          arg,
-          { dispatch, getState, getCacheEntry, queryFulfilled }
-        ) {
+        async onQueryStarted(arg, { dispatch, getState, getCacheEntry, queryFulfilled }) {
           try {
             snapshot(getCacheEntry())
             const result = await queryFulfilled
@@ -124,9 +118,7 @@ test("query: getCacheEntry (success)", async () => {
       }),
     }),
   })
-  const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg")
-  )
+  const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
   await waitFor(() => {
     expect(onSuccess).toHaveBeenCalled()
   })
@@ -165,10 +157,7 @@ test("query: getCacheEntry (error)", async () => {
     endpoints: build => ({
       injected: build.query<unknown, string>({
         query: () => "/error",
-        async onQueryStarted(
-          arg,
-          { dispatch, getState, getCacheEntry, queryFulfilled }
-        ) {
+        async onQueryStarted(arg, { dispatch, getState, getCacheEntry, queryFulfilled }) {
           try {
             snapshot(getCacheEntry())
             const result = await queryFulfilled
@@ -182,9 +171,7 @@ test("query: getCacheEntry (error)", async () => {
       }),
     }),
   })
-  const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg")
-  )
+  const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
   await waitFor(() => {
     expect(onError).toHaveBeenCalled()
   })
@@ -222,10 +209,7 @@ test("mutation: getCacheEntry (success)", async () => {
     endpoints: build => ({
       injected: build.mutation<unknown, string>({
         query: () => "/success",
-        async onQueryStarted(
-          arg,
-          { dispatch, getState, getCacheEntry, queryFulfilled }
-        ) {
+        async onQueryStarted(arg, { dispatch, getState, getCacheEntry, queryFulfilled }) {
           try {
             snapshot(getCacheEntry())
             const result = await queryFulfilled
@@ -239,9 +223,7 @@ test("mutation: getCacheEntry (success)", async () => {
       }),
     }),
   })
-  const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg")
-  )
+  const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
   await waitFor(() => {
     expect(onSuccess).toHaveBeenCalled()
   })
@@ -276,10 +258,7 @@ test("mutation: getCacheEntry (error)", async () => {
     endpoints: build => ({
       injected: build.mutation<unknown, string>({
         query: () => "/error",
-        async onQueryStarted(
-          arg,
-          { dispatch, getState, getCacheEntry, queryFulfilled }
-        ) {
+        async onQueryStarted(arg, { dispatch, getState, getCacheEntry, queryFulfilled }) {
           try {
             snapshot(getCacheEntry())
             const result = await queryFulfilled
@@ -293,9 +272,7 @@ test("mutation: getCacheEntry (error)", async () => {
       }),
     }),
   })
-  const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg")
-  )
+  const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
   await waitFor(() => {
     expect(onError).toHaveBeenCalled()
   })
@@ -329,16 +306,7 @@ test("query: updateCachedData", async () => {
     endpoints: build => ({
       injected: build.query<{ value: string }, string>({
         query: () => "/success",
-        async onQueryStarted(
-          arg,
-          {
-            dispatch,
-            getState,
-            getCacheEntry,
-            updateCachedData,
-            queryFulfilled,
-          }
-        ) {
+        async onQueryStarted(arg, { dispatch, getState, getCacheEntry, updateCachedData, queryFulfilled }) {
           updateCachedData(draft => {
             draft.value += "."
           })
@@ -364,21 +332,15 @@ test("query: updateCachedData", async () => {
   onSuccess.mockClear()
   expect(onError).not.toHaveBeenCalled()
   server.use(
-    rest.get("https://example.com/success", (_, req, ctx) =>
-      req.once(ctx.status(500), ctx.json({ value: "failed" }))
-    )
+    rest.get("https://example.com/success", (_, req, ctx) => req.once(ctx.status(500), ctx.json({ value: "failed" })))
   )
-  storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg", { forceRefetch: true })
-  )
+  storeRef.store.dispatch(extended.endpoints.injected.initiate("arg", { forceRefetch: true }))
   await waitFor(() => {
     expect(onError).toHaveBeenCalled()
   })
   expect(onError).toHaveBeenCalledWith({ value: "success.x" })
   expect(onSuccess).not.toHaveBeenCalled()
-  storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg", { forceRefetch: true })
-  )
+  storeRef.store.dispatch(extended.endpoints.injected.initiate("arg", { forceRefetch: true }))
   await waitFor(() => {
     expect(onSuccess).toHaveBeenCalled()
   })
@@ -397,16 +359,12 @@ test("query: will only start lifecycle if query is not skipped due to `condition
       }),
     }),
   })
-  const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg")
-  )
+  const promise = storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
   expect(onStart).toHaveBeenCalledTimes(1)
   storeRef.store.dispatch(extended.endpoints.injected.initiate("arg"))
   expect(onStart).toHaveBeenCalledTimes(1)
   await promise
-  storeRef.store.dispatch(
-    extended.endpoints.injected.initiate("arg", { forceRefetch: true })
-  )
+  storeRef.store.dispatch(extended.endpoints.injected.initiate("arg", { forceRefetch: true }))
   expect(onStart).toHaveBeenCalledTimes(2)
 })
 test("query types", () => {

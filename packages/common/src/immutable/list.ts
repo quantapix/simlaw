@@ -44,7 +44,13 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
     return updateList(this, index, value)
   }
   remove(index) {
-    return !this.has(index) ? this : index === 0 ? this.shift() : index === this.size - 1 ? this.pop() : this.splice(index, 1)
+    return !this.has(index)
+      ? this
+      : index === 0
+      ? this.shift()
+      : index === this.size - 1
+      ? this.pop()
+      : this.splice(index, 1)
   }
   insert(index, value) {
     return this.splice(index, 0, value)
@@ -393,7 +399,12 @@ function setListBounds(list, begin, end) {
     newLevel += qu.SHIFT
   }
   const oldTail = list._tail
-  let newTail = newTailOffset < oldTailOffset ? listNodeFor(list, newCapacity - 1) : newTailOffset > oldTailOffset ? new VNode([], owner) : oldTail
+  let newTail =
+    newTailOffset < oldTailOffset
+      ? listNodeFor(list, newCapacity - 1)
+      : newTailOffset > oldTailOffset
+      ? new VNode([], owner)
+      : oldTail
   if (oldTail && newTailOffset > oldTailOffset && newOrigin < oldCapacity && oldTail.array.length) {
     newRoot = editableVNode(newRoot, owner)
     let node = newRoot

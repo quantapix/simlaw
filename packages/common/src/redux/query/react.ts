@@ -25,52 +25,34 @@ import {
 type RR = typeof import("react-redux")
 
 export const useIsomorphicLayoutEffect =
-  typeof window !== "undefined" &&
-  window.document &&
-  window.document.createElement
-    ? qr.useLayoutEffect
-    : qr.useEffect
+  typeof window !== "undefined" && window.document && window.document.createElement ? qr.useLayoutEffect : qr.useEffect
 export type TypedUseQueryHookResult<
   ResultType,
   QueryArg,
   BaseQuery extends qt.BaseQueryFn,
-  R = qt.UseQueryStateDefaultResult<
-    qt.QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
-  >
+  R = qt.UseQueryStateDefaultResult<qt.QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>>
 > = TypedUseQueryStateResult<ResultType, QueryArg, BaseQuery, R> &
   TypedUseQuerySubscriptionResult<ResultType, QueryArg, BaseQuery>
 export type TypedUseQuerySubscriptionResult<
   ResultType,
   QueryArg,
   BaseQuery extends qt.BaseQueryFn
-> = qt.UseQuerySubscriptionResult<
-  qt.QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
->
+> = qt.UseQuerySubscriptionResult<qt.QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>>
 export type TypedUseQueryStateResult<
   ResultType,
   QueryArg,
   BaseQuery extends qt.BaseQueryFn,
-  R = qt.UseQueryStateDefaultResult<
-    qt.QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
-  >
+  R = qt.UseQueryStateDefaultResult<qt.QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>>
 > = qt.NoInfer<R>
 export type TypedUseMutationResult<
   ResultType,
   QueryArg,
   BaseQuery extends qt.BaseQueryFn,
-  R = qt.MutationResultSelectorResult<
-    qt.MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>
-  >
-> = qt.UseMutationStateResult<
-  qt.MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>,
-  R
->
+  R = qt.MutationResultSelectorResult<qt.MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>>
+> = qt.UseMutationStateResult<qt.MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>, R>
 const defaultQueryStateSelector: qt.QueryStateSelector<any, any> = x => x
 const defaultMutationStateSelector: qt.MutationStateSelector<any, any> = x => x
-const noPendingQueryStateSelector: qt.QueryStateSelector<
-  any,
-  any
-> = selected => {
+const noPendingQueryStateSelector: qt.QueryStateSelector<any, any> = selected => {
   if (selected.isUninitialized) {
     return {
       ...selected,
@@ -89,13 +71,7 @@ type GenericPrefetchThunk = (
 ) => qx.ThunkAction<void, any, any, qx.AnyAction>
 export function buildHooks<Definitions extends qt.EndpointDefinitions>({
   api,
-  moduleOptions: {
-    batch,
-    useDispatch,
-    useSelector,
-    useStore,
-    unstable__sideEffectsInRender,
-  },
+  moduleOptions: { batch, useDispatch, useSelector, useStore, unstable__sideEffectsInRender },
   serializeQueryArgs,
   context,
 }: {
@@ -104,10 +80,8 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
   serializeQueryArgs: qt.SerializeQueryArgs<any>
   context: ApiContext<Definitions>
 }) {
-  const usePossiblyImmediateEffect: (
-    effect: () => void | undefined,
-    deps?: qr.DependencyList
-  ) => void = unstable__sideEffectsInRender ? cb => cb() : qr.useEffect
+  const usePossiblyImmediateEffect: (effect: () => void | undefined, deps?: qr.DependencyList) => void =
+    unstable__sideEffectsInRender ? cb => cb() : qr.useEffect
   return { buildQueryHooks, buildMutationHook, usePrefetch }
   function queryStatePreSelector(
     currentState: qt.QueryResultSelectorResult<any>,
@@ -166,13 +140,7 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
   function buildQueryHooks(name: string): qt.QueryHooks<any> {
     const useQuerySubscription: qt.UseQuerySubscription<any> = (
       arg: any,
-      {
-        refetchOnReconnect,
-        refetchOnFocus,
-        refetchOnMountOrArgChange,
-        skip = false,
-        pollingInterval = 0,
-      } = {}
+      { refetchOnReconnect, refetchOnFocus, refetchOnMountOrArgChange, skip = false, pollingInterval = 0 } = {}
     ) => {
       const { initiate } = api.endpoints[name] as ApiEndpointQuery<
         qt.QueryDefinition<any, any, any, any, any>,
@@ -194,19 +162,14 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
       const { queryCacheKey, requestId } = promiseRef.current || {}
       const subscriptionRemoved = useSelector(
         (state: qt.RootState<Definitions, string, string>) =>
-          !!queryCacheKey &&
-          !!requestId &&
-          !state[api.reducerPath]?.subscriptions[queryCacheKey]?.[requestId]
+          !!queryCacheKey && !!requestId && !state[api.reducerPath]?.subscriptions[queryCacheKey]?.[requestId]
       )
       usePossiblyImmediateEffect((): void | undefined => {
         promiseRef.current = undefined
       }, [subscriptionRemoved])
       usePossiblyImmediateEffect((): void | undefined => {
         const lastPromise = promiseRef.current
-        if (
-          typeof process !== "undefined" &&
-          process.env["NODE_ENV"] === "removeMeOnCompilation"
-        ) {
+        if (typeof process !== "undefined" && process.env["NODE_ENV"] === "removeMeOnCompilation") {
           console.log(subscriptionRemoved)
         }
         if (stableArg === qt.skipToken) {
@@ -227,14 +190,7 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
         } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
           lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
         }
-      }, [
-        dispatch,
-        initiate,
-        refetchOnMountOrArgChange,
-        stableArg,
-        stableSubscriptionOptions,
-        subscriptionRemoved,
-      ])
+      }, [dispatch, initiate, refetchOnMountOrArgChange, stableArg, stableSubscriptionOptions, subscriptionRemoved])
       qr.useEffect(() => {
         return () => {
           promiseRef.current?.unsubscribe()
@@ -259,9 +215,7 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
       >
       const dispatch = useDispatch<qt.ThunkDispatch<any, any, qx.AnyAction>>()
       const [arg, setArg] = qr.useState<any>(qt.UNINITIALIZED_VALUE)
-      const promiseRef = qr.useRef<
-        qt.QueryActionCreatorResult<any> | undefined
-      >()
+      const promiseRef = qr.useRef<qt.QueryActionCreatorResult<any> | undefined>()
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
         refetchOnFocus,
@@ -270,9 +224,7 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
       usePossiblyImmediateEffect(() => {
         const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
         if (stableSubscriptionOptions !== lastSubscriptionOptions) {
-          promiseRef.current?.updateSubscriptionOptions(
-            stableSubscriptionOptions
-          )
+          promiseRef.current?.updateSubscriptionOptions(stableSubscriptionOptions)
         }
       }, [stableSubscriptionOptions])
       const subscriptionOptionsRef = qr.useRef(stableSubscriptionOptions)
@@ -324,33 +276,24 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
       )
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
       const lastValue = qr.useRef<any>()
-      const selectDefaultResult: qx.Selector<ApiRootState, any, [any]> =
-        qr.useMemo(
-          () =>
-            qx.createSelector(
-              [
-                select(stableArg),
-                (_: ApiRootState, lastResult: any) => lastResult,
-                (_: ApiRootState) => stableArg,
-              ],
-              queryStatePreSelector
-            ),
-          [select, stableArg]
-        )
+      const selectDefaultResult: qx.Selector<ApiRootState, any, [any]> = qr.useMemo(
+        () =>
+          qx.createSelector(
+            [select(stableArg), (_: ApiRootState, lastResult: any) => lastResult, (_: ApiRootState) => stableArg],
+            queryStatePreSelector
+          ),
+        [select, stableArg]
+      )
       const querySelector: qx.Selector<ApiRootState, any, [any]> = qr.useMemo(
         () => qx.createSelector([selectDefaultResult], selectFromResult),
         [selectDefaultResult, selectFromResult]
       )
       const currentState = useSelector(
-        (state: qt.RootState<Definitions, any, any>) =>
-          querySelector(state, lastValue.current),
+        (state: qt.RootState<Definitions, any, any>) => querySelector(state, lastValue.current),
         shallowEqual
       )
       const store = useStore<qt.RootState<Definitions, any, any>>()
-      const newLastValue = selectDefaultResult(
-        store.getState(),
-        lastValue.current
-      )
+      const newLastValue = selectDefaultResult(store.getState(), lastValue.current)
       useIsomorphicLayoutEffect(() => {
         lastValue.current = newLastValue
       }, [newLastValue])
@@ -367,22 +310,15 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
           skip: arg === qt.UNINITIALIZED_VALUE,
         })
         const info = qr.useMemo(() => ({ lastArg: arg }), [arg])
-        return qr.useMemo(
-          () => [trigger, queryStateResults, info],
-          [trigger, queryStateResults, info]
-        )
+        return qr.useMemo(() => [trigger, queryStateResults, info], [trigger, queryStateResults, info])
       },
       useQuery(arg, options) {
         const querySubscriptionResults = useQuerySubscription(arg, options)
         const queryStateResults = useQueryState(arg, {
-          selectFromResult:
-            arg === qt.skipToken || options?.skip
-              ? undefined
-              : noPendingQueryStateSelector,
+          selectFromResult: arg === qt.skipToken || options?.skip ? undefined : noPendingQueryStateSelector,
           ...options,
         })
-        const { data, status, isLoading, isSuccess, isError, error } =
-          queryStateResults
+        const { data, status, isLoading, isSuccess, isError, error } = queryStateResults
         qr.useDebugValue({ data, status, isLoading, isSuccess, isError, error })
         return qr.useMemo(
           () => ({ ...queryStateResults, ...querySubscriptionResults }),
@@ -392,17 +328,13 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
     }
   }
   function buildMutationHook(name: string): qt.UseMutation<any> {
-    return ({
-      selectFromResult = defaultMutationStateSelector,
-      fixedCacheKey,
-    } = {}) => {
+    return ({ selectFromResult = defaultMutationStateSelector, fixedCacheKey } = {}) => {
       const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
         qt.MutationDefinition<any, any, any, any, any>,
         Definitions
       >
       const dispatch = useDispatch<qt.ThunkDispatch<any, any, qx.AnyAction>>()
-      const [promise, setPromise] =
-        qr.useState<qt.MutationActionCreatorResult<any>>()
+      const [promise, setPromise] = qr.useState<qt.MutationActionCreatorResult<any>>()
       qr.useEffect(
         () => () => {
           if (!promise?.arg.fixedCacheKey) {
@@ -421,16 +353,11 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
       )
       const { requestId } = promise || {}
       const mutationSelector = qr.useMemo(
-        () =>
-          qx.createSelector(
-            [select({ fixedCacheKey, requestId: promise?.requestId })],
-            selectFromResult
-          ),
+        () => qx.createSelector([select({ fixedCacheKey, requestId: promise?.requestId })], selectFromResult),
         [select, promise, selectFromResult, fixedCacheKey]
       )
       const currentState = useSelector(mutationSelector, shallowEqual)
-      const originalArgs =
-        fixedCacheKey == null ? promise?.arg.originalArgs : undefined
+      const originalArgs = fixedCacheKey == null ? promise?.arg.originalArgs : undefined
       const reset = qr.useCallback(() => {
         batch(() => {
           if (promise) {
@@ -446,15 +373,7 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
           }
         })
       }, [dispatch, fixedCacheKey, promise, requestId])
-      const {
-        endpointName,
-        data,
-        status,
-        isLoading,
-        isSuccess,
-        isError,
-        error,
-      } = currentState
+      const { endpointName, data, status, isLoading, isSuccess, isError, error } = currentState
       qr.useDebugValue({
         endpointName,
         data,
@@ -468,10 +387,7 @@ export function buildHooks<Definitions extends qt.EndpointDefinitions>({
         () => ({ ...currentState, originalArgs, reset }),
         [currentState, originalArgs, reset]
       )
-      return qr.useMemo(
-        () => [triggerMutation, finalState] as const,
-        [triggerMutation, finalState]
-      )
+      return qr.useMemo(() => [triggerMutation, finalState] as const, [triggerMutation, finalState])
     }
   }
 }
@@ -493,13 +409,7 @@ export const reactHooksModule = ({
 }: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => ({
   name: reactHooksModuleName,
   init(api, { serializeQueryArgs }, context) {
-    const anyApi = api as any as Api<
-      any,
-      Record<string, any>,
-      string,
-      string,
-      ReactHooksModule
-    >
+    const anyApi = api as any as Api<any, Record<string, any>, string, string, ReactHooksModule>
     const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
       api,
       moduleOptions: {
@@ -517,13 +427,8 @@ export const reactHooksModule = ({
     return {
       injectEndpoint(endpointName, definition) {
         if (qt.isQueryDefinition(definition)) {
-          const {
-            useQuery,
-            useLazyQuery,
-            useLazyQuerySubscription,
-            useQueryState,
-            useQuerySubscription,
-          } = buildQueryHooks(endpointName)
+          const { useQuery, useLazyQuery, useLazyQuerySubscription, useQueryState, useQuerySubscription } =
+            buildQueryHooks(endpointName)
           qt.safeAssign(anyApi.endpoints[endpointName]!, {
             useQuery,
             useLazyQuery,
@@ -532,15 +437,13 @@ export const reactHooksModule = ({
             useQuerySubscription,
           })
           ;(api as any)[`use${qu.capitalize(endpointName)}Query`] = useQuery
-          ;(api as any)[`useLazy${qu.capitalize(endpointName)}Query`] =
-            useLazyQuery
+          ;(api as any)[`useLazy${qu.capitalize(endpointName)}Query`] = useLazyQuery
         } else if (qt.isMutationDefinition(definition)) {
           const useMutation = buildMutationHook(endpointName)
           qt.safeAssign(anyApi.endpoints[endpointName]!, {
             useMutation,
           })
-          ;(api as any)[`use${qu.capitalize(endpointName)}Mutation`] =
-            useMutation
+          ;(api as any)[`use${qu.capitalize(endpointName)}Mutation`] = useMutation
         }
       },
     }
@@ -558,10 +461,7 @@ export function useStableQueryArgs<T>(
   const incoming = qr.useMemo(
     () => ({
       queryArgs,
-      serialized:
-        typeof queryArgs == "object"
-          ? serialize({ queryArgs, endpointDefinition, endpointName })
-          : queryArgs,
+      serialized: typeof queryArgs == "object" ? serialize({ queryArgs, endpointDefinition, endpointName }) : queryArgs,
     }),
     [queryArgs, serialize, endpointDefinition, endpointName]
   )
@@ -571,9 +471,7 @@ export function useStableQueryArgs<T>(
       cache.current = incoming
     }
   }, [incoming])
-  return cache.current.serialized === incoming.serialized
-    ? cache.current.queryArgs
-    : queryArgs
+  return cache.current.serialized === incoming.serialized ? cache.current.queryArgs : queryArgs
 }
 
 export function useShallowStableValue<T>(value: T) {

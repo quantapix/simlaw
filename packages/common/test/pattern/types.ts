@@ -1,329 +1,327 @@
 interface RequestStyle {
-  palette?: string;
+  palette?: string
 }
 
-type AxisBound = string | number;
-type Aggregator = 'sum' | 'avg';
+type AxisBound = string | number
+type Aggregator = "sum" | "avg"
 
 interface Axis {
-  label?: string;
-  scale?: 'linear' | 'log';
-  min?: AxisBound;
-  max?: AxisBound;
-  include_zero?: boolean;
-  units?: boolean;
+  label?: string
+  scale?: "linear" | "log"
+  min?: AxisBound
+  max?: AxisBound
+  include_zero?: boolean
+  units?: boolean
 }
 
 interface DistributionXAxis {
-  scale?: 'linear' | 'log';
-  min?: AxisBound;
-  max?: AxisBound;
-  include_zero?: boolean;
+  scale?: "linear" | "log"
+  min?: AxisBound
+  max?: AxisBound
+  include_zero?: boolean
 }
 
 interface DistributionYAxis {
-  label?: string;
-  scale?: 'linear' | 'log';
-  min?: AxisBound;
-  max?: AxisBound;
-  include_zero?: boolean;
-  units?: boolean;
+  label?: string
+  scale?: "linear" | "log"
+  min?: AxisBound
+  max?: AxisBound
+  include_zero?: boolean
+  units?: boolean
 }
 
 interface Marker {
-  value?: string;
-  time?: string;
-  display_type?: string;
-  label?: string;
-  val?: number;
-  min?: number;
-  max?: number;
-  type?: string;
-  from_ts?: string;
-  to_ts?: string;
-  ts?: string;
-  on_right_yaxis?: boolean;
-  is_hovered?: boolean;
+  value?: string
+  time?: string
+  display_type?: string
+  label?: string
+  val?: number
+  min?: number
+  max?: number
+  type?: string
+  from_ts?: string
+  to_ts?: string
+  ts?: string
+  on_right_yaxis?: boolean
+  is_hovered?: boolean
 }
 
 interface Event {
-  q: string;
-  tags_execution?: 'TagsExecution';
+  q: string
+  tags_execution?: "TagsExecution"
 }
 
-type Markers = Marker[];
+type Markers = Marker[]
 
 interface ConditionalFormat {
-  comparator: 'Comparator';
-  value?: number | string;
-  palette: string;
-  custom_bg_color?: string;
-  custom_fg_color?: string;
-  image_url?: string;
-  hide_value?: boolean;
-  metric?: string;
+  comparator: "Comparator"
+  value?: number | string
+  palette: string
+  custom_bg_color?: string
+  custom_fg_color?: string
+  image_url?: string
+  hide_value?: boolean
+  metric?: string
 }
 
 interface ContextMenuLink {
-  link?: string;
-  is_hidden?: boolean;
+  link?: string
+  is_hidden?: boolean
 }
 
 interface UserDefinedLink {
-  label: string;
-  link: string;
+  label: string
+  link: string
 }
 
-type CustomLink = ContextMenuLink | UserDefinedLink;
+type CustomLink = ContextMenuLink | UserDefinedLink
 
-type OrderDir = 'a' | 'b';
+type OrderDir = "a" | "b"
 
 type EventCompute = {
-  aggregation: string;
-  interval?: number;
-  facet?: string;
-};
+  aggregation: string
+  interval?: number
+  facet?: string
+}
 
 interface GroupBy {
-  facet: string;
-  limit?: number;
+  facet: string
+  limit?: number
   sort?: {
-    aggregation: string;
-    order: OrderDir;
-    facet?: string;
-  };
-  should_exclude_missing?: boolean;
+    aggregation: string
+    order: OrderDir
+    facet?: string
+  }
+  should_exclude_missing?: boolean
 }
 
 type EventQuery = {
-  index?: string;
-  compute?: EventCompute;
-  multi_compute?: EventCompute[];
+  index?: string
+  compute?: EventCompute
+  multi_compute?: EventCompute[]
   search?: {
-    query: string;
-  };
-  group_by?: GroupBy[];
-};
+    query: string
+  }
+  group_by?: GroupBy[]
+}
 
-type MetricQuery = string;
+type MetricQuery = string
 
 type ProcessQuery = {
-  metric: string;
-  search_by?: string;
-  filter_by?: string[];
-  query_filter?: string;
-  limit: number;
-  is_normalized_cpu?: boolean;
-};
+  metric: string
+  search_by?: string
+  filter_by?: string[]
+  query_filter?: string
+  limit: number
+  is_normalized_cpu?: boolean
+}
 
 interface QueryTableColumnRequest {
-  name: string;
-  alias?: string;
-  order?: OrderDir;
+  name: string
+  alias?: string
+  order?: OrderDir
 }
 
 interface ApmStatsQuery {
-  service: string;
-  env: string;
-  name: string;
-  resource?: string;
-  columns?: QueryTableColumnRequest[];
+  service: string
+  env: string
+  name: string
+  resource?: string
+  columns?: QueryTableColumnRequest[]
 }
 
 interface MetricRequest {
-  metrics_query: MetricQuery;
-  preTemplateQuery?: string;
-  _query_options?: object;
+  metrics_query: MetricQuery
+  preTemplateQuery?: string
+  _query_options?: object
 }
 interface LogRequest {
-  logs_query: EventQuery;
+  logs_query: EventQuery
 }
 interface ApmRequest {
-  apm_query: EventQuery;
+  apm_query: EventQuery
 }
 interface ApmStatsRequest {
-  apm_stats_query: ApmStatsQuery;
+  apm_stats_query: ApmStatsQuery
 }
 interface RumRequest {
-  rum_query: EventQuery;
+  rum_query: EventQuery
 }
 interface EventRequest {
-  events_query: EventQuery;
+  events_query: EventQuery
 }
 interface ProcessRequest {
-  process_query: ProcessQuery;
+  process_query: ProcessQuery
 }
 
 interface ComplianceFindingsRequest {
-  compliance_findings_query: EventQuery;
+  compliance_findings_query: EventQuery
 }
 
 interface IssuesRequest {
-  issues_query_query: EventQuery;
+  issues_query_query: EventQuery
 }
 interface AuditRequest {
-  audit_query: EventQuery;
+  audit_query: EventQuery
 }
 
 type FormulaEventsDataSource =
-  | 'logs'
-  | 'spans'
-  | 'rum'
-  | 'network'
-  | 'security_signals'
-  | 'profiles'
-  | 'events'
-  | 'ci_pipelines'
-  | 'ci_tests'
-  | 'compliance_findings'
-  | 'database_queries'
-  | 'synthetics_batches'
-  | 'app_sec_events'
-  | 'app_sec_spans'
-  | 'audit';
+  | "logs"
+  | "spans"
+  | "rum"
+  | "network"
+  | "security_signals"
+  | "profiles"
+  | "events"
+  | "ci_pipelines"
+  | "ci_tests"
+  | "compliance_findings"
+  | "database_queries"
+  | "synthetics_batches"
+  | "app_sec_events"
+  | "app_sec_spans"
+  | "audit"
 
 type FormulaMetricsQuery = {
-  name: string;
-  data_source: 'metrics' | 'cloud_cost';
-  query: string;
-  aggregator?: Aggregator;
-};
+  name: string
+  data_source: "metrics" | "cloud_cost"
+  query: string
+  aggregator?: Aggregator
+}
 
 type EventsCompute = {
-  aggregation: EventsAggregator;
-  metric?: string;
-  interval?: number;
-};
+  aggregation: EventsAggregator
+  metric?: string
+  interval?: number
+}
 
 type EventsAggregator =
-  | 'count'
-  | 'cardinality'
-  | 'median'
-  | 'pc75'
-  | 'pc90'
-  | 'pc95'
-  | 'pc98'
-  | 'pc99'
-  | 'sum'
-  | 'min'
-  | 'max'
-  | 'avg';
+  | "count"
+  | "cardinality"
+  | "median"
+  | "pc75"
+  | "pc90"
+  | "pc95"
+  | "pc98"
+  | "pc99"
+  | "sum"
+  | "min"
+  | "max"
+  | "avg"
 
 type EventsGroupBy = {
-  facet: string;
-  limit?: number;
+  facet: string
+  limit?: number
   sort?: {
-    aggregation: EventsAggregator;
-    order?: OrderDir;
-    metric?: string;
-  };
-  should_exclude_missing?: boolean;
-};
+    aggregation: EventsAggregator
+    order?: OrderDir
+    metric?: string
+  }
+  should_exclude_missing?: boolean
+}
 
 type FormulaEventsQuery = {
-  name: string;
-  data_source: FormulaEventsDataSource;
-  compute: EventsCompute;
+  name: string
+  data_source: FormulaEventsDataSource
+  compute: EventsCompute
   search?: {
-    query: string;
-  };
-  indexes?: string[];
-  group_by?: EventsGroupBy[];
-};
+    query: string
+  }
+  indexes?: string[]
+  group_by?: EventsGroupBy[]
+}
 
 type FormulaProcessQuery = {
-  name: string;
-  data_source: 'process' | 'container';
-  metric: string;
-  text_filter?: string;
-  tag_filters?: string[];
-  query_filter?: string;
-  limit?: number;
-  sort?: OrderDir;
-  is_normalized_cpu?: boolean;
-  aggregator?: Aggregator;
-};
+  name: string
+  data_source: "process" | "container"
+  metric: string
+  text_filter?: string
+  tag_filters?: string[]
+  query_filter?: string
+  limit?: number
+  sort?: OrderDir
+  is_normalized_cpu?: boolean
+  aggregator?: Aggregator
+}
 
 interface FormulaApmDependencyStatsQuery {
-  name: string;
-  data_source: 'apm_dependency_stats';
-  env: string;
-  is_upstream?: boolean;
-  operation_name: string;
-  primary_tag_name?: string;
-  primary_tag_value?: string;
-  resource_name: string;
-  service: string;
+  name: string
+  data_source: "apm_dependency_stats"
+  env: string
+  is_upstream?: boolean
+  operation_name: string
+  primary_tag_name?: string
+  primary_tag_value?: string
+  resource_name: string
+  service: string
 }
 
 interface FormulaApmResourceStatsQuery {
-  name: string;
-  data_source: 'apm_resource_stats';
-  env: string;
-  group_by?: string[];
-  operation_name: string;
-  primary_tag_name?: string;
-  primary_tag_value?: string;
-  resource_name?: string;
-  service: string;
+  name: string
+  data_source: "apm_resource_stats"
+  env: string
+  group_by?: string[]
+  operation_name: string
+  primary_tag_name?: string
+  primary_tag_value?: string
+  resource_name?: string
+  service: string
 }
 
-type FormulaApmStatsQuery =
-  | FormulaApmDependencyStatsQuery
-  | FormulaApmResourceStatsQuery;
+type FormulaApmStatsQuery = FormulaApmDependencyStatsQuery | FormulaApmResourceStatsQuery
 
 type FormulaIncidentsQuery = {
-  name: string;
-  data_source: 'incident_analytics';
-  compute: EventsCompute;
+  name: string
+  data_source: "incident_analytics"
+  compute: EventsCompute
   search?: {
-    query: string;
-  };
-  indexes?: string[];
-  group_by?: EventsGroupBy[];
-};
+    query: string
+  }
+  indexes?: string[]
+  group_by?: EventsGroupBy[]
+}
 
 type FormulaQuery =
   | FormulaMetricsQuery
   | FormulaEventsQuery
   | FormulaProcessQuery
   | FormulaApmStatsQuery
-  | FormulaIncidentsQuery;
+  | FormulaIncidentsQuery
 
-type FormulaQueries = FormulaQuery[];
+type FormulaQueries = FormulaQuery[]
 
 type Formula = {
-  formula: string;
-  alias?: string;
+  formula: string
+  alias?: string
   limit?: {
-    count?: number;
-    order?: OrderDir;
-  };
-};
+    count?: number
+    order?: OrderDir
+  }
+}
 
 interface TimeseriesFormulaRequest extends TimeseriesRequest {
-  response_format: 'timeseries';
-  formulas?: Formula[];
-  queries: FormulaQueries;
+  response_format: "timeseries"
+  formulas?: Formula[]
+  queries: FormulaQueries
 }
 
 type ScalarFormulaRequest = {
-  response_format: 'scalar';
-  formulas?: Formula[];
-  queries: FormulaQueries;
-};
+  response_format: "scalar"
+  formulas?: Formula[]
+  queries: FormulaQueries
+}
 
 type SQLTimeseriesRequest = {
-  request_type: 'sql';
-  response_format: 'timeseries';
-  sql_query: string;
-};
+  request_type: "sql"
+  response_format: "timeseries"
+  sql_query: string
+}
 
 type SQLTableRequest = {
-  request_type: 'sql';
-  response_format: 'scalar';
-  sql_query: string;
-};
+  request_type: "sql"
+  response_format: "scalar"
+  sql_query: string
+}
 
 type EventPlatformRequest =
   | LogRequest
@@ -332,7 +330,7 @@ type EventPlatformRequest =
   | ComplianceFindingsRequest
   | EventRequest
   | IssuesRequest
-  | AuditRequest;
+  | AuditRequest
 
 type TimeseriesDataSourceRequest =
   | MetricRequest
@@ -340,117 +338,113 @@ type TimeseriesDataSourceRequest =
   | ProcessRequest
   | EventPlatformRequest
   | TimeseriesFormulaRequest
-  | SQLTimeseriesRequest;
+  | SQLTimeseriesRequest
 
 interface TimeseriesRequestStyle {
-  palette?: string;
+  palette?: string
 }
 
 interface Metadata {
-  [key: string]: { alias: string };
+  [key: string]: { alias: string }
 }
 
-type DisplayType = 'line' | 'bar' | 'area';
+type DisplayType = "line" | "bar" | "area"
 
 interface TimeseriesRequest {
-  type?: DisplayType;
-  metadata?: Metadata;
-  style?: TimeseriesRequestStyle;
-  on_right_yaxis?: boolean;
+  type?: DisplayType
+  metadata?: Metadata
+  style?: TimeseriesRequestStyle
+  on_right_yaxis?: boolean
 }
 
-type TimeseriesDefinitionRequest = TimeseriesDataSourceRequest &
-  TimeseriesRequest;
+type TimeseriesDefinitionRequest = TimeseriesDataSourceRequest & TimeseriesRequest
 
 interface TimeseriesDefinition {
-  viz: 'timeseries';
-  requests: TimeseriesDefinitionRequest[];
-  yaxis?: Axis;
-  right_yaxis?: Axis;
-  events?: Event[];
-  markers?: Marker[];
-  custom_links?: CustomLink[];
+  viz: "timeseries"
+  requests: TimeseriesDefinitionRequest[]
+  yaxis?: Axis
+  right_yaxis?: Axis
+  events?: Event[]
+  markers?: Marker[]
+  custom_links?: CustomLink[]
 }
 
 type TableFormula = Formula & {
-  conditional_formats?: ConditionalFormat[];
-};
+  conditional_formats?: ConditionalFormat[]
+}
 
 type TableFormulaRequest = {
-  formulas?: TableFormula[];
-  response_format: 'scalar';
-  queries: FormulaQueries;
-};
+  formulas?: TableFormula[]
+  response_format: "scalar"
+  queries: FormulaQueries
+}
 
 type QueryTableDataSourceRequest =
   | MetricRequest
   | EventPlatformRequest
   | ApmStatsRequest
   | TableFormulaRequest
-  | SQLTableRequest;
+  | SQLTableRequest
 
 interface QueryTableRequest {
-  aggregator?: Aggregator;
-  limit?: number;
-  order?: OrderDir;
-  alias?: string;
-  conditional_formats?: ConditionalFormat[];
+  aggregator?: Aggregator
+  limit?: number
+  order?: OrderDir
+  alias?: string
+  conditional_formats?: ConditionalFormat[]
 }
 
-type QueryTableDefinitionRequest = QueryTableDataSourceRequest &
-  QueryTableRequest;
+type QueryTableDefinitionRequest = QueryTableDataSourceRequest & QueryTableRequest
 
-type HasSearchBar = 'always' | 'never' | 'auto';
+type HasSearchBar = "always" | "never" | "auto"
 
 interface QueryTableDefinition {
-  viz: 'query_table';
-  requests: QueryTableDefinitionRequest[];
-  has_search_bar?: HasSearchBar;
-  custom_links?: CustomLink[];
+  viz: "query_table"
+  requests: QueryTableDefinitionRequest[]
+  has_search_bar?: HasSearchBar
+  custom_links?: CustomLink[]
 }
 
 interface HeatmapRequest {
-  style?: RequestStyle;
+  style?: RequestStyle
 }
 
 interface HeatmapDefinitionRequest extends MetricRequest, HeatmapRequest {}
 
 interface HeatmapDefinition {
-  viz: 'heatmap';
-  requests: HeatmapDefinitionRequest[];
-  yaxis?: Axis;
-  events?: Event[];
-  custom_links?: CustomLink[];
+  viz: "heatmap"
+  requests: HeatmapDefinitionRequest[]
+  yaxis?: Axis
+  events?: Event[]
+  custom_links?: CustomLink[]
 }
 
 interface ServiceMapDefinition {
-  viz: 'servicemap';
-  requests?: undefined;
-  custom_links?: CustomLink[];
+  viz: "servicemap"
+  requests?: undefined
+  custom_links?: CustomLink[]
 }
 
-type TreemapProcessMemoryRequest = { q: string };
+type TreemapProcessMemoryRequest = { q: string }
 
-type TreemapDataSourceRequest =
-  | ScalarFormulaRequest
-  | TreemapProcessMemoryRequest;
+type TreemapDataSourceRequest = ScalarFormulaRequest | TreemapProcessMemoryRequest
 
-type TreemapSizeBy = 'pct_cpu' | 'pct_mem';
+type TreemapSizeBy = "pct_cpu" | "pct_mem"
 
-type TreemapColorBy = 'user';
+type TreemapColorBy = "user"
 
-type TreemapGroupBy = 'family' | 'process' | 'user';
+type TreemapGroupBy = "family" | "process" | "user"
 
 interface TreemapDefinition {
-  viz: 'treemap';
-  requests: TreemapDataSourceRequest[];
-  size_by?: TreemapSizeBy;
-  color_by?: TreemapColorBy;
-  group_by?: TreemapGroupBy;
+  viz: "treemap"
+  requests: TreemapDataSourceRequest[]
+  size_by?: TreemapSizeBy
+  color_by?: TreemapColorBy
+  group_by?: TreemapGroupBy
 }
 
 interface TopListRequest {
-  conditional_formats?: ConditionalFormat[];
+  conditional_formats?: ConditionalFormat[]
 }
 
 type TopListDataSourceRequest =
@@ -458,129 +452,112 @@ type TopListDataSourceRequest =
   | EventPlatformRequest
   | ProcessRequest
   | ScalarFormulaRequest
-  | SQLTableRequest;
+  | SQLTableRequest
 
-type TopListDefinitionRequest = TopListDataSourceRequest & TopListRequest;
+type TopListDefinitionRequest = TopListDataSourceRequest & TopListRequest
 
 interface TopListDefinition {
-  viz: 'toplist';
-  requests: TopListDefinitionRequest[];
-  custom_links?: CustomLink[];
+  viz: "toplist"
+  requests: TopListDefinitionRequest[]
+  custom_links?: CustomLink[]
 }
 
-type DistributionDataSourceRequest =
-  | MetricRequest
-  | ProcessRequest
-  | ApmStatsRequest
-  | EventPlatformRequest;
+type DistributionDataSourceRequest = MetricRequest | ProcessRequest | ApmStatsRequest | EventPlatformRequest
 
 interface DistributionRequest {
-  style?: RequestStyle;
+  style?: RequestStyle
 }
 
-type DistributionDefinitionRequest = DistributionDataSourceRequest &
-  DistributionRequest;
+type DistributionDefinitionRequest = DistributionDataSourceRequest & DistributionRequest
 
 interface DistributionDefinition {
-  viz: 'distribution';
-  requests: DistributionDefinitionRequest[];
-  xaxis?: DistributionXAxis;
-  yaxis?: DistributionYAxis;
-  markers?: Markers;
-  custom_links?: CustomLink[];
+  viz: "distribution"
+  requests: DistributionDefinitionRequest[]
+  xaxis?: DistributionXAxis
+  yaxis?: DistributionYAxis
+  markers?: Markers
+  custom_links?: CustomLink[]
 }
 
-type ScatterPlotDimension = 'x' | 'y' | 'radius' | 'color';
+type ScatterPlotDimension = "x" | "y" | "radius" | "color"
 
 type ScatterplotFormula = Formula & {
-  dimension: ScatterPlotDimension;
-};
+  dimension: ScatterPlotDimension
+}
 
 interface ScatterplotScalarFormulaRequest extends ScalarFormulaRequest {
-  formulas: ScatterplotFormula[];
+  formulas: ScatterplotFormula[]
 }
 
-type ScatterplotDataSourceRequest =
-  | MetricRequest
-  | ScatterplotScalarFormulaRequest
-  | SQLTableRequest;
+type ScatterplotDataSourceRequest = MetricRequest | ScatterplotScalarFormulaRequest | SQLTableRequest
 
 interface ScatterplotRequest {
-  aggregator?: Aggregator;
+  aggregator?: Aggregator
 }
 
-type ScatterplotDefinitionRequest = ScatterplotDataSourceRequest &
-  ScatterplotRequest;
+type ScatterplotDefinitionRequest = ScatterplotDataSourceRequest & ScatterplotRequest
 
 interface ScatterplotDefinition {
-  viz: 'scatterplot';
-  requests: ScatterplotDefinitionRequest[];
-  custom_links?: CustomLink[];
-  xaxis?: Axis;
-  yaxis?: Axis;
-  color_by_groups?: string[];
+  viz: "scatterplot"
+  requests: ScatterplotDefinitionRequest[]
+  custom_links?: CustomLink[]
+  xaxis?: Axis
+  yaxis?: Axis
+  color_by_groups?: string[]
 }
 
 interface GeomapStyle {
-  palette_flip: boolean;
+  palette_flip: boolean
 }
 
 interface GeomapView {
-  focus: string;
+  focus: string
 }
 
-type GeomapDefinitionRequest =
-  | MetricRequest
-  | EventPlatformRequest
-  | ScalarFormulaRequest
-  | SQLTableRequest;
+type GeomapDefinitionRequest = MetricRequest | EventPlatformRequest | ScalarFormulaRequest | SQLTableRequest
 
 interface GeomapDefinition {
-  viz: 'geomap';
-  requests: GeomapDefinitionRequest[];
-  custom_links?: CustomLink[];
-  style: GeomapStyle;
-  view: GeomapView;
+  viz: "geomap"
+  requests: GeomapDefinitionRequest[]
+  custom_links?: CustomLink[]
+  style: GeomapStyle
+  view: GeomapView
 }
 
-type PlotPaletteName = 'red' | 'blue' | 'orange';
+type PlotPaletteName = "red" | "blue" | "orange"
 
 type SunburstRequest = {
   style?: {
-    palette?: PlotPaletteName;
-  };
-};
+    palette?: PlotPaletteName
+  }
+}
 
-interface SunburstDefinitionRequest
-  extends ScalarFormulaRequest,
-    SunburstRequest {}
+interface SunburstDefinitionRequest extends ScalarFormulaRequest, SunburstRequest {}
 
 type SunburstKnownLegend =
-  | { type: 'table' }
-  | { type: 'inline'; hide_value?: boolean; hide_percent?: boolean }
-  | { type: 'none' };
+  | { type: "table" }
+  | { type: "inline"; hide_value?: boolean; hide_percent?: boolean }
+  | { type: "none" }
 
-type SunburstLegend =
-  | { type: 'automatic'; hide_value?: boolean; hide_percent?: boolean }
-  | SunburstKnownLegend;
+type SunburstLegend = { type: "automatic"; hide_value?: boolean; hide_percent?: boolean } | SunburstKnownLegend
 
 type SunburstDefinition = {
-  viz: 'sunburst';
-  requests: SunburstDefinitionRequest[];
-  hide_total?: boolean;
-  legend?: SunburstLegend;
-};
+  viz: "sunburst"
+  requests: SunburstDefinitionRequest[]
+  hide_total?: boolean
+  legend?: SunburstLegend
+}
 
-type WildcardDefinitionRequest = SQLTableRequest | ScalarFormulaRequest;
+type WildcardDefinitionRequest = SQLTableRequest | ScalarFormulaRequest
 
 type WildcardDefinition = {
-  viz: 'wildcard';
-  requests: WildcardDefinitionRequest[];
+  viz: "wildcard"
+  requests: WildcardDefinitionRequest[]
   specification: {
-    type: 'vega' | 'vega-lite';
-    contents: object;
-  };
-};
+    type: "vega" | "vega-lite"
+    contents: object
+  }
+}
 
 export type Definition =
   | TimeseriesDefinition
@@ -593,4 +570,4 @@ export type Definition =
   | ScatterplotDefinition
   | GeomapDefinition
   | SunburstDefinition
-  | WildcardDefinition;
+  | WildcardDefinition

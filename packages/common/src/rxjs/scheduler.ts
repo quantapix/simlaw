@@ -26,11 +26,7 @@ export class Scheduler implements qt.Scheduler {
 
   now: () => number
 
-  schedule<T>(
-    work: (this: qt.SchedulerAction<T>, x?: T) => void,
-    delay = 0,
-    x?: T
-  ): Subscription {
+  schedule<T>(work: (this: qt.SchedulerAction<T>, x?: T) => void, delay = 0, x?: T): Subscription {
     return new this.ctor<T>(this, work).schedule(x, delay)
   }
 
@@ -47,18 +43,8 @@ export class Scheduler implements qt.Scheduler {
   }
 
   run(s: Subscription, work: () => void, delay: number, more: true): void
-  run(
-    s: Subscription,
-    work: () => void,
-    delay?: number,
-    more?: false
-  ): Subscription
-  run(
-    s: Subscription,
-    work: () => void,
-    delay = 0,
-    more = false
-  ): Subscription | void {
+  run(s: Subscription, work: () => void, delay?: number, more?: false): Subscription
+  run(s: Subscription, work: () => void, delay = 0, more = false): Subscription | void {
     const y = this.schedule(function (this: qt.SchedulerAction<any>) {
       work()
       if (more) s.add(this.schedule(null, delay))
@@ -137,10 +123,7 @@ export class Scheduler implements qt.Scheduler {
 }
 
 export class Action<T> extends Subscription {
-  constructor(
-    _: Scheduler,
-    _work: (this: qt.SchedulerAction<T>, x?: T) => void
-  ) {
+  constructor(_: Scheduler, _work: (this: qt.SchedulerAction<T>, x?: T) => void) {
     super()
   }
   schedule(_?: T, _delay = 0): Subscription {
@@ -153,10 +136,7 @@ export class AsyncAction<T> extends Action<T> {
   public state?: T | undefined
   public delay = 0
   protected pending = false
-  constructor(
-    protected sched: AsyncScheduler,
-    protected work: (this: qt.SchedulerAction<T>, x?: T) => void
-  ) {
+  constructor(protected sched: AsyncScheduler, protected work: (this: qt.SchedulerAction<T>, x?: T) => void) {
     super(sched, work)
   }
 
@@ -198,11 +178,7 @@ export class AsyncAction<T> extends Action<T> {
   protected requestId(x: AsyncScheduler, _id?: any, delay = 0): any {
     return intervalProvider.setInterval(x.flush.bind(x, this), delay)
   }
-  protected recycleId(
-    _x: AsyncScheduler,
-    id: any,
-    delay: number | null = 0
-  ): any {
+  protected recycleId(_x: AsyncScheduler, id: any, delay: number | null = 0): any {
     if (delay != null && this.delay === delay && this.pending === false) {
       return id
     }
@@ -267,12 +243,7 @@ export class FrameAction<T> extends AsyncAction<T> {
   protected override requestId(x: FrameScheduler, id?: any, delay = 0): any {
     if (delay !== null && delay > 0) return super.requestId(x, id, delay)
     x.actions.push(this)
-    return (
-      x.scheduled ||
-      (x.scheduled = frameProvider.requestAnimationFrame(() =>
-        x.flush(undefined)
-      ))
-    )
+    return x.scheduled || (x.scheduled = frameProvider.requestAnimationFrame(() => x.flush(undefined)))
   }
   protected override recycleId(x: FrameScheduler, id?: any, delay = 0): any {
     if ((delay != null && delay > 0) || (delay == null && this.delay > 0)) {
@@ -318,10 +289,7 @@ export class AsapAction<T> extends AsyncAction<T> {
   protected override requestId(x: AsapScheduler, id?: any, delay = 0): any {
     if (delay !== null && delay > 0) return super.requestId(x, id, delay)
     x.actions.push(this)
-    return (
-      x.scheduled ||
-      (x.scheduled = immediateProvider.setImmediate(x.flush.bind(x, undefined)))
-    )
+    return x.scheduled || (x.scheduled = immediateProvider.setImmediate(x.flush.bind(x, undefined)))
   }
   protected override recycleId(x: AsapScheduler, id?: any, delay = 0): any {
     if ((delay != null && delay > 0) || (delay == null && this.delay > 0)) {
@@ -415,11 +383,7 @@ export class VirtualAction<T> extends AsyncAction<T> {
     ;(actions as VirtualAction<T>[]).sort(VirtualAction.sortActions)
     return true
   }
-  protected override recycleId(
-    _x: VirtualScheduler,
-    _id?: any,
-    _delay = 0
-  ): any {
+  protected override recycleId(_x: VirtualScheduler, _id?: any, _delay = 0): any {
     return undefined
   }
   protected override doWork(x: T, delay: number): any {
@@ -439,10 +403,7 @@ export class VirtualScheduler extends AsyncScheduler {
   static frameTimeFactor = 10
   public frame = 0
   public index = -1
-  constructor(
-    x: typeof AsyncAction = VirtualAction as any,
-    public maxFrames: number = Infinity
-  ) {
+  constructor(x: typeof AsyncAction = VirtualAction as any, public maxFrames: number = Infinity) {
     super(x, () => this.frame)
   }
 
@@ -529,11 +490,7 @@ export const immediateProvider: ImmediateProvider = {
   delegate: undefined,
 }
 
-type SetInterval = (
-  x: () => void,
-  timeout?: number,
-  ...xs: any[]
-) => TimerHandle
+type SetInterval = (x: () => void, timeout?: number, ...xs: any[]) => TimerHandle
 
 type ClearInterval = (x: TimerHandle) => void
 

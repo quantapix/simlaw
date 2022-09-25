@@ -22,9 +22,7 @@ const INTERNAL_NIL_TOKEN = {} as const
 const alm = "listenerMiddleware" as const
 const createFork = (parentAbortSignal: AbortSignalWithReason<unknown>) => {
   const linkControllers = (controller: AbortController) =>
-    addAbortSignalListener(parentAbortSignal, () =>
-      abortControllerWithReason(controller, parentAbortSignal.reason)
-    )
+    addAbortSignalListener(parentAbortSignal, () => abortControllerWithReason(controller, parentAbortSignal.reason))
   return <T>(taskExecutor: ForkedTaskExecutor<T>): ForkedTask<T> => {
     assertFunction(taskExecutor, "taskExecutor")
     const childAbortController = new AbortController()
@@ -52,17 +50,10 @@ const createFork = (parentAbortSignal: AbortSignalWithReason<unknown>) => {
   }
 }
 const createTakePattern = <S>(
-  startListening: AddListenerOverloads<
-    UnsubscribeListener,
-    S,
-    qt.Dispatch<qt.AnyAction>
-  >,
+  startListening: AddListenerOverloads<UnsubscribeListener, S, qt.Dispatch<qt.AnyAction>>,
   signal: AbortSignal
 ): TakePattern<S> => {
-  const take = async <P extends AnyListenerPredicate<S>>(
-    predicate: P,
-    timeout: number | undefined
-  ) => {
+  const take = async <P extends AnyListenerPredicate<S>>(predicate: P, timeout: number | undefined) => {
     validateActive(signal)
     let unsubscribe: UnsubscribeListener = () => {}
     const tuplePromise = new Promise<[qt.AnyAction, S, S]>(resolve => {
@@ -70,22 +61,13 @@ const createTakePattern = <S>(
         predicate: predicate as any,
         effect: (action, listenerApi): void => {
           listenerApi.unsubscribe()
-          resolve([
-            action,
-            listenerApi.getState(),
-            listenerApi.getOriginalState(),
-          ])
+          resolve([action, listenerApi.getState(), listenerApi.getOriginalState()])
         },
       })
     })
-    const promises: (Promise<null> | Promise<[qt.AnyAction, S, S]>)[] = [
-      promisifyAbortSignal(signal),
-      tuplePromise,
-    ]
+    const promises: (Promise<null> | Promise<[qt.AnyAction, S, S]>)[] = [promisifyAbortSignal(signal), tuplePromise]
     if (timeout != null) {
-      promises.push(
-        new Promise<null>(resolve => setTimeout(resolve, timeout, null))
-      )
+      promises.push(new Promise<null>(resolve => setTimeout(resolve, timeout, null)))
     }
     try {
       const output = await Promise.race(promises)
@@ -109,16 +91,12 @@ const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
     predicate = matcher
   } else if (predicate) {
   } else {
-    throw new Error(
-      "Creating or removing a listener requires one of the known fields for matching an action"
-    )
+    throw new Error("Creating or removing a listener requires one of the known fields for matching an action")
   }
   assertFunction(effect, "options.listener")
   return { predicate, type, effect }
 }
-export const createListenerEntry: TypedCreateListenerEntry<unknown> = (
-  options: FallbackAddListenerOptions
-) => {
+export const createListenerEntry: TypedCreateListenerEntry<unknown> = (options: FallbackAddListenerOptions) => {
   const { type, predicate, effect } = getListenerEntryPropsFrom(options)
   const id = qu.nanoid()
   const entry: ListenerEntry<unknown> = {
@@ -133,9 +111,7 @@ export const createListenerEntry: TypedCreateListenerEntry<unknown> = (
   }
   return entry
 }
-const createClearListenerMiddleware = (
-  listenerMap: Map<string, ListenerEntry>
-) => {
+const createClearListenerMiddleware = (listenerMap: Map<string, ListenerEntry>) => {
   return () => {
     listenerMap.forEach(cancelActiveListeners)
     listenerMap.clear()
@@ -154,30 +130,20 @@ const safelyNotifyError = (
     }, 0)
   }
 }
-export const addListener = createAction(
-  `${alm}/add`
-) as TypedAddListener<unknown>
+export const addListener = createAction(`${alm}/add`) as TypedAddListener<unknown>
 export const clearAllListeners = createAction(`${alm}/removeAll`)
-export const removeListener = createAction(
-  `${alm}/remove`
-) as TypedRemoveListener<unknown>
+export const removeListener = createAction(`${alm}/remove`) as TypedRemoveListener<unknown>
 const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
   console.error(`${alm}/error`, ...args)
 }
-const cancelActiveListeners = (
-  entry: ListenerEntry<unknown, qt.Dispatch<qt.AnyAction>>
-) => {
+const cancelActiveListeners = (entry: ListenerEntry<unknown, qt.Dispatch<qt.AnyAction>>) => {
   entry.pending.forEach(controller => {
     abortControllerWithReason(controller, listenerCancelled)
   })
 }
 export function createListenerMiddleware<
   S = unknown,
-  D extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
-    S,
-    unknown,
-    qt.AnyAction
-  >,
+  D extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<S, unknown, qt.AnyAction>,
   ExtraArgument = unknown
 >(middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {}) {
   const listenerMap = new Map<string, ListenerEntry>()
@@ -193,9 +159,7 @@ export function createListenerMiddleware<
       }
     }
   }
-  const findListenerEntry = (
-    comparator: (entry: ListenerEntry) => boolean
-  ): ListenerEntry | undefined => {
+  const findListenerEntry = (comparator: (entry: ListenerEntry) => boolean): ListenerEntry | undefined => {
     for (const entry of Array.from(listenerMap.values())) {
       if (comparator(entry)) {
         return entry
@@ -204,23 +168,16 @@ export function createListenerMiddleware<
     return undefined
   }
   const startListening = (options: FallbackAddListenerOptions) => {
-    let entry = findListenerEntry(
-      existingEntry => existingEntry.effect === options.effect
-    )
+    let entry = findListenerEntry(existingEntry => existingEntry.effect === options.effect)
     if (!entry) {
       entry = createListenerEntry(options as any)
     }
     return insertEntry(entry)
   }
-  const stopListening = (
-    options: FallbackAddListenerOptions & UnsubscribeListenerOptions
-  ): boolean => {
+  const stopListening = (options: FallbackAddListenerOptions & UnsubscribeListenerOptions): boolean => {
     const { type, effect, predicate } = getListenerEntryPropsFrom(options)
     const entry = findListenerEntry(entry => {
-      const matchPredicateOrType =
-        typeof type === "string"
-          ? entry.type === type
-          : entry.predicate === predicate
+      const matchPredicateOrType = typeof type === "string" ? entry.type === type : entry.predicate === predicate
       return matchPredicateOrType && entry.effect === effect
     })
     if (entry) {
@@ -238,10 +195,7 @@ export function createListenerMiddleware<
     getOriginalState: () => S
   ) => {
     const internalTaskController = new AbortController()
-    const take = createTakePattern(
-      startListening,
-      internalTaskController.signal
-    )
+    const take = createTakePattern(startListening, internalTaskController.signal)
     try {
       entry.pending.add(internalTaskController)
       await Promise.resolve(
@@ -250,10 +204,8 @@ export function createListenerMiddleware<
 
           assign({}, api, {
             getOriginalState,
-            condition: (
-              predicate: AnyListenerPredicate<any>,
-              timeout?: number
-            ) => take(predicate, timeout).then(Boolean),
+            condition: (predicate: AnyListenerPredicate<any>, timeout?: number) =>
+              take(predicate, timeout).then(Boolean),
             take,
             delay: createDelay(internalTaskController.signal),
             pause: createPause<any>(internalTaskController.signal),
@@ -287,54 +239,51 @@ export function createListenerMiddleware<
     }
   }
   const clearListenerMiddleware = createClearListenerMiddleware(listenerMap)
-  const middleware: ListenerMiddleware<S, D, ExtraArgument> =
-    api => next => action => {
-      if (addListener.match(action)) {
-        return startListening(action.payload)
-      }
-      if (clearAllListeners.match(action)) {
-        clearListenerMiddleware()
-        return
-      }
-      if (removeListener.match(action)) {
-        return stopListening(action.payload)
-      }
-      let originalState: S | typeof INTERNAL_NIL_TOKEN = api.getState()
-      const getOriginalState = (): S => {
-        if (originalState === INTERNAL_NIL_TOKEN) {
-          throw new Error(
-            `${alm}: getOriginalState can only be called synchronously`
-          )
-        }
-        return originalState as S
-      }
-      let result: unknown
-      try {
-        result = next(action)
-        if (listenerMap.size > 0) {
-          const currentState = api.getState()
-          const listenerEntries = Array.from(listenerMap.values())
-          for (const entry of listenerEntries) {
-            let runListener = false
-            try {
-              runListener = entry.predicate(action, currentState, originalState)
-            } catch (predicateError) {
-              runListener = false
-              safelyNotifyError(onError, predicateError, {
-                raisedBy: "predicate",
-              })
-            }
-            if (!runListener) {
-              continue
-            }
-            notifyListener(entry, action, api, getOriginalState)
-          }
-        }
-      } finally {
-        originalState = INTERNAL_NIL_TOKEN
-      }
-      return result
+  const middleware: ListenerMiddleware<S, D, ExtraArgument> = api => next => action => {
+    if (addListener.match(action)) {
+      return startListening(action.payload)
     }
+    if (clearAllListeners.match(action)) {
+      clearListenerMiddleware()
+      return
+    }
+    if (removeListener.match(action)) {
+      return stopListening(action.payload)
+    }
+    let originalState: S | typeof INTERNAL_NIL_TOKEN = api.getState()
+    const getOriginalState = (): S => {
+      if (originalState === INTERNAL_NIL_TOKEN) {
+        throw new Error(`${alm}: getOriginalState can only be called synchronously`)
+      }
+      return originalState as S
+    }
+    let result: unknown
+    try {
+      result = next(action)
+      if (listenerMap.size > 0) {
+        const currentState = api.getState()
+        const listenerEntries = Array.from(listenerMap.values())
+        for (const entry of listenerEntries) {
+          let runListener = false
+          try {
+            runListener = entry.predicate(action, currentState, originalState)
+          } catch (predicateError) {
+            runListener = false
+            safelyNotifyError(onError, predicateError, {
+              raisedBy: "predicate",
+            })
+          }
+          if (!runListener) {
+            continue
+          }
+          notifyListener(entry, action, api, getOriginalState)
+        }
+      }
+    } finally {
+      originalState = INTERNAL_NIL_TOKEN
+    }
+    return result
+  }
   return {
     middleware,
     startListening,
@@ -347,9 +296,7 @@ export const validateActive = (signal: AbortSignal): void => {
     throw new TaskAbortError((signal as AbortSignalWithReason<string>).reason)
   }
 }
-export const promisifyAbortSignal = (
-  signal: AbortSignalWithReason<string>
-): Promise<never> => {
+export const promisifyAbortSignal = (signal: AbortSignalWithReason<string>): Promise<never> => {
   return catchRejection(
     new Promise<never>((_, reject) => {
       const notifyRejection = () => reject(new TaskAbortError(signal.reason))
@@ -361,10 +308,7 @@ export const promisifyAbortSignal = (
     })
   )
 }
-export const runTask = async <T>(
-  task: () => Promise<T>,
-  cleanUp?: () => void
-): Promise<TaskResult<T>> => {
+export const runTask = async <T>(task: () => Promise<T>, cleanUp?: () => void): Promise<TaskResult<T>> => {
   try {
     await Promise.resolve()
     const value = await task()
@@ -398,11 +342,7 @@ export const createDelay = (signal: AbortSignal) => {
   }
 }
 export type AbortSignalWithReason<T> = AbortSignal & { reason?: T }
-export type AnyListenerPredicate<State> = (
-  action: qt.AnyAction,
-  currentState: State,
-  originalState: State
-) => boolean
+export type AnyListenerPredicate<State> = (action: qt.AnyAction, currentState: State, originalState: State) => boolean
 export type ListenerPredicate<Action extends qt.AnyAction, State> = (
   action: qt.AnyAction,
   currentState: State,
@@ -437,19 +377,13 @@ export type TaskCancelled = {
   readonly status: "cancelled"
   readonly error: TaskAbortError
 }
-export type TaskResult<Value> =
-  | TaskResolved<Value>
-  | TaskRejected
-  | TaskCancelled
+export type TaskResult<Value> = TaskResolved<Value> | TaskRejected | TaskCancelled
 export interface ForkedTask<T> {
   result: Promise<TaskResult<T>>
   cancel(): void
 }
-export interface ListenerEffectAPI<
-  State,
-  Dispatch extends qt.Dispatch<qt.AnyAction>,
-  ExtraArgument = unknown
-> extends qt.MiddlewareAPI<Dispatch, State> {
+export interface ListenerEffectAPI<State, Dispatch extends qt.Dispatch<qt.AnyAction>, ExtraArgument = unknown>
+  extends qt.MiddlewareAPI<Dispatch, State> {
   getOriginalState: () => State
   unsubscribe(): void
   subscribe(): void
@@ -467,10 +401,7 @@ export type ListenerEffect<
   State,
   Dispatch extends qt.Dispatch<qt.AnyAction>,
   ExtraArgument = unknown
-> = (
-  action: Action,
-  api: ListenerEffectAPI<State, Dispatch, ExtraArgument>
-) => void | Promise<void>
+> = (action: Action, api: ListenerEffectAPI<State, Dispatch, ExtraArgument>) => void | Promise<void>
 export interface ListenerErrorInfo {
   raisedBy: "effect" | "predicate"
 }
@@ -483,11 +414,7 @@ export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
 }
 export type ListenerMiddleware<
   State = unknown,
-  Dispatch extends qt.ThunkDispatch<
-    State,
-    unknown,
-    qt.AnyAction
-  > = qt.ThunkDispatch<State, unknown, qt.AnyAction>,
+  Dispatch extends qt.ThunkDispatch<State, unknown, qt.AnyAction> = qt.ThunkDispatch<State, unknown, qt.AnyAction>,
   ExtraArgument = unknown
 > = qt.Middleware<
   {
@@ -498,20 +425,11 @@ export type ListenerMiddleware<
 >
 export interface ListenerMiddlewareInstance<
   State = unknown,
-  Dispatch extends qt.ThunkDispatch<
-    State,
-    unknown,
-    qt.AnyAction
-  > = qt.ThunkDispatch<State, unknown, qt.AnyAction>,
+  Dispatch extends qt.ThunkDispatch<State, unknown, qt.AnyAction> = qt.ThunkDispatch<State, unknown, qt.AnyAction>,
   ExtraArgument = unknown
 > {
   middleware: ListenerMiddleware<State, Dispatch, ExtraArgument>
-  startListening: AddListenerOverloads<
-    UnsubscribeListener,
-    State,
-    Dispatch,
-    ExtraArgument
-  >
+  startListening: AddListenerOverloads<UnsubscribeListener, State, Dispatch, ExtraArgument>
   stopListening: RemoveListenerOverloads<State, Dispatch>
   clearListeners: () => void
 }
@@ -528,13 +446,14 @@ export type TakePatternOutputWithTimeout<
   ? Promise<[Action, State, State] | null>
   : Promise<[qt.AnyAction, State, State] | null>
 export interface TakePattern<State> {
-  <Predicate extends AnyListenerPredicate<State>>(
-    predicate: Predicate
-  ): TakePatternOutputWithoutTimeout<State, Predicate>
-  <Predicate extends AnyListenerPredicate<State>>(
-    predicate: Predicate,
-    timeout: number
-  ): TakePatternOutputWithTimeout<State, Predicate>
+  <Predicate extends AnyListenerPredicate<State>>(predicate: Predicate): TakePatternOutputWithoutTimeout<
+    State,
+    Predicate
+  >
+  <Predicate extends AnyListenerPredicate<State>>(predicate: Predicate, timeout: number): TakePatternOutputWithTimeout<
+    State,
+    Predicate
+  >
   <Predicate extends AnyListenerPredicate<State>>(
     predicate: Predicate,
     timeout?: number | undefined
@@ -543,9 +462,7 @@ export interface TakePattern<State> {
 export interface UnsubscribeListenerOptions {
   cancelActive?: true
 }
-export type UnsubscribeListener = (
-  unsubscribeOptions?: UnsubscribeListenerOptions
-) => void
+export type UnsubscribeListener = (unsubscribeOptions?: UnsubscribeListenerOptions) => void
 export interface AddListenerOverloads<
   Return,
   State = unknown,
@@ -559,12 +476,7 @@ export interface AddListenerOverloads<
       type?: never
       matcher?: never
       predicate: LP
-      effect: ListenerEffect<
-        ListenerPredicateGuardedActionType<LP>,
-        State,
-        Dispatch,
-        ExtraArgument
-      >
+      effect: ListenerEffect<ListenerPredicateGuardedActionType<LP>, State, Dispatch, ExtraArgument>
     } & AdditionalOptions
   ): Return
   <C extends qt.TypedActionCreator<any>>(
@@ -607,18 +519,8 @@ export interface AddListenerOverloads<
 export type RemoveListenerOverloads<
   State = unknown,
   Dispatch extends qt.Dispatch = qt.ThunkDispatch<State, unknown, qt.AnyAction>
-> = AddListenerOverloads<
-  boolean,
-  State,
-  Dispatch,
-  any,
-  UnsubscribeListenerOptions
->
-export interface RemoveListenerAction<
-  Action extends qt.AnyAction,
-  State,
-  Dispatch extends qt.Dispatch<qt.AnyAction>
-> {
+> = AddListenerOverloads<boolean, State, Dispatch, any, UnsubscribeListenerOptions>
+export interface RemoveListenerAction<Action extends qt.AnyAction, State, Dispatch extends qt.Dispatch<qt.AnyAction>> {
   type: "listenerMiddleware/remove"
   payload: {
     type: string
@@ -627,67 +529,33 @@ export interface RemoveListenerAction<
 }
 export type TypedAddListener<
   State,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
-    State,
-    unknown,
-    qt.AnyAction
-  >,
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<State, unknown, qt.AnyAction>,
   ExtraArgument = unknown,
   Payload = ListenerEntry<State, Dispatch>,
   T extends string = "listenerMiddleware/add"
 > = qt.BaseActionCreator<Payload, T> &
-  AddListenerOverloads<
-    qt.PayloadAction<Payload, T>,
-    State,
-    Dispatch,
-    ExtraArgument
-  >
+  AddListenerOverloads<qt.PayloadAction<Payload, T>, State, Dispatch, ExtraArgument>
 export type TypedRemoveListener<
   State,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
-    State,
-    unknown,
-    qt.AnyAction
-  >,
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<State, unknown, qt.AnyAction>,
   Payload = ListenerEntry<State, Dispatch>,
   T extends string = "listenerMiddleware/remove"
 > = qt.BaseActionCreator<Payload, T> &
-  AddListenerOverloads<
-    qt.PayloadAction<Payload, T>,
-    State,
-    Dispatch,
-    any,
-    UnsubscribeListenerOptions
-  >
+  AddListenerOverloads<qt.PayloadAction<Payload, T>, State, Dispatch, any, UnsubscribeListenerOptions>
 export type TypedStartListening<
   State,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
-    State,
-    unknown,
-    qt.AnyAction
-  >,
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<State, unknown, qt.AnyAction>,
   ExtraArgument = unknown
 > = AddListenerOverloads<UnsubscribeListener, State, Dispatch, ExtraArgument>
 export type TypedStopListening<
   State,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
-    State,
-    unknown,
-    qt.AnyAction
-  >
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<State, unknown, qt.AnyAction>
 > = RemoveListenerOverloads<State, Dispatch>
 export type TypedCreateListenerEntry<
   State,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<
-    State,
-    unknown,
-    qt.AnyAction
-  >
+  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.ThunkDispatch<State, unknown, qt.AnyAction>
 > = AddListenerOverloads<ListenerEntry<State, Dispatch>, State, Dispatch>
-export type ListenerEntry<
-  State = unknown,
-  Dispatch extends qt.Dispatch<qt.AnyAction> = qt.Dispatch<qt.AnyAction>
-> = {
+export type ListenerEntry<State = unknown, Dispatch extends qt.Dispatch<qt.AnyAction> = qt.Dispatch<qt.AnyAction>> = {
   id: string
   effect: ListenerEffect<any, State, Dispatch>
   unsubscribe: () => void
@@ -701,22 +569,9 @@ export type FallbackAddListenerOptions = {
   matcher?: qt.MatchFunction<any>
   predicate?: ListenerPredicate<any, any>
 } & { effect: ListenerEffect<any, any, any> }
-export type GuardedType<T> = T extends (
-  x: any,
-  ...args: unknown[]
-) => x is infer T
-  ? T
-  : never
-export type ListenerPredicateGuardedActionType<T> = T extends ListenerPredicate<
-  infer Action,
-  any
->
-  ? Action
-  : never
-export const assertFunction: (
-  func: unknown,
-  expected: string
-) => asserts func is (...args: unknown[]) => unknown = (
+export type GuardedType<T> = T extends (x: any, ...args: unknown[]) => x is infer T ? T : never
+export type ListenerPredicateGuardedActionType<T> = T extends ListenerPredicate<infer Action, any> ? Action : never
+export const assertFunction: (func: unknown, expected: string) => asserts func is (...args: unknown[]) => unknown = (
   func: unknown,
   expected: string
 ) => {
@@ -725,23 +580,14 @@ export const assertFunction: (
   }
 }
 export const noop = () => {}
-export const catchRejection = <T>(
-  promise: Promise<T>,
-  onError = noop
-): Promise<T> => {
+export const catchRejection = <T>(promise: Promise<T>, onError = noop): Promise<T> => {
   promise.catch(onError)
   return promise
 }
-export const addAbortSignalListener = (
-  abortSignal: AbortSignal,
-  callback: (evt: Event) => void
-) => {
+export const addAbortSignalListener = (abortSignal: AbortSignal, callback: (evt: Event) => void) => {
   abortSignal.addEventListener("abort", callback, { once: true })
 }
-export const abortControllerWithReason = <T>(
-  abortController: AbortController,
-  reason: T
-): void => {
+export const abortControllerWithReason = <T>(abortController: AbortController, reason: T): void => {
   type Consumer<T> = (val: T) => void
   const signal = abortController.signal as AbortSignalWithReason<T>
   if (signal.aborted) {

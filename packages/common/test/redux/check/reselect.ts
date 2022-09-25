@@ -17,7 +17,13 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from "../../../src/red
 export function expectType<T>(t: T): T {
   return t
 }
-type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends <T>() => T extends B ? 1 : 0 ? (A extends B ? (B extends A ? unknown : never) : never) : never
+type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends <T>() => T extends B ? 1 : 0
+  ? A extends B
+    ? B extends A
+      ? unknown
+      : never
+    : never
+  : never
 export declare type IsAny<T, True, False = never> = true | false extends (T extends never ? true : false) ? True : False
 export declare type IsUnknown<T, True, False = never> = unknown extends T ? IsAny<T, False, True> : False
 type Equals<T, U> = IsAny<T, never, IsAny<U, never, [T] extends [U] ? ([U] extends [T] ? any : never) : never>>
@@ -142,7 +148,17 @@ function testInvalidTypeInCombinator() {
     (state: { testString: string }) => state.testString,
     (state: { testNumber: string }) => state.testNumber,
     (state: { testStringArray: string[] }) => state.testStringArray,
-    (foo1: string, foo2: number, foo3: boolean, foo4: string, foo5: string, foo6: string, foo7: string, foo8: number, foo9: string[]) => {
+    (
+      foo1: string,
+      foo2: number,
+      foo3: boolean,
+      foo4: string,
+      foo5: string,
+      foo6: string,
+      foo7: string,
+      foo8: number,
+      foo9: string[]
+    ) => {
       return { foo1, foo2, foo3, foo4, foo5, foo6, foo7, foo8, foo9 }
     }
   )
@@ -158,7 +174,17 @@ function testInvalidTypeInCombinator() {
       (state: { testNumber: string }) => state.testNumber,
       (state: { testStringArray: string[] }) => state.testStringArray,
     ],
-    (foo1: string, foo2: number, foo3: boolean, foo4: string, foo5: string, foo6: string, foo7: string, foo8: number, foo9: string[]) => {
+    (
+      foo1: string,
+      foo2: number,
+      foo3: boolean,
+      foo4: string,
+      foo5: string,
+      foo6: string,
+      foo7: string,
+      foo8: number,
+      foo9: string[]
+    ) => {
       return { foo1, foo2, foo3, foo4, foo5, foo6, foo7, foo8, foo9 }
     }
   )
@@ -176,7 +202,17 @@ function testParametricSelector() {
     (state: { testString: string }) => state.testString,
     (state: { testString: string }) => state.testString,
     (state: { testStringArray: string[] }) => state.testStringArray,
-    (foo1: string, foo2: number, foo3: boolean, foo4: string, foo5: string, foo6: string, foo7: string, foo8: string, foo9: string[]) => {
+    (
+      foo1: string,
+      foo2: number,
+      foo3: boolean,
+      foo4: string,
+      foo5: string,
+      foo6: string,
+      foo7: string,
+      foo8: string,
+      foo9: string[]
+    ) => {
       return { foo1, foo2, foo3, foo4, foo5, foo6, foo7, foo8, foo9 }
     }
   )
@@ -232,17 +268,27 @@ function testParametricSelector() {
   selector4({ foo: "fizz" }, 42)
 }
 function testArrayArgument() {
-  const selector = createSelector([(state: { foo: string }) => state.foo, (state: { foo: string }) => state.foo, (state: { foo: string }, props: { bar: number }) => props.bar], (foo1, foo2, bar) => ({
-    foo1,
-    foo2,
-    bar,
-  }))
+  const selector = createSelector(
+    [
+      (state: { foo: string }) => state.foo,
+      (state: { foo: string }) => state.foo,
+      (state: { foo: string }, props: { bar: number }) => props.bar,
+    ],
+    (foo1, foo2, bar) => ({
+      foo1,
+      foo2,
+      bar,
+    })
+  )
   const ret = selector({ foo: "fizz" }, { bar: 42 })
   const foo1: string = ret.foo1
   const foo2: string = ret.foo2
   const bar: number = ret.bar
   createSelector([(state: { foo: string }) => state.foo])
-  createSelector([(state: { foo: string }) => state.foo, (state: { foo: string }) => state.foo], (foo: string, bar: number) => {})
+  createSelector(
+    [(state: { foo: string }) => state.foo, (state: { foo: string }) => state.foo],
+    (foo: string, bar: number) => {}
+  )
   createSelector(
     [
       (state: { foo: string }) => state.foo,
@@ -256,7 +302,18 @@ function testArrayArgument() {
       (state: { foo: string }) => state.foo,
       (state: { foo: string }) => state.foo,
     ],
-    (foo1: string, foo2: string, foo3: string, foo4: string, foo5: string, foo6: string, foo7: string, foo8: string, foo9: string, foo10: string) => {}
+    (
+      foo1: string,
+      foo2: string,
+      foo3: string,
+      foo4: string,
+      foo5: string,
+      foo6: string,
+      foo7: string,
+      foo8: string,
+      foo9: string,
+      foo10: string
+    ) => {}
   )
   createSelector(
     [
@@ -274,7 +331,17 @@ function testArrayArgument() {
     (foo1, foo2, foo3, foo4, foo5, foo6, foo7, foo8: number, foo9, foo10) => {}
   )
   createSelector(
-    [(state: { foo: string }) => state.foo, state => state.foo, state => state.foo, state => state.foo, state => state.foo, state => state.foo, state => state.foo, state => state.foo, 1],
+    [
+      (state: { foo: string }) => state.foo,
+      state => state.foo,
+      state => state.foo,
+      state => state.foo,
+      state => state.foo,
+      state => state.foo,
+      state => state.foo,
+      state => state.foo,
+      1,
+    ],
     (foo1, foo2, foo3, foo4, foo5, foo6, foo7, foo8, foo9) => {}
   )
   const selector2 = createSelector(
@@ -289,7 +356,17 @@ function testArrayArgument() {
       (state: { foo: string }) => state.foo,
       (state: { foo: string }) => state.foo,
     ],
-    (foo1: string, foo2: string, foo3: string, foo4: string, foo5: string, foo6: string, foo7: string, foo8: string, foo9: string) => {
+    (
+      foo1: string,
+      foo2: string,
+      foo3: string,
+      foo4: string,
+      foo5: string,
+      foo6: string,
+      foo7: string,
+      foo8: string,
+      foo9: string
+    ) => {
       return { foo1, foo2, foo3, foo4, foo5, foo6, foo7, foo8, foo9 }
     }
   )
@@ -319,7 +396,17 @@ function testArrayArgument() {
       (state: { foo: string }) => state.foo,
       (state: { foo: string }) => state.foo,
     ],
-    (bar: number, foo1: string, foo2: string, foo3: string, foo4: string, foo5: string, foo6: string, foo7: string, foo8: string) => {
+    (
+      bar: number,
+      foo1: string,
+      foo2: string,
+      foo3: string,
+      foo4: string,
+      foo5: string,
+      foo6: string,
+      foo7: string,
+      foo8: string
+    ) => {
       return { foo1, foo2, foo3, foo4, foo5, foo6, foo7, foo8, bar }
     }
   )
@@ -335,7 +422,17 @@ function testArrayArgument() {
       (state: { testString: string }) => state.testString,
       (state: { testStringArray: string[] }) => state.testStringArray,
     ],
-    (foo1: string, foo2: number, foo3: boolean, foo4: string, foo5: string, foo6: string, foo7: string, foo8: string, foo9: string[]) => {
+    (
+      foo1: string,
+      foo2: number,
+      foo3: boolean,
+      foo4: string,
+      foo5: string,
+      foo6: string,
+      foo7: string,
+      foo8: string,
+      foo9: string[]
+    ) => {
       return { foo1, foo2, foo3, foo4, foo5, foo6, foo7, foo8, foo9 }
     }
   )
@@ -569,7 +666,12 @@ function testStructuredSelectorTypeParams() {
     foo: selectFoo,
   })
 }
-function multiArgMemoize<F extends (...args: any[]) => any>(func: F, a: number, b: string, equalityCheck = defaultEqualityCheck): F {
+function multiArgMemoize<F extends (...args: any[]) => any>(
+  func: F,
+  a: number,
+  b: string,
+  equalityCheck = defaultEqualityCheck
+): F {
   return () => {}
 }
 import { isEqual, groupBy } from "lodash"
@@ -580,7 +682,8 @@ import { GetStateFromSelectors } from "../src/types"
   }
   const toId = (transaction: Transaction) => transaction.transactionId
   const transactionsIds = (transactions: Transaction[]) => transactions.map(toId)
-  const collectionsEqual = (ts1: Transaction[], ts2: Transaction[]) => isEqual(transactionsIds(ts1), transactionsIds(ts2))
+  const collectionsEqual = (ts1: Transaction[], ts2: Transaction[]) =>
+    isEqual(transactionsIds(ts1), transactionsIds(ts2))
   const createTransactionsSelector = createSelectorCreator(defaultMemoize, collectionsEqual)
   const createMultiMemoizeArgSelector = createSelectorCreator(multiArgMemoize, 42, "abcd", defaultEqualityCheck)
   const select = createMultiMemoizeArgSelector(
@@ -589,7 +692,10 @@ import { GetStateFromSelectors } from "../src/types"
   )
   select.clearCache()
   const createMultiMemoizeArgSelector2 = createSelectorCreator(multiArgMemoize, 42, defaultEqualityCheck)
-  const groupTransactionsByLabel = defaultMemoize((transactions: Transaction[]) => groupBy(transactions, item => item.transactionId), collectionsEqual)
+  const groupTransactionsByLabel = defaultMemoize(
+    (transactions: Transaction[]) => groupBy(transactions, item => item.transactionId),
+    collectionsEqual
+  )
 }
 function issue445() {
   interface TestState {
@@ -626,9 +732,15 @@ function issue445() {
   const getVerboseObject1 = createSelector([getString], str => generateObject1(str))
   const getVerboseObject2 = createSelector([getNumber], num => generateObject2(num))
   const getVerboseComplexObjectTest1 = createSelector([getObject1], obj1 => generateComplexObject(obj1))
-  const getVerboseComplexObjectTest2 = createSelector([getNumber, getObject1], (num, obj1) => generateComplexObject(num, obj1))
-  const getVerboseComplexObjectTest3 = createSelector([getNumber, getObject1, getObject2], (num, obj1, obj2) => generateComplexObject(num, obj1, obj2))
-  const getVerboseComplexObjectTest4 = createSelector([getObject1, getNumber, getObject2], (num, obj1, obj2) => generateComplexObject(num, obj1, obj2))
+  const getVerboseComplexObjectTest2 = createSelector([getNumber, getObject1], (num, obj1) =>
+    generateComplexObject(num, obj1)
+  )
+  const getVerboseComplexObjectTest3 = createSelector([getNumber, getObject1, getObject2], (num, obj1, obj2) =>
+    generateComplexObject(num, obj1, obj2)
+  )
+  const getVerboseComplexObjectTest4 = createSelector([getObject1, getNumber, getObject2], (num, obj1, obj2) =>
+    generateComplexObject(num, obj1, obj2)
+  )
 }
 function issue492() {
   const fooPropSelector = (_: {}, ownProps: { foo: string }) => ownProps.foo
@@ -825,7 +937,12 @@ function deepNesting() {
   const selector14 = createSelector(selector13, s => s)
   const selector15 = createSelector(selector14, s => s)
   const selector16 = createSelector(selector15, s => s)
-  const selector17: OutputSelector<[(state: State) => string], ReturnType<typeof selector16>, (s: string) => string, never> = createSelector(selector16, s => s)
+  const selector17: OutputSelector<
+    [(state: State) => string],
+    ReturnType<typeof selector16>,
+    (s: string) => string,
+    never
+  > = createSelector(selector16, s => s)
   const selector18 = createSelector(selector17, s => s)
   const selector19 = createSelector(selector18, s => s)
   const selector20 = createSelector(selector19, s => s)
@@ -834,7 +951,11 @@ function deepNesting() {
   const selector23 = createSelector(selector22, s => s)
   const selector24 = createSelector(selector23, s => s)
   const selector25 = createSelector(selector24, s => s)
-  const selector26: Selector<typeof selector25 extends Selector<infer S> ? S : never, ReturnType<typeof selector25>, never> = createSelector(selector25, s => s)
+  const selector26: Selector<
+    typeof selector25 extends Selector<infer S> ? S : never,
+    ReturnType<typeof selector25>,
+    never
+  > = createSelector(selector25, s => s)
   const selector27 = createSelector(selector26, s => s)
   const selector28 = createSelector(selector27, s => s)
   const selector29 = createSelector(selector28, s => s)
@@ -844,11 +965,28 @@ function issue540() {
   const input2 = (_: StateA, { testString }: { testString: string }, c: number | string) => testString
   const input3 = (_: StateA, { testBoolean }: { testBoolean: boolean }, c: number | string, d: string) => testBoolean
   const input4 = (_: StateA, { testString2 }: { testString2: string }) => testString2
-  const testSelector = createSelector(input1, input2, input3, input4, (testNumber, testString, testBoolean) => testNumber + testString)
+  const testSelector = createSelector(
+    input1,
+    input2,
+    input3,
+    input4,
+    (testNumber, testString, testBoolean) => testNumber + testString
+  )
   const state: StateA = { a: 42 }
-  const test = testSelector(state, { testNumber: 1, testString: "10", testBoolean: true, testString2: "blah" }, 42, "blah")
-  const selectProp1 = createSelector([(state: StateA) => state, (state: StateA, props: { prop1: number }) => props], (state, { prop1 }) => [state, prop1])
-  const selectProp2 = createSelector([selectProp1, (state, props: { prop2: number }) => props], (state, { prop2 }) => [state, prop2])
+  const test = testSelector(
+    state,
+    { testNumber: 1, testString: "10", testBoolean: true, testString2: "blah" },
+    42,
+    "blah"
+  )
+  const selectProp1 = createSelector(
+    [(state: StateA) => state, (state: StateA, props: { prop1: number }) => props],
+    (state, { prop1 }) => [state, prop1]
+  )
+  const selectProp2 = createSelector([selectProp1, (state, props: { prop2: number }) => props], (state, { prop2 }) => [
+    state,
+    prop2,
+  ])
   selectProp1({ a: 42 }, { prop1: 1 })
   selectProp2({ a: 42 }, { prop2: 2 })
 }

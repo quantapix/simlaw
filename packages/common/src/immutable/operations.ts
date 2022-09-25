@@ -120,7 +120,12 @@ export class FromEntriesSequence extends Seq.Keyed {
         if (entry) {
           validateEntry(entry)
           const indexedCollection = qu.isCollection(entry)
-          return qu.iteratorValue(type, indexedCollection ? entry.get(0) : entry[0], indexedCollection ? entry.get(1) : entry[1], step)
+          return qu.iteratorValue(
+            type,
+            indexedCollection ? entry.get(0) : entry[0],
+            indexedCollection ? entry.get(1) : entry[1],
+            step
+          )
         }
       }
     })
@@ -507,7 +512,10 @@ export function interposeFactory(x, separator) {
   y.size = x.size && x.size * 2 - 1
   y.__iterateUncached = function (fn, reverse) {
     let iterations = 0
-    x.__iterate(v => (!iterations || fn(separator, iterations++, this) !== false) && fn(v, iterations++, this) !== false, reverse)
+    x.__iterate(
+      v => (!iterations || fn(separator, iterations++, this) !== false) && fn(v, iterations++, this) !== false,
+      reverse
+    )
     return iterations
   }
   y.__iteratorUncached = function (type, reverse) {
@@ -519,7 +527,9 @@ export function interposeFactory(x, separator) {
         step = iterator.next()
         if (step.done) return step
       }
-      return iterations % 2 ? qu.iteratorValue(type, iterations++, separator) : qu.iteratorValue(type, iterations++, step.value, step)
+      return iterations % 2
+        ? qu.iteratorValue(type, iterations++, separator)
+        : qu.iteratorValue(type, iterations++, step.value, step)
     })
   }
   return y

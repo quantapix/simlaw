@@ -1,9 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit"
-import {
-  mockConsole,
-  createConsole,
-  getLog,
-} from "console-testing-library/pure"
+import { mockConsole, createConsole, getLog } from "console-testing-library/pure"
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query"
 let restore: () => void
 let nodeEnv: string
@@ -114,9 +110,7 @@ describe("missing reducer", () => {
       })
       api1.endpoints.q1.select(undefined)(store.getState())
       expect(getLog().log).toBe(
-        shouldWarn
-          ? "Error: No data found at `state.api`. Did you forget to add the reducer to the store?"
-          : ""
+        shouldWarn ? "Error: No data found at `state.api`. Did you forget to add the reducer to the store?" : ""
       )
     })
   })
@@ -135,9 +129,7 @@ describe("missing reducer", () => {
     })
     api1.endpoints.q1.select(undefined)(store.getState())
     api1.endpoints.q1.select(undefined)(store.getState())
-    expect(getLog().log).toBe(
-      "Error: No data found at `state.api`. Did you forget to add the reducer to the store?"
-    )
+    expect(getLog().log).toBe("Error: No data found at `state.api`. Did you forget to add the reducer to the store?")
   })
   it("warns multiple times for multiple apis", () => {
     const store = configureStore({
@@ -157,9 +149,7 @@ test("warns only for reducer if everything is missing", async () => {
   })
   api1.endpoints.q1.select(undefined)(store.getState())
   await store.dispatch(api1.endpoints.q1.initiate(undefined))
-  expect(getLog().log).toBe(
-    "Error: No data found at `state.api`. Did you forget to add the reducer to the store?"
-  )
+  expect(getLog().log).toBe("Error: No data found at `state.api`. Did you forget to add the reducer to the store?")
 })
 describe("warns on multiple apis using the same `reducerPath`", () => {
   it("common: two apis, same order", async () => {
@@ -241,8 +231,7 @@ describe("`console.error` on unhandled errors during `initiate`", () => {
       middleware: gdm => gdm().concat(api.middleware),
     })
     await store.dispatch(api.endpoints.baseQuery.initiate())
-    expect(getLog().log)
-      .toBe(`An unhandled error occurred processing a request for the endpoint "baseQuery".
+    expect(getLog().log).toBe(`An unhandled error occurred processing a request for the endpoint "baseQuery".
 In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: this was kinda expected]`)
   })
   it("error thrown in `queryFn`", async () => {
@@ -263,8 +252,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated". 
       middleware: gdm => gdm().concat(api.middleware),
     })
     await store.dispatch(api.endpoints.queryFn.initiate())
-    expect(getLog().log)
-      .toBe(`An unhandled error occurred processing a request for the endpoint "queryFn".
+    expect(getLog().log).toBe(`An unhandled error occurred processing a request for the endpoint "queryFn".
 In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: this was kinda expected]`)
   })
   it("error thrown in `transformResponse`", async () => {
@@ -286,8 +274,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated". 
       middleware: gdm => gdm().concat(api.middleware),
     })
     await store.dispatch(api.endpoints.transformRspn.initiate())
-    expect(getLog().log)
-      .toBe(`An unhandled error occurred processing a request for the endpoint "transformRspn".
+    expect(getLog().log).toBe(`An unhandled error occurred processing a request for the endpoint "transformRspn".
 In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: this was kinda expected]`)
   })
   it("`fetchBaseQuery`: error thrown in `prepareHeaders`", async () => {
@@ -311,8 +298,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated". 
       middleware: gdm => gdm().concat(api.middleware),
     })
     await store.dispatch(api.endpoints.prep.initiate())
-    expect(getLog().log)
-      .toBe(`An unhandled error occurred processing a request for the endpoint "prep".
+    expect(getLog().log).toBe(`An unhandled error occurred processing a request for the endpoint "prep".
 In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: this was kinda expected]`)
   })
   it("`fetchBaseQuery`: error thrown in `validateStatus`", async () => {
@@ -338,8 +324,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated". 
       middleware: gdm => gdm().concat(api.middleware),
     })
     await store.dispatch(api.endpoints.val.initiate())
-    expect(getLog().log)
-      .toBe(`An unhandled error occurred processing a request for the endpoint "val".
+    expect(getLog().log).toBe(`An unhandled error occurred processing a request for the endpoint "val".
 In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: this was kinda expected]`)
   })
 })

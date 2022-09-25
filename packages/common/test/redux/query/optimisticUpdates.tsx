@@ -12,9 +12,7 @@ const api = createApi({
   baseQuery: (...args: any[]) => {
     const result = baseQuery(...args)
     if (typeof result === "object" && "then" in result)
-      return result
-        .then((data: any) => ({ data, meta: "meta" }))
-        .catch((e: any) => ({ error: e }))
+      return result.then((data: any) => ({ data, meta: "meta" })).catch((e: any) => ({ error: e }))
     return { data: result, meta: "meta" }
   },
   tagTypes: ["Post"],
@@ -71,12 +69,9 @@ describe("basic lifecycle", () => {
     onSuccess.mockReset()
   })
   it("success", async () => {
-    const { result } = renderHook(
-      () => extendedApi.endpoints.test.useMutation(),
-      {
-        wrapper: storeRef.wrapper,
-      }
-    )
+    const { result } = renderHook(() => extendedApi.endpoints.test.useMutation(), {
+      wrapper: storeRef.wrapper,
+    })
     baseQuery.mockResolvedValue("success")
     expect(onStart).not.toHaveBeenCalled()
     expect(baseQuery).not.toHaveBeenCalled()
@@ -90,12 +85,9 @@ describe("basic lifecycle", () => {
     expect(onSuccess).toHaveBeenCalledWith({ data: "success", meta: "meta" })
   })
   it("error", async () => {
-    const { result } = renderHook(
-      () => extendedApi.endpoints.test.useMutation(),
-      {
-        wrapper: storeRef.wrapper,
-      }
-    )
+    const { result } = renderHook(() => extendedApi.endpoints.test.useMutation(), {
+      wrapper: storeRef.wrapper,
+    })
     baseQuery.mockRejectedValue("error")
     expect(onStart).not.toHaveBeenCalled()
     expect(baseQuery).not.toHaveBeenCalled()
@@ -152,9 +144,7 @@ describe("updateQueryData", () => {
       undo: expect.any(Function),
     })
     act(() => {
-      storeRef.store.dispatch(
-        api.util.patchQueryData("post", "3", returnValue.inversePatches)
-      )
+      storeRef.store.dispatch(api.util.patchQueryData("post", "3", returnValue.inversePatches))
     })
     expect(result.current.data).toEqual(dataBefore)
   })

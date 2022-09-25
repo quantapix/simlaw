@@ -3,7 +3,10 @@ import * as qu from "./utils.js"
 
 export function applyMiddleware(): qt.StoreEnhancer
 export function applyMiddleware<Ext1, S>(middleware1: qt.Middleware<Ext1, S, any>): qt.StoreEnhancer<{ dispatch: Ext1 }>
-export function applyMiddleware<Ext1, Ext2, S>(middleware1: qt.Middleware<Ext1, S, any>, middleware2: qt.Middleware<Ext2, S, any>): qt.StoreEnhancer<{ dispatch: Ext1 & Ext2 }>
+export function applyMiddleware<Ext1, Ext2, S>(
+  middleware1: qt.Middleware<Ext1, S, any>,
+  middleware2: qt.Middleware<Ext2, S, any>
+): qt.StoreEnhancer<{ dispatch: Ext1 & Ext2 }>
 export function applyMiddleware<Ext1, Ext2, Ext3, S>(
   middleware1: qt.Middleware<Ext1, S, any>,
   middleware2: qt.Middleware<Ext2, S, any>,
@@ -22,13 +25,18 @@ export function applyMiddleware<Ext1, Ext2, Ext3, Ext4, Ext5, S>(
   middleware4: qt.Middleware<Ext4, S, any>,
   middleware5: qt.Middleware<Ext5, S, any>
 ): qt.StoreEnhancer<{ dispatch: Ext1 & Ext2 & Ext3 & Ext4 & Ext5 }>
-export function applyMiddleware<Ext, S = any>(...middlewares: qt.Middleware<any, S, any>[]): qt.StoreEnhancer<{ dispatch: Ext }>
+export function applyMiddleware<Ext, S = any>(
+  ...middlewares: qt.Middleware<any, S, any>[]
+): qt.StoreEnhancer<{ dispatch: Ext }>
 export function applyMiddleware(...middlewares: qt.Middleware[]): qt.StoreEnhancer<any> {
   return (createStore: qt.StoreEnhancerStoreCreator) =>
     <S, A extends qt.AnyAction>(reducer: qt.Reducer<S, A>, preloadedState?: qt.PreloadedState<S>) => {
       const store = createStore(reducer, preloadedState)
       let dispatch: qt.Dispatch = () => {
-        throw new Error("Dispatching while constructing your middleware is not allowed. " + "Other middleware would not be applied to this dispatch.")
+        throw new Error(
+          "Dispatching while constructing your middleware is not allowed. " +
+            "Other middleware would not be applied to this dispatch."
+        )
       }
       const middlewareAPI: qt.MiddlewareAPI = {
         getState: store.getState,
@@ -43,17 +51,32 @@ export function applyMiddleware(...middlewares: qt.Middleware[]): qt.StoreEnhanc
     }
 }
 
-function bindActionCreator<A extends qt.AnyAction = qt.AnyAction>(actionCreator: qt.ActionCreator<A>, dispatch: qt.Dispatch) {
+function bindActionCreator<A extends qt.AnyAction = qt.AnyAction>(
+  actionCreator: qt.ActionCreator<A>,
+  dispatch: qt.Dispatch
+) {
   return function (this: any, ...args: any[]) {
     return dispatch(actionCreator.apply(this, args))
   }
 }
 
 export function bindActionCreators<A, C extends qt.ActionCreator<A>>(actionCreator: C, dispatch: qt.Dispatch): C
-export function bindActionCreators<A extends qt.ActionCreator<any>, B extends qt.ActionCreator<any>>(actionCreator: A, dispatch: qt.Dispatch): B
-export function bindActionCreators<A, M extends qt.ActionCreatorsMapObject<A>>(actionCreators: M, dispatch: qt.Dispatch): M
-export function bindActionCreators<M extends qt.ActionCreatorsMapObject, N extends qt.ActionCreatorsMapObject>(actionCreators: M, dispatch: qt.Dispatch): N
-export function bindActionCreators(actionCreators: qt.ActionCreator<any> | qt.ActionCreatorsMapObject, dispatch: qt.Dispatch) {
+export function bindActionCreators<A extends qt.ActionCreator<any>, B extends qt.ActionCreator<any>>(
+  actionCreator: A,
+  dispatch: qt.Dispatch
+): B
+export function bindActionCreators<A, M extends qt.ActionCreatorsMapObject<A>>(
+  actionCreators: M,
+  dispatch: qt.Dispatch
+): M
+export function bindActionCreators<M extends qt.ActionCreatorsMapObject, N extends qt.ActionCreatorsMapObject>(
+  actionCreators: M,
+  dispatch: qt.Dispatch
+): N
+export function bindActionCreators(
+  actionCreators: qt.ActionCreator<any> | qt.ActionCreatorsMapObject,
+  dispatch: qt.Dispatch
+) {
   if (typeof actionCreators === "function") {
     return bindActionCreator(actionCreators, dispatch)
   }
@@ -73,16 +96,33 @@ export function bindActionCreators(actionCreators: qt.ActionCreator<any> | qt.Ac
   return boundActionCreators
 }
 
-function getUnexpectedStateShapeWarningMessage(inputState: object, reducers: qt.ReducersMapObject, action: qt.Action, unexpectedKeyCache: { [key: string]: true }) {
+function getUnexpectedStateShapeWarningMessage(
+  inputState: object,
+  reducers: qt.ReducersMapObject,
+  action: qt.Action,
+  unexpectedKeyCache: { [key: string]: true }
+) {
   const reducerKeys = Object.keys(reducers)
-  const argumentName = action && action.type === qu.ActionTypes.INIT ? "preloadedState argument passed to createStore" : "previous state received by the reducer"
+  const argumentName =
+    action && action.type === qu.ActionTypes.INIT
+      ? "preloadedState argument passed to createStore"
+      : "previous state received by the reducer"
   if (reducerKeys.length === 0) {
-    return "Store does not have a valid reducer. Make sure the argument passed " + "to combineReducers is an object whose values are reducers."
+    return (
+      "Store does not have a valid reducer. Make sure the argument passed " +
+      "to combineReducers is an object whose values are reducers."
+    )
   }
   if (!qu.isPlainObject(inputState)) {
-    return `The ${argumentName} has unexpected type of "${qu.kindOf(inputState)}". Expected argument to be an object with the following ` + `keys: "${reducerKeys.join('", "')}"`
+    return (
+      `The ${argumentName} has unexpected type of "${qu.kindOf(
+        inputState
+      )}". Expected argument to be an object with the following ` + `keys: "${reducerKeys.join('", "')}"`
+    )
   }
-  const unexpectedKeys = Object.keys(inputState).filter(key => !reducers.hasOwnProperty(key) && !unexpectedKeyCache[key])
+  const unexpectedKeys = Object.keys(inputState).filter(
+    key => !reducers.hasOwnProperty(key) && !unexpectedKeyCache[key]
+  )
   unexpectedKeys.forEach(key => {
     unexpectedKeyCache[key] = true
   })
@@ -128,8 +168,12 @@ function assertReducerShape(reducers: qt.ReducersMapObject) {
 }
 
 export function combineReducers<S>(reducers: qt.ReducersMapObject<S, any>): qt.Reducer<qt.CombinedState<S>>
-export function combineReducers<S, A extends qt.Action = qt.AnyAction>(reducers: qt.ReducersMapObject<S, A>): qt.Reducer<qt.CombinedState<S>, A>
-export function combineReducers<M extends qt.ReducersMapObject>(reducers: M): qt.Reducer<qt.CombinedState<qt.StateFromReducersMapObject<M>>, qt.ActionFromReducersMapObject<M>>
+export function combineReducers<S, A extends qt.Action = qt.AnyAction>(
+  reducers: qt.ReducersMapObject<S, A>
+): qt.Reducer<qt.CombinedState<S>, A>
+export function combineReducers<M extends qt.ReducersMapObject>(
+  reducers: M
+): qt.Reducer<qt.CombinedState<qt.StateFromReducersMapObject<M>>, qt.ActionFromReducersMapObject<M>>
 export function combineReducers(reducers: qt.ReducersMapObject) {
   const reducerKeys = Object.keys(reducers)
   const finalReducers: qt.ReducersMapObject = {}
@@ -175,7 +219,9 @@ export function combineReducers(reducers: qt.ReducersMapObject) {
       if (typeof nextStateForKey === "undefined") {
         const actionType = action && action.type
         throw new Error(
-          `When called with an action of type ${actionType ? `"${String(actionType)}"` : "(unknown type)"}, the slice reducer for key "${key}" returned undefined. ` +
+          `When called with an action of type ${
+            actionType ? `"${String(actionType)}"` : "(unknown type)"
+          }, the slice reducer for key "${key}" returned undefined. ` +
             `To ignore an action, you must explicitly return the previous state. ` +
             `If you want this reducer to hold no value, you can return null instead of undefined.`
         )
@@ -194,7 +240,12 @@ export function compose(): <R>(a: R) => R
 export function compose<F extends Function>(f: F): F
 export function compose<A, T extends any[], R>(f1: (a: A) => R, f2: Func<T, A>): Func<T, R>
 export function compose<A, B, T extends any[], R>(f1: (b: B) => R, f2: (a: A) => B, f3: Func<T, A>): Func<T, R>
-export function compose<A, B, C, T extends any[], R>(f1: (c: C) => R, f2: (b: B) => C, f3: (a: A) => B, f4: Func<T, A>): Func<T, R>
+export function compose<A, B, C, T extends any[], R>(
+  f1: (c: C) => R,
+  f2: (b: B) => C,
+  f3: (a: A) => B,
+  f4: Func<T, A>
+): Func<T, R>
 export function compose<R>(f1: (a: any) => R, ...funcs: Function[]): (...args: any[]) => R
 export function compose<R>(...funcs: Function[]): (...args: any[]) => R
 export function compose(...funcs: Function[]) {
@@ -225,7 +276,10 @@ export function createStore<S, A extends qt.Action, Ext = {}, StateExt = never>(
   preloadedState?: qt.PreloadedState<S> | qt.StoreEnhancer<Ext, StateExt>,
   enhancer?: qt.StoreEnhancer<Ext, StateExt>
 ): qt.Store<qt.ExtendState<S, StateExt>, A, StateExt, Ext> & Ext {
-  if ((typeof preloadedState === "function" && typeof enhancer === "function") || (typeof enhancer === "function" && typeof arguments[3] === "function")) {
+  if (
+    (typeof preloadedState === "function" && typeof enhancer === "function") ||
+    (typeof enhancer === "function" && typeof arguments[3] === "function")
+  ) {
     throw new Error(
       "It looks like you are passing several store enhancers to " +
         "createStore(). This is not supported. Instead, compose them " +
@@ -240,7 +294,13 @@ export function createStore<S, A extends qt.Action, Ext = {}, StateExt = never>(
     if (typeof enhancer !== "function") {
       throw new Error(`Expected the enhancer to be a function. Instead, received: '${qu.kindOf(enhancer)}'`)
     }
-    return enhancer(createStore)(reducer, preloadedState as qt.PreloadedState<S>) as qt.Store<qt.ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
+    return enhancer(createStore)(reducer, preloadedState as qt.PreloadedState<S>) as qt.Store<
+      qt.ExtendState<S, StateExt>,
+      A,
+      StateExt,
+      Ext
+    > &
+      Ext
   }
   if (typeof reducer !== "function") {
     throw new Error(`Expected the root reducer to be a function. Instead, received: '${qu.kindOf(reducer)}'`)
@@ -285,7 +345,10 @@ export function createStore<S, A extends qt.Action, Ext = {}, StateExt = never>(
         return
       }
       if (isDispatching) {
-        throw new Error("You may not unsubscribe from a store listener while the reducer is executing. " + "See https://redux.js.org/api/store#subscribelistener for more details.")
+        throw new Error(
+          "You may not unsubscribe from a store listener while the reducer is executing. " +
+            "See https://redux.js.org/api/store#subscribelistener for more details."
+        )
       }
       isSubscribed = false
       ensureCanMutateNextListeners()
@@ -303,7 +366,9 @@ export function createStore<S, A extends qt.Action, Ext = {}, StateExt = never>(
       )
     }
     if (typeof action.type === "undefined") {
-      throw new Error('Actions may not have an undefined "type" property. You may have misspelled an action type string constant.')
+      throw new Error(
+        'Actions may not have an undefined "type" property. You may have misspelled an action type string constant.'
+      )
     }
     if (isDispatching) {
       throw new Error("Reducers may not dispatch actions.")
@@ -321,7 +386,9 @@ export function createStore<S, A extends qt.Action, Ext = {}, StateExt = never>(
     }
     return action
   }
-  function replaceReducer<NewState, NewActions extends A>(nextReducer: qt.Reducer<NewState, NewActions>): qt.Store<qt.ExtendState<NewState, StateExt>, NewActions, StateExt, Ext> & Ext {
+  function replaceReducer<NewState, NewActions extends A>(
+    nextReducer: qt.Reducer<NewState, NewActions>
+  ): qt.Store<qt.ExtendState<NewState, StateExt>, NewActions, StateExt, Ext> & Ext {
     if (typeof nextReducer !== "function") {
       throw new Error(`Expected the nextReducer to be a function. Instead, received: '${qu.kindOf(nextReducer)}`)
     }

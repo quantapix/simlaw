@@ -14,10 +14,7 @@ describe("Branded strings", () => {
     }
     expect(
       match(state)
-        .with(
-          { fooBar: { type: "foo" }, fooBarId: P.when(id => id === "") },
-          x => `Match: ${x.fooBar.value}`
-        )
+        .with({ fooBar: { type: "foo" }, fooBarId: P.when(id => id === "") }, x => `Match: ${x.fooBar.value}`)
         .otherwise(() => "nope")
     ).toEqual("Match: value")
   })
@@ -28,18 +25,10 @@ import { State } from "./types-catalog/utils"
 describe("BuildMany", () => {
   it("should correctly update the content of a readonly tuple", () => {
     type cases = [
+      Expect<Equal<BuildMany<readonly [number, State], [[{ status: "idle" }, [1]]]>, [number, { status: "idle" }]>>,
       Expect<
         Equal<
-          BuildMany<readonly [number, State], [[{ status: "idle" }, [1]]]>,
-          [number, { status: "idle" }]
-        >
-      >,
-      Expect<
-        Equal<
-          BuildMany<
-            readonly [number, State],
-            [[{ status: "idle" }, [1]]] | [[{ status: "loading" }, [1]]]
-          >,
+          BuildMany<readonly [number, State], [[{ status: "idle" }, [1]]] | [[{ status: "loading" }, [1]]]>,
           [number, { status: "idle" }] | [number, { status: "loading" }]
         >
       >
@@ -47,11 +36,7 @@ describe("BuildMany", () => {
   })
 })
 import { DeepExclude } from "../src/types/DeepExclude"
-import {
-  DistributeMatchingUnions,
-  FindUnions,
-  FindUnionsMany,
-} from "../src/types/DistributeUnions"
+import { DistributeMatchingUnions, FindUnions, FindUnionsMany } from "../src/types/DistributeUnions"
 import { Primitives, Equal, Expect } from "../src/types/helpers"
 import { IsMatching } from "../src/types/IsMatching"
 import { BigUnion, Option, State } from "./types-catalog/utils"
@@ -63,21 +48,14 @@ describe("DeepExclude", () => {
       Expect<Equal<DeepExclude<string, string>, never>>,
       Expect<Equal<DeepExclude<string | number, string>, number>>,
       Expect<Equal<DeepExclude<string | number, boolean>, string | number>>,
-      Expect<
-        Equal<
-          DeepExclude<Primitives, null | undefined>,
-          string | number | bigint | boolean | symbol
-        >
-      >,
+      Expect<Equal<DeepExclude<Primitives, null | undefined>, string | number | bigint | boolean | symbol>>,
       Expect<Equal<DeepExclude<Primitives, never>, Primitives>>
     ]
   })
   it("Literals", () => {
     type cases = [
       Expect<Equal<DeepExclude<"hello" | "bonjour", "hello">, "bonjour">>,
-      Expect<
-        Equal<DeepExclude<"hello" | "bonjour", "hola">, "hello" | "bonjour">
-      >,
+      Expect<Equal<DeepExclude<"hello" | "bonjour", "hola">, "hello" | "bonjour">>,
       Expect<Equal<DeepExclude<1 | 2 | 3, 3>, 1 | 2>>,
       Expect<Equal<DeepExclude<"hello" | 1, string>, 1>>,
       Expect<Equal<DeepExclude<"hello" | 1, number>, "hello">>,
@@ -94,76 +72,39 @@ describe("DeepExclude", () => {
     })
     it("if it doesn't match, it should leave the data structure untouched", () => {
       type cases = [
-        Expect<
-          Equal<DeepExclude<{ a: "x" | "y" }, { b: "x" }>, { a: "x" | "y" }>
-        >,
-        Expect<
-          Equal<DeepExclude<{ a: "x" | "y" }, { a: "z" }>, { a: "x" | "y" }>
-        >
+        Expect<Equal<DeepExclude<{ a: "x" | "y" }, { b: "x" }>, { a: "x" | "y" }>>,
+        Expect<Equal<DeepExclude<{ a: "x" | "y" }, { a: "z" }>, { a: "x" | "y" }>>
       ]
     })
     it("should work with nested object and only distribute what is necessary", () => {
       type x = DeepExclude<{ str: string | null | undefined }, { str: string }>
-      type xx = DistributeMatchingUnions<
-        { str: string | null | undefined },
-        { str: string }
-      >
-      type xxx = FindUnionsMany<
-        { str: string | null | undefined },
-        { str: string }
-      >
-      type xxxx = IsMatching<
-        { str: string | null | undefined },
-        { str: string }
-      >
-      type xxxxx = FindUnions<
-        { str: string | null | undefined },
-        { str: string },
-        []
-      >
-      type y = DeepExclude<
-        { str: string | null | undefined },
-        { str: null | undefined }
-      >
+      type xx = DistributeMatchingUnions<{ str: string | null | undefined }, { str: string }>
+      type xxx = FindUnionsMany<{ str: string | null | undefined }, { str: string }>
+      type xxxx = IsMatching<{ str: string | null | undefined }, { str: string }>
+      type xxxxx = FindUnions<{ str: string | null | undefined }, { str: string }, []>
+      type y = DeepExclude<{ str: string | null | undefined }, { str: null | undefined }>
       type cases = [
         Expect<Equal<x, { str: null } | { str: undefined }>>,
         Expect<Equal<y, { str: string }>>,
+        Expect<Equal<DeepExclude<{ a: { b: "x" | "y" } }, { a: { b: "x" } }>, { a: { b: "y" } }>>,
         Expect<
-          Equal<
-            DeepExclude<{ a: { b: "x" | "y" } }, { a: { b: "x" } }>,
-            { a: { b: "y" } }
-          >
+          Equal<DeepExclude<{ a: { b: "x" | "y" | "z" } }, { a: { b: "x" } }>, { a: { b: "y" } } | { a: { b: "z" } }>
         >,
         Expect<
           Equal<
-            DeepExclude<{ a: { b: "x" | "y" | "z" } }, { a: { b: "x" } }>,
-            { a: { b: "y" } } | { a: { b: "z" } }
-          >
-        >,
-        Expect<
-          Equal<
-            DeepExclude<
-              { a: { b: "x" | "y" | "z" }; c: "u" | "v" },
-              { a: { b: "x" } }
-            >,
+            DeepExclude<{ a: { b: "x" | "y" | "z" }; c: "u" | "v" }, { a: { b: "x" } }>,
             { a: { b: "y" }; c: "u" | "v" } | { a: { b: "z" }; c: "u" | "v" }
           >
         >,
         Expect<
           Equal<
-            DeepExclude<
-              { a: { b: "x" | "y" | "z" }; c: "u" | "v" },
-              { c: "u" }
-            >,
+            DeepExclude<{ a: { b: "x" | "y" | "z" }; c: "u" | "v" }, { c: "u" }>,
             { a: { b: "x" | "y" | "z" }; c: "v" }
           >
         >,
         Expect<
           Equal<
-            DeepExclude<
-              { a: { b: "x" | "y" | "z" }; c: "u" | "v" },
-              { c: "u" }
-            >,
+            DeepExclude<{ a: { b: "x" | "y" | "z" }; c: "u" | "v" }, { c: "u" }>,
             { a: { b: "x" | "y" | "z" }; c: "v" }
           >
         >
@@ -175,12 +116,7 @@ describe("DeepExclude", () => {
       type cases = [
         Expect<Equal<DeepExclude<["x" | "y"], [string]>, never>>,
         Expect<Equal<DeepExclude<["x" | "y"], ["x"]>, ["y"]>>,
-        Expect<
-          Equal<
-            DeepExclude<[string, string], readonly [unknown, unknown]>,
-            never
-          >
-        >,
+        Expect<Equal<DeepExclude<[string, string], readonly [unknown, unknown]>, never>>,
         Expect<
           Equal<
             DeepExclude<[number, State], [unknown, { status: "error" }]>,
@@ -191,10 +127,7 @@ describe("DeepExclude", () => {
         >,
         Expect<
           Equal<
-            DeepExclude<
-              readonly [number, State],
-              [unknown, { status: "error" }]
-            >,
+            DeepExclude<readonly [number, State], [unknown, { status: "error" }]>,
             | [number, { status: "idle" }]
             | [number, { status: "loading" }]
             | [number, { status: "success"; data: string }]
@@ -212,21 +145,11 @@ describe("DeepExclude", () => {
     it("should work with nested tuples and only distribute what is necessary", () => {
       type cases = [
         Expect<Equal<DeepExclude<[["x" | "y"]], [["x"]]>, [["y"]]>>,
+        Expect<Equal<DeepExclude<[["x" | "y" | "z"]], [["x"]]>, [["y"]] | [["z"]]>>,
         Expect<
-          Equal<DeepExclude<[["x" | "y" | "z"]], [["x"]]>, [["y"]] | [["z"]]>
+          Equal<DeepExclude<[["x" | "y" | "z"], "u" | "v"], [["x"], unknown]>, [["y"], "u" | "v"] | [["z"], "u" | "v"]>
         >,
-        Expect<
-          Equal<
-            DeepExclude<[["x" | "y" | "z"], "u" | "v"], [["x"], unknown]>,
-            [["y"], "u" | "v"] | [["z"], "u" | "v"]
-          >
-        >,
-        Expect<
-          Equal<
-            DeepExclude<[["x" | "y" | "z"], "u" | "v"], [unknown, "v"]>,
-            [["x" | "y" | "z"], "u"]
-          >
-        >
+        Expect<Equal<DeepExclude<[["x" | "y" | "z"], "u" | "v"], [unknown, "v"]>, [["x" | "y" | "z"], "u"]>>
       ]
     })
     it("should work with nested unary tuples", () => {
@@ -237,27 +160,9 @@ describe("DeepExclude", () => {
         Expect<Equal<DeepExclude<[[number]], [[unknown]]>, never>>,
         Expect<Equal<DeepExclude<[[[number]]], [[[unknown]]]>, never>>,
         Expect<Equal<DeepExclude<[[[[number]]]], [[[[unknown]]]]>, never>>,
-        Expect<
-          Equal<
-            DeepExclude<[[[number]]], readonly [readonly [readonly [unknown]]]>,
-            never
-          >
-        >,
-        Expect<
-          Equal<
-            DeepExclude<
-              readonly [[[[{ t: number }]]]],
-              readonly [[[[{ t: unknown }]]]]
-            >,
-            never
-          >
-        >,
-        Expect<
-          Equal<
-            DeepExclude<[{}, Msg], [unknown, ["UrlChange", unknown]]>,
-            [{}, [type: "Login"]]
-          >
-        >
+        Expect<Equal<DeepExclude<[[[number]]], readonly [readonly [readonly [unknown]]]>, never>>,
+        Expect<Equal<DeepExclude<readonly [[[[{ t: number }]]]], readonly [[[[{ t: unknown }]]]]>, never>>,
+        Expect<Equal<DeepExclude<[{}, Msg], [unknown, ["UrlChange", unknown]]>, [{}, [type: "Login"]]>>
       ]
     })
   })
@@ -266,31 +171,14 @@ describe("DeepExclude", () => {
       Expect<Equal<DeepExclude<(1 | 2 | 3)[], 1[]>, (1 | 2 | 3)[]>>,
       Expect<Equal<DeepExclude<(1 | 2 | 3)[], (1 | 2 | 3)[]>, never>>,
       Expect<Equal<DeepExclude<(1 | 2 | 3)[], unknown[]>, never>>,
-      Expect<
-        Equal<DeepExclude<(1 | 2 | 3)[] | string[], string[]>, (1 | 2 | 3)[]>
-      >
+      Expect<Equal<DeepExclude<(1 | 2 | 3)[] | string[], string[]>, (1 | 2 | 3)[]>>
     ]
     it("should work with empty list patterns", () => {
       type cases = [
         Expect<Equal<DeepExclude<[] | [1, 2, 3], []>, [1, 2, 3]>>,
-        Expect<
-          Equal<
-            DeepExclude<{ values: [] | [1, 2, 3] }, { values: [] }>,
-            { values: [1, 2, 3] }
-          >
-        >,
-        Expect<
-          Equal<
-            DeepExclude<{ values: [1, 2, 3] }, { values: [] }>,
-            { values: [1, 2, 3] }
-          >
-        >,
-        Expect<
-          Equal<
-            DeepExclude<{ values: (1 | 2 | 3)[] }, { values: [] }>,
-            { values: (1 | 2 | 3)[] }
-          >
-        >
+        Expect<Equal<DeepExclude<{ values: [] | [1, 2, 3] }, { values: [] }>, { values: [1, 2, 3] }>>,
+        Expect<Equal<DeepExclude<{ values: [1, 2, 3] }, { values: [] }>, { values: [1, 2, 3] }>>,
+        Expect<Equal<DeepExclude<{ values: (1 | 2 | 3)[] }, { values: [] }>, { values: (1 | 2 | 3)[] }>>
       ]
     })
   })
@@ -299,39 +187,16 @@ describe("DeepExclude", () => {
       Expect<Equal<DeepExclude<Set<1 | 2 | 3>, Set<1>>, Set<1 | 2 | 3>>>,
       Expect<Equal<DeepExclude<Set<1 | 2 | 3>, Set<1 | 2 | 3>>, never>>,
       Expect<Equal<DeepExclude<Set<1 | 2 | 3>, Set<unknown>>, never>>,
-      Expect<
-        Equal<
-          DeepExclude<Set<1 | 2 | 3> | Set<string>, Set<string>>,
-          Set<1 | 2 | 3>
-        >
-      >
+      Expect<Equal<DeepExclude<Set<1 | 2 | 3> | Set<string>, Set<string>>, Set<1 | 2 | 3>>>
     ]
   })
   describe("Maps", () => {
     type cases = [
+      Expect<Equal<DeepExclude<Map<string, 1 | 2 | 3>, Map<string, 1>>, Map<string, 1 | 2 | 3>>>,
+      Expect<Equal<DeepExclude<Map<string, 1 | 2 | 3>, Map<string, 1 | 2 | 3>>, never>>,
+      Expect<Equal<DeepExclude<Map<string, 1 | 2 | 3>, Map<string, unknown>>, never>>,
       Expect<
-        Equal<
-          DeepExclude<Map<string, 1 | 2 | 3>, Map<string, 1>>,
-          Map<string, 1 | 2 | 3>
-        >
-      >,
-      Expect<
-        Equal<
-          DeepExclude<Map<string, 1 | 2 | 3>, Map<string, 1 | 2 | 3>>,
-          never
-        >
-      >,
-      Expect<
-        Equal<DeepExclude<Map<string, 1 | 2 | 3>, Map<string, unknown>>, never>
-      >,
-      Expect<
-        Equal<
-          DeepExclude<
-            Map<string, 1 | 2 | 3> | Map<string, string>,
-            Map<string, string>
-          >,
-          Map<string, 1 | 2 | 3>
-        >
+        Equal<DeepExclude<Map<string, 1 | 2 | 3> | Map<string, string>, Map<string, string>>, Map<string, 1 | 2 | 3>>
       >
     ]
   })
@@ -428,19 +293,13 @@ describe("DeepExclude", () => {
             [Option<{ type: "a" } | { type: "b" }>, "c" | "d"],
             [{ kind: "some"; value: { type: "a" } }, any]
           >,
-          | [{ kind: "none" }, "c" | "d"]
-          | [{ kind: "some"; value: { type: "b" } }, "c" | "d"]
+          [{ kind: "none" }, "c" | "d"] | [{ kind: "some"; value: { type: "b" } }, "c" | "d"]
         >
       >,
       Expect<
         Equal<
-          DeepExclude<
-            { x: "a" | "b"; y: "c" | "d"; z: "e" | "f" },
-            { x: "a"; y: "c" }
-          >,
-          | { x: "b"; y: "c"; z: "e" | "f" }
-          | { x: "b"; y: "d"; z: "e" | "f" }
-          | { x: "a"; y: "d"; z: "e" | "f" }
+          DeepExclude<{ x: "a" | "b"; y: "c" | "d"; z: "e" | "f" }, { x: "a"; y: "c" }>,
+          { x: "b"; y: "c"; z: "e" | "f" } | { x: "b"; y: "d"; z: "e" | "f" } | { x: "a"; y: "d"; z: "e" | "f" }
         >
       >
     ]
@@ -450,19 +309,13 @@ describe("DeepExclude", () => {
       type cases = [
         Expect<
           Equal<
-            DeepExclude<
-              { x: "a" | "b"; y: "c" | "d"; z: "e" | "f" },
-              { x: "a"; y: "c" } | { x: "b"; y: "c" }
-            >,
+            DeepExclude<{ x: "a" | "b"; y: "c" | "d"; z: "e" | "f" }, { x: "a"; y: "c" } | { x: "b"; y: "c" }>,
             { x: "b"; y: "d"; z: "e" | "f" } | { x: "a"; y: "d"; z: "e" | "f" }
           >
         >,
         Expect<
           Equal<
-            DeepExclude<
-              { a: { b: "x" | "y" | "z" }; c: "u" | "v" },
-              { c: "u" } | { a: { b: "x" } }
-            >,
+            DeepExclude<{ a: { b: "x" | "y" | "z" }; c: "u" | "v" }, { c: "u" } | { a: { b: "x" } }>,
             { a: { b: "y" }; c: "v" } | { a: { b: "z" }; c: "v" }
           >
         >
@@ -474,19 +327,13 @@ describe("DeepExclude", () => {
       type cases = [
         Expect<
           Equal<
-            DeepExclude<
-              ["a" | "b" | "c", "a" | "b" | "c"],
-              ["b" | "c", "b" | "c"]
-            >,
+            DeepExclude<["a" | "b" | "c", "a" | "b" | "c"], ["b" | "c", "b" | "c"]>,
             ["a", "a"] | ["a", "b"] | ["a", "c"] | ["b", "a"] | ["c", "a"]
           >
         >,
         Expect<
           Equal<
-            DeepExclude<
-              ["a" | "b" | "c", { type: "a" | "b" | "c" }],
-              ["b" | "c", { type: "c" }]
-            >,
+            DeepExclude<["a" | "b" | "c", { type: "a" | "b" | "c" }], ["b" | "c", { type: "c" }]>,
             | ["a", { type: "c" }]
             | ["a", { type: "a" }]
             | ["a", { type: "b" }]
@@ -498,10 +345,7 @@ describe("DeepExclude", () => {
         >,
         Expect<
           Equal<
-            DeepExclude<
-              ["a" | "b" | "c", { type: "a" | "b" | "c" }],
-              ["b" | "c", { type: "b" | "c" }]
-            >,
+            DeepExclude<["a" | "b" | "c", { type: "a" | "b" | "c" }], ["b" | "c", { type: "b" | "c" }]>,
             | ["a", { type: "a" }]
             | ["a", { type: "b" }]
             | ["a", { type: "c" }]
@@ -511,10 +355,7 @@ describe("DeepExclude", () => {
         >,
         Expect<
           Equal<
-            DeepExclude<
-              ["a" | "b" | "c", { type: "a" | "b" | "c" | "d" }],
-              ["b" | "c", { type: "b" | "c" }]
-            >,
+            DeepExclude<["a" | "b" | "c", { type: "a" | "b" | "c" | "d" }], ["b" | "c", { type: "b" | "c" }]>,
             | ["a", { type: "a" }]
             | ["a", { type: "b" }]
             | ["a", { type: "c" }]
@@ -532,26 +373,13 @@ describe("DeepExclude", () => {
     type Input = readonly ["a" | "b", "c" | "d"]
     type p = ["a", "c"] | ["a", "d"] | ["b", "c"] | ["b", "d"]
     type cases = [
-      Expect<
-        Equal<
-          DeepExclude<Input, ["a", "c"]>,
-          ["a", "d"] | ["b", "c"] | ["b", "d"]
-        >
-      >,
+      Expect<Equal<DeepExclude<Input, ["a", "c"]>, ["a", "d"] | ["b", "c"] | ["b", "d"]>>,
       Expect<Equal<DeepExclude<Input, p>, never>>
     ]
   })
   it("should work with unknown", () => {
     type cases = [
-      Expect<
-        Equal<
-          DeepExclude<
-            [number, { type: "a"; b: string }],
-            [unknown, { type: "a"; b: unknown }]
-          >,
-          never
-        >
-      >
+      Expect<Equal<DeepExclude<[number, { type: "a"; b: string }], [unknown, { type: "a"; b: unknown }]>, never>>
     ]
   })
   it("should work when `b` contains a union", () => {
@@ -560,10 +388,7 @@ describe("DeepExclude", () => {
         DeepExclude<
           {
             type: "c"
-            value:
-              | { type: "d"; value: boolean }
-              | { type: "e"; value: string[] }
-              | { type: "f"; value: number[] }
+            value: { type: "d"; value: boolean } | { type: "e"; value: string[] } | { type: "f"; value: number[] }
           },
           {
             type: "c"
@@ -577,12 +402,7 @@ describe("DeepExclude", () => {
     >
   })
 })
-import {
-  FindUnions,
-  Distribute,
-  DistributeMatchingUnions,
-  FindUnionsMany,
-} from "../src/types/DistributeUnions"
+import { FindUnions, Distribute, DistributeMatchingUnions, FindUnionsMany } from "../src/types/DistributeUnions"
 import { Equal, Expect } from "../src/types/helpers"
 import { Option } from "./types-catalog/utils"
 describe("FindAllUnions", () => {
@@ -753,10 +573,7 @@ describe("FindAllUnions", () => {
       >,
       Expect<
         Equal<
-          FindUnions<
-            { a: { b: { e: 7 | 8; f: 9 | 10 } } } | { c: 11 | 12 },
-            { a: { b: { e: 7; f: 9 } } }
-          >,
+          FindUnions<{ a: { b: { e: 7 | 8; f: 9 | 10 } } } | { c: 11 | 12 }, { a: { b: { e: 7; f: 9 } } }>,
           [
             {
               cases:
@@ -929,10 +746,7 @@ describe("FindAllUnions", () => {
       >,
       Expect<
         Equal<
-          FindUnions<
-            { type: "a"; value: 1 | 2 } | { type: "b"; value: 4 | 5 },
-            { type: "a"; value: 1 }
-          >,
+          FindUnions<{ type: "a"; value: 1 | 2 } | { type: "b"; value: 4 | 5 }, { type: "a"; value: 1 }>,
           [
             {
               cases:
@@ -1074,10 +888,7 @@ describe("Distribute", () => {
               }
             ]
           >,
-          | [[1, [0]], [3, [1]]]
-          | [[1, [0]], [4, [1]]]
-          | [[2, [0]], [3, [1]]]
-          | [[2, [0]], [4, [1]]]
+          [[1, [0]], [3, [1]]] | [[1, [0]], [4, [1]]] | [[2, [0]], [3, [1]]] | [[2, [0]], [4, [1]]]
         >
       >,
       Expect<
@@ -1194,10 +1005,7 @@ describe("DistributeMatchingUnions", () => {
   type cases = [
     Expect<
       Equal<
-        DistributeMatchingUnions<
-          { a: 1 | 2; b: "3" | "4"; c: "5" | "6" },
-          { a: 1; b: "3"; c: "5" }
-        >,
+        DistributeMatchingUnions<{ a: 1 | 2; b: "3" | "4"; c: "5" | "6" }, { a: 1; b: "3"; c: "5" }>,
         | { a: 1; b: "3"; c: "5" }
         | { a: 1; b: "3"; c: "6" }
         | { a: 1; b: "4"; c: "5" }
@@ -1221,10 +1029,7 @@ describe("DistributeMatchingUnions", () => {
     >,
     Expect<
       Equal<
-        DistributeMatchingUnions<
-          [1, number] | ["two", string] | [3, boolean],
-          [3, true]
-        >,
+        DistributeMatchingUnions<[1, number] | ["two", string] | [3, boolean], [3, true]>,
         [1, number] | ["two", string] | [3, false] | [3, true]
       >
     >
@@ -1244,9 +1049,7 @@ describe("DistributeMatchingUnions", () => {
             [1, ["two", Option<string>] | [3, Option<boolean>]],
             [1, ["two", { kind: "some"; value: string }]]
           >,
-          | [1, ["two", { kind: "none" }]]
-          | [1, ["two", { kind: "some"; value: string }]]
-          | [1, [3, Option<boolean>]]
+          [1, ["two", { kind: "none" }]] | [1, ["two", { kind: "some"; value: string }]] | [1, [3, Option<boolean>]]
         >
       >,
       Expect<
@@ -1255,46 +1058,29 @@ describe("DistributeMatchingUnions", () => {
             [1, ["two", Option<string>]] | [3, Option<boolean>],
             [1, ["two", { kind: "some"; value: string }]]
           >,
-          | [1, ["two", { kind: "none" }]]
-          | [1, ["two", { kind: "some"; value: string }]]
-          | [3, Option<boolean>]
+          [1, ["two", { kind: "none" }]] | [1, ["two", { kind: "some"; value: string }]] | [3, Option<boolean>]
         >
       >,
-      Expect<
-        Equal<
-          DistributeMatchingUnions<["a" | "b", 1 | 2], ["a", unknown]>,
-          ["a", 1 | 2] | ["b", 1 | 2]
-        >
-      >
+      Expect<Equal<DistributeMatchingUnions<["a" | "b", 1 | 2], ["a", unknown]>, ["a", 1 | 2] | ["b", 1 | 2]>>
     ]
   })
   it("unknown should match but shouldn't distribute", () => {
     type cases = [
       Expect<
         Equal<
-          DistributeMatchingUnions<
-            [1, ["two", Option<string>]] | [3, Option<boolean>],
-            [1, unknown]
-          >,
+          DistributeMatchingUnions<[1, ["two", Option<string>]] | [3, Option<boolean>], [1, unknown]>,
           [1, ["two", Option<string>]] | [3, Option<boolean>]
         >
       >,
       Expect<
         Equal<
-          DistributeMatchingUnions<
-            { a: 1 | 2; b: "3" | "4"; c: "5" | "6" },
-            { a: 1; b: unknown; c: unknown }
-          >,
-          | { a: 1; b: "3" | "4"; c: "5" | "6" }
-          | { a: 2; b: "3" | "4"; c: "5" | "6" }
+          DistributeMatchingUnions<{ a: 1 | 2; b: "3" | "4"; c: "5" | "6" }, { a: 1; b: unknown; c: unknown }>,
+          { a: 1; b: "3" | "4"; c: "5" | "6" } | { a: 2; b: "3" | "4"; c: "5" | "6" }
         >
       >,
       Expect<
         Equal<
-          DistributeMatchingUnions<
-            { a: 1 | 2; b: "3" | "4"; c: "5" | "6" },
-            { a: 1; b: "3"; c: unknown }
-          >,
+          DistributeMatchingUnions<{ a: 1 | 2; b: "3" | "4"; c: "5" | "6" }, { a: 1; b: "3"; c: unknown }>,
           | { a: 1; b: "3"; c: "5" | "6" }
           | { a: 2; b: "3"; c: "5" | "6" }
           | { a: 1; b: "4"; c: "5" | "6" }
@@ -1303,10 +1089,7 @@ describe("DistributeMatchingUnions", () => {
       >,
       Expect<
         Equal<
-          DistributeMatchingUnions<
-            { a: 1 | 2; b: ["3" | "4", "5" | "6"] },
-            { a: 1; b: ["3", unknown] }
-          >,
+          DistributeMatchingUnions<{ a: 1 | 2; b: ["3" | "4", "5" | "6"] }, { a: 1; b: ["3", unknown] }>,
           | { a: 1; b: ["3", "5" | "6"] }
           | { a: 2; b: ["3", "5" | "6"] }
           | { a: 1; b: ["4", "5" | "6"] }
@@ -1319,15 +1102,8 @@ describe("DistributeMatchingUnions", () => {
     type cases = [
       Expect<Equal<DistributeMatchingUnions<{}, {}>, {}>>,
       Expect<Equal<DistributeMatchingUnions<[], []>, []>>,
-      Expect<
-        Equal<
-          DistributeMatchingUnions<Map<string, string>, Map<string, string>>,
-          Map<string, string>
-        >
-      >,
-      Expect<
-        Equal<DistributeMatchingUnions<Set<string>, Set<string>>, Set<string>>
-      >,
+      Expect<Equal<DistributeMatchingUnions<Map<string, string>, Map<string, string>>, Map<string, string>>>,
+      Expect<Equal<DistributeMatchingUnions<Set<string>, Set<string>>, Set<string>>>,
       Expect<Equal<DistributeMatchingUnions<string, string>, string>>,
       Expect<Equal<DistributeMatchingUnions<number, number>, number>>,
       Expect<Equal<DistributeMatchingUnions<any, any>, any>>,
@@ -1340,10 +1116,7 @@ describe("DistributeMatchingUnions", () => {
     type cases = [
       Expect<
         Equal<
-          DistributeMatchingUnions<
-            { a: X; b: X; c: X; d: X; e: X; f: X; g: X; h: X; i: X },
-            { a: 1 }
-          >,
+          DistributeMatchingUnions<{ a: X; b: X; c: X; d: X; e: X; f: X; g: X; h: X; i: X }, { a: 1 }>,
           | { a: 1; b: X; c: X; d: X; e: X; f: X; g: X; h: X; i: X }
           | { a: 2; b: X; c: X; d: X; e: X; f: X; g: X; h: X; i: X }
           | { a: 3; b: X; c: X; d: X; e: X; f: X; g: X; h: X; i: X }
@@ -1408,30 +1181,15 @@ describe("DistributeMatchingUnions", () => {
     // rule anything out. You can still have a (A|B)[] afterward.
     // The same logic goes for Set and Maps.
     type cases = [
-      Expect<
-        Equal<DistributeMatchingUnions<("a" | "b")[], "a"[]>, ("a" | "b")[]>
-      >,
+      Expect<Equal<DistributeMatchingUnions<("a" | "b")[], "a"[]>, ("a" | "b")[]>>,
       Expect<
         Equal<
-          DistributeMatchingUnions<
-            { type: "a" | "b"; x: "c" | "d" }[],
-            { type: "a"; x: "c" }[]
-          >,
+          DistributeMatchingUnions<{ type: "a" | "b"; x: "c" | "d" }[], { type: "a"; x: "c" }[]>,
           { type: "a" | "b"; x: "c" | "d" }[]
         >
       >,
-      Expect<
-        Equal<
-          DistributeMatchingUnions<Set<"a" | "b">, Set<"a">>,
-          Set<"a" | "b">
-        >
-      >,
-      Expect<
-        Equal<
-          DistributeMatchingUnions<Map<string, "a" | "b">, Map<string, "a">>,
-          Map<string, "a" | "b">
-        >
-      >,
+      Expect<Equal<DistributeMatchingUnions<Set<"a" | "b">, Set<"a">>, Set<"a" | "b">>>,
+      Expect<Equal<DistributeMatchingUnions<Map<string, "a" | "b">, Map<string, "a">>, Map<string, "a" | "b">>>,
       Expect<
         Equal<
           DistributeMatchingUnions<
@@ -1461,29 +1219,19 @@ describe("DistributeMatchingUnions", () => {
     type cases = [
       Expect<
         Equal<
-          DistributeMatchingUnions<
-            [1, number] | ["two", string] | [3, boolean],
-            unknown
-          >,
+          DistributeMatchingUnions<[1, number] | ["two", string] | [3, boolean], unknown>,
           [1, number] | ["two", string] | [3, boolean]
         >
       >,
       Expect<
         Equal<
-          DistributeMatchingUnions<
-            { a: 1 | 2; b: "3" | "4"; c: "5" | "6" },
-            unknown
-          >,
+          DistributeMatchingUnions<{ a: 1 | 2; b: "3" | "4"; c: "5" | "6" }, unknown>,
           { a: 1 | 2; b: "3" | "4"; c: "5" | "6" }
         >
       >,
       Expect<
         Equal<
-          DistributeMatchingUnions<
-            | { x: "a"; value: Option<string> }
-            | { x: "b"; value: Option<number> },
-            unknown
-          >,
+          DistributeMatchingUnions<{ x: "a"; value: Option<string> } | { x: "b"; value: Option<number> }, unknown>,
           { x: "a"; value: Option<string> } | { x: "b"; value: Option<number> }
         >
       >
@@ -1502,14 +1250,7 @@ describe("DistributeMatchingUnions", () => {
 })
 import { match, P } from "../src"
 import { Equal, Expect } from "../src/types/helpers"
-import {
-  Option,
-  some,
-  none,
-  BigUnion,
-  State,
-  Event,
-} from "./types-catalog/utils"
+import { Option, some, none, BigUnion, State, Event } from "./types-catalog/utils"
 describe("exhaustive()", () => {
   describe("should exclude matched patterns from subsequent `.with()` clauses", () => {
     it("string literals", () => {
@@ -1752,10 +1493,7 @@ describe("exhaustive()", () => {
         .exhaustive()
     })
     it("deeply nested 1", () => {
-      type Input =
-        | [1, Option<number>]
-        | ["two", Option<string>]
-        | [3, Option<boolean>]
+      type Input = [1, Option<number>] | ["two", Option<string>] | [3, Option<boolean>]
       const input = [1, { kind: "some", value: 3 }] as Input
       match(input)
         .with([1, { kind: "some" }], x => 1)
@@ -1977,14 +1715,10 @@ describe("exhaustive()", () => {
       expect(last([1, 2, 3])).toEqual(some(3))
     })
     it("should work with generics in type guards", () => {
-      const map = <A, B>(
-        option: Option<A>,
-        mapper: (value: A) => B
-      ): Option<B> =>
+      const map = <A, B>(option: Option<A>, mapper: (value: A) => B): Option<B> =>
         match<Option<A>, Option<B>>(option)
           .when(
-            (option): option is { kind: "some"; value: A } =>
-              option.kind === "some",
+            (option): option is { kind: "some"; value: A } => option.kind === "some",
             option => ({
               kind: "some",
               value: mapper(option.value),
@@ -1995,10 +1729,7 @@ describe("exhaustive()", () => {
             option => option
           )
           .otherwise(() => ({ kind: "none" }))
-      const res = map(
-        { kind: "some" as const, value: 20 },
-        x => `number is ${x}`
-      )
+      const res = map({ kind: "some" as const, value: 20 }, x => `number is ${x}`)
       type t = Expect<Equal<typeof res, Option<string>>>
       expect(res).toEqual({ kind: "some" as const, value: `number is 20` })
     })
@@ -2015,9 +1746,7 @@ describe("exhaustive()", () => {
           })
           .with({ type: P.any }, x => x.type)
           .with(P.array(P.any), x => {
-            type t = Expect<
-              Equal<typeof x, "hello"[] | ("hello" | Option<string>)[]>
-            >
+            type t = Expect<Equal<typeof x, "hello"[] | ("hello" | Option<string>)[]>>
             return `("hello" | Option<string>)[] | "hello"[]`
           })
           .exhaustive()
@@ -2054,8 +1783,7 @@ describe("exhaustive()", () => {
     it("should correctly exclude cases if .when is a type guard", () => {
       match<Option<string>, Option<number>>({ kind: "none" })
         .when(
-          (option): option is { kind: "some"; value: string } =>
-            option.kind === "some",
+          (option): option is { kind: "some"; value: string } => option.kind === "some",
           option => ({
             kind: "some",
             value: option.value.length,
@@ -2161,14 +1889,8 @@ describe("exhaustive()", () => {
     }
     const reducer = (state: State, event: Event): State =>
       match<[State, Event], State>([state, event])
-        .with(
-          [{ status: "loading" }, { type: "success", data: P.select() }],
-          data => ({ status: "success", data })
-        )
-        .with(
-          [{ status: "loading" }, { type: "error", error: P.select() }],
-          error => ({ status: "error", error })
-        )
+        .with([{ status: "loading" }, { type: "success", data: P.select() }], data => ({ status: "success", data }))
+        .with([{ status: "loading" }, { type: "error", error: P.select() }], error => ({ status: "error", error }))
         .with([{ status: "loading" }, { type: "cancel" }], () => initState)
         .with([{ status: P.not("loading") }, { type: "fetch" }], value => ({
           status: "loading",
@@ -2211,10 +1933,7 @@ describe("exhaustive()", () => {
     it("should work with several not patterns", () => {
       const reducer = (state: State, event: Event): State =>
         match<[State, Event], State>([state, event])
-          .with(
-            [{ status: P.not("loading") }, { type: P.not("fetch") }],
-            x => state
-          )
+          .with([{ status: P.not("loading") }, { type: P.not("fetch") }], x => state)
           .with([{ status: "loading" }, { type: P.any }], () => state)
           .with([{ status: P.any }, { type: "fetch" }], () => state)
           .exhaustive()
@@ -2226,13 +1945,9 @@ describe("exhaustive()", () => {
           .with([P._, P._, 1], () => "ok")
           .exhaustive()
       const range = [1, 2, 3] as const
-      const flatMap = <A, B>(
-        xs: readonly A[],
-        f: (x: A) => readonly B[]
-      ): B[] => xs.reduce<B[]>((acc, x) => acc.concat(f(x)), [])
-      const allPossibleCases = flatMap(range, x =>
-        flatMap(range, y => flatMap(range, z => [[x, y, z]] as const))
-      )
+      const flatMap = <A, B>(xs: readonly A[], f: (x: A) => readonly B[]): B[] =>
+        xs.reduce<B[]>((acc, x) => acc.concat(f(x)), [])
+      const allPossibleCases = flatMap(range, x => flatMap(range, y => flatMap(range, z => [[x, y, z]] as const)))
       allPossibleCases.forEach(x => expect(f(x)).toBe("ok"))
       const f2 = (input: [1 | 2 | 3, 1 | 2 | 3, 1 | 2 | 3]) =>
         match(input)
@@ -2330,19 +2045,14 @@ describe("ExtractPreciseValue", () => {
     type cases = [
       Expect<
         Equal<
-          ExtractPreciseValue<
-            { type: "test" } | ["hello", Option<string>] | "hello"[],
-            ["hello", { kind: "some" }]
-          >,
+          ExtractPreciseValue<{ type: "test" } | ["hello", Option<string>] | "hello"[], ["hello", { kind: "some" }]>,
           ["hello", { kind: "some"; value: string }]
         >
       >,
       Expect<
         Equal<
           ExtractPreciseValue<
-            | { type: "a"; message: string }
-            | { type: "b"; count: number }
-            | { type: "c"; count: number },
+            { type: "a"; message: string } | { type: "b"; count: number } | { type: "c"; count: number },
             { count: number }
           >,
           { type: "b"; count: number } | { type: "c"; count: number }
@@ -2372,10 +2082,7 @@ describe("ExtractPreciseValue", () => {
           ExtractPreciseValue<
             | {
                 type: "a"
-                x:
-                  | { type: "b"; count: number }
-                  | { type: "c"; count: number }
-                  | { type: "d" }
+                x: { type: "b"; count: number } | { type: "c"; count: number } | { type: "d" }
                 y: "other"
               }
             | { type: "b"; count: number }
@@ -2392,36 +2099,14 @@ describe("ExtractPreciseValue", () => {
     ]
   })
   it("should use the type of the pattern if the input is any or never", () => {
-    type cases = [
-      Expect<
-        Equal<
-          ExtractPreciseValue<any, ["hello", { kind: "some" }]>,
-          ["hello", { kind: "some" }]
-        >
-      >
-    ]
+    type cases = [Expect<Equal<ExtractPreciseValue<any, ["hello", { kind: "some" }]>, ["hello", { kind: "some" }]>>]
   })
   it("should return the input type when pattern is unknown", () => {
-    type cases = [
-      Expect<
-        Equal<
-          ExtractPreciseValue<[State, Event], [unknown, unknown]>,
-          [State, Event]
-        >
-      >
-    ]
+    type cases = [Expect<Equal<ExtractPreciseValue<[State, Event], [unknown, unknown]>, [State, Event]>>]
   })
   it("should return the correct branch a union based on the pattern", () => {
     type cases = [
-      Expect<
-        Equal<
-          ExtractPreciseValue<
-            { a: string; b: number } | [boolean, number],
-            readonly [true, 2]
-          >,
-          [true, 2]
-        >
-      >,
+      Expect<Equal<ExtractPreciseValue<{ a: string; b: number } | [boolean, number], readonly [true, 2]>, [true, 2]>>,
       Expect<
         Equal<
           ExtractPreciseValue<
@@ -2458,29 +2143,17 @@ describe("ExtractPreciseValue", () => {
   it("should support readonly input types", () => {
     type cases = [
       Expect<
-        Equal<
-          ExtractPreciseValue<
-            { readonly a: string; b: number } | [boolean, number],
-            readonly [true, 2]
-          >,
-          [true, 2]
-        >
+        Equal<ExtractPreciseValue<{ readonly a: string; b: number } | [boolean, number], readonly [true, 2]>, [true, 2]>
       >,
       Expect<
         Equal<
-          ExtractPreciseValue<
-            { readonly a: string; b: number } | [boolean, number],
-            { b: number }
-          >,
+          ExtractPreciseValue<{ readonly a: string; b: number } | [boolean, number], { b: number }>,
           { readonly a: string; b: number }
         >
       >,
       Expect<
         Equal<
-          ExtractPreciseValue<
-            { readonly a: string; b: number } | [boolean, number],
-            { readonly a: string }
-          >,
+          ExtractPreciseValue<{ readonly a: string; b: number } | [boolean, number], { readonly a: string }>,
           { readonly a: string; b: number }
         >
       >
@@ -2489,32 +2162,14 @@ describe("ExtractPreciseValue", () => {
   it("should work if the input type contains anys", () => {
     type Input = { t: "a"; data: "string"; x: any } | { t: "b" }
     type cases = [
-      Expect<
-        Equal<
-          ExtractPreciseValue<Input, { t: "a" }>,
-          { t: "a"; data: "string"; x: any }
-        >
-      >,
+      Expect<Equal<ExtractPreciseValue<Input, { t: "a" }>, { t: "a"; data: "string"; x: any }>>,
       Expect<Equal<ExtractPreciseValue<Input, { t: "b" }>, { t: "b" }>>,
-      Expect<
-        Equal<
-          ExtractPreciseValue<[string | number, any], [string, unknown]>,
-          [string, any]
-        >
-      >,
-      Expect<
-        Equal<
-          ExtractPreciseValue<[number, any] | ["t", 2], ["t", unknown]>,
-          ["t", 2]
-        >
-      >,
+      Expect<Equal<ExtractPreciseValue<[string | number, any], [string, unknown]>, [string, any]>>,
+      Expect<Equal<ExtractPreciseValue<[number, any] | ["t", 2], ["t", unknown]>, ["t", 2]>>,
       Expect<
         Equal<
           ExtractPreciseValue<
-            [
-              { t: "a" } | { t: "b"; data: any },
-              { t: "a"; x: boolean } | { t: "b" }
-            ],
+            [{ t: "a" } | { t: "b"; data: any }, { t: "a"; x: boolean } | { t: "b" }],
             [{ t: "b" }, { t: "a" }]
           >,
           [{ t: "b"; data: any }, { t: "a"; x: boolean }]
@@ -2523,14 +2178,7 @@ describe("ExtractPreciseValue", () => {
     ]
   })
   it("should work with arrays", () => {
-    type cases = [
-      Expect<
-        Equal<
-          ExtractPreciseValue<boolean | { type: string } | string[], string[]>,
-          string[]
-        >
-      >
-    ]
+    type cases = [Expect<Equal<ExtractPreciseValue<boolean | { type: string } | string[], string[]>, string[]>>]
   })
   describe("Optional properties", () => {
     it("should pick the input type as the upper bound, even if it is assignable to the pattern type", () => {
@@ -2540,33 +2188,12 @@ describe("ExtractPreciseValue", () => {
         | { type: "test2"; id?: string; otherProp: string }
         | { type: "test3"; id?: string; otherProp?: string }
       type cases = [
+        Expect<Equal<ExtractPreciseValue<Input, { type: "test" }>, { type: "test"; id?: string }>>,
         Expect<
-          Equal<
-            ExtractPreciseValue<Input, { type: "test" }>,
-            { type: "test"; id?: string }
-          >
+          Equal<ExtractPreciseValue<Input, { type: "test"; id: ToExclude<undefined> }>, { type: "test"; id: string }>
         >,
-        Expect<
-          Equal<
-            ExtractPreciseValue<
-              Input,
-              { type: "test"; id: ToExclude<undefined> }
-            >,
-            { type: "test"; id: string }
-          >
-        >,
-        Expect<
-          Equal<
-            ExtractPreciseValue<Input, { type: "test2" }>,
-            { type: "test2"; id?: string; otherProp: string }
-          >
-        >,
-        Expect<
-          Equal<
-            ExtractPreciseValue<Input, { type: "test3" }>,
-            { type: "test3"; id?: string; otherProp?: string }
-          >
-        >
+        Expect<Equal<ExtractPreciseValue<Input, { type: "test2" }>, { type: "test2"; id?: string; otherProp: string }>>,
+        Expect<Equal<ExtractPreciseValue<Input, { type: "test3" }>, { type: "test3"; id?: string; otherProp?: string }>>
       ]
     })
     it("should keep optional properties if they are optional on both `a` and `b`", () => {
@@ -2597,10 +2224,7 @@ describe("ExtractPreciseValue", () => {
         >,
         Expect<
           Equal<
-            ExtractPreciseValue<
-              { data: { type?: "a"; value: number } },
-              { data: { type?: "a" } }
-            >,
+            ExtractPreciseValue<{ data: { type?: "a"; value: number } }, { data: { type?: "a" } }>,
             { data: { type?: "a"; value: number } }
           >
         >
@@ -2612,9 +2236,7 @@ describe("ExtractPreciseValue", () => {
       // Branded strings is a commonly used way of implementing
       // nominal types in typescript.
       type BrandedId = string & { __brand: "brandId" }
-      type FooBar =
-        | { type: "foo"; id: BrandedId; value: string }
-        | { type: "bar" }
+      type FooBar = { type: "foo"; id: BrandedId; value: string } | { type: "bar" }
       type cases = [
         Expect<
           Equal<
@@ -2665,18 +2287,11 @@ describe("ExtractPreciseValue", () => {
         baz?: string
       }
       type cases = [
-        Expect<
-          Equal<
-            ExtractPreciseValue<FooError | BazError | Error, FooError>,
-            FooError
-          >
-        >,
+        Expect<Equal<ExtractPreciseValue<FooError | BazError | Error, FooError>, FooError>>,
         Expect<
           Equal<
             ExtractPreciseValue<
-              | ErrorWithOptionalKeys1
-              | ErrorWithOptionalKeys2
-              | ErrorWithOptionalKeys1,
+              ErrorWithOptionalKeys1 | ErrorWithOptionalKeys2 | ErrorWithOptionalKeys1,
               ErrorWithOptionalKeys1
             >,
             ErrorWithOptionalKeys1
@@ -2687,11 +2302,7 @@ describe("ExtractPreciseValue", () => {
   })
 })
 import * as symbols from "../src/internals/symbols"
-import {
-  FindSelected,
-  MixedNamedAndAnonymousSelectError,
-  SeveralAnonymousSelectError,
-} from "../src/types/FindSelected"
+import { FindSelected, MixedNamedAndAnonymousSelectError, SeveralAnonymousSelectError } from "../src/types/FindSelected"
 import { Equal, Expect } from "../src/types/helpers"
 import { Matcher, SelectP, NotP, OptionalP, ArrayP } from "../src/types/Pattern"
 import { Event, State } from "./types-catalog/utils"
@@ -2716,41 +2327,23 @@ describe("FindSelected", () => {
           >
         >,
         Expect<
-          Equal<
-            FindSelected<[State, Event], [SelectP<"state">, SelectP<"event">]>,
-            { state: State; event: Event }
-          >
+          Equal<FindSelected<[State, Event], [SelectP<"state">, SelectP<"event">]>, { state: State; event: Event }>
         >,
         Expect<
           Equal<
-            FindSelected<
-              [1, 2, 3],
-              [SelectP<"first">, SelectP<"second">, SelectP<"third">]
-            >,
+            FindSelected<[1, 2, 3], [SelectP<"first">, SelectP<"second">, SelectP<"third">]>,
             { first: 1; second: 2; third: 3 }
           >
         >,
         Expect<
           Equal<
-            FindSelected<
-              [1, 2, 3, 4],
-              [SelectP<"1">, SelectP<"2">, SelectP<"3">, SelectP<"4">]
-            >,
+            FindSelected<[1, 2, 3, 4], [SelectP<"1">, SelectP<"2">, SelectP<"3">, SelectP<"4">]>,
             { "1": 1; "2": 2; "3": 3; "4": 4 }
           >
         >,
         Expect<
           Equal<
-            FindSelected<
-              [1, 2, 3, 4, 5],
-              [
-                SelectP<"1">,
-                SelectP<"2">,
-                SelectP<"3">,
-                SelectP<"4">,
-                SelectP<"5">
-              ]
-            >,
+            FindSelected<[1, 2, 3, 4, 5], [SelectP<"1">, SelectP<"2">, SelectP<"3">, SelectP<"4">, SelectP<"5">]>,
             { "1": 1; "2": 2; "3": 3; "4": 4; "5": 5 }
           >
         >
@@ -2758,30 +2351,13 @@ describe("FindSelected", () => {
     })
     it("list selections should be wrapped in arrays", () => {
       type cases = [
+        Expect<Equal<FindSelected<State[], ArrayP<unknown, SelectP<"state">>>, { state: State[] }>>,
         Expect<
-          Equal<
-            FindSelected<State[], ArrayP<unknown, SelectP<"state">>>,
-            { state: State[] }
-          >
+          Equal<FindSelected<State[][], ArrayP<unknown, ArrayP<unknown, SelectP<"state">>>>, { state: State[][] }>
         >,
         Expect<
           Equal<
-            FindSelected<
-              State[][],
-              ArrayP<unknown, ArrayP<unknown, SelectP<"state">>>
-            >,
-            { state: State[][] }
-          >
-        >,
-        Expect<
-          Equal<
-            FindSelected<
-              State[][][],
-              ArrayP<
-                unknown,
-                ArrayP<unknown, ArrayP<unknown, SelectP<"state">>>
-              >
-            >,
+            FindSelected<State[][][], ArrayP<unknown, ArrayP<unknown, ArrayP<unknown, SelectP<"state">>>>>,
             { state: State[][][] }
           >
         >
@@ -2789,15 +2365,7 @@ describe("FindSelected", () => {
     })
     it("Objects", () => {
       type cases = [
-        Expect<
-          Equal<
-            FindSelected<
-              { a: { b: { c: 3 } } },
-              { a: { b: { c: SelectP<"c"> } } }
-            >,
-            { c: 3 }
-          >
-        >,
+        Expect<Equal<FindSelected<{ a: { b: { c: 3 } } }, { a: { b: { c: SelectP<"c"> } } }>, { c: 3 }>>,
         Expect<
           Equal<
             FindSelected<
@@ -2817,13 +2385,7 @@ describe("FindSelected", () => {
     it("Mixed", () => {
       type cases = [
         Expect<
-          Equal<
-            FindSelected<
-              { a: { b: { c: [3, 4] } } },
-              { a: { b: { c: [SelectP<"c">, unknown] } } }
-            >,
-            { c: 3 }
-          >
+          Equal<FindSelected<{ a: { b: { c: [3, 4] } } }, { a: { b: { c: [SelectP<"c">, unknown] } } }>, { c: 3 }>
         >,
         Expect<
           Equal<
@@ -2883,30 +2445,18 @@ describe("FindSelected", () => {
         >,
         Expect<
           Equal<
-            FindSelected<
-              [{ c: 3 }, { e: 7 }],
-              [{ c: AnonymousSelectP }, { e: AnonymousSelectP }]
-            >,
+            FindSelected<[{ c: 3 }, { e: 7 }], [{ c: AnonymousSelectP }, { e: AnonymousSelectP }]>,
             SeveralAnonymousSelectError
           >
         >,
         Expect<
           Equal<
-            FindSelected<
-              [{ c: 3 }, { e: 7 }],
-              [AnonymousSelectP, { e: AnonymousSelectP }]
-            >,
+            FindSelected<[{ c: 3 }, { e: 7 }], [AnonymousSelectP, { e: AnonymousSelectP }]>,
             SeveralAnonymousSelectError
           >
         >,
         Expect<
-          Equal<
-            FindSelected<
-              [{ c: 3 }, { e: 7 }],
-              [AnonymousSelectP, AnonymousSelectP]
-            >,
-            SeveralAnonymousSelectError
-          >
+          Equal<FindSelected<[{ c: 3 }, { e: 7 }], [AnonymousSelectP, AnonymousSelectP]>, SeveralAnonymousSelectError>
         >,
         Expect<
           Equal<
@@ -2958,32 +2508,11 @@ describe("FindSelected", () => {
         type Input = { type: "text"; text: string; author: { name: string } }
         type cases = [
           Expect<Equal<FindSelected<Input, { type: "text" }>, Input>>,
+          Expect<Equal<FindSelected<{ text: any }, { text: "text" }>, { text: any }>>,
+          Expect<Equal<FindSelected<{ text: any }, { str: NotP<null | undefined, null | undefined> }>, { text: any }>>,
+          Expect<Equal<FindSelected<{ text: unknown }, { text: "text" }>, { text: unknown }>>,
           Expect<
-            Equal<FindSelected<{ text: any }, { text: "text" }>, { text: any }>
-          >,
-          Expect<
-            Equal<
-              FindSelected<
-                { text: any },
-                { str: NotP<null | undefined, null | undefined> }
-              >,
-              { text: any }
-            >
-          >,
-          Expect<
-            Equal<
-              FindSelected<{ text: unknown }, { text: "text" }>,
-              { text: unknown }
-            >
-          >,
-          Expect<
-            Equal<
-              FindSelected<
-                { text: unknown },
-                { str: NotP<null | undefined, null | undefined> }
-              >,
-              { text: unknown }
-            >
+            Equal<FindSelected<{ text: unknown }, { str: NotP<null | undefined, null | undefined> }>, { text: unknown }>
           >
         ]
       })
@@ -3032,10 +2561,7 @@ import { match, P } from "../src"
 import { Equal, Expect } from "../src/types/helpers"
 import { none, Option, some } from "./types-catalog/utils"
 describe("generics", () => {
-  type State<T> =
-    | { t: "success"; value: T }
-    | { t: "error"; error: Error }
-    | { t: "loading" }
+  type State<T> = { t: "success"; value: T } | { t: "error"; error: Error } | { t: "loading" }
   it("should have basic support for objects containing generics", () => {
     const f = <T>(input: State<T>) => {
       return match(input)
@@ -3090,31 +2616,15 @@ describe("generics", () => {
     const isSuccess = <T>(x: any): x is { t: "success"; value: T } =>
       Boolean(x && typeof x === "object" && x.t === "success")
     const isDoubleSuccess = <T>(x: any): x is { t: "success"; value: [T, T] } =>
-      Boolean(
-        x &&
-          typeof x === "object" &&
-          x.t === "success" &&
-          Array.isArray(x.value) &&
-          x.value.length === 2
-      )
+      Boolean(x && typeof x === "object" && x.t === "success" && Array.isArray(x.value) && x.value.length === 2)
     const f = <T>(input: State<[number, number] | number>) => {
       return match({ input })
         .with({ input: P.when(isSuccess) }, x => {
-          type t = Expect<
-            Equal<
-              typeof x,
-              { input: { t: "success"; value: number | [number, number] } }
-            >
-          >
+          type t = Expect<Equal<typeof x, { input: { t: "success"; value: number | [number, number] } }>>
           return "ok"
         })
         .with({ input: P.when(isDoubleSuccess) }, x => {
-          type t = Expect<
-            Equal<
-              typeof x,
-              { input: { t: "success"; value: [number, number] } }
-            >
-          >
+          type t = Expect<Equal<typeof x, { input: { t: "success"; value: [number, number] } }>>
           return "ok"
         })
         .otherwise(() => "nope")
@@ -3165,9 +2675,7 @@ describe("helpers", () => {
     })
     it("should correctly remove the n first elements of a readonly tuple", () => {
       type cases = [
-        Expect<
-          Equal<Drop<readonly [1, 2, 3], Iterator<0>>, readonly [1, 2, 3]>
-        >,
+        Expect<Equal<Drop<readonly [1, 2, 3], Iterator<0>>, readonly [1, 2, 3]>>,
         Expect<Equal<Drop<readonly [1, 2, 3], Iterator<1>>, [2, 3]>>,
         Expect<Equal<Drop<readonly [1, 2, 3], Iterator<2>>, [3]>>,
         Expect<Equal<Drop<readonly [1, 2, 3], Iterator<3>>, []>>,
@@ -3177,15 +2685,9 @@ describe("helpers", () => {
   })
   describe("UpdateAt", () => {
     type cases = [
-      Expect<
-        Equal<UpdateAt<readonly [1, 2, 3], Iterator<0>, true>, [true, 2, 3]>
-      >,
-      Expect<
-        Equal<UpdateAt<readonly [1, 2, 3], Iterator<1>, true>, [1, true, 3]>
-      >,
-      Expect<
-        Equal<UpdateAt<readonly [1, 2, 3], Iterator<2>, true>, [1, 2, true]>
-      >,
+      Expect<Equal<UpdateAt<readonly [1, 2, 3], Iterator<0>, true>, [true, 2, 3]>>,
+      Expect<Equal<UpdateAt<readonly [1, 2, 3], Iterator<1>, true>, [1, true, 3]>>,
+      Expect<Equal<UpdateAt<readonly [1, 2, 3], Iterator<2>, true>, [1, 2, true]>>,
       Expect<Equal<UpdateAt<readonly [1, 2, 3], Iterator<3>, true>, [1, 2, 3]>>,
       Expect<Equal<UpdateAt<readonly [1, 2, 3], Iterator<4>, true>, [1, 2, 3]>>
     ]
@@ -3195,30 +2697,18 @@ describe("helpers", () => {
       type cases = [
         Expect<
           Equal<
-            ExcludeIfContainsNever<
-              { kind: "some"; value: string } | { kind: never },
-              { kind: "some" }
-            >,
+            ExcludeIfContainsNever<{ kind: "some"; value: string } | { kind: never }, { kind: "some" }>,
             { kind: "some"; value: string }
           >
         >,
         Expect<
           Equal<
-            ExcludeIfContainsNever<
-              [{ kind: "some"; value: string } | never],
-              [{ kind: "some" }]
-            >,
+            ExcludeIfContainsNever<[{ kind: "some"; value: string } | never], [{ kind: "some" }]>,
             [{ kind: "some"; value: string }]
           >
         >,
         Expect<
-          Equal<
-            ExcludeIfContainsNever<
-              [{ kind: "some"; value: string }, never],
-              [{ kind: "some" }, unknown]
-            >,
-            never
-          >
+          Equal<ExcludeIfContainsNever<[{ kind: "some"; value: string }, never], [{ kind: "some" }, unknown]>, never>
         >
       ]
     })
@@ -3251,11 +2741,7 @@ describe("helpers", () => {
       >
       type t2 = Expect<
         Equal<
-          IntersectObjects<
-            | { k: "a"; value: number }
-            | { k: "b"; value: string }
-            | { k: "c"; value: number }
-          >,
+          IntersectObjects<{ k: "a"; value: number } | { k: "b"; value: string } | { k: "c"; value: number }>,
           {
             k: "a" | "b" | "c"
             value: number | string
@@ -3265,10 +2751,7 @@ describe("helpers", () => {
       type t3 = Expect<
         Equal<
           IntersectObjects<
-            | { type: 1; data: number }
-            | { type: "two"; data: string }
-            | { type: 3; data: boolean }
-            | { type: 4 }
+            { type: 1; data: number } | { type: "two"; data: string } | { type: 3; data: boolean } | { type: 4 }
           >,
           { type: 1 | "two" | 3 | 4; data: number | string | boolean }
         >
@@ -3341,10 +2824,7 @@ import { Equal, Expect } from "../src/types/helpers"
 describe("and, and or patterns", () => {
   type A = {
     type: "a"
-    value: [
-      { type: "d"; value: number } | { type: "e"; value: string },
-      boolean
-    ]
+    value: [{ type: "d"; value: number } | { type: "e"; value: string }, boolean]
   }
   type B = {
     type: "b"
@@ -3380,13 +2860,7 @@ describe("and, and or patterns", () => {
                   typeof x,
                   {
                     type: "a"
-                    value: [
-                      (
-                        | { type: "d"; value: number }
-                        | { type: "e"; value: string }
-                      ),
-                      true
-                    ]
+                    value: [{ type: "d"; value: number } | { type: "e"; value: string }, true]
                   }
                 >
               >
@@ -3423,24 +2897,13 @@ describe("and, and or patterns", () => {
     it("unions and intersections should work on properties shared by several element in a union type", () => {
       type C = {
         type: "c"
-        value:
-          | { type: "d"; value: boolean }
-          | { type: "e"; value: string[] }
-          | { type: "f"; value: number[] }
+        value: { type: "d"; value: boolean } | { type: "e"; value: string[] } | { type: "f"; value: number[] }
       }
-      type Input =
-        | { type: "a"; value: string }
-        | { type: "b"; value: number }
-        | C
+      type Input = { type: "a"; value: string } | { type: "b"; value: number } | C
       const f = (input: Input) =>
         match(input)
           .with({ type: P.union("a", "b") }, x => {
-            type t = Expect<
-              Equal<
-                typeof x,
-                { type: "a"; value: string } | { type: "b"; value: number }
-              >
-            >
+            type t = Expect<Equal<typeof x, { type: "a"; value: string } | { type: "b"; value: number }>>
             return "branch 1"
           })
           .with({ type: "c" }, x => {
@@ -3451,12 +2914,7 @@ describe("and, and or patterns", () => {
       const fe = (input: Input) =>
         match(input)
           .with({ type: P.union("a", "b") }, x => {
-            type t = Expect<
-              Equal<
-                typeof x,
-                { type: "a"; value: string } | { type: "b"; value: number }
-              >
-            >
+            type t = Expect<Equal<typeof x, { type: "a"; value: string } | { type: "b"; value: number }>>
             return "branch 1"
           })
           .with({ type: "c", value: { type: P.union("d", "e") } }, x => {
@@ -3465,9 +2923,7 @@ describe("and, and or patterns", () => {
                 typeof x,
                 {
                   type: "c"
-                  value:
-                    | { type: "d"; value: boolean }
-                    | { type: "e"; value: string[] }
+                  value: { type: "d"; value: boolean } | { type: "e"; value: string[] }
                 }
               >
             >
@@ -3507,9 +2963,7 @@ describe("and, and or patterns", () => {
               b: P.instanceOf(Child2),
             }),
             x => {
-              type t = Expect<
-                Equal<typeof x, Child1 & { a: Child2; b: Child2 }>
-              >
+              type t = Expect<Equal<typeof x, Child1 & { a: Child2; b: Child2 }>>
               return "match!"
             }
           )
@@ -3545,9 +2999,7 @@ describe("and, and or patterns", () => {
               b: P.instanceOf(Child2),
             }),
             x => {
-              type t = Expect<
-                Equal<typeof x, Child1 & { b: Child2; a?: Child2 | undefined }>
-              >
+              type t = Expect<Equal<typeof x, Child1 & { b: Child2; a?: Child2 | undefined }>>
               return "match!"
             }
           )
@@ -3561,13 +3013,7 @@ describe("and, and or patterns", () => {
             ),
             x => {
               type t = Expect<
-                Equal<
-                  typeof x,
-                  { a: Child1 } & (
-                    | { a: { a: Child1; b: Child1 } }
-                    | { b: { a: Child2; b: Child2 } }
-                  )
-                >
+                Equal<typeof x, { a: Child1 } & ({ a: { a: Child1; b: Child1 } } | { b: { a: Child2; b: Child2 } })>
               >
               return "branch 2"
             }
@@ -3660,27 +3106,16 @@ describe("and, and or patterns", () => {
     })
     it("union & intersections should work with selects", () => {
       type Input = {
-        value:
-          | { type: "a"; v: number }
-          | { type: "b"; v: string }
-          | { type: "c"; v: boolean }
+        value: { type: "a"; v: number } | { type: "b"; v: string } | { type: "c"; v: boolean }
       }
       const f = (input: Input) => {
         return match(input)
           .with(
             {
-              value: P.intersection(
-                P.select(),
-                P.union({ type: "a" }, { type: "b" })
-              ),
+              value: P.intersection(P.select(), P.union({ type: "a" }, { type: "b" })),
             },
             x => {
-              type t = Expect<
-                Equal<
-                  typeof x,
-                  { type: "a"; v: number } | { type: "b"; v: string }
-                >
-              >
+              type t = Expect<Equal<typeof x, { type: "a"; v: number } | { type: "b"; v: string }>>
               return x.type
             }
           )
@@ -3692,19 +3127,13 @@ describe("and, and or patterns", () => {
     })
     it("unions containing selects should consider all selections optional", () => {
       type Input = {
-        value:
-          | { type: "a"; n: number }
-          | { type: "b"; s: string }
-          | { type: "c"; b: boolean }
+        value: { type: "a"; n: number } | { type: "b"; s: string } | { type: "c"; b: boolean }
       }
       const f = (input: Input) => {
         return match(input)
           .with(
             {
-              value: P.union(
-                { type: "a", n: P.select("n") },
-                { type: "b", s: P.select("s") }
-              ),
+              value: P.union({ type: "a", n: P.select("n") }, { type: "b", s: P.select("s") }),
             },
             x => {
               type t = Expect<
@@ -3743,26 +3172,16 @@ describe("and, and or patterns", () => {
     })
     it("P.not should work with unions and intersections", () => {
       type Input = {
-        value:
-          | { type: "a"; n: number }
-          | { type: "b"; s: string }
-          | { type: "c"; b: boolean }
+        value: { type: "a"; n: number } | { type: "b"; s: string } | { type: "c"; b: boolean }
       }
       const f = (input: Input) => {
         return match(input)
           .with({ value: P.not({ type: P.union("a", "b") }) }, x => {
-            type t = Expect<
-              Equal<typeof x, { value: { type: "c"; b: boolean } }>
-            >
+            type t = Expect<Equal<typeof x, { value: { type: "c"; b: boolean } }>>
             return "not a or b"
           })
           .with({ value: P.union({ type: "a" }, { type: "b" }) }, x => {
-            type t = Expect<
-              Equal<
-                typeof x,
-                { value: { type: "a"; n: number } | { type: "b"; s: string } }
-              >
-            >
+            type t = Expect<Equal<typeof x, { value: { type: "a"; n: number } | { type: "b"; s: string } }>>
             return "a or b"
           })
           .exhaustive()
@@ -3772,11 +3191,7 @@ describe("and, and or patterns", () => {
     })
     it("P.array should work with unions and intersections", () => {
       type Input = {
-        value: (
-          | { type: "a"; n: number }
-          | { type: "b"; s: string }
-          | { type: "c"; b: boolean }
-        )[]
+        value: ({ type: "a"; n: number } | { type: "b"; s: string } | { type: "c"; b: boolean })[]
       }
       const f = (input: Input) => {
         return match(input)
@@ -3791,23 +3206,17 @@ describe("and, and or patterns", () => {
             >
             return x.value.map(x => x.type).join(",")
           })
-          .with(
-            { value: P.array(P.union({ type: "a" }, { type: "b" })) },
-            x => {
-              type t = Expect<
-                Equal<
-                  typeof x,
-                  {
-                    value: (
-                      | { type: "a"; n: number }
-                      | { type: "b"; s: string }
-                    )[]
-                  }
-                >
+          .with({ value: P.array(P.union({ type: "a" }, { type: "b" })) }, x => {
+            type t = Expect<
+              Equal<
+                typeof x,
+                {
+                  value: ({ type: "a"; n: number } | { type: "b"; s: string })[]
+                }
               >
-              return x.value.map(x => x.type).join(",")
-            }
-          )
+            >
+            return x.value.map(x => x.type).join(",")
+          })
           .with({ value: P.array(P.any) }, () => "other")
           .exhaustive()
       }
@@ -3830,10 +3239,7 @@ describe("and, and or patterns", () => {
     })
     it("Composing P.union and P.array should work on union of arrays", () => {
       type Input = {
-        value:
-          | { type: "a"; n: number }[]
-          | { type: "b"; s: string }[]
-          | { type: "c"; b: boolean }[]
+        value: { type: "a"; n: number }[] | { type: "b"; s: string }[] | { type: "c"; b: boolean }[]
       }
       const f = (input: Input) => {
         return match(input)
@@ -3848,22 +3254,17 @@ describe("and, and or patterns", () => {
             >
             return x.value[0].type
           })
-          .with(
-            { value: P.array(P.union({ type: "a" }, { type: "b" })) },
-            x => {
-              type t = Expect<
-                Equal<
-                  typeof x,
-                  {
-                    value:
-                      | { type: "a"; n: number }[]
-                      | { type: "b"; s: string }[]
-                  }
-                >
+          .with({ value: P.array(P.union({ type: "a" }, { type: "b" })) }, x => {
+            type t = Expect<
+              Equal<
+                typeof x,
+                {
+                  value: { type: "a"; n: number }[] | { type: "b"; s: string }[]
+                }
               >
-              return x.value[0].type
-            }
-          )
+            >
+            return x.value[0].type
+          })
           .with({ value: P.array(P.any) }, () => "other")
           .exhaustive()
       }
@@ -3898,23 +3299,20 @@ describe("and, and or patterns", () => {
       const f = (input: Input) => {
         return (
           match(input)
-            .with(
-              { value: P.array(P.union({ type: "a" }, { type: "b" })) },
-              x => {
-                type t = Expect<
-                  Equal<
-                    typeof x,
-                    | {
-                        value: { type: "a"; n: number }[]
-                      }
-                    | {
-                        value: { type: "b"; s: string }[]
-                      }
-                  >
+            .with({ value: P.array(P.union({ type: "a" }, { type: "b" })) }, x => {
+              type t = Expect<
+                Equal<
+                  typeof x,
+                  | {
+                      value: { type: "a"; n: number }[]
+                    }
+                  | {
+                      value: { type: "b"; s: string }[]
+                    }
                 >
-                return x.value[0].type
-              }
-            )
+              >
+              return x.value[0].type
+            })
             // @ts-expect-error FIXME this should work
             .with({ value: P.array({ type: P.union("a", "b") }) }, x => {})
             .with(
@@ -3959,34 +3357,23 @@ describe("and, and or patterns", () => {
     })
     it("P.optional should work with unions and intersections", () => {
       type Input = {
-        value?:
-          | { type: "a"; n: number }
-          | { type: "b"; s: string }
-          | { type: "c"; b: boolean }
+        value?: { type: "a"; n: number } | { type: "b"; s: string } | { type: "c"; b: boolean }
       }
       const f = (input: Input) => {
         return match(input)
-          .with(
-            { value: P.optional(P.union({ type: "a" }, { type: "b" })) },
-            x => {
-              type t = Expect<
-                Equal<
-                  typeof x,
-                  {
-                    value?:
-                      | { type: "a"; n: number }
-                      | { type: "b"; s: string }
-                      | undefined
-                  }
-                >
-              >
-              return "maybe a or b"
-            }
-          )
-          .with({ value: { type: "c" } }, x => {
+          .with({ value: P.optional(P.union({ type: "a" }, { type: "b" })) }, x => {
             type t = Expect<
-              Equal<typeof x, { value: { type: "c"; b: boolean } }>
+              Equal<
+                typeof x,
+                {
+                  value?: { type: "a"; n: number } | { type: "b"; s: string } | undefined
+                }
+              >
             >
+            return "maybe a or b"
+          })
+          .with({ value: { type: "c" } }, x => {
+            type t = Expect<Equal<typeof x, { value: { type: "c"; b: boolean } }>>
             return "c"
           })
           .exhaustive()
@@ -4003,9 +3390,7 @@ describe("and, and or patterns", () => {
         // It would be nice if as const wasn't necessary with unknown inputs
         { a: P.optional(P.union("hello" as const, "bonjour" as const)) },
         x => {
-          type t = Expect<
-            Equal<typeof x, { a?: "hello" | "bonjour" | undefined }>
-          >
+          type t = Expect<Equal<typeof x, { a?: "hello" | "bonjour" | undefined }>>
           return "ok"
         }
       )
@@ -4078,17 +3463,11 @@ describe("InvertPatternForExclude", () => {
     ]
   })
   it("should work with objects", () => {
-    type t = InvertPatternForExclude<
-      { a: Matcher<unknown, string> },
-      { a: string; b: number } | [1, 2]
-    >
+    type t = InvertPatternForExclude<{ a: Matcher<unknown, string> }, { a: string; b: number } | [1, 2]>
     type cases = [
       Expect<
         Equal<
-          InvertPatternForExclude<
-            { a: Matcher<unknown, string> },
-            { a: string; b: number } | [1, 2]
-          >,
+          InvertPatternForExclude<{ a: Matcher<unknown, string> }, { a: string; b: number } | [1, 2]>,
           Readonly<{ a: string }>
         >
       >
@@ -4096,22 +3475,12 @@ describe("InvertPatternForExclude", () => {
   })
   describe("Tuples", () => {
     it("should work with tuples", () => {
-      type cases = [
-        Expect<
-          Equal<
-            InvertPatternForExclude<[1, 2], { a: string; b: number } | [1, 2]>,
-            readonly [1, 2]
-          >
-        >
-      ]
+      type cases = [Expect<Equal<InvertPatternForExclude<[1, 2], { a: string; b: number } | [1, 2]>, readonly [1, 2]>>]
     })
     it("should return readonly tuples because both mutable and readonly are assignable to them", () => {
       type cases = [
         Expect<
-          Equal<
-            InvertPatternForExclude<[[[1, 2]]], { a: string } | [[[1, 2]]]>,
-            readonly [readonly [readonly [1, 2]]]
-          >
+          Equal<InvertPatternForExclude<[[[1, 2]]], { a: string } | [[[1, 2]]]>, readonly [readonly [readonly [1, 2]]]>
         >
       ]
     })
@@ -4138,9 +3507,7 @@ describe("InvertPatternForExclude", () => {
         { type2: "c"; data: OptionalPattern<"f"> },
         { type: "a" | "b"; type2: "c" | "d"; data?: "f" | "g" }
       >
-      type cases = [
-        Expect<Equal<x, Readonly<{ type2: "c"; data?: "f" | undefined }>>>
-      ]
+      type cases = [Expect<Equal<x, Readonly<{ type2: "c"; data?: "f" | undefined }>>>]
     })
     it("an optional pattern in an object should be considered an optional key", () => {
       type input = { key?: "a" | "b" }
@@ -4180,17 +3547,10 @@ describe("isMatching", () => {
       author: { name: P.string, age: P.number },
     })
     if (isBlogPost(something)) {
-      type t = Expect<
-        Equal<
-          typeof something,
-          { title: string; author: { name: string; age: number } }
-        >
-      >
+      type t = Expect<Equal<typeof something, { title: string; author: { name: string; age: number } }>>
       expect(true).toBe(true)
     } else {
-      throw new Error(
-        "isMatching should have returned true but it returned false"
-      )
+      throw new Error("isMatching should have returned true but it returned false")
     }
   })
   it("should act as a type guard function if given a two arguments", () => {
@@ -4207,17 +3567,10 @@ describe("isMatching", () => {
         something
       )
     ) {
-      type t = Expect<
-        Equal<
-          typeof something,
-          { title: string; author: { name: string; age: number } }
-        >
-      >
+      type t = Expect<Equal<typeof something, { title: string; author: { name: string; age: number } }>>
       expect(true).toBe(true)
     } else {
-      throw new Error(
-        "isMatching should have returned true but it returned false"
-      )
+      throw new Error("isMatching should have returned true but it returned false")
     }
   })
 })
@@ -4257,9 +3610,7 @@ describe("large exhaustive", () => {
   })
   it("large tuple", () => {
     expect(
-      match<
-        [LargeObject, LargeObject, LargeObject, LargeObject, LargeObject] | null
-      >(null)
+      match<[LargeObject, LargeObject, LargeObject, LargeObject, LargeObject] | null>(null)
         .with(
           // prettier-ignore
           [
@@ -4290,18 +3641,7 @@ describe("large exhaustive", () => {
             }
           ],
           x => {
-            type t = Expect<
-              Equal<
-                typeof x,
-                [
-                  LargeObject,
-                  LargeObject,
-                  LargeObject,
-                  LargeObject,
-                  LargeObject
-                ]
-              >
-            >
+            type t = Expect<Equal<typeof x, [LargeObject, LargeObject, LargeObject, LargeObject, LargeObject]>>
             return "match"
           }
         )
@@ -4429,10 +3769,7 @@ describe("Map", () => {
           name: map.get("angégé")!.name + " " + map.get("gab")!.name,
         })
       )
-      .with(
-        new Map([["angégé" as const, userPattern]]),
-        map => map.get("angégé")!
-      )
+      .with(new Map([["angégé" as const, userPattern]]), map => map.get("angégé")!)
       .with(new Map([["gab" as const, userPattern]]), map => map.get("gab")!)
       .with(P._, () => ({ name: "unknown" }))
       .run()
@@ -4453,20 +3790,13 @@ describe("Multiple patterns", () => {
           { kind: "some", value: 4 as const },
           x => {
             type t = Expect<
-              Equal<
-                typeof x,
-                | { kind: "some"; value: 2 }
-                | { kind: "some"; value: 3 }
-                | { kind: "some"; value: 4 }
-              >
+              Equal<typeof x, { kind: "some"; value: 2 } | { kind: "some"; value: 3 } | { kind: "some"; value: 4 }>
             >
             return true
           }
         )
         .with({ kind: "none" }, { kind: "some" }, x => {
-          type t = Expect<
-            Equal<typeof x, { kind: "some"; value: number } | { kind: "none" }>
-          >
+          type t = Expect<Equal<typeof x, { kind: "some"; value: number } | { kind: "none" }>>
           return false
         })
         .run()
@@ -4490,20 +3820,13 @@ describe("Multiple patterns", () => {
           { kind: "some", value: 4 as const },
           x => {
             type t = Expect<
-              Equal<
-                typeof x,
-                | { kind: "some"; value: 2 }
-                | { kind: "some"; value: 3 }
-                | { kind: "some"; value: 4 }
-              >
+              Equal<typeof x, { kind: "some"; value: 2 } | { kind: "some"; value: 3 } | { kind: "some"; value: 4 }>
             >
             return true
           }
         )
         .with({ kind: "none" }, { kind: "some" }, x => {
-          type t = Expect<
-            Equal<typeof x, { kind: "some"; value: number } | { kind: "none" }>
-          >
+          type t = Expect<Equal<typeof x, { kind: "some"; value: number } | { kind: "none" }>>
           return false
         })
         .exhaustive()
@@ -4584,24 +3907,12 @@ describe("Multiple patterns", () => {
           type t = Expect<Equal<typeof x, boolean | number | string>>
           return "primitive"
         })
-        .with(
-          { a: P.string },
-          [true, 2],
-          new Map([["key", P._]]),
-          new Set([P.number]),
-          x => {
-            type t = Expect<
-              Equal<
-                typeof x,
-                | { a: string; b: number }
-                | [true, number]
-                | Map<string, { x: number }>
-                | Set<number>
-              >
-            >
-            return "Object"
-          }
-        )
+        .with({ a: P.string }, [true, 2], new Map([["key", P._]]), new Set([P.number]), x => {
+          type t = Expect<
+            Equal<typeof x, { a: string; b: number } | [true, number] | Map<string, { x: number }> | Set<number>>
+          >
+          return "Object"
+        })
         .with([false, 2] as const, x => {
           type t = Expect<Equal<typeof x, [false, 2]>>
           return "[false, 2]"
@@ -4619,13 +3930,7 @@ describe("Multiple patterns", () => {
       match<Input>(input)
         .with(null, undefined, x => "Nullable")
         .with(P.boolean, P.number, P.string, x => "primitive")
-        .with(
-          { a: P.string },
-          [true, 2],
-          new Map([["key", P._]]),
-          new Set([P.number]),
-          x => "Object"
-        )
+        .with({ a: P.string }, [true, 2], new Map([["key", P._]]), new Set([P.number]), x => "Object")
         .with([false, 2], x => "[false, 2]")
         .with([false, P.number], x => "[false, number]")
         .with([true, P.number], x => "[true, number]")
@@ -4702,13 +4007,10 @@ describe("Nesting", () => {
           video: { type: "video", content: { src: "" }, id: 2 },
         },
       })
-        .with(
-          { type: "post", content: { video: { id: 2, content: { src: "" } } } },
-          x => {
-            type t = Expect<Equal<typeof x, Post>>
-            return 1
-          }
-        )
+        .with({ type: "post", content: { video: { id: 2, content: { src: "" } } } }, x => {
+          type t = Expect<Equal<typeof x, Post>>
+          return 1
+        })
         .with(P.any, () => 1)
         .exhaustive()
       type t = Expect<Equal<typeof res, number>>
@@ -4726,20 +4028,14 @@ describe("Nesting", () => {
     it("it should work on 3 level", () => {
       expect(
         match({ one: { two: { three: "2", foo: 2, bar: true } } })
-          .with(
-            { one: { two: { foo: P.any, bar: P.any } } },
-            x => x.one.two.bar
-          )
+          .with({ one: { two: { foo: P.any, bar: P.any } } }, x => x.one.two.bar)
           .exhaustive()
       ).toEqual(true)
     })
     it("it should work on 4 level", () => {
       expect(
         match({ one: { two: { three: { four: "2", foo: 2, bar: true } } } })
-          .with(
-            { one: { two: { three: { foo: P.any, bar: P.any } } } },
-            x => x.one.two.three.bar
-          )
+          .with({ one: { two: { three: { foo: P.any, bar: P.any } } } }, x => x.one.two.three.bar)
           .exhaustive()
       ).toEqual(true)
     })
@@ -4748,10 +4044,7 @@ describe("Nesting", () => {
         match({
           one: { two: { three: { four: { five: "2", foo: 2, bar: true } } } },
         })
-          .with(
-            { one: { two: { three: { four: { foo: P.any, bar: P.any } } } } },
-            x => x.one.two.three.four.bar
-          )
+          .with({ one: { two: { three: { four: { foo: P.any, bar: P.any } } } } }, x => x.one.two.three.four.bar)
           .exhaustive()
       ).toEqual(true)
     })
@@ -4809,9 +4102,7 @@ describe("Nesting", () => {
     })
     it("it should work on 17 levels", () => {
       expect(
-        match([
-          [[[[[[[[[[[[[[[[[{ two: "2", foo: 2, bar: true }]]]]]]]]]]]]]]]]],
-        ] as const)
+        match([[[[[[[[[[[[[[[[[[{ two: "2", foo: 2, bar: true }]]]]]]]]]]]]]]]]]] as const)
           .with(
             // prettier-ignore
             [[[[[[[[[[[[[[[[[[{ foo: P.any, bar: P.select('bar') }]]]]]]]]]]]]]]]]]],
@@ -4909,9 +4200,7 @@ describe("not", () => {
     expect(get({ type: "success" })).toEqual("success")
   })
   it("should correctly invert the type of a Matcher", () => {
-    const nullable = P.when(
-      (x: unknown): x is null | undefined => x === null || x === undefined
-    )
+    const nullable = P.when((x: unknown): x is null | undefined => x === null || x === undefined)
     expect(
       match<{ str: string } | null>({ str: "hello" })
         .with(P.not(nullable), ({ str }) => str)
@@ -4993,30 +4282,15 @@ describe("not", () => {
     ).toThrow()
   })
   it("Doc example", () => {
-    type Input =
-      | string
-      | number
-      | boolean
-      | { key: string }
-      | string[]
-      | [number, number]
+    type Input = string | number | boolean | { key: string } | string[] | [number, number]
     const notMatch = (value: Input) =>
       match(value)
         .with(P.not(P.string), value => `value is NOT a string: ${value}`)
         .with(P.not(P.number), value => `value is NOT a number: ${value}`)
         .with(P.not(P.boolean), value => `value is NOT a boolean: ${value}`)
-        .with(
-          P.not({ key: P.string }),
-          value => `value is NOT an object. ${value}`
-        )
-        .with(
-          P.not(P.array(P.string)),
-          value => `value is NOT an array of strings: ${value}`
-        )
-        .with(
-          P.not([P.number, P.number]),
-          value => `value is NOT tuple of two numbers: ${value}`
-        )
+        .with(P.not({ key: P.string }), value => `value is NOT an object. ${value}`)
+        .with(P.not(P.array(P.string)), value => `value is NOT an array of strings: ${value}`)
+        .with(P.not([P.number, P.number]), value => `value is NOT tuple of two numbers: ${value}`)
         .exhaustive()
     const inputs: { input: Input; expected: string }[] = [
       { input: "Hello", expected: "value is NOT a number: Hello" },
@@ -5032,9 +4306,7 @@ describe("not", () => {
       },
       { input: [1, 2], expected: "value is NOT a string: 1,2" },
     ]
-    inputs.forEach(({ input, expected }) =>
-      expect(notMatch(input)).toEqual(expected)
-    )
+    inputs.forEach(({ input, expected }) => expect(notMatch(input)).toEqual(expected))
   })
 })
 import { Expect, Equal } from "../src/types/helpers"
@@ -5105,9 +4377,7 @@ describe("optional properties", () => {
         return 100
       })
       .with({ type: "post", id: P.number }, x => {
-        type t = Expect<
-          Equal<typeof x, { type: "post"; id: number; body: string }>
-        >
+        type t = Expect<Equal<typeof x, { type: "post"; id: number; body: string }>>
         return 10
       })
       .with({ type: "post" }, x => {
@@ -5173,9 +4443,7 @@ describe("optional", () => {
     const f = (input: Input) =>
       match<Input>(input)
         .with({ a: P.optional({ name: "Hello" }) }, x => {
-          type t = Expect<
-            Equal<typeof x, { a?: { name: string; age: number } }>
-          >
+          type t = Expect<Equal<typeof x, { a?: { name: string; age: number } }>>
           return true
         })
         .with({ b: P.string }, x => {
@@ -5189,9 +4457,7 @@ describe("optional", () => {
     expect(f({})).toBe(true)
   })
   it("should support anonymous select", () => {
-    type Input =
-      | { type: "a"; a?: { name: string; age: number } }
-      | { type: "b"; b?: "test" }
+    type Input = { type: "a"; a?: { name: string; age: number } } | { type: "b"; b?: "test" }
     const f = (input: Input) =>
       match(input)
         .with({ type: "a", a: P.optional({ name: P.select() }) }, x => {
@@ -5199,9 +4465,7 @@ describe("optional", () => {
           return x
         })
         .with({ type: "a", a: P.optional(P.select()) }, x => {
-          type t = Expect<
-            Equal<typeof x, { name: string; age: number } | undefined>
-          >
+          type t = Expect<Equal<typeof x, { name: string; age: number } | undefined>>
           return x
         })
         .with({ type: "b", b: P.optional(P.select(P.union("test"))) }, x => {
@@ -5274,12 +4538,7 @@ describe("optional", () => {
             data: P.optional({ type: "img" }),
           },
           x => {
-            type t = Expect<
-              Equal<
-                typeof x,
-                { type: "a"; data?: { type: "img"; src: string } | undefined }
-              >
-            >
+            type t = Expect<Equal<typeof x, { type: "a"; data?: { type: "img"; src: string } | undefined }>>
             return x
           }
         )
@@ -5326,10 +4585,7 @@ describe("optional", () => {
         })
         .exhaustive()
     expect(f({})).toBe(undefined)
-    expect(f({ maybeList: [{ text: "Hello" }, { text: "Bonjour" }] })).toEqual([
-      "Hello",
-      "Bonjour",
-    ])
+    expect(f({ maybeList: [{ text: "Hello" }, { text: "Bonjour" }] })).toEqual(["Hello", "Bonjour"])
   })
 })
 import { match } from "../src"
@@ -5485,10 +4741,7 @@ type ExtendsPattern<a, p extends P.Pattern<a>> = true
 describe("Pattern", () => {
   it("shouldn't allow invalid patterns", () => {
     type cases = [
-      ExtendsPattern<
-        { type: "a"; x: { y: string } } | { type: "b" },
-        { type: "a"; x: { y: Matcher<unknown, string> } }
-      >
+      ExtendsPattern<{ type: "a"; x: { y: string } } | { type: "b" }, { type: "a"; x: { y: Matcher<unknown, string> } }>
     ]
   })
   it("Should return a single object pattern when the input is a union of objects", () => {
@@ -5496,13 +4749,7 @@ describe("Pattern", () => {
       Expect<
         Equal<
           P.Pattern<{ kind: "some"; value: number } | { kind: "none" }>,
-          | Matcher<
-              { kind: "some"; value: number } | { kind: "none" },
-              unknown,
-              any,
-              any,
-              unknown
-            >
+          | Matcher<{ kind: "some"; value: number } | { kind: "none" }, unknown, any, any, unknown>
           | {
               readonly kind?: P.Pattern<"some">
               readonly value?: P.Pattern<number>
@@ -5515,19 +4762,11 @@ describe("Pattern", () => {
     ]
   })
   it("Should return a single object pattern when the input is a union of objects and other types", () => {
-    type t = P.Pattern<
-      { kind: "some"; value: number } | { kind: "none" } | string
-    >
+    type t = P.Pattern<{ kind: "some"; value: number } | { kind: "none" } | string>
     type t1 = Expect<
       Equal<
         P.Pattern<{ kind: "some"; value: number } | { kind: "none" } | string>,
-        | Matcher<
-            string | { kind: "some"; value: number } | { kind: "none" },
-            unknown,
-            any,
-            any,
-            unknown
-          >
+        | Matcher<string | { kind: "some"; value: number } | { kind: "none" }, unknown, any, any, unknown>
         | {
             readonly kind?: P.Pattern<"some">
             readonly value?: P.Pattern<number>
@@ -5541,13 +4780,7 @@ describe("Pattern", () => {
     type t2 = Expect<
       Equal<
         P.Pattern<{ a?: { name: string; age: number } } | { b: "" }>,
-        | Matcher<
-            { a?: { name: string; age: number } } | { b: "" },
-            unknown,
-            any,
-            any,
-            unknown
-          >
+        | Matcher<{ a?: { name: string; age: number } } | { b: "" }, unknown, any, any, unknown>
         | {
             readonly a?: P.Pattern<{ name: string; age: number }>
           }
@@ -5559,13 +4792,7 @@ describe("Pattern", () => {
     type t3 = Expect<
       Equal<
         P.Pattern<{ name: string; age: number } | undefined>,
-        | Matcher<
-            { name: string; age: number } | undefined,
-            unknown,
-            any,
-            any,
-            unknown
-          >
+        | Matcher<{ name: string; age: number } | undefined, unknown, any, any, unknown>
         | {
             readonly name?: P.Pattern<string>
             readonly age?: P.Pattern<number>
@@ -5576,13 +4803,7 @@ describe("Pattern", () => {
     type t4 = Expect<
       Equal<
         P.Pattern<{ name: string; age: number } | [type: "Hello"]>,
-        | Matcher<
-            { name: string; age: number } | [type: "Hello"],
-            unknown,
-            any,
-            any,
-            unknown
-          >
+        | Matcher<{ name: string; age: number } | [type: "Hello"], unknown, any, any, unknown>
         | {
             readonly name?: P.Pattern<string>
             readonly age?: P.Pattern<number>
@@ -5700,9 +4921,7 @@ describe("readonly", () => {
           .exhaustive()
     })
     it("objects", () => {
-      const f = (
-        input: Readonly<{ t: "a"; x: number }> | Readonly<{ t: "b"; x: string }>
-      ) =>
+      const f = (input: Readonly<{ t: "a"; x: number }> | Readonly<{ t: "b"; x: string }>) =>
         match(input)
           .with({ t: "a" }, x => {
             type t = Expect<Equal<typeof x, Readonly<{ t: "a"; x: number }>>>
@@ -5715,11 +4934,7 @@ describe("readonly", () => {
           .exhaustive()
     })
     it("mixed", () => {
-      const f = (
-        input:
-          | Readonly<{ t: "a"; x: readonly [number, string, 2] }>
-          | Readonly<{ t: "b"; x: string }>
-      ) =>
+      const f = (input: Readonly<{ t: "a"; x: readonly [number, string, 2] }> | Readonly<{ t: "b"; x: string }>) =>
         match(input)
           .with({ t: "a", x: [2, "hello", 2] }, x => {
             type t = Expect<Equal<typeof x, { t: "a"; x: [number, string, 2] }>>
@@ -5730,12 +4945,7 @@ describe("readonly", () => {
             return "ok"
           })
           .with({ t: "a" }, x => {
-            type t = Expect<
-              Equal<
-                typeof x,
-                Readonly<{ t: "a"; x: readonly [number, string, 2] }>
-              >
-            >
+            type t = Expect<Equal<typeof x, Readonly<{ t: "a"; x: readonly [number, string, 2] }>>>
             return "ok"
           })
           .with({ t: "b" }, x => {
@@ -5756,9 +4966,7 @@ describe("real world example of a complex input type", () => {
         {
           viz: "timeseries",
           requests: P.array({
-            queries: P.array(
-              P.union({ data_source: "metrics", query: P.select() }, P.any)
-            ),
+            queries: P.array(P.union({ data_source: "metrics", query: P.select() }, P.any)),
           }),
         },
         metricQueries => {
@@ -5782,15 +4990,9 @@ describe("real world example of a complex input type", () => {
       .with(
         {
           requests: P.array(
-            P.intersection(
-              P.union(
-                { response_format: "timeseries" },
-                { response_format: "scalar" }
-              ),
-              {
-                queries: P.array({ data_source: P.union("metrics", "events") }),
-              }
-            )
+            P.intersection(P.union({ response_format: "timeseries" }, { response_format: "scalar" }), {
+              queries: P.array({ data_source: P.union("metrics", "events") }),
+            })
           ),
         },
         x => {
@@ -5842,39 +5044,16 @@ describe("real world example of a complex input type", () => {
         },
         () => "formulas requests"
       )
-      .with(
-        { style: P.optional({ palette_flip: true }) },
-        withPalette => withPalette.viz
-      )
-      .with(
-        { requests: P.array({ sql_query: P.select() }) },
-        queries => queries
-      )
-      .with(
-        { viz: "sunburst", requests: P.array({ response_format: P.select() }) },
-        scalars => scalars
-      )
+      .with({ style: P.optional({ palette_flip: true }) }, withPalette => withPalette.viz)
+      .with({ requests: P.array({ sql_query: P.select() }) }, queries => queries)
+      .with({ viz: "sunburst", requests: P.array({ response_format: P.select() }) }, scalars => scalars)
       .with(
         {
-          viz: P.union(
-            "geomap",
-            "timeseries",
-            "heatmap",
-            "scatterplot",
-            "sunburst",
-            "wildcard",
-            "query_table"
-          ),
+          viz: P.union("geomap", "timeseries", "heatmap", "scatterplot", "sunburst", "wildcard", "query_table"),
         },
         () => ""
       )
-      .with(
-        { viz: "servicemap" },
-        { viz: "distribution" },
-        { viz: "treemap" },
-        { viz: "toplist" },
-        () => ""
-      )
+      .with({ viz: "servicemap" }, { viz: "distribution" }, { viz: "treemap" }, { viz: "toplist" }, () => "")
       .exhaustive()
   it("should return the correct output", () => {
     expect(
@@ -5945,10 +5124,7 @@ describe("real world example of a complex input type", () => {
           },
         ],
       })
-    ).toEqual([
-      "timeseries with metrics queries:",
-      [["a", "b", undefined], ["d"]],
-    ])
+    ).toEqual(["timeseries with metrics queries:", [["a", "b", undefined], ["d"]]])
   })
 })
 import { Expect, Equal } from "../src/types/helpers"
@@ -5967,9 +5143,7 @@ describe("Records ({})", () => {
     expect(
       match<Vector, string>(vector)
         .with({ x: 1, y: 1, z: 1 }, x => {
-          type t = Expect<
-            Equal<typeof x, Vector3 | { x: number; y: number; z: number }>
-          >
+          type t = Expect<Equal<typeof x, Vector3 | { x: number; y: number; z: number }>>
           return "vector3"
         })
         .with({ x: 2, y: 1 }, x => {
@@ -5987,10 +5161,7 @@ describe("Records ({})", () => {
 import { Expect, Equal } from "../src/types/helpers"
 import { match, P } from "../src"
 import { State, Event } from "./types-catalog/utils"
-import {
-  MixedNamedAndAnonymousSelectError,
-  SeveralAnonymousSelectError,
-} from "../src/types/FindSelected"
+import { MixedNamedAndAnonymousSelectError, SeveralAnonymousSelectError } from "../src/types/FindSelected"
 describe("select", () => {
   it("should work with tuples", () => {
     expect(
@@ -6027,17 +5198,11 @@ describe("select", () => {
         .run()
     ).toEqual(["you", "hello"])
     expect(
-      match<{ text: { content: string } }[], string[]>([
-        { text: { content: "you" } },
-        { text: { content: "hello" } },
-      ])
-        .with(
-          P.array({ text: { content: P.select("texts") } }),
-          ({ texts }, xs) => {
-            type t = Expect<Equal<typeof texts, string[]>>
-            return texts
-          }
-        )
+      match<{ text: { content: string } }[], string[]>([{ text: { content: "you" } }, { text: { content: "hello" } }])
+        .with(P.array({ text: { content: P.select("texts") } }), ({ texts }, xs) => {
+          type t = Expect<Equal<typeof texts, string[]>>
+          return texts
+        })
         .run()
     ).toEqual(["you", "hello"])
   })
@@ -6096,20 +5261,14 @@ describe("select", () => {
             }
           }
         )
-        .with(
-          [{ status: "loading" }, { type: "success", data: P.select("data") }],
-          ({ data }) => ({
-            status: "success",
-            data,
-          })
-        )
-        .with(
-          [{ status: "loading" }, { type: "error", error: P.select("error") }],
-          ({ error }) => ({
-            status: "error",
-            error,
-          })
-        )
+        .with([{ status: "loading" }, { type: "success", data: P.select("data") }], ({ data }) => ({
+          status: "success",
+          data,
+        }))
+        .with([{ status: "loading" }, { type: "error", error: P.select("error") }], ({ error }) => ({
+          status: "error",
+          error,
+        }))
         .with([{ status: "loading" }, { type: "cancel" }], () => initState)
         .with([{ status: P.not("loading") }, { type: "fetch" }], () => ({
           status: "loading",
@@ -6124,9 +5283,7 @@ describe("select", () => {
     expect(reducer(initState, { type: "fetch" })).toEqual({
       status: "loading",
     })
-    expect(
-      reducer({ status: "loading" }, { type: "success", data: "yo" })
-    ).toEqual({
+    expect(reducer({ status: "loading" }, { type: "success", data: "yo" })).toEqual({
       status: "success",
       data: "yo",
     })
@@ -6138,10 +5295,7 @@ describe("select", () => {
     type Input = [{ name: string }, { post: { title: string }[] }][]
     expect(
       match<Input>([
-        [
-          { name: "Gabriel" },
-          { post: [{ title: "Hello World" }, { title: "what's up" }] },
-        ],
+        [{ name: "Gabriel" }, { post: [{ title: "Hello World" }, { title: "what's up" }] }],
         [{ name: "Alice" }, { post: [{ title: "Hola" }, { title: "coucou" }] }],
       ])
         .with([], x => {
@@ -6149,49 +5303,31 @@ describe("select", () => {
           return "empty"
         })
         .with(
-          P.array([
-            { name: P.select("names") },
-            { post: P.array({ title: P.select("titles") }) },
-          ]),
+          P.array([{ name: P.select("names") }, { post: P.array({ title: P.select("titles") }) }]),
           ({ names, titles }) => {
             type t = Expect<Equal<typeof names, string[]>>
             type t2 = Expect<Equal<typeof titles, string[][]>>
-            return (
-              names.join(" and ") +
-              " have written " +
-              titles.map(t => t.map(t => `"${t}"`).join(", ")).join(", ")
-            )
+            return names.join(" and ") + " have written " + titles.map(t => t.map(t => `"${t}"`).join(", ")).join(", ")
           }
         )
         .exhaustive()
-    ).toEqual(
-      `Gabriel and Alice have written "Hello World", "what's up", "Hola", "coucou"`
-    )
+    ).toEqual(`Gabriel and Alice have written "Hello World", "what's up", "Hola", "coucou"`)
   })
   it("Anonymous selections should support nesting of several arrays", () => {
     type Input = [{ name: string }, { post: { title: string }[] }][]
     expect(
       match<Input>([
-        [
-          { name: "Gabriel" },
-          { post: [{ title: "Hello World" }, { title: "what's up" }] },
-        ],
+        [{ name: "Gabriel" }, { post: [{ title: "Hello World" }, { title: "what's up" }] }],
         [{ name: "Alice" }, { post: [{ title: "Hola" }, { title: "coucou" }] }],
       ])
         .with([], x => {
           type t = Expect<Equal<typeof x, []>>
           return "empty"
         })
-        .with(
-          P.typed<Input>().array([
-            { name: P.any },
-            { post: P.array({ title: P.select() }) },
-          ]),
-          titles => {
-            type t1 = Expect<Equal<typeof titles, string[][]>>
-            return titles.map(t => t.map(t => `"${t}"`).join(", ")).join(", ")
-          }
-        )
+        .with(P.typed<Input>().array([{ name: P.any }, { post: P.array({ title: P.select() }) }]), titles => {
+          type t1 = Expect<Equal<typeof titles, string[][]>>
+          return titles.map(t => t.map(t => `"${t}"`).join(", ")).join(", ")
+        })
         .exhaustive()
     ).toEqual(`"Hello World", "what's up", "Hola", "coucou"`)
   })
@@ -6215,15 +5351,11 @@ describe("select", () => {
     type Input =
       | {
           type: "a"
-          value:
-            | { type: "img"; src: string }
-            | { type: "text"; content: string; length: number }
+          value: { type: "img"; src: string } | { type: "text"; content: string; length: number }
         }
       | {
           type: "b"
-          value:
-            | { type: "user"; username: string }
-            | { type: "org"; orgId: number }
+          value: { type: "user"; username: string } | { type: "org"; orgId: number }
         }
     it("should support only selecting if the value matches a subpattern", () => {
       const f = (input: Input) =>
@@ -6233,12 +5365,7 @@ describe("select", () => {
             return x.src
           })
           .with({ type: "a", value: P.select("text", { type: "text" }) }, x => {
-            type t = Expect<
-              Equal<
-                typeof x,
-                { text: { type: "text"; content: string; length: number } }
-              >
-            >
+            type t = Expect<Equal<typeof x, { text: { type: "text"; content: string; length: number } }>>
             return x.text.content
           })
           .with({ type: "b", value: P.select({ type: "user" }) }, x => {
@@ -6246,24 +5373,18 @@ describe("select", () => {
             return x.username
           })
           .with({ type: "b", value: P.select("org", { type: "org" }) }, x => {
-            type t = Expect<
-              Equal<typeof x, { org: { type: "org"; orgId: number } }>
-            >
+            type t = Expect<Equal<typeof x, { org: { type: "org"; orgId: number } }>>
             return x.org.orgId
           })
           .exhaustive()
-      expect(f({ type: "a", value: { type: "img", src: "Hello" } })).toEqual(
-        "Hello"
-      )
+      expect(f({ type: "a", value: { type: "img", src: "Hello" } })).toEqual("Hello")
       expect(
         f({
           type: "a",
           value: { type: "text", length: 2, content: "some text" },
         })
       ).toEqual("some text")
-      expect(
-        f({ type: "b", value: { type: "user", username: "Gabriel" } })
-      ).toEqual("Gabriel")
+      expect(f({ type: "b", value: { type: "user", username: "Gabriel" } })).toEqual("Gabriel")
       expect(
         f({
           type: "b",
@@ -6284,57 +5405,38 @@ describe("select", () => {
               }),
             },
             ({ text, content, length }) => {
-              type t1 = Expect<
-                Equal<
-                  typeof text,
-                  { type: "text"; content: string; length: number }
-                >
-              >
+              type t1 = Expect<Equal<typeof text, { type: "text"; content: string; length: number }>>
               type t2 = Expect<Equal<typeof content, string>>
               type t3 = Expect<Equal<typeof length, number>>
               return [text, length, content]
             }
           )
           .otherwise(() => null)
-      expect(
-        f({ type: "a", value: { type: "text", length: 2, content: "yo" } })
-      ).toEqual([{ type: "text", length: 2, content: "yo" }, 2, "yo"])
+      expect(f({ type: "a", value: { type: "text", length: 2, content: "yo" } })).toEqual([
+        { type: "text", length: 2, content: "yo" },
+        2,
+        "yo",
+      ])
       expect(f({ type: "a", value: { type: "img", src: "yo" } })).toEqual(null)
     })
     it("should work with union subpatterns", () => {
       type Input = {
-        value:
-          | { type: "a"; v: string }
-          | { type: "b"; v: number }
-          | { type: "c"; v: boolean }
+        value: { type: "a"; v: string } | { type: "b"; v: number } | { type: "c"; v: boolean }
       }
       // select directly followed by union
       const f = (input: Input) =>
         match(input)
-          .with(
-            { value: P.select(P.union({ type: "a" }, { type: "b" })) },
-            x => {
-              type t = Expect<
-                Equal<
-                  typeof x,
-                  { type: "a"; v: string } | { type: "b"; v: number }
-                >
-              >
-              return x.v
-            }
-          )
+          .with({ value: P.select(P.union({ type: "a" }, { type: "b" })) }, x => {
+            type t = Expect<Equal<typeof x, { type: "a"; v: string } | { type: "b"; v: number }>>
+            return x.v
+          })
           .with({ value: { type: "c" } }, () => "c")
           .exhaustive()
       // select with an object that's a union by union
       const f2 = (input: Input) =>
         match(input)
           .with({ value: P.select({ type: P.union("a", "b") }) }, x => {
-            type t = Expect<
-              Equal<
-                typeof x,
-                { type: "a"; v: string } | { type: "b"; v: number }
-              >
-            >
+            type t = Expect<Equal<typeof x, { type: "a"; v: string } | { type: "b"; v: number }>>
             return x.v
           })
           .with({ value: { type: "c" } }, () => "c")
@@ -6352,10 +5454,7 @@ describe("select", () => {
         | { type: "b"; value: number }
         | {
             type: "c"
-            value:
-              | { type: "d"; value: boolean }
-              | { type: "e"; value: string[] }
-              | { type: "f"; value: number[] }
+            value: { type: "d"; value: boolean } | { type: "e"; value: string[] } | { type: "f"; value: number[] }
           }
       const f = (input: Input) =>
         match(input)
@@ -6378,14 +5477,11 @@ describe("select", () => {
   })
   it("Issue #95: P.select() on empty arrays should return an empty array", () => {
     const res = match({ a: [], b: ["text"] })
-      .with(
-        { a: P.array(P.select("a")), b: P.array(P.select("b")) },
-        ({ a, b }) => {
-          type t = Expect<Equal<typeof a, string[]>>
-          type t2 = Expect<Equal<typeof b, string[]>>
-          return { a, b }
-        }
-      )
+      .with({ a: P.array(P.select("a")), b: P.array(P.select("b")) }, ({ a, b }) => {
+        type t = Expect<Equal<typeof a, string[]>>
+        type t2 = Expect<Equal<typeof b, string[]>>
+        return { a, b }
+      })
       .otherwise(() => null)
     expect(res).toEqual({ a: [], b: ["text"] })
     // Should work with deeply nested selections as well
@@ -6429,10 +5525,7 @@ describe("Set", () => {
           return [false, false]
         })
         .run()
-    expect(containsGabAndYo(new Set(["gab", "yo", "hello"]))).toEqual([
-      true,
-      true,
-    ])
+    expect(containsGabAndYo(new Set(["gab", "yo", "hello"]))).toEqual([true, true])
     expect(containsGabAndYo(new Set(["gab", "hello"]))).toEqual([true, false])
     expect(containsGabAndYo(new Set(["yo", "hello"]))).toEqual([false, true])
     expect(containsGabAndYo(new Set(["hello"]))).toEqual([false, false])
@@ -6450,19 +5543,12 @@ describe("tuple ([a, b])", () => {
         .with([], () => 0)
         .with([P.number, P.number], ([x, y]) => x + y)
         .with([P.number, P.number, P.number], ([x, y, z]) => x + y + z)
-        .with(
-          [P.number, P.number, P.number, P.number],
-          ([x, y, z, w]) => x + y + z + w
-        )
+        .with([P.number, P.number, P.number, P.number], ([x, y, z, w]) => x + y + z + w)
         .run()
     expect(sum([2, 3, 2, 4])).toEqual(11)
   })
   it("should discriminate correctly union of tuples", () => {
-    type Input =
-      | ["+", number, number]
-      | ["*", number, number]
-      | ["-", number]
-      | ["++", number]
+    type Input = ["+", number, number] | ["*", number, number] | ["-", number] | ["++", number]
     const res = match<Input, number>(["-", 2])
       .with(["+", P.number, P.number], value => {
         type t = Expect<Equal<typeof value, ["+", number, number]>>
@@ -6555,13 +5641,7 @@ describe("tuple ([a, b])", () => {
         })
         .with([{ status: "loading" }, { type: "success" }], x => {
           type t = Expect<
-            Equal<
-              typeof x,
-              [
-                { status: "loading" },
-                { type: "success"; data: string; requestTime?: number }
-              ]
-            >
+            Equal<typeof x, [{ status: "loading" }, { type: "success"; data: string; requestTime?: number }]>
           >
           return {
             status: "success",
@@ -6569,30 +5649,21 @@ describe("tuple ([a, b])", () => {
           }
         })
         .with([{ status: "loading" }, { type: "error" }], x => {
-          type t = Expect<
-            Equal<
-              typeof x,
-              [{ status: "loading" }, { type: "error"; error: Error }]
-            >
-          >
+          type t = Expect<Equal<typeof x, [{ status: "loading" }, { type: "error"; error: Error }]>>
           return {
             status: "error",
             error: x[1].error,
           }
         })
         .with([{ status: "loading" }, { type: "cancel" }], x => {
-          type t = Expect<
-            Equal<typeof x, [{ status: "loading" }, { type: "cancel" }]>
-          >
+          type t = Expect<Equal<typeof x, [{ status: "loading" }, { type: "cancel" }]>>
           return initState
         })
         .otherwise(() => state)
     expect(reducer(initState, { type: "fetch" })).toEqual({
       status: "loading",
     })
-    expect(
-      reducer({ status: "loading" }, { type: "success", data: "yo" })
-    ).toEqual({
+    expect(reducer({ status: "loading" }, { type: "success", data: "yo" })).toEqual({
       status: "success",
       data: "yo",
     })
@@ -6676,8 +5747,7 @@ describe("type errors", () => {
         .exhaustive()
   })
   it("shouldn't allow when guards with an invalid input", () => {
-    const startsWith = (start: string) => (value: string) =>
-      value.startsWith(start)
+    const startsWith = (start: string) => (value: string) => value.startsWith(start)
     const equals =
       <T>(n: T) =>
       (n2: T) =>
@@ -6749,44 +5819,16 @@ describe("IsMatching", () => {
     })
     it("Object", () => {
       type cases = [
-        Expect<
-          Equal<
-            IsMatching<{ type: "a"; color: "yellow" | "green" }, { type: "a" }>,
-            true
-          >
-        >,
-        Expect<
-          Equal<
-            IsMatching<{ type: "a"; color: "yellow" | "green" }, { type: "b" }>,
-            false
-          >
-        >,
-        Expect<
-          Equal<
-            IsMatching<
-              { type: "a"; value: { type: "c"; value: { type: "d" } } } | 12,
-              { type: "a" }
-            >,
-            true
-          >
-        >,
-        Expect<
-          Equal<
-            IsMatching<
-              { type: "a"; value: { type: "c"; value: { type: "d" } } } | 12,
-              12
-            >,
-            true
-          >
-        >,
+        Expect<Equal<IsMatching<{ type: "a"; color: "yellow" | "green" }, { type: "a" }>, true>>,
+        Expect<Equal<IsMatching<{ type: "a"; color: "yellow" | "green" }, { type: "b" }>, false>>,
+        Expect<Equal<IsMatching<{ type: "a"; value: { type: "c"; value: { type: "d" } } } | 12, { type: "a" }>, true>>,
+        Expect<Equal<IsMatching<{ type: "a"; value: { type: "c"; value: { type: "d" } } } | 12, 12>, true>>,
         Expect<
           Equal<
             IsMatching<
               | {
                   type: "a"
-                  value:
-                    | { type: "c"; value: { type: "d" } | 2 }
-                    | { type: "e"; value: { type: "f" } | 3 }
+                  value: { type: "c"; value: { type: "d" } | 2 } | { type: "e"; value: { type: "f" } | 3 }
                 }
               | 12,
               { type: "a"; value: { type: "c" } }
@@ -6799,9 +5841,7 @@ describe("IsMatching", () => {
             IsMatching<
               | {
                   type: "a"
-                  value:
-                    | { type: "c"; value: { type: "d" } | 2 }
-                    | { type: "e"; value: { type: "f" } | 3 }
+                  value: { type: "c"; value: { type: "d" } | 2 } | { type: "e"; value: { type: "f" } | 3 }
                 }
               | 12,
               { type: "a"; value: { type: "c"; value: 2 } }
@@ -6814,26 +5854,18 @@ describe("IsMatching", () => {
             IsMatching<
               {
                 type: "a"
-                value:
-                  | { type: "c"; value: { type: "d" } | 2 }
-                  | { type: "e"; value: { type: "f" } | 3 }
+                value: { type: "c"; value: { type: "d" } | 2 } | { type: "e"; value: { type: "f" } | 3 }
               },
               { type: "a"; value: { type: "c"; value: 3 } }
             >,
             false //  value: 3 isn't compatible with type: 'c'
           >
         >,
-        Expect<
-          Equal<
-            IsMatching<12, { type: "a"; value: { type: "c"; value: 3 } }>,
-            false
-          >
-        >,
+        Expect<Equal<IsMatching<12, { type: "a"; value: { type: "c"; value: 3 } }>, false>>,
         Expect<
           Equal<
             IsMatching<
-              | { type: "c"; value: { type: "d" } | 2 }
-              | { type: "e"; value: { type: "f" } | 3 },
+              { type: "c"; value: { type: "d" } | 2 } | { type: "e"; value: { type: "f" } | 3 },
               { type: "c"; value: 3 }
             >,
             false
@@ -6842,8 +5874,7 @@ describe("IsMatching", () => {
         Expect<
           Equal<
             IsMatching<
-              | { type: "c"; value: { type: "d" } | 2 }
-              | { type: "e"; value: { type: "f" } | 3 },
+              { type: "c"; value: { type: "d" } | 2 } | { type: "e"; value: { type: "f" } | 3 },
               { type: "c" }
             >,
             true
@@ -6851,41 +5882,13 @@ describe("IsMatching", () => {
         >,
         Expect<
           Equal<
-            IsMatching<
-              | { type: "c"; value: { type: "d" } | 2 }
-              | { type: "e"; value: { type: "f" } | 3 },
-              { value: 3 }
-            >,
+            IsMatching<{ type: "c"; value: { type: "d" } | 2 } | { type: "e"; value: { type: "f" } | 3 }, { value: 3 }>,
             true
           >
         >,
-        Expect<
-          Equal<
-            IsMatching<
-              { type: "c"; value: { type: "d" } | 2 },
-              { type: "c"; value: 3 }
-            >,
-            false
-          >
-        >,
-        Expect<
-          Equal<
-            IsMatching<
-              Option<{ type: "a" } | { type: "b" }>,
-              { kind: "some"; value: { type: "a" } }
-            >,
-            true
-          >
-        >,
-        Expect<
-          Equal<
-            IsMatching<
-              Option<{ type: "a" } | { type: "b" }>,
-              { kind: "some"; value: { type: "c" } }
-            >,
-            false
-          >
-        >,
+        Expect<Equal<IsMatching<{ type: "c"; value: { type: "d" } | 2 }, { type: "c"; value: 3 }>, false>>,
+        Expect<Equal<IsMatching<Option<{ type: "a" } | { type: "b" }>, { kind: "some"; value: { type: "a" } }>, true>>,
+        Expect<Equal<IsMatching<Option<{ type: "a" } | { type: "b" }>, { kind: "some"; value: { type: "c" } }>, false>>,
         Expect<Equal<IsMatching<{ type: "a" }, {}>, false>>,
         Expect<Equal<IsMatching<{}, { type: "a" }>, false>>
       ]
@@ -6912,15 +5915,8 @@ describe("IsMatching", () => {
             true
           >
         >,
-        Expect<
-          Equal<
-            IsMatching<[State, Msg], [unknown, ["UrlChange", unknown]]>,
-            true
-          >
-        >,
-        Expect<
-          Equal<IsMatching<[State, Msg], [unknown, ["Login", unknown]]>, false>
-        >,
+        Expect<Equal<IsMatching<[State, Msg], [unknown, ["UrlChange", unknown]]>, true>>,
+        Expect<Equal<IsMatching<[State, Msg], [unknown, ["Login", unknown]]>, false>>,
         Expect<Equal<IsMatching<[State, Msg], [unknown, ["Login"]]>, true>>
       ]
     })
@@ -6938,46 +5934,18 @@ describe("IsMatching", () => {
         Expect<Equal<IsMatching<Set<"a" | "b">, Set<"a">>, true>>,
         Expect<Equal<IsMatching<Set<"a" | "b">, Set<"b">>, true>>,
         Expect<Equal<IsMatching<Set<"a" | "b">, Set<"c">>, false>>,
-        Expect<
-          Equal<IsMatching<Set<{ x: ["a" | "b"] }>, Set<{ x: ["a"] }>>, true>
-        >,
-        Expect<
-          Equal<IsMatching<Set<{ x: ["a" | "b"] }>, Set<{ x: ["c"] }>>, false>
-        >
+        Expect<Equal<IsMatching<Set<{ x: ["a" | "b"] }>, Set<{ x: ["a"] }>>, true>>,
+        Expect<Equal<IsMatching<Set<{ x: ["a" | "b"] }>, Set<{ x: ["c"] }>>, false>>
       ]
     })
     it("Maps", () => {
       type cases = [
-        Expect<
-          Equal<IsMatching<Map<string, "a" | "b">, Map<string, "a">>, true>
-        >,
-        Expect<
-          Equal<IsMatching<Map<"hello", "a" | "b">, Map<"hello", "b">>, true>
-        >,
-        Expect<
-          Equal<IsMatching<Map<string, "a" | "b">, Map<string, "c">>, false>
-        >,
-        Expect<
-          Equal<IsMatching<Map<"hello", "a" | "b">, Map<string, "a">>, false>
-        >,
-        Expect<
-          Equal<
-            IsMatching<
-              Map<string, { x: ["a" | "b"] }>,
-              Map<string, { x: ["a"] }>
-            >,
-            true
-          >
-        >,
-        Expect<
-          Equal<
-            IsMatching<
-              Map<string, { x: ["a" | "b"] }>,
-              Map<string, { x: ["c"] }>
-            >,
-            false
-          >
-        >
+        Expect<Equal<IsMatching<Map<string, "a" | "b">, Map<string, "a">>, true>>,
+        Expect<Equal<IsMatching<Map<"hello", "a" | "b">, Map<"hello", "b">>, true>>,
+        Expect<Equal<IsMatching<Map<string, "a" | "b">, Map<string, "c">>, false>>,
+        Expect<Equal<IsMatching<Map<"hello", "a" | "b">, Map<string, "a">>, false>>,
+        Expect<Equal<IsMatching<Map<string, { x: ["a" | "b"] }>, Map<string, { x: ["a"] }>>, true>>,
+        Expect<Equal<IsMatching<Map<string, { x: ["a" | "b"] }>, Map<string, { x: ["c"] }>>, false>>
       ]
     })
     it("pattern is a union types", () => {
@@ -6987,9 +5955,7 @@ describe("IsMatching", () => {
         Expect<
           Equal<
             IsMatching<
-              | { type: "d"; value: boolean }
-              | { type: "e"; value: string[] }
-              | { type: "f"; value: number[] },
+              { type: "d"; value: boolean } | { type: "e"; value: string[] } | { type: "f"; value: number[] },
               {
                 type: "d" | "e"
               }
@@ -7036,10 +6002,7 @@ describe("types", () => {
         return !!event
       }),
     ]
-    const pattern3_1: P.Pattern<Input> = [
-      P._,
-      { type: P.when((t: Event["type"]) => true) },
-    ]
+    const pattern3_1: P.Pattern<Input> = [P._, { type: P.when((t: Event["type"]) => true) }]
     const pattern4: P.Pattern<Input> = [
       {
         status: "success",
@@ -7051,10 +6014,7 @@ describe("types", () => {
       P._,
     ]
     const pattern4_1: P.Pattern<Input> = [{ status: "error", data: "" }, P._]
-    const pattern5: P.Pattern<Input> = [
-      P._,
-      { type: P.when((t: Event["type"]) => true) },
-    ]
+    const pattern5: P.Pattern<Input> = [P._, { type: P.when((t: Event["type"]) => true) }]
     const isFetch = (type: string): type is "fetch" => type === "fetch"
     const pattern6: P.Pattern<Input> = [P._, { type: P.when(isFetch) }]
     const pattern7: P.Pattern<{ x: string }> = {
@@ -7155,15 +6115,11 @@ describe("types", () => {
         return "ok"
       })
       .with({ type: P.string }, x => {
-        type t = Expect<
-          Equal<typeof x, { type: string; hello?: { yo: number } | undefined }>
-        >
+        type t = Expect<Equal<typeof x, { type: string; hello?: { yo: number } | undefined }>>
         return "ok"
       })
       .with({ type: P.when(x => true) }, x => {
-        type t = Expect<
-          Equal<typeof x, { type: string; hello?: { yo: number } | undefined }>
-        >
+        type t = Expect<Equal<typeof x, { type: string; hello?: { yo: number } | undefined }>>
         return "ok"
       })
       .with({ type: P.not("hello" as "hello") }, x => {
@@ -7202,13 +6158,7 @@ describe("types", () => {
     const inferenceCheck: string = res
   })
   it("a union of object or primitive should be matched with a correct type inference", () => {
-    type Input =
-      | string
-      | number
-      | boolean
-      | { type: string }
-      | string[]
-      | [number, number]
+    type Input = string | number | boolean | { type: string } | string[] | [number, number]
     match<Input>({ type: "hello" })
       .with({ type: P._ }, x => {
         type t = Expect<Equal<typeof x, { type: string }>>
@@ -7246,11 +6196,9 @@ describe("types", () => {
       .with([{ name: P.string, postCount: P.number }], users => users)
       .otherwise(() => [])
     // type of `typedUsers` is { name: string, postCount: number }[]
-    expect(
-      typedUsers
-        .map(user => `<p>${user.name} has ${user.postCount} posts.</p>`)
-        .join("")
-    ).toEqual(`<p>Gabriel has 20 posts.</p>`)
+    expect(typedUsers.map(user => `<p>${user.name} has ${user.postCount} posts.</p>`).join("")).toEqual(
+      `<p>Gabriel has 20 posts.</p>`
+    )
   })
   it("should enforce all branches return the right typeP. when it's set", () => {
     match<number, number>(2)
@@ -7379,14 +6327,8 @@ describe("Unions (a | b)", () => {
     type Input = Error | ServerError | ServerParseError | undefined
     const networkError = new Error() as Input
     const message = match(networkError)
-      .with(
-        { statusCode: 401, name: P.string, message: P.string },
-        x => "Not Authenticated"
-      )
-      .with(
-        { statusCode: 403, name: "", message: "" },
-        x => "Permission Denied"
-      )
+      .with({ statusCode: 401, name: P.string, message: P.string }, x => "Not Authenticated")
+      .with({ statusCode: 403, name: "", message: "" }, x => "Permission Denied")
       .otherwise(() => "Network Error")
     expect(message).toBe("Network Error")
   })
@@ -7432,8 +6374,7 @@ describe("when", () => {
     const map = <A, B>(option: Option<A>, mapper: (value: A) => B): Option<B> =>
       match<Option<A>, Option<B>>(option)
         .when(
-          (option): option is { kind: "some"; value: A } =>
-            option.kind === "some",
+          (option): option is { kind: "some"; value: A } => option.kind === "some",
           option => ({
             kind: "some",
             value: mapper(option.value),
@@ -7495,9 +6436,7 @@ describe("when", () => {
               { status: "success" },
               x => x.data.length > 3,
               x => {
-                type t = Expect<
-                  Equal<typeof x, { status: "success"; data: string }>
-                >
+                type t = Expect<Equal<typeof x, { status: "success"; data: string }>>
                 return true
               }
             )
@@ -7665,8 +6604,7 @@ describe("when", () => {
           { kind: "some" },
           // `someNumber` is inferred to be a { kind: "some"; value: number }
           // based on the pattern provided as first argument.
-          someNumber =>
-            someNumber.value % 5 === 0 && someNumber.value % 3 === 0,
+          someNumber => someNumber.value % 5 === 0 && someNumber.value % 3 === 0,
           () => "fizzbuzz"
         )
         .with(
@@ -7833,19 +6771,7 @@ describe("wildcards", () => {
     expect(res).toEqual("teamId")
   })
   describe("catch all", () => {
-    const allValueTypes = [
-      undefined,
-      null,
-      Symbol(2),
-      2,
-      "string",
-      true,
-      () => {},
-      {},
-      [],
-      new Map(),
-      new Set(),
-    ]
+    const allValueTypes = [undefined, null, Symbol(2), 2, "string", true, () => {}, {}, [], new Map(), new Set()]
     allValueTypes.forEach(value => {
       it(`should match ${typeof value} values`, () => {
         expect(

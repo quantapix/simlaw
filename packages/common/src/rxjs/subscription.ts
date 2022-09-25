@@ -71,11 +71,7 @@ export class Subscription implements qt.Subscription {
   }
   private addParent(x: Subscription) {
     const { parents } = this
-    this.parents = Array.isArray(parents)
-      ? (parents.push(x), parents)
-      : parents
-      ? [parents, x]
-      : x
+    this.parents = Array.isArray(parents) ? (parents.push(x), parents) : parents ? [parents, x] : x
   }
   private removeParent(x: Subscription) {
     const { parents } = this
@@ -87,11 +83,7 @@ export class Subscription implements qt.Subscription {
 export function isSubscription(x: any): x is Subscription {
   return (
     x instanceof Subscription ||
-    (x &&
-      "closed" in x &&
-      qu.isFunction(x.add) &&
-      qu.isFunction(x.remove) &&
-      qu.isFunction(x.unsubscribe))
+    (x && "closed" in x && qu.isFunction(x.add) && qu.isFunction(x.remove) && qu.isFunction(x.unsubscribe))
   )
 }
 

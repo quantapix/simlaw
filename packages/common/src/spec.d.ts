@@ -2,11 +2,7 @@ export class Any {
   static readonly _: unique symbol
 }
 
-type TestExact<L, R> = (<U>() => U extends L ? 1 : 0) extends <
-  U
->() => U extends R ? 1 : 0
-  ? Any
-  : never
+type TestExact<L, R> = (<U>() => U extends L ? 1 : 0) extends <U>() => U extends R ? 1 : 0 ? Any : never
 
 type IsAny<T> = Any extends T ? ([T] extends [Any] ? 1 : 0) : 0
 
@@ -26,10 +22,7 @@ export type Test<L, R> = IsAny<L> extends 1
 
 type Assert<T, U> = U extends 1 ? T : IsAny<T> extends 1 ? never : U
 
-export const assert: <L, R>(
-  l: Assert<L, Test<L, R>>,
-  r: Assert<R, Test<L, R>>
-) => R
+export const assert: <L, R>(l: Assert<L, Test<L, R>>, r: Assert<R, Test<L, R>>) => R
 
 export const _: any
 

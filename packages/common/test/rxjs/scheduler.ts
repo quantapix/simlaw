@@ -149,19 +149,13 @@ describe("Scheduler.animationFrame", () => {
       const b = cold("  b            ")
       const tb = time(" --------|    ")
       const expected = "----a---b----"
-      const result = merge(
-        a.pipe(delay(ta, animationFrame)),
-        b.pipe(delay(tb, animationFrame))
-      )
+      const result = merge(a.pipe(delay(ta, animationFrame)), b.pipe(delay(tb, animationFrame)))
       expectObservable(result).toBe(expected)
     })
   })
   it("should cancel animationFrame actions when delay > 0", () => {
     testScheduler.run(({ animate, cold, expectObservable, flush, time }) => {
-      const requestSpy = sinon.spy(
-        animationFrameProvider,
-        "requestAnimationFrame"
-      )
+      const requestSpy = sinon.spy(animationFrameProvider, "requestAnimationFrame")
       const setSpy = sinon.spy(intervalProvider, "setInterval")
       const clearSpy = sinon.spy(intervalProvider, "clearInterval")
       animate("         ----------x--")
@@ -292,9 +286,7 @@ describe("Scheduler.animationFrame", () => {
   })
   it("should execute actions scheduled when flushing in a subsequent flush", done => {
     const sandbox = sinon.createSandbox()
-    const stubFlush = sandbox
-      .stub(animationFrameScheduler, "flush")
-      .callThrough()
+    const stubFlush = sandbox.stub(animationFrameScheduler, "flush").callThrough()
     let a: Subscription
     let b: Subscription
     let c: Subscription
@@ -312,9 +304,7 @@ describe("Scheduler.animationFrame", () => {
   })
   it("should execute actions scheduled when flushing in a subsequent flush when some actions are unsubscribed", done => {
     const sandbox = sinon.createSandbox()
-    const stubFlush = sandbox
-      .stub(animationFrameScheduler, "flush")
-      .callThrough()
+    const stubFlush = sandbox.stub(animationFrameScheduler, "flush").callThrough()
     let a: Subscription
     let b: Subscription
     let c: Subscription
@@ -333,9 +323,7 @@ describe("Scheduler.animationFrame", () => {
   })
   it("should properly cancel an unnecessary flush", done => {
     const sandbox = sinon.createSandbox()
-    const cancelAnimationFrameStub = sandbox
-      .stub(animationFrameProvider, "cancelAnimationFrame")
-      .callThrough()
+    const cancelAnimationFrameStub = sandbox.stub(animationFrameProvider, "cancelAnimationFrame").callThrough()
     let a: Subscription
     let b: Subscription
     let c: Subscription
@@ -410,9 +398,7 @@ describe("Scheduler.asap", () => {
     const sandbox = sinon.createSandbox()
     const fakeTimer = sandbox.useFakeTimers()
     // callThrough is missing from the declarations installed by the typings tool in stable
-    const stubSetInterval = (<any>(
-      sandbox.stub(global, "setInterval")
-    )).callThrough()
+    const stubSetInterval = (<any>sandbox.stub(global, "setInterval")).callThrough()
     const period = 50
     const state = { index: 0, period }
     type State = typeof state
@@ -437,9 +423,7 @@ describe("Scheduler.asap", () => {
     const sandbox = sinon.createSandbox()
     const fakeTimer = sandbox.useFakeTimers()
     // callThrough is missing from the declarations installed by the typings tool in stable
-    const stubSetInterval = (<any>(
-      sandbox.stub(global, "setInterval")
-    )).callThrough()
+    const stubSetInterval = (<any>sandbox.stub(global, "setInterval")).callThrough()
     const period = 50
     const state = { index: 0, period }
     type State = typeof state
@@ -610,9 +594,7 @@ describe("Scheduler.asap", () => {
   })
   it("should properly cancel an unnecessary flush", done => {
     const sandbox = sinon.createSandbox()
-    const clearImmediateStub = sandbox
-      .stub(immediateProvider, "clearImmediate")
-      .callThrough()
+    const clearImmediateStub = sandbox.stub(immediateProvider, "clearImmediate").callThrough()
     let a: Subscription
     let b: Subscription
     let c: Subscription
@@ -714,13 +696,7 @@ describe("Scheduler.queue", () => {
   })
 })
 import { expect } from "chai"
-import {
-  hot,
-  cold,
-  expectObservable,
-  expectSubscriptions,
-  time,
-} from "../helpers/marble-testing"
+import { hot, cold, expectObservable, expectSubscriptions, time } from "../helpers/marble-testing"
 import { TestScheduler } from "rxjs/testing"
 import {
   Observable,
@@ -734,19 +710,8 @@ import {
   asyncScheduler,
   interval,
 } from "rxjs"
-import {
-  delay,
-  debounceTime,
-  concatMap,
-  mergeMap,
-  mapTo,
-  take,
-} from "rxjs/operators"
-import {
-  nextNotification,
-  COMPLETE_NOTIFICATION,
-  errorNotification,
-} from "rxjs/internal/NotificationFactories"
+import { delay, debounceTime, concatMap, mergeMap, mapTo, take } from "rxjs/operators"
+import { nextNotification, COMPLETE_NOTIFICATION, errorNotification } from "rxjs/internal/NotificationFactories"
 import { animationFrameProvider } from "rxjs/internal/scheduler/animationFrameProvider"
 import { immediateProvider } from "rxjs/internal/scheduler/immediateProvider"
 import { intervalProvider } from "rxjs/internal/scheduler/intervalProvider"
@@ -796,11 +761,7 @@ describe("TestScheduler", () => {
       ])
     })
     it("should parse a marble string with an error", () => {
-      const result = TestScheduler.parseMarbles(
-        "-------a---b---#",
-        { a: "A", b: "B" },
-        "omg error!"
-      )
+      const result = TestScheduler.parseMarbles("-------a---b---#", { a: "A", b: "B" }, "omg error!")
       expect(result).deep.equal([
         { frame: 70, notification: nextNotification("A") },
         { frame: 110, notification: nextNotification("B") },
@@ -889,33 +850,21 @@ describe("TestScheduler", () => {
     })
     it("should ignore whitespace when runMode=true", () => {
       const runMode = true
-      const result = TestScheduler.parseMarblesAsSubscriptions(
-        "  - -  - -  ^ -   - !  -- -      ",
-        runMode
-      )
+      const result = TestScheduler.parseMarblesAsSubscriptions("  - -  - -  ^ -   - !  -- -      ", runMode)
       expect(result.subscribedFrame).to.equal(40)
       expect(result.unsubscribedFrame).to.equal(70)
     })
     it("should support time progression syntax when runMode=true", () => {
       const runMode = true
-      const result = TestScheduler.parseMarblesAsSubscriptions(
-        "10.2ms ^ 1.2s - 1m !",
-        runMode
-      )
+      const result = TestScheduler.parseMarblesAsSubscriptions("10.2ms ^ 1.2s - 1m !", runMode)
       expect(result.subscribedFrame).to.equal(10.2)
-      expect(result.unsubscribedFrame).to.equal(
-        10.2 + 10 + 1.2 * 1000 + 10 + 1000 * 60
-      )
+      expect(result.unsubscribedFrame).to.equal(10.2 + 10 + 1.2 * 1000 + 10 + 1000 * 60)
     })
     it("should throw if found more than one subscription point", () => {
-      expect(() =>
-        TestScheduler.parseMarblesAsSubscriptions("---^-^-!-")
-      ).to.throw()
+      expect(() => TestScheduler.parseMarblesAsSubscriptions("---^-^-!-")).to.throw()
     })
     it("should throw if found more than one unsubscription point", () => {
-      expect(() =>
-        TestScheduler.parseMarblesAsSubscriptions("---^---!-!")
-      ).to.throw()
+      expect(() => TestScheduler.parseMarblesAsSubscriptions("---^---!-!")).to.throw()
     })
   })
   describe("createTime()", () => {
@@ -1119,37 +1068,33 @@ describe("TestScheduler", () => {
       })
       it("should support time progression syntax", () => {
         const testScheduler = new TestScheduler(assertDeepEquals)
-        testScheduler.run(
-          ({ cold, hot, flush, expectObservable, expectSubscriptions }) => {
-            const output = cold("10.2ms a 1.2s b 1m c|")
-            const expected = "   10.2ms a 1.2s b 1m c|"
-            expectObservable(output).toBe(expected)
-          }
-        )
+        testScheduler.run(({ cold, hot, flush, expectObservable, expectSubscriptions }) => {
+          const output = cold("10.2ms a 1.2s b 1m c|")
+          const expected = "   10.2ms a 1.2s b 1m c|"
+          expectObservable(output).toBe(expected)
+        })
       })
     })
     it("should provide the correct helpers", () => {
       const testScheduler = new TestScheduler(assertDeepEquals)
-      testScheduler.run(
-        ({ cold, hot, flush, expectObservable, expectSubscriptions }) => {
-          expect(cold).to.be.a("function")
-          expect(hot).to.be.a("function")
-          expect(flush).to.be.a("function")
-          expect(expectObservable).to.be.a("function")
-          expect(expectSubscriptions).to.be.a("function")
-          const obs1 = cold("-a-c-e|")
-          const obs2 = hot(" ^-b-d-f|")
-          const output = merge(obs1, obs2)
-          const expected = " -abcdef|"
-          expectObservable(output).toBe(expected)
-          expectObservable(output).toEqual(cold(expected))
-          // There are two subscriptions to each of these, because we merged
-          // them together, then we subscribed to the merged result once
-          // to check `toBe` and another time to check `toEqual`.
-          expectSubscriptions(obs1.subscriptions).toBe(["^-----!", "^-----!"])
-          expectSubscriptions(obs2.subscriptions).toBe(["^------!", "^------!"])
-        }
-      )
+      testScheduler.run(({ cold, hot, flush, expectObservable, expectSubscriptions }) => {
+        expect(cold).to.be.a("function")
+        expect(hot).to.be.a("function")
+        expect(flush).to.be.a("function")
+        expect(expectObservable).to.be.a("function")
+        expect(expectSubscriptions).to.be.a("function")
+        const obs1 = cold("-a-c-e|")
+        const obs2 = hot(" ^-b-d-f|")
+        const output = merge(obs1, obs2)
+        const expected = " -abcdef|"
+        expectObservable(output).toBe(expected)
+        expectObservable(output).toEqual(cold(expected))
+        // There are two subscriptions to each of these, because we merged
+        // them together, then we subscribed to the merged result once
+        // to check `toBe` and another time to check `toEqual`.
+        expectSubscriptions(obs1.subscriptions).toBe(["^-----!", "^-----!"])
+        expectSubscriptions(obs2.subscriptions).toBe(["^------!", "^------!"])
+      })
     })
     it("should have each frame represent a single virtual millisecond", () => {
       const testScheduler = new TestScheduler(assertDeepEquals)
@@ -1180,9 +1125,7 @@ describe("TestScheduler", () => {
         expect(actual).deep.equal(expected)
       })
       testScheduler.run(({ cold, expectObservable }) => {
-        const output = cold("-a-b-c|").pipe(
-          concatMap(d => of(d).pipe(delay(10)))
-        )
+        const output = cold("-a-b-c|").pipe(concatMap(d => of(d).pipe(delay(10))))
         const expected = "   -- 9ms a 9ms b 9ms (c|)"
         expectObservable(output).toBe(expected)
         expect(testScheduler["flushTests"].length).to.equal(1)
@@ -1194,9 +1137,7 @@ describe("TestScheduler", () => {
     it("should support explicit flushing", () => {
       const testScheduler = new TestScheduler(assertDeepEquals)
       testScheduler.run(({ cold, expectObservable, flush }) => {
-        const output = cold("-a-b-c|").pipe(
-          concatMap(d => of(d).pipe(delay(10)))
-        )
+        const output = cold("-a-b-c|").pipe(concatMap(d => of(d).pipe(delay(10))))
         const expected = "   -- 9ms a 9ms b 9ms (c|)"
         expectObservable(output).toBe(expected)
         expect(testScheduler["flushTests"].length).to.equal(1)
@@ -1465,9 +1406,7 @@ describe("TestScheduler", () => {
           const expected = "   ---(ba)---"
           const result = mapped.pipe(
             mergeMap(value =>
-              value === "a"
-                ? of(value).pipe(delay(1, asyncScheduler))
-                : of(value).pipe(delay(0, asapScheduler))
+              value === "a" ? of(value).pipe(delay(1, asyncScheduler)) : of(value).pipe(delay(0, asapScheduler))
             )
           )
           expectObservable(result).toBe(expected)
@@ -1600,18 +1539,10 @@ describe("VirtualTimeScheduler", () => {
   it("should execute only those virtual actions that fall into the maxFrames timespan", function () {
     const MAX_FRAMES = 50
     const v = new VirtualTimeScheduler(VirtualAction, MAX_FRAMES)
-    const messages: string[] = [
-      "first message",
-      "second message",
-      "third message",
-    ]
+    const messages: string[] = ["first message", "second message", "third message"]
     const actualMessages: string[] = []
     messages.forEach((message, index) => {
-      v.schedule(
-        state => actualMessages.push(state!),
-        index * MAX_FRAMES,
-        message
-      )
+      v.schedule(state => actualMessages.push(state!), index * MAX_FRAMES, message)
     })
     v.flush()
     expect(actualMessages).to.deep.equal(["first message", "second message"])
@@ -1620,18 +1551,10 @@ describe("VirtualTimeScheduler", () => {
   it("should pick up actions execution where it left off after reaching previous maxFrames limit", function () {
     const MAX_FRAMES = 50
     const v = new VirtualTimeScheduler(VirtualAction, MAX_FRAMES)
-    const messages: string[] = [
-      "first message",
-      "second message",
-      "third message",
-    ]
+    const messages: string[] = ["first message", "second message", "third message"]
     const actualMessages: string[] = []
     messages.forEach((message, index) => {
-      v.schedule(
-        state => actualMessages.push(state!),
-        index * MAX_FRAMES,
-        message
-      )
+      v.schedule(state => actualMessages.push(state!), index * MAX_FRAMES, message)
     })
     v.flush()
     v.maxFrames = 2 * MAX_FRAMES

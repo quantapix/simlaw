@@ -1,65 +1,44 @@
-import {
-  isOnline,
-  isDocumentVisible,
-  flatten,
-  joinUrls,
-} from "@internal/query/utils"
+import { isOnline, isDocumentVisible, flatten, joinUrls } from "@internal/query/utils"
 afterAll(() => {
   jest.restoreAllMocks()
 })
 describe("isOnline", () => {
   it("Assumes online=true in a node env", () => {
-    jest
-      .spyOn(window, "navigator", "get")
-      .mockImplementation(() => undefined as any)
+    jest.spyOn(window, "navigator", "get").mockImplementation(() => undefined as any)
     expect(navigator).toBeUndefined()
     expect(isOnline()).toBe(true)
   })
   it("Returns false if navigator isOnline=false", () => {
-    jest
-      .spyOn(window, "navigator", "get")
-      .mockImplementation(() => ({ onLine: false } as any))
+    jest.spyOn(window, "navigator", "get").mockImplementation(() => ({ onLine: false } as any))
     expect(isOnline()).toBe(false)
   })
   it("Returns true if navigator isOnline=true", () => {
-    jest
-      .spyOn(window, "navigator", "get")
-      .mockImplementation(() => ({ onLine: true } as any))
+    jest.spyOn(window, "navigator", "get").mockImplementation(() => ({ onLine: true } as any))
     expect(isOnline()).toBe(true)
   })
 })
 describe("isDocumentVisible", () => {
   it("Assumes true when in a non-browser env", () => {
-    jest
-      .spyOn(window, "document", "get")
-      .mockImplementation(() => undefined as any)
+    jest.spyOn(window, "document", "get").mockImplementation(() => undefined as any)
     expect(window.document).toBeUndefined()
     expect(isDocumentVisible()).toBe(true)
   })
   it("Returns false when hidden=true", () => {
-    jest
-      .spyOn(window, "document", "get")
-      .mockImplementation(() => ({ visibilityState: "hidden" } as any))
+    jest.spyOn(window, "document", "get").mockImplementation(() => ({ visibilityState: "hidden" } as any))
     expect(isDocumentVisible()).toBe(false)
   })
   it("Returns true when visibilityState=prerender", () => {
-    jest
-      .spyOn(window, "document", "get")
-      .mockImplementation(() => ({ visibilityState: "prerender" } as any))
+    jest.spyOn(window, "document", "get").mockImplementation(() => ({ visibilityState: "prerender" } as any))
     expect(document.visibilityState).toBe("prerender")
     expect(isDocumentVisible()).toBe(true)
   })
   it("Returns true when visibilityState=visible", () => {
-    jest
-      .spyOn(window, "document", "get")
-      .mockImplementation(() => ({ visibilityState: "visible" } as any))
+    jest.spyOn(window, "document", "get").mockImplementation(() => ({ visibilityState: "visible" } as any))
     expect(document.visibilityState).toBe("visible")
     expect(isDocumentVisible()).toBe(true)
   })
   it("Returns true when visibilityState=undefined", () => {
-    jest
-      .spyOn(window, "document", "get")
-      .mockImplementation(() => ({ visibilityState: undefined } as any))
+    jest.spyOn(window, "document", "get").mockImplementation(() => ({ visibilityState: undefined } as any))
     expect(document.visibilityState).toBeUndefined()
     expect(isDocumentVisible()).toBe(true)
   })

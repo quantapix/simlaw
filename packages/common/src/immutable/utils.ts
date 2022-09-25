@@ -189,7 +189,13 @@ export function invariant(cond: unknown, x: any) {
 
 export function isArrayLike(x: any) {
   if (Array.isArray(x) || typeof x === "string") return true
-  return x && typeof x === "object" && Number.isInteger(x.length) && x.length >= 0 && (x.length === 0 ? Object.keys(x).length === 1 : x.hasOwnProperty(x.length - 1))
+  return (
+    x &&
+    typeof x === "object" &&
+    Number.isInteger(x.length) &&
+    x.length >= 0 &&
+    (x.length === 0 ? Object.keys(x).length === 1 : x.hasOwnProperty(x.length - 1))
+  )
 }
 
 export function isDataStructure(x: unknown) {
@@ -313,7 +319,10 @@ export function returnTrue() {
   return true
 }
 export function wholeSlice(beg: number, end?: number, size?: number) {
-  return ((beg === 0 && !isNeg(beg)) || (size !== undefined && beg <= -size)) && (end === undefined || (size !== undefined && end >= size))
+  return (
+    ((beg === 0 && !isNeg(beg)) || (size !== undefined && beg <= -size)) &&
+    (end === undefined || (size !== undefined && end >= size))
+  )
 }
 export function resolveBegin(x: number, size: number) {
   return resolveIndex(x, size, 0)
@@ -322,7 +331,15 @@ export function resolveEnd(x: number, size: number) {
   return resolveIndex(x, size, size)
 }
 function resolveIndex(x: number | undefined, size: number, x0: number) {
-  return x === undefined ? x0 : isNeg(x) ? (size === Infinity ? size : Math.max(0, size + x) | 0) : size === undefined || size === x ? x : Math.min(size, x) | 0
+  return x === undefined
+    ? x0
+    : isNeg(x)
+    ? size === Infinity
+      ? size
+      : Math.max(0, size + x) | 0
+    : size === undefined || size === x
+    ? x
+    : Math.min(size, x) | 0
 }
 function isNeg(x: number) {
   return x < 0 || (x === 0 && 1 / x === -Infinity)
@@ -330,13 +347,21 @@ function isNeg(x: number) {
 
 export function fromJS(
   x: unknown,
-  f?: (k: string | number, x: qt.Collection.Keyed<string, unknown> | qt.Collection.Indexed<unknown>, path?: Array<string | number>) => unknown
+  f?: (
+    k: string | number,
+    x: qt.Collection.Keyed<string, unknown> | qt.Collection.Indexed<unknown>,
+    path?: Array<string | number>
+  ) => unknown
 ): qt.Collection<unknown, unknown> {
   return fromJSWith([], f || defaultConverter, x, "", f && f.length > 2 ? [] : undefined, { "": x })
 }
 
 function fromJSWith(stack, converter, value, key, keyPath, parentValue) {
-  if (typeof value !== "string" && !isImmutable(value) && (isArrayLike(value) || hasIterator(value) || isPlainObj(value))) {
+  if (
+    typeof value !== "string" &&
+    !isImmutable(value) &&
+    (isArrayLike(value) || hasIterator(value) || isPlainObj(value))
+  ) {
     if (~stack.indexOf(value)) {
       throw new TypeError("Cannot convert circular structure to Immutable")
     }
@@ -463,7 +488,10 @@ function hashJSObj(x) {
       writable: false,
       value: y,
     })
-  } else if (x.propertyIsEnumerable !== undefined && x.propertyIsEnumerable === x.constructor.prototype.propertyIsEnumerable) {
+  } else if (
+    x.propertyIsEnumerable !== undefined &&
+    x.propertyIsEnumerable === x.constructor.prototype.propertyIsEnumerable
+  ) {
     x.propertyIsEnumerable = function () {
       return this.constructor.prototype.propertyIsEnumerable.apply(this, arguments)
     }

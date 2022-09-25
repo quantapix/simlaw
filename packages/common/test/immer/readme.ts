@@ -76,9 +76,7 @@ describe("readme example", () => {
         })
       }
       toString() {
-        return `${("" + this.hours).padStart(2, "0")}:${(
-          "" + this.minutes
-        ).padStart(2, "0")}`
+        return `${("" + this.hours).padStart(2, "0")}:${("" + this.minutes).padStart(2, "0")}`
       }
     }
     ;(Clock as any)[qi.immerable] = true

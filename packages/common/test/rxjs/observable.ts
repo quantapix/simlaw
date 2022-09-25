@@ -73,9 +73,7 @@ describe("Observable", () => {
       throw new Error("this should be handled")
     }).subscribe({
       error(err) {
-        expect(err)
-          .to.exist.and.be.instanceof(Error)
-          .and.have.property("message", "this should be handled")
+        expect(err).to.exist.and.be.instanceof(Error).and.have.property("message", "this should be handled")
         done()
       },
     })
@@ -151,9 +149,7 @@ describe("Observable", () => {
         })
     })
     it("should handle a synchronous throw from the next handler", () => {
-      const expected = new Error(
-        "I told, you Bobby Boucher, threes are the debil!"
-      )
+      const expected = new Error("I told, you Bobby Boucher, threes are the debil!")
       const syncObservable = new Observable<number>(observer => {
         observer.next(1)
         observer.next(2)
@@ -181,9 +177,7 @@ describe("Observable", () => {
         )
     })
     it("should handle an asynchronous throw from the next handler and tear down", () => {
-      const expected = new Error(
-        "I told, you Bobby Boucher, twos are the debil!"
-      )
+      const expected = new Error("I told, you Bobby Boucher, twos are the debil!")
       const asyncObservable = new Observable<number>(observer => {
         let i = 1
         const id = setInterval(() => observer.next(i++), 1)
@@ -603,9 +597,7 @@ describe("Observable", () => {
         config.useDeprecatedSynchronousErrorHandling = true
       })
       it("should throw synchronously", () => {
-        expect(() =>
-          throwError(() => new Error("thrown error")).subscribe()
-        ).to.throw(Error, "thrown error")
+        expect(() => throwError(() => new Error("thrown error")).subscribe()).to.throw(Error, "thrown error")
       })
       it("should rethrow if next handler throws", () => {
         const observable = new Observable(observer => {
@@ -639,18 +631,12 @@ describe("Observable", () => {
       it("should rethrow synchronous errors from flattened observables", () => {
         expect(() => {
           of(1)
-            .pipe(
-              concatMap(() => throwError(() => new Error("Ahoy! An error!")))
-            )
+            .pipe(concatMap(() => throwError(() => new Error("Ahoy! An error!"))))
             .subscribe(console.log)
         }).to.throw("Ahoy! An error!")
         expect(() => {
           of(1)
-            .pipe(
-              switchMap(() =>
-                throwError(() => new Error("Avast! Thar be a new error!"))
-              )
-            )
+            .pipe(switchMap(() => throwError(() => new Error("Avast! Thar be a new error!"))))
             .subscribe(console.log)
         }).to.throw("Avast! Thar be a new error!")
       })
@@ -787,9 +773,7 @@ describe("Observable", () => {
       })
       it("should call registered finalizer if sync unsubscribed", () => {
         let called = false
-        const observable = new Observable(subscriber =>
-          subscriber.add(() => (called = true))
-        )
+        const observable = new Observable(subscriber => subscriber.add(() => (called = true)))
         const subscription = observable.subscribe()
         subscription.unsubscribe()
         expect(called).to.be.true
@@ -894,9 +878,7 @@ describe("Observable.create", () => {
       throw new Error("this should be handled")
     }).subscribe({
       error(err: Error) {
-        expect(err)
-          .to.exist.and.be.instanceof(Error)
-          .and.have.property("message", "this should be handled")
+        expect(err).to.exist.and.be.instanceof(Error).and.have.property("message", "this should be handled")
         done()
       },
     })
@@ -1196,9 +1178,7 @@ describe("Observable.lift", () => {
       const e1 = cold(" -a--b-----c-d-e-|")
       const e2 = cold(" --1--2-3-4---|   ")
       const expected = "--A-BC-D-EF-G-H-|"
-      const result = MyCustomObservable.from(e1).pipe(
-        combineLatest(e2, (a, b) => String(a) + String(b))
-      )
+      const result = MyCustomObservable.from(e1).pipe(combineLatest(e2, (a, b) => String(a) + String(b)))
       expect(result instanceof MyCustomObservable).to.be.true
       expectObservable(result).toBe(expected, {
         A: "a1",
@@ -1217,9 +1197,7 @@ describe("Observable.lift", () => {
       const e1 = cold(" --a--b-|")
       const e2 = cold(" --x---y--|")
       const expected = "--a--b---x---y--|"
-      const result = MyCustomObservable.from(e1).pipe(
-        concat(e2, rxTestScheduler)
-      )
+      const result = MyCustomObservable.from(e1).pipe(concat(e2, rxTestScheduler))
       expect(result instanceof MyCustomObservable).to.be.true
       expectObservable(result).toBe(expected)
     })
@@ -1229,9 +1207,7 @@ describe("Observable.lift", () => {
       const e1 = cold(" -a--b-| ")
       const e2 = cold(" --x--y-|")
       const expected = "-ax-by-|"
-      const result = MyCustomObservable.from(e1).pipe(
-        merge(e2, rxTestScheduler)
-      )
+      const result = MyCustomObservable.from(e1).pipe(merge(e2, rxTestScheduler))
       expect(result instanceof MyCustomObservable).to.be.true
       expectObservable(result).toBe(expected)
     })
@@ -1255,9 +1231,7 @@ describe("Observable.lift", () => {
       const e1 = cold(" -a--b-----c-d-e-|")
       const e2 = cold(" --1--2-3-4---|   ")
       const expected = "--A--B----C-D|   "
-      const result = MyCustomObservable.from(e1).pipe(
-        zip(e2, (a, b) => String(a) + String(b))
-      )
+      const result = MyCustomObservable.from(e1).pipe(zip(e2, (a, b) => String(a) + String(b)))
       expect(result instanceof MyCustomObservable).to.be.true
       expectObservable(result).toBe(expected, {
         A: "a1",
@@ -1267,73 +1241,66 @@ describe("Observable.lift", () => {
       })
     })
   })
-  it(
-    "should allow injecting behaviors into all subscribers in an operator " +
-      "chain when overridden",
-    done => {
-      // The custom Subscriber
-      const log: Array<string> = []
-      class LogSubscriber<T> extends Subscriber<T> {
-        next(value?: T): void {
-          log.push("next " + value)
-          if (!this.isStopped) {
-            this._next(value!)
-          }
+  it("should allow injecting behaviors into all subscribers in an operator " + "chain when overridden", done => {
+    // The custom Subscriber
+    const log: Array<string> = []
+    class LogSubscriber<T> extends Subscriber<T> {
+      next(value?: T): void {
+        log.push("next " + value)
+        if (!this.isStopped) {
+          this._next(value!)
         }
       }
-      // The custom Operator
-      class LogOperator<T, R> implements Operator<T, R> {
-        constructor(private childOperator: Operator<T, R>) {}
-        call(subscriber: Subscriber<R>, source: any): Teardown {
-          return this.childOperator.call(
-            new LogSubscriber<R>(subscriber),
-            source
-          )
-        }
-      }
-      // The custom Observable
-      class LogObservable<T> extends Observable<T> {
-        lift<R>(operator: Operator<T, R>): Observable<R> {
-          const observable = new LogObservable<R>()
-          observable.source = this
-          observable.operator = new LogOperator(operator)
-          return observable
-        }
-      }
-      // Use the LogObservable
-      const result = new LogObservable<number>(observer => {
-        observer.next(1)
-        observer.next(2)
-        observer.next(3)
-        observer.complete()
-      }).pipe(
-        map(x => 10 * x),
-        filter(x => x > 15),
-        count()
-      )
-      expect(result instanceof LogObservable).to.be.true
-      const expected = [2]
-      result.subscribe({
-        next: function (x) {
-          expect(x).to.equal(expected.shift())
-        },
-        error: () => {
-          done(new Error("should not be called"))
-        },
-        complete: () => {
-          expect(log).to.deep.equal([
-            "next 10", // map
-            "next 20", // map
-            "next 20", // filter
-            "next 30", // map
-            "next 30", // filter
-            "next 2", // count
-          ])
-          done()
-        },
-      })
     }
-  )
+    // The custom Operator
+    class LogOperator<T, R> implements Operator<T, R> {
+      constructor(private childOperator: Operator<T, R>) {}
+      call(subscriber: Subscriber<R>, source: any): Teardown {
+        return this.childOperator.call(new LogSubscriber<R>(subscriber), source)
+      }
+    }
+    // The custom Observable
+    class LogObservable<T> extends Observable<T> {
+      lift<R>(operator: Operator<T, R>): Observable<R> {
+        const observable = new LogObservable<R>()
+        observable.source = this
+        observable.operator = new LogOperator(operator)
+        return observable
+      }
+    }
+    // Use the LogObservable
+    const result = new LogObservable<number>(observer => {
+      observer.next(1)
+      observer.next(2)
+      observer.next(3)
+      observer.complete()
+    }).pipe(
+      map(x => 10 * x),
+      filter(x => x > 15),
+      count()
+    )
+    expect(result instanceof LogObservable).to.be.true
+    const expected = [2]
+    result.subscribe({
+      next: function (x) {
+        expect(x).to.equal(expected.shift())
+      },
+      error: () => {
+        done(new Error("should not be called"))
+      },
+      complete: () => {
+        expect(log).to.deep.equal([
+          "next 10", // map
+          "next 20", // map
+          "next 20", // filter
+          "next 30", // map
+          "next 30", // filter
+          "next 2", // count
+        ])
+        done()
+      },
+    })
+  })
 })
 /** @test {bindCallback} */
 describe("bindCallback", () => {
@@ -1532,10 +1499,7 @@ describe("bindCallback", () => {
       rxTestScheduler.flush()
     })
     it("should pass multiple inner arguments as an array", () => {
-      function callback(
-        datum: number,
-        cb: (a: number, b: number, c: number, d: number) => void
-      ) {
+      function callback(datum: number, cb: (a: number, b: number, c: number, d: number) => void) {
         cb(datum, 1, 2, 3)
       }
       const boundCallback = bindCallback(callback, rxTestScheduler)
@@ -1673,10 +1637,7 @@ describe("bindNodeCallback", () => {
       expect(results).to.deep.equal([42, "done"])
     })
     it("should set context of callback to context of boundCallback", () => {
-      function callback(
-        this: { datum: number },
-        cb: (err: any, n: number) => void
-      ) {
+      function callback(this: { datum: number }, cb: (err: any, n: number) => void) {
         cb(null, this.datum)
       }
       const boundCallback = bindNodeCallback(callback)
@@ -1793,10 +1754,7 @@ describe("bindNodeCallback", () => {
       expect(results).to.deep.equal([42, "done"])
     })
     it("should set context of callback to context of boundCallback", () => {
-      function callback(
-        this: { datum: number },
-        cb: (err: any, n: number) => void
-      ) {
+      function callback(this: { datum: number }, cb: (err: any, n: number) => void) {
         cb(null, this.datum)
       }
       const boundCallback = bindNodeCallback(callback, rxTestScheduler)
@@ -1850,10 +1808,7 @@ describe("bindNodeCallback", () => {
     })
   })
   it("should pass multiple inner arguments as an array", () => {
-    function callback(
-      datum: number,
-      cb: (err: any, a: number, b: number, c: number, d: number) => void
-    ) {
+    function callback(datum: number, cb: (err: any, a: number, b: number, c: number, d: number) => void) {
       cb(null, datum, 1, 2, 3)
     }
     const boundCallback = bindNodeCallback(callback, rxTestScheduler)
@@ -1901,9 +1856,7 @@ describe("bindNodeCallback", () => {
     expect(results2).to.deep.equal([42, "done"])
   })
   it("should emit post callback errors", () => {
-    function badFunction(
-      callback: (error: Error, answer: number) => void
-    ): void {
+    function badFunction(callback: (error: Error, answer: number) => void): void {
       callback(null as any, 42)
       throw "kaboom"
     }
@@ -2011,11 +1964,7 @@ describe("static combineLatest", () => {
       const firstSource = hot(" ----a----b----c----|")
       const secondSource = hot("--d--e--f--g--|")
       const expected = "        ----uv--wx-y--z----|"
-      const combined = combineLatest(
-        firstSource,
-        secondSource,
-        (a, b) => "" + a + b
-      )
+      const combined = combineLatest(firstSource, secondSource, (a, b) => "" + a + b)
       expectObservable(combined).toBe(expected, {
         u: "ad",
         v: "ae",
@@ -2058,10 +2007,7 @@ describe("static combineLatest", () => {
       const firstSource = hot(" ----a----b----c----|")
       const secondSource = hot("--d--e--f--g--|")
       const expected = "        ----uv--wx-y--z----|"
-      const combined = combineLatest(
-        [firstSource, secondSource],
-        (a: string, b: string) => "" + a + b
-      )
+      const combined = combineLatest([firstSource, secondSource], (a: string, b: string) => "" + a + b)
       expectObservable(combined).toBe(expected, {
         u: "ad",
         v: "ae",
@@ -2077,9 +2023,7 @@ describe("static combineLatest", () => {
       const firstSource = hot("----a----b----c----|")
       const secondSource = hot("--d--e--f--g--|")
       const expected = "        ----uv--wx-y--z----|"
-      const combined = combineLatest({ a: firstSource, b: secondSource }).pipe(
-        map(({ a, b }) => "" + a + b)
-      )
+      const combined = combineLatest({ a: firstSource, b: secondSource }).pipe(map(({ a, b }) => "" + a + b))
       expectObservable(combined).toBe(expected, {
         u: "ad",
         v: "ae",
@@ -2441,19 +2385,11 @@ describe("static combineLatest", () => {
     rxTestScheduler.run(({ hot, expectObservable, expectSubscriptions }) => {
       const left = hot(" --a--^--b--c--|", { a: "a", b: "b", c: "c" })
       const leftSubs = "      ^--------!"
-      const right = hot(
-        "-----^----------d--e--f--#",
-        { d: "d", e: "e", f: "f" },
-        "dun dun dun"
-      )
+      const right = hot("-----^----------d--e--f--#", { d: "d", e: "e", f: "f" }, "dun dun dun")
       const rightSubs = "     ^-------------------!"
       const expected = "      -----------x--y--z--#"
       const result = combineLatest(left, right, (x, y) => x + y)
-      expectObservable(result).toBe(
-        expected,
-        { x: "cd", y: "ce", z: "cf" },
-        "dun dun dun"
-      )
+      expectObservable(result).toBe(expected, { x: "cd", y: "ce", z: "cf" }, "dun dun dun")
       expectSubscriptions(left.subscriptions).toBe(leftSubs)
       expectSubscriptions(right.subscriptions).toBe(rightSubs)
     })
@@ -2497,11 +2433,9 @@ describe("static combineLatest", () => {
       const expected = "   ----x-yz--    "
       const unsub = "      ---------!    "
       const values = { x: "bf", y: "cf", z: "cg" }
-      const result = combineLatest(
-        e1.pipe(mergeMap(x => of(x))),
-        e2.pipe(mergeMap(x => of(x))),
-        (x, y) => x + y
-      ).pipe(mergeMap(x => of(x)))
+      const result = combineLatest(e1.pipe(mergeMap(x => of(x))), e2.pipe(mergeMap(x => of(x))), (x, y) => x + y).pipe(
+        mergeMap(x => of(x))
+      )
       expectObservable(result, unsub).toBe(expected, values)
       expectSubscriptions(e1.subscriptions).toBe(e1subs)
       expectSubscriptions(e2.subscriptions).toBe(e2subs)
@@ -2511,14 +2445,7 @@ describe("static combineLatest", () => {
 /** @prettier */
 import { expect } from "chai"
 import { lowerCaseO } from "../helpers/test-helper"
-import {
-  asyncScheduler,
-  queueScheduler,
-  concat,
-  of,
-  defer,
-  Observable,
-} from "rxjs"
+import { asyncScheduler, queueScheduler, concat, of, defer, Observable } from "rxjs"
 import { mergeMap } from "rxjs/operators"
 import { TestScheduler } from "rxjs/testing"
 import { observableMatcher } from "../helpers/observableMatcher"
@@ -2580,12 +2507,7 @@ describe("static concat", () => {
       const expected = "  --i-j-k-l---i-j-"
       const unsub = "     ---------------!"
       const innerWrapped = inner.pipe(mergeMap(x => of(x)))
-      const result = concat(
-        innerWrapped,
-        innerWrapped,
-        innerWrapped,
-        innerWrapped
-      ).pipe(mergeMap(x => of(x)))
+      const result = concat(innerWrapped, innerWrapped, innerWrapped, innerWrapped).pipe(mergeMap(x => of(x)))
       expectObservable(result, unsub).toBe(expected)
       expectSubscriptions(inner.subscriptions).toBe(innersubs)
     })
@@ -2698,22 +2620,18 @@ describe("static concat", () => {
       expectSubscriptions(e2.subscriptions).toBe(e2subs)
     })
   })
-  it(
-    "should emit element from first source, and should not complete if second " +
-      "source does not completes",
-    () => {
-      rxTestScheduler.run(({ cold, expectObservable, expectSubscriptions }) => {
-        const e1 = cold(" --a--|")
-        const e1subs = "  ^----!"
-        const e2 = cold(" -")
-        const e2subs = "  -----^"
-        const expected = "--a---"
-        expectObservable(concat(e1, e2)).toBe(expected)
-        expectSubscriptions(e1.subscriptions).toBe(e1subs)
-        expectSubscriptions(e2.subscriptions).toBe(e2subs)
-      })
-    }
-  )
+  it("should emit element from first source, and should not complete if second " + "source does not completes", () => {
+    rxTestScheduler.run(({ cold, expectObservable, expectSubscriptions }) => {
+      const e1 = cold(" --a--|")
+      const e1subs = "  ^----!"
+      const e2 = cold(" -")
+      const e2subs = "  -----^"
+      const expected = "--a---"
+      expectObservable(concat(e1, e2)).toBe(expected)
+      expectSubscriptions(e1.subscriptions).toBe(e1subs)
+      expectSubscriptions(e2.subscriptions).toBe(e2subs)
+    })
+  })
   it("should not complete if first source does not complete", () => {
     rxTestScheduler.run(({ cold, expectObservable, expectSubscriptions }) => {
       const e1 = cold(" -")
@@ -2792,21 +2710,18 @@ describe("static concat", () => {
     }
   )
   it(
-    "should emit elements from second source regardless of completion time " +
-      "when second source is cold observable",
+    "should emit elements from second source regardless of completion time " + "when second source is cold observable",
     () => {
-      rxTestScheduler.run(
-        ({ hot, cold, expectObservable, expectSubscriptions }) => {
-          const e1 = hot("  --a--b--c---|")
-          const e1subs = "  ^-----------!"
-          const e2 = cold("             -x-y-z-|")
-          const e2subs = "  ------------^------!"
-          const expected = "--a--b--c----x-y-z-|"
-          expectObservable(concat(e1, e2)).toBe(expected)
-          expectSubscriptions(e1.subscriptions).toBe(e1subs)
-          expectSubscriptions(e2.subscriptions).toBe(e2subs)
-        }
-      )
+      rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+        const e1 = hot("  --a--b--c---|")
+        const e1subs = "  ^-----------!"
+        const e2 = cold("             -x-y-z-|")
+        const e2subs = "  ------------^------!"
+        const expected = "--a--b--c----x-y-z-|"
+        expectObservable(concat(e1, e2)).toBe(expected)
+        expectSubscriptions(e1.subscriptions).toBe(e1subs)
+        expectSubscriptions(e2.subscriptions).toBe(e2subs)
+      })
     }
   )
   it("should not emit collapsing element from second source", () => {
@@ -2842,21 +2757,18 @@ describe("static concat", () => {
     })
   })
   it(
-    "should emit elements from second source regardless of completion time " +
-      "when second source is cold observable",
+    "should emit elements from second source regardless of completion time " + "when second source is cold observable",
     () => {
-      rxTestScheduler.run(
-        ({ hot, cold, expectObservable, expectSubscriptions }) => {
-          const e1 = hot("  --a--b--c---|")
-          const e1subs = "  ^-----------!"
-          const e2 = cold("             -x-y-z-|")
-          const e2subs = "  ------------^------!"
-          const expected = "--a--b--c----x-y-z-|"
-          expectObservable(concat(e1, e2)).toBe(expected)
-          expectSubscriptions(e1.subscriptions).toBe(e1subs)
-          expectSubscriptions(e2.subscriptions).toBe(e2subs)
-        }
-      )
+      rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+        const e1 = hot("  --a--b--c---|")
+        const e1subs = "  ^-----------!"
+        const e2 = cold("             -x-y-z-|")
+        const e2subs = "  ------------^------!"
+        const expected = "--a--b--c----x-y-z-|"
+        expectObservable(concat(e1, e2)).toBe(expected)
+        expectSubscriptions(e1.subscriptions).toBe(e1subs)
+        expectSubscriptions(e2.subscriptions).toBe(e2subs)
+      })
     }
   )
   it("should not emit collapsing element from second source", () => {
@@ -2989,37 +2901,31 @@ describe("defer", () => {
     rxTestScheduler = new TestScheduler(observableMatcher)
   })
   it("should defer the creation of a simple Observable", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const expected = "-a--b--c--|"
-        const e1 = defer(() => cold("-a--b--c--|"))
-        expectObservable(e1).toBe(expected)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const expected = "-a--b--c--|"
+      const e1 = defer(() => cold("-a--b--c--|"))
+      expectObservable(e1).toBe(expected)
+    })
   })
   it("should create an observable from the provided observable factory", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const source = hot("--a--b--c--|")
-        const sourceSubs = "^----------!"
-        const expected = "  --a--b--c--|"
-        const e1 = defer(() => source)
-        expectObservable(e1).toBe(expected)
-        expectSubscriptions(source.subscriptions).toBe(sourceSubs)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const source = hot("--a--b--c--|")
+      const sourceSubs = "^----------!"
+      const expected = "  --a--b--c--|"
+      const e1 = defer(() => source)
+      expectObservable(e1).toBe(expected)
+      expectSubscriptions(source.subscriptions).toBe(sourceSubs)
+    })
   })
   it("should create an observable from completed", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const source = hot("|")
-        const sourceSubs = "(^!)"
-        const expected = "  |"
-        const e1 = defer(() => source)
-        expectObservable(e1).toBe(expected)
-        expectSubscriptions(source.subscriptions).toBe(sourceSubs)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const source = hot("|")
+      const sourceSubs = "(^!)"
+      const expected = "  |"
+      const e1 = defer(() => source)
+      expectObservable(e1).toBe(expected)
+      expectSubscriptions(source.subscriptions).toBe(sourceSubs)
+    })
   })
   it("should accept factory returns promise resolves", done => {
     const expected = 42
@@ -3059,30 +2965,26 @@ describe("defer", () => {
     })
   })
   it("should create an observable from error", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const source = hot("#")
-        const sourceSubs = "(^!)"
-        const expected = "  #"
-        const e1 = defer(() => source)
-        expectObservable(e1).toBe(expected)
-        expectSubscriptions(source.subscriptions).toBe(sourceSubs)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const source = hot("#")
+      const sourceSubs = "(^!)"
+      const expected = "  #"
+      const e1 = defer(() => source)
+      expectObservable(e1).toBe(expected)
+      expectSubscriptions(source.subscriptions).toBe(sourceSubs)
+    })
   })
   it("should create an observable when factory does not throw", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const e1 = defer(() => {
-          if (1 !== Infinity) {
-            throw "error"
-          }
-          return of()
-        })
-        const expected = "#"
-        expectObservable(e1).toBe(expected)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const e1 = defer(() => {
+        if (1 !== Infinity) {
+          throw "error"
+        }
+        return of()
+      })
+      const expected = "#"
+      expectObservable(e1).toBe(expected)
+    })
   })
   it("should error when factory throws", done => {
     const e1 = defer(() => {
@@ -3096,35 +2998,31 @@ describe("defer", () => {
     })
   })
   it("should allow unsubscribing early and explicitly", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const source = hot("--a--b--c--|")
-        const sourceSubs = "^-----!     "
-        const expected = "  --a--b-     "
-        const unsub = "     ------!     "
-        const e1 = defer(() => source)
-        expectObservable(e1, unsub).toBe(expected)
-        expectSubscriptions(source.subscriptions).toBe(sourceSubs)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const source = hot("--a--b--c--|")
+      const sourceSubs = "^-----!     "
+      const expected = "  --a--b-     "
+      const unsub = "     ------!     "
+      const e1 = defer(() => source)
+      expectObservable(e1, unsub).toBe(expected)
+      expectSubscriptions(source.subscriptions).toBe(sourceSubs)
+    })
   })
   it("should not break unsubscription chains when result is unsubscribed explicitly", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const source = hot("--a--b--c--|")
-        const sourceSubs = "^-----!     "
-        const expected = "  --a--b-     "
-        const unsub = "     ------!     "
-        const e1 = defer(() =>
-          source.pipe(
-            mergeMap((x: string) => of(x)),
-            mergeMap((x: string) => of(x))
-          )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const source = hot("--a--b--c--|")
+      const sourceSubs = "^-----!     "
+      const expected = "  --a--b-     "
+      const unsub = "     ------!     "
+      const e1 = defer(() =>
+        source.pipe(
+          mergeMap((x: string) => of(x)),
+          mergeMap((x: string) => of(x))
         )
-        expectObservable(e1, unsub).toBe(expected)
-        expectSubscriptions(source.subscriptions).toBe(sourceSubs)
-      }
-    )
+      )
+      expectObservable(e1, unsub).toBe(expected)
+      expectSubscriptions(source.subscriptions).toBe(sourceSubs)
+    })
   })
 })
 /** @prettier */
@@ -3203,10 +3101,7 @@ describe("forkJoin", () => {
   })
   it("should support a resultSelector with an Array of ObservableInputs", () => {
     const results: Array<number | string> = []
-    forkJoin(
-      [of(1, 2, 3), of(4, 5, 6), of(7, 8, 9)],
-      (a: number, b: number, c: number) => a + b + c
-    ).subscribe({
+    forkJoin([of(1, 2, 3), of(4, 5, 6), of(7, 8, 9)], (a: number, b: number, c: number) => a + b + c).subscribe({
       next(value) {
         results.push(value)
       },
@@ -3221,12 +3116,7 @@ describe("forkJoin", () => {
   })
   it("should support a resultSelector with a spread of ObservableInputs", () => {
     const results: Array<number | string> = []
-    forkJoin(
-      of(1, 2, 3),
-      of(4, 5, 6),
-      of(7, 8, 9),
-      (a: number, b: number, c: number) => a + b + c
-    ).subscribe({
+    forkJoin(of(1, 2, 3), of(4, 5, 6), of(7, 8, 9), (a: number, b: number, c: number) => a + b + c).subscribe({
       next(value) {
         results.push(value)
       },
@@ -3451,13 +3341,7 @@ describe("forkJoin", () => {
     )
     source.subscribe(value => results.push(value))
     rxTestScheduler.flush()
-    expect(results).to.deep.equal([
-      "finalized 1",
-      "finalized 2",
-      "finalized 3",
-      "finalized 4",
-      [1, 2, 3, 4],
-    ])
+    expect(results).to.deep.equal(["finalized 1", "finalized 2", "finalized 3", "finalized 4", [1, 2, 3, 4]])
   })
   describe("forkJoin({ foo, bar, baz })", () => {
     it("should join the last values of the provided observables into an array", () => {
@@ -3788,14 +3672,8 @@ describe("from (fromPromise)", () => {
     class CustomPromise<T> implements PromiseLike<T> {
       constructor(private promise: PromiseLike<T>) {}
       then<TResult1 = T, TResult2 = T>(
-        onFulfilled?:
-          | ((value: T) => TResult1 | PromiseLike<TResult1>)
-          | undefined
-          | null,
-        onRejected?:
-          | ((reason: any) => TResult2 | PromiseLike<TResult2>)
-          | undefined
-          | null
+        onFulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+        onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
       ): PromiseLike<TResult1 | TResult2> {
         return new CustomPromise(this.promise.then(onFulfilled, onRejected))
       }
@@ -3889,16 +3767,7 @@ describe("from (fromPromise)", () => {
 /** @prettier */
 import { expect } from "chai"
 import { TestScheduler } from "rxjs/testing"
-import {
-  asyncScheduler,
-  of,
-  from,
-  Observer,
-  observable,
-  Subject,
-  noop,
-  Subscription,
-} from "rxjs"
+import { asyncScheduler, of, from, Observer, observable, Subject, noop, Subscription } from "rxjs"
 import { first, concatMap, delay, take, tap } from "rxjs/operators"
 import { ReadableStream } from "web-streams-polyfill"
 import { observableMatcher } from "../helpers/observableMatcher"
@@ -3952,13 +3821,7 @@ describe("from", () => {
         results.push("done")
         setTimeout(() => {
           expect(sideEffects).to.deep.equal([0, 1, 2])
-          expect(results).to.deep.equal([
-            0,
-            1,
-            2,
-            "done",
-            "finalized generator",
-          ])
+          expect(results).to.deep.equal([0, 1, 2, "done", "finalized generator"])
           done()
         })
       },
@@ -3993,12 +3856,7 @@ describe("from", () => {
         results.push("in error")
         setTimeout(() => {
           expect(sideEffects).to.deep.equal([0, 1, 2])
-          expect(results).to.deep.equal([
-            0,
-            1,
-            "in error",
-            "finalized generator",
-          ])
+          expect(results).to.deep.equal([0, 1, "in error", "finalized generator"])
           done()
         })
       },
@@ -4301,9 +4159,7 @@ describe("fromEvent", () => {
       const expected = "   -----x-x---"
       const target = {
         addEventListener: (eventType: any, listener: any) => {
-          timer(delay1, delay2)
-            .pipe(mapTo("ev"), take(2), concat(NEVER))
-            .subscribe(listener)
+          timer(delay1, delay2).pipe(mapTo("ev"), take(2), concat(NEVER)).subscribe(listener)
         },
         removeEventListener: (): void => void 0,
         dispatchEvent: (): void => void 0,
@@ -4342,19 +4198,11 @@ describe("fromEvent", () => {
     let offEventName
     let offHandler
     const obj = {
-      addEventListener: (
-        a: string,
-        b: EventListenerOrEventListenerObject,
-        useCapture?: boolean
-      ) => {
+      addEventListener: (a: string, b: EventListenerOrEventListenerObject, useCapture?: boolean) => {
         onEventName = a
         onHandler = b
       },
-      removeEventListener: (
-        a: string,
-        b: EventListenerOrEventListenerObject,
-        useCapture?: boolean
-      ) => {
+      removeEventListener: (a: string, b: EventListenerOrEventListenerObject, useCapture?: boolean) => {
         offEventName = a
         offHandler = b
       },
@@ -4400,11 +4248,7 @@ describe("fromEvent", () => {
     let offEventName
     let offHandler
     const obj = {
-      addListener(
-        a: string,
-        b: (...args: any[]) => any,
-        context?: any
-      ): { context: any } {
+      addListener(a: string, b: (...args: any[]) => any, context?: any): { context: any } {
         onEventName = a
         onHandler = b
         return { context: "" }
@@ -4463,26 +4307,14 @@ describe("fromEvent", () => {
     let offOptions
     const expectedOptions = { capture: true, passive: true }
     const obj = {
-      addEventListener: (
-        a: string,
-        b: EventListenerOrEventListenerObject,
-        c?: any
-      ) => {
+      addEventListener: (a: string, b: EventListenerOrEventListenerObject, c?: any) => {
         onOptions = c
       },
-      removeEventListener: (
-        a: string,
-        b: EventListenerOrEventListenerObject,
-        c?: any
-      ) => {
+      removeEventListener: (a: string, b: EventListenerOrEventListenerObject, c?: any) => {
         offOptions = c
       },
     }
-    const subscription = fromEvent(
-      <any>obj,
-      "click",
-      expectedOptions
-    ).subscribe(() => {
+    const subscription = fromEvent(<any>obj, "click", expectedOptions).subscribe(() => {
       //noop
     })
     subscription.unsubscribe()
@@ -4704,12 +4536,8 @@ describe("fromEvent", () => {
     expect(nodeList[0]._removeEventListenerArgs).to.be.null
     expect(nodeList[1]._removeEventListenerArgs).to.be.null
     subscription.unsubscribe()
-    expect(nodeList[0]._removeEventListenerArgs).to.deep.equal(
-      nodeList[0]._addEventListenerArgs
-    )
-    expect(nodeList[1]._removeEventListenerArgs).to.deep.equal(
-      nodeList[1]._addEventListenerArgs
-    )
+    expect(nodeList[0]._removeEventListenerArgs).to.deep.equal(nodeList[0]._addEventListenerArgs)
+    expect(nodeList[1]._removeEventListenerArgs).to.deep.equal(nodeList[1]._addEventListenerArgs)
   })
 })
 import { expect } from "chai"
@@ -4723,9 +4551,7 @@ declare const rxTestScheduler: TestScheduler
 describe("fromEventPattern", () => {
   it("should create an observable from the handler API", () => {
     function addHandler(h: any) {
-      timer(50, 20, rxTestScheduler)
-        .pipe(mapTo("ev"), take(2), concat(NEVER))
-        .subscribe(h)
+      timer(50, 20, rxTestScheduler).pipe(mapTo("ev"), take(2), concat(NEVER)).subscribe(h)
     }
     const e1 = fromEventPattern(addHandler)
     const expected = "-----x-x---"
@@ -5148,13 +4974,7 @@ describe("iif", () => {
 })
 /** @prettier */
 import { expect } from "chai"
-import {
-  NEVER,
-  interval,
-  asapScheduler,
-  animationFrameScheduler,
-  queueScheduler,
-} from "rxjs"
+import { NEVER, interval, asapScheduler, animationFrameScheduler, queueScheduler } from "rxjs"
 import { TestScheduler } from "rxjs/testing"
 import { take, concat } from "rxjs/operators"
 import * as sinon from "sinon"
@@ -5167,23 +4987,16 @@ describe("interval", () => {
   })
   it("should set up an interval", () => {
     rxTestScheduler.run(({ expectObservable, time }) => {
-      const period = time(
-        "----------|                                                                 "
-      )
+      const period = time("----------|                                                                 ")
       //                             ----------|
       //                                       ----------|
       //                                                 ----------|
       //                                                           ----------|
       //                                                                     ----------|
       //                                                                               ----------|
-      const unsubs =
-        "     ---------------------------------------------------------------------------!"
-      const expected =
-        "   ----------0---------1---------2---------3---------4---------5---------6-----"
-      expectObservable(interval(period), unsubs).toBe(
-        expected,
-        [0, 1, 2, 3, 4, 5, 6]
-      )
+      const unsubs = "     ---------------------------------------------------------------------------!"
+      const expected = "   ----------0---------1---------2---------3---------4---------5---------6-----"
+      expectObservable(interval(period), unsubs).toBe(expected, [0, 1, 2, 3, 4, 5, 6])
     })
   })
   it("should emit when relative interval set to zero", () => {
@@ -5349,19 +5162,17 @@ describe("static merge(...observables)", () => {
     })
   })
   it("should merge hot and cold", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const e1 = hot(" ---a-^---b-----c----|    ")
-        const e1subs = "      ^--------------!    "
-        const e2 = cold("     --x-----y-----z----|")
-        const e2subs = "      ^------------------!"
-        const expected = "    --x-b---y-c---z----|"
-        const result = merge(e1, e2)
-        expectObservable(result).toBe(expected)
-        expectSubscriptions(e1.subscriptions).toBe(e1subs)
-        expectSubscriptions(e2.subscriptions).toBe(e2subs)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const e1 = hot(" ---a-^---b-----c----|    ")
+      const e1subs = "      ^--------------!    "
+      const e2 = cold("     --x-----y-----z----|")
+      const e2subs = "      ^------------------!"
+      const expected = "    --x-b---y-c---z----|"
+      const result = merge(e1, e2)
+      expectObservable(result).toBe(expected)
+      expectSubscriptions(e1.subscriptions).toBe(e1subs)
+      expectSubscriptions(e2.subscriptions).toBe(e2subs)
+    })
   })
   it("should merge parallel emissions", () => {
     rxTestScheduler.run(({ hot, expectObservable, expectSubscriptions }) => {
@@ -5445,19 +5256,17 @@ describe("static merge(...observables)", () => {
     })
   })
   it("should merge hot and throw", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const e1 = hot("  --a--b--c--|")
-        const e1subs = "  (^!)        "
-        const e2 = cold(" #           ")
-        const e2subs = "  (^!)        "
-        const expected = "#           "
-        const result = merge(e1, e2)
-        expectObservable(result).toBe(expected)
-        expectSubscriptions(e1.subscriptions).toBe(e1subs)
-        expectSubscriptions(e2.subscriptions).toBe(e2subs)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const e1 = hot("  --a--b--c--|")
+      const e1subs = "  (^!)        "
+      const e2 = cold(" #           ")
+      const e2subs = "  (^!)        "
+      const expected = "#           "
+      const result = merge(e1, e2)
+      expectObservable(result).toBe(expected)
+      expectSubscriptions(e1.subscriptions).toBe(e1subs)
+      expectSubscriptions(e2.subscriptions).toBe(e2subs)
+    })
   })
   it("should merge never and throw", () => {
     rxTestScheduler.run(({ cold, expectObservable, expectSubscriptions }) => {
@@ -5473,19 +5282,17 @@ describe("static merge(...observables)", () => {
     })
   })
   it("should merge empty and eventual error", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const e1 = cold(" |       ")
-        const e1subs = "  (^!)    "
-        const e2 = hot("  -------#")
-        const e2subs = "  ^------!"
-        const expected = "-------#"
-        const result = merge(e1, e2)
-        expectObservable(result).toBe(expected)
-        expectSubscriptions(e1.subscriptions).toBe(e1subs)
-        expectSubscriptions(e2.subscriptions).toBe(e2subs)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const e1 = cold(" |       ")
+      const e1subs = "  (^!)    "
+      const e2 = hot("  -------#")
+      const e2subs = "  ^------!"
+      const expected = "-------#"
+      const result = merge(e1, e2)
+      expectObservable(result).toBe(expected)
+      expectSubscriptions(e1.subscriptions).toBe(e1subs)
+      expectSubscriptions(e2.subscriptions).toBe(e2subs)
+    })
   })
   it("should merge hot and error", () => {
     rxTestScheduler.run(({ hot, expectObservable, expectSubscriptions }) => {
@@ -5695,44 +5502,40 @@ describe("onErrorResumeNext", () => {
     rxTestScheduler = new TestScheduler(observableMatcher)
   })
   it("should continue with observables", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const s1 = hot("  --a--b--#                     ")
-        const s2 = cold("         --c--d--#             ")
-        const s3 = cold("                 --e--#        ")
-        const s4 = cold("                      --f--g--|")
-        const subs1 = "   ^-------!                     "
-        const subs2 = "   --------^-------!             "
-        const subs3 = "   ----------------^----!        "
-        const subs4 = "   ---------------------^-------!"
-        const expected = "--a--b----c--d----e----f--g--|"
-        expectObservable(onErrorResumeNext(s1, s2, s3, s4)).toBe(expected)
-        expectSubscriptions(s1.subscriptions).toBe(subs1)
-        expectSubscriptions(s2.subscriptions).toBe(subs2)
-        expectSubscriptions(s3.subscriptions).toBe(subs3)
-        expectSubscriptions(s4.subscriptions).toBe(subs4)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const s1 = hot("  --a--b--#                     ")
+      const s2 = cold("         --c--d--#             ")
+      const s3 = cold("                 --e--#        ")
+      const s4 = cold("                      --f--g--|")
+      const subs1 = "   ^-------!                     "
+      const subs2 = "   --------^-------!             "
+      const subs3 = "   ----------------^----!        "
+      const subs4 = "   ---------------------^-------!"
+      const expected = "--a--b----c--d----e----f--g--|"
+      expectObservable(onErrorResumeNext(s1, s2, s3, s4)).toBe(expected)
+      expectSubscriptions(s1.subscriptions).toBe(subs1)
+      expectSubscriptions(s2.subscriptions).toBe(subs2)
+      expectSubscriptions(s3.subscriptions).toBe(subs3)
+      expectSubscriptions(s4.subscriptions).toBe(subs4)
+    })
   })
   it("should continue array of observables", () => {
-    rxTestScheduler.run(
-      ({ hot, cold, expectObservable, expectSubscriptions }) => {
-        const s1 = hot("  --a--b--#                     ")
-        const s2 = cold("         --c--d--#             ")
-        const s3 = cold("                 --e--#        ")
-        const s4 = cold("                      --f--g--|")
-        const subs1 = "   ^-------!                     "
-        const subs2 = "   --------^-------!             "
-        const subs3 = "   ----------------^----!        "
-        const subs4 = "   ---------------------^-------!"
-        const expected = "--a--b----c--d----e----f--g--|"
-        expectObservable(onErrorResumeNext([s1, s2, s3, s4])).toBe(expected)
-        expectSubscriptions(s1.subscriptions).toBe(subs1)
-        expectSubscriptions(s2.subscriptions).toBe(subs2)
-        expectSubscriptions(s3.subscriptions).toBe(subs3)
-        expectSubscriptions(s4.subscriptions).toBe(subs4)
-      }
-    )
+    rxTestScheduler.run(({ hot, cold, expectObservable, expectSubscriptions }) => {
+      const s1 = hot("  --a--b--#                     ")
+      const s2 = cold("         --c--d--#             ")
+      const s3 = cold("                 --e--#        ")
+      const s4 = cold("                      --f--g--|")
+      const subs1 = "   ^-------!                     "
+      const subs2 = "   --------^-------!             "
+      const subs3 = "   ----------------^----!        "
+      const subs4 = "   ---------------------^-------!"
+      const expected = "--a--b----c--d----e----f--g--|"
+      expectObservable(onErrorResumeNext([s1, s2, s3, s4])).toBe(expected)
+      expectSubscriptions(s1.subscriptions).toBe(subs1)
+      expectSubscriptions(s2.subscriptions).toBe(subs2)
+      expectSubscriptions(s3.subscriptions).toBe(subs3)
+      expectSubscriptions(s4.subscriptions).toBe(subs4)
+    })
   })
   it("should complete single observable throws", () => {
     rxTestScheduler.run(({ hot, expectObservable, expectSubscriptions }) => {
@@ -5745,12 +5548,7 @@ describe("onErrorResumeNext", () => {
   })
   it("should skip invalid sources and move on", () => {
     const results: any[] = []
-    onErrorResumeNext(
-      of(1),
-      [2, 3, 4],
-      { notValid: "LOL" } as any,
-      of(5, 6)
-    ).subscribe({
+    onErrorResumeNext(of(1), [2, 3, 4], { notValid: "LOL" } as any, of(5, 6)).subscribe({
       next: value => results.push(value),
       complete: () => results.push("complete"),
     })
@@ -5767,17 +5565,7 @@ describe("onErrorResumeNext", () => {
       next: value => results.push(value),
       complete: () => results.push("complete"),
     })
-    expect(results).to.deep.equal([
-      1,
-      "finalize 1",
-      2,
-      "finalize 2",
-      3,
-      "finalize 3",
-      4,
-      "finalize 4",
-      "complete",
-    ])
+    expect(results).to.deep.equal([1, "finalize 1", 2, "finalize 2", 3, "finalize 3", 4, "finalize 4", "complete"])
   })
 })
 /** @prettier */
@@ -5840,10 +5628,7 @@ describe("partition", () => {
   beforeEach(() => {
     rxTestScheduler = new TestScheduler(observableMatcher)
   })
-  function expectObservableArray(
-    result: Observable<string>[],
-    expected: string[]
-  ) {
+  function expectObservableArray(result: Observable<string>[], expected: string[]) {
     for (let idx = 0; idx < result.length; idx++) {
       rxTestScheduler.expectObservable(result[idx]).toBe(expected[idx])
     }
@@ -6125,12 +5910,7 @@ describe("partition", () => {
     ).forEach((observable: Observable<number>) => observable.subscribe())
   })
 })
-import {
-  hot,
-  cold,
-  expectObservable,
-  expectSubscriptions,
-} from "../helpers/marble-testing"
+import { hot, cold, expectObservable, expectSubscriptions } from "../helpers/marble-testing"
 import { race, of } from "rxjs"
 import { mergeMap } from "rxjs/operators"
 import { expect } from "chai"
@@ -6229,10 +6009,9 @@ describe("static race", () => {
     const e2subs = "^  !    "
     const expected = "---b--c---    "
     const unsub = "         !    "
-    const result = race(
-      e1.pipe(mergeMap((x: string) => of(x))),
-      e2.pipe(mergeMap((x: string) => of(x)))
-    ).pipe(mergeMap((x: any) => of(x)))
+    const result = race(e1.pipe(mergeMap((x: string) => of(x))), e2.pipe(mergeMap((x: string) => of(x)))).pipe(
+      mergeMap((x: any) => of(x))
+    )
     expectObservable(result, unsub).toBe(expected)
     expectSubscriptions(e1.subscriptions).toBe(e1subs)
     expectSubscriptions(e2.subscriptions).toBe(e2subs)
@@ -6315,11 +6094,7 @@ describe("range", () => {
   it("should create an observable with numbers 1 to 10", () => {
     const e1 = range(1, 10)
       // for the purpose of making a nice diagram, spread out the synchronous emissions
-      .pipe(
-        concatMap((x, i) =>
-          of(x).pipe(delay(i === 0 ? 0 : 20, rxTestScheduler))
-        )
-      )
+      .pipe(concatMap((x, i) => of(x).pipe(delay(i === 0 ? 0 : 20, rxTestScheduler))))
     const expected = "a-b-c-d-e-f-g-h-i-(j|)"
     const values = {
       a: 1,
@@ -6336,9 +6111,7 @@ describe("range", () => {
     expectObservable(e1).toBe(expected, values)
   })
   it("should work for two subscribers", () => {
-    const e1 = range(1, 5).pipe(
-      concatMap((x, i) => of(x).pipe(delay(i === 0 ? 0 : 20, rxTestScheduler)))
-    )
+    const e1 = range(1, 5).pipe(concatMap((x, i) => of(x).pipe(delay(i === 0 ? 0 : 20, rxTestScheduler))))
     const expected = "a-b-c-d-(e|)"
     const values = {
       a: 1,
@@ -6377,9 +6150,7 @@ describe("range", () => {
     })
   })
   it("should accept only one argument where count is argument and start is zero", () => {
-    const e1 = range(5).pipe(
-      concatMap((x, i) => of(x).pipe(delay(i === 0 ? 0 : 20, rxTestScheduler)))
-    )
+    const e1 = range(5).pipe(concatMap((x, i) => of(x).pipe(delay(i === 0 ? 0 : 20, rxTestScheduler))))
     const expected = "a-b-c-d-(e|)"
     const values = {
       a: 0,
@@ -6572,22 +6343,18 @@ describe("timer", () => {
       expectObservable(source).toBe(expected, values)
     })
   })
-  it(
-    "should still target the same date if a date is provided even for the " +
-      "second subscription",
-    () => {
-      rxTest.run(({ cold, time, expectObservable }) => {
-        const offset = time("----|    ")
-        const t1 = cold("    a|       ")
-        const t2 = cold("    --a|     ")
-        const expected = "   ----(aa|)"
-        const dueTime = new Date(rxTest.now() + offset)
-        const source = timer(dueTime, undefined, rxTest)
-        const testSource = merge(t1, t2).pipe(mergeMap(() => source))
-        expectObservable(testSource).toBe(expected, { a: 0 })
-      })
-    }
-  )
+  it("should still target the same date if a date is provided even for the " + "second subscription", () => {
+    rxTest.run(({ cold, time, expectObservable }) => {
+      const offset = time("----|    ")
+      const t1 = cold("    a|       ")
+      const t2 = cold("    --a|     ")
+      const expected = "   ----(aa|)"
+      const dueTime = new Date(rxTest.now() + offset)
+      const source = timer(dueTime, undefined, rxTest)
+      const testSource = merge(t1, t2).pipe(mergeMap(() => source))
+      expectObservable(testSource).toBe(expected, { a: 0 })
+    })
+  })
   it("should accept Infinity as the first argument", () => {
     rxTest.run(({ expectObservable }) => {
       const source = timer(Infinity, undefined, rxTest)
@@ -6736,12 +6503,7 @@ describe("using", () => {
   })
 })
 import { expect } from "chai"
-import {
-  hot,
-  cold,
-  expectObservable,
-  expectSubscriptions,
-} from "../helpers/marble-testing"
+import { hot, cold, expectObservable, expectSubscriptions } from "../helpers/marble-testing"
 import { queueScheduler as rxQueueScheduler, zip, from, of } from "rxjs"
 const queueScheduler = rxQueueScheduler
 /** @test {zip} */
@@ -6763,11 +6525,7 @@ describe("static zip", () => {
   it("should zip the provided observables", done => {
     const expected = ["a1", "b2", "c3"]
     let i = 0
-    zip(
-      from(["a", "b", "c"]),
-      from([1, 2, 3]),
-      (a: string, b: number) => a + b
-    ).subscribe({
+    zip(from(["a", "b", "c"]), from([1, 2, 3]), (a: string, b: number) => a + b).subscribe({
       next: (x: string) => {
         expect(x).to.equal(expected[i++])
       },
@@ -6793,8 +6551,7 @@ describe("static zip", () => {
     expectSubscriptions(e3.subscriptions).toBe(e3subs)
   })
   it(
-    "should end once one observable nexts and zips value from completed other " +
-      "observable whose buffer is empty",
+    "should end once one observable nexts and zips value from completed other " + "observable whose buffer is empty",
     () => {
       const e1 = hot("---a--b--c--|             ")
       const e1subs = "^           !             "
@@ -6905,11 +6662,7 @@ describe("static zip", () => {
           return x + y
         }
       }
-      expectObservable(zip(a, b, selector)).toBe(
-        expected,
-        { x: "14" },
-        new Error("too bad")
-      )
+      expectObservable(zip(a, b, selector)).toBe(expected, { x: "14" }, new Error("too bad"))
       expectSubscriptions(a.subscriptions).toBe(asubs)
     })
   })
@@ -6919,10 +6672,7 @@ describe("static zip", () => {
     const b = hot("--4--5--6--7--8--")
     const bsubs = "^"
     const expected = "---x---y---z"
-    expectObservable(zip(a, b, (e1: string, e2: string) => e1 + e2)).toBe(
-      expected,
-      { x: "14", y: "25", z: "36" }
-    )
+    expectObservable(zip(a, b, (e1: string, e2: string) => e1 + e2)).toBe(expected, { x: "14", y: "25", z: "36" })
     expectSubscriptions(a.subscriptions).toBe(asubs)
     expectSubscriptions(b.subscriptions).toBe(bsubs)
   })
@@ -6947,11 +6697,7 @@ describe("static zip", () => {
     const bsubs = "^         !  "
     const c = hot("---1-^---3---6-|  ")
     const expected = "----x---y-|  "
-    const observable = zip(a, b, c, (r0: string, r1: string, r2: string) => [
-      r0,
-      r1,
-      r2,
-    ])
+    const observable = zip(a, b, c, (r0: string, r1: string, r2: string) => [r0, r1, r2])
     expectObservable(observable).toBe(expected, {
       x: ["1", "2", "3"],
       y: ["4", "5", "6"],
@@ -6966,11 +6712,7 @@ describe("static zip", () => {
     const bsubs = "^         !  "
     const c = hot("---1-^---3---6-|  ")
     const expected = "----x---y-|  "
-    const observable = zip(a, b, c, (r0: string, r1: string, r2: string) => [
-      r0,
-      r1,
-      r2,
-    ])
+    const observable = zip(a, b, c, (r0: string, r1: string, r2: string) => [r0, r1, r2])
     expectObservable(observable).toBe(expected, {
       x: ["1", "2", "3"],
       y: ["4", "5", "6"],
@@ -6984,10 +6726,13 @@ describe("static zip", () => {
     const b = hot("---1-^--2--4--6--8--0--|    ")
     const bsubs = "^                 !    "
     const expected = "---a--b--c--d--e--|    "
-    expectObservable(zip(a, b, (r1: string, r2: string) => r1 + r2)).toBe(
-      expected,
-      { a: "12", b: "34", c: "56", d: "78", e: "90" }
-    )
+    expectObservable(zip(a, b, (r1: string, r2: string) => r1 + r2)).toBe(expected, {
+      a: "12",
+      b: "34",
+      c: "56",
+      d: "78",
+      e: "90",
+    })
     expectSubscriptions(a.subscriptions).toBe(asubs)
     expectSubscriptions(b.subscriptions).toBe(bsubs)
   })
@@ -6997,10 +6742,13 @@ describe("static zip", () => {
     const b = hot("---1-^-1-3-5-7-9-x-y-z-w-u-|")
     const bsubs = "^                 !    "
     const expected = "---a--b--c--d--e--|    "
-    expectObservable(zip(a, b, (r1: string, r2: string) => r1 + r2)).toBe(
-      expected,
-      { a: "21", b: "43", c: "65", d: "87", e: "09" }
-    )
+    expectObservable(zip(a, b, (r1: string, r2: string) => r1 + r2)).toBe(expected, {
+      a: "21",
+      b: "43",
+      c: "65",
+      d: "87",
+      e: "09",
+    })
     expectSubscriptions(a.subscriptions).toBe(asubs)
     expectSubscriptions(b.subscriptions).toBe(bsubs)
   })
@@ -7010,10 +6758,13 @@ describe("static zip", () => {
     const b = hot("---1-^--2--4--6--8--0--|")
     const bsubs = "^                ! "
     const expected = "---a--b--c--d--e-| "
-    expectObservable(zip(a, b, (r1: string, r2: string) => r1 + r2)).toBe(
-      expected,
-      { a: "12", b: "34", c: "56", d: "78", e: "90" }
-    )
+    expectObservable(zip(a, b, (r1: string, r2: string) => r1 + r2)).toBe(expected, {
+      a: "12",
+      b: "34",
+      c: "56",
+      d: "78",
+      e: "90",
+    })
     expectSubscriptions(a.subscriptions).toBe(asubs)
     expectSubscriptions(b.subscriptions).toBe(bsubs)
   })
@@ -7031,11 +6782,7 @@ describe("static zip", () => {
       }
     }
     const observable = zip(a, b, selector)
-    expectObservable(observable).toBe(
-      expected,
-      { x: "23" },
-      new Error("too bad")
-    )
+    expectObservable(observable).toBe(expected, { x: "23" }, new Error("too bad"))
     expectSubscriptions(a.subscriptions).toBe(asubs)
     expectSubscriptions(b.subscriptions).toBe(bsubs)
   })
@@ -7241,12 +6988,7 @@ describe("static zip", () => {
       next: value => results.push(value),
       complete: () => results.push("complete"),
     })
-    expect(results).to.deep.equal([
-      ["a", "1", "x"],
-      ["b", "2", "y"],
-      ["c", "3", "z"],
-      "complete",
-    ])
+    expect(results).to.deep.equal([["a", "1", "x"], ["b", "2", "y"], ["c", "3", "z"], "complete"])
   })
   it("should return EMPTY if passed an empty array as the only argument", () => {
     const results: string[] = []

@@ -1,7 +1,6 @@
 import * as qi from "../immer/index.js"
 
-const randomString = () =>
-  Math.random().toString(36).substring(7).split("").join(".")
+const randomString = () => Math.random().toString(36).substring(7).split("").join(".")
 
 export const ActionTypes = {
   INIT: `@@redux/INIT${randomString()}`,
@@ -51,11 +50,7 @@ export function miniKindOf(x: any): string {
     case "Set":
       return n
   }
-  return Object.prototype.toString
-    .call(x)
-    .slice(8, -1)
-    .toLowerCase()
-    .replace(/\s/g, "")
+  return Object.prototype.toString.call(x).slice(8, -1).toLowerCase().replace(/\s/g, "")
 }
 
 function ctorName(x: any): string | null {
@@ -65,19 +60,13 @@ function ctorName(x: any): string | null {
 function isError(x: any) {
   return (
     x instanceof Error ||
-    (typeof x.message === "string" &&
-      x.constructor &&
-      typeof x.constructor.stackTraceLimit === "number")
+    (typeof x.message === "string" && x.constructor && typeof x.constructor.stackTraceLimit === "number")
   )
 }
 
 function isDate(x: any) {
   if (x instanceof Date) return true
-  return (
-    typeof x.toDateString === "function" &&
-    typeof x.getDate === "function" &&
-    typeof x.setDate === "function"
-  )
+  return typeof x.toDateString === "function" && typeof x.getDate === "function" && typeof x.setDate === "function"
 }
 
 export function kindOf(x: any) {
@@ -121,8 +110,7 @@ It is disabled in production builds, so you don't need to worry about that.`)
   }
 }
 
-const urlAlphabet =
-  "ModuleSymbhasOwnPr-0123456789ABCDEFGHNRVfgctiUvz_KqYTJkLxpZXIjQW"
+const urlAlphabet = "ModuleSymbhasOwnPr-0123456789ABCDEFGHNRVfgctiUvz_KqYTJkLxpZXIjQW"
 
 export const nanoid = (size = 21) => {
   let id = ""

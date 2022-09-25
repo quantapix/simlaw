@@ -451,17 +451,13 @@ function runTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         expect(y.aMap.has("newKey")).toBe(true)
       })
       it("supports nested maps", () => {
-        const base = new Map([
-          ["first", new Map([["second", { prop: "test" }]])],
-        ])
+        const base = new Map([["first", new Map([["second", { prop: "test" }]])]])
         const y: any = produce(base, (x: any) => {
           x.get("first").get("second").prop = "test1"
         })
         expect(y).not.toBe(base)
         expect(y.get("first")).not.toBe(base.get("first"))
-        expect(y.get("first").get("second")).not.toBe(
-          base.get("first")?.get("second")
-        )
+        expect(y.get("first").get("second")).not.toBe(base.get("first")?.get("second"))
         expect(base.get("first")?.get("second")?.prop).toBe("test")
         expect(y.get("first").get("second").prop).toBe("test1")
       })
@@ -1212,9 +1208,7 @@ function runTest(name: string, autoFreeze: boolean, useListener?: boolean) {
     })
     it("throws when Object.setPrototypeOf() is used on a draft", () => {
       produce({}, (x: any) => {
-        expect(() =>
-          Object.setPrototypeOf(x, Array)
-        ).toThrowErrorMatchingSnapshot()
+        expect(() => Object.setPrototypeOf(x, Array)).toThrowErrorMatchingSnapshot()
       })
     })
     it("supports the 'in' operator", () => {
@@ -1338,14 +1332,10 @@ function runTest(name: string, autoFreeze: boolean, useListener?: boolean) {
         })
         expect(() => {
           base.b.value = "yes"
-        }).toThrowError(
-          "Cannot assign to read only property 'value' of object '#<Object>'"
-        )
+        }).toThrowError("Cannot assign to read only property 'value' of object '#<Object>'")
         expect(() => {
           y.b.value = "yes"
-        }).toThrowError(
-          "Cannot assign to read only property 'value' of object '#<Object>'"
-        )
+        }).toThrowError("Cannot assign to read only property 'value' of object '#<Object>'")
       })
     autoFreeze &&
       it("issue #469, state not frozen", () => {
@@ -2067,9 +2057,7 @@ function testLiteralTypes(produce: any) {
               x.foo = true
             })
           ).toThrowError(
-            isProd
-              ? "[Immer] minified error nr: 21"
-              : "produce can only be called on things that are draftable"
+            isProd ? "[Immer] minified error nr: 21" : "produce can only be called on things that are draftable"
           )
         })
       } else {
