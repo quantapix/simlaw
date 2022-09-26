@@ -1,19 +1,123 @@
-import * as qu from "./utils.js"
 import { Collection, Seq, seqKeyedFrom, seqIndexedFrom, ArraySeq } from "./main.js"
 import { Map } from "./map.js"
 import { OrderedMap } from "./ordered.js"
+import * as qu from "./utils.js"
+import type * as qt from "./types.js"
+
+export function reify<K, V>(x: Collection<K, V>, x2: unknown) {
+  return x === x2 ? x : qu.isSeq(x) ? x2 : x.constructor(x2)
+}
+
+export function concat<K, V>(x: qt.Collection<K, V>, xs: any[]) {
+  const isKeyed = qu.isKeyed(x)
+  const ys = [x]
+    .concat(xs)
+    .map(v => {
+      if (!qu.isCollection(v)) v = isKeyed ? seqKeyedFrom(v) : seqIndexedFrom(Array.isArray(v) ? v : [v])
+      else if (isKeyed) v = Collection.Keyed.create(v)
+      return v
+    })
+    .filter(v => v.size !== 0)
+  if (ys.length === 0) return x
+  if (ys.length === 1) {
+    const y = ys[0]
+    if (y === x || (isKeyed && qu.isKeyed(y)) || (qu.isIndexed(x) && qu.isIndexed(y))) return y
+  }
+  let y = new ArraySeq(ys)
+  if (isKeyed) y = y.toSeqKeyed()
+  else if (!qu.isIndexed(x)) y = y.toSeqSet()
+  y = y.flatten(true)
+  y.size = ys.reduce((sum, x2) => {
+    if (sum !== undefined) {
+      const n = x2.size
+      if (n !== undefined) return sum + n
+    }
+  }, 0)
+  return y
+}
+
+export function filter<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown, useKeys?: boolean) {
+  const y = makeSequence(x)
+  if (useKeys) {
+    y.has = (k: K) => {
+      const v = x.get(k, qu.NOT_SET)
+      return v !== qu.NOT_SET && !!f.call(ctx, v, k, x)
+    }
+    y.get = (k: K, v0: V) => {
+      const v = x.get(k, qu.NOT_SET)
+      return v !== qu.NOT_SET && f.call(ctx, v, k, x) ? v : v0
+    }
+  }
+  y.__iterateUncached = function (f2: Function, reverse?: boolean) {
+    let y = 0
+    this.__iterate((v: V, k: K, c) => {
+      if (f.call(ctx, v, k, c)) {
+        y++
+        return f2(v, useKeys ? k : y - 1, this)
+      }
+    }, reverse)
+    return y
+  }
+  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse?: boolean) {
+    const iter = this.__iterator(qu.ITERATE_ENTRIES, reverse)
+    let n = 0
+    return new qu.Iter(() => {
+      while (true) {
+        const i = iter.next()
+        if (i.done) return i
+        const [k, v] = i.value
+        if (f.call(ctx, v, k, this)) return qu.Iter.value(m, useKeys ? k : n++, v, i)
+      }
+    })
+  }
+  return y
+}
+
+export function flip<K, V>(x: Collection<K, V>) {
+  const y = makeSequence(x)
+  y._iter = x
+  y.size = x.size
+  y.flip = () => x
+  y.reverse = function () {
+    const y2 = x.reverse.apply(this)
+    y2.flip = () => x.reverse()
+    return y2
+  }
+  y.has = (v: V) => x.includes(v)
+  y.includes = (k: K) => x.has(k)
+  y.cacheResult = cacheResult
+  y.__iterateUncached = function (f, reverse: boolean) {
+    return x.__iterate((v: V, k: K) => f(k, v, this) !== false, reverse)
+  }
+  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    if (m === qu.ITERATE_ENTRIES) {
+      const iter = x.__iterator(m, reverse)
+      return new qu.Iter(() => {
+        const i = iter.next()
+        if (!i.done) {
+          const k = i.value[0]
+          i.value[0] = i.value[1]
+          i.value[1] = k
+        }
+        return i
+      })
+    }
+    return x.__iterator(m === qu.ITERATE_VALUES ? qu.ITERATE_KEYS : qu.ITERATE_VALUES, reverse)
+  }
+  return y
+}
 
 export class ToSeqKeyed<K, V> extends Seq.Keyed<K, V> {
   [qu.IS_ORDERED_SYMBOL] = true
-  constructor(private _base: any, private _useKeys) {
+  constructor(private _base: Collection, private _useKeys: boolean) {
     super()
     this.size = _base.size
   }
-  override get(key, notSetValue) {
-    return this._base.get(key, notSetValue)
+  override get(k: unknown, v0?: unknown) {
+    return this._base.get(k, v0)
   }
-  override has(key) {
-    return this._base.has(key)
+  override has(k: unknown) {
+    return this._base.has(k)
   }
   override valueSeq() {
     return this._base.valueSeq()
@@ -23,9 +127,9 @@ export class ToSeqKeyed<K, V> extends Seq.Keyed<K, V> {
     if (!this._useKeys) y.valueSeq = () => this._base.toSeq().reverse()
     return y
   }
-  override map(mapper, context) {
-    const y = mapFactory(this, mapper, context)
-    if (!this._useKeys) y.valueSeq = () => this._base.toSeq().map(mapper, context)
+  override map(f: Function, ctx?: unknown) {
+    const y = mapFactory(this, f, ctx)
+    if (!this._useKeys) y.valueSeq = () => this._base.toSeq().map(f, ctx)
     return y
   }
   override __iterate(f: Function, reverse: boolean) {
@@ -38,8 +142,7 @@ export class ToSeqKeyed<K, V> extends Seq.Keyed<K, V> {
 }
 
 export class ToSeqIndexed<V> extends Seq.Indexed<V> {
-  size: number
-  constructor(private _base: any) {
+  constructor(private _base: Collection<V>) {
     super()
     this.size = _base.size
   }
@@ -64,7 +167,7 @@ export class ToSeqIndexed<V> extends Seq.Indexed<V> {
 }
 
 export class ToSeqSet<K> extends Seq.Set<K> {
-  constructor(private _base: any) {
+  constructor(private _base: Collection<K>) {
     super()
     this.size = _base.size
   }
@@ -84,15 +187,15 @@ export class ToSeqSet<K> extends Seq.Set<K> {
   override cacheResult = cacheResult
 }
 
-export class FromEntriesSequence extends Seq.Keyed {
-  constructor(private _base: any) {
+export class FromEntrySeq<K, V> extends Seq.Keyed<K, V> {
+  constructor(private _base: Collection<K, V>) {
     super()
     this.size = _base.size
   }
-  entrySeq() {
+  override entrySeq() {
     return this._base.toSeq()
   }
-  __iterate(f: Function, reverse: boolean) {
+  override __iterate(f: Function, reverse: boolean) {
     return this._base.__iterate(x => {
       if (x) {
         validateEntry(x)
@@ -101,7 +204,7 @@ export class FromEntriesSequence extends Seq.Keyed {
       }
     }, reverse)
   }
-  __iterator(m: qu.Iter.Mode, reverse: boolean) {
+  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
     const iter = this._base.__iterator(qu.ITERATE_VALUES, reverse)
     return new qu.Iter(() => {
       while (true) {
@@ -116,41 +219,7 @@ export class FromEntriesSequence extends Seq.Keyed {
       }
     })
   }
-  cacheResult = cacheResult
-}
-
-export function flipFactory(x) {
-  const y = makeSequence(x)
-  y._iter = x
-  y.size = x.size
-  y.flip = () => x
-  y.reverse = function () {
-    const y2 = x.reverse.apply(this)
-    y2.flip = () => x.reverse()
-    return y2
-  }
-  y.has = key => x.includes(key)
-  y.includes = key => x.has(key)
-  y.cacheResult = cacheResult
-  y.__iterateUncached = function (fn, reverse: boolean) {
-    return x.__iterate((v, k) => fn(k, v, this) !== false, reverse)
-  }
-  y.__iteratorUncached = function (type, reverse: boolean) {
-    if (type === qu.ITERATE_ENTRIES) {
-      const iterator = x.__iterator(type, reverse)
-      return new qu.Iter(() => {
-        const step = iterator.next()
-        if (!step.done) {
-          const k = step.value[0]
-          step.value[0] = step.value[1]
-          step.value[1] = k
-        }
-        return step
-      })
-    }
-    return x.__iterator(type === qu.ITERATE_VALUES ? qu.ITERATE_KEYS : qu.ITERATE_VALUES, reverse)
-  }
-  return y
+  override cacheResult = cacheResult
 }
 
 export function mapFactory(x, f, ctx) {
@@ -186,9 +255,9 @@ export function reverseFactory(x, useKeys) {
   y.reverse = () => x
   if (x.flip) {
     y.flip = function () {
-      const flipSequence = flipFactory(x)
-      flipSequence.reverse = () => x.flip()
-      return flipSequence
+      const y = flip(x)
+      y.reverse = () => x.flip()
+      return y
     }
   }
   y.get = (key, notSetValue) => x.get(useKeys ? key : -1 - key, notSetValue)
@@ -214,67 +283,6 @@ export function reverseFactory(x, useKeys) {
     })
   }
   return y
-}
-
-export function filterFactory(x, f, context, useKeys) {
-  const y = makeSequence(x)
-  if (useKeys) {
-    y.has = key => {
-      const v = x.get(key, qu.NOT_SET)
-      return v !== qu.NOT_SET && !!f.call(context, v, key, x)
-    }
-    y.get = (key, notSetValue) => {
-      const v = x.get(key, qu.NOT_SET)
-      return v !== qu.NOT_SET && f.call(context, v, key, x) ? v : notSetValue
-    }
-  }
-  y.__iterateUncached = function (fn, reverse: boolean) {
-    let iterations = 0
-    x.__iterate((v, k, c) => {
-      if (f.call(context, v, k, c)) {
-        iterations++
-        return fn(v, useKeys ? k : iterations - 1, this)
-      }
-    }, reverse)
-    return iterations
-  }
-  y.__iteratorUncached = function (type, reverse: boolean) {
-    const iterator = x.__iterator(qu.ITERATE_ENTRIES, reverse)
-    let iterations = 0
-    return new qu.Iter(() => {
-      while (true) {
-        const step = iterator.next()
-        if (step.done) {
-          return step
-        }
-        const entry = step.value
-        const key = entry[0]
-        const value = entry[1]
-        if (f.call(context, value, key, x)) {
-          return qu.Iter.value(type, useKeys ? key : iterations++, value, step)
-        }
-      }
-    })
-  }
-  return y
-}
-
-export function countByFactory(x, grouper, context) {
-  const y = Map().asMutable()
-  x.__iterate((v, k) => {
-    y.update(grouper.call(context, v, k, x), 0, a => a + 1)
-  })
-  return y.asImmutable()
-}
-
-export function groupByFactory(x, grouper, context) {
-  const isKeyedIter = qu.isKeyed(x)
-  const y = (qu.isOrdered(x) ? OrderedMap() : Map()).asMutable()
-  x.__iterate((v, k) => {
-    y.update(grouper.call(context, v, k, x), a => ((a = a || []), a.push(isKeyedIter ? [k, v] : v), a))
-  })
-  const coerce = collectionClass(x)
-  return y.map(arr => reify(x, coerce(arr))).asImmutable()
 }
 
 export function sliceFactory(x, begin, end, useKeys) {
@@ -407,37 +415,6 @@ export function skipWhileFactory(x, f, ctx, useKeys) {
       return type === qu.ITERATE_ENTRIES ? step : qu.Iter.value(type, k, v, step)
     })
   }
-  return y
-}
-
-export function concatFactory(x, values) {
-  const isKeyed = qu.isKeyed(x)
-  const iters = [x]
-    .concat(values)
-    .map(v => {
-      if (!qu.isCollection(v)) {
-        v = isKeyed ? seqKeyedFrom(v) : seqIndexedFrom(Array.isArray(v) ? v : [v])
-      } else if (isKeyed) v = new Collection.Keyed(v)
-      return v
-    })
-    .filter(v => v.size !== 0)
-  if (iters.length === 0) return x
-  if (iters.length === 1) {
-    const singleton = iters[0]
-    if (singleton === x || (isKeyed && qu.isKeyed(singleton)) || (qu.isIndexed(x) && qu.isIndexed(singleton))) {
-      return singleton
-    }
-  }
-  let y = new ArraySeq(iters)
-  if (isKeyed) y = y.toSeq.Keyed()
-  else if (!qu.isIndexed(x)) y = y.toSeq.Set()
-  y = y.flatten(true)
-  y.size = iters.reduce((sum, seq) => {
-    if (sum !== undefined) {
-      const size = seq.size
-      if (size !== undefined) return sum + size
-    }
-  }, 0)
   return y
 }
 
@@ -594,10 +571,6 @@ export function zipWithFactory(keyIter, zipper, iters, zipAll) {
     })
   }
   return y
-}
-
-export function reify(iter, seq) {
-  return iter === seq ? iter : qu.isSeq(iter) ? seq : iter.constructor(seq)
 }
 
 function validateEntry(x) {

@@ -12,46 +12,46 @@ export const IS_SEQ_SYMBOL = "@@__IMMUTABLE_SEQ__@@"
 export const IS_SET_SYMBOL = "@@__IMMUTABLE_SET__@@"
 export const IS_STACK_SYMBOL = "@@__IMMUTABLE_STACK__@@"
 
-export function isAssociative(x: unknown): x is qt.Collection.Keyed<unknown, unknown> | qt.Collection.Indexed<unknown> {
+export function isAssociative<K, V>(x: unknown): x is qt.Collection.Keyed<K, V> | qt.Collection.Indexed<V> {
   return isKeyed(x) || isIndexed(x)
 }
-export function isCollection(x: any): x is qt.Collection<unknown, unknown> {
+export function isCollection<K, V>(x: any): x is qt.Collection<K, V> {
   return Boolean(x && x[IS_COLLECTION_SYMBOL])
 }
-export function isImmutable(x: unknown): x is qt.Collection<unknown, unknown> {
+export function isImmutable<K, V>(x: unknown): x is qt.Collection<K, V> {
   return isCollection(x) || isRecord(x)
 }
-export function isIndexed(x: any): x is qt.Collection.Indexed<unknown> {
+export function isIndexed<V>(x: any): x is qt.Collection.Indexed<V> {
   return Boolean(x && x[IS_INDEXED_SYMBOL])
 }
-export function isKeyed(x: any): x is qt.Collection.Keyed<unknown, unknown> {
+export function isKeyed<K, V>(x: any): x is qt.Collection.Keyed<K, V> {
   return Boolean(x && x[IS_KEYED_SYMBOL])
 }
-export function isList(x: any): x is qt.List<unknown> {
+export function isList<V>(x: any): x is qt.List<V> {
   return Boolean(x && x[IS_LIST_SYMBOL])
 }
-export function isMap(x: any): x is qt.Map<unknown, unknown> {
+export function isMap<K, V>(x: any): x is qt.Map<K, V> {
   return Boolean(x && x[IS_MAP_SYMBOL])
 }
 export function isOrdered(x: any): boolean {
   return Boolean(x && x[IS_ORDERED_SYMBOL])
 }
-export function isOrderedMap(x: unknown): x is qt.OrderedMap<unknown, unknown> {
+export function isOrderedMap<K, V>(x: unknown): x is qt.OrderedMap<K, V> {
   return isMap(x) && isOrdered(x)
 }
-export function isOrderedSet(x: unknown): x is qt.OrderedSet<unknown> {
+export function isOrderedSet<V>(x: unknown): x is qt.OrderedSet<V> {
   return isSet(x) && isOrdered(x)
 }
 export function isRecord(x: any): x is qt.Record<{}> {
   return Boolean(x && x[IS_RECORD_SYMBOL])
 }
-export function isSeq(x: any): x is qt.Seq.Indexed<unknown> | qt.Seq.Keyed<unknown, unknown> | qt.Seq.Set<unknown> {
+export function isSeq<K, V>(x: any): x is qt.Seq.Indexed<V> | qt.Seq.Keyed<K, V> | qt.Seq.Set<V> {
   return Boolean(x && x[IS_SEQ_SYMBOL])
 }
-export function isSet(x: any): x is qt.Set<unknown> {
+export function isSet<V>(x: any): x is qt.Set<V> {
   return Boolean(x && x[IS_SET_SYMBOL])
 }
-export function isStack(x: any): x is qt.Stack<unknown> {
+export function isStack<V>(x: any): x is qt.Stack<V> {
   return Boolean(x && x[IS_STACK_SYMBOL])
 }
 export function isValueObject(x: any): x is qt.ValueObject {

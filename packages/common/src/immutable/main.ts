@@ -6,9 +6,18 @@ import * as qf from "./functions.js"
 import * as qo from "./operations.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
-import { number } from "../pattern/main.js"
 
-export class Collection<K = unknown, V = unknown> implements qt.Collection<K, V> {
+abstract class Base {
+  __toStringMapper = qu.quoteString
+  __iterate(f: Function, reverse?: boolean): number {
+    return
+  }
+  __iterator(m: qu.Iter.Mode, reverse?: boolean): qu.Iter {
+    return
+  }
+}
+
+export class Collection<K, V> extends Base implements qt.Collection<K, V> {
   static isAssociative = qu.isAssociative
   static isIndexed = qu.isIndexed
   static isKeyed = qu.isKeyed
@@ -31,14 +40,18 @@ export class Collection<K = unknown, V = unknown> implements qt.Collection<K, V>
     return this.slice(0, -1)
   }
   concat(...xs: unknown[]) {
-    return qo.reify(this, qo.concatFactory(this, xs))
+    return qo.reify(this, qo.concat(this, xs))
   }
   contains = this.includes
   count(f?: Function, ctx?: unknown): number {
     return qu.ensureSize(f ? this.toSeq().filter(f, ctx) : this)
   }
   countBy(f: Function, ctx?: unknown) {
-    return qo.countByFactory(this, f, ctx)
+    const y = Map.create().asMutable()
+    this.__iterate((v, k) => {
+      y.update(f.call(ctx, v, k, this), 0, x => x + 1)
+    })
+    return y.asImmutable()
   }
   entries() {
     return this.__iterator(qu.ITERATE_ENTRIES)
@@ -63,8 +76,8 @@ export class Collection<K = unknown, V = unknown> implements qt.Collection<K, V>
     })
     return y
   }
-  filter(f: Function, ctx?: unknown): any {
-    return qo.reify(this, qo.filterFactory(this, f, ctx, true))
+  filter(f: Function, ctx?: unknown) {
+    return qo.reify(this, qo.filter(this, f, ctx, true))
   }
   filterNot(f: Function, ctx?: unknown) {
     return this.filter(not(f), ctx)
@@ -110,14 +123,20 @@ export class Collection<K = unknown, V = unknown> implements qt.Collection<K, V>
     return this.__iterate(ctx ? f.bind(ctx) : f)
   }
   fromEntrySeq() {
-    return new qo.FromEntriesSequence(this)
+    return new qo.FromEntrySeq(this)
   }
   get(k: unknown, v0?: unknown) {
     return this.find((_, x) => qu.is(x, k), undefined, v0)
   }
   getIn = (x: any, v0?: unknown) => qf.getIn(this, x, v0)
   groupBy(f: Function, ctx?: unknown) {
-    return qo.groupByFactory(this, f, ctx)
+    const isKeyed = qu.isKeyed(this)
+    const y = (qu.isOrdered(this) ? OrderedMap.create() : Map.create()).asMutable()
+    this.__iterate((v, k) => {
+      y.update(f.call(ctx, v, k, this), x => ((x = x || []), x.push(isKeyed ? [k, v] : v), x))
+    })
+    const coerce = collectionClass(this)
+    return y.map(x => qo.reify(this, coerce(x))).asImmutable()
   }
   has(k: unknown) {
     return this.get(k, qu.NOT_SET) !== qu.NOT_SET
@@ -295,7 +314,6 @@ export class Collection<K = unknown, V = unknown> implements qt.Collection<K, V>
     if (this.size === 0) return head + tail
     return head + " " + this.toSeq().map(this.__toStringMapper).join(", ") + " " + tail
   }
-  __toStringMapper = qu.quoteString
 }
 
 export namespace Collection {
@@ -308,7 +326,7 @@ export namespace Collection {
     [Symbol.iterator] = this.entries;
     [qu.IS_KEYED_SYMBOL] = true
     flip() {
-      return qo.reify(this, qo.flipFactory(this))
+      return qo.reify(this, qo.flip(this))
     }
     mapEntries(f: Function, ctx?: unknown) {
       let i = 0
@@ -343,7 +361,7 @@ export namespace Collection {
       return new qo.ToSeqKeyed(this, false)
     }
     override filter(f: Function, ctx?: unknown) {
-      return qo.reify(this, qo.filterFactory(this, f, ctx, false))
+      return qo.reify<number, V>(this, qo.filter(this, f, ctx, false))
     }
     findIndex(f: Function, ctx?: unknown) {
       const y = this.findEntry(f, ctx)
@@ -459,7 +477,6 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
   }
 
   [qu.IS_SEQ_SYMBOL] = true
-  override size?: number | undefined = undefined
 
   override toSeq() {
     return this
@@ -470,11 +487,11 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
   cacheResult() {
     if (!this._cache && this.__iterateUncached) {
       this._cache = this.entrySeq().toArray()
-      this.size = this._cache?.length
+      this.size = this._cache!.length
     }
     return this
   }
-  __iterate(f: Function, reverse: boolean) {
+  override __iterate(f: Function, reverse: boolean) {
     const xs = this._cache
     if (xs) {
       const n = xs.length
@@ -487,7 +504,7 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
     }
     return this.__iterateUncached(f, reverse)
   }
-  __iterator(m: qu.Iter.Mode, reverse: boolean) {
+  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
     const xs = this._cache
     if (xs) {
       const n = xs.length
@@ -840,7 +857,7 @@ function defaultNegComparator(a, b) {
   return a < b ? 1 : a > b ? -1 : 0
 }
 
-function hashCollection(x: Collection) {
+function hashCollection<K, V>(x: Collection<K, V>) {
   if (x.size === Infinity) return 0
   const ordered = qu.isOrdered(x)
   const keyed = qu.isKeyed(x)
@@ -848,24 +865,24 @@ function hashCollection(x: Collection) {
   const n = x.__iterate(
     keyed
       ? ordered
-        ? (v, k) => {
+        ? (v: V, k: K) => {
             y = (31 * y + qu.mergeHash(qu.hash(v), qu.hash(k))) | 0
           }
-        : (v, k) => {
+        : (v: V, k: K) => {
             y = (y + qu.mergeHash(qu.hash(v), qu.hash(k))) | 0
           }
       : ordered
-      ? v => {
+      ? (v: V) => {
           y = (31 * y + qu.hash(v)) | 0
         }
-      : v => {
+      : (v: V) => {
           y = (y + qu.hash(v)) | 0
         }
   )
   return qu.murmurHash(n, y)
 }
 
-let EMPTY_SEQ
+let EMPTY_SEQ: Seq
 
 function emptySeq() {
   return EMPTY_SEQ || (EMPTY_SEQ = new ArraySeq([]))
@@ -969,7 +986,6 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
   }
   clear() {
     if (this.size === 0) return this
-
     if (this.__owner) {
       this.size = 0
       this._head = undefined
