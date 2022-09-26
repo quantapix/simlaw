@@ -121,22 +121,22 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
     if (qu.wholeSlice(begin, end, size)) return this
     return setListBounds(this, qu.resolveBegin(begin, size), qu.resolveEnd(end, size))
   }
-  __iterator(type, reverse) {
-    let index = reverse ? this.size : 0
-    const values = iterateList(this, reverse)
-    return new qu.Iterator(() => {
-      const value = values()
-      return value === DONE ? qu.iteratorDone() : qu.iteratorValue(type, reverse ? --index : index++, value)
-    })
-  }
-  __iterate(fn, reverse) {
-    let index = reverse ? this.size : 0
-    const values = iterateList(this, reverse)
-    let value
-    while ((value = values()) !== DONE) {
-      if (fn(value, reverse ? --index : index++, this) === false) break
+  __iterate(f: Function, reverse: boolean) {
+    let i = reverse ? this.size : 0
+    const ys = iterateList(this, reverse)
+    let y
+    while ((y = ys()) !== DONE) {
+      if (f(y, reverse ? --i : i++, this) === false) break
     }
-    return index
+    return i
+  }
+  __iterator(m: qu.Iter.Mode, reverse: boolean) {
+    let i = reverse ? this.size : 0
+    const ys = iterateList(this, reverse)
+    return new qu.Iter(() => {
+      const y = ys()
+      return y === DONE ? qu.Iter.done() : qu.Iter.value(m, reverse ? --i : i++, y)
+    })
   }
   __ensureOwner(x) {
     if (x === this.__owner) return this
@@ -215,17 +215,17 @@ class VNode {
 
 const DONE = {}
 
-function iterateList(list, reverse) {
-  const left = list._origin
-  const right = list._capacity
+function iterateList(x, reverse: boolean) {
+  const left = x._origin
+  const right = x._capacity
   const tailPos = getTailOffset(right)
-  const tail = list._tail
-  return iterateNodeOrLeaf(list._root, list._level, 0)
-  function iterateNodeOrLeaf(node, level, offset) {
-    return level === 0 ? iterateLeaf(node, offset) : iterateNode(node, level, offset)
+  const tail = x._tail
+  return doOne(x._root, x._level, 0)
+  function doOne(x, level, offset) {
+    return level === 0 ? doLeaf(x, offset) : doNode(x, level, offset)
   }
-  function iterateLeaf(node, offset) {
-    const array = offset === tailPos ? tail && tail.array : node && node.array
+  function doLeaf(x, offset) {
+    const array = offset === tailPos ? tail && tail.array : x && x.array
     let from = offset > left ? 0 : left - offset
     let to = right - offset
     if (to > qu.SIZE) to = qu.SIZE
@@ -235,9 +235,9 @@ function iterateList(list, reverse) {
       return array && array[idx]
     }
   }
-  function iterateNode(node, level, offset) {
+  function doNode(x, level, offset) {
     let values
-    const array = node && node.array
+    const array = x && x.array
     let from = offset > left ? 0 : (left - offset) >> level
     let to = ((right - offset) >> level) + 1
     if (to > qu.SIZE) to = qu.SIZE
@@ -250,7 +250,7 @@ function iterateList(list, reverse) {
         }
         if (from === to) return DONE
         const idx = reverse ? --to : from++
-        values = iterateNodeOrLeaf(array && array[idx], level - qu.SHIFT, offset + (idx << level))
+        values = doOne(array && array[idx], level - qu.SHIFT, offset + (idx << level))
       }
     }
   }

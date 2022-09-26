@@ -57,41 +57,63 @@ export function isStack(x: any): x is qt.Stack<unknown> {
 export function isValueObject(x: any): x is qt.ValueObject {
   return Boolean(x && typeof x.equals === "function" && typeof x.hashCode === "function")
 }
+export function isIterator(x: any) {
+  return Boolean(x && typeof x.next === "function")
+}
+export function isArrayLike(x: any) {
+  if (Array.isArray(x) || typeof x === "string") return true
+  return Boolean(
+    x &&
+      typeof x === "object" &&
+      Number.isInteger(x.length) &&
+      x.length >= 0 &&
+      (x.length === 0 ? Object.keys(x).length === 1 : x.hasOwnProperty(x.length - 1))
+  )
+}
+export function isDataStructure(x: unknown) {
+  return typeof x === "object" && (isImmutable(x) || Array.isArray(x) || isPlain(x))
+}
 
 export const ITERATE_KEYS = 0
 export const ITERATE_VALUES = 1
 export const ITERATE_ENTRIES = 2
 
-export class Iterator {
-  KEYS = ITERATE_KEYS
-  VALUES = ITERATE_VALUES
-  ENTRIES = ITERATE_ENTRIES;
+export class Iter {
   [Symbol.iterator] = () => this
   constructor(public next: unknown) {}
-  toSource = () => this.toString()
-  inspect = this.toSource
   toString() {
     return "[Iterator]"
   }
+  toSource() {
+    return this.toString()
+  }
+  inspect = this.toSource
 }
 
-export function iteratorValue(type, k, v, y) {
-  const value = type === 0 ? k : type === 1 ? v : [k, v]
-  y ? (y.value = value) : (y = { value, done: false })
-  return y
-}
+export namespace Iter {
+  export const enum Mode {
+    KEYS,
+    VALUES,
+    ENTRIES,
+  }
 
-export function iteratorDone() {
-  return { value: undefined, done: true }
+  export interface Result {
+    value: unknown
+    done: boolean
+  }
+  export function value(m: Mode, k: unknown, v: unknown, y?: Result) {
+    const value = m === Mode.KEYS ? k : m === Mode.VALUES ? v : [k, v]
+    y ? (y.value = value) : (y = { value, done: false })
+    return y
+  }
+  export function done() {
+    return { value: undefined, done: true } as Result
+  }
 }
 
 export function hasIterator(x: unknown) {
   if (Array.isArray(x)) return true
   return !!getIteratorFn(x)
-}
-
-export function isIterator(x: any) {
-  return x && typeof x.next === "function"
 }
 
 export function getIterator(x: unknown) {
@@ -101,7 +123,8 @@ export function getIterator(x: unknown) {
 
 function getIteratorFn(x: any) {
   const f = x && x[Symbol.iterator]
-  if (typeof f === "function") return f
+  if (typeof f === "function") return f as Function
+  return
 }
 
 export function isEntriesIterable(x: any) {
@@ -187,33 +210,19 @@ export function invariant(cond: unknown, x: any) {
   if (!cond) throw new Error(x)
 }
 
-export function isArrayLike(x: any) {
-  if (Array.isArray(x) || typeof x === "string") return true
-  return (
-    x &&
-    typeof x === "object" &&
-    Number.isInteger(x.length) &&
-    x.length >= 0 &&
-    (x.length === 0 ? Object.keys(x).length === 1 : x.hasOwnProperty(x.length - 1))
-  )
-}
-
-export function isDataStructure(x: unknown) {
-  return typeof x === "object" && (isImmutable(x) || Array.isArray(x) || isPlainObject(x))
-}
-
 const toString = Object.prototype.toString
-export function isPlainObject(x: unknown) {
+
+function isPlain(x: unknown) {
   if (!x || typeof x !== "object" || toString.call(x) !== "[object Object]") return false
   const proto = Object.getPrototypeOf(x)
   if (proto === null) return true
-  let p = proto
-  let next = Object.getPrototypeOf(proto)
-  while (next !== null) {
-    p = next
-    next = Object.getPrototypeOf(p)
+  let p0 = proto
+  let p = Object.getPrototypeOf(proto)
+  while (p !== null) {
+    p0 = p
+    p = Object.getPrototypeOf(p0)
   }
-  return p === proto
+  return p0 === proto
 }
 
 export function mixin(ctor, methods) {
@@ -351,7 +360,7 @@ function fromJSWith(stack, converter, value, key, keyPath, parentValue) {
   if (
     typeof value !== "string" &&
     !isImmutable(value) &&
-    (isArrayLike(value) || hasIterator(value) || isPlainObj(value))
+    (isArrayLike(value) || hasIterator(value) || isPlain(value))
   ) {
     if (~stack.indexOf(value)) {
       throw new TypeError("Cannot convert circular structure to Immutable")
@@ -377,26 +386,14 @@ function defaultConverter(k, v) {
 
 const defaultValueOf = Object.prototype.valueOf
 
-let weakMap: any
-const usingWeakMap = typeof WeakMap === "function"
-if (usingWeakMap) weakMap = new WeakMap()
-const symbolMap = Object.create(null)
-let _objHashUID = 0
-const UID_HASH_KEY = "__immutablehash__"
-const STRING_HASH_CACHE_MIN_STRLEN = 16
-const STRING_HASH_CACHE_MAX_SIZE = 255
-let STRING_HASH_CACHE_SIZE = 0
-let stringHashCache: any = {}
-
-const isExtensible = Object.isExtensible
-const canDefineProp = (() => {
-  try {
-    Object.defineProperty({}, "@", {})
-    return true
-  } catch (e) {
-    return false
-  }
-})()
+const symMap = Object.create(null)
+let theHash = 0
+const objMap = new WeakMap()
+const HASH_KEY = "__immutablehash__"
+const MIN_LEN = 16
+const MAX_SIZE = 255
+let strMap: any = {}
+let MAP_SIZE = 0
 
 function smi(x: number) {
   return ((x >>> 1) & 0x40000000) | (x & 0xbfffffff)
@@ -413,7 +410,7 @@ export function hash(x: any): number {
     case "number":
       return numHash(y)
     case "string":
-      return y.length > STRING_HASH_CACHE_MIN_STRLEN ? cached(y) : strHash(y)
+      return y.length > MIN_LEN ? cached(y) : strHash(y)
     case "object":
     case "function":
       return objHash(y)
@@ -437,15 +434,15 @@ export function hash(x: any): number {
     return smi(y)
   }
   function cached(x: string) {
-    let y = stringHashCache[x]
+    let y = strMap[x]
     if (y === undefined) {
       y = strHash(x)
-      if (STRING_HASH_CACHE_SIZE === STRING_HASH_CACHE_MAX_SIZE) {
-        STRING_HASH_CACHE_SIZE = 0
-        stringHashCache = {}
+      if (MAP_SIZE === MAX_SIZE) {
+        MAP_SIZE = 0
+        strMap = {}
       }
-      STRING_HASH_CACHE_SIZE++
-      stringHashCache[x] = y
+      MAP_SIZE++
+      strMap[x] = y
     }
     return y
   }
@@ -457,63 +454,25 @@ export function hash(x: any): number {
     return smi(y)
   }
   function nextHash() {
-    const y = ++_objHashUID
-    if (_objHashUID & 0x40000000) _objHashUID = 0
+    const y = ++theHash
+    if (theHash & 0x40000000) theHash = 0
     return y
   }
   function symHash(x: symbol) {
-    let y = symbolMap[x]
+    let y = symMap[x]
     if (y !== undefined) return y
     y = nextHash()
-    symbolMap[x] = y
+    symMap[x] = y
     return y
   }
   function objHash(x: any) {
-    let y
-    if (usingWeakMap) {
-      y = weakMap.get(x)
-      if (y !== undefined) return y
-    }
-    y = x[UID_HASH_KEY]
+    let y = objMap.get(x)
     if (y !== undefined) return y
-    if (!canDefineProp) {
-      y = x.propertyIsEnumerable && x.propertyIsEnumerable[UID_HASH_KEY]
-      if (y !== undefined) return y
-      y = nodeHash(x)
-      if (y !== undefined) return y
-    }
+    y = x[HASH_KEY]
+    if (y !== undefined) return y
     y = nextHash()
-    if (usingWeakMap) weakMap.set(x, y)
-    else if (isExtensible !== undefined && isExtensible(x) === false) {
-      throw new Error("Non-extensible objects are not allowed as keys.")
-    } else if (canDefineProp) {
-      Object.defineProperty(x, UID_HASH_KEY, {
-        enumerable: false,
-        configurable: false,
-        writable: false,
-        value: y,
-      })
-    } else if (
-      x.propertyIsEnumerable !== undefined &&
-      x.propertyIsEnumerable === x.constructor.prototype.propertyIsEnumerable
-    ) {
-      x.propertyIsEnumerable = function (...xs: any[]) {
-        return this.constructor.prototype.propertyIsEnumerable.apply(this, xs)
-      }
-      x.propertyIsEnumerable[UID_HASH_KEY] = y
-    } else if (x.nodeType !== undefined) x[UID_HASH_KEY] = y
-    else throw new Error("Unable to set a non-enumerable property on object.")
+    objMap.set(x, y)
     return y
-  }
-  function nodeHash(x: any) {
-    if (x && x.nodeType > 0) {
-      switch (x.nodeType) {
-        case 1:
-          return x.uniqueID
-        case 9:
-          return x.documentElement && x.documentElement.uniqueID
-      }
-    }
   }
 }
 

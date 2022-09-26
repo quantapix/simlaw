@@ -48,7 +48,7 @@ export interface Collection<K = unknown, V = unknown> {
   isSuperset(x: Iterable<V>): boolean
   join(separator?: string): string
   keyOf(v: V): K | undefined
-  keys(): IterableIterator<K>
+  _keys(): IterableIterator<K>
   keySeq(): Seq.Indexed<K>
   last<T = undefined>(v0?: T): V | T
   lastKeyOf(v: V): K | undefined

@@ -76,17 +76,17 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
       })
     })
   }
-  __iterator(type, reverse) {
-    return new MapIterator(this, type, reverse)
-  }
-  __iterate(fn, reverse) {
-    let iterations = 0
+  __iterate(f: Function, reverse: boolean) {
+    let i = 0
     this._root &&
-      this._root.iterate(entry => {
-        iterations++
-        return fn(entry[1], entry[0], this)
+      this._root.iterate(x => {
+        i++
+        return f(x[1], x[0], this)
       }, reverse)
-    return iterations
+    return i
+  }
+  __iterator(m: qu.Iter.Mode, reverse: boolean) {
+    return new MapIterator(this, m, reverse)
   }
   __ensureOwner(owner) {
     if (owner === this.__owner) return this
@@ -330,7 +330,7 @@ class ValueNode {
   }
 }
 
-class MapIterator extends qu.Iterator {
+class MapIterator extends qu.Iter {
   constructor(map, type, reverse) {
     this._type = type
     this._reverse = reverse
@@ -361,12 +361,12 @@ class MapIterator extends qu.Iterator {
       }
       stack = this._stack = this._stack.__prev
     }
-    return qu.iteratorDone()
+    return qu.Iter.done()
   }
 }
 
 function mapIteratorValue(type, entry) {
-  return qu.iteratorValue(type, entry[0], entry[1])
+  return qu.Iter.value(type, entry[0], entry[1])
 }
 
 function mapIteratorFrame(node, prev) {
