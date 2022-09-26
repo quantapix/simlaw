@@ -7,7 +7,7 @@ export interface ValueObject {
   hashCode(): number
 }
 
-export interface Collection<K, V> {
+export interface Collection<K = unknown, V = unknown> {
   [Symbol.iterator](): IterableIterator<unknown>
   readonly size: number | undefined
   butLast(): this
@@ -96,7 +96,7 @@ export interface Collection<K, V> {
 }
 
 export namespace Collection {
-  export interface Keyed<K, V> extends Collection<K, V> {
+  export interface Keyed<K = unknown, V = unknown> extends Collection<K, V> {
     [Symbol.iterator](): IterableIterator<[K, V]>
     concat<K2, V2>(...xs: Array<Iterable<[K2, V2]>>): Collection.Keyed<K | K2, V | V2>
     concat<T>(...xs: Array<Dict<T>>): Collection.Keyed<K | string, V | T>
@@ -115,7 +115,7 @@ export namespace Collection {
     toJSON(): Dict<V>
     toSeq(): Seq.Keyed<K, V>
   }
-  export interface Indexed<V> extends Collection<number, V> {
+  export interface Indexed<V = unknown> extends Collection<number, V> {
     [Symbol.iterator](): IterableIterator<V>
     concat<T>(...xs: Array<Iterable<T> | T>): Collection.Indexed<V | T>
     filter(f: (v: V, i: number, iter: this) => unknown, ctx?: unknown): this
@@ -150,7 +150,7 @@ export namespace Collection {
     zipWith<T, U>(f: (v: V, x: T) => U, x: Collection<unknown, T>): Collection.Indexed<U>
     zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Collection.Indexed<T>
   }
-  export interface Set<K> extends Collection<K, K> {
+  export interface Set<K = unknown> extends Collection<K, K> {
     [Symbol.iterator](): IterableIterator<K>
     concat<U>(...xs: Array<Iterable<U>>): Collection.Set<K | U>
     filter(f: (v: K, k: K, iter: this) => unknown, ctx?: unknown): this

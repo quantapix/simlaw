@@ -52,7 +52,7 @@ export class Record<T extends object> implements qt.Record<T> {
           } else setProp(RecordTypePrototype, propName)
         }
       }
-      this.__ownerID = undefined
+      this.__owner = undefined
       this._values = List().withMutations(l => {
         l.setSize(this._keys.length)
         new Collection.Keyed(values).forEach((v, k) => {
@@ -96,7 +96,7 @@ export class Record<T extends object> implements qt.Record<T> {
   set(k, v) {
     if (this.has(k)) {
       const newValues = this._values.set(this._indices[k], v === this._defaultValues[k] ? undefined : v)
-      if (newValues !== this._values && !this.__ownerID) return makeRecord(this, newValues)
+      if (newValues !== this._values && !this.__owner) return makeRecord(this, newValues)
     }
     return this
   }
@@ -105,7 +105,7 @@ export class Record<T extends object> implements qt.Record<T> {
   }
   clear() {
     const newValues = this._values.clear().setSize(this._keys.length)
-    return this.__ownerID ? this : makeRecord(this, newValues)
+    return this.__owner ? this : makeRecord(this, newValues)
   }
   wasAltered() {
     return this._values.wasAltered()
@@ -125,17 +125,17 @@ export class Record<T extends object> implements qt.Record<T> {
   __iterate(fn, reverse) {
     return recordSeq(this).__iterate(fn, reverse)
   }
-  __ensureOwner(ownerID) {
-    if (ownerID === this.__ownerID) {
+  __ensureOwner(owner) {
+    if (owner === this.__owner) {
       return this
     }
-    const newValues = this._values.__ensureOwner(ownerID)
-    if (!ownerID) {
-      this.__ownerID = ownerID
+    const newValues = this._values.__ensureOwner(owner)
+    if (!owner) {
+      this.__owner = owner
       this._values = newValues
       return this
     }
-    return makeRecord(this, newValues, ownerID)
+    return makeRecord(this, newValues, owner)
   }
   deleteIn = qf.deleteIn
   removeIn = qf.deleteIn
@@ -173,7 +173,7 @@ export namespace Record {
 function makeRecord(likeRecord, values, owner) {
   const y = Object.create(Object.getPrototypeOf(likeRecord))
   y._values = values
-  y.__ownerID = owner
+  y.__owner = owner
   return y
 }
 
@@ -192,7 +192,7 @@ function setProp(prototype, name) {
         return this.get(name)
       },
       set: function (value) {
-        qu.invariant(this.__ownerID, "Cannot set on an immutable record.")
+        qu.invariant(this.__owner, "Cannot set on an immutable record.")
         this.set(name, value)
       },
     })

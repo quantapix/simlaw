@@ -68,7 +68,7 @@ export class Set<K> extends Collection.Set<K> implements qt.Set<K> {
   union(...iters) {
     iters = iters.filter(x => x.size !== 0)
     if (iters.length === 0) return this
-    if (this.size === 0 && !this.__ownerID && iters.length === 1) return this.constructor(iters[0])
+    if (this.size === 0 && !this.__owner && iters.length === 1) return this.constructor(iters[0])
     return this.withMutations(set => {
       for (let ii = 0; ii < iters.length; ii++) {
         SetCollection(iters[ii]).forEach(value => set.add(value))
@@ -116,20 +116,20 @@ export class Set<K> extends Collection.Set<K> implements qt.Set<K> {
   __iterator(type, reverse) {
     return this._map.__iterator(type, reverse)
   }
-  __ensureOwner(ownerID) {
-    if (ownerID === this.__ownerID) {
+  __ensureOwner(owner) {
+    if (owner === this.__owner) {
       return this
     }
-    const newMap = this._map.__ensureOwner(ownerID)
-    if (!ownerID) {
+    const newMap = this._map.__ensureOwner(owner)
+    if (!owner) {
       if (this.size === 0) {
         return this.__empty()
       }
-      this.__ownerID = ownerID
+      this.__owner = owner
       this._map = newMap
       return this
     }
-    return this.__make(newMap, ownerID)
+    return this.__make(newMap, owner)
   }
   override concat = this.union
   merge = this.union
@@ -148,7 +148,7 @@ export class Set<K> extends Collection.Set<K> implements qt.Set<K> {
 }
 
 function updateSet(set, newMap) {
-  if (set.__ownerID) {
+  if (set.__owner) {
     set.size = newMap.size
     set._map = newMap
     return set
@@ -160,7 +160,7 @@ function makeSet(map, owner) {
   const y = Object.create(Set.prototype)
   y.size = map ? map.size : 0
   y._map = map
-  y.__ownerID = owner
+  y.__owner = owner
   return y
 }
 

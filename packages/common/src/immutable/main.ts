@@ -6,8 +6,9 @@ import * as qf from "./functions.js"
 import * as qo from "./operations.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
+import { number } from "../pattern/main.js"
 
-export class Collection<K, V> implements qt.Collection<K, V> {
+export class Collection<K = unknown, V = unknown> implements qt.Collection<K, V> {
   static isAssociative = qu.isAssociative
   static isIndexed = qu.isIndexed
   static isKeyed = qu.isKeyed
@@ -23,7 +24,8 @@ export class Collection<K, V> implements qt.Collection<K, V> {
 
   [qu.IS_COLLECTION_SYMBOL] = true;
   [Symbol.iterator] = this.values
-  readonly size: number | undefined
+  readonly size?: number | undefined
+  _cache?: any[]
 
   butLast() {
     return this.slice(0, -1)
@@ -32,10 +34,10 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return qo.reify(this, qo.concatFactory(this, xs))
   }
   contains = this.includes
-  count(f?: unknown, ctx?: unknown): number {
+  count(f?: Function, ctx?: unknown): number {
     return qu.ensureSize(f ? this.toSeq().filter(f, ctx) : this)
   }
-  countBy(f: unknown, ctx?: unknown) {
+  countBy(f: Function, ctx?: unknown) {
     return qo.countByFactory(this, f, ctx)
   }
   entries() {
@@ -50,7 +52,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   equals(x: unknown) {
     return qu.deepEqual(this, x)
   }
-  every(f: any, ctx?: unknown) {
+  every(f: Function, ctx?: unknown) {
     qu.assertNotInfinite(this.size)
     let y = true
     this.__iterate((v, k, c) => {
@@ -61,17 +63,17 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     })
     return y
   }
-  filter(f: unknown, ctx?: unknown): any {
+  filter(f: Function, ctx?: unknown): any {
     return qo.reify(this, qo.filterFactory(this, f, ctx, true))
   }
-  filterNot(f: unknown, ctx?: unknown) {
+  filterNot(f: Function, ctx?: unknown) {
     return this.filter(not(f), ctx)
   }
-  find(f: unknown, ctx?: unknown, v0?: unknown) {
+  find(f: Function, ctx?: unknown, v0?: unknown) {
     const y = this.findEntry(f, ctx)
     return y ? y[1] : v0
   }
-  findEntry(f: any, ctx?: unknown, v0?: V) {
+  findEntry(f: Function, ctx?: unknown, v0?: V) {
     let y = v0
     this.__iterate((v, k, c) => {
       if (f.call(ctx, v, k, c)) {
@@ -81,23 +83,23 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     })
     return y
   }
-  findKey(f: unknown, ctx?: unknown) {
+  findKey(f: Function, ctx?: unknown) {
     const y = this.findEntry(f, ctx)
     return y && y[0]
   }
-  findLast(f: unknown, ctx?: unknown, v0?: unknown) {
+  findLast(f: Function, ctx?: unknown, v0?: unknown) {
     return this.toSeqKeyed().reverse().find(f, ctx, v0)
   }
-  findLastEntry(f: unknown, ctx?: unknown, v0?: unknown) {
+  findLastEntry(f: Function, ctx?: unknown, v0?: unknown) {
     return this.toSeqKeyed().reverse().findEntry(f, ctx, v0)
   }
-  findLastKey(f: unknown, ctx?: unknown) {
+  findLastKey(f: Function, ctx?: unknown) {
     return this.toSeqKeyed().reverse().findKey(f, ctx)
   }
   first(v0?: unknown) {
     return this.find(qu.returnTrue, null, v0)
   }
-  flatMap(f: unknown, ctx?: unknown) {
+  flatMap(f: Function, ctx?: unknown) {
     return qo.reify(this, qo.flatMapFactory(this, f, ctx))
   }
   flatten(depth?: number) {
@@ -114,7 +116,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return this.find((_, x) => qu.is(x, k), undefined, v0)
   }
   getIn = (x: any, v0?: unknown) => qf.getIn(this, x, v0)
-  groupBy(f: unknown, ctx?: unknown) {
+  groupBy(f: Function, ctx?: unknown) {
     return qo.groupByFactory(this, f, ctx)
   }
   has(k: unknown) {
@@ -164,25 +166,25 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   lastKeyOf(v: unknown) {
     return this.toSeqKeyed().reverse().keyOf(v)
   }
-  map(f: unknown, ctx?: unknown) {
+  map(f: Function, ctx?: unknown) {
     return qo.reify(this, qo.mapFactory(this, f, ctx))
   }
   max(c?: unknown) {
     return qo.maxFactory(this, c)
   }
-  maxBy(f: unknown, c?: unknown) {
+  maxBy(f: Function, c?: unknown) {
     return qo.maxFactory(this, c, f)
   }
   min(c?: unknown) {
     return qo.maxFactory(this, c ? neg(c) : defaultNegComparator)
   }
-  minBy(f: unknown, c?: unknown) {
+  minBy(f: Function, c?: unknown) {
     return qo.maxFactory(this, c ? neg(c) : defaultNegComparator, f)
   }
-  reduce(f: unknown, y0?: unknown, ctx?: unknown) {
+  reduce(f: Function, y0?: unknown, ctx?: unknown) {
     return reduce(this, f, y0, ctx, arguments.length < 2, false)
   }
-  reduceRight(f: unknown, y0?: unknown, ctx?: unknown) {
+  reduceRight(f: Function, y0?: unknown, ctx?: unknown) {
     return reduce(this, f, y0, ctx, arguments.length < 2, true)
   }
   rest() {
@@ -197,22 +199,22 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   skipLast(x: number) {
     return x === 0 ? this : this.slice(0, -Math.max(0, x))
   }
-  skipUntil(f: unknown, ctx?: unknown) {
+  skipUntil(f: Function, ctx?: unknown) {
     return this.skipWhile(not(f), ctx)
   }
-  skipWhile(f: unknown, ctx?: unknown) {
+  skipWhile(f: Function, ctx?: unknown) {
     return qo.reify(this, qo.skipWhileFactory(this, f, ctx, true))
   }
   slice(beg?: number, end?: number): this {
     return qo.reify(this, qo.sliceFactory(this, beg, end, true))
   }
-  some(f: unknown, ctx?: unknown) {
+  some(f: Function, ctx?: unknown) {
     return !this.every(not(f), ctx)
   }
   sort(c?: unknown) {
     return qo.reify(this, qo.sortFactory(this, c))
   }
-  sortBy(f: unknown, c?: unknown) {
+  sortBy(f: Function, c?: unknown) {
     return qo.reify(this, qo.sortFactory(this, c, f))
   }
   take(x: number) {
@@ -221,10 +223,10 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   takeLast(x: number) {
     return this.slice(-Math.max(0, x))
   }
-  takeUntil(f: unknown, ctx?: unknown) {
+  takeUntil(f: Function, ctx?: unknown) {
     return this.takeWhile(not(f), ctx)
   }
-  takeWhile(f: unknown, ctx?: unknown) {
+  takeWhile(f: Function, ctx?: unknown) {
     return qo.reify(this, qo.takeWhileFactory(this, f, ctx))
   }
   toArray() {
@@ -275,7 +277,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   toString() {
     return "[Collection]"
   }
-  update(f: any) {
+  update(f: Function) {
     return f(this)
   }
   values(): IterableIterator<V> {
@@ -308,7 +310,7 @@ export namespace Collection {
     flip() {
       return qo.reify(this, qo.flipFactory(this))
     }
-    mapEntries(f: any, ctx?: unknown) {
+    mapEntries(f: Function, ctx?: unknown) {
       let i = 0
       return qo.reify(
         this,
@@ -317,7 +319,7 @@ export namespace Collection {
           .fromEntrySeq()
       )
     }
-    mapKeys(f: any, ctx?: unknown) {
+    mapKeys(f: Function, ctx?: unknown) {
       return qo.reify(
         this,
         this.toSeq()
@@ -340,10 +342,10 @@ export namespace Collection {
     override toSeqKeyed() {
       return new qo.ToSeqKeyed(this, false)
     }
-    override filter(f: unknown, ctx?: unknown) {
+    override filter(f: Function, ctx?: unknown) {
       return qo.reify(this, qo.filterFactory(this, f, ctx, false))
     }
-    findIndex(f: unknown, ctx?: unknown) {
+    findIndex(f: Function, ctx?: unknown) {
       const y = this.findEntry(f, ctx)
       return y ? y[0] : -1
     }
@@ -369,7 +371,7 @@ export namespace Collection {
       const spliced = this.slice(0, index)
       return qo.reify(this, numArgs === 1 ? spliced : spliced.concat(qu.arrCopy(x, 2), this.slice(index + removeNum)))
     }
-    findLastIndex(f: unknown, ctx?: unknown) {
+    findLastIndex(f: Function, ctx?: unknown) {
       const y = this.findLastEntry(f, ctx)
       return y ? y[0] : -1
     }
@@ -405,7 +407,7 @@ export namespace Collection {
     override last(v0?: unknown) {
       return this.get(-1, v0)
     }
-    override skipWhile(f: unknown, ctx?: unknown) {
+    override skipWhile(f: Function, ctx?: unknown) {
       return qo.reify(this, qo.skipWhileFactory(this, f, ctx, false))
     }
     zip(...xs: unknown[]) {
@@ -416,7 +418,7 @@ export namespace Collection {
       const ys = [this].concat(qu.arrCopy(xs))
       return qo.reify(this, qo.zipWithFactory(this, defaultZipper, ys, true))
     }
-    zipWith(f: unknown, ...xs: unknown[]) {
+    zipWith(f: Function, ...xs: unknown[]) {
       const ys = qu.arrCopy(xs)
       ys[0] = this
       return qo.reify(this, qo.zipWithFactory(this, f, ys))
@@ -457,6 +459,7 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
   }
 
   [qu.IS_SEQ_SYMBOL] = true
+  override size?: number | undefined = undefined
 
   override toSeq() {
     return this
@@ -467,11 +470,11 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
   cacheResult() {
     if (!this._cache && this.__iterateUncached) {
       this._cache = this.entrySeq().toArray()
-      this.size = this._cache.length
+      this.size = this._cache?.length
     }
     return this
   }
-  __iterate(f: any, reverse: boolean) {
+  __iterate(f: Function, reverse: boolean) {
     const xs = this._cache
     if (xs) {
       const size = xs.length
@@ -555,6 +558,10 @@ export namespace Seq {
   }
 }
 
+qu.mixin(Seq.Keyed, Collection.Keyed.prototype)
+qu.mixin(Seq.Indexed, Collection.Indexed.prototype)
+qu.mixin(Seq.Set, Collection.Set.prototype)
+
 export class ArraySeq<V> extends Seq.Indexed<V> {
   constructor(x) {
     super()
@@ -564,7 +571,7 @@ export class ArraySeq<V> extends Seq.Indexed<V> {
   get(i, v0) {
     return this.has(i) ? this._array[qu.wrapIndex(this, i)] : v0
   }
-  __iterate(f: any, reverse: boolean) {
+  __iterate(f: Function, reverse: boolean) {
     const array = this._array
     const size = array.length
     let i = 0
@@ -657,10 +664,6 @@ class CollectionSeq<V> extends Seq.Indexed<V> {
     })
   }
 }
-
-qu.mixin(Seq.Keyed, Collection.Keyed.prototype)
-qu.mixin(Seq.Indexed, Collection.Indexed.prototype)
-qu.mixin(Seq.Set, Collection.Set.prototype)
 
 export class Range<V> extends Seq.Indexed<V> {
   static override create(beg?: number, end?: number, step?: number): Seq.Indexed<number> {
@@ -820,13 +823,13 @@ function entryMapper(v, k) {
   return [k, v]
 }
 
-function not(f: any, ...xs: unknown[]) {
+function not(f: Function, ...xs: unknown[]) {
   return function () {
     return !f.apply(this, ...xs)
   }
 }
 
-function neg(f: any, ...xs: unknown[]) {
+function neg(f: Function, ...xs: unknown[]) {
   return function () {
     return -f.apply(this, ...xs)
   }
@@ -840,46 +843,29 @@ function defaultNegComparator(a, b) {
   return a < b ? 1 : a > b ? -1 : 0
 }
 
-function hashCollection(collection) {
-  if (collection.size === Infinity) {
-    return 0
-  }
-  const ordered = qu.isOrdered(collection)
-  const keyed = qu.isKeyed(collection)
-  let h = ordered ? 1 : 0
-  const size = collection.__iterate(
+function hashCollection(x: Collection) {
+  if (x.size === Infinity) return 0
+  const ordered = qu.isOrdered(x)
+  const keyed = qu.isKeyed(x)
+  let y = ordered ? 1 : 0
+  const size = x.__iterate(
     keyed
       ? ordered
         ? (v, k) => {
-            h = (31 * h + hashMerge(qu.hash(v), qu.hash(k))) | 0
+            y = (31 * y + qu.mergeHash(qu.hash(v), qu.hash(k))) | 0
           }
         : (v, k) => {
-            h = (h + hashMerge(qu.hash(v), qu.hash(k))) | 0
+            y = (y + qu.mergeHash(qu.hash(v), qu.hash(k))) | 0
           }
       : ordered
       ? v => {
-          h = (31 * h + qu.hash(v)) | 0
+          y = (31 * y + qu.hash(v)) | 0
         }
       : v => {
-          h = (h + qu.hash(v)) | 0
+          y = (y + qu.hash(v)) | 0
         }
   )
-  return murmurHashOfSize(size, h)
-}
-
-function murmurHashOfSize(size, h) {
-  h = qu.imul(h, 0xcc9e2d51)
-  h = qu.imul((h << 15) | (h >>> -15), 0x1b873593)
-  h = qu.imul((h << 13) | (h >>> -13), 5)
-  h = ((h + 0xe6546b64) | 0) ^ size
-  h = qu.imul(h ^ (h >>> 16), 0x85ebca6b)
-  h = qu.imul(h ^ (h >>> 13), 0xc2b2ae35)
-  h = qu.smi(h ^ (h >>> 16))
-  return h
-}
-
-function hashMerge(a, b) {
-  return (a ^ (b + 0x9e3779b9 + (a << 6) + (a >> 2))) | 0 // int
+  return qu.murmurHash(size, y)
 }
 
 let EMPTY_SEQ
@@ -949,7 +935,7 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
         next: head,
       }
     }
-    if (this.__ownerID) {
+    if (this.__owner) {
       this.size = newSize
       this._head = head
       this.__hash = undefined
@@ -972,7 +958,7 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
         next: head,
       }
     }, true)
-    if (this.__ownerID) {
+    if (this.__owner) {
       this.size = newSize
       this._head = head
       this.__hash = undefined
@@ -987,7 +973,7 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
   clear() {
     if (this.size === 0) return this
 
-    if (this.__ownerID) {
+    if (this.__owner) {
       this.size = 0
       this._head = undefined
       this.__hash = undefined
@@ -1009,7 +995,7 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
     while (resolvedBegin--) {
       head = head.next
     }
-    if (this.__ownerID) {
+    if (this.__owner) {
       this.size = newSize
       this._head = head
       this.__hash = undefined
@@ -1018,15 +1004,15 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
     }
     return makeStack(newSize, head)
   }
-  __ensureOwner(ownerID) {
-    if (ownerID === this.__ownerID) return this
-    if (!ownerID) {
+  __ensureOwner(owner) {
+    if (owner === this.__owner) return this
+    if (!owner) {
       if (this.size === 0) return emptyStack()
-      this.__ownerID = ownerID
+      this.__owner = owner
       this.__altered = false
       return this
     }
-    return makeStack(this.size, this._head, ownerID, this.__hash)
+    return makeStack(this.size, this._head, owner, this.__hash)
   }
   __iterate(fn, reverse) {
     if (reverse) return new ArraySeq(this.toArray()).__iterate((v, k) => fn(v, k, this), reverse)
@@ -1067,11 +1053,11 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
   }
 }
 
-function makeStack(size, head, ownerID, hash) {
+function makeStack(size, head, owner, hash) {
   const y = Object.create(Stack.prototype)
   y.size = size
   y._head = head
-  y.__ownerID = ownerID
+  y.__owner = owner
   y.__hash = hash
   y.__altered = false
   return y

@@ -58,11 +58,11 @@ export function mergeDeepWith<T>(
   return mergeDeepWithSources(x, xs, f)
 }
 
-export function mergeDeepWithSources(x: unknown, xs: unknown, f?: any) {
+export function mergeDeepWithSources(x: unknown, xs: unknown, f?: Function) {
   return mergeWithSources(x, xs, deepMergerWith(f))
 }
 
-export function mergeWithSources(x: any, xs: any, f?: any) {
+export function mergeWithSources(x: any, xs: any, f?: Function) {
   if (!qu.isDataStructure(x)) throw new TypeError("Cannot merge into non-data-structure value: " + x)
   if (qu.isImmutable(x))
     return typeof f === "function" && x.mergeWith ? x.mergeWith(f, ...xs) : x.merge ? x.merge(...xs) : x.concat(...xs)
@@ -88,7 +88,7 @@ export function mergeWithSources(x: any, xs: any, f?: any) {
   return y
 }
 
-function deepMergerWith(f: any) {
+function deepMergerWith(f: Function) {
   function y(old: unknown, x: unknown, k: unknown) {
     return qu.isDataStructure(old) && qu.isDataStructure(x) && areMergeable(old, x)
       ? mergeWithSources(old, [x], y)
@@ -174,16 +174,16 @@ export function update(x: unknown, k: unknown, v0: unknown, f?: (x: unknown) => 
 
 export function updateIn<T>(x: T, xs: Iterable<unknown>, f: (x: unknown) => unknown): T
 export function updateIn<T>(x: T, xs: Iterable<unknown>, v0: unknown, f?: (x: unknown) => unknown): T
-export function updateIn(x: unknown, xs: unknown, v0: unknown, f?: unknown) {
+export function updateIn(x: unknown, xs: unknown, v0: unknown, f?: Function) {
   if (!f) {
-    f = v0
+    f = v0 as Function
     v0 = undefined
   }
   const y = updateInDeeply(qu.isImmutable(x), x, qu.coerceKeyPath(xs), 0, v0, f)
   return y === qu.NOT_SET ? v0 : y
 }
 
-function updateInDeeply(isImmutable: boolean, x: any, xs: any, i: number, v0: unknown, f: any): any {
+function updateInDeeply(isImmutable: boolean, x: any, xs: any, i: number, v0: unknown, f: Function): any {
   const notSet = x === qu.NOT_SET
   if (i === xs.length) {
     const x2 = notSet ? v0 : x
@@ -205,7 +205,7 @@ export function asImmutable(this: any) {
 }
 
 export function asMutable(this: any) {
-  return this.__ownerID ? this : this.__ensureOwner(new qu.OwnerID())
+  return this.__owner ? this : this.__ensureOwner(new qu.OwnerID())
 }
 
 export function deleteIn(this: any, x) {
@@ -219,7 +219,7 @@ export function mergeIntoKeyedWith(x: any, xs: any, f?: Function) {
     if (y.size !== 0) ys.push(y)
   }
   if (ys.length === 0) return x
-  if (x.toSeq().size === 0 && !x.__ownerID && ys.length === 1) return x.constructor(ys[0])
+  if (x.toSeq().size === 0 && !x.__owner && ys.length === 1) return x.constructor(ys[0])
   return x.withMutations(x2 => {
     const mergeIntoCollection = f
       ? (v, k) => {
@@ -258,5 +258,5 @@ export function wasAltered(this: any) {
 export function withMutations(this: any, f: Function) {
   const y = this.asMutable()
   f(y)
-  return y.wasAltered() ? y.__ensureOwner(this.__ownerID) : this
+  return y.wasAltered() ? y.__ensureOwner(this.__owner) : this
 }

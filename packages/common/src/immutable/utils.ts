@@ -244,19 +244,8 @@ export function shallowCopy(x: any) {
 
 export const hasOwnProperty = Object.hasOwnProperty
 
-export const imul =
-  typeof Math.imul === "function" && Math.imul(0xffffffff, 2) === -2
-    ? Math.imul
-    : function imul(a: number, b: number) {
-        a |= 0
-        b |= 0
-        const c = a & 0xffff
-        const d = b & 0xffff
-        return (c * d + ((((a >>> 16) * d + c * (b >>> 16)) << 16) >>> 0)) | 0
-      }
-
-export function smi(i32: number) {
-  return ((i32 >>> 1) & 0x40000000) | (i32 & 0xbfffffff)
+function valueOf(x: any) {
+  return x.valueOf !== defaultValueOf && typeof x.valueOf === "function" ? x.valueOf(x) : x
 }
 
 export function is(a: any, b: any) {
@@ -399,113 +388,8 @@ const STRING_HASH_CACHE_MAX_SIZE = 255
 let STRING_HASH_CACHE_SIZE = 0
 let stringHashCache: any = {}
 
-export function hash(x: any): number {
-  if (x == null) return hashNullish(x)
-  if (typeof x.hashCode === "function") return smi(x.hashCode(x))
-  const y = valueOf(x)
-  if (y == null) return hashNullish(y)
-  switch (typeof y) {
-    case "boolean":
-      return y ? 0x42108421 : 0x42108420
-    case "number":
-      return hashNumber(y)
-    case "string":
-      return y.length > STRING_HASH_CACHE_MIN_STRLEN ? cachedHashString(y) : hashString(y)
-    case "object":
-    case "function":
-      return hashJSObj(y)
-    case "symbol":
-      return hashSymbol(y)
-    default:
-      if (typeof y.toString === "function") return hashString(y.toString())
-      throw new Error("Value type " + typeof y + " cannot be hashed.")
-  }
-}
-
-function hashNullish(x?: null) {
-  return x === null ? 0x42108422 : 0x42108423
-}
-
-function hashNumber(x: number) {
-  if (x !== x || x === Infinity) return 0
-  let hash = x | 0
-  if (hash !== x) hash ^= x * 0xffffffff
-  while (x > 0xffffffff) {
-    x /= 0xffffffff
-    hash ^= x
-  }
-  return smi(hash)
-}
-function cachedHashString(x) {
-  let y = stringHashCache[x]
-  if (y === undefined) {
-    y = hashString(x)
-    if (STRING_HASH_CACHE_SIZE === STRING_HASH_CACHE_MAX_SIZE) {
-      STRING_HASH_CACHE_SIZE = 0
-      stringHashCache = {}
-    }
-    STRING_HASH_CACHE_SIZE++
-    stringHashCache[x] = y
-  }
-  return y
-}
-function hashString(x: string) {
-  let y = 0
-  for (let ii = 0; ii < x.length; ii++) {
-    y = (31 * y + x.charCodeAt(ii)) | 0
-  }
-  return smi(y)
-}
-
-function hashSymbol(x: symbol) {
-  let y = symbolMap[x]
-  if (y !== undefined) return y
-  y = nextHash()
-  symbolMap[x] = y
-  return y
-}
-
-function hashJSObj(x) {
-  let y
-  if (usingWeakMap) {
-    y = weakMap.get(x)
-    if (y !== undefined) return y
-  }
-  y = x[UID_HASH_KEY]
-  if (y !== undefined) return y
-  if (!canDefineProperty) {
-    y = x.propertyIsEnumerable && x.propertyIsEnumerable[UID_HASH_KEY]
-    if (y !== undefined) return y
-    y = getIENodeHash(x)
-    if (y !== undefined) return y
-  }
-  y = nextHash()
-  if (usingWeakMap) weakMap.set(x, y)
-  else if (isExtensible !== undefined && isExtensible(x) === false) {
-    throw new Error("Non-extensible objects are not allowed as keys.")
-  } else if (canDefineProperty) {
-    Object.defineProperty(x, UID_HASH_KEY, {
-      enumerable: false,
-      configurable: false,
-      writable: false,
-      value: y,
-    })
-  } else if (
-    x.propertyIsEnumerable !== undefined &&
-    x.propertyIsEnumerable === x.constructor.prototype.propertyIsEnumerable
-  ) {
-    x.propertyIsEnumerable = function () {
-      return this.constructor.prototype.propertyIsEnumerable.apply(this, arguments)
-    }
-    x.propertyIsEnumerable[UID_HASH_KEY] = y
-  } else if (x.nodeType !== undefined) x[UID_HASH_KEY] = y
-  else throw new Error("Unable to set a non-enumerable property on object.")
-  return y
-}
-
 const isExtensible = Object.isExtensible
-
-const canDefineProperty = (function () {
+const canDefineProp = (() => {
   try {
     Object.defineProperty({}, "@", {})
     return true
@@ -514,23 +398,146 @@ const canDefineProperty = (function () {
   }
 })()
 
-function getIENodeHash(node) {
-  if (node && node.nodeType > 0) {
-    switch (node.nodeType) {
-      case 1:
-        return node.uniqueID
-      case 9:
-        return node.documentElement && node.documentElement.uniqueID
+function smi(x: number) {
+  return ((x >>> 1) & 0x40000000) | (x & 0xbfffffff)
+}
+
+export function hash(x: any): number {
+  if (x == null || x == undefined) return nullHash(x)
+  if (typeof x.hashCode === "function") return smi(x.hashCode(x))
+  const y = valueOf(x)
+  if (y == null) return nullHash(y)
+  switch (typeof y) {
+    case "boolean":
+      return y ? 0x42108421 : 0x42108420
+    case "number":
+      return numHash(y)
+    case "string":
+      return y.length > STRING_HASH_CACHE_MIN_STRLEN ? cached(y) : strHash(y)
+    case "object":
+    case "function":
+      return objHash(y)
+    case "symbol":
+      return symHash(y)
+    default:
+      if (typeof y.toString === "function") return strHash(y.toString())
+      throw new Error("Value type " + typeof y + " cannot be hashed.")
+  }
+  function nullHash(x?: null) {
+    return x === null ? 0x42108422 : 0x42108423
+  }
+  function numHash(x: number) {
+    if (x !== x || x === Infinity) return 0
+    let y = x | 0
+    if (y !== x) y ^= x * 0xffffffff
+    while (x > 0xffffffff) {
+      x /= 0xffffffff
+      y ^= x
+    }
+    return smi(y)
+  }
+  function cached(x: string) {
+    let y = stringHashCache[x]
+    if (y === undefined) {
+      y = strHash(x)
+      if (STRING_HASH_CACHE_SIZE === STRING_HASH_CACHE_MAX_SIZE) {
+        STRING_HASH_CACHE_SIZE = 0
+        stringHashCache = {}
+      }
+      STRING_HASH_CACHE_SIZE++
+      stringHashCache[x] = y
+    }
+    return y
+  }
+  function strHash(x: string) {
+    let y = 0
+    for (let i = 0; i < x.length; i++) {
+      y = (31 * y + x.charCodeAt(i)) | 0
+    }
+    return smi(y)
+  }
+  function nextHash() {
+    const y = ++_objHashUID
+    if (_objHashUID & 0x40000000) _objHashUID = 0
+    return y
+  }
+  function symHash(x: symbol) {
+    let y = symbolMap[x]
+    if (y !== undefined) return y
+    y = nextHash()
+    symbolMap[x] = y
+    return y
+  }
+  function objHash(x: any) {
+    let y
+    if (usingWeakMap) {
+      y = weakMap.get(x)
+      if (y !== undefined) return y
+    }
+    y = x[UID_HASH_KEY]
+    if (y !== undefined) return y
+    if (!canDefineProp) {
+      y = x.propertyIsEnumerable && x.propertyIsEnumerable[UID_HASH_KEY]
+      if (y !== undefined) return y
+      y = nodeHash(x)
+      if (y !== undefined) return y
+    }
+    y = nextHash()
+    if (usingWeakMap) weakMap.set(x, y)
+    else if (isExtensible !== undefined && isExtensible(x) === false) {
+      throw new Error("Non-extensible objects are not allowed as keys.")
+    } else if (canDefineProp) {
+      Object.defineProperty(x, UID_HASH_KEY, {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: y,
+      })
+    } else if (
+      x.propertyIsEnumerable !== undefined &&
+      x.propertyIsEnumerable === x.constructor.prototype.propertyIsEnumerable
+    ) {
+      x.propertyIsEnumerable = function (...xs: any[]) {
+        return this.constructor.prototype.propertyIsEnumerable.apply(this, xs)
+      }
+      x.propertyIsEnumerable[UID_HASH_KEY] = y
+    } else if (x.nodeType !== undefined) x[UID_HASH_KEY] = y
+    else throw new Error("Unable to set a non-enumerable property on object.")
+    return y
+  }
+  function nodeHash(x: any) {
+    if (x && x.nodeType > 0) {
+      switch (x.nodeType) {
+        case 1:
+          return x.uniqueID
+        case 9:
+          return x.documentElement && x.documentElement.uniqueID
+      }
     }
   }
 }
 
-function valueOf(x: any) {
-  return x.valueOf !== defaultValueOf && typeof x.valueOf === "function" ? x.valueOf(x) : x
+export function mergeHash(a: number, b: number) {
+  return (a ^ (b + 0x9e3779b9 + (a << 6) + (a >> 2))) | 0
 }
 
-function nextHash() {
-  const y = ++_objHashUID
-  if (_objHashUID & 0x40000000) _objHashUID = 0
+export function murmurHash(x: number, y: number) {
+  const imul =
+    typeof Math.imul === "function" && Math.imul(0xffffffff, 2) === -2
+      ? Math.imul
+      : (a: number, b: number) => {
+          a |= 0
+          b |= 0
+          const c = a & 0xffff
+          const d = b & 0xffff
+          return (c * d + ((((a >>> 16) * d + c * (b >>> 16)) << 16) >>> 0)) | 0
+        }
+  y = imul(y, 0xcc9e2d51)
+  y = imul((y << 15) | (y >>> -15), 0x1b873593)
+  y = imul((y << 13) | (y >>> -13), 5)
+  y = ((y + 0xe6546b64) | 0) ^ x
+  y = imul(y ^ (y >>> 16), 0x85ebca6b)
+  y = imul(y ^ (y >>> 13), 0xc2b2ae35)
+  y = smi(y ^ (y >>> 16))
   return y
 }

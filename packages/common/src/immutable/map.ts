@@ -54,7 +54,7 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
   }
   clear() {
     if (this.size === 0) return this
-    if (this.__ownerID) {
+    if (this.__owner) {
       this.size = 0
       this._root = null
       this.__hash = undefined
@@ -88,15 +88,15 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
       }, reverse)
     return iterations
   }
-  __ensureOwner(ownerID) {
-    if (ownerID === this.__ownerID) return this
-    if (!ownerID) {
+  __ensureOwner(owner) {
+    if (owner === this.__owner) return this
+    if (!owner) {
       if (this.size === 0) return emptyMap()
-      this.__ownerID = ownerID
+      this.__owner = owner
       this.__altered = false
       return this
     }
-    return makeMap(this.size, this._root, ownerID, this.__hash)
+    return makeMap(this.size, this._root, owner, this.__hash)
   }
   concat = this.merge
   removeAll = this.deleteAll
@@ -302,7 +302,7 @@ class HashCollisionNode {
 }
 
 class ValueNode {
-  constructor(public ownerID, public keyHash, public entry) {}
+  constructor(public owner, public keyHash, public entry) {}
   get(shift, keyHash, key, notSetValue) {
     return qu.is(key, this.entry[0]) ? this.entry[1] : notSetValue
   }
@@ -316,7 +316,7 @@ class ValueNode {
       return
     }
     if (keyMatch) {
-      if (owner && owner === this.ownerID) {
+      if (owner && owner === this.owner) {
         this.entry[1] = value
         return this
       }
@@ -373,11 +373,11 @@ function mapIteratorFrame(node, prev) {
   return { node, index: 0, __prev: prev }
 }
 
-function makeMap(size, root, ownerID, hash) {
+function makeMap(size, root, owner, hash) {
   const y = Object.create(MapPrototype)
   y.size = size
   y._root = root
-  y.__ownerID = ownerID
+  y.__owner = owner
   y.__hash = hash
   y.__altered = false
   return y
@@ -395,15 +395,15 @@ function updateMap(x, k, v) {
   if (!x._root) {
     if (v === qu.NOT_SET) return x
     size = 1
-    root = new ArrayMapNode(x.__ownerID, [[k, v]])
+    root = new ArrayMapNode(x.__owner, [[k, v]])
   } else {
     const didChangeSize = qu.MakeRef()
     const didAlter = qu.MakeRef()
-    root = updateNode(x._root, x.__ownerID, 0, undefined, k, v, didChangeSize, didAlter)
+    root = updateNode(x._root, x.__owner, 0, undefined, k, v, didChangeSize, didAlter)
     if (!didAlter.value) return x
     size = x.size + (didChangeSize.value ? (v === qu.NOT_SET ? -1 : 1) : 0)
   }
-  if (x.__ownerID) {
+  if (x.__owner) {
     x.size = size
     x._root = root
     x.__hash = undefined
@@ -413,14 +413,14 @@ function updateMap(x, k, v) {
   return root ? makeMap(size, root) : emptyMap()
 }
 
-function updateNode(x, ownerID, shift, keyHash, key, value, didChangeSize, didAlter) {
+function updateNode(x, owner, shift, keyHash, key, value, didChangeSize, didAlter) {
   if (!x) {
     if (value === qu.NOT_SET) return x
     qu.SetRef(didAlter)
     qu.SetRef(didChangeSize)
-    return new ValueNode(ownerID, keyHash, [key, value])
+    return new ValueNode(owner, keyHash, [key, value])
   }
-  return x.update(ownerID, shift, keyHash, key, value, didChangeSize, didAlter)
+  return x.update(owner, shift, keyHash, key, value, didChangeSize, didAlter)
 }
 
 function isLeafNode(x) {

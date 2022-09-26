@@ -38,7 +38,7 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
     if (this.size === 0) {
       return this
     }
-    if (this.__ownerID) {
+    if (this.__owner) {
       this.size = 0
       this._map.clear()
       this._list.clear()
@@ -59,32 +59,32 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
   override __iterator(type, reverse) {
     return this._list.fromEntrySeq().__iterator(type, reverse)
   }
-  override __ensureOwner(ownerID) {
-    if (ownerID === this.__ownerID) {
+  override __ensureOwner(owner) {
+    if (owner === this.__owner) {
       return this
     }
-    const newMap = this._map.__ensureOwner(ownerID)
-    const newList = this._list.__ensureOwner(ownerID)
-    if (!ownerID) {
+    const newMap = this._map.__ensureOwner(owner)
+    const newList = this._list.__ensureOwner(owner)
+    if (!owner) {
       if (this.size === 0) {
         return emptyOrderedMap()
       }
-      this.__ownerID = ownerID
+      this.__owner = owner
       this.__altered = false
       this._map = newMap
       this._list = newList
       return this
     }
-    return makeOrderedMap(newMap, newList, ownerID, this.__hash)
+    return makeOrderedMap(newMap, newList, owner, this.__hash)
   }
 }
 
-function makeOrderedMap(map, list, ownerID, hash) {
+function makeOrderedMap(map, list, owner, hash) {
   const omap = Object.create(OrderedMap.prototype)
   omap.size = map ? map.size : 0
   omap._map = map
   omap._list = list
-  omap.__ownerID = ownerID
+  omap.__owner = owner
   omap.__hash = hash
   omap.__altered = false
   return omap
@@ -112,7 +112,7 @@ function updateOrderedMap(omap, k, v) {
         .map(entry => entry[0])
         .flip()
         .toMap()
-      if (omap.__ownerID) newMap.__ownerID = newList.__ownerID = omap.__ownerID
+      if (omap.__owner) newMap.__owner = newList.__owner = omap.__owner
     } else {
       newMap = map.remove(k)
       newList = i === list.size - 1 ? list.pop() : list.set(i, undefined)
@@ -125,7 +125,7 @@ function updateOrderedMap(omap, k, v) {
     newMap = map.set(k, list.size)
     newList = list.set(list.size, [k, v])
   }
-  if (omap.__ownerID) {
+  if (omap.__owner) {
     omap.size = newMap.size
     omap._map = newMap
     omap._list = newList
@@ -172,11 +172,11 @@ export class OrderedSet<K> extends Set<K> implements qt.OrderedSet<K> {
   override __make = makeOrderedSet
 }
 
-function makeOrderedSet(map, ownerID) {
+function makeOrderedSet(map, owner) {
   const y = Object.create(OrderedSet.prototype)
   y.size = map ? map.size : 0
   y._map = map
-  y.__ownerID = ownerID
+  y.__owner = owner
   return y
 }
 

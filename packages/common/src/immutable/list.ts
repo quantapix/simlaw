@@ -60,7 +60,7 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
     if (this.size === 0) {
       return this
     }
-    if (this.__ownerID) {
+    if (this.__owner) {
       this.size = this._origin = this._capacity = 0
       this._level = qu.SHIFT
       this._root = this._tail = this.__hash = undefined
@@ -101,7 +101,7 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
       if (seq.size !== 0) ys.push(seq)
     }
     if (ys.length === 0) return this
-    if (this.size === 0 && !this.__ownerID && ys.length === 1) return this.constructor(ys[0])
+    if (this.size === 0 && !this.__owner && ys.length === 1) return this.constructor(ys[0])
     return this.withMutations(list => {
       ys.forEach(seq => seq.forEach(value => list.push(value)))
     })
@@ -138,15 +138,15 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
     }
     return index
   }
-  __ensureOwner(ownerID) {
-    if (ownerID === this.__ownerID) return this
-    if (!ownerID) {
+  __ensureOwner(x) {
+    if (x === this.__owner) return this
+    if (!x) {
       if (this.size === 0) return emptyList()
-      this.__ownerID = ownerID
+      this.__owner = x
       this.__altered = false
       return this
     }
-    return makeList(this._origin, this._capacity, this._level, this._root, this._tail, ownerID, this.__hash)
+    return makeList(this._origin, this._capacity, this._level, this._root, this._tail, x, this.__hash)
   }
   merge = this.concat
   setIn = (x: any, v: unknown) => qf.setIn(this, x, v)
@@ -171,23 +171,23 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
 }
 
 class VNode {
-  constructor(array, ownerID) {
+  constructor(array, owner) {
     this.array = array
-    this.ownerID = ownerID
+    this.owner = owner
   }
-  removeBefore(ownerID, level, index) {
+  removeBefore(owner, level, index) {
     if (index === level ? 1 << level : 0 || this.array.length === 0) return this
     const originIndex = (index >>> level) & qu.MASK
-    if (originIndex >= this.array.length) return new VNode([], ownerID)
+    if (originIndex >= this.array.length) return new VNode([], owner)
     const removingFirst = originIndex === 0
     let newChild
     if (level > 0) {
       const oldChild = this.array[originIndex]
-      newChild = oldChild && oldChild.removeBefore(ownerID, level - qu.SHIFT, index)
+      newChild = oldChild && oldChild.removeBefore(owner, level - qu.SHIFT, index)
       if (newChild === oldChild && removingFirst) return this
     }
     if (removingFirst && !newChild) return this
-    const editable = editableVNode(this, ownerID)
+    const editable = editableVNode(this, owner)
     if (!removingFirst) {
       for (let ii = 0; ii < originIndex; ii++) {
         editable.array[ii] = undefined
@@ -196,17 +196,17 @@ class VNode {
     if (newChild) editable.array[originIndex] = newChild
     return editable
   }
-  removeAfter(ownerID, level, index) {
+  removeAfter(owner, level, index) {
     if (index === (level ? 1 << level : 0) || this.array.length === 0) return this
     const sizeIndex = ((index - 1) >>> level) & qu.MASK
     if (sizeIndex >= this.array.length) return this
     let newChild
     if (level > 0) {
       const oldChild = this.array[sizeIndex]
-      newChild = oldChild && oldChild.removeAfter(ownerID, level - qu.SHIFT, index)
+      newChild = oldChild && oldChild.removeAfter(owner, level - qu.SHIFT, index)
       if (newChild === oldChild && sizeIndex === this.array.length - 1) return this
     }
-    const editable = editableVNode(this, ownerID)
+    const editable = editableVNode(this, owner)
     editable.array.splice(sizeIndex + 1)
     if (newChild) editable.array[sizeIndex] = newChild
     return editable
@@ -256,7 +256,7 @@ function iterateList(list, reverse) {
   }
 }
 
-function makeList(origin, capacity, level, root, tail, ownerID, hash) {
+function makeList(origin, capacity, level, root, tail, owner, hash) {
   const list = Object.create(ListPrototype)
   list.size = capacity - origin
   list._origin = origin
@@ -264,7 +264,7 @@ function makeList(origin, capacity, level, root, tail, ownerID, hash) {
   list._level = level
   list._root = root
   list._tail = tail
-  list.__ownerID = ownerID
+  list.__owner = owner
   list.__hash = hash
   list.__altered = false
   return list
@@ -288,10 +288,10 @@ function updateList(x, i, value) {
   let newTail = x._tail
   let newRoot = x._root
   const didAlter = qu.MakeRef()
-  if (i >= getTailOffset(x._capacity)) newTail = updateVNode(newTail, x.__ownerID, 0, i, value, didAlter)
-  else newRoot = updateVNode(newRoot, x.__ownerID, x._level, i, value, didAlter)
+  if (i >= getTailOffset(x._capacity)) newTail = updateVNode(newTail, x.__owner, 0, i, value, didAlter)
+  else newRoot = updateVNode(newRoot, x.__owner, x._level, i, value, didAlter)
   if (!didAlter.value) return x
-  if (x.__ownerID) {
+  if (x.__owner) {
     x._root = newRoot
     x._tail = newTail
     x.__hash = undefined
@@ -301,30 +301,30 @@ function updateList(x, i, value) {
   return makeList(x._origin, x._capacity, x._level, newRoot, newTail)
 }
 
-function updateVNode(x, ownerID, level, index, value, didAlter) {
+function updateVNode(x, owner, level, index, value, didAlter) {
   const idx = (index >>> level) & qu.MASK
   const nodeHas = x && idx < x.array.length
   if (!nodeHas && value === undefined) return x
   let y
   if (level > 0) {
     const lowerNode = x && x.array[idx]
-    const newLowerNode = updateVNode(lowerNode, ownerID, level - qu.SHIFT, index, value, didAlter)
+    const newLowerNode = updateVNode(lowerNode, owner, level - qu.SHIFT, index, value, didAlter)
     if (newLowerNode === lowerNode) return x
-    y = editableVNode(x, ownerID)
+    y = editableVNode(x, owner)
     y.array[idx] = newLowerNode
     return y
   }
   if (nodeHas && x.array[idx] === value) return x
   if (didAlter) qu.SetRef(didAlter)
-  y = editableVNode(x, ownerID)
+  y = editableVNode(x, owner)
   if (value === undefined && idx === y.array.length - 1) y.array.pop()
   else y.array[idx] = value
   return y
 }
 
-function editableVNode(x, ownerID) {
-  if (ownerID && x && ownerID === x.ownerID) return x
-  return new VNode(x ? x.array.slice() : [], ownerID)
+function editableVNode(x, owner) {
+  if (owner && x && owner === x.owner) return x
+  return new VNode(x ? x.array.slice() : [], owner)
 }
 
 function listNodeFor(x, i) {
@@ -343,7 +343,7 @@ function listNodeFor(x, i) {
 function setListBounds(list, begin, end) {
   if (begin !== undefined) begin |= 0
   if (end !== undefined) end |= 0
-  const owner = list.__ownerID || new qu.OwnerID()
+  const owner = list.__owner || new qu.OwnerID()
   let oldOrigin = list._origin
   let oldCapacity = list._capacity
   let newOrigin = oldOrigin + begin
@@ -409,7 +409,7 @@ function setListBounds(list, begin, end) {
       newCapacity -= offsetShift
     }
   }
-  if (list.__ownerID) {
+  if (list.__owner) {
     list.size = newCapacity - newOrigin
     list._origin = newOrigin
     list._capacity = newCapacity
