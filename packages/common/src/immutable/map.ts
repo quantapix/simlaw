@@ -1,6 +1,5 @@
 import { Collection } from "./main.js"
 import { OrderedMap } from "./ordered.js"
-import { sortFactory } from "./operations.js"
 import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
@@ -17,7 +16,7 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
   }
 
   static override create<K, V>(x?: Iterable<[K, V]>): Map<K, V>
-  static override create<V>(x: Dict<V>): Map<string, V>
+  static override create<V>(x: qt.Dict<V>): Map<string, V>
   static override create<K extends string | symbol, V>(x: { [P in K]?: V }): Map<K, V>
   static override create(x: any): any {
     return x === undefined || x === null
@@ -36,20 +35,20 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
   override toString() {
     return this.__toString("Map {", "}")
   }
-  override get(k, notSetValue) {
-    return this._root ? this._root.get(0, undefined, k, notSetValue) : notSetValue
+  override get(k: K, v0?: unknown) {
+    return this._root ? this._root.get(0, undefined, k, v0) : v0
   }
-  set(k, v) {
+  set(k: K, v: V) {
     return updateMap(this, k, v)
   }
-  remove(k) {
+  remove(k: K) {
     return updateMap(this, k, qu.NOT_SET)
   }
-  deleteAll(keys) {
-    const collection = Collection(keys)
-    if (collection.size === 0) return this
-    return this.withMutations(map => {
-      collection.forEach(key => map.remove(key))
+  deleteAll(xs) {
+    const y = Collection.create(xs)
+    if (y.size === 0) return this
+    return this.withMutations(x => {
+      y.forEach((k: K) => x.remove(k))
     })
   }
   clear() {
@@ -63,40 +62,40 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
     }
     return emptyMap()
   }
-  override sort(comparator) {
-    return OrderedMap(sortFactory(this, comparator))
+  override sort(c?: Function) {
+    return OrderedMap.create(qc.sort(this, c))
   }
-  override sortBy(mapper, comparator) {
-    return OrderedMap(sortFactory(this, comparator, mapper))
+  override sortBy(f: Function, c?: Function) {
+    return OrderedMap.create(qc.sort(this, c, f))
   }
-  override map(mapper, context) {
-    return this.withMutations(map => {
-      map.forEach((value, key) => {
-        map.set(key, mapper.call(context, value, key, this))
+  override map(f: Function, ctx?: unknown) {
+    return this.withMutations(x => {
+      x.forEach((v: V, k: K) => {
+        x.set(k, f.call(ctx, v, k, this))
       })
     })
   }
   __iterate(f: Function, reverse: boolean) {
     let i = 0
     this._root &&
-      this._root.iterate(x => {
+      this._root.iterate(([v, k]: [V, K]) => {
         i++
-        return f(x[1], x[0], this)
+        return f(v, k, this)
       }, reverse)
     return i
   }
   __iterator(m: qu.Iter.Mode, reverse: boolean) {
     return new MapIterator(this, m, reverse)
   }
-  __ensureOwner(owner) {
-    if (owner === this.__owner) return this
-    if (!owner) {
+  __ensureOwner(x) {
+    if (x === this.__owner) return this
+    if (!x) {
       if (this.size === 0) return emptyMap()
-      this.__owner = owner
+      this.__owner = x
       this.__altered = false
       return this
     }
-    return makeMap(this.size, this._root, owner, this.__hash)
+    return makeMap(this.size, this._root, x, this.__hash)
   }
   concat = this.merge
   removeAll = this.deleteAll

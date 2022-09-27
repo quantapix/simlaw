@@ -117,7 +117,7 @@ export class Record<T extends object> implements qt.Record<T> {
     return qu.toJS(this)
   }
   entries() {
-    return this.__iterator(qu.ITERATE_ENTRIES)
+    return this.__iterator(qu.Iter.Mode.ENTRIES)
   }
   __iterator(type, reverse) {
     return recordSeq(this).__iterator(type, reverse)

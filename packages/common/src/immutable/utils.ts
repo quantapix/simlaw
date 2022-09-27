@@ -74,10 +74,6 @@ export function isDataStructure(x: unknown) {
   return typeof x === "object" && (isImmutable(x) || Array.isArray(x) || isPlain(x))
 }
 
-export const ITERATE_KEYS = 0
-export const ITERATE_VALUES = 1
-export const ITERATE_ENTRIES = 2
-
 export class Iter {
   [Symbol.iterator] = () => this
   constructor(public next: unknown) {}
@@ -318,16 +314,20 @@ export function wrapIndex(x: unknown, i: any): number {
 export function returnTrue() {
   return true
 }
-export function wholeSlice(beg: number, end?: number, size?: number) {
+
+export function wholeSlice(beg?: number, end?: number, size?: number) {
   return (
-    ((beg === 0 && !isNeg(beg)) || (size !== undefined && beg <= -size)) &&
+    (beg === undefined || (beg === 0 && !isNeg(beg)) || (size !== undefined && beg <= -size)) &&
     (end === undefined || (size !== undefined && end >= size))
   )
 }
-export function resolveBegin(x: number, size: number) {
+function isNeg(x: number) {
+  return x < 0 || (x === 0 && 1 / x === -Infinity)
+}
+export function resolveBegin(x: number | undefined, size: number) {
   return resolveIndex(x, size, 0)
 }
-export function resolveEnd(x: number, size: number) {
+export function resolveEnd(x: number | undefined, size: number) {
   return resolveIndex(x, size, size)
 }
 function resolveIndex(x: number | undefined, size: number, x0: number) {
@@ -340,9 +340,6 @@ function resolveIndex(x: number | undefined, size: number, x0: number) {
     : size === undefined || size === x
     ? x
     : Math.min(size, x) | 0
-}
-function isNeg(x: number) {
-  return x < 0 || (x === 0 && 1 / x === -Infinity)
 }
 
 export function fromJS(

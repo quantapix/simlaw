@@ -1,7 +1,6 @@
 import { Collection } from "./main.js"
 import { emptyMap } from "./map.js"
 import { OrderedSet } from "./ordered.js"
-import { sortFactory } from "./operations.js"
 import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
@@ -101,11 +100,11 @@ export class Set<K> extends Collection.Set<K> implements qt.Set<K> {
       })
     })
   }
-  override sort(comparator) {
-    return OrderedSet(sortFactory(this, comparator))
+  override sort(c?: Function) {
+    return OrderedSet.create(qc.sort(this, c))
   }
-  override sortBy(mapper, comparator) {
-    return OrderedSet(sortFactory(this, comparator, mapper))
+  override sortBy(f: Function, c?: Function) {
+    return OrderedSet.create(qc.sort(this, c, f))
   }
   wasAltered() {
     return this._map.wasAltered()

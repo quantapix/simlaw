@@ -261,7 +261,7 @@ export function withMutations(this: any, f: Function) {
   return y.wasAltered() ? y.__ensureOwner(this.__owner) : this
 }
 
-export function reify<K, V>(x: Collection<K, V>, x2: unknown) {
+export function reify<K, V>(x: qt.Collection<K, V>, x2: unknown) {
   return x === x2 ? x : qu.isSeq(x) ? x2 : x.constructor(x2)
 }
 
@@ -316,7 +316,7 @@ export function filter<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown,
     return y
   }
   y.__iteratorUncached = function (m: qu.Iter.Mode, reverse?: boolean) {
-    const iter = this.__iterator(qu.ITERATE_ENTRIES, reverse)
+    const iter = this.__iterator(qu.Iter.Mode.ENTRIES, reverse)
     let n = 0
     return new qu.Iter(() => {
       while (true) {
@@ -330,7 +330,7 @@ export function filter<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown,
   return y
 }
 
-export function flip<K, V>(x: Collection<K, V>) {
+export function flip<K, V>(x: qt.Collection<K, V>) {
   const y = makeSequence(x)
   y._iter = x
   y.size = x.size
@@ -347,7 +347,7 @@ export function flip<K, V>(x: Collection<K, V>) {
     return x.__iterate((v: V, k: K) => f(k, v, this) !== false, reverse)
   }
   y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
-    if (m === qu.ITERATE_ENTRIES) {
+    if (m === qu.Iter.Mode.ENTRIES) {
       const iter = x.__iterator(m, reverse)
       return new qu.Iter(() => {
         const i = iter.next()
@@ -359,38 +359,35 @@ export function flip<K, V>(x: Collection<K, V>) {
         return i
       })
     }
-    return x.__iterator(m === qu.ITERATE_VALUES ? qu.ITERATE_KEYS : qu.ITERATE_VALUES, reverse)
+    return x.__iterator(m === qu.Iter.Mode.VALUES ? qu.Iter.Mode.KEYS : qu.Iter.Mode.VALUES, reverse)
   }
   return y
 }
 
-export function mapFactory(x, f, ctx) {
+export function map<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown) {
   const y = makeSequence(x)
   y.size = x.size
-  y.has = key => x.has(key)
-  y.get = (key, notSetValue) => {
-    const v = x.get(key, qu.NOT_SET)
-    return v === qu.NOT_SET ? notSetValue : f.call(ctx, v, key, x)
+  y.has = (k: K) => x.has(k)
+  y.get = (k: K, v0?: V) => {
+    const v = x.get(k, qu.NOT_SET)
+    return v === qu.NOT_SET ? v0 : f.call(ctx, v, k, x)
   }
-  y.__iterateUncached = function (fn, reverse: boolean) {
-    return x.__iterate((v, k, c) => fn(f.call(ctx, v, k, c), k, this) !== false, reverse)
+  y.__iterateUncached = function (f2: Function, reverse: boolean) {
+    return x.__iterate((v, k, c) => f2(f.call(ctx, v, k, c), k, this) !== false, reverse)
   }
-  y.__iteratorUncached = function (type, reverse: boolean) {
-    const iterator = x.__iterator(qu.ITERATE_ENTRIES, reverse)
+  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    const iter = x.__iterator(qu.Iter.Mode.ENTRIES, reverse)
     return new qu.Iter(() => {
-      const step = iterator.next()
-      if (step.done) {
-        return step
-      }
-      const entry = step.value
-      const key = entry[0]
-      return qu.Iter.value(type, key, f.call(ctx, entry[1], key, x), step)
+      const i = iter.next()
+      if (i.done) return i
+      const [k, v] = i.value
+      return qu.Iter.value(m, k, f.call(ctx, v, k, x), i)
     })
   }
   return y
 }
 
-export function reverseFactory(x, useKeys) {
+export function reverseFactory<K, V>(x: qt.Collection<K, V>, useKeys: boolean) {
   const y = makeSequence(x)
   y._iter = x
   y.size = x.size
@@ -402,201 +399,181 @@ export function reverseFactory(x, useKeys) {
       return y
     }
   }
-  y.get = (key, notSetValue) => x.get(useKeys ? key : -1 - key, notSetValue)
-  y.has = key => x.has(useKeys ? key : -1 - key)
-  y.includes = value => x.includes(value)
+  y.has = (k: K) => x.has(useKeys ? k : -1 - k)
+  y.get = (k: K, v0?: unknown) => x.get(useKeys ? k : -1 - k, v0)
+  y.includes = (v: V) => x.includes(v)
   y.cacheResult = cacheResult
-  y.__iterate = function (fn, reverse: boolean) {
+  y.__iterate = function (f: Function, reverse: boolean) {
     let i = 0
     reverse && qu.ensureSize(x)
-    return x.__iterate((v, k) => fn(v, useKeys ? k : reverse ? this.size - ++i : i++, this), !reverse)
+    return x.__iterate((v, k) => f(v, useKeys ? k : reverse ? this.size - ++i : i++, this), !reverse)
   }
-  y.__iterator = (type, reverse) => {
+  y.__iterator = (m: qu.Iter.Mode, reverse: boolean) => {
     let i = 0
     reverse && qu.ensureSize(x)
-    const iterator = x.__iterator(qu.ITERATE_ENTRIES, !reverse)
+    const iter = x.__iterator(qu.Iter.Mode.ENTRIES, !reverse)
     return new qu.Iter(() => {
-      const step = iterator.next()
-      if (step.done) {
-        return step
-      }
-      const entry = step.value
-      return qu.Iter.value(type, useKeys ? entry[0] : reverse ? this.size - ++i : i++, entry[1], step)
+      const i = iter.next()
+      if (i.done) return i
+      const [k, v] = i.value
+      return qu.Iter.value(m, useKeys ? k : reverse ? this.size - ++i : i++, v, i)
     })
   }
   return y
 }
 
-export function sliceFactory(x, begin, end, useKeys) {
-  const originalSize = x.size
-  if (qu.wholeSlice(begin, end, originalSize)) return x
-  const resolvedBegin = qu.resolveBegin(begin, originalSize)
-  const resolvedEnd = qu.resolveEnd(end, originalSize)
-  if (resolvedBegin !== resolvedBegin || resolvedEnd !== resolvedEnd) {
-    return sliceFactory(x.toSeq().cacheResult(), begin, end, useKeys)
-  }
-  const resolvedSize = resolvedEnd - resolvedBegin
-  let sliceSize
-  if (resolvedSize === resolvedSize) sliceSize = resolvedSize < 0 ? 0 : resolvedSize
+export function slice<K, V>(x: qt.Collection<K, V>, beg?: number, end?: number, useKeys?: boolean) {
+  const s0 = x.size!
+  if (qu.wholeSlice(beg, end, s0)) return x
+  const b2 = qu.resolveBegin(beg, s0)
+  const e2 = qu.resolveEnd(end, s0)
+  if (b2 !== b2 || e2 !== e2) return slice(x.toSeq().cacheResult(), beg, end, useKeys)
+  const s2 = e2 - b2
+  const sliceSize = s2 < 0 ? 0 : s2
   const y = makeSequence(x)
   y.size = sliceSize === 0 ? sliceSize : (x.size && sliceSize) || undefined
   if (!useKeys && qu.isSeq(x) && sliceSize >= 0) {
-    y.get = function (index, notSetValue) {
-      index = qu.wrapIndex(this, index)
-      return index >= 0 && index < sliceSize ? x.get(index + resolvedBegin, notSetValue) : notSetValue
+    y.get = function (i: number, v0: unknown) {
+      i = qu.wrapIndex(this, i)
+      return i >= 0 && i < sliceSize ? x.get(i + b2, v0) : v0
     }
   }
-  y.__iterateUncached = function (fn, reverse: boolean) {
+  y.__iterateUncached = function (f: Function, reverse: boolean) {
     if (sliceSize === 0) return 0
-    if (reverse) return this.cacheResult().__iterate(fn, reverse)
+    if (reverse) return this.cacheResult().__iterate(f, reverse)
     let skipped = 0
     let isSkipping = true
-    let iterations = 0
-    x.__iterate((v, k) => {
-      if (!(isSkipping && (isSkipping = skipped++ < resolvedBegin))) {
-        iterations++
-        return fn(v, useKeys ? k : iterations - 1, this) !== false && iterations !== sliceSize
+    let y = 0
+    x.__iterate((v: V, k: K) => {
+      if (!(isSkipping && (isSkipping = skipped++ < b2))) {
+        y++
+        return f(v, useKeys ? k : y - 1, this) !== false && y !== sliceSize
       }
+      return
     })
-    return iterations
+    return y
   }
-  y.__iteratorUncached = function (type, reverse: boolean) {
-    if (sliceSize !== 0 && reverse) return this.cacheResult().__iterator(type, reverse)
+  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    if (sliceSize !== 0 && reverse) return this.cacheResult().__iterator(m, reverse)
     if (sliceSize === 0) return new qu.Iter(qu.Iter.done)
-    const iterator = x.__iterator(type, reverse)
+    const iter = x.__iterator(m, reverse)
     let skipped = 0
-    let iterations = 0
+    let n = 0
     return new qu.Iter(() => {
-      while (skipped++ < resolvedBegin) {
-        iterator.next()
+      while (skipped++ < b2) {
+        iter.next()
       }
-      if (++iterations > sliceSize) return qu.Iter.done()
-      const step = iterator.next()
-      if (useKeys || type === qu.ITERATE_VALUES || step.done) return step
-      if (type === qu.ITERATE_KEYS) {
-        return qu.Iter.value(type, iterations - 1, undefined, step)
-      }
-      return qu.Iter.value(type, iterations - 1, step.value[1], step)
+      if (++n > sliceSize) return qu.Iter.done()
+      const i = iter.next()
+      if (useKeys || m === qu.Iter.Mode.VALUES || i.done) return i
+      if (m === qu.Iter.Mode.KEYS) return qu.Iter.value(m, n - 1, undefined, i)
+      return qu.Iter.value(m, n - 1, i.value[1], i)
     })
   }
   return y
 }
 
-export function takeWhileFactory(x, f, context) {
+export function takeWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown) {
   const y = makeSequence(x)
-  y.__iterateUncached = function (fn, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterate(fn, reverse)
-    let iterations = 0
-    x.__iterate((v, k, c) => f.call(context, v, k, c) && ++iterations && fn(v, k, this))
-    return iterations
+  y.__iterateUncached = function (f2: Function, reverse: boolean) {
+    if (reverse) return this.cacheResult().__iterate(f, reverse)
+    let y = 0
+    x.__iterate((v: V, k: K, c) => f.call(ctx, v, k, c) && ++y && f2(v, k, this))
+    return y
   }
-  y.__iteratorUncached = function (type, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterator(type, reverse)
-    const iterator = x.__iterator(qu.ITERATE_ENTRIES, reverse)
+  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    if (reverse) return this.cacheResult().__iterator(m, reverse)
+    const iter = x.__iterator(qu.Iter.Mode.ENTRIES, reverse)
     let iterating = true
     return new qu.Iter(() => {
       if (!iterating) return qu.Iter.done()
-      const step = iterator.next()
-      if (step.done) return step
-      const entry = step.value
-      const k = entry[0]
-      const v = entry[1]
-      if (!f.call(context, v, k, this)) {
+      const i = iter.next()
+      if (i.done) return i
+      const [k, v] = i.value
+      if (!f.call(ctx, v, k, this)) {
         iterating = false
         return qu.Iter.done()
       }
-      return type === qu.ITERATE_ENTRIES ? step : qu.Iter.value(type, k, v, step)
+      return m === qu.Iter.Mode.ENTRIES ? i : qu.Iter.value(m, k, v, i)
     })
   }
   return y
 }
 
-export function skipWhileFactory(x, f, ctx, useKeys) {
+export function skipWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown, useKeys?: boolean) {
   const y = makeSequence(x)
-  y.__iterateUncached = function (fn, reverse: boolean) {
-    if (reverse) {
-      return this.cacheResult().__iterate(fn, reverse)
-    }
+  y.__iterateUncached = function (f2: Function, reverse: boolean) {
+    if (reverse) return this.cacheResult().__iterate(f2, reverse)
     let isSkipping = true
-    let iterations = 0
-    x.__iterate((v, k, c) => {
+    let y = 0
+    x.__iterate((v: V, k: K, c) => {
       if (!(isSkipping && (isSkipping = f.call(ctx, v, k, c)))) {
-        iterations++
-        return fn(v, useKeys ? k : iterations - 1, this)
+        y++
+        return f2(v, useKeys ? k : y - 1, this)
       }
     })
-    return iterations
+    return y
   }
-  y.__iteratorUncached = function (type, reverse: boolean) {
-    if (reverse) {
-      return this.cacheResult().__iterator(type, reverse)
-    }
-    const iterator = x.__iterator(qu.ITERATE_ENTRIES, reverse)
+  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    if (reverse) return this.cacheResult().__iterator(m, reverse)
+    const iter = x.__iterator(qu.Iter.Mode.ENTRIES, reverse)
     let skipping = true
-    let iterations = 0
+    let n = 0
     return new qu.Iter(() => {
-      let step
-      let k
-      let v
+      let i, k, v
       do {
-        step = iterator.next()
-        if (step.done) {
-          if (useKeys || type === qu.ITERATE_VALUES) {
-            return step
-          }
-          if (type === qu.ITERATE_KEYS) {
-            return qu.Iter.value(type, iterations++, undefined, step)
-          }
-          return qu.Iter.value(type, iterations++, step.value[1], step)
+        i = iter.next()
+        if (i.done) {
+          if (useKeys || m === qu.Iter.Mode.VALUES) return i
+          if (m === qu.Iter.Mode.KEYS) return qu.Iter.value(m, n++, undefined, i)
+          return qu.Iter.value(m, n++, i.value[1], i)
         }
-        const entry = step.value
-        k = entry[0]
-        v = entry[1]
+        const [k, v] = i.value
         skipping && (skipping = f.call(ctx, v, k, this))
       } while (skipping)
-      return type === qu.ITERATE_ENTRIES ? step : qu.Iter.value(type, k, v, step)
+      return m === qu.Iter.Mode.ENTRIES ? i : qu.Iter.value(m, k, v, i)
     })
   }
   return y
 }
 
-export function flattenFactory(x, depth, useKeys) {
+export function flatten<K, V>(x: qt.Collection<K, V>, depth?: number, useKeys?: boolean) {
   const y = makeSequence(x)
-  y.__iterateUncached = function (fn, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterate(fn, reverse)
-    let iterations = 0
+  y.__iterateUncached = function (f: Function, reverse: boolean) {
+    if (reverse) return this.cacheResult().__iterate(f, reverse)
+    let y = 0
     let stopped = false
-    function flatDeep(iter, currentDepth) {
-      iter.__iterate((v, k) => {
-        if ((!depth || currentDepth < depth) && qu.isCollection(v)) flatDeep(v, currentDepth + 1)
+    function flat(x2: any, depth2: number) {
+      x2.__iterate((v: V, k: K) => {
+        if ((!depth || depth2 < depth) && qu.isCollection(v)) flat(v, depth2 + 1)
         else {
-          iterations++
-          if (fn(v, useKeys ? k : iterations - 1, y) === false) stopped = true
+          y++
+          if (f(v, useKeys ? k : y - 1, y) === false) stopped = true
         }
         return !stopped
       }, reverse)
     }
-    flatDeep(x, 0)
-    return iterations
+    flat(x, 0)
+    return y
   }
-  y.__iteratorUncached = function (type, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterator(type, reverse)
-    let iterator = x.__iterator(type, reverse)
-    const stack = []
-    let iterations = 0
+  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    if (reverse) return this.cacheResult().__iterator(m, reverse)
+    let iter = x.__iterator(m, reverse)
+    const stack: any[] = []
+    let n = 0
     return new qu.Iter(() => {
-      while (iterator) {
-        const step = iterator.next()
-        if (step.done !== false) {
-          iterator = stack.pop()
+      while (iter) {
+        const i = iter.next()
+        if (i.done !== false) {
+          iter = stack.pop()
           continue
         }
-        let v = step.value
-        if (type === qu.ITERATE_ENTRIES) v = v[1]
+        let v = i.value
+        if (m === qu.Iter.Mode.ENTRIES) v = v[1]
         if ((!depth || stack.length < depth) && qu.isCollection(v)) {
-          stack.push(iterator)
-          iterator = v.__iterator(type, reverse)
-        } else return useKeys ? step : qu.Iter.value(type, iterations++, v, step)
+          stack.push(iter)
+          iter = v.__iterator(m, reverse)
+        } else return useKeys ? i : qu.Iter.value(m, n++, v, i)
       }
       return qu.Iter.done()
     })
@@ -604,137 +581,132 @@ export function flattenFactory(x, depth, useKeys) {
   return y
 }
 
-export function flatMapFactory(x, mapper, context) {
-  const coerce = collectionClass(x)
+export function flatMap<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown) {
+  const C = collectionClass(x)
   return x
     .toSeq()
-    .map((v, k) => coerce(mapper.call(context, v, k, x)))
+    .map((v, k) => C.create(f.call(ctx, v, k, x)))
     .flatten(true)
 }
 
-export function interposeFactory(x, separator) {
+export function interpose<K, V>(x: qt.Collection<K, V>, sep: string) {
   const y = makeSequence(x)
   y.size = x.size && x.size * 2 - 1
-  y.__iterateUncached = function (fn, reverse: boolean) {
-    let iterations = 0
-    x.__iterate(
-      v => (!iterations || fn(separator, iterations++, this) !== false) && fn(v, iterations++, this) !== false,
-      reverse
-    )
-    return iterations
+  y.__iterateUncached = function (f: Function, reverse: boolean) {
+    let y = 0
+    x.__iterate((v: V) => (!y || f(sep, y++, this) !== false) && f(v, y++, this) !== false, reverse)
+    return y
   }
-  y.__iteratorUncached = function (type, reverse: boolean) {
-    const iterator = x.__iterator(qu.ITERATE_VALUES, reverse)
-    let iterations = 0
-    let step
+  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    const iter = x.__iterator(qu.Iter.Mode.VALUES, reverse)
+    let n = 0
+    let i: any
     return new qu.Iter(() => {
-      if (!step || iterations % 2) {
-        step = iterator.next()
-        if (step.done) return step
+      if (!i || n % 2) {
+        i = iter.next()
+        if (i.done) return i
       }
-      return iterations % 2
-        ? qu.Iter.value(type, iterations++, separator)
-        : qu.Iter.value(type, iterations++, step.value, step)
+      return n % 2 ? qu.Iter.value(m, n++, sep) : qu.Iter.value(m, n++, i.value, i)
     })
   }
   return y
 }
 
-export function sortFactory(x, comparator, mapper) {
-  if (!comparator) comparator = defaultComparator
+export function sort<K, V>(x: qt.Collection<K, V>, c?: Function, f?: Function) {
+  if (!c) c = defaultComp
   const isKeyed = qu.isKeyed(x)
   let index = 0
   const y = x
     .toSeq()
-    .map((v, k) => [k, v, index++, mapper ? mapper(v, k, x) : v])
+    .map((v, k) => [k, v, index++, f ? f(v, k, x) : v])
     .valueSeq()
     .toArray()
-  y.sort((a, b) => comparator(a[3], b[3]) || a[2] - b[2]).forEach(
+  y.sort((a, b) => c!(a[3], b[3]) || a[2] - b[2]).forEach(
     isKeyed
-      ? (v, i) => {
-          y[i].length = 2
+      ? (_, i) => {
+          y[i]!.length = 2
         }
       : (v, i) => {
           y[i] = v[1]
         }
   )
-  return isKeyed ? new Seq.Keyed(y) : qu.isIndexed(x) ? new Seq.Indexed(y) : new Seq.Set(y)
+  return isKeyed ? Seq.Keyed.create(y) : qu.isIndexed(x) ? Seq.Indexed.create(y) : Seq.Set.create(y)
 }
 
-export function maxFactory(collection, comparator, mapper) {
-  if (!comparator) comparator = defaultComparator
-  if (mapper) {
-    const y = collection
+export function max<K, V>(x: qt.Collection<K, V>, c?: Function, f?: Function) {
+  if (!c) c = defaultComp
+  if (f) {
+    const y = x
       .toSeq()
-      .map((v, k) => [v, mapper(v, k, collection)])
-      .reduce((a, b) => (maxCompare(comparator, a[1], b[1]) ? b : a))
+      .map((v, k) => [v, f(v, k, x)])
+      .reduce((a: any, b: any) => (maxComp(c, a[1], b[1]) ? b : a))
     return y && y[0]
   }
-  return collection.reduce((a, b) => (maxCompare(comparator, a, b) ? b : a))
+  return x.reduce((a, b) => (maxComp(c, a, b) ? b : a))
 }
 
-function maxCompare(comparator, a, b) {
-  const y = comparator(b, a)
-  return (y === 0 && b !== a && (b === undefined || b === null || b !== b)) || y > 0
-}
-
-export function zipWithFactory(keyIter, zipper, iters, zipAll) {
-  const y = makeSequence(keyIter)
-  const sizes = new ArraySeq(iters).map(i => i.size)
+export function zipWith<K, V>(x: qt.Collection<K, V>, f: Function, xs: any, zipAll?: boolean) {
+  const y = makeSequence(x)
+  const sizes = new ArraySeq(xs).map((x2: any) => x2.size)
   y.size = zipAll ? sizes.max() : sizes.min()
-  y.__iterate = function (fn, reverse: boolean) {
-    const iterator = this.__iterator(qu.ITERATE_VALUES, reverse)
-    let step
-    let iterations = 0
-    while (!(step = iterator.next()).done) {
-      if (fn(step.value, iterations++, this) === false) break
+  y.__iterate = function (f2: Function, reverse: boolean) {
+    const iter = this.__iterator(qu.Iter.Mode.VALUES, reverse)
+    let i
+    let y = 0
+    while (!(i = iter.next()).done) {
+      if (f2(i.value, y++, this) === false) break
     }
-    return iterations
+    return y
   }
-  y.__iteratorUncached = function (type, reverse: boolean) {
-    const iterators = iters.map(i => ((i = Collection(i)), qu.getIterator(reverse ? i.reverse() : i)))
-    let iterations = 0
-    let isDone = false
+  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    const iters = xs.map(x => ((x = Collection.create(x)), qu.getIterator(reverse ? x.reverse() : x)))
+    let n = 0
+    let done = false
     return new qu.Iter(() => {
       let steps
-      if (!isDone) {
-        steps = iterators.map(i => i.next())
-        isDone = zipAll ? steps.every(s => s.done) : steps.some(s => s.done)
+      if (!done) {
+        steps = iters.map(x => x.next())
+        done = zipAll ? steps.every(x => x.done) : steps.some(x => x.done)
       }
-      if (isDone) return qu.Iter.done()
-      return qu.Iter.value(
-        type,
-        iterations++,
-        zipper.apply(
-          null,
-          steps.map(s => s.value)
-        )
-      )
+      if (done) return qu.Iter.done()
+      return qu.Iter.value(m, n++, f(...steps.map(x => x.value)))
     })
   }
   return y
 }
 
-function collectionClass(x) {
+function collectionClass(x: unknown) {
   return qu.isKeyed(x) ? Collection.Keyed : qu.isIndexed(x) ? Collection.Indexed : Collection.Set
 }
 
-function makeSequence(x) {
-  return Object.create((qu.isKeyed(x) ? Seq.Keyed : qu.isIndexed(x) ? Seq.Indexed : Seq.Set).prototype)
+function makeSequence(x: unknown): any {
+  return new (qu.isKeyed(x) ? Seq.Keyed : qu.isIndexed(x) ? Seq.Indexed : Seq.Set)()
 }
 
-export function cacheResult() {
-  if (this._iter.cacheResult) {
-    this._iter.cacheResult()
-    this.size = this._iter.size
-    return this
+export function cacheResult(x) {
+  if (x._iter.cacheResult) {
+    x._iter.cacheResult()
+    x.size = x._iter.size
+    return x
   }
-  return Seq.prototype.cacheResult.call(this)
+  return Seq.prototype.cacheResult.call(x)
 }
 
-function defaultComparator(a, b) {
+function defaultComp(a?: number, b?: number) {
   if (a === undefined && b === undefined) return 0
   if (a === undefined) return 1
   if (b === undefined) return -1
   return a > b ? 1 : a < b ? -1 : 0
+}
+
+export function defaultNegComp(a?: number, b?: number) {
+  if (a === undefined && b === undefined) return 0
+  if (a === undefined) return -1
+  if (b === undefined) return 1
+  return a < b ? 1 : a > b ? -1 : 0
+}
+
+function maxComp(c?: Function, a?: number, b?: number) {
+  const y = c?.(b, a)
+  return (y === 0 && b !== a && (b === undefined || b === null || b !== b)) || y > 0
 }

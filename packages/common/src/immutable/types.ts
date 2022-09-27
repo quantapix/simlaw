@@ -14,31 +14,31 @@ export interface Collection<K, V> {
   concat(...xs: Array<unknown>): Collection<unknown, unknown>
   contains(v: V): boolean
   count(): number
-  count(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): number
-  countBy<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Map<T, number>
+  count(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): number
+  countBy<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): Map<T, number>
   entries(): IterableIterator<[K, V]>
   entrySeq(): Seq.Indexed<[K, V]>
   equals(x: unknown): boolean
-  every(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): boolean
-  filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
-  filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): Collection<K, T>
-  filterNot(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): this
-  find(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown, v0?: V): V | undefined
-  findEntry(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown, v0?: V): [K, V] | undefined
-  findKey(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): K | undefined
-  findLast(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown, v0?: V): V | undefined
-  findLastEntry(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown, v0?: V): [K, V] | undefined
-  findLastKey(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): K | undefined
+  every(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): boolean
+  filter(f: (v: V, k: K, c: this) => unknown, ctx?: unknown): this
+  filter<T extends V>(f: (v: V, k: K, c: this) => v is T, ctx?: unknown): Collection<K, T>
+  filterNot(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): this
+  find(f: (v: V, k: K, c: this) => boolean, ctx?: unknown, v0?: V): V | undefined
+  findEntry(f: (v: V, k: K, c: this) => boolean, ctx?: unknown, v0?: V): [K, V] | undefined
+  findKey(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): K | undefined
+  findLast(f: (v: V, k: K, c: this) => boolean, ctx?: unknown, v0?: V): V | undefined
+  findLastEntry(f: (v: V, k: K, c: this) => boolean, ctx?: unknown, v0?: V): [K, V] | undefined
+  findLastKey(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): K | undefined
   first<T = undefined>(v0?: T): V | T
-  flatMap<K2, V2>(f: (v: V, k: K, iter: this) => Iterable<[K2, V2]>, ctx?: unknown): Collection<K2, V2>
-  flatMap<T>(f: (v: V, k: K, iter: this) => Iterable<T>, ctx?: unknown): Collection<K, T>
+  flatMap<K2, V2>(f: (v: V, k: K, c: this) => Iterable<[K2, V2]>, ctx?: unknown): Collection<K2, V2>
+  flatMap<T>(f: (v: V, k: K, c: this) => Iterable<T>, ctx?: unknown): Collection<K, T>
   flatten(depth?: number): Collection<unknown, unknown>
   flatten(shallow?: boolean): Collection<unknown, unknown>
-  forEach(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): number
+  forEach(f: (v: V, k: K, c: this) => unknown, ctx?: unknown): number
   get(k: K): V | undefined
-  get<T>(k: K, v0: T): V | T
+  get<V2>(k: K, v0: V2): V | V2
   getIn(x: Iterable<unknown>, v0?: unknown): unknown
-  groupBy<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Seq.Keyed<T, Collection<K, V>>
+  groupBy<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): Seq.Keyed<T, Collection<K, V>>
   has(k: K): boolean
   hashCode(): number
   hasIn(x: Iterable<unknown>): boolean
@@ -53,29 +53,29 @@ export interface Collection<K, V> {
   last<T = undefined>(v0?: T): V | T
   lastKeyOf(v: V): K | undefined
   map(...xs: Array<never>): unknown
-  map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Collection<K, T>
+  map<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): Collection<K, T>
   max(c?: (a: V, b: V) => number): V | undefined
-  maxBy<T>(f: (v: V, k: K, iter: this) => T, c?: (a: T, b: T) => number): V | undefined
+  maxBy<T>(f: (v: V, k: K, c: this) => T, c?: (a: T, b: T) => number): V | undefined
   min(c?: (a: V, b: V) => number): V | undefined
-  minBy<T>(f: (v: V, k: K, iter: this) => T, c?: (a: T, b: T) => number): V | undefined
-  reduce<T>(f: (y: T, v: V, k: K, iter: this) => T, y0: T, ctx?: unknown): T
-  reduce<T>(f: (y: V | T, v: V, k: K, iter: this) => T): T
-  reduceRight<T>(f: (y: T, v: V, k: K, iter: this) => T, y0: T, ctx?: unknown): T
-  reduceRight<T>(f: (y: V | T, v: V, k: K, iter: this) => T): T
+  minBy<T>(f: (v: V, k: K, c: this) => T, c?: (a: T, b: T) => number): V | undefined
+  reduce<T>(f: (y: T, v: V, k: K, c: this) => T, y0: T, ctx?: unknown): T
+  reduce<T>(f: (y: V | T, v: V, k: K, c: this) => T): T
+  reduceRight<T>(f: (y: T, v: V, k: K, c: this) => T, y0: T, ctx?: unknown): T
+  reduceRight<T>(f: (y: V | T, v: V, k: K, c: this) => T): T
   rest(): this
   reverse(): this
   skip(x: number): this
   skipLast(x: number): this
-  skipUntil(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): this
-  skipWhile(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): this
+  skipUntil(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): this
+  skipWhile(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): this
   slice(beg?: number, end?: number): this
-  some(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): boolean
+  some(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): boolean
   sort(c?: (a: V, b: V) => number): this
-  sortBy<T>(f: (v: V, k: K, iter: this) => T, c?: (a: T, b: T) => number): this
+  sortBy<T>(f: (v: V, k: K, c: this) => T, c?: (a: T, b: T) => number): this
   take(x: number): this
   takeLast(x: number): this
-  takeUntil(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): this
-  takeWhile(f: (v: V, k: K, iter: this) => boolean, ctx?: unknown): this
+  takeUntil(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): this
+  takeWhile(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): this
   toArray(): Array<V> | Array<[K, V]>
   toSeqIndexed(): Seq.Indexed<V>
   toJS(): Array<unknown> | Dict<unknown>
@@ -100,16 +100,16 @@ export namespace Collection {
     [Symbol.iterator](): IterableIterator<[K, V]>
     concat<K2, V2>(...xs: Array<Iterable<[K2, V2]>>): Collection.Keyed<K | K2, V | V2>
     concat<V2>(...xs: Array<Dict<V2>>): Collection.Keyed<K | string, V | V2>
-    filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
-    filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): Collection.Keyed<K, T>
-    flatMap<K2, V2>(f: (v: V, k: K, iter: this) => Iterable<[K2, V2]>, ctx?: unknown): Collection.Keyed<K2, V2>
+    filter(f: (v: V, k: K, c: this) => unknown, ctx?: unknown): this
+    filter<T extends V>(f: (v: V, k: K, c: this) => v is T, ctx?: unknown): Collection.Keyed<K, T>
+    flatMap<K2, V2>(f: (v: V, k: K, c: this) => Iterable<[K2, V2]>, ctx?: unknown): Collection.Keyed<K2, V2>
     flip(): Collection.Keyed<V, K>
-    map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Collection.Keyed<K, T>
+    map<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): Collection.Keyed<K, T>
     mapEntries<K2, V2>(
-      f: (x: [K, V], i: number, iter: this) => [K2, V2] | undefined,
+      f: (x: [K, V], i: number, c: this) => [K2, V2] | undefined,
       ctx?: unknown
     ): Collection.Keyed<K2, V2>
-    mapKeys<T>(f: (k: K, v: V, iter: this) => T, ctx?: unknown): Collection.Keyed<T, V>
+    mapKeys<T>(f: (k: K, v: V, c: this) => T, ctx?: unknown): Collection.Keyed<T, V>
     toArray(): Array<[K, V]>
     toJS(): Dict
     toJSON(): Dict<V>
@@ -118,11 +118,11 @@ export namespace Collection {
   export interface Indexed<V> extends Collection<number, V> {
     [Symbol.iterator](): IterableIterator<V>
     concat<V2>(...xs: Array<Iterable<V2> | V2>): Collection.Indexed<V | V2>
-    filter(f: (v: V, i: number, iter: this) => unknown, ctx?: unknown): this
-    filter<T extends V>(f: (v: V, i: number, iter: this) => v is T, ctx?: unknown): Collection.Indexed<T>
-    findIndex(f: (v: V, i: number, iter: this) => boolean, ctx?: unknown): number
-    findLastIndex(f: (v: V, i: number, iter: this) => boolean, ctx?: unknown): number
-    flatMap<T>(f: (v: V, i: number, iter: this) => Iterable<T>, ctx?: unknown): Collection.Indexed<T>
+    filter(f: (v: V, i: number, c: this) => unknown, ctx?: unknown): this
+    filter<T extends V>(f: (v: V, i: number, c: this) => v is T, ctx?: unknown): Collection.Indexed<T>
+    findIndex(f: (v: V, i: number, c: this) => boolean, ctx?: unknown): number
+    findLastIndex(f: (v: V, i: number, c: this) => boolean, ctx?: unknown): number
+    flatMap<T>(f: (v: V, i: number, c: this) => Iterable<T>, ctx?: unknown): Collection.Indexed<T>
     fromEntrySeq(): Seq.Keyed<unknown, unknown>
     get(i: number): V | undefined
     get<T>(i: number, v0: T): V | T
@@ -130,7 +130,7 @@ export namespace Collection {
     interleave(...xs: Array<Collection<unknown, V>>): this
     interpose(v: V): this
     lastIndexOf(v: V): number
-    map<T>(f: (v: V, i: number, iter: this) => T, ctx?: unknown): Collection.Indexed<T>
+    map<T>(f: (v: V, i: number, c: this) => T, ctx?: unknown): Collection.Indexed<T>
     splice(i: number, removeNum: number, ...vs: Array<V>): this
     toArray(): Array<V>
     toJS(): Array<unknown>
@@ -153,10 +153,10 @@ export namespace Collection {
   export interface Set<K> extends Collection<K, K> {
     [Symbol.iterator](): IterableIterator<K>
     concat<K2>(...xs: Array<Iterable<K2>>): Collection.Set<K | K2>
-    filter(f: (v: K, k: K, iter: this) => unknown, ctx?: unknown): this
-    filter<T extends K>(f: (v: K, k: K, iter: this) => v is T, ctx?: unknown): Collection.Set<T>
-    flatMap<T>(f: (v: K, k: K, iter: this) => Iterable<T>, ctx?: unknown): Collection.Set<T>
-    map<T>(f: (v: K, k: K, iter: this) => T, ctx?: unknown): Collection.Set<T>
+    filter(f: (v: K, k: K, c: this) => unknown, ctx?: unknown): this
+    filter<T extends K>(f: (v: K, k: K, c: this) => v is T, ctx?: unknown): Collection.Set<T>
+    flatMap<T>(f: (v: K, k: K, c: this) => Iterable<T>, ctx?: unknown): Collection.Set<T>
+    map<T>(f: (v: K, k: K, c: this) => T, ctx?: unknown): Collection.Set<T>
     toArray(): Array<K>
     toJS(): Array<unknown>
     toJSON(): Array<K>
@@ -166,12 +166,12 @@ export namespace Collection {
 
 export interface Seq<K, V> extends Collection<K, V> {
   cacheResult(): this
-  filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
-  filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): Seq<K, T>
-  flatMap<T>(f: (v: V, k: K, iter: this) => Iterable<T>, ctx?: unknown): Seq<K, T>
-  flatMap<T>(f: (v: V, k: K, iter: this) => Iterable<T>, ctx?: unknown): Seq<T, T>
-  map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Seq<K, T>
-  map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Seq<T, T>
+  filter(f: (v: V, k: K, c: this) => unknown, ctx?: unknown): this
+  filter<T extends V>(f: (v: V, k: K, c: this) => v is T, ctx?: unknown): Seq<K, T>
+  flatMap<T>(f: (v: V, k: K, c: this) => Iterable<T>, ctx?: unknown): Seq<K, T>
+  flatMap<T>(f: (v: V, k: K, c: this) => Iterable<T>, ctx?: unknown): Seq<T, T>
+  map<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): Seq<K, T>
+  map<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): Seq<T, T>
 }
 
 export namespace Seq {
@@ -179,13 +179,13 @@ export namespace Seq {
     [Symbol.iterator](): IterableIterator<[K, V]>
     concat<K2, V2>(...xs: Array<Iterable<[K2, V2]>>): Seq.Keyed<K | K2, V | V2>
     concat<V2>(...xs: Array<Dict<V2>>): Seq.Keyed<K | string, V | V2>
-    filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
-    filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): Seq.Keyed<K, T>
-    flatMap<K2, V2>(f: (v: V, k: K, iter: this) => Iterable<[K2, V2]>, ctx?: unknown): Seq.Keyed<K2, V2>
+    filter(f: (v: V, k: K, c: this) => unknown, ctx?: unknown): this
+    filter<T extends V>(f: (v: V, k: K, c: this) => v is T, ctx?: unknown): Seq.Keyed<K, T>
+    flatMap<K2, V2>(f: (v: V, k: K, c: this) => Iterable<[K2, V2]>, ctx?: unknown): Seq.Keyed<K2, V2>
     flip(): Seq.Keyed<V, K>
-    map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Seq.Keyed<K, T>
-    mapEntries<K2, V2>(f: (x: [K, V], i: number, iter: this) => [K2, V2] | undefined, ctx?: unknown): Seq.Keyed<K2, V2>
-    mapKeys<T>(f: (k: K, v: V, iter: this) => T, ctx?: unknown): Seq.Keyed<T, V>
+    map<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): Seq.Keyed<K, T>
+    mapEntries<K2, V2>(f: (x: [K, V], i: number, c: this) => [K2, V2] | undefined, ctx?: unknown): Seq.Keyed<K2, V2>
+    mapKeys<T>(f: (k: K, v: V, c: this) => T, ctx?: unknown): Seq.Keyed<T, V>
     toArray(): Array<[K, V]>
     toJS(): Dict
     toJSON(): Dict<V>
@@ -194,10 +194,10 @@ export namespace Seq {
   export interface Indexed<V> extends Seq<number, V>, Collection.Indexed<V> {
     [Symbol.iterator](): IterableIterator<V>
     concat<V2>(...xs: Array<Iterable<V2> | V2>): Seq.Indexed<V | V2>
-    filter(f: (v: V, i: number, iter: this) => unknown, ctx?: unknown): this
-    filter<T extends V>(f: (v: V, i: number, iter: this) => v is T, ctx?: unknown): Seq.Indexed<T>
-    flatMap<T>(f: (v: V, i: number, iter: this) => Iterable<T>, ctx?: unknown): Seq.Indexed<T>
-    map<T>(f: (v: V, i: number, iter: this) => T, ctx?: unknown): Seq.Indexed<T>
+    filter(f: (v: V, i: number, c: this) => unknown, ctx?: unknown): this
+    filter<T extends V>(f: (v: V, i: number, c: this) => v is T, ctx?: unknown): Seq.Indexed<T>
+    flatMap<T>(f: (v: V, i: number, c: this) => Iterable<T>, ctx?: unknown): Seq.Indexed<T>
+    map<T>(f: (v: V, i: number, c: this) => T, ctx?: unknown): Seq.Indexed<T>
     toArray(): Array<V>
     toJS(): Array<unknown>
     toJSON(): Array<V>
@@ -215,10 +215,10 @@ export namespace Seq {
   export interface Set<K> extends Seq<K, K>, Collection.Set<K> {
     [Symbol.iterator](): IterableIterator<K>
     concat<K2>(...xs: Array<Iterable<K2>>): Seq.Set<K | K2>
-    filter(f: (v: K, k: K, iter: this) => unknown, ctx?: unknown): this
-    filter<T extends K>(f: (v: K, k: K, iter: this) => v is T, ctx?: unknown): Seq.Set<T>
-    flatMap<T>(f: (v: K, k: K, iter: this) => Iterable<T>, ctx?: unknown): Seq.Set<T>
-    map<T>(f: (v: K, k: K, iter: this) => T, ctx?: unknown): Seq.Set<T>
+    filter(f: (v: K, k: K, c: this) => unknown, ctx?: unknown): this
+    filter<T extends K>(f: (v: K, k: K, c: this) => v is T, ctx?: unknown): Seq.Set<T>
+    flatMap<T>(f: (v: K, k: K, c: this) => Iterable<T>, ctx?: unknown): Seq.Set<T>
+    map<T>(f: (v: K, k: K, c: this) => T, ctx?: unknown): Seq.Set<T>
     toArray(): Array<K>
     toJS(): Array<unknown>
     toJSON(): Array<K>
@@ -233,11 +233,11 @@ export interface List<V> extends Collection.Indexed<V> {
   concat<V2>(...xs: Array<Iterable<V2> | V2>): List<V | V2>
   delete(i: number): List<V>
   deleteIn(x: Iterable<unknown>): this
-  filter(f: (v: V, i: number, iter: this) => unknown, ctx?: unknown): this
-  filter<T extends V>(f: (v: V, i: number, iter: this) => v is T, ctx?: unknown): List<T>
-  flatMap<T>(f: (v: V, i: number, iter: this) => Iterable<T>, ctx?: unknown): List<T>
+  filter(f: (v: V, i: number, c: this) => unknown, ctx?: unknown): this
+  filter<T extends V>(f: (v: V, i: number, c: this) => v is T, ctx?: unknown): List<T>
+  flatMap<T>(f: (v: V, i: number, c: this) => Iterable<T>, ctx?: unknown): List<T>
   insert(i: number, v: V): List<V>
-  map<T>(f: (v: V, i: number, iter: this) => T, ctx?: unknown): List<T>
+  map<T>(f: (v: V, i: number, c: this) => T, ctx?: unknown): List<T>
   merge<T>(...xs: Array<Iterable<T>>): List<V | T>
   mergeDeepIn(x: Iterable<unknown>, ...xs: Array<unknown>): this
   mergeIn(x: Iterable<unknown>, ...xs: Array<unknown>): this
@@ -277,13 +277,13 @@ export interface Map<K, V> extends Collection.Keyed<K, V> {
   delete(k: K): this
   deleteAll(ks: Iterable<K>): this
   deleteIn(x: Iterable<unknown>): this
-  filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
-  filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): Map<K, T>
-  flatMap<K2, V2>(f: (v: V, k: K, iter: this) => Iterable<[K2, V2]>, ctx?: unknown): Map<K2, V2>
+  filter(f: (v: V, k: K, c: this) => unknown, ctx?: unknown): this
+  filter<T extends V>(f: (v: V, k: K, c: this) => v is T, ctx?: unknown): Map<K, T>
+  flatMap<K2, V2>(f: (v: V, k: K, c: this) => Iterable<[K2, V2]>, ctx?: unknown): Map<K2, V2>
   flip(): Map<V, K>
-  map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): Map<K, T>
-  mapEntries<K2, V2>(f: (x: [K, V], i: number, iter: this) => [K2, V2] | undefined, ctx?: unknown): Map<K2, V2>
-  mapKeys<T>(f: (k: K, v: V, iter: this) => T, ctx?: unknown): Map<T, V>
+  map<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): Map<K, T>
+  mapEntries<K2, V2>(f: (x: [K, V], i: number, c: this) => [K2, V2] | undefined, ctx?: unknown): Map<K2, V2>
+  mapKeys<T>(f: (k: K, v: V, c: this) => T, ctx?: unknown): Map<T, V>
   merge<K2, V2>(...xs: Array<Iterable<[K2, V2]>>): Map<K | K2, V | V2>
   merge<T>(...xs: Array<Dict<T>>): Map<K | string, V | T>
   mergeDeep(...xs: Array<Iterable<[K, V]> | Dict<V>>): this
@@ -308,13 +308,13 @@ export interface Map<K, V> extends Collection.Keyed<K, V> {
 export interface OrderedMap<K, V> extends Map<K, V> {
   concat<K2, V2>(...xs: Array<Iterable<[K2, V2]>>): OrderedMap<K | K2, V | V2>
   concat<V2>(...xs: Array<Dict<V2>>): OrderedMap<K | string, V | V2>
-  filter(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): this
-  filter<T extends V>(f: (v: V, k: K, iter: this) => v is T, ctx?: unknown): OrderedMap<K, T>
-  flatMap<K2, V2>(f: (v: V, k: K, iter: this) => Iterable<[K2, V2]>, ctx?: unknown): OrderedMap<K2, V2>
+  filter(f: (v: V, k: K, c: this) => unknown, ctx?: unknown): this
+  filter<T extends V>(f: (v: V, k: K, c: this) => v is T, ctx?: unknown): OrderedMap<K, T>
+  flatMap<K2, V2>(f: (v: V, k: K, c: this) => Iterable<[K2, V2]>, ctx?: unknown): OrderedMap<K2, V2>
   flip(): OrderedMap<V, K>
-  map<T>(f: (v: V, k: K, iter: this) => T, ctx?: unknown): OrderedMap<K, T>
-  mapEntries<K2, V2>(f: (x: [K, V], i: number, iter: this) => [K2, V2] | undefined, ctx?: unknown): OrderedMap<K2, V2>
-  mapKeys<T>(f: (k: K, v: V, iter: this) => T, ctx?: unknown): OrderedMap<T, V>
+  map<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): OrderedMap<K, T>
+  mapEntries<K2, V2>(f: (x: [K, V], i: number, c: this) => [K2, V2] | undefined, ctx?: unknown): OrderedMap<K2, V2>
+  mapKeys<T>(f: (k: K, v: V, c: this) => T, ctx?: unknown): OrderedMap<T, V>
   merge<K2, V2>(...xs: Array<Iterable<[K2, V2]>>): OrderedMap<K | K2, V | V2>
   merge<T>(...xs: Array<Dict<T>>): OrderedMap<K | string, V | T>
   set(k: K, v: V): this
@@ -327,11 +327,11 @@ export interface Set<K> extends Collection.Set<K> {
   clear(): this
   concat<K2>(...xs: Array<Iterable<K2>>): Set<K | K2>
   delete(v: K): this
-  filter(f: (v: K, k: K, iter: this) => unknown, ctx?: unknown): this
-  filter<T extends K>(f: (v: K, k: K, iter: this) => v is T, ctx?: unknown): Set<T>
-  flatMap<T>(f: (v: K, k: K, iter: this) => Iterable<T>, ctx?: unknown): Set<T>
+  filter(f: (v: K, k: K, c: this) => unknown, ctx?: unknown): this
+  filter<T extends K>(f: (v: K, k: K, c: this) => v is T, ctx?: unknown): Set<T>
+  flatMap<T>(f: (v: K, k: K, c: this) => Iterable<T>, ctx?: unknown): Set<T>
   intersect(...xs: Array<Iterable<K>>): this
-  map<T>(f: (v: K, k: K, iter: this) => T, ctx?: unknown): Set<T>
+  map<T>(f: (v: K, k: K, c: this) => T, ctx?: unknown): Set<T>
   merge<T>(...xs: Array<Iterable<T>>): Set<K | T>
   remove(v: K): this
   subtract(...xs: Array<Iterable<K>>): this
@@ -342,10 +342,10 @@ export interface Set<K> extends Collection.Set<K> {
 
 export interface OrderedSet<K> extends Set<K> {
   concat<K2>(...xs: Array<Iterable<K2>>): OrderedSet<K | K2>
-  filter(f: (v: K, k: K, iter: this) => unknown, ctx?: unknown): this
-  filter<T extends K>(f: (v: K, k: K, iter: this) => v is T, ctx?: unknown): OrderedSet<T>
-  flatMap<T>(f: (v: K, k: K, iter: this) => Iterable<T>, ctx?: unknown): OrderedSet<T>
-  map<T>(f: (v: K, k: K, iter: this) => T, ctx?: unknown): OrderedSet<T>
+  filter(f: (v: K, k: K, c: this) => unknown, ctx?: unknown): this
+  filter<T extends K>(f: (v: K, k: K, c: this) => v is T, ctx?: unknown): OrderedSet<T>
+  flatMap<T>(f: (v: K, k: K, c: this) => Iterable<T>, ctx?: unknown): OrderedSet<T>
+  map<T>(f: (v: K, k: K, c: this) => T, ctx?: unknown): OrderedSet<T>
   merge<T>(...xs: Array<Iterable<T>>): OrderedSet<K | T>
   union<T>(...xs: Array<Iterable<T>>): OrderedSet<K | T>
   zip(...xs: Array<Collection<unknown, unknown>>): OrderedSet<unknown>
@@ -364,10 +364,10 @@ export interface Stack<V> extends Collection.Indexed<V> {
   asMutable(): this
   clear(): Stack<V>
   concat<V2>(...xs: Array<Iterable<V2> | V2>): Stack<V | V2>
-  filter(f: (v: V, i: number, iter: this) => unknown, ctx?: unknown): this
-  filter<T extends V>(f: (v: V, i: number, iter: this) => v is T, ctx?: unknown): Set<T>
-  flatMap<T>(f: (v: V, i: number, iter: this) => Iterable<T>, ctx?: unknown): Stack<T>
-  map<T>(f: (v: V, i: number, iter: this) => T, ctx?: unknown): Stack<T>
+  filter(f: (v: V, i: number, c: this) => unknown, ctx?: unknown): this
+  filter<T extends V>(f: (v: V, i: number, c: this) => v is T, ctx?: unknown): Set<T>
+  flatMap<T>(f: (v: V, i: number, c: this) => Iterable<T>, ctx?: unknown): Stack<T>
+  map<T>(f: (v: V, i: number, c: this) => T, ctx?: unknown): Stack<T>
   peek(): V | undefined
   pop(): Stack<V>
   push(...xs: Array<V>): Stack<V>
