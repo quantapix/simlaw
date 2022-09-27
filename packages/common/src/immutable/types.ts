@@ -2,16 +2,16 @@ export interface BySym {
   [k: symbol]: unknown
 }
 
-export interface Dict<T = unknown> {
-  [k: string]: T
-}
-
-export interface ValueObject {
+export interface HasValue {
   equals(x: unknown): boolean
   hashCode(): number
 }
 
-export interface Collection<K, V> extends BySym {
+export interface Dict<T = unknown> {
+  [k: string]: T
+}
+
+export interface Collection<K, V> extends BySym, HasValue {
   [Symbol.iterator](): IterableIterator<unknown>
   readonly size?: number | undefined
   butLast(): this
@@ -22,7 +22,6 @@ export interface Collection<K, V> extends BySym {
   countBy<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): Map<T, number>
   entries(): IterableIterator<[K, V]>
   entrySeq(): Seq.Indexed<[K, V]>
-  equals(x: unknown): boolean
   every(f: (v: V, k: K, c: this) => boolean, ctx?: unknown): boolean
   filter(f: (v: V, k: K, c: this) => unknown, ctx?: unknown): this
   filter<T extends V>(f: (v: V, k: K, c: this) => v is T, ctx?: unknown): Collection<K, T>
@@ -44,7 +43,6 @@ export interface Collection<K, V> extends BySym {
   getIn(x: Iterable<unknown>, v0?: unknown): unknown
   groupBy<T>(f: (v: V, k: K, c: this) => T, ctx?: unknown): Seq.Keyed<T, Collection<K, V>>
   has(k: K): boolean
-  hashCode(): number
   hasIn(x: Iterable<unknown>): boolean
   includes(v: V): boolean
   isEmpty(): boolean
@@ -392,19 +390,17 @@ export interface Stack<V> extends Collection.Indexed<V> {
   zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Stack<T>
 }
 
-export interface Record<T extends object> extends BySym {
+export interface Record<T extends object> extends BySym, HasValue {
   [Symbol.iterator](): IterableIterator<[keyof T, T[keyof T]]>
   asImmutable(): this
   asMutable(): this
   clear(): this
   delete<K extends keyof T>(k: K): this
   deleteIn(x: Iterable<unknown>): this
-  equals(x: unknown): boolean
   get<K extends keyof T>(k: K, v0?: unknown): T[K]
   get<V>(k: string, v0: V): V
   getIn(x: Iterable<unknown>): unknown
   has(k: string): k is keyof T & string
-  hashCode(): number
   hasIn(x: Iterable<unknown>): boolean
   merge(...xs: Array<Partial<T> | Iterable<[string, unknown]>>): this
   mergeDeep(...xs: Array<Partial<T> | Iterable<[string, unknown]>>): this

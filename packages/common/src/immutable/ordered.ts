@@ -24,8 +24,8 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
     return new OrderedMap<K, V>(...xs)
   }
 
-  [qu.IS_ORDERED] = true;
-  override [qu.DELETE] = this.remove
+  [qu.Symbol.q_ordered] = true;
+  override [Symbol.q_delete] = this.remove
 
   override toString() {
     return this.__toString("OrderedMap {", "}")
@@ -160,7 +160,7 @@ export class OrderedSet<K> extends Set<K> implements qt.OrderedSet<K> {
     return this(new Collection.Keyed(x).keySeq())
   }
 
-  [qu.IS_ORDERED] = true
+  [qu.Symbol.q_ordered] = true
 
   override toString() {
     return this.__toString("OrderedSet {", "}")

@@ -1,40 +1,57 @@
 import { Seq } from "./main.js"
 import type * as qt from "./types.js"
 
-export const IS_COLLECTION: unique symbol = Symbol.for("@@__IMMUTABLE_ITERABLE__@@")
-export const IS_INDEXED: unique symbol = Symbol.for("@@__IMMUTABLE_INDEXED__@@")
-export const IS_KEYED: unique symbol = Symbol.for("@@__IMMUTABLE_KEYED__@@")
-export const IS_LIST: unique symbol = Symbol.for("@@__IMMUTABLE_LIST__@@")
-export const IS_MAP: unique symbol = Symbol.for("@@__IMMUTABLE_MAP__@@")
-export const IS_ORDERED: unique symbol = Symbol.for("@@__IMMUTABLE_ORDERED__@@")
-export const IS_RECORD: unique symbol = Symbol.for("@@__IMMUTABLE_RECORD__@@")
-export const IS_SEQ: unique symbol = Symbol.for("@@__IMMUTABLE_SEQ__@@")
-export const IS_SET: unique symbol = Symbol.for("@@__IMMUTABLE_SET__@@")
-export const IS_STACK: unique symbol = Symbol.for("@@__IMMUTABLE_STACK__@@")
+declare global {
+  interface SymbolConstructor {
+    readonly q_collection: symbol
+    readonly q_delete: symbol
+    readonly q_indexed: symbol
+    readonly q_keyed: symbol
+    readonly q_list: symbol
+    readonly q_map: symbol
+    readonly q_ordered: symbol
+    readonly q_record: symbol
+    readonly q_seq: symbol
+    readonly q_set: symbol
+    readonly q_stack: symbol
+  }
+}
+
+;(Symbol as { q_collection: symbol }).q_collection = Symbol("q_collection")
+;(Symbol as { q_delete: symbol }).q_delete = Symbol("q_delete")
+;(Symbol as { q_indexed: symbol }).q_indexed = Symbol("q_indexed")
+;(Symbol as { q_keyed: symbol }).q_keyed = Symbol("q_keyed")
+;(Symbol as { q_list: symbol }).q_list = Symbol("q_list")
+;(Symbol as { q_map: symbol }).q_map = Symbol("q_map")
+;(Symbol as { q_ordered: symbol }).q_ordered = Symbol("q_ordered")
+;(Symbol as { q_record: symbol }).q_record = Symbol("q_record")
+;(Symbol as { q_seq: symbol }).q_seq = Symbol("q_seq")
+;(Symbol as { q_set: symbol }).q_set = Symbol("q_set")
+;(Symbol as { q_stack: symbol }).q_stack = Symbol("q_stack")
 
 export function isAssociative<K, V>(x: qt.BySym): x is qt.Collection.Keyed<K, V> | qt.Collection.Indexed<V> {
   return isKeyed(x) || isIndexed(x)
 }
 export function isCollection<K, V>(x: qt.BySym): x is qt.Collection<K, V> {
-  return Boolean(x && x[IS_COLLECTION])
+  return Boolean(x && x[Symbol.q_collection])
 }
 export function isImmutable<K, V>(x: qt.BySym): x is qt.Collection<K, V> {
   return isCollection(x) || isRecord(x)
 }
 export function isIndexed<V>(x: qt.BySym): x is qt.Collection.Indexed<V> {
-  return Boolean(x && x[IS_INDEXED])
+  return Boolean(x && x[Symbol.q_indexed])
 }
 export function isKeyed<K, V>(x: qt.BySym): x is qt.Collection.Keyed<K, V> {
-  return Boolean(x && x[IS_KEYED])
+  return Boolean(x && x[Symbol.q_keyed])
 }
 export function isList<V>(x: qt.BySym): x is qt.List<V> {
-  return Boolean(x && x[IS_LIST])
+  return Boolean(x && x[Symbol.q_list])
 }
 export function isMap<K, V>(x: qt.BySym): x is qt.Map<K, V> {
-  return Boolean(x && x[IS_MAP])
+  return Boolean(x && x[Symbol.q_map])
 }
 export function isOrdered(x: qt.BySym): boolean {
-  return Boolean(x && x[IS_ORDERED])
+  return Boolean(x && x[Symbol.q_ordered])
 }
 export function isOrderedMap<K, V>(x: qt.BySym): x is qt.OrderedMap<K, V> {
   return isMap(x) && isOrdered(x)
@@ -43,18 +60,18 @@ export function isOrderedSet<V>(x: qt.BySym): x is qt.OrderedSet<V> {
   return isSet(x) && isOrdered(x)
 }
 export function isRecord(x: qt.BySym): x is qt.Record<{}> {
-  return Boolean(x && x[IS_RECORD])
+  return Boolean(x && x[Symbol.q_record])
 }
 export function isSeq<K, V>(x: qt.BySym): x is qt.Seq.Indexed<V> | qt.Seq.Keyed<K, V> | qt.Seq.Set<V> {
-  return Boolean(x && x[IS_SEQ])
+  return Boolean(x && x[Symbol.q_seq])
 }
 export function isSet<V>(x: qt.BySym): x is qt.Set<V> {
-  return Boolean(x && x[IS_SET])
+  return Boolean(x && x[Symbol.q_set])
 }
 export function isStack<V>(x: qt.BySym): x is qt.Stack<V> {
-  return Boolean(x && x[IS_STACK])
+  return Boolean(x && x[Symbol.q_stack])
 }
-export function isValueObject(x: any): x is qt.ValueObject {
+export function hasValue(x: any): x is qt.HasValue {
   return Boolean(x && typeof x.equals === "function" && typeof x.hashCode === "function")
 }
 export function isIterator(x: any) {
@@ -262,7 +279,7 @@ export function is(a: any, b: any) {
     if (a === b || (a !== a && b !== b)) return true
     if (!a || !b) return false
   }
-  return !!(isValueObject(a) && isValueObject(b) && a.equals(b))
+  return !!(hasValue(a) && hasValue(b) && a.equals(b))
 }
 
 export function toJS(x) {
@@ -285,7 +302,6 @@ export function toJS(x) {
   return y
 }
 
-export const DELETE = "delete"
 export const SHIFT = 5
 export const SIZE = 1 << SHIFT
 export const MASK = SIZE - 1
