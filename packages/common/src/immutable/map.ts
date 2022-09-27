@@ -75,7 +75,7 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
       })
     })
   }
-  __iterate(f: Function, reverse: boolean) {
+  __loop(f: Function, reverse: boolean) {
     let i = 0
     this._root &&
       this._root.iterate(([v, k]: [V, K]) => {
@@ -84,7 +84,7 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
       }, reverse)
     return i
   }
-  __iterator(m: qu.Iter.Mode, reverse: boolean) {
+  __iter(m: qu.Iter.Mode, reverse: boolean) {
     return new MapIterator(this, m, reverse)
   }
   __ensureOwner(x) {

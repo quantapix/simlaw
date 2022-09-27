@@ -53,11 +53,11 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
   override remove(k) {
     return updateOrderedMap(this, k, qu.NOT_SET)
   }
-  override __iterate(fn, reverse) {
-    return this._list.__iterate(entry => entry && fn(entry[1], entry[0], this), reverse)
+  override __loop(fn, reverse) {
+    return this._list.__loop(entry => entry && fn(entry[1], entry[0], this), reverse)
   }
-  override __iterator(type, reverse) {
-    return this._list.fromEntrySeq().__iterator(type, reverse)
+  override __iter(type, reverse) {
+    return this._list.fromEntrySeq().__iter(type, reverse)
   }
   override __ensureOwner(owner) {
     if (owner === this.__owner) {

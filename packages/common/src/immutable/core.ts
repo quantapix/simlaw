@@ -245,7 +245,7 @@ export function mergeDeepIn(this: any, x: any, ...xs: unknown[]) {
 export function toObject(this: any) {
   qu.assertNotInfinite(this.size)
   const y: any = {}
-  this.__iterate((v, k) => {
+  this.__loop((v, k) => {
     y[k] = v
   })
   return y
@@ -305,9 +305,9 @@ export function filter<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown,
       return v !== qu.NOT_SET && f.call(ctx, v, k, x) ? v : v0
     }
   }
-  y.__iterateUncached = function (f2: Function, reverse?: boolean) {
+  y.__loopUncached = function (f2: Function, reverse?: boolean) {
     let y = 0
-    this.__iterate((v: V, k: K, c) => {
+    this.__loop((v: V, k: K, c) => {
       if (f.call(ctx, v, k, c)) {
         y++
         return f2(v, useKeys ? k : y - 1, this)
@@ -315,8 +315,8 @@ export function filter<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown,
     }, reverse)
     return y
   }
-  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse?: boolean) {
-    const iter = this.__iterator(qu.Iter.Mode.ENTRIES, reverse)
+  y.__iterUncached = function (m: qu.Iter.Mode, reverse?: boolean) {
+    const iter = this.__iter(qu.Iter.Mode.ENTRIES, reverse)
     let n = 0
     return new qu.Iter(() => {
       while (true) {
@@ -343,12 +343,12 @@ export function flip<K, V>(x: qt.Collection<K, V>) {
   y.has = (v: V) => x.includes(v)
   y.includes = (k: K) => x.has(k)
   y.cacheResult = cacheResult
-  y.__iterateUncached = function (f, reverse: boolean) {
-    return x.__iterate((v: V, k: K) => f(k, v, this) !== false, reverse)
+  y.__loopUncached = function (f, reverse: boolean) {
+    return x.__loop((v: V, k: K) => f(k, v, this) !== false, reverse)
   }
-  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+  y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
     if (m === qu.Iter.Mode.ENTRIES) {
-      const iter = x.__iterator(m, reverse)
+      const iter = x.__iter(m, reverse)
       return new qu.Iter(() => {
         const i = iter.next()
         if (!i.done) {
@@ -359,7 +359,7 @@ export function flip<K, V>(x: qt.Collection<K, V>) {
         return i
       })
     }
-    return x.__iterator(m === qu.Iter.Mode.VALUES ? qu.Iter.Mode.KEYS : qu.Iter.Mode.VALUES, reverse)
+    return x.__iter(m === qu.Iter.Mode.VALUES ? qu.Iter.Mode.KEYS : qu.Iter.Mode.VALUES, reverse)
   }
   return y
 }
@@ -372,11 +372,11 @@ export function map<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown) {
     const v = x.get(k, qu.NOT_SET)
     return v === qu.NOT_SET ? v0 : f.call(ctx, v, k, x)
   }
-  y.__iterateUncached = function (f2: Function, reverse: boolean) {
-    return x.__iterate((v, k, c) => f2(f.call(ctx, v, k, c), k, this) !== false, reverse)
+  y.__loopUncached = function (f2: Function, reverse: boolean) {
+    return x.__loop((v, k, c) => f2(f.call(ctx, v, k, c), k, this) !== false, reverse)
   }
-  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
-    const iter = x.__iterator(qu.Iter.Mode.ENTRIES, reverse)
+  y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    const iter = x.__iter(qu.Iter.Mode.ENTRIES, reverse)
     return new qu.Iter(() => {
       const i = iter.next()
       if (i.done) return i
@@ -403,15 +403,15 @@ export function reverseFactory<K, V>(x: qt.Collection<K, V>, useKeys: boolean) {
   y.get = (k: K, v0?: unknown) => x.get(useKeys ? k : -1 - k, v0)
   y.includes = (v: V) => x.includes(v)
   y.cacheResult = cacheResult
-  y.__iterate = function (f: Function, reverse: boolean) {
+  y.__loop = function (f: Function, reverse: boolean) {
     let i = 0
     reverse && qu.ensureSize(x)
-    return x.__iterate((v, k) => f(v, useKeys ? k : reverse ? this.size - ++i : i++, this), !reverse)
+    return x.__loop((v, k) => f(v, useKeys ? k : reverse ? this.size - ++i : i++, this), !reverse)
   }
-  y.__iterator = (m: qu.Iter.Mode, reverse: boolean) => {
+  y.__iter = (m: qu.Iter.Mode, reverse: boolean) => {
     let i = 0
     reverse && qu.ensureSize(x)
-    const iter = x.__iterator(qu.Iter.Mode.ENTRIES, !reverse)
+    const iter = x.__iter(qu.Iter.Mode.ENTRIES, !reverse)
     return new qu.Iter(() => {
       const i = iter.next()
       if (i.done) return i
@@ -438,13 +438,13 @@ export function slice<K, V>(x: qt.Collection<K, V>, beg?: number, end?: number, 
       return i >= 0 && i < sliceSize ? x.get(i + b2, v0) : v0
     }
   }
-  y.__iterateUncached = function (f: Function, reverse: boolean) {
+  y.__loopUncached = function (f: Function, reverse: boolean) {
     if (sliceSize === 0) return 0
-    if (reverse) return this.cacheResult().__iterate(f, reverse)
+    if (reverse) return this.cacheResult().__loop(f, reverse)
     let skipped = 0
     let isSkipping = true
     let y = 0
-    x.__iterate((v: V, k: K) => {
+    x.__loop((v: V, k: K) => {
       if (!(isSkipping && (isSkipping = skipped++ < b2))) {
         y++
         return f(v, useKeys ? k : y - 1, this) !== false && y !== sliceSize
@@ -453,10 +453,10 @@ export function slice<K, V>(x: qt.Collection<K, V>, beg?: number, end?: number, 
     })
     return y
   }
-  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
-    if (sliceSize !== 0 && reverse) return this.cacheResult().__iterator(m, reverse)
+  y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    if (sliceSize !== 0 && reverse) return this.cacheResult().__iter(m, reverse)
     if (sliceSize === 0) return new qu.Iter(qu.Iter.done)
-    const iter = x.__iterator(m, reverse)
+    const iter = x.__iter(m, reverse)
     let skipped = 0
     let n = 0
     return new qu.Iter(() => {
@@ -475,15 +475,15 @@ export function slice<K, V>(x: qt.Collection<K, V>, beg?: number, end?: number, 
 
 export function takeWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown) {
   const y = makeSequence(x)
-  y.__iterateUncached = function (f2: Function, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterate(f, reverse)
+  y.__loopUncached = function (f2: Function, reverse: boolean) {
+    if (reverse) return this.cacheResult().__loop(f, reverse)
     let y = 0
-    x.__iterate((v: V, k: K, c) => f.call(ctx, v, k, c) && ++y && f2(v, k, this))
+    x.__loop((v: V, k: K, c) => f.call(ctx, v, k, c) && ++y && f2(v, k, this))
     return y
   }
-  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterator(m, reverse)
-    const iter = x.__iterator(qu.Iter.Mode.ENTRIES, reverse)
+  y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    if (reverse) return this.cacheResult().__iter(m, reverse)
+    const iter = x.__iter(qu.Iter.Mode.ENTRIES, reverse)
     let iterating = true
     return new qu.Iter(() => {
       if (!iterating) return qu.Iter.done()
@@ -502,11 +502,11 @@ export function takeWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unkno
 
 export function skipWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown, useKeys?: boolean) {
   const y = makeSequence(x)
-  y.__iterateUncached = function (f2: Function, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterate(f2, reverse)
+  y.__loopUncached = function (f2: Function, reverse: boolean) {
+    if (reverse) return this.cacheResult().__loop(f2, reverse)
     let isSkipping = true
     let y = 0
-    x.__iterate((v: V, k: K, c) => {
+    x.__loop((v: V, k: K, c) => {
       if (!(isSkipping && (isSkipping = f.call(ctx, v, k, c)))) {
         y++
         return f2(v, useKeys ? k : y - 1, this)
@@ -514,9 +514,9 @@ export function skipWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unkno
     })
     return y
   }
-  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterator(m, reverse)
-    const iter = x.__iterator(qu.Iter.Mode.ENTRIES, reverse)
+  y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    if (reverse) return this.cacheResult().__iter(m, reverse)
+    const iter = x.__iter(qu.Iter.Mode.ENTRIES, reverse)
     let skipping = true
     let n = 0
     return new qu.Iter(() => {
@@ -539,12 +539,12 @@ export function skipWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unkno
 
 export function flatten<K, V>(x: qt.Collection<K, V>, depth?: number, useKeys?: boolean) {
   const y = makeSequence(x)
-  y.__iterateUncached = function (f: Function, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterate(f, reverse)
+  y.__loopUncached = function (f: Function, reverse: boolean) {
+    if (reverse) return this.cacheResult().__loop(f, reverse)
     let y = 0
     let stopped = false
     function flat(x2: any, depth2: number) {
-      x2.__iterate((v: V, k: K) => {
+      x2.__loop((v: V, k: K) => {
         if ((!depth || depth2 < depth) && qu.isCollection(v)) flat(v, depth2 + 1)
         else {
           y++
@@ -556,9 +556,9 @@ export function flatten<K, V>(x: qt.Collection<K, V>, depth?: number, useKeys?: 
     flat(x, 0)
     return y
   }
-  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterator(m, reverse)
-    let iter = x.__iterator(m, reverse)
+  y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    if (reverse) return this.cacheResult().__iter(m, reverse)
+    let iter = x.__iter(m, reverse)
     const stack: any[] = []
     let n = 0
     return new qu.Iter(() => {
@@ -572,7 +572,7 @@ export function flatten<K, V>(x: qt.Collection<K, V>, depth?: number, useKeys?: 
         if (m === qu.Iter.Mode.ENTRIES) v = v[1]
         if ((!depth || stack.length < depth) && qu.isCollection(v)) {
           stack.push(iter)
-          iter = v.__iterator(m, reverse)
+          iter = v.__iter(m, reverse)
         } else return useKeys ? i : qu.Iter.value(m, n++, v, i)
       }
       return qu.Iter.done()
@@ -592,13 +592,13 @@ export function flatMap<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown
 export function interpose<K, V>(x: qt.Collection<K, V>, sep: string) {
   const y = makeSequence(x)
   y.size = x.size && x.size * 2 - 1
-  y.__iterateUncached = function (f: Function, reverse: boolean) {
+  y.__loopUncached = function (f: Function, reverse: boolean) {
     let y = 0
-    x.__iterate((v: V) => (!y || f(sep, y++, this) !== false) && f(v, y++, this) !== false, reverse)
+    x.__loop((v: V) => (!y || f(sep, y++, this) !== false) && f(v, y++, this) !== false, reverse)
     return y
   }
-  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
-    const iter = x.__iterator(qu.Iter.Mode.VALUES, reverse)
+  y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+    const iter = x.__iter(qu.Iter.Mode.VALUES, reverse)
     let n = 0
     let i: any
     return new qu.Iter(() => {
@@ -649,8 +649,8 @@ export function zipWith<K, V>(x: qt.Collection<K, V>, f: Function, xs: any, zipA
   const y = makeSequence(x)
   const sizes = new ArrSeq(xs).map((x2: any) => x2.size)
   y.size = zipAll ? sizes.max() : sizes.min()
-  y.__iterate = function (f2: Function, reverse: boolean) {
-    const iter = this.__iterator(qu.Iter.Mode.VALUES, reverse)
+  y.__loop = function (f2: Function, reverse: boolean) {
+    const iter = this.__iter(qu.Iter.Mode.VALUES, reverse)
     let i
     let y = 0
     while (!(i = iter.next()).done) {
@@ -658,7 +658,7 @@ export function zipWith<K, V>(x: qt.Collection<K, V>, f: Function, xs: any, zipA
     }
     return y
   }
-  y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
+  y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
     const iters = xs.map(x => ((x = Collection.from(x)), qu.callIter(reverse ? x.reverse() : x)))
     let n = 0
     let done = false

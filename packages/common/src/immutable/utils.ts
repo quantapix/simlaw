@@ -127,7 +127,7 @@ export namespace Iter {
     ENTRIES,
   }
 
-  export function value<T>(m: Mode, k: unknown, v: unknown, y?: IteratorYieldResult<T>) {
+  export function value(m: Mode, k: unknown, v: unknown, y?: any) {
     const value = m === Mode.KEYS ? k : m === Mode.VALUES ? v : [k, v]
     y ? (y.value = value) : (y = { value, done: false })
     return y
@@ -206,7 +206,7 @@ export function deepEqual(a: any, b: any): boolean {
     }
   }
   let allEqual = true
-  const bSize = b.__iterate((v, k) => {
+  const bSize = b.__loop((v, k) => {
     if (notAssociative ? !a.has(v) : flipped ? !is(v, a.get(k, NOT_SET)) : !is(a.get(k, NOT_SET), v)) {
       allEqual = false
       return false
@@ -287,13 +287,13 @@ export function toJS(x) {
   }
   if (isKeyed(x)) {
     const y = {}
-    x.__iterate((v, k) => {
+    x.__loop((v, k) => {
       y[k] = toJS(v)
     })
     return y
   }
   const y = []
-  x.__iterate(v => {
+  x.__loop(v => {
     y.push(toJS(v))
   })
   return y
@@ -313,7 +313,7 @@ export function SetRef(x: any) {
 export function OwnerID() {}
 
 export function ensureSize(x: any): number {
-  if (x.size === undefined) x.size = x.__iterate(returnTrue)
+  if (x.size === undefined) x.size = x.__loop(returnTrue)
   return x.size
 }
 export function wrapIndex(x: unknown, i: any): number {

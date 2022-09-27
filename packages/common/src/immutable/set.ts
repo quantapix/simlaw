@@ -109,11 +109,11 @@ export class Set<K> extends Collection.ByVal<K> implements qt.Set<K> {
   wasAltered() {
     return this._map.wasAltered()
   }
-  __iterate(fn, reverse) {
-    return this._map.__iterate(k => fn(k, k, this), reverse)
+  __loop(fn, reverse) {
+    return this._map.__loop(k => fn(k, k, this), reverse)
   }
-  __iterator(type, reverse) {
-    return this._map.__iterator(type, reverse)
+  __iter(type, reverse) {
+    return this._map.__iter(type, reverse)
   }
   __ensureOwner(owner) {
     if (owner === this.__owner) {

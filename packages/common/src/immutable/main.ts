@@ -20,8 +20,10 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return qu.isCollection(x) ? x : Seq.from(x)
   }
 
+  [k: symbol]: unknown
   [Symbol.q_collection] = true;
   [Symbol.iterator] = this.values
+
   readonly size?: number | undefined
   _cache?: any[]
 
@@ -47,7 +49,9 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   }
   entrySeq() {
     if (this._cache) return new ArrSeq(this._cache)
-    const y = this.toSeq().map(entryMapper).toSeqIndexed()
+    const y = this.toSeq()
+      .map((v, k) => [k, v])
+      .toSeqIndexed()
     y.fromEntrySeq = () => this.toSeq()
     return y
   }
@@ -57,7 +61,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   every(f: Function, ctx?: unknown) {
     qu.assertNotInfinite(this.size)
     let y = true
-    this.__iterate((v, k, c) => {
+    this.__loop((v, k, c) => {
       if (!f.call(ctx, v, k, c)) {
         y = false
         return false
@@ -77,7 +81,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   }
   findEntry(f: Function, ctx?: unknown, v0?: V) {
     let y = v0
-    this.__iterate((v, k, c) => {
+    this.__loop((v, k, c) => {
       if (f.call(ctx, v, k, c)) {
         y = [k, v]
         return false
@@ -109,7 +113,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   }
   forEach(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): number {
     qu.assertNotInfinite(this.size)
-    return this.__iterate(ctx ? f.bind(ctx) : f)
+    return this.__loop(ctx ? f.bind(ctx) : f)
   }
   fromEntrySeq() {
     return new FromEntrySeq(this)
@@ -121,7 +125,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   groupBy(f: Function, ctx?: unknown) {
     const isKeyed = qu.isKeyed(this)
     const y = (qu.isOrdered(this) ? OrderedMap.from() : Map.from()).asMutable()
-    this.__iterate((v, k) => {
+    this.__loop((v, k) => {
       y.update(f.call(ctx, v, k, this), x => ((x = x || []), x.push(isKeyed ? [k, v] : v), x))
     })
     const coerce = collectionClass(this)
@@ -153,7 +157,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     sep = sep !== undefined ? "" + sep : ","
     let y = ""
     let isFirst = true
-    this.__iterate(v => {
+    this.__loop(v => {
       isFirst ? (isFirst = false) : (y += sep)
       y += v !== null && v !== undefined ? v.toString() : ""
     })
@@ -163,7 +167,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return this.findKey(x => qu.is(x, v))
   }
   _keys() {
-    return this.__iterator(qu.Iter.Mode.KEYS)
+    return this.__iter(qu.Iter.Mode.KEYS)
   }
   keySeq() {
     return this.toSeq().map(keyMapper).toSeqIndexed()
@@ -242,20 +246,20 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     const y = new Array(this.size || 0)
     const useTuples = qu.isKeyed(this)
     let i = 0
-    this.__iterate((v, k) => {
+    this.__loop((v, k) => {
       y[i++] = useTuples ? [k, v] : v
     })
     return y
   }
   toSeqIndexed() {
-    return new ToSeqIndexed(this)
+    return new ToSeqByIdx(this)
   }
   toJS() {
     return qu.toJS(this)
   }
   toJSON = this.toArray
   toSeqKeyed() {
-    return new ToSeqKeyed(this, true)
+    return new ToSeqByKey(this, true)
   }
   toList() {
     return List.from(qu.isKeyed(this) ? this.valueSeq() : this)
@@ -277,7 +281,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return Set.from(qu.isKeyed(this) ? this.valueSeq() : this)
   }
   toSeqSet() {
-    return new ToSeqSet(this)
+    return new ToSeqByVal(this)
   }
   toStack() {
     return Stack.from(qu.isKeyed(this) ? this.valueSeq() : this)
@@ -289,7 +293,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return f(this)
   }
   values(): IterableIterator<V> {
-    return this.__iterator(qu.Iter.Mode.VALUES)
+    return this.__iter(qu.Iter.Mode.VALUES)
   }
   valueSeq() {
     return this.toSeqIndexed()
@@ -348,7 +352,7 @@ export namespace Collection {
     [Symbol.q_indexed] = true;
     [Symbol.q_ordered] = true
     override toSeqKeyed() {
-      return new ToSeqKeyed(this, false)
+      return new ToSeqByKey(this, false)
     }
     override filter(f: Function, ctx?: unknown) {
       return qc.reify<number, V>(this, qc.filter(this, f, ctx, false))
@@ -456,7 +460,7 @@ export namespace Collection {
 export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
   static isSeq = qu.isSeq
 
-  static override from<T extends Seq<unknown, unknown>>(seq: T): T
+  static override from<T extends Seq<unknown, unknown>>(x: T): T
   static override from<K, V>(x: qt.Collection.ByKey<K, V>): Seq.ByKey<K, V>
   static override from<T>(x: qt.Collection.ByIdx<T> | Iterable<T> | ArrayLike<T>): Seq.ByIdx<T>
   static override from<T>(x: qt.Collection.ByVal<T>): Seq.ByVal<T>
@@ -475,13 +479,13 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
     return this.__toString("Seq {", "}")
   }
   cacheResult() {
-    if (!this._cache && this.__iterateUncached) {
+    if (!this._cache && this.__loopUncached) {
       this._cache = this.entrySeq().toArray()
       this.size = this._cache!.length
     }
     return this
   }
-  override __iterate(f: Function, reverse: boolean) {
+  __loop(f: Function, reverse: boolean) {
     const xs = this._cache
     if (xs) {
       const n = xs.length
@@ -492,9 +496,9 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
       }
       return i
     }
-    return this.__iterateUncached(f, reverse)
+    return this.__loopUncached(f, reverse)
   }
-  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
+  __iter(m: qu.Iter.Mode, reverse: boolean) {
     const xs = this._cache
     if (xs) {
       const n = xs.length
@@ -505,7 +509,7 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
         return qu.Iter.value(m, x[0], x[1])
       })
     }
-    return this.__iteratorUncached(m, reverse)
+    return this.__iterUncached(m, reverse)
   }
 }
 
@@ -577,7 +581,7 @@ export class ArrSeq<V> extends Seq.ByIdx<V> {
   override get(i: number, v0: unknown) {
     return this.has(i) ? this._base[qu.wrapIndex(this, i)] : v0
   }
-  override __iterate(f: Function, reverse: boolean) {
+  override __loop(f: Function, reverse: boolean) {
     const x = this._base
     const n = x.length
     let i = 0
@@ -587,7 +591,7 @@ export class ArrSeq<V> extends Seq.ByIdx<V> {
     }
     return i
   }
-  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
+  override __iter(m: qu.Iter.Mode, reverse: boolean) {
     const x = this._base
     const n = x.length
     let i = 0
@@ -614,7 +618,7 @@ class ObjSeq<K, V> extends Seq.ByKey<K, V> {
   override has(k: any) {
     return qu.hasOwnProperty.call(this._base, k)
   }
-  override __iterate(f: Function, reverse: boolean) {
+  override __loop(f: Function, reverse: boolean) {
     const x = this._base
     const ks = this._keys
     const n = ks.length
@@ -625,7 +629,7 @@ class ObjSeq<K, V> extends Seq.ByKey<K, V> {
     }
     return i
   }
-  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
+  override __iter(m: qu.Iter.Mode, reverse: boolean) {
     const x = this._base
     const ks = this._keys
     const n = ks.length
@@ -643,21 +647,20 @@ class CollectionSeq<V> extends Seq.ByIdx<V> {
     super()
     this.size = _base.length || _base.size
   }
-  __iterateUncached(f: Function, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterate(f, reverse)
-    const x = this._base
-    const iter = qu.callIter(x)
-    let y = 0
-    if (qu.isIter(iter)) {
-      let i
-      while (!(i = iter.next()).done) {
-        if (f(i.value, y++, this) === false) break
+  __loopUncached(f: Function, reverse: boolean) {
+    if (reverse) return this.cacheResult().__loop(f, reverse)
+    let i = 0
+    const it = qu.callIter(this._base)
+    if (it && qu.isIter(it)) {
+      let y
+      while (!(y = it.next()).done) {
+        if (f(y.value, i++, this) === false) break
       }
     }
-    return y
+    return i
   }
-  __iteratorUncached(m: qu.Iter.Mode, reverse: boolean) {
-    if (reverse) return this.cacheResult().__iterator(m, reverse)
+  __iterUncached(m: qu.Iter.Mode, reverse: boolean) {
+    if (reverse) return this.cacheResult().__iter(m, reverse)
     const it = qu.callIter(this._base)
     if (it && qu.isIter(it)) {
       let i = 0
@@ -716,7 +719,7 @@ export class Range<V> extends Seq.ByIdx<V> {
   lastIndexOf(searchValue) {
     return this.indexOf(searchValue)
   }
-  override __iterate(f: Function, reverse: boolean) {
+  override __loop(f: Function, reverse: boolean) {
     const size = this.size
     const step = this._step
     let value = reverse ? this._start + (size - 1) * step : this._start
@@ -727,7 +730,7 @@ export class Range<V> extends Seq.ByIdx<V> {
     }
     return y
   }
-  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
+  override __iter(m: qu.Iter.Mode, reverse: boolean) {
     const n = this.size
     const step = this._step
     let value = reverse ? this._start + (n - 1) * step : this._start
@@ -785,7 +788,7 @@ export class Repeat<V> extends Seq.ByIdx<V> {
     if (qu.is(this._value, searchValue)) return this.size
     return -1
   }
-  override __iterate(fn, reverse: boolean) {
+  override __loop(fn, reverse: boolean) {
     const size = this.size
     let i = 0
     while (i !== size) {
@@ -793,7 +796,7 @@ export class Repeat<V> extends Seq.ByIdx<V> {
     }
     return i
   }
-  override __iterator(type, reverse: boolean) {
+  override __iter(type, reverse: boolean) {
     const size = this.size
     let i = 0
     return new qu.Iter(() =>
@@ -809,7 +812,7 @@ let EMPTY_REPEAT
 
 function reduce(x, reducer, reduction, ctx, useFirst, reverse: boolean) {
   qu.assertNotInfinite(x.size)
-  x.__iterate((v, k, c) => {
+  x.__loop((v, k, c) => {
     if (useFirst) {
       useFirst = false
       reduction = v
@@ -822,10 +825,6 @@ function reduce(x, reducer, reduction, ctx, useFirst, reverse: boolean) {
 
 function keyMapper(v, k) {
   return k
-}
-
-function entryMapper(v, k) {
-  return [k, v]
 }
 
 function not(f: Function, ...xs: unknown[]) {
@@ -849,7 +848,7 @@ function hashCollection<K, V>(x: Collection<K, V>) {
   const ordered = qu.isOrdered(x)
   const keyed = qu.isKeyed(x)
   let y = ordered ? 1 : 0
-  const n = x.__iterate(
+  const n = x.__loop(
     keyed
       ? ordered
         ? (v: V, k: K) => {
@@ -952,7 +951,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
     qu.assertNotInfinite(iter.size)
     let newSize = this.size
     let head = this._head
-    iter.__iterate(value => {
+    iter.__loop(value => {
       newSize++
       head = {
         value: value,
@@ -1014,8 +1013,8 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
     }
     return makeStack(this.size, this._head, owner, this.__hash)
   }
-  __iterate(f: Function, reverse: boolean) {
-    if (reverse) return new ArrSeq(this.toArray()).__iterate((v, k) => f(v, k, this), reverse)
+  __loop(f: Function, reverse: boolean) {
+    if (reverse) return new ArrSeq(this.toArray()).__loop((v, k) => f(v, k, this), reverse)
     let y = 0
     let x = this._head
     while (x) {
@@ -1024,8 +1023,8 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
     }
     return y
   }
-  __iterator(m: qu.Iter.Mode, reverse: boolean) {
-    if (reverse) return new ArrSeq(this.toArray()).__iterator(m, reverse)
+  __iter(m: qu.Iter.Mode, reverse: boolean) {
+    if (reverse) return new ArrSeq(this.toArray()).__iter(m, reverse)
     let y = 0
     let x = this._head
     return new qu.Iter(() => {
@@ -1069,7 +1068,7 @@ function emptyStack() {
   return EMPTY_STACK || (EMPTY_STACK = makeStack(0))
 }
 
-export class ToSeqKeyed<K, V> extends Seq.ByKey<K, V> {
+export class ToSeqByKey<K, V> extends Seq.ByKey<K, V> {
   [Symbol.q_ordered] = true
   constructor(private _base: Collection<K, V>, private _useKeys: boolean) {
     super()
@@ -1094,16 +1093,16 @@ export class ToSeqKeyed<K, V> extends Seq.ByKey<K, V> {
     if (!this._useKeys) y.valueSeq = () => this._base.toSeq().map(f, ctx)
     return y
   }
-  override __iterate(f: Function, reverse: boolean) {
-    return this._base.__iterate((v, k) => f(v, k, this), reverse)
+  override __loop(f: Function, reverse: boolean) {
+    return this._base.__loop((v, k) => f(v, k, this), reverse)
   }
-  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
-    return this._base.__iterator(m, reverse)
+  override __iter(m: qu.Iter.Mode, reverse: boolean) {
+    return this._base.__iter(m, reverse)
   }
   override cacheResult = qc.cacheResult
 }
 
-export class ToSeqIndexed<V> extends Seq.ByIdx<V> {
+export class ToSeqByIdx<V> extends Seq.ByIdx<V> {
   constructor(private _base: Collection<number, V>) {
     super()
     this.size = _base.size
@@ -1111,13 +1110,13 @@ export class ToSeqIndexed<V> extends Seq.ByIdx<V> {
   override includes(x: unknown) {
     return this._base.includes(x)
   }
-  override __iterate(f: Function, reverse: boolean) {
+  override __loop(f: Function, reverse: boolean) {
     let y = 0
     reverse && qu.ensureSize(this)
-    return this._base.__iterate(x => f(x, reverse ? this.size - ++y : y++, this), reverse)
+    return this._base.__loop(x => f(x, reverse ? this.size - ++y : y++, this), reverse)
   }
-  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
-    const iter = this._base.__iterator(qu.Iter.Mode.VALUES, reverse)
+  override __iter(m: qu.Iter.Mode, reverse: boolean) {
+    const iter = this._base.__iter(qu.Iter.Mode.VALUES, reverse)
     let y = 0
     reverse && qu.ensureSize(this)
     return new qu.Iter(() => {
@@ -1128,7 +1127,7 @@ export class ToSeqIndexed<V> extends Seq.ByIdx<V> {
   override cacheResult = qc.cacheResult
 }
 
-export class ToSeqSet<K> extends Seq.ByVal<K> {
+export class ToSeqByVal<K> extends Seq.ByVal<K> {
   constructor(private _base: Collection<K, K>) {
     super()
     this.size = _base.size
@@ -1136,11 +1135,11 @@ export class ToSeqSet<K> extends Seq.ByVal<K> {
   override has(x: unknown) {
     return this._base.includes(x)
   }
-  override __iterate(f: Function, reverse: boolean) {
-    return this._base.__iterate(x => f(x, x, this), reverse)
+  override __loop(f: Function, reverse: boolean) {
+    return this._base.__loop(x => f(x, x, this), reverse)
   }
-  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
-    const iter = this._base.__iterator(qu.Iter.Mode.VALUES, reverse)
+  override __iter(m: qu.Iter.Mode, reverse: boolean) {
+    const iter = this._base.__iter(qu.Iter.Mode.VALUES, reverse)
     return new qu.Iter(() => {
       const i = iter.next()
       return i.done ? i : qu.Iter.value(m, i.value, i.value, i)
@@ -1157,8 +1156,8 @@ export class FromEntrySeq<K, V> extends Seq.ByKey<K, V> {
   override entrySeq() {
     return this._base.toSeq()
   }
-  override __iterate(f: Function, reverse: boolean) {
-    return this._base.__iterate(x => {
+  override __loop(f: Function, reverse: boolean) {
+    return this._base.__loop(x => {
       if (x) {
         validateEntry(x)
         const indexed = qu.isCollection(x)
@@ -1166,8 +1165,8 @@ export class FromEntrySeq<K, V> extends Seq.ByKey<K, V> {
       }
     }, reverse)
   }
-  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
-    const iter = this._base.__iterator(qu.Iter.Mode.VALUES, reverse)
+  override __iter(m: qu.Iter.Mode, reverse: boolean) {
+    const iter = this._base.__iter(qu.Iter.Mode.VALUES, reverse)
     return new qu.Iter(() => {
       while (true) {
         const i = iter.next()

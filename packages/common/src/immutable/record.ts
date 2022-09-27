@@ -117,13 +117,13 @@ export class Record<T extends object> implements qt.Record<T> {
     return qu.toJS(this)
   }
   entries() {
-    return this.__iterator(qu.Iter.Mode.ENTRIES)
+    return this.__iter(qu.Iter.Mode.ENTRIES)
   }
-  __iterator(type, reverse) {
-    return recordSeq(this).__iterator(type, reverse)
+  __iter(type, reverse) {
+    return recordSeq(this).__iter(type, reverse)
   }
-  __iterate(fn, reverse) {
-    return recordSeq(this).__iterate(fn, reverse)
+  __loop(fn, reverse) {
+    return recordSeq(this).__loop(fn, reverse)
   }
   __ensureOwner(owner) {
     if (owner === this.__owner) {
