@@ -29,7 +29,7 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
           iter.forEach((v, k) => x2.set(k, v))
         })
   }
-  [qu.IS_MAP_SYMBOL] = true;
+  [qu.IS_MAP] = true;
   [qu.DELETE] = this.remove
 
   override toString() {

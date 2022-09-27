@@ -23,7 +23,7 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
   static of<T>(...xs: Array<T>): List<T> {
     return this(...xs)
   }
-  [qu.IS_LIST_SYMBOL] = true;
+  [qu.IS_LIST] = true;
   [qu.DELETE] = this.remove
 
   readonly size = 0

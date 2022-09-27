@@ -66,7 +66,7 @@ export class Record<T extends object> implements qt.Record<T> {
     if (name) y.displayName = name
     return y
   }
-  [qu.IS_RECORD_SYMBOL] = true;
+  [qu.IS_RECORD] = true;
   [qu.DELETE] = this.remove
   toString() {
     let str = recordName(this) + " { "

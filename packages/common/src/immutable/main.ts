@@ -20,7 +20,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return qu.isCollection(x) ? x : Seq.create(x)
   }
 
-  [qu.IS_COLLECTION_SYMBOL] = true;
+  [qu.IS_COLLECTION] = true;
   [Symbol.iterator] = this.values
   readonly size?: number | undefined
   _cache?: any[]
@@ -320,7 +320,7 @@ export namespace Collection {
       return qu.isKeyed(x) ? x : Seq.Keyed.create(x)
     }
     [Symbol.iterator] = this.entries;
-    [qu.IS_KEYED_SYMBOL] = true
+    [qu.IS_KEYED] = true
     flip() {
       return qc.reify(this, qc.flip(this))
     }
@@ -351,8 +351,8 @@ export namespace Collection {
     static override create(x?: any): any {
       return qu.isIndexed(x) ? x : Seq.Indexed.create(x)
     }
-    [qu.IS_INDEXED_SYMBOL] = true;
-    [qu.IS_ORDERED_SYMBOL] = true
+    [qu.IS_INDEXED] = true;
+    [qu.IS_ORDERED] = true
     override toSeqKeyed() {
       return new ToSeqKeyed(this, false)
     }
@@ -472,7 +472,7 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
     return x === undefined || x === null ? emptySeq() : qu.isImmutable(x) ? x.toSeq() : seqFromValue(x)
   }
 
-  [qu.IS_SEQ_SYMBOL] = true
+  [qu.IS_SEQ] = true
 
   override toSeq() {
     return this
@@ -606,7 +606,7 @@ export class ArraySeq<V> extends Seq.Indexed<V> {
 }
 
 class ObjectSeq<K, V> extends Seq.Keyed<K, V> {
-  [qu.IS_ORDERED_SYMBOL] = true
+  [qu.IS_ORDERED] = true
   constructor(private _base: any) {
     super()
     const keys = Object.keys(_base).concat(Object.getOwnPropertySymbols(_base))
@@ -916,7 +916,7 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
   static of<V>(...xs: Array<V>): Stack<V> {
     return this(...xs)
   }
-  [qu.IS_STACK_SYMBOL] = true
+  [qu.IS_STACK] = true
   override toString() {
     return this.__toString("Stack [", "]")
   }
@@ -1075,7 +1075,7 @@ function emptyStack() {
 }
 
 export class ToSeqKeyed<K, V> extends Seq.Keyed<K, V> {
-  [qu.IS_ORDERED_SYMBOL] = true
+  [qu.IS_ORDERED] = true
   constructor(private _base: Collection<K, V>, private _useKeys: boolean) {
     super()
     this.size = _base.size

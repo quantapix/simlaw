@@ -35,7 +35,7 @@ export class Set<K> extends Collection.Set<K> implements qt.Set<K> {
           iter.forEach(x3 => x2.add(x3))
         })
   }
-  [qu.IS_SET_SYMBOL] = true;
+  [qu.IS_SET] = true;
   [qu.DELETE] = this.remove
   override toString() {
     return this.__toString("Set {", "}")

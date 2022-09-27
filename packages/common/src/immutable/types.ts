@@ -1,3 +1,7 @@
+export interface BySym {
+  [k: symbol]: unknown
+}
+
 export interface Dict<T = unknown> {
   [k: string]: T
 }
@@ -7,7 +11,7 @@ export interface ValueObject {
   hashCode(): number
 }
 
-export interface Collection<K, V> {
+export interface Collection<K, V> extends BySym {
   [Symbol.iterator](): IterableIterator<unknown>
   readonly size?: number | undefined
   butLast(): this
@@ -46,7 +50,7 @@ export interface Collection<K, V> {
   isEmpty(): boolean
   isSubset(x: Iterable<V>): boolean
   isSuperset(x: Iterable<V>): boolean
-  join(separator?: string): string
+  join(sep?: string): string
   keyOf(v: V): K | undefined
   _keys(): IterableIterator<K>
   keySeq(): Seq.Indexed<K>
@@ -388,7 +392,7 @@ export interface Stack<V> extends Collection.Indexed<V> {
   zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Stack<T>
 }
 
-export interface Record<T extends object> {
+export interface Record<T extends object> extends BySym {
   [Symbol.iterator](): IterableIterator<[keyof T, T[keyof T]]>
   asImmutable(): this
   asMutable(): this
