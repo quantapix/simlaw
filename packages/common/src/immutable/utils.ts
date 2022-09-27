@@ -176,7 +176,7 @@ export function deepEqual(a: any, b: any): boolean {
   if (
     !isCollection(b) ||
     (a.size !== undefined && b.size !== undefined && a.size !== b.size) ||
-    (a.__hash !== undefined && b.__hash !== undefined && a.__hash !== b.__hash) ||
+    (a._hash !== undefined && b._hash !== undefined && a._hash !== b._hash) ||
     isKeyed(a) !== isKeyed(b) ||
     isIndexed(a) !== isIndexed(b) ||
     isOrdered(a) !== isOrdered(b)
@@ -283,7 +283,7 @@ export function toJS(x) {
   if (!x || typeof x !== "object") return x
   if (!isCollection(x)) {
     if (!isDataStructure(x)) return x
-    x = new Seq(x)
+    x = Seq.from(x)
   }
   if (isKeyed(x)) {
     const y = {}

@@ -11,7 +11,7 @@ export interface HasValue {
   hashCode(): number
 }
 
-export interface Collection<K, V> extends HasValue {
+export interface Collection<K, V> extends BySym, HasValue {
   [Symbol.iterator](): IterableIterator<unknown>
   readonly size?: number | undefined
   butLast(): this

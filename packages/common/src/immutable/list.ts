@@ -10,7 +10,7 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
     const empty = emptyList()
     if (x === undefined || x === null) return empty
     if (qu.isList(x)) return x
-    const iter = new Collection.ByIdx(x)
+    const iter = Collection.ByIdx.from(x)
     const size = iter.size
     if (size === 0) return empty
     qu.assertNotInfinite(size)
@@ -62,7 +62,7 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
     if (this.__owner) {
       this.size = this._origin = this._capacity = 0
       this._level = qu.SHIFT
-      this._root = this._tail = this.__hash = undefined
+      this._root = this._tail = this._hash = undefined
       this.__altered = true
       return this
     }
@@ -145,7 +145,7 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
       this.__altered = false
       return this
     }
-    return makeList(this._origin, this._capacity, this._level, this._root, this._tail, x, this.__hash)
+    return makeList(this._origin, this._capacity, this._level, this._root, this._tail, x, this._hash)
   }
   merge = this.concat
   setIn = (x: any, v: unknown) => qc.setIn(this, x, v)
@@ -264,7 +264,7 @@ function makeList(origin, capacity, level, root, tail, owner, hash) {
   list._root = root
   list._tail = tail
   list.__owner = owner
-  list.__hash = hash
+  list._hash = hash
   list.__altered = false
   return list
 }
@@ -293,7 +293,7 @@ function updateList(x, i, value) {
   if (x.__owner) {
     x._root = newRoot
     x._tail = newTail
-    x.__hash = undefined
+    x._hash = undefined
     x.__altered = true
     return x
   }
@@ -415,7 +415,7 @@ function setListBounds(list, begin, end) {
     list._level = newLevel
     list._root = root
     list._tail = newTail
-    list.__hash = undefined
+    list._hash = undefined
     list.__altered = true
     return list
   }

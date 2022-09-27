@@ -83,7 +83,7 @@ export function mergeWithSources(x: any, xs: any, f?: Function) {
         }
       }
   for (let i = 0; i < xs.length; i++) {
-    new C(xs[i]).forEach(mergeItem)
+    C.from(xs[i]).forEach(mergeItem)
   }
   return y
 }

@@ -24,9 +24,9 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
       : qu.isMap(x) && !qu.isOrdered(x)
       ? x
       : emptyMap().withMutations(x2 => {
-          const iter = new Collection.ByKey(x)
-          qu.assertNotInfinite(iter.size)
-          iter.forEach((v, k) => x2.set(k, v))
+          const y = Collection.ByKey.from(x)
+          qu.assertNotInfinite(y.size)
+          y.forEach((v, k) => x2.set(k, v))
         })
   }
   [Symbol.q_map] = true;
@@ -56,7 +56,7 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
     if (this.__owner) {
       this.size = 0
       this._root = null
-      this.__hash = undefined
+      this._hash = undefined
       this.__altered = true
       return this
     }
@@ -95,7 +95,7 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
       this.__altered = false
       return this
     }
-    return makeMap(this.size, this._root, x, this.__hash)
+    return makeMap(this.size, this._root, x, this._hash)
   }
   concat = this.merge
   removeAll = this.deleteAll
@@ -377,7 +377,7 @@ function makeMap(size, root, owner, hash) {
   y.size = size
   y._root = root
   y.__owner = owner
-  y.__hash = hash
+  y._hash = hash
   y.__altered = false
   return y
 }
@@ -405,7 +405,7 @@ function updateMap(x, k, v) {
   if (x.__owner) {
     x.size = size
     x._root = root
-    x.__hash = undefined
+    x._hash = undefined
     x.__altered = true
     return x
   }

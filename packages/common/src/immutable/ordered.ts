@@ -15,9 +15,9 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
       : qu.isOrderedMap(x)
       ? x
       : emptyOrderedMap().withMutations(x2 => {
-          const iter = new Collection.ByKey(x)
-          qu.assertNotInfinite(iter.size)
-          iter.forEach((v, k) => x2.set(k, v))
+          const y = Collection.ByKey.from(x)
+          qu.assertNotInfinite(y.size)
+          y.forEach((v, k) => x2.set(k, v))
         })
   }
   static override of<K, V>(...xs) {
@@ -30,14 +30,12 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
   override toString() {
     return this.__toString("OrderedMap {", "}")
   }
-  override get(k, notSetValue) {
+  override get(k: K, v0?: unknown) {
     const index = this._map.get(k)
-    return index !== undefined ? this._list.get(index)[1] : notSetValue
+    return index !== undefined ? this._list.get(index)[1] : v0
   }
   override clear() {
-    if (this.size === 0) {
-      return this
-    }
+    if (this.size === 0) return this
     if (this.__owner) {
       this.size = 0
       this._map.clear()
@@ -53,29 +51,25 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
   override remove(k) {
     return updateOrderedMap(this, k, qu.NOT_SET)
   }
-  override __loop(fn, reverse) {
-    return this._list.__loop(entry => entry && fn(entry[1], entry[0], this), reverse)
+  override __loop(f: Function, reverse: boolean) {
+    return this._list.__loop(x => x && f(x[1], x[0], this), reverse)
   }
-  override __iter(type, reverse) {
-    return this._list.fromEntrySeq().__iter(type, reverse)
+  override __iter(m: qu.Iter.Mode, reverse: boolean) {
+    return this._list.fromEntrySeq().__iter(m, reverse)
   }
   override __ensureOwner(owner) {
-    if (owner === this.__owner) {
-      return this
-    }
+    if (owner === this.__owner) return this
     const newMap = this._map.__ensureOwner(owner)
     const newList = this._list.__ensureOwner(owner)
     if (!owner) {
-      if (this.size === 0) {
-        return emptyOrderedMap()
-      }
+      if (this.size === 0) return emptyOrderedMap()
       this.__owner = owner
       this.__altered = false
       this._map = newMap
       this._list = newList
       return this
     }
-    return makeOrderedMap(newMap, newList, owner, this.__hash)
+    return makeOrderedMap(newMap, newList, owner, this._hash)
   }
 }
 
@@ -85,7 +79,7 @@ function makeOrderedMap(map, list, owner, hash) {
   omap._map = map
   omap._list = list
   omap.__owner = owner
-  omap.__hash = hash
+  omap._hash = hash
   omap.__altered = false
   return omap
 }
@@ -129,7 +123,7 @@ function updateOrderedMap(omap, k, v) {
     omap.size = newMap.size
     omap._map = newMap
     omap._list = newList
-    omap.__hash = undefined
+    omap._hash = undefined
     omap.__altered = true
     return omap
   }
@@ -145,7 +139,7 @@ export class OrderedSet<K> extends Set<K> implements qt.OrderedSet<K> {
       : qu.isOrderedSet(x)
       ? x
       : emptyOrderedSet().withMutations(x2 => {
-          const y = new Collection.ByVal(x)
+          const y = Collection.ByVal.from(x)
           qu.assertNotInfinite(y.size)
           y.forEach(v => x2.add(v))
         })
@@ -157,7 +151,7 @@ export class OrderedSet<K> extends Set<K> implements qt.OrderedSet<K> {
   static override fromKeys<T>(x: Collection<T, unknown>): OrderedSet<T>
   static override fromKeys(x: qt.ByStr): OrderedSet<string>
   static override fromKeys(x: any): any {
-    return this(new Collection.ByKey(x).keySeq())
+    return this(Collection.ByKey.from(x).keySeq())
   }
 
   [Symbol.q_ordered] = true

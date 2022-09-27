@@ -24,7 +24,8 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   [Symbol.q_collection] = true;
   [Symbol.iterator] = this.values
 
-  readonly size?: number | undefined
+  size?: number | undefined
+  _hash?: number | undefined
   _cache?: any[]
 
   butLast() {
@@ -135,10 +136,10 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return this.get(k, qu.NOT_SET) !== qu.NOT_SET
   }
   hashCode() {
-    return this.__hash || (this.__hash = hashCollection(this))
+    return this._hash || (this._hash = hashCollection(this))
   }
   hasIn = (x: any) => qc.hasIn(this, x)
-  includes(v: unknown) {
+  includes(v: V) {
     return this.some(x => qu.is(x, v))
   }
   isEmpty() {
@@ -170,7 +171,9 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return this.__iter(qu.Iter.Mode.KEYS)
   }
   keySeq() {
-    return this.toSeq().map(keyMapper).toSeqIndexed()
+    return this.toSeq()
+      .map((_: V, k: K) => k)
+      .toSeqIndexed()
   }
   last(v0?: unknown) {
     return this.toSeq().reverse().first(v0)
@@ -561,7 +564,7 @@ export namespace Seq {
       return (qu.isCollection(x) && !qu.isAssociative(x) ? x : Seq.ByIdx.from(x)).toSeqSet()
     }
     static of<T>(...xs: Array<T>): Seq.ByVal<T> {
-      return new Seq.ByVal(...xs)
+      return Seq.ByVal.from(...xs)
     }
     override toSeqSet() {
       return this
@@ -694,30 +697,30 @@ export class Range<V> extends Seq.ByIdx<V> {
     if (this.size === 0) return "Range []"
     return "Range [ " + this._start + "..." + this._end + (this._step !== 1 ? " by " + this._step : "") + " ]"
   }
-  override get(index, notSetValue) {
-    return this.has(index) ? this._start + qu.wrapIndex(this, index) * this._step : notSetValue
+  override get(i: number, v0?: unknown) {
+    return this.has(i) ? this._start + qu.wrapIndex(this, i) * this._step : v0
   }
-  override includes(searchValue) {
-    const possibleIndex = (searchValue - this._start) / this._step
-    return possibleIndex >= 0 && possibleIndex < this.size && possibleIndex === Math.floor(possibleIndex)
+  override includes(v: V) {
+    const i = (v - this._start) / this._step
+    return i >= 0 && i < this.size && i === Math.floor(i)
   }
-  override slice(begin, end) {
-    if (qu.wholeSlice(begin, end, this.size)) return this
-    begin = qu.resolveBegin(begin, this.size)
+  override slice(beg: number, end: number) {
+    if (qu.wholeSlice(beg, end, this.size)) return this
+    beg = qu.resolveBegin(beg, this.size)
     end = qu.resolveEnd(end, this.size)
-    if (end <= begin) return new Range(0, 0)
-    return new Range(this.get(begin, this._end), this.get(end, this._end), this._step)
+    if (end <= beg) return new Range(0, 0)
+    return new Range(this.get(beg, this._end), this.get(end, this._end), this._step)
   }
-  indexOf(searchValue) {
-    const offsetValue = searchValue - this._start
-    if (offsetValue % this._step === 0) {
-      const index = offsetValue / this._step
-      if (index >= 0 && index < this.size) return index
+  indexOf(v: V) {
+    const offset = v - this._start
+    if (offset % this._step === 0) {
+      const i = offset / this._step
+      if (i >= 0 && i < this.size) return i
     }
     return -1
   }
-  lastIndexOf(searchValue) {
-    return this.indexOf(searchValue)
+  lastIndexOf(v: V) {
+    return this.indexOf(v)
   }
   override __loop(f: Function, reverse: boolean) {
     const size = this.size
@@ -753,8 +756,11 @@ let EMPTY_RANGE
 
 export class Repeat<V> extends Seq.ByIdx<V> {
   static override from<T>(x: T, times?: number): Seq.ByIdx<T> {
-    if (!(this instanceof Repeat)) return new Repeat(x, times)
-    this._value = x
+    if (!(x instanceof Repeat)) return new Repeat(x, times)
+    return x
+  }
+  constructor(public _value: V, times?: number) {
+    super()
     this.size = times === undefined ? Infinity : Math.max(0, times)
     if (this.size === 0) {
       if (EMPTY_REPEAT) return EMPTY_REPEAT
@@ -765,46 +771,44 @@ export class Repeat<V> extends Seq.ByIdx<V> {
     if (this.size === 0) return "Repeat []"
     return "Repeat [ " + this._value + " " + this.size + " times ]"
   }
-  override get(index, notSetValue) {
-    return this.has(index) ? this._value : notSetValue
+  override get(i: number, v0?: unknown) {
+    return this.has(i) ? this._value : v0
   }
-  override includes(searchValue) {
-    return qu.is(this._value, searchValue)
+  override includes(v: V) {
+    return qu.is(this._value, v)
   }
-  override slice(begin, end) {
+  override slice(beg?: number, end?: number) {
     const size = this.size
-    return qu.wholeSlice(begin, end, size)
+    return qu.wholeSlice(beg, end, size)
       ? this
-      : new Repeat(this._value, qu.resolveEnd(end, size) - qu.resolveBegin(begin, size))
+      : new Repeat(this._value, qu.resolveEnd(end, size) - qu.resolveBegin(beg, size))
   }
   override reverse() {
     return this
   }
-  indexOf(searchValue) {
-    if (qu.is(this._value, searchValue)) return 0
+  indexOf(v: V) {
+    if (qu.is(this._value, v)) return 0
     return -1
   }
-  lastIndexOf(searchValue) {
-    if (qu.is(this._value, searchValue)) return this.size
+  lastIndexOf(v: V) {
+    if (qu.is(this._value, v)) return this.size
     return -1
   }
-  override __loop(fn, reverse: boolean) {
-    const size = this.size
+  override __loop(f: Function, reverse: boolean) {
+    const size = this.size!
     let i = 0
     while (i !== size) {
-      if (fn(this._value, reverse ? size - ++i : i++, this) === false) break
+      if (f(this._value, reverse ? size - ++i : i++, this) === false) break
     }
     return i
   }
-  override __iter(type, reverse: boolean) {
-    const size = this.size
+  override __iter(m: qu.Iter.Mode, reverse: boolean) {
+    const size = this.size!
     let i = 0
-    return new qu.Iter(() =>
-      i === size ? qu.Iter.done() : qu.Iter.value(type, reverse ? size - ++i : i++, this._value)
-    )
+    return new qu.Iter(() => (i === size ? qu.Iter.done() : qu.Iter.value(m, reverse ? size - ++i : i++, this._value)))
   }
-  override equals(other) {
-    return other instanceof Repeat ? qu.is(this._value, other._value) : qu.deepEqual(other)
+  override equals(x) {
+    return x instanceof Repeat ? qu.is(this._value, x._value) : qu.deepEqual(x)
   }
 }
 
@@ -821,10 +825,6 @@ function reduce(x, reducer, reduction, ctx, useFirst, reverse: boolean) {
     }
   }, reverse)
   return reduction
-}
-
-function keyMapper(v, k) {
-  return k
 }
 
 function not(f: Function, ...xs: unknown[]) {
@@ -899,7 +899,7 @@ function seqFromValue(x) {
 }
 
 function maybeSeqIndexedFrom(x) {
-  return qu.isArrayLike(x) ? new ArrSeq(x) : qu.hasIter(x) ? new CollectionSeq(x) : undefined
+  return qu.isArrayLike(x) ? new ArrSeq(x) : qu.hasIter(x) ? CollectionSeq.from(x) : undefined
 }
 
 export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
@@ -938,7 +938,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
     if (this.__owner) {
       this.size = newSize
       this._head = head
-      this.__hash = undefined
+      this._hash = undefined
       this.__altered = true
       return this
     }
@@ -961,7 +961,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
     if (this.__owner) {
       this.size = newSize
       this._head = head
-      this.__hash = undefined
+      this._hash = undefined
       this.__altered = true
       return this
     }
@@ -975,7 +975,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
     if (this.__owner) {
       this.size = 0
       this._head = undefined
-      this.__hash = undefined
+      this._hash = undefined
       this.__altered = true
       return this
     }
@@ -997,7 +997,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
     if (this.__owner) {
       this.size = newSize
       this._head = head
-      this.__hash = undefined
+      this._hash = undefined
       this.__altered = true
       return this
     }
@@ -1011,7 +1011,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
       this.__altered = false
       return this
     }
-    return makeStack(this.size, this._head, owner, this.__hash)
+    return makeStack(this.size, this._head, owner, this._hash)
   }
   __loop(f: Function, reverse: boolean) {
     if (reverse) return new ArrSeq(this.toArray()).__loop((v, k) => f(v, k, this), reverse)
@@ -1057,7 +1057,7 @@ function makeStack(size, head, owner, hash) {
   y.size = size
   y._head = head
   y.__owner = owner
-  y.__hash = hash
+  y._hash = hash
   y.__altered = false
   return y
 }
@@ -1074,10 +1074,10 @@ export class ToSeqByKey<K, V> extends Seq.ByKey<K, V> {
     super()
     this.size = _base.size
   }
-  override get(k: unknown, v0?: unknown) {
+  override get(k: K, v0?: unknown) {
     return this._base.get(k, v0)
   }
-  override has(k: unknown) {
+  override has(k: K) {
     return this._base.has(k)
   }
   override valueSeq() {
@@ -1094,7 +1094,7 @@ export class ToSeqByKey<K, V> extends Seq.ByKey<K, V> {
     return y
   }
   override __loop(f: Function, reverse: boolean) {
-    return this._base.__loop((v, k) => f(v, k, this), reverse)
+    return this._base.__loop((v: V, k: K) => f(v, k, this), reverse)
   }
   override __iter(m: qu.Iter.Mode, reverse: boolean) {
     return this._base.__iter(m, reverse)
@@ -1107,42 +1107,42 @@ export class ToSeqByIdx<V> extends Seq.ByIdx<V> {
     super()
     this.size = _base.size
   }
-  override includes(x: unknown) {
-    return this._base.includes(x)
+  override includes(v: V) {
+    return this._base.includes(v)
   }
   override __loop(f: Function, reverse: boolean) {
-    let y = 0
+    let i = 0
     reverse && qu.ensureSize(this)
-    return this._base.__loop(x => f(x, reverse ? this.size - ++y : y++, this), reverse)
+    return this._base.__loop((v: V) => f(v, reverse ? this.size! - ++i : i++, this), reverse)
   }
   override __iter(m: qu.Iter.Mode, reverse: boolean) {
-    const iter = this._base.__iter(qu.Iter.Mode.VALUES, reverse)
-    let y = 0
+    const it = this._base.__iter(qu.Iter.Mode.VALUES, reverse)
+    let i = 0
     reverse && qu.ensureSize(this)
     return new qu.Iter(() => {
-      const i = iter.next()
-      return i.done ? i : qu.Iter.value(m, reverse ? this.size - ++y : y++, i.value, i)
+      const y = it.next()
+      return y.done ? y : qu.Iter.value(m, reverse ? this.size! - ++i : i++, y.value, y)
     })
   }
   override cacheResult = qc.cacheResult
 }
 
-export class ToSeqByVal<K> extends Seq.ByVal<K> {
-  constructor(private _base: Collection<K, K>) {
+export class ToSeqByVal<V> extends Seq.ByVal<V> {
+  constructor(private _base: Collection<V, V>) {
     super()
     this.size = _base.size
   }
-  override has(x: unknown) {
-    return this._base.includes(x)
+  override has(k: V) {
+    return this._base.includes(k)
   }
   override __loop(f: Function, reverse: boolean) {
-    return this._base.__loop(x => f(x, x, this), reverse)
+    return this._base.__loop((v: V) => f(v, v, this), reverse)
   }
   override __iter(m: qu.Iter.Mode, reverse: boolean) {
-    const iter = this._base.__iter(qu.Iter.Mode.VALUES, reverse)
+    const it = this._base.__iter(qu.Iter.Mode.VALUES, reverse)
     return new qu.Iter(() => {
-      const i = iter.next()
-      return i.done ? i : qu.Iter.value(m, i.value, i.value, i)
+      const y = it.next()
+      return y.done ? y : qu.Iter.value(m, y.value, y.value, y)
     })
   }
   override cacheResult = qc.cacheResult
@@ -1166,16 +1166,16 @@ export class FromEntrySeq<K, V> extends Seq.ByKey<K, V> {
     }, reverse)
   }
   override __iter(m: qu.Iter.Mode, reverse: boolean) {
-    const iter = this._base.__iter(qu.Iter.Mode.VALUES, reverse)
+    const it = this._base.__iter(qu.Iter.Mode.VALUES, reverse)
     return new qu.Iter(() => {
       while (true) {
-        const i = iter.next()
-        if (i.done) return i
-        const x = i.value
-        if (x) {
-          validateEntry(x)
-          const indexed = qu.isCollection(x)
-          return qu.Iter.value(m, indexed ? x.get(0) : x[0], indexed ? x.get(1) : x[1], i)
+        const y = it.next()
+        if (y.done) return y
+        const v = y.value
+        if (v) {
+          validateEntry(v)
+          const indexed = qu.isCollection(v)
+          return qu.Iter.value(m, indexed ? v.get(0) : v[0], indexed ? v.get(1) : v[1], y)
         }
       }
     })
@@ -1183,6 +1183,6 @@ export class FromEntrySeq<K, V> extends Seq.ByKey<K, V> {
   override cacheResult = qc.cacheResult
 }
 
-function validateEntry(x) {
+function validateEntry(x: unknown) {
   if (x !== Object(x)) throw new TypeError("Expected [K, V] tuple: " + x)
 }

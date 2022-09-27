@@ -5,23 +5,23 @@ import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-export class Set<K> extends Collection.ByVal<K> implements qt.Set<K> {
+export class Set<V> extends Collection.ByVal<V> implements qt.Set<V> {
   static isSet = qu.isSet
   static of<T>(...xs: Array<T>): Set<T> {
-    return new Set<T>(...xs)
+    return Set.from<T>(...xs)
   }
   static fromKeys(x: qt.ByStr): Set<string>
   static fromKeys<T>(x: Collection<T, unknown>): Set<T>
   static fromKeys(x: any): any {
-    return new Set(new Collection.ByKey(x).keySeq())
+    return Set.from(Collection.ByKey.from(x).keySeq())
   }
   static intersect<T>(x: Iterable<Iterable<T>>): Set<T> {
-    x = new Collection(x).toArray()
-    return x.length ? SetPrototype.intersect.apply(new Set(x.pop()), x) : emptySet()
+    x = Collection.from(x).toArray()
+    return x.length ? SetPrototype.intersect.apply(Set.from(x.pop()), x) : emptySet()
   }
   static union<T>(x: Iterable<Iterable<T>>): Set<T> {
-    x = new Collection(x).toArray()
-    return x.length ? SetPrototype.union.apply(new Set(x.pop()), x) : emptySet()
+    x = Collection.from(x).toArray()
+    return x.length ? SetPrototype.union.apply(Set.from(x.pop()), x) : emptySet()
   }
 
   static override from<K>(x?: Iterable<K> | ArrayLike<K>): Set<K> {
@@ -30,9 +30,9 @@ export class Set<K> extends Collection.ByVal<K> implements qt.Set<K> {
       : qu.isSet(x) && !qu.isOrdered(x)
       ? x
       : emptySet().withMutations(x2 => {
-          const iter = new Collection.ByVal(x)
-          qu.assertNotInfinite(iter.size)
-          iter.forEach(x3 => x2.add(x3))
+          const y = Collection.ByVal.from(x)
+          qu.assertNotInfinite(y.size)
+          y.forEach(x3 => x2.add(x3))
         })
   }
   [Symbol.q_set] = true;
@@ -109,21 +109,19 @@ export class Set<K> extends Collection.ByVal<K> implements qt.Set<K> {
   wasAltered() {
     return this._map.wasAltered()
   }
-  __loop(fn, reverse) {
-    return this._map.__loop(k => fn(k, k, this), reverse)
+  __loop(f: Function, reverse?: boolean) {
+    return this._map.__loop(k => f(k, k, this), reverse)
   }
-  __iter(type, reverse) {
-    return this._map.__iter(type, reverse)
+  __iter(m: qu.Iter.Mode, reverse?: boolean) {
+    return this._map.__iter(m, reverse)
   }
   __ensureOwner(owner) {
-    if (owner === this.__owner) {
-      return this
-    }
+    if (owner === this.__owner) return this
+
     const newMap = this._map.__ensureOwner(owner)
     if (!owner) {
-      if (this.size === 0) {
-        return this.__empty()
-      }
+      if (this.size === 0) return this.__empty()
+
       this.__owner = owner
       this._map = newMap
       return this

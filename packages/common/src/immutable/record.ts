@@ -55,7 +55,7 @@ export class Record<T extends object> implements qt.Record<T> {
       this.__owner = undefined
       this._values = List().withMutations(l => {
         l.setSize(this._keys.length)
-        new Collection.ByKey(values).forEach((v, k) => {
+        Collection.ByKey.from(values).forEach((v, k) => {
           l.set(this._indices[k], v === this._defaultValues[k] ? undefined : v)
         })
       })
@@ -119,11 +119,11 @@ export class Record<T extends object> implements qt.Record<T> {
   entries() {
     return this.__iter(qu.Iter.Mode.ENTRIES)
   }
-  __iter(type, reverse) {
-    return recordSeq(this).__iter(type, reverse)
+  __iter(m: qu.Iter.Mode, reverse?: boolean) {
+    return recordSeq(this).__iter(m, reverse)
   }
-  __loop(fn, reverse) {
-    return recordSeq(this).__loop(fn, reverse)
+  __loop(f: Function, reverse?: boolean) {
+    return recordSeq(this).__loop(f, reverse)
   }
   __ensureOwner(owner) {
     if (owner === this.__owner) {
