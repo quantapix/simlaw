@@ -12,12 +12,12 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   static isKeyed = qu.isKeyed
   static isOrdered = qu.isOrdered
 
-  static create<T = unknown, U = unknown>(): Collection<T, U>
-  static create<T extends Collection<unknown, unknown>>(x: T): T
-  static create<T>(x: Iterable<T> | ArrayLike<T>): qt.Collection.Indexed<T>
-  static create<T>(x: qt.Dict<T>): qt.Collection.Keyed<string, T>
-  static create(x?: any): any {
-    return qu.isCollection(x) ? x : Seq.create(x)
+  static from<T = unknown, U = unknown>(): Collection<T, U>
+  static from<T extends Collection<unknown, unknown>>(x: T): T
+  static from<T>(x: Iterable<T> | ArrayLike<T>): qt.Collection.ByIdx<T>
+  static from<T>(x: qt.ByStr<T>): qt.Collection.ByKey<string, T>
+  static from(x?: any): any {
+    return qu.isCollection(x) ? x : Seq.from(x)
   }
 
   [Symbol.q_collection] = true;
@@ -36,17 +36,17 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return qu.ensureSize(f ? this.toSeq().filter(f, ctx) : this)
   }
   countBy(f: Function, ctx?: unknown) {
-    const y = Map.create().asMutable()
-    this.__iterate((v, k) => {
+    const y = Map.from().asMutable()
+    this[Symbol.q_iterate]((v, k) => {
       y.update(f.call(ctx, v, k, this), 0, x => x + 1)
     })
     return y.asImmutable()
   }
   entries() {
-    return this.__iterator(qu.Iter.Mode.ENTRIES)
+    return this[Symbol.q_iterator](qu.Iter.Mode.ENTRIES)
   }
   entrySeq() {
-    if (this._cache) return new ArraySeq(this._cache)
+    if (this._cache) return new ArrSeq(this._cache)
     const y = this.toSeq().map(entryMapper).toSeqIndexed()
     y.fromEntrySeq = () => this.toSeq()
     return y
@@ -120,7 +120,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   getIn = (x: any, v0?: unknown) => qc.getIn(this, x, v0)
   groupBy(f: Function, ctx?: unknown) {
     const isKeyed = qu.isKeyed(this)
-    const y = (qu.isOrdered(this) ? OrderedMap.create() : Map.create()).asMutable()
+    const y = (qu.isOrdered(this) ? OrderedMap.from() : Map.from()).asMutable()
     this.__iterate((v, k) => {
       y.update(f.call(ctx, v, k, this), x => ((x = x || []), x.push(isKeyed ? [k, v] : v), x))
     })
@@ -141,11 +141,11 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return this.size !== undefined ? this.size === 0 : !this.some(() => true)
   }
   isSubset(x: any) {
-    x = typeof x.includes === "function" ? x : Collection.create(x)
+    x = typeof x.includes === "function" ? x : Collection.from(x)
     return this.every(x2 => x.includes(x2))
   }
   isSuperset(x: any) {
-    x = typeof x.isSubset === "function" ? x : Collection.create(x)
+    x = typeof x.isSubset === "function" ? x : Collection.from(x)
     return x.isSubset(this)
   }
   join(sep: string) {
@@ -258,29 +258,29 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return new ToSeqKeyed(this, true)
   }
   toList() {
-    return List.create(qu.isKeyed(this) ? this.valueSeq() : this)
+    return List.from(qu.isKeyed(this) ? this.valueSeq() : this)
   }
   toMap() {
-    return Map.create(this.toSeqKeyed())
+    return Map.from(this.toSeqKeyed())
   }
   toObject = qc.toObject
   toOrderedMap() {
-    return OrderedMap.create(this.toSeqKeyed())
+    return OrderedMap.from(this.toSeqKeyed())
   }
   toOrderedSet() {
-    return OrderedSet.create(qu.isKeyed(this) ? this.valueSeq() : this)
+    return OrderedSet.from(qu.isKeyed(this) ? this.valueSeq() : this)
   }
   toSeq() {
     return qu.isIndexed(this) ? this.toSeqIndexed() : qu.isKeyed(this) ? this.toSeqKeyed() : this.toSeqSet()
   }
   toSet() {
-    return Set.create(qu.isKeyed(this) ? this.valueSeq() : this)
+    return Set.from(qu.isKeyed(this) ? this.valueSeq() : this)
   }
   toSeqSet() {
     return new ToSeqSet(this)
   }
   toStack() {
-    return Stack.create(qu.isKeyed(this) ? this.valueSeq() : this)
+    return Stack.from(qu.isKeyed(this) ? this.valueSeq() : this)
   }
   toString() {
     return "[Collection]"
@@ -304,20 +304,14 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return head + " " + this.toSeq().map(this.__toStringMapper).join(", ") + " " + tail
   }
   __toStringMapper = qu.quoteString
-  __iterate(f: Function, reverse?: boolean): number {
-    return
-  }
-  __iterator(m: qu.Iter.Mode, reverse?: boolean): qu.Iter {
-    return
-  }
 }
 
 export namespace Collection {
-  export class Keyed<K, V> extends Collection<K, V> implements qt.Collection.Keyed<K, V> {
-    static override create<K, V>(x?: Iterable<[K, V]>): qt.Collection.Keyed<K, V>
-    static override create<V>(x: qt.Dict<V>): qt.Collection.Keyed<string, V>
-    static override create(x?: any): any {
-      return qu.isKeyed(x) ? x : Seq.Keyed.create(x)
+  export class ByKey<K, V> extends Collection<K, V> implements qt.Collection.ByKey<K, V> {
+    static override from<K, V>(x?: Iterable<[K, V]>): qt.Collection.ByKey<K, V>
+    static override from<V>(x: qt.ByStr<V>): qt.Collection.ByKey<string, V>
+    static override from(x?: any): any {
+      return qu.isKeyed(x) ? x : Seq.ByKey.from(x)
     }
     [Symbol.iterator] = this.entries;
     [Symbol.q_keyed] = true
@@ -346,10 +340,10 @@ export namespace Collection {
     override __toStringMapper = (v, k) => qu.quoteString(k) + ": " + qu.quoteString(v)
   }
 
-  export class Indexed<V> extends Collection<number, V> implements qt.Collection.Indexed<V> {
-    static override create<V>(x?: Iterable<V> | ArrayLike<V>): qt.Collection.Indexed<V>
-    static override create(x?: any): any {
-      return qu.isIndexed(x) ? x : Seq.Indexed.create(x)
+  export class ByIdx<V> extends Collection<number, V> implements qt.Collection.ByIdx<V> {
+    static override from<V>(x?: Iterable<V> | ArrayLike<V>): qt.Collection.ByIdx<V>
+    static override from(x?: any): any {
+      return qu.isIndexed(x) ? x : Seq.ByIdx.from(x)
     }
     [Symbol.q_indexed] = true;
     [Symbol.q_ordered] = true
@@ -410,13 +404,13 @@ export namespace Collection {
     }
     interleave(x: unknown) {
       const collections = [this].concat(qu.arrCopy(x))
-      const zipped = qc.zipWith(this.toSeq(), Seq.Indexed.of, collections)
+      const zipped = qc.zipWith(this.toSeq(), Seq.ByIdx.of, collections)
       const y = zipped.flatten(true)
       if (zipped.size) y.size = zipped.size * collections.length
       return qc.reify(this, y)
     }
     override keySeq() {
-      return Range.create(0, this.size)
+      return Range.from(0, this.size)
     }
     override last(v0?: unknown) {
       return this.get(-1, v0)
@@ -439,10 +433,10 @@ export namespace Collection {
     }
   }
 
-  export class Set<K> extends Collection<K, K> implements qt.Collection.Set<K> {
-    static override create<K>(x?: Iterable<K> | ArrayLike<K>): qt.Collection.Set<K>
-    static override create(x?: any): any {
-      return qu.isCollection(x) && !qu.isAssociative(x) ? x : Seq.Set.create(x)
+  export class ByVal<K> extends Collection<K, K> implements qt.Collection.ByVal<K> {
+    static override from<K>(x?: Iterable<K> | ArrayLike<K>): qt.Collection.ByVal<K>
+    static override from(x?: any): any {
+      return qu.isCollection(x) && !qu.isAssociative(x) ? x : Seq.ByVal.from(x)
     }
     override get(v: K, v0?: K) {
       return this.has(v) ? v : v0
@@ -462,13 +456,13 @@ export namespace Collection {
 export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
   static isSeq = qu.isSeq
 
-  static override create<T extends Seq<unknown, unknown>>(seq: T): T
-  static override create<K, V>(x: qt.Collection.Keyed<K, V>): Seq.Keyed<K, V>
-  static override create<T>(x: qt.Collection.Indexed<T> | Iterable<T> | ArrayLike<T>): Seq.Indexed<T>
-  static override create<T>(x: qt.Collection.Set<T>): Seq.Set<T>
-  static override create<V>(x: qt.Dict<V>): Seq.Keyed<string, V>
-  static override create<K = unknown, V = unknown>(): Seq<K, V>
-  static override create(x?: any): any {
+  static override from<T extends Seq<unknown, unknown>>(seq: T): T
+  static override from<K, V>(x: qt.Collection.ByKey<K, V>): Seq.ByKey<K, V>
+  static override from<T>(x: qt.Collection.ByIdx<T> | Iterable<T> | ArrayLike<T>): Seq.ByIdx<T>
+  static override from<T>(x: qt.Collection.ByVal<T>): Seq.ByVal<T>
+  static override from<V>(x: qt.ByStr<V>): Seq.ByKey<string, V>
+  static override from<K = unknown, V = unknown>(): Seq<K, V>
+  static override from(x?: any): any {
     return x === undefined || x === null ? emptySeq() : qu.isImmutable(x) ? x.toSeq() : seqFromValue(x)
   }
 
@@ -516,10 +510,10 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
 }
 
 export namespace Seq {
-  export class Keyed<K, V> extends Seq<K, V> implements Collection.Keyed<K, V> {
-    static override create<K, V>(x?: Iterable<[K, V]>): Seq.Keyed<K, V>
-    static override create<V>(x: qt.Dict<V>): Seq.Keyed<string, V>
-    static override create(x?: any): any {
+  export class ByKey<K, V> extends Seq<K, V> implements Collection.ByKey<K, V> {
+    static override from<K, V>(x?: Iterable<[K, V]>): Seq.ByKey<K, V>
+    static override from<V>(x: qt.ByStr<V>): Seq.ByKey<string, V>
+    static override from(x?: any): any {
       return x === undefined || x === null
         ? emptySeq().toSeqKeyed()
         : qu.isCollection(x)
@@ -534,9 +528,9 @@ export namespace Seq {
       return this
     }
   }
-  export class Indexed<V> extends Seq<number, V> implements Collection.Indexed<V> {
-    static override create<T>(x?: Iterable<T> | ArrayLike<T>): Seq.Indexed<T>
-    static override create(x?: any): any {
+  export class ByIdx<V> extends Seq<number, V> implements Collection.ByIdx<V> {
+    static override from<T>(x?: Iterable<T> | ArrayLike<T>): Seq.ByIdx<T>
+    static override from(x?: any): any {
       return x === undefined || x === null
         ? emptySeq()
         : qu.isCollection(x)
@@ -547,8 +541,8 @@ export namespace Seq {
         ? x.toSeq().entrySeq()
         : seqIndexedFrom(x)
     }
-    static of<T>(...xs: Array<T>): Seq.Indexed<T> {
-      return Seq.Indexed.create(...xs)
+    static of<T>(...xs: Array<T>): Seq.ByIdx<T> {
+      return Seq.ByIdx.from(...xs)
     }
     override toSeqIndexed() {
       return this
@@ -557,13 +551,13 @@ export namespace Seq {
       return this.__toString("Seq [", "]")
     }
   }
-  export class Set<K> extends Seq<K, K> implements Collection.Set<K> {
-    static override create<T>(x?: Iterable<T> | ArrayLike<T>): Seq.Set<T>
-    static override create(x?: any): any {
-      return (qu.isCollection(x) && !qu.isAssociative(x) ? x : Seq.Indexed.create(x)).toSeqSet()
+  export class ByVal<K> extends Seq<K, K> implements Collection.ByVal<K> {
+    static override from<T>(x?: Iterable<T> | ArrayLike<T>): Seq.ByVal<T>
+    static override from(x?: any): any {
+      return (qu.isCollection(x) && !qu.isAssociative(x) ? x : Seq.ByIdx.from(x)).toSeqSet()
     }
-    static of<T>(...xs: Array<T>): Seq.Set<T> {
-      return new Seq.Set(...xs)
+    static of<T>(...xs: Array<T>): Seq.ByVal<T> {
+      return new Seq.ByVal(...xs)
     }
     override toSeqSet() {
       return this
@@ -571,11 +565,11 @@ export namespace Seq {
   }
 }
 
-qu.mixin(Seq.Keyed, Collection.Keyed.prototype)
-qu.mixin(Seq.Indexed, Collection.Indexed.prototype)
-qu.mixin(Seq.Set, Collection.Set.prototype)
+qu.mixin(Seq.ByKey, Collection.ByKey.prototype)
+qu.mixin(Seq.ByIdx, Collection.ByIdx.prototype)
+qu.mixin(Seq.ByVal, Collection.ByVal.prototype)
 
-export class ArraySeq<V> extends Seq.Indexed<V> {
+export class ArrSeq<V> extends Seq.ByIdx<V> {
   constructor(private _base: any[]) {
     super()
     this.size = _base.length
@@ -605,8 +599,8 @@ export class ArraySeq<V> extends Seq.Indexed<V> {
   }
 }
 
-class ObjectSeq<K, V> extends Seq.Keyed<K, V> {
-  [qu.Symbol.q_ordered] = true
+class ObjSeq<K, V> extends Seq.ByKey<K, V> {
+  [Symbol.q_ordered] = true
   constructor(private _base: any) {
     super()
     const keys = Object.keys(_base).concat(Object.getOwnPropertySymbols(_base))
@@ -644,7 +638,7 @@ class ObjectSeq<K, V> extends Seq.Keyed<K, V> {
   }
 }
 
-class CollectionSeq<V> extends Seq.Indexed<V> {
+class CollectionSeq<V> extends Seq.ByIdx<V> {
   constructor(private _base: any) {
     super()
     this.size = _base.length || _base.size
@@ -652,9 +646,9 @@ class CollectionSeq<V> extends Seq.Indexed<V> {
   __iterateUncached(f: Function, reverse: boolean) {
     if (reverse) return this.cacheResult().__iterate(f, reverse)
     const x = this._base
-    const iter = qu.getIterator(x)
+    const iter = qu.callIter(x)
     let y = 0
-    if (qu.isIterator(iter)) {
+    if (qu.isIter(iter)) {
       let i
       while (!(i = iter.next()).done) {
         if (f(i.value, y++, this) === false) break
@@ -664,19 +658,20 @@ class CollectionSeq<V> extends Seq.Indexed<V> {
   }
   __iteratorUncached(m: qu.Iter.Mode, reverse: boolean) {
     if (reverse) return this.cacheResult().__iterator(m, reverse)
-    const x = this._base
-    const iter = qu.getIterator(x)
-    if (!qu.isIterator(iter)) return new qu.Iter(qu.Iter.done)
-    let y = 0
-    return new qu.Iter(() => {
-      const i = iter.next()
-      return i.done ? i : qu.Iter.value(m, y++, i.value)
-    })
+    const it = qu.callIter(this._base)
+    if (it && qu.isIter(it)) {
+      let i = 0
+      return new qu.Iter(() => {
+        const y = it.next()
+        return y.done ? y : qu.Iter.value(m, i++, y.value)
+      })
+    }
+    return new qu.Iter(qu.Iter.done)
   }
 }
 
-export class Range<V> extends Seq.Indexed<V> {
-  static override create(beg?: number, end?: number, step?: number): Seq.Indexed<number> {
+export class Range<V> extends Seq.ByIdx<V> {
+  static override from(beg?: number, end?: number, step?: number): Seq.ByIdx<number> {
     if (!(this instanceof Range)) return new Range(beg, end, step)
     qu.invariant(step !== 0, "Cannot step a Range by 0")
     beg = beg || 0
@@ -753,8 +748,8 @@ export class Range<V> extends Seq.Indexed<V> {
 
 let EMPTY_RANGE
 
-export class Repeat<V> extends Seq.Indexed<V> {
-  static override create<T>(x: T, times?: number): Seq.Indexed<T> {
+export class Repeat<V> extends Seq.ByIdx<V> {
+  static override from<T>(x: T, times?: number): Seq.ByIdx<T> {
     if (!(this instanceof Repeat)) return new Repeat(x, times)
     this._value = x
     this.size = times === undefined ? Infinity : Math.max(0, times)
@@ -877,13 +872,13 @@ function hashCollection<K, V>(x: Collection<K, V>) {
 let EMPTY_SEQ: Seq
 
 function emptySeq() {
-  return EMPTY_SEQ || (EMPTY_SEQ = new ArraySeq([]))
+  return EMPTY_SEQ || (EMPTY_SEQ = new ArrSeq([]))
 }
 
 export function seqKeyedFrom(x) {
   const y = maybeSeqIndexedFrom(x)
   if (!y) {
-    if (typeof x === "object") return new ObjectSeq(x)
+    if (typeof x === "object") return new ObjSeq(x)
     throw new TypeError("Expected Array or collection object of [k, v] entries, or keyed object: " + x)
   }
   return y.fromEntrySeq()
@@ -898,19 +893,19 @@ export function seqIndexedFrom(x) {
 function seqFromValue(x) {
   const y = maybeSeqIndexedFrom(x)
   if (!y) {
-    if (typeof x === "object") return new ObjectSeq(x)
+    if (typeof x === "object") return new ObjSeq(x)
     throw new TypeError("Expected Array or collection object of values, or keyed object: " + x)
   }
   return qu.isEntriesIterable(x) ? y.fromEntrySeq() : qu.isKeysIterable(x) ? y.toSeqSet() : y
 }
 
 function maybeSeqIndexedFrom(x) {
-  return qu.isArrayLike(x) ? new ArraySeq(x) : qu.hasIterator(x) ? new CollectionSeq(x) : undefined
+  return qu.isArrayLike(x) ? new ArrSeq(x) : qu.hasIter(x) ? new CollectionSeq(x) : undefined
 }
 
-export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
+export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
   static isStack = qu.isStack
-  static override create<V>(x?: Iterable<V> | ArrayLike<V>): Stack<V> {
+  static override from<V>(x?: Iterable<V> | ArrayLike<V>): Stack<V> {
     return x === undefined || x === null ? emptyStack() : qu.isStack(x) ? x : emptyStack().pushAll(x)
   }
   static of<V>(...xs: Array<V>): Stack<V> {
@@ -951,7 +946,7 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
     return makeStack(newSize, head)
   }
   pushAll(iter) {
-    iter = Collection.Indexed.create(iter)
+    iter = Collection.ByIdx.from(iter)
     if (iter.size === 0) return this
     if (this.size === 0 && isStack(iter)) return iter
     qu.assertNotInfinite(iter.size)
@@ -993,7 +988,7 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
     const resolvedEnd = qu.resolveEnd(end, this.size)
     if (resolvedEnd !== this.size) {
       // super.slice(begin, end);
-      return Collection.Indexed.prototype.slice.call(this, begin, end)
+      return Collection.ByIdx.prototype.slice.call(this, begin, end)
     }
     const newSize = this.size - resolvedBegin
     let head = this._head
@@ -1020,7 +1015,7 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
     return makeStack(this.size, this._head, owner, this.__hash)
   }
   __iterate(f: Function, reverse: boolean) {
-    if (reverse) return new ArraySeq(this.toArray()).__iterate((v, k) => f(v, k, this), reverse)
+    if (reverse) return new ArrSeq(this.toArray()).__iterate((v, k) => f(v, k, this), reverse)
     let y = 0
     let x = this._head
     while (x) {
@@ -1030,7 +1025,7 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
     return y
   }
   __iterator(m: qu.Iter.Mode, reverse: boolean) {
-    if (reverse) return new ArraySeq(this.toArray()).__iterator(m, reverse)
+    if (reverse) return new ArrSeq(this.toArray()).__iterator(m, reverse)
     let y = 0
     let x = this._head
     return new qu.Iter(() => {
@@ -1074,8 +1069,8 @@ function emptyStack() {
   return EMPTY_STACK || (EMPTY_STACK = makeStack(0))
 }
 
-export class ToSeqKeyed<K, V> extends Seq.Keyed<K, V> {
-  [qu.Symbol.q_ordered] = true
+export class ToSeqKeyed<K, V> extends Seq.ByKey<K, V> {
+  [Symbol.q_ordered] = true
   constructor(private _base: Collection<K, V>, private _useKeys: boolean) {
     super()
     this.size = _base.size
@@ -1108,7 +1103,7 @@ export class ToSeqKeyed<K, V> extends Seq.Keyed<K, V> {
   override cacheResult = qc.cacheResult
 }
 
-export class ToSeqIndexed<V> extends Seq.Indexed<V> {
+export class ToSeqIndexed<V> extends Seq.ByIdx<V> {
   constructor(private _base: Collection<number, V>) {
     super()
     this.size = _base.size
@@ -1133,7 +1128,7 @@ export class ToSeqIndexed<V> extends Seq.Indexed<V> {
   override cacheResult = qc.cacheResult
 }
 
-export class ToSeqSet<K> extends Seq.Set<K> {
+export class ToSeqSet<K> extends Seq.ByVal<K> {
   constructor(private _base: Collection<K, K>) {
     super()
     this.size = _base.size
@@ -1154,7 +1149,7 @@ export class ToSeqSet<K> extends Seq.Set<K> {
   override cacheResult = qc.cacheResult
 }
 
-export class FromEntrySeq<K, V> extends Seq.Keyed<K, V> {
+export class FromEntrySeq<K, V> extends Seq.ByKey<K, V> {
   constructor(private _base: Collection<K, V>) {
     super()
     this.size = _base.size

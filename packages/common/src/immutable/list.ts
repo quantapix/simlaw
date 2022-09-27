@@ -3,14 +3,14 @@ import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
+export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
   static isList = qu.isList
 
-  static override create<T>(x?: Iterable<T> | ArrayLike<T>): List<T> {
+  static override from<T>(x?: Iterable<T> | ArrayLike<T>): List<T> {
     const empty = emptyList()
     if (x === undefined || x === null) return empty
     if (qu.isList(x)) return x
-    const iter = new Collection.Indexed(x)
+    const iter = new Collection.ByIdx(x)
     const size = iter.size
     if (size === 0) return empty
     qu.assertNotInfinite(size)
@@ -96,7 +96,7 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
     const ys = []
     for (let i = 0; i < xs.length; i++) {
       const x = xs[i]
-      const seq = Collection.Indexed.create(typeof x !== "string" && qu.hasIterator(x) ? x : [x])
+      const seq = Collection.ByIdx.from(typeof x !== "string" && qu.hasIter(x) ? x : [x])
       if (seq.size !== 0) ys.push(seq)
     }
     if (ys.length === 0) return this
@@ -120,7 +120,7 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
     if (qu.wholeSlice(begin, end, size)) return this
     return setListBounds(this, qu.resolveBegin(begin, size), qu.resolveEnd(end, size))
   }
-  __iterate(f: Function, reverse: boolean) {
+  [Symbol.q_iterate](f: Function, reverse: boolean) {
     let i = reverse ? this.size : 0
     const ys = iterateList(this, reverse)
     let y
@@ -129,7 +129,7 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
     }
     return i
   }
-  __iterator(m: qu.Iter.Mode, reverse: boolean) {
+  [Symbol.q_iterator](m: qu.Iter.Mode, reverse: boolean) {
     let i = reverse ? this.size : 0
     const ys = iterateList(this, reverse)
     return new qu.Iter(() => {

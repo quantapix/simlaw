@@ -4,7 +4,7 @@ import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
+export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
   static isMap = qu.isMap
   static of(...xs: Array<unknown>): Map<unknown, unknown> {
     return emptyMap().withMutations(x => {
@@ -15,16 +15,16 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
     })
   }
 
-  static override create<K, V>(x?: Iterable<[K, V]>): Map<K, V>
-  static override create<V>(x: qt.Dict<V>): Map<string, V>
-  static override create<K extends string | symbol, V>(x: { [P in K]?: V }): Map<K, V>
-  static override create(x: any): any {
+  static override from<K, V>(x?: Iterable<[K, V]>): Map<K, V>
+  static override from<V>(x: qt.ByStr<V>): Map<string, V>
+  static override from<K extends string | symbol, V>(x: { [P in K]?: V }): Map<K, V>
+  static override from(x: any): any {
     return x === undefined || x === null
       ? emptyMap()
       : qu.isMap(x) && !qu.isOrdered(x)
       ? x
       : emptyMap().withMutations(x2 => {
-          const iter = new Collection.Keyed(x)
+          const iter = new Collection.ByKey(x)
           qu.assertNotInfinite(iter.size)
           iter.forEach((v, k) => x2.set(k, v))
         })
@@ -45,7 +45,7 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
     return updateMap(this, k, qu.NOT_SET)
   }
   deleteAll(xs) {
-    const y = Collection.create(xs)
+    const y = Collection.from(xs)
     if (y.size === 0) return this
     return this.withMutations(x => {
       y.forEach((k: K) => x.remove(k))
@@ -63,10 +63,10 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
     return emptyMap()
   }
   override sort(c?: Function) {
-    return OrderedMap.create(qc.sort(this, c))
+    return OrderedMap.from(qc.sort(this, c))
   }
   override sortBy(f: Function, c?: Function) {
-    return OrderedMap.create(qc.sort(this, c, f))
+    return OrderedMap.from(qc.sort(this, c, f))
   }
   override map(f: Function, ctx?: unknown) {
     return this.withMutations(x => {

@@ -6,6 +6,8 @@ declare global {
     readonly q_collection: symbol
     readonly q_delete: symbol
     readonly q_indexed: symbol
+    readonly q_iterate: symbol
+    readonly q_iterator: symbol
     readonly q_keyed: symbol
     readonly q_list: symbol
     readonly q_map: symbol
@@ -20,6 +22,8 @@ declare global {
 ;(Symbol as { q_collection: symbol }).q_collection = Symbol("q_collection")
 ;(Symbol as { q_delete: symbol }).q_delete = Symbol("q_delete")
 ;(Symbol as { q_indexed: symbol }).q_indexed = Symbol("q_indexed")
+;(Symbol as { q_iterate: symbol }).q_iterate = Symbol("q_iterate")
+;(Symbol as { q_iterator: symbol }).q_iterator = Symbol("q_iterator")
 ;(Symbol as { q_keyed: symbol }).q_keyed = Symbol("q_keyed")
 ;(Symbol as { q_list: symbol }).q_list = Symbol("q_list")
 ;(Symbol as { q_map: symbol }).q_map = Symbol("q_map")
@@ -29,7 +33,7 @@ declare global {
 ;(Symbol as { q_set: symbol }).q_set = Symbol("q_set")
 ;(Symbol as { q_stack: symbol }).q_stack = Symbol("q_stack")
 
-export function isAssociative<K, V>(x: qt.BySym): x is qt.Collection.Keyed<K, V> | qt.Collection.Indexed<V> {
+export function isAssociative<K, V>(x: qt.BySym): x is qt.Collection.ByKey<K, V> | qt.Collection.ByIdx<V> {
   return isKeyed(x) || isIndexed(x)
 }
 export function isCollection<K, V>(x: qt.BySym): x is qt.Collection<K, V> {
@@ -38,10 +42,10 @@ export function isCollection<K, V>(x: qt.BySym): x is qt.Collection<K, V> {
 export function isImmutable<K, V>(x: qt.BySym): x is qt.Collection<K, V> {
   return isCollection(x) || isRecord(x)
 }
-export function isIndexed<V>(x: qt.BySym): x is qt.Collection.Indexed<V> {
+export function isIndexed<V>(x: qt.BySym): x is qt.Collection.ByIdx<V> {
   return Boolean(x && x[Symbol.q_indexed])
 }
-export function isKeyed<K, V>(x: qt.BySym): x is qt.Collection.Keyed<K, V> {
+export function isKeyed<K, V>(x: qt.BySym): x is qt.Collection.ByKey<K, V> {
   return Boolean(x && x[Symbol.q_keyed])
 }
 export function isList<V>(x: qt.BySym): x is qt.List<V> {
@@ -62,7 +66,7 @@ export function isOrderedSet<V>(x: qt.BySym): x is qt.OrderedSet<V> {
 export function isRecord(x: qt.BySym): x is qt.Record<{}> {
   return Boolean(x && x[Symbol.q_record])
 }
-export function isSeq<K, V>(x: qt.BySym): x is qt.Seq.Indexed<V> | qt.Seq.Keyed<K, V> | qt.Seq.Set<V> {
+export function isSeq<K, V>(x: qt.BySym): x is qt.Seq.ByIdx<V> | qt.Seq.ByKey<K, V> | qt.Seq.ByVal<V> {
   return Boolean(x && x[Symbol.q_seq])
 }
 export function isSet<V>(x: qt.BySym): x is qt.Set<V> {
@@ -74,7 +78,7 @@ export function isStack<V>(x: qt.BySym): x is qt.Stack<V> {
 export function hasValue(x: any): x is qt.HasValue {
   return Boolean(x && typeof x.equals === "function" && typeof x.hashCode === "function")
 }
-export function isIterator(x: any) {
+export function isIter(x: any) {
   return Boolean(x && typeof x.next === "function")
 }
 export function isArrayLike(x: any) {
@@ -87,13 +91,26 @@ export function isArrayLike(x: any) {
       (x.length === 0 ? Object.keys(x).length === 1 : x.hasOwnProperty(x.length - 1))
   )
 }
-export function isDataStructure(x: unknown) {
+export function isDataStructure(x: qt.BySym) {
   return typeof x === "object" && (isImmutable(x) || Array.isArray(x) || isPlain(x))
 }
 
-export class Iter {
+export function hasIter(x: qt.BySym) {
+  if (Array.isArray(x)) return true
+  return !!getIter(x)
+}
+function getIter<T>(x: qt.BySym) {
+  const f = x && x[Symbol.iterator]
+  return typeof f === "function" ? (f as () => IterableIterator<T>) : undefined
+}
+export function callIter(x: qt.BySym) {
+  const f = getIter(x)
+  return f && f.call(x)
+}
+
+export class Iter<T> implements IterableIterator<T> {
   [Symbol.iterator] = () => this
-  constructor(public next: unknown) {}
+  constructor(public next: (...xs: [] | [undefined]) => IteratorResult<T>) {}
   toString() {
     return "[Iterator]"
   }
@@ -110,42 +127,22 @@ export namespace Iter {
     ENTRIES,
   }
 
-  export interface Result {
-    value: unknown
-    done: boolean
-  }
-  export function value(m: Mode, k: unknown, v: unknown, y?: Result) {
+  export function value<T>(m: Mode, k: unknown, v: unknown, y?: IteratorYieldResult<T>) {
     const value = m === Mode.KEYS ? k : m === Mode.VALUES ? v : [k, v]
     y ? (y.value = value) : (y = { value, done: false })
     return y
   }
   export function done() {
-    return { value: undefined, done: true } as Result
+    return { value: undefined, done: true }
   }
 }
 
-export function hasIterator(x: unknown) {
-  if (Array.isArray(x)) return true
-  return !!getIteratorFn(x)
-}
-
-export function getIterator(x: unknown) {
-  const f = getIteratorFn(x)
-  return f && f.call(x)
-}
-
-function getIteratorFn(x: any) {
-  const f = x && x[Symbol.iterator]
-  if (typeof f === "function") return f as Function
-  return
-}
-
 export function isEntriesIterable(x: any) {
-  const f = getIteratorFn(x)
+  const f = getIter(x)
   return f && f === x.entries
 }
 export function isKeysIterable(x: any) {
-  const f = getIteratorFn(x)
+  const f = getIter(x)
   return f && f === x.keys
 }
 
@@ -362,7 +359,7 @@ export function fromJS(
   x: unknown,
   f?: (
     k: string | number,
-    x: qt.Collection.Keyed<string, unknown> | qt.Collection.Indexed<unknown>,
+    x: qt.Collection.ByKey<string, unknown> | qt.Collection.ByIdx<unknown>,
     path?: Array<string | number>
   ) => unknown
 ): qt.Collection<unknown, unknown> {
@@ -370,11 +367,7 @@ export function fromJS(
 }
 
 function fromJSWith(stack, converter, value, key, keyPath, parentValue) {
-  if (
-    typeof value !== "string" &&
-    !isImmutable(value) &&
-    (isArrayLike(value) || hasIterator(value) || isPlain(value))
-  ) {
+  if (typeof value !== "string" && !isImmutable(value) && (isArrayLike(value) || hasIter(value) || isPlain(value))) {
     if (~stack.indexOf(value)) {
       throw new TypeError("Cannot convert circular structure to Immutable")
     }

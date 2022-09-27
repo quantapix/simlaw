@@ -1,4 +1,4 @@
-import { Collection, Seq, seqKeyedFrom, seqIndexedFrom, ArraySeq } from "./main.js"
+import { Collection, Seq, seqKeyedFrom, seqIndexedFrom, ArrSeq } from "./main.js"
 import { emptyMap } from "./map.js"
 import { set } from "./set.js"
 import * as qu from "./utils.js"
@@ -9,9 +9,9 @@ export function get<K, V>(x: qt.Collection<K, V>, k: K): V | undefined
 export function get<T extends object, K extends keyof T>(x: qt.Record<T>, k: K, v0: unknown): T[K]
 export function get<T extends object, K extends keyof T>(x: T, k: K, v0: unknown): T[K]
 export function get<V, T>(x: Array<V>, i: number, v0: T): V | T
-export function get<V, T>(x: qt.Dict<V>, k: string, v0: T): V | T
+export function get<V, T>(x: qt.ByStr<V>, k: string, v0: T): V | T
 export function get<V>(x: Array<V>, i: number): V | undefined
-export function get<V>(x: qt.Dict<V>, k: string): V | undefined
+export function get<V>(x: qt.ByStr<V>, k: string): V | undefined
 export function get(x: any, k: any, v0?: unknown) {
   return qu.isImmutable(x) ? x.get(k, v0) : !has(x, k) ? v0 : typeof x.get === "function" ? x.get(k) : x[k]
 }
@@ -34,26 +34,26 @@ export function hasIn(x: unknown, xs: Iterable<unknown>): boolean {
   return getIn(x, xs, qu.NOT_SET) !== qu.NOT_SET
 }
 
-export function merge<T>(x: T, ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | qt.Dict>): T {
+export function merge<T>(x: T, ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | qt.ByStr>): T {
   return mergeWithSources(x, xs)
 }
 
 export function mergeWith<T>(
   f: (old: unknown, v: unknown, k: unknown) => unknown,
   x: T,
-  ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | qt.Dict>
+  ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | qt.ByStr>
 ): T {
   return mergeWithSources(x, xs, f)
 }
 
-export function mergeDeep<T>(x: T, ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | qt.Dict>): T {
+export function mergeDeep<T>(x: T, ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | qt.ByStr>): T {
   return mergeDeepWithSources(x, xs)
 }
 
 export function mergeDeepWith<T>(
   f: (old: unknown, newVal: unknown, key: unknown) => unknown,
   x: T,
-  ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | qt.Dict>
+  ...xs: Array<Iterable<unknown> | Iterable<[unknown, unknown]> | qt.ByStr>
 ): T {
   return mergeDeepWithSources(x, xs, f)
 }
@@ -68,7 +68,7 @@ export function mergeWithSources(x: any, xs: any, f?: Function) {
     return typeof f === "function" && x.mergeWith ? x.mergeWith(f, ...xs) : x.merge ? x.merge(...xs) : x.concat(...xs)
   const isArray = Array.isArray(x)
   let y = x
-  const C = isArray ? Collection.Indexed : Collection.Keyed
+  const C = isArray ? Collection.ByIdx : Collection.ByKey
   const mergeItem = isArray
     ? v => {
         if (y === x) y = qu.shallowCopy(y)
@@ -100,15 +100,15 @@ function deepMergerWith(f: Function) {
 }
 
 function areMergeable(a: any, b: any) {
-  const a2 = Seq.create(a)
-  const b2 = Seq.create(b)
+  const a2 = Seq.from(a)
+  const b2 = Seq.from(b)
   return qu.isIndexed(a2) === qu.isIndexed(b2) && qu.isKeyed(a2) === qu.isKeyed(b2)
 }
 
 export function remove<K, T extends qt.Collection<K, unknown>>(x: T, k: K): T
 export function remove<T extends Array<unknown>>(x: T, k: number): T
 export function remove<T extends object, U extends qt.Record<T>, K extends keyof T>(x: U, k: K): U
-export function remove<T extends qt.Dict, K extends keyof T>(x: T, k: K): T
+export function remove<T extends qt.ByStr, K extends keyof T>(x: T, k: K): T
 export function remove<T, K extends keyof T>(x: T, k: K): T
 export function remove(x: unknown, k: any) {
   if (!qu.isDataStructure(x)) throw new TypeError("Cannot update non-data-structure value: " + x)
@@ -131,7 +131,7 @@ export function set<K, V, T extends qt.Collection<K, V>>(x: T, k: K, v: V): T
 export function set<T extends object, U extends qt.Record<T>, K extends keyof T>(x: U, k: K, v: T[K]): U
 export function set<V, T extends Array<V>>(x: T, k: number, v: V): T
 export function set<T, K extends keyof T>(x: T, k: K, v: T[K]): T
-export function set<V, T extends qt.Dict<V>>(x: T, k: string, v: V): T
+export function set<V, T extends qt.ByStr<V>>(x: T, k: string, v: V): T
 export function set(x: any, k: any, v: unknown) {
   if (!qu.isDataStructure(x)) throw new TypeError("Cannot update non-data-structure value: " + x)
   if (qu.isImmutable(x)) {
@@ -155,13 +155,13 @@ export function update<V>(x: Array<V>, k: number, f: (v: V) => V): Array<V>
 export function update<V, V0>(x: Array<V>, k: number, v0: V0, f: (v: V | V0) => V): Array<V>
 export function update<T, K extends keyof T>(x: T, k: K, f: (x: T[K]) => T[K]): T
 export function update<T, K extends keyof T, V0>(x: T, k: K, v0: V0, f: (x: T[K] | V0) => T[K]): T
-export function update<V, T extends qt.Dict<V>, K extends keyof T>(x: T, k: K, f: (v: V) => V): qt.Dict<V>
-export function update<V, T extends qt.Dict<V>, K extends keyof T, V0>(
+export function update<V, T extends qt.ByStr<V>, K extends keyof T>(x: T, k: K, f: (v: V) => V): qt.ByStr<V>
+export function update<V, T extends qt.ByStr<V>, K extends keyof T, V0>(
   x: T,
   k: K,
   v0: V0,
   f: (v: V | V0) => V
-): qt.Dict<V>
+): qt.ByStr<V>
 export function update<T extends object, U extends qt.Record<T>, K extends keyof T, V0>(
   x: U,
   k: K,
@@ -215,7 +215,7 @@ export function deleteIn(this: any, x) {
 export function mergeIntoKeyedWith(x: any, xs: any, f?: Function) {
   const ys: any[] = []
   for (let i = 0; i < xs.length; i++) {
-    const y = Collection.Keyed.create(xs[i])
+    const y = Collection.ByKey.from(xs[i])
     if (y.size !== 0) ys.push(y)
   }
   if (ys.length === 0) return x
@@ -271,7 +271,7 @@ export function concat<K, V>(x: qt.Collection<K, V>, xs: any[]) {
     .concat(xs)
     .map(v => {
       if (!qu.isCollection(v)) v = isKeyed ? seqKeyedFrom(v) : seqIndexedFrom(Array.isArray(v) ? v : [v])
-      else if (isKeyed) v = Collection.Keyed.create(v)
+      else if (isKeyed) v = Collection.ByKey.from(v)
       return v
     })
     .filter(v => v.size !== 0)
@@ -280,7 +280,7 @@ export function concat<K, V>(x: qt.Collection<K, V>, xs: any[]) {
     const y = ys[0]
     if (y === x || (isKeyed && qu.isKeyed(y)) || (qu.isIndexed(x) && qu.isIndexed(y))) return y
   }
-  let y = new ArraySeq(ys)
+  let y = new ArrSeq(ys)
   if (isKeyed) y = y.toSeqKeyed()
   else if (!qu.isIndexed(x)) y = y.toSeqSet()
   y = y.flatten(true)
@@ -585,7 +585,7 @@ export function flatMap<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown
   const C = collectionClass(x)
   return x
     .toSeq()
-    .map((v, k) => C.create(f.call(ctx, v, k, x)))
+    .map((v, k) => C.from(f.call(ctx, v, k, x)))
     .flatten(true)
 }
 
@@ -630,7 +630,7 @@ export function sort<K, V>(x: qt.Collection<K, V>, c?: Function, f?: Function) {
           y[i] = v[1]
         }
   )
-  return isKeyed ? Seq.Keyed.create(y) : qu.isIndexed(x) ? Seq.Indexed.create(y) : Seq.Set.create(y)
+  return isKeyed ? Seq.ByKey.from(y) : qu.isIndexed(x) ? Seq.ByIdx.from(y) : Seq.ByVal.from(y)
 }
 
 export function max<K, V>(x: qt.Collection<K, V>, c?: Function, f?: Function) {
@@ -647,7 +647,7 @@ export function max<K, V>(x: qt.Collection<K, V>, c?: Function, f?: Function) {
 
 export function zipWith<K, V>(x: qt.Collection<K, V>, f: Function, xs: any, zipAll?: boolean) {
   const y = makeSequence(x)
-  const sizes = new ArraySeq(xs).map((x2: any) => x2.size)
+  const sizes = new ArrSeq(xs).map((x2: any) => x2.size)
   y.size = zipAll ? sizes.max() : sizes.min()
   y.__iterate = function (f2: Function, reverse: boolean) {
     const iter = this.__iterator(qu.Iter.Mode.VALUES, reverse)
@@ -659,7 +659,7 @@ export function zipWith<K, V>(x: qt.Collection<K, V>, f: Function, xs: any, zipA
     return y
   }
   y.__iteratorUncached = function (m: qu.Iter.Mode, reverse: boolean) {
-    const iters = xs.map(x => ((x = Collection.create(x)), qu.getIterator(reverse ? x.reverse() : x)))
+    const iters = xs.map(x => ((x = Collection.from(x)), qu.callIter(reverse ? x.reverse() : x)))
     let n = 0
     let done = false
     return new qu.Iter(() => {
@@ -676,11 +676,11 @@ export function zipWith<K, V>(x: qt.Collection<K, V>, f: Function, xs: any, zipA
 }
 
 function collectionClass(x: unknown) {
-  return qu.isKeyed(x) ? Collection.Keyed : qu.isIndexed(x) ? Collection.Indexed : Collection.Set
+  return qu.isKeyed(x) ? Collection.ByKey : qu.isIndexed(x) ? Collection.ByIdx : Collection.ByVal
 }
 
 function makeSequence(x: unknown): any {
-  return new (qu.isKeyed(x) ? Seq.Keyed : qu.isIndexed(x) ? Seq.Indexed : Seq.Set)()
+  return new (qu.isKeyed(x) ? Seq.ByKey : qu.isIndexed(x) ? Seq.ByIdx : Seq.ByVal)()
 }
 
 export function cacheResult(x) {

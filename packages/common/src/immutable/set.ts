@@ -5,15 +5,15 @@ import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-export class Set<K> extends Collection.Set<K> implements qt.Set<K> {
+export class Set<K> extends Collection.ByVal<K> implements qt.Set<K> {
   static isSet = qu.isSet
   static of<T>(...xs: Array<T>): Set<T> {
     return new Set<T>(...xs)
   }
-  static fromKeys(x: qt.Dict): Set<string>
+  static fromKeys(x: qt.ByStr): Set<string>
   static fromKeys<T>(x: Collection<T, unknown>): Set<T>
   static fromKeys(x: any): any {
-    return new Set(new Collection.Keyed(x).keySeq())
+    return new Set(new Collection.ByKey(x).keySeq())
   }
   static intersect<T>(x: Iterable<Iterable<T>>): Set<T> {
     x = new Collection(x).toArray()
@@ -24,13 +24,13 @@ export class Set<K> extends Collection.Set<K> implements qt.Set<K> {
     return x.length ? SetPrototype.union.apply(new Set(x.pop()), x) : emptySet()
   }
 
-  static override create<K>(x?: Iterable<K> | ArrayLike<K>): Set<K> {
+  static override from<K>(x?: Iterable<K> | ArrayLike<K>): Set<K> {
     return x === undefined || x === null
       ? emptySet()
       : qu.isSet(x) && !qu.isOrdered(x)
       ? x
       : emptySet().withMutations(x2 => {
-          const iter = new Collection.Set(x)
+          const iter = new Collection.ByVal(x)
           qu.assertNotInfinite(iter.size)
           iter.forEach(x3 => x2.add(x3))
         })
@@ -101,10 +101,10 @@ export class Set<K> extends Collection.Set<K> implements qt.Set<K> {
     })
   }
   override sort(c?: Function) {
-    return OrderedSet.create(qc.sort(this, c))
+    return OrderedSet.from(qc.sort(this, c))
   }
   override sortBy(f: Function, c?: Function) {
-    return OrderedSet.create(qc.sort(this, c, f))
+    return OrderedSet.from(qc.sort(this, c, f))
   }
   wasAltered() {
     return this._map.wasAltered()

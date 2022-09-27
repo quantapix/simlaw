@@ -7,15 +7,15 @@ import type * as qt from "./types.js"
 
 export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
   static isOrderedMap = qu.isOrderedMap
-  static override create<K, V>(x?: Iterable<[K, V]>): qt.OrderedMap<K, V>
-  static override create<V>(x: qt.Dict<V>): qt.OrderedMap<string, V>
-  static override create(x: any): any {
+  static override from<K, V>(x?: Iterable<[K, V]>): qt.OrderedMap<K, V>
+  static override from<V>(x: qt.ByStr<V>): qt.OrderedMap<string, V>
+  static override from(x: any): any {
     return x === undefined || x === null
       ? emptyOrderedMap()
       : qu.isOrderedMap(x)
       ? x
       : emptyOrderedMap().withMutations(x2 => {
-          const iter = new Collection.Keyed(x)
+          const iter = new Collection.ByKey(x)
           qu.assertNotInfinite(iter.size)
           iter.forEach((v, k) => x2.set(k, v))
         })
@@ -24,7 +24,7 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
     return new OrderedMap<K, V>(...xs)
   }
 
-  [qu.Symbol.q_ordered] = true;
+  [Symbol.q_ordered] = true;
   override [Symbol.q_delete] = this.remove
 
   override toString() {
@@ -139,13 +139,13 @@ function updateOrderedMap(omap, k, v) {
 export class OrderedSet<K> extends Set<K> implements qt.OrderedSet<K> {
   static isOrderedSet = qu.isOrderedSet
 
-  static override create<T>(x?: Iterable<T> | ArrayLike<T>): OrderedSet<T> {
+  static override from<T>(x?: Iterable<T> | ArrayLike<T>): OrderedSet<T> {
     return x === undefined || x === null
       ? emptyOrderedSet()
       : qu.isOrderedSet(x)
       ? x
       : emptyOrderedSet().withMutations(x2 => {
-          const y = new Collection.Set(x)
+          const y = new Collection.ByVal(x)
           qu.assertNotInfinite(y.size)
           y.forEach(v => x2.add(v))
         })
@@ -155,19 +155,19 @@ export class OrderedSet<K> extends Set<K> implements qt.OrderedSet<K> {
     return this(...xs)
   }
   static override fromKeys<T>(x: Collection<T, unknown>): OrderedSet<T>
-  static override fromKeys(x: qt.Dict): OrderedSet<string>
+  static override fromKeys(x: qt.ByStr): OrderedSet<string>
   static override fromKeys(x: any): any {
-    return this(new Collection.Keyed(x).keySeq())
+    return this(new Collection.ByKey(x).keySeq())
   }
 
-  [qu.Symbol.q_ordered] = true
+  [Symbol.q_ordered] = true
 
   override toString() {
     return this.__toString("OrderedSet {", "}")
   }
-  zip = Collection.Indexed.prototype.zip
-  zipWith = Collection.Indexed.prototype.zipWith
-  zipAll = Collection.Indexed.prototype.zipAll
+  zip = Collection.ByIdx.prototype.zip
+  zipWith = Collection.ByIdx.prototype.zipWith
+  zipAll = Collection.ByIdx.prototype.zipAll
   override __empty = emptyOrderedSet
   override __make = makeOrderedSet
 }

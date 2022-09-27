@@ -24,7 +24,7 @@ export class Record<T extends object> implements qt.Record<T> {
   static isRecord = qu.isRecord
   static getDescriptiveName = recordName
 
-  static create<T extends object>(vs0: T, name?: string): Record.Factory<T> {
+  static from<T extends object>(vs0: T, name?: string): Record.Factory<T> {
     let ready = false
     throwOnInvalidDefaultValues(vs0)
     const y = function Record(values) {
@@ -55,7 +55,7 @@ export class Record<T extends object> implements qt.Record<T> {
       this.__owner = undefined
       this._values = List().withMutations(l => {
         l.setSize(this._keys.length)
-        new Collection.Keyed(values).forEach((v, k) => {
+        new Collection.ByKey(values).forEach((v, k) => {
           l.set(this._indices[k], v === this._defaultValues[k] ? undefined : v)
         })
       })
