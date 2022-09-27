@@ -2,22 +2,11 @@ import { List } from "./list.js"
 import { Map } from "./map.js"
 import { OrderedMap, OrderedSet } from "./ordered.js"
 import { Set } from "./set.js"
-import * as qf from "./functions.js"
-import * as qo from "./operations.js"
+import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-abstract class Base {
-  __toStringMapper = qu.quoteString
-  __iterate(f: Function, reverse?: boolean): number {
-    return
-  }
-  __iterator(m: qu.Iter.Mode, reverse?: boolean): qu.Iter {
-    return
-  }
-}
-
-export class Collection<K, V> extends Base implements qt.Collection<K, V> {
+export class Collection<K, V> implements qt.Collection<K, V> {
   static isAssociative = qu.isAssociative
   static isIndexed = qu.isIndexed
   static isKeyed = qu.isKeyed
@@ -40,7 +29,7 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
     return this.slice(0, -1)
   }
   concat(...xs: unknown[]) {
-    return qo.reify(this, qo.concat(this, xs))
+    return qc.reify(this, qc.concat(this, xs))
   }
   contains = this.includes
   count(f?: Function, ctx?: unknown): number {
@@ -77,7 +66,7 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
     return y
   }
   filter(f: Function, ctx?: unknown) {
-    return qo.reify(this, qo.filter(this, f, ctx, true))
+    return qc.reify(this, qc.filter(this, f, ctx, true))
   }
   filterNot(f: Function, ctx?: unknown) {
     return this.filter(not(f), ctx)
@@ -113,22 +102,22 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
     return this.find(qu.returnTrue, null, v0)
   }
   flatMap(f: Function, ctx?: unknown) {
-    return qo.reify(this, qo.flatMapFactory(this, f, ctx))
+    return qc.reify(this, qc.flatMapFactory(this, f, ctx))
   }
   flatten(depth?: number) {
-    return qo.reify(this, qo.flattenFactory(this, depth, true))
+    return qc.reify(this, qc.flattenFactory(this, depth, true))
   }
   forEach(f: (v: V, k: K, iter: this) => unknown, ctx?: unknown): number {
     qu.assertNotInfinite(this.size)
     return this.__iterate(ctx ? f.bind(ctx) : f)
   }
   fromEntrySeq() {
-    return new qo.FromEntrySeq(this)
+    return new FromEntrySeq(this)
   }
   get(k: unknown, v0?: unknown) {
     return this.find((_, x) => qu.is(x, k), undefined, v0)
   }
-  getIn = (x: any, v0?: unknown) => qf.getIn(this, x, v0)
+  getIn = (x: any, v0?: unknown) => qc.getIn(this, x, v0)
   groupBy(f: Function, ctx?: unknown) {
     const isKeyed = qu.isKeyed(this)
     const y = (qu.isOrdered(this) ? OrderedMap.create() : Map.create()).asMutable()
@@ -136,7 +125,7 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
       y.update(f.call(ctx, v, k, this), x => ((x = x || []), x.push(isKeyed ? [k, v] : v), x))
     })
     const coerce = collectionClass(this)
-    return y.map(x => qo.reify(this, coerce(x))).asImmutable()
+    return y.map(x => qc.reify(this, coerce(x))).asImmutable()
   }
   has(k: unknown) {
     return this.get(k, qu.NOT_SET) !== qu.NOT_SET
@@ -144,7 +133,7 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
   hashCode() {
     return this.__hash || (this.__hash = hashCollection(this))
   }
-  hasIn = (x: any) => qf.hasIn(this, x)
+  hasIn = (x: any) => qc.hasIn(this, x)
   includes(v: unknown) {
     return this.some(x => qu.is(x, v))
   }
@@ -186,19 +175,19 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
     return this.toSeqKeyed().reverse().keyOf(v)
   }
   map(f: Function, ctx?: unknown) {
-    return qo.reify(this, qo.mapFactory(this, f, ctx))
+    return qc.reify(this, qc.mapFactory(this, f, ctx))
   }
   max(c?: unknown) {
-    return qo.maxFactory(this, c)
+    return qc.maxFactory(this, c)
   }
   maxBy(f: Function, c?: unknown) {
-    return qo.maxFactory(this, c, f)
+    return qc.maxFactory(this, c, f)
   }
   min(c?: unknown) {
-    return qo.maxFactory(this, c ? neg(c) : defaultNegComparator)
+    return qc.maxFactory(this, c ? neg(c) : defaultNegComparator)
   }
   minBy(f: Function, c?: unknown) {
-    return qo.maxFactory(this, c ? neg(c) : defaultNegComparator, f)
+    return qc.maxFactory(this, c ? neg(c) : defaultNegComparator, f)
   }
   reduce(f: Function, y0?: unknown, ctx?: unknown) {
     return reduce(this, f, y0, ctx, arguments.length < 2, false)
@@ -210,7 +199,7 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
     return this.slice(1)
   }
   reverse() {
-    return qo.reify(this, qo.reverseFactory(this, true))
+    return qc.reify(this, qc.reverseFactory(this, true))
   }
   skip(x: number) {
     return x === 0 ? this : this.slice(Math.max(0, x))
@@ -222,19 +211,19 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
     return this.skipWhile(not(f), ctx)
   }
   skipWhile(f: Function, ctx?: unknown) {
-    return qo.reify(this, qo.skipWhileFactory(this, f, ctx, true))
+    return qc.reify(this, qc.skipWhileFactory(this, f, ctx, true))
   }
   slice(beg?: number, end?: number): this {
-    return qo.reify(this, qo.sliceFactory(this, beg, end, true))
+    return qc.reify(this, qc.sliceFactory(this, beg, end, true))
   }
   some(f: Function, ctx?: unknown) {
     return !this.every(not(f), ctx)
   }
   sort(c?: unknown) {
-    return qo.reify(this, qo.sortFactory(this, c))
+    return qc.reify(this, qc.sortFactory(this, c))
   }
   sortBy(f: Function, c?: unknown) {
-    return qo.reify(this, qo.sortFactory(this, c, f))
+    return qc.reify(this, qc.sortFactory(this, c, f))
   }
   take(x: number) {
     return this.slice(0, Math.max(0, x))
@@ -246,7 +235,7 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
     return this.takeWhile(not(f), ctx)
   }
   takeWhile(f: Function, ctx?: unknown) {
-    return qo.reify(this, qo.takeWhileFactory(this, f, ctx))
+    return qc.reify(this, qc.takeWhileFactory(this, f, ctx))
   }
   toArray() {
     qu.assertNotInfinite(this.size)
@@ -259,14 +248,14 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
     return y
   }
   toSeqIndexed() {
-    return new qo.ToSeqIndexed(this)
+    return new ToSeqIndexed(this)
   }
   toJS() {
     return qu.toJS(this)
   }
   toJSON = this.toArray
   toSeqKeyed() {
-    return new qo.ToSeqKeyed(this, true)
+    return new ToSeqKeyed(this, true)
   }
   toList() {
     return List.create(qu.isKeyed(this) ? this.valueSeq() : this)
@@ -274,7 +263,7 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
   toMap() {
     return Map.create(this.toSeqKeyed())
   }
-  toObject = qf.toObject
+  toObject = qc.toObject
   toOrderedMap() {
     return OrderedMap.create(this.toSeqKeyed())
   }
@@ -288,7 +277,7 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
     return Set.create(qu.isKeyed(this) ? this.valueSeq() : this)
   }
   toSeqSet() {
-    return new qo.ToSeqSet(this)
+    return new ToSeqSet(this)
   }
   toStack() {
     return Stack.create(qu.isKeyed(this) ? this.valueSeq() : this)
@@ -314,6 +303,13 @@ export class Collection<K, V> extends Base implements qt.Collection<K, V> {
     if (this.size === 0) return head + tail
     return head + " " + this.toSeq().map(this.__toStringMapper).join(", ") + " " + tail
   }
+  __toStringMapper = qu.quoteString
+  __iterate(f: Function, reverse?: boolean): number {
+    return
+  }
+  __iterator(m: qu.Iter.Mode, reverse?: boolean): qu.Iter {
+    return
+  }
 }
 
 export namespace Collection {
@@ -326,11 +322,11 @@ export namespace Collection {
     [Symbol.iterator] = this.entries;
     [qu.IS_KEYED_SYMBOL] = true
     flip() {
-      return qo.reify(this, qo.flip(this))
+      return qc.reify(this, qc.flip(this))
     }
     mapEntries(f: Function, ctx?: unknown) {
       let i = 0
-      return qo.reify(
+      return qc.reify(
         this,
         this.toSeq()
           .map((v, k) => f.call(ctx, [k, v], i++, this))
@@ -338,7 +334,7 @@ export namespace Collection {
       )
     }
     mapKeys(f: Function, ctx?: unknown) {
-      return qo.reify(
+      return qc.reify(
         this,
         this.toSeq()
           .flip()
@@ -346,7 +342,7 @@ export namespace Collection {
           .flip()
       )
     }
-    override toJSON = qf.toObject
+    override toJSON = qc.toObject
     override __toStringMapper = (v, k) => qu.quoteString(k) + ": " + qu.quoteString(v)
   }
 
@@ -358,10 +354,10 @@ export namespace Collection {
     [qu.IS_INDEXED_SYMBOL] = true;
     [qu.IS_ORDERED_SYMBOL] = true
     override toSeqKeyed() {
-      return new qo.ToSeqKeyed(this, false)
+      return new ToSeqKeyed(this, false)
     }
     override filter(f: Function, ctx?: unknown) {
-      return qo.reify<number, V>(this, qo.filter(this, f, ctx, false))
+      return qc.reify<number, V>(this, qc.filter(this, f, ctx, false))
     }
     findIndex(f: Function, ctx?: unknown) {
       const y = this.findEntry(f, ctx)
@@ -376,10 +372,10 @@ export namespace Collection {
       return y === undefined ? -1 : y
     }
     override reverse() {
-      return qo.reify(this, qo.reverseFactory(this, false))
+      return qc.reify(this, qc.reverseFactory(this, false))
     }
     override slice(beg?: number, end?: number): this {
-      return qo.reify(this, qo.sliceFactory(this, beg, end, false))
+      return qc.reify(this, qc.sliceFactory(this, beg, end, false))
     }
     splice(index, removeNum, x: unknown) {
       const numArgs = arguments.length
@@ -387,7 +383,7 @@ export namespace Collection {
       if (numArgs === 0 || (numArgs === 2 && !removeNum)) return this
       index = qu.resolveBegin(index, index < 0 ? this.count() : this.size)
       const spliced = this.slice(0, index)
-      return qo.reify(this, numArgs === 1 ? spliced : spliced.concat(qu.arrCopy(x, 2), this.slice(index + removeNum)))
+      return qc.reify(this, numArgs === 1 ? spliced : spliced.concat(qu.arrCopy(x, 2), this.slice(index + removeNum)))
     }
     findLastIndex(f: Function, ctx?: unknown) {
       const y = this.findLastEntry(f, ctx)
@@ -397,7 +393,7 @@ export namespace Collection {
       return this.get(0, v0)
     }
     override flatten(depth?: number) {
-      return qo.reify(this, qo.flattenFactory(this, depth, false))
+      return qc.reify(this, qc.flattenFactory(this, depth, false))
     }
     override get(i: number, v0?: unknown) {
       i = qu.wrapIndex(this, i)
@@ -410,14 +406,14 @@ export namespace Collection {
       return i >= 0 && (this.size !== undefined ? this.size === Infinity || i < this.size : this.indexOf(i) !== -1)
     }
     interpose(sep: string) {
-      return qo.reify(this, qo.interposeFactory(this, sep))
+      return qc.reify(this, qc.interposeFactory(this, sep))
     }
     interleave(x: unknown) {
       const collections = [this].concat(qu.arrCopy(x))
-      const zipped = qo.zipWithFactory(this.toSeq(), Seq.Indexed.of, collections)
+      const zipped = qc.zipWithFactory(this.toSeq(), Seq.Indexed.of, collections)
       const interleaved = zipped.flatten(true)
       if (zipped.size) interleaved.size = zipped.size * collections.length
-      return qo.reify(this, interleaved)
+      return qc.reify(this, interleaved)
     }
     override keySeq() {
       return Range.create(0, this.size)
@@ -426,20 +422,20 @@ export namespace Collection {
       return this.get(-1, v0)
     }
     override skipWhile(f: Function, ctx?: unknown) {
-      return qo.reify(this, qo.skipWhileFactory(this, f, ctx, false))
+      return qc.reify(this, qc.skipWhileFactory(this, f, ctx, false))
     }
     zip(...xs: unknown[]) {
       const ys = [this].concat(qu.arrCopy(xs))
-      return qo.reify(this, qo.zipWithFactory(this, defaultZipper, ys))
+      return qc.reify(this, qc.zipWithFactory(this, defaultZipper, ys))
     }
     zipAll(...xs: unknown[]) {
       const ys = [this].concat(qu.arrCopy(xs))
-      return qo.reify(this, qo.zipWithFactory(this, defaultZipper, ys, true))
+      return qc.reify(this, qc.zipWithFactory(this, defaultZipper, ys, true))
     }
     zipWith(f: Function, ...xs: unknown[]) {
       const ys = qu.arrCopy(xs)
       ys[0] = this
-      return qo.reify(this, qo.zipWithFactory(this, f, ys))
+      return qc.reify(this, qc.zipWithFactory(this, f, ys))
     }
   }
 
@@ -1053,11 +1049,11 @@ export class Stack<V> extends Collection.Indexed<V> implements qt.Stack<V> {
   shift = this.pop
   unshift = this.push
   unshiftAll = this.pushAll
-  withMutations = qf.withMutations
-  wasAltered = qf.wasAltered
-  asImmutable = qf.asImmutable
-  asMutable = qf.asMutable;
-  ["@@transducer/init"] = qf.asMutable;
+  withMutations = qc.withMutations
+  wasAltered = qc.wasAltered
+  asImmutable = qc.asImmutable
+  asMutable = qc.asMutable;
+  ["@@transducer/init"] = qc.asMutable;
   ["@@transducer/step"] = function (result, arr) {
     return result.unshift(arr)
   };
@@ -1080,4 +1076,123 @@ let EMPTY_STACK
 
 function emptyStack() {
   return EMPTY_STACK || (EMPTY_STACK = makeStack(0))
+}
+
+export class ToSeqKeyed<K, V> extends Seq.Keyed<K, V> {
+  [qu.IS_ORDERED_SYMBOL] = true
+  constructor(private _base: Collection<K, V>, private _useKeys: boolean) {
+    super()
+    this.size = _base.size
+  }
+  override get(k: unknown, v0?: unknown) {
+    return this._base.get(k, v0)
+  }
+  override has(k: unknown) {
+    return this._base.has(k)
+  }
+  override valueSeq() {
+    return this._base.valueSeq()
+  }
+  override reverse() {
+    const y = reverseFactory(this, true)
+    if (!this._useKeys) y.valueSeq = () => this._base.toSeq().reverse()
+    return y
+  }
+  override map(f: Function, ctx?: unknown) {
+    const y = mapFactory(this, f, ctx)
+    if (!this._useKeys) y.valueSeq = () => this._base.toSeq().map(f, ctx)
+    return y
+  }
+  override __iterate(f: Function, reverse: boolean) {
+    return this._base.__iterate((v, k) => f(v, k, this), reverse)
+  }
+  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
+    return this._base.__iterator(m, reverse)
+  }
+  override cacheResult = qc.cacheResult
+}
+
+export class ToSeqIndexed<V> extends Seq.Indexed<V> {
+  constructor(private _base: Collection<number, V>) {
+    super()
+    this.size = _base.size
+  }
+  override includes(x: unknown) {
+    return this._base.includes(x)
+  }
+  override __iterate(f: Function, reverse: boolean) {
+    let y = 0
+    reverse && qu.ensureSize(this)
+    return this._base.__iterate(x => f(x, reverse ? this.size - ++y : y++, this), reverse)
+  }
+  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
+    const iter = this._base.__iterator(qu.ITERATE_VALUES, reverse)
+    let y = 0
+    reverse && qu.ensureSize(this)
+    return new qu.Iter(() => {
+      const i = iter.next()
+      return i.done ? i : qu.Iter.value(m, reverse ? this.size - ++y : y++, i.value, i)
+    })
+  }
+  override cacheResult = qc.cacheResult
+}
+
+export class ToSeqSet<K> extends Seq.Set<K> {
+  constructor(private _base: Collection<K, K>) {
+    super()
+    this.size = _base.size
+  }
+  override has(x: unknown) {
+    return this._base.includes(x)
+  }
+  override __iterate(f: Function, reverse: boolean) {
+    return this._base.__iterate(x => f(x, x, this), reverse)
+  }
+  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
+    const iter = this._base.__iterator(qu.ITERATE_VALUES, reverse)
+    return new qu.Iter(() => {
+      const i = iter.next()
+      return i.done ? i : qu.Iter.value(m, i.value, i.value, i)
+    })
+  }
+  override cacheResult = qc.cacheResult
+}
+
+export class FromEntrySeq<K, V> extends Seq.Keyed<K, V> {
+  constructor(private _base: Collection<K, V>) {
+    super()
+    this.size = _base.size
+  }
+  override entrySeq() {
+    return this._base.toSeq()
+  }
+  override __iterate(f: Function, reverse: boolean) {
+    return this._base.__iterate(x => {
+      if (x) {
+        validateEntry(x)
+        const indexed = qu.isCollection(x)
+        return f(indexed ? x.get(1) : x[1], indexed ? x.get(0) : x[0], this)
+      }
+    }, reverse)
+  }
+  override __iterator(m: qu.Iter.Mode, reverse: boolean) {
+    const iter = this._base.__iterator(qu.ITERATE_VALUES, reverse)
+    return new qu.Iter(() => {
+      while (true) {
+        const i = iter.next()
+        if (i.done) return i
+        const x = i.value
+        if (x) {
+          validateEntry(x)
+          const indexed = qu.isCollection(x)
+          return qu.Iter.value(m, indexed ? x.get(0) : x[0], indexed ? x.get(1) : x[1], i)
+        }
+      }
+    })
+  }
+  override cacheResult = qc.cacheResult
+}
+
+function validateEntry(x) {
+  if (x !== Object(x)) throw new TypeError("Expected [K, V] tuple: " + x)
 }

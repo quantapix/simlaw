@@ -2,7 +2,7 @@ import { Collection } from "./main.js"
 import { emptyMap } from "./map.js"
 import { OrderedSet } from "./ordered.js"
 import { sortFactory } from "./operations.js"
-import * as qf from "./functions.js"
+import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
@@ -133,10 +133,10 @@ export class Set<K> extends Collection.Set<K> implements qt.Set<K> {
   }
   override concat = this.union
   merge = this.union
-  withMutations = qf.withMutations
-  asImmutable = qf.asImmutable
-  asMutable = qf.asMutable;
-  ["@@transducer/init"] = qf.asMutable;
+  withMutations = qc.withMutations
+  asImmutable = qc.asImmutable
+  asMutable = qc.asMutable;
+  ["@@transducer/init"] = qc.asMutable;
   ["@@transducer/step"] = function (result, arr) {
     return result.add(arr)
   };

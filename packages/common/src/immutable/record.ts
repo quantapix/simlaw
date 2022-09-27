@@ -1,6 +1,6 @@
 import { Collection, seqKeyedFrom } from "./main.js"
 import { List } from "./list.js"
-import * as qf from "./functions.js"
+import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
@@ -137,23 +137,23 @@ export class Record<T extends object> implements qt.Record<T> {
     }
     return makeRecord(this, newValues, owner)
   }
-  deleteIn = qf.deleteIn
-  removeIn = qf.deleteIn
-  getIn = (x: any, v0?: unknown) => qf.getIn(this, x, v0)
-  hasIn = (x: any) => qf.hasIn(this, x)
-  merge = (...xs: unknown[]) => qf.mergeIntoKeyedWith(this, xs)
-  mergeWith = (f: any, ...xs: unknown[]) => qf.mergeIntoKeyedWith(this, xs, f)
-  mergeIn = qf.mergeIn
-  mergeDeep = (...xs: unknown[]) => qf.mergeDeep(this, xs)
-  mergeDeepWith = (f: any, ...xs: unknown[]) => qf.mergeDeepWith(f, this, xs)
-  mergeDeepIn = qf.mergeDeepIn
-  setIn = (x: any, v: unknown) => qf.setIn(this, x, v)
+  deleteIn = qc.deleteIn
+  removeIn = qc.deleteIn
+  getIn = (x: any, v0?: unknown) => qc.getIn(this, x, v0)
+  hasIn = (x: any) => qc.hasIn(this, x)
+  merge = (...xs: unknown[]) => qc.mergeIntoKeyedWith(this, xs)
+  mergeWith = (f: any, ...xs: unknown[]) => qc.mergeIntoKeyedWith(this, xs, f)
+  mergeIn = qc.mergeIn
+  mergeDeep = (...xs: unknown[]) => qc.mergeDeep(this, xs)
+  mergeDeepWith = (f: any, ...xs: unknown[]) => qc.mergeDeepWith(f, this, xs)
+  mergeDeepIn = qc.mergeDeepIn
+  setIn = (x: any, v: unknown) => qc.setIn(this, x, v)
   update = (x: any, v0?: unknown, f?: any) =>
-    v0 === undefined && f === undefined ? x(this) : qf.update(this, x, v0, f)
-  updateIn = (x: any, v0: unknown, f?: any) => qf.updateIn(this, x, v0, f)
-  withMutations = qf.withMutations
-  asMutable = qf.asMutable
-  asImmutable = qf.asImmutable;
+    v0 === undefined && f === undefined ? x(this) : qc.update(this, x, v0, f)
+  updateIn = (x: any, v0: unknown, f?: any) => qc.updateIn(this, x, v0, f)
+  withMutations = qc.withMutations
+  asMutable = qc.asMutable
+  asImmutable = qc.asImmutable;
   [Symbol.iterator] = this.entries
   toObject = Collection.prototype.toObject
   toJSON = Collection.prototype.toObject

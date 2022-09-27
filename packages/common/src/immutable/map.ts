@@ -1,7 +1,7 @@
 import { Collection } from "./main.js"
 import { OrderedMap } from "./ordered.js"
 import { sortFactory } from "./operations.js"
-import * as qf from "./functions.js"
+import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
@@ -100,23 +100,23 @@ export class Map<K, V> extends Collection.Keyed<K, V> implements qt.Map<K, V> {
   }
   concat = this.merge
   removeAll = this.deleteAll
-  setIn = (x: any, v: unknown) => qf.setIn(this, x, v)
-  deleteIn = qf.deleteIn
-  removeIn = qf.deleteIn
+  setIn = (x: any, v: unknown) => qc.setIn(this, x, v)
+  deleteIn = qc.deleteIn
+  removeIn = qc.deleteIn
   override update = (x: any, v0?: unknown, f?: any) =>
-    v0 === undefined && f === undefined ? x(this) : qf.update(this, x, v0, f)
-  updateIn = (x: any, v0: unknown, f?: any) => qf.updateIn(this, x, v0, f)
-  merge = (...xs: unknown[]) => qf.mergeIntoKeyedWith(this, xs)
-  mergeWith = (f: any, ...xs: unknown[]) => qf.mergeIntoKeyedWith(this, xs, f)
-  mergeDeep = (...xs: unknown[]) => qf.mergeDeep(this, xs)
-  mergeDeepWith = (f: any, ...xs: unknown[]) => qf.mergeDeepWith(f, this, xs)
-  mergeIn = qf.mergeIn
-  mergeDeepIn = qf.mergeDeepIn
-  withMutations = qf.withMutations
-  wasAltered = qf.wasAltered
-  asImmutable = qf.asImmutable
-  asMutable = qf.asMutable;
-  ["@@transducer/init"] = qf.asMutable;
+    v0 === undefined && f === undefined ? x(this) : qc.update(this, x, v0, f)
+  updateIn = (x: any, v0: unknown, f?: any) => qc.updateIn(this, x, v0, f)
+  merge = (...xs: unknown[]) => qc.mergeIntoKeyedWith(this, xs)
+  mergeWith = (f: any, ...xs: unknown[]) => qc.mergeIntoKeyedWith(this, xs, f)
+  mergeDeep = (...xs: unknown[]) => qc.mergeDeep(this, xs)
+  mergeDeepWith = (f: any, ...xs: unknown[]) => qc.mergeDeepWith(f, this, xs)
+  mergeIn = qc.mergeIn
+  mergeDeepIn = qc.mergeDeepIn
+  withMutations = qc.withMutations
+  wasAltered = qc.wasAltered
+  asImmutable = qc.asImmutable
+  asMutable = qc.asMutable;
+  ["@@transducer/init"] = qc.asMutable;
   ["@@transducer/step"] = function (result, arr) {
     return result.set(arr[0], arr[1])
   };

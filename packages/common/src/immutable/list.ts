@@ -1,8 +1,7 @@
 import { Collection } from "./main.js"
-import * as qf from "./functions.js"
+import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
-import { unknownAction } from "packages/common/test/redux/helpers.js"
 
 export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
   static isList = qu.isList
@@ -149,19 +148,19 @@ export class List<V> extends Collection.Indexed<V> implements qt.List<V> {
     return makeList(this._origin, this._capacity, this._level, this._root, this._tail, x, this.__hash)
   }
   merge = this.concat
-  setIn = (x: any, v: unknown) => qf.setIn(this, x, v)
-  removeIn = qf.deleteIn
-  deleteIn = qf.deleteIn
+  setIn = (x: any, v: unknown) => qc.setIn(this, x, v)
+  removeIn = qc.deleteIn
+  deleteIn = qc.deleteIn
   override update = (x: any, v0?: unknown, f?: any) =>
-    v0 === undefined && f === undefined ? x(this) : qf.update(this, x, v0, f)
-  updateIn = (x: any, v0: unknown, f?: any) => qf.updateIn(this, x, v0, f)
-  mergeIn = qf.mergeIn
-  mergeDeepIn = qf.mergeDeepIn
-  withMutations = qf.withMutations
-  wasAltered = qf.wasAltered
-  asImmutable = qf.asImmutable
-  asMutable = qf.asMutable;
-  ["@@transducer/init"] = qf.asMutable;
+    v0 === undefined && f === undefined ? x(this) : qc.update(this, x, v0, f)
+  updateIn = (x: any, v0: unknown, f?: any) => qc.updateIn(this, x, v0, f)
+  mergeIn = qc.mergeIn
+  mergeDeepIn = qc.mergeDeepIn
+  withMutations = qc.withMutations
+  wasAltered = qc.wasAltered
+  asImmutable = qc.asImmutable
+  asMutable = qc.asMutable;
+  ["@@transducer/init"] = qc.asMutable;
   ["@@transducer/step"] = function (result, arr) {
     return result.push(arr)
   };
