@@ -120,7 +120,7 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
     if (qu.wholeSlice(begin, end, size)) return this
     return setListBounds(this, qu.resolveBegin(begin, size), qu.resolveEnd(end, size))
   }
-  [Symbol.q_iterate](f: Function, reverse: boolean) {
+  [Symbol.q_iterate](f: Function, reverse?: boolean) {
     let i = reverse ? this.size : 0
     const ys = iterateList(this, reverse)
     let y
@@ -129,7 +129,7 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
     }
     return i
   }
-  [Symbol.q_iterator](m: qu.Iter.Mode, reverse: boolean) {
+  [Symbol.q_iterator](m: qu.Iter.Mode, reverse?: boolean) {
     let i = reverse ? this.size : 0
     const ys = iterateList(this, reverse)
     return new qu.Iter(() => {
@@ -214,7 +214,7 @@ class VNode {
 
 const DONE = {}
 
-function iterateList(x, reverse: boolean) {
+function iterateList(x, reverse?: boolean) {
   const left = x._origin
   const right = x._capacity
   const tailPos = getTailOffset(right)

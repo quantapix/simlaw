@@ -117,10 +117,10 @@ export class Record<T extends object> implements qt.Record<T> {
     return qu.toJS(this)
   }
   entries() {
-    return this.__iter(qu.Iter.Mode.ENTRIES)
+    return this[Symbol.q_iter](qu.Iter.Mode.ENTRIES)
   }
-  __iter(m: qu.Iter.Mode, reverse?: boolean) {
-    return recordSeq(this).__iter(m, reverse)
+  [Symbol.q_iter](m: qu.Iter.Mode, reverse?: boolean) {
+    return recordSeq(this)[Symbol.q_iter](m, reverse)
   }
   [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse?: boolean) {
     return recordSeq(this)[Symbol.q_loop](f, reverse)

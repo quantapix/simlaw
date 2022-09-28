@@ -112,8 +112,8 @@ export class Set<V> extends Collection.ByVal<V> implements qt.Set<V> {
   [Symbol.q_loop](f: qt.Floop<V, V, this>, reverse?: boolean) {
     return this._map[Symbol.q_loop](k => f(k, k, this), reverse)
   }
-  __iter(m: qu.Iter.Mode, reverse?: boolean) {
-    return this._map.__iter(m, reverse)
+  [Symbol.q_iter](m: qu.Iter.Mode, reverse?: boolean) {
+    return this._map[Symbol.q_iter](m, reverse)
   }
   __ensureOwner(owner) {
     if (owner === this.__owner) return this
