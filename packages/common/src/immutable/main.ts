@@ -10,7 +10,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   [Symbol.q_iter](m: qu.Iter.Mode, reverse?: boolean): any {
     return
   }
-  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse?: boolean): number {
+  [Symbol.q_loop](f: qt.Step<K, V, this>, reverse?: boolean): number {
     return 0
   }
 
@@ -47,13 +47,13 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   }
   countBy(f: Function, ctx?: unknown) {
     const y = Map.from().asMutable()
-    this[Symbol.q_iterate]((v, k) => {
+    this[Symbol.q_loop]((v, k) => {
       y.update(f.call(ctx, v, k, this), 0, x => x + 1)
     })
     return y.asImmutable()
   }
   entries() {
-    return this[Symbol.q_iterator](qu.Iter.Mode.ENTRIES)
+    return this[Symbol.q_iter](qu.Iter.Mode.ENTRIES)
   }
   entrySeq() {
     if (this._cache) return new ArrSeq(this._cache)
@@ -69,8 +69,8 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   every(f: Function, ctx?: unknown) {
     qu.assertNotInfinite(this.size)
     let y = true
-    this[Symbol.q_loop]((v, k, c) => {
-      if (!f.call(ctx, v, k, c)) {
+    this[Symbol.q_loop]((v, k, t) => {
+      if (!f.call(ctx, v, k, t)) {
         y = false
         return false
       }
@@ -348,7 +348,7 @@ export namespace Collection {
         this,
         this.toSeq()
           .flip()
-          .map((k, v) => f.call(ctx, k, v, this))
+          .map((k, v) => f.call(ctx, v, k, this))
           .flip()
       )
     }
@@ -497,7 +497,7 @@ export class Seq<K, V> extends Collection<K, V> implements qt.Seq<K, V> {
     }
     return this
   }
-  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<K, V, this>, reverse?: boolean) {
     const xs = this._cache
     if (xs) {
       const n = xs.length
@@ -593,7 +593,7 @@ export class ArrSeq<V> extends Seq.ByIdx<V> {
   override get(i: number, v0: unknown) {
     return this.has(i) ? this._base[qu.wrapIndex(this, i)] : v0
   }
-  [Symbol.q_loop](f: qt.Floop<number, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<number, V, this>, reverse?: boolean) {
     const x = this._base
     const n = x.length
     let i = 0
@@ -630,7 +630,7 @@ class ObjSeq<K, V> extends Seq.ByKey<K, V> {
   override has(k: any) {
     return qu.hasOwnProperty.call(this._base, k)
   }
-  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<K, V, this>, reverse?: boolean) {
     const x = this._base
     const ks = this._keys
     const n = ks.length
@@ -659,7 +659,7 @@ class CollectionSeq<V> extends Seq.ByIdx<V> {
     super()
     this.size = _base.length || _base.size
   }
-  __loopUncached(f: qt.Floop<number, V, this>, reverse?: boolean) {
+  __loopUncached(f: qt.Step<number, V, this>, reverse?: boolean) {
     if (reverse) return this.cacheResult()[Symbol.q_loop](f, reverse)
     let i = 0
     const it = qu.callIter(this._base)
@@ -731,7 +731,7 @@ export class Range<V> extends Seq.ByIdx<V> {
   lastIndexOf(v: V) {
     return this.indexOf(v)
   }
-  [Symbol.q_loop](f: qt.Floop<number, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<number, V, this>, reverse?: boolean) {
     const size = this.size
     const step = this._step
     let value = reverse ? this._start + (size - 1) * step : this._start
@@ -803,7 +803,7 @@ export class Repeat<V> extends Seq.ByIdx<V> {
     if (qu.is(this._value, v)) return this.size
     return -1
   }
-  [Symbol.q_loop](f: qt.Floop<number, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<number, V, this>, reverse?: boolean) {
     const size = this.size!
     let i = 0
     while (i !== size) {
@@ -1022,7 +1022,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
     }
     return makeStack(this.size, this._head, owner, this._hash)
   }
-  [Symbol.q_loop](f: qt.Floop<number, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<number, V, this>, reverse?: boolean) {
     if (reverse) return new ArrSeq(this.toArray())[Symbol.q_loop]((v, k) => f(v, k, this), reverse)
     let y = 0
     let x = this._head
@@ -1102,7 +1102,7 @@ export class ToSeqByKey<K, V> extends Seq.ByKey<K, V> {
     if (!this._useKeys) y.valueSeq = () => this._base.toSeq().map(f, ctx)
     return y
   }
-  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<K, V, this>, reverse?: boolean) {
     return this._base[Symbol.q_loop]((v, k) => f(v, k, this), reverse)
   }
   [Symbol.q_iter](m: qu.Iter.Mode, reverse?: boolean) {
@@ -1119,7 +1119,7 @@ export class ToSeqByIdx<V> extends Seq.ByIdx<V> {
   override includes(v: V) {
     return this._base.includes(v)
   }
-  [Symbol.q_loop](f: qt.Floop<number, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<number, V, this>, reverse?: boolean) {
     let i = 0
     reverse && qu.ensureSize(this)
     return this._base[Symbol.q_loop]((v: V) => f(v, reverse ? this.size! - ++i : i++, this), reverse)
@@ -1144,7 +1144,7 @@ export class ToSeqByVal<V> extends Seq.ByVal<V> {
   override has(k: V) {
     return this._base.includes(k)
   }
-  [Symbol.q_loop](f: qt.Floop<V, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<V, V, this>, reverse?: boolean) {
     return this._base[Symbol.q_loop]((v: V) => f(v, v, this), reverse)
   }
   [Symbol.q_iter](m: qu.Iter.Mode, reverse?: boolean) {
@@ -1165,7 +1165,7 @@ export class FromEntrySeq<K, V> extends Seq.ByKey<K, V> {
   override entrySeq() {
     return this._base.toSeq()
   }
-  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<K, V, this>, reverse?: boolean) {
     return this._base[Symbol.q_loop](x => {
       if (x) {
         validateEntry(x)

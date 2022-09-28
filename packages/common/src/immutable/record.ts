@@ -122,7 +122,7 @@ export class Record<T extends object> implements qt.Record<T> {
   [Symbol.q_iter](m: qu.Iter.Mode, reverse?: boolean) {
     return recordSeq(this)[Symbol.q_iter](m, reverse)
   }
-  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<K, V, this>, reverse?: boolean) {
     return recordSeq(this)[Symbol.q_loop](f, reverse)
   }
   __ensureOwner(owner) {

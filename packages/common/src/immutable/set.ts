@@ -109,7 +109,7 @@ export class Set<V> extends Collection.ByVal<V> implements qt.Set<V> {
   wasAltered() {
     return this._map.wasAltered()
   }
-  [Symbol.q_loop](f: qt.Floop<V, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<V, V, this>, reverse?: boolean) {
     return this._map[Symbol.q_loop](k => f(k, k, this), reverse)
   }
   [Symbol.q_iter](m: qu.Iter.Mode, reverse?: boolean) {

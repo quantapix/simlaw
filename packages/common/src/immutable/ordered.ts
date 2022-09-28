@@ -51,7 +51,7 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
   override remove(k: K) {
     return updateOrderedMap(this, k, qu.NOT_SET)
   }
-  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<K, V, this>, reverse?: boolean) {
     return this._list[Symbol.q_loop](x => x && f(x[1], x[0], this), reverse)
   }
   [Symbol.q_iter](m: qu.Iter.Mode, reverse?: boolean) {

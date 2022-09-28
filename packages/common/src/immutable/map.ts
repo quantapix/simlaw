@@ -75,7 +75,7 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
       })
     })
   }
-  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse?: boolean) {
+  [Symbol.q_loop](f: qt.Step<K, V, this>, reverse?: boolean) {
     let i = 0
     this._root &&
       this._root[Symbol.q_loop](([v, k]) => {
