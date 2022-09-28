@@ -45,14 +45,14 @@ export class OrderedMap<K, V> extends Map<K, V> implements qt.OrderedMap<K, V> {
     }
     return emptyOrderedMap()
   }
-  override set(k, v) {
+  override set(k: K, v: V) {
     return updateOrderedMap(this, k, v)
   }
-  override remove(k) {
+  override remove(k: K) {
     return updateOrderedMap(this, k, qu.NOT_SET)
   }
-  override __loop(f: Function, reverse: boolean) {
-    return this._list.__loop(x => x && f(x[1], x[0], this), reverse)
+  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse: boolean) {
+    return this._list[Symbol.q_loop](x => x && f(x[1], x[0], this), reverse)
   }
   override __iter(m: qu.Iter.Mode, reverse: boolean) {
     return this._list.fromEntrySeq().__iter(m, reverse)

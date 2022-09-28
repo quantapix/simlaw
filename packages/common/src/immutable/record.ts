@@ -122,13 +122,11 @@ export class Record<T extends object> implements qt.Record<T> {
   __iter(m: qu.Iter.Mode, reverse?: boolean) {
     return recordSeq(this).__iter(m, reverse)
   }
-  __loop(f: Function, reverse?: boolean) {
-    return recordSeq(this).__loop(f, reverse)
+  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse?: boolean) {
+    return recordSeq(this)[Symbol.q_loop](f, reverse)
   }
   __ensureOwner(owner) {
-    if (owner === this.__owner) {
-      return this
-    }
+    if (owner === this.__owner) return this
     const newValues = this._values.__ensureOwner(owner)
     if (!owner) {
       this.__owner = owner

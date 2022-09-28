@@ -6,10 +6,10 @@ declare global {
     readonly q_collection: symbol
     readonly q_delete: symbol
     readonly q_indexed: symbol
-    readonly q_iterate: symbol
-    readonly q_iterator: symbol
+    readonly q_iter: symbol
     readonly q_keyed: symbol
     readonly q_list: symbol
+    readonly q_loop: symbol
     readonly q_map: symbol
     readonly q_ordered: symbol
     readonly q_record: symbol
@@ -22,10 +22,10 @@ declare global {
 ;(Symbol as { q_collection: symbol }).q_collection = Symbol("q_collection")
 ;(Symbol as { q_delete: symbol }).q_delete = Symbol("q_delete")
 ;(Symbol as { q_indexed: symbol }).q_indexed = Symbol("q_indexed")
-;(Symbol as { q_iterate: symbol }).q_iterate = Symbol("q_iterate")
-;(Symbol as { q_iterator: symbol }).q_iterator = Symbol("q_iterator")
+;(Symbol as { q_iter: symbol }).q_iter = Symbol("q_iter")
 ;(Symbol as { q_keyed: symbol }).q_keyed = Symbol("q_keyed")
 ;(Symbol as { q_list: symbol }).q_list = Symbol("q_list")
+;(Symbol as { q_loop: symbol }).q_loop = Symbol("q_loop")
 ;(Symbol as { q_map: symbol }).q_map = Symbol("q_map")
 ;(Symbol as { q_ordered: symbol }).q_ordered = Symbol("q_ordered")
 ;(Symbol as { q_record: symbol }).q_record = Symbol("q_record")
@@ -206,7 +206,7 @@ export function deepEqual(a: any, b: any): boolean {
     }
   }
   let allEqual = true
-  const bSize = b.__loop((v, k) => {
+  const bSize = b[Symbol.q_loop]((v, k) => {
     if (notAssociative ? !a.has(v) : flipped ? !is(v, a.get(k, NOT_SET)) : !is(a.get(k, NOT_SET), v)) {
       allEqual = false
       return false
@@ -287,13 +287,13 @@ export function toJS(x) {
   }
   if (isKeyed(x)) {
     const y = {}
-    x.__loop((v, k) => {
+    x[Symbol.q_loop]((v, k) => {
       y[k] = toJS(v)
     })
     return y
   }
   const y = []
-  x.__loop(v => {
+  x[Symbol.q_loop](v => {
     y.push(toJS(v))
   })
   return y
@@ -313,7 +313,7 @@ export function SetRef(x: any) {
 export function OwnerID() {}
 
 export function ensureSize(x: any): number {
-  if (x.size === undefined) x.size = x.__loop(returnTrue)
+  if (x.size === undefined) x.size = x[Symbol.q_loop](returnTrue)
   return x.size
 }
 export function wrapIndex(x: unknown, i: any): number {

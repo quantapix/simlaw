@@ -245,7 +245,7 @@ export function mergeDeepIn(this: any, x: any, ...xs: unknown[]) {
 export function toObject(this: any) {
   qu.assertNotInfinite(this.size)
   const y: any = {}
-  this.__loop((v, k) => {
+  this[Symbol.q_loop]((v, k) => {
     y[k] = v
   })
   return y
@@ -293,7 +293,7 @@ export function concat<K, V>(x: qt.Collection<K, V>, xs: any[]) {
   return y
 }
 
-export function filter<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown, useKeys?: boolean) {
+export function filter<K, V>(x: Collection<K, V>, f: Function, ctx?: unknown, useKeys?: boolean) {
   const y = makeSequence(x)
   if (useKeys) {
     y.has = (k: K) => {
@@ -307,20 +307,20 @@ export function filter<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown,
   }
   y.__loopUncached = function (f2: Function, reverse?: boolean) {
     let y = 0
-    this.__loop((v: V, k: K, c) => {
+    x[Symbol.q_loop]((v, k, c) => {
       if (f.call(ctx, v, k, c)) {
         y++
-        return f2(v, useKeys ? k : y - 1, this)
+        return f2(v, useKeys ? k : y - 1, x)
       }
     }, reverse)
     return y
   }
   y.__iterUncached = function (m: qu.Iter.Mode, reverse?: boolean) {
-    const iter = this.__iter(qu.Iter.Mode.ENTRIES, reverse)
+    const it = this.__iter(qu.Iter.Mode.ENTRIES, reverse)
     let n = 0
     return new qu.Iter(() => {
       while (true) {
-        const i = iter.next()
+        const i = it.next()
         if (i.done) return i
         const [k, v] = i.value
         if (f.call(ctx, v, k, this)) return qu.Iter.value(m, useKeys ? k : n++, v, i)
@@ -330,7 +330,7 @@ export function filter<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown,
   return y
 }
 
-export function flip<K, V>(x: qt.Collection<K, V>) {
+export function flip<K, V>(x: Collection<K, V>) {
   const y = makeSequence(x)
   y._iter = x
   y.size = x.size
@@ -343,14 +343,14 @@ export function flip<K, V>(x: qt.Collection<K, V>) {
   y.has = (v: V) => x.includes(v)
   y.includes = (k: K) => x.has(k)
   y.cacheResult = cacheResult
-  y.__loopUncached = function (f, reverse: boolean) {
-    return x.__loop((v: V, k: K) => f(k, v, this) !== false, reverse)
+  y.__loopUncached = function (f: Function, reverse: boolean) {
+    return x[Symbol.q_loop]((v, k) => f(k, v, this) !== false, reverse)
   }
   y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
     if (m === qu.Iter.Mode.ENTRIES) {
-      const iter = x.__iter(m, reverse)
+      const it = x.__iter(m, reverse)
       return new qu.Iter(() => {
-        const i = iter.next()
+        const i = it.next()
         if (!i.done) {
           const k = i.value[0]
           i.value[0] = i.value[1]
@@ -364,7 +364,7 @@ export function flip<K, V>(x: qt.Collection<K, V>) {
   return y
 }
 
-export function map<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown) {
+export function map<K, V>(x: Collection<K, V>, f: Function, ctx?: unknown) {
   const y = makeSequence(x)
   y.size = x.size
   y.has = (k: K) => x.has(k)
@@ -373,12 +373,12 @@ export function map<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown) {
     return v === qu.NOT_SET ? v0 : f.call(ctx, v, k, x)
   }
   y.__loopUncached = function (f2: Function, reverse: boolean) {
-    return x.__loop((v, k, c) => f2(f.call(ctx, v, k, c), k, this) !== false, reverse)
+    return x[Symbol.q_loop]((v, k, c) => f2(f.call(ctx, v, k, c), k, this) !== false, reverse)
   }
   y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
-    const iter = x.__iter(qu.Iter.Mode.ENTRIES, reverse)
+    const it = x.__iter(qu.Iter.Mode.ENTRIES, reverse)
     return new qu.Iter(() => {
-      const i = iter.next()
+      const i = it.next()
       if (i.done) return i
       const [k, v] = i.value
       return qu.Iter.value(m, k, f.call(ctx, v, k, x), i)
@@ -387,7 +387,7 @@ export function map<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown) {
   return y
 }
 
-export function reverseFactory<K, V>(x: qt.Collection<K, V>, useKeys: boolean) {
+export function reverseFactory<K, V>(x: Collection<K, V>, useKeys: boolean) {
   const y = makeSequence(x)
   y._iter = x
   y.size = x.size
@@ -403,17 +403,17 @@ export function reverseFactory<K, V>(x: qt.Collection<K, V>, useKeys: boolean) {
   y.get = (k: K, v0?: unknown) => x.get(useKeys ? k : -1 - k, v0)
   y.includes = (v: V) => x.includes(v)
   y.cacheResult = cacheResult
-  y.__loop = function (f: Function, reverse: boolean) {
+  y[Symbol.q_loop] = function (f: Function, reverse: boolean) {
     let i = 0
     reverse && qu.ensureSize(x)
-    return x.__loop((v, k) => f(v, useKeys ? k : reverse ? this.size - ++i : i++, this), !reverse)
+    return x[Symbol.q_loop]((v, k) => f(v, useKeys ? k : reverse ? this.size - ++i : i++, this), !reverse)
   }
   y.__iter = (m: qu.Iter.Mode, reverse: boolean) => {
     let i = 0
     reverse && qu.ensureSize(x)
-    const iter = x.__iter(qu.Iter.Mode.ENTRIES, !reverse)
+    const it = x.__iter(qu.Iter.Mode.ENTRIES, !reverse)
     return new qu.Iter(() => {
-      const i = iter.next()
+      const i = it.next()
       if (i.done) return i
       const [k, v] = i.value
       return qu.Iter.value(m, useKeys ? k : reverse ? this.size - ++i : i++, v, i)
@@ -422,7 +422,7 @@ export function reverseFactory<K, V>(x: qt.Collection<K, V>, useKeys: boolean) {
   return y
 }
 
-export function slice<K, V>(x: qt.Collection<K, V>, beg?: number, end?: number, useKeys?: boolean) {
+export function slice<K, V>(x: Collection<K, V>, beg?: number, end?: number, useKeys?: boolean) {
   const s0 = x.size!
   if (qu.wholeSlice(beg, end, s0)) return x
   const b2 = qu.resolveBegin(beg, s0)
@@ -440,11 +440,11 @@ export function slice<K, V>(x: qt.Collection<K, V>, beg?: number, end?: number, 
   }
   y.__loopUncached = function (f: Function, reverse: boolean) {
     if (sliceSize === 0) return 0
-    if (reverse) return this.cacheResult().__loop(f, reverse)
+    if (reverse) return this.cacheResult()[Symbol.q_loop](f, reverse)
     let skipped = 0
     let isSkipping = true
     let y = 0
-    x.__loop((v: V, k: K) => {
+    x[Symbol.q_loop]((v: V, k: K) => {
       if (!(isSkipping && (isSkipping = skipped++ < b2))) {
         y++
         return f(v, useKeys ? k : y - 1, this) !== false && y !== sliceSize
@@ -456,15 +456,15 @@ export function slice<K, V>(x: qt.Collection<K, V>, beg?: number, end?: number, 
   y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
     if (sliceSize !== 0 && reverse) return this.cacheResult().__iter(m, reverse)
     if (sliceSize === 0) return new qu.Iter(qu.Iter.done)
-    const iter = x.__iter(m, reverse)
+    const it = x.__iter(m, reverse)
     let skipped = 0
     let n = 0
     return new qu.Iter(() => {
       while (skipped++ < b2) {
-        iter.next()
+        it.next()
       }
       if (++n > sliceSize) return qu.Iter.done()
-      const i = iter.next()
+      const i = it.next()
       if (useKeys || m === qu.Iter.Mode.VALUES || i.done) return i
       if (m === qu.Iter.Mode.KEYS) return qu.Iter.value(m, n - 1, undefined, i)
       return qu.Iter.value(m, n - 1, i.value[1], i)
@@ -473,21 +473,21 @@ export function slice<K, V>(x: qt.Collection<K, V>, beg?: number, end?: number, 
   return y
 }
 
-export function takeWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown) {
+export function takeWhile<K, V>(x: Collection<K, V>, f: Function, ctx?: unknown) {
   const y = makeSequence(x)
   y.__loopUncached = function (f2: Function, reverse: boolean) {
-    if (reverse) return this.cacheResult().__loop(f, reverse)
+    if (reverse) return this.cacheResult()[Symbol.q_loop](f, reverse)
     let y = 0
-    x.__loop((v: V, k: K, c) => f.call(ctx, v, k, c) && ++y && f2(v, k, this))
+    x[Symbol.q_loop]((v, k, c) => f.call(ctx, v, k, c) && ++y && f2(v, k, this))
     return y
   }
   y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
     if (reverse) return this.cacheResult().__iter(m, reverse)
-    const iter = x.__iter(qu.Iter.Mode.ENTRIES, reverse)
+    const it = x.__iter(qu.Iter.Mode.ENTRIES, reverse)
     let iterating = true
     return new qu.Iter(() => {
       if (!iterating) return qu.Iter.done()
-      const i = iter.next()
+      const i = it.next()
       if (i.done) return i
       const [k, v] = i.value
       if (!f.call(ctx, v, k, this)) {
@@ -500,13 +500,13 @@ export function takeWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unkno
   return y
 }
 
-export function skipWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown, useKeys?: boolean) {
+export function skipWhile<K, V>(x: Collection<K, V>, f: Function, ctx?: unknown, useKeys?: boolean) {
   const y = makeSequence(x)
   y.__loopUncached = function (f2: Function, reverse: boolean) {
-    if (reverse) return this.cacheResult().__loop(f2, reverse)
+    if (reverse) return this.cacheResult()[Symbol.q_loop](f2, reverse)
     let isSkipping = true
     let y = 0
-    x.__loop((v: V, k: K, c) => {
+    x[Symbol.q_loop]((v, k, c) => {
       if (!(isSkipping && (isSkipping = f.call(ctx, v, k, c)))) {
         y++
         return f2(v, useKeys ? k : y - 1, this)
@@ -516,13 +516,13 @@ export function skipWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unkno
   }
   y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
     if (reverse) return this.cacheResult().__iter(m, reverse)
-    const iter = x.__iter(qu.Iter.Mode.ENTRIES, reverse)
+    const it = x.__iter(qu.Iter.Mode.ENTRIES, reverse)
     let skipping = true
     let n = 0
     return new qu.Iter(() => {
       let i, k, v
       do {
-        i = iter.next()
+        i = it.next()
         if (i.done) {
           if (useKeys || m === qu.Iter.Mode.VALUES) return i
           if (m === qu.Iter.Mode.KEYS) return qu.Iter.value(m, n++, undefined, i)
@@ -537,14 +537,14 @@ export function skipWhile<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unkno
   return y
 }
 
-export function flatten<K, V>(x: qt.Collection<K, V>, depth?: number, useKeys?: boolean) {
+export function flatten<K, V>(x: Collection<K, V>, depth?: number, useKeys?: boolean) {
   const y = makeSequence(x)
   y.__loopUncached = function (f: Function, reverse: boolean) {
-    if (reverse) return this.cacheResult().__loop(f, reverse)
+    if (reverse) return this.cacheResult()[Symbol.q_loop](f, reverse)
     let y = 0
     let stopped = false
     function flat(x2: any, depth2: number) {
-      x2.__loop((v: V, k: K) => {
+      x2[Symbol.q_loop]((v, k) => {
         if ((!depth || depth2 < depth) && qu.isCollection(v)) flat(v, depth2 + 1)
         else {
           y++
@@ -589,21 +589,21 @@ export function flatMap<K, V>(x: qt.Collection<K, V>, f: Function, ctx?: unknown
     .flatten(true)
 }
 
-export function interpose<K, V>(x: qt.Collection<K, V>, sep: string) {
+export function interpose<K, V>(x: Collection<K, V>, sep: string) {
   const y = makeSequence(x)
   y.size = x.size && x.size * 2 - 1
   y.__loopUncached = function (f: Function, reverse: boolean) {
     let y = 0
-    x.__loop((v: V) => (!y || f(sep, y++, this) !== false) && f(v, y++, this) !== false, reverse)
+    x[Symbol.q_loop]((v: V) => (!y || f(sep, y++, this) !== false) && f(v, y++, this) !== false, reverse)
     return y
   }
   y.__iterUncached = function (m: qu.Iter.Mode, reverse: boolean) {
-    const iter = x.__iter(qu.Iter.Mode.VALUES, reverse)
+    const it = x.__iter(qu.Iter.Mode.VALUES, reverse)
     let n = 0
     let i: any
     return new qu.Iter(() => {
       if (!i || n % 2) {
-        i = iter.next()
+        i = it.next()
         if (i.done) return i
       }
       return n % 2 ? qu.Iter.value(m, n++, sep) : qu.Iter.value(m, n++, i.value, i)
@@ -649,11 +649,11 @@ export function zipWith<K, V>(x: qt.Collection<K, V>, f: Function, xs: any, zipA
   const y = makeSequence(x)
   const sizes = new ArrSeq(xs).map((x2: any) => x2.size)
   y.size = zipAll ? sizes.max() : sizes.min()
-  y.__loop = function (f2: Function, reverse: boolean) {
-    const iter = this.__iter(qu.Iter.Mode.VALUES, reverse)
+  y[Symbol.q_loop] = function (f2: Function, reverse: boolean) {
+    const it = this.__iter(qu.Iter.Mode.VALUES, reverse)
     let i
     let y = 0
-    while (!(i = iter.next()).done) {
+    while (!(i = it.next()).done) {
       if (f2(i.value, y++, this) === false) break
     }
     return y

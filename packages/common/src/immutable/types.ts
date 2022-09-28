@@ -11,6 +11,8 @@ export interface HasValue {
   hashCode(): number
 }
 
+export type Floop<K, V, C> = (v: V, k: K, c?: C) => any
+
 export interface Collection<K, V> extends BySym, HasValue {
   [Symbol.iterator](): IterableIterator<unknown>
   readonly size?: number | undefined

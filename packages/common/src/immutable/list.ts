@@ -10,14 +10,14 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
     const empty = emptyList()
     if (x === undefined || x === null) return empty
     if (qu.isList(x)) return x
-    const iter = Collection.ByIdx.from(x)
-    const size = iter.size
+    const it = Collection.ByIdx.from(x)
+    const size = it.size
     if (size === 0) return empty
     qu.assertNotInfinite(size)
-    if (size > 0 && size < qu.SIZE) return makeList(0, size, qu.SHIFT, null, new VNode(iter.toArray()))
+    if (size > 0 && size < qu.SIZE) return makeList(0, size, qu.SHIFT, null, new VNode(it.toArray()))
     return empty.withMutations(list => {
       list.setSize(size)
-      iter.forEach((v, i) => list.set(i, v))
+      it.forEach((v, i) => list.set(i, v))
     })
   }
   static of<T>(...xs: Array<T>): List<T> {

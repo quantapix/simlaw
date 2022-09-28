@@ -75,10 +75,10 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
       })
     })
   }
-  __loop(f: Function, reverse: boolean) {
+  [Symbol.q_loop](f: qt.Floop<K, V, this>, reverse: boolean) {
     let i = 0
     this._root &&
-      this._root.iterate(([v, k]: [V, K]) => {
+      this._root[Symbol.q_loop](([v, k]) => {
         i++
         return f(v, k, this)
       }, reverse)
@@ -161,7 +161,7 @@ class ArrayMapNode {
     }
     return new ArrayMapNode(owner, ys)
   }
-  iterate(f, reverse) {
+  [Symbol.q_loop](f: Function, reverse: boolean) {
     const ys = this.entries
     for (let i = 0, maxIndex = ys.length - 1; i <= maxIndex; i++) {
       if (f(ys[reverse ? maxIndex - i : i]) === false) return false
@@ -202,11 +202,11 @@ class HashArrayMapNode {
     }
     return new HashArrayMapNode(owner, newCount, newNodes)
   }
-  iterate(f, reverse) {
+  [Symbol.q_loop](f: Function, reverse: boolean) {
     const ys = this.nodes
     for (let i = 0, maxIndex = ys.length - 1; i <= maxIndex; i++) {
       const y = ys[reverse ? maxIndex - i : i]
-      if (y && y.iterate(f, reverse) === false) return false
+      if (y && y[Symbol.q_loop](f, reverse) === false) return false
     }
     return
   }
@@ -253,7 +253,7 @@ class BitmapIndexedNode {
     }
     return new BitmapIndexedNode(owner, newBitmap, ys)
   }
-  iterate = HashArrayMapNode.prototype.iterate
+  [Symbol.q_loop] = HashArrayMapNode.prototype[Symbol.q_loop]
 }
 
 class HashCollisionNode {
@@ -297,7 +297,7 @@ class HashCollisionNode {
     }
     return new HashCollisionNode(owner, this.keyHash, ys)
   }
-  iterate = ArrayMapNode.prototype.iterate
+  [Symbol.q_loop] = ArrayMapNode.prototype[Symbol.q_loop]
 }
 
 class ValueNode {
@@ -324,7 +324,7 @@ class ValueNode {
     qu.SetRef(didChangeSize)
     return mergeIntoNode(this, owner, shift, qu.hash(key), [key, value])
   }
-  iterate(f, reverse) {
+  [Symbol.q_loop](f: Function, reverse: boolean) {
     return f(this.entry)
   }
 }
