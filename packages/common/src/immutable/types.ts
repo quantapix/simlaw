@@ -12,8 +12,9 @@ export interface HasValue {
 }
 
 export type Comp<T> = (a: T, b: T) => number
-export type Step<K, V, T, R = unknown> = (v: V, k: K, t?: T) => R
 export type Guard<K, V, T, R extends V> = (v: V, k: K, t?: T) => v is R
+export type Step<K, V, T, R = unknown> = (v: V, k: K, t?: T) => R
+export type Zip<V, T, R, U = unknown> = (v: V, x: T, u?: U) => R
 
 export interface Collection<K, V> extends BySym, HasValue {
   [Symbol.iterator](): IterableIterator<unknown>
@@ -145,13 +146,9 @@ export namespace Collection {
     zipAll(...xs: Array<Collection<unknown, unknown>>): Collection.ByIdx<unknown>
     zipAll<T, U>(x: Collection<unknown, T>, x2: Collection<unknown, U>): Collection.ByIdx<[V, T, U]>
     zipAll<T>(x: Collection<unknown, T>): Collection.ByIdx<[V, T]>
-    zipWith<T, U, Z>(
-      f: (v: V, x: T, x2: U) => Z,
-      x: Collection<unknown, T>,
-      x2: Collection<unknown, U>
-    ): Collection.ByIdx<Z>
-    zipWith<T, U>(f: (v: V, x: T) => U, x: Collection<unknown, T>): Collection.ByIdx<U>
-    zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Collection.ByIdx<T>
+    zipWith<T, U, R>(z: Zip<V, T, R, U>, x: Collection<unknown, T>, u: Collection<unknown, U>): Collection.ByIdx<R>
+    zipWith<T, R>(z: Zip<V, T, R>, x: Collection<unknown, T>): Collection.ByIdx<R>
+    zipWith<T>(z: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Collection.ByIdx<T>
   }
   export interface ByVal<V> extends Collection<V, V> {
     [Symbol.iterator](): IterableIterator<V>
@@ -211,9 +208,9 @@ export namespace Seq {
     zipAll(...xs: Array<Collection<unknown, unknown>>): Seq.ByIdx<unknown>
     zipAll<T, U>(x: Collection<unknown, T>, x2: Collection<unknown, U>): Seq.ByIdx<[U, T, U]>
     zipAll<T>(x: Collection<unknown, T>): Seq.ByIdx<[V, T]>
-    zipWith<T, U, Z>(f: (v: V, x: T, x2: U) => Z, x: Collection<unknown, T>, x2: Collection<unknown, U>): Seq.ByIdx<Z>
-    zipWith<T, U>(f: (v: V, x: T) => U, x: Collection<unknown, T>): Seq.ByIdx<U>
-    zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Seq.ByIdx<T>
+    zipWith<T, U, R>(z: Zip<V, T, R, U>, x: Collection<unknown, T>, u: Collection<unknown, U>): Seq.ByIdx<R>
+    zipWith<T, R>(z: Zip<V, T, R>, x: Collection<unknown, T>): Seq.ByIdx<R>
+    zipWith<T>(z: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Seq.ByIdx<T>
   }
   export interface ByVal<V> extends Seq<V, V>, Collection.ByVal<V> {
     [Symbol.iterator](): IterableIterator<V>
@@ -266,9 +263,9 @@ export interface List<V> extends Collection.ByIdx<V> {
   zipAll(...xs: Array<Collection<unknown, unknown>>): List<unknown>
   zipAll<T, U>(x: Collection<unknown, T>, x2: Collection<unknown, U>): List<[V, T, U]>
   zipAll<T>(x: Collection<unknown, T>): List<[V, T]>
-  zipWith<T, U, Z>(f: (v: V, x: T, x2: U) => Z, x: Collection<unknown, T>, x2: Collection<unknown, U>): List<Z>
-  zipWith<T, U>(f: (v: V, x: T) => U, x: Collection<unknown, T>): List<U>
-  zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): List<T>
+  zipWith<T, U, R>(z: Zip<V, T, R, U>, x: Collection<unknown, T>, u: Collection<unknown, U>): List<R>
+  zipWith<T, R>(z: Zip<V, T, R>, x: Collection<unknown, T>): List<R>
+  zipWith<T>(z: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): List<T>
 }
 
 export interface Map<K, V> extends Collection.ByKey<K, V> {
@@ -357,9 +354,9 @@ export interface OrderedSet<V> extends Set<V> {
   zipAll(...xs: Array<Collection<unknown, unknown>>): OrderedSet<unknown>
   zipAll<T, U>(x: Collection<unknown, T>, x2: Collection<unknown, U>): OrderedSet<[V, T, U]>
   zipAll<T>(x: Collection<unknown, T>): OrderedSet<[V, T]>
-  zipWith<T, U, Z>(f: (v: V, x: T, x2: U) => Z, x: Collection<unknown, T>, x2: Collection<unknown, U>): OrderedSet<Z>
-  zipWith<T, U>(f: (v: V, x: T) => U, x: Collection<unknown, T>): OrderedSet<U>
-  zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): OrderedSet<T>
+  zipWith<T, U, R>(z: Zip<V, T, R, U>, x: Collection<unknown, T>, x2: Collection<unknown, U>): OrderedSet<R>
+  zipWith<T, R>(z: Zip<V, T, R>, x: Collection<unknown, T>): OrderedSet<R>
+  zipWith<T>(z: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): OrderedSet<T>
 }
 
 export interface Stack<V> extends Collection.ByIdx<V> {
@@ -386,9 +383,9 @@ export interface Stack<V> extends Collection.ByIdx<V> {
   zipAll(...xs: Array<Collection<unknown, unknown>>): Stack<unknown>
   zipAll<T, U>(x: Collection<unknown, T>, x2: Collection<unknown, U>): Stack<[V, T, U]>
   zipAll<T>(x: Collection<unknown, T>): Stack<[V, T]>
-  zipWith<T, U, Z>(f: (v: V, x: T, x2: U) => Z, x: Collection<unknown, T>, x2: Collection<unknown, U>): Stack<Z>
-  zipWith<T, U>(f: (v: V, x: T) => U, x: Collection<unknown, T>): Stack<U>
-  zipWith<T>(f: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Stack<T>
+  zipWith<T, U, R>(z: Zip<V, T, R, U>, x: Collection<unknown, T>, x2: Collection<unknown, U>): Stack<R>
+  zipWith<T, R>(z: Zip<V, T, R>, x: Collection<unknown, T>): Stack<R>
+  zipWith<T>(z: (...xs: Array<unknown>) => T, ...xs: Array<Collection<unknown, unknown>>): Stack<T>
 }
 
 export interface Record<T extends object> extends BySym, HasValue {

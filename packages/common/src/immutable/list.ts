@@ -26,39 +26,32 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
   [Symbol.q_list] = true;
   [Symbol.q_delete] = this.remove
 
-  readonly size = 0
+  override size = 0
 
   override toString() {
     return this.__toString("List [", "]")
   }
-  override get(index, notSetValue) {
-    index = qu.wrapIndex(this, index)
-    if (index >= 0 && index < this.size) {
-      index += this._origin
-      const node = listNodeFor(this, index)
-      return node && node.array[index & qu.MASK]
+  override get(i: number, v0?: unknown) {
+    i = qu.wrapIndex(this, i)
+    if (i >= 0 && i < this.size) {
+      i += this._origin
+      const node = listNodeFor(this, i)
+      return node && node.array[i & qu.MASK]
     }
-    return notSetValue
+    return v0
   }
-  set(index, value) {
-    return updateList(this, index, value)
+  set(i: number, v: V) {
+    return updateList(this, i, v)
   }
-  remove(index) {
-    return !this.has(index)
-      ? this
-      : index === 0
-      ? this.shift()
-      : index === this.size - 1
-      ? this.pop()
-      : this.splice(index, 1)
+  remove(i: number) {
+    return !this.has(i) ? this : i === 0 ? this.shift() : i === this.size - 1 ? this.pop() : this.splice(i, 1)
   }
-  insert(index, value) {
-    return this.splice(index, 0, value)
+  insert(i: number, v: V) {
+    return this.splice(i, 0, v)
   }
   clear() {
-    if (this.size === 0) {
-      return this
-    }
+    if (this.size === 0) return this
+
     if (this.__owner) {
       this.size = this._origin = this._capacity = 0
       this._level = qu.SHIFT
@@ -68,13 +61,12 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
     }
     return emptyList()
   }
-  push(/*...values*/) {
-    const values = arguments
-    const oldSize = this.size
-    return this.withMutations(list => {
-      setListBounds(list, 0, oldSize + values.length)
-      for (let ii = 0; ii < values.length; ii++) {
-        list.set(oldSize + ii, values[ii])
+  push(...xs) {
+    const size = this.size
+    return this.withMutations(x => {
+      setListBounds(x, 0, size + xs.length)
+      for (let i = 0; i < xs.length; i++) {
+        x.set(size + i, xs[i])
       }
     })
   }
@@ -84,8 +76,8 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
   unshift(...xs) {
     return this.withMutations(x => {
       setListBounds(x, -xs.length)
-      for (let ii = 0; ii < xs.length; ii++) {
-        x.set(ii, xs[ii])
+      for (let i = 0; i < xs.length; i++) {
+        x.set(i, xs[i])
       }
     })
   }
@@ -96,31 +88,31 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
     const ys = []
     for (let i = 0; i < xs.length; i++) {
       const x = xs[i]
-      const seq = Collection.ByIdx.from(typeof x !== "string" && qu.hasIter(x) ? x : [x])
-      if (seq.size !== 0) ys.push(seq)
+      const y = Collection.ByIdx.from(typeof x !== "string" && qu.hasIter(x) ? x : [x])
+      if (y.size !== 0) ys.push(y)
     }
     if (ys.length === 0) return this
     if (this.size === 0 && !this.__owner && ys.length === 1) return this.constructor(ys[0])
-    return this.withMutations(list => {
-      ys.forEach(seq => seq.forEach(value => list.push(value)))
+    return this.withMutations(x => {
+      ys.forEach(seq => seq.forEach(value => x.push(value)))
     })
   }
-  setSize(size) {
+  setSize(size: number) {
     return setListBounds(this, 0, size)
   }
-  override map(mapper, context) {
-    return this.withMutations(list => {
+  override map(f: Function, ctx?: unknown) {
+    return this.withMutations(x => {
       for (let i = 0; i < this.size; i++) {
-        list.set(i, mapper.call(context, list.get(i), i, this))
+        x.set(i, f.call(ctx, x.get(i), i, this))
       }
     })
   }
-  override slice(begin, end) {
+  override slice(beg?: number, end?: number) {
     const size = this.size
-    if (qu.wholeSlice(begin, end, size)) return this
-    return setListBounds(this, qu.resolveBegin(begin, size), qu.resolveEnd(end, size))
+    if (qu.wholeSlice(beg, end, size)) return this
+    return setListBounds(this, qu.resolveBegin(beg, size), qu.resolveEnd(end, size))
   }
-  [Symbol.q_iter](f: Function, reverse?: boolean) {
+  [Symbol.q_loop](f: Function, reverse?: boolean) {
     let i = reverse ? this.size : 0
     const ys = iterateList(this, reverse)
     let y
@@ -129,7 +121,7 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
     }
     return i
   }
-  [Symbol.q_loop](m: qu.Iter.Mode, reverse?: boolean) {
+  [Symbol.q_iter](m: qu.Iter.Mode, reverse?: boolean) {
     let i = reverse ? this.size : 0
     const ys = iterateList(this, reverse)
     return new qu.Iter(() => {
