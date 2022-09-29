@@ -92,6 +92,8 @@ export function isArrayLike(x: any) {
   )
 }
 
+const defaultValueOf = Object.prototype.valueOf
+
 function valueOf(x: any) {
   return x.valueOf !== defaultValueOf && typeof x.valueOf === "function" ? x.valueOf(x) : x
 }
@@ -165,6 +167,17 @@ export namespace Iter {
   export function done() {
     return { value: undefined, done: true }
   }
+}
+
+export const hasOwnProperty = Object.hasOwnProperty
+
+export function shallowCopy(x: any) {
+  if (Array.isArray(x)) return arrCopy(x)
+  const y: any = {}
+  for (const k in x) {
+    if (hasOwnProperty.call(x, k)) y[k] = x[k]
+  }
+  return y
 }
 
 export function arrCopy(x: any, offset?: number) {
@@ -255,37 +268,6 @@ export function quoteString(x: unknown) {
   }
 }
 
-export function shallowCopy(x: any) {
-  if (Array.isArray(x)) return arrCopy(x)
-  const y: any = {}
-  for (const k in x) {
-    if (hasOwnProperty.call(x, k)) y[k] = x[k]
-  }
-  return y
-}
-
-export const hasOwnProperty = Object.hasOwnProperty
-
-export function toJS(x: any) {
-  if (!x || typeof x !== "object") return x
-  if (!isCollection(x)) {
-    if (!isDataStructure(x)) return x
-    x = Seq.from(x)
-  }
-  if (isKeyed(x)) {
-    const y: { [k: number]: any } = {}
-    ;(x as any)[Symbol.q_loop]((v: any, k: number) => {
-      y[k] = toJS(v)
-    })
-    return y
-  }
-  const y: any = []
-  x[Symbol.q_loop]((v: any) => {
-    y.push(toJS(v))
-  })
-  return y
-}
-
 export const SHIFT = 5
 export const SIZE = 1 << SHIFT
 export const MASK = SIZE - 1
@@ -342,6 +324,10 @@ function resolveIndex(x: number | undefined, size: number, x0: number) {
     : Math.min(size, x) | 0
 }
 
+function defaultConverter(_: any, v: any) {
+  return isIndexed(v) ? v.toList() : isKeyed(v) ? v.toMap() : v.toSet()
+}
+
 export function fromJS(
   x: unknown,
   f?: (
@@ -353,31 +339,43 @@ export function fromJS(
   return fromJSWith([], f || defaultConverter, x, "", f && f.length > 2 ? [] : undefined, { "": x })
 }
 
-function fromJSWith(stack, converter, value, key, keyPath, parentValue) {
-  if (typeof value !== "string" && !isImmutable(value) && (isArrayLike(value) || hasIter(value) || isPlain(value))) {
-    if (~stack.indexOf(value)) {
-      throw new TypeError("Cannot convert circular structure to Immutable")
-    }
-    stack.push(value)
-    keyPath && key !== "" && keyPath.push(key)
-    const converted = converter.call(
-      parentValue,
-      key,
-      Seq(value).map((v, k) => fromJSWith(stack, converter, v, k, keyPath, value)),
-      keyPath && keyPath.slice()
+function fromJSWith(x: any, f: Function, v: any, k: any, path?: Array<string | number>, ctx?: unknown) {
+  if (typeof v !== "string" && !isImmutable(v) && (isArrayLike(v) || hasIter(v) || isPlain(v))) {
+    if (~x.indexOf(v)) throw new TypeError("Cannot convert circular structure to Immutable")
+    x.push(v)
+    path && k !== "" && path.push(k)
+    const y = f.call(
+      ctx,
+      k,
+      Seq.from(v).map((v: any, k: any) => fromJSWith(x, f, v, k, path, v)),
+      path && path.slice()
     )
-    stack.pop()
-    keyPath && keyPath.pop()
-    return converted
+    x.pop()
+    path && path.pop()
+    return y
   }
-  return value
+  return v
 }
 
-function defaultConverter(k, v) {
-  return isIndexed(v) ? v.toList() : isKeyed(v) ? v.toMap() : v.toSet()
+export function toJS(x: any) {
+  if (!x || typeof x !== "object") return x
+  if (!isCollection(x)) {
+    if (!isDataStructure(x)) return x
+    x = Seq.from(x)
+  }
+  if (isKeyed(x)) {
+    const y: { [k: number]: any } = {}
+    ;(x as any)[Symbol.q_loop]((v: any, k: number) => {
+      y[k] = toJS(v)
+    })
+    return y
+  }
+  const y: any = []
+  x[Symbol.q_loop]((v: any) => {
+    y.push(toJS(v))
+  })
+  return y
 }
-
-const defaultValueOf = Object.prototype.valueOf
 
 const symMap = Object.create(null)
 let theHash = 0
