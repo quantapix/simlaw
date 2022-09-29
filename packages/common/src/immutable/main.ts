@@ -145,7 +145,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     return this.get(k, qu.NOT_SET) !== qu.NOT_SET
   }
   hashCode() {
-    return this._hash || (this._hash = hashCollection(this))
+    return this._hash || (this._hash = getHash(this))
   }
   hasIn = (x: any) => qc.hasIn(this, x)
   includes(v: V) {
@@ -852,7 +852,7 @@ function defaultZipper(...xs: unknown[]) {
   return qu.arrCopy(xs)
 }
 
-function hashCollection<K, V>(x: Collection<K, V>) {
+function getHash<K, V>(x: Collection<K, V>) {
   if (x.size === Infinity) return 0
   const ordered = qu.isOrdered(x)
   const keyed = qu.isKeyed(x)
@@ -904,7 +904,15 @@ function seqFromValue(x) {
     if (typeof x === "object") return new ObjSeq(x)
     throw new TypeError("Expected Array or collection object of values, or keyed object: " + x)
   }
-  return qu.isEntriesIterable(x) ? y.fromEntrySeq() : qu.isKeysIterable(x) ? y.toSeqSet() : y
+  function entries(x: any) {
+    const f = qu.getIter(x)
+    return f && f === x.entries
+  }
+  function keys(x: any) {
+    const f = qu.getIter(x)
+    return f && f === x.keys
+  }
+  return entries(x) ? y.fromEntrySeq() : keys(x) ? y.toSeqSet() : y
 }
 
 function maybeSeqIndexedFrom(x) {

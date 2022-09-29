@@ -7,24 +7,7 @@ import type * as qt from "./types.js"
 
 export class Set<V> extends Collection.ByVal<V> implements qt.Set<V> {
   static isSet = qu.isSet
-  static of<T>(...xs: Array<T>): Set<T> {
-    return Set.from<T>(...xs)
-  }
-  static fromKeys(x: qt.ByStr): Set<string>
-  static fromKeys<T>(x: Collection<T, unknown>): Set<T>
-  static fromKeys(x: any): any {
-    return Set.from(Collection.ByKey.from(x).keySeq())
-  }
-  static intersect<T>(x: Iterable<Iterable<T>>): Set<T> {
-    x = Collection.from(x).toArray()
-    return x.length ? SetPrototype.intersect.apply(Set.from(x.pop()), x) : emptySet()
-  }
-  static union<T>(x: Iterable<Iterable<T>>): Set<T> {
-    x = Collection.from(x).toArray()
-    return x.length ? SetPrototype.union.apply(Set.from(x.pop()), x) : emptySet()
-  }
-
-  static override from<K>(x?: Iterable<K> | ArrayLike<K>): Set<K> {
+  static override from<T>(x?: Iterable<T> | ArrayLike<T>): Set<T> {
     return x === undefined || x === null
       ? emptySet()
       : qu.isSet(x) && !qu.isOrdered(x)
@@ -35,6 +18,24 @@ export class Set<V> extends Collection.ByVal<V> implements qt.Set<V> {
           y.forEach(x3 => x2.add(x3))
         })
   }
+
+  static fromKeys(x: qt.ByStr): Set<string>
+  static fromKeys<T>(x: Collection<T, unknown>): Set<T>
+  static fromKeys(x: any): any {
+    return Set.from(Collection.ByKey.from(x).keySeq())
+  }
+  static of<T>(...xs: Array<T>): Set<T> {
+    return Set.from<T>(xs)
+  }
+  static intersect<T>(x: Iterable<Iterable<T>>): Set<T> {
+    const y = Collection.from(x).toArray()
+    return y.length ? Set.from(y.pop()).intersect(y) : emptySet()
+  }
+  static union<T>(x: Iterable<Iterable<T>>): Set<T> {
+    const y = Collection.from(x).toArray()
+    return y.length ? Set.from(y.pop()).union(y) : emptySet()
+  }
+
   [Symbol.q_set] = true;
   [Symbol.q_delete] = this.remove
   override toString() {

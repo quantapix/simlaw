@@ -1,5 +1,5 @@
-export interface BySym {
-  [k: symbol]: unknown
+export interface BySym<T = unknown> {
+  [k: symbol]: T
 }
 
 export interface ByStr<T = unknown> {

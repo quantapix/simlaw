@@ -33,46 +33,46 @@ declare global {
 ;(Symbol as { q_set: symbol }).q_set = Symbol("q_set")
 ;(Symbol as { q_stack: symbol }).q_stack = Symbol("q_stack")
 
-export function isAssociative<K, V>(x: qt.BySym): x is qt.Collection.ByKey<K, V> | qt.Collection.ByIdx<V> {
+export function isAssociative<K, V>(x: any): x is qt.Collection.ByKey<K, V> | qt.Collection.ByIdx<V> {
   return isKeyed(x) || isIndexed(x)
 }
-export function isCollection<K, V>(x: qt.BySym): x is qt.Collection<K, V> {
+export function isCollection<K, V>(x: any): x is qt.Collection<K, V> {
   return Boolean(x && x[Symbol.q_collection])
 }
-export function isImmutable<K, V>(x: qt.BySym): x is qt.Collection<K, V> {
+export function isImmutable<K, V>(x: any): x is qt.Collection<K, V> {
   return isCollection(x) || isRecord(x)
 }
-export function isIndexed<V>(x: qt.BySym): x is qt.Collection.ByIdx<V> {
+export function isIndexed<V>(x: any): x is qt.Collection.ByIdx<V> {
   return Boolean(x && x[Symbol.q_indexed])
 }
-export function isKeyed<K, V>(x: qt.BySym): x is qt.Collection.ByKey<K, V> {
+export function isKeyed<K, V>(x: any): x is qt.Collection.ByKey<K, V> {
   return Boolean(x && x[Symbol.q_keyed])
 }
-export function isList<V>(x: qt.BySym): x is qt.List<V> {
+export function isList<V>(x: any): x is qt.List<V> {
   return Boolean(x && x[Symbol.q_list])
 }
-export function isMap<K, V>(x: qt.BySym): x is qt.Map<K, V> {
+export function isMap<K, V>(x: any): x is qt.Map<K, V> {
   return Boolean(x && x[Symbol.q_map])
 }
-export function isOrdered(x: qt.BySym): boolean {
+export function isOrdered(x: any): boolean {
   return Boolean(x && x[Symbol.q_ordered])
 }
-export function isOrderedMap<K, V>(x: qt.BySym): x is qt.OrderedMap<K, V> {
+export function isOrderedMap<K, V>(x: any): x is qt.OrderedMap<K, V> {
   return isMap(x) && isOrdered(x)
 }
-export function isOrderedSet<V>(x: qt.BySym): x is qt.OrderedSet<V> {
+export function isOrderedSet<V>(x: any): x is qt.OrderedSet<V> {
   return isSet(x) && isOrdered(x)
 }
-export function isRecord(x: qt.BySym): x is qt.Record<{}> {
+export function isRecord(x: any): x is qt.Record<{}> {
   return Boolean(x && x[Symbol.q_record])
 }
-export function isSeq<K, V>(x: qt.BySym): x is qt.Seq.ByIdx<V> | qt.Seq.ByKey<K, V> | qt.Seq.ByVal<V> {
+export function isSeq<K, V>(x: any): x is qt.Seq.ByIdx<V> | qt.Seq.ByKey<K, V> | qt.Seq.ByVal<V> {
   return Boolean(x && x[Symbol.q_seq])
 }
-export function isSet<V>(x: qt.BySym): x is qt.Set<V> {
+export function isSet<V>(x: any): x is qt.Set<V> {
   return Boolean(x && x[Symbol.q_set])
 }
-export function isStack<V>(x: qt.BySym): x is qt.Stack<V> {
+export function isStack<V>(x: any): x is qt.Stack<V> {
   return Boolean(x && x[Symbol.q_stack])
 }
 export function hasValue(x: any): x is qt.HasValue {
@@ -91,19 +91,49 @@ export function isArrayLike(x: any) {
       (x.length === 0 ? Object.keys(x).length === 1 : x.hasOwnProperty(x.length - 1))
   )
 }
-export function isDataStructure(x: qt.BySym) {
+
+function valueOf(x: any) {
+  return x.valueOf !== defaultValueOf && typeof x.valueOf === "function" ? x.valueOf(x) : x
+}
+
+export function is(a: any, b: any) {
+  if (a === b || (a !== a && b !== b)) return true
+  if (!a || !b) return false
+  if (typeof a.valueOf === "function" && typeof b.valueOf === "function") {
+    a = a.valueOf()
+    b = b.valueOf()
+    if (a === b || (a !== a && b !== b)) return true
+    if (!a || !b) return false
+  }
+  return !!(hasValue(a) && hasValue(b) && a.equals(b))
+}
+
+function isPlain(x: any) {
+  if (!x || typeof x !== "object" || toString.call(x) !== "[object Object]") return false
+  const proto = Object.getPrototypeOf(x)
+  if (proto === null) return true
+  let p0 = proto
+  let p = Object.getPrototypeOf(proto)
+  while (p !== null) {
+    p0 = p
+    p = Object.getPrototypeOf(p0)
+  }
+  return p0 === proto
+}
+
+export function isDataStructure(x: any) {
   return typeof x === "object" && (isImmutable(x) || Array.isArray(x) || isPlain(x))
 }
 
-export function hasIter(x: qt.BySym) {
+export function hasIter(x: any) {
   if (Array.isArray(x)) return true
   return !!getIter(x)
 }
-function getIter<T>(x: qt.BySym) {
+export function getIter<T>(x: any) {
   const f = x && x[Symbol.iterator]
   return typeof f === "function" ? (f as () => IterableIterator<T>) : undefined
 }
-export function callIter(x: qt.BySym) {
+export function callIter(x: any) {
   const f = getIter(x)
   return f && f.call(x)
 }
@@ -137,15 +167,6 @@ export namespace Iter {
   }
 }
 
-export function isEntriesIterable(x: any) {
-  const f = getIter(x)
-  return f && f === x.entries
-}
-export function isKeysIterable(x: any) {
-  const f = getIter(x)
-  return f && f === x.keys
-}
-
 export function arrCopy(x: any, offset?: number) {
   offset = offset || 0
   const len = Math.max(0, x.length - offset)
@@ -156,8 +177,8 @@ export function arrCopy(x: any, offset?: number) {
   return y
 }
 
-export function assertNotInfinite(size?: number) {
-  invariant(size !== Infinity, "Cannot perform this action with an infinite size.")
+export function assertNotInfinite(x?: number) {
+  invariant(x !== Infinity, "Cannot perform this action with an infinite size.")
 }
 
 export function coerceKeyPath(x: any) {
@@ -166,17 +187,12 @@ export function coerceKeyPath(x: any) {
   throw new TypeError("Invalid keyPath: expected Ordered Collection or Array: " + x)
 }
 
-export function createClass(x, superClass) {
-  if (superClass) x.prototype = Object.create(superClass.prototype)
-  x.prototype.constructor = x
-}
-
 export function deepEqual(a: any, b: any): boolean {
   if (a === b) return true
   if (
     !isCollection(b) ||
     (a.size !== undefined && b.size !== undefined && a.size !== b.size) ||
-    (a._hash !== undefined && b._hash !== undefined && a._hash !== b._hash) ||
+    (a._hash !== undefined && (b as any)._hash !== undefined && a._hash !== (b as any)._hash) ||
     isKeyed(a) !== isKeyed(b) ||
     isIndexed(a) !== isIndexed(b) ||
     isOrdered(a) !== isOrdered(b)
@@ -184,13 +200,13 @@ export function deepEqual(a: any, b: any): boolean {
     return false
   }
   if (a.size === 0 && b.size === 0) return true
-  const notAssociative = !isAssociative(a)
+  const notAssoc = !isAssociative(a)
   if (isOrdered(a)) {
     const xs = a.entries()
     return (
       b.every((v, k) => {
         const x = xs.next().value
-        return x && is(x[1], v) && (notAssociative || is(x[0], k))
+        return x && is(x[1], v) && (notAssoc || is(x[0], k))
       }) && xs.next().done
     )
   }
@@ -205,15 +221,15 @@ export function deepEqual(a: any, b: any): boolean {
       b = _
     }
   }
-  let allEqual = true
-  const bSize = b[Symbol.q_loop]((v, k) => {
-    if (notAssociative ? !a.has(v) : flipped ? !is(v, a.get(k, NOT_SET)) : !is(a.get(k, NOT_SET), v)) {
-      allEqual = false
+  let y = true
+  const bSize = b[Symbol.q_loop]((v: any, k: any) => {
+    if (notAssoc ? !a.has(v) : flipped ? !is(v, a.get(k, NOT_SET)) : !is(a.get(k, NOT_SET), v)) {
+      y = false
       return false
     }
     return
   })
-  return allEqual && a.size === bSize
+  return y && a.size === bSize
 }
 
 export function invariant(cond: unknown, x: any) {
@@ -222,26 +238,13 @@ export function invariant(cond: unknown, x: any) {
 
 const toString = Object.prototype.toString
 
-function isPlain(x: unknown) {
-  if (!x || typeof x !== "object" || toString.call(x) !== "[object Object]") return false
-  const proto = Object.getPrototypeOf(x)
-  if (proto === null) return true
-  let p0 = proto
-  let p = Object.getPrototypeOf(proto)
-  while (p !== null) {
-    p0 = p
-    p = Object.getPrototypeOf(p0)
+export function mixin(x: any, xs: any[]) {
+  const copier = (k: any) => {
+    x.prototype[k] = xs[k]
   }
-  return p0 === proto
-}
-
-export function mixin(ctor, methods) {
-  const keyCopier = k => {
-    ctor.prototype[k] = methods[k]
-  }
-  Object.keys(methods).forEach(keyCopier)
-  Object.getOwnPropertySymbols && Object.getOwnPropertySymbols(methods).forEach(keyCopier)
-  return ctor
+  Object.keys(xs).forEach(copier)
+  Object.getOwnPropertySymbols && Object.getOwnPropertySymbols(xs).forEach(copier)
+  return x
 }
 
 export function quoteString(x: unknown) {
@@ -263,37 +266,21 @@ export function shallowCopy(x: any) {
 
 export const hasOwnProperty = Object.hasOwnProperty
 
-function valueOf(x: any) {
-  return x.valueOf !== defaultValueOf && typeof x.valueOf === "function" ? x.valueOf(x) : x
-}
-
-export function is(a: any, b: any) {
-  if (a === b || (a !== a && b !== b)) return true
-  if (!a || !b) return false
-  if (typeof a.valueOf === "function" && typeof b.valueOf === "function") {
-    a = a.valueOf()
-    b = b.valueOf()
-    if (a === b || (a !== a && b !== b)) return true
-    if (!a || !b) return false
-  }
-  return !!(hasValue(a) && hasValue(b) && a.equals(b))
-}
-
-export function toJS(x) {
+export function toJS(x: any) {
   if (!x || typeof x !== "object") return x
   if (!isCollection(x)) {
     if (!isDataStructure(x)) return x
     x = Seq.from(x)
   }
   if (isKeyed(x)) {
-    const y = {}
-    x[Symbol.q_loop]((v, k) => {
+    const y: { [k: number]: any } = {}
+    ;(x as any)[Symbol.q_loop]((v: any, k: number) => {
       y[k] = toJS(v)
     })
     return y
   }
-  const y = []
-  x[Symbol.q_loop](v => {
+  const y: any = []
+  x[Symbol.q_loop]((v: any) => {
     y.push(toJS(v))
   })
   return y
