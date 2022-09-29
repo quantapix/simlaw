@@ -4,10 +4,22 @@ import * as qc from "./core.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
+export class Map<K = unknown, V = unknown> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
   static isMap = qu.isMap
+  static override from<K, V>(x?: Iterable<[K, V]>): Map<K, V>
+  static override from<V>(x: qt.ByStr<V>): Map<string, V>
+  static override from<K extends string | symbol, V>(x: { [P in K]?: V }): Map<K, V>
+  static override from(x: any): any {
+    if (x === undefined || x === null) return EMPTY_MAP
+    if (qu.isMap(x) && !qu.isOrdered(x)) return x
+    const it = Collection.ByKey.from(x)
+    qu.assertNotInfinite(it.size)
+    return EMPTY_MAP.withMutations(x2 => {
+      it.forEach((v, k) => x2.set(k, v))
+    })
+  }
   static of(...xs: Array<unknown>): Map<unknown, unknown> {
-    return emptyMap().withMutations(x => {
+    return EMPTY_MAP.withMutations(x => {
       for (let i = 0; i < xs.length; i += 2) {
         if (i + 1 >= xs.length) throw new Error("Missing value for key: " + xs[i])
         x.set(xs[i], xs[i + 1])
@@ -15,28 +27,20 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
     })
   }
 
-  static override from<K, V>(x?: Iterable<[K, V]>): Map<K, V>
-  static override from<V>(x: qt.ByStr<V>): Map<string, V>
-  static override from<K extends string | symbol, V>(x: { [P in K]?: V }): Map<K, V>
-  static override from(x: any): any {
-    return x === undefined || x === null
-      ? emptyMap()
-      : qu.isMap(x) && !qu.isOrdered(x)
-      ? x
-      : emptyMap().withMutations(x2 => {
-          const y = Collection.ByKey.from(x)
-          qu.assertNotInfinite(y.size)
-          y.forEach((v, k) => x2.set(k, v))
-        })
-  }
   [Symbol.q_map] = true;
   [Symbol.q_delete] = this.remove
+
+  constructor(size = 0, private _base?: any, private _owner?: any, hash?: number, private _dirty = false) {
+    super()
+    this.size = size //_base.length
+    this._hash = hash
+  }
 
   override toString() {
     return this.__toString("Map {", "}")
   }
   override get(k: K, v0?: unknown) {
-    return this._root ? this._root.get(0, undefined, k, v0) : v0
+    return this._base ? this._base.get(0, undefined, k, v0) : v0
   }
   set(k: K, v: V) {
     return updateMap(this, k, v)
@@ -45,22 +49,22 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
     return updateMap(this, k, qu.NOT_SET)
   }
   deleteAll(xs) {
-    const y = Collection.from(xs)
-    if (y.size === 0) return this
+    const it = Collection.from(xs)
+    if (it.size === 0) return this
     return this.withMutations(x => {
-      y.forEach((k: K) => x.remove(k))
+      it.forEach((k: K) => x.remove(k))
     })
   }
   clear() {
     if (this.size === 0) return this
-    if (this.__owner) {
+    if (this._owner) {
       this.size = 0
-      this._root = null
+      this._base = null
       this._hash = undefined
-      this.__altered = true
+      this._dirty = true
       return this
     }
-    return emptyMap()
+    return EMPTY_MAP
   }
   override sort(c?: Function) {
     return OrderedMap.from(qc.sort(this, c))
@@ -77,8 +81,8 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
   }
   [Symbol.q_loop](f: qt.Step<K, V, this>, reverse?: boolean) {
     let i = 0
-    this._root &&
-      this._root[Symbol.q_loop](([v, k]) => {
+    this._base &&
+      this._base[Symbol.q_loop](([v, k]) => {
         i++
         return f(v, k, this)
       }, reverse)
@@ -88,14 +92,14 @@ export class Map<K, V> extends Collection.ByKey<K, V> implements qt.Map<K, V> {
     return new MapIterator(this, m, reverse)
   }
   __ensureOwner(x) {
-    if (x === this.__owner) return this
+    if (x === this._owner) return this
     if (!x) {
-      if (this.size === 0) return emptyMap()
-      this.__owner = x
-      this.__altered = false
+      if (this.size === 0) return EMPTY_MAP
+      this._owner = x
+      this._dirty = false
       return this
     }
-    return makeMap(this.size, this._root, x, this._hash)
+    return new Map(this.size, this._base, x, this._hash)
   }
   concat = this.merge
   removeAll = this.deleteAll
@@ -372,21 +376,7 @@ function mapIteratorFrame(node, prev) {
   return { node, index: 0, __prev: prev }
 }
 
-function makeMap(size, root, owner, hash) {
-  const y = Object.create(MapPrototype)
-  y.size = size
-  y._root = root
-  y.__owner = owner
-  y._hash = hash
-  y.__altered = false
-  return y
-}
-
-let EMPTY_MAP
-
-export function emptyMap() {
-  return EMPTY_MAP || (EMPTY_MAP = makeMap(0))
-}
+export const EMPTY_MAP = new Map()
 
 function updateMap(x, k, v) {
   let root
@@ -394,22 +384,22 @@ function updateMap(x, k, v) {
   if (!x._root) {
     if (v === qu.NOT_SET) return x
     size = 1
-    root = new ArrayMapNode(x.__owner, [[k, v]])
+    root = new ArrayMapNode(x._owner, [[k, v]])
   } else {
     const didChangeSize = qu.MakeRef()
     const didAlter = qu.MakeRef()
-    root = updateNode(x._root, x.__owner, 0, undefined, k, v, didChangeSize, didAlter)
+    root = updateNode(x._root, x._owner, 0, undefined, k, v, didChangeSize, didAlter)
     if (!didAlter.value) return x
     size = x.size + (didChangeSize.value ? (v === qu.NOT_SET ? -1 : 1) : 0)
   }
-  if (x.__owner) {
+  if (x._owner) {
     x.size = size
     x._root = root
     x._hash = undefined
-    x.__altered = true
+    x._dirty = true
     return x
   }
-  return root ? makeMap(size, root) : emptyMap()
+  return root ? new Map(size, root) : EMPTY_MAP
 }
 
 function updateNode(x, owner, shift, keyHash, key, value, didChangeSize, didAlter) {

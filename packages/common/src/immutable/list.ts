@@ -5,28 +5,41 @@ import type * as qt from "./types.js"
 
 export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
   static isList = qu.isList
-
-  static override from<T>(x?: Iterable<T> | ArrayLike<T>): List<T> {
-    const empty = emptyList()
-    if (x === undefined || x === null) return empty
+  static override from<T>(x?: Iterable<T> | ArrayLike<T>): qt.List<T> {
+    if (x === undefined || x === null) return EMPTY_LIST
     if (qu.isList(x)) return x
     const it = Collection.ByIdx.from(x)
-    const size = it.size
-    if (size === 0) return empty
+    const size = it.size!
+    if (size === 0) return EMPTY_LIST
     qu.assertNotInfinite(size)
     if (size > 0 && size < qu.SIZE) return makeList(0, size, qu.SHIFT, null, new VNode(it.toArray()))
-    return empty.withMutations(list => {
-      list.setSize(size)
-      it.forEach((v, i) => list.set(i, v))
+    return EMPTY_LIST.withMutations(x2 => {
+      x2.setSize(size)
+      it.forEach((v, i) => x2.set(i, v))
     })
   }
   static of<T>(...xs: Array<T>): List<T> {
-    return this(...xs)
+    return List.from<T>(xs)
   }
   [Symbol.q_list] = true;
   [Symbol.q_delete] = this.remove
 
   override size = 0
+
+  constructor(
+    private _origin = 0,
+    private _capacity = 0,
+    private _level = qu.SHIFT,
+    private _base?: any,
+    private _tail?: any,
+    private _owner?: any,
+    hash?: number,
+    private _dirty = false
+  ) {
+    super()
+    this.size = _capacity - _origin
+    this._hash = hash
+  }
 
   override toString() {
     return this.__toString("List [", "]")
@@ -51,15 +64,14 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
   }
   clear() {
     if (this.size === 0) return this
-
-    if (this.__owner) {
+    if (this._owner) {
       this.size = this._origin = this._capacity = 0
       this._level = qu.SHIFT
-      this._root = this._tail = this._hash = undefined
-      this.__altered = true
+      this._base = this._tail = this._hash = undefined
+      this._dirty = true
       return this
     }
-    return emptyList()
+    return EMPTY_LIST
   }
   push(...xs) {
     const size = this.size
@@ -92,13 +104,13 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
       if (y.size !== 0) ys.push(y)
     }
     if (ys.length === 0) return this
-    if (this.size === 0 && !this.__owner && ys.length === 1) return this.constructor(ys[0])
+    if (this.size === 0 && !this._owner && ys.length === 1) return this.constructor(ys[0])
     return this.withMutations(x => {
       ys.forEach(seq => seq.forEach(value => x.push(value)))
     })
   }
-  setSize(size: number) {
-    return setListBounds(this, 0, size)
+  setSize(x: number) {
+    return setListBounds(this, 0, x)
   }
   override map(f: Function, ctx?: unknown) {
     return this.withMutations(x => {
@@ -130,14 +142,14 @@ export class List<V> extends Collection.ByIdx<V> implements qt.List<V> {
     })
   }
   __ensureOwner(x) {
-    if (x === this.__owner) return this
+    if (x === this._owner) return this
     if (!x) {
-      if (this.size === 0) return emptyList()
-      this.__owner = x
-      this.__altered = false
+      if (this.size === 0) return EMPTY_LIST
+      this._owner = x
+      this._dirty = false
       return this
     }
-    return makeList(this._origin, this._capacity, this._level, this._root, this._tail, x, this._hash)
+    return new List(this._origin, this._capacity, this._level, this._base, this._tail, x, this._hash)
   }
   merge = this.concat
   setIn = (x: any, v: unknown) => qc.setIn(this, x, v)
@@ -211,7 +223,7 @@ function iterateList(x, reverse?: boolean) {
   const right = x._capacity
   const tailPos = getTailOffset(right)
   const tail = x._tail
-  return doOne(x._root, x._level, 0)
+  return doOne(x._base, x._level, 0)
   function doOne(x, level, offset) {
     return level === 0 ? doLeaf(x, offset) : doNode(x, level, offset)
   }
@@ -247,25 +259,7 @@ function iterateList(x, reverse?: boolean) {
   }
 }
 
-function makeList(origin, capacity, level, root, tail, owner, hash) {
-  const list = Object.create(ListPrototype)
-  list.size = capacity - origin
-  list._origin = origin
-  list._capacity = capacity
-  list._level = level
-  list._root = root
-  list._tail = tail
-  list.__owner = owner
-  list._hash = hash
-  list.__altered = false
-  return list
-}
-
-let EMPTY_LIST
-
-export function emptyList() {
-  return EMPTY_LIST || (EMPTY_LIST = makeList(0, 0, qu.SHIFT))
-}
+export const EMPTY_LIST = new List()
 
 function updateList(x, i, value) {
   i = qu.wrapIndex(x, i)
@@ -277,19 +271,19 @@ function updateList(x, i, value) {
   }
   i += x._origin
   let newTail = x._tail
-  let newRoot = x._root
+  let newRoot = x._base
   const didAlter = qu.MakeRef()
-  if (i >= getTailOffset(x._capacity)) newTail = updateVNode(newTail, x.__owner, 0, i, value, didAlter)
-  else newRoot = updateVNode(newRoot, x.__owner, x._level, i, value, didAlter)
+  if (i >= getTailOffset(x._capacity)) newTail = updateVNode(newTail, x._owner, 0, i, value, didAlter)
+  else newRoot = updateVNode(newRoot, x._owner, x._level, i, value, didAlter)
   if (!didAlter.value) return x
-  if (x.__owner) {
-    x._root = newRoot
+  if (x._owner) {
+    x._base = newRoot
     x._tail = newTail
     x._hash = undefined
-    x.__altered = true
+    x._dirty = true
     return x
   }
-  return makeList(x._origin, x._capacity, x._level, newRoot, newTail)
+  return new List(x._origin, x._capacity, x._level, newRoot, newTail)
 }
 
 function updateVNode(x, owner, level, index, value, didAlter) {
@@ -321,7 +315,7 @@ function editableVNode(x, owner) {
 function listNodeFor(x, i) {
   if (i >= getTailOffset(x._capacity)) return x._tail
   if (i < 1 << (x._level + qu.SHIFT)) {
-    let node = x._root
+    let node = x._base
     let level = x._level
     while (node && level > 0) {
       node = node.array[(i >>> level) & qu.MASK]
@@ -334,7 +328,7 @@ function listNodeFor(x, i) {
 function setListBounds(list, begin, end) {
   if (begin !== undefined) begin |= 0
   if (end !== undefined) end |= 0
-  const owner = list.__owner || new qu.OwnerID()
+  const owner = list._owner || new qu.OwnerID()
   let oldOrigin = list._origin
   let oldCapacity = list._capacity
   let newOrigin = oldOrigin + begin
@@ -342,7 +336,7 @@ function setListBounds(list, begin, end) {
   if (newOrigin === oldOrigin && newCapacity === oldCapacity) return list
   if (newOrigin >= newCapacity) return list.clear()
   let newLevel = list._level
-  let root = list._root
+  let root = list._base
   let offsetShift = 0
   while (newOrigin + offsetShift < 0) {
     root = new VNode(root && root.array.length ? [undefined, root] : [], owner)
@@ -400,18 +394,18 @@ function setListBounds(list, begin, end) {
       newCapacity -= offsetShift
     }
   }
-  if (list.__owner) {
+  if (list._owner) {
     list.size = newCapacity - newOrigin
     list._origin = newOrigin
     list._capacity = newCapacity
     list._level = newLevel
-    list._root = root
+    list._base = root
     list._tail = newTail
     list._hash = undefined
-    list.__altered = true
+    list._dirty = true
     return list
   }
-  return makeList(newOrigin, newCapacity, newLevel, root, newTail)
+  return new List(newOrigin, newCapacity, newLevel, root, newTail)
 }
 
 function getTailOffset(x) {

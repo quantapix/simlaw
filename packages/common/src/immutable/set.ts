@@ -1,5 +1,5 @@
 import { Collection } from "./main.js"
-import { emptyMap } from "./map.js"
+import { EMPTY_MAP } from "./map.js"
 import { OrderedSet } from "./ordered.js"
 import * as qc from "./core.js"
 import * as qu from "./utils.js"
@@ -8,17 +8,14 @@ import type * as qt from "./types.js"
 export class Set<V> extends Collection.ByVal<V> implements qt.Set<V> {
   static isSet = qu.isSet
   static override from<T>(x?: Iterable<T> | ArrayLike<T>): Set<T> {
-    return x === undefined || x === null
-      ? emptySet()
-      : qu.isSet(x) && !qu.isOrdered(x)
-      ? x
-      : emptySet().withMutations(x2 => {
-          const y = Collection.ByVal.from(x)
-          qu.assertNotInfinite(y.size)
-          y.forEach(x3 => x2.add(x3))
-        })
+    if (x === undefined || x === null) return EMPTY_SET
+    if (qu.isSet(x) && !qu.isOrdered(x)) return x
+    const it = Collection.ByVal.from(x)
+    qu.assertNotInfinite(it.size)
+    return EMPTY_SET.withMutations(x2 => {
+      y.forEach(x3 => x2.add(x3))
+    })
   }
-
   static fromKeys(x: qt.ByStr): Set<string>
   static fromKeys<T>(x: Collection<T, unknown>): Set<T>
   static fromKeys(x: any): any {
@@ -29,75 +26,81 @@ export class Set<V> extends Collection.ByVal<V> implements qt.Set<V> {
   }
   static intersect<T>(x: Iterable<Iterable<T>>): Set<T> {
     const y = Collection.from(x).toArray()
-    return y.length ? Set.from(y.pop()).intersect(y) : emptySet()
+    return y.length ? Set.from(y.pop()).intersect(y) : EMPTY_SET
   }
   static union<T>(x: Iterable<Iterable<T>>): Set<T> {
     const y = Collection.from(x).toArray()
-    return y.length ? Set.from(y.pop()).union(y) : emptySet()
+    return y.length ? Set.from(y.pop()).union(y) : EMPTY_SET
   }
 
   [Symbol.q_set] = true;
   [Symbol.q_delete] = this.remove
+
+  constructor(private _base: any, private _owner?: any) {
+    super()
+    this.size = _base ? _base.size : 0
+  }
+
   override toString() {
     return this.__toString("Set {", "}")
   }
-  override has(value) {
-    return this._map.has(value)
+  override has(v: V) {
+    return this._base.has(v)
   }
-  add(value) {
-    return updateSet(this, this._map.set(value, value))
+  add(v: V) {
+    return updateSet(this, this._base.set(v, v))
   }
-  remove(value) {
-    return updateSet(this, this._map.remove(value))
+  remove(v: V) {
+    return updateSet(this, this._base.remove(v))
   }
   clear() {
-    return updateSet(this, this._map.clear())
+    return updateSet(this, this._base.clear())
   }
-  override map(mapper, context) {
-    let didChanges = false
-    const newMap = updateSet(
+  override map(f: Function, ctx?: unknown) {
+    let dirty = false
+    const y = updateSet(
       this,
-      this._map.mapEntries(([, v]) => {
-        const mapped = mapper.call(context, v, v, this)
-        if (mapped !== v) didChanges = true
+      this._base.mapEntries(([, v]) => {
+        const mapped = f.call(ctx, v, v, this)
+        if (mapped !== v) dirty = true
         return [mapped, mapped]
-      }, context)
+      }, ctx)
     )
-    return didChanges ? newMap : this
+    return dirty ? y : this
   }
-  union(...iters) {
-    iters = iters.filter(x => x.size !== 0)
-    if (iters.length === 0) return this
-    if (this.size === 0 && !this.__owner && iters.length === 1) return this.constructor(iters[0])
-    return this.withMutations(set => {
-      for (let ii = 0; ii < iters.length; ii++) {
-        SetCollection(iters[ii]).forEach(value => set.add(value))
+  union(...xs) {
+    xs = xs.filter(x => x.size !== 0)
+    if (xs.length === 0) return this
+    if (this.size === 0 && !this._owner && xs.length === 1) return this.constructor(xs[0])
+    return this.withMutations(x => {
+      for (let i = 0; i < xs.length; i++) {
+        Collection.ByVal.from(xs[i]).forEach(x2 => x.add(x2))
       }
     })
   }
-  intersect(...iters) {
-    if (iters.length === 0) return this
-    iters = iters.map(iter => SetCollection(iter))
+  intersect(...xs) {
+    if (xs.length === 0) return this
+    xs = xs.map(x => Collection.ByVal.from(x))
     const toRemove = []
-    this.forEach(value => {
-      if (!iters.every(iter => iter.includes(value))) toRemove.push(value)
+    this.forEach(v => {
+      if (!xs.every(x => x.includes(v))) toRemove.push(v)
     })
-    return this.withMutations(set => {
-      toRemove.forEach(value => {
-        set.remove(value)
+    return this.withMutations(x => {
+      toRemove.forEach(v => {
+        x.remove(v)
       })
     })
   }
-  subtract(...iters) {
-    if (iters.length === 0) return this
-    iters = iters.map(iter => SetCollection(iter))
+  subtract(...xs) {
+    if (xs.length === 0) return this
+    xs = xs.map(x => Collection.ByVal.from(x))
     const toRemove = []
-    this.forEach(value => {
-      if (iters.some(iter => iter.includes(value))) toRemove.push(value)
+    this.forEach(v => {
+      if (xs.some(x => x.includes(v))) toRemove.push(v)
     })
-    return this.withMutations(set => {
-      toRemove.forEach(value => {
-        set.remove(value)
+    return this.withMutations(x => {
+      toRemove.forEach(v => {
+        x.remove(v)
       })
     })
   }
@@ -108,26 +111,24 @@ export class Set<V> extends Collection.ByVal<V> implements qt.Set<V> {
     return OrderedSet.from(qc.sort(this, c, f))
   }
   wasAltered() {
-    return this._map.wasAltered()
+    return this._base.wasAltered()
   }
   [Symbol.q_loop](f: qt.Step<V, V, this>, reverse?: boolean) {
-    return this._map[Symbol.q_loop](k => f(k, k, this), reverse)
+    return this._base[Symbol.q_loop](k => f(k, k, this), reverse)
   }
   [Symbol.q_iter](m: qu.Iter.Mode, reverse?: boolean) {
-    return this._map[Symbol.q_iter](m, reverse)
+    return this._base[Symbol.q_iter](m, reverse)
   }
   __ensureOwner(owner) {
-    if (owner === this.__owner) return this
-
-    const newMap = this._map.__ensureOwner(owner)
+    if (owner === this._owner) return this
+    const y = this._base.__ensureOwner(owner)
     if (!owner) {
-      if (this.size === 0) return this.__empty()
-
-      this.__owner = owner
-      this._map = newMap
+      if (this.size === 0) return this.__empty
+      this._owner = owner
+      this._base = y
       return this
     }
-    return this.__make(newMap, owner)
+    return this.__make(y, owner)
   }
   override concat = this.union
   merge = this.union
@@ -141,29 +142,17 @@ export class Set<V> extends Collection.ByVal<V> implements qt.Set<V> {
   ["@@transducer/result"] = function (x) {
     return x.asImmutable()
   }
-  __empty = emptySet
-  __make = makeSet
+  __empty = EMPTY_SET
+  __make = Set
 }
 
-function updateSet(set, newMap) {
-  if (set.__owner) {
-    set.size = newMap.size
-    set._map = newMap
-    return set
+function updateSet(x, newMap) {
+  if (x._owner) {
+    x.size = newMap.size
+    x._map = newMap
+    return x
   }
-  return newMap === set._map ? set : newMap.size === 0 ? set.__empty() : set.__make(newMap)
+  return newMap === x._map ? x : newMap.size === 0 ? x.__empty() : x.__make(newMap)
 }
 
-function makeSet(map, owner) {
-  const y = Object.create(Set.prototype)
-  y.size = map ? map.size : 0
-  y._map = map
-  y.__owner = owner
-  return y
-}
-
-let EMPTY_SET
-
-function emptySet() {
-  return EMPTY_SET || (EMPTY_SET = makeSet(emptyMap()))
-}
+export const EMPTY_SET = new Set(EMPTY_MAP)

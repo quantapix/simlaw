@@ -1,5 +1,5 @@
 import { Collection, Seq, seqKeyedFrom, seqIndexedFrom, ArrSeq } from "./main.js"
-import { emptyMap } from "./map.js"
+import { EMPTY_MAP } from "./map.js"
 import { set } from "./set.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
@@ -197,7 +197,7 @@ function updateInDeeply(isImmutable: boolean, x: any, xs: any, i: number, v0: un
   const k = xs[i]
   const x2 = notSet ? qu.NOT_SET : get(x, k, qu.NOT_SET)
   const y = updateInDeeply(x2 === qu.NOT_SET ? isImmutable : qu.isImmutable(x2), x2, xs, i + 1, v0, f)
-  return y === x2 ? x : y === qu.NOT_SET ? remove(x, k) : set(notSet ? (isImmutable ? emptyMap() : {}) : x, k, y)
+  return y === x2 ? x : y === qu.NOT_SET ? remove(x, k) : set(notSet ? (isImmutable ? EMPTY_MAP : {}) : x, k, y)
 }
 
 export function asImmutable(this: any) {
@@ -235,11 +235,11 @@ export function mergeIntoKeyedWith(x: any, xs: any, f?: Function) {
 }
 
 export function mergeIn(this: any, x: any, ...xs: unknown[]) {
-  return updateIn(this, x, emptyMap(), m => mergeWithSources(m, xs))
+  return updateIn(this, x, EMPTY_MAP, m => mergeWithSources(m, xs))
 }
 
 export function mergeDeepIn(this: any, x: any, ...xs: unknown[]) {
-  return updateIn(this, x, emptyMap(), m => mergeDeepWithSources(m, xs))
+  return updateIn(this, x, EMPTY_MAP, m => mergeDeepWithSources(m, xs))
 }
 
 export function toObject(this: any) {
@@ -252,7 +252,7 @@ export function toObject(this: any) {
 }
 
 export function wasAltered(this: any) {
-  return this.__altered
+  return this._dirty
 }
 
 export function withMutations(this: any, f: Function) {

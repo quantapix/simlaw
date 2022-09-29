@@ -956,7 +956,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
       this.size = newSize
       this._head = head
       this._hash = undefined
-      this.__altered = true
+      this._dirty = true
       return this
     }
     return makeStack(newSize, head)
@@ -979,7 +979,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
       this.size = newSize
       this._head = head
       this._hash = undefined
-      this.__altered = true
+      this._dirty = true
       return this
     }
     return makeStack(newSize, head)
@@ -993,7 +993,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
       this.size = 0
       this._head = undefined
       this._hash = undefined
-      this.__altered = true
+      this._dirty = true
       return this
     }
     return emptyStack()
@@ -1015,7 +1015,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
       this.size = newSize
       this._head = head
       this._hash = undefined
-      this.__altered = true
+      this._dirty = true
       return this
     }
     return makeStack(newSize, head)
@@ -1025,7 +1025,7 @@ export class Stack<V> extends Collection.ByIdx<V> implements qt.Stack<V> {
     if (!owner) {
       if (this.size === 0) return emptyStack()
       this.__owner = owner
-      this.__altered = false
+      this._dirty = false
       return this
     }
     return makeStack(this.size, this._head, owner, this._hash)
@@ -1075,7 +1075,7 @@ function makeStack(size, head, owner, hash) {
   y._head = head
   y.__owner = owner
   y._hash = hash
-  y.__altered = false
+  y._dirty = false
   return y
 }
 
