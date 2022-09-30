@@ -78,7 +78,7 @@ export class Collection<K, V> implements qt.Collection<K, V> {
     })
     return y
   }
-  filter(f: Function, ctx?: unknown) {
+  filter(f: Function, ctx?: unknown): any {
     return qc.reify(this, qc.filter(this, f, ctx, true))
   }
   filterNot(f: Function, ctx?: unknown) {
@@ -118,8 +118,8 @@ export class Collection<K, V> implements qt.Collection<K, V> {
   flatMap(f: Function, ctx?: unknown) {
     return qc.reify(this, qc.flatMap(this, f, ctx))
   }
-  flatten(depth?: number) {
-    return qc.reify(this, qc.flatten(this, depth, true))
+  flatten(x?: number | boolean) {
+    return qc.reify(this, qc.flatten(this, x, true))
   }
   forEach(f: (v: V, k: K, c: this) => unknown, ctx?: unknown): number {
     qu.assertNotInfinite(this.size)

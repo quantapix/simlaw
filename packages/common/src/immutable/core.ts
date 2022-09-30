@@ -261,11 +261,11 @@ export function withMutations(this: any, f: Function) {
   return y.wasAltered() ? y.__ensureOwner(this.__owner) : this
 }
 
-export function reify<K, V>(x: qt.Collection<K, V>, x2: unknown) {
+export function reify<K, V>(x: Collection<K, V>, x2: unknown) {
   return x === x2 ? x : qu.isSeq(x) ? x2 : x.constructor(x2)
 }
 
-export function concat<K, V>(x: qt.Collection<K, V>, xs: any[]) {
+export function concat<K, V>(x: Collection<K, V>, xs: any[]) {
   const isKeyed = qu.isKeyed(x)
   const ys = [x]
     .concat(xs)
@@ -612,13 +612,13 @@ export function interpose<K, V>(x: Collection<K, V>, sep: string) {
   return y
 }
 
-export function sort<K, V>(x: qt.Collection<K, V>, c?: Function, f?: Function) {
+export function sort<K, V>(x: Collection<K, V>, c?: Function, f?: Function) {
   if (!c) c = defaultComp
   const isKeyed = qu.isKeyed(x)
   let index = 0
   const y = x
     .toSeq()
-    .map((v, k) => [k, v, index++, f ? f(v, k, x) : v])
+    .map((v: V, k: K) => [k, v, index++, f ? f(v, k, x) : v])
     .valueSeq()
     .toArray()
   y.sort((a, b) => c!(a[3], b[3]) || a[2] - b[2]).forEach(
@@ -633,12 +633,12 @@ export function sort<K, V>(x: qt.Collection<K, V>, c?: Function, f?: Function) {
   return isKeyed ? Seq.ByKey.from(y) : qu.isIndexed(x) ? Seq.ByIdx.from(y) : Seq.ByVal.from(y)
 }
 
-export function max<K, V>(x: qt.Collection<K, V>, c?: Function, f?: Function) {
+export function max<K, V>(x: Collection<K, V>, c?: Function, f?: Function) {
   if (!c) c = defaultComp
   if (f) {
     const y = x
       .toSeq()
-      .map((v, k) => [v, f(v, k, x)])
+      .map((v: V, k: K) => [v, f(v, k, x)])
       .reduce((a: any, b: any) => (maxComp(c, a[1], b[1]) ? b : a))
     return y && y[0]
   }
