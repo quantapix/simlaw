@@ -1,6 +1,6 @@
 import creator from "../creator.js"
 
-export default function (name) {
+export function (name) {
   var create = typeof name === "function" ? name : creator(name)
   return this.select(function () {
     return this.appendChild(create.apply(this, arguments))
@@ -48,7 +48,7 @@ function attrFunctionNS(fullname, value) {
   }
 }
 
-export default function (name, value) {
+export function (name, value) {
   var fullname = namespace(name)
 
   if (arguments.length < 2) {
@@ -70,7 +70,7 @@ export default function (name, value) {
       : attrConstant)(fullname, value)
   )
 }
-export default function () {
+export function () {
   var callback = arguments[0]
   arguments[0] = this
   callback.apply(null, arguments)
@@ -141,7 +141,7 @@ function classedFunction(names, value) {
   }
 }
 
-export default function (name, value) {
+export function (name, value) {
   var names = classArray(name + "")
 
   if (arguments.length < 2) {
@@ -166,7 +166,7 @@ function selection_cloneDeep() {
   return parent ? parent.insertBefore(clone, this.nextSibling) : clone
 }
 
-export default function (deep) {
+export function (deep) {
   return this.select(deep ? selection_cloneDeep : selection_cloneShallow)
 }
 import { Selection } from "./index.js"
@@ -179,9 +179,6 @@ function bindIndex(parent, group, enter, update, exit, data) {
     groupLength = group.length,
     dataLength = data.length
 
-  // Put any non-null nodes that fit into update.
-  // Put any null nodes into enter.
-  // Put any remaining data into enter.
   for (; i < dataLength; ++i) {
     if ((node = group[i])) {
       node.__data__ = data[i]
@@ -191,7 +188,6 @@ function bindIndex(parent, group, enter, update, exit, data) {
     }
   }
 
-  // Put any non-null nodes that don’t fit into exit.
   for (; i < groupLength; ++i) {
     if ((node = group[i])) {
       exit[i] = node
@@ -208,8 +204,6 @@ function bindKey(parent, group, enter, update, exit, data, key) {
     keyValues = new Array(groupLength),
     keyValue
 
-  // Compute the key for each node.
-  // If multiple nodes have the same key, the duplicates are added to exit.
   for (i = 0; i < groupLength; ++i) {
     if ((node = group[i])) {
       keyValues[i] = keyValue = key.call(node, node.__data__, i, group) + ""
@@ -221,9 +215,6 @@ function bindKey(parent, group, enter, update, exit, data, key) {
     }
   }
 
-  // Compute the key for each datum.
-  // If there a node associated with this key, join and add it to update.
-  // If there is not (or the key is a duplicate), add it to enter.
   for (i = 0; i < dataLength; ++i) {
     keyValue = key.call(parent, data[i], i, data) + ""
     if ((node = nodeByKeyValue.get(keyValue))) {
@@ -235,7 +226,6 @@ function bindKey(parent, group, enter, update, exit, data, key) {
     }
   }
 
-  // Add any remaining nodes that were not bound to data to exit.
   for (i = 0; i < groupLength; ++i) {
     if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) {
       exit[i] = node
@@ -247,7 +237,7 @@ function datum(node) {
   return node.__data__
 }
 
-export default function (value, key) {
+export function (value, key) {
   if (!arguments.length) return Array.from(this, datum)
 
   var bind = key ? bindKey : bindIndex,
@@ -268,9 +258,6 @@ export default function (value, key) {
 
     bind(parent, group, enterGroup, updateGroup, exitGroup, data, key)
 
-    // Now connect the enter nodes to their following update node, such that
-    // appendChild can insert the materialized enter node before this node,
-    // rather than at the end of the parent node.
     for (var i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
       if ((previous = enterGroup[i0])) {
         if (i0 >= i1) i1 = i0 + 1
@@ -286,18 +273,12 @@ export default function (value, key) {
   return update
 }
 
-// Given some data, this returns an array-like view of it: an object that
-// exposes a length property and allows numeric indexing. Note that unlike
-// selectAll, this isn’t worried about “live” collections because the resulting
-// array will only be used briefly while data is being bound. (It is possible to
-// cause the data to change while iterating by using a key function, but please
-// don’t; we’d rather avoid a gratuitous copy.)
 function arraylike(data) {
   return typeof data === "object" && "length" in data
     ? data // Array, TypedArray, NodeList, array-like
     : Array.from(data) // Map, Set, iterable, string, or anything else
 }
-export default function (value) {
+export function (value) {
   return arguments.length ? this.property("__data__", value) : this.node().__data__
 }
 import defaultView from "../window.js"
@@ -329,10 +310,10 @@ function dispatchFunction(type, params) {
   }
 }
 
-export default function (type, params) {
+export function (type, params) {
   return this.each((typeof params === "function" ? dispatchFunction : dispatchConstant)(type, params))
 }
-export default function (callback) {
+export function (callback) {
   for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
     for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
       if ((node = group[i])) callback.call(node, node.__data__, i, group)
@@ -341,13 +322,13 @@ export default function (callback) {
 
   return this
 }
-export default function () {
+export function () {
   return !this.node()
 }
 import sparse from "./sparse.js"
 import { Selection } from "./index.js"
 
-export default function () {
+export function () {
   return new Selection(this._enter || this._groups.map(sparse), this._parents)
 }
 
@@ -377,13 +358,13 @@ EnterNode.prototype = {
 import sparse from "./sparse.js"
 import { Selection } from "./index.js"
 
-export default function () {
+export function () {
   return new Selection(this._exit || this._groups.map(sparse), this._parents)
 }
 import { Selection } from "./index.js"
 import matcher from "../matcher.js"
 
-export default function (match) {
+export function (match) {
   if (typeof match !== "function") match = matcher(match)
 
   for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
@@ -413,7 +394,7 @@ function htmlFunction(value) {
   }
 }
 
-export default function (value) {
+export function (value) {
   return arguments.length
     ? this.each(value == null ? htmlRemove : (typeof value === "function" ? htmlFunction : htmlConstant)(value))
     : this.node().innerHTML
@@ -515,21 +496,21 @@ function constantNull() {
   return null
 }
 
-export default function (name, before) {
+export function (name, before) {
   var create = typeof name === "function" ? name : creator(name),
     select = before == null ? constantNull : typeof before === "function" ? before : selector(before)
   return this.select(function () {
     return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null)
   })
 }
-export default function* () {
+export function* () {
   for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
     for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
       if ((node = group[i])) yield node
     }
   }
 }
-export default function (onenter, onupdate, onexit) {
+export function (onenter, onupdate, onexit) {
   var enter = this.enter(),
     update = this,
     exit = this.exit()
@@ -551,12 +532,12 @@ function lower() {
   if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild)
 }
 
-export default function () {
+export function () {
   return this.each(lower)
 }
 import { Selection } from "./index.js"
 
-export default function (context) {
+export function (context) {
   var selection = context.selection ? context.selection() : context
 
   for (
@@ -587,7 +568,7 @@ export default function (context) {
 
   return new Selection(merges, this._parents)
 }
-export default function () {
+export function () {
   for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
     for (var group = groups[j], i = 0, n = group.length; i < n; ++i) {
       var node = group[i]
@@ -597,7 +578,7 @@ export default function () {
 
   return null
 }
-export default function () {
+export function () {
   return Array.from(this)
 }
 function contextListener(listener) {
@@ -655,7 +636,7 @@ function onAdd(typename, value, options) {
   }
 }
 
-export default function (typename, value, options) {
+export function (typename, value, options) {
   var typenames = parseTypenames(typename + ""),
     i,
     n = typenames.length,
@@ -678,7 +659,7 @@ export default function (typename, value, options) {
   for (i = 0; i < n; ++i) this.each(on(typenames[i], value, options))
   return this
 }
-export default function () {
+export function () {
   for (var groups = this._groups, j = -1, m = groups.length; ++j < m; ) {
     for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0; ) {
       if ((node = group[i])) {
@@ -710,7 +691,7 @@ function propertyFunction(name, value) {
   }
 }
 
-export default function (name, value) {
+export function (name, value) {
   return arguments.length > 1
     ? this.each(
         (value == null ? propertyRemove : typeof value === "function" ? propertyFunction : propertyConstant)(
@@ -724,7 +705,7 @@ function raise() {
   if (this.nextSibling) this.parentNode.appendChild(this)
 }
 
-export default function () {
+export function () {
   return this.each(raise)
 }
 function remove() {
@@ -732,13 +713,13 @@ function remove() {
   if (parent) parent.removeChild(this)
 }
 
-export default function () {
+export function () {
   return this.each(remove)
 }
 import { Selection } from "./index.js"
 import selector from "../selector.js"
 
-export default function (select) {
+export function (select) {
   if (typeof select !== "function") select = selector(select)
 
   for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
@@ -766,7 +747,7 @@ function arrayAll(select) {
   }
 }
 
-export default function (select) {
+export function (select) {
   if (typeof select === "function") select = arrayAll(select)
   else select = selectorAll(select)
 
@@ -795,7 +776,7 @@ function childFirst() {
   return this.firstElementChild
 }
 
-export default function (match) {
+export function (match) {
   return this.select(match == null ? childFirst : childFind(typeof match === "function" ? match : childMatcher(match)))
 }
 import { childMatcher } from "../matcher.js"
@@ -812,19 +793,19 @@ function childrenFilter(match) {
   }
 }
 
-export default function (match) {
+export function (match) {
   return this.selectAll(
     match == null ? children : childrenFilter(typeof match === "function" ? match : childMatcher(match))
   )
 }
-export default function () {
+export function () {
   let size = 0
   for (const node of this) ++size // eslint-disable-line no-unused-vars
   return size
 }
 import { Selection } from "./index.js"
 
-export default function (compare) {
+export function (compare) {
   if (!compare) compare = ascending
 
   function compareNode(a, b) {
@@ -846,7 +827,7 @@ export default function (compare) {
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
 }
-export default function (update) {
+export function (update) {
   return new Array(update.length)
 }
 import defaultView from "../window.js"
@@ -871,7 +852,7 @@ function styleFunction(name, value, priority) {
   }
 }
 
-export default function (name, value, priority) {
+export function (name, value, priority) {
   return arguments.length > 1
     ? this.each(
         (value == null ? styleRemove : typeof value === "function" ? styleFunction : styleConstant)(
@@ -903,7 +884,7 @@ function textFunction(value) {
   }
 }
 
-export default function (value) {
+export function (value) {
   return arguments.length
     ? this.each(value == null ? textRemove : (typeof value === "function" ? textFunction : textConstant)(value))
     : this.node().textContent

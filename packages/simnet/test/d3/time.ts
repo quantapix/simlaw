@@ -273,26 +273,11 @@ it("timeFriday.floor(date) returns Fridays", () => {
 })
 
 it("timeFriday.count(start, end) counts Fridays after start (exclusive) and before end (inclusive)", () => {
-  //       January 2012
-  // Su Mo Tu We Th Fr Sa
-  //  1  2  3  4  5  6  7
-  //  8  9 10 11 12 13 14
-  // 15 16 17 18 19 20 21
-  // 22 23 24 25 26 27 28
-  // 29 30 31
   assert.strictEqual(timeFriday.count(local(2012, 0, 1), local(2012, 0, 5)), 0)
   assert.strictEqual(timeFriday.count(local(2012, 0, 1), local(2012, 0, 6)), 1)
   assert.strictEqual(timeFriday.count(local(2012, 0, 1), local(2012, 0, 7)), 1)
   assert.strictEqual(timeFriday.count(local(2012, 0, 1), local(2012, 0, 13)), 2)
 
-  //     January 2010
-  // Su Mo Tu We Th Fr Sa
-  //                 1  2
-  //  3  4  5  6  7  8  9
-  // 10 11 12 13 14 15 16
-  // 17 18 19 20 21 22 23
-  // 24 25 26 27 28 29 30
-  // 31
   assert.strictEqual(timeFriday.count(local(2010, 0, 1), local(2010, 0, 7)), 0)
   assert.strictEqual(timeFriday.count(local(2010, 0, 1), local(2010, 0, 8)), 1)
   assert.strictEqual(timeFriday.count(local(2010, 0, 1), local(2010, 0, 9)), 1)
@@ -768,25 +753,11 @@ it("timeMonday.range(start, stop, step) returns every step Monday", () => {
 })
 
 it("timeMonday.count(start, end) counts Mondays after start (exclusive) and before end (inclusive)", () => {
-  //     January 2014
-  // Su Mo Tu We Th Fr Sa
-  //           1  2  3  4
-  //  5  6  7  8  9 10 11
-  // 12 13 14 15 16 17 18
-  // 19 20 21 22 23 24 25
-  // 26 27 28 29 30 31
   assert.strictEqual(timeMonday.count(local(2014, 0, 1), local(2014, 0, 5)), 0)
   assert.strictEqual(timeMonday.count(local(2014, 0, 1), local(2014, 0, 6)), 1)
   assert.strictEqual(timeMonday.count(local(2014, 0, 1), local(2014, 0, 7)), 1)
   assert.strictEqual(timeMonday.count(local(2014, 0, 1), local(2014, 0, 13)), 2)
 
-  //     January 2018
-  // Su Mo Tu We Th Fr Sa
-  //     1  2  3  4  5  6
-  //  7  8  9 10 11 12 13
-  // 14 15 16 17 18 19 20
-  // 21 22 23 24 25 26 27
-  // 28 29 30 31
   assert.strictEqual(timeMonday.count(local(2018, 0, 1), local(2018, 0, 7)), 0)
   assert.strictEqual(timeMonday.count(local(2018, 0, 1), local(2018, 0, 8)), 1)
   assert.strictEqual(timeMonday.count(local(2018, 0, 1), local(2018, 0, 9)), 1)
@@ -1154,26 +1125,11 @@ it("timeSaturday.floor(date) returns Saturdays", () => {
 })
 
 it("timeSaturday.count(start, end) counts Saturdays after start (exclusive) and before end (inclusive)", () => {
-  //       January 2012
-  // Su Mo Tu We Th Fr Sa
-  //  1  2  3  4  5  6  7
-  //  8  9 10 11 12 13 14
-  // 15 16 17 18 19 20 21
-  // 22 23 24 25 26 27 28
-  // 29 30 31
   assert.strictEqual(timeSaturday.count(local(2012, 0, 1), local(2012, 0, 6)), 0)
   assert.strictEqual(timeSaturday.count(local(2012, 0, 1), local(2012, 0, 7)), 1)
   assert.strictEqual(timeSaturday.count(local(2012, 0, 1), local(2012, 0, 8)), 1)
   assert.strictEqual(timeSaturday.count(local(2012, 0, 1), local(2012, 0, 14)), 2)
 
-  //     January 2011
-  // Su Mo Tu We Th Fr Sa
-  //                    1
-  //  2  3  4  5  6  7  8
-  //  9 10 11 12 13 14 15
-  // 16 17 18 19 20 21 22
-  // 23 24 25 26 27 28 29
-  // 30 31
   assert.strictEqual(timeSaturday.count(local(2011, 0, 1), local(2011, 0, 7)), 0)
   assert.strictEqual(timeSaturday.count(local(2011, 0, 1), local(2011, 0, 8)), 1)
   assert.strictEqual(timeSaturday.count(local(2011, 0, 1), local(2011, 0, 9)), 1)
@@ -1443,25 +1399,11 @@ it("timeSunday.range(start, stop, step) returns every step Sunday", () => {
 })
 
 it("timeSunday.count(start, end) counts Sundays after start (exclusive) and before end (inclusive)", () => {
-  //     January 2014
-  // Su Mo Tu We Th Fr Sa
-  //           1  2  3  4
-  //  5  6  7  8  9 10 11
-  // 12 13 14 15 16 17 18
-  // 19 20 21 22 23 24 25
-  // 26 27 28 29 30 31
   assert.strictEqual(timeSunday.count(local(2014, 0, 1), local(2014, 0, 4)), 0)
   assert.strictEqual(timeSunday.count(local(2014, 0, 1), local(2014, 0, 5)), 1)
   assert.strictEqual(timeSunday.count(local(2014, 0, 1), local(2014, 0, 6)), 1)
   assert.strictEqual(timeSunday.count(local(2014, 0, 1), local(2014, 0, 12)), 2)
 
-  //       January 2012
-  // Su Mo Tu We Th Fr Sa
-  //  1  2  3  4  5  6  7
-  //  8  9 10 11 12 13 14
-  // 15 16 17 18 19 20 21
-  // 22 23 24 25 26 27 28
-  // 29 30 31
   assert.strictEqual(timeSunday.count(local(2012, 0, 1), local(2012, 0, 7)), 0)
   assert.strictEqual(timeSunday.count(local(2012, 0, 1), local(2012, 0, 8)), 1)
   assert.strictEqual(timeSunday.count(local(2012, 0, 1), local(2012, 0, 9)), 1)
@@ -1493,25 +1435,11 @@ it("timeThursday.floor(date) returns Thursdays", () => {
 })
 
 it("timeThursday.count(start, end) counts Thursdays after start (exclusive) and before end (inclusive)", () => {
-  //       January 2012
-  // Su Mo Tu We Th Fr Sa
-  //  1  2  3  4  5  6  7
-  //  8  9 10 11 12 13 14
-  // 15 16 17 18 19 20 21
-  // 22 23 24 25 26 27 28
-  // 29 30 31
   assert.strictEqual(timeThursday.count(local(2012, 0, 1), local(2012, 0, 4)), 0)
   assert.strictEqual(timeThursday.count(local(2012, 0, 1), local(2012, 0, 5)), 1)
   assert.strictEqual(timeThursday.count(local(2012, 0, 1), local(2012, 0, 6)), 1)
   assert.strictEqual(timeThursday.count(local(2012, 0, 1), local(2012, 0, 12)), 2)
 
-  //     January 2015
-  // Su Mo Tu We Th Fr Sa
-  //              1  2  3
-  //  4  5  6  7  8  9 10
-  // 11 12 13 14 15 16 17
-  // 18 19 20 21 22 23 24
-  // 25 26 27 28 29 30 31
   assert.strictEqual(timeThursday.count(local(2015, 0, 1), local(2015, 0, 7)), 0)
   assert.strictEqual(timeThursday.count(local(2015, 0, 1), local(2015, 0, 8)), 1)
   assert.strictEqual(timeThursday.count(local(2015, 0, 1), local(2015, 0, 9)), 1)
@@ -1771,25 +1699,11 @@ it("timeTuesday.floor(date) returns Tuesdays", () => {
 })
 
 it("timeTuesday.count(start, end) counts Tuesdays after start (exclusive) and before end (inclusive)", () => {
-  //     January 2014
-  // Su Mo Tu We Th Fr Sa
-  //           1  2  3  4
-  //  5  6  7  8  9 10 11
-  // 12 13 14 15 16 17 18
-  // 19 20 21 22 23 24 25
-  // 26 27 28 29 30 31
   assert.strictEqual(timeTuesday.count(local(2014, 0, 1), local(2014, 0, 6)), 0)
   assert.strictEqual(timeTuesday.count(local(2014, 0, 1), local(2014, 0, 7)), 1)
   assert.strictEqual(timeTuesday.count(local(2014, 0, 1), local(2014, 0, 8)), 1)
   assert.strictEqual(timeTuesday.count(local(2014, 0, 1), local(2014, 0, 14)), 2)
 
-  //     January 2013
-  // Su Mo Tu We Th Fr Sa
-  //        1  2  3  4  5
-  //  6  7  8  9 10 11 12
-  // 13 14 15 16 17 18 19
-  // 20 21 22 23 24 25 26
-  // 27 28 29 30 31
   assert.strictEqual(timeTuesday.count(local(2013, 0, 1), local(2013, 0, 7)), 0)
   assert.strictEqual(timeTuesday.count(local(2013, 0, 1), local(2013, 0, 8)), 1)
   assert.strictEqual(timeTuesday.count(local(2013, 0, 1), local(2013, 0, 9)), 1)
@@ -1949,26 +1863,11 @@ it("utcFriday.floor(date) returns Fridays", () => {
 })
 
 it("utcFriday.count(start, end) counts Fridays after start (exclusive) and before end (inclusive)", () => {
-  //       January 2012
-  // Su Mo Tu We Th Fr Sa
-  //  1  2  3  4  5  6  7
-  //  8  9 10 11 12 13 14
-  // 15 16 17 18 19 20 21
-  // 22 23 24 25 26 27 28
-  // 29 30 31
   assert.strictEqual(utcFriday.count(utc(2012, 0, 1), utc(2012, 0, 5)), 0)
   assert.strictEqual(utcFriday.count(utc(2012, 0, 1), utc(2012, 0, 6)), 1)
   assert.strictEqual(utcFriday.count(utc(2012, 0, 1), utc(2012, 0, 7)), 1)
   assert.strictEqual(utcFriday.count(utc(2012, 0, 1), utc(2012, 0, 13)), 2)
 
-  //     January 2010
-  // Su Mo Tu We Th Fr Sa
-  //                 1  2
-  //  3  4  5  6  7  8  9
-  // 10 11 12 13 14 15 16
-  // 17 18 19 20 21 22 23
-  // 24 25 26 27 28 29 30
-  // 31
   assert.strictEqual(utcFriday.count(utc(2010, 0, 1), utc(2010, 0, 7)), 0)
   assert.strictEqual(utcFriday.count(utc(2010, 0, 1), utc(2010, 0, 8)), 1)
   assert.strictEqual(utcFriday.count(utc(2010, 0, 1), utc(2010, 0, 9)), 1)
@@ -2251,25 +2150,11 @@ it("utcMonday.range(start, stop, step) returns every step Monday", () => {
 })
 
 it("utcMonday.count(start, end) counts Mondays after start (exclusive) and before end (inclusive)", () => {
-  //     January 2014
-  // Su Mo Tu We Th Fr Sa
-  //           1  2  3  4
-  //  5  6  7  8  9 10 11
-  // 12 13 14 15 16 17 18
-  // 19 20 21 22 23 24 25
-  // 26 27 28 29 30 31
   assert.strictEqual(utcMonday.count(utc(2014, 0, 1), utc(2014, 0, 5)), 0)
   assert.strictEqual(utcMonday.count(utc(2014, 0, 1), utc(2014, 0, 6)), 1)
   assert.strictEqual(utcMonday.count(utc(2014, 0, 1), utc(2014, 0, 7)), 1)
   assert.strictEqual(utcMonday.count(utc(2014, 0, 1), utc(2014, 0, 13)), 2)
 
-  //     January 2018
-  // Su Mo Tu We Th Fr Sa
-  //     1  2  3  4  5  6
-  //  7  8  9 10 11 12 13
-  // 14 15 16 17 18 19 20
-  // 21 22 23 24 25 26 27
-  // 28 29 30 31
   assert.strictEqual(utcMonday.count(utc(2018, 0, 1), utc(2018, 0, 7)), 0)
   assert.strictEqual(utcMonday.count(utc(2018, 0, 1), utc(2018, 0, 8)), 1)
   assert.strictEqual(utcMonday.count(utc(2018, 0, 1), utc(2018, 0, 9)), 1)
@@ -2552,26 +2437,11 @@ it("utcSaturday.floor(date) returns Saturdays", () => {
 })
 
 it("utcSaturday.count(start, end) counts Saturdays after start (exclusive) and before end (inclusive)", () => {
-  //       January 2012
-  // Su Mo Tu We Th Fr Sa
-  //  1  2  3  4  5  6  7
-  //  8  9 10 11 12 13 14
-  // 15 16 17 18 19 20 21
-  // 22 23 24 25 26 27 28
-  // 29 30 31
   assert.strictEqual(utcSaturday.count(utc(2012, 0, 1), utc(2012, 0, 6)), 0)
   assert.strictEqual(utcSaturday.count(utc(2012, 0, 1), utc(2012, 0, 7)), 1)
   assert.strictEqual(utcSaturday.count(utc(2012, 0, 1), utc(2012, 0, 8)), 1)
   assert.strictEqual(utcSaturday.count(utc(2012, 0, 1), utc(2012, 0, 14)), 2)
 
-  //     January 2011
-  // Su Mo Tu We Th Fr Sa
-  //                    1
-  //  2  3  4  5  6  7  8
-  //  9 10 11 12 13 14 15
-  // 16 17 18 19 20 21 22
-  // 23 24 25 26 27 28 29
-  // 30 31
   assert.strictEqual(utcSaturday.count(utc(2011, 0, 1), utc(2011, 0, 7)), 0)
   assert.strictEqual(utcSaturday.count(utc(2011, 0, 1), utc(2011, 0, 8)), 1)
   assert.strictEqual(utcSaturday.count(utc(2011, 0, 1), utc(2011, 0, 9)), 1)
@@ -2817,25 +2687,11 @@ it("utcSunday.range(start, stop, step) returns every step Sunday", () => {
 })
 
 it("utcSunday.count(start, end) counts Sundays after start (exclusive) and before end (inclusive)", () => {
-  //     January 2014
-  // Su Mo Tu We Th Fr Sa
-  //           1  2  3  4
-  //  5  6  7  8  9 10 11
-  // 12 13 14 15 16 17 18
-  // 19 20 21 22 23 24 25
-  // 26 27 28 29 30 31
   assert.strictEqual(utcSunday.count(utc(2014, 0, 1), utc(2014, 0, 4)), 0)
   assert.strictEqual(utcSunday.count(utc(2014, 0, 1), utc(2014, 0, 5)), 1)
   assert.strictEqual(utcSunday.count(utc(2014, 0, 1), utc(2014, 0, 6)), 1)
   assert.strictEqual(utcSunday.count(utc(2014, 0, 1), utc(2014, 0, 12)), 2)
 
-  //       January 2012
-  // Su Mo Tu We Th Fr Sa
-  //  1  2  3  4  5  6  7
-  //  8  9 10 11 12 13 14
-  // 15 16 17 18 19 20 21
-  // 22 23 24 25 26 27 28
-  // 29 30 31
   assert.strictEqual(utcSunday.count(utc(2012, 0, 1), utc(2012, 0, 7)), 0)
   assert.strictEqual(utcSunday.count(utc(2012, 0, 1), utc(2012, 0, 8)), 1)
   assert.strictEqual(utcSunday.count(utc(2012, 0, 1), utc(2012, 0, 9)), 1)
@@ -2867,25 +2723,11 @@ it("utcThursday.floor(date) returns Thursdays", () => {
 })
 
 it("utcThursday.count(start, end) counts Thursdays after start (exclusive) and before end (inclusive)", () => {
-  //       January 2012
-  // Su Mo Tu We Th Fr Sa
-  //  1  2  3  4  5  6  7
-  //  8  9 10 11 12 13 14
-  // 15 16 17 18 19 20 21
-  // 22 23 24 25 26 27 28
-  // 29 30 31
   assert.strictEqual(utcThursday.count(utc(2012, 0, 1), utc(2012, 0, 4)), 0)
   assert.strictEqual(utcThursday.count(utc(2012, 0, 1), utc(2012, 0, 5)), 1)
   assert.strictEqual(utcThursday.count(utc(2012, 0, 1), utc(2012, 0, 6)), 1)
   assert.strictEqual(utcThursday.count(utc(2012, 0, 1), utc(2012, 0, 12)), 2)
 
-  //     January 2015
-  // Su Mo Tu We Th Fr Sa
-  //              1  2  3
-  //  4  5  6  7  8  9 10
-  // 11 12 13 14 15 16 17
-  // 18 19 20 21 22 23 24
-  // 25 26 27 28 29 30 31
   assert.strictEqual(utcThursday.count(utc(2015, 0, 1), utc(2015, 0, 7)), 0)
   assert.strictEqual(utcThursday.count(utc(2015, 0, 1), utc(2015, 0, 8)), 1)
   assert.strictEqual(utcThursday.count(utc(2015, 0, 1), utc(2015, 0, 9)), 1)
@@ -3141,25 +2983,11 @@ it("utcTuesday.floor(date) returns Tuesdays", () => {
 })
 
 it("utcTuesday.count(start, end) counts Tuesdays after start (exclusive) and before end (inclusive)", () => {
-  //     January 2014
-  // Su Mo Tu We Th Fr Sa
-  //           1  2  3  4
-  //  5  6  7  8  9 10 11
-  // 12 13 14 15 16 17 18
-  // 19 20 21 22 23 24 25
-  // 26 27 28 29 30 31
   assert.strictEqual(utcTuesday.count(utc(2014, 0, 1), utc(2014, 0, 6)), 0)
   assert.strictEqual(utcTuesday.count(utc(2014, 0, 1), utc(2014, 0, 7)), 1)
   assert.strictEqual(utcTuesday.count(utc(2014, 0, 1), utc(2014, 0, 8)), 1)
   assert.strictEqual(utcTuesday.count(utc(2014, 0, 1), utc(2014, 0, 14)), 2)
 
-  //     January 2013
-  // Su Mo Tu We Th Fr Sa
-  //        1  2  3  4  5
-  //  6  7  8  9 10 11 12
-  // 13 14 15 16 17 18 19
-  // 20 21 22 23 24 25 26
-  // 27 28 29 30 31
   assert.strictEqual(utcTuesday.count(utc(2013, 0, 1), utc(2013, 0, 7)), 0)
   assert.strictEqual(utcTuesday.count(utc(2013, 0, 1), utc(2013, 0, 8)), 1)
   assert.strictEqual(utcTuesday.count(utc(2013, 0, 1), utc(2013, 0, 9)), 1)
@@ -3191,25 +3019,11 @@ it("utcWednesday.floor(date) returns Wednesdays", () => {
 })
 
 it("utcWednesday.count(start, end) counts Wednesdays after start (exclusive) and before end (inclusive)", () => {
-  //       January 2012
-  // Su Mo Tu We Th Fr Sa
-  //  1  2  3  4  5  6  7
-  //  8  9 10 11 12 13 14
-  // 15 16 17 18 19 20 21
-  // 22 23 24 25 26 27 28
-  // 29 30 31
   assert.strictEqual(utcWednesday.count(utc(2012, 0, 1), utc(2012, 0, 3)), 0)
   assert.strictEqual(utcWednesday.count(utc(2012, 0, 1), utc(2012, 0, 4)), 1)
   assert.strictEqual(utcWednesday.count(utc(2012, 0, 1), utc(2012, 0, 5)), 1)
   assert.strictEqual(utcWednesday.count(utc(2012, 0, 1), utc(2012, 0, 11)), 2)
 
-  //     January 2014
-  // Su Mo Tu We Th Fr Sa
-  //           1  2  3  4
-  //  5  6  7  8  9 10 11
-  // 12 13 14 15 16 17 18
-  // 19 20 21 22 23 24 25
-  // 26 27 28 29 30 31
   assert.strictEqual(utcWednesday.count(utc(2014, 0, 1), utc(2014, 0, 7)), 0)
   assert.strictEqual(utcWednesday.count(utc(2014, 0, 1), utc(2014, 0, 8)), 1)
   assert.strictEqual(utcWednesday.count(utc(2014, 0, 1), utc(2014, 0, 9)), 1)
@@ -3449,25 +3263,11 @@ it("timeWednesday.floor(date) returns Wednesdays", () => {
 })
 
 it("timeWednesday.count(start, end) counts Wednesdays after start (exclusive) and before end (inclusive)", () => {
-  //       January 2012
-  // Su Mo Tu We Th Fr Sa
-  //  1  2  3  4  5  6  7
-  //  8  9 10 11 12 13 14
-  // 15 16 17 18 19 20 21
-  // 22 23 24 25 26 27 28
-  // 29 30 31
   assert.strictEqual(timeWednesday.count(local(2012, 0, 1), local(2012, 0, 3)), 0)
   assert.strictEqual(timeWednesday.count(local(2012, 0, 1), local(2012, 0, 4)), 1)
   assert.strictEqual(timeWednesday.count(local(2012, 0, 1), local(2012, 0, 5)), 1)
   assert.strictEqual(timeWednesday.count(local(2012, 0, 1), local(2012, 0, 11)), 2)
 
-  //     January 2014
-  // Su Mo Tu We Th Fr Sa
-  //           1  2  3  4
-  //  5  6  7  8  9 10 11
-  // 12 13 14 15 16 17 18
-  // 19 20 21 22 23 24 25
-  // 26 27 28 29 30 31
   assert.strictEqual(timeWednesday.count(local(2014, 0, 1), local(2014, 0, 7)), 0)
   assert.strictEqual(timeWednesday.count(local(2014, 0, 1), local(2014, 0, 8)), 1)
   assert.strictEqual(timeWednesday.count(local(2014, 0, 1), local(2014, 0, 9)), 1)

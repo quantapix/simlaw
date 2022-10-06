@@ -1,7 +1,7 @@
 import { shuffle } from "../array.js"
 import lcg from "../lcg.js"
 
-export default function (circles) {
+export function (circles) {
   return packEncloseRandom(circles, lcg())
 }
 
@@ -26,14 +26,12 @@ function extendBasis(B, p) {
 
   if (enclosesWeakAll(p, B)) return [p]
 
-  // If we get here then B must have at least one element.
   for (i = 0; i < B.length; ++i) {
     if (enclosesNot(p, B[i]) && enclosesWeakAll(encloseBasis2(B[i], p), B)) {
       return [B[i], p]
     }
   }
 
-  // If we get here then B must have at least two elements.
   for (i = 0; i < B.length - 1; ++i) {
     for (j = i + 1; j < B.length; ++j) {
       if (
@@ -47,7 +45,6 @@ function extendBasis(B, p) {
     }
   }
 
-  // If we get here then something is very wrong.
   throw new Error()
 }
 
@@ -154,7 +151,7 @@ function defaultRadius(d) {
   return Math.sqrt(d.value)
 }
 
-export default function () {
+export function () {
   var radius = null,
     dx = 1,
     dy = 1,
@@ -286,31 +283,19 @@ export function packSiblingsRandom(circles, random) {
   if (!(n = (circles = array(circles)).length)) return 0
 
   var a, b, c, n, aa, ca, i, j, k, sj, sk
-
-  // Place the first circle.
   ;(a = circles[0]), (a.x = 0), (a.y = 0)
   if (!(n > 1)) return a.r
-
-  // Place the second circle.
   ;(b = circles[1]), (a.x = -b.r), (b.x = a.r), (b.y = 0)
   if (!(n > 2)) return a.r + b.r
 
-  // Place the third circle.
   place(b, a, (c = circles[2]))
-
-  // Initialize the front-chain using the first three circles a, b and c.
   ;(a = new Node(a)), (b = new Node(b)), (c = new Node(c))
   a.next = c.previous = b
   b.next = a.previous = c
   c.next = b.previous = a
 
-  // Attempt to place each remaining circle…
   pack: for (i = 3; i < n; ++i) {
     place(a._, b._, (c = circles[i])), (c = new Node(c))
-
-    // Find the closest intersecting circle on the front-chain, if any.
-    // “Closeness” is determined by linear distance along the front-chain.
-    // “Ahead” or “behind” is likewise determined by linear distance.
     ;(j = b.next), (k = a.previous), (sj = b._.r), (sk = a._.r)
     do {
       if (sj <= sk) {
@@ -327,11 +312,8 @@ export function packSiblingsRandom(circles, random) {
         ;(sk += k._.r), (k = k.previous)
       }
     } while (j !== k.next)
-
-    // Success! Insert the new circle c between a and b.
     ;(c.previous = a), (c.next = b), (a.next = b.previous = b = c)
 
-    // Compute the new closest circle pair to the centroid.
     aa = score(a)
     while ((c = c.next) !== b) {
       if ((ca = score(c)) < aa) {
@@ -341,18 +323,16 @@ export function packSiblingsRandom(circles, random) {
     b = a.next
   }
 
-  // Compute the enclosing circle of the front chain.
   ;(a = [b._]), (c = b)
   while ((c = c.next) !== b) a.push(c._)
   c = packEncloseRandom(a, random)
 
-  // Translate the circles to put the enclosing circle around the origin.
   for (i = 0; i < n; ++i) (a = circles[i]), (a.x -= c.x), (a.y -= c.y)
 
   return c.r
 }
 
-export default function (circles) {
+export function (circles) {
   packSiblingsRandom(circles, lcg())
   return circles
 }

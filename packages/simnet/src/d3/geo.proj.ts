@@ -1,6 +1,6 @@
 import conicEqualArea from "./conicEqualArea.js"
 
-export default function () {
+export function () {
   return conicEqualArea().parallels([29.5, 45.5]).scale(1070).translate([480, 250]).rotate([96, 0]).center([-0.6, 38.7])
 }
 import { epsilon } from "../math.js"
@@ -8,8 +8,6 @@ import albers from "./albers.js"
 import conicEqualArea from "./conicEqualArea.js"
 import { fitExtent, fitSize, fitWidth, fitHeight } from "./fit.js"
 
-// The projections must have mutually exclusive clip regions on the sphere,
-// as this will avoid emitting interleaving lines and polygons.
 function multiplex(streams) {
   var n = streams.length
   return {
@@ -40,12 +38,7 @@ function multiplex(streams) {
   }
 }
 
-// A composite projection for the United States, configured by default for
-// 960×500. The projection also works quite well at 960×600 if you change the
-// scale to 1285 and adjust the translate accordingly. The set of standard
-// parallels for each region comes from USGS, which is published here:
-// http://egsc.usgs.gov/isb/pubs/MapProjections/projections.html#albers
-export default function () {
+export function () {
   var cache,
     cacheStream,
     lower48 = albers(),
@@ -191,7 +184,7 @@ azimuthalEqualAreaRaw.invert = azimuthalInvert(function (z) {
   return 2 * asin(z / 2)
 })
 
-export default function () {
+export function () {
   return projection(azimuthalEqualAreaRaw)
     .scale(124.75)
     .clipAngle(180 - 1e-3)
@@ -208,7 +201,7 @@ azimuthalEquidistantRaw.invert = azimuthalInvert(function (z) {
   return z
 })
 
-export default function () {
+export function () {
   return projection(azimuthalEquidistantRaw)
     .scale(79.4188)
     .clipAngle(180 - 1e-3)
@@ -264,7 +257,7 @@ export function conicConformalRaw(y0, y1) {
   return project
 }
 
-export default function () {
+export function () {
   return conicProjection(conicConformalRaw).scale(109.5).parallels([30, 30])
 }
 import { abs, asin, atan2, cos, epsilon, pi, sign, sin, sqrt } from "../math.js"
@@ -275,7 +268,6 @@ export function conicEqualAreaRaw(y0, y1) {
   var sy0 = sin(y0),
     n = (sy0 + sin(y1)) / 2
 
-  // Are the parallels symmetrical around the Equator?
   if (abs(n) < epsilon) return cylindricalEqualAreaRaw(y0)
 
   var c = 1 + sy0 * (2 * n - sy0),
@@ -296,7 +288,7 @@ export function conicEqualAreaRaw(y0, y1) {
   return project
 }
 
-export default function () {
+export function () {
   return conicProjection(conicEqualAreaRaw).scale(155.424).center([0, 33.6442])
 }
 import { abs, atan2, cos, epsilon, pi, sign, sin, sqrt } from "../math.js"
@@ -326,7 +318,7 @@ export function conicEquidistantRaw(y0, y1) {
   return project
 }
 
-export default function () {
+export function () {
   return conicProjection(conicEquidistantRaw).scale(131.154).center([0, 13.9389])
 }
 import { asin, cos, sin } from "../math.js"
@@ -377,7 +369,7 @@ equalEarthRaw.invert = function (x, y) {
   return [(M * x * (A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2))) / cos(l), asin(sin(l) / M)]
 }
 
-export default function () {
+export function () {
   return projection(equalEarthRaw).scale(177.158)
 }
 import projection from "./index.js"
@@ -388,7 +380,7 @@ export function equirectangularRaw(lambda, phi) {
 
 equirectangularRaw.invert = equirectangularRaw
 
-export default function () {
+export function () {
   return projection(equirectangularRaw).scale(152.63)
 }
 import { default as geoStream } from "../stream.js"
@@ -462,7 +454,7 @@ export function gnomonicRaw(x, y) {
 
 gnomonicRaw.invert = azimuthalInvert(atan)
 
-export default function () {
+export function () {
   return projection(gnomonicRaw).scale(144.049).clipAngle(60)
 }
 import clipRectangle from "../clip/rectangle.js"
@@ -471,7 +463,7 @@ import { transformer } from "../transform.js"
 import { fitExtent, fitSize, fitWidth, fitHeight } from "./fit.js"
 import { cos, degrees, radians, sin } from "../math.js"
 
-export default function () {
+export function () {
   var k = 1,
     tx = 0,
     ty = 0,
@@ -634,7 +626,7 @@ function scaleTranslateRotate(k, dx, dy, sx, sy, alpha) {
   return transform
 }
 
-export default function projection(project) {
+export function projection(project) {
   return projectionMutator(function () {
     return project
   })()
@@ -800,7 +792,7 @@ mercatorRaw.invert = function (x, y) {
   return [x, 2 * atan(exp(y)) - halfPi]
 }
 
-export default function () {
+export function () {
   return mercatorProjection(mercatorRaw).scale(961 / tau)
 }
 
@@ -893,7 +885,7 @@ naturalEarth1Raw.invert = function (x, y) {
   ]
 }
 
-export default function () {
+export function () {
   return projection(naturalEarth1Raw).scale(175.295)
 }
 import { asin, cos, epsilon, sin } from "../math.js"
@@ -906,7 +898,7 @@ export function orthographicRaw(x, y) {
 
 orthographicRaw.invert = azimuthalInvert(asin)
 
-export default function () {
+export function () {
   return projection(orthographicRaw)
     .scale(249.5)
     .clipAngle(90 + epsilon)
@@ -918,7 +910,7 @@ import { transformer } from "../transform.js"
 var maxDepth = 16, // maximum depth of subdivision
   cosMinDistance = cos(30 * radians) // cos(minimum angular distance)
 
-export default function (project, delta2) {
+export function (project, delta2) {
   return +delta2 ? resample(project, delta2) : resampleNone(project)
 }
 
@@ -954,7 +946,6 @@ function resample(project, delta2) {
         abs((dx * dx2 + dy * dy2) / d2 - 0.5) > 0.3 || // midpoint close to an end
         a0 * a1 + b0 * b1 + c0 * c1 < cosMinDistance
       ) {
-        // angular distance
         resampleLineTo(x0, y0, lambda0, a0, b0, c0, x2, y2, lambda2, (a /= m), (b /= m), c, depth, stream)
         stream.point(x2, y2)
         resampleLineTo(x2, y2, lambda2, a, b, c, x1, y1, lambda1, a1, b1, c1, depth, stream)
@@ -1061,7 +1052,7 @@ stereographicRaw.invert = azimuthalInvert(function (z) {
   return 2 * atan(z)
 })
 
-export default function () {
+export function () {
   return projection(stereographicRaw).scale(250).clipAngle(142)
 }
 import { atan, exp, halfPi, log, tan } from "../math.js"
@@ -1075,7 +1066,7 @@ transverseMercatorRaw.invert = function (x, y) {
   return [-y, 2 * atan(exp(x)) - halfPi]
 }
 
-export default function () {
+export function () {
   var m = mercatorProjection(transverseMercatorRaw),
     center = m.center,
     rotate = m.rotate

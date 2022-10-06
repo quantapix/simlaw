@@ -473,12 +473,10 @@ it("dispatch(type…).copy() returns an isolated copy", () => {
   assert.strictEqual(d1.on("foo"), foo)
   assert.strictEqual(d1.on("bar"), bar)
 
-  // Changes to d1 don’t affect d0.
   assert.strictEqual(d1.on("bar", null), d1)
   assert.strictEqual(d1.on("bar"), undefined)
   assert.strictEqual(d0.on("bar"), bar)
 
-  // Changes to d0 don’t affect d1.
   assert.strictEqual(d0.on("foo", null), d0)
   assert.strictEqual(d0.on("foo"), undefined)
   assert.strictEqual(d1.on("foo"), foo)

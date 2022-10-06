@@ -18,9 +18,6 @@ it("autoType(object) detects NaN", () => {
   assert.strictEqual(Number.isNaN(autoType({ foo: "NaN" }).foo), true)
 })
 
-// https://www.ecma-international.org/ecma-262/9.0/index.html#sec-date-time-string-format
-// When the time zone offset is absent, date-only forms are interpreted as a UTC time and date-time forms are interpreted as a local time.
-// YYYY is ambiguous with number, so the number takes priority.
 it("autoType(object) detects dates", () => {
   assert.deepStrictEqual(autoType({ foo: "2018-01" }), { foo: new Date("2018-01-01T00:00:00.000Z") })
   assert.deepStrictEqual(autoType({ foo: "2018-01-01" }), { foo: new Date("2018-01-01T00:00:00.000Z") })

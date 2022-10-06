@@ -68,7 +68,7 @@ it("axis.tickValues(values) accepts an iterable", () => {
 })
 import { JSDOM } from "jsdom"
 
-export default function jsdomit(description, run) {
+export function jsdomit(description, run) {
   it(description, async () => {
     try {
       const window = new JSDOM("").window

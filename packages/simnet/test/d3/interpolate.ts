@@ -942,8 +942,8 @@ it("interpolateString(a, b) with two numerically-equivalent numbers, returns the
 import assert from "assert";
 import * as d3 from "../src/index.js";
 
-// see https://github.com/d3/d3-interpolate/pull/83
-// and https://github.com/Automattic/node-canvas/issues/1313
+
+
 global.DOMMatrix = require("Canvas").DOMMatrix;
 
 it("interpolateTransformCss(a, b) transforms as expected", () => {
@@ -1041,9 +1041,6 @@ it("interpolate(a, b) interpolates objects with string valueOf as numbers if val
   assert.deepStrictEqual(interpolate(noproto({ foo: 0 }, proto), noproto({ foo: 2 }, proto))(0.5), 1)
 })
 
-// valueOf appears here as object because:
-// - we use for-in loop and it will ignore only fields coming from built-in prototypes;
-// - we replace functions with objects.
 it("interpolate(a, b) interpolates objects with string valueOf as objects if valueOf result is not coercible to number", () => {
   const proto = { valueOf: fooString }
   assert.deepStrictEqual(interpolate(noproto({ foo: "bar" }, proto), noproto({ foo: "baz" }, proto))(0.5), {
@@ -1057,9 +1054,6 @@ it("interpolate(a, b) interpolates objects with toString as numbers if toString 
   assert.deepStrictEqual(interpolate(noproto({ foo: 0 }, proto), noproto({ foo: 2 }, proto))(0.5), 1)
 })
 
-// toString appears here as object because:
-// - we use for-in loop and it will ignore only fields coming from built-in prototypes;
-// - we replace functions with objects.
 it("interpolate(a, b) interpolates objects with toString as objects if toString result is not coercible to number", () => {
   const proto = { toString: fooString }
   assert.deepStrictEqual(interpolate(noproto({ foo: "bar" }, proto), noproto({ foo: "baz" }, proto))(0.5), {

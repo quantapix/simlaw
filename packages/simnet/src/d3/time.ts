@@ -112,7 +112,7 @@ export { utcTicks, utcTickInterval, timeTicks, timeTickInterval } from "./ticks.
 var t0 = new Date(),
   t1 = new Date()
 
-export default function newInterval(floori, offseti, count, field) {
+export function newInterval(floori, offseti, count, field) {
   function interval(date) {
     return floori((date = arguments.length === 0 ? new Date() : new Date(+date))), date
   }
@@ -196,9 +196,7 @@ export default function newInterval(floori, offseti, count, field) {
 import interval from "./interval.js"
 
 var millisecond = interval(
-  function () {
-    // noop
-  },
+  function () {},
   function (date, step) {
     date.setTime(+date + step)
   },
@@ -207,7 +205,6 @@ var millisecond = interval(
   }
 )
 
-// An optimized implementation for this simple case.
 millisecond.every = function (k) {
   k = Math.floor(k)
   if (!isFinite(k) || !(k > 0)) return null
@@ -489,7 +486,6 @@ var utcYear = interval(
   }
 )
 
-// An optimized implementation for this simple case.
 utcYear.every = function (k) {
   return !isFinite((k = Math.floor(k))) || !(k > 0)
     ? null
@@ -558,7 +554,6 @@ var year = interval(
   }
 )
 
-// An optimized implementation for this simple case.
 year.every = function (k) {
   return !isFinite((k = Math.floor(k))) || !(k > 0)
     ? null

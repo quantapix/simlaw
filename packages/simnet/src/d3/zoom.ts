@@ -1,5 +1,5 @@
 export default x => () => x
-export default function ZoomEvent(type, { sourceEvent, target, transform, dispatch }) {
+export function ZoomEvent(type, { sourceEvent, target, transform, dispatch }) {
   Object.defineProperties(this, {
     type: { value: type, enumerable: true, configurable: true },
     sourceEvent: { value: sourceEvent, enumerable: true, configurable: true },
@@ -14,7 +14,7 @@ export function nopropagation(event) {
   event.stopImmediatePropagation()
 }
 
-export default function (event) {
+export function (event) {
   event.preventDefault()
   event.stopImmediatePropagation()
 }
@@ -65,7 +65,7 @@ export var identity = new Transform(1, 0, 0)
 
 transform.prototype = Transform.prototype
 
-export default function transform(node) {
+export function transform(node) {
   while (!node.__zoom) if (!(node = node.parentNode)) return identity
   return node.__zoom
 }
@@ -79,8 +79,6 @@ import ZoomEvent from "./event.js"
 import { Transform, identity } from "./transform.js"
 import noevent, { nopropagation } from "./noevent.js"
 
-// Ignore right-click, since that should open the context menu.
-// except for pinch-to-zoom, which is sent as a wheel+ctrlKey event
 function defaultFilter(event) {
   return (!event.ctrlKey || event.type === "wheel") && !event.button
 }
@@ -130,7 +128,7 @@ function defaultConstrain(transform, extent, translateExtent) {
   )
 }
 
-export default function () {
+export function () {
   var filter = defaultFilter,
     extent = defaultExtent,
     constrain = defaultConstrain,
@@ -361,18 +359,12 @@ export default function () {
       k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], t.k * Math.pow(2, wheelDelta.apply(this, arguments)))),
       p = pointer(event)
 
-    // If the mouse is in the same location as before, reuse it.
-    // If there were recent wheel events, reset the wheel idle timeout.
     if (g.wheel) {
       if (g.mouse[0][0] !== p[0] || g.mouse[0][1] !== p[1]) {
         g.mouse[1] = t.invert((g.mouse[0] = p))
       }
       clearTimeout(g.wheel)
-    }
-
-    // If this wheel event won’t trigger a transform change, ignore it.
-    else if (t.k === k) return
-    // Otherwise, capture the mouse point and location at the start.
+    } else if (t.k === k) return
     else {
       g.mouse = [p, t.invert(p)]
       interrupt(this)
@@ -528,7 +520,7 @@ export default function () {
     if (g.touch0) g.touch0[1] = this.__zoom.invert(g.touch0[0])
     else {
       g.end()
-      // If this was a dbltap, reroute to the (optional) dblclick.zoom handler.
+
       if (g.taps === 2) {
         t = pointer(t, this)
         if (Math.hypot(touchfirst[0] - t[0], touchfirst[1] - t[1]) < tapDistance) {

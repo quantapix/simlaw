@@ -2,7 +2,7 @@ import { range as sequence } from "d3-array"
 import { initRange } from "./init.js"
 import ordinal from "./ordinal.js"
 
-export default function band() {
+export function band() {
   var scale = ordinal().unknown(undefined),
     domain = scale.domain,
     ordinalRange = scale.range,
@@ -97,12 +97,12 @@ function pointish(scale) {
 export function point() {
   return pointish(band.apply(null, arguments).paddingInner(1))
 }
-export default function colors(s) {
+export function colors(s) {
   return s.match(/.{6}/g).map(function (x) {
     return "#" + x
   })
 }
-export default function constants(x) {
+export function constants(x) {
   return function () {
     return x
   }
@@ -134,8 +134,6 @@ function clamper(a, b) {
   }
 }
 
-// normalize(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
-// interpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding range value x in [a,b].
 function bimap(domain, range, interpolate) {
   var d0 = domain[0],
     d1 = domain[1],
@@ -154,7 +152,6 @@ function polymap(domain, range, interpolate) {
     r = new Array(j),
     i = -1
 
-  // Reverse descending domains.
   if (domain[j] < domain[0]) {
     domain = domain.slice().reverse()
     range = range.slice().reverse()
@@ -240,7 +237,7 @@ export function transformer() {
   }
 }
 
-export default function continuous() {
+export function continuous() {
   return transformer()(identity, identity)
 }
 import { interpolate, interpolateRound, piecewise } from "d3-interpolate"
@@ -324,7 +321,7 @@ function transformer() {
   }
 }
 
-export default function diverging() {
+export function diverging() {
   var scale = linearish(transformer()(identity))
 
   scale.copy = function () {
@@ -370,7 +367,7 @@ export function divergingSqrt() {
 import { linearish } from "./linear.js"
 import number from "./number.js"
 
-export default function identity(domain) {
+export function identity(domain) {
   var unknown
 
   function scale(x) {
@@ -531,7 +528,7 @@ export function linearish(scale) {
   return scale
 }
 
-export default function linear() {
+export function linear() {
   var scale = continuous()
 
   scale.copy = function () {
@@ -678,13 +675,13 @@ export function loggish(transform) {
   return scale
 }
 
-export default function log() {
+export function log() {
   const scale = loggish(transformer()).domain([1, 10])
   scale.copy = () => copy(scale, log()).base(scale.base())
   initRange.apply(scale, arguments)
   return scale
 }
-export default function nice(domain, interval) {
+export function nice(domain, interval) {
   domain = domain.slice()
 
   var i0 = 0,
@@ -702,7 +699,7 @@ export default function nice(domain, interval) {
   domain[i1] = interval.ceil(x1)
   return domain
 }
-export default function number(x) {
+export function number(x) {
   return +x
 }
 import { InternMap } from "d3-array"
@@ -710,7 +707,7 @@ import { initRange } from "./init.js"
 
 export const implicit = Symbol("implicit")
 
-export default function ordinal() {
+export function ordinal() {
   var index = new InternMap(),
     domain = [],
     range = [],
@@ -788,7 +785,7 @@ export function powish(transform) {
   return linearish(scale)
 }
 
-export default function pow() {
+export function pow() {
   var scale = powish(transformer())
 
   scale.copy = function () {
@@ -806,7 +803,7 @@ export function sqrt() {
 import { ascending, bisect, quantileSorted as threshold } from "d3-array"
 import { initRange } from "./init.js"
 
-export default function quantile() {
+export function quantile() {
   var domain = [],
     range = [],
     thresholds = [],
@@ -861,7 +858,7 @@ import { bisect } from "d3-array"
 import { linearish } from "./linear.js"
 import { initRange } from "./init.js"
 
-export default function quantize() {
+export function quantize() {
   var x0 = 0,
     x1 = 1,
     n = 1,
@@ -920,7 +917,7 @@ function unsquare(x) {
   return Math.sign(x) * Math.sqrt(Math.abs(x))
 }
 
-export default function radial() {
+export function radial() {
   var squared = continuous(),
     range = [0, 1],
     round = false,
@@ -1041,7 +1038,7 @@ export function copy(source, target) {
     .unknown(source.unknown())
 }
 
-export default function sequential() {
+export function sequential() {
   var scale = linearish(transformer()(identity))
 
   scale.copy = function () {
@@ -1088,7 +1085,7 @@ import { ascending, bisect, quantile } from "d3-array"
 import { identity } from "./continuous.js"
 import { initInterpolator } from "./init.js"
 
-export default function sequentialQuantile() {
+export function sequentialQuantile() {
   var domain = [],
     interpolator = identity
 
@@ -1149,7 +1146,7 @@ export function symlogish(transform) {
   return linearish(scale)
 }
 
-export default function symlog() {
+export function symlog() {
   var scale = symlogish(transformer())
 
   scale.copy = function () {
@@ -1161,7 +1158,7 @@ export default function symlog() {
 import { bisect } from "d3-array"
 import { initRange } from "./init.js"
 
-export default function threshold() {
+export function threshold() {
   var domain = [0.5],
     range = [0, 1],
     unknown,
@@ -1201,7 +1198,7 @@ export default function threshold() {
 import { tickStep } from "d3-array"
 import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix, precisionRound } from "d3-format"
 
-export default function tickFormat(start, stop, count, specifier) {
+export function tickFormat(start, stop, count, specifier) {
   var step = tickStep(start, stop, count),
     precision
   specifier = formatSpecifier(specifier == null ? ",f" : specifier)
@@ -1322,7 +1319,7 @@ export function calendar(ticks, tickInterval, year, month, week, day, hour, minu
   return scale
 }
 
-export default function time() {
+export function time() {
   return initRange.apply(
     calendar(
       timeTicks,
@@ -1344,7 +1341,7 @@ import { utcFormat } from "d3-time-format"
 import { calendar } from "./time.js"
 import { initRange } from "./init.js"
 
-export default function utcTime() {
+export function utcTime() {
   return initRange.apply(
     calendar(
       utcTicks,

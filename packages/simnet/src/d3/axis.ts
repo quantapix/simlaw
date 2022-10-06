@@ -187,7 +187,7 @@ export function axisBottom(scale) {
 export function axisLeft(scale) {
   return axis(left, scale)
 }
-export default function (x) {
+export function (x) {
   return x
 }
 export { axisTop, axisRight, axisBottom, axisLeft } from "./axis.js"

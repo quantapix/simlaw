@@ -3,7 +3,7 @@ function responseBlob(response) {
   return response.blob()
 }
 
-export default function (input, init) {
+export function (input, init) {
   return fetch(input, init).then(responseBlob)
 }
 function responseArrayBuffer(response) {
@@ -11,7 +11,7 @@ function responseArrayBuffer(response) {
   return response.arrayBuffer()
 }
 
-export default function (input, init) {
+export function (input, init) {
   return fetch(input, init).then(responseArrayBuffer)
 }
 import { csvParse, dsvFormat, tsvParse } from "d3-dsv"
@@ -26,7 +26,7 @@ function dsvParse(parse) {
   }
 }
 
-export default function dsv(delimiter, input, init, row) {
+export function dsv(delimiter, input, init, row) {
   if (arguments.length === 3 && typeof init === "function") (row = init), (init = undefined)
   var format = dsvFormat(delimiter)
   return text(input, init).then(function (response) {
@@ -36,7 +36,7 @@ export default function dsv(delimiter, input, init, row) {
 
 export var csv = dsvParse(csvParse)
 export var tsv = dsvParse(tsvParse)
-export default function (input, init) {
+export function (input, init) {
   return new Promise(function (resolve, reject) {
     var image = new Image()
     for (var key in init) image[key] = init[key]
@@ -60,7 +60,7 @@ function responseJson(response) {
   return response.json()
 }
 
-export default function (input, init) {
+export function (input, init) {
   return fetch(input, init).then(responseJson)
 }
 function responseText(response) {
@@ -68,7 +68,7 @@ function responseText(response) {
   return response.text()
 }
 
-export default function (input, init) {
+export function (input, init) {
   return fetch(input, init).then(responseText)
 }
 import text from "./text.js"

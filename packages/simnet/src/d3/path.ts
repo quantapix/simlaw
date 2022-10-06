@@ -47,25 +47,14 @@ Path.prototype = path.prototype = {
       y01 = y0 - y1,
       l01_2 = x01 * x01 + y01 * y01
 
-    // Is the radius negative? Error.
     if (r < 0) throw new Error("negative radius: " + r)
 
-    // Is this path empty? Move to (x1,y1).
     if (this._x1 === null) {
       this._ += "M" + (this._x1 = x1) + "," + (this._y1 = y1)
-    }
-
-    // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
-    else if (!(l01_2 > epsilon));
+    } else if (!(l01_2 > epsilon));
     else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
-      // Or, are (x0,y0), (x1,y1) and (x2,y2) collinear?
-      // Equivalently, is (x1,y1) coincident with (x2,y2)?
-      // Or, is the radius zero? Line to (x1,y1).
       this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1)
-    }
-
-    // Otherwise, draw an arc!
-    else {
+    } else {
       var x20 = x2 - x0,
         y20 = y2 - y0,
         l21_2 = x21 * x21 + y21 * y21,
@@ -76,7 +65,6 @@ Path.prototype = path.prototype = {
         t01 = l / l01,
         t21 = l / l21
 
-      // If the start tangent is not coincident with (x0,y0), line to.
       if (Math.abs(t01 - 1) > epsilon) {
         this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01)
       }
@@ -103,26 +91,18 @@ Path.prototype = path.prototype = {
       cw = 1 ^ ccw,
       da = ccw ? a0 - a1 : a1 - a0
 
-    // Is the radius negative? Error.
     if (r < 0) throw new Error("negative radius: " + r)
 
-    // Is this path empty? Move to (x0,y0).
     if (this._x1 === null) {
       this._ += "M" + x0 + "," + y0
-    }
-
-    // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
-    else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
+    } else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
       this._ += "L" + x0 + "," + y0
     }
 
-    // Is this arc empty? We’re done.
     if (!r) return
 
-    // Does the angle go the wrong way? Flip the direction.
     if (da < 0) da = (da % tau) + tau
 
-    // Is this a complete circle? Draw two arcs to complete the circle.
     if (da > tauEpsilon) {
       this._ +=
         "A" +
@@ -145,10 +125,7 @@ Path.prototype = path.prototype = {
         (this._x1 = x0) +
         "," +
         (this._y1 = y0)
-    }
-
-    // Is this arc non-empty? Draw an arc!
-    else if (da > epsilon) {
+    } else if (da > epsilon) {
       this._ +=
         "A" +
         r +

@@ -198,7 +198,7 @@ function color_formatRgb() {
   return this.rgb().formatRgb()
 }
 
-export default function color(format) {
+export function color(format) {
   var m, l
   format = (format + "").trim().toLowerCase()
   return (m = reHex.exec(format))
@@ -460,7 +460,7 @@ function cubehelixConvert(o) {
   return new Cubehelix(h < 0 ? h + 360 : h, s, l, o.opacity)
 }
 
-export default function cubehelix(h, s, l, opacity) {
+export function cubehelix(h, s, l, opacity) {
   return arguments.length === 1 ? cubehelixConvert(h) : new Cubehelix(h, s, l, opacity == null ? 1 : opacity)
 }
 
@@ -498,7 +498,7 @@ define(
     },
   })
 )
-export default function (constructor, factory, prototype) {
+export function (constructor, factory, prototype) {
   constructor.prototype = factory.prototype = prototype
   prototype.constructor = constructor
 }
@@ -515,7 +515,6 @@ import define, { extend } from "./define.js"
 import { Color, rgbConvert, Rgb } from "./color.js"
 import { degrees, radians } from "./math.js"
 
-// https://observablehq.com/@mbostock/lab-and-rgb
 const K = 18,
   Xn = 0.96422,
   Yn = 1,
@@ -547,7 +546,7 @@ export function gray(l, opacity) {
   return new Lab(l, 0, 0, opacity == null ? 1 : opacity)
 }
 
-export default function lab(l, a, b, opacity) {
+export function lab(l, a, b, opacity) {
   return arguments.length === 1 ? labConvert(l) : new Lab(l, a, b, opacity == null ? 1 : opacity)
 }
 

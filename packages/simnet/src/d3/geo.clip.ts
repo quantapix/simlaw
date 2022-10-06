@@ -10,9 +10,6 @@ export default clip(
   [-pi, -halfPi]
 )
 
-// Takes a line and cuts into visible segments. Return values: 0 - there were
-// intersections or the line was empty; 1 - no intersections; 2 - there were
-// intersections, and the first and last segments should be rejoined.
 function clipAntimeridianLine(stream) {
   var lambda0 = NaN,
     phi0 = NaN,
@@ -28,7 +25,6 @@ function clipAntimeridianLine(stream) {
       var sign1 = lambda1 > 0 ? pi : -pi,
         delta = abs(lambda1 - lambda0)
       if (abs(delta - pi) < epsilon) {
-        // line crosses a pole
         stream.point(lambda0, (phi0 = (phi0 + phi1) / 2 > 0 ? halfPi : -halfPi))
         stream.point(sign0, phi0)
         stream.lineEnd()
@@ -37,7 +33,6 @@ function clipAntimeridianLine(stream) {
         stream.point(lambda1, phi0)
         clean = 0
       } else if (sign0 !== sign1 && delta >= pi) {
-        // line crosses antimeridian
         if (abs(lambda0 - sign0) < epsilon) lambda0 -= sign0 * epsilon // handle degeneracies
         if (abs(lambda1 - sign1) < epsilon) lambda1 -= sign1 * epsilon
         phi0 = clipAntimeridianIntersect(lambda0, phi0, lambda1, phi1)
@@ -97,7 +92,7 @@ function clipAntimeridianInterpolate(from, to, direction, stream) {
 }
 import noop from "../noop.js"
 
-export default function () {
+export function () {
   var lines = [],
     line
   return {
@@ -132,7 +127,7 @@ import { abs, cos, epsilon, pi, radians, sqrt } from "../math.js"
 import pointEqual from "../pointEqual.js"
 import clip from "./index.js"
 
-export default function (radius) {
+export function (radius) {
   var cr = cos(radius),
     delta = 6 * radians,
     smallRadius = cr > 0,
@@ -146,10 +141,6 @@ export default function (radius) {
     return cos(lambda) * cos(phi) > cr
   }
 
-  // Takes a line and cuts into visible segments. Return values used for polygon
-  // clipping: 0 - there were intersections or the line was empty; 1 - no
-  // intersections 2 - there were intersections, and the first and last segments
-  // should be rejoined.
   function clipLine(stream) {
     var point0, // previous point
       c0, // code for previous point
@@ -174,12 +165,10 @@ export default function (radius) {
         if (v !== v0) {
           clean = 0
           if (v) {
-            // outside going in
             stream.lineStart()
             point2 = intersect(point1, point0)
             stream.point(point2[0], point2[1])
           } else {
-            // inside going out
             point2 = intersect(point0, point1)
             stream.point(point2[0], point2[1], 2)
             stream.lineEnd()
@@ -187,8 +176,7 @@ export default function (radius) {
           point0 = point2
         } else if (notHemisphere && point0 && smallRadius ^ v) {
           var t
-          // If the codes for two points are different, or are both zero,
-          // and there this segment intersects with the small circle.
+
           if (!(c & c0) && (t = intersect(point1, point0, true))) {
             clean = 0
             if (smallRadius) {
@@ -213,28 +201,23 @@ export default function (radius) {
         if (v0) stream.lineEnd()
         point0 = null
       },
-      // Rejoin first and last segments if there were intersections and the first
-      // and last points were visible.
+
       clean: function () {
         return clean | ((v00 && v0) << 1)
       },
     }
   }
 
-  // Intersects the great circle between a and b with the clip circle.
   function intersect(a, b, two) {
     var pa = cartesian(a),
       pb = cartesian(b)
 
-    // We have two planes, n1.p = d1 and n2.p = d2.
-    // Find intersection line p(t) = c1 n1 + c2 n2 + t (n1 ⨯ n2).
     var n1 = [1, 0, 0], // normal
       n2 = cartesianCross(pa, pb),
       n2n2 = cartesianDot(n2, n2),
       n1n2 = n2[0], // cartesianDot(n1, n2),
       determinant = n2n2 - n1n2 * n1n2
 
-    // Two polar points.
     if (!determinant) return !two && a
 
     var c1 = (cr * n2n2) / determinant,
@@ -244,7 +227,6 @@ export default function (radius) {
       B = cartesianScale(n2, c2)
     cartesianAddInPlace(A, B)
 
-    // Solve |p(t)|^2 = 1.
     var u = n1xn2,
       w = cartesianDot(A, u),
       uu = cartesianDot(u, u),
@@ -259,7 +241,6 @@ export default function (radius) {
 
     if (!two) return q
 
-    // Two intersection points.
     var lambda0 = a[0],
       lambda1 = b[0],
       phi0 = a[1],
@@ -274,7 +255,6 @@ export default function (radius) {
 
     if (!polar && phi1 < phi0) (z = phi0), (phi0 = phi1), (phi1 = z)
 
-    // Check that the first point is between a and b.
     if (
       meridian
         ? polar
@@ -288,8 +268,6 @@ export default function (radius) {
     }
   }
 
-  // Generates a 4-bit vector representing the location of a point relative to
-  // the small circle's bounding box.
   function code(lambda, phi) {
     var r = smallRadius ? radius : pi - radius,
       code = 0
@@ -304,7 +282,7 @@ export default function (radius) {
 }
 import clipRectangle from "./rectangle.js"
 
-export default function () {
+export function () {
   var x0 = 0,
     y0 = 0,
     x1 = 960,
@@ -333,7 +311,7 @@ import { epsilon, halfPi } from "../math.js"
 import polygonContains from "../polygonContains.js"
 import { merge } from "d3-array"
 
-export default function (pointVisible, clipLine, interpolate, start) {
+export function (pointVisible, clipLine, interpolate, start) {
   return function (sink) {
     var line = clipLine(sink),
       ringBuffer = clipBuffer(),
@@ -427,7 +405,6 @@ export default function (pointVisible, clipLine, interpolate, start) {
 
       if (!n) return
 
-      // No intersections.
       if (clean & 1) {
         segment = ringSegments[0]
         if ((m = segment.length - 1) > 0) {
@@ -439,8 +416,6 @@ export default function (pointVisible, clipLine, interpolate, start) {
         return
       }
 
-      // Rejoin connected segments.
-      // TODO reuse ringBuffer.rejoin()?
       if (n > 1 && clean & 2) ringSegments.push(ringSegments.pop().concat(ringSegments.shift()))
 
       segments.push(ringSegments.filter(validSegment))
@@ -454,15 +429,13 @@ function validSegment(segment) {
   return segment.length > 1
 }
 
-// Intersections are sorted along the clip edge. For both antimeridian cutting
-// and circle clipping, the same comparison is used.
 function compareIntersection(a, b) {
   return (
     ((a = a.x)[0] < 0 ? a[1] - halfPi - epsilon : halfPi - a[1]) -
     ((b = b.x)[0] < 0 ? b[1] - halfPi - epsilon : halfPi - b[1])
   )
 }
-export default function (a, b, x0, y0, x1, y1) {
+export function (a, b, x0, y0, x1, y1) {
   var ax = a[0],
     ay = a[1],
     bx = b[0],
@@ -530,10 +503,7 @@ import { merge } from "d3-array"
 var clipMax = 1e9,
   clipMin = -clipMax
 
-// TODO Use d3-polygon’s polygonContains here for the ring check?
-// TODO Eliminate duplicate buffering in clipBuffer and polygon.push?
-
-export default function clipRectangle(x0, y0, x1, y1) {
+export function clipRectangle(x0, y0, x1, y1) {
   function visible(x, y) {
     return x0 <= x && x <= x1 && y0 <= y && y <= y1
   }
@@ -629,7 +599,6 @@ export default function clipRectangle(x0, y0, x1, y1) {
       return winding
     }
 
-    // Buffer geometry within a polygon and then clip it en masse.
     function polygonStart() {
       ;(activeStream = bufferStream), (segments = []), (polygon = []), (clean = true)
     }
@@ -661,9 +630,6 @@ export default function clipRectangle(x0, y0, x1, y1) {
       x_ = y_ = NaN
     }
 
-    // TODO rather than special-case polygons, simply handle them separately.
-    // Ideally, coincident intersection points should be jittered to avoid
-    // clipping issues.
     function lineEnd() {
       if (segments) {
         linePoint(x__, y__)
@@ -722,10 +688,7 @@ function Intersection(point, points, other, entry) {
   this.n = this.p = null // next & previous
 }
 
-// A generalized polygon clipping algorithm: given a polygon that has been cut
-// into its visible line segments, and rejoins the segments by interpolating
-// along the clip edge.
-export default function (segments, compareIntersection, startInside, interpolate, stream) {
+export function (segments, compareIntersection, startInside, interpolate, stream) {
   var subject = [],
     clip = [],
     i,
@@ -745,7 +708,7 @@ export default function (segments, compareIntersection, startInside, interpolate
         stream.lineEnd()
         return
       }
-      // handle degenerate cases by moving the point
+
       p1[0] += 2 * epsilon
     }
 
@@ -770,7 +733,6 @@ export default function (segments, compareIntersection, startInside, interpolate
     point
 
   while (1) {
-    // Find first unvisited intersection.
     var current = start,
       isSubject = true
     while (current.v) if ((current = current.n) === start) return

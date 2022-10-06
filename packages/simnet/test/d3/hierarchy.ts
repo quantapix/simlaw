@@ -926,7 +926,6 @@ function noparent(node) {
   const copy = {}
   for (const k in node) {
     if (node.hasOwnProperty(k)) {
-      // eslint-disable-line no-prototype-builtins
       switch (k) {
         case "children":
           copy.children = node.children.map(noparent)

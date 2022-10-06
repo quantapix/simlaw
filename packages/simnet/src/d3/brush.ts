@@ -126,7 +126,6 @@ function type(t) {
   return { type: t }
 }
 
-// Ignore right-click, since that should open the context menu.
 function defaultFilter(event) {
   return !event.ctrlKey && !event.button
 }
@@ -150,7 +149,6 @@ function defaultTouchable() {
   return navigator.maxTouchPoints || "ontouchstart" in this
 }
 
-// Like d3.local, but with the name “__brush” rather than auto-generated.
 function local(node) {
   while (!node.__brush) if (!(node = node.parentNode)) return
   return node.__brush
@@ -173,7 +171,7 @@ export function brushY() {
   return brush(Y)
 }
 
-export default function () {
+export function () {
   return brush(XY)
 }
 
@@ -569,12 +567,10 @@ function brush(dim) {
     function keydowned(event) {
       switch (event.keyCode) {
         case 16: {
-          // SHIFT
           shifting = signX && signY
           break
         }
         case 18: {
-          // ALT
           if (mode === MODE_HANDLE) {
             if (signX) (e0 = e1 - dx * signX), (w0 = w1 + dx * signX)
             if (signY) (s0 = s1 - dy * signY), (n0 = n1 + dy * signY)
@@ -584,7 +580,6 @@ function brush(dim) {
           break
         }
         case 32: {
-          // SPACE; takes priority over ALT
           if (mode === MODE_HANDLE || mode === MODE_CENTER) {
             if (signX < 0) e0 = e1 - dx
             else if (signX > 0) w0 = w1 - dx
@@ -605,7 +600,6 @@ function brush(dim) {
     function keyupped(event) {
       switch (event.keyCode) {
         case 16: {
-          // SHIFT
           if (shifting) {
             lockX = lockY = shifting = false
             move(event)
@@ -613,7 +607,6 @@ function brush(dim) {
           break
         }
         case 18: {
-          // ALT
           if (mode === MODE_CENTER) {
             if (signX < 0) e0 = e1
             else if (signX > 0) w0 = w1
@@ -625,7 +618,6 @@ function brush(dim) {
           break
         }
         case 32: {
-          // SPACE
           if (mode === MODE_SPACE) {
             if (event.altKey) {
               if (signX) (e0 = e1 - dx * signX), (w0 = w1 + dx * signX)
@@ -693,7 +685,7 @@ function brush(dim) {
   return brush
 }
 export default x => () => x
-export default function BrushEvent(type, { sourceEvent, target, selection, mode, dispatch }) {
+export function BrushEvent(type, { sourceEvent, target, selection, mode, dispatch }) {
   Object.defineProperties(this, {
     type: { value: type, enumerable: true, configurable: true },
     sourceEvent: { value: sourceEvent, enumerable: true, configurable: true },
@@ -708,7 +700,7 @@ export function nopropagation(event) {
   event.stopImmediatePropagation()
 }
 
-export default function (event) {
+export function (event) {
   event.preventDefault()
   event.stopImmediatePropagation()
 }

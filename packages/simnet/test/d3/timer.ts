@@ -10,8 +10,6 @@ import assert from "assert"
 import { interval, now, timer } from "../src/index.js"
 import { assertInRange } from "./asserts.js"
 
-// It’s difficult to test the timing behavior reliably, since there can be small
-// hiccups that cause a timer to be delayed. So we test only the mean rate.
 it("interval(callback) invokes the callback about every 17ms", end => {
   const then = now()
   let count = 0
@@ -214,8 +212,6 @@ it("timer(callback) verifies that callback is a function", end => {
   end()
 })
 
-// It’s difficult to test the timing behavior reliably, since there can be small
-// hiccups that cause a timer to be delayed. So we test only the mean rate.
 it("timer(callback) invokes the callback about every 17ms", end => {
   const then = now()
   let count = 0
@@ -332,8 +328,6 @@ it("timer(callback) invokes callbacks in scheduling order during asynchronous fl
   })
 })
 
-// Even though these timers have different delays, they are still called back in
-// scheduling order when they are simultaneously active.
 it("timer(callback, delay) invokes callbacks in scheduling order during asynchronous flush", end => {
   const then = now()
   let results
@@ -389,14 +383,11 @@ it("timer(callback) within a frame invokes the callback at the end of the same f
   })
 })
 
-// Note: assumes that Node doesn’t support requestAnimationFrame, falling back to setTimeout.
 it("timer(callback, delay) within a timerFlush() does not request duplicate frames", end => {
-  // A small delay before starting this test to give existing timers a chance to clear.
   setTimeout(() => {
     const setTimeout0 = setTimeout
     let frames = 0
 
-    // This requests a frame, too, so do it before the test starts.
     now()
 
     setTimeout = function () {
@@ -405,31 +396,20 @@ it("timer(callback, delay) within a timerFlush() does not request duplicate fram
     }
 
     const t0 = timer(function () {
-      // 2. The first timer is invoked synchronously by timerFlush, so only the
-      // first frame—when this timer was created—has been requested.
       assert.strictEqual(frames, 1)
 
       t0.stop()
 
-      // 3. This timer was stopped during flush, so it doesn’t request a frame.
       assert.strictEqual(frames, 1)
 
       const t1 = timer(function () {
-        // 6. Still only one frame has been requested so far: the second timer has
-        // a <17ms delay, and so was called back during the first frame requested
-        // by the first timer on creation. If the second timer had a longer delay,
-        // it might need another frame (or timeout) before invocation.
         assert.strictEqual(frames, 1)
 
         t1.stop()
 
-        // 7. Stopping the second timer doesn’t immediately request a frame since
-        // we’re now within an implicit flush (initiated by this timer).
         assert.strictEqual(frames, 1)
 
         setTimeout0(function () {
-          // 8. Since the timer queue was empty when we stopped the second timer,
-          // no additional frame was requested after the timers were flushed.
           assert.strictEqual(frames, 1)
 
           setTimeout = setTimeout0
@@ -437,32 +417,23 @@ it("timer(callback, delay) within a timerFlush() does not request duplicate fram
         }, 50)
       }, 1)
 
-      // 4. Creating a second timer during flush also doesn’t immediately request
-      // a frame; the request would happen AFTER all the timers are called back,
-      // and we still have the request active from when the first timer was
-      // created, since the first timer is invoked synchronously.
       assert.strictEqual(frames, 1)
     })
 
-    // 1. Creating the first timer requests the first frame.
     assert.strictEqual(frames, 1)
 
     timerFlush()
 
-    // 5. Still only one frame active!
     assert.strictEqual(frames, 1)
   }, 100)
 })
 
-// Note: assumes that Node doesn’t support requestAnimationFrame, falling back to setTimeout.
 it("timer(callback) switches to setTimeout for long delays", end => {
-  // A small delay before starting this test to give existing timers a chance to clear.
   setTimeout(() => {
     const setTimeout0 = setTimeout
     let frames = 0,
       timeouts = 0
 
-    // This requests a frame, too, so do it before the test starts.
     now()
 
     setTimeout = function (callback, delay) {
@@ -471,32 +442,24 @@ it("timer(callback) switches to setTimeout for long delays", end => {
     }
 
     const t0 = timer(function () {
-      // 2. The first timer had a delay >24ms, so after the first scheduling
-      // frame, we used a longer timeout to wake up.
       assert.strictEqual(frames, 1)
       assert.strictEqual(timeouts, 1)
 
       t0.stop()
 
-      // 3. Stopping a timer during flush doesn’t request a new frame.
       assert.strictEqual(frames, 1)
       assert.strictEqual(timeouts, 1)
 
       const t1 = timer(function () {
-        // 5. The second timer had a short delay, so it’s not immediately invoked
-        // during the same tick as the first timer; it gets a new frame.
         assert.strictEqual(frames, 2)
         assert.strictEqual(timeouts, 1)
 
         t1.stop()
 
-        // 6. Stopping a timer during flush doesn’t request a new frame.
         assert.strictEqual(frames, 2)
         assert.strictEqual(timeouts, 1)
 
         setTimeout0(function () {
-          // 7. Since the timer queue was empty when we stopped the second timer,
-          // no additional frame was requested after the timers were flushed.
           assert.strictEqual(frames, 2)
           assert.strictEqual(timeouts, 1)
 
@@ -505,16 +468,10 @@ it("timer(callback) switches to setTimeout for long delays", end => {
         }, 50)
       }, 1)
 
-      // 4. Scheduling a new timer during flush doesn’t request a new frame;
-      // that happens after all the timers have been invoked.
       assert.strictEqual(frames, 1)
       assert.strictEqual(timeouts, 1)
     }, 100)
 
-    // 1. Creating the first timer requests the first frame. Even though the timer
-    // has a long delay, we always use a frame to consolidate timer creation for
-    // multiple timers. That way, if you schedule a bunch of timers with different
-    // delays, we don’t thrash timeouts.
     assert.strictEqual(frames, 1)
     assert.strictEqual(timeouts, 0)
   }, 100)
@@ -533,12 +490,10 @@ it("timer.stop() immediately stops the timer", end => {
 })
 
 it("timer.stop() recomputes the new wake time after one frame", end => {
-  // A small delay before starting this test to give existing timers a chance to clear.
   setTimeout(() => {
     const setTimeout0 = setTimeout
     const delays = []
 
-    // This requests a frame, too, so do it before the test starts.
     now()
 
     setTimeout = function (callback, delay) {
@@ -549,29 +504,22 @@ it("timer.stop() recomputes the new wake time after one frame", end => {
     const t0 = timer(function () {}, 1000)
     const t1 = timer(function () {}, 500)
     setTimeout0(function () {
-      // 1. The two timers are scheduling in the first frame, and then the new
-      // wake time is computed based on minimum relative time of active timers.
       assert.strictEqual(delays.length, 2)
       assert.strictEqual(delays[0], 17)
       assertInRange(delays[1], 500 - 17 - 10, 500 - 17 + 10)
 
       t1.stop()
 
-      // 2. The second timer (with the smaller delay) was stopped, but the new
-      // wake time isn’t computed until the next frame, since we stopped the timer
-      // outside of a flush.
       assert.strictEqual(delays.length, 3)
       assert.strictEqual(delays[2], 17)
 
       setTimeout0(function () {
-        // 3. The alarm was reset to wake for the long-delay.
         assert.strictEqual(delays.length, 4)
         assertInRange(delays[3], 1000 - 100 - 17 * 1.5 - 10, 1000 - 100 - 17 * 1.5 + 10)
 
         t0.stop()
 
         setTimeout0(function () {
-          // 4. The alarm was cleared after the long-delay timer was cancelled.
           assert.strictEqual(delays.length, 5)
           assert.strictEqual(delays[4], 17)
 
@@ -608,7 +556,6 @@ it("timer.restart(callback) implicitly uses zero delay and the current time", en
 })
 
 it("timer.restart(callback, delay, time) recomputes the new wake time after one frame", end => {
-  // A small delay before starting this test to give existing timers a chance to clear.
   setTimeout(() => {
     const then = now()
     const setTimeout0 = setTimeout
@@ -621,28 +568,22 @@ it("timer.restart(callback, delay, time) recomputes the new wake time after one 
 
     const t = timer(function () {}, 500, then)
     setTimeout0(function () {
-      // 1. The timer is scheduled in the first frame, and then the new wake time
-      // is computed based on its relative time.
       assert.strictEqual(delays.length, 2)
       assert.strictEqual(delays[0], 17)
       assertInRange(delays[1], 500 - 17 - 10, 500 - 17 + 10)
 
       t.restart(function () {}, 1000, then)
 
-      // 2. The timer was delayed, but the new wake time isn’t computed until the
-      // next frame, since we restarted the timer outside of a flush.
       assert.strictEqual(delays.length, 3)
       assert.strictEqual(delays[2], 17)
 
       setTimeout0(function () {
-        // 3. The alarm was reset to wake for the longer delay.
         assert.strictEqual(delays.length, 4)
         assertInRange(delays[3], 1000 - 100 - 17 * 1.5 - 10, 1000 - 100 - 17 * 1.5 + 10)
 
         t.stop()
 
         setTimeout0(function () {
-          // 4. The alarm was cleared after the timer was cancelled.
           assert.strictEqual(delays.length, 5)
           assert.strictEqual(delays[4], 17)
 

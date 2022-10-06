@@ -14,7 +14,6 @@ function pointY(p) {
   return p[1]
 }
 
-// A triangulation is collinear if all its triangles have a non-null area
 function collinear(d) {
   const { triangles, coords } = d
   for (let i = 0; i < triangles.length; i += 3) {
@@ -55,7 +54,6 @@ export default class Delaunay {
     const d = this._delaunator,
       points = this.points
 
-    // check for collinear
     if (d.hull && d.hull.length > 2 && collinear(d)) {
       this.collinear = Int32Array.from({ length: points.length / 2 }, (_, i) => i).sort(
         (i, j) => points[2 * i] - points[2 * j] || points[2 * i + 1] - points[2 * j + 1]
@@ -80,9 +78,6 @@ export default class Delaunay {
     const inedges = this.inedges.fill(-1)
     const hullIndex = this._hullIndex.fill(-1)
 
-    // Compute an index from each point to an (arbitrary) incoming halfedge
-    // Used to give the first neighbor of each point; for this reason,
-    // on the hull we give priority to exterior halfedges
     for (let e = 0, n = halfedges.length; e < n; ++e) {
       const p = triangles[e % 3 === 2 ? e - 2 : e + 1]
       if (halfedges[e] === -1 || inedges[p] === -1) inedges[p] = e
@@ -91,7 +86,6 @@ export default class Delaunay {
       hullIndex[hull[i]] = i
     }
 
-    // degenerate case: 1 or 2 (distinct) points
     if (hull.length <= 2 && hull.length > 0) {
       this.triangles = new Int32Array(3).fill(-1)
       this.halfedges = new Int32Array(3).fill(-1)
@@ -110,7 +104,6 @@ export default class Delaunay {
   *neighbors(i) {
     const { inedges, hull, _hullIndex, halfedges, triangles, collinear } = this
 
-    // degenerate case with several collinear points
     if (collinear) {
       const l = collinear.indexOf(i)
       if (l > 0) yield collinear[l - 1]
@@ -337,7 +330,6 @@ export default class Voronoi {
       vectors,
     } = this
 
-    // Compute circumcenters.
     const circumcenters = (this.circumcenters = this._circumcenters.subarray(0, (triangles.length / 3) * 2))
     for (let i = 0, j = 0, n = triangles.length, x, y; i < n; i += 3, j += 2) {
       const t1 = triangles[i] * 2
@@ -357,15 +349,8 @@ export default class Voronoi {
       const ab = (dx * ey - dy * ex) * 2
 
       if (Math.abs(ab) < 1e-9) {
-        // degenerate case (collinear diagram)
-        // almost equal points (degenerate triangle)
-        // the circumcenter is at the infinity, in a
-        // direction that is:
-        // 1. orthogonal to the halfedge.
         let a = 1e9
-        // 2. points away from the center; since the list of triangles starts
-        // in the center, the first point of the first triangle
-        // will be our reference
+
         const r = triangles[0] * 2
         a *= Math.sign((points[r] - x1) * ey - (points[r + 1] - y1) * ex)
         x = (x1 + x3) / 2 - a * ey
@@ -381,7 +366,6 @@ export default class Voronoi {
       circumcenters[j + 1] = y
     }
 
-    // Compute exterior cell rays.
     let h = hull[hull.length - 1]
     let p0,
       p1 = h * 4
@@ -483,7 +467,7 @@ export default class Voronoi {
     if (ci)
       for (const j of this.delaunay.neighbors(i)) {
         const cj = this._clip(j)
-        // find the common edge
+
         if (cj)
           loop: for (let ai = 0, li = ci.length; ai < li; ai += 2) {
             for (let aj = 0, lj = cj.length; aj < lj; aj += 2) {
@@ -519,7 +503,6 @@ export default class Voronoi {
     return points
   }
   _clip(i) {
-    // degenerate case (1 valid point: return the box)
     if (i === 0 && this.delaunay.hull.length === 1) {
       return [this.xmax, this.ymin, this.xmax, this.ymax, this.xmin, this.ymax, this.xmin, this.ymin]
     }
@@ -635,8 +618,7 @@ export default class Voronoi {
           ;(e0 = 0b0101), (x = this.xmin), (y = this.ymin)
           break // left
       }
-      // Note: this implicitly checks for out of bounds: if P[j] or P[j+1] are
-      // undefined, the conditional statement will be executed.
+
       if ((P[j] !== x || P[j + 1] !== y) && this.contains(i, x, y)) {
         P.splice(j, 0, x, y), (j += 2)
       }
@@ -657,20 +639,16 @@ export default class Voronoi {
       x,
       y
     if (vy < 0) {
-      // top
       if (y0 <= this.ymin) return null
       if ((c = (this.ymin - y0) / vy) < t) (y = this.ymin), (x = x0 + (t = c) * vx)
     } else if (vy > 0) {
-      // bottom
       if (y0 >= this.ymax) return null
       if ((c = (this.ymax - y0) / vy) < t) (y = this.ymax), (x = x0 + (t = c) * vx)
     }
     if (vx > 0) {
-      // right
       if (x0 >= this.xmax) return null
       if ((c = (this.xmax - x0) / vx) < t) (x = this.xmax), (y = y0 + (t = c) * vy)
     } else if (vx < 0) {
-      // left
       if (x0 <= this.xmin) return null
       if ((c = (this.xmin - x0) / vx) < t) (x = this.xmin), (y = y0 + (t = c) * vy)
     }

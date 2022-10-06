@@ -166,7 +166,7 @@ export var scheme = new Array(3).concat(
 ).map(colors);
 
 export default ramp(scheme);
-export default function(t) {
+export function(t) {
   t = Math.max(0, Math.min(1, t));
   return "rgb("
       + Math.max(0, Math.min(255, Math.round(-4.54 - t * (35.34 - t * (2381.73 - t * (6402.7 - t * (7024.72 - t * 2710.57))))))) + ", "
@@ -187,7 +187,7 @@ export var cool = interpolateCubehelixLong(cubehelix(260, 0.75, 0.35), cubehelix
 
 var c = cubehelix();
 
-export default function(t) {
+export function(t) {
   if (t < 0 || t > 1) t -= Math.floor(t);
   var ts = Math.abs(t - 0.5);
   c.h = 360 * t - 100;
@@ -201,7 +201,7 @@ var c = rgb(),
     pi_1_3 = Math.PI / 3,
     pi_2_3 = Math.PI * 2 / 3;
 
-export default function(t) {
+export function(t) {
   var x;
   t = (0.5 - t) * Math.PI;
   c.r = 255 * (x = Math.sin(t)) * x;
@@ -209,7 +209,7 @@ export default function(t) {
   c.b = 255 * (x = Math.sin(t + pi_2_3)) * x;
   return c + "";
 }
-export default function(t) {
+export function(t) {
   t = Math.max(0, Math.min(1, t));
   return "rgb("
       + Math.max(0, Math.min(255, Math.round(34.61 + t * (1172.33 - t * (10793.56 - t * (33300.12 - t * (38394.49 - t * 14825.05))))))) + ", "

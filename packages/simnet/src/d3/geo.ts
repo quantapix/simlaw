@@ -5,8 +5,6 @@ import stream from "./stream.js"
 
 export var areaRingSum = new Adder()
 
-// hello?
-
 var areaSum = new Adder(),
   lambda00,
   phi00,
@@ -52,9 +50,6 @@ function areaPoint(lambda, phi) {
   ;(lambda *= radians), (phi *= radians)
   phi = phi / 2 + quarterPi // half the angular distance from south pole
 
-  // Spherical excess E for a spherical triangle with vertices: south pole,
-  // previous point, current point.  Uses a formula derived from Cagnoli’s
-  // theorem.  See Todhunter, Spherical Trig. (1871), Sec. 103, Eq. (2).
   var dLambda = lambda - lambda0,
     sdLambda = dLambda >= 0 ? 1 : -1,
     adLambda = sdLambda * dLambda,
@@ -64,12 +59,10 @@ function areaPoint(lambda, phi) {
     u = cosPhi0 * cosPhi + k * cos(adLambda),
     v = k * sdLambda * sin(adLambda)
   areaRingSum.add(atan2(v, u))
-
-  // Advance the previous points.
   ;(lambda0 = lambda), (cosPhi0 = cosPhi), (sinPhi0 = sinPhi)
 }
 
-export default function (object) {
+export function (object) {
   areaSum = new Adder()
   stream(object, areaStream)
   return areaSum * 2
@@ -208,9 +201,6 @@ function boundsRingEnd() {
   p0 = null
 }
 
-// Finds the left-right distance between two longitudes.
-// This is almost the same as (lambda1 - lambda0 + 360°) % 360°, except that we want
-// the distance between ±180° to be 360°.
 function angle(lambda0, lambda1) {
   return (lambda1 -= lambda0) < 0 ? lambda1 + 360 : lambda1
 }
@@ -223,18 +213,16 @@ function rangeContains(range, x) {
   return range[0] <= range[1] ? range[0] <= x && x <= range[1] : x < range[0] || range[1] < x
 }
 
-export default function (feature) {
+export function (feature) {
   var i, n, a, b, merged, deltaMax, delta
 
   phi1 = lambda1 = -(lambda0 = phi0 = Infinity)
   ranges = []
   stream(feature, boundsStream)
 
-  // First, sort ranges by their minimum longitudes.
   if ((n = ranges.length)) {
     ranges.sort(rangeCompare)
 
-    // Then, merge any ranges that overlap.
     for (i = 1, a = ranges[0], merged = [a]; i < n; ++i) {
       b = ranges[i]
       if (rangeContains(a, b[0]) || rangeContains(a, b[1])) {
@@ -245,8 +233,6 @@ export default function (feature) {
       }
     }
 
-    // Finally, find the largest gap between the merged ranges.
-    // The final bounding box will be the inverse of this gap.
     for (deltaMax = -Infinity, n = merged.length - 1, i = 0, a = merged[n]; i <= n; a = b, ++i) {
       b = merged[i]
       if ((delta = angle(a[1], b[0])) > deltaMax) (deltaMax = delta), (lambda0 = b[0]), (lambda1 = a[1])
@@ -286,7 +272,6 @@ export function cartesianCross(a, b) {
   return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
 }
 
-// TODO return a
 export function cartesianAddInPlace(a, b) {
   ;(a[0] += b[0]), (a[1] += b[1]), (a[2] += b[2])
 }
@@ -295,7 +280,6 @@ export function cartesianScale(vector, k) {
   return [vector[0] * k, vector[1] * k, vector[2] * k]
 }
 
-// TODO return d
 export function cartesianNormalizeInPlace(d) {
   var l = sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
   ;(d[0] /= l), (d[1] /= l), (d[2] /= l)
@@ -337,7 +321,6 @@ var centroidStream = {
   },
 }
 
-// Arithmetic mean of Cartesian vectors.
 function centroidPoint(lambda, phi) {
   ;(lambda *= radians), (phi *= radians)
   var cosPhi = cos(phi)
@@ -386,8 +369,6 @@ function centroidLineEnd() {
   centroidStream.point = centroidPoint
 }
 
-// See J. E. Brock, The Inertia Tensor for a Spherical Triangle,
-// J. Applied Mechanics 42, 239 (1975).
 function centroidRingStart() {
   centroidStream.point = centroidRingPointFirst
 }
@@ -430,7 +411,7 @@ function centroidRingPoint(lambda, phi) {
   centroidPointCartesian(x0, y0, z0)
 }
 
-export default function (object) {
+export function (object) {
   W0 = W1 = X0 = Y0 = Z0 = X1 = Y1 = Z1 = 0
   X2 = new Adder()
   Y2 = new Adder()
@@ -442,13 +423,12 @@ export default function (object) {
     z = +Z2,
     m = hypot(x, y, z)
 
-  // If the area-weighted ccentroid is undefined, fall back to length-weighted ccentroid.
   if (m < epsilon2) {
     ;(x = X1), (y = Y1), (z = Z1)
-    // If the feature has zero length, fall back to arithmetic mean of point vectors.
+
     if (W1 < epsilon) (x = X0), (y = Y0), (z = Z0)
     m = hypot(x, y, z)
-    // If the feature still has an undefined ccentroid, then return.
+
     if (m < epsilon2) return [NaN, NaN]
   }
 
@@ -459,7 +439,6 @@ import constant from "./constant.js"
 import { acos, cos, degrees, epsilon, radians, sin, tau } from "./math.js"
 import { rotateRadians } from "./rotation.js"
 
-// Generates a circle centered at [0°, 0°], with a given radius and precision.
 export function circleStream(stream, radius, delta, direction, t0, t1) {
   if (!delta) return
   var cosRadius = cos(radius),
@@ -479,7 +458,6 @@ export function circleStream(stream, radius, delta, direction, t0, t1) {
   }
 }
 
-// Returns the signed angle of a cartesian point relative to [cosRadius, 0, 0].
 function circleRadius(cosRadius, point) {
   ;(point = cartesian(point)), (point[0] -= cosRadius)
   cartesianNormalizeInPlace(point)
@@ -487,7 +465,7 @@ function circleRadius(cosRadius, point) {
   return ((-point[2] < 0 ? -radius : radius) + tau - epsilon) % tau
 }
 
-export default function () {
+export function () {
   var center = constant([0, 0]),
     radius = constant(90),
     precision = constant(6),
@@ -526,7 +504,7 @@ export default function () {
 
   return circle
 }
-export default function (a, b) {
+export function (a, b) {
   function compose(x, y) {
     return (x = a(x, y)), b(x[0], x[1])
   }
@@ -538,7 +516,7 @@ export default function (a, b) {
 
   return compose
 }
-export default function (x) {
+export function (x) {
   return function () {
     return x
   }
@@ -640,7 +618,7 @@ function pointRadians(point) {
   return [point[0] * radians, point[1] * radians]
 }
 
-export default function (object, point) {
+export function (object, point) {
   return (
     object && containsObjectType.hasOwnProperty(object.type) ? containsObjectType[object.type] : containsGeometry
   )(object, point)
@@ -650,7 +628,7 @@ import length from "./length.js"
 var coordinates = [null, null],
   object = { type: "LineString", coordinates: coordinates }
 
-export default function (a, b) {
+export function (a, b) {
   coordinates[0] = a
   coordinates[1] = b
   return length(object)
@@ -676,7 +654,7 @@ function graticuleY(x0, x1, dx) {
   }
 }
 
-export default function graticule() {
+export function graticule() {
   var x1,
     x0,
     X1,
@@ -856,7 +834,7 @@ export { default as geoStream } from "./stream.js"
 export { default as geoTransform } from "./transform.js"
 import { asin, atan2, cos, degrees, haversin, radians, sin, sqrt } from "./math.js"
 
-export default function (a, b) {
+export function (a, b) {
   var x0 = a[0] * radians,
     y0 = a[1] * radians,
     x1 = b[0] * radians,
@@ -934,7 +912,7 @@ function lengthPoint(lambda, phi) {
   ;(lambda0 = lambda), (sinPhi0 = sinPhi), (cosPhi0 = cosPhi)
 }
 
-export default function (object) {
+export function (object) {
   lengthSum = new Adder()
   stream(object, lengthStream)
   return +lengthSum
@@ -979,10 +957,10 @@ export function asin(x) {
 export function haversin(x) {
   return (x = sin(x / 2)) * x
 }
-export default function noop() {}
+export function noop() {}
 import { abs, epsilon } from "./math.js"
 
-export default function (a, b) {
+export function (a, b) {
   return abs(a[0] - b[0]) < epsilon && abs(a[1] - b[1]) < epsilon
 }
 import { Adder } from "d3-array"
@@ -993,7 +971,7 @@ function longitude(point) {
   return abs(point[0]) <= pi ? point[0] : sign(point[0]) * (((abs(point[0]) + pi) % tau) - pi)
 }
 
-export default function (polygon, point) {
+export function (polygon, point) {
   var lambda = longitude(point),
     phi = point[1],
     sinPhi = sin(phi),
@@ -1031,8 +1009,6 @@ export default function (polygon, point) {
       sum.add(atan2(k * sign * sin(absDelta), cosPhi0 * cosPhi1 + k * cos(absDelta)))
       angle += antimeridian ? delta + sign * tau : delta
 
-      // Are the longitudes either side of the point’s meridian (lambda),
-      // and are the latitudes smaller than the parallel (phi)?
       if (antimeridian ^ (lambda0 >= lambda) ^ (lambda1 >= lambda)) {
         var arc = cartesianCross(cartesian(point0), cartesian(point1))
         cartesianNormalizeInPlace(arc)
@@ -1045,17 +1021,6 @@ export default function (polygon, point) {
       }
     }
   }
-
-  // First, determine whether the South pole is inside or outside:
-  //
-  // It is inside if:
-  // * the polygon winds around it in a clockwise direction.
-  // * the polygon does not (cumulatively) wind around it, but has a negative
-  //   (counter-clockwise) area.
-  //
-  // Second, count the (signed) number of times a segment crosses a lambda
-  // from the point to the South pole.  If it is zero, then the point is the
-  // same side as the South pole.
 
   return (angle < -epsilon || (angle < epsilon && sum < -epsilon2)) ^ (winding & 1)
 }
@@ -1126,7 +1091,7 @@ function rotationPhiGamma(deltaPhi, deltaGamma) {
   return rotation
 }
 
-export default function (rotate) {
+export function (rotate) {
   rotate = rotateRadians(rotate[0] * radians, rotate[1] * radians, rotate.length > 2 ? rotate[2] * radians : 0)
 
   function forward(coordinates) {
@@ -1216,14 +1181,14 @@ function streamPolygon(coordinates, stream) {
   stream.polygonEnd()
 }
 
-export default function (object, stream) {
+export function (object, stream) {
   if (object && streamObjectType.hasOwnProperty(object.type)) {
     streamObjectType[object.type](object, stream)
   } else {
     streamGeometry(object, stream)
   }
 }
-export default function (methods) {
+export function (methods) {
   return {
     stream: transformer(methods),
   }

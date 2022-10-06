@@ -283,7 +283,6 @@ it("band.copy() isolates changes to the range", () => {
   assert.deepStrictEqual(s2.domain().map(s2), [5, 6])
 })
 
-// TODO align tests for padding & round
 export function local(year, month, day, hours, minutes, seconds, milliseconds) {
   if (year == null) year = 0
   if (month == null) month = 0

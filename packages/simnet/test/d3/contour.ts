@@ -484,7 +484,7 @@ import { promises as fs } from "fs"
 import * as path from "path"
 import { JSDOM } from "jsdom"
 
-export default function jsdomit(description, run) {
+export function jsdomit(description, run) {
   return it(description, withJsdom(run))
 }
 

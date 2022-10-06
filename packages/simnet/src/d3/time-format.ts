@@ -30,7 +30,7 @@ defaultLocale({
   shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 })
 
-export default function defaultLocale(definition) {
+export function defaultLocale(definition) {
   locale = formatLocale(definition)
   timeFormat = locale.format
   timeParse = locale.parse
@@ -99,7 +99,7 @@ function newDate(y, m, d) {
   return { y: y, m: m, d: d, H: 0, M: 0, S: 0, L: 0 }
 }
 
-export default function formatLocale(locale) {
+export function formatLocale(locale) {
   var locale_dateTime = locale.dateTime,
     locale_date = locale.date,
     locale_time = locale.time,
@@ -225,7 +225,6 @@ export default function formatLocale(locale) {
     "%": parseLiteralPercent,
   }
 
-  // These recursive directive definitions must be deferred.
   formats.x = newFormat(locale_date, formats)
   formats.X = newFormat(locale_time, formats)
   formats.c = newFormat(locale_dateTime, formats)
@@ -269,20 +268,15 @@ export default function formatLocale(locale) {
         day
       if (i != string.length) return null
 
-      // If a UNIX timestamp is specified, return it.
       if ("Q" in d) return new Date(d.Q)
       if ("s" in d) return new Date(d.s * 1000 + ("L" in d ? d.L : 0))
 
-      // If this is utcParse, never use the local timezone.
       if (Z && !("Z" in d)) d.Z = 0
 
-      // The am-pm flag is 0 for AM, and 1 for PM.
       if ("p" in d) d.H = (d.H % 12) + d.p * 12
 
-      // If the month was not specified, inherit from the quarter.
       if (d.m === undefined) d.m = "q" in d ? d.q : 0
 
-      // Convert day-of-week and week-of-year to day-of-year.
       if ("V" in d) {
         if (d.V < 1 || d.V > 53) return null
         if (!("w" in d)) d.w = 1
@@ -308,15 +302,12 @@ export default function formatLocale(locale) {
         d.d = "W" in d ? ((d.w + 6) % 7) + d.W * 7 - ((day + 5) % 7) : d.w + d.U * 7 - ((day + 6) % 7)
       }
 
-      // If a time zone is specified, all fields are interpreted as UTC and then
-      // offset according to the specified time zone.
       if ("Z" in d) {
         d.H += (d.Z / 100) | 0
         d.M += d.Z % 100
         return utcDate(d)
       }
 
-      // Otherwise, all fields are in local time.
       return localDate(d)
     }
   }

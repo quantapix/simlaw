@@ -1,4 +1,4 @@
-export default function(d) {
+export function(d) {
   const x = +this._x.call(null, d),
       y = +this._y.call(null, d);
   return add(this.cover(x, y), x, y, d);
@@ -23,22 +23,22 @@ function add(tree, x, y, d) {
       i,
       j;
 
-  // If the tree is empty, initialize the root as a leaf.
+
   if (!node) return tree._root = leaf, tree;
 
-  // Find the existing leaf for the new point, or add it.
+
   while (node.length) {
     if (right = x >= (xm = (x0 + x1) / 2)) x0 = xm; else x1 = xm;
     if (bottom = y >= (ym = (y0 + y1) / 2)) y0 = ym; else y1 = ym;
     if (parent = node, !(node = node[i = bottom << 1 | right])) return parent[i] = leaf, tree;
   }
 
-  // Is the new point is exactly coincident with the existing point?
+
   xp = +tree._x.call(null, node.data);
   yp = +tree._y.call(null, node.data);
   if (x === xp && y === yp) return leaf.next = node, parent ? parent[i] = leaf : tree._root = leaf, tree;
 
-  // Otherwise, split the leaf node until the old and new point are separated.
+
   do {
     parent = parent ? parent[i] = new Array(4) : tree._root = new Array(4);
     if (right = x >= (xm = (x0 + x1) / 2)) x0 = xm; else x1 = xm;
@@ -54,7 +54,7 @@ export function addAll(data) {
   const yz = new Float64Array(n);
   let x0 = Infinity, y0 = x0, x1 = -x0, y1 = x1;
 
-  // Compute the points and their extent.
+
   for (let i = 0, d, x, y; i < n; ++i) {
     if (isNaN(x = +this._x.call(null, d = data[i])) || isNaN(y = +this._y.call(null, d))) continue;
     xz[i] = x;
@@ -65,20 +65,20 @@ export function addAll(data) {
     if (y > y1) y1 = y;
   }
 
-  // If there were no (valid) points, abort.
+
   if (x0 > x1 || y0 > y1) return this;
 
-  // Expand the tree to cover the new points.
+
   this.cover(x0, y0).cover(x1, y1);
 
-  // Add the new points.
+
   for (let i = 0; i < n; ++i) {
     add(this, xz[i], yz[i], data[i]);
   }
 
   return this;
 }
-export default function(x, y) {
+export function(x, y) {
   if (isNaN(x = +x) || isNaN(y = +y)) return this; // ignore invalid points
 
   var x0 = this._x0,
@@ -86,15 +86,15 @@ export default function(x, y) {
       x1 = this._x1,
       y1 = this._y1;
 
-  // If the quadtree has no extent, initialize them.
-  // Integer extent are necessary so that if we later double the extent,
-  // the existing quadrant boundaries don’t change due to floating point error!
+
+
+
   if (isNaN(x0)) {
     x1 = (x0 = Math.floor(x)) + 1;
     y1 = (y0 = Math.floor(y)) + 1;
   }
 
-  // Otherwise, double repeatedly to cover.
+
   else {
     var z = x1 - x0 || 1,
         node = this._root,
@@ -121,21 +121,21 @@ export default function(x, y) {
   this._y1 = y1;
   return this;
 }
-export default function() {
+export function() {
   var data = [];
   this.visit(function(node) {
     if (!node.length) do data.push(node.data); while (node = node.next)
   });
   return data;
 }
-export default function(_) {
+export function(_) {
   return arguments.length
       ? this.cover(+_[0][0], +_[0][1]).cover(+_[1][0], +_[1][1])
       : isNaN(this._x0) ? undefined : [[this._x0, this._y0], [this._x1, this._y1]];
 }
 import Quad from "./quad.js";
 
-export default function(x, y, radius) {
+export function(x, y, radius) {
   var data,
       x0 = this._x0,
       y0 = this._y0,
@@ -160,14 +160,14 @@ export default function(x, y, radius) {
 
   while (q = quads.pop()) {
 
-    // Stop searching if this quadrant can’t contain a closer node.
+
     if (!(node = q.node)
         || (x1 = q.x0) > x3
         || (y1 = q.y0) > y3
         || (x2 = q.x1) < x0
         || (y2 = q.y1) < y0) continue;
 
-    // Bisect the current quadrant.
+
     if (node.length) {
       var xm = (x1 + x2) / 2,
           ym = (y1 + y2) / 2;
@@ -179,7 +179,7 @@ export default function(x, y, radius) {
         new Quad(node[0], x1, y1, xm, ym)
       );
 
-      // Visit the closest quadrant first.
+
       if (i = (y >= ym) << 1 | (x >= xm)) {
         q = quads[quads.length - 1];
         quads[quads.length - 1] = quads[quads.length - 1 - i];
@@ -187,7 +187,7 @@ export default function(x, y, radius) {
       }
     }
 
-    // Visit this point. (Visiting coincident points isn’t necessary!)
+
     else {
       var dx = x - +this._x.call(null, node.data),
           dy = y - +this._y.call(null, node.data),
@@ -204,7 +204,7 @@ export default function(x, y, radius) {
   return data;
 }
 export {default as quadtree} from "./quadtree.js";
-export default function(node, x0, y0, x1, y1) {
+export function(node, x0, y0, x1, y1) {
   this.node = node;
   this.x0 = x0;
   this.y0 = y0;
@@ -224,7 +224,7 @@ import tree_visitAfter from "./visitAfter.js";
 import tree_x, {defaultX} from "./x.js";
 import tree_y, {defaultY} from "./y.js";
 
-export default function quadtree(nodes, x, y) {
+export function quadtree(nodes, x, y) {
   var tree = new Quadtree(x == null ? defaultX : x, y == null ? defaultY : y, NaN, NaN, NaN, NaN);
   return nodes == null ? tree : tree.addAll(nodes);
 }
@@ -284,7 +284,7 @@ treeProto.visit = tree_visit;
 treeProto.visitAfter = tree_visitAfter;
 treeProto.x = tree_x;
 treeProto.y = tree_y;
-export default function(d) {
+export function(d) {
   if (isNaN(x = +this._x.call(null, d)) || isNaN(y = +this._y.call(null, d))) return this; // ignore invalid points
 
   var parent,
@@ -305,11 +305,11 @@ export default function(d) {
       i,
       j;
 
-  // If the tree is empty, initialize the root as a leaf.
+
   if (!node) return this;
 
-  // Find the leaf node for the point.
-  // While descending, also retain the deepest parent with a non-removed sibling.
+
+
   if (node.length) while (true) {
     if (right = x >= (xm = (x0 + x1) / 2)) x0 = xm; else x1 = xm;
     if (bottom = y >= (ym = (y0 + y1) / 2)) y0 = ym; else y1 = ym;
@@ -318,20 +318,20 @@ export default function(d) {
     if (parent[(i + 1) & 3] || parent[(i + 2) & 3] || parent[(i + 3) & 3]) retainer = parent, j = i;
   }
 
-  // Find the point to remove.
+
   while (node.data !== d) if (!(previous = node, node = node.next)) return this;
   if (next = node.next) delete node.next;
 
-  // If there are multiple coincident points, remove just the point.
+
   if (previous) return (next ? previous.next = next : delete previous.next), this;
 
-  // If this is the root point, remove it.
+
   if (!parent) return this._root = next, this;
 
-  // Remove this leaf.
+
   next ? parent[i] = next : delete parent[i];
 
-  // If the parent now contains exactly one leaf, collapse superfluous parents.
+
   if ((node = parent[0] || parent[1] || parent[2] || parent[3])
       && node === (parent[3] || parent[2] || parent[1] || parent[0])
       && !node.length) {
@@ -346,10 +346,10 @@ export function removeAll(data) {
   for (var i = 0, n = data.length; i < n; ++i) this.remove(data[i]);
   return this;
 }
-export default function() {
+export function() {
   return this._root;
 }
-export default function() {
+export function() {
   var size = 0;
   this.visit(function(node) {
     if (!node.length) do ++size; while (node = node.next)
@@ -358,7 +358,7 @@ export default function() {
 }
 import Quad from "./quad.js";
 
-export default function(callback) {
+export function(callback) {
   var quads = [], q, node = this._root, child, x0, y0, x1, y1;
   if (node) quads.push(new Quad(node, this._x0, this._y0, this._x1, this._y1));
   while (q = quads.pop()) {
@@ -374,7 +374,7 @@ export default function(callback) {
 }
 import Quad from "./quad.js";
 
-export default function(callback) {
+export function(callback) {
   var quads = [], next = [], q;
   if (this._root) quads.push(new Quad(this._root, this._x0, this._y0, this._x1, this._y1));
   while (q = quads.pop()) {
@@ -397,13 +397,13 @@ export function defaultX(d) {
   return d[0];
 }
 
-export default function(_) {
+export function(_) {
   return arguments.length ? (this._x = _, this) : this._x;
 }
 export function defaultY(d) {
   return d[1];
 }
 
-export default function(_) {
+export function(_) {
   return arguments.length ? (this._y = _, this) : this._y;
 }

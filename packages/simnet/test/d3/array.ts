@@ -641,9 +641,6 @@ it("bisector(comparator).left(array, value) supports an asymmetric (object, valu
   assert.strictEqual(bisectLeft(boxes, 3), 2)
 })
 
-// This is not possible because the bisector has no way of knowing whether the
-// given comparator is symmetric or asymmetric, and if the comparator is
-// asymmetric it cannot be used to test the search value for orderability.
 it.skip("bisector(comparator).left(array, value) keeps non-comparable values to the right", () => {
   const boxes = [1, 2, null, undefined, NaN].map(box)
   const bisectLeft = bisector(ascendingBox).left
@@ -4694,9 +4691,6 @@ it("sort(values) defaults to ascending, not lexicographic", () => {
   assert.deepStrictEqual(sort(input), [1, 2, "10"])
 })
 
-// Per ECMAScript specification §23.1.3.27.1, undefined values are not passed to
-// the comparator; they are always put at the end of the sorted array.
-// https://262.ecma-international.org/12.0/#sec-sortcompare
 it("sort(values) puts non-orderable values last, followed by undefined", () => {
   const date = new Date(NaN)
   const input = [undefined, 1, null, 0, NaN, "10", date, 2]
@@ -4710,7 +4704,6 @@ it("sort(values, comparator) puts non-orderable values last, followed by undefin
   assert.deepStrictEqual(sort(input, descending), ["10", 2, 1, 0, null, NaN, date, undefined])
 })
 
-// However we don't implement this spec when using an accessor
 it("sort(values, accessor) puts non-orderable values last", () => {
   const date = new Date(NaN)
   const input = [undefined, 1, null, 0, NaN, "10", date, 2]

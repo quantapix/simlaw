@@ -1,4 +1,4 @@
-export default function(series, order) {
+export function(series, order) {
   if (!((n = series.length) > 0)) return;
   for (var i, j = 0, d, dy, yp, yn, n, m = series[order[0]].length; j < m; ++j) {
     for (yp = yn = 0, i = 0; i < n; ++i) {
@@ -14,7 +14,7 @@ export default function(series, order) {
 }
 import none from "./none.js";
 
-export default function(series, order) {
+export function(series, order) {
   if (!((n = series.length) > 0)) return;
   for (var i, n, j = 0, m = series[0].length, y; j < m; ++j) {
     for (y = i = 0; i < n; ++i) y += series[i][j][1] || 0;
@@ -22,7 +22,7 @@ export default function(series, order) {
   }
   none(series, order);
 }
-export default function(series, order) {
+export function(series, order) {
   if (!((n = series.length) > 1)) return;
   for (var i = 1, j, s0, s1 = series[order[0]], n, m = s1.length; i < n; ++i) {
     s0 = s1, s1 = series[order[i]];
@@ -33,7 +33,7 @@ export default function(series, order) {
 }
 import none from "./none.js";
 
-export default function(series, order) {
+export function(series, order) {
   if (!((n = series.length) > 0)) return;
   for (var j = 0, s0 = series[order[0]], n, m = s0.length; j < m; ++j) {
     for (var i = 0, y = 0; i < n; ++i) y += series[i][j][1] || 0;
@@ -43,7 +43,7 @@ export default function(series, order) {
 }
 import none from "./none.js";
 
-export default function(series, order) {
+export function(series, order) {
   if (!((n = series.length) > 0) || !((m = (s0 = series[order[0]]).length) > 0)) return;
   for (var y = 0, j = 1, s0, m, n; j < m; ++j) {
     for (var i = 0, s1 = 0, s2 = 0; i < n; ++i) {

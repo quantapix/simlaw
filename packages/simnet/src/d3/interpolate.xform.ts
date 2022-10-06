@@ -9,7 +9,7 @@ export var identity = {
   scaleY: 1,
 }
 
-export default function (a, b, c, d, e, f) {
+export function (a, b, c, d, e, f) {
   var scaleX, scaleY, skewX
   if ((scaleX = Math.sqrt(a * a + b * b))) (a /= scaleX), (b /= scaleX)
   if ((skewX = a * c + b * d)) (c -= a * skewX), (d -= b * skewX)

@@ -1,62 +1,38 @@
-var array = Array.prototype
+import { InternSet, InternMap } from "internmap"
+import * as qt from "./types.js"
 
+var array = Array.prototype
 export var slice = array.slice
 export var map = array.map
-export default function ascending(a, b) {
+
+export function ascending(a: qt.Primitive | undefined, b: qt.Primitive | undefined): number
+export function ascending(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
 }
-import { slice } from "./array.js"
-import bisect from "./bisect.js"
-import constant from "./constant.js"
-import extent from "./extent.js"
-import identity from "./identity.js"
-import nice from "./nice.js"
-import ticks, { tickIncrement } from "./ticks.js"
-import sturges from "./threshold/sturges.js"
-
-export default function bin() {
+export function bin() {
   var value = identity,
     domain = extent,
     threshold = sturges
-
   function histogram(data) {
     if (!Array.isArray(data)) data = Array.from(data)
-
     var i,
       n = data.length,
       x,
       step,
       values = new Array(n)
-
     for (i = 0; i < n; ++i) {
       values[i] = value(data[i], i, data)
     }
-
     var xz = domain(values),
       x0 = xz[0],
       x1 = xz[1],
       tz = threshold(values, x0, x1)
-
-    // Convert number of thresholds into uniform thresholds, and nice the
-    // default domain accordingly.
     if (!Array.isArray(tz)) {
       const max = x1,
         tn = +tz
       if (domain === extent) [x0, x1] = nice(x0, x1, tn)
       tz = ticks(x0, x1, tn)
-
-      // If the domain is aligned with the first tick (which it will by
-      // default), then we can use quantization rather than bisection to bin
-      // values, which is substantially faster.
       if (tz[0] <= x0) step = tickIncrement(x0, x1, tn)
-
-      // If the last threshold is coincident with the domain’s upper bound, the
-      // last bin will be zero-width. If the default domain is used, and this
-      // last threshold is coincident with the maximum input value, we can
-      // extend the niced upper bound by one tick to ensure uniform bin widths;
-      // otherwise, we simply remove the last threshold. Note that we don’t
-      // coerce values or the domain to numbers, and thus must be careful to
-      // compare order (>=) rather than strict equality (===)!
       if (tz[tz.length - 1] >= x1) {
         if (max >= x1 && domain === extent) {
           const step = tickIncrement(x0, x1, tn)
@@ -72,23 +48,16 @@ export default function bin() {
         }
       }
     }
-
-    // Remove any thresholds outside the domain.
     var m = tz.length
     while (tz[0] <= x0) tz.shift(), --m
     while (tz[m - 1] > x1) tz.pop(), --m
-
     var bins = new Array(m + 1),
       bin
-
-    // Initialize bins.
     for (i = 0; i <= m; ++i) {
       bin = bins[i] = []
       bin.x0 = i > 0 ? tz[i - 1] : x0
       bin.x1 = i < m ? tz[i] : x1
     }
-
-    // Assign data to bins by value, ignoring any outside the domain.
     if (isFinite(step)) {
       if (step > 0) {
         for (i = 0; i < n; ++i) {
@@ -111,47 +80,42 @@ export default function bin() {
         }
       }
     }
-
     return bins
   }
-
   histogram.value = function (_) {
     return arguments.length ? ((value = typeof _ === "function" ? _ : constant(_)), histogram) : value
   }
-
   histogram.domain = function (_) {
     return arguments.length ? ((domain = typeof _ === "function" ? _ : constant([_[0], _[1]])), histogram) : domain
   }
-
   histogram.thresholds = function (_) {
     return arguments.length
       ? ((threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant(slice.call(_)) : constant(_)),
         histogram)
       : threshold
   }
-
   return histogram
 }
-import ascending from "./ascending.js"
-import bisector from "./bisector.js"
-import number from "./number.js"
 
 const ascendingBisect = bisector(ascending)
-export const bisectRight = ascendingBisect.right
-export const bisectLeft = ascendingBisect.left
-export const bisectCenter = bisector(number).center
-export default bisectRight
-import ascending from "./ascending.js"
-import descending from "./descending.js"
+export function bisectLeft(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
+export function bisectLeft(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number
+export function bisectLeft(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
+export function bisectLeft = ascendingBisect.left
+export function bisectRight(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
+export function bisectRight(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number
+export function bisectRight(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
+export function bisectRight = ascendingBisect.right
+export function bisectCenter(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
+export function bisectCenter(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number
+export function bisectCenter(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
+export function bisectCenter = bisector(number).center
+export const bisect: typeof bisectRight
 
-export default function bisector(f) {
+export function bisector<T, U>(comparator: (a: T, b: U) => number): qt.Bisector<T, U>
+export function bisector<T, U>(f: (x: T) => U): qt.Bisector<T, U>
+export function bisector(f) {
   let compare1, compare2, delta
-
-  // If an accessor is specified, promote it to a comparator. In this case we
-  // can test whether the search value is (self-) comparable. We can’t do this
-  // for a comparator (except for specific, known comparators) because we can’t
-  // tell if the comparator is symmetric, and an asymmetric comparator can’t be
-  // used to test whether a single value is comparable.
   if (f.length !== 2) {
     compare1 = ascending
     compare2 = (d, x) => ascending(f(d), x)
@@ -161,7 +125,6 @@ export default function bisector(f) {
     compare2 = f
     delta = f
   }
-
   function left(a, x, lo = 0, hi = a.length) {
     if (lo < hi) {
       if (compare1(x, x) !== 0) return hi
@@ -173,7 +136,6 @@ export default function bisector(f) {
     }
     return lo
   }
-
   function right(a, x, lo = 0, hi = a.length) {
     if (lo < hi) {
       if (compare1(x, x) !== 0) return hi
@@ -185,15 +147,12 @@ export default function bisector(f) {
     }
     return lo
   }
-
   function center(a, x, lo = 0, hi = a.length) {
     const i = left(a, x, lo, hi - 1)
     return i > lo && delta(a[i - 1], x) > -delta(a[i], x) ? i - 1 : i
   }
-
   return { left, center, right }
 }
-
 function zero() {
   return 0
 }
@@ -209,11 +168,8 @@ export function blur(values, r) {
   blur(values, temp, 0, length, 1)
   return values
 }
-
 export const blur2 = Blur2(blurf)
-
 export const blurImage = Blur2(blurfImage)
-
 function Blur2(blur) {
   return function (data, rx, ry = rx) {
     if (!((rx = +rx) >= 0)) throw new RangeError("invalid rx")
@@ -245,19 +201,16 @@ function Blur2(blur) {
     return data
   }
 }
-
 function blurh(blur, T, S, w, h) {
   for (let y = 0, n = w * h; y < n; ) {
     blur(T, S, y, (y += w), 1)
   }
 }
-
 function blurv(blur, T, S, w, h) {
   for (let x = 0, n = w * h; x < w; ++x) {
     blur(T, S, x, x + n, w)
   }
 }
-
 function blurfImage(radius) {
   const blur = blurf(radius)
   return (T, S, start, stop, step) => {
@@ -268,20 +221,12 @@ function blurfImage(radius) {
     blur(T, S, start + 3, stop + 3, step)
   }
 }
-
-// Given a target array T, a source array S, sets each value T[i] to the average
-// of {S[i - r], …, S[i], …, S[i + r]}, where r = ⌊radius⌋, start <= i < stop,
-// for each i, i + step, i + 2 * step, etc., and where S[j] is clamped between
-// S[start] (inclusive) and S[stop] (exclusive). If the given radius is not an
-// integer, S[i - r - 1] and S[i + r + 1] are added to the sum, each weighted
-// according to r - ⌊radius⌋.
 function blurf(radius) {
   const radius0 = Math.floor(radius)
   if (radius0 === radius) return bluri(radius)
   const t = radius - radius0
   const w = 2 * radius + 1
   return (T, S, start, stop, step) => {
-    // stop must be aligned!
     if (!((stop -= step) >= start)) return // inclusive stop
     let sum = radius0 * S[start]
     const s0 = step * radius0
@@ -296,12 +241,9 @@ function blurf(radius) {
     }
   }
 }
-
-// Like blurf, but optimized for integer radius.
 function bluri(radius) {
   const w = 2 * radius + 1
   return (T, S, start, stop, step) => {
-    // stop must be aligned!
     if (!((stop -= step) >= start)) return // inclusive stop
     let sum = radius * S[start]
     const s = step * radius
@@ -315,10 +257,12 @@ function bluri(radius) {
     }
   }
 }
-export default function constant(x) {
+export function constant(x) {
   return () => x
 }
-export default function count(values, valueof) {
+export function count(xs: Iterable<unknown>): number
+export function count<T>(xs: Iterable<T>, accessor: (a: T, b: T) => number | null | undefined): number
+export function count(values, valueof) {
   let count = 0
   if (valueof === undefined) {
     for (let value of values) {
@@ -339,20 +283,18 @@ export default function count(values, valueof) {
 function length(array) {
   return array.length | 0
 }
-
 function empty(length) {
   return !(length > 0)
 }
-
 function arrayify(values) {
   return typeof values !== "object" || "length" in values ? values : Array.from(values)
 }
-
 function reducer(reduce) {
   return values => reduce(...values)
 }
-
-export default function cross(...values) {
+export function cross<S, T>(a: Iterable<S>, b: Iterable<T>): Array<[S, T]>
+export function cross<S, T, U>(a: Iterable<S>, b: Iterable<T>, reducer: (a: S, b: T) => U): U[]
+export function cross(...values) {
   const reduce = typeof values[values.length - 1] === "function" && reducer(values.pop())
   values = values.map(arrayify)
   const lengths = values.map(length)
@@ -369,26 +311,34 @@ export default function cross(...values) {
     }
   }
 }
-export default function cumsum(values, valueof) {
-  var sum = 0,
+export function cumsum(iterable: Iterable<qt.Numeric | undefined | null>): Float64Array
+export function cumsum<T>(
+  iterable: Iterable<T>,
+  accessor: (element: T, i: number, array: Iterable<T>) => number | undefined | null
+): Float64Array
+export function cumsum(values, valueof) {
+  let sum = 0,
     index = 0
   return Float64Array.from(
     values,
     valueof === undefined ? v => (sum += +v || 0) : v => (sum += +valueof(v, index++, values) || 0)
   )
 }
-export default function descending(a, b) {
+export function descending(a: qt.Primitive | undefined, b: qt.Primitive | undefined): number
+export function descending(a, b) {
   return a == null || b == null ? NaN : b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN
 }
-import variance from "./variance.js"
-
-export default function deviation(values, valueof) {
+export function deviation(xs: Iterable<Numeric | undefined | null>): number | undefined
+export function deviation<T>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
+): number | undefined
+export function deviation(values, valueof) {
   const v = variance(values, valueof)
   return v ? Math.sqrt(v) : v
 }
-import { InternSet } from "internmap"
-
-export default function difference(values, ...others) {
+export function difference<T>(xs: Iterable<T>, ...others: Array<Iterable<T>>): InternSet<T>
+export function difference(values, ...others) {
   values = new InternSet(values)
   for (const other of others) {
     for (const value of other) {
@@ -397,9 +347,8 @@ export default function difference(values, ...others) {
   }
   return values
 }
-import { InternSet } from "internmap"
-
-export default function disjoint(values, other) {
+export function disjoint<T>(a: Iterable<T>, b: Iterable<T>): boolean
+export function disjoint(values, other) {
   const iterator = other[Symbol.iterator](),
     set = new InternSet()
   for (const v of values) {
@@ -413,7 +362,8 @@ export default function disjoint(values, other) {
   }
   return true
 }
-export default function every(values, test) {
+export function every<T>(xs: Iterable<T>, test: (value: T, i: number, xs: Iterable<T>) => unknown): boolean
+export function every(values, test) {
   if (typeof test !== "function") throw new TypeError("test is not a function")
   let index = -1
   for (const value of values) {
@@ -423,7 +373,17 @@ export default function every(values, test) {
   }
   return true
 }
-export default function extent(values, valueof) {
+export function extent(xs: Iterable<string>): [string, string] | [undefined, undefined]
+export function extent<T extends qt.Numeric>(xs: Iterable<T>): [T, T] | [undefined, undefined]
+export function extent<T>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => string | undefined | null
+): [string, string] | [undefined, undefined]
+export function extent<T, U extends qt.Numeric>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => U | undefined | null
+): [U, U] | [undefined, undefined]
+export function extent(values, valueof) {
   let min
   let max
   if (valueof === undefined) {
@@ -452,7 +412,8 @@ export default function extent(values, valueof) {
   }
   return [min, max]
 }
-export default function filter(values, test) {
+export function filter<T>(xs: Iterable<T>, test: (value: T, i: number, xs: Iterable<T>) => unknown): T[]
+export function filter(values, test) {
   if (typeof test !== "function") throw new TypeError("test is not a function")
   const array = []
   let index = -1
@@ -463,8 +424,7 @@ export default function filter(values, test) {
   }
   return array
 }
-// https://github.com/python/cpython/blob/a74eea238f5baba15797e2e8b570d153bc8690a7/Modules/mathmodule.c#L1423
-export class Adder {
+export class Adder implements qt.Adder {
   constructor() {
     this._partials = new Float64Array(32)
     this._n = 0
@@ -508,7 +468,8 @@ export class Adder {
     return hi
   }
 }
-
+export function fsum(xs: Iterable<Numeric | undefined | null>): number
+export function fsum<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null): number
 export function fsum(values, valueof) {
   const adder = new Adder()
   if (valueof === undefined) {
@@ -527,7 +488,11 @@ export function fsum(values, valueof) {
   }
   return +adder
 }
-
+export function fcumsum(xs: Iterable<Numeric | undefined | null>): Float64Array
+export function fcumsum<T>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
+): Float64Array
 export function fcumsum(values, valueof) {
   const adder = new Adder()
   let index = -1
@@ -536,9 +501,9 @@ export function fcumsum(values, valueof) {
     valueof === undefined ? v => adder.add(+v || 0) : v => adder.add(+valueof(v, ++index, values) || 0)
   )
 }
-import ascending from "./ascending.js"
-
-export default function greatest(values, compare = ascending) {
+export function greatest<T>(xs: Iterable<T>, comparator?: (a: T, b: T) => number): T | undefined
+export function greatest<T>(xs: Iterable<T>, accessor: (a: T) => unknown): T | undefined
+export function greatest(values, compare = ascending) {
   let max
   let defined = false
   if (compare.length === 1) {
@@ -561,70 +526,151 @@ export default function greatest(values, compare = ascending) {
   }
   return max
 }
-import ascending from "./ascending.js"
-import maxIndex from "./maxIndex.js"
-
-export default function greatestIndex(values, compare = ascending) {
-  if (compare.length === 1) return maxIndex(values, compare)
-  let maxValue
-  let max = -1
-  let index = -1
-  for (const value of values) {
-    ++index
-    if (max < 0 ? compare(value, value) === 0 : compare(value, maxValue) > 0) {
-      maxValue = value
-      max = index
+export function greatestIndex(xs: Iterable<unknown>): number | undefined
+export function greatestIndex<T>(xs: Iterable<T>, f: (a: T, b: T) => number): number | undefined
+export function greatestIndex<T>(xs: Iterable<T>, f: (a: T) => unknown): number | undefined
+export function greatestIndex(xs: any, f = ascending) {
+  if (f.length === 1) return maxIndex(xs, f)
+  let max
+  let y = -1
+  let i = -1
+  for (const x of xs) {
+    ++i
+    if (y < 0 ? f(x, x) === 0 : f(x, max) > 0) {
+      max = x
+      y = i
     }
   }
-  return max
+  return y
 }
-import { InternMap } from "internmap"
-import identity from "./identity.js"
-
-export default function group(values, ...keys) {
+export function group<T, K>(xs: Iterable<T>, key: (x: T) => K): InternMap<K, T[]>
+export function group<T, K1, K2>(
+  xs: Iterable<T>,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2
+): InternMap<K1, InternMap<K2, T[]>>
+export function group<T, K1, K2, K3>(
+  xs: Iterable<T>,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2,
+  key3: (x: T) => K3
+): InternMap<K1, InternMap<K2, InternMap<K3, T[]>>>
+export function group(values, ...keys) {
   return nest(values, identity, identity, keys)
 }
-
+export function groups<T, K>(xs: Iterable<T>, key: (x: T) => K): Array<[K, T[]]>
+export function groups<T, K1, K2>(
+  xs: Iterable<T>,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2
+): Array<[K1, Array<[K2, T[]]>]>
+export function groups<T, K1, K2, K3>(
+  xs: Iterable<T>,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2,
+  key3: (x: T) => K3
+): Array<[K1, Array<[K2, Array<[K3, T[]]>]>]>
 export function groups(values, ...keys) {
   return nest(values, Array.from, identity, keys)
 }
-
 function flatten(groups, keys) {
   for (let i = 1, n = keys.length; i < n; ++i) {
     groups = groups.flatMap(g => g.pop().map(([key, value]) => [...g, key, value]))
   }
   return groups
 }
-
+export function flatGroup<T, K>(xs: Iterable<T>, key: (x: T) => K): Array<[K, T[]]>
+export function flatGroup<T, K1, K2>(xs: Iterable<T>, key1: (x: T) => K1, key2: (x: T) => K2): Array<[K1, K2, T[]]>
+export function flatGroup<T, K1, K2, K3>(
+  xs: Iterable<T>,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2,
+  key3: (x: T) => K3
+): Array<[K1, K2, K3, T[]]>
 export function flatGroup(values, ...keys) {
   return flatten(groups(values, ...keys), keys)
 }
-
+export function flatRollup<T, R, K>(xs: Iterable<T>, reduce: (value: T[]) => R, key: (x: T) => K): Array<[K, R]>
+export function flatRollup<T, R, K1, K2>(
+  xs: Iterable<T>,
+  reduce: (value: T[]) => R,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2
+): Array<[K1, K2, R]>
+export function flatRollup<T, R, K1, K2, K3>(
+  xs: Iterable<T>,
+  reduce: (value: T[]) => R,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2,
+  key3: (x: T) => K3
+): Array<[K1, K2, K3, R]>
 export function flatRollup(values, reduce, ...keys) {
   return flatten(rollups(values, reduce, ...keys), keys)
 }
-
+export function rollup<T, R, K>(xs: Iterable<T>, reduce: (value: T[]) => R, key: (x: T) => K): InternMap<K, R>
+export function rollup<T, R, K1, K2>(
+  xs: Iterable<T>,
+  reduce: (value: T[]) => R,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2
+): InternMap<K1, InternMap<K2, R>>
+export function rollup<T, R, K1, K2, K3>(
+  xs: Iterable<T>,
+  reduce: (value: T[]) => R,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2,
+  key3: (x: T) => K3
+): InternMap<K1, InternMap<K2, InternMap<K3, R>>>
 export function rollup(values, reduce, ...keys) {
   return nest(values, identity, reduce, keys)
 }
-
+export function rollups<T, R, K>(xs: Iterable<T>, reduce: (value: T[]) => R, key: (x: T) => K): Array<[K, R]>
+export function rollups<T, R, K1, K2>(
+  xs: Iterable<T>,
+  reduce: (value: T[]) => R,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2
+): Array<[K1, Array<[K2, R]>]>
+export function rollups<T, R, K1, K2, K3>(
+  xs: Iterable<T>,
+  reduce: (value: T[]) => R,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2,
+  key3: (x: T) => K3
+): Array<[K1, Array<[K2, Array<[K3, R]>]>]>
 export function rollups(values, reduce, ...keys) {
   return nest(values, Array.from, reduce, keys)
 }
-
+export function index<T, K>(xs: Iterable<T>, key: (x: T) => K): InternMap<K, T>
+export function index<T, K1, K2>(
+  xs: Iterable<T>,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2
+): InternMap<K1, InternMap<K2, T>>
+export function index<T, K1, K2, K3>(
+  xs: Iterable<T>,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2,
+  key3: (x: T) => K3
+): InternMap<K1, InternMap<K2, InternMap<K3, T>>>
 export function index(values, ...keys) {
   return nest(values, identity, unique, keys)
 }
-
+export function indexes<T, K>(xs: Iterable<T>, key: (x: T) => K): Array<[K, T]>
+export function indexes<T, K1, K2>(xs: Iterable<T>, key1: (x: T) => K1, key2: (x: T) => K2): Array<[K1, Array<[K2, T]>]>
+export function indexes<T, K1, K2, K3>(
+  xs: Iterable<T>,
+  key1: (x: T) => K1,
+  key2: (x: T) => K2,
+  key3: (x: T) => K3
+): Array<[K1, Array<[K2, Array<[K3, T]>]>]>
 export function indexes(values, ...keys) {
   return nest(values, Array.from, unique, keys)
 }
-
 function unique(values) {
   if (values.length !== 1) throw new Error("duplicate key")
   return values[0]
 }
-
 function nest(values, map, reduce, keys) {
   return (function regroup(values, i) {
     if (i >= keys.length) return reduce(values)
@@ -643,80 +689,20 @@ function nest(values, map, reduce, keys) {
     return map(groups)
   })(values, 0)
 }
-import ascending from "./ascending.js"
-import group, { rollup } from "./group.js"
-import sort from "./sort.js"
-
-export default function groupSort(values, reduce, key) {
+export function groupSort<T, K>(xs: Iterable<T>, comparator: (a: T[], b: T[]) => number, key: (x: T) => K): K[]
+export function groupSort<T, K>(xs: Iterable<T>, accessor: (value: T[]) => unknown, key: (x: T) => K): K[]
+export function groupSort(values, reduce, key) {
   return (
     reduce.length !== 2
       ? sort(rollup(values, reduce, key), ([ak, av], [bk, bv]) => ascending(av, bv) || ascending(ak, bk))
       : sort(group(values, key), ([ak, av], [bk, bv]) => reduce(av, bv) || ascending(ak, bk))
   ).map(([key]) => key)
 }
-export default function identity(x) {
+export function identity(x) {
   return x
 }
-export { default as bisect, bisectRight, bisectLeft, bisectCenter } from "./bisect.js"
-export { default as ascending } from "./ascending.js"
-export { default as bisector } from "./bisector.js"
-export { blur, blur2, blurImage } from "./blur.js"
-export { default as count } from "./count.js"
-export { default as cross } from "./cross.js"
-export { default as cumsum } from "./cumsum.js"
-export { default as descending } from "./descending.js"
-export { default as deviation } from "./deviation.js"
-export { default as extent } from "./extent.js"
-export { Adder, fsum, fcumsum } from "./fsum.js"
-export { default as group, flatGroup, flatRollup, groups, index, indexes, rollup, rollups } from "./group.js"
-export { default as groupSort } from "./groupSort.js"
-export { default as bin, default as histogram } from "./bin.js" // Deprecated; use bin.
-export { default as thresholdFreedmanDiaconis } from "./threshold/freedmanDiaconis.js"
-export { default as thresholdScott } from "./threshold/scott.js"
-export { default as thresholdSturges } from "./threshold/sturges.js"
-export { default as max } from "./max.js"
-export { default as maxIndex } from "./maxIndex.js"
-export { default as mean } from "./mean.js"
-export { default as median, medianIndex } from "./median.js"
-export { default as merge } from "./merge.js"
-export { default as min } from "./min.js"
-export { default as minIndex } from "./minIndex.js"
-export { default as mode } from "./mode.js"
-export { default as nice } from "./nice.js"
-export { default as pairs } from "./pairs.js"
-export { default as permute } from "./permute.js"
-export { default as quantile, quantileIndex, quantileSorted } from "./quantile.js"
-export { default as quickselect } from "./quickselect.js"
-export { default as range } from "./range.js"
-export { default as rank } from "./rank.js"
-export { default as least } from "./least.js"
-export { default as leastIndex } from "./leastIndex.js"
-export { default as greatest } from "./greatest.js"
-export { default as greatestIndex } from "./greatestIndex.js"
-export { default as scan } from "./scan.js" // Deprecated; use leastIndex.
-export { default as shuffle, shuffler } from "./shuffle.js"
-export { default as sum } from "./sum.js"
-export { default as ticks, tickIncrement, tickStep } from "./ticks.js"
-export { default as transpose } from "./transpose.js"
-export { default as variance } from "./variance.js"
-export { default as zip } from "./zip.js"
-export { default as every } from "./every.js"
-export { default as some } from "./some.js"
-export { default as filter } from "./filter.js"
-export { default as map } from "./map.js"
-export { default as reduce } from "./reduce.js"
-export { default as reverse } from "./reverse.js"
-export { default as sort } from "./sort.js"
-export { default as difference } from "./difference.js"
-export { default as disjoint } from "./disjoint.js"
-export { default as intersection } from "./intersection.js"
-export { default as subset } from "./subset.js"
-export { default as superset } from "./superset.js"
-export { default as union } from "./union.js"
-export { InternMap, InternSet } from "internmap"
-import { InternSet } from "internmap"
-
-export default function intersection(values, ...others) {
+export function intersection<T>(...xs: Array<Iterable<T>>): InternSet<T>
+export function intersection(values, ...others) {
   values = new InternSet(values)
   others = others.map(set)
   out: for (const value of values) {
@@ -729,13 +715,12 @@ export default function intersection(values, ...others) {
   }
   return values
 }
-
 function set(values) {
   return values instanceof InternSet ? values : new InternSet(values)
 }
-import ascending from "./ascending.js"
-
-export default function least(values, compare = ascending) {
+export function least<T>(xs: Iterable<T>, comparator?: (a: T, b: T) => number): T | undefined
+export function least<T>(xs: Iterable<T>, accessor: (a: T) => unknown): T | undefined
+export function least(values, compare = ascending) {
   let min
   let defined = false
   if (compare.length === 1) {
@@ -758,10 +743,10 @@ export default function least(values, compare = ascending) {
   }
   return min
 }
-import ascending from "./ascending.js"
-import minIndex from "./minIndex.js"
-
-export default function leastIndex(values, compare = ascending) {
+export function leastIndex(xs: Iterable<unknown>): number | undefined
+export function leastIndex<T>(xs: Iterable<T>, comparator: (a: T, b: T) => number): number | undefined
+export function leastIndex<T>(xs: Iterable<T>, accessor: (a: T) => unknown): number | undefined
+export function leastIndex(values, compare = ascending) {
   if (compare.length === 1) return minIndex(values, compare)
   let minValue
   let min = -1
@@ -775,12 +760,23 @@ export default function leastIndex(values, compare = ascending) {
   }
   return min
 }
-export default function map(values, mapper) {
+export function map<T, U>(xs: Iterable<T>, mapper: (value: T, i: number, xs: Iterable<T>) => U): U[]
+export function map(values, mapper) {
   if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
   if (typeof mapper !== "function") throw new TypeError("mapper is not a function")
   return Array.from(values, (value, index) => mapper(value, index, values))
 }
-export default function max(values, valueof) {
+export function max(xs: Iterable<string>): string | undefined
+export function max<T extends qt.Numeric>(xs: Iterable<T>): T | undefined
+export function max<T>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => string | undefined | null
+): string | undefined
+export function max<T, U extends qt.Numeric>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => U | undefined | null
+): U | undefined
+export function max(values, valueof) {
   let max
   if (valueof === undefined) {
     for (const value of values) {
@@ -798,7 +794,9 @@ export default function max(values, valueof) {
   }
   return max
 }
-export default function maxIndex(values, valueof) {
+export function maxIndex(xs: Iterable<unknown>): number
+export function maxIndex<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => unknown): number
+export function maxIndex(values, valueof) {
   let max
   let maxIndex = -1
   let index = -1
@@ -818,7 +816,12 @@ export default function maxIndex(values, valueof) {
   }
   return maxIndex
 }
-export default function mean(values, valueof) {
+export function mean(xs: Iterable<qt.Numeric | undefined | null>): number | undefined
+export function mean<T>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
+): number | undefined
+export function mean(values, valueof) {
   let count = 0
   let sum = 0
   if (valueof === undefined) {
@@ -837,12 +840,14 @@ export default function mean(values, valueof) {
   }
   if (count) return sum / count
 }
-import quantile, { quantileIndex } from "./quantile.js"
-
-export default function median(values, valueof) {
+export function median(xs: Iterable<qt.Numeric | undefined | null>): number | undefined
+export function median<T>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
+): number | undefined
+export function median(values, valueof) {
   return quantile(values, 0.5, valueof)
 }
-
 export function medianIndex(values, valueof) {
   return quantileIndex(values, 0.5, valueof)
 }
@@ -851,11 +856,20 @@ function* flatten(arrays) {
     yield* array
   }
 }
-
-export default function merge(arrays) {
-  return Array.from(flatten(arrays))
+export function merge<T>(xs: Iterable<Iterable<T>>): T[] {
+  return Array.from(flatten(xs))
 }
-export default function min(values, valueof) {
+export function min(xs: Iterable<string>): string | undefined
+export function min<T extends qt.Numeric>(xs: Iterable<T>): T | undefined
+export function min<T>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => string | undefined | null
+): string | undefined
+export function min<T, U extends qt.Numeric>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => U | undefined | null
+): U | undefined
+export function min(values, valueof) {
   let min
   if (valueof === undefined) {
     for (const value of values) {
@@ -873,7 +887,10 @@ export default function min(values, valueof) {
   }
   return min
 }
-export default function minIndex(values, valueof) {
+export function minIndex(xs: Iterable<unknown>): number
+export function minIndex<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => unknown): number
+export function minIndex(xs: Iterable<unknown>): number
+export function minIndex(values, valueof) {
   let min
   let minIndex = -1
   let index = -1
@@ -893,9 +910,9 @@ export default function minIndex(values, valueof) {
   }
   return minIndex
 }
-import { InternMap } from "internmap"
-
-export default function mode(values, valueof) {
+export function mode(xs: Iterable<qt.Numeric | undefined | null>): number
+export function mode<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null): number
+export function mode(values, valueof) {
   const counts = new InternMap()
   if (valueof === undefined) {
     for (let value of values) {
@@ -921,9 +938,8 @@ export default function mode(values, valueof) {
   }
   return modeValue
 }
-import { tickIncrement } from "./ticks.js"
-
-export default function nice(start, stop, count) {
+export function nice(start: number, stop: number, count: number): [number, number]
+export function nice(start, stop, count) {
   let prestep
   while (true) {
     const step = tickIncrement(start, stop, count)
@@ -939,10 +955,9 @@ export default function nice(start, stop, count) {
     prestep = step
   }
 }
-export default function number(x) {
+export function number(x) {
   return x === null ? NaN : +x
 }
-
 export function* numbers(values, valueof) {
   if (valueof === undefined) {
     for (let value of values) {
@@ -959,7 +974,9 @@ export function* numbers(values, valueof) {
     }
   }
 }
-export default function pairs(values, pairof = pair) {
+export function pairs<T, U>(xs: Iterable<T>, reducer: (a: T, b: T) => U): U[]
+export function pairs<T>(xs: Iterable<T>): Array<[T, T]>
+export function pairs(values, pairof = pair) {
   const pairs = []
   let previous
   let first = false
@@ -970,23 +987,21 @@ export default function pairs(values, pairof = pair) {
   }
   return pairs
 }
-
 export function pair(a, b) {
   return [a, b]
 }
-export default function permute(source, keys) {
+export function permute<T, K extends keyof T>(source: T, keys: Iterable<K>): Array<T[K]>
+export function permute<T>(source: { [key: number]: T }, keys: Iterable<number>): T[]
+export function permute(source, keys) {
   return Array.from(keys, key => source[key])
 }
-import max from "./max.js"
-import maxIndex from "./maxIndex.js"
-import min from "./min.js"
-import minIndex from "./minIndex.js"
-import quickselect from "./quickselect.js"
-import number, { numbers } from "./number.js"
-import { ascendingDefined } from "./sort.js"
-import greatest from "./greatest.js"
-
-export default function quantile(values, p, valueof) {
+export function quantile(xs: Iterable<qt.Numeric | undefined | null>, p: number): number | undefined
+export function quantile<T>(
+  xs: Iterable<T>,
+  p: number,
+  f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
+): number | undefined
+export function quantile(values, p, valueof) {
   values = Float64Array.from(numbers(values, valueof))
   if (!(n = values.length)) return
   if ((p = +p) <= 0 || n < 2) return min(values)
@@ -998,7 +1013,12 @@ export default function quantile(values, p, valueof) {
     value1 = min(values.subarray(i0 + 1))
   return value0 + (value1 - value0) * (i - i0)
 }
-
+export function quantileSorted(xs: Array<qt.Numeric | undefined | null>, p: number): number | undefined
+export function quantileSorted<T>(
+  xs: T[],
+  p: number,
+  f: (x: T, i: number, xs: T[]) => number | undefined | null
+): number | undefined
 export function quantileSorted(values, p, valueof = number) {
   if (!(n = values.length)) return
   if ((p = +p) <= 0 || n < 2) return +valueof(values[0], 0, values)
@@ -1010,7 +1030,6 @@ export function quantileSorted(values, p, valueof = number) {
     value1 = +valueof(values[i0 + 1], i0 + 1, values)
   return value0 + (value1 - value0) * (i - i0)
 }
-
 export function quantileIndex(values, p, valueof) {
   values = Float64Array.from(numbers(values, valueof))
   if (!(n = values.length)) return
@@ -1028,13 +1047,15 @@ export function quantileIndex(values, p, valueof) {
     )
   return greatest(index.subarray(0, i + 1), i => values[i])
 }
-import { ascendingDefined, compareDefined } from "./sort.js"
-
-// Based on https://github.com/mourner/quickselect
-// ISC license, Copyright 2018 Vladimir Agafonkin.
-export default function quickselect(array, k, left = 0, right = array.length - 1, compare) {
+export function quickselect<T>(
+  xs: ArrayLike<T>,
+  k: number,
+  left?: number,
+  right?: number,
+  compare?: (a: Primitive | undefined, b: Primitive | undefined) => number
+): T[]
+export function quickselect(array, k, left = 0, right = array.length - 1, compare) {
   compare = compare === undefined ? ascendingDefined : compareDefined(compare)
-
   while (right > left) {
     if (right - left > 600) {
       const n = right - left + 1
@@ -1046,54 +1067,50 @@ export default function quickselect(array, k, left = 0, right = array.length - 1
       const newRight = Math.min(right, Math.floor(k + ((n - m) * s) / n + sd))
       quickselect(array, k, newLeft, newRight, compare)
     }
-
     const t = array[k]
     let i = left
     let j = right
-
     swap(array, left, k)
     if (compare(array[right], t) > 0) swap(array, left, right)
-
     while (i < j) {
       swap(array, i, j), ++i, --j
       while (compare(array[i], t) < 0) ++i
       while (compare(array[j], t) > 0) --j
     }
-
     if (compare(array[left], t) === 0) swap(array, left, j)
     else ++j, swap(array, j, right)
-
     if (j <= k) left = j + 1
     if (k <= j) right = j - 1
   }
-
   return array
 }
-
 function swap(array, i, j) {
   const t = array[i]
   array[i] = array[j]
   array[j] = t
 }
-export default function range(start, stop, step) {
+export function range(start: number, stop: number, step?: number): number[]
+export function range(stop: number): number[]
+export function range(start, stop, step) {
   ;(start = +start),
     (stop = +stop),
     (step = (n = arguments.length) < 2 ? ((stop = start), (start = 0), 1) : n < 3 ? 1 : +step)
-
   var i = -1,
     n = Math.max(0, Math.ceil((stop - start) / step)) | 0,
     range = new Array(n)
-
   while (++i < n) {
     range[i] = start + i * step
   }
-
   return range
 }
-import ascending from "./ascending.js"
-import { ascendingDefined, compareDefined } from "./sort.js"
-
-export default function rank(values, valueof = ascending) {
+export function rank(xs: Iterable<Numeric | undefined | null>): Float64Array
+export function rank<T>(
+  xs: Iterable<T>,
+  accessorOrComparator:
+    | ((x: T, i: number, xs: Iterable<T>) => number | undefined | null)
+    | ((a: T, b: T) => number | undefined | null)
+): Float64Array
+export function rank(values, valueof = ascending) {
   if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
   let V = Array.from(values)
   const R = new Float64Array(V.length)
@@ -1113,7 +1130,17 @@ export default function rank(values, valueof = ascending) {
     })
   return R
 }
-export default function reduce(values, reducer, value) {
+export function reduce<T>(
+  xs: Iterable<T>,
+  f: (previousValue: T, currentValue: T, currentIndex: number, xs: Iterable<T>) => T,
+  initialValue?: T
+): T
+export function reduce<T, U>(
+  xs: Iterable<T>,
+  f: (previousValue: U, currentValue: T, currentIndex: number, xs: Iterable<T>) => U,
+  initialValue: U
+): U
+export function reduce(values, reducer, value) {
   if (typeof reducer !== "function") throw new TypeError("reducer is not a function")
   const iterator = values[Symbol.iterator]()
   let done,
@@ -1129,18 +1156,28 @@ export default function reduce(values, reducer, value) {
   }
   return value
 }
-export default function reverse(values) {
+export function reverse<T>(xs: Iterable<T>): T[]
+export function reverse(values) {
   if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
   return Array.from(values).reverse()
 }
-import leastIndex from "./leastIndex.js"
-
-export default function scan(values, compare) {
+export function scan(values, compare) {
   const index = leastIndex(values, compare)
   return index < 0 ? undefined : index
 }
-export default shuffler(Math.random)
+export function shuffle<T>(xs: T[], lo?: number, hi?: number): T[]
+export function shuffle(xs: Int8Array, lo?: number, hi?: number): Int8Array
+export function shuffle(xs: Uint8Array, lo?: number, hi?: number): Uint8Array
+export function shuffle(xs: Uint8ClampedArray, lo?: number, hi?: number): Uint8ClampedArray
+export function shuffle(xs: Int16Array, lo?: number, hi?: number): Int16Array
+export function shuffle(xs: Uint16Array, lo?: number, hi?: number): Uint16Array
+export function shuffle(xs: Int32Array, lo?: number, hi?: number): Int32Array
+export function shuffle(xs: Uint32Array, lo?: number, hi?: number): Uint32Array
+export function shuffle(xs: Float32Array, lo?: number, hi?: number): Float32Array
+export function shuffle(xs: Float64Array, lo?: number, hi?: number): Float64Array
 
+export default shuffler(Math.random)
+export function shuffler(random: () => number): typeof shuffle
 export function shuffler(random) {
   return function shuffle(array, i0 = 0, i1 = array.length) {
     let m = i1 - (i0 = +i0)
@@ -1153,7 +1190,8 @@ export function shuffler(random) {
     return array
   }
 }
-export default function some(values, test) {
+export function some<T>(xs: Iterable<T>, test: (value: T, i: number, xs: Iterable<T>) => unknown): boolean
+export function some(values, test) {
   if (typeof test !== "function") throw new TypeError("test is not a function")
   let index = -1
   for (const value of values) {
@@ -1163,10 +1201,9 @@ export default function some(values, test) {
   }
   return false
 }
-import ascending from "./ascending.js"
-import permute from "./permute.js"
-
-export default function sort(values, ...F) {
+export function sort<T>(xs: Iterable<T>, ...accessors: Array<(a: T) => unknown>): T[]
+export function sort<T>(xs: Iterable<T>, comparator?: (a: T, b: T) => number): T[]
+export function sort(values, ...F) {
   if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
   values = Array.from(values)
   let [f] = F
@@ -1188,7 +1225,6 @@ export default function sort(values, ...F) {
   }
   return values.sort(compareDefined(f))
 }
-
 export function compareDefined(compare = ascending) {
   if (compare === ascending) return ascendingDefined
   if (typeof compare !== "function") throw new TypeError("compare is not a function")
@@ -1198,16 +1234,16 @@ export function compareDefined(compare = ascending) {
     return (compare(b, b) === 0) - (compare(a, a) === 0)
   }
 }
-
 export function ascendingDefined(a, b) {
   return (a == null || !(a >= a)) - (b == null || !(b >= b)) || (a < b ? -1 : a > b ? 1 : 0)
 }
-import superset from "./superset.js"
-
-export default function subset(values, other) {
+export function subset<T>(a: Iterable<T>, b: Iterable<T>): boolean
+export function subset(values, other) {
   return superset(other, values)
 }
-export default function sum(values, valueof) {
+export function sum(xs: Iterable<qt.Numeric | undefined | null>): number
+export function sum<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null): number
+export function sum(values, valueof) {
   let sum = 0
   if (valueof === undefined) {
     for (let value of values) {
@@ -1225,7 +1261,8 @@ export default function sum(values, valueof) {
   }
   return sum
 }
-export default function superset(values, other) {
+export function superset<T>(a: Iterable<T>, b: Iterable<T>): boolean
+export function superset(values, other) {
   const iterator = values[Symbol.iterator](),
     set = new Set()
   for (const o of other) {
@@ -1241,15 +1278,15 @@ export default function superset(values, other) {
   }
   return true
 }
-
 function intern(value) {
   return value !== null && typeof value === "object" ? value.valueOf() : value
 }
-var e10 = Math.sqrt(50),
+let e10 = Math.sqrt(50),
   e5 = Math.sqrt(10),
-  e2 = Math.sqrt(2)
+  e2 = Math.sqrt(2);
 
-export default function ticks(start, stop, count) {
+export function ticks(start: number, stop: number, count: number): number[]
+export function ticks(start, stop, count) {
   var reverse,
     i = -1,
     n,
@@ -1259,7 +1296,6 @@ export default function ticks(start, stop, count) {
   if (start === stop && count > 0) return [start]
   if ((reverse = stop < start)) (n = start), (start = stop), (stop = n)
   if ((step = tickIncrement(start, stop, count)) === 0 || !isFinite(step)) return []
-
   if (step > 0) {
     let r0 = Math.round(start / step),
       r1 = Math.round(stop / step)
@@ -1276,12 +1312,10 @@ export default function ticks(start, stop, count) {
     ticks = new Array((n = r1 - r0 + 1))
     while (++i < n) ticks[i] = (r0 + i) / step
   }
-
   if (reverse) ticks.reverse()
-
   return ticks
 }
-
+export function tickIncrement(start: number, stop: number, count: number): number
 export function tickIncrement(start, stop, count) {
   var step = (stop - start) / Math.max(0, count),
     power = Math.floor(Math.log(step) / Math.LN10),
@@ -1290,7 +1324,7 @@ export function tickIncrement(start, stop, count) {
     ? (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1) * Math.pow(10, power)
     : -Math.pow(10, -power) / (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1)
 }
-
+export function tickStep(start: number, stop: number, count: number): number
 export function tickStep(start, stop, count) {
   var step0 = Math.abs(stop - start) / Math.max(0, count),
     step1 = Math.pow(10, Math.floor(Math.log(step0) / Math.LN10)),
@@ -1300,9 +1334,8 @@ export function tickStep(start, stop, count) {
   else if (error >= e2) step1 *= 2
   return stop < start ? -step1 : step1
 }
-import min from "./min.js"
-
-export default function transpose(matrix) {
+export function transpose<T>(matrix: ArrayLike<ArrayLike<T>>): T[][]
+export function transpose(matrix) {
   if (!(n = matrix.length)) return []
   for (var i = -1, m = min(matrix, length), transpose = new Array(m); ++i < m; ) {
     for (var j = -1, n, row = (transpose[i] = new Array(n)); ++j < n; ) {
@@ -1311,13 +1344,11 @@ export default function transpose(matrix) {
   }
   return transpose
 }
-
 function length(d) {
   return d.length
 }
-import { InternSet } from "internmap"
-
-export default function union(...others) {
+export function union<T>(...xs: Array<Iterable<T>>): InternSet<T>
+export function union(...others) {
   const set = new InternSet()
   for (const other of others) {
     for (const o of other) {
@@ -1326,7 +1357,12 @@ export default function union(...others) {
   }
   return set
 }
-export default function variance(values, valueof) {
+export function variance(xs: Iterable<Numeric | undefined | null>): number | undefined
+export function variance<T>(
+  xs: Iterable<T>,
+  f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
+): number | undefined
+export function variance(values, valueof) {
   let count = 0
   let delta
   let mean = 0
@@ -1351,8 +1387,18 @@ export default function variance(values, valueof) {
   }
   if (count > 1) return sum / (count - 1)
 }
-import transpose from "./transpose.js"
-
-export default function zip() {
+export function zip<T>(...arrays: Array<ArrayLike<T>>): T[][]
+export function zip() {
   return transpose(arguments)
+}
+export function thresholdFreedmanDiaconis(values, min, max) {
+  return Math.ceil(
+    (max - min) / (2 * (quantile(values, 0.75) - quantile(values, 0.25)) * Math.pow(count(values), -1 / 3))
+  )
+}
+export function thresholdScott(values, min, max) {
+  return Math.ceil(((max - min) * Math.cbrt(count(values))) / (3.49 * deviation(values)))
+}
+export function thresholdSturges(values) {
+  return Math.ceil(Math.log(count(values)) / Math.LN2) + 1
 }

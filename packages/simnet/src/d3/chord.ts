@@ -11,7 +11,7 @@ function compareValue(compare) {
   }
 }
 
-export default function () {
+export function () {
   return chord(false, false)
 }
 
@@ -43,7 +43,6 @@ function chord(directed, transpose) {
       transpose ? (_, i) => matrix[i % n][(i / n) | 0] : (_, i) => matrix[(i / n) | 0][i % n]
     )
 
-    // Compute the scaling factor from value to angle in [0, 2pi].
     for (let i = 0; i < n; ++i) {
       let x = 0
       for (let j = 0; j < n; ++j) x += matrix[i * n + j] + directed * matrix[j * n + i]
@@ -52,7 +51,6 @@ function chord(directed, transpose) {
     k = max(0, tau - padAngle * n) / k
     dx = k ? padAngle : tau / n
 
-    // Compute the angles for each group and constituent chord.
     {
       let x = 0
       if (sortGroups) groupIndex.sort((a, b) => sortGroups(groupSums[a], groupSums[b]))
@@ -122,7 +120,6 @@ function chord(directed, transpose) {
       }
     }
 
-    // Remove empty chords.
     chords = Object.values(chords)
     chords.groups = groups
     return sortChords ? chords.sort(sortChords) : chords
@@ -148,7 +145,7 @@ function chord(directed, transpose) {
 
   return chord
 }
-export default function (x) {
+export function (x) {
   return function () {
     return x
   }
@@ -295,7 +292,7 @@ function ribbon(headRadius) {
   return ribbon
 }
 
-export default function () {
+export function () {
   return ribbon()
 }
 

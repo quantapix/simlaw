@@ -1,352 +1,19 @@
+import type { MultiPolygon } from "geojson"
+
 export type Primitive = number | string | boolean | Date
 export interface Numeric {
   valueOf(): number
 }
-export function min(iterable: Iterable<string>): string | undefined
-export function min<T extends Numeric>(iterable: Iterable<T>): T | undefined
-export function min<T>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => string | undefined | null
-): string | undefined
-export function min<T, U extends Numeric>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => U | undefined | null
-): U | undefined
-export function minIndex(iterable: Iterable<unknown>): number
-export function minIndex<TDatum>(
-  iterable: Iterable<TDatum>,
-  accessor: (datum: TDatum, index: number, array: Iterable<TDatum>) => unknown
-): number
-export function minIndex(iterable: Iterable<unknown>): number
-export function max(iterable: Iterable<string>): string | undefined
-export function max<T extends Numeric>(iterable: Iterable<T>): T | undefined
-export function max<T>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => string | undefined | null
-): string | undefined
-export function max<T, U extends Numeric>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => U | undefined | null
-): U | undefined
-export function maxIndex(iterable: Iterable<unknown>): number
-export function maxIndex<TDatum>(
-  iterable: Iterable<TDatum>,
-  accessor: (datum: TDatum, index: number, array: Iterable<TDatum>) => unknown
-): number
-export function extent(iterable: Iterable<string>): [string, string] | [undefined, undefined]
-export function extent<T extends Numeric>(iterable: Iterable<T>): [T, T] | [undefined, undefined]
-export function extent<T>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => string | undefined | null
-): [string, string] | [undefined, undefined]
-export function extent<T, U extends Numeric>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => U | undefined | null
-): [U, U] | [undefined, undefined]
-export function mode(iterable: Iterable<Numeric | undefined | null>): number
-export function mode<T>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => number | undefined | null
-): number
-export function sum(iterable: Iterable<Numeric | undefined | null>): number
-export function sum<T>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => number | undefined | null
-): number
-export function mean(iterable: Iterable<Numeric | undefined | null>): number | undefined
-export function mean<T>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => number | undefined | null
-): number | undefined
-export function median(iterable: Iterable<Numeric | undefined | null>): number | undefined
-export function median<T>(
-  iterable: Iterable<T>,
-  accessor: (element: T, i: number, array: Iterable<T>) => number | undefined | null
-): number | undefined
-export function cumsum(iterable: Iterable<Numeric | undefined | null>): Float64Array
-export function cumsum<T>(
-  iterable: Iterable<T>,
-  accessor: (element: T, i: number, array: Iterable<T>) => number | undefined | null
-): Float64Array
-export function quantile(iterable: Iterable<Numeric | undefined | null>, p: number): number | undefined
-export function quantile<T>(
-  iterable: Iterable<T>,
-  p: number,
-  accessor: (element: T, i: number, array: Iterable<T>) => number | undefined | null
-): number | undefined
-export function quantileSorted(array: Array<Numeric | undefined | null>, p: number): number | undefined
-export function quantileSorted<T>(
-  array: T[],
-  p: number,
-  accessor: (element: T, i: number, array: T[]) => number | undefined | null
-): number | undefined
-export function rank(iterable: Iterable<Numeric | undefined | null>): Float64Array
-export function rank<T>(
-  iterable: Iterable<T>,
-  accessorOrComparator:
-    | ((datum: T, index: number, array: Iterable<T>) => number | undefined | null)
-    | ((a: T, b: T) => number | undefined | null)
-): Float64Array
-export function variance(iterable: Iterable<Numeric | undefined | null>): number | undefined
-export function variance<T>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => number | undefined | null
-): number | undefined
-export function deviation(iterable: Iterable<Numeric | undefined | null>): number | undefined
-export function deviation<T>(
-  iterable: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => number | undefined | null
-): number | undefined
-export function fsum(values: Iterable<Numeric | undefined | null>): number
-export function fsum<T>(
-  values: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => number | undefined | null
-): number
-export function fcumsum(values: Iterable<Numeric | undefined | null>): Float64Array
-export function fcumsum<T>(
-  values: Iterable<T>,
-  accessor: (datum: T, index: number, array: Iterable<T>) => number | undefined | null
-): Float64Array
-export class Adder {
-  constructor()
-  add(number: number): Adder
+export interface Adder {
+  add(x: number): Adder
   valueOf(): number
 }
-export function least<T>(iterable: Iterable<T>, comparator?: (a: T, b: T) => number): T | undefined
-export function least<T>(iterable: Iterable<T>, accessor: (a: T) => unknown): T | undefined
-export function leastIndex(iterable: Iterable<unknown>): number | undefined
-export function leastIndex<T>(iterable: Iterable<T>, comparator: (a: T, b: T) => number): number | undefined
-export function leastIndex<T>(iterable: Iterable<T>, accessor: (a: T) => unknown): number | undefined
-export function greatest<T>(iterable: Iterable<T>, comparator?: (a: T, b: T) => number): T | undefined
-export function greatest<T>(iterable: Iterable<T>, accessor: (a: T) => unknown): T | undefined
-export function greatestIndex(iterable: Iterable<unknown>): number | undefined
-export function greatestIndex<T>(iterable: Iterable<T>, comparator: (a: T, b: T) => number): number | undefined
-export function greatestIndex<T>(iterable: Iterable<T>, accessor: (a: T) => unknown): number | undefined
-export function bisectLeft(array: ArrayLike<number>, x: number, lo?: number, hi?: number): number
-export function bisectLeft(array: ArrayLike<string>, x: string, lo?: number, hi?: number): number
-export function bisectLeft(array: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
-export function bisectRight(array: ArrayLike<number>, x: number, lo?: number, hi?: number): number
-export function bisectRight(array: ArrayLike<string>, x: string, lo?: number, hi?: number): number
-export function bisectRight(array: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
-export function bisectCenter(array: ArrayLike<number>, x: number, lo?: number, hi?: number): number
-export function bisectCenter(array: ArrayLike<string>, x: string, lo?: number, hi?: number): number
-export function bisectCenter(array: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
-export const bisect: typeof bisectRight
 export interface Bisector<T, U> {
-  left(array: ArrayLike<T>, x: U, lo?: number, hi?: number): number
-  right(array: ArrayLike<T>, x: U, lo?: number, hi?: number): number
-  center(array: ArrayLike<T>, x: U, lo?: number, hi?: number): number
+  left(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
+  right(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
+  center(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
 }
-export function bisector<T, U>(comparator: (a: T, b: U) => number): Bisector<T, U>
-export function bisector<T, U>(accessor: (x: T) => U): Bisector<T, U>
-export function quickselect<T>(
-  array: ArrayLike<T>,
-  k: number,
-  left?: number,
-  right?: number,
-  compare?: (a: Primitive | undefined, b: Primitive | undefined) => number
-): T[]
-export function ascending(a: Primitive | undefined, b: Primitive | undefined): number
-export function descending(a: Primitive | undefined, b: Primitive | undefined): number
-export function group<TObject, TKey>(
-  iterable: Iterable<TObject>,
-  key: (value: TObject) => TKey
-): InternMap<TKey, TObject[]>
-export function group<TObject, TKey1, TKey2>(
-  iterable: Iterable<TObject>,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2
-): InternMap<TKey1, InternMap<TKey2, TObject[]>>
-export function group<TObject, TKey1, TKey2, TKey3>(
-  iterable: Iterable<TObject>,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2,
-  key3: (value: TObject) => TKey3
-): InternMap<TKey1, InternMap<TKey2, InternMap<TKey3, TObject[]>>>
-export function groups<TObject, TKey>(
-  iterable: Iterable<TObject>,
-  key: (value: TObject) => TKey
-): Array<[TKey, TObject[]]>
-export function groups<TObject, TKey1, TKey2>(
-  iterable: Iterable<TObject>,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2
-): Array<[TKey1, Array<[TKey2, TObject[]]>]>
-export function groups<TObject, TKey1, TKey2, TKey3>(
-  iterable: Iterable<TObject>,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2,
-  key3: (value: TObject) => TKey3
-): Array<[TKey1, Array<[TKey2, Array<[TKey3, TObject[]]>]>]>
-export function flatGroup<TObject, TKey>(
-  iterable: Iterable<TObject>,
-  key: (value: TObject) => TKey
-): Array<[TKey, TObject[]]>
-export function flatGroup<TObject, TKey1, TKey2>(
-  iterable: Iterable<TObject>,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2
-): Array<[TKey1, TKey2, TObject[]]>
-export function flatGroup<TObject, TKey1, TKey2, TKey3>(
-  iterable: Iterable<TObject>,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2,
-  key3: (value: TObject) => TKey3
-): Array<[TKey1, TKey2, TKey3, TObject[]]>
-export function index<TObject, TKey>(
-  iterable: Iterable<TObject>,
-  key: (value: TObject) => TKey
-): InternMap<TKey, TObject>
-export function index<TObject, TKey1, TKey2>(
-  iterable: Iterable<TObject>,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2
-): InternMap<TKey1, InternMap<TKey2, TObject>>
-export function index<TObject, TKey1, TKey2, TKey3>(
-  iterable: Iterable<TObject>,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2,
-  key3: (value: TObject) => TKey3
-): InternMap<TKey1, InternMap<TKey2, InternMap<TKey3, TObject>>>
-export function indexes<TObject, TKey>(
-  iterable: Iterable<TObject>,
-  key: (value: TObject) => TKey
-): Array<[TKey, TObject]>
-export function indexes<TObject, TKey1, TKey2>(
-  iterable: Iterable<TObject>,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2
-): Array<[TKey1, Array<[TKey2, TObject]>]>
-export function indexes<TObject, TKey1, TKey2, TKey3>(
-  iterable: Iterable<TObject>,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2,
-  key3: (value: TObject) => TKey3
-): Array<[TKey1, Array<[TKey2, Array<[TKey3, TObject]>]>]>
-export function rollup<TObject, TReduce, TKey>(
-  iterable: Iterable<TObject>,
-  reduce: (value: TObject[]) => TReduce,
-  key: (value: TObject) => TKey
-): InternMap<TKey, TReduce>
-export function rollup<TObject, TReduce, TKey1, TKey2>(
-  iterable: Iterable<TObject>,
-  reduce: (value: TObject[]) => TReduce,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2
-): InternMap<TKey1, InternMap<TKey2, TReduce>>
-export function rollup<TObject, TReduce, TKey1, TKey2, TKey3>(
-  iterable: Iterable<TObject>,
-  reduce: (value: TObject[]) => TReduce,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2,
-  key3: (value: TObject) => TKey3
-): InternMap<TKey1, InternMap<TKey2, InternMap<TKey3, TReduce>>>
-export function rollups<TObject, TReduce, TKey>(
-  iterable: Iterable<TObject>,
-  reduce: (value: TObject[]) => TReduce,
-  key: (value: TObject) => TKey
-): Array<[TKey, TReduce]>
-export function rollups<TObject, TReduce, TKey1, TKey2>(
-  iterable: Iterable<TObject>,
-  reduce: (value: TObject[]) => TReduce,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2
-): Array<[TKey1, Array<[TKey2, TReduce]>]>
-export function rollups<TObject, TReduce, TKey1, TKey2, TKey3>(
-  iterable: Iterable<TObject>,
-  reduce: (value: TObject[]) => TReduce,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2,
-  key3: (value: TObject) => TKey3
-): Array<[TKey1, Array<[TKey2, Array<[TKey3, TReduce]>]>]>
-export function flatRollup<TObject, TReduce, TKey>(
-  iterable: Iterable<TObject>,
-  reduce: (value: TObject[]) => TReduce,
-  key: (value: TObject) => TKey
-): Array<[TKey, TReduce]>
-export function flatRollup<TObject, TReduce, TKey1, TKey2>(
-  iterable: Iterable<TObject>,
-  reduce: (value: TObject[]) => TReduce,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2
-): Array<[TKey1, TKey2, TReduce]>
-export function flatRollup<TObject, TReduce, TKey1, TKey2, TKey3>(
-  iterable: Iterable<TObject>,
-  reduce: (value: TObject[]) => TReduce,
-  key1: (value: TObject) => TKey1,
-  key2: (value: TObject) => TKey2,
-  key3: (value: TObject) => TKey3
-): Array<[TKey1, TKey2, TKey3, TReduce]>
-export function groupSort<TObject, TKey>(
-  iterable: Iterable<TObject>,
-  comparator: (a: TObject[], b: TObject[]) => number,
-  key: (value: TObject) => TKey
-): TKey[]
-export function groupSort<TObject, TKey>(
-  iterable: Iterable<TObject>,
-  accessor: (value: TObject[]) => unknown,
-  key: (value: TObject) => TKey
-): TKey[]
-export function count(iterable: Iterable<unknown>): number
-export function count<TObject>(
-  iterable: Iterable<TObject>,
-  accessor: (a: TObject, b: TObject) => number | null | undefined
-): number
-export function cross<S, T>(a: Iterable<S>, b: Iterable<T>): Array<[S, T]>
-export function cross<S, T, U>(a: Iterable<S>, b: Iterable<T>, reducer: (a: S, b: T) => U): U[]
-export function merge<T>(iterables: Iterable<Iterable<T>>): T[]
-export function pairs<T>(iterable: Iterable<T>): Array<[T, T]>
-export function pairs<T, U>(iterable: Iterable<T>, reducer: (a: T, b: T) => U): U[]
-export function permute<T>(source: { [key: number]: T }, keys: Iterable<number>): T[]
-export function permute<T, K extends keyof T>(source: T, keys: Iterable<K>): Array<T[K]>
-export function shuffle<T>(array: T[], lo?: number, hi?: number): T[]
-export function shuffle(array: Int8Array, lo?: number, hi?: number): Int8Array
-export function shuffle(array: Uint8Array, lo?: number, hi?: number): Uint8Array
-export function shuffle(array: Uint8ClampedArray, lo?: number, hi?: number): Uint8ClampedArray
-export function shuffle(array: Int16Array, lo?: number, hi?: number): Int16Array
-export function shuffle(array: Uint16Array, lo?: number, hi?: number): Uint16Array
-export function shuffle(array: Int32Array, lo?: number, hi?: number): Int32Array
-export function shuffle(array: Uint32Array, lo?: number, hi?: number): Uint32Array
-export function shuffle(array: Float32Array, lo?: number, hi?: number): Float32Array
-export function shuffle(array: Float64Array, lo?: number, hi?: number): Float64Array
-export function shuffler(random: () => number): typeof shuffle
-export function ticks(start: number, stop: number, count: number): number[]
-export function tickIncrement(start: number, stop: number, count: number): number
-export function tickStep(start: number, stop: number, count: number): number
-export function nice(start: number, stop: number, count: number): [number, number]
-export function range(stop: number): number[]
-export function range(start: number, stop: number, step?: number): number[]
-export function transpose<T>(matrix: ArrayLike<ArrayLike<T>>): T[][]
-export function zip<T>(...arrays: Array<ArrayLike<T>>): T[][]
-export function every<T>(
-  iterable: Iterable<T>,
-  test: (value: T, index: number, iterable: Iterable<T>) => unknown
-): boolean
-export function some<T>(
-  iterable: Iterable<T>,
-  test: (value: T, index: number, iterable: Iterable<T>) => unknown
-): boolean
-export function filter<T>(iterable: Iterable<T>, test: (value: T, index: number, iterable: Iterable<T>) => unknown): T[]
-export function map<T, U>(iterable: Iterable<T>, mapper: (value: T, index: number, iterable: Iterable<T>) => U): U[]
-export function reduce<T>(
-  iterable: Iterable<T>,
-  reducer: (previousValue: T, currentValue: T, currentIndex: number, iterable: Iterable<T>) => T,
-  initialValue?: T
-): T
-export function reduce<T, U>(
-  iterable: Iterable<T>,
-  reducer: (previousValue: U, currentValue: T, currentIndex: number, iterable: Iterable<T>) => U,
-  initialValue: U
-): U
-export function reverse<T>(iterable: Iterable<T>): T[]
-export function sort<T>(iterable: Iterable<T>, comparator?: (a: T, b: T) => number): T[]
-export function sort<T>(iterable: Iterable<T>, ...accessors: Array<(a: T) => unknown>): T[]
-export function difference<T>(iterable: Iterable<T>, ...others: Array<Iterable<T>>): InternSet<T>
-export function union<T>(...iterables: Array<Iterable<T>>): InternSet<T>
-export function intersection<T>(...iterables: Array<Iterable<T>>): InternSet<T>
-export function superset<T>(a: Iterable<T>, b: Iterable<T>): boolean
-export function subset<T>(a: Iterable<T>, b: Iterable<T>): boolean
-export function disjoint<T>(a: Iterable<T>, b: Iterable<T>): boolean
+
 export interface Bin<Datum, Value extends number | Date | undefined> extends Array<Datum> {
   x0: Value | undefined
   x1: Value | undefined
@@ -379,8 +46,8 @@ export interface HistogramGeneratorDate<Datum, Value extends Date | undefined> e
 }
 export interface HistogramGeneratorNumber<Datum, Value extends number | undefined>
   extends HistogramCommon<Datum, Value> {
-  domain(): (values: Iterable<Value>) => [number, number] | [undefined, undefined]
-  domain(domain: [number, number] | ((values: Iterable<Value>) => [number, number] | [undefined, undefined])): this
+  domain(): (xs: Iterable<Value>) => [number, number] | [undefined, undefined]
+  domain(domain: [number, number] | ((xs: Iterable<Value>) => [number, number] | [undefined, undefined])): this
   thresholds(): ThresholdCountGenerator<Value> | ThresholdNumberArrayGenerator<Value>
   thresholds(count: number | ThresholdCountGenerator<Value>): this
   thresholds(thresholds: ArrayLike<Value> | ThresholdNumberArrayGenerator<Value>): this
@@ -396,7 +63,6 @@ export function thresholdScott(values: ArrayLike<number | undefined>, min: numbe
 export function thresholdSturges(values: ArrayLike<number | undefined>): number
 export class InternMap<K = any, V = any> extends Map<K, V> {}
 export class InternSet<T = any> extends Set<T> {}
-import { Selection, TransitionLike } from "d3-selection"
 export type AxisDomain = number | string | Date | { valueOf(): number }
 export interface AxisTimeInterval {
   range(start: Date, stop: Date, step?: number): Date[]
@@ -425,10 +91,10 @@ export interface Axis<Domain> {
   tickArguments(): any[]
   tickArguments(args: any[]): this
   tickValues(): Domain[] | null
-  tickValues(values: Iterable<Domain>): this
+  tickValues(xs: Iterable<Domain>): this
   tickValues(values: null): this
-  tickFormat(): ((domainValue: Domain, index: number) => string) | null
-  tickFormat(format: (domainValue: Domain, index: number) => string): this
+  tickFormat(): ((domainValue: Domain, i: number) => string) | null
+  tickFormat(format: (domainValue: Domain, i: number) => string): this
   tickFormat(format: null): this
   tickSize(): number
   tickSize(size: number): this
@@ -445,7 +111,6 @@ export function axisTop<Domain extends AxisDomain>(scale: AxisScale<Domain>): Ax
 export function axisRight<Domain extends AxisDomain>(scale: AxisScale<Domain>): Axis<Domain>
 export function axisBottom<Domain extends AxisDomain>(scale: AxisScale<Domain>): Axis<Domain>
 export function axisLeft<Domain extends AxisDomain>(scale: AxisScale<Domain>): Axis<Domain>
-import { Selection, TransitionLike, ValueFn } from "d3-selection"
 export type BrushSelection = [[number, number], [number, number]] | [number, number]
 export interface BrushBehavior<Datum> {
   (group: Selection<SVGGElement, Datum, any, any>, ...args: any[]): void
@@ -486,7 +151,7 @@ export interface ChordSubgroup {
   startAngle: number
   endAngle: number
   value: number
-  index: number
+  i: number
 }
 export interface Chord {
   source: ChordSubgroup
@@ -496,7 +161,7 @@ export interface ChordGroup {
   startAngle: number
   endAngle: number
   value: number
-  index: number
+  i: number
 }
 export interface Chords extends Array<Chord> {
   groups: ChordGroup[]
@@ -708,8 +373,6 @@ export const gray: GrayColorFactory
 export const hcl: HCLColorFactory
 export const lch: LCHColorFactory
 export const cubehelix: CubehelixColorFactory
-import { MultiPolygon } from "geojson"
-import { ThresholdNumberArrayGenerator, ThresholdCountGenerator } from "d3-array"
 export interface ContourMultiPolygon extends MultiPolygon {
   value: number
 }
@@ -815,7 +478,7 @@ export class Voronoi<P> {
   renderBounds(context: Delaunay.RectContext): void
   renderCell(i: number): string
   renderCell(i: number, context: Delaunay.MoveContext & Delaunay.LineContext & Delaunay.ClosableContext): void
-  cellPolygons(): IterableIterator<Delaunay.Polygon & { index: number }>
+  cellPolygons(): IterableIterator<Delaunay.Polygon & { i: number }>
   cellPolygon(i: number): Delaunay.Polygon
   update(): this
 }
@@ -827,7 +490,6 @@ export interface Dispatch<T extends object> {
   on(typenames: string, callback: null | ((this: T, ...args: any[]) => void)): this
 }
 export function dispatch<T extends object>(...types: string[]): Dispatch<T>
-import { Selection, ValueFn } from "d3-selection"
 export type DraggedElementBaseType = Element
 export type DragContainerElement = HTMLElement | SVGSVGElement | SVGGElement
 export interface SubjectPosition {
@@ -893,12 +555,12 @@ export interface DSVParsedArray<T> extends Array<T> {
 export function csvParse<Columns extends string>(csvString: string): DSVRowArray<Columns>
 export function csvParse<ParsedRow extends object, Columns extends string>(
   csvString: string,
-  row: (rawRow: DSVRowString<Columns>, index: number, columns: Columns[]) => ParsedRow | undefined | null
+  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
 ): DSVParsedArray<ParsedRow>
 export function csvParseRows(csvString: string): string[][]
 export function csvParseRows<ParsedRow extends object>(
   csvString: string,
-  row: (rawRow: string[], index: number) => ParsedRow | undefined | null
+  row: (rawRow: string[], i: number) => ParsedRow | undefined | null
 ): ParsedRow[]
 export function csvFormat<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
 export function csvFormatBody<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
@@ -908,12 +570,12 @@ export function csvFormatValue(value: string): string
 export function tsvParse<Columns extends string>(tsvString: string): DSVRowArray<Columns>
 export function tsvParse<ParsedRow extends object, Columns extends string>(
   tsvString: string,
-  row: (rawRow: DSVRowString<Columns>, index: number, columns: Columns[]) => ParsedRow | undefined | null
+  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
 ): DSVParsedArray<ParsedRow>
 export function tsvParseRows(tsvString: string): string[][]
 export function tsvParseRows<ParsedRow extends object>(
   tsvString: string,
-  row: (rawRow: string[], index: number) => ParsedRow | undefined | null
+  row: (rawRow: string[], i: number) => ParsedRow | undefined | null
 ): ParsedRow[]
 export function tsvFormat<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
 export function tsvFormatBody<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
@@ -924,12 +586,12 @@ export interface DSV {
   parse<Columns extends string>(dsvString: string): DSVRowArray<Columns>
   parse<ParsedRow extends object, Columns extends string>(
     dsvString: string,
-    row: (rawRow: DSVRowString<Columns>, index: number, columns: Columns[]) => ParsedRow | undefined | null
+    row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
   ): DSVParsedArray<ParsedRow>
   parseRows(dsvString: string): string[][]
   parseRows<ParsedRow extends object>(
     dsvString: string,
-    row: (rawRow: string[], index: number) => ParsedRow | undefined | null
+    row: (rawRow: string[], i: number) => ParsedRow | undefined | null
   ): ParsedRow[]
   format<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
   formatBody<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
@@ -991,18 +653,17 @@ export const easeElastic: ElasticEasingFactory
 export const easeElasticIn: ElasticEasingFactory
 export const easeElasticOut: ElasticEasingFactory
 export const easeElasticInOut: ElasticEasingFactory
-import { DSVParsedArray, DSVRowArray, DSVRowString } from "d3-dsv"
 export function blob(url: string, init?: RequestInit): Promise<Blob>
 export function buffer(url: string, init?: RequestInit): Promise<ArrayBuffer>
 export function csv<Columns extends string>(url: string, init?: RequestInit): Promise<DSVRowArray<Columns>>
 export function csv<ParsedRow extends object, Columns extends string = string>(
   url: string,
-  row: (rawRow: DSVRowString<Columns>, index: number, columns: Columns[]) => ParsedRow | undefined | null
+  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
 ): Promise<DSVParsedArray<ParsedRow>>
 export function csv<ParsedRow extends object, Columns extends string = string>(
   url: string,
   init: RequestInit,
-  row: (rawRow: DSVRowString<Columns>, index: number, columns: Columns[]) => ParsedRow | undefined | null
+  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
 ): Promise<DSVParsedArray<ParsedRow>>
 export function dsv<Columns extends string>(
   delimiter: string,
@@ -1012,13 +673,13 @@ export function dsv<Columns extends string>(
 export function dsv<ParsedRow extends object, Columns extends string = string>(
   delimiter: string,
   url: string,
-  row: (rawRow: DSVRowString<Columns>, index: number, columns: Columns[]) => ParsedRow | undefined | null
+  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
 ): Promise<DSVParsedArray<ParsedRow>>
 export function dsv<ParsedRow extends object, Columns extends string = string>(
   delimiter: string,
   url: string,
   init: RequestInit,
-  row: (rawRow: DSVRowString<Columns>, index: number, columns: Columns[]) => ParsedRow | undefined | null
+  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
 ): Promise<DSVParsedArray<ParsedRow>>
 export function html(url: string, init?: RequestInit): Promise<Document>
 export function image(url: string, init?: Partial<HTMLImageElement>): Promise<HTMLImageElement>
@@ -1031,12 +692,12 @@ export function text(url: string, init?: RequestInit): Promise<string>
 export function tsv<Columns extends string>(url: string, init?: RequestInit): Promise<DSVRowArray<Columns>>
 export function tsv<ParsedRow extends object, Columns extends string = string>(
   url: string,
-  row: (rawRow: DSVRowString<Columns>, index: number, columns: Columns[]) => ParsedRow | undefined | null
+  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
 ): Promise<DSVParsedArray<ParsedRow>>
 export function tsv<ParsedRow extends object, Columns extends string = string>(
   url: string,
   init: RequestInit,
-  row: (rawRow: DSVRowString<Columns>, index: number, columns: Columns[]) => ParsedRow | undefined | null
+  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
 ): Promise<DSVParsedArray<ParsedRow>>
 export function xml(url: string, init?: RequestInit): Promise<XMLDocument>
 export interface SimulationNodeDatum {
@@ -1229,7 +890,6 @@ export function formatSpecifier(specifier: string): FormatSpecifier
 export function precisionFixed(step: number): number
 export function precisionPrefix(step: number, value: number): number
 export function precisionRound(step: number, max: number): number
-import * as GeoJSON from "geojson"
 export interface GeoSphere {
   type: "Sphere"
 }
@@ -1507,9 +1167,9 @@ export interface HierarchyNode<Datum> {
   count(): this
   sort(compare: (a: this, b: this) => number): this
   [Symbol.iterator](): Iterator<this>
-  each<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this
-  eachAfter<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this
-  eachBefore<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this
+  each<T = undefined>(func: (this: T, node: this, i: number, thisNode: this) => void, that?: T): this
+  eachAfter<T = undefined>(func: (this: T, node: this, i: number, thisNode: this) => void, that?: T): this
+  eachBefore<T = undefined>(func: (this: T, node: this, i: number, thisNode: this) => void, that?: T): this
   copy(): this
 }
 export function hierarchy<Datum>(
@@ -1656,7 +1316,6 @@ export interface PackCircle {
 }
 export function packSiblings<Datum extends PackRadius>(circles: Datum[]): Array<Datum & PackCircle>
 export function packEnclose<Datum extends PackCircle>(circles: Datum[]): PackCircle
-import { ColorCommonInstance } from "d3-color"
 export interface ZoomInterpolator extends Function {
   (t: number): ZoomView
   duration: number
@@ -1777,9 +1436,9 @@ export interface Quadtree<T> {
   extent(): [[number, number], [number, number]] | undefined
   extent(extend: [[number, number], [number, number]]): this
   cover(x: number, y: number): this
-  add(datum: T): this
+  add(x: T): this
   addAll(data: T[]): this
-  remove(datum: T): this
+  remove(x: T): this
   removeAll(data: T[]): this
   copy(): Quadtree<T>
   root(): QuadtreeInternalNode<T> | QuadtreeLeaf<T>
@@ -1875,7 +1534,6 @@ export interface RandomPoisson extends RandomNumberGenerationSource {
 }
 export const randomPoisson: RandomPoisson
 export function randomLcg(seed?: number): () => number
-import { CountableTimeInterval, TimeInterval } from "d3-time"
 export interface InterpolatorFactory<T, U> {
   (a: T, b: T): (t: number) => U
 }
@@ -2360,8 +2018,8 @@ export type BaseType = Element | EnterElement | Document | Window | null
 export type KeyType = string | number
 export interface ArrayLike<T> {
   length: number
-  item(index: number): T | null
-  [index: number]: T
+  item(i: number): T | null
+  [i: number]: T
 }
 export interface EnterElement {
   ownerDocument: Document
@@ -2384,7 +2042,7 @@ export interface CustomEventParameters {
 export type ValueFn<T extends BaseType, Datum, Result> = (
   this: T,
   datum: Datum,
-  index: number,
+  i: number,
   groups: T[] | ArrayLike<T>
 ) => Result
 export interface TransitionLike<GElement extends BaseType, Datum> {
@@ -2562,7 +2220,6 @@ export function creator<NewGElement extends Element>(name: string): (this: BaseT
 export function matcher(selector: string): (this: BaseType) => boolean
 export function selector<DescElement extends Element>(selector: string): (this: BaseType) => DescElement
 export function selectorAll<DescElement extends Element>(selector: string): (this: BaseType) => NodeListOf<DescElement>
-import { Path } from "d3-path"
 declare global {
   interface CanvasRenderingContext2D {} // tslint:disable-line no-empty-interface
 }
@@ -2626,7 +2283,7 @@ export function arc<This, Datum>(): Arc<This, Datum>
 export interface PieArcDatum<T> {
   data: T
   value: number
-  index: number
+  i: number
   startAngle: number
   endAngle: number
   padAngle: number
@@ -2657,15 +2314,15 @@ export function pie<This, Datum>(): Pie<This, Datum>
 export interface Line<Datum> {
   (data: Iterable<Datum> | Datum[]): string | null
   (data: Iterable<Datum> | Datum[]): void
-  x(): (d: Datum, index: number, data: Datum[]) => number
+  x(): (d: Datum, i: number, data: Datum[]) => number
   x(x: number): this
-  x(x: (d: Datum, index: number, data: Datum[]) => number): this
-  y(): (d: Datum, index: number, data: Datum[]) => number
+  x(x: (d: Datum, i: number, data: Datum[]) => number): this
+  y(): (d: Datum, i: number, data: Datum[]) => number
   y(y: number): this
-  y(y: (d: Datum, index: number, data: Datum[]) => number): this
-  defined(): (d: Datum, index: number, data: Datum[]) => boolean
+  y(y: (d: Datum, i: number, data: Datum[]) => number): this
+  defined(): (d: Datum, i: number, data: Datum[]) => boolean
   defined(defined: boolean): this
-  defined(defined: (d: Datum, index: number, data: Datum[]) => boolean): this
+  defined(defined: (d: Datum, i: number, data: Datum[]) => boolean): this
   curve(): CurveFactory | CurveFactoryLineOnly
   curve<C extends CurveFactory | CurveFactoryLineOnly>(): C
   curve(curve: CurveFactory | CurveFactoryLineOnly): this
@@ -2673,21 +2330,21 @@ export interface Line<Datum> {
   context(context: CanvasRenderingContext2D | null): this
 }
 export function line<Datum = [number, number]>(
-  x?: number | ((d: Datum, index: number, data: Datum[]) => number),
-  y?: number | ((d: Datum, index: number, data: Datum[]) => number)
+  x?: number | ((d: Datum, i: number, data: Datum[]) => number),
+  y?: number | ((d: Datum, i: number, data: Datum[]) => number)
 ): Line<Datum>
 export interface LineRadial<Datum> {
   (data: Iterable<Datum> | Datum[]): string | null
   (data: Iterable<Datum> | Datum[]): void
-  angle(): (d: Datum, index: number, data: Datum[]) => number
+  angle(): (d: Datum, i: number, data: Datum[]) => number
   angle(angle: number): this
-  angle(angle: (d: Datum, index: number, data: Datum[]) => number): this
-  radius(): (d: Datum, index: number, data: Datum[]) => number
+  angle(angle: (d: Datum, i: number, data: Datum[]) => number): this
+  radius(): (d: Datum, i: number, data: Datum[]) => number
   radius(radius: number): this
-  radius(radius: (d: Datum, index: number, data: Datum[]) => number): this
-  defined(): (d: Datum, index: number, data: Datum[]) => boolean
+  radius(radius: (d: Datum, i: number, data: Datum[]) => number): this
+  defined(): (d: Datum, i: number, data: Datum[]) => boolean
   defined(defined: boolean): this
-  defined(defined: (d: Datum, index: number, data: Datum[]) => boolean): this
+  defined(defined: (d: Datum, i: number, data: Datum[]) => boolean): this
   curve(): CurveFactory | CurveFactoryLineOnly
   curve<C extends CurveFactory | CurveFactoryLineOnly>(): C
   curve(curve: CurveFactory | CurveFactoryLineOnly): this
@@ -2702,27 +2359,27 @@ export function radialLine<Datum>(): RadialLine<Datum>
 export interface Area<Datum> {
   (data: Iterable<Datum> | Datum[]): string | null
   (data: Iterable<Datum> | Datum[]): void
-  x(): (d: Datum, index: number, data: Datum[]) => number
+  x(): (d: Datum, i: number, data: Datum[]) => number
   x(x: number): this
-  x(x: (d: Datum, index: number, data: Datum[]) => number): this
-  x0(): (d: Datum, index: number, data: Datum[]) => number
+  x(x: (d: Datum, i: number, data: Datum[]) => number): this
+  x0(): (d: Datum, i: number, data: Datum[]) => number
   x0(x: number): this
-  x0(x: (d: Datum, index: number, data: Datum[]) => number): this
-  x1(): ((d: Datum, index: number, data: Datum[]) => number) | null
+  x0(x: (d: Datum, i: number, data: Datum[]) => number): this
+  x1(): ((d: Datum, i: number, data: Datum[]) => number) | null
   x1(x: null | number): this
-  x1(x: (d: Datum, index: number, data: Datum[]) => number): this
-  y(): (d: Datum, index: number, data: Datum[]) => number
+  x1(x: (d: Datum, i: number, data: Datum[]) => number): this
+  y(): (d: Datum, i: number, data: Datum[]) => number
   y(y: number): this
-  y(y: (d: Datum, index: number, data: Datum[]) => number): this
-  y0(): (d: Datum, index: number, data: Datum[]) => number
+  y(y: (d: Datum, i: number, data: Datum[]) => number): this
+  y0(): (d: Datum, i: number, data: Datum[]) => number
   y0(y: number): this
-  y0(y: (d: Datum, index: number, data: Datum[]) => number): this
-  y1(): ((d: Datum, index: number, data: Datum[]) => number) | null
+  y0(y: (d: Datum, i: number, data: Datum[]) => number): this
+  y1(): ((d: Datum, i: number, data: Datum[]) => number) | null
   y1(y: null | number): this
-  y1(y: (d: Datum, index: number, data: Datum[]) => number): this
-  defined(): (d: Datum, index: number, data: Datum[]) => boolean
+  y1(y: (d: Datum, i: number, data: Datum[]) => number): this
+  defined(): (d: Datum, i: number, data: Datum[]) => boolean
   defined(defined: boolean): this
-  defined(defined: (d: Datum, index: number, data: Datum[]) => boolean): this
+  defined(defined: (d: Datum, i: number, data: Datum[]) => boolean): this
   curve(): CurveFactory
   curve<C extends CurveFactory>(): C
   curve(curve: CurveFactory): this
@@ -2734,34 +2391,34 @@ export interface Area<Datum> {
   lineY1(): Line<Datum>
 }
 export function area<Datum = [number, number]>(
-  x?: number | ((d: Datum, index: number, data: Datum[]) => number),
-  y0?: number | ((d: Datum, index: number, data: Datum[]) => number),
-  y1?: number | ((d: Datum, index: number, data: Datum[]) => number)
+  x?: number | ((d: Datum, i: number, data: Datum[]) => number),
+  y0?: number | ((d: Datum, i: number, data: Datum[]) => number),
+  y1?: number | ((d: Datum, i: number, data: Datum[]) => number)
 ): Area<Datum>
 export interface AreaRadial<Datum> {
   (data: Iterable<Datum> | Datum[]): string | null
   (data: Iterable<Datum> | Datum[]): void
-  angle(): (d: Datum, index: number, data: Datum[]) => number
+  angle(): (d: Datum, i: number, data: Datum[]) => number
   angle(angle: number): this
-  angle(angle: (d: Datum, index: number, data: Datum[]) => number): this
-  startAngle(): (d: Datum, index: number, data: Datum[]) => number
+  angle(angle: (d: Datum, i: number, data: Datum[]) => number): this
+  startAngle(): (d: Datum, i: number, data: Datum[]) => number
   startAngle(angle: number): this
-  startAngle(angle: (d: Datum, index: number, data: Datum[]) => number): this
-  endAngle(): ((d: Datum, index: number, data: Datum[]) => number) | null
+  startAngle(angle: (d: Datum, i: number, data: Datum[]) => number): this
+  endAngle(): ((d: Datum, i: number, data: Datum[]) => number) | null
   endAngle(angle: null | number): this
-  endAngle(angle: (d: Datum, index: number, data: Datum[]) => number): this
-  radius(): (d: Datum, index: number, data: Datum[]) => number
+  endAngle(angle: (d: Datum, i: number, data: Datum[]) => number): this
+  radius(): (d: Datum, i: number, data: Datum[]) => number
   radius(radius: number): this
-  radius(radius: (d: Datum, index: number, data: Datum[]) => number): this
-  innerRadius(): (d: Datum, index: number, data: Datum[]) => number
+  radius(radius: (d: Datum, i: number, data: Datum[]) => number): this
+  innerRadius(): (d: Datum, i: number, data: Datum[]) => number
   innerRadius(radius: number): this
-  innerRadius(radius: (d: Datum, index: number, data: Datum[]) => number): this
-  outerRadius(): ((d: Datum, index: number, data: Datum[]) => number) | null
+  innerRadius(radius: (d: Datum, i: number, data: Datum[]) => number): this
+  outerRadius(): ((d: Datum, i: number, data: Datum[]) => number) | null
   outerRadius(radius: null | number): this
-  outerRadius(radius: (d: Datum, index: number, data: Datum[]) => number): this
-  defined(): (d: Datum, index: number, data: Datum[]) => boolean
+  outerRadius(radius: (d: Datum, i: number, data: Datum[]) => number): this
+  defined(): (d: Datum, i: number, data: Datum[]) => boolean
   defined(defined: boolean): this
-  defined(defined: (d: Datum, index: number, data: Datum[]) => boolean): this
+  defined(defined: (d: Datum, i: number, data: Datum[]) => boolean): this
   curve(): CurveFactory
   curve<C extends CurveFactory>(): C
   curve(curve: CurveFactory): this
@@ -2909,7 +2566,7 @@ export interface SeriesPoint<Datum> extends Array<number> {
 }
 export interface Series<Datum, Key> extends Array<SeriesPoint<Datum>> {
   key: Key
-  index: number
+  i: number
 }
 export interface Stack<This, Datum, Key> {
   (data: Iterable<Datum>, ...args: any[]): Array<Series<Datum, Key>>
@@ -3057,7 +2714,6 @@ export function timer(callback: (elapsed: number) => void, delay?: number, time?
 export function timerFlush(): void
 export function timeout(callback: (elapsed: number) => void, delay?: number, time?: number): Timer
 export function interval(callback: (elapsed: number) => void, delay?: number, time?: number): Timer
-import { ArrayLike, BaseType, Selection, ValueFn } from "d3-selection"
 declare module "d3-selection" {
   interface Selection<GElement extends BaseType, Datum, PElement extends BaseType, PDatum> {
     interrupt(name?: string): this
@@ -3151,8 +2807,6 @@ export function transition<OldDatum>(name?: string): Transition<BaseType, OldDat
 export function transition<OldDatum>(
   transition: Transition<BaseType, any, BaseType, any>
 ): Transition<BaseType, OldDatum, null, undefined>
-import { Selection, TransitionLike, ValueFn } from "d3-selection"
-import { ZoomView } from "d3-interpolate"
 export type ZoomedElementBaseType = Element
 export interface ZoomScale {
   domain(): number[] | Date[]

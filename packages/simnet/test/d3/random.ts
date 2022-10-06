@@ -196,9 +196,6 @@ import { median, range } from "d3-array"
 import { randomCauchy, randomLcg } from "../src/index.js"
 import { assertInDelta } from "./asserts.js"
 
-// Since the Cauchy distribution is "pathological" in that no integral moments exist,
-// we simply test for the median, equivalent to the location parameter.
-
 it("randomCauchy(a, b) returns random numbers with a median of a", () => {
   const r = randomCauchy.source(randomLcg(0.42))
   assertInDelta(median(range(10000).map(r())), 0, 0.05)
@@ -219,7 +216,6 @@ it("randomExponential(lambda) returns random exponentially distributed numbers w
 
   assertInDelta(mean(times), period, period * 0.05)
 
-  // Test cumulative distribution in intervals of 10.
   range(10, 100, 10).forEach(function (elapsed) {
     const within = times.filter(t => t <= elapsed)
     const expected = 1 - Math.exp(-elapsed * lambda)
@@ -578,10 +574,6 @@ import { mean, range, variance } from "d3-array"
 import { randomLcg, randomPoisson } from "../src/index.js"
 import { skewness, kurtosis } from "./statistics.js"
 import { assertInDelta } from "./asserts.js"
-
-// Ten times the default number of samples are taken for the lambda = 0.001 tests,
-// since otherwise the very small expected number of non-zero samples would
-// wildly influence summary statistics.
 
 it("randomPoisson(lambda) returns random numbers with a mean of lambda", () => {
   const r = randomPoisson.source(randomLcg(0.48758044703454373))

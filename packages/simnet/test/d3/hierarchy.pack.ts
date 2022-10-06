@@ -20,14 +20,12 @@ function extendBasis(B, p) {
 
   if (enclosesWeakAll(p, B)) return [p]
 
-  // If we get here then B must have at least one element.
   for (i = 0; i < B.length; ++i) {
     if (enclosesNot(p, B[i]) && enclosesWeakAll(encloseBasis2(B[i], p), B)) {
       return [B[i], p]
     }
   }
 
-  // If we get here then B must have at least two elements.
   for (i = 0; i < B.length - 1; ++i) {
     for (j = i + 1; j < B.length; ++j) {
       if (
@@ -41,7 +39,6 @@ function extendBasis(B, p) {
     }
   }
 
-  // If we get here then something is very wrong.
   throw new Error()
 }
 
@@ -388,7 +385,6 @@ it("pack is deterministic", () => {
 import assert from "assert"
 import { packEnclose } from "../../src/index.js"
 
-// https://github.com/d3/d3-hierarchy/issues/188
 it("packEnclose(circles) handles a tricky case", () => {
   assert.deepStrictEqual(
     packEnclose([
@@ -490,10 +486,6 @@ function equals(a, b) {
 }
 /* eslint-disable */
 
-// Look for numerical inconsistencies between the place() and intersects()
-// methods from pack/siblings.js
-
-// The place and intersect functions are not exported, so we duplicate them here
 function place(a, b, c) {
   var dx = b.x - a.x,
     x,
@@ -521,7 +513,6 @@ function place(a, b, c) {
     c.y = a.y
   }
 
-  // This last part is not part of the original function!
   if (intersects(a, c) || intersects(b, c)) {
     console.log(`a = {x: ${a.x}, y: ${a.y}, r: ${a.r}},`)
     console.log(`b = {x: ${b.x}, y: ${b.y}, r: ${b.r}},`)
@@ -537,8 +528,6 @@ function intersects(a, b) {
   return dr > 0 && dr * dr > dx * dx + dy * dy
 }
 
-// Create n random circles.
-// The first two are placed touching on the x-axis; the rest are unplaced
 function randomCircles(n) {
   const r = []
   for (var i = 0; i < n; i++) {
@@ -597,7 +586,6 @@ function test(inputFile, expectedFile) {
       delete node.height
       if (node.children) node.children.forEach(visit)
     })(actual)
-
     ;(function visit(node) {
       Object.setPrototypeOf(node, Node.prototype)
       node.x = round(node.x)

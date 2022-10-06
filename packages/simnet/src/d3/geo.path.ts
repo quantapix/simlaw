@@ -81,8 +81,6 @@ function boundsPoint(x, y) {
 export default boundsStream
 import { sqrt } from "../math.js"
 
-// TODO Enforce positive area for exterior, negative area for interior?
-
 var X0 = 0,
   Y0 = 0,
   Z0 = 0,
@@ -179,7 +177,7 @@ export default centroidStream
 import { tau } from "../math.js"
 import noop from "../noop.js"
 
-export default function PathContext(context) {
+export function PathContext(context) {
   this._context = context
 }
 
@@ -230,7 +228,7 @@ import PathContext from "./context.js"
 import pathMeasure from "./measure.js"
 import PathString from "./string.js"
 
-export default function (projection, context) {
+export function (projection, context) {
   var pointRadius = 4.5,
     projectionStream,
     contextStream
@@ -329,7 +327,7 @@ function lengthPoint(x, y) {
 }
 
 export default lengthStream
-export default function PathString() {
+export function PathString() {
   this._string = []
 }
 

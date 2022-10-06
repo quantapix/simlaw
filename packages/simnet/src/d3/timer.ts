@@ -5,7 +5,7 @@ export { default as timeout } from "./timeout.js"
 export { default as interval } from "./interval.js"
 import { Timer, now } from "./timer.js"
 
-export default function (callback, delay, time) {
+export function (callback, delay, time) {
   var t = new Timer(),
     total = delay
   if (delay == null) return t.restart(callback, delay, time), t
@@ -27,7 +27,7 @@ export default function (callback, delay, time) {
 }
 import { Timer } from "./timer.js"
 
-export default function (callback, delay, time) {
+export function (callback, delay, time) {
   var t = new Timer()
   delay = delay == null ? 0 : +delay
   t.restart(

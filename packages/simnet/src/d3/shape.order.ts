@@ -1,6 +1,6 @@
 import none from "./none.js";
 
-export default function(series) {
+export function(series) {
   var peaks = series.map(peak);
   return none(series).sort(function(a, b) { return peaks[a] - peaks[b]; });
 }
@@ -12,7 +12,7 @@ function peak(series) {
 }
 import none from "./none.js";
 
-export default function(series) {
+export function(series) {
   var sums = series.map(sum);
   return none(series).sort(function(a, b) { return sums[a] - sums[b]; });
 }
@@ -24,13 +24,13 @@ export function sum(series) {
 }
 import ascending from "./ascending.js";
 
-export default function(series) {
+export function(series) {
   return ascending(series).reverse();
 }
 import appearance from "./appearance.js";
 import {sum} from "./ascending.js";
 
-export default function(series) {
+export function(series) {
   var n = series.length,
       i,
       j,
@@ -54,13 +54,13 @@ export default function(series) {
 
   return bottoms.reverse().concat(tops);
 }
-export default function(series) {
+export function(series) {
   var n = series.length, o = new Array(n);
   while (--n >= 0) o[n] = n;
   return o;
 }
 import none from "./none.js";
 
-export default function(series) {
+export function(series) {
   return none(series).reverse();
 }

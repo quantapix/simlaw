@@ -1,4 +1,4 @@
-export default function (ring) {
+export function (ring) {
   var i = 0,
     n = ring.length,
     area = ring[n - 1][1] * ring[0][0] - ring[n - 1][0] * ring[0][1]
@@ -8,11 +8,11 @@ export default function (ring) {
 var array = Array.prototype
 
 export var slice = array.slice
-export default function (a, b) {
+export function (a, b) {
   return a - b
 }
 export default x => () => x
-export default function (ring, hole) {
+export function (ring, hole) {
   var i = -1,
     n = hole.length,
     c
@@ -154,7 +154,7 @@ var cases = [
   [],
 ]
 
-export default function () {
+export function () {
   var dx = 1,
     dy = 1,
     threshold = thresholdSturges,
@@ -163,7 +163,6 @@ export default function () {
   function contours(values) {
     var tz = threshold(values)
 
-    // Convert number of thresholds into uniform thresholds.
     if (!Array.isArray(tz)) {
       const e = extent(values),
         ts = tickStep(e[0], e[1], tz)
@@ -175,8 +174,6 @@ export default function () {
     return tz.map(value => contour(values, value))
   }
 
-  // Accumulate, smooth contour rings, assign holes to exterior rings.
-  // Based on https://github.com/mbostock/shapefile/blob/v0.6.2/shp/polygon.js
   function contour(values, value) {
     var polygons = [],
       holes = []
@@ -203,8 +200,6 @@ export default function () {
     }
   }
 
-  // Marching squares with isolines stitched into rings.
-  // Based on https://github.com/topojson/topojson-client/blob/v3.0.0/src/stitch.js
   function isorings(values, value, callback) {
     var fragmentByStart = new Array(),
       fragmentByEnd = new Array(),
@@ -215,7 +210,6 @@ export default function () {
       t2,
       t3
 
-    // Special case for the first row (y = -1, t2 = t3 = 0).
     x = y = -1
     t1 = values[0] >= value
     cases[t1 << 1].forEach(stitch)
@@ -225,7 +219,6 @@ export default function () {
     }
     cases[t1 << 0].forEach(stitch)
 
-    // General case for the intermediate rows.
     while (++y < dy - 1) {
       x = -1
       t1 = values[y * dx + dx] >= value
@@ -239,7 +232,6 @@ export default function () {
       cases[t1 | (t2 << 3)].forEach(stitch)
     }
 
-    // Special case for the last row (y = dy - 1, t0 = t1 = 0).
     x = -1
     t2 = values[y * dx] >= value
     cases[t2 << 2].forEach(stitch)
@@ -362,7 +354,7 @@ function defaultWeight() {
   return 1
 }
 
-export default function () {
+export function () {
   var x = defaultX,
     y = defaultY,
     weight = defaultWeight,
@@ -405,7 +397,6 @@ export default function () {
       tz = threshold(values),
       pow4k = Math.pow(2, 2 * k)
 
-    // Convert number of thresholds into uniform thresholds.
     if (!Array.isArray(tz)) {
       tz = ticks(Number.MIN_VALUE, max(values) / pow4k, tz)
     }
@@ -443,7 +434,6 @@ export default function () {
     coordinates.forEach(transformPoint)
   }
 
-  // TODO Optimize.
   function transformPoint(coordinates) {
     coordinates[0] = coordinates[0] * Math.pow(2, k) - o
     coordinates[1] = coordinates[1] * Math.pow(2, k) - o
@@ -498,4 +488,4 @@ export default function () {
 }
 export { default as contours } from "./contours.js"
 export { default as contourDensity } from "./density.js"
-export default function () {}
+export function () {}

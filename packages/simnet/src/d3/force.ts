@@ -1,4 +1,4 @@
-export default function (x, y) {
+export function (x, y) {
   var nodes,
     strength = 1
 
@@ -51,7 +51,7 @@ function y(d) {
   return d.y + d.vy
 }
 
-export default function (radius) {
+export function (radius) {
   var nodes,
     radii,
     random,
@@ -144,7 +144,7 @@ export default function (radius) {
 
   return force
 }
-export default function (x) {
+export function (x) {
   return function () {
     return x
   }
@@ -157,15 +157,15 @@ export { default as forceRadial } from "./radial.js"
 export { default as forceSimulation } from "./simulation.js"
 export { default as forceX } from "./x.js"
 export { default as forceY } from "./y.js"
-export default function (random) {
+export function (random) {
   return (random() - 0.5) * 1e-6
 }
-// https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+
 const a = 1664525
 const c = 1013904223
 const m = 4294967296 // 2^32
 
-export default function () {
+export function () {
   let s = 1
   return () => (s = (a * s + c) % m) / m
 }
@@ -182,7 +182,7 @@ function find(nodeById, nodeId) {
   return node
 }
 
-export default function (links) {
+export function (links) {
   var id = index,
     strength = defaultStrength,
     strengths,
@@ -295,7 +295,7 @@ import constant from "./constant.js"
 import jiggle from "./jiggle.js"
 import { x, y } from "./simulation.js"
 
-export default function () {
+export function () {
   var nodes,
     node,
     random,
@@ -331,7 +331,6 @@ export default function () {
       y,
       i
 
-    // For internal nodes, accumulate forces from child quadrants.
     if (quad.length) {
       for (x = y = i = 0; i < 4; ++i) {
         if ((q = quad[i]) && (c = Math.abs(q.value))) {
@@ -340,10 +339,7 @@ export default function () {
       }
       quad.x = x / weight
       quad.y = y / weight
-    }
-
-    // For leaf nodes, accumulate forces from coincident quadrants.
-    else {
+    } else {
       q = quad
       q.x = q.data.x
       q.y = q.data.y
@@ -362,8 +358,6 @@ export default function () {
       w = x2 - x1,
       l = x * x + y * y
 
-    // Apply the Barnes-Hut approximation if possible.
-    // Limit forces for very close nodes; randomize direction if coincident.
     if ((w * w) / theta2 < l) {
       if (l < distanceMax2) {
         if (x === 0) (x = jiggle(random)), (l += x * x)
@@ -373,12 +367,8 @@ export default function () {
         node.vy += (y * quad.value * alpha) / l
       }
       return true
-    }
+    } else if (quad.length || l >= distanceMax2) return
 
-    // Otherwise, process points directly.
-    else if (quad.length || l >= distanceMax2) return
-
-    // Limit forces for very close nodes; randomize direction if coincident.
     if (quad.data !== node || quad.next) {
       if (x === 0) (x = jiggle(random)), (l += x * x)
       if (y === 0) (y = jiggle(random)), (l += y * y)
@@ -420,7 +410,7 @@ export default function () {
 }
 import constant from "./constant.js"
 
-export default function (radius, x, y) {
+export function (radius, x, y) {
   var nodes,
     strength = constant(0.1),
     strengths,
@@ -491,7 +481,7 @@ export function y(d) {
 var initialRadius = 10,
   initialAngle = Math.PI * (3 - Math.sqrt(5))
 
-export default function (nodes) {
+export function (nodes) {
   var simulation,
     alpha = 1,
     alphaMin = 0.001,
@@ -639,7 +629,7 @@ export default function (nodes) {
 }
 import constant from "./constant.js"
 
-export default function (x) {
+export function (x) {
   var strength = constant(0.1),
     nodes,
     strengths,
@@ -681,7 +671,7 @@ export default function (x) {
 }
 import constant from "./constant.js"
 
-export default function (y) {
+export function (y) {
   var strength = constant(0.1),
     nodes,
     strengths,

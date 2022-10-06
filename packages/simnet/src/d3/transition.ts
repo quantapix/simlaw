@@ -3,7 +3,7 @@ import {SCHEDULED} from "./transition/schedule.js";
 
 var root = [null];
 
-export default function(node, name) {
+export function(node, name) {
   var schedules = node.__transition,
       schedule,
       i;
@@ -25,7 +25,7 @@ export {default as active} from "./active.js";
 export {default as interrupt} from "./interrupt.js";
 import {STARTING, ENDING, ENDED} from "./transition/schedule.js";
 
-export default function(node, name) {
+export function(node, name) {
   var schedules = node.__transition,
       schedule,
       active,

@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom"
 
-export default function jsdomit(description, run) {
+export function jsdomit(description, run) {
   it(description, async () => {
     try {
       const window = new JSDOM("").window
@@ -62,10 +62,6 @@ it("transform.invertX(x) returns the inverse transformation of the specified x-c
 it("transform.invertY(y) returns the inverse transformation of the specified y-coordinate", () => {
   assert.deepStrictEqual(zoomIdentity.translate(0, 3).scale(2).invertY(5), 1)
 })
-
-// transform.rescaleX(x)
-
-// transform.rescaleY(y)
 
 it("transform.toString() returns a string representing the SVG transform", () => {
   assert.strictEqual(zoomIdentity.toString(), "translate(0,0) scale(1)")
@@ -158,7 +154,7 @@ it("zoom.filter receives (event, d) and filters", () => {
   assert.strictEqual(a[0].detail.type, "fake")
   assert.strictEqual(a[1], "hello")
   assert.strictEqual(b, undefined) // our fake dblclick was rejected
-  // temporary: avoid a crash due to starting a transition
+
   z.duration(0)
   z.filter(() => true)
   div.dispatch("dblclick", event)

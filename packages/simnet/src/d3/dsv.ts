@@ -1,4 +1,4 @@
-export default function autoType(object) {
+export function autoType(object) {
   for (var key in object) {
     var value = object[key].trim(),
       number,
@@ -19,7 +19,6 @@ export default function autoType(object) {
   return object
 }
 
-// https://github.com/d3/d3-dsv/issues/45
 const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours()
 import dsv from "./dsv.js"
 
@@ -58,7 +57,6 @@ function customConverter(columns, f) {
   }
 }
 
-// Compute unique columns in order of discovery.
 function inferColumns(rows) {
   var columnSet = Object.create(null),
     columns = []
@@ -105,7 +103,7 @@ function formatDate(date) {
           : "")
 }
 
-export default function (delimiter) {
+export function (delimiter) {
   var reFormat = new RegExp('["' + delimiter + "\n\r]"),
     DELIMITER = delimiter.charCodeAt(0)
 
@@ -129,7 +127,6 @@ export default function (delimiter) {
       eof = N <= 0, // current token followed by EOF?
       eol = false // current token followed by EOL?
 
-    // Strip the trailing newline.
     if (text.charCodeAt(N - 1) === NEWLINE) --N
     if (text.charCodeAt(N - 1) === RETURN) --N
 
@@ -137,7 +134,6 @@ export default function (delimiter) {
       if (eof) return EOF
       if (eol) return (eol = false), EOL
 
-      // Unescape quotes.
       var i,
         j = I,
         c
@@ -152,7 +148,6 @@ export default function (delimiter) {
         return text.slice(j + 1, i - 1).replace(/""/g, '"')
       }
 
-      // Find next delimiter or newline.
       while (I < N) {
         if ((c = text.charCodeAt((i = I++))) === NEWLINE) eol = true
         else if (c === RETURN) {
@@ -162,7 +157,6 @@ export default function (delimiter) {
         return text.slice(j, i)
       }
 
-      // Return last token before EOF.
       return (eof = true), text.slice(j, N)
     }
 

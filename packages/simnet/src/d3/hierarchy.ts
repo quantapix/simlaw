@@ -6,7 +6,7 @@ export function required(f) {
   if (typeof f !== "function") throw new Error()
   return f
 }
-export default function (x) {
+export function (x) {
   return typeof x === "object" && "length" in x
     ? x // Array, TypedArray, NodeList, array-like
     : Array.from(x) // Map, Set, iterable, string, or anything else
@@ -58,7 +58,7 @@ function leafRight(node) {
   return node
 }
 
-export default function () {
+export function () {
   var separation = defaultSeparation,
     dx = 1,
     dy = 1,
@@ -68,7 +68,6 @@ export default function () {
     var previousNode,
       x = 0
 
-    // First walk, computing the initial x & y values.
     root.eachAfter(function (node) {
       var children = node.children
       if (children) {
@@ -86,7 +85,6 @@ export default function () {
       x0 = left.x - separation(left, right) / 2,
       x1 = right.x + separation(right, left) / 2
 
-    // Second walk, normalizing x & y to the desired size.
     return root.eachAfter(
       nodeSize
         ? function (node) {
@@ -118,7 +116,7 @@ export function constantZero() {
   return 0
 }
 
-export default function (x) {
+export function (x) {
   return function () {
     return x
   }
@@ -138,19 +136,19 @@ export { default as treemapSlice } from "./treemap/slice.js"
 export { default as treemapSliceDice } from "./treemap/sliceDice.js"
 export { default as treemapSquarify } from "./treemap/squarify.js"
 export { default as treemapResquarify } from "./treemap/resquarify.js"
-// https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+
 const a = 1664525
 const c = 1013904223
 const m = 4294967296 // 2^32
 
-export default function () {
+export function () {
   let s = 1
   return () => (s = (a * s + c) % m) / m
 }
 import roundNode from "./treemap/round.js"
 import treemapDice from "./treemap/dice.js"
 
-export default function () {
+export function () {
   var dx = 1,
     dy = 1,
     padding = 0,
@@ -213,7 +211,7 @@ function defaultParentId(d) {
   return d.parentId
 }
 
-export default function () {
+export function () {
   var id = defaultId,
     parentId = defaultParentId,
     path
@@ -276,8 +274,6 @@ export default function () {
 
     if (!root) throw new Error("no root")
 
-    // When imputing internal nodes, only introduce roots if needed.
-    // Then replace the imputed marker data with null.
     if (path != null) {
       while (root.data === imputed && root.children.length === 1) {
         ;(root = root.children[0]), --n
@@ -317,9 +313,6 @@ export default function () {
   return stratify
 }
 
-// To normalize a path, we coerce to a string, strip the trailing slash if any
-// (as long as the trailing slash is not immediately preceded by another slash),
-// and add leading slash if missing.
 function normalize(path) {
   path = `${path}`
   let i = path.length
@@ -327,9 +320,6 @@ function normalize(path) {
   return path[0] === "/" ? path : `/${path}`
 }
 
-// Walk backwards to find the first slash that is not the leading slash, e.g.:
-// "/foo/bar" ⇥ "/foo", "/foo" ⇥ "/", "/" ↦ "". (The root is special-cased
-// because the id of the root must be a truthy value.)
 function parentof(path) {
   let i = path.length
   if (i < 2) return ""
@@ -337,9 +327,6 @@ function parentof(path) {
   return path.slice(0, i)
 }
 
-// Slashes can be escaped; to determine whether a slash is a path delimiter, we
-// count the number of preceding backslashes escaping the forward slash: an odd
-// number indicates an escaped forward slash.
 function slash(path, i) {
   if (path[i] === "/") {
     let k = 0
@@ -354,27 +341,16 @@ function defaultSeparation(a, b) {
   return a.parent === b.parent ? 1 : 2
 }
 
-// function radialSeparation(a, b) {
-//   return (a.parent === b.parent ? 1 : 2) / a.depth;
-// }
-
-// This function is used to traverse the left contour of a subtree (or
-// subforest). It returns the successor of v on this contour. This successor is
-// either given by the leftmost child of v or by the thread of v. The function
-// returns null if and only if v is on the highest level of its subtree.
 function nextLeft(v) {
   var children = v.children
   return children ? children[0] : v.t
 }
 
-// This function works analogously to nextLeft.
 function nextRight(v) {
   var children = v.children
   return children ? children[children.length - 1] : v.t
 }
 
-// Shifts the current subtree rooted at w+. This is done by increasing
-// prelim(w+) and mod(w+) by shift.
 function moveSubtree(wm, wp, shift) {
   var change = shift / (wp.i - wm.i)
   wp.c -= change
@@ -384,9 +360,6 @@ function moveSubtree(wm, wp, shift) {
   wp.m += shift
 }
 
-// All other shifts, applied to the smaller subtrees between w- and w+, are
-// performed by this function. To prepare the shifts, we have to adjust
-// change(w+), shift(w+), and change(w-).
 function executeShifts(v) {
   var shift = 0,
     change = 0,
@@ -401,8 +374,6 @@ function executeShifts(v) {
   }
 }
 
-// If vi-’s ancestor is a sibling of v, returns vi-’s ancestor. Otherwise,
-// returns the specified (default) ancestor.
 function nextAncestor(vim, v, ancestor) {
   return vim.a.parent === v.parent ? vim.a : ancestor
 }
@@ -446,8 +417,7 @@ function treeRoot(root) {
   return tree
 }
 
-// Node-link tree diagram using the Reingold-Tilford "tidy" algorithm
-export default function () {
+export function () {
   var separation = defaultSeparation,
     dx = 1,
     dy = 1,
@@ -456,14 +426,10 @@ export default function () {
   function tree(root) {
     var t = treeRoot(root)
 
-    // Compute the layout using Buchheim et al.’s algorithm.
     t.eachAfter(firstWalk), (t.parent.m = -t.z)
     t.eachBefore(secondWalk)
 
-    // If a fixed node size is specified, scale x and y.
     if (nodeSize) root.eachBefore(sizeNode)
-    // If a fixed tree size is specified, scale x and y based on the extent.
-    // Compute the left-most, right-most, and depth-most nodes for extents.
     else {
       var left = root,
         right = root,
@@ -486,10 +452,6 @@ export default function () {
     return root
   }
 
-  // Computes a preliminary x-coordinate for v. Before that, FIRST WALK is
-  // applied recursively to the children of v, as well as the function
-  // APPORTION. After spacing out the children by calling EXECUTE SHIFTS, the
-  // node v is placed to the midpoint of its outermost children.
   function firstWalk(v) {
     var children = v.children,
       siblings = v.parent.children,
@@ -509,23 +471,11 @@ export default function () {
     v.parent.A = apportion(v, w, v.parent.A || siblings[0])
   }
 
-  // Computes all real x-coordinates by summing up the modifiers recursively.
   function secondWalk(v) {
     v._.x = v.z + v.parent.m
     v.m += v.parent.m
   }
 
-  // The core of the algorithm. Here, a new subtree is combined with the
-  // previous subtrees. Threads are used to traverse the inside and outside
-  // contours of the left and right subtree up to the highest common level. The
-  // vertices used for the traversals are vi+, vi-, vo-, and vo+, where the
-  // superscript o means outside and i means inside, the subscript - means left
-  // subtree and + means right subtree. For summing up the modifiers along the
-  // contour, we use respective variables si+, si-, so-, and so+. Whenever two
-  // nodes of the inside contours conflict, we compute the left one of the
-  // greatest uncommon ancestors using the function ANCESTOR and call MOVE
-  // SUBTREE to shift the subtree and prepare the shifts of smaller subtrees.
-  // Finally, we add a new thread (if necessary).
   function apportion(v, w, ancestor) {
     if (w) {
       var vip = v,

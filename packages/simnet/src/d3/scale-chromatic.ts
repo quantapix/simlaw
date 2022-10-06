@@ -1,4 +1,4 @@
-export default function(specifier) {
+export function(specifier) {
   var n = specifier.length / 6 | 0, colors = new Array(n), i = 0;
   while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
   return colors;
@@ -53,7 +53,7 @@ import {scaleSequential} from "d3-scale";
 import {interpolateRgbBasisClosed} from "d3-interpolate";
 import colors from "./colors.js";
 
-export default function(range) {
+export function(range) {
   var s = scaleSequential(interpolateRgbBasisClosed(colors(range))).clamp(true);
   delete s.clamp;
   return s;

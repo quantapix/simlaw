@@ -1,4 +1,4 @@
-export default function () {
+export function () {
   var node = this,
     nodes = [node]
   while ((node = node.parent)) {
@@ -15,20 +15,20 @@ function count(node) {
   node.value = sum
 }
 
-export default function () {
+export function () {
   return this.eachAfter(count)
 }
-export default function () {
+export function () {
   return Array.from(this)
 }
-export default function (callback, that) {
+export function (callback, that) {
   let index = -1
   for (const node of this) {
     callback.call(that, node, ++index, this)
   }
   return this
 }
-export default function (callback, that) {
+export function (callback, that) {
   var node = this,
     nodes = [node],
     next = [],
@@ -49,7 +49,7 @@ export default function (callback, that) {
   }
   return this
 }
-export default function (callback, that) {
+export function (callback, that) {
   var node = this,
     nodes = [node],
     children,
@@ -65,7 +65,7 @@ export default function (callback, that) {
   }
   return this
 }
-export default function (callback, that) {
+export function (callback, that) {
   let index = -1
   for (const node of this) {
     if (callback.call(that, node, ++index, this)) {
@@ -87,7 +87,7 @@ import node_leaves from "./leaves.js"
 import node_links from "./links.js"
 import node_iterator from "./iterator.js"
 
-export default function hierarchy(data, children) {
+export function hierarchy(data, children) {
   if (data instanceof Map) {
     data = [undefined, data]
     if (children === undefined) children = mapChildren
@@ -163,7 +163,7 @@ Node.prototype = hierarchy.prototype = {
   copy: node_copy,
   [Symbol.iterator]: node_iterator,
 }
-export default function* () {
+export function* () {
   var node = this,
     current,
     next = [node],
@@ -182,7 +182,7 @@ export default function* () {
     }
   } while (next.length)
 }
-export default function () {
+export function () {
   var leaves = []
   this.eachBefore(function (node) {
     if (!node.children) {
@@ -191,18 +191,17 @@ export default function () {
   })
   return leaves
 }
-export default function () {
+export function () {
   var root = this,
     links = []
   root.each(function (node) {
     if (node !== root) {
-      // Don’t include the root’s parent, if any.
       links.push({ source: node.parent, target: node })
     }
   })
   return links
 }
-export default function (end) {
+export function (end) {
   var start = this,
     ancestor = leastCommonAncestor(start, end),
     nodes = [start]
@@ -232,14 +231,14 @@ function leastCommonAncestor(a, b) {
   }
   return c
 }
-export default function (compare) {
+export function (compare) {
   return this.eachBefore(function (node) {
     if (node.children) {
       node.children.sort(compare)
     }
   })
 }
-export default function (value) {
+export function (value) {
   return this.eachAfter(function (node) {
     var sum = +value(node.data) || 0,
       children = node.children,

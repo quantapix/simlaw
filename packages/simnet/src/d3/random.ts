@@ -5,7 +5,6 @@ export default (function sourceRandomBates(source) {
   var I = irwinHall.source(source)
 
   function randomBates(n) {
-    // use limiting distribution at n === 0
     if ((n = +n) === 0) return source
     var randomIrwinHall = I(n)
     return function () {
@@ -127,10 +126,10 @@ export default (function sourceRandomGamma(source) {
 
   function randomGamma(k, theta) {
     if ((k = +k) < 0) throw new RangeError("invalid k")
-    // degenerate distribution if k === 0
+
     if (k === 0) return () => 0
     theta = theta == null ? 1 : +theta
-    // exponential distribution if k === 1
+
     if (k === 1) return () => -Math.log1p(-source()) * theta
 
     var d = (k < 1 ? k + 1 : k) - 1 / 3,
@@ -219,12 +218,12 @@ export default (function sourceRandomIrwinHall(source) {
 
   return randomIrwinHall
 })(defaultSource)
-// https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+
 const mul = 0x19660d
 const inc = 0x3c6ef35f
 const eps = 1 / 0x100000000
 
-export default function lcg(seed = Math.random()) {
+export function lcg(seed = Math.random()) {
   let state = (0 <= seed && seed < 1 ? seed / eps : Math.abs(seed)) | 0
   return () => ((state = (mul * state + inc) | 0), eps * (state >>> 0))
 }
@@ -271,9 +270,7 @@ export default (function sourceRandomNormal(source) {
     return function () {
       var y
 
-      // If available, use the second previously-generated uniform random.
       if (x != null) (y = x), (x = null)
-      // Otherwise, generate a new x and y.
       else
         do {
           x = source() * 2 - 1

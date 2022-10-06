@@ -1,13 +1,7 @@
-// Given something array like (or null), returns something that is strictly an
-// array. This is used to ensure that array-like objects passed to d3.selectAll
-// or selection.selectAll are converted into proper arrays when creating a
-// selection; we don’t ever want to create a selection backed by a live
-// HTMLCollection or NodeList. However, note that selection.selectAll will use a
-// static NodeList as a group, since it safely derived from querySelectorAll.
-export default function array(x) {
+export function array(x) {
   return x == null ? [] : Array.isArray(x) ? x : Array.from(x)
 }
-export default function (x) {
+export function (x) {
   return function () {
     return x
   }
@@ -15,7 +9,7 @@ export default function (x) {
 import creator from "./creator.js"
 import select from "./select.js"
 
-export default function (name) {
+export function (name) {
   return select(creator(name).call(document.documentElement))
 }
 import namespace from "./namespace.js"
@@ -37,11 +31,11 @@ function creatorFixed(fullname) {
   }
 }
 
-export default function (name) {
+export function (name) {
   var fullname = namespace(name)
   return (fullname.local ? creatorFixed : creatorInherit)(fullname)
 }
-export default function (x) {
+export function (x) {
   return x
 }
 export { default as create } from "./create.js"
@@ -61,7 +55,7 @@ export { styleValue as style } from "./selection/style.js"
 export { default as window } from "./window.js"
 var nextId = 0
 
-export default function local() {
+export function local() {
   return new Local()
 }
 
@@ -86,7 +80,7 @@ Local.prototype = local.prototype = {
     return this._
   },
 }
-export default function (selector) {
+export function (selector) {
   return function () {
     return this.matches(selector)
   }
@@ -100,7 +94,7 @@ export function childMatcher(selector) {
 
 import namespaces from "./namespaces.js"
 
-export default function (name) {
+export function (name) {
   var prefix = (name += ""),
     i = prefix.indexOf(":")
   if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1)
@@ -117,7 +111,7 @@ export default {
 }
 import sourceEvent from "./sourceEvent.js"
 
-export default function (event, node) {
+export function (event, node) {
   event = sourceEvent(event)
   if (node === undefined) node = event.currentTarget
   if (node) {
@@ -138,9 +132,8 @@ export default function (event, node) {
 import pointer from "./pointer.js"
 import sourceEvent from "./sourceEvent.js"
 
-export default function (events, node) {
+export function (events, node) {
   if (events.target) {
-    // i.e., instanceof Event, not TouchList or iterable
     events = sourceEvent(events)
     if (node === undefined) node = events.currentTarget
     events = events.touches || [events]
@@ -149,7 +142,7 @@ export default function (events, node) {
 }
 import { Selection, root } from "./selection/index.js"
 
-export default function (selector) {
+export function (selector) {
   return typeof selector === "string"
     ? new Selection([[document.querySelector(selector)]], [document.documentElement])
     : new Selection([[selector]], root)
@@ -157,14 +150,14 @@ export default function (selector) {
 import array from "./array.js"
 import { Selection, root } from "./selection/index.js"
 
-export default function (selector) {
+export function (selector) {
   return typeof selector === "string"
     ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
     : new Selection([array(selector)], root)
 }
 function none() {}
 
-export default function (selector) {
+export function (selector) {
   return selector == null
     ? none
     : function () {
@@ -175,19 +168,19 @@ function empty() {
   return []
 }
 
-export default function (selector) {
+export function (selector) {
   return selector == null
     ? empty
     : function () {
         return this.querySelectorAll(selector)
       }
 }
-export default function (event) {
+export function (event) {
   let sourceEvent
   while ((sourceEvent = event.sourceEvent)) event = sourceEvent
   return event
 }
-export default function (node) {
+export function (node) {
   return (
     (node.ownerDocument && node.ownerDocument.defaultView) || // node is a Node
     (node.document && node) || // node is a Window

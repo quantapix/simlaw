@@ -6,7 +6,6 @@ import noevent, { nonpassive, nonpassivecapture, nopropagation } from "./noevent
 import constant from "./constant.js"
 import DragEvent from "./event.js"
 
-// Ignore right-click, since that should open the context menu.
 function defaultFilter(event) {
   return !event.ctrlKey && !event.button
 }
@@ -23,7 +22,7 @@ function defaultTouchable() {
   return navigator.maxTouchPoints || "ontouchstart" in this
 }
 
-export default function () {
+export function () {
   var filter = defaultFilter,
     container = defaultContainer,
     subject = defaultSubject,
@@ -217,7 +216,7 @@ export default function () {
 
   return drag
 }
-export default function DragEvent(type, { sourceEvent, subject, target, identifier, active, x, y, dx, dy, dispatch }) {
+export function DragEvent(type, { sourceEvent, subject, target, identifier, active, x, y, dx, dy, dispatch }) {
   Object.defineProperties(this, {
     type: { value: type, enumerable: true, configurable: true },
     sourceEvent: { value: sourceEvent, enumerable: true, configurable: true },
@@ -242,7 +241,7 @@ export { default as dragDisable, yesdrag as dragEnable } from "./nodrag.js"
 import { select } from "d3-selection"
 import noevent, { nonpassivecapture } from "./noevent.js"
 
-export default function (view) {
+export function (view) {
   var root = view.document.documentElement,
     selection = select(view).on("dragstart.drag", noevent, nonpassivecapture)
   if ("onselectstart" in root) {
@@ -269,8 +268,7 @@ export function yesdrag(view, noclick) {
     delete root.__noselect
   }
 }
-// These are typically used in conjunction with noevent to ensure that we can
-// preventDefault on the event.
+
 export const nonpassive = { passive: false }
 export const nonpassivecapture = { capture: true, passive: false }
 
@@ -278,7 +276,7 @@ export function nopropagation(event) {
   event.stopImmediatePropagation()
 }
 
-export default function (event) {
+export function (event) {
   event.preventDefault()
   event.stopImmediatePropagation()
 }

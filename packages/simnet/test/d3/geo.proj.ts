@@ -128,7 +128,6 @@ import assert from "assert"
 import { geoAzimuthalEqualArea, geoPath } from "../../src/index.js"
 
 it("projection.clipAngle() deals with degenerate polygons", () => {
-  // https://observablehq.com/d/495020ca139c39bd
   const polygon = {
     type: "Polygon",
     coordinates: [
@@ -718,7 +717,6 @@ import {
   geoTransverseMercator,
 } from "../../src/index.js"
 import { assertProjectionEqual } from "./asserts.js"
-
 ;[
   geoAlbers,
   geoAzimuthalEqualArea,

@@ -112,7 +112,7 @@ function type(element) {
 }
 import { JSDOM } from "jsdom"
 
-export default function jsdomit(message, html, run) {
+export function jsdomit(message, html, run) {
   if (arguments.length < 3) (run = html), (html = "")
   return it(message, async () => {
     try {

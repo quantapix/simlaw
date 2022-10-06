@@ -1,7 +1,7 @@
 import value from "./value.js"
 import numberArray, { isNumberArray } from "./numberArray.js"
 
-export default function (a, b) {
+export function (a, b) {
   return (isNumberArray(b) ? numberArray : genericArray)(a, b)
 }
 
@@ -28,7 +28,7 @@ export function basis(t1, v0, v1, v2, v3) {
   )
 }
 
-export default function (values) {
+export function (values) {
   var n = values.length - 1
   return function (t) {
     var i = t <= 0 ? (t = 0) : t >= 1 ? ((t = 1), n - 1) : Math.floor(t * n),
@@ -41,7 +41,7 @@ export default function (values) {
 }
 import { basis } from "./basis.js"
 
-export default function (values) {
+export function (values) {
   var n = values.length
   return function (t) {
     var i = Math.floor(((t %= 1) < 0 ? ++t : t) * n),
@@ -84,7 +84,7 @@ export function gamma(y) {
       }
 }
 
-export default function nogamma(a, b) {
+export function nogamma(a, b) {
   var d = b - a
   return d ? linear(a, d) : constant(isNaN(a) ? b : a)
 }
@@ -118,7 +118,7 @@ function cubehelix(hue) {
 
 export default cubehelix(hue)
 export var cubehelixLong = cubehelix(color)
-export default function (a, b) {
+export function (a, b) {
   var d = new Date()
   return (
     (a = +a),
@@ -128,7 +128,7 @@ export default function (a, b) {
     }
   )
 }
-export default function (range) {
+export function (range) {
   var n = range.length
   return function (t) {
     return range[Math.max(0, Math.min(n - 1, Math.floor(t * n)))]
@@ -178,7 +178,7 @@ export default hsl(hue)
 export var hslLong = hsl(color)
 import { hue } from "./color.js"
 
-export default function (a, b) {
+export function (a, b) {
   var i = hue(+a, +b)
   return function (t) {
     var x = i(t)
@@ -213,7 +213,7 @@ export { default as quantize } from "./quantize.js"
 import { lab as colorLab } from "d3-color"
 import color from "./color.js"
 
-export default function lab(start, end) {
+export function lab(start, end) {
   var l = color((start = colorLab(start)).l, (end = colorLab(end)).l),
     a = color(start.a, end.a),
     b = color(start.b, end.b),
@@ -226,7 +226,7 @@ export default function lab(start, end) {
     return start + ""
   }
 }
-export default function (a, b) {
+export function (a, b) {
   return (
     (a = +a),
     (b = +b),
@@ -235,7 +235,7 @@ export default function (a, b) {
     }
   )
 }
-export default function (a, b) {
+export function (a, b) {
   if (!b) b = []
   var n = a ? Math.min(b.length, a.length) : 0,
     c = b.slice(),
@@ -251,7 +251,7 @@ export function isNumberArray(x) {
 }
 import value from "./value.js"
 
-export default function (a, b) {
+export function (a, b) {
   var i = {},
     c = {},
     k
@@ -274,7 +274,7 @@ export default function (a, b) {
 }
 import { default as value } from "./value.js"
 
-export default function piecewise(interpolate, values) {
+export function piecewise(interpolate, values) {
   if (values === undefined) (values = interpolate), (interpolate = value)
   var i = 0,
     n = values.length - 1,
@@ -286,7 +286,7 @@ export default function piecewise(interpolate, values) {
     return I[i](t - i)
   }
 }
-export default function (interpolator, n) {
+export function (interpolator, n) {
   var samples = new Array(n)
   for (var i = 0; i < n; ++i) samples[i] = interpolator(i / (n - 1))
   return samples
@@ -347,7 +347,7 @@ function rgbSpline(spline) {
 
 export var rgbBasis = rgbSpline(basis)
 export var rgbBasisClosed = rgbSpline(basisClosed)
-export default function (a, b) {
+export function (a, b) {
   return (
     (a = +a),
     (b = +b),
@@ -373,7 +373,7 @@ function one(b) {
   }
 }
 
-export default function (a, b) {
+export function (a, b) {
   var bi = (reA.lastIndex = reB.lastIndex = 0), // scan index for next number in b
     am, // current match in a
     bm, // current match in b
@@ -382,38 +382,30 @@ export default function (a, b) {
     s = [], // string constants and placeholders
     q = [] // number interpolators
 
-  // Coerce inputs to strings.
   ;(a = a + ""), (b = b + "")
 
-  // Interpolate pairs of numbers in a & b.
   while ((am = reA.exec(a)) && (bm = reB.exec(b))) {
     if ((bs = bm.index) > bi) {
-      // a string precedes the next number in b
       bs = b.slice(bi, bs)
       if (s[i]) s[i] += bs // coalesce with previous string
       else s[++i] = bs
     }
     if ((am = am[0]) === (bm = bm[0])) {
-      // numbers in a & b match
       if (s[i]) s[i] += bm // coalesce with previous string
       else s[++i] = bm
     } else {
-      // interpolate non-matching numbers
       s[++i] = null
       q.push({ i: i, x: number(am, bm) })
     }
     bi = reB.lastIndex
   }
 
-  // Add remains of b.
   if (bi < b.length) {
     bs = b.slice(bi)
     if (s[i]) s[i] += bs // coalesce with previous string
     else s[++i] = bs
   }
 
-  // Special optimization for only a single match.
-  // Otherwise, interpolate each of the numbers and rejoin the string.
   return s.length < 2
     ? q[0]
       ? one(q[0].x)
@@ -434,7 +426,7 @@ import string from "./string.js"
 import constant from "./constant.js"
 import numberArray, { isNumberArray } from "./numberArray.js"
 
-export default function (a, b) {
+export function (a, b) {
   var t = typeof b,
     c
   return b == null || t === "boolean"
@@ -472,8 +464,6 @@ function tanh(x) {
 }
 
 export default (function zoomRho(rho, rho2, rho4) {
-  // p0 = [ux0, uy0, w0]
-  // p1 = [ux1, uy1, w1]
   function zoom(p0, p1) {
     var ux0 = p0[0],
       uy0 = p0[1],
@@ -487,16 +477,12 @@ export default (function zoomRho(rho, rho2, rho4) {
       i,
       S
 
-    // Special case for u0 ≅ u1.
     if (d2 < epsilon2) {
       S = Math.log(w1 / w0) / rho
       i = function (t) {
         return [ux0 + t * dx, uy0 + t * dy, w0 * Math.exp(rho * t * S)]
       }
-    }
-
-    // General case.
-    else {
+    } else {
       var d1 = Math.sqrt(d2),
         b0 = (w1 * w1 - w0 * w0 + rho4 * d2) / (2 * w0 * rho2 * d1),
         b1 = (w1 * w1 - w0 * w0 - rho4 * d2) / (2 * w1 * rho2 * d1),

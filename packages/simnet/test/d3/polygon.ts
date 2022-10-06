@@ -375,7 +375,6 @@ it("polygonHull(points) handles overlapping upper and lower hulls", () => {
   )
 })
 
-// Cases below taken from http://uva.onlinejudge.org/external/6/681.html
 it("polygonHull(points) handles various non-trivial hulls", () => {
   assert.deepStrictEqual(
     polygonHull([

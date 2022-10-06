@@ -6,7 +6,7 @@ selection.prototype.interrupt = selection_interrupt;
 selection.prototype.transition = selection_transition;
 import interrupt from "../interrupt.js";
 
-export default function(name) {
+export function(name) {
   return this.each(function() {
     interrupt(this, name);
   });
@@ -33,7 +33,7 @@ function inherit(node, id) {
   return timing;
 }
 
-export default function(name) {
+export function(name) {
   var id,
       timing;
 

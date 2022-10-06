@@ -34,14 +34,11 @@ Dispatch.prototype = dispatch.prototype = {
       i = -1,
       n = T.length
 
-    // If no callback was specified, return the callback of the given type and name.
     if (arguments.length < 2) {
       while (++i < n) if ((t = (typename = T[i]).type) && (t = get(_[t], typename.name))) return t
       return
     }
 
-    // If a type was specified, set the callback for the given type and name.
-    // Otherwise, if a null callback was specified, remove callbacks of the given name.
     if (callback != null && typeof callback !== "function") throw new Error("invalid callback: " + callback)
     while (++i < n) {
       if ((t = (typename = T[i]).type)) _[t] = set(_[t], typename.name, callback)
