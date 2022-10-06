@@ -16,18 +16,9 @@ import { RendererFactory } from "../renderer/factory"
 import { select } from "d3-selection"
 import * as L from "leaflet"
 import transition from "d3-transition"
-import {
-  IRenderer,
-  IRendererSettings,
-  IRendererSettingsInit,
-  RendererType,
-  RenderEventType,
-} from "../renderer/shared"
+import { IRenderer, IRendererSettings, IRendererSettingsInit, RendererType, RenderEventType } from "../renderer/shared"
 
-export interface IDefaultViewSettings<
-  N extends INodeBase,
-  E extends IEdgeBase
-> {
+export interface IDefaultViewSettings<N extends INodeBase, E extends IEdgeBase> {
   getPosition?(node: INode<N, E>): IPosition | undefined
   simulation: ID3SimulatorEngineSettingsUpdate
   render: Partial<IRendererSettings>
@@ -37,16 +28,14 @@ export interface IDefaultViewSettings<
   isSimulationAnimated: boolean
 }
 
-export type IDefaultViewSettingsInit<
-  N extends INodeBase,
-  E extends IEdgeBase
-> = Omit<Partial<IDefaultViewSettings<N, E>>, "render"> & {
+export type IDefaultViewSettingsInit<N extends INodeBase, E extends IEdgeBase> = Omit<
+  Partial<IDefaultViewSettings<N, E>>,
+  "render"
+> & {
   render?: Partial<IRendererSettingsInit>
 }
 
-export class DefaultView<N extends INodeBase, E extends IEdgeBase>
-  implements IOrbView<IDefaultViewSettings<N, E>>
-{
+export class DefaultView<N extends INodeBase, E extends IEdgeBase> implements IOrbView<IDefaultViewSettings<N, E>> {
   private _container: HTMLElement
   private _graph: IGraph<N, E>
   private _events: OrbEmitter<N, E>
@@ -63,10 +52,7 @@ export class DefaultView<N extends INodeBase, E extends IEdgeBase>
   private _d3Zoom: ZoomBehavior<HTMLCanvasElement, any>
   private _dragStartPosition: IPosition | undefined
 
-  constructor(
-    context: IOrbViewContext<N, E>,
-    settings?: Partial<IDefaultViewSettingsInit<N, E>>
-  ) {
+  constructor(context: IOrbViewContext<N, E>, settings?: Partial<IDefaultViewSettingsInit<N, E>>) {
     this._container = context.container
     this._graph = context.graph
     this._events = context.events
@@ -94,11 +80,7 @@ export class DefaultView<N extends INodeBase, E extends IEdgeBase>
     this._container.appendChild(this._canvas)
 
     try {
-      this._renderer = RendererFactory.getRenderer(
-        this._canvas,
-        settings?.render?.type,
-        this._settings.render
-      )
+      this._renderer = RendererFactory.getRenderer(this._canvas, settings?.render?.type, this._settings.render)
     } catch (error: any) {
       this._container.textContent = error.message
       throw error
@@ -117,10 +99,7 @@ export class DefaultView<N extends INodeBase, E extends IEdgeBase>
     this._handleResize()
 
     this._d3Zoom = zoom<HTMLCanvasElement, any>()
-      .scaleExtent([
-        this._renderer.settings.minZoom,
-        this._renderer.settings.maxZoom,
-      ])
+      .scaleExtent([this._renderer.settings.minZoom, this._renderer.settings.maxZoom])
       .on("zoom", this.zoomed)
 
     select<HTMLCanvasElement, any>(this._canvas)
@@ -457,9 +436,7 @@ const osmAttribution =
   'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
 
 const DEFAULT_MAP_TILE: ILeafletMapTile = {
-  instance: new L.TileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-  ),
+  instance: new L.TileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
   attribution: osmAttribution,
 }
 
@@ -476,23 +453,15 @@ export interface IMapViewSettings<N extends INodeBase, E extends IEdgeBase> {
   render: Partial<IRendererSettings>
 }
 
-export interface IMapViewSettingsInit<
-  N extends INodeBase,
-  E extends IEdgeBase
-> {
+export interface IMapViewSettingsInit<N extends INodeBase, E extends IEdgeBase> {
   getGeoPosition(node: INode<N, E>): { lat: number; lng: number } | undefined
   map?: Partial<IMapSettings>
   render?: Partial<IRendererSettingsInit>
 }
 
-export type IMapViewSettingsUpdate<
-  N extends INodeBase,
-  E extends IEdgeBase
-> = Partial<IMapViewSettingsInit<N, E>>
+export type IMapViewSettingsUpdate<N extends INodeBase, E extends IEdgeBase> = Partial<IMapViewSettingsInit<N, E>>
 
-export class MapView<N extends INodeBase, E extends IEdgeBase>
-  implements IOrbView<IMapViewSettings<N, E>>
-{
+export class MapView<N extends INodeBase, E extends IEdgeBase> implements IOrbView<IMapViewSettings<N, E>> {
   private _container: HTMLElement
   private _graph: IGraph<N, E>
   private _events: OrbEmitter<N, E>
@@ -506,10 +475,7 @@ export class MapView<N extends INodeBase, E extends IEdgeBase>
   private readonly _renderer: IRenderer
   private readonly _leaflet: L.Map
 
-  constructor(
-    context: IOrbViewContext<N, E>,
-    settings: IMapViewSettingsInit<N, E>
-  ) {
+  constructor(context: IOrbViewContext<N, E>, settings: IMapViewSettingsInit<N, E>) {
     this._container = context.container
     this._graph = context.graph
     this._events = context.events
@@ -533,11 +499,7 @@ export class MapView<N extends INodeBase, E extends IEdgeBase>
     this._map = this._initMap()
 
     try {
-      this._renderer = RendererFactory.getRenderer(
-        this._canvas,
-        settings?.render?.type,
-        this._settings.render
-      )
+      this._renderer = RendererFactory.getRenderer(this._canvas, settings?.render?.type, this._settings.render)
     } catch (error: any) {
       this._container.textContent = error.message
       throw error
@@ -607,17 +569,9 @@ export class MapView<N extends INodeBase, E extends IEdgeBase>
 
   recenter(onRendered?: () => void) {
     const view = this._graph.getBoundingBox()
-    const topRightCoordinate = this._leaflet.layerPointToLatLng([
-      view.x,
-      view.y,
-    ])
-    const bottomLeftCoordinate = this._leaflet.layerPointToLatLng([
-      view.x + view.width,
-      view.y + view.height,
-    ])
-    this._leaflet.fitBounds(
-      L.latLngBounds(topRightCoordinate, bottomLeftCoordinate)
-    )
+    const topRightCoordinate = this._leaflet.layerPointToLatLng([view.x, view.y])
+    const bottomLeftCoordinate = this._leaflet.layerPointToLatLng([view.x + view.width, view.y + view.height])
+    this._leaflet.fitBounds(L.latLngBounds(topRightCoordinate, bottomLeftCoordinate))
     onRendered?.()
   }
 
@@ -652,10 +606,7 @@ export class MapView<N extends INodeBase, E extends IEdgeBase>
   }
 
   private _initLeaflet() {
-    const leaflet = L.map(this._map).setView(
-      [0, 0],
-      this._settings.map.zoomLevel
-    )
+    const leaflet = L.map(this._map).setView([0, 0], this._settings.map.zoomLevel)
 
     leaflet.on("zoomstart", () => {
       this._renderer.reset()
@@ -782,17 +733,11 @@ export class MapView<N extends INodeBase, E extends IEdgeBase>
       if (!coordinates) {
         continue
       }
-      if (
-        typeof coordinates.lat !== "number" ||
-        typeof coordinates.lng !== "number"
-      ) {
+      if (typeof coordinates.lat !== "number" || typeof coordinates.lng !== "number") {
         continue
       }
 
-      const layerPoint = this._leaflet.latLngToLayerPoint([
-        coordinates.lat,
-        coordinates.lng,
-      ])
+      const layerPoint = this._leaflet.latLngToLayerPoint([coordinates.lat, coordinates.lng])
       nodes[i].position.x = layerPoint.x
       nodes[i].position.y = layerPoint.y
     }

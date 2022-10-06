@@ -1,45 +1,45 @@
-import { assign } from '@xstate/immer';
-import { DepGraphStateNodeConfig } from './interfaces';
+import { assign } from "@xstate/immer"
+import { DepGraphStateNodeConfig } from "./interfaces"
 
 export const tracingStateConfig: DepGraphStateNodeConfig = {
   entry: [
     assign((ctx, event) => {
-      if (event.type === 'setTracingStart') {
-        ctx.tracing.start = event.projectName;
-      } else if (event.type === 'setTracingEnd') {
-        ctx.tracing.end = event.projectName;
+      if (event.type === "setTracingStart") {
+        ctx.tracing.start = event.projectName
+      } else if (event.type === "setTracingEnd") {
+        ctx.tracing.end = event.projectName
       }
     }),
-    'notifyRouteTracing',
-    'notifyGraphTracing',
+    "notifyRouteTracing",
+    "notifyGraphTracing",
   ],
   exit: [
     assign((ctx, event) => {
-      if (event.type !== 'setTracingStart' && event.type !== 'setTracingEnd') {
-        ctx.tracing.start = null;
-        ctx.tracing.end = null;
+      if (event.type !== "setTracingStart" && event.type !== "setTracingEnd") {
+        ctx.tracing.start = null
+        ctx.tracing.end = null
       }
     }),
-    'notifyRouteTracing',
+    "notifyRouteTracing",
   ],
   on: {
     clearTraceStart: {
       actions: [
-        assign((ctx) => {
-          ctx.tracing.start = null;
+        assign(ctx => {
+          ctx.tracing.start = null
         }),
-        'notifyRouteTracing',
-        'notifyGraphTracing',
+        "notifyRouteTracing",
+        "notifyGraphTracing",
       ],
     },
     clearTraceEnd: {
       actions: [
-        assign((ctx) => {
-          ctx.tracing.end = null;
+        assign(ctx => {
+          ctx.tracing.end = null
         }),
-        'notifyRouteTracing',
-        'notifyGraphTracing',
+        "notifyRouteTracing",
+        "notifyGraphTracing",
       ],
     },
   },
-};
+}

@@ -1,35 +1,28 @@
-import { assign } from '@xstate/immer';
-import { actions, send } from 'xstate';
-import { DepGraphStateNodeConfig } from './interfaces';
+import { assign } from "@xstate/immer"
+import { actions, send } from "xstate"
+import { DepGraphStateNodeConfig } from "./interfaces"
 
 export const customSelectedStateConfig: DepGraphStateNodeConfig = {
   entry: actions.choose([
     {
-      cond: 'selectActionCannotBePersistedToRoute',
-      actions: ['notifyRouteClearSelect'],
+      cond: "selectActionCannotBePersistedToRoute",
+      actions: ["notifyRouteClearSelect"],
     },
   ]),
   on: {
     updateGraph: {
-      target: 'customSelected',
+      target: "customSelected",
       actions: [
         assign((ctx, event) => {
-          const existingProjectNames = ctx.projects.map(
-            (project) => project.name
-          );
-          const newProjectNames = event.projects.map((project) => project.name);
-          const newSelectedProjects = newProjectNames.filter(
-            (projectName) => !existingProjectNames.includes(projectName)
-          );
-          ctx.selectedProjects = [
-            ...ctx.selectedProjects,
-            ...newSelectedProjects,
-          ];
+          const existingProjectNames = ctx.projects.map(project => project.name)
+          const newProjectNames = event.projects.map(project => project.name)
+          const newSelectedProjects = newProjectNames.filter(projectName => !existingProjectNames.includes(projectName))
+          ctx.selectedProjects = [...ctx.selectedProjects, ...newSelectedProjects]
         }),
-        'setGraph',
+        "setGraph",
         send(
           (ctx, event) => ({
-            type: 'notifyGraphUpdateGraph',
+            type: "notifyGraphUpdateGraph",
             projects: ctx.projects,
             dependencies: ctx.dependencies,
             affectedProjects: ctx.affectedProjects,
@@ -38,10 +31,10 @@ export const customSelectedStateConfig: DepGraphStateNodeConfig = {
             selectedProjects: ctx.selectedProjects,
           }),
           {
-            to: (context) => context.graphActor,
+            to: context => context.graphActor,
           }
         ),
       ],
     },
   },
-};
+}

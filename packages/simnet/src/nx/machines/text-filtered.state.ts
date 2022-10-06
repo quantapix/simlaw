@@ -1,42 +1,42 @@
-import { assign } from '@xstate/immer';
-import { send } from 'xstate';
-import { DepGraphStateNodeConfig } from './interfaces';
+import { assign } from "@xstate/immer"
+import { send } from "xstate"
+import { DepGraphStateNodeConfig } from "./interfaces"
 
 export const textFilteredStateConfig: DepGraphStateNodeConfig = {
   entry: [
     assign((ctx, event) => {
-      if (event.type !== 'filterByText') return;
+      if (event.type !== "filterByText") return
 
-      ctx.textFilter = event.search;
+      ctx.textFilter = event.search
     }),
-    'notifyGraphFilterProjectsByText',
+    "notifyGraphFilterProjectsByText",
   ],
   on: {
     clearTextFilter: {
-      target: 'unselected',
-      actions: assign((ctx) => {
-        ctx.includePath = false;
-        ctx.textFilter = '';
+      target: "unselected",
+      actions: assign(ctx => {
+        ctx.includePath = false
+        ctx.textFilter = ""
       }),
     },
     setIncludeProjectsByPath: {
-      actions: ['setIncludeProjectsByPath', 'notifyGraphFilterProjectsByText'],
+      actions: ["setIncludeProjectsByPath", "notifyGraphFilterProjectsByText"],
     },
     incrementSearchDepth: {
-      actions: ['incrementSearchDepth', 'notifyGraphFilterProjectsByText'],
+      actions: ["incrementSearchDepth", "notifyGraphFilterProjectsByText"],
     },
     decrementSearchDepth: {
-      actions: ['decrementSearchDepth', 'notifyGraphFilterProjectsByText'],
+      actions: ["decrementSearchDepth", "notifyGraphFilterProjectsByText"],
     },
     setSearchDepthEnabled: {
-      actions: ['setSearchDepthEnabled', 'notifyGraphFilterProjectsByText'],
+      actions: ["setSearchDepthEnabled", "notifyGraphFilterProjectsByText"],
     },
     updateGraph: {
       actions: [
-        'setGraph',
+        "setGraph",
         send(
           (ctx, event) => ({
-            type: 'notifyGraphUpdateGraph',
+            type: "notifyGraphUpdateGraph",
             projects: ctx.projects,
             dependencies: ctx.dependencies,
             affectedProjects: ctx.affectedProjects,
@@ -45,11 +45,11 @@ export const textFilteredStateConfig: DepGraphStateNodeConfig = {
             selectedProjects: ctx.selectedProjects,
           }),
           {
-            to: (context) => context.graphActor,
+            to: context => context.graphActor,
           }
         ),
-        'notifyGraphFilterProjectsByText',
+        "notifyGraphFilterProjectsByText",
       ],
     },
   },
-};
+}

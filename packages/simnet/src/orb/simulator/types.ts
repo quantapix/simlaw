@@ -62,8 +62,7 @@ type IWorkerInputClearDataPayload = IWorkerPayload<WorkerInputType.ClearData>
 
 type IWorkerInputSimulatePayload = IWorkerPayload<WorkerInputType.Simulate>
 
-type IWorkerInputActivateSimulationPayload =
-  IWorkerPayload<WorkerInputType.ActivateSimulation>
+type IWorkerInputActivateSimulationPayload = IWorkerPayload<WorkerInputType.ActivateSimulation>
 
 type IWorkerInputStartSimulationPayload = IWorkerPayload<
   WorkerInputType.StartSimulation,
@@ -81,16 +80,11 @@ type IWorkerInputUpdateSimulationPayload = IWorkerPayload<
   }
 >
 
-type IWorkerInputStopSimulationPayload =
-  IWorkerPayload<WorkerInputType.StopSimulation>
+type IWorkerInputStopSimulationPayload = IWorkerPayload<WorkerInputType.StopSimulation>
 
-type IWorkerInputStartDragNodePayload =
-  IWorkerPayload<WorkerInputType.StartDragNode>
+type IWorkerInputStartDragNodePayload = IWorkerPayload<WorkerInputType.StartDragNode>
 
-type IWorkerInputDragNodePayload = IWorkerPayload<
-  WorkerInputType.DragNode,
-  { id: number } & IPosition
->
+type IWorkerInputDragNodePayload = IWorkerPayload<WorkerInputType.DragNode, { id: number } & IPosition>
 
 type IWorkerInputEndDragNodePayload = IWorkerPayload<
   WorkerInputType.EndDragNode,
@@ -113,10 +107,7 @@ type IWorkerInputReleaseNodesPayload = IWorkerPayload<
   }
 >
 
-type IWorkerInputSetSettingsPayload = IWorkerPayload<
-  WorkerInputType.SetSettings,
-  ID3SimulatorEngineSettingsUpdate
->
+type IWorkerInputSetSettingsPayload = IWorkerPayload<WorkerInputType.SetSettings, ID3SimulatorEngineSettingsUpdate>
 
 export type IWorkerInputPayload =
   | IWorkerInputSetDataPayload
@@ -148,8 +139,7 @@ export enum WorkerOutputType {
   SettingsUpdated = "Settings Updated",
 }
 
-type IWorkerOutputStabilizationStartedPayload =
-  IWorkerPayload<WorkerOutputType.StabilizationStarted>
+type IWorkerOutputStabilizationStartedPayload = IWorkerPayload<WorkerOutputType.StabilizationStarted>
 
 type IWorkerOutputStabilizationProgressPayload = IWorkerPayload<
   WorkerOutputType.StabilizationProgress,
@@ -199,9 +189,7 @@ export type IWorkerOutputPayload =
   | IWorkerOutputNodeDragEndedPayload
   | IWorkerOutputSettingsUpdatedPayload
 
-export type IWorkerPayload<T, K = void> = K extends void
-  ? { type: T }
-  : { type: T; data: K }
+export type IWorkerPayload<T, K = void> = K extends void ? { type: T } : { type: T; data: K }
 
 // / <reference lib="webworker" />
 import { D3SimulatorEngine, D3SimulatorEngineEventType } from "./d3-engine.js"
@@ -325,12 +313,7 @@ addEventListener("message", ({ data }: MessageEvent<IWorkerInputPayload>) => {
 })
 
 import { IPosition } from "../../../common"
-import {
-  ISimulator,
-  ISimulatorEvents,
-  ISimulationNode,
-  ISimulationEdge,
-} from "./utils.js"
+import { ISimulator, ISimulatorEvents, ISimulationNode, ISimulationEdge } from "./utils.js"
 import { ID3SimulatorEngineSettingsUpdate } from "./d3-engine.js"
 import { IWorkerInputPayload, WorkerInputType } from "./message/worker-input"
 import { IWorkerOutputPayload, WorkerOutputType } from "./message/worker-output"
@@ -461,18 +444,9 @@ export class WebWorkerSimulator implements ISimulator {
   }
 }
 
-import {
-  ISimulationEdge,
-  ISimulationNode,
-  ISimulator,
-  ISimulatorEvents,
-} from "./utils.js"
+import { ISimulationEdge, ISimulationNode, ISimulator, ISimulatorEvents } from "./utils.js"
 import { IPosition } from "../../common"
-import {
-  D3SimulatorEngine,
-  D3SimulatorEngineEventType,
-  ID3SimulatorEngineSettingsUpdate,
-} from "./d3-engine.js"
+import { D3SimulatorEngine, D3SimulatorEngineEventType, ID3SimulatorEngineSettingsUpdate } from "./d3-engine.js"
 
 export class MainThreadSimulator implements ISimulator {
   protected readonly simulator: D3SimulatorEngine
@@ -488,12 +462,9 @@ export class MainThreadSimulator implements ISimulator {
     this.simulator.on(D3SimulatorEngineEventType.STABILIZATION_STARTED, () => {
       events.onStabilizationStart?.()
     })
-    this.simulator.on(
-      D3SimulatorEngineEventType.STABILIZATION_PROGRESS,
-      data => {
-        events.onStabilizationProgress?.(data)
-      }
-    )
+    this.simulator.on(D3SimulatorEngineEventType.STABILIZATION_PROGRESS, data => {
+      events.onStabilizationProgress?.(data)
+    })
     this.simulator.on(D3SimulatorEngineEventType.STABILIZATION_ENDED, data => {
       events.onStabilizationEnd?.(data)
     })

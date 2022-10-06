@@ -12,30 +12,15 @@ type IEventKey<T extends IEventMap> = string & keyof T
 type IEventReceiver<T> = (params: T) => void
 
 export interface IEmitter<T extends IEventMap> {
-  once<K extends IEventKey<T>>(
-    eventName: K,
-    func: IEventReceiver<T[K]>
-  ): IEmitter<T>
-  on<K extends IEventKey<T>>(
-    eventName: K,
-    func: IEventReceiver<T[K]>
-  ): IEmitter<T>
-  off<K extends IEventKey<T>>(
-    eventName: K,
-    func: IEventReceiver<T[K]>
-  ): IEmitter<T>
+  once<K extends IEventKey<T>>(eventName: K, func: IEventReceiver<T[K]>): IEmitter<T>
+  on<K extends IEventKey<T>>(eventName: K, func: IEventReceiver<T[K]>): IEmitter<T>
+  off<K extends IEventKey<T>>(eventName: K, func: IEventReceiver<T[K]>): IEmitter<T>
   emit<K extends IEventKey<T>>(eventName: K, params: T[K]): boolean
   eventNames<K extends IEventKey<T>>(): K[]
   listenerCount<K extends IEventKey<T>>(eventName: K): number
   listeners<K extends IEventKey<T>>(eventName: K): IEventReceiver<T[K]>[]
-  addListener<K extends IEventKey<T>>(
-    eventName: K,
-    func: IEventReceiver<T[K]>
-  ): IEmitter<T>
-  removeListener<K extends IEventKey<T>>(
-    eventName: K,
-    func: IEventReceiver<T[K]>
-  ): IEmitter<T>
+  addListener<K extends IEventKey<T>>(eventName: K, func: IEventReceiver<T[K]>): IEmitter<T>
+  removeListener<K extends IEventKey<T>>(eventName: K, func: IEventReceiver<T[K]>): IEmitter<T>
   removeAllListeners<K extends IEventKey<T>>(eventName?: K): IEmitter<T>
 }
 
@@ -46,10 +31,7 @@ interface IEmmiterListener<T extends IEventMap> {
 
 export class Emitter<T extends IEventMap> implements IEmitter<T> {
   private readonly _listeners = new Map<IEventKey<T>, IEmmiterListener<T>[]>()
-  once<K extends IEventKey<T>>(
-    eventName: K,
-    func: IEventReceiver<T[K]>
-  ): IEmitter<T> {
+  once<K extends IEventKey<T>>(eventName: K, func: IEventReceiver<T[K]>): IEmitter<T> {
     const newListener: IEmmiterListener<T> = {
       callable: func,
       isOnce: true,
@@ -65,10 +47,7 @@ export class Emitter<T extends IEventMap> implements IEmitter<T> {
     return this
   }
 
-  on<K extends IEventKey<T>>(
-    eventName: K,
-    func: IEventReceiver<T[K]>
-  ): IEmitter<T> {
+  on<K extends IEventKey<T>>(eventName: K, func: IEventReceiver<T[K]>): IEmitter<T> {
     const newListener: IEmmiterListener<T> = {
       callable: func,
     }
@@ -83,15 +62,10 @@ export class Emitter<T extends IEventMap> implements IEmitter<T> {
     return this
   }
 
-  off<K extends IEventKey<T>>(
-    eventName: K,
-    func: IEventReceiver<T[K]>
-  ): IEmitter<T> {
+  off<K extends IEventKey<T>>(eventName: K, func: IEventReceiver<T[K]>): IEmitter<T> {
     const listeners = this._listeners.get(eventName)
     if (listeners) {
-      const filteredListeners = listeners.filter(
-        listener => listener.callable !== func
-      )
+      const filteredListeners = listeners.filter(listener => listener.callable !== func)
       this._listeners.set(eventName, filteredListeners)
     }
 
@@ -136,17 +110,11 @@ export class Emitter<T extends IEventMap> implements IEmitter<T> {
     return listeners.map(listener => listener.callable)
   }
 
-  addListener<K extends IEventKey<T>>(
-    eventName: K,
-    func: IEventReceiver<T[K]>
-  ): IEmitter<T> {
+  addListener<K extends IEventKey<T>>(eventName: K, func: IEventReceiver<T[K]>): IEmitter<T> {
     return this.on<K>(eventName, func)
   }
 
-  removeListener<K extends IEventKey<T>>(
-    eventName: K,
-    func: IEventReceiver<T[K]>
-  ): IEmitter<T> {
+  removeListener<K extends IEventKey<T>>(eventName: K, func: IEventReceiver<T[K]>): IEmitter<T> {
     return this.off<K>(eventName, func)
   }
 
@@ -245,13 +213,9 @@ const copyPlainObject = <T>(obj: Record<string, T>): Record<string, T> => {
   return newObject
 }
 
-export type DeepPartial<T> = T extends object
-  ? { [P in keyof T]?: DeepPartial<T[P]> }
-  : T
+export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]> } : T
 
-export type DeepRequired<T> = T extends object
-  ? { [P in keyof T]-?: DeepRequired<T[P]> }
-  : T
+export type DeepRequired<T> = T extends object ? { [P in keyof T]-?: DeepRequired<T[P]> } : T
 
 export const isString = (value: any): value is string => {
   return typeof value === "string"
@@ -274,11 +238,7 @@ export const isArray = (value: any): value is Array<any> => {
 }
 
 export const isPlainObject = (value: any): value is Record<string, any> => {
-  return (
-    value !== null &&
-    typeof value === "object" &&
-    value.constructor.name === "Object"
-  )
+  return value !== null && typeof value === "object" && value.constructor.name === "Object"
 }
 
 export const isNull = (value: any): value is null => {

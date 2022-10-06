@@ -1,15 +1,15 @@
-import * as _ from 'lodash';
-import * as d3 from 'd3';
+import * as _ from "lodash"
+import * as d3 from "d3"
 
-import * as qc from './create';
-import * as qg from './graph';
-import * as ql from './layout';
-import * as qn from './nest';
-import * as qt from './types';
+import * as qc from "./create"
+import * as qg from "./graph"
+import * as ql from "./layout"
+import * as qn from "./nest"
+import * as qt from "./types"
 
 export interface Gdata extends qc.Gdata, ql.Gdata {}
 export interface Ndata extends qc.Ndata, ql.Ndata {
-  _old: qt.Area;
+  _old: qt.Area
 }
 export interface Edata extends qc.Edata, ql.Edata {}
 
@@ -21,126 +21,117 @@ export interface Graph<G extends Gdata, N extends Ndata, E extends Edata>
 
 export class Graph<G extends Gdata, N extends Ndata, E extends Edata> {
   runRender(s: qt.Sel) {
-    this.preRender();
-    const outs = createOrSelect(s, 'output');
-    let cs = createOrSelect(outs, 'clusters');
-    const ps = createOrSelect(outs, 'edgePaths');
-    const ns = this.createNodes(createOrSelect(outs, 'nodes'));
-    const ls = this.createLabels(createOrSelect(outs, 'edgeLabels'));
-    this.runLayout()
-      .posNodes(ns)
-      .posLabels(ls)
-      .createPaths(ps);
-    cs = this.createClusters(cs);
-    this.posClusters(cs).postRender();
-    return this;
+    this.preRender()
+    const outs = createOrSelect(s, "output")
+    let cs = createOrSelect(outs, "clusters")
+    const ps = createOrSelect(outs, "edgePaths")
+    const ns = this.createNodes(createOrSelect(outs, "nodes"))
+    const ls = this.createLabels(createOrSelect(outs, "edgeLabels"))
+    this.runLayout().posNodes(ns).posLabels(ls).createPaths(ps)
+    cs = this.createClusters(cs)
+    this.posClusters(cs).postRender()
+    return this
   }
 
   preRender() {
     this.nodes().forEach(n => {
-      const nd = this.node(n)!;
+      const nd = this.node(n)!
       _.defaults(nd, {
         rx: 0,
         ry: 0,
-        shape: 'rect'
-      });
-      if (!nd.label) nd.label = {} as qt.Label;
-      if (!this.children(n)?.length) nd.label.txt = n;
-      if (!nd.pad) nd.pad = new qt.Pad();
+        shape: "rect",
+      })
+      if (!nd.label) nd.label = {} as qt.Label
+      if (!this.children(n)?.length) nd.label.txt = n
+      if (!nd.pad) nd.pad = new qt.Pad()
       _.defaults(nd.pad, {
         left: 10,
         right: 10,
         top: 10,
-        bottom: 10
-      });
-      if (_.has(nd.pad, 'v')) {
+        bottom: 10,
+      })
+      if (_.has(nd.pad, "v")) {
         _.defaults(nd.pad, {
           left: nd.pad.v,
           right: nd.pad.v,
           top: nd.pad.v,
-          bottom: nd.pad.v
-        });
+          bottom: nd.pad.v,
+        })
       }
-      if (_.has(nd.pad, 'x')) {
-        _.defaults(nd.pad, {left: nd.pad.x, right: nd.pad.x});
+      if (_.has(nd.pad, "x")) {
+        _.defaults(nd.pad, { left: nd.pad.x, right: nd.pad.x })
       }
-      if (_.has(nd.pad, 'y')) {
-        _.defaults(nd.pad, {top: nd.pad.y, bottom: nd.pad.y});
+      if (_.has(nd.pad, "y")) {
+        _.defaults(nd.pad, { top: nd.pad.y, bottom: nd.pad.y })
       }
-      if (_.has(nd, 'w')) nd._old = {w: nd.w, h: nd.h};
-    });
+      if (_.has(nd, "w")) nd._old = { w: nd.w, h: nd.h }
+    })
     this.links().forEach(l => {
-      const ed = this.edge(l)!;
-      _.defaults(ed, {arrowhead: 'normal', curve: d3.curveLinear});
-      if (!ed.label) ed.label = {txt: ''} as qt.Label;
-    });
-    return this;
+      const ed = this.edge(l)!
+      _.defaults(ed, { arrowhead: "normal", curve: d3.curveLinear })
+      if (!ed.label) ed.label = { txt: "" } as qt.Label
+    })
+    return this
   }
 
   postRender() {
     this.nodes().forEach(n => {
-      const nd = this.node(n)!;
+      const nd = this.node(n)!
       if (nd._old) {
-        nd.w = nd._old.w;
-        nd.h = nd._old.h;
-        delete nd._old;
+        nd.w = nd._old.w
+        nd.h = nd._old.h
+        delete nd._old
       } else {
-        delete nd.w;
-        delete nd.h;
+        delete nd.w
+        delete nd.h
       }
-    });
-    return this;
+    })
+    return this
   }
 
   posNodes(s: qt.Sel) {
-    const es = s.filter((_, i, g) => !d3.select(g[i]).classed('update'));
+    const es = s.filter((_, i, g) => !d3.select(g[i]).classed("update"))
     const t = (n: any) => {
-      const nd = this.node(n)!;
-      return 'translate(' + nd.x + ',' + nd.y + ')';
-    };
-    es.attr('transform', t);
-    this.applyTransition(s)
-      .style('opacity', 1)
-      .attr('transform', t);
-    return this;
+      const nd = this.node(n)!
+      return "translate(" + nd.x + "," + nd.y + ")"
+    }
+    es.attr("transform", t)
+    this.applyTransition(s).style("opacity", 1).attr("transform", t)
+    return this
   }
 
   posLabels(s: qt.Sel) {
-    const es = s.filter((_, i, g) => !d3.select(g[i]).classed('update'));
+    const es = s.filter((_, i, g) => !d3.select(g[i]).classed("update"))
     const t = (e: any) => {
-      const ed = this.edge(e)!;
-      return 'translate(' + ed.x + ',' + ed.y + ')';
-    };
-    es.attr('transform', t);
-    this.applyTransition(s)
-      .style('opacity', 1)
-      .attr('transform', t);
-    return this;
+      const ed = this.edge(e)!
+      return "translate(" + ed.x + "," + ed.y + ")"
+    }
+    es.attr("transform", t)
+    this.applyTransition(s).style("opacity", 1).attr("transform", t)
+    return this
   }
 
   posClusters(s: qt.Sel) {
-    const es = s.filter((_, i, g) => !d3.select(g[i]).classed('update'));
+    const es = s.filter((_, i, g) => !d3.select(g[i]).classed("update"))
     const t = (n: any) => {
-      const nd = this.node(n)!;
-      return 'translate(' + nd.x + ',' + nd.y + ')';
-    };
-    es.attr('transform', t);
-    this.applyTransition(s)
-      .style('opacity', 1)
-      .attr('transform', t);
-    this.applyTransition(es.selectAll('rect'))
-      .attr('width', (n: any) => this.node(n)!.w)
-      .attr('height', (n: any) => this.node(n)!.h)
-      .attr('x', (n: any) => -this.node(n)!.w / 2)
-      .attr('y', (n: any) => -this.node(n)!.h / 2);
-    return this;
+      const nd = this.node(n)!
+      return "translate(" + nd.x + "," + nd.y + ")"
+    }
+    es.attr("transform", t)
+    this.applyTransition(s).style("opacity", 1).attr("transform", t)
+    this.applyTransition(es.selectAll("rect"))
+      .attr("width", (n: any) => this.node(n)!.w)
+      .attr("height", (n: any) => this.node(n)!.h)
+      .attr("x", (n: any) => -this.node(n)!.w / 2)
+      .attr("y", (n: any) => -this.node(n)!.h / 2)
+    return this
   }
 }
 
 function createOrSelect(sel: qt.Sel, n: string) {
-  const s = sel.select('g.' + n);
-  if (s.empty()) return sel.append('g').attr('class', n);
-  return s;
+  const s = sel.select("g." + n)
+  if (s.empty()) return sel.append("g").attr("class", n)
+  return s
 }
 
 /*

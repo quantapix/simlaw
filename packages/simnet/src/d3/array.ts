@@ -1255,7 +1255,6 @@ export default function ticks(start, stop, count) {
     n,
     ticks,
     step
-
   ;(stop = +stop), (start = +start), (count = +count)
   if (start === stop && count > 0) return [start]
   if ((reverse = stop < start)) (n = start), (start = stop), (stop = n)

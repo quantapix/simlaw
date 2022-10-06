@@ -1,200 +1,197 @@
 // nx-ignore-next-line
-import type {
-  ProjectGraphDependency,
-  ProjectGraphProjectNode,
-} from '@nrwl/devkit';
-import { ActionObject, ActorRef, State, StateNodeConfig } from 'xstate';
+import type { ProjectGraphDependency, ProjectGraphProjectNode } from "@nrwl/devkit"
+import { ActionObject, ActorRef, State, StateNodeConfig } from "xstate"
 
 // The hierarchical (recursive) schema for the states
 export interface DepGraphSchema {
   states: {
-    idle: {};
-    unselected: {};
-    focused: {};
-    textFiltered: {};
-    customSelected: {};
-    tracing: {};
-  };
+    idle: {}
+    unselected: {}
+    focused: {}
+    textFiltered: {}
+    customSelected: {}
+    tracing: {}
+  }
 }
 
 export interface GraphPerfReport {
-  renderTime: number;
-  numNodes: number;
-  numEdges: number;
+  renderTime: number
+  numNodes: number
+  numEdges: number
 }
 
-export type TracingAlgorithmType = 'shortest' | 'all';
+export type TracingAlgorithmType = "shortest" | "all"
 // The events that the machine handles
 
 export type DepGraphUIEvents =
   | {
-      type: 'setSelectedProjectsFromGraph';
-      selectedProjectNames: string[];
-      perfReport: GraphPerfReport;
+      type: "setSelectedProjectsFromGraph"
+      selectedProjectNames: string[]
+      perfReport: GraphPerfReport
     }
-  | { type: 'selectProject'; projectName: string }
-  | { type: 'deselectProject'; projectName: string }
-  | { type: 'selectAll' }
-  | { type: 'deselectAll' }
-  | { type: 'selectAffected' }
-  | { type: 'setGroupByFolder'; groupByFolder: boolean }
-  | { type: 'setTracingStart'; projectName: string }
-  | { type: 'setTracingEnd'; projectName: string }
-  | { type: 'clearTraceStart' }
-  | { type: 'clearTraceEnd' }
-  | { type: 'setTracingAlgorithm'; algorithm: TracingAlgorithmType }
-  | { type: 'setCollapseEdges'; collapseEdges: boolean }
-  | { type: 'setIncludeProjectsByPath'; includeProjectsByPath: boolean }
-  | { type: 'incrementSearchDepth' }
-  | { type: 'decrementSearchDepth' }
-  | { type: 'setSearchDepthEnabled'; searchDepthEnabled: boolean }
-  | { type: 'setSearchDepth'; searchDepth: number }
-  | { type: 'focusProject'; projectName: string }
-  | { type: 'unfocusProject' }
-  | { type: 'filterByText'; search: string }
-  | { type: 'clearTextFilter' }
+  | { type: "selectProject"; projectName: string }
+  | { type: "deselectProject"; projectName: string }
+  | { type: "selectAll" }
+  | { type: "deselectAll" }
+  | { type: "selectAffected" }
+  | { type: "setGroupByFolder"; groupByFolder: boolean }
+  | { type: "setTracingStart"; projectName: string }
+  | { type: "setTracingEnd"; projectName: string }
+  | { type: "clearTraceStart" }
+  | { type: "clearTraceEnd" }
+  | { type: "setTracingAlgorithm"; algorithm: TracingAlgorithmType }
+  | { type: "setCollapseEdges"; collapseEdges: boolean }
+  | { type: "setIncludeProjectsByPath"; includeProjectsByPath: boolean }
+  | { type: "incrementSearchDepth" }
+  | { type: "decrementSearchDepth" }
+  | { type: "setSearchDepthEnabled"; searchDepthEnabled: boolean }
+  | { type: "setSearchDepth"; searchDepth: number }
+  | { type: "focusProject"; projectName: string }
+  | { type: "unfocusProject" }
+  | { type: "filterByText"; search: string }
+  | { type: "clearTextFilter" }
   | {
-      type: 'initGraph';
-      projects: ProjectGraphProjectNode[];
-      dependencies: Record<string, ProjectGraphDependency[]>;
-      affectedProjects: string[];
+      type: "initGraph"
+      projects: ProjectGraphProjectNode[]
+      dependencies: Record<string, ProjectGraphDependency[]>
+      affectedProjects: string[]
       workspaceLayout: {
-        libsDir: string;
-        appsDir: string;
-      };
+        libsDir: string
+        appsDir: string
+      }
     }
   | {
-      type: 'updateGraph';
-      projects: ProjectGraphProjectNode[];
-      dependencies: Record<string, ProjectGraphDependency[]>;
-    };
+      type: "updateGraph"
+      projects: ProjectGraphProjectNode[]
+      dependencies: Record<string, ProjectGraphDependency[]>
+    }
 
 // The events that the graph actor handles
 
 export type GraphRenderEvents =
   | {
-      type: 'notifyGraphInitGraph';
-      projects: ProjectGraphProjectNode[];
-      dependencies: Record<string, ProjectGraphDependency[]>;
-      affectedProjects: string[];
+      type: "notifyGraphInitGraph"
+      projects: ProjectGraphProjectNode[]
+      dependencies: Record<string, ProjectGraphDependency[]>
+      affectedProjects: string[]
       workspaceLayout: {
-        libsDir: string;
-        appsDir: string;
-      };
-      groupByFolder: boolean;
-      collapseEdges: boolean;
+        libsDir: string
+        appsDir: string
+      }
+      groupByFolder: boolean
+      collapseEdges: boolean
     }
   | {
-      type: 'notifyGraphUpdateGraph';
-      projects: ProjectGraphProjectNode[];
-      dependencies: Record<string, ProjectGraphDependency[]>;
-      affectedProjects: string[];
+      type: "notifyGraphUpdateGraph"
+      projects: ProjectGraphProjectNode[]
+      dependencies: Record<string, ProjectGraphDependency[]>
+      affectedProjects: string[]
       workspaceLayout: {
-        libsDir: string;
-        appsDir: string;
-      };
-      groupByFolder: boolean;
-      collapseEdges: boolean;
-      selectedProjects: string[];
+        libsDir: string
+        appsDir: string
+      }
+      groupByFolder: boolean
+      collapseEdges: boolean
+      selectedProjects: string[]
     }
   | {
-      type: 'notifyGraphFocusProject';
-      projectName: string;
-      searchDepth: number;
+      type: "notifyGraphFocusProject"
+      projectName: string
+      searchDepth: number
     }
   | {
-      type: 'notifyGraphShowProject';
-      projectName: string;
+      type: "notifyGraphShowProject"
+      projectName: string
     }
   | {
-      type: 'notifyGraphHideProject';
-      projectName: string;
+      type: "notifyGraphHideProject"
+      projectName: string
     }
   | {
-      type: 'notifyGraphShowAllProjects';
+      type: "notifyGraphShowAllProjects"
     }
   | {
-      type: 'notifyGraphHideAllProjects';
+      type: "notifyGraphHideAllProjects"
     }
   | {
-      type: 'notifyGraphShowAffectedProjects';
+      type: "notifyGraphShowAffectedProjects"
     }
   | {
-      type: 'notifyGraphFilterProjectsByText';
-      search: string;
-      includeProjectsByPath: boolean;
-      searchDepth: number;
+      type: "notifyGraphFilterProjectsByText"
+      search: string
+      includeProjectsByPath: boolean
+      searchDepth: number
     }
   | {
-      type: 'notifyGraphTracing';
-      start: string;
-      end: string;
-      algorithm: TracingAlgorithmType;
-    };
+      type: "notifyGraphTracing"
+      start: string
+      end: string
+      algorithm: TracingAlgorithmType
+    }
 
 export type RouteEvents =
   | {
-      type: 'notifyRouteFocusProject';
-      focusedProject: string;
+      type: "notifyRouteFocusProject"
+      focusedProject: string
     }
   | {
-      type: 'notifyRouteGroupByFolder';
-      groupByFolder: boolean;
+      type: "notifyRouteGroupByFolder"
+      groupByFolder: boolean
     }
   | {
-      type: 'notifyRouteCollapseEdges';
-      collapseEdges: boolean;
+      type: "notifyRouteCollapseEdges"
+      collapseEdges: boolean
     }
   | {
-      type: 'notifyRouteSearchDepth';
-      searchDepthEnabled: boolean;
-      searchDepth: number;
+      type: "notifyRouteSearchDepth"
+      searchDepthEnabled: boolean
+      searchDepth: number
     }
   | {
-      type: 'notifyRouteUnfocusProject';
+      type: "notifyRouteUnfocusProject"
     }
   | {
-      type: 'notifyRouteSelectAll';
+      type: "notifyRouteSelectAll"
     }
   | {
-      type: 'notifyRouteSelectAffected';
+      type: "notifyRouteSelectAffected"
     }
-  | { type: 'notifyRouteClearSelect' }
+  | { type: "notifyRouteClearSelect" }
   | {
-      type: 'notifyRouteTracing';
-      start: string;
-      end: string;
-      algorithm: TracingAlgorithmType;
-    };
+      type: "notifyRouteTracing"
+      start: string
+      end: string
+      algorithm: TracingAlgorithmType
+    }
 
-export type AllEvents = DepGraphUIEvents | GraphRenderEvents | RouteEvents;
+export type AllEvents = DepGraphUIEvents | GraphRenderEvents | RouteEvents
 
 // The context (extended state) of the machine
 export interface DepGraphContext {
-  projects: ProjectGraphProjectNode[];
-  dependencies: Record<string, ProjectGraphDependency[]>;
-  affectedProjects: string[];
-  selectedProjects: string[];
-  focusedProject: string | null;
-  textFilter: string;
-  includePath: boolean;
-  searchDepth: number;
-  searchDepthEnabled: boolean;
-  groupByFolder: boolean;
-  collapseEdges: boolean;
+  projects: ProjectGraphProjectNode[]
+  dependencies: Record<string, ProjectGraphDependency[]>
+  affectedProjects: string[]
+  selectedProjects: string[]
+  focusedProject: string | null
+  textFilter: string
+  includePath: boolean
+  searchDepth: number
+  searchDepthEnabled: boolean
+  groupByFolder: boolean
+  collapseEdges: boolean
   workspaceLayout: {
-    libsDir: string;
-    appsDir: string;
-  };
-  graphActor: ActorRef<GraphRenderEvents>;
-  routeSetterActor: ActorRef<RouteEvents>;
-  routeListenerActor: ActorRef<DepGraphUIEvents>;
-  lastPerfReport: GraphPerfReport;
+    libsDir: string
+    appsDir: string
+  }
+  graphActor: ActorRef<GraphRenderEvents>
+  routeSetterActor: ActorRef<RouteEvents>
+  routeListenerActor: ActorRef<DepGraphUIEvents>
+  lastPerfReport: GraphPerfReport
   tracing: {
-    start: string;
-    end: string;
-    algorithm: TracingAlgorithmType;
-  };
+    start: string
+    end: string
+    algorithm: TracingAlgorithmType
+  }
 }
 
 export type DepGraphStateNodeConfig = StateNodeConfig<
@@ -202,18 +199,16 @@ export type DepGraphStateNodeConfig = StateNodeConfig<
   {},
   DepGraphUIEvents,
   ActionObject<DepGraphContext, DepGraphUIEvents>
->;
+>
 
-export type DepGraphSend = (
-  event: DepGraphUIEvents | DepGraphUIEvents[]
-) => void;
+export type DepGraphSend = (event: DepGraphUIEvents | DepGraphUIEvents[]) => void
 
 export type DepGraphState = State<
   DepGraphContext,
   DepGraphUIEvents,
   any,
   {
-    value: any;
-    context: DepGraphContext;
+    value: any
+    context: DepGraphContext
   }
->;
+>

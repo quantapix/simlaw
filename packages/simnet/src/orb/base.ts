@@ -50,11 +50,7 @@ export class Color {
   }
 
   isEqual(color: Color): boolean {
-    return (
-      this.rgb.r === color.rgb.r &&
-      this.rgb.g === color.rgb.g &&
-      this.rgb.b === color.rgb.b
-    )
+    return this.rgb.r === color.rgb.r && this.rgb.g === color.rgb.g && this.rgb.b === color.rgb.b
   }
 
   static getColorFromRGB(rgb: IColorRGB): Color {
@@ -83,22 +79,13 @@ const hexToRgb = (hex: string): IColorRGB => {
 }
 
 const rgbToHex = (rgb: IColorRGB): string => {
-  return (
-    "#" +
-    ((1 << 24) + (rgb.r << 16) + (rgb.g << 8) + rgb.b).toString(16).slice(1)
-  )
+  return "#" + ((1 << 24) + (rgb.r << 16) + (rgb.g << 8) + rgb.b).toString(16).slice(1)
 }
 
-export const getDistanceToLine = (
-  startLinePoint: IPosition,
-  endLinePoint: IPosition,
-  point: IPosition
-): number => {
+export const getDistanceToLine = (startLinePoint: IPosition, endLinePoint: IPosition, point: IPosition): number => {
   const dx = endLinePoint.x - startLinePoint.x
   const dy = endLinePoint.y - startLinePoint.y
-  let lineSegment =
-    ((point.x - startLinePoint.x) * dx + (point.y - startLinePoint.y) * dy) /
-    (dx * dx + dy * dy)
+  let lineSegment = ((point.x - startLinePoint.x) * dx + (point.y - startLinePoint.y) * dy) / (dx * dx + dy * dy)
   if (lineSegment > 1) {
     lineSegment = 1
   }
@@ -118,16 +105,8 @@ export interface IPosition {
   y: number
 }
 
-export const isEqualPosition = (
-  position1?: IPosition,
-  position2?: IPosition
-): boolean => {
-  return (
-    !!position1 &&
-    !!position2 &&
-    position1.x === position2.x &&
-    position1.y === position2.y
-  )
+export const isEqualPosition = (position1?: IPosition, position2?: IPosition): boolean => {
+  return !!position1 && !!position2 && position1.x === position2.x && position1.y === position2.y
 }
 
 export interface IRectangle {
@@ -137,16 +116,8 @@ export interface IRectangle {
   height: number
 }
 
-export const isPointInRectangle = (
-  rectangle: IRectangle,
-  point: IPosition
-): boolean => {
+export const isPointInRectangle = (rectangle: IRectangle, point: IPosition): boolean => {
   const endX = rectangle.x + rectangle.width
   const endY = rectangle.y + rectangle.height
-  return (
-    point.x >= rectangle.x &&
-    point.x <= endX &&
-    point.y >= rectangle.y &&
-    point.y <= endY
-  )
+  return point.x >= rectangle.x && point.x <= endX && point.y >= rectangle.y && point.y <= endY
 }

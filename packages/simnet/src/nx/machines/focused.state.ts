@@ -1,74 +1,58 @@
-import { assign } from '@xstate/immer';
-import { send } from 'xstate';
-import { DepGraphStateNodeConfig } from './interfaces';
+import { assign } from "@xstate/immer"
+import { send } from "xstate"
+import { DepGraphStateNodeConfig } from "./interfaces"
 
 export const focusedStateConfig: DepGraphStateNodeConfig = {
   entry: [
     assign((ctx, event) => {
-      if (event.type !== 'focusProject') return;
+      if (event.type !== "focusProject") return
 
-      ctx.focusedProject = event.projectName;
+      ctx.focusedProject = event.projectName
     }),
     send(
       (ctx, event) => {
-        if (event.type !== 'focusProject') return;
+        if (event.type !== "focusProject") return
 
         return {
-          type: 'notifyRouteFocusProject',
+          type: "notifyRouteFocusProject",
           focusedProject: event.projectName,
-        };
+        }
       },
       {
-        to: (context) => context.routeSetterActor,
+        to: context => context.routeSetterActor,
       }
     ),
-    'notifyGraphFocusProject',
+    "notifyGraphFocusProject",
   ],
   exit: [
-    assign((ctx) => {
-      ctx.focusedProject = null;
+    assign(ctx => {
+      ctx.focusedProject = null
     }),
-    'notifyRouteUnfocusProject',
+    "notifyRouteUnfocusProject",
   ],
   on: {
     incrementSearchDepth: {
-      actions: [
-        'incrementSearchDepth',
-        'notifyGraphFocusProject',
-        'notifyRouteSearchDepth',
-      ],
+      actions: ["incrementSearchDepth", "notifyGraphFocusProject", "notifyRouteSearchDepth"],
     },
     decrementSearchDepth: {
-      actions: [
-        'decrementSearchDepth',
-        'notifyGraphFocusProject',
-        'notifyRouteSearchDepth',
-      ],
+      actions: ["decrementSearchDepth", "notifyGraphFocusProject", "notifyRouteSearchDepth"],
     },
     setSearchDepthEnabled: {
-      actions: [
-        'setSearchDepthEnabled',
-        'notifyGraphFocusProject',
-        'notifyRouteSearchDepth',
-      ],
+      actions: ["setSearchDepthEnabled", "notifyGraphFocusProject", "notifyRouteSearchDepth"],
     },
     setSearchDepth: {
-      actions: [
-        'setSearchDepth',
-        'notifyGraphFocusProject',
-        'notifyRouteSearchDepth',
-      ],
+      actions: ["setSearchDepth", "notifyGraphFocusProject", "notifyRouteSearchDepth"],
     },
     unfocusProject: {
-      target: 'unselected',
-      actions: ['notifyRouteUnfocusProject'],
+      target: "unselected",
+      actions: ["notifyRouteUnfocusProject"],
     },
     updateGraph: {
       actions: [
-        'setGraph',
+        "setGraph",
         send(
           (ctx, event) => ({
-            type: 'notifyGraphUpdateGraph',
+            type: "notifyGraphUpdateGraph",
             projects: ctx.projects,
             dependencies: ctx.dependencies,
             affectedProjects: ctx.affectedProjects,
@@ -77,11 +61,11 @@ export const focusedStateConfig: DepGraphStateNodeConfig = {
             selectedProjects: ctx.selectedProjects,
           }),
           {
-            to: (context) => context.graphActor,
+            to: context => context.graphActor,
           }
         ),
-        'notifyGraphFocusProject',
+        "notifyGraphFocusProject",
       ],
     },
   },
-};
+}

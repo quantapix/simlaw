@@ -1,40 +1,33 @@
-import { assign } from '@xstate/immer';
-import { send, spawn } from 'xstate';
-import { DepGraphStateNodeConfig } from './interfaces';
-import { routeListener } from './route-listener.actor';
+import { assign } from "@xstate/immer"
+import { send, spawn } from "xstate"
+import { DepGraphStateNodeConfig } from "./interfaces"
+import { routeListener } from "./route-listener.actor"
 
 export const unselectedStateConfig: DepGraphStateNodeConfig = {
   entry: [
-    'notifyGraphHideAllProjects',
+    "notifyGraphHideAllProjects",
     assign((ctx, event) => {
       if (ctx.routeListenerActor === null) {
-        ctx.routeListenerActor = spawn(routeListener, 'routeListener');
+        ctx.routeListenerActor = spawn(routeListener, "routeListener")
       }
     }),
-    'notifyRouteClearSelect',
+    "notifyRouteClearSelect",
   ],
   on: {
     updateGraph: {
-      target: 'customSelected',
+      target: "customSelected",
       actions: [
         assign((ctx, event) => {
-          const existingProjectNames = ctx.projects.map(
-            (project) => project.name
-          );
-          const newProjectNames = event.projects.map((project) => project.name);
-          const newSelectedProjects = newProjectNames.filter(
-            (projectName) => !existingProjectNames.includes(projectName)
-          );
+          const existingProjectNames = ctx.projects.map(project => project.name)
+          const newProjectNames = event.projects.map(project => project.name)
+          const newSelectedProjects = newProjectNames.filter(projectName => !existingProjectNames.includes(projectName))
 
-          ctx.selectedProjects = [
-            ...ctx.selectedProjects,
-            ...newSelectedProjects,
-          ];
+          ctx.selectedProjects = [...ctx.selectedProjects, ...newSelectedProjects]
         }),
-        'setGraph',
+        "setGraph",
         send(
           (ctx, event) => ({
-            type: 'notifyGraphUpdateGraph',
+            type: "notifyGraphUpdateGraph",
             projects: ctx.projects,
             dependencies: ctx.dependencies,
             affectedProjects: ctx.affectedProjects,
@@ -43,10 +36,10 @@ export const unselectedStateConfig: DepGraphStateNodeConfig = {
             selectedProjects: ctx.selectedProjects,
           }),
           {
-            to: (context) => context.graphActor,
+            to: context => context.graphActor,
           }
         ),
       ],
     },
   },
-};
+}

@@ -59,12 +59,7 @@ export class Pad {
   x?: number
   y?: number
   v?: number
-  constructor(
-    public top = 0,
-    public bottom = 0,
-    public left = 0,
-    public right = 0
-  ) {}
+  constructor(public top = 0, public bottom = 0, public left = 0, public right = 0) {}
 }
 
 export interface Arrow {

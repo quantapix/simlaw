@@ -1,22 +1,20 @@
-import * as cy from 'cytoscape';
+import * as cy from "cytoscape"
 
 export class ParentNode {
-  constructor(
-    private config: { id: string; parentId: string; label: string }
-  ) {}
+  constructor(private config: { id: string; parentId: string; label: string }) {}
 
   getCytoscapeNodeDef(): cy.NodeDefinition {
     return {
-      group: 'nodes',
+      group: "nodes",
       data: {
         id: this.config.id,
         parent: this.config.parentId,
         label: this.config.label,
-        type: 'dir',
+        type: "dir",
       },
       selectable: false,
       grabbable: false,
       pannable: true,
-    };
+    }
   }
 }

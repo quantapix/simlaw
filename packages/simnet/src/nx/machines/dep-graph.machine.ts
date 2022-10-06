@@ -1,17 +1,13 @@
-import { assign } from '@xstate/immer';
-import { Machine, send, spawn } from 'xstate';
-import { customSelectedStateConfig } from './custom-selected.state';
-import { focusedStateConfig } from './focused.state';
-import { graphActor } from './graph.actor';
-import {
-  DepGraphContext,
-  DepGraphSchema,
-  DepGraphUIEvents,
-} from './interfaces';
-import { createRouteMachine } from './route-setter.machine';
-import { textFilteredStateConfig } from './text-filtered.state';
-import { tracingStateConfig } from './tracing.state';
-import { unselectedStateConfig } from './unselected.state';
+import { assign } from "@xstate/immer"
+import { Machine, send, spawn } from "xstate"
+import { customSelectedStateConfig } from "./custom-selected.state"
+import { focusedStateConfig } from "./focused.state"
+import { graphActor } from "./graph.actor"
+import { DepGraphContext, DepGraphSchema, DepGraphUIEvents } from "./interfaces"
+import { createRouteMachine } from "./route-setter.machine"
+import { textFilteredStateConfig } from "./text-filtered.state"
+import { tracingStateConfig } from "./tracing.state"
+import { unselectedStateConfig } from "./unselected.state"
 
 export const initialContext: DepGraphContext = {
   projects: [],
@@ -19,15 +15,15 @@ export const initialContext: DepGraphContext = {
   affectedProjects: [],
   selectedProjects: [],
   focusedProject: null,
-  textFilter: '',
+  textFilter: "",
   includePath: false,
   searchDepth: 1,
   searchDepthEnabled: true,
   groupByFolder: false,
   collapseEdges: false,
   workspaceLayout: {
-    libsDir: '',
-    appsDir: '',
+    libsDir: "",
+    appsDir: "",
   },
   graphActor: null,
   routeSetterActor: null,
@@ -40,18 +36,14 @@ export const initialContext: DepGraphContext = {
   tracing: {
     start: null,
     end: null,
-    algorithm: 'shortest',
+    algorithm: "shortest",
   },
-};
+}
 
-export const depGraphMachine = Machine<
-  DepGraphContext,
-  DepGraphSchema,
-  DepGraphUIEvents
->(
+export const depGraphMachine = Machine<DepGraphContext, DepGraphSchema, DepGraphUIEvents>(
   {
-    id: 'DepGraph',
-    initial: 'idle',
+    id: "DepGraph",
+    initial: "idle",
     context: initialContext,
     states: {
       idle: {},
@@ -63,12 +55,12 @@ export const depGraphMachine = Machine<
     },
     on: {
       initGraph: {
-        target: 'unselected',
+        target: "unselected",
         actions: [
-          'setGraph',
+          "setGraph",
           send(
             (ctx, event) => ({
-              type: 'notifyGraphInitGraph',
+              type: "notifyGraphInitGraph",
               projects: ctx.projects,
               dependencies: ctx.dependencies,
               affectedProjects: ctx.affectedProjects,
@@ -77,7 +69,7 @@ export const depGraphMachine = Machine<
               collapseEdges: ctx.collapseEdges,
             }),
             {
-              to: (context) => context.graphActor,
+              to: context => context.graphActor,
             }
           ),
         ],
@@ -85,54 +77,51 @@ export const depGraphMachine = Machine<
       setSelectedProjectsFromGraph: {
         actions: [
           assign((ctx, event) => {
-            ctx.selectedProjects = event.selectedProjectNames;
-            ctx.lastPerfReport = event.perfReport;
+            ctx.selectedProjects = event.selectedProjectNames
+            ctx.lastPerfReport = event.perfReport
           }),
         ],
       },
       selectProject: {
-        target: 'customSelected',
-        actions: ['notifyGraphShowProject'],
+        target: "customSelected",
+        actions: ["notifyGraphShowProject"],
       },
       selectAll: {
-        target: 'customSelected',
-        actions: ['notifyGraphShowAllProjects', 'notifyRouteSelectAll'],
+        target: "customSelected",
+        actions: ["notifyGraphShowAllProjects", "notifyRouteSelectAll"],
       },
       selectAffected: {
-        target: 'customSelected',
-        actions: [
-          'notifyGraphShowAffectedProjects',
-          'notifyRouteSelectAffected',
-        ],
+        target: "customSelected",
+        actions: ["notifyGraphShowAffectedProjects", "notifyRouteSelectAffected"],
       },
       deselectProject: [
         {
-          target: 'unselected',
-          cond: 'deselectLastProject',
+          target: "unselected",
+          cond: "deselectLastProject",
         },
         {
-          target: 'customSelected',
-          actions: ['notifyGraphHideProject'],
+          target: "customSelected",
+          actions: ["notifyGraphHideProject"],
         },
       ],
       deselectAll: {
-        target: 'unselected',
+        target: "unselected",
       },
       focusProject: {
-        target: 'focused',
+        target: "focused",
       },
       setTracingStart: {
-        target: 'tracing',
+        target: "tracing",
       },
       setTracingEnd: {
-        target: 'tracing',
+        target: "tracing",
       },
       setCollapseEdges: {
         actions: [
-          'setCollapseEdges',
+          "setCollapseEdges",
           send(
             (ctx, event) => ({
-              type: 'notifyGraphUpdateGraph',
+              type: "notifyGraphUpdateGraph",
               projects: ctx.projects,
               dependencies: ctx.dependencies,
               affectedProjects: ctx.affectedProjects,
@@ -142,30 +131,30 @@ export const depGraphMachine = Machine<
               selectedProjects: ctx.selectedProjects,
             }),
             {
-              to: (context) => context.graphActor,
+              to: context => context.graphActor,
             }
           ),
           send(
             (ctx, event) => {
-              if (event.type !== 'setCollapseEdges') return;
+              if (event.type !== "setCollapseEdges") return
 
               return {
-                type: 'notifyRouteCollapseEdges',
+                type: "notifyRouteCollapseEdges",
                 collapseEdges: event.collapseEdges,
-              };
+              }
             },
             {
-              to: (context) => context.routeSetterActor,
+              to: context => context.routeSetterActor,
             }
           ),
         ],
       },
       setGroupByFolder: {
         actions: [
-          'setGroupByFolder',
+          "setGroupByFolder",
           send(
             (ctx, event) => ({
-              type: 'notifyGraphUpdateGraph',
+              type: "notifyGraphUpdateGraph",
               projects: ctx.projects,
               dependencies: ctx.dependencies,
               affectedProjects: ctx.affectedProjects,
@@ -175,20 +164,20 @@ export const depGraphMachine = Machine<
               selectedProjects: ctx.selectedProjects,
             }),
             {
-              to: (context) => context.graphActor,
+              to: context => context.graphActor,
             }
           ),
           send(
             (ctx, event) => {
-              if (event.type !== 'setGroupByFolder') return;
+              if (event.type !== "setGroupByFolder") return
 
               return {
-                type: 'notifyRouteGroupByFolder',
+                type: "notifyRouteGroupByFolder",
                 groupByFolder: event.groupByFolder,
-              };
+              }
             },
             {
-              to: (context) => context.routeSetterActor,
+              to: context => context.routeSetterActor,
             }
           ),
         ],
@@ -196,235 +185,235 @@ export const depGraphMachine = Machine<
       setIncludeProjectsByPath: {
         actions: [
           assign((ctx, event) => {
-            ctx.includePath = event.includeProjectsByPath;
+            ctx.includePath = event.includeProjectsByPath
           }),
         ],
       },
       incrementSearchDepth: {
-        actions: ['incrementSearchDepth', 'notifyRouteSearchDepth'],
+        actions: ["incrementSearchDepth", "notifyRouteSearchDepth"],
       },
       decrementSearchDepth: {
-        actions: ['decrementSearchDepth', 'notifyRouteSearchDepth'],
+        actions: ["decrementSearchDepth", "notifyRouteSearchDepth"],
       },
       setSearchDepthEnabled: {
-        actions: ['setSearchDepthEnabled', 'notifyRouteSearchDepth'],
+        actions: ["setSearchDepthEnabled", "notifyRouteSearchDepth"],
       },
       setSearchDepth: {
-        actions: ['setSearchDepth', 'notifyRouteSearchDepth'],
+        actions: ["setSearchDepth", "notifyRouteSearchDepth"],
       },
       setTracingAlgorithm: {
         actions: [
           assign((ctx, event) => {
-            ctx.tracing.algorithm = event.algorithm;
+            ctx.tracing.algorithm = event.algorithm
           }),
-          'notifyRouteTracing',
-          'notifyGraphTracing',
+          "notifyRouteTracing",
+          "notifyGraphTracing",
         ],
       },
       filterByText: {
-        target: 'textFiltered',
+        target: "textFiltered",
       },
     },
   },
   {
     guards: {
-      deselectLastProject: (ctx) => {
-        return ctx.selectedProjects.length <= 1;
+      deselectLastProject: ctx => {
+        return ctx.selectedProjects.length <= 1
       },
       selectActionCannotBePersistedToRoute: (ctx, event) => {
-        return event.type !== 'selectAffected' && event.type !== 'selectAll';
+        return event.type !== "selectAffected" && event.type !== "selectAll"
       },
     },
     actions: {
       setGroupByFolder: assign((ctx, event) => {
-        if (event.type !== 'setGroupByFolder') return;
+        if (event.type !== "setGroupByFolder") return
 
-        ctx.groupByFolder = event.groupByFolder;
+        ctx.groupByFolder = event.groupByFolder
       }),
       setCollapseEdges: assign((ctx, event) => {
-        if (event.type !== 'setCollapseEdges') return;
+        if (event.type !== "setCollapseEdges") return
 
-        ctx.collapseEdges = event.collapseEdges;
+        ctx.collapseEdges = event.collapseEdges
       }),
-      incrementSearchDepth: assign((ctx) => {
-        ctx.searchDepthEnabled = true;
-        ctx.searchDepth = ctx.searchDepth + 1;
+      incrementSearchDepth: assign(ctx => {
+        ctx.searchDepthEnabled = true
+        ctx.searchDepth = ctx.searchDepth + 1
       }),
-      decrementSearchDepth: assign((ctx) => {
-        ctx.searchDepthEnabled = true;
-        ctx.searchDepth = ctx.searchDepth > 1 ? ctx.searchDepth - 1 : 1;
+      decrementSearchDepth: assign(ctx => {
+        ctx.searchDepthEnabled = true
+        ctx.searchDepth = ctx.searchDepth > 1 ? ctx.searchDepth - 1 : 1
       }),
       setSearchDepth: assign((ctx, event) => {
-        if (event.type !== 'setSearchDepth') return;
-        ctx.searchDepthEnabled = true;
-        ctx.searchDepth = event.searchDepth > 1 ? event.searchDepth : 1;
+        if (event.type !== "setSearchDepth") return
+        ctx.searchDepthEnabled = true
+        ctx.searchDepth = event.searchDepth > 1 ? event.searchDepth : 1
       }),
       setSearchDepthEnabled: assign((ctx, event) => {
-        if (event.type !== 'setSearchDepthEnabled') return;
+        if (event.type !== "setSearchDepthEnabled") return
 
-        ctx.searchDepthEnabled = event.searchDepthEnabled;
+        ctx.searchDepthEnabled = event.searchDepthEnabled
       }),
       setIncludeProjectsByPath: assign((ctx, event) => {
-        if (event.type !== 'setIncludeProjectsByPath') return;
+        if (event.type !== "setIncludeProjectsByPath") return
 
-        ctx.includePath = event.includeProjectsByPath;
+        ctx.includePath = event.includeProjectsByPath
       }),
       setGraph: assign((ctx, event) => {
-        if (event.type !== 'initGraph' && event.type !== 'updateGraph') return;
+        if (event.type !== "initGraph" && event.type !== "updateGraph") return
 
-        ctx.projects = event.projects;
-        ctx.dependencies = event.dependencies;
-        ctx.graphActor = spawn(graphActor, 'graphActor');
+        ctx.projects = event.projects
+        ctx.dependencies = event.dependencies
+        ctx.graphActor = spawn(graphActor, "graphActor")
         ctx.routeSetterActor = spawn(createRouteMachine(), {
-          name: 'route',
-        });
+          name: "route",
+        })
 
-        if (event.type === 'initGraph') {
-          ctx.workspaceLayout = event.workspaceLayout;
-          ctx.affectedProjects = event.affectedProjects;
+        if (event.type === "initGraph") {
+          ctx.workspaceLayout = event.workspaceLayout
+          ctx.affectedProjects = event.affectedProjects
         }
       }),
       notifyGraphTracing: send(
         (ctx, event) => {
           return {
-            type: 'notifyGraphTracing',
+            type: "notifyGraphTracing",
             start: ctx.tracing.start,
             end: ctx.tracing.end,
             algorithm: ctx.tracing.algorithm,
-          };
+          }
         },
         {
-          to: (context) => context.graphActor,
+          to: context => context.graphActor,
         }
       ),
 
       notifyGraphShowProject: send(
         (context, event) => {
-          if (event.type !== 'selectProject') return;
+          if (event.type !== "selectProject") return
 
           return {
-            type: 'notifyGraphShowProject',
+            type: "notifyGraphShowProject",
             projectName: event.projectName,
-          };
+          }
         },
         {
-          to: (context) => context.graphActor,
+          to: context => context.graphActor,
         }
       ),
       notifyGraphHideProject: send(
         (context, event) => {
-          if (event.type !== 'deselectProject') return;
+          if (event.type !== "deselectProject") return
 
           return {
-            type: 'notifyGraphHideProject',
+            type: "notifyGraphHideProject",
             projectName: event.projectName,
-          };
+          }
         },
         {
-          to: (context) => context.graphActor,
+          to: context => context.graphActor,
         }
       ),
       notifyGraphShowAllProjects: send(
         (context, event) => ({
-          type: 'notifyGraphShowAllProjects',
+          type: "notifyGraphShowAllProjects",
         }),
         {
-          to: (context) => context.graphActor,
+          to: context => context.graphActor,
         }
       ),
       notifyGraphHideAllProjects: send(
         (context, event) => ({
-          type: 'notifyGraphHideAllProjects',
+          type: "notifyGraphHideAllProjects",
         }),
         {
-          to: (context) => context.graphActor,
+          to: context => context.graphActor,
         }
       ),
       notifyGraphShowAffectedProjects: send(
         {
-          type: 'notifyGraphShowAffectedProjects',
+          type: "notifyGraphShowAffectedProjects",
         },
         {
-          to: (ctx) => ctx.graphActor,
+          to: ctx => ctx.graphActor,
         }
       ),
       notifyGraphFocusProject: send(
         (context, event) => ({
-          type: 'notifyGraphFocusProject',
+          type: "notifyGraphFocusProject",
           projectName: context.focusedProject,
           searchDepth: context.searchDepthEnabled ? context.searchDepth : -1,
         }),
         {
-          to: (context) => context.graphActor,
+          to: context => context.graphActor,
         }
       ),
       notifyRouteUnfocusProject: send(
         () => ({
-          type: 'notifyRouteUnfocusProject',
+          type: "notifyRouteUnfocusProject",
         }),
         {
-          to: (ctx) => ctx.routeSetterActor,
+          to: ctx => ctx.routeSetterActor,
         }
       ),
       notifyRouteSelectAll: send(
         () => ({
-          type: 'notifyRouteSelectAll',
+          type: "notifyRouteSelectAll",
         }),
         {
-          to: (ctx) => ctx.routeSetterActor,
+          to: ctx => ctx.routeSetterActor,
         }
       ),
       notifyRouteSelectAffected: send(
         () => ({
-          type: 'notifyRouteSelectAffected',
+          type: "notifyRouteSelectAffected",
         }),
         {
-          to: (ctx) => ctx.routeSetterActor,
+          to: ctx => ctx.routeSetterActor,
         }
       ),
       notifyRouteClearSelect: send(
         () => ({
-          type: 'notifyRouteClearSelect',
+          type: "notifyRouteClearSelect",
         }),
         {
-          to: (ctx) => ctx.routeSetterActor,
+          to: ctx => ctx.routeSetterActor,
         }
       ),
       notifyRouteTracing: send(
-        (ctx) => {
+        ctx => {
           return {
-            type: 'notifyRouteTracing',
+            type: "notifyRouteTracing",
             start: ctx.tracing.start,
             end: ctx.tracing.end,
             algorithm: ctx.tracing.algorithm,
-          };
+          }
         },
         {
-          to: (ctx) => ctx.routeSetterActor,
+          to: ctx => ctx.routeSetterActor,
         }
       ),
       notifyRouteSearchDepth: send(
         (ctx, event) => ({
-          type: 'notifyRouteSearchDepth',
+          type: "notifyRouteSearchDepth",
           searchDepth: ctx.searchDepth,
           searchDepthEnabled: ctx.searchDepthEnabled,
         }),
 
         {
-          to: (ctx) => ctx.routeSetterActor,
+          to: ctx => ctx.routeSetterActor,
         }
       ),
       notifyGraphFilterProjectsByText: send(
         (context, event) => ({
-          type: 'notifyGraphFilterProjectsByText',
+          type: "notifyGraphFilterProjectsByText",
           search: context.textFilter,
           includeProjectsByPath: context.includePath,
           searchDepth: context.searchDepthEnabled ? context.searchDepth : -1,
         }),
         {
-          to: (context) => context.graphActor,
+          to: context => context.graphActor,
         }
       ),
     },
   }
-);
+)

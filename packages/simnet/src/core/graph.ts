@@ -118,9 +118,7 @@ export class Graph<G, N, E> {
   }
 
   edgeFor(x: string | Link<E> | any[]) {
-    return typeof x === "string"
-      ? x
-      : new Link(Array.isArray(x) ? x : x.nodes, this).edge
+    return typeof x === "string" ? x : new Link(Array.isArray(x) ? x : x.nodes, this).edge
   }
 
   hasEdge(x: string | Link<E> | any[]) {
@@ -173,10 +171,7 @@ export class Graph<G, N, E> {
   }
 
   setEdge(x: string | Link<E> | any[], d?: E | null) {
-    const l =
-      typeof x === "string"
-        ? undefined
-        : new Link<E>(Array.isArray(x) ? x : x.nodes, this)
+    const l = typeof x === "string" ? undefined : new Link<E>(Array.isArray(x) ? x : x.nodes, this)
     const e = typeof x === "string" ? x : l!.edge
     const setIt = (l: Link<E>) => {
       const ed = d ?? this._defEdge(l)

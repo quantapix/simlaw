@@ -564,15 +564,11 @@ describe("acycler", () => {
       const g1 = new Graph({})
       g1.setEdge(["n1", "n2"], { weight: 2 } as Edata)
       g1.setEdge(["n2", "n1"], { weight: 1 } as Edata)
-      expect(g1.greedyFAS(weight(g1)).map(stripData)).toEqual([
-        new qg.Link<Edata>(["n2", "n1"], { isDirected: true }),
-      ])
+      expect(g1.greedyFAS(weight(g1)).map(stripData)).toEqual([new qg.Link<Edata>(["n2", "n1"], { isDirected: true })])
       const g2 = new Graph({})
       g2.setEdge(["n1", "n2"], { weight: 1 } as Edata)
       g2.setEdge(["n2", "n1"], { weight: 2 } as Edata)
-      expect(g2.greedyFAS(weight(g2)).map(stripData)).toEqual([
-        new qg.Link<Edata>(["n1", "n2"]),
-      ])
+      expect(g2.greedyFAS(weight(g2)).map(stripData)).toEqual([new qg.Link<Edata>(["n1", "n2"])])
     })
     it("works for multigraphs", () => {
       g = new Graph({ isMultiple: true })
@@ -590,9 +586,7 @@ describe("acycler", () => {
 describe("normalize", () => {
   let g: Graph
   beforeEach(() => {
-    g = new Graph({ isMultiple: true, isCompound: true }).setData(
-      {} as qa.Gdata
-    )
+    g = new Graph({ isMultiple: true, isCompound: true }).setData({} as qa.Gdata)
   })
   describe("run", () => {
     it("does not change a short edge", () => {

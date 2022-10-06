@@ -1,8 +1,5 @@
 import { IPosition } from "../common"
-import {
-  ID3SimulatorEngineSettings,
-  ID3SimulatorEngineSettingsUpdate,
-} from "./d3-engine.js"
+import { ID3SimulatorEngineSettings, ID3SimulatorEngineSettingsUpdate } from "./d3-engine.js"
 import { SimulationLinkDatum, SimulationNodeDatum } from "d3-force"
 
 export type ISimulationNode = SimulationNodeDatum & {
@@ -57,9 +54,7 @@ export interface ISimulatorEvents {
   onNodeDrag: (data: ISimulatorEventGraph) => void
   onNodeDragEnd: (data: ISimulatorEventGraph) => void
   onStabilizationStart: () => void
-  onStabilizationProgress: (
-    data: ISimulatorEventGraph & ISimulatorEventProgress
-  ) => void
+  onStabilizationProgress: (data: ISimulatorEventGraph & ISimulatorEventProgress) => void
   onStabilizationEnd: (data: ISimulatorEventGraph) => void
   onSettingsUpdate: (data: ISimulatorEventSettings) => void
 }

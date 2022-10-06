@@ -24,8 +24,7 @@ export interface Edata extends qt.Named {
   weight: number
 }
 
-export interface Graph<G extends Gdata, N extends Ndata, E extends Edata>
-  extends qg.Graph<G, N, E> {}
+export interface Graph<G extends Gdata, N extends Ndata, E extends Edata> extends qg.Graph<G, N, E> {}
 
 export class Graph<G extends Gdata, N extends Ndata, E extends Edata> {
   runNest() {
@@ -130,10 +129,7 @@ export class Graph<G extends Gdata, N extends Ndata, E extends Edata> {
           if (m === lca) ascending = false
         }
         if (!ascending) {
-          while (
-            i < p.length - 1 &&
-            this.node((m = p[i + 1]))!.minRank <= nd.rank
-          ) {
+          while (i < p.length - 1 && this.node((m = p[i + 1]))!.minRank <= nd.rank) {
             i++
           }
           m = p[i]
@@ -157,10 +153,7 @@ export class Graph<G extends Gdata, N extends Ndata, E extends Edata> {
     return po
   }
 
-  private findPath(
-    po: Map<string, { low: number; lim: number }>,
-    ns: string[]
-  ) {
+  private findPath(po: Map<string, { low: number; lim: number }>, ns: string[]) {
     const [n0, n1] = ns
     const low = Math.min(po.get(n0!)!.low, po.get(n1!)!.low)
     const lim = Math.max(po.get(n0!)!.lim, po.get(n1!)!.lim)
@@ -205,13 +198,7 @@ export class Graph<G extends Gdata, N extends Ndata, E extends Edata> {
     return this.addFake("border", nd, pre)
   }
 
-  private addBorder(
-    left: boolean,
-    pre: string,
-    sg: string,
-    nd: N,
-    rank: number
-  ) {
+  private addBorder(left: boolean, pre: string, sg: string, nd: N, rank: number) {
     const d = {
       w: 0,
       h: 0,

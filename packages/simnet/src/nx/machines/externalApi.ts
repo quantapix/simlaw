@@ -1,9 +1,9 @@
-import { getDepGraphService } from './dep-graph.service';
+import { getDepGraphService } from "./dep-graph.service"
 
 export class ExternalApi {
-  depGraphService = getDepGraphService();
+  depGraphService = getDepGraphService()
 
   focusProject(projectName: string) {
-    this.depGraphService.send({ type: 'focusProject', projectName });
+    this.depGraphService.send({ type: "focusProject", projectName })
   }
 }

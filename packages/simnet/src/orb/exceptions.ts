@@ -1,12 +1,12 @@
 export class OrbError extends Error {
-  message: string;
+  message: string
 
   constructor(message: string) {
-    super(message);
+    super(message)
 
-    this.message = message;
+    this.message = message
 
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
+    Object.setPrototypeOf(this, new.target.prototype)
+    this.name = this.constructor.name
   }
 }

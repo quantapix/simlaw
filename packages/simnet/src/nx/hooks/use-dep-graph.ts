@@ -1,8 +1,8 @@
-import { useContext } from 'react';
-import { GlobalStateContext } from '../state.provider';
+import { useContext } from "react"
+import { GlobalStateContext } from "../state.provider"
 
 export function useDepGraphService() {
-  const globalState = useContext(GlobalStateContext);
+  const globalState = useContext(GlobalStateContext)
 
-  return globalState;
+  return globalState
 }

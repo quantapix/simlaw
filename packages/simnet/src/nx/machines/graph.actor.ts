@@ -1,14 +1,14 @@
-import { getGraphService } from './graph.service';
+import { getGraphService } from "./graph.service"
 
 export const graphActor = (callback, receive) => {
-  const graphService = getGraphService();
+  const graphService = getGraphService()
 
-  receive((e) => {
-    const { selectedProjectNames, perfReport } = graphService.handleEvent(e);
+  receive(e => {
+    const { selectedProjectNames, perfReport } = graphService.handleEvent(e)
     callback({
-      type: 'setSelectedProjectsFromGraph',
+      type: "setSelectedProjectsFromGraph",
       selectedProjectNames,
       perfReport,
-    });
-  });
-};
+    })
+  })
+}

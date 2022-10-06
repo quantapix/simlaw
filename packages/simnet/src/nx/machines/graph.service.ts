@@ -1,12 +1,12 @@
-import { getTooltipService } from '../tooltip-service';
-import { GraphService } from './graph';
+import { getTooltipService } from "../tooltip-service"
+import { GraphService } from "./graph"
 
-let graphService: GraphService;
+let graphService: GraphService
 
 export function getGraphService(): GraphService {
   if (!graphService) {
-    graphService = new GraphService(getTooltipService(), 'cytoscape-graph');
+    graphService = new GraphService(getTooltipService(), "cytoscape-graph")
   }
 
-  return graphService;
+  return graphService
 }

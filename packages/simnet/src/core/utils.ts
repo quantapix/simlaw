@@ -17,21 +17,14 @@ export function canonicalize(d: qt.Dict<any>) {
 export function applyMixins(derived: any, bases: any[]) {
   bases.forEach((b: any) => {
     Object.getOwnPropertyNames(b.prototype).forEach(n => {
-      Object.defineProperty(
-        derived.prototype,
-        n,
-        Object.getOwnPropertyDescriptor(b.prototype, n)!
-      )
+      Object.defineProperty(derived.prototype, n, Object.getOwnPropertyDescriptor(b.prototype, n)!)
     })
   })
 }
 
 export function cloneMixins(target: any, opts: any) {
   const c = Object.getPrototypeOf(target).constructor
-  return Object.create(
-    Object.getPrototypeOf(target),
-    Object.getOwnPropertyDescriptors(new c(opts))
-  )
+  return Object.create(Object.getPrototypeOf(target), Object.getOwnPropertyDescriptors(new c(opts)))
 }
 
 export function sorter(x: any, y: any) {
@@ -40,10 +33,7 @@ export function sorter(x: any, y: any) {
 
 export function range(start: number, stop = start, step = 1) {
   start = start === stop ? 0 : start
-  return Array.from(
-    { length: (stop - start) / step },
-    (_, i) => start + i * step
-  )
+  return Array.from({ length: (stop - start) / step }, (_, i) => start + i * step)
 }
 
 export function partition<T>(es: T[], fn: (_: T) => boolean) {
