@@ -1,10 +1,10 @@
 import defaultSource from "./defaultSource.js"
 import irwinHall from "./irwinHall.js"
 export default (function sourceRandomBates(source) {
-  var I = irwinHall.source(source)
+  const I = irwinHall.source(source)
   function randomBates(n) {
     if ((n = +n) === 0) return source
-    var randomIrwinHall = I(n)
+    const randomIrwinHall = I(n)
     return function () {
       return randomIrwinHall() / n
     }
@@ -26,12 +26,12 @@ export default (function sourceRandomBernoulli(source) {
 import defaultSource from "./defaultSource.js"
 import gamma from "./gamma.js"
 export default (function sourceRandomBeta(source) {
-  var G = gamma.source(source)
+  const G = gamma.source(source)
   function randomBeta(alpha, beta) {
-    var X = G(alpha),
+    const X = G(alpha),
       Y = G(beta)
     return function () {
-      var x = X()
+      const x = X()
       return x === 0 ? 0 : x / (x + Y())
     }
   }
@@ -42,18 +42,18 @@ import defaultSource from "./defaultSource.js"
 import beta from "./beta.js"
 import geometric from "./geometric.js"
 export default (function sourceRandomBinomial(source) {
-  var G = geometric.source(source),
+  const G = geometric.source(source),
     B = beta.source(source)
   function randomBinomial(n, p) {
     n = +n
     if ((p = +p) >= 1) return () => n
     if (p <= 0) return () => 0
     return function () {
-      var acc = 0,
+      let acc = 0,
         nn = n,
         pp = p
       while (nn * pp > 16 && nn * (1 - pp) > 16) {
-        var i = Math.floor((nn + 1) * pp),
+        const i = Math.floor((nn + 1) * pp),
           y = B(i, nn - i + 1)()
         if (y <= pp) {
           acc += i
@@ -64,7 +64,7 @@ export default (function sourceRandomBinomial(source) {
           pp /= y
         }
       }
-      var sign = pp < 0.5,
+      const sign = pp < 0.5,
         pFinal = sign ? pp : 1 - pp,
         g = G(pFinal)
       for (var s = g(), k = 0; s <= nn; ++k) s += g()
@@ -100,13 +100,13 @@ export default (function sourceRandomExponential(source) {
 import defaultSource from "./defaultSource.js"
 import normal from "./normal.js"
 export default (function sourceRandomGamma(source) {
-  var randomNormal = normal.source(source)()
+  const randomNormal = normal.source(source)()
   function randomGamma(k, theta) {
     if ((k = +k) < 0) throw new RangeError("invalid k")
     if (k === 0) return () => 0
     theta = theta == null ? 1 : +theta
     if (k === 1) return () => -Math.log1p(-source()) * theta
-    var d = (k < 1 ? k + 1 : k) - 1 / 3,
+    const d = (k < 1 ? k + 1 : k) - 1 / 3,
       c = 1 / (3 * Math.sqrt(d)),
       multiplier = k < 1 ? () => Math.pow(source(), 1 / k) : () => 1
     return function () {
@@ -191,9 +191,9 @@ export function lcg(seed = Math.random()) {
 import defaultSource from "./defaultSource.js"
 import normal from "./normal.js"
 export default (function sourceRandomLogNormal(source) {
-  var N = normal.source(source)
+  const N = normal.source(source)
   function randomLogNormal() {
-    var randomNormal = N.apply(this, arguments)
+    const randomNormal = N.apply(this, arguments)
     return function () {
       return Math.exp(randomNormal())
     }
@@ -207,7 +207,7 @@ export default (function sourceRandomLogistic(source) {
     a = a == null ? 0 : +a
     b = b == null ? 1 : +b
     return function () {
-      var u = source()
+      const u = source()
       return a + b * Math.log(u / (1 - u))
     }
   }
@@ -217,11 +217,11 @@ export default (function sourceRandomLogistic(source) {
 import defaultSource from "./defaultSource.js"
 export default (function sourceRandomNormal(source) {
   function randomNormal(mu, sigma) {
-    var x, r
+    let x, r
     mu = mu == null ? 0 : +mu
     sigma = sigma == null ? 1 : +sigma
     return function () {
-      var y
+      let y
       if (x != null) (y = x), (x = null)
       else
         do {
@@ -251,14 +251,14 @@ import defaultSource from "./defaultSource.js"
 import binomial from "./binomial.js"
 import gamma from "./gamma.js"
 export default (function sourceRandomPoisson(source) {
-  var G = gamma.source(source),
+  const G = gamma.source(source),
     B = binomial.source(source)
   function randomPoisson(lambda) {
     return function () {
-      var acc = 0,
+      let acc = 0,
         l = lambda
       while (l > 16) {
-        var n = Math.floor(0.875 * l),
+        const n = Math.floor(0.875 * l),
           t = G(n)()
         if (t > l) return acc + B(n - 1, l / t)()
         acc += n
@@ -288,7 +288,7 @@ export default (function sourceRandomUniform(source) {
 import defaultSource from "./defaultSource.js"
 export default (function sourceRandomWeibull(source) {
   function randomWeibull(k, a, b) {
-    var outerFunc
+    let outerFunc
     if ((k = +k) === 0) {
       outerFunc = x => -Math.log(x)
     } else {

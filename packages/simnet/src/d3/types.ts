@@ -587,56 +587,21 @@ export function dsvFormat(delimiter: string): DSV
 export function autoType<ParsedRow extends object | undefined | null, Columns extends string>(
   object: DSVRowString<Columns> | readonly string[]
 ): ParsedRow
-export function easeLinear(normalizedTime: number): number
-export function easeQuad(normalizedTime: number): number
-export function easeQuadIn(normalizedTime: number): number
-export function easeQuadOut(normalizedTime: number): number
-export function easeQuadInOut(normalizedTime: number): number
-export function easeCubic(normalizedTime: number): number
-export function easeCubicIn(normalizedTime: number): number
-export function easeCubicOut(normalizedTime: number): number
-export function easeCubicInOut(normalizedTime: number): number
-export interface PolynomialEasingFactory {
+
+export interface PolyEasingFactory {
   (normalizedTime: number): number
-  exponent(e: number): PolynomialEasingFactory
+  exponent(e: number): PolyEasingFactory
 }
-export const easePoly: PolynomialEasingFactory
-export const easePolyIn: PolynomialEasingFactory
-export const easePolyOut: PolynomialEasingFactory
-export const easePolyInOut: PolynomialEasingFactory
-export function easeSin(normalizedTime: number): number
-export function easeSinIn(normalizedTime: number): number
-export function easeSinOut(normalizedTime: number): number
-export function easeSinInOut(normalizedTime: number): number
-export function easeExp(normalizedTime: number): number
-export function easeExpIn(normalizedTime: number): number
-export function easeExpOut(normalizedTime: number): number
-export function easeExpInOut(normalizedTime: number): number
-export function easeCircle(normalizedTime: number): number
-export function easeCircleIn(normalizedTime: number): number
-export function easeCircleOut(normalizedTime: number): number
-export function easeCircleInOut(normalizedTime: number): number
-export function easeBounce(normalizedTime: number): number
-export function easeBounceIn(normalizedTime: number): number
-export function easeBounceOut(normalizedTime: number): number
-export function easeBounceInOut(normalizedTime: number): number
 export interface BackEasingFactory {
   (normalizedTime: number): number
   overshoot(s: number): BackEasingFactory
 }
-export const easeBack: BackEasingFactory
-export const easeBackIn: BackEasingFactory
-export const easeBackOut: BackEasingFactory
-export const easeBackInOut: BackEasingFactory
 export interface ElasticEasingFactory {
   (normalizedTime: number): number
   amplitude(a: number): ElasticEasingFactory
   period(p: number): ElasticEasingFactory
 }
-export const easeElastic: ElasticEasingFactory
-export const easeElasticIn: ElasticEasingFactory
-export const easeElasticOut: ElasticEasingFactory
-export const easeElasticInOut: ElasticEasingFactory
+
 export function blob(url: string, init?: RequestInit): Promise<Blob>
 export function buffer(url: string, init?: RequestInit): Promise<ArrayBuffer>
 export function csv<Columns extends string>(url: string, init?: RequestInit): Promise<DSVRowArray<Columns>>

@@ -2,7 +2,7 @@ import { range as sequence } from "./array.js"
 import { initRange } from "./init.js"
 import ordinal from "./ordinal.js"
 export function band() {
-  var scale = ordinal().unknown(undefined),
+  let scale = ordinal().unknown(undefined),
     domain = scale.domain,
     ordinalRange = scale.range,
     r0 = 0,
@@ -15,7 +15,7 @@ export function band() {
     align = 0.5
   delete scale.unknown
   function rescale() {
-    var n = domain().length,
+    let n = domain().length,
       reverse = r1 < r0,
       start = reverse ? r1 : r0,
       stop = reverse ? r0 : r1
@@ -24,7 +24,7 @@ export function band() {
     start += (stop - start - step * (n - paddingInner)) * align
     bandwidth = step * (1 - paddingInner)
     if (round) (start = Math.round(start)), (bandwidth = Math.round(bandwidth))
-    var values = sequence(n).map(function (i) {
+    const values = sequence(n).map(function (i) {
       return start + step * i
     })
     return ordinalRange(reverse ? values.reverse() : values)
@@ -65,7 +65,7 @@ export function band() {
   return initRange.apply(rescale(), arguments)
 }
 function pointish(scale) {
-  var copy = scale.copy
+  const copy = scale.copy
   scale.padding = scale.paddingOuter
   delete scale.paddingInner
   delete scale.paddingOuter
@@ -91,7 +91,7 @@ import { bisect } from "./array.js"
 import { interpolate as interpolateValue, interpolateNumber, interpolateRound } from "./interpolate.js"
 import constant from "./constant.js"
 import number from "./number.js"
-var unit = [0, 1]
+const unit = [0, 1]
 export function identity(x) {
   return x
 }
@@ -103,14 +103,14 @@ function normalize(a, b) {
     : constant(isNaN(b) ? NaN : 0.5)
 }
 function clamper(a, b) {
-  var t
+  let t
   if (a > b) (t = a), (a = b), (b = t)
   return function (x) {
     return Math.max(a, Math.min(b, x))
   }
 }
 function bimap(domain, range, interpolate) {
-  var d0 = domain[0],
+  let d0 = domain[0],
     d1 = domain[1],
     r0 = range[0],
     r1 = range[1]
@@ -121,7 +121,7 @@ function bimap(domain, range, interpolate) {
   }
 }
 function polymap(domain, range, interpolate) {
-  var j = Math.min(domain.length, range.length) - 1,
+  let j = Math.min(domain.length, range.length) - 1,
     d = new Array(j),
     r = new Array(j),
     i = -1
@@ -134,7 +134,7 @@ function polymap(domain, range, interpolate) {
     r[i] = interpolate(range[i], range[i + 1])
   }
   return function (x) {
-    var i = bisect(domain, x, 1, j) - 1
+    const i = bisect(domain, x, 1, j) - 1
     return r[i](d[i](x))
   }
 }
@@ -147,7 +147,7 @@ export function copy(source, target) {
     .unknown(source.unknown())
 }
 export function transformer() {
-  var domain = unit,
+  let domain = unit,
     range = unit,
     interpolate = interpolateValue,
     transform,
@@ -158,7 +158,7 @@ export function transformer() {
     output,
     input
   function rescale() {
-    var n = Math.min(domain.length, range.length)
+    const n = Math.min(domain.length, range.length)
     if (clamp !== identity) clamp = clamper(domain[0], domain[n - 1])
     piecewise = n > 2 ? polymap : bimap
     output = input = null
@@ -207,7 +207,7 @@ import { copy } from "./sequential.js"
 import { symlogish } from "./symlog.js"
 import { powish } from "./pow.js"
 function transformer() {
-  var x0 = 0,
+  let x0 = 0,
     x1 = 0.5,
     x2 = 1,
     s = 1,
@@ -246,7 +246,7 @@ function transformer() {
   }
   function range(interpolate) {
     return function (_) {
-      var r0, r1, r2
+      let r0, r1, r2
       return arguments.length
         ? (([r0, r1, r2] = _), (interpolator = piecewise(interpolate, [r0, r1, r2])), scale)
         : [interpolator(0), interpolator(0.5), interpolator(1)]
@@ -269,28 +269,28 @@ function transformer() {
   }
 }
 export function diverging() {
-  var scale = linearish(transformer()(identity))
+  const scale = linearish(transformer()(identity))
   scale.copy = function () {
     return copy(scale, diverging())
   }
   return initInterpolator.apply(scale, arguments)
 }
 export function divergingLog() {
-  var scale = loggish(transformer()).domain([0.1, 1, 10])
+  const scale = loggish(transformer()).domain([0.1, 1, 10])
   scale.copy = function () {
     return copy(scale, divergingLog()).base(scale.base())
   }
   return initInterpolator.apply(scale, arguments)
 }
 export function divergingSymlog() {
-  var scale = symlogish(transformer())
+  const scale = symlogish(transformer())
   scale.copy = function () {
     return copy(scale, divergingSymlog()).constant(scale.constant())
   }
   return initInterpolator.apply(scale, arguments)
 }
 export function divergingPow() {
-  var scale = powish(transformer())
+  const scale = powish(transformer())
   scale.copy = function () {
     return copy(scale, divergingPow()).exponent(scale.exponent())
   }
@@ -302,7 +302,7 @@ export function divergingSqrt() {
 import { linearish } from "./linear.js"
 import number from "./number.js"
 export function identity(domain) {
-  var unknown
+  let unknown
   function scale(x) {
     return x == null || isNaN((x = +x)) ? unknown : x
   }
@@ -384,25 +384,25 @@ import continuous, { copy } from "./continuous.js"
 import { initRange } from "./init.js"
 import tickFormat from "./tickFormat.js"
 export function linearish(scale) {
-  var domain = scale.domain
+  const domain = scale.domain
   scale.ticks = function (count) {
-    var d = domain()
+    const d = domain()
     return ticks(d[0], d[d.length - 1], count == null ? 10 : count)
   }
   scale.tickFormat = function (count, specifier) {
-    var d = domain()
+    const d = domain()
     return tickFormat(d[0], d[d.length - 1], count == null ? 10 : count, specifier)
   }
   scale.nice = function (count) {
     if (count == null) count = 10
-    var d = domain()
-    var i0 = 0
-    var i1 = d.length - 1
-    var start = d[i0]
-    var stop = d[i1]
-    var prestep
-    var step
-    var maxIter = 10
+    const d = domain()
+    let i0 = 0
+    let i1 = d.length - 1
+    let start = d[i0]
+    let stop = d[i1]
+    let prestep
+    let step
+    let maxIter = 10
     if (stop < start) {
       ;(step = start), (start = stop), (stop = step)
       ;(step = i0), (i0 = i1), (i1 = step)
@@ -429,7 +429,7 @@ export function linearish(scale) {
   return scale
 }
 export function linear() {
-  var scale = continuous()
+  const scale = continuous()
   scale.copy = function () {
     return copy(scale, linear())
   }
@@ -560,7 +560,7 @@ export function log() {
 }
 export function nice(domain, interval) {
   domain = domain.slice()
-  var i0 = 0,
+  let i0 = 0,
     i1 = domain.length - 1,
     x0 = domain[i0],
     x1 = domain[i1],
@@ -580,7 +580,7 @@ import { InternMap } from "./array.js"
 import { initRange } from "./init.js"
 export const implicit = Symbol("implicit")
 export function ordinal() {
-  var index = new InternMap(),
+  let index = new InternMap(),
     domain = [],
     range = [],
     unknown = implicit
@@ -628,7 +628,7 @@ function transformSquare(x) {
   return x < 0 ? -x * x : x * x
 }
 export function powish(transform) {
-  var scale = transform(identity, identity),
+  let scale = transform(identity, identity),
     exponent = 1
   function rescale() {
     return exponent === 1
@@ -643,7 +643,7 @@ export function powish(transform) {
   return linearish(scale)
 }
 export function pow() {
-  var scale = powish(transformer())
+  const scale = powish(transformer())
   scale.copy = function () {
     return copy(scale, pow()).exponent(scale.exponent())
   }
@@ -656,12 +656,12 @@ export function sqrt() {
 import { ascending, bisect, quantileSorted as threshold } from "./array.js"
 import { initRange } from "./init.js"
 export function quantile() {
-  var domain = [],
+  let domain = [],
     range = [],
     thresholds = [],
     unknown
   function rescale() {
-    var i = 0,
+    let i = 0,
       n = Math.max(1, range.length)
     thresholds = new Array(n - 1)
     while (++i < n) thresholds[i - 1] = threshold(domain, i / n)
@@ -671,7 +671,7 @@ export function quantile() {
     return x == null || isNaN((x = +x)) ? unknown : range[bisect(thresholds, x)]
   }
   scale.invertExtent = function (y) {
-    var i = range.indexOf(y)
+    const i = range.indexOf(y)
     return i < 0
       ? [NaN, NaN]
       : [i > 0 ? thresholds[i - 1] : domain[0], i < thresholds.length ? thresholds[i] : domain[domain.length - 1]]
@@ -701,7 +701,7 @@ import { bisect } from "./array.js"
 import { linearish } from "./linear.js"
 import { initRange } from "./init.js"
 export function quantize() {
-  var x0 = 0,
+  let x0 = 0,
     x1 = 1,
     n = 1,
     domain = [0.5],
@@ -711,7 +711,7 @@ export function quantize() {
     return x != null && x <= x ? range[bisect(domain, x, 0, n)] : unknown
   }
   function rescale() {
-    var i = -1
+    let i = -1
     domain = new Array(n)
     while (++i < n) domain[i] = ((i + 1) * x1 - (i - n) * x0) / (n + 1)
     return scale
@@ -723,7 +723,7 @@ export function quantize() {
     return arguments.length ? ((n = (range = Array.from(_)).length - 1), rescale()) : range.slice()
   }
   scale.invertExtent = function (y) {
-    var i = range.indexOf(y)
+    const i = range.indexOf(y)
     return i < 0 ? [NaN, NaN] : i < 1 ? [x0, domain[0]] : i >= n ? [domain[n - 1], x1] : [domain[i - 1], domain[i]]
   }
   scale.unknown = function (_) {
@@ -748,12 +748,12 @@ function unsquare(x) {
   return Math.sign(x) * Math.sqrt(Math.abs(x))
 }
 export function radial() {
-  var squared = continuous(),
+  let squared = continuous(),
     range = [0, 1],
     round = false,
     unknown
   function scale(x) {
-    var y = unsquare(squared(x))
+    const y = unsquare(squared(x))
     return isNaN(y) ? unknown : round ? Math.round(y) : y
   }
   scale.invert = function (y) {
@@ -791,7 +791,7 @@ import { loggish } from "./log.js"
 import { symlogish } from "./symlog.js"
 import { powish } from "./pow.js"
 function transformer() {
-  var x0 = 0,
+  let x0 = 0,
     x1 = 1,
     t0,
     t1,
@@ -822,7 +822,7 @@ function transformer() {
   }
   function range(interpolate) {
     return function (_) {
-      var r0, r1
+      let r0, r1
       return arguments.length
         ? (([r0, r1] = _), (interpolator = interpolate(r0, r1)), scale)
         : [interpolator(0), interpolator(1)]
@@ -846,28 +846,28 @@ export function copy(source, target) {
     .unknown(source.unknown())
 }
 export function sequential() {
-  var scale = linearish(transformer()(identity))
+  const scale = linearish(transformer()(identity))
   scale.copy = function () {
     return copy(scale, sequential())
   }
   return initInterpolator.apply(scale, arguments)
 }
 export function sequentialLog() {
-  var scale = loggish(transformer()).domain([1, 10])
+  const scale = loggish(transformer()).domain([1, 10])
   scale.copy = function () {
     return copy(scale, sequentialLog()).base(scale.base())
   }
   return initInterpolator.apply(scale, arguments)
 }
 export function sequentialSymlog() {
-  var scale = symlogish(transformer())
+  const scale = symlogish(transformer())
   scale.copy = function () {
     return copy(scale, sequentialSymlog()).constant(scale.constant())
   }
   return initInterpolator.apply(scale, arguments)
 }
 export function sequentialPow() {
-  var scale = powish(transformer())
+  const scale = powish(transformer())
   scale.copy = function () {
     return copy(scale, sequentialPow()).exponent(scale.exponent())
   }
@@ -880,7 +880,7 @@ import { ascending, bisect, quantile } from "./array.js"
 import { identity } from "./continuous.js"
 import { initInterpolator } from "./init.js"
 export function sequentialQuantile() {
-  var domain = [],
+  let domain = [],
     interpolator = identity
   function scale(x) {
     if (x != null && !isNaN((x = +x))) return interpolator((bisect(domain, x, 1) - 1) / (domain.length - 1))
@@ -920,7 +920,7 @@ function transformSymexp(c) {
   }
 }
 export function symlogish(transform) {
-  var c = 1,
+  let c = 1,
     scale = transform(transformSymlog(c), transformSymexp(c))
   scale.constant = function (_) {
     return arguments.length ? transform(transformSymlog((c = +_)), transformSymexp(c)) : c
@@ -928,7 +928,7 @@ export function symlogish(transform) {
   return linearish(scale)
 }
 export function symlog() {
-  var scale = symlogish(transformer())
+  const scale = symlogish(transformer())
   scale.copy = function () {
     return copy(scale, symlog()).constant(scale.constant())
   }
@@ -937,7 +937,7 @@ export function symlog() {
 import { bisect } from "./array.js"
 import { initRange } from "./init.js"
 export function threshold() {
-  var domain = [0.5],
+  let domain = [0.5],
     range = [0, 1],
     unknown,
     n = 1
@@ -955,7 +955,7 @@ export function threshold() {
       : range.slice()
   }
   scale.invertExtent = function (y) {
-    var i = range.indexOf(y)
+    const i = range.indexOf(y)
     return [domain[i - 1], domain[i]]
   }
   scale.unknown = function (_) {
@@ -969,12 +969,12 @@ export function threshold() {
 import { tickStep } from "./array.js"
 import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix, precisionRound } from "./format.js"
 export function tickFormat(start, stop, count, specifier) {
-  var step = tickStep(start, stop, count),
+  let step = tickStep(start, stop, count),
     precision
   specifier = formatSpecifier(specifier == null ? ",f" : specifier)
   switch (specifier.type) {
     case "s": {
-      var value = Math.max(Math.abs(start), Math.abs(stop))
+      const value = Math.max(Math.abs(start), Math.abs(stop))
       if (specifier.precision == null && !isNaN((precision = precisionPrefix(step, value))))
         specifier.precision = precision
       return formatPrefix(specifier, value)
@@ -1022,10 +1022,10 @@ function number(t) {
   return t instanceof Date ? +t : +new Date(+t)
 }
 export function calendar(ticks, tickInterval, year, month, week, day, hour, minute, second, format) {
-  var scale = continuous(),
+  const scale = continuous(),
     invert = scale.invert,
     domain = scale.domain
-  var formatMillisecond = format(".%L"),
+  const formatMillisecond = format(".%L"),
     formatSecond = format(":%S"),
     formatMinute = format("%I:%M"),
     formatHour = format("%I %p"),
@@ -1059,14 +1059,14 @@ export function calendar(ticks, tickInterval, year, month, week, day, hour, minu
     return arguments.length ? domain(Array.from(_, number)) : domain().map(date)
   }
   scale.ticks = function (interval) {
-    var d = domain()
+    const d = domain()
     return ticks(d[0], d[d.length - 1], interval == null ? 10 : interval)
   }
   scale.tickFormat = function (count, specifier) {
     return specifier == null ? tickFormat : format(specifier)
   }
   scale.nice = function (interval) {
-    var d = domain()
+    const d = domain()
     if (!interval || typeof interval.range !== "function")
       interval = tickInterval(d[0], d[d.length - 1], interval == null ? 10 : interval)
     return interval ? domain(nice(d, interval)) : scale
