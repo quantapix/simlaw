@@ -1,5 +1,5 @@
 import * as qt from "./types.js"
-var array = Array.prototype
+const array = Array.prototype
 export const slice = array.slice
 export const map = array.map
 export function ascending(a: qt.Primitive | undefined, b: qt.Primitive | undefined): number
@@ -10,12 +10,12 @@ export function bin(): qt.HistogramGeneratorNumber<number, number>
 export function bin<T, V extends number | undefined>(): qt.HistogramGeneratorNumber<T, V>
 export function bin<T, V extends Date | undefined>(): qt.HistogramGeneratorDate<T, V>
 export function bin() {
-  var value = identity,
+  let value = identity,
     domain = extent,
     threshold = sturges
   function histogram(data) {
     if (!Array.isArray(data)) data = Array.from(data)
-    var i,
+    let i,
       n = data.length,
       x,
       step,
@@ -23,7 +23,7 @@ export function bin() {
     for (i = 0; i < n; ++i) {
       values[i] = value(data[i], i, data)
     }
-    var xz = domain(values),
+    let xz = domain(values),
       x0 = xz[0],
       x1 = xz[1],
       tz = threshold(values, x0, x1)
@@ -48,10 +48,10 @@ export function bin() {
         }
       }
     }
-    var m = tz.length
+    let m = tz.length
     while (tz[0] <= x0) tz.shift(), --m
     while (tz[m - 1] > x1) tz.pop(), --m
-    var bins = new Array(m + 1),
+    let bins = new Array(m + 1),
       bin
     for (i = 0; i <= m; ++i) {
       bin = bins[i] = []
@@ -278,8 +278,8 @@ export function count(values, valueof) {
   }
   return count
 }
-function length(array) {
-  return array.length | 0
+function length(x: any) {
+  return x.length | 0
 }
 function empty(length) {
   return !(length > 0)
@@ -326,7 +326,7 @@ export function descending(a: qt.Primitive | undefined, b: qt.Primitive | undefi
 export function descending(a, b) {
   return a == null || b == null ? NaN : b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN
 }
-export function deviation(xs: Iterable<Numeric | undefined | null>): number | undefined
+export function deviation(xs: Iterable<qt.Numeric | undefined | null>): number | undefined
 export function deviation<T>(
   xs: Iterable<T>,
   f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
@@ -345,29 +345,25 @@ export function difference(values, ...others) {
   }
   return values
 }
-export function disjoint<T>(a: Iterable<T>, b: Iterable<T>): boolean
-export function disjoint(values, other) {
-  const iterator = other[Symbol.iterator](),
-    set = new qt.InternSet()
-  for (const v of values) {
-    if (set.has(v)) return false
+export function disjoint<T>(xs: Iterable<T>, other: Iterable<T>): boolean {
+  const it = other[Symbol.iterator]()
+  const y = new qt.InternSet()
+  for (const x of xs) {
+    if (y.has(x)) return false
     let value, done
-    while (({ value, done } = iterator.next())) {
+    while (({ value, done } = it.next())) {
       if (done) break
-      if (Object.is(v, value)) return false
-      set.add(value)
+      if (Object.is(x, value)) return false
+      y.add(value)
     }
   }
   return true
 }
-export function every<T>(xs: Iterable<T>, test: (value: T, i: number, xs: Iterable<T>) => unknown): boolean
-export function every(values, test) {
-  if (typeof test !== "function") throw new TypeError("test is not a function")
-  let index = -1
-  for (const value of values) {
-    if (!test(value, ++index, values)) {
-      return false
-    }
+export function every<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => unknown) {
+  if (typeof f !== "function") throw new TypeError("test is not a function")
+  let i = -1
+  for (const x of xs) {
+    if (!f(x, ++i, xs)) return false
   }
   return true
 }
@@ -381,46 +377,43 @@ export function extent<T, U extends qt.Numeric>(
   xs: Iterable<T>,
   f: (x: T, i: number, xs: Iterable<T>) => U | undefined | null
 ): [U, U] | [undefined, undefined]
-export function extent(values, valueof) {
+export function extent(xs: any, f?: Function) {
   let min
   let max
-  if (valueof === undefined) {
-    for (const value of values) {
-      if (value != null) {
+  if (f === undefined) {
+    for (const x of xs) {
+      if (x != null) {
         if (min === undefined) {
-          if (value >= value) min = max = value
+          if (x >= x) min = max = x
         } else {
-          if (min > value) min = value
-          if (max < value) max = value
+          if (min > x) min = x
+          if (max < x) max = x
         }
       }
     }
   } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null) {
+    let i = -1
+    for (let x of xs) {
+      if ((x = f(x, ++i, xs)) != null) {
         if (min === undefined) {
-          if (value >= value) min = max = value
+          if (x >= x) min = max = x
         } else {
-          if (min > value) min = value
-          if (max < value) max = value
+          if (min > x) min = x
+          if (max < x) max = x
         }
       }
     }
   }
   return [min, max]
 }
-export function filter<T>(xs: Iterable<T>, test: (value: T, i: number, xs: Iterable<T>) => unknown): T[]
-export function filter(values, test) {
-  if (typeof test !== "function") throw new TypeError("test is not a function")
-  const array = []
-  let index = -1
-  for (const value of values) {
-    if (test(value, ++index, values)) {
-      array.push(value)
-    }
+export function filter<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => unknown): T[] {
+  if (typeof f !== "function") throw new TypeError("test is not a function")
+  const y = []
+  let i = -1
+  for (const x of xs) {
+    if (f(x, ++i, xs)) y.push(x)
   }
-  return array
+  return y
 }
 export class Adder implements qt.Adder {
   constructor() {
@@ -466,68 +459,61 @@ export class Adder implements qt.Adder {
     return hi
   }
 }
-export function fsum(xs: Iterable<Numeric | undefined | null>): number
+export function fsum(xs: Iterable<qt.Numeric | undefined | null>): number
 export function fsum<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null): number
-export function fsum(values, valueof) {
-  const adder = new Adder()
-  if (valueof === undefined) {
-    for (let value of values) {
-      if ((value = +value)) {
-        adder.add(value)
-      }
+export function fsum(xs: any, f?: Function) {
+  const y = new Adder()
+  if (f === undefined) {
+    for (let x of xs) {
+      if ((x = +x)) y.add(x)
     }
   } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = +valueof(value, ++index, values))) {
-        adder.add(value)
-      }
+    let i = -1
+    for (let x of xs) {
+      if ((x = +f(x, ++i, xs))) y.add(x)
     }
   }
-  return +adder
+  return +y
 }
-export function fcumsum(xs: Iterable<Numeric | undefined | null>): Float64Array
+export function fcumsum(xs: Iterable<qt.Numeric | undefined | null>): Float64Array
 export function fcumsum<T>(
   xs: Iterable<T>,
   f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
 ): Float64Array
-export function fcumsum(values, valueof) {
+export function fcumsum(xs: any, f?: Function) {
   const adder = new Adder()
-  let index = -1
-  return Float64Array.from(
-    values,
-    valueof === undefined ? v => adder.add(+v || 0) : v => adder.add(+valueof(v, ++index, values) || 0)
-  )
+  let i = -1
+  return Float64Array.from(xs, f === undefined ? v => adder.add(+v || 0) : v => adder.add(+f(v, ++i, xs) || 0))
 }
 export function greatest<T>(xs: Iterable<T>, comparator?: (a: T, b: T) => number): T | undefined
 export function greatest<T>(xs: Iterable<T>, accessor: (a: T) => unknown): T | undefined
-export function greatest(values, compare = ascending) {
-  let max
+export function greatest(xs: any, f: Function = ascending) {
+  let y
   let defined = false
-  if (compare.length === 1) {
-    let maxValue
-    for (const element of values) {
-      const value = compare(element)
-      if (defined ? ascending(value, maxValue) > 0 : ascending(value, value) === 0) {
-        max = element
-        maxValue = value
+  if (f.length === 1) {
+    let max
+    for (const x of xs) {
+      const x2 = f(x)
+      if (defined ? ascending(x2, max) > 0 : ascending(x2, x2) === 0) {
+        y = x
+        max = x2
         defined = true
       }
     }
   } else {
-    for (const value of values) {
-      if (defined ? compare(value, max) > 0 : compare(value, value) === 0) {
-        max = value
+    for (const x of xs) {
+      if (defined ? f(x, y) > 0 : f(x, x) === 0) {
+        y = x
         defined = true
       }
     }
   }
-  return max
+  return y
 }
 export function greatestIndex(xs: Iterable<unknown>): number | undefined
 export function greatestIndex<T>(xs: Iterable<T>, f: (a: T, b: T) => number): number | undefined
 export function greatestIndex<T>(xs: Iterable<T>, f: (a: T) => unknown): number | undefined
-export function greatestIndex(xs: any, f = ascending) {
+export function greatestIndex(xs: any, f: Function = ascending) {
   if (f.length === 1) return maxIndex(xs, f)
   let max
   let y = -1
@@ -541,129 +527,125 @@ export function greatestIndex(xs: any, f = ascending) {
   }
   return y
 }
-export function group<T, K>(xs: Iterable<T>, key: (x: T) => K): qt.InternMap<K, T[]>
+export function group<T, K>(xs: Iterable<T>, k: (x: T) => K): qt.InternMap<K, T[]>
 export function group<T, K1, K2>(
   xs: Iterable<T>,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2
+  k1: (x: T) => K1,
+  k2: (x: T) => K2
 ): qt.InternMap<K1, qt.InternMap<K2, T[]>>
 export function group<T, K1, K2, K3>(
   xs: Iterable<T>,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2,
-  key3: (x: T) => K3
+  k1: (x: T) => K1,
+  k2: (x: T) => K2,
+  k3: (x: T) => K3
 ): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, T[]>>>
-export function group(values, ...keys) {
-  return nest(values, identity, identity, keys)
+export function group(xs: any, ...ks: any) {
+  return nest(xs, identity, identity, ks)
 }
-export function groups<T, K>(xs: Iterable<T>, key: (x: T) => K): Array<[K, T[]]>
-export function groups<T, K1, K2>(
-  xs: Iterable<T>,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2
-): Array<[K1, Array<[K2, T[]]>]>
+export function groups<T, K>(xs: Iterable<T>, k: (x: T) => K): Array<[K, T[]]>
+export function groups<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Array<[K1, Array<[K2, T[]]>]>
 export function groups<T, K1, K2, K3>(
   xs: Iterable<T>,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2,
-  key3: (x: T) => K3
+  k1: (x: T) => K1,
+  k2: (x: T) => K2,
+  k3: (x: T) => K3
 ): Array<[K1, Array<[K2, Array<[K3, T[]]>]>]>
-export function groups(xs, ...ks) {
+export function groups(xs: any, ...ks: any) {
   return nest(xs, Array.from, identity, ks)
 }
-function flatten(groups, keys) {
-  for (let i = 1, n = keys.length; i < n; ++i) {
-    groups = groups.flatMap(g => g.pop().map(([key, value]) => [...g, key, value]))
+function flatten(xs, ks) {
+  for (let i = 1, n = ks.length; i < n; ++i) {
+    xs = xs.flatMap(x => x.pop().map(([k, v]) => [...x, k, v]))
   }
-  return groups
+  return xs
 }
-export function flatGroup<T, K>(xs: Iterable<T>, key: (x: T) => K): Array<[K, T[]]>
-export function flatGroup<T, K1, K2>(xs: Iterable<T>, key1: (x: T) => K1, key2: (x: T) => K2): Array<[K1, K2, T[]]>
+export function flatGroup<T, K>(xs: Iterable<T>, k: (x: T) => K): Array<[K, T[]]>
+export function flatGroup<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Array<[K1, K2, T[]]>
 export function flatGroup<T, K1, K2, K3>(
   xs: Iterable<T>,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2,
-  key3: (x: T) => K3
+  k1: (x: T) => K1,
+  k2: (x: T) => K2,
+  k3: (x: T) => K3
 ): Array<[K1, K2, K3, T[]]>
-export function flatGroup(values, ...keys) {
-  return flatten(groups(values, ...keys), keys)
+export function flatGroup(xs: any, ...ks: any) {
+  return flatten(groups(xs, ...ks), ks)
 }
-export function flatRollup<T, R, K>(xs: Iterable<T>, reduce: (value: T[]) => R, key: (x: T) => K): Array<[K, R]>
+export function flatRollup<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: (x: T) => K): Array<[K, R]>
 export function flatRollup<T, R, K1, K2>(
   xs: Iterable<T>,
-  reduce: (value: T[]) => R,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2
+  f: (x: T[]) => R,
+  k1: (x: T) => K1,
+  k2: (x: T) => K2
 ): Array<[K1, K2, R]>
 export function flatRollup<T, R, K1, K2, K3>(
   xs: Iterable<T>,
-  reduce: (value: T[]) => R,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2,
-  key3: (x: T) => K3
+  f: (x: T[]) => R,
+  k1: (x: T) => K1,
+  k2: (x: T) => K2,
+  k3: (x: T) => K3
 ): Array<[K1, K2, K3, R]>
-export function flatRollup(values, reduce, ...keys) {
-  return flatten(rollups(values, reduce, ...keys), keys)
+export function flatRollup(xs: any, f: Function, ...ks: any) {
+  return flatten(rollups(xs, f, ...ks), ks)
 }
-export function rollup<T, R, K>(xs: Iterable<T>, reduce: (value: T[]) => R, key: (x: T) => K): qt.InternMap<K, R>
+export function rollup<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: (x: T) => K): qt.InternMap<K, R>
 export function rollup<T, R, K1, K2>(
   xs: Iterable<T>,
-  reduce: (value: T[]) => R,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2
+  f: (x: T[]) => R,
+  k1: (x: T) => K1,
+  k2: (x: T) => K2
 ): qt.InternMap<K1, qt.InternMap<K2, R>>
 export function rollup<T, R, K1, K2, K3>(
   xs: Iterable<T>,
-  reduce: (value: T[]) => R,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2,
-  key3: (x: T) => K3
+  f: (x: T[]) => R,
+  k1: (x: T) => K1,
+  k2: (x: T) => K2,
+  k3: (x: T) => K3
 ): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, R>>>
-export function rollup(values, reduce, ...keys) {
-  return nest(values, identity, reduce, keys)
+export function rollup(xs: any, f: Function, ...ks: any) {
+  return nest(xs, identity, f, ks)
 }
-export function rollups<T, R, K>(xs: Iterable<T>, reduce: (value: T[]) => R, key: (x: T) => K): Array<[K, R]>
+export function rollups<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: (x: T) => K): Array<[K, R]>
 export function rollups<T, R, K1, K2>(
   xs: Iterable<T>,
-  reduce: (value: T[]) => R,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2
+  f: (x: T[]) => R,
+  k1: (x: T) => K1,
+  k2: (x: T) => K2
 ): Array<[K1, Array<[K2, R]>]>
 export function rollups<T, R, K1, K2, K3>(
   xs: Iterable<T>,
-  reduce: (value: T[]) => R,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2,
-  key3: (x: T) => K3
+  f: (x: T[]) => R,
+  k1: (x: T) => K1,
+  k2: (x: T) => K2,
+  k3: (x: T) => K3
 ): Array<[K1, Array<[K2, Array<[K3, R]>]>]>
-export function rollups(values, reduce, ...keys) {
-  return nest(values, Array.from, reduce, keys)
+export function rollups(xs: any, f: Function, ...ks: any) {
+  return nest(xs, Array.from, f, ks)
 }
-export function index<T, K>(xs: Iterable<T>, key: (x: T) => K): qt.InternMap<K, T>
+export function index<T, K>(xs: Iterable<T>, k: (x: T) => K): qt.InternMap<K, T>
 export function index<T, K1, K2>(
   xs: Iterable<T>,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2
+  k1: (x: T) => K1,
+  k2: (x: T) => K2
 ): qt.InternMap<K1, qt.InternMap<K2, T>>
 export function index<T, K1, K2, K3>(
   xs: Iterable<T>,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2,
-  key3: (x: T) => K3
+  k1: (x: T) => K1,
+  k2: (x: T) => K2,
+  k3: (x: T) => K3
 ): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, T>>>
-export function index(values, ...keys) {
-  return nest(values, identity, unique, keys)
+export function index(xs: any, ...ks: any) {
+  return nest(xs, identity, unique, ks)
 }
-export function indexes<T, K>(xs: Iterable<T>, key: (x: T) => K): Array<[K, T]>
-export function indexes<T, K1, K2>(xs: Iterable<T>, key1: (x: T) => K1, key2: (x: T) => K2): Array<[K1, Array<[K2, T]>]>
+export function indexes<T, K>(xs: Iterable<T>, k: (x: T) => K): Array<[K, T]>
+export function indexes<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Array<[K1, Array<[K2, T]>]>
 export function indexes<T, K1, K2, K3>(
   xs: Iterable<T>,
-  key1: (x: T) => K1,
-  key2: (x: T) => K2,
-  key3: (x: T) => K3
+  k1: (x: T) => K1,
+  k2: (x: T) => K2,
+  k3: (x: T) => K3
 ): Array<[K1, Array<[K2, Array<[K3, T]>]>]>
-export function indexes(values, ...keys) {
-  return nest(values, Array.from, unique, keys)
+export function indexes(xs: any, ...ks: any) {
+  return nest(xs, Array.from, unique, ks)
 }
 function unique(values) {
   if (values.length !== 1) throw new Error("duplicate key")
@@ -687,82 +669,81 @@ function nest(values, map, reduce, ks: any[]) {
     return map(groups)
   })(values, 0)
 }
-export function groupSort<T, K>(xs: Iterable<T>, comparator: (a: T[], b: T[]) => number, key: (x: T) => K): K[]
-export function groupSort<T, K>(xs: Iterable<T>, accessor: (value: T[]) => unknown, key: (x: T) => K): K[]
-export function groupSort(values, reduce, key) {
+export function groupSort<T, K>(xs: Iterable<T>, f: (a: T[], b: T[]) => number, key: (x: T) => K): K[]
+export function groupSort<T, K>(xs: Iterable<T>, f: (x: T[]) => unknown, key: (x: T) => K): K[]
+export function groupSort(xs: any, f: Function, key: Function) {
   return (
-    reduce.length !== 2
-      ? sort(rollup(values, reduce, key), ([ak, av], [bk, bv]) => ascending(av, bv) || ascending(ak, bk))
-      : sort(group(values, key), ([ak, av], [bk, bv]) => reduce(av, bv) || ascending(ak, bk))
+    f.length !== 2
+      ? sort(rollup(xs, f, key), ([ak, av], [bk, bv]) => ascending(av, bv) || ascending(ak, bk))
+      : sort(group(xs, key), ([ak, av], [bk, bv]) => f(av, bv) || ascending(ak, bk))
   ).map(([key]) => key)
 }
-export function identity(x) {
+export function identity(x: any) {
   return x
 }
 export function intersection<T>(...xs: Array<Iterable<T>>): qt.InternSet<T>
-export function intersection(values, ...others) {
-  values = new qt.InternSet(values)
-  others = others.map(set)
-  out: for (const value of values) {
-    for (const other of others) {
-      if (!other.has(value)) {
-        values.delete(value)
+export function intersection(x: any, ...xs: any) {
+  const ys = new qt.InternSet(x)
+  xs = xs.map(set)
+  out: for (const y of ys) {
+    for (const x of xs) {
+      if (!x.has(y)) {
+        ys.delete(y)
         continue out
       }
     }
   }
-  return values
+  return ys
 }
-function set(values) {
-  return values instanceof qt.InternSet ? values : new qt.InternSet(values)
+function set(xs: any) {
+  return xs instanceof qt.InternSet ? xs : new qt.InternSet(xs)
 }
-export function least<T>(xs: Iterable<T>, comparator?: (a: T, b: T) => number): T | undefined
-export function least<T>(xs: Iterable<T>, accessor: (a: T) => unknown): T | undefined
-export function least(values, compare = ascending) {
-  let min
+export function least<T>(xs: Iterable<T>, f?: (a: T, b: T) => number): T | undefined
+export function least<T>(xs: Iterable<T>, f: (a: T) => unknown): T | undefined
+export function least(xs: any, f: Function = ascending) {
+  let y
   let defined = false
-  if (compare.length === 1) {
-    let minValue
-    for (const element of values) {
-      const value = compare(element)
-      if (defined ? ascending(value, minValue) < 0 : ascending(value, value) === 0) {
-        min = element
-        minValue = value
+  if (f.length === 1) {
+    let min
+    for (const x of xs) {
+      const x2 = f(x)
+      if (defined ? ascending(x2, min) < 0 : ascending(x2, x2) === 0) {
+        y = x
+        min = x2
         defined = true
       }
     }
   } else {
-    for (const value of values) {
-      if (defined ? compare(value, min) < 0 : compare(value, value) === 0) {
-        min = value
+    for (const x of xs) {
+      if (defined ? f(x, y) < 0 : f(x, x) === 0) {
+        y = x
         defined = true
       }
     }
   }
-  return min
+  return y
 }
 export function leastIndex(xs: Iterable<unknown>): number | undefined
-export function leastIndex<T>(xs: Iterable<T>, comparator: (a: T, b: T) => number): number | undefined
-export function leastIndex<T>(xs: Iterable<T>, accessor: (a: T) => unknown): number | undefined
-export function leastIndex(values, compare = ascending) {
-  if (compare.length === 1) return minIndex(values, compare)
-  let minValue
-  let min = -1
-  let index = -1
-  for (const value of values) {
-    ++index
-    if (min < 0 ? compare(value, value) === 0 : compare(value, minValue) < 0) {
-      minValue = value
-      min = index
+export function leastIndex<T>(xs: Iterable<T>, f: (a: T, b: T) => number): number | undefined
+export function leastIndex<T>(xs: Iterable<T>, f: (a: T) => unknown): number | undefined
+export function leastIndex(xs: any, f: Function = ascending) {
+  if (f.length === 1) return minIndex(xs, f)
+  let min
+  let y = -1
+  let i = -1
+  for (const x of xs) {
+    ++i
+    if (y < 0 ? f(x, x) === 0 : f(x, min) < 0) {
+      min = x
+      y = i
     }
   }
-  return min
+  return y
 }
-export function map<T, U>(xs: Iterable<T>, mapper: (value: T, i: number, xs: Iterable<T>) => U): U[]
-export function map(values, mapper) {
-  if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
-  if (typeof mapper !== "function") throw new TypeError("mapper is not a function")
-  return Array.from(values, (value, index) => mapper(value, index, values))
+export function map<T, U>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => U): U[] {
+  if (typeof xs[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
+  if (typeof f !== "function") throw new TypeError("mapper is not a function")
+  return Array.from(xs, (x, i) => f(x, i, xs))
 }
 export function max(xs: Iterable<string>): string | undefined
 export function max<T extends qt.Numeric>(xs: Iterable<T>): T | undefined
@@ -774,87 +755,78 @@ export function max<T, U extends qt.Numeric>(
   xs: Iterable<T>,
   f: (x: T, i: number, xs: Iterable<T>) => U | undefined | null
 ): U | undefined
-export function max(values, valueof) {
-  let max
-  if (valueof === undefined) {
-    for (const value of values) {
-      if (value != null && (max < value || (max === undefined && value >= value))) {
-        max = value
-      }
+export function max(xs: any, f?: Function) {
+  let y
+  if (f === undefined) {
+    for (const x of xs) {
+      if (x != null && (y < x || (y === undefined && x >= x))) y = x
     }
   } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (max < value || (max === undefined && value >= value))) {
-        max = value
-      }
+    let i = -1
+    for (let x of xs) {
+      if ((x = f(x, ++i, xs)) != null && (y < x || (y === undefined && x >= x))) y = x
     }
   }
-  return max
+  return y
 }
 export function maxIndex(xs: Iterable<unknown>): number
 export function maxIndex<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => unknown): number
-export function maxIndex(values, valueof) {
+export function maxIndex(xs: any, f?: Function) {
   let max
-  let maxIndex = -1
-  let index = -1
-  if (valueof === undefined) {
-    for (const value of values) {
-      ++index
-      if (value != null && (max < value || (max === undefined && value >= value))) {
-        ;(max = value), (maxIndex = index)
+  let y = -1
+  let i = -1
+  if (f === undefined) {
+    for (const x of xs) {
+      ++i
+      if (x != null && (max < x || (max === undefined && x >= x))) {
+        ;(max = x), (y = i)
       }
     }
   } else {
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (max < value || (max === undefined && value >= value))) {
-        ;(max = value), (maxIndex = index)
+    for (let x of xs) {
+      if ((x = f(x, ++i, xs)) != null && (max < x || (max === undefined && x >= x))) {
+        ;(max = x), (y = i)
       }
     }
   }
-  return maxIndex
+  return y
 }
 export function mean(xs: Iterable<qt.Numeric | undefined | null>): number | undefined
 export function mean<T>(
   xs: Iterable<T>,
   f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
 ): number | undefined
-export function mean(values, valueof) {
-  let count = 0
-  let sum = 0
-  if (valueof === undefined) {
-    for (let value of values) {
-      if (value != null && (value = +value) >= value) {
-        ++count, (sum += value)
-      }
+export function mean(xs: any, f?: Function) {
+  let y = 0
+  let n = 0
+  if (f === undefined) {
+    for (let x of xs) {
+      if (x != null && (x = +x) >= x) ++n, (y += x)
     }
   } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
-        ++count, (sum += value)
-      }
+    let i = -1
+    for (let x of xs) {
+      if ((x = f(x, ++i, xs)) != null && (x = +x) >= x) ++n, (y += x)
     }
   }
-  if (count) return sum / count
+  if (n) return y / n
+  return
 }
 export function median(xs: Iterable<qt.Numeric | undefined | null>): number | undefined
 export function median<T>(
   xs: Iterable<T>,
   f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
 ): number | undefined
-export function median(values, valueof) {
-  return quantile(values, 0.5, valueof)
+export function median(xs: any, f?: Function) {
+  return quantile(xs, 0.5, f)
 }
-export function medianIndex(values, valueof) {
-  return quantileIndex(values, 0.5, valueof)
-}
-function* flatten(arrays) {
-  for (const array of arrays) {
-    yield* array
-  }
+export function medianIndex(xs: any, f: Function) {
+  return quantileIndex(xs, 0.5, f)
 }
 export function merge<T>(xs: Iterable<Iterable<T>>): T[] {
+  function* flatten(xs: any) {
+    for (const x of xs) yield* x
+  }
   return Array.from(flatten(xs))
 }
 export function min(xs: Iterable<string>): string | undefined
@@ -867,77 +839,72 @@ export function min<T, U extends qt.Numeric>(
   xs: Iterable<T>,
   f: (x: T, i: number, xs: Iterable<T>) => U | undefined | null
 ): U | undefined
-export function min(values, valueof) {
-  let min
-  if (valueof === undefined) {
-    for (const value of values) {
-      if (value != null && (min > value || (min === undefined && value >= value))) {
-        min = value
-      }
+export function min(xs: any, f?: Function) {
+  let y
+  if (f === undefined) {
+    for (const x of xs) {
+      if (x != null && (y > x || (y === undefined && x >= x))) y = x
     }
   } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (min > value || (min === undefined && value >= value))) {
-        min = value
-      }
+    let i = -1
+    for (let x of xs) {
+      if ((x = f(x, ++i, xs)) != null && (y > x || (y === undefined && x >= x))) y = x
     }
   }
-  return min
+  return y
 }
 export function minIndex(xs: Iterable<unknown>): number
 export function minIndex<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => unknown): number
 export function minIndex(xs: Iterable<unknown>): number
-export function minIndex(values, valueof) {
+export function minIndex(xs: any, f?: Function) {
   let min
-  let minIndex = -1
-  let index = -1
-  if (valueof === undefined) {
-    for (const value of values) {
-      ++index
-      if (value != null && (min > value || (min === undefined && value >= value))) {
-        ;(min = value), (minIndex = index)
+  let y = -1
+  let i = -1
+  if (f === undefined) {
+    for (const x of xs) {
+      ++i
+      if (x != null && (min > x || (min === undefined && x >= x))) {
+        ;(min = x), (y = i)
       }
     }
   } else {
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (min > value || (min === undefined && value >= value))) {
-        ;(min = value), (minIndex = index)
+    for (let x of xs) {
+      if ((x = f(x, ++i, xs)) != null && (min > x || (min === undefined && x >= x))) {
+        ;(min = x), (y = i)
       }
     }
   }
-  return minIndex
+  return y
 }
 export function mode(xs: Iterable<qt.Numeric | undefined | null>): number
 export function mode<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null): number
-export function mode(values, valueof) {
+export function mode(xs: any, f?: Function) {
   const counts = new qt.InternMap()
-  if (valueof === undefined) {
-    for (let value of values) {
-      if (value != null && value >= value) {
-        counts.set(value, (counts.get(value) || 0) + 1)
+  if (f === undefined) {
+    for (const x of xs) {
+      if (x != null && x >= x) {
+        counts.set(x, (counts.get(x) || 0) + 1)
       }
     }
   } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && value >= value) {
-        counts.set(value, (counts.get(value) || 0) + 1)
+    let i = -1
+    for (let x of xs) {
+      if ((x = f(x, ++i, xs)) != null && x >= x) {
+        counts.set(x, (counts.get(x) || 0) + 1)
       }
     }
   }
-  let modeValue
+  let y
   let modeCount = 0
   for (const [value, count] of counts) {
     if (count > modeCount) {
       modeCount = count
-      modeValue = value
+      y = value
     }
   }
-  return modeValue
+  return y
 }
-export function nice(start: number, stop: number, count: number): [number, number]
-export function nice(start, stop, count) {
+export function nice(start: number, stop: number, count: number): [number, number] {
   let prestep
   while (true) {
     const step = tickIncrement(start, stop, count)
@@ -953,45 +920,41 @@ export function nice(start, stop, count) {
     prestep = step
   }
 }
-export function number(x) {
+export function number(x: any) {
   return x === null ? NaN : +x
 }
-export function* numbers(values, valueof) {
-  if (valueof === undefined) {
-    for (let value of values) {
-      if (value != null && (value = +value) >= value) {
-        yield value
-      }
+export function* numbers(xs: any, f?: Function) {
+  if (f === undefined) {
+    for (let x of xs) {
+      if (x != null && (x = +x) >= x) yield x
     }
   } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
-        yield value
-      }
+    let i = -1
+    for (let x of xs) {
+      if ((x = f(x, ++i, xs)) != null && (x = +x) >= x) yield x
     }
   }
 }
 export function pairs<T, U>(xs: Iterable<T>, reducer: (a: T, b: T) => U): U[]
 export function pairs<T>(xs: Iterable<T>): Array<[T, T]>
-export function pairs(values, pairof = pair) {
-  const pairs = []
-  let previous
+export function pairs(xs: any, f = pair) {
+  const y = []
+  let x0
   let first = false
-  for (const value of values) {
-    if (first) pairs.push(pairof(previous, value))
-    previous = value
+  for (const x of xs) {
+    if (first) y.push(f(x0, x))
+    x0 = x
     first = true
   }
-  return pairs
+  return y
 }
-export function pair(a, b) {
+export function pair(a: any, b: any) {
   return [a, b]
 }
-export function permute<T, K extends keyof T>(source: T, keys: Iterable<K>): Array<T[K]>
-export function permute<T>(source: { [key: number]: T }, keys: Iterable<number>): T[]
-export function permute(source, keys) {
-  return Array.from(keys, key => source[key])
+export function permute<T, K extends keyof T>(x: T, ks: Iterable<K>): Array<T[K]>
+export function permute<T>(x: { [key: number]: T }, ks: Iterable<number>): T[]
+export function permute(x: any, ks: any) {
+  return Array.from(ks, k => x[k])
 }
 export function quantile(xs: Iterable<qt.Numeric | undefined | null>, p: number): number | undefined
 export function quantile<T>(
@@ -999,17 +962,17 @@ export function quantile<T>(
   p: number,
   f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
 ): number | undefined
-export function quantile(values, p, valueof) {
-  values = Float64Array.from(numbers(values, valueof))
-  if (!(n = values.length)) return
-  if ((p = +p) <= 0 || n < 2) return min(values)
-  if (p >= 1) return max(values)
-  var n,
-    i = (n - 1) * p,
-    i0 = Math.floor(i),
-    value0 = max(quickselect(values, i0).subarray(0, i0 + 1)),
-    value1 = min(values.subarray(i0 + 1))
-  return value0 + (value1 - value0) * (i - i0)
+export function quantile(xs: any, p: number, f?: Function) {
+  xs = Float64Array.from(numbers(xs, f))
+  if (!(n = xs.length)) return
+  if ((p = +p) <= 0 || n < 2) return Math.min(xs)
+  if (p >= 1) return Math.max(xs)
+  let n
+  const i = (n - 1) * p
+  const i0 = Math.floor(i)
+  const y0 = Math.max(quickselect(xs, i0).subarray(0, i0 + 1))
+  const y1 = Math.min(xs.subarray(i0 + 1))
+  return y0 + (y1 - y0) * (i - i0)
 }
 export function quantileSorted(xs: Array<qt.Numeric | undefined | null>, p: number): number | undefined
 export function quantileSorted<T>(
@@ -1017,43 +980,43 @@ export function quantileSorted<T>(
   p: number,
   f: (x: T, i: number, xs: T[]) => number | undefined | null
 ): number | undefined
-export function quantileSorted(values, p, valueof = number) {
-  if (!(n = values.length)) return
-  if ((p = +p) <= 0 || n < 2) return +valueof(values[0], 0, values)
-  if (p >= 1) return +valueof(values[n - 1], n - 1, values)
-  var n,
-    i = (n - 1) * p,
-    i0 = Math.floor(i),
-    value0 = +valueof(values[i0], i0, values),
-    value1 = +valueof(values[i0 + 1], i0 + 1, values)
-  return value0 + (value1 - value0) * (i - i0)
+export function quantileSorted(xs: any, p?: number, f: Function = number) {
+  if (!(n = xs.length)) return
+  if ((p = +p) <= 0 || n < 2) return +f(xs[0], 0, xs)
+  if (p >= 1) return +f(xs[n - 1], n - 1, xs)
+  let n
+  const i = (n - 1) * p
+  const i0 = Math.floor(i)
+  const y0 = +f(xs[i0], i0, xs)
+  const y1 = +f(xs[i0 + 1], i0 + 1, xs)
+  return y0 + (y1 - y0) * (i - i0)
 }
-export function quantileIndex(values, p, valueof) {
-  values = Float64Array.from(numbers(values, valueof))
-  if (!(n = values.length)) return
-  if ((p = +p) <= 0 || n < 2) return minIndex(values)
-  if (p >= 1) return maxIndex(values)
-  var n,
-    i = Math.floor((n - 1) * p),
-    order = (i, j) => ascendingDefined(values[i], values[j]),
-    index = quickselect(
-      Uint32Array.from(values, (_, i) => i),
-      i,
-      0,
-      n - 1,
-      order
-    )
-  return greatest(index.subarray(0, i + 1), i => values[i])
+export function quantileIndex(xs: any, p: number, f: Function) {
+  xs = Float64Array.from(numbers(xs, f))
+  if (!(n = xs.length)) return
+  if ((p = +p) <= 0 || n < 2) return minIndex(xs)
+  if (p >= 1) return maxIndex(xs)
+  let n
+  const i = Math.floor((n - 1) * p)
+  const order = (i, j) => ascendingDefined(xs[i], xs[j])
+  const y = quickselect(
+    Uint32Array.from(xs, (_, i) => i),
+    i,
+    0,
+    n - 1,
+    order
+  )
+  return greatest(y.subarray(0, i + 1), i => xs[i])
 }
 export function quickselect<T>(
   xs: ArrayLike<T>,
   k: number,
   left?: number,
   right?: number,
-  compare?: (a: Primitive | undefined, b: Primitive | undefined) => number
+  f?: (a: qt.Primitive | undefined, b: qt.Primitive | undefined) => number
 ): T[]
-export function quickselect(array, k, left = 0, right = array.length - 1, compare) {
-  compare = compare === undefined ? ascendingDefined : compareDefined(compare)
+export function quickselect(xs: any, k: number, left = 0, right = xs.length - 1, f?: Function) {
+  f = f === undefined ? ascendingDefined : compareDefined(f)
   while (right > left) {
     if (right - left > 600) {
       const n = right - left + 1
@@ -1063,60 +1026,58 @@ export function quickselect(array, k, left = 0, right = array.length - 1, compar
       const sd = 0.5 * Math.sqrt((z * s * (n - s)) / n) * (m - n / 2 < 0 ? -1 : 1)
       const newLeft = Math.max(left, Math.floor(k - (m * s) / n + sd))
       const newRight = Math.min(right, Math.floor(k + ((n - m) * s) / n + sd))
-      quickselect(array, k, newLeft, newRight, compare)
+      quickselect(xs, k, newLeft, newRight, f)
     }
-    const t = array[k]
+    const x = xs[k]
     let i = left
     let j = right
-    swap(array, left, k)
-    if (compare(array[right], t) > 0) swap(array, left, right)
+    swap(xs, left, k)
+    if (f(xs[right], x) > 0) swap(xs, left, right)
     while (i < j) {
-      swap(array, i, j), ++i, --j
-      while (compare(array[i], t) < 0) ++i
-      while (compare(array[j], t) > 0) --j
+      swap(xs, i, j), ++i, --j
+      while (f(xs[i], x) < 0) ++i
+      while (f(xs[j], x) > 0) --j
     }
-    if (compare(array[left], t) === 0) swap(array, left, j)
-    else ++j, swap(array, j, right)
+    if (f(xs[left], x) === 0) swap(xs, left, j)
+    else ++j, swap(xs, j, right)
     if (j <= k) left = j + 1
     if (k <= j) right = j - 1
   }
-  return array
+  return xs
 }
-function swap(array, i, j) {
-  const t = array[i]
-  array[i] = array[j]
-  array[j] = t
+function swap(xs: any, i: number, j: number) {
+  const x = xs[i]
+  xs[i] = xs[j]
+  xs[j] = x
 }
 export function range(start: number, stop: number, step?: number): number[]
 export function range(stop: number): number[]
-export function range(start, stop, step) {
+export function range(start: number, stop?: number, step?: number) {
   ;(start = +start),
     (stop = +stop),
     (step = (n = arguments.length) < 2 ? ((stop = start), (start = 0), 1) : n < 3 ? 1 : +step)
-  var i = -1,
-    n = Math.max(0, Math.ceil((stop - start) / step)) | 0,
-    range = new Array(n)
+  let i = -1
+  let n = Math.max(0, Math.ceil((stop - start) / step)) | 0
+  let y = new Array(n)
   while (++i < n) {
-    range[i] = start + i * step
+    y[i] = start + i * step
   }
-  return range
+  return y
 }
-export function rank(xs: Iterable<Numeric | undefined | null>): Float64Array
+export function rank(xs: Iterable<qt.Numeric | undefined | null>): Float64Array
 export function rank<T>(
   xs: Iterable<T>,
-  accessorOrComparator:
-    | ((x: T, i: number, xs: Iterable<T>) => number | undefined | null)
-    | ((a: T, b: T) => number | undefined | null)
+  f: ((x: T, i: number, xs: Iterable<T>) => number | undefined | null) | ((a: T, b: T) => number | undefined | null)
 ): Float64Array
-export function rank(values, valueof = ascending) {
-  if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
-  let V = Array.from(values)
+export function rank(xs: any, f: Function = ascending) {
+  if (typeof xs[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
+  let V = Array.from(xs)
   const R = new Float64Array(V.length)
-  if (valueof.length !== 2) (V = V.map(valueof)), (valueof = ascending)
-  const compareIndex = (i, j) => valueof(V[i], V[j])
+  if (f.length !== 2) (V = V.map(f)), (f = ascending)
+  const compareIndex = (i, j) => f(V[i], V[j])
   let k, r
   Uint32Array.from(V, (_, i) => i)
-    .sort(valueof === ascending ? (i, j) => ascendingDefined(V[i], V[j]) : compareDefined(compareIndex))
+    .sort(f === ascending ? (i, j) => ascendingDefined(V[i], V[j]) : compareDefined(compareIndex))
     .forEach((j, i) => {
       const c = compareIndex(j, k === undefined ? j : k)
       if (c >= 0) {
@@ -1128,162 +1089,144 @@ export function rank(values, valueof = ascending) {
     })
   return R
 }
-export function reduce<T>(
-  xs: Iterable<T>,
-  f: (previousValue: T, currentValue: T, currentIndex: number, xs: Iterable<T>) => T,
-  initialValue?: T
-): T
-export function reduce<T, U>(
-  xs: Iterable<T>,
-  f: (previousValue: U, currentValue: T, currentIndex: number, xs: Iterable<T>) => U,
-  initialValue: U
-): U
-export function reduce(values, reducer, value) {
-  if (typeof reducer !== "function") throw new TypeError("reducer is not a function")
-  const iterator = values[Symbol.iterator]()
-  let done,
-    next,
-    index = -1
+export function reduce<T>(xs: Iterable<T>, f: (x0: T, x: T, i: number, xs: Iterable<T>) => T, x0?: T): T
+export function reduce<T, U>(xs: Iterable<T>, f: (x0: U, x: T, i: number, xs: Iterable<T>) => U, x0: U): U
+export function reduce(xs: any, f: Function, x0: any) {
+  if (typeof f !== "function") throw new TypeError("reducer is not a function")
+  const iterator = xs[Symbol.iterator]()
+  let done
+  let next
+  let i = -1
   if (arguments.length < 3) {
-    ;({ done, value } = iterator.next())
+    ;({ done, value: x0 } = iterator.next())
     if (done) return
-    ++index
+    ++i
   }
   while ((({ done, value: next } = iterator.next()), !done)) {
-    value = reducer(value, next, ++index, values)
+    x0 = f(x0, next, ++i, xs)
   }
-  return value
+  return x0
 }
-export function reverse<T>(xs: Iterable<T>): T[]
-export function reverse(values) {
-  if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
-  return Array.from(values).reverse()
+export function reverse<T>(xs: Iterable<T>): T[] {
+  if (typeof xs[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
+  return Array.from(xs).reverse()
 }
-export function scan(values, compare) {
-  const i = leastIndex(values, compare)
+export function scan(xs, f) {
+  const i = leastIndex(xs, f)
   return i < 0 ? undefined : i
 }
-class Shuffler {
-  constructor(private rand: () => number) {}
-  shuffle<T>(xs: T[], lo?: number, hi?: number): T[]
-  shuffle(xs: Int8Array, lo?: number, hi?: number): Int8Array
-  shuffle(xs: Uint8Array, lo?: number, hi?: number): Uint8Array
-  shuffle(xs: Uint8ClampedArray, lo?: number, hi?: number): Uint8ClampedArray
-  shuffle(xs: Int16Array, lo?: number, hi?: number): Int16Array
-  shuffle(xs: Uint16Array, lo?: number, hi?: number): Uint16Array
-  shuffle(xs: Int32Array, lo?: number, hi?: number): Int32Array
-  shuffle(xs: Uint32Array, lo?: number, hi?: number): Uint32Array
-  shuffle(xs: Float32Array, lo?: number, hi?: number): Float32Array
-  shuffle(xs: Float64Array, lo?: number, hi?: number): Float64Array
-  shuffle(xs: any, lo = 0, hi = xs.length) {
+export function shuffler(rand: () => number) {
+  function shuffle<T>(xs: T[], lo?: number, hi?: number): T[]
+  function shuffle(xs: Int8Array, lo?: number, hi?: number): Int8Array
+  function shuffle(xs: Uint8Array, lo?: number, hi?: number): Uint8Array
+  function shuffle(xs: Uint8ClampedArray, lo?: number, hi?: number): Uint8ClampedArray
+  function shuffle(xs: Int16Array, lo?: number, hi?: number): Int16Array
+  function shuffle(xs: Uint16Array, lo?: number, hi?: number): Uint16Array
+  function shuffle(xs: Int32Array, lo?: number, hi?: number): Int32Array
+  function shuffle(xs: Uint32Array, lo?: number, hi?: number): Uint32Array
+  function shuffle(xs: Float32Array, lo?: number, hi?: number): Float32Array
+  function shuffle(xs: Float64Array, lo?: number, hi?: number): Float64Array
+  function shuffle(xs: any, lo = 0, hi = xs.length) {
     let m = hi - (lo = +lo)
     while (m) {
-      const i = (this.rand() * m--) | 0
+      const i = (rand() * m--) | 0
       const x = xs[m + lo]
       xs[m + lo] = xs[i + lo]
       xs[i + lo] = x
     }
     return xs
   }
+  return shuffle
 }
-export const shuffle = new Shuffler(Math.random).shuffle
-export function some<T>(xs: Iterable<T>, test: (value: T, i: number, xs: Iterable<T>) => unknown): boolean
-export function some(values, test) {
-  if (typeof test !== "function") throw new TypeError("test is not a function")
-  let index = -1
-  for (const value of values) {
-    if (test(value, ++index, values)) {
-      return true
-    }
+export const shuffle = shuffler(Math.random)
+export function some<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => unknown) {
+  if (typeof f !== "function") throw new TypeError("test is not a function")
+  let i = -1
+  for (const x of xs) {
+    if (f(x, ++i, xs)) return true
   }
   return false
 }
-export function sort<T>(xs: Iterable<T>, ...accessors: Array<(a: T) => unknown>): T[]
-export function sort<T>(xs: Iterable<T>, comparator?: (a: T, b: T) => number): T[]
-export function sort(values, ...F) {
-  if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
-  values = Array.from(values)
+export function sort<T>(xs: Iterable<T>, ...fs: Array<(a: T) => unknown>): T[]
+export function sort<T>(xs: Iterable<T>, f?: (a: T, b: T) => number): T[]
+export function sort(xs: any, ...F) {
+  if (typeof xs[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
+  xs = Array.from(xs)
   let [f] = F
   if ((f && f.length !== 2) || F.length > 1) {
-    const index = Uint32Array.from(values, (d, i) => i)
+    const idx = Uint32Array.from(xs, (d, i) => i)
     if (F.length > 1) {
-      F = F.map(f => values.map(f))
-      index.sort((i, j) => {
+      F = F.map(f => xs.map(f))
+      idx.sort((i, j) => {
         for (const f of F) {
           const c = ascendingDefined(f[i], f[j])
           if (c) return c
         }
       })
     } else {
-      f = values.map(f)
-      index.sort((i, j) => ascendingDefined(f[i], f[j]))
+      f = xs.map(f)
+      idx.sort((i, j) => ascendingDefined(f[i], f[j]))
     }
-    return permute(values, index)
+    return permute(xs, idx)
   }
-  return values.sort(compareDefined(f))
+  return xs.sort(compareDefined(f))
 }
-export function compareDefined(compare = ascending) {
-  if (compare === ascending) return ascendingDefined
-  if (typeof compare !== "function") throw new TypeError("compare is not a function")
+function compareDefined(f = ascending) {
+  if (f === ascending) return ascendingDefined
+  if (typeof f !== "function") throw new TypeError("compare is not a function")
   return (a, b) => {
-    const x = compare(a, b)
-    if (x || x === 0) return x
-    return (compare(b, b) === 0) - (compare(a, a) === 0)
+    const y = f(a, b)
+    if (y || y === 0) return y
+    return (f(b, b) === 0) - (f(a, a) === 0)
   }
 }
-export function ascendingDefined(a, b) {
+function ascendingDefined(a, b) {
   return (a == null || !(a >= a)) - (b == null || !(b >= b)) || (a < b ? -1 : a > b ? 1 : 0)
 }
-export function subset<T>(a: Iterable<T>, b: Iterable<T>): boolean
-export function subset(values, other) {
-  return superset(other, values)
+export function subset<T>(a: Iterable<T>, b: Iterable<T>) {
+  return superset(b, a)
 }
 export function sum(xs: Iterable<qt.Numeric | undefined | null>): number
 export function sum<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null): number
-export function sum(values, valueof) {
-  let sum = 0
-  if (valueof === undefined) {
-    for (let value of values) {
-      if ((value = +value)) {
-        sum += value
-      }
+export function sum(xs: any, f?: Function) {
+  let y = 0
+  if (f === undefined) {
+    for (let x of xs) {
+      if ((x = +x)) y += x
     }
   } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = +valueof(value, ++index, values))) {
-        sum += value
-      }
+    let i = -1
+    for (let x of xs) {
+      if ((x = +f(x, ++i, xs))) y += x
     }
   }
-  return sum
+  return y
 }
-export function superset<T>(a: Iterable<T>, b: Iterable<T>): boolean
-export function superset(values, other) {
-  const iterator = values[Symbol.iterator](),
-    set = new Set()
-  for (const o of other) {
-    const io = intern(o)
-    if (set.has(io)) continue
+export function superset<T>(a: Iterable<T>, b: Iterable<T>) {
+  const it = a[Symbol.iterator]()
+  const y = new Set()
+  for (const v of b) {
+    const v1 = intern(v)
+    if (y.has(v1)) continue
     let value, done
-    while (({ value, done } = iterator.next())) {
+    while (({ value, done } = it.next())) {
       if (done) return false
-      const ivalue = intern(value)
-      set.add(ivalue)
-      if (Object.is(io, ivalue)) break
+      const v2 = intern(value)
+      y.add(v2)
+      if (Object.is(v1, v2)) break
     }
   }
   return true
 }
-function intern(value) {
-  return value !== null && typeof value === "object" ? value.valueOf() : value
+function intern(x: any) {
+  return x !== null && typeof x === "object" ? x.valueOf() : x
 }
-let e10 = Math.sqrt(50),
-  e5 = Math.sqrt(10),
-  e2 = Math.sqrt(2)
-export function ticks(start: number, stop: number, count: number): number[]
-export function ticks(start, stop, count) {
-  var reverse,
+
+const e10 = Math.sqrt(50)
+const e5 = Math.sqrt(10)
+const e2 = Math.sqrt(2)
+export function ticks(start: number, stop: number, count: number): number[] {
+  let reverse,
     i = -1,
     n,
     ticks,
@@ -1311,93 +1254,83 @@ export function ticks(start, stop, count) {
   if (reverse) ticks.reverse()
   return ticks
 }
-export function tickIncrement(start: number, stop: number, count: number): number
-export function tickIncrement(start, stop, count) {
-  var step = (stop - start) / Math.max(0, count),
-    power = Math.floor(Math.log(step) / Math.LN10),
-    error = step / Math.pow(10, power)
+export function tickIncrement(start: number, stop: number, count: number) {
+  const y = (stop - start) / Math.max(0, count)
+  const power = Math.floor(Math.log(y) / Math.LN10)
+  const e = y / Math.pow(10, power)
   return power >= 0
-    ? (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1) * Math.pow(10, power)
-    : -Math.pow(10, -power) / (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1)
+    ? (e >= e10 ? 10 : e >= e5 ? 5 : e >= e2 ? 2 : 1) * Math.pow(10, power)
+    : -Math.pow(10, -power) / (e >= e10 ? 10 : e >= e5 ? 5 : e >= e2 ? 2 : 1)
 }
-export function tickStep(start: number, stop: number, count: number): number
-export function tickStep(start, stop, count) {
-  var step0 = Math.abs(stop - start) / Math.max(0, count),
-    step1 = Math.pow(10, Math.floor(Math.log(step0) / Math.LN10)),
-    error = step0 / step1
-  if (error >= e10) step1 *= 10
-  else if (error >= e5) step1 *= 5
-  else if (error >= e2) step1 *= 2
-  return stop < start ? -step1 : step1
+export function tickStep(start: number, stop: number, count: number) {
+  const y0 = Math.abs(stop - start) / Math.max(0, count)
+  let y = Math.pow(10, Math.floor(Math.log(y0) / Math.LN10))
+  const e = y0 / y
+  if (e >= e10) y *= 10
+  else if (e >= e5) y *= 5
+  else if (e >= e2) y *= 2
+  return stop < start ? -y : y
 }
-export function transpose<T>(matrix: ArrayLike<ArrayLike<T>>): T[][]
-export function transpose(matrix) {
-  if (!(n = matrix.length)) return []
-  for (var i = -1, m = min(matrix, length), transpose = new Array(m); ++i < m; ) {
-    for (var j = -1, n, row = (transpose[i] = new Array(n)); ++j < n; ) {
-      row[j] = matrix[j][i]
+export function transpose<T>(xs: ArrayLike<ArrayLike<T>>): T[][] {
+  if (!(n = xs.length)) return []
+  const m = min(xs, length)
+  const y = new Array(m)
+  for (let i = -1; ++i < m; ) {
+    for (let j = -1, n, row = (y[i] = new Array(n)); ++j < n; ) {
+      row[j] = xs[j][i]
     }
   }
-  return transpose
+  return y
 }
-function length(d) {
-  return d.length
-}
-export function union<T>(...xs: Array<Iterable<T>>): qt.InternSet<T>
-export function union(...others) {
-  const set = new qt.InternSet()
-  for (const other of others) {
-    for (const o of other) {
-      set.add(o)
+export function union<T>(...xs: Array<Iterable<T>>): qt.InternSet<T> {
+  const y = new qt.InternSet()
+  for (const x of xs) {
+    for (const x2 of x) {
+      y.add(x2)
     }
   }
-  return set
+  return y
 }
-export function variance(xs: Iterable<Numeric | undefined | null>): number | undefined
+export function variance(xs: Iterable<qt.Numeric | undefined | null>): number | undefined
 export function variance<T>(
   xs: Iterable<T>,
   f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null
 ): number | undefined
-export function variance(values, valueof) {
+export function variance(xs: any, f?: Function) {
   let count = 0
-  let delta
   let mean = 0
   let sum = 0
-  if (valueof === undefined) {
-    for (let value of values) {
-      if (value != null && (value = +value) >= value) {
-        delta = value - mean
+  let delta
+  if (f === undefined) {
+    for (let x of xs) {
+      if (x != null && (x = +x) >= x) {
+        delta = x - mean
         mean += delta / ++count
-        sum += delta * (value - mean)
+        sum += delta * (x - mean)
       }
     }
   } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
-        delta = value - mean
+    let i = -1
+    for (let x of xs) {
+      if ((x = f(x, ++i, xs)) != null && (x = +x) >= x) {
+        delta = x - mean
         mean += delta / ++count
-        sum += delta * (value - mean)
+        sum += delta * (x - mean)
       }
     }
   }
   if (count > 1) return sum / (count - 1)
+  return
 }
-export function zip<T>(...arrays: Array<ArrayLike<T>>): T[][]
-export function zip() {
-  return transpose(arguments)
+export function zip<T>(...xs: Array<ArrayLike<T>>): T[][] {
+  return transpose(xs)
 }
-export function thresholdFreedmanDiaconis(xs: ArrayLike<number | undefined>, min: number, max: number): number
-export function thresholdFreedmanDiaconis(values, min, max) {
-  return Math.ceil(
-    (max - min) / (2 * (quantile(values, 0.75) - quantile(values, 0.25)) * Math.pow(count(values), -1 / 3))
-  )
+export function thresholdFreedmanDiaconis(xs: ArrayLike<number | undefined>, min: number, max: number) {
+  return Math.ceil((max - min) / (2 * (quantile(xs, 0.75) - quantile(xs, 0.25)) * Math.pow(count(xs), -1 / 3)))
 }
-export function thresholdScott(xs: ArrayLike<number | undefined>, min: number, max: number): number
-export function thresholdScott(values, min, max) {
-  return Math.ceil(((max - min) * Math.cbrt(count(values))) / (3.49 * deviation(values)))
+export function thresholdScott(xs: ArrayLike<number | undefined>, min: number, max: number) {
+  return Math.ceil(((max - min) * Math.cbrt(count(xs))) / (3.49 * deviation(xs)))
 }
-export function thresholdSturges(xs: ArrayLike<number | undefined>): number
-export function thresholdSturges(values) {
-  return Math.ceil(Math.log(count(values)) / Math.LN2) + 1
+export function thresholdSturges(xs: ArrayLike<number | undefined>) {
+  return Math.ceil(Math.log(count(xs)) / Math.LN2) + 1
 }
