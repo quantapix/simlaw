@@ -100,16 +100,16 @@ const ascendingBisect = bisector(ascending)
 export function bisectLeft(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
 export function bisectLeft(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number
 export function bisectLeft(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
-export function bisectLeft = ascendingBisect.left
+//export function bisectLeft = ascendingBisect.left
 export function bisectRight(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
 export function bisectRight(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number
 export function bisectRight(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
-export function bisectRight = ascendingBisect.right
+//export function bisectRight = ascendingBisect.right
 export function bisectCenter(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
 export function bisectCenter(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number
 export function bisectCenter(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
-export function bisectCenter = bisector(number).center
-export const bisect: typeof bisectRight
+//export function bisectCenter = bisector(number).center
+//export const bisect: typeof bisectRight
 export function bisector<T, U>(comparator: (a: T, b: U) => number): qt.Bisector<T, U>
 export function bisector<T, U>(f: (x: T) => U): qt.Bisector<T, U>
 export function bisector(f) {
@@ -1160,33 +1160,33 @@ export function reverse(values) {
   return Array.from(values).reverse()
 }
 export function scan(values, compare) {
-  const index = leastIndex(values, compare)
-  return index < 0 ? undefined : index
+  const i = leastIndex(values, compare)
+  return i < 0 ? undefined : i
 }
-export function shuffle<T>(xs: T[], lo?: number, hi?: number): T[]
-export function shuffle(xs: Int8Array, lo?: number, hi?: number): Int8Array
-export function shuffle(xs: Uint8Array, lo?: number, hi?: number): Uint8Array
-export function shuffle(xs: Uint8ClampedArray, lo?: number, hi?: number): Uint8ClampedArray
-export function shuffle(xs: Int16Array, lo?: number, hi?: number): Int16Array
-export function shuffle(xs: Uint16Array, lo?: number, hi?: number): Uint16Array
-export function shuffle(xs: Int32Array, lo?: number, hi?: number): Int32Array
-export function shuffle(xs: Uint32Array, lo?: number, hi?: number): Uint32Array
-export function shuffle(xs: Float32Array, lo?: number, hi?: number): Float32Array
-export function shuffle(xs: Float64Array, lo?: number, hi?: number): Float64Array
-export default shuffler(Math.random)
-export function shuffler(random: () => number): typeof shuffle
-export function shuffler(random) {
-  return function shuffle(array, i0 = 0, i1 = array.length) {
-    let m = i1 - (i0 = +i0)
+class Shuffler {
+  constructor(private rand: () => number) {}
+  shuffle<T>(xs: T[], lo?: number, hi?: number): T[]
+  shuffle(xs: Int8Array, lo?: number, hi?: number): Int8Array
+  shuffle(xs: Uint8Array, lo?: number, hi?: number): Uint8Array
+  shuffle(xs: Uint8ClampedArray, lo?: number, hi?: number): Uint8ClampedArray
+  shuffle(xs: Int16Array, lo?: number, hi?: number): Int16Array
+  shuffle(xs: Uint16Array, lo?: number, hi?: number): Uint16Array
+  shuffle(xs: Int32Array, lo?: number, hi?: number): Int32Array
+  shuffle(xs: Uint32Array, lo?: number, hi?: number): Uint32Array
+  shuffle(xs: Float32Array, lo?: number, hi?: number): Float32Array
+  shuffle(xs: Float64Array, lo?: number, hi?: number): Float64Array
+  shuffle(xs: any, lo = 0, hi = xs.length) {
+    let m = hi - (lo = +lo)
     while (m) {
-      const i = (random() * m--) | 0,
-        t = array[m + i0]
-      array[m + i0] = array[i + i0]
-      array[i + i0] = t
+      const i = (this.rand() * m--) | 0
+      const x = xs[m + lo]
+      xs[m + lo] = xs[i + lo]
+      xs[i + lo] = x
     }
-    return array
+    return xs
   }
 }
+export const shuffle = new Shuffler(Math.random).shuffle
 export function some<T>(xs: Iterable<T>, test: (value: T, i: number, xs: Iterable<T>) => unknown): boolean
 export function some(values, test) {
   if (typeof test !== "function") throw new TypeError("test is not a function")
@@ -1280,7 +1280,7 @@ function intern(value) {
 }
 let e10 = Math.sqrt(50),
   e5 = Math.sqrt(10),
-  e2 = Math.sqrt(2);
+  e2 = Math.sqrt(2)
 export function ticks(start: number, stop: number, count: number): number[]
 export function ticks(start, stop, count) {
   var reverse,

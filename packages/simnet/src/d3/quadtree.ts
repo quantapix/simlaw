@@ -20,19 +20,15 @@ function add(tree, x, y, d) {
       bottom,
       i,
       j;
-
   if (!node) return tree._root = leaf, tree;
-
   while (node.length) {
     if (right = x >= (xm = (x0 + x1) / 2)) x0 = xm; else x1 = xm;
     if (bottom = y >= (ym = (y0 + y1) / 2)) y0 = ym; else y1 = ym;
     if (parent = node, !(node = node[i = bottom << 1 | right])) return parent[i] = leaf, tree;
   }
-
   xp = +tree._x.call(null, node.data);
   yp = +tree._y.call(null, node.data);
   if (x === xp && y === yp) return leaf.next = node, parent ? parent[i] = leaf : tree._root = leaf, tree;
-
   do {
     parent = parent ? parent[i] = new Array(4) : tree._root = new Array(4);
     if (right = x >= (xm = (x0 + x1) / 2)) x0 = xm; else x1 = xm;
@@ -46,7 +42,6 @@ export function addAll(data) {
   const xz = new Float64Array(n);
   const yz = new Float64Array(n);
   let x0 = Infinity, y0 = x0, x1 = -x0, y1 = x1;
-
   for (let i = 0, d, x, y; i < n; ++i) {
     if (isNaN(x = +this._x.call(null, d = data[i])) || isNaN(y = +this._y.call(null, d))) continue;
     xz[i] = x;
@@ -56,11 +51,8 @@ export function addAll(data) {
     if (y < y0) y0 = y;
     if (y > y1) y1 = y;
   }
-
   if (x0 > x1 || y0 > y1) return this;
-
   this.cover(x0, y0).cover(x1, y1);
-
   for (let i = 0; i < n; ++i) {
     add(this, xz[i], yz[i], data[i]);
   }
@@ -73,12 +65,10 @@ export function(x, y) {
       x1 = this._x1,
       y1 = this._y1;
 
-
   if (isNaN(x0)) {
     x1 = (x0 = Math.floor(x)) + 1;
     y1 = (y0 = Math.floor(y)) + 1;
   }
-
   else {
     var z = x1 - x0 || 1,
         node = this._root,
@@ -137,13 +127,11 @@ export function(x, y, radius) {
     radius *= radius;
   }
   while (q = quads.pop()) {
-
     if (!(node = q.node)
         || (x1 = q.x0) > x3
         || (y1 = q.y0) > y3
         || (x2 = q.x1) < x0
         || (y2 = q.y1) < y0) continue;
-
     if (node.length) {
       var xm = (x1 + x2) / 2,
           ym = (y1 + y2) / 2;
@@ -153,14 +141,12 @@ export function(x, y, radius) {
         new Quad(node[1], xm, y1, x2, ym),
         new Quad(node[0], x1, y1, xm, ym)
       );
-
       if (i = (y >= ym) << 1 | (x >= xm)) {
         q = quads[quads.length - 1];
         quads[quads.length - 1] = quads[quads.length - 1 - i];
         quads[quads.length - 1 - i] = q;
       }
     }
-
     else {
       var dx = x - +this._x.call(null, node.data),
           dy = y - +this._y.call(null, node.data),
@@ -265,9 +251,7 @@ export function(d) {
       bottom,
       i,
       j;
-
   if (!node) return this;
-
   if (node.length) while (true) {
     if (right = x >= (xm = (x0 + x1) / 2)) x0 = xm; else x1 = xm;
     if (bottom = y >= (ym = (y0 + y1) / 2)) y0 = ym; else y1 = ym;
@@ -275,16 +259,11 @@ export function(d) {
     if (!node.length) break;
     if (parent[(i + 1) & 3] || parent[(i + 2) & 3] || parent[(i + 3) & 3]) retainer = parent, j = i;
   }
-
   while (node.data !== d) if (!(previous = node, node = node.next)) return this;
   if (next = node.next) delete node.next;
-
   if (previous) return (next ? previous.next = next : delete previous.next), this;
-
   if (!parent) return this._root = next, this;
-
   next ? parent[i] = next : delete parent[i];
-
   if ((node = parent[0] || parent[1] || parent[2] || parent[3])
       && node === (parent[3] || parent[2] || parent[1] || parent[0])
       && !node.length) {
