@@ -1,9 +1,7 @@
 import defaultSource from "./defaultSource.js"
 import irwinHall from "./irwinHall.js"
-
 export default (function sourceRandomBates(source) {
   var I = irwinHall.source(source)
-
   function randomBates(n) {
     if ((n = +n) === 0) return source
     var randomIrwinHall = I(n)
@@ -11,13 +9,10 @@ export default (function sourceRandomBates(source) {
       return randomIrwinHall() / n
     }
   }
-
   randomBates.source = sourceRandomBates
-
   return randomBates
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomBernoulli(source) {
   function randomBernoulli(p) {
     if ((p = +p) < 0 || p > 1) throw new RangeError("invalid p")
@@ -25,17 +20,13 @@ export default (function sourceRandomBernoulli(source) {
       return Math.floor(source() + p)
     }
   }
-
   randomBernoulli.source = sourceRandomBernoulli
-
   return randomBernoulli
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
 import gamma from "./gamma.js"
-
 export default (function sourceRandomBeta(source) {
   var G = gamma.source(source)
-
   function randomBeta(alpha, beta) {
     var X = G(alpha),
       Y = G(beta)
@@ -44,19 +35,15 @@ export default (function sourceRandomBeta(source) {
       return x === 0 ? 0 : x / (x + Y())
     }
   }
-
   randomBeta.source = sourceRandomBeta
-
   return randomBeta
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
 import beta from "./beta.js"
 import geometric from "./geometric.js"
-
 export default (function sourceRandomBinomial(source) {
   var G = geometric.source(source),
     B = beta.source(source)
-
   function randomBinomial(n, p) {
     n = +n
     if ((p = +p) >= 1) return () => n
@@ -84,13 +71,10 @@ export default (function sourceRandomBinomial(source) {
       return acc + (sign ? k : nn - k)
     }
   }
-
   randomBinomial.source = sourceRandomBinomial
-
   return randomBinomial
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomCauchy(source) {
   function randomCauchy(a, b) {
     a = a == null ? 0 : +a
@@ -99,39 +83,29 @@ export default (function sourceRandomCauchy(source) {
       return a + b * Math.tan(Math.PI * source())
     }
   }
-
   randomCauchy.source = sourceRandomCauchy
-
   return randomCauchy
 })(defaultSource)
 export default Math.random
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomExponential(source) {
   function randomExponential(lambda) {
     return function () {
       return -Math.log1p(-source()) / lambda
     }
   }
-
   randomExponential.source = sourceRandomExponential
-
   return randomExponential
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
 import normal from "./normal.js"
-
 export default (function sourceRandomGamma(source) {
   var randomNormal = normal.source(source)()
-
   function randomGamma(k, theta) {
     if ((k = +k) < 0) throw new RangeError("invalid k")
-
     if (k === 0) return () => 0
     theta = theta == null ? 1 : +theta
-
     if (k === 1) return () => -Math.log1p(-source()) * theta
-
     var d = (k < 1 ? k + 1 : k) - 1 / 3,
       c = 1 / (3 * Math.sqrt(d)),
       multiplier = k < 1 ? () => Math.pow(source(), 1 / k) : () => 1
@@ -147,13 +121,10 @@ export default (function sourceRandomGamma(source) {
       return d * v * multiplier() * theta
     }
   }
-
   randomGamma.source = sourceRandomGamma
-
   return randomGamma
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomGeometric(source) {
   function randomGeometric(p) {
     if ((p = +p) < 0 || p > 1) throw new RangeError("invalid p")
@@ -164,9 +135,7 @@ export default (function sourceRandomGeometric(source) {
       return 1 + Math.floor(Math.log1p(-source()) / p)
     }
   }
-
   randomGeometric.source = sourceRandomGeometric
-
   return randomGeometric
 })(defaultSource)
 export { default as randomUniform } from "./uniform.js"
@@ -188,7 +157,6 @@ export { default as randomLogistic } from "./logistic.js"
 export { default as randomPoisson } from "./poisson.js"
 export { default as randomLcg } from "./lcg.js"
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomInt(source) {
   function randomInt(min, max) {
     if (arguments.length < 2) (max = min), (min = 0)
@@ -198,13 +166,10 @@ export default (function sourceRandomInt(source) {
       return Math.floor(source() * max + min)
     }
   }
-
   randomInt.source = sourceRandomInt
-
   return randomInt
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomIrwinHall(source) {
   function randomIrwinHall(n) {
     if ((n = +n) <= 0) return () => 0
@@ -213,39 +178,30 @@ export default (function sourceRandomIrwinHall(source) {
       return sum + i * source()
     }
   }
-
   randomIrwinHall.source = sourceRandomIrwinHall
-
   return randomIrwinHall
 })(defaultSource)
-
 const mul = 0x19660d
 const inc = 0x3c6ef35f
 const eps = 1 / 0x100000000
-
 export function lcg(seed = Math.random()) {
   let state = (0 <= seed && seed < 1 ? seed / eps : Math.abs(seed)) | 0
   return () => ((state = (mul * state + inc) | 0), eps * (state >>> 0))
 }
 import defaultSource from "./defaultSource.js"
 import normal from "./normal.js"
-
 export default (function sourceRandomLogNormal(source) {
   var N = normal.source(source)
-
   function randomLogNormal() {
     var randomNormal = N.apply(this, arguments)
     return function () {
       return Math.exp(randomNormal())
     }
   }
-
   randomLogNormal.source = sourceRandomLogNormal
-
   return randomLogNormal
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomLogistic(source) {
   function randomLogistic(a, b) {
     a = a == null ? 0 : +a
@@ -255,13 +211,10 @@ export default (function sourceRandomLogistic(source) {
       return a + b * Math.log(u / (1 - u))
     }
   }
-
   randomLogistic.source = sourceRandomLogistic
-
   return randomLogistic
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomNormal(source) {
   function randomNormal(mu, sigma) {
     var x, r
@@ -269,7 +222,6 @@ export default (function sourceRandomNormal(source) {
     sigma = sigma == null ? 1 : +sigma
     return function () {
       var y
-
       if (x != null) (y = x), (x = null)
       else
         do {
@@ -277,17 +229,13 @@ export default (function sourceRandomNormal(source) {
           y = source() * 2 - 1
           r = x * x + y * y
         } while (!r || r > 1)
-
       return mu + sigma * y * Math.sqrt((-2 * Math.log(r)) / r)
     }
   }
-
   randomNormal.source = sourceRandomNormal
-
   return randomNormal
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomPareto(source) {
   function randomPareto(alpha) {
     if ((alpha = +alpha) < 0) throw new RangeError("invalid alpha")
@@ -296,19 +244,15 @@ export default (function sourceRandomPareto(source) {
       return Math.pow(1 - source(), alpha)
     }
   }
-
   randomPareto.source = sourceRandomPareto
-
   return randomPareto
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
 import binomial from "./binomial.js"
 import gamma from "./gamma.js"
-
 export default (function sourceRandomPoisson(source) {
   var G = gamma.source(source),
     B = binomial.source(source)
-
   function randomPoisson(lambda) {
     return function () {
       var acc = 0,
@@ -324,13 +268,10 @@ export default (function sourceRandomPoisson(source) {
       return acc + k
     }
   }
-
   randomPoisson.source = sourceRandomPoisson
-
   return randomPoisson
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomUniform(source) {
   function randomUniform(min, max) {
     min = min == null ? 0 : +min
@@ -341,13 +282,10 @@ export default (function sourceRandomUniform(source) {
       return source() * max + min
     }
   }
-
   randomUniform.source = sourceRandomUniform
-
   return randomUniform
 })(defaultSource)
 import defaultSource from "./defaultSource.js"
-
 export default (function sourceRandomWeibull(source) {
   function randomWeibull(k, a, b) {
     var outerFunc
@@ -363,8 +301,6 @@ export default (function sourceRandomWeibull(source) {
       return a + b * outerFunc(-Math.log1p(-source()))
     }
   }
-
   randomWeibull.source = sourceRandomWeibull
-
   return randomWeibull
 })(defaultSource)

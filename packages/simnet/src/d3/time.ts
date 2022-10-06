@@ -1,15 +1,13 @@
 import interval from "./interval.js"
 import { durationDay, durationMinute } from "./duration.js"
-
 var day = interval(
   date => date.setHours(0, 0, 0, 0),
   (date, step) => date.setDate(date.getDate() + step),
   (start, end) => (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationDay,
   date => date.getDate() - 1
 )
-
 export default day
-export var days = day.range
+export const days = day.range
 export const durationSecond = 1000
 export const durationMinute = durationSecond * 60
 export const durationHour = durationMinute * 60
@@ -19,7 +17,6 @@ export const durationMonth = durationDay * 30
 export const durationYear = durationDay * 365
 import interval from "./interval.js"
 import { durationHour, durationMinute, durationSecond } from "./duration.js"
-
 var hour = interval(
   function (date) {
     date.setTime(
@@ -36,26 +33,19 @@ var hour = interval(
     return date.getHours()
   }
 )
-
 export default hour
-export var hours = hour.range
+export const hours = hour.range
 export { default as timeInterval } from "./interval.js"
-
 export {
   default as timeMillisecond,
   milliseconds as timeMilliseconds,
   default as utcMillisecond,
   milliseconds as utcMilliseconds,
 } from "./millisecond.js"
-
 export { default as timeSecond, seconds as timeSeconds, default as utcSecond, seconds as utcSeconds } from "./second.js"
-
 export { default as timeMinute, minutes as timeMinutes } from "./minute.js"
-
 export { default as timeHour, hours as timeHours } from "./hour.js"
-
 export { default as timeDay, days as timeDays } from "./day.js"
-
 export {
   sunday as timeWeek,
   sundays as timeWeeks,
@@ -74,17 +64,11 @@ export {
   saturday as timeSaturday,
   saturdays as timeSaturdays,
 } from "./week.js"
-
 export { default as timeMonth, months as timeMonths } from "./month.js"
-
 export { default as timeYear, years as timeYears } from "./year.js"
-
 export { default as utcMinute, utcMinutes as utcMinutes } from "./utcMinute.js"
-
 export { default as utcHour, utcHours as utcHours } from "./utcHour.js"
-
 export { default as utcDay, utcDays as utcDays } from "./utcDay.js"
-
 export {
   utcSunday as utcWeek,
   utcSundays as utcWeeks,
@@ -103,38 +87,29 @@ export {
   utcSaturday as utcSaturday,
   utcSaturdays as utcSaturdays,
 } from "./utcWeek.js"
-
 export { default as utcMonth, utcMonths as utcMonths } from "./utcMonth.js"
-
 export { default as utcYear, utcYears as utcYears } from "./utcYear.js"
-
 export { utcTicks, utcTickInterval, timeTicks, timeTickInterval } from "./ticks.js"
 var t0 = new Date(),
   t1 = new Date()
-
 export function newInterval(floori, offseti, count, field) {
   function interval(date) {
     return floori((date = arguments.length === 0 ? new Date() : new Date(+date))), date
   }
-
   interval.floor = function (date) {
     return floori((date = new Date(+date))), date
   }
-
   interval.ceil = function (date) {
     return floori((date = new Date(date - 1))), offseti(date, 1), floori(date), date
   }
-
   interval.round = function (date) {
     var d0 = interval(date),
       d1 = interval.ceil(date)
     return date - d0 < d1 - date ? d0 : d1
   }
-
   interval.offset = function (date, step) {
     return offseti((date = new Date(+date)), step == null ? 1 : Math.floor(step)), date
   }
-
   interval.range = function (start, stop, step) {
     var range = [],
       previous
@@ -145,7 +120,6 @@ export function newInterval(floori, offseti, count, field) {
     while (previous < start && start < stop)
     return range
   }
-
   interval.filter = function (test) {
     return newInterval(
       function (date) {
@@ -165,14 +139,12 @@ export function newInterval(floori, offseti, count, field) {
       }
     )
   }
-
   if (count) {
     interval.count = function (start, end) {
       t0.setTime(+start), t1.setTime(+end)
       floori(t0), floori(t1)
       return Math.floor(count(t0, t1))
     }
-
     interval.every = function (step) {
       step = Math.floor(step)
       return !isFinite(step) || !(step > 0)
@@ -190,11 +162,9 @@ export function newInterval(floori, offseti, count, field) {
           )
     }
   }
-
   return interval
 }
 import interval from "./interval.js"
-
 var millisecond = interval(
   function () {},
   function (date, step) {
@@ -204,7 +174,6 @@ var millisecond = interval(
     return end - start
   }
 )
-
 millisecond.every = function (k) {
   k = Math.floor(k)
   if (!isFinite(k) || !(k > 0)) return null
@@ -221,12 +190,10 @@ millisecond.every = function (k) {
     }
   )
 }
-
 export default millisecond
-export var milliseconds = millisecond.range
+export const milliseconds = millisecond.range
 import interval from "./interval.js"
 import { durationMinute, durationSecond } from "./duration.js"
-
 var minute = interval(
   function (date) {
     date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond)
@@ -241,11 +208,9 @@ var minute = interval(
     return date.getMinutes()
   }
 )
-
 export default minute
-export var minutes = minute.range
+export const minutes = minute.range
 import interval from "./interval.js"
-
 var month = interval(
   function (date) {
     date.setDate(1)
@@ -261,12 +226,10 @@ var month = interval(
     return date.getMonth()
   }
 )
-
 export default month
-export var months = month.range
+export const months = month.range
 import interval from "./interval.js"
 import { durationSecond } from "./duration.js"
-
 var second = interval(
   function (date) {
     date.setTime(date - date.getMilliseconds())
@@ -281,10 +244,9 @@ var second = interval(
     return date.getUTCSeconds()
   }
 )
-
 export default second
-export var seconds = second.range
-import { bisector, tickStep } from "d3-array"
+export const seconds = second.range
+import { bisector, tickStep } from "./array.js"
 import {
   durationDay,
   durationHour,
@@ -308,7 +270,6 @@ import utcDay from "./utcDay.js"
 import { utcSunday as utcWeek } from "./utcWeek.js"
 import utcMonth from "./utcMonth.js"
 import utcYear from "./utcYear.js"
-
 function ticker(year, month, week, day, hour, minute) {
   const tickIntervals = [
     [second, 1, durationSecond],
@@ -330,7 +291,6 @@ function ticker(year, month, week, day, hour, minute) {
     [month, 3, 3 * durationMonth],
     [year, 1, durationYear],
   ]
-
   function ticks(start, stop, count) {
     const reverse = stop < start
     if (reverse) [start, stop] = [stop, start]
@@ -338,7 +298,6 @@ function ticker(year, month, week, day, hour, minute) {
     const ticks = interval ? interval.range(start, +stop + 1) : [] // inclusive stop
     return reverse ? ticks.reverse() : ticks
   }
-
   function tickInterval(start, stop, count) {
     const target = Math.abs(stop - start) / count
     const i = bisector(([, , step]) => step).right(tickIntervals, target)
@@ -347,17 +306,13 @@ function ticker(year, month, week, day, hour, minute) {
     const [t, step] = tickIntervals[target / tickIntervals[i - 1][2] < tickIntervals[i][2] / target ? i - 1 : i]
     return t.every(step)
   }
-
   return [ticks, tickInterval]
 }
-
 const [utcTicks, utcTickInterval] = ticker(utcYear, utcMonth, utcWeek, utcDay, utcHour, utcMinute)
 const [timeTicks, timeTickInterval] = ticker(year, month, week, day, hour, minute)
-
 export { utcTicks, utcTickInterval, timeTicks, timeTickInterval }
 import interval from "./interval.js"
 import { durationDay } from "./duration.js"
-
 var utcDay = interval(
   function (date) {
     date.setUTCHours(0, 0, 0, 0)
@@ -372,12 +327,10 @@ var utcDay = interval(
     return date.getUTCDate() - 1
   }
 )
-
 export default utcDay
-export var utcDays = utcDay.range
+export const utcDays = utcDay.range
 import interval from "./interval.js"
 import { durationHour } from "./duration.js"
-
 var utcHour = interval(
   function (date) {
     date.setUTCMinutes(0, 0, 0)
@@ -392,12 +345,10 @@ var utcHour = interval(
     return date.getUTCHours()
   }
 )
-
 export default utcHour
-export var utcHours = utcHour.range
+export const utcHours = utcHour.range
 import interval from "./interval.js"
 import { durationMinute } from "./duration.js"
-
 var utcMinute = interval(
   function (date) {
     date.setUTCSeconds(0, 0)
@@ -412,11 +363,9 @@ var utcMinute = interval(
     return date.getUTCMinutes()
   }
 )
-
 export default utcMinute
-export var utcMinutes = utcMinute.range
+export const utcMinutes = utcMinute.range
 import interval from "./interval.js"
-
 var utcMonth = interval(
   function (date) {
     date.setUTCDate(1)
@@ -432,12 +381,10 @@ var utcMonth = interval(
     return date.getUTCMonth()
   }
 )
-
 export default utcMonth
-export var utcMonths = utcMonth.range
+export const utcMonths = utcMonth.range
 import interval from "./interval.js"
 import { durationWeek } from "./duration.js"
-
 function utcWeekday(i) {
   return interval(
     function (date) {
@@ -452,24 +399,21 @@ function utcWeekday(i) {
     }
   )
 }
-
-export var utcSunday = utcWeekday(0)
-export var utcMonday = utcWeekday(1)
-export var utcTuesday = utcWeekday(2)
-export var utcWednesday = utcWeekday(3)
-export var utcThursday = utcWeekday(4)
-export var utcFriday = utcWeekday(5)
-export var utcSaturday = utcWeekday(6)
-
-export var utcSundays = utcSunday.range
-export var utcMondays = utcMonday.range
-export var utcTuesdays = utcTuesday.range
-export var utcWednesdays = utcWednesday.range
-export var utcThursdays = utcThursday.range
-export var utcFridays = utcFriday.range
-export var utcSaturdays = utcSaturday.range
+export const utcSunday = utcWeekday(0)
+export const utcMonday = utcWeekday(1)
+export const utcTuesday = utcWeekday(2)
+export const utcWednesday = utcWeekday(3)
+export const utcThursday = utcWeekday(4)
+export const utcFriday = utcWeekday(5)
+export const utcSaturday = utcWeekday(6)
+export const utcSundays = utcSunday.range
+export const utcMondays = utcMonday.range
+export const utcTuesdays = utcTuesday.range
+export const utcWednesdays = utcWednesday.range
+export const utcThursdays = utcThursday.range
+export const utcFridays = utcFriday.range
+export const utcSaturdays = utcSaturday.range
 import interval from "./interval.js"
-
 var utcYear = interval(
   function (date) {
     date.setUTCMonth(0, 1)
@@ -485,7 +429,6 @@ var utcYear = interval(
     return date.getUTCFullYear()
   }
 )
-
 utcYear.every = function (k) {
   return !isFinite((k = Math.floor(k))) || !(k > 0)
     ? null
@@ -500,12 +443,10 @@ utcYear.every = function (k) {
         }
       )
 }
-
 export default utcYear
-export var utcYears = utcYear.range
+export const utcYears = utcYear.range
 import interval from "./interval.js"
 import { durationMinute, durationWeek } from "./duration.js"
-
 function weekday(i) {
   return interval(
     function (date) {
@@ -520,24 +461,21 @@ function weekday(i) {
     }
   )
 }
-
-export var sunday = weekday(0)
-export var monday = weekday(1)
-export var tuesday = weekday(2)
-export var wednesday = weekday(3)
-export var thursday = weekday(4)
-export var friday = weekday(5)
-export var saturday = weekday(6)
-
-export var sundays = sunday.range
-export var mondays = monday.range
-export var tuesdays = tuesday.range
-export var wednesdays = wednesday.range
-export var thursdays = thursday.range
-export var fridays = friday.range
-export var saturdays = saturday.range
+export const sunday = weekday(0)
+export const monday = weekday(1)
+export const tuesday = weekday(2)
+export const wednesday = weekday(3)
+export const thursday = weekday(4)
+export const friday = weekday(5)
+export const saturday = weekday(6)
+export const sundays = sunday.range
+export const mondays = monday.range
+export const tuesdays = tuesday.range
+export const wednesdays = wednesday.range
+export const thursdays = thursday.range
+export const fridays = friday.range
+export const saturdays = saturday.range
 import interval from "./interval.js"
-
 var year = interval(
   function (date) {
     date.setMonth(0, 1)
@@ -553,7 +491,6 @@ var year = interval(
     return date.getFullYear()
   }
 )
-
 year.every = function (k) {
   return !isFinite((k = Math.floor(k))) || !(k > 0)
     ? null
@@ -568,6 +505,5 @@ year.every = function (k) {
         }
       )
 }
-
 export default year
-export var years = year.range
+export const years = year.range

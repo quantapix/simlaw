@@ -8,11 +8,9 @@ export function point(that, x, y) {
     (that._y0 + 4 * that._y1 + y) / 6
   )
 }
-
 export function Basis(context) {
   this._context = context
 }
-
 Basis.prototype = {
   areaStart: function () {
     this._line = 0
@@ -56,17 +54,14 @@ Basis.prototype = {
     ;(this._y0 = this._y1), (this._y1 = y)
   },
 }
-
 export function (context) {
   return new Basis(context)
 }
 import noop from "../noop.js"
 import { point } from "./basis.js"
-
 function BasisClosed(context) {
   this._context = context
 }
-
 BasisClosed.prototype = {
   areaStart: noop,
   areaEnd: noop,
@@ -119,16 +114,13 @@ BasisClosed.prototype = {
     ;(this._y0 = this._y1), (this._y1 = y)
   },
 }
-
 export function (context) {
   return new BasisClosed(context)
 }
 import { point } from "./basis.js"
-
 function BasisOpen(context) {
   this._context = context
 }
-
 BasisOpen.prototype = {
   areaStart: function () {
     this._line = 0
@@ -169,12 +161,10 @@ BasisOpen.prototype = {
     ;(this._y0 = this._y1), (this._y1 = y)
   },
 }
-
 export function (context) {
   return new BasisOpen(context)
 }
 import pointRadial from "../pointRadial.js"
-
 class Bump {
   constructor(context, x) {
     this._context = context
@@ -213,7 +203,6 @@ class Bump {
     ;(this._x0 = x), (this._y0 = y)
   }
 }
-
 class BumpRadial {
   constructor(context) {
     this._context = context
@@ -236,25 +225,20 @@ class BumpRadial {
     }
   }
 }
-
 export function bumpX(context) {
   return new Bump(context, true)
 }
-
 export function bumpY(context) {
   return new Bump(context, false)
 }
-
 export function bumpRadial(context) {
   return new BumpRadial(context)
 }
 import { Basis } from "./basis.js"
-
 function Bundle(context, beta) {
   this._basis = new Basis(context)
   this._beta = beta
 }
-
 Bundle.prototype = {
   lineStart: function () {
     this._x = []
@@ -265,7 +249,6 @@ Bundle.prototype = {
     var x = this._x,
       y = this._y,
       j = x.length - 1
-
     if (j > 0) {
       var x0 = x[0],
         y0 = y[0],
@@ -273,7 +256,6 @@ Bundle.prototype = {
         dy = y[j] - y0,
         i = -1,
         t
-
       while (++i <= j) {
         t = i / j
         this._basis.point(
@@ -282,7 +264,6 @@ Bundle.prototype = {
         )
       }
     }
-
     this._x = this._y = null
     this._basis.lineEnd()
   },
@@ -291,16 +272,13 @@ Bundle.prototype = {
     this._y.push(+y)
   },
 }
-
 export default (function custom(beta) {
   function bundle(context) {
     return beta === 1 ? new Basis(context) : new Bundle(context, beta)
   }
-
   bundle.beta = function (beta) {
     return custom(+beta)
   }
-
   return bundle
 })(0.85)
 export function point(that, x, y) {
@@ -313,12 +291,10 @@ export function point(that, x, y) {
     that._y2
   )
 }
-
 export function Cardinal(context, tension) {
   this._context = context
   this._k = (1 - tension) / 6
 }
-
 Cardinal.prototype = {
   areaStart: function () {
     this._line = 0
@@ -363,26 +339,21 @@ Cardinal.prototype = {
     ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
   },
 }
-
 export default (function custom(tension) {
   function cardinal(context) {
     return new Cardinal(context, tension)
   }
-
   cardinal.tension = function (tension) {
     return custom(+tension)
   }
-
   return cardinal
 })(0)
 import noop from "../noop.js"
 import { point } from "./cardinal.js"
-
 export function CardinalClosed(context, tension) {
   this._context = context
   this._k = (1 - tension) / 6
 }
-
 CardinalClosed.prototype = {
   areaStart: noop,
   areaEnd: noop,
@@ -445,25 +416,20 @@ CardinalClosed.prototype = {
     ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
   },
 }
-
 export default (function custom(tension) {
   function cardinal(context) {
     return new CardinalClosed(context, tension)
   }
-
   cardinal.tension = function (tension) {
     return custom(+tension)
   }
-
   return cardinal
 })(0)
 import { point } from "./cardinal.js"
-
 export function CardinalOpen(context, tension) {
   this._context = context
   this._k = (1 - tension) / 6
 }
-
 CardinalOpen.prototype = {
   areaStart: function () {
     this._line = 0
@@ -502,49 +468,40 @@ CardinalOpen.prototype = {
     ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
   },
 }
-
 export default (function custom(tension) {
   function cardinal(context) {
     return new CardinalOpen(context, tension)
   }
-
   cardinal.tension = function (tension) {
     return custom(+tension)
   }
-
   return cardinal
 })(0)
 import { epsilon } from "../math.js"
 import { Cardinal } from "./cardinal.js"
-
 export function point(that, x, y) {
   var x1 = that._x1,
     y1 = that._y1,
     x2 = that._x2,
     y2 = that._y2
-
   if (that._l01_a > epsilon) {
     var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a,
       n = 3 * that._l01_a * (that._l01_a + that._l12_a)
     x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n
     y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n
   }
-
   if (that._l23_a > epsilon) {
     var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a,
       m = 3 * that._l23_a * (that._l23_a + that._l12_a)
     x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m
     y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m
   }
-
   that._context.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2)
 }
-
 function CatmullRom(context, alpha) {
   this._context = context
   this._alpha = alpha
 }
-
 CatmullRom.prototype = {
   areaStart: function () {
     this._line = 0
@@ -570,13 +527,11 @@ CatmullRom.prototype = {
   },
   point: function (x, y) {
     ;(x = +x), (y = +y)
-
     if (this._point) {
       var x23 = this._x2 - x,
         y23 = this._y2 - y
       this._l23_a = Math.sqrt((this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha)))
     }
-
     switch (this._point) {
       case 0:
         this._point = 1
@@ -591,34 +546,28 @@ CatmullRom.prototype = {
         point(this, x, y)
         break
     }
-
     ;(this._l01_a = this._l12_a), (this._l12_a = this._l23_a)
     ;(this._l01_2a = this._l12_2a), (this._l12_2a = this._l23_2a)
     ;(this._x0 = this._x1), (this._x1 = this._x2), (this._x2 = x)
     ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
   },
 }
-
 export default (function custom(alpha) {
   function catmullRom(context) {
     return alpha ? new CatmullRom(context, alpha) : new Cardinal(context, 0)
   }
-
   catmullRom.alpha = function (alpha) {
     return custom(+alpha)
   }
-
   return catmullRom
 })(0.5)
 import { CardinalClosed } from "./cardinalClosed.js"
 import noop from "../noop.js"
 import { point } from "./catmullRom.js"
-
 function CatmullRomClosed(context, alpha) {
   this._context = context
   this._alpha = alpha
 }
-
 CatmullRomClosed.prototype = {
   areaStart: noop,
   areaEnd: noop,
@@ -660,13 +609,11 @@ CatmullRomClosed.prototype = {
   },
   point: function (x, y) {
     ;(x = +x), (y = +y)
-
     if (this._point) {
       var x23 = this._x2 - x,
         y23 = this._y2 - y
       this._l23_a = Math.sqrt((this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha)))
     }
-
     switch (this._point) {
       case 0:
         this._point = 1
@@ -684,33 +631,27 @@ CatmullRomClosed.prototype = {
         point(this, x, y)
         break
     }
-
     ;(this._l01_a = this._l12_a), (this._l12_a = this._l23_a)
     ;(this._l01_2a = this._l12_2a), (this._l12_2a = this._l23_2a)
     ;(this._x0 = this._x1), (this._x1 = this._x2), (this._x2 = x)
     ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
   },
 }
-
 export default (function custom(alpha) {
   function catmullRom(context) {
     return alpha ? new CatmullRomClosed(context, alpha) : new CardinalClosed(context, 0)
   }
-
   catmullRom.alpha = function (alpha) {
     return custom(+alpha)
   }
-
   return catmullRom
 })(0.5)
 import { CardinalOpen } from "./cardinalOpen.js"
 import { point } from "./catmullRom.js"
-
 function CatmullRomOpen(context, alpha) {
   this._context = context
   this._alpha = alpha
 }
-
 CatmullRomOpen.prototype = {
   areaStart: function () {
     this._line = 0
@@ -728,13 +669,11 @@ CatmullRomOpen.prototype = {
   },
   point: function (x, y) {
     ;(x = +x), (y = +y)
-
     if (this._point) {
       var x23 = this._x2 - x,
         y23 = this._y2 - y
       this._l23_a = Math.sqrt((this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha)))
     }
-
     switch (this._point) {
       case 0:
         this._point = 1
@@ -752,29 +691,24 @@ CatmullRomOpen.prototype = {
         point(this, x, y)
         break
     }
-
     ;(this._l01_a = this._l12_a), (this._l12_a = this._l23_a)
     ;(this._l01_2a = this._l12_2a), (this._l12_2a = this._l23_2a)
     ;(this._x0 = this._x1), (this._x1 = this._x2), (this._x2 = x)
     ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
   },
 }
-
 export default (function custom(alpha) {
   function catmullRom(context) {
     return alpha ? new CatmullRomOpen(context, alpha) : new CardinalOpen(context, 0)
   }
-
   catmullRom.alpha = function (alpha) {
     return custom(+alpha)
   }
-
   return catmullRom
 })(0.5)
 function Linear(context) {
   this._context = context
 }
-
 Linear.prototype = {
   areaStart: function () {
     this._line = 0
@@ -804,16 +738,13 @@ Linear.prototype = {
     }
   },
 }
-
 export function (context) {
   return new Linear(context)
 }
 import noop from "../noop.js"
-
 function LinearClosed(context) {
   this._context = context
 }
-
 LinearClosed.prototype = {
   areaStart: noop,
   areaEnd: noop,
@@ -829,14 +760,12 @@ LinearClosed.prototype = {
     else (this._point = 1), this._context.moveTo(x, y)
   },
 }
-
 export function (context) {
   return new LinearClosed(context)
 }
 function sign(x) {
   return x < 0 ? -1 : 1
 }
-
 function slope3(that, x2, y2) {
   var h0 = that._x1 - that._x0,
     h1 = x2 - that._x1,
@@ -845,12 +774,10 @@ function slope3(that, x2, y2) {
     p = (s0 * h1 + s1 * h0) / (h0 + h1)
   return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0
 }
-
 function slope2(that, t) {
   var h = that._x1 - that._x0
   return h ? ((3 * (that._y1 - that._y0)) / h - t) / 2 : t
 }
-
 function point(that, t0, t1) {
   var x0 = that._x0,
     y0 = that._y0,
@@ -859,11 +786,9 @@ function point(that, t0, t1) {
     dx = (x1 - x0) / 3
   that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1)
 }
-
 function MonotoneX(context) {
   this._context = context
 }
-
 MonotoneX.prototype = {
   areaStart: function () {
     this._line = 0
@@ -889,7 +814,6 @@ MonotoneX.prototype = {
   },
   point: function (x, y) {
     var t1 = NaN
-
     ;(x = +x), (y = +y)
     if (x === this._x1 && y === this._y1) return // Ignore coincident points.
     switch (this._point) {
@@ -908,25 +832,20 @@ MonotoneX.prototype = {
         point(this, this._t0, (t1 = slope3(this, x, y)))
         break
     }
-
     ;(this._x0 = this._x1), (this._x1 = x)
     ;(this._y0 = this._y1), (this._y1 = y)
     this._t0 = t1
   },
 }
-
 function MonotoneY(context) {
   this._context = new ReflectContext(context)
 }
-
 ;(MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function (x, y) {
   MonotoneX.prototype.point.call(this, y, x)
 }
-
 function ReflectContext(context) {
   this._context = context
 }
-
 ReflectContext.prototype = {
   moveTo: function (x, y) {
     this._context.moveTo(y, x)
@@ -941,18 +860,15 @@ ReflectContext.prototype = {
     this._context.bezierCurveTo(y1, x1, y2, x2, y, x)
   },
 }
-
 export function monotoneX(context) {
   return new MonotoneX(context)
 }
-
 export function monotoneY(context) {
   return new MonotoneY(context)
 }
 function Natural(context) {
   this._context = context
 }
-
 Natural.prototype = {
   areaStart: function () {
     this._line = 0
@@ -968,7 +884,6 @@ Natural.prototype = {
     var x = this._x,
       y = this._y,
       n = x.length
-
     if (n) {
       this._line ? this._context.lineTo(x[0], y[0]) : this._context.moveTo(x[0], y[0])
       if (n === 2) {
@@ -981,7 +896,6 @@ Natural.prototype = {
         }
       }
     }
-
     if (this._line || (this._line !== 0 && n === 1)) this._context.closePath()
     this._line = 1 - this._line
     this._x = this._y = null
@@ -991,7 +905,6 @@ Natural.prototype = {
     this._y.push(+y)
   },
 }
-
 function controlPoints(x) {
   var i,
     n = x.length - 1,
@@ -1009,18 +922,14 @@ function controlPoints(x) {
   for (i = 0; i < n - 1; ++i) b[i] = 2 * x[i + 1] - a[i + 1]
   return [a, b]
 }
-
 export function (context) {
   return new Natural(context)
 }
 import curveLinear from "./linear.js"
-
-export var curveRadialLinear = curveRadial(curveLinear)
-
+export const curveRadialLinear = curveRadial(curveLinear)
 function Radial(curve) {
   this._curve = curve
 }
-
 Radial.prototype = {
   areaStart: function () {
     this._curve.areaStart()
@@ -1038,21 +947,17 @@ Radial.prototype = {
     this._curve.point(r * Math.sin(a), r * -Math.cos(a))
   },
 }
-
 export function curveRadial(curve) {
   function radial(context) {
     return new Radial(curve(context))
   }
-
   radial._curve = curve
-
   return radial
 }
 function Step(context, t) {
   this._context = context
   this._t = t
 }
-
 Step.prototype = {
   areaStart: function () {
     this._line = 0
@@ -1093,15 +998,12 @@ Step.prototype = {
     ;(this._x = x), (this._y = y)
   },
 }
-
 export function (context) {
   return new Step(context, 0.5)
 }
-
 export function stepBefore(context) {
   return new Step(context, 0)
 }
-
 export function stepAfter(context) {
   return new Step(context, 1)
 }

@@ -8,13 +8,11 @@ export function (x) {
 }
 import creator from "./creator.js"
 import select from "./select.js"
-
 export function (name) {
   return select(creator(name).call(document.documentElement))
 }
 import namespace from "./namespace.js"
 import { xhtml } from "./namespaces.js"
-
 function creatorInherit(name) {
   return function () {
     var document = this.ownerDocument,
@@ -24,13 +22,11 @@ function creatorInherit(name) {
       : document.createElementNS(uri, name)
   }
 }
-
 function creatorFixed(fullname) {
   return function () {
     return this.ownerDocument.createElementNS(fullname.space, fullname.local)
   }
 }
-
 export function (name) {
   var fullname = namespace(name)
   return (fullname.local ? creatorFixed : creatorInherit)(fullname)
@@ -54,15 +50,12 @@ export { default as selectorAll } from "./selectorAll.js"
 export { styleValue as style } from "./selection/style.js"
 export { default as window } from "./window.js"
 var nextId = 0
-
 export function local() {
   return new Local()
 }
-
 function Local() {
   this._ = "@" + (++nextId).toString(36)
 }
-
 Local.prototype = local.prototype = {
   constructor: Local,
   get: function (node) {
@@ -85,23 +78,19 @@ export function (selector) {
     return this.matches(selector)
   }
 }
-
 export function childMatcher(selector) {
   return function (node) {
     return node.matches(selector)
   }
 }
-
 import namespaces from "./namespaces.js"
-
 export function (name) {
   var prefix = (name += ""),
     i = prefix.indexOf(":")
   if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1)
   return namespaces.hasOwnProperty(prefix) ? { space: namespaces[prefix], local: name } : name // eslint-disable-line no-prototype-builtins
 }
-export var xhtml = "http://www.w3.org/1999/xhtml"
-
+export const xhtml = "http://www.w3.org/1999/xhtml"
 export default {
   svg: "http://www.w3.org/2000/svg",
   xhtml: xhtml,
@@ -110,7 +99,6 @@ export default {
   xmlns: "http://www.w3.org/2000/xmlns/",
 }
 import sourceEvent from "./sourceEvent.js"
-
 export function (event, node) {
   event = sourceEvent(event)
   if (node === undefined) node = event.currentTarget
@@ -131,7 +119,6 @@ export function (event, node) {
 }
 import pointer from "./pointer.js"
 import sourceEvent from "./sourceEvent.js"
-
 export function (events, node) {
   if (events.target) {
     events = sourceEvent(events)
@@ -141,7 +128,6 @@ export function (events, node) {
   return Array.from(events, event => pointer(event, node))
 }
 import { Selection, root } from "./selection/index.js"
-
 export function (selector) {
   return typeof selector === "string"
     ? new Selection([[document.querySelector(selector)]], [document.documentElement])
@@ -149,14 +135,12 @@ export function (selector) {
 }
 import array from "./array.js"
 import { Selection, root } from "./selection/index.js"
-
 export function (selector) {
   return typeof selector === "string"
     ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
     : new Selection([array(selector)], root)
 }
 function none() {}
-
 export function (selector) {
   return selector == null
     ? none
@@ -167,7 +151,6 @@ export function (selector) {
 function empty() {
   return []
 }
-
 export function (selector) {
   return selector == null
     ? empty

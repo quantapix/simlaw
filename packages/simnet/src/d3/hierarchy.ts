@@ -1,7 +1,6 @@
 export function optional(f) {
   return f == null ? null : required(f)
 }
-
 export function required(f) {
   if (typeof f !== "function") throw new Error()
   return f
@@ -11,63 +10,51 @@ export function (x) {
     ? x // Array, TypedArray, NodeList, array-like
     : Array.from(x) // Map, Set, iterable, string, or anything else
 }
-
 export function shuffle(array, random) {
   let m = array.length,
     t,
     i
-
   while (m) {
     i = (random() * m--) | 0
     t = array[m]
     array[m] = array[i]
     array[i] = t
   }
-
   return array
 }
 function defaultSeparation(a, b) {
   return a.parent === b.parent ? 1 : 2
 }
-
 function meanX(children) {
   return children.reduce(meanXReduce, 0) / children.length
 }
-
 function meanXReduce(x, c) {
   return x + c.x
 }
-
 function maxY(children) {
   return 1 + children.reduce(maxYReduce, 0)
 }
-
 function maxYReduce(y, c) {
   return Math.max(y, c.y)
 }
-
 function leafLeft(node) {
   var children
   while ((children = node.children)) node = children[0]
   return node
 }
-
 function leafRight(node) {
   var children
   while ((children = node.children)) node = children[children.length - 1]
   return node
 }
-
 export function () {
   var separation = defaultSeparation,
     dx = 1,
     dy = 1,
     nodeSize = false
-
   function cluster(root) {
     var previousNode,
       x = 0
-
     root.eachAfter(function (node) {
       var children = node.children
       if (children) {
@@ -79,12 +66,10 @@ export function () {
         previousNode = node
       }
     })
-
     var left = leafLeft(root),
       right = leafRight(root),
       x0 = left.x - separation(left, right) / 2,
       x1 = right.x + separation(right, left) / 2
-
     return root.eachAfter(
       nodeSize
         ? function (node) {
@@ -97,25 +82,20 @@ export function () {
           }
     )
   }
-
   cluster.separation = function (x) {
     return arguments.length ? ((separation = x), cluster) : separation
   }
-
   cluster.size = function (x) {
     return arguments.length ? ((nodeSize = false), (dx = +x[0]), (dy = +x[1]), cluster) : nodeSize ? null : [dx, dy]
   }
-
   cluster.nodeSize = function (x) {
     return arguments.length ? ((nodeSize = true), (dx = +x[0]), (dy = +x[1]), cluster) : nodeSize ? [dx, dy] : null
   }
-
   return cluster
 }
 export function constantZero() {
   return 0
 }
-
 export function (x) {
   return function () {
     return x
@@ -136,24 +116,20 @@ export { default as treemapSlice } from "./treemap/slice.js"
 export { default as treemapSliceDice } from "./treemap/sliceDice.js"
 export { default as treemapSquarify } from "./treemap/squarify.js"
 export { default as treemapResquarify } from "./treemap/resquarify.js"
-
 const a = 1664525
 const c = 1013904223
 const m = 4294967296 // 2^32
-
 export function () {
   let s = 1
   return () => (s = (a * s + c) % m) / m
 }
 import roundNode from "./treemap/round.js"
 import treemapDice from "./treemap/dice.js"
-
 export function () {
   var dx = 1,
     dy = 1,
     padding = 0,
     round = false
-
   function partition(root) {
     var n = root.height + 1
     root.x0 = root.y0 = padding
@@ -163,7 +139,6 @@ export function () {
     if (round) root.eachBefore(roundNode)
     return root
   }
-
   function positionNode(dy, n) {
     return function (node) {
       if (node.children) {
@@ -181,41 +156,32 @@ export function () {
       node.y1 = y1
     }
   }
-
   partition.round = function (x) {
     return arguments.length ? ((round = !!x), partition) : round
   }
-
   partition.size = function (x) {
     return arguments.length ? ((dx = +x[0]), (dy = +x[1]), partition) : [dx, dy]
   }
-
   partition.padding = function (x) {
     return arguments.length ? ((padding = +x), partition) : padding
   }
-
   return partition
 }
 import { optional } from "./accessors.js"
 import { Node, computeHeight } from "./hierarchy/index.js"
-
 var preroot = { depth: -1 },
   ambiguous = {},
   imputed = {}
-
 function defaultId(d) {
   return d.id
 }
-
 function defaultParentId(d) {
   return d.parentId
 }
-
 export function () {
   var id = defaultId,
     parentId = defaultParentId,
     path
-
   function stratify(data) {
     var nodes = Array.from(data),
       currentId = id,
@@ -229,7 +195,6 @@ export function () {
       nodeId,
       nodeKey,
       nodeByKey = new Map()
-
     if (path != null) {
       const I = nodes.map((d, i) => normalize(path(d, i, data)))
       const P = I.map(parentof)
@@ -245,7 +210,6 @@ export function () {
       currentId = (_, i) => I[i]
       currentParentId = (_, i) => P[i]
     }
-
     for (i = 0, n = nodes.length; i < n; ++i) {
       ;(d = nodes[i]), (node = nodes[i] = new Node(d))
       if ((nodeId = currentId(d, i, data)) != null && (nodeId += "")) {
@@ -256,7 +220,6 @@ export function () {
         node.parent = nodeId
       }
     }
-
     for (i = 0; i < n; ++i) {
       node = nodes[i]
       if ((nodeId = node.parent)) {
@@ -271,9 +234,7 @@ export function () {
         root = node
       }
     }
-
     if (!root) throw new Error("no root")
-
     if (path != null) {
       while (root.data === imputed && root.children.length === 1) {
         ;(root = root.children[0]), --n
@@ -284,7 +245,6 @@ export function () {
         node.data = null
       }
     }
-
     root.parent = preroot
     root
       .eachBefore(function (node) {
@@ -294,39 +254,31 @@ export function () {
       .eachBefore(computeHeight)
     root.parent = null
     if (n > 0) throw new Error("cycle")
-
     return root
   }
-
   stratify.id = function (x) {
     return arguments.length ? ((id = optional(x)), stratify) : id
   }
-
   stratify.parentId = function (x) {
     return arguments.length ? ((parentId = optional(x)), stratify) : parentId
   }
-
   stratify.path = function (x) {
     return arguments.length ? ((path = optional(x)), stratify) : path
   }
-
   return stratify
 }
-
 function normalize(path) {
   path = `${path}`
   let i = path.length
   if (slash(path, i - 1) && !slash(path, i - 2)) path = path.slice(0, -1)
   return path[0] === "/" ? path : `/${path}`
 }
-
 function parentof(path) {
   let i = path.length
   if (i < 2) return ""
   while (--i > 1) if (slash(path, i)) break
   return path.slice(0, i)
 }
-
 function slash(path, i) {
   if (path[i] === "/") {
     let k = 0
@@ -336,21 +288,17 @@ function slash(path, i) {
   return false
 }
 import { Node } from "./hierarchy/index.js"
-
 function defaultSeparation(a, b) {
   return a.parent === b.parent ? 1 : 2
 }
-
 function nextLeft(v) {
   var children = v.children
   return children ? children[0] : v.t
 }
-
 function nextRight(v) {
   var children = v.children
   return children ? children[children.length - 1] : v.t
 }
-
 function moveSubtree(wm, wp, shift) {
   var change = shift / (wp.i - wm.i)
   wp.c -= change
@@ -359,7 +307,6 @@ function moveSubtree(wm, wp, shift) {
   wp.z += shift
   wp.m += shift
 }
-
 function executeShifts(v) {
   var shift = 0,
     change = 0,
@@ -373,11 +320,9 @@ function executeShifts(v) {
     shift += w.s + (change += w.c)
   }
 }
-
 function nextAncestor(vim, v, ancestor) {
   return vim.a.parent === v.parent ? vim.a : ancestor
 }
-
 function TreeNode(node, i) {
   this._ = node
   this.parent = null
@@ -391,9 +336,7 @@ function TreeNode(node, i) {
   this.t = null // thread
   this.i = i // number
 }
-
 TreeNode.prototype = Object.create(Node.prototype)
-
 function treeRoot(root) {
   var tree = new TreeNode(root, 0),
     node,
@@ -402,7 +345,6 @@ function treeRoot(root) {
     children,
     i,
     n
-
   while ((node = nodes.pop())) {
     if ((children = node._.children)) {
       node.children = new Array((n = children.length))
@@ -412,23 +354,18 @@ function treeRoot(root) {
       }
     }
   }
-
   ;(tree.parent = new TreeNode(null, 0)).children = [tree]
   return tree
 }
-
 export function () {
   var separation = defaultSeparation,
     dx = 1,
     dy = 1,
     nodeSize = null
-
   function tree(root) {
     var t = treeRoot(root)
-
     t.eachAfter(firstWalk), (t.parent.m = -t.z)
     t.eachBefore(secondWalk)
-
     if (nodeSize) root.eachBefore(sizeNode)
     else {
       var left = root,
@@ -448,10 +385,8 @@ export function () {
         node.y = node.depth * ky
       })
     }
-
     return root
   }
-
   function firstWalk(v) {
     var children = v.children,
       siblings = v.parent.children,
@@ -470,12 +405,10 @@ export function () {
     }
     v.parent.A = apportion(v, w, v.parent.A || siblings[0])
   }
-
   function secondWalk(v) {
     v._.x = v.z + v.parent.m
     v.m += v.parent.m
   }
-
   function apportion(v, w, ancestor) {
     if (w) {
       var vip = v,
@@ -514,23 +447,18 @@ export function () {
     }
     return ancestor
   }
-
   function sizeNode(node) {
     node.x *= dx
     node.y = node.depth * dy
   }
-
   tree.separation = function (x) {
     return arguments.length ? ((separation = x), tree) : separation
   }
-
   tree.size = function (x) {
     return arguments.length ? ((nodeSize = false), (dx = +x[0]), (dy = +x[1]), tree) : nodeSize ? null : [dx, dy]
   }
-
   tree.nodeSize = function (x) {
     return arguments.length ? ((nodeSize = true), (dx = +x[0]), (dy = +x[1]), tree) : nodeSize ? [dx, dy] : null
   }
-
   return tree
 }

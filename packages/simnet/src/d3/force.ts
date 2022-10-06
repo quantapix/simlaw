@@ -1,65 +1,51 @@
 export function (x, y) {
   var nodes,
     strength = 1
-
   if (x == null) x = 0
   if (y == null) y = 0
-
   function force() {
     var i,
       n = nodes.length,
       node,
       sx = 0,
       sy = 0
-
     for (i = 0; i < n; ++i) {
       ;(node = nodes[i]), (sx += node.x), (sy += node.y)
     }
-
     for (sx = (sx / n - x) * strength, sy = (sy / n - y) * strength, i = 0; i < n; ++i) {
       ;(node = nodes[i]), (node.x -= sx), (node.y -= sy)
     }
   }
-
   force.initialize = function (_) {
     nodes = _
   }
-
   force.x = function (_) {
     return arguments.length ? ((x = +_), force) : x
   }
-
   force.y = function (_) {
     return arguments.length ? ((y = +_), force) : y
   }
-
   force.strength = function (_) {
     return arguments.length ? ((strength = +_), force) : strength
   }
-
   return force
 }
-import { quadtree } from "d3-quadtree"
+import { quadtree } from "./quadtree.js"
 import constant from "./constant.js"
 import jiggle from "./jiggle.js"
-
 function x(d) {
   return d.x + d.vx
 }
-
 function y(d) {
   return d.y + d.vy
 }
-
 export function (radius) {
   var nodes,
     radii,
     random,
     strength = 1,
     iterations = 1
-
   if (typeof radius !== "function") radius = constant(radius == null ? 1 : +radius)
-
   function force() {
     var i,
       n = nodes.length,
@@ -69,7 +55,6 @@ export function (radius) {
       yi,
       ri,
       ri2
-
     for (var k = 0; k < iterations; ++k) {
       tree = quadtree(nodes, x, y).visitAfter(prepare)
       for (i = 0; i < n; ++i) {
@@ -80,7 +65,6 @@ export function (radius) {
         tree.visit(apply)
       }
     }
-
     function apply(quad, x0, y0, x1, y1) {
       var data = quad.data,
         rj = quad.r,
@@ -105,7 +89,6 @@ export function (radius) {
       return x0 > xi + r || x1 < xi - r || y0 > yi + r || y1 < yi - r
     }
   }
-
   function prepare(quad) {
     if (quad.data) return (quad.r = radii[quad.data.index])
     for (var i = (quad.r = 0); i < 4; ++i) {
@@ -114,7 +97,6 @@ export function (radius) {
       }
     }
   }
-
   function initialize() {
     if (!nodes) return
     var i,
@@ -123,25 +105,20 @@ export function (radius) {
     radii = new Array(n)
     for (i = 0; i < n; ++i) (node = nodes[i]), (radii[node.index] = +radius(node, i, nodes))
   }
-
   force.initialize = function (_nodes, _random) {
     nodes = _nodes
     random = _random
     initialize()
   }
-
   force.iterations = function (_) {
     return arguments.length ? ((iterations = +_), force) : iterations
   }
-
   force.strength = function (_) {
     return arguments.length ? ((strength = +_), force) : strength
   }
-
   force.radius = function (_) {
     return arguments.length ? ((radius = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : radius
   }
-
   return force
 }
 export function (x) {
@@ -160,28 +137,23 @@ export { default as forceY } from "./y.js"
 export function (random) {
   return (random() - 0.5) * 1e-6
 }
-
 const a = 1664525
 const c = 1013904223
 const m = 4294967296 // 2^32
-
 export function () {
   let s = 1
   return () => (s = (a * s + c) % m) / m
 }
 import constant from "./constant.js"
 import jiggle from "./jiggle.js"
-
 function index(d) {
   return d.index
 }
-
 function find(nodeById, nodeId) {
   var node = nodeById.get(nodeId)
   if (!node) throw new Error("node not found: " + nodeId)
   return node
 }
-
 export function (links) {
   var id = index,
     strength = defaultStrength,
@@ -193,13 +165,10 @@ export function (links) {
     bias,
     random,
     iterations = 1
-
   if (links == null) links = []
-
   function defaultStrength(link) {
     return 1 / Math.min(count[link.source.index], count[link.target.index])
   }
-
   function force(alpha) {
     for (var k = 0, n = links.length; k < iterations; ++k) {
       for (var i = 0, link, source, target, x, y, l, b; i < n; ++i) {
@@ -216,16 +185,13 @@ export function (links) {
       }
     }
   }
-
   function initialize() {
     if (!nodes) return
-
     var i,
       n = nodes.length,
       m = links.length,
       nodeById = new Map(nodes.map((d, i) => [id(d, i, nodes), d])),
       link
-
     for (i = 0, count = new Array(n); i < m; ++i) {
       ;(link = links[i]), (link.index = i)
       if (typeof link.source !== "object") link.source = find(nodeById, link.source)
@@ -233,68 +199,54 @@ export function (links) {
       count[link.source.index] = (count[link.source.index] || 0) + 1
       count[link.target.index] = (count[link.target.index] || 0) + 1
     }
-
     for (i = 0, bias = new Array(m); i < m; ++i) {
       ;(link = links[i]), (bias[i] = count[link.source.index] / (count[link.source.index] + count[link.target.index]))
     }
-
     ;(strengths = new Array(m)), initializeStrength()
     ;(distances = new Array(m)), initializeDistance()
   }
-
   function initializeStrength() {
     if (!nodes) return
-
     for (var i = 0, n = links.length; i < n; ++i) {
       strengths[i] = +strength(links[i], i, links)
     }
   }
-
   function initializeDistance() {
     if (!nodes) return
-
     for (var i = 0, n = links.length; i < n; ++i) {
       distances[i] = +distance(links[i], i, links)
     }
   }
-
   force.initialize = function (_nodes, _random) {
     nodes = _nodes
     random = _random
     initialize()
   }
-
   force.links = function (_) {
     return arguments.length ? ((links = _), initialize(), force) : links
   }
-
   force.id = function (_) {
     return arguments.length ? ((id = _), force) : id
   }
-
   force.iterations = function (_) {
     return arguments.length ? ((iterations = +_), force) : iterations
   }
-
   force.strength = function (_) {
     return arguments.length
       ? ((strength = typeof _ === "function" ? _ : constant(+_)), initializeStrength(), force)
       : strength
   }
-
   force.distance = function (_) {
     return arguments.length
       ? ((distance = typeof _ === "function" ? _ : constant(+_)), initializeDistance(), force)
       : distance
   }
-
   return force
 }
-import { quadtree } from "d3-quadtree"
+import { quadtree } from "./quadtree.js"
 import constant from "./constant.js"
 import jiggle from "./jiggle.js"
 import { x, y } from "./simulation.js"
-
 export function () {
   var nodes,
     node,
@@ -305,14 +257,12 @@ export function () {
     distanceMin2 = 1,
     distanceMax2 = Infinity,
     theta2 = 0.81
-
   function force(_) {
     var i,
       n = nodes.length,
       tree = quadtree(nodes, x, y).visitAfter(accumulate)
     for (alpha = _, i = 0; i < n; ++i) (node = nodes[i]), tree.visit(apply)
   }
-
   function initialize() {
     if (!nodes) return
     var i,
@@ -321,7 +271,6 @@ export function () {
     strengths = new Array(n)
     for (i = 0; i < n; ++i) (node = nodes[i]), (strengths[node.index] = +strength(node, i, nodes))
   }
-
   function accumulate(quad) {
     var strength = 0,
       q,
@@ -330,7 +279,6 @@ export function () {
       x,
       y,
       i
-
     if (quad.length) {
       for (x = y = i = 0; i < 4; ++i) {
         if ((q = quad[i]) && (c = Math.abs(q.value))) {
@@ -346,18 +294,14 @@ export function () {
       do strength += strengths[q.data.index]
       while ((q = q.next))
     }
-
     quad.value = strength
   }
-
   function apply(quad, x1, _, x2) {
     if (!quad.value) return true
-
     var x = quad.x - node.x,
       y = quad.y - node.y,
       w = x2 - x1,
       l = x * x + y * y
-
     if ((w * w) / theta2 < l) {
       if (l < distanceMax2) {
         if (x === 0) (x = jiggle(random)), (l += x * x)
@@ -368,13 +312,11 @@ export function () {
       }
       return true
     } else if (quad.length || l >= distanceMax2) return
-
     if (quad.data !== node || quad.next) {
       if (x === 0) (x = jiggle(random)), (l += x * x)
       if (y === 0) (y = jiggle(random)), (l += y * y)
       if (l < distanceMin2) l = Math.sqrt(distanceMin2 * l)
     }
-
     do
       if (quad.data !== node) {
         w = (strengths[quad.data.index] * alpha) / l
@@ -383,43 +325,34 @@ export function () {
       }
     while ((quad = quad.next))
   }
-
   force.initialize = function (_nodes, _random) {
     nodes = _nodes
     random = _random
     initialize()
   }
-
   force.strength = function (_) {
     return arguments.length ? ((strength = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : strength
   }
-
   force.distanceMin = function (_) {
     return arguments.length ? ((distanceMin2 = _ * _), force) : Math.sqrt(distanceMin2)
   }
-
   force.distanceMax = function (_) {
     return arguments.length ? ((distanceMax2 = _ * _), force) : Math.sqrt(distanceMax2)
   }
-
   force.theta = function (_) {
     return arguments.length ? ((theta2 = _ * _), force) : Math.sqrt(theta2)
   }
-
   return force
 }
 import constant from "./constant.js"
-
 export function (radius, x, y) {
   var nodes,
     strength = constant(0.1),
     strengths,
     radiuses
-
   if (typeof radius !== "function") radius = constant(+radius)
   if (x == null) x = 0
   if (y == null) y = 0
-
   function force(alpha) {
     for (var i = 0, n = nodes.length; i < n; ++i) {
       var node = nodes[i],
@@ -431,7 +364,6 @@ export function (radius, x, y) {
       node.vy += dy * k
     }
   }
-
   function initialize() {
     if (!nodes) return
     var i,
@@ -443,44 +375,34 @@ export function (radius, x, y) {
       strengths[i] = isNaN(radiuses[i]) ? 0 : +strength(nodes[i], i, nodes)
     }
   }
-
   force.initialize = function (_) {
     ;(nodes = _), initialize()
   }
-
   force.strength = function (_) {
     return arguments.length ? ((strength = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : strength
   }
-
   force.radius = function (_) {
     return arguments.length ? ((radius = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : radius
   }
-
   force.x = function (_) {
     return arguments.length ? ((x = +_), force) : x
   }
-
   force.y = function (_) {
     return arguments.length ? ((y = +_), force) : y
   }
-
   return force
 }
-import { dispatch } from "d3-dispatch"
-import { timer } from "d3-timer"
+import { dispatch } from "./dispatch.js"
+import { timer } from "./timer.js"
 import lcg from "./lcg.js"
-
 export function x(d) {
   return d.x
 }
-
 export function y(d) {
   return d.y
 }
-
 var initialRadius = 10,
   initialAngle = Math.PI * (3 - Math.sqrt(5))
-
 export function (nodes) {
   var simulation,
     alpha = 1,
@@ -492,9 +414,7 @@ export function (nodes) {
     stepper = timer(step),
     event = dispatch("tick", "end"),
     random = lcg()
-
   if (nodes == null) nodes = []
-
   function step() {
     tick()
     event.call("tick", simulation)
@@ -503,21 +423,16 @@ export function (nodes) {
       event.call("end", simulation)
     }
   }
-
   function tick(iterations) {
     var i,
       n = nodes.length,
       node
-
     if (iterations === undefined) iterations = 1
-
     for (var k = 0; k < iterations; ++k) {
       alpha += (alphaTarget - alpha) * alphaDecay
-
       forces.forEach(function (force) {
         force(alpha)
       })
-
       for (i = 0; i < n; ++i) {
         node = nodes[i]
         if (node.fx == null) node.x += node.vx *= velocityDecay
@@ -526,10 +441,8 @@ export function (nodes) {
         else (node.y = node.fy), (node.vy = 0)
       }
     }
-
     return simulation
   }
-
   function initializeNodes() {
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
       ;(node = nodes[i]), (node.index = i)
@@ -546,59 +459,45 @@ export function (nodes) {
       }
     }
   }
-
   function initializeForce(force) {
     if (force.initialize) force.initialize(nodes, random)
     return force
   }
-
   initializeNodes()
-
   return (simulation = {
     tick: tick,
-
     restart: function () {
       return stepper.restart(step), simulation
     },
-
     stop: function () {
       return stepper.stop(), simulation
     },
-
     nodes: function (_) {
       return arguments.length ? ((nodes = _), initializeNodes(), forces.forEach(initializeForce), simulation) : nodes
     },
-
     alpha: function (_) {
       return arguments.length ? ((alpha = +_), simulation) : alpha
     },
-
     alphaMin: function (_) {
       return arguments.length ? ((alphaMin = +_), simulation) : alphaMin
     },
-
     alphaDecay: function (_) {
       return arguments.length ? ((alphaDecay = +_), simulation) : +alphaDecay
     },
-
     alphaTarget: function (_) {
       return arguments.length ? ((alphaTarget = +_), simulation) : alphaTarget
     },
-
     velocityDecay: function (_) {
       return arguments.length ? ((velocityDecay = 1 - _), simulation) : 1 - velocityDecay
     },
-
     randomSource: function (_) {
       return arguments.length ? ((random = _), forces.forEach(initializeForce), simulation) : random
     },
-
     force: function (name, _) {
       return arguments.length > 1
         ? (_ == null ? forces.delete(name) : forces.set(name, initializeForce(_)), simulation)
         : forces.get(name)
     },
-
     find: function (x, y, radius) {
       var i = 0,
         n = nodes.length,
@@ -607,10 +506,8 @@ export function (nodes) {
         d2,
         node,
         closest
-
       if (radius == null) radius = Infinity
       else radius *= radius
-
       for (i = 0; i < n; ++i) {
         node = nodes[i]
         dx = x - node.x
@@ -618,31 +515,25 @@ export function (nodes) {
         d2 = dx * dx + dy * dy
         if (d2 < radius) (closest = node), (radius = d2)
       }
-
       return closest
     },
-
     on: function (name, _) {
       return arguments.length > 1 ? (event.on(name, _), simulation) : event.on(name)
     },
   })
 }
 import constant from "./constant.js"
-
 export function (x) {
   var strength = constant(0.1),
     nodes,
     strengths,
     xz
-
   if (typeof x !== "function") x = constant(x == null ? 0 : +x)
-
   function force(alpha) {
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
       ;(node = nodes[i]), (node.vx += (xz[i] - node.x) * strengths[i] * alpha)
     }
   }
-
   function initialize() {
     if (!nodes) return
     var i,
@@ -653,38 +544,30 @@ export function (x) {
       strengths[i] = isNaN((xz[i] = +x(nodes[i], i, nodes))) ? 0 : +strength(nodes[i], i, nodes)
     }
   }
-
   force.initialize = function (_) {
     nodes = _
     initialize()
   }
-
   force.strength = function (_) {
     return arguments.length ? ((strength = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : strength
   }
-
   force.x = function (_) {
     return arguments.length ? ((x = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : x
   }
-
   return force
 }
 import constant from "./constant.js"
-
 export function (y) {
   var strength = constant(0.1),
     nodes,
     strengths,
     yz
-
   if (typeof y !== "function") y = constant(y == null ? 0 : +y)
-
   function force(alpha) {
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
       ;(node = nodes[i]), (node.vy += (yz[i] - node.y) * strengths[i] * alpha)
     }
   }
-
   function initialize() {
     if (!nodes) return
     var i,
@@ -695,19 +578,15 @@ export function (y) {
       strengths[i] = isNaN((yz[i] = +y(nodes[i], i, nodes))) ? 0 : +strength(nodes[i], i, nodes)
     }
   }
-
   force.initialize = function (_) {
     nodes = _
     initialize()
   }
-
   force.strength = function (_) {
     return arguments.length ? ((strength = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : strength
   }
-
   force.y = function (_) {
     return arguments.length ? ((y = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : y
   }
-
   return force
 }

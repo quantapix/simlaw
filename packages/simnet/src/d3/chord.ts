@@ -1,34 +1,27 @@
-export var slice = Array.prototype.slice
+export const slice = Array.prototype.slice
 import { max, tau } from "./math.js"
-
 function range(i, j) {
   return Array.from({ length: j - i }, (_, k) => i + k)
 }
-
 function compareValue(compare) {
   return function (a, b) {
     return compare(a.source.value + a.target.value, b.source.value + b.target.value)
   }
 }
-
 export function () {
   return chord(false, false)
 }
-
 export function chordTranspose() {
   return chord(false, true)
 }
-
 export function chordDirected() {
   return chord(true, false)
 }
-
 function chord(directed, transpose) {
   var padAngle = 0,
     sortGroups = null,
     sortSubgroups = null,
     sortChords = null
-
   function chord(matrix) {
     var n = matrix.length,
       groupSums = new Array(n),
@@ -37,12 +30,10 @@ function chord(directed, transpose) {
       groups = new Array(n),
       k = 0,
       dx
-
     matrix = Float64Array.from(
       { length: n * n },
       transpose ? (_, i) => matrix[i % n][(i / n) | 0] : (_, i) => matrix[(i / n) | 0][i % n]
     )
-
     for (let i = 0; i < n; ++i) {
       let x = 0
       for (let j = 0; j < n; ++j) x += matrix[i * n + j] + directed * matrix[j * n + i]
@@ -50,7 +41,6 @@ function chord(directed, transpose) {
     }
     k = max(0, tau - padAngle * n) / k
     dx = k ? padAngle : tau / n
-
     {
       let x = 0
       if (sortGroups) groupIndex.sort((a, b) => sortGroups(groupSums[a], groupSums[b]))
@@ -119,30 +109,24 @@ function chord(directed, transpose) {
         x += dx
       }
     }
-
     chords = Object.values(chords)
     chords.groups = groups
     return sortChords ? chords.sort(sortChords) : chords
   }
-
   chord.padAngle = function (_) {
     return arguments.length ? ((padAngle = max(0, _)), chord) : padAngle
   }
-
   chord.sortGroups = function (_) {
     return arguments.length ? ((sortGroups = _), chord) : sortGroups
   }
-
   chord.sortSubgroups = function (_) {
     return arguments.length ? ((sortSubgroups = _), chord) : sortSubgroups
   }
-
   chord.sortChords = function (_) {
     return arguments.length
       ? (_ == null ? (sortChords = null) : ((sortChords = compareValue(_))._ = _), chord)
       : sortChords && sortChords._
   }
-
   return chord
 }
 export function (x) {
@@ -152,47 +136,39 @@ export function (x) {
 }
 export { default as chord, chordTranspose, chordDirected } from "./chord.js"
 export { default as ribbon, ribbonArrow } from "./ribbon.js"
-export var abs = Math.abs
-export var cos = Math.cos
-export var sin = Math.sin
-export var pi = Math.PI
-export var halfPi = pi / 2
-export var tau = pi * 2
-export var max = Math.max
-export var epsilon = 1e-12
-import { path } from "d3-path"
+export const abs = Math.abs
+export const cos = Math.cos
+export const sin = Math.sin
+export const pi = Math.PI
+export const halfPi = pi / 2
+export const tau = pi * 2
+export const max = Math.max
+export const epsilon = 1e-12
+import { path } from "./path.js"
 import { slice } from "./array.js"
 import constant from "./constant.js"
 import { abs, cos, epsilon, halfPi, sin } from "./math.js"
-
 function defaultSource(d) {
   return d.source
 }
-
 function defaultTarget(d) {
   return d.target
 }
-
 function defaultRadius(d) {
   return d.radius
 }
-
 function defaultStartAngle(d) {
   return d.startAngle
 }
-
 function defaultEndAngle(d) {
   return d.endAngle
 }
-
 function defaultPadAngle() {
   return 0
 }
-
 function defaultArrowheadRadius() {
   return 10
 }
-
 function ribbon(headRadius) {
   var source = defaultSource,
     target = defaultTarget,
@@ -202,7 +178,6 @@ function ribbon(headRadius) {
     endAngle = defaultEndAngle,
     padAngle = defaultPadAngle,
     context = null
-
   function ribbon() {
     var buffer,
       s = source.apply(this, arguments),
@@ -215,16 +190,13 @@ function ribbon(headRadius) {
       tr = +targetRadius.apply(this, ((argv[0] = t), argv)),
       ta0 = startAngle.apply(this, argv) - halfPi,
       ta1 = endAngle.apply(this, argv) - halfPi
-
     if (!context) context = buffer = path()
-
     if (ap > epsilon) {
       if (abs(sa1 - sa0) > ap * 2 + epsilon) sa1 > sa0 ? ((sa0 += ap), (sa1 -= ap)) : ((sa0 -= ap), (sa1 += ap))
       else sa0 = sa1 = (sa0 + sa1) / 2
       if (abs(ta1 - ta0) > ap * 2 + epsilon) ta1 > ta0 ? ((ta0 += ap), (ta1 -= ap)) : ((ta0 -= ap), (ta1 += ap))
       else ta0 = ta1 = (ta0 + ta1) / 2
     }
-
     context.moveTo(sr * cos(sa0), sr * sin(sa0))
     context.arc(0, 0, sr, sa0, sa1)
     if (sa0 !== ta0 || sa1 !== ta1) {
@@ -242,60 +214,46 @@ function ribbon(headRadius) {
     }
     context.quadraticCurveTo(0, 0, sr * cos(sa0), sr * sin(sa0))
     context.closePath()
-
     if (buffer) return (context = null), buffer + "" || null
   }
-
   if (headRadius)
     ribbon.headRadius = function (_) {
       return arguments.length ? ((headRadius = typeof _ === "function" ? _ : constant(+_)), ribbon) : headRadius
     }
-
   ribbon.radius = function (_) {
     return arguments.length
       ? ((sourceRadius = targetRadius = typeof _ === "function" ? _ : constant(+_)), ribbon)
       : sourceRadius
   }
-
   ribbon.sourceRadius = function (_) {
     return arguments.length ? ((sourceRadius = typeof _ === "function" ? _ : constant(+_)), ribbon) : sourceRadius
   }
-
   ribbon.targetRadius = function (_) {
     return arguments.length ? ((targetRadius = typeof _ === "function" ? _ : constant(+_)), ribbon) : targetRadius
   }
-
   ribbon.startAngle = function (_) {
     return arguments.length ? ((startAngle = typeof _ === "function" ? _ : constant(+_)), ribbon) : startAngle
   }
-
   ribbon.endAngle = function (_) {
     return arguments.length ? ((endAngle = typeof _ === "function" ? _ : constant(+_)), ribbon) : endAngle
   }
-
   ribbon.padAngle = function (_) {
     return arguments.length ? ((padAngle = typeof _ === "function" ? _ : constant(+_)), ribbon) : padAngle
   }
-
   ribbon.source = function (_) {
     return arguments.length ? ((source = _), ribbon) : source
   }
-
   ribbon.target = function (_) {
     return arguments.length ? ((target = _), ribbon) : target
   }
-
   ribbon.context = function (_) {
     return arguments.length ? ((context = _ == null ? null : _), ribbon) : context
   }
-
   return ribbon
 }
-
 export function () {
   return ribbon()
 }
-
 export function ribbonArrow() {
   return ribbon(defaultArrowheadRadius)
 }

@@ -1,11 +1,9 @@
 import type * as qt from "./types.js"
-
 const top = 1,
   right = 2,
   bottom = 3,
   left = 4,
   epsilon = 1e-6
-
 function translateX(x) {
   return "translate(" + x + ",0)"
 }

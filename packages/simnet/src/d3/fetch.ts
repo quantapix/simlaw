@@ -2,7 +2,6 @@ function responseBlob(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText)
   return response.blob()
 }
-
 export function (input, init) {
   return fetch(input, init).then(responseBlob)
 }
@@ -10,13 +9,11 @@ function responseArrayBuffer(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText)
   return response.arrayBuffer()
 }
-
 export function (input, init) {
   return fetch(input, init).then(responseArrayBuffer)
 }
-import { csvParse, dsvFormat, tsvParse } from "d3-dsv"
+import { csvParse, dsvFormat, tsvParse } from "./dsv.js"
 import text from "./text.js"
-
 function dsvParse(parse) {
   return function (input, init, row) {
     if (arguments.length === 2 && typeof init === "function") (row = init), (init = undefined)
@@ -25,7 +22,6 @@ function dsvParse(parse) {
     })
   }
 }
-
 export function dsv(delimiter, input, init, row) {
   if (arguments.length === 3 && typeof init === "function") (row = init), (init = undefined)
   var format = dsvFormat(delimiter)
@@ -33,9 +29,8 @@ export function dsv(delimiter, input, init, row) {
     return format.parse(response, row)
   })
 }
-
-export var csv = dsvParse(csvParse)
-export var tsv = dsvParse(tsvParse)
+export const csv = dsvParse(csvParse)
+export const tsv = dsvParse(tsvParse)
 export function (input, init) {
   return new Promise(function (resolve, reject) {
     var image = new Image()
@@ -59,7 +54,6 @@ function responseJson(response) {
   if (response.status === 204 || response.status === 205) return
   return response.json()
 }
-
 export function (input, init) {
   return fetch(input, init).then(responseJson)
 }
@@ -67,18 +61,13 @@ function responseText(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText)
   return response.text()
 }
-
 export function (input, init) {
   return fetch(input, init).then(responseText)
 }
 import text from "./text.js"
-
 function parser(type) {
   return (input, init) => text(input, init).then(text => new DOMParser().parseFromString(text, type))
 }
-
 export default parser("application/xml")
-
-export var html = parser("text/html")
-
-export var svg = parser("image/svg+xml")
+export const html = parser("text/html")
+export const svg = parser("image/svg+xml")

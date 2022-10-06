@@ -1,10 +1,7 @@
 export { now, timer, timerFlush } from "./timer.js"
-
 export { default as timeout } from "./timeout.js"
-
 export { default as interval } from "./interval.js"
 import { Timer, now } from "./timer.js"
-
 export function (callback, delay, time) {
   var t = new Timer(),
     total = delay
@@ -26,7 +23,6 @@ export function (callback, delay, time) {
   return t
 }
 import { Timer } from "./timer.js"
-
 export function (callback, delay, time) {
   var t = new Timer()
   delay = delay == null ? 0 : +delay
@@ -56,19 +52,15 @@ var frame = 0, // is an animation frame pending?
       : function (f) {
           setTimeout(f, 17)
         }
-
 export function now() {
   return clockNow || (setFrame(clearNow), (clockNow = clock.now() + clockSkew))
 }
-
 function clearNow() {
   clockNow = 0
 }
-
 export function Timer() {
   this._call = this._time = this._next = null
 }
-
 Timer.prototype = timer.prototype = {
   constructor: Timer,
   restart: function (callback, delay, time) {
@@ -91,13 +83,11 @@ Timer.prototype = timer.prototype = {
     }
   },
 }
-
 export function timer(callback, delay, time) {
   var t = new Timer()
   t.restart(callback, delay, time)
   return t
 }
-
 export function timerFlush() {
   now() // Get the current time, if not already set.
   ++frame // Pretend we’ve set an alarm, if we haven’t already.
@@ -109,7 +99,6 @@ export function timerFlush() {
   }
   --frame
 }
-
 function wake() {
   clockNow = (clockLast = clock.now()) + clockSkew
   frame = timeout = 0
@@ -121,13 +110,11 @@ function wake() {
     clockNow = 0
   }
 }
-
 function poke() {
   var now = clock.now(),
     delay = now - clockLast
   if (delay > pokeDelay) (clockSkew -= delay), (clockLast = now)
 }
-
 function nap() {
   var t0,
     t1 = taskHead,
@@ -145,7 +132,6 @@ function nap() {
   taskTail = t0
   sleep(time)
 }
-
 function sleep(time) {
   if (frame) return // Soonest alarm already set, or will be.
   if (timeout) timeout = clearTimeout(timeout)

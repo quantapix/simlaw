@@ -1,5 +1,4 @@
 import type { MultiPolygon } from "geojson"
-
 export type Primitive = number | string | boolean | Date
 export interface Numeric {
   valueOf(): number
@@ -13,7 +12,6 @@ export interface Bisector<T, U> {
   right(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
   center(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
 }
-
 export interface Bin<Datum, Value extends number | Date | undefined> extends Array<Datum> {
   x0: Value | undefined
   x1: Value | undefined
@@ -33,7 +31,6 @@ export type ThresholdDateArrayGenerator<Value extends Date | undefined> = (
   min: Date,
   max: Date
 ) => Value[]
-
 export interface HistogramCommon<Datum, Value extends number | Date | undefined> {
   (data: ArrayLike<Datum>): Array<Bin<Datum, Value>>
   value(): (d: Datum, i: number, data: ArrayLike<Datum>) => Value
@@ -56,10 +53,8 @@ export interface HistogramGeneratorNumber<Datum, Value extends number | undefine
 export function histogram(): HistogramGeneratorNumber<number, number>
 export function histogram<Datum, Value extends number | undefined>(): HistogramGeneratorNumber<Datum, Value>
 export function histogram<Datum, Value extends Date | undefined>(): HistogramGeneratorDate<Datum, Value>
-
 export class InternMap<K = any, V = any> extends Map<K, V> {}
 export class InternSet<T = any> extends Set<T> {}
-
 export type AxisDomain = number | string | Date | { valueOf(): number }
 export interface AxisTimeInterval {
   range(start: Date, stop: Date, step?: number): Date[]
@@ -104,7 +99,6 @@ export interface Axis<T> {
   offset(): number
   offset(offset: number): this
 }
-
 export type BrushSelection = [[number, number], [number, number]] | [number, number]
 export interface BrushBehavior<T> {
   (group: Selection<SVGGElement, T, any, any>, ...args: any[]): void
@@ -673,10 +667,7 @@ export function dsv<ParsedRow extends object, Columns extends string = string>(
 ): Promise<DSVParsedArray<ParsedRow>>
 export function html(url: string, init?: RequestInit): Promise<Document>
 export function image(url: string, init?: Partial<HTMLImageElement>): Promise<HTMLImageElement>
-export function json<ParsedJSONObject extends any>(
-  url: string,
-  init?: RequestInit
-): Promise<ParsedJSONObject | undefined>
+export function json<ParsedJSONObject>(url: string, init?: RequestInit): Promise<ParsedJSONObject | undefined>
 export function svg(url: string, init?: RequestInit): Promise<Document>
 export function text(url: string, init?: RequestInit): Promise<string>
 export function tsv<Columns extends string>(url: string, init?: RequestInit): Promise<DSVRowArray<Columns>>

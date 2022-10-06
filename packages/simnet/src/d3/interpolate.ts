@@ -1,20 +1,16 @@
 import value from "./value.js"
 import numberArray, { isNumberArray } from "./numberArray.js"
-
 export function (a, b) {
   return (isNumberArray(b) ? numberArray : genericArray)(a, b)
 }
-
 export function genericArray(a, b) {
   var nb = b ? b.length : 0,
     na = a ? Math.min(nb, a.length) : 0,
     x = new Array(na),
     c = new Array(nb),
     i
-
   for (i = 0; i < na; ++i) x[i] = value(a[i], b[i])
   for (; i < nb; ++i) c[i] = b[i]
-
   return function (t) {
     for (i = 0; i < na; ++i) c[i] = x[i](t)
     return c
@@ -27,7 +23,6 @@ export function basis(t1, v0, v1, v2, v3) {
     ((1 - 3 * t1 + 3 * t2 - t3) * v0 + (4 - 6 * t2 + 3 * t3) * v1 + (1 + 3 * t1 + 3 * t2 - 3 * t3) * v2 + t3 * v3) / 6
   )
 }
-
 export function (values) {
   var n = values.length - 1
   return function (t) {
@@ -40,7 +35,6 @@ export function (values) {
   }
 }
 import { basis } from "./basis.js"
-
 export function (values) {
   var n = values.length
   return function (t) {
@@ -53,13 +47,11 @@ export function (values) {
   }
 }
 import constant from "./constant.js"
-
 function linear(a, d) {
   return function (t) {
     return a + t * d
   }
 }
-
 function exponential(a, b, y) {
   return (
     (a = Math.pow(a, y)),
@@ -70,12 +62,10 @@ function exponential(a, b, y) {
     }
   )
 }
-
 export function hue(a, b) {
   var d = b - a
   return d ? linear(a, d > 180 || d < -180 ? d - 360 * Math.round(d / 360) : d) : constant(isNaN(a) ? b : a)
 }
-
 export function gamma(y) {
   return (y = +y) === 1
     ? nogamma
@@ -83,19 +73,16 @@ export function gamma(y) {
         return b - a ? exponential(a, b, y) : constant(isNaN(a) ? b : a)
       }
 }
-
 export function nogamma(a, b) {
   var d = b - a
   return d ? linear(a, d) : constant(isNaN(a) ? b : a)
 }
 export default x => () => x
-import { cubehelix as colorCubehelix } from "d3-color"
+import { cubehelix as colorCubehelix } from "./color.js"
 import color, { hue } from "./color.js"
-
 function cubehelix(hue) {
   return (function cubehelixGamma(y) {
     y = +y
-
     function cubehelix(start, end) {
       var h = hue((start = colorCubehelix(start)).h, (end = colorCubehelix(end)).h),
         s = color(start.s, end.s),
@@ -109,15 +96,12 @@ function cubehelix(hue) {
         return start + ""
       }
     }
-
     cubehelix.gamma = cubehelixGamma
-
     return cubehelix
   })(1)
 }
-
 export default cubehelix(hue)
-export var cubehelixLong = cubehelix(color)
+export const cubehelixLong = cubehelix(color)
 export function (a, b) {
   var d = new Date()
   return (
@@ -134,9 +118,8 @@ export function (range) {
     return range[Math.max(0, Math.min(n - 1, Math.floor(t * n)))]
   }
 }
-import { hcl as colorHcl } from "d3-color"
+import { hcl as colorHcl } from "./color.js"
 import color, { hue } from "./color.js"
-
 function hcl(hue) {
   return function (start, end) {
     var h = hue((start = colorHcl(start)).h, (end = colorHcl(end)).h),
@@ -152,12 +135,10 @@ function hcl(hue) {
     }
   }
 }
-
 export default hcl(hue)
-export var hclLong = hcl(color)
-import { hsl as colorHsl } from "d3-color"
+export const hclLong = hcl(color)
+import { hsl as colorHsl } from "./color.js"
 import color, { hue } from "./color.js"
-
 function hsl(hue) {
   return function (start, end) {
     var h = hue((start = colorHsl(start)).h, (end = colorHsl(end)).h),
@@ -173,11 +154,9 @@ function hsl(hue) {
     }
   }
 }
-
 export default hsl(hue)
-export var hslLong = hsl(color)
+export const hslLong = hsl(color)
 import { hue } from "./color.js"
-
 export function (a, b) {
   var i = hue(+a, +b)
   return function (t) {
@@ -210,9 +189,8 @@ export { default as interpolateHcl, hclLong as interpolateHclLong } from "./hcl.
 export { default as interpolateCubehelix, cubehelixLong as interpolateCubehelixLong } from "./cubehelix.js"
 export { default as piecewise } from "./piecewise.js"
 export { default as quantize } from "./quantize.js"
-import { lab as colorLab } from "d3-color"
+import { lab as colorLab } from "./color.js"
 import color from "./color.js"
-
 export function lab(start, end) {
   var l = color((start = colorLab(start)).l, (end = colorLab(end)).l),
     a = color(start.a, end.a),
@@ -245,20 +223,16 @@ export function (a, b) {
     return c
   }
 }
-
 export function isNumberArray(x) {
   return ArrayBuffer.isView(x) && !(x instanceof DataView)
 }
 import value from "./value.js"
-
 export function (a, b) {
   var i = {},
     c = {},
     k
-
   if (a === null || typeof a !== "object") a = {}
   if (b === null || typeof b !== "object") b = {}
-
   for (k in b) {
     if (k in a) {
       i[k] = value(a[k], b[k])
@@ -266,14 +240,12 @@ export function (a, b) {
       c[k] = b[k]
     }
   }
-
   return function (t) {
     for (k in i) c[k] = i[k](t)
     return c
   }
 }
 import { default as value } from "./value.js"
-
 export function piecewise(interpolate, values) {
   if (values === undefined) (values = interpolate), (interpolate = value)
   var i = 0,
@@ -291,14 +263,12 @@ export function (interpolator, n) {
   for (var i = 0; i < n; ++i) samples[i] = interpolator(i / (n - 1))
   return samples
 }
-import { rgb as colorRgb } from "d3-color"
+import { rgb as colorRgb } from "./color.js"
 import basis from "./basis.js"
 import basisClosed from "./basisClosed.js"
 import nogamma, { gamma } from "./color.js"
-
 export default (function rgbGamma(y) {
   var color = gamma(y)
-
   function rgb(start, end) {
     var r = color((start = colorRgb(start)).r, (end = colorRgb(end)).r),
       g = color(start.g, end.g),
@@ -312,12 +282,9 @@ export default (function rgbGamma(y) {
       return start + ""
     }
   }
-
   rgb.gamma = rgbGamma
-
   return rgb
 })(1)
-
 function rgbSpline(spline) {
   return function (colors) {
     var n = colors.length,
@@ -344,9 +311,8 @@ function rgbSpline(spline) {
     }
   }
 }
-
-export var rgbBasis = rgbSpline(basis)
-export var rgbBasisClosed = rgbSpline(basisClosed)
+export const rgbBasis = rgbSpline(basis)
+export const rgbBasisClosed = rgbSpline(basisClosed)
 export function (a, b) {
   return (
     (a = +a),
@@ -357,22 +323,18 @@ export function (a, b) {
   )
 }
 import number from "./number.js"
-
 var reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g,
   reB = new RegExp(reA.source, "g")
-
 function zero(b) {
   return function () {
     return b
   }
 }
-
 function one(b) {
   return function (t) {
     return b(t) + ""
   }
 }
-
 export function (a, b) {
   var bi = (reA.lastIndex = reB.lastIndex = 0), // scan index for next number in b
     am, // current match in a
@@ -381,9 +343,7 @@ export function (a, b) {
     i = -1, // index in s
     s = [], // string constants and placeholders
     q = [] // number interpolators
-
   ;(a = a + ""), (b = b + "")
-
   while ((am = reA.exec(a)) && (bm = reB.exec(b))) {
     if ((bs = bm.index) > bi) {
       bs = b.slice(bi, bs)
@@ -399,13 +359,11 @@ export function (a, b) {
     }
     bi = reB.lastIndex
   }
-
   if (bi < b.length) {
     bs = b.slice(bi)
     if (s[i]) s[i] += bs // coalesce with previous string
     else s[++i] = bs
   }
-
   return s.length < 2
     ? q[0]
       ? one(q[0].x)
@@ -416,7 +374,7 @@ export function (a, b) {
         return s.join("")
       })
 }
-import { color } from "d3-color"
+import { color } from "./color.js"
 import rgb from "./rgb.js"
 import { genericArray } from "./array.js"
 import date from "./date.js"
@@ -425,7 +383,6 @@ import object from "./object.js"
 import string from "./string.js"
 import constant from "./constant.js"
 import numberArray, { isNumberArray } from "./numberArray.js"
-
 export function (a, b) {
   var t = typeof b,
     c
@@ -450,19 +407,15 @@ export function (a, b) {
         : number)(a, b)
 }
 var epsilon2 = 1e-12
-
 function cosh(x) {
   return ((x = Math.exp(x)) + 1 / x) / 2
 }
-
 function sinh(x) {
   return ((x = Math.exp(x)) - 1 / x) / 2
 }
-
 function tanh(x) {
   return ((x = Math.exp(2 * x)) - 1) / (x + 1)
 }
-
 export default (function zoomRho(rho, rho2, rho4) {
   function zoom(p0, p1) {
     var ux0 = p0[0],
@@ -476,7 +429,6 @@ export default (function zoomRho(rho, rho2, rho4) {
       d2 = dx * dx + dy * dy,
       i,
       S
-
     if (d2 < epsilon2) {
       S = Math.log(w1 / w0) / rho
       i = function (t) {
@@ -496,18 +448,14 @@ export default (function zoomRho(rho, rho2, rho4) {
         return [ux0 + u * dx, uy0 + u * dy, (w0 * coshr0) / cosh(rho * s + r0)]
       }
     }
-
     i.duration = (S * 1000 * rho) / Math.SQRT2
-
     return i
   }
-
   zoom.rho = function (_) {
     var _1 = Math.max(1e-3, +_),
       _2 = _1 * _1,
       _4 = _2 * _2
     return zoomRho(_1, _2, _4)
   }
-
   return zoom
 })(Math.SQRT2, 2, 4)

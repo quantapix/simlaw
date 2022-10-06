@@ -1,14 +1,12 @@
-import { Adder } from "d3-array"
+import { Adder } from "./array.js"
 import { abs } from "../math.js"
 import noop from "../noop.js"
-
 var areaSum = new Adder(),
   areaRingSum = new Adder(),
   x00,
   y00,
   x0,
   y0
-
 var areaStream = {
   point: noop,
   lineStart: noop,
@@ -28,33 +26,26 @@ var areaStream = {
     return area
   },
 }
-
 function areaRingStart() {
   areaStream.point = areaPointFirst
 }
-
 function areaPointFirst(x, y) {
   areaStream.point = areaPoint
   ;(x00 = x0 = x), (y00 = y0 = y)
 }
-
 function areaPoint(x, y) {
   areaRingSum.add(y0 * x - x0 * y)
   ;(x0 = x), (y0 = y)
 }
-
 function areaRingEnd() {
   areaPoint(x00, y00)
 }
-
 export default areaStream
 import noop from "../noop.js"
-
 var x0 = Infinity,
   y0 = x0,
   x1 = -x0,
   y1 = x1
-
 var boundsStream = {
   point: boundsPoint,
   lineStart: noop,
@@ -70,17 +61,14 @@ var boundsStream = {
     return bounds
   },
 }
-
 function boundsPoint(x, y) {
   if (x < x0) x0 = x
   if (x > x1) x1 = x
   if (y < y0) y0 = y
   if (y > y1) y1 = y
 }
-
 export default boundsStream
 import { sqrt } from "../math.js"
-
 var X0 = 0,
   Y0 = 0,
   Z0 = 0,
@@ -94,7 +82,6 @@ var X0 = 0,
   y00,
   x0,
   y0
-
 var centroidStream = {
   point: centroidPoint,
   lineStart: centroidLineStart,
@@ -114,22 +101,18 @@ var centroidStream = {
     return centroid
   },
 }
-
 function centroidPoint(x, y) {
   X0 += x
   Y0 += y
   ++Z0
 }
-
 function centroidLineStart() {
   centroidStream.point = centroidPointFirstLine
 }
-
 function centroidPointFirstLine(x, y) {
   centroidStream.point = centroidPointLine
   centroidPoint((x0 = x), (y0 = y))
 }
-
 function centroidPointLine(x, y) {
   var dx = x - x0,
     dy = y - y0,
@@ -139,48 +122,38 @@ function centroidPointLine(x, y) {
   Z1 += z
   centroidPoint((x0 = x), (y0 = y))
 }
-
 function centroidLineEnd() {
   centroidStream.point = centroidPoint
 }
-
 function centroidRingStart() {
   centroidStream.point = centroidPointFirstRing
 }
-
 function centroidRingEnd() {
   centroidPointRing(x00, y00)
 }
-
 function centroidPointFirstRing(x, y) {
   centroidStream.point = centroidPointRing
   centroidPoint((x00 = x0 = x), (y00 = y0 = y))
 }
-
 function centroidPointRing(x, y) {
   var dx = x - x0,
     dy = y - y0,
     z = sqrt(dx * dx + dy * dy)
-
   X1 += (z * (x0 + x)) / 2
   Y1 += (z * (y0 + y)) / 2
   Z1 += z
-
   z = y0 * x - x0 * y
   X2 += z * (x0 + x)
   Y2 += z * (y0 + y)
   Z2 += z * 3
   centroidPoint((x0 = x), (y0 = y))
 }
-
 export default centroidStream
 import { tau } from "../math.js"
 import noop from "../noop.js"
-
 export function PathContext(context) {
   this._context = context
 }
-
 PathContext.prototype = {
   _radius: 4.5,
   pointRadius: function (_) {
@@ -227,12 +200,10 @@ import pathCentroid from "./centroid.js"
 import PathContext from "./context.js"
 import pathMeasure from "./measure.js"
 import PathString from "./string.js"
-
 export function (projection, context) {
   var pointRadius = 4.5,
     projectionStream,
     contextStream
-
   function path(object) {
     if (object) {
       if (typeof pointRadius === "function") contextStream.pointRadius(+pointRadius.apply(this, arguments))
@@ -240,59 +211,49 @@ export function (projection, context) {
     }
     return contextStream.result()
   }
-
   path.area = function (object) {
     stream(object, projectionStream(pathArea))
     return pathArea.result()
   }
-
   path.measure = function (object) {
     stream(object, projectionStream(pathMeasure))
     return pathMeasure.result()
   }
-
   path.bounds = function (object) {
     stream(object, projectionStream(pathBounds))
     return pathBounds.result()
   }
-
   path.centroid = function (object) {
     stream(object, projectionStream(pathCentroid))
     return pathCentroid.result()
   }
-
   path.projection = function (_) {
     return arguments.length
       ? ((projectionStream = _ == null ? ((projection = null), identity) : (projection = _).stream), path)
       : projection
   }
-
   path.context = function (_) {
     if (!arguments.length) return context
     contextStream = _ == null ? ((context = null), new PathString()) : new PathContext((context = _))
     if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius)
     return path
   }
-
   path.pointRadius = function (_) {
     if (!arguments.length) return pointRadius
     pointRadius = typeof _ === "function" ? _ : (contextStream.pointRadius(+_), +_)
     return path
   }
-
   return path.projection(projection).context(context)
 }
-import { Adder } from "d3-array"
+import { Adder } from "./array.js"
 import { sqrt } from "../math.js"
 import noop from "../noop.js"
-
 var lengthSum = new Adder(),
   lengthRing,
   x00,
   y00,
   x0,
   y0
-
 var lengthStream = {
   point: noop,
   lineStart: function () {
@@ -314,23 +275,19 @@ var lengthStream = {
     return length
   },
 }
-
 function lengthPointFirst(x, y) {
   lengthStream.point = lengthPoint
   ;(x00 = x0 = x), (y00 = y0 = y)
 }
-
 function lengthPoint(x, y) {
   ;(x0 -= x), (y0 -= y)
   lengthSum.add(sqrt(x0 * x0 + y0 * y0))
   ;(x0 = x), (y0 = y)
 }
-
 export default lengthStream
 export function PathString() {
   this._string = []
 }
-
 PathString.prototype = {
   _radius: 4.5,
   _circle: circle(4.5),
@@ -379,7 +336,6 @@ PathString.prototype = {
     }
   },
 }
-
 function circle(radius) {
   return (
     "m0," +

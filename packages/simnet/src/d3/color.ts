@@ -1,10 +1,7 @@
 import define, { extend } from "./define.js"
-
 export function Color() {}
-
-export var darker = 0.7
-export var brighter = 1 / darker
-
+export const darker = 0.7
+export const brighter = 1 / darker
 var reI = "\\s*([+-]?\\d+)\\s*",
   reN = "\\s*([+-]?(?:\\d*\\.)?\\d+(?:[eE][+-]?\\d+)?)\\s*",
   reP = "\\s*([+-]?(?:\\d*\\.)?\\d+(?:[eE][+-]?\\d+)?)%\\s*",
@@ -15,7 +12,6 @@ var reI = "\\s*([+-]?\\d+)\\s*",
   reRgbaPercent = new RegExp(`^rgba\\(${reP},${reP},${reP},${reN}\\)$`),
   reHslPercent = new RegExp(`^hsl\\(${reN},${reP},${reP}\\)$`),
   reHslaPercent = new RegExp(`^hsla\\(${reN},${reP},${reP},${reN}\\)$`)
-
 var named = {
   aliceblue: 0xf0f8ff,
   antiquewhite: 0xfaebd7,
@@ -166,7 +162,6 @@ var named = {
   yellow: 0xffff00,
   yellowgreen: 0x9acd32,
 }
-
 define(Color, color, {
   copy(channels) {
     return Object.assign(new this.constructor(), this, channels)
@@ -181,23 +176,18 @@ define(Color, color, {
   formatRgb: color_formatRgb,
   toString: color_formatRgb,
 })
-
 function color_formatHex() {
   return this.rgb().formatHex()
 }
-
 function color_formatHex8() {
   return this.rgb().formatHex8()
 }
-
 function color_formatHsl() {
   return hslConvert(this).formatHsl()
 }
-
 function color_formatRgb() {
   return this.rgb().formatRgb()
 }
-
 export function color(format) {
   var m, l
   format = (format + "").trim().toLowerCase()
@@ -236,34 +226,28 @@ export function color(format) {
     ? new Rgb(NaN, NaN, NaN, 0)
     : null
 }
-
 function rgbn(n) {
   return new Rgb((n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff, 1)
 }
-
 function rgba(r, g, b, a) {
   if (a <= 0) r = g = b = NaN
   return new Rgb(r, g, b, a)
 }
-
 export function rgbConvert(o) {
   if (!(o instanceof Color)) o = color(o)
   if (!o) return new Rgb()
   o = o.rgb()
   return new Rgb(o.r, o.g, o.b, o.opacity)
 }
-
 export function rgb(r, g, b, opacity) {
   return arguments.length === 1 ? rgbConvert(r) : new Rgb(r, g, b, opacity == null ? 1 : opacity)
 }
-
 export function Rgb(r, g, b, opacity) {
   this.r = +r
   this.g = +g
   this.b = +b
   this.opacity = +opacity
 }
-
 define(
   Rgb,
   rgb,
@@ -301,42 +285,34 @@ define(
     toString: rgb_formatRgb,
   })
 )
-
 function rgb_formatHex() {
   return `#${hex(this.r)}${hex(this.g)}${hex(this.b)}`
 }
-
 function rgb_formatHex8() {
   return `#${hex(this.r)}${hex(this.g)}${hex(this.b)}${hex((isNaN(this.opacity) ? 1 : this.opacity) * 255)}`
 }
-
 function rgb_formatRgb() {
   const a = clampa(this.opacity)
   return `${a === 1 ? "rgb(" : "rgba("}${clampi(this.r)}, ${clampi(this.g)}, ${clampi(this.b)}${
     a === 1 ? ")" : `, ${a})`
   }`
 }
-
 function clampa(opacity) {
   return isNaN(opacity) ? 1 : Math.max(0, Math.min(1, opacity))
 }
-
 function clampi(value) {
   return Math.max(0, Math.min(255, Math.round(value) || 0))
 }
-
 function hex(value) {
   value = clampi(value)
   return (value < 16 ? "0" : "") + value.toString(16)
 }
-
 function hsla(h, s, l, a) {
   if (a <= 0) h = s = l = NaN
   else if (l <= 0 || l >= 1) h = s = NaN
   else if (s <= 0) h = NaN
   return new Hsl(h, s, l, a)
 }
-
 export function hslConvert(o) {
   if (o instanceof Hsl) return new Hsl(o.h, o.s, o.l, o.opacity)
   if (!(o instanceof Color)) o = color(o)
@@ -362,18 +338,15 @@ export function hslConvert(o) {
   }
   return new Hsl(h, s, l, o.opacity)
 }
-
 export function hsl(h, s, l, opacity) {
   return arguments.length === 1 ? hslConvert(h) : new Hsl(h, s, l, opacity == null ? 1 : opacity)
 }
-
 function Hsl(h, s, l, opacity) {
   this.h = +h
   this.s = +s
   this.l = +l
   this.opacity = +opacity
 }
-
 define(
   Hsl,
   hsl,
@@ -419,16 +392,13 @@ define(
     },
   })
 )
-
 function clamph(value) {
   value = (value || 0) % 360
   return value < 0 ? value + 360 : value
 }
-
 function clampt(value) {
   return Math.max(0, Math.min(1, value || 0))
 }
-
 /* From FvD 13.37, CSS Color Module Level 3 */
 function hsl2rgb(h, m1, m2) {
   return (h < 60 ? m1 + ((m2 - m1) * h) / 60 : h < 180 ? m2 : h < 240 ? m1 + ((m2 - m1) * (240 - h)) / 60 : m1) * 255
@@ -436,7 +406,6 @@ function hsl2rgb(h, m1, m2) {
 import define, { extend } from "./define.js"
 import { Color, rgbConvert, Rgb, darker, brighter } from "./color.js"
 import { degrees, radians } from "./math.js"
-
 var A = -0.14861,
   B = +1.78277,
   C = -0.29227,
@@ -445,7 +414,6 @@ var A = -0.14861,
   ED = E * D,
   EB = E * B,
   BC_DA = B * C - D * A
-
 function cubehelixConvert(o) {
   if (o instanceof Cubehelix) return new Cubehelix(o.h, o.s, o.l, o.opacity)
   if (!(o instanceof Rgb)) o = rgbConvert(o)
@@ -459,18 +427,15 @@ function cubehelixConvert(o) {
     h = s ? Math.atan2(k, bl) * degrees - 120 : NaN
   return new Cubehelix(h < 0 ? h + 360 : h, s, l, o.opacity)
 }
-
 export function cubehelix(h, s, l, opacity) {
   return arguments.length === 1 ? cubehelixConvert(h) : new Cubehelix(h, s, l, opacity == null ? 1 : opacity)
 }
-
 export function Cubehelix(h, s, l, opacity) {
   this.h = +h
   this.s = +s
   this.l = +l
   this.opacity = +opacity
 }
-
 define(
   Cubehelix,
   cubehelix,
@@ -502,7 +467,6 @@ export function (constructor, factory, prototype) {
   constructor.prototype = factory.prototype = prototype
   prototype.constructor = constructor
 }
-
 export function extend(parent, definition) {
   var prototype = Object.create(parent.prototype)
   for (var key in definition) prototype[key] = definition[key]
@@ -514,7 +478,6 @@ export { default as cubehelix } from "./cubehelix.js"
 import define, { extend } from "./define.js"
 import { Color, rgbConvert, Rgb } from "./color.js"
 import { degrees, radians } from "./math.js"
-
 const K = 18,
   Xn = 0.96422,
   Yn = 1,
@@ -523,7 +486,6 @@ const K = 18,
   t1 = 6 / 29,
   t2 = 3 * t1 * t1,
   t3 = t1 * t1 * t1
-
 function labConvert(o) {
   if (o instanceof Lab) return new Lab(o.l, o.a, o.b, o.opacity)
   if (o instanceof Hcl) return hcl2lab(o)
@@ -541,22 +503,18 @@ function labConvert(o) {
   }
   return new Lab(116 * y - 16, 500 * (x - y), 200 * (y - z), o.opacity)
 }
-
 export function gray(l, opacity) {
   return new Lab(l, 0, 0, opacity == null ? 1 : opacity)
 }
-
 export function lab(l, a, b, opacity) {
   return arguments.length === 1 ? labConvert(l) : new Lab(l, a, b, opacity == null ? 1 : opacity)
 }
-
 export function Lab(l, a, b, opacity) {
   this.l = +l
   this.a = +a
   this.b = +b
   this.opacity = +opacity
 }
-
 define(
   Lab,
   lab,
@@ -583,23 +541,18 @@ define(
     },
   })
 )
-
 function xyz2lab(t) {
   return t > t3 ? Math.pow(t, 1 / 3) : t / t2 + t0
 }
-
 function lab2xyz(t) {
   return t > t1 ? t * t * t : t2 * (t - t0)
 }
-
 function lrgb2rgb(x) {
   return 255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055)
 }
-
 function rgb2lrgb(x) {
   return (x /= 255) <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4)
 }
-
 function hclConvert(o) {
   if (o instanceof Hcl) return new Hcl(o.h, o.c, o.l, o.opacity)
   if (!(o instanceof Lab)) o = labConvert(o)
@@ -607,28 +560,23 @@ function hclConvert(o) {
   var h = Math.atan2(o.b, o.a) * degrees
   return new Hcl(h < 0 ? h + 360 : h, Math.sqrt(o.a * o.a + o.b * o.b), o.l, o.opacity)
 }
-
 export function lch(l, c, h, opacity) {
   return arguments.length === 1 ? hclConvert(l) : new Hcl(h, c, l, opacity == null ? 1 : opacity)
 }
-
 export function hcl(h, c, l, opacity) {
   return arguments.length === 1 ? hclConvert(h) : new Hcl(h, c, l, opacity == null ? 1 : opacity)
 }
-
 export function Hcl(h, c, l, opacity) {
   this.h = +h
   this.c = +c
   this.l = +l
   this.opacity = +opacity
 }
-
 function hcl2lab(o) {
   if (isNaN(o.h)) return new Lab(o.l, 0, 0, o.opacity)
   var h = o.h * radians
   return new Lab(o.l, Math.cos(h) * o.c, Math.sin(h) * o.c, o.opacity)
 }
-
 define(
   Hcl,
   hcl,

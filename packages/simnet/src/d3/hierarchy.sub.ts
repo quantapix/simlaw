@@ -14,7 +14,6 @@ function count(node) {
   else while (--i >= 0) sum += children[i].value
   node.value = sum
 }
-
 export function () {
   return this.eachAfter(count)
 }
@@ -86,7 +85,6 @@ import node_descendants from "./descendants.js"
 import node_leaves from "./leaves.js"
 import node_links from "./links.js"
 import node_iterator from "./iterator.js"
-
 export function hierarchy(data, children) {
   if (data instanceof Map) {
     data = [undefined, data]
@@ -94,7 +92,6 @@ export function hierarchy(data, children) {
   } else if (children === undefined) {
     children = objectChildren
   }
-
   var root = new Node(data),
     node,
     nodes = [root],
@@ -102,7 +99,6 @@ export function hierarchy(data, children) {
     childs,
     i,
     n
-
   while ((node = nodes.pop())) {
     if ((childs = children(node.data)) && (n = (childs = Array.from(childs)).length)) {
       node.children = childs
@@ -113,39 +109,31 @@ export function hierarchy(data, children) {
       }
     }
   }
-
   return root.eachBefore(computeHeight)
 }
-
 function node_copy() {
   return hierarchy(this).eachBefore(copyData)
 }
-
 function objectChildren(d) {
   return d.children
 }
-
 function mapChildren(d) {
   return Array.isArray(d) ? d[1] : null
 }
-
 function copyData(node) {
   if (node.data.value !== undefined) node.value = node.data.value
   node.data = node.data.data
 }
-
 export function computeHeight(node) {
   var height = 0
   do node.height = height
   while ((node = node.parent) && node.height < ++height)
 }
-
 export function Node(data) {
   this.data = data
   this.depth = this.height = 0
   this.parent = null
 }
-
 Node.prototype = hierarchy.prototype = {
   constructor: Node,
   count: node_count,
@@ -216,7 +204,6 @@ export function (end) {
   }
   return nodes
 }
-
 function leastCommonAncestor(a, b) {
   if (a === b) return a
   var aNodes = a.ancestors(),

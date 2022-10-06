@@ -13,7 +13,6 @@ export { default as zoomTransform, identity as zoomIdentity, Transform as ZoomTr
 export function nopropagation(event) {
   event.stopImmediatePropagation()
 }
-
 export function (event) {
   event.preventDefault()
   event.stopImmediatePropagation()
@@ -23,7 +22,6 @@ export function Transform(k, x, y) {
   this.x = x
   this.y = y
 }
-
 Transform.prototype = {
   constructor: Transform,
   scale: function (k) {
@@ -60,29 +58,24 @@ Transform.prototype = {
     return "translate(" + this.x + "," + this.y + ") scale(" + this.k + ")"
   },
 }
-
-export var identity = new Transform(1, 0, 0)
-
+export const identity = new Transform(1, 0, 0)
 transform.prototype = Transform.prototype
-
 export function transform(node) {
   while (!node.__zoom) if (!(node = node.parentNode)) return identity
   return node.__zoom
 }
-import { dispatch } from "d3-dispatch"
-import { dragDisable, dragEnable } from "d3-drag"
-import { interpolateZoom } from "d3-interpolate"
-import { select, pointer } from "d3-selection"
-import { interrupt } from "d3-transition"
+import { dispatch } from "./dispatch.js"
+import { dragDisable, dragEnable } from "./drag.js"
+import { interpolateZoom } from "./interpolate.js"
+import { select, pointer } from "./selection.js"
+import { interrupt } from "./transition.js"
 import constant from "./constant.js"
 import ZoomEvent from "./event.js"
 import { Transform, identity } from "./transform.js"
 import noevent, { nopropagation } from "./noevent.js"
-
 function defaultFilter(event) {
   return (!event.ctrlKey || event.type === "wheel") && !event.button
 }
-
 function defaultExtent() {
   var e = this
   if (e instanceof SVGElement) {
@@ -104,19 +97,15 @@ function defaultExtent() {
     [e.clientWidth, e.clientHeight],
   ]
 }
-
 function defaultTransform() {
   return this.__zoom || identity
 }
-
 function defaultWheelDelta(event) {
   return -event.deltaY * (event.deltaMode === 1 ? 0.05 : event.deltaMode ? 1 : 0.002) * (event.ctrlKey ? 10 : 1)
 }
-
 function defaultTouchable() {
   return navigator.maxTouchPoints || "ontouchstart" in this
 }
-
 function defaultConstrain(transform, extent, translateExtent) {
   var dx0 = transform.invertX(extent[0][0]) - translateExtent[0][0],
     dx1 = transform.invertX(extent[1][0]) - translateExtent[1][0],
@@ -127,7 +116,6 @@ function defaultConstrain(transform, extent, translateExtent) {
     dy1 > dy0 ? (dy0 + dy1) / 2 : Math.min(0, dy0) || Math.max(0, dy1)
   )
 }
-
 export function () {
   var filter = defaultFilter,
     extent = defaultExtent,
@@ -149,7 +137,6 @@ export function () {
     wheelDelay = 150,
     clickDistance2 = 0,
     tapDistance = 10
-
   function zoom(selection) {
     selection
       .property("__zoom", defaultTransform)
@@ -162,7 +149,6 @@ export function () {
       .on("touchend.zoom touchcancel.zoom", touchended)
       .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)")
   }
-
   zoom.transform = function (collection, transform, point, event) {
     var selection = collection.selection ? collection.selection() : collection
     selection.property("__zoom", defaultTransform)
@@ -178,7 +164,6 @@ export function () {
       })
     }
   }
-
   zoom.scaleBy = function (selection, k, p, event) {
     zoom.scaleTo(
       selection,
@@ -191,7 +176,6 @@ export function () {
       event
     )
   }
-
   zoom.scaleTo = function (selection, k, p, event) {
     zoom.transform(
       selection,
@@ -207,7 +191,6 @@ export function () {
       event
     )
   }
-
   zoom.translateBy = function (selection, x, y, event) {
     zoom.transform(
       selection,
@@ -225,7 +208,6 @@ export function () {
       event
     )
   }
-
   zoom.translateTo = function (selection, x, y, p, event) {
     zoom.transform(
       selection,
@@ -249,22 +231,18 @@ export function () {
       event
     )
   }
-
   function scale(transform, k) {
     k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], k))
     return k === transform.k ? transform : new Transform(k, transform.x, transform.y)
   }
-
   function translate(transform, p0, p1) {
     var x = p0[0] - p1[0] * transform.k,
       y = p0[1] - p1[1] * transform.k
     return x === transform.x && y === transform.y ? transform : new Transform(transform.k, x, y)
   }
-
   function centroid(extent) {
     return [(+extent[0][0] + +extent[1][0]) / 2, (+extent[0][1] + +extent[1][1]) / 2]
   }
-
   function schedule(transition, transform, point, event) {
     transition
       .on("start.zoom", function () {
@@ -294,11 +272,9 @@ export function () {
         }
       })
   }
-
   function gesture(that, args, clean) {
     return (!clean && that.__zooming) || new Gesture(that, args)
   }
-
   function Gesture(that, args) {
     this.that = that
     this.args = args
@@ -307,7 +283,6 @@ export function () {
     this.extent = extent.apply(that, args)
     this.taps = 0
   }
-
   Gesture.prototype = {
     event: function (event) {
       if (event) this.sourceEvent = event
@@ -351,14 +326,12 @@ export function () {
       )
     },
   }
-
   function wheeled(event, ...args) {
     if (!filter.apply(this, arguments)) return
     var g = gesture(this, args).event(event),
       t = this.__zoom,
       k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], t.k * Math.pow(2, wheelDelta.apply(this, arguments)))),
       p = pointer(event)
-
     if (g.wheel) {
       if (g.mouse[0][0] !== p[0] || g.mouse[0][1] !== p[1]) {
         g.mouse[1] = t.invert((g.mouse[0] = p))
@@ -370,17 +343,14 @@ export function () {
       interrupt(this)
       g.start()
     }
-
     noevent(event)
     g.wheel = setTimeout(wheelidled, wheelDelay)
     g.zoom("mouse", constrain(translate(scale(t, k), g.mouse[0], g.mouse[1]), g.extent, translateExtent))
-
     function wheelidled() {
       g.wheel = null
       g.end()
     }
   }
-
   function mousedowned(event, ...args) {
     if (touchending || !filter.apply(this, arguments)) return
     var currentTarget = event.currentTarget,
@@ -389,13 +359,11 @@ export function () {
       p = pointer(event, currentTarget),
       x0 = event.clientX,
       y0 = event.clientY
-
     dragDisable(event.view)
     nopropagation(event)
     g.mouse = [p, this.__zoom.invert(p)]
     interrupt(this)
     g.start()
-
     function mousemoved(event) {
       noevent(event)
       if (!g.moved) {
@@ -412,7 +380,6 @@ export function () {
         )
       )
     }
-
     function mouseupped(event) {
       v.on("mousemove.zoom mouseup.zoom", null)
       dragEnable(event.view, g.moved)
@@ -420,7 +387,6 @@ export function () {
       g.event(event).end()
     }
   }
-
   function dblclicked(event, ...args) {
     if (!filter.apply(this, arguments)) return
     var t0 = this.__zoom,
@@ -428,12 +394,10 @@ export function () {
       p1 = t0.invert(p0),
       k1 = t0.k * (event.shiftKey ? 0.5 : 2),
       t1 = constrain(translate(scale(t0, k1), p0, p1), extent.apply(this, args), translateExtent)
-
     noevent(event)
     if (duration > 0) select(this).transition().duration(duration).call(schedule, t1, p0, event)
     else select(this).call(zoom.transform, t1, p0, event)
   }
-
   function touchstarted(event, ...args) {
     if (!filter.apply(this, arguments)) return
     var touches = event.touches,
@@ -443,7 +407,6 @@ export function () {
       i,
       t,
       p
-
     nopropagation(event)
     for (i = 0; i < n; ++i) {
       ;(t = touches[i]), (p = pointer(t, this))
@@ -451,9 +414,7 @@ export function () {
       if (!g.touch0) (g.touch0 = p), (started = true), (g.taps = 1 + !!touchstarting)
       else if (!g.touch1 && g.touch0[2] !== p[2]) (g.touch1 = p), (g.taps = 0)
     }
-
     if (touchstarting) touchstarting = clearTimeout(touchstarting)
-
     if (started) {
       if (g.taps < 2)
         (touchfirst = p[0]),
@@ -464,7 +425,6 @@ export function () {
       g.start()
     }
   }
-
   function touchmoved(event, ...args) {
     if (!this.__zooming) return
     var g = gesture(this, args).event(event),
@@ -474,7 +434,6 @@ export function () {
       t,
       p,
       l
-
     noevent(event)
     for (i = 0; i < n; ++i) {
       ;(t = touches[i]), (p = pointer(t, this))
@@ -494,10 +453,8 @@ export function () {
       l = [(l0[0] + l1[0]) / 2, (l0[1] + l1[1]) / 2]
     } else if (g.touch0) (p = g.touch0[0]), (l = g.touch0[1])
     else return
-
     g.zoom("touch", constrain(translate(t, p, l), g.extent, translateExtent))
   }
-
   function touchended(event, ...args) {
     if (!this.__zooming) return
     var g = gesture(this, args).event(event),
@@ -505,7 +462,6 @@ export function () {
       n = touches.length,
       i,
       t
-
     nopropagation(event)
     if (touchending) clearTimeout(touchending)
     touchending = setTimeout(function () {
@@ -520,7 +476,6 @@ export function () {
     if (g.touch0) g.touch0[1] = this.__zoom.invert(g.touch0[0])
     else {
       g.end()
-
       if (g.taps === 2) {
         t = pointer(t, this)
         if (Math.hypot(touchfirst[0] - t[0], touchfirst[1] - t[1]) < tapDistance) {
@@ -530,19 +485,15 @@ export function () {
       }
     }
   }
-
   zoom.wheelDelta = function (_) {
     return arguments.length ? ((wheelDelta = typeof _ === "function" ? _ : constant(+_)), zoom) : wheelDelta
   }
-
   zoom.filter = function (_) {
     return arguments.length ? ((filter = typeof _ === "function" ? _ : constant(!!_)), zoom) : filter
   }
-
   zoom.touchable = function (_) {
     return arguments.length ? ((touchable = typeof _ === "function" ? _ : constant(!!_)), zoom) : touchable
   }
-
   zoom.extent = function (_) {
     return arguments.length
       ? ((extent =
@@ -555,13 +506,11 @@ export function () {
         zoom)
       : extent
   }
-
   zoom.scaleExtent = function (_) {
     return arguments.length
       ? ((scaleExtent[0] = +_[0]), (scaleExtent[1] = +_[1]), zoom)
       : [scaleExtent[0], scaleExtent[1]]
   }
-
   zoom.translateExtent = function (_) {
     return arguments.length
       ? ((translateExtent[0][0] = +_[0][0]),
@@ -574,31 +523,24 @@ export function () {
           [translateExtent[1][0], translateExtent[1][1]],
         ]
   }
-
   zoom.constrain = function (_) {
     return arguments.length ? ((constrain = _), zoom) : constrain
   }
-
   zoom.duration = function (_) {
     return arguments.length ? ((duration = +_), zoom) : duration
   }
-
   zoom.interpolate = function (_) {
     return arguments.length ? ((interpolate = _), zoom) : interpolate
   }
-
   zoom.on = function () {
     var value = listeners.on.apply(listeners, arguments)
     return value === listeners ? zoom : value
   }
-
   zoom.clickDistance = function (_) {
     return arguments.length ? ((clickDistance2 = (_ = +_) * _), zoom) : Math.sqrt(clickDistance2)
   }
-
   zoom.tapDistance = function (_) {
     return arguments.length ? ((tapDistance = +_), zoom) : tapDistance
   }
-
   return zoom
 }

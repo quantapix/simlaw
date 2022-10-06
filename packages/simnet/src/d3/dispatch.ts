@@ -1,5 +1,4 @@
 var noop = { value: () => {} }
-
 function dispatch() {
   for (var i = 0, n = arguments.length, _ = {}, t; i < n; ++i) {
     if (!(t = arguments[i] + "") || t in _ || /[\s.]/.test(t)) throw new Error("illegal type: " + t)
@@ -7,11 +6,9 @@ function dispatch() {
   }
   return new Dispatch(_)
 }
-
 function Dispatch(_) {
   this._ = _
 }
-
 function parseTypenames(typenames, types) {
   return typenames
     .trim()
@@ -24,7 +21,6 @@ function parseTypenames(typenames, types) {
       return { type: t, name: name }
     })
 }
-
 Dispatch.prototype = dispatch.prototype = {
   constructor: Dispatch,
   on: function (typename, callback) {
@@ -33,18 +29,15 @@ Dispatch.prototype = dispatch.prototype = {
       t,
       i = -1,
       n = T.length
-
     if (arguments.length < 2) {
       while (++i < n) if ((t = (typename = T[i]).type) && (t = get(_[t], typename.name))) return t
       return
     }
-
     if (callback != null && typeof callback !== "function") throw new Error("invalid callback: " + callback)
     while (++i < n) {
       if ((t = (typename = T[i]).type)) _[t] = set(_[t], typename.name, callback)
       else if (callback == null) for (t in _) _[t] = set(_[t], typename.name, null)
     }
-
     return this
   },
   copy: function () {
@@ -64,7 +57,6 @@ Dispatch.prototype = dispatch.prototype = {
     for (var t = this._[type], i = 0, n = t.length; i < n; ++i) t[i].value.apply(that, args)
   },
 }
-
 function get(type, name) {
   for (var i = 0, n = type.length, c; i < n; ++i) {
     if ((c = type[i]).name === name) {
@@ -72,7 +64,6 @@ function get(type, name) {
     }
   }
 }
-
 function set(type, name, callback) {
   for (var i = 0, n = type.length; i < n; ++i) {
     if (type[i].name === name) {
@@ -83,6 +74,5 @@ function set(type, name, callback) {
   if (callback != null) type.push({ name: name, value: callback })
   return type
 }
-
 export default dispatch
 export { default as dispatch } from "./dispatch.js"

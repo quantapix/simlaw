@@ -46,13 +46,11 @@ export {default as interpolateRainbow, warm as interpolateWarm, cool as interpol
 export {default as interpolateSinebow} from "./sequential-multi/sinebow.js";
 export {default as interpolateTurbo} from "./sequential-multi/turbo.js";
 export {default as interpolateViridis, magma as interpolateMagma, inferno as interpolateInferno, plasma as interpolatePlasma} from "./sequential-multi/viridis.js";
-import {interpolateRgbBasis} from "d3-interpolate";
-
+import {interpolateRgbBasis} from "./interpolate.js";
 export default scheme => interpolateRgbBasis(scheme[scheme.length - 1]);
-import {scaleSequential} from "d3-scale";
-import {interpolateRgbBasisClosed} from "d3-interpolate";
+import {scaleSequential} from "./scale.js";
+import {interpolateRgbBasisClosed} from "./interpolate.js";
 import colors from "./colors.js";
-
 export function(range) {
   var s = scaleSequential(interpolateRgbBasisClosed(colors(range))).clamp(true);
   delete s.clamp;

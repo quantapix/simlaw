@@ -1,6 +1,5 @@
 import clip from "./index.js"
 import { abs, atan, cos, epsilon, halfPi, pi, sin } from "../math.js"
-
 export default clip(
   function () {
     return true
@@ -9,13 +8,11 @@ export default clip(
   clipAntimeridianInterpolate,
   [-pi, -halfPi]
 )
-
 function clipAntimeridianLine(stream) {
   var lambda0 = NaN,
     phi0 = NaN,
     sign0 = NaN,
     clean // no intersections
-
   return {
     lineStart: function () {
       stream.lineStart()
@@ -54,7 +51,6 @@ function clipAntimeridianLine(stream) {
     },
   }
 }
-
 function clipAntimeridianIntersect(lambda0, phi0, lambda1, phi1) {
   var cosPhi0,
     cosPhi1,
@@ -66,7 +62,6 @@ function clipAntimeridianIntersect(lambda0, phi0, lambda1, phi1) {
       )
     : (phi0 + phi1) / 2
 }
-
 function clipAntimeridianInterpolate(from, to, direction, stream) {
   var phi
   if (from == null) {
@@ -91,7 +86,6 @@ function clipAntimeridianInterpolate(from, to, direction, stream) {
   }
 }
 import noop from "../noop.js"
-
 export function () {
   var lines = [],
     line
@@ -126,21 +120,17 @@ import { circleStream } from "../circle.js"
 import { abs, cos, epsilon, pi, radians, sqrt } from "../math.js"
 import pointEqual from "../pointEqual.js"
 import clip from "./index.js"
-
 export function (radius) {
   var cr = cos(radius),
     delta = 6 * radians,
     smallRadius = cr > 0,
     notHemisphere = abs(cr) > epsilon // TODO optimise for this common case
-
   function interpolate(from, to, direction, stream) {
     circleStream(stream, radius, delta, direction, from, to)
   }
-
   function visible(lambda, phi) {
     return cos(lambda) * cos(phi) > cr
   }
-
   function clipLine(stream) {
     var point0, // previous point
       c0, // code for previous point
@@ -176,7 +166,6 @@ export function (radius) {
           point0 = point2
         } else if (notHemisphere && point0 && smallRadius ^ v) {
           var t
-
           if (!(c & c0) && (t = intersect(point1, point0, true))) {
             clean = 0
             if (smallRadius) {
@@ -201,60 +190,46 @@ export function (radius) {
         if (v0) stream.lineEnd()
         point0 = null
       },
-
       clean: function () {
         return clean | ((v00 && v0) << 1)
       },
     }
   }
-
   function intersect(a, b, two) {
     var pa = cartesian(a),
       pb = cartesian(b)
-
     var n1 = [1, 0, 0], // normal
       n2 = cartesianCross(pa, pb),
       n2n2 = cartesianDot(n2, n2),
       n1n2 = n2[0], // cartesianDot(n1, n2),
       determinant = n2n2 - n1n2 * n1n2
-
     if (!determinant) return !two && a
-
     var c1 = (cr * n2n2) / determinant,
       c2 = (-cr * n1n2) / determinant,
       n1xn2 = cartesianCross(n1, n2),
       A = cartesianScale(n1, c1),
       B = cartesianScale(n2, c2)
     cartesianAddInPlace(A, B)
-
     var u = n1xn2,
       w = cartesianDot(A, u),
       uu = cartesianDot(u, u),
       t2 = w * w - uu * (cartesianDot(A, A) - 1)
-
     if (t2 < 0) return
-
     var t = sqrt(t2),
       q = cartesianScale(u, (-w - t) / uu)
     cartesianAddInPlace(q, A)
     q = spherical(q)
-
     if (!two) return q
-
     var lambda0 = a[0],
       lambda1 = b[0],
       phi0 = a[1],
       phi1 = b[1],
       z
-
     if (lambda1 < lambda0) (z = lambda0), (lambda0 = lambda1), (lambda1 = z)
-
     var delta = lambda1 - lambda0,
       polar = abs(delta - pi) < epsilon,
       meridian = polar || delta < epsilon
-
     if (!polar && phi1 < phi0) (z = phi0), (phi0 = phi1), (phi1 = z)
-
     if (
       meridian
         ? polar
@@ -267,7 +242,6 @@ export function (radius) {
       return [q, spherical(q1)]
     }
   }
-
   function code(lambda, phi) {
     var r = smallRadius ? radius : pi - radius,
       code = 0
@@ -277,11 +251,9 @@ export function (radius) {
     else if (phi > r) code |= 8 // above
     return code
   }
-
   return clip(visible, clipLine, interpolate, smallRadius ? [0, -radius] : [-pi, radius - pi])
 }
 import clipRectangle from "./rectangle.js"
-
 export function () {
   var x0 = 0,
     y0 = 0,
@@ -290,7 +262,6 @@ export function () {
     cache,
     cacheStream,
     clip
-
   return (clip = {
     stream: function (stream) {
       return cache && cacheStream === stream ? cache : (cache = clipRectangle(x0, y0, x1, y1)((cacheStream = stream)))
@@ -309,8 +280,7 @@ import clipBuffer from "./buffer.js"
 import clipRejoin from "./rejoin.js"
 import { epsilon, halfPi } from "../math.js"
 import polygonContains from "../polygonContains.js"
-import { merge } from "d3-array"
-
+import { merge } from "./array.js"
 export function (pointVisible, clipLine, interpolate, start) {
   return function (sink) {
     var line = clipLine(sink),
@@ -320,7 +290,6 @@ export function (pointVisible, clipLine, interpolate, start) {
       polygon,
       segments,
       ring
-
     var clip = {
       point: point,
       lineStart: lineStart,
@@ -358,39 +327,31 @@ export function (pointVisible, clipLine, interpolate, start) {
         sink.polygonEnd()
       },
     }
-
     function point(lambda, phi) {
       if (pointVisible(lambda, phi)) sink.point(lambda, phi)
     }
-
     function pointLine(lambda, phi) {
       line.point(lambda, phi)
     }
-
     function lineStart() {
       clip.point = pointLine
       line.lineStart()
     }
-
     function lineEnd() {
       clip.point = point
       line.lineEnd()
     }
-
     function pointRing(lambda, phi) {
       ring.push([lambda, phi])
       ringSink.point(lambda, phi)
     }
-
     function ringStart() {
       ringSink.lineStart()
       ring = []
     }
-
     function ringEnd() {
       pointRing(ring[0][0], ring[0][1])
       ringSink.lineEnd()
-
       var clean = ringSink.clean(),
         ringSegments = ringBuffer.result(),
         i,
@@ -398,13 +359,10 @@ export function (pointVisible, clipLine, interpolate, start) {
         m,
         segment,
         point
-
       ring.pop()
       polygon.push(ring)
       ring = null
-
       if (!n) return
-
       if (clean & 1) {
         segment = ringSegments[0]
         if ((m = segment.length - 1) > 0) {
@@ -415,20 +373,15 @@ export function (pointVisible, clipLine, interpolate, start) {
         }
         return
       }
-
       if (n > 1 && clean & 2) ringSegments.push(ringSegments.pop().concat(ringSegments.shift()))
-
       segments.push(ringSegments.filter(validSegment))
     }
-
     return clip
   }
 }
-
 function validSegment(segment) {
   return segment.length > 1
 }
-
 function compareIntersection(a, b) {
   return (
     ((a = a.x)[0] < 0 ? a[1] - halfPi - epsilon : halfPi - a[1]) -
@@ -445,7 +398,6 @@ export function (a, b, x0, y0, x1, y1) {
     dx = bx - ax,
     dy = by - ay,
     r
-
   r = x0 - ax
   if (!dx && r > 0) return
   r /= dx
@@ -456,7 +408,6 @@ export function (a, b, x0, y0, x1, y1) {
     if (r > t1) return
     if (r > t0) t0 = r
   }
-
   r = x1 - ax
   if (!dx && r < 0) return
   r /= dx
@@ -467,7 +418,6 @@ export function (a, b, x0, y0, x1, y1) {
     if (r < t0) return
     if (r < t1) t1 = r
   }
-
   r = y0 - ay
   if (!dy && r > 0) return
   r /= dy
@@ -478,7 +428,6 @@ export function (a, b, x0, y0, x1, y1) {
     if (r > t1) return
     if (r > t0) t0 = r
   }
-
   r = y1 - ay
   if (!dy && r < 0) return
   r /= dy
@@ -489,7 +438,6 @@ export function (a, b, x0, y0, x1, y1) {
     if (r < t0) return
     if (r < t1) t1 = r
   }
-
   if (t0 > 0) (a[0] = ax + t0 * dx), (a[1] = ay + t0 * dy)
   if (t1 < 1) (b[0] = ax + t1 * dx), (b[1] = ay + t1 * dy)
   return true
@@ -498,16 +446,13 @@ import { abs, epsilon } from "../math.js"
 import clipBuffer from "./buffer.js"
 import clipLine from "./line.js"
 import clipRejoin from "./rejoin.js"
-import { merge } from "d3-array"
-
+import { merge } from "./array.js"
 var clipMax = 1e9,
   clipMin = -clipMax
-
 export function clipRectangle(x0, y0, x1, y1) {
   function visible(x, y) {
     return x0 <= x && x <= x1 && y0 <= y && y <= y1
   }
-
   function interpolate(from, to, direction, stream) {
     var a = 0,
       a1 = 0
@@ -522,7 +467,6 @@ export function clipRectangle(x0, y0, x1, y1) {
       stream.point(to[0], to[1])
     }
   }
-
   function corner(p, direction) {
     return abs(p[0] - x0) < epsilon
       ? direction > 0
@@ -540,17 +484,14 @@ export function clipRectangle(x0, y0, x1, y1) {
       ? 3
       : 2 // abs(p[1] - y1) < epsilon
   }
-
   function compareIntersection(a, b) {
     return comparePoint(a.x, b.x)
   }
-
   function comparePoint(a, b) {
     var ca = corner(a, 1),
       cb = corner(b, 1)
     return ca !== cb ? ca - cb : ca === 0 ? b[1] - a[1] : ca === 1 ? a[0] - b[0] : ca === 2 ? a[1] - b[1] : b[0] - a[0]
   }
-
   return function (stream) {
     var activeStream = stream,
       bufferStream = clipBuffer(),
@@ -565,7 +506,6 @@ export function clipRectangle(x0, y0, x1, y1) {
       v_, // previous point
       first,
       clean
-
     var clipStream = {
       point: point,
       lineStart: lineStart,
@@ -573,14 +513,11 @@ export function clipRectangle(x0, y0, x1, y1) {
       polygonStart: polygonStart,
       polygonEnd: polygonEnd,
     }
-
     function point(x, y) {
       if (visible(x, y)) activeStream.point(x, y)
     }
-
     function polygonInside() {
       var winding = 0
-
       for (var i = 0, n = polygon.length; i < n; ++i) {
         for (
           var ring = polygon[i], j = 1, m = ring.length, point = ring[0], a0, a1, b0 = point[0], b1 = point[1];
@@ -595,14 +532,11 @@ export function clipRectangle(x0, y0, x1, y1) {
           }
         }
       }
-
       return winding
     }
-
     function polygonStart() {
       ;(activeStream = bufferStream), (segments = []), (polygon = []), (clean = true)
     }
-
     function polygonEnd() {
       var startInside = polygonInside(),
         cleanInside = clean && startInside,
@@ -621,7 +555,6 @@ export function clipRectangle(x0, y0, x1, y1) {
       }
       ;(activeStream = stream), (segments = polygon = ring = null)
     }
-
     function lineStart() {
       clipStream.point = linePoint
       if (polygon) polygon.push((ring = []))
@@ -629,7 +562,6 @@ export function clipRectangle(x0, y0, x1, y1) {
       v_ = false
       x_ = y_ = NaN
     }
-
     function lineEnd() {
       if (segments) {
         linePoint(x__, y__)
@@ -639,7 +571,6 @@ export function clipRectangle(x0, y0, x1, y1) {
       clipStream.point = point
       if (v_) activeStream.lineEnd()
     }
-
     function linePoint(x, y) {
       var v = visible(x, y)
       if (polygon) ring.push([x, y])
@@ -672,13 +603,11 @@ export function clipRectangle(x0, y0, x1, y1) {
       }
       ;(x_ = x), (y_ = y), (v_ = v)
     }
-
     return clipStream
   }
 }
 import pointEqual from "../pointEqual.js"
 import { epsilon } from "../math.js"
-
 function Intersection(point, points, other, entry) {
   this.x = point
   this.z = points
@@ -687,20 +616,17 @@ function Intersection(point, points, other, entry) {
   this.v = false // visited
   this.n = this.p = null // next & previous
 }
-
 export function (segments, compareIntersection, startInside, interpolate, stream) {
   var subject = [],
     clip = [],
     i,
     n
-
   segments.forEach(function (segment) {
     if ((n = segment.length - 1) <= 0) return
     var n,
       p0 = segment[0],
       p1 = segment[n],
       x
-
     if (pointEqual(p0, p1)) {
       if (!p0[2] && !p1[2]) {
         stream.lineStart()
@@ -708,30 +634,23 @@ export function (segments, compareIntersection, startInside, interpolate, stream
         stream.lineEnd()
         return
       }
-
       p1[0] += 2 * epsilon
     }
-
     subject.push((x = new Intersection(p0, segment, null, true)))
     clip.push((x.o = new Intersection(p0, null, x, false)))
     subject.push((x = new Intersection(p1, segment, null, false)))
     clip.push((x.o = new Intersection(p1, null, x, true)))
   })
-
   if (!subject.length) return
-
   clip.sort(compareIntersection)
   link(subject)
   link(clip)
-
   for (i = 0, n = clip.length; i < n; ++i) {
     clip[i].e = startInside = !startInside
   }
-
   var start = subject[0],
     points,
     point
-
   while (1) {
     var current = start,
       isSubject = true
@@ -763,7 +682,6 @@ export function (segments, compareIntersection, startInside, interpolate, stream
     stream.lineEnd()
   }
 }
-
 function link(array) {
   if (!(n = array.length)) return
   var n,

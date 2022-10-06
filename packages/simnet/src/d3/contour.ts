@@ -6,8 +6,7 @@ export function (ring) {
   return area
 }
 var array = Array.prototype
-
-export var slice = array.slice
+export const slice = array.slice
 export function (a, b) {
   return a - b
 }
@@ -19,7 +18,6 @@ export function (ring, hole) {
   while (++i < n) if ((c = ringContains(ring, hole[i]))) return c
   return 0
 }
-
 function ringContains(ring, point) {
   var x = point[0],
     y = point[1],
@@ -36,27 +34,23 @@ function ringContains(ring, point) {
   }
   return contains
 }
-
 function segmentContains(a, b, c) {
   var i
   return collinear(a, b, c) && within(a[(i = +(a[0] === b[0]))], c[i], b[i])
 }
-
 function collinear(a, b, c) {
   return (b[0] - a[0]) * (c[1] - a[1]) === (c[0] - a[0]) * (b[1] - a[1])
 }
-
 function within(p, q, r) {
   return (p <= q && q <= r) || (r <= q && q <= p)
 }
-import { extent, thresholdSturges, ticks, tickStep } from "d3-array"
+import { extent, thresholdSturges, ticks, tickStep } from "./array.js"
 import { slice } from "./array.js"
 import ascending from "./ascending.js"
 import area from "./area.js"
 import constant from "./constant.js"
 import contains from "./contains.js"
 import noop from "./noop.js"
-
 var cases = [
   [],
   [
@@ -153,16 +147,13 @@ var cases = [
   ],
   [],
 ]
-
 export function () {
   var dx = 1,
     dy = 1,
     threshold = thresholdSturges,
     smooth = smoothLinear
-
   function contours(values) {
     var tz = threshold(values)
-
     if (!Array.isArray(tz)) {
       const e = extent(values),
         ts = tickStep(e[0], e[1], tz)
@@ -170,20 +161,16 @@ export function () {
     } else {
       tz = tz.slice().sort(ascending)
     }
-
     return tz.map(value => contour(values, value))
   }
-
   function contour(values, value) {
     var polygons = [],
       holes = []
-
     isorings(values, value, function (ring) {
       smooth(ring, values, value)
       if (area(ring) > 0) polygons.push([ring])
       else holes.push(ring)
     })
-
     holes.forEach(function (hole) {
       for (var i = 0, n = polygons.length, polygon; i < n; ++i) {
         if (contains((polygon = polygons[i])[0], hole) !== -1) {
@@ -192,14 +179,12 @@ export function () {
         }
       }
     })
-
     return {
       type: "MultiPolygon",
       value: value,
       coordinates: polygons,
     }
   }
-
   function isorings(values, value, callback) {
     var fragmentByStart = new Array(),
       fragmentByEnd = new Array(),
@@ -209,7 +194,6 @@ export function () {
       t1,
       t2,
       t3
-
     x = y = -1
     t1 = values[0] >= value
     cases[t1 << 1].forEach(stitch)
@@ -218,7 +202,6 @@ export function () {
       cases[t0 | (t1 << 1)].forEach(stitch)
     }
     cases[t1 << 0].forEach(stitch)
-
     while (++y < dy - 1) {
       x = -1
       t1 = values[y * dx + dx] >= value
@@ -231,7 +214,6 @@ export function () {
       }
       cases[t1 | (t2 << 3)].forEach(stitch)
     }
-
     x = -1
     t2 = values[y * dx] >= value
     cases[t2 << 2].forEach(stitch)
@@ -240,7 +222,6 @@ export function () {
       cases[(t2 << 2) | (t3 << 3)].forEach(stitch)
     }
     cases[t2 << 3].forEach(stitch)
-
     function stitch(line) {
       var start = [line[0][0] + x, line[0][1] + y],
         end = [line[1][0] + x, line[1][1] + y],
@@ -291,11 +272,9 @@ export function () {
       }
     }
   }
-
   function index(point) {
     return point[0] * 2 + point[1] * (dx + 1) * 4
   }
-
   function smoothLinear(ring, values, value) {
     ring.forEach(function (point) {
       var x = point[0],
@@ -314,9 +293,7 @@ export function () {
       }
     })
   }
-
   contours.contour = contour
-
   contours.size = function (_) {
     if (!arguments.length) return [dx, dy]
     var _0 = Math.floor(_[0]),
@@ -324,36 +301,29 @@ export function () {
     if (!(_0 >= 0 && _1 >= 0)) throw new Error("invalid size")
     return (dx = _0), (dy = _1), contours
   }
-
   contours.thresholds = function (_) {
     return arguments.length
       ? ((threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant(slice.call(_)) : constant(_)), contours)
       : threshold
   }
-
   contours.smooth = function (_) {
     return arguments.length ? ((smooth = _ ? smoothLinear : noop), contours) : smooth === smoothLinear
   }
-
   return contours
 }
-import { blur2, max, ticks } from "d3-array"
+import { blur2, max, ticks } from "./array.js"
 import { slice } from "./array.js"
 import constant from "./constant.js"
 import Contours from "./contours.js"
-
 function defaultX(d) {
   return d[0]
 }
-
 function defaultY(d) {
   return d[1]
 }
-
 function defaultWeight() {
   return 1
 }
-
 export function () {
   var x = defaultX,
     y = defaultY,
@@ -366,12 +336,10 @@ export function () {
     n = (dx + o * 2) >> k, // grid width
     m = (dy + o * 2) >> k, // grid height
     threshold = constant(20)
-
   function grid(data) {
     var values = new Float32Array(n * m),
       pow2k = Math.pow(2, -k),
       i = -1
-
     for (const d of data) {
       var xi = (x(d, ++i, data) + o) * pow2k,
         yi = (y(d, i, data) + o) * pow2k,
@@ -387,26 +355,21 @@ export function () {
         values[x0 + (y0 + 1) * n] += (1 - xt) * yt * wi
       }
     }
-
     blur2({ data: values, width: n, height: m }, r * pow2k)
     return values
   }
-
   function density(data) {
     var values = grid(data),
       tz = threshold(values),
       pow4k = Math.pow(2, 2 * k)
-
     if (!Array.isArray(tz)) {
       tz = ticks(Number.MIN_VALUE, max(values) / pow4k, tz)
     }
-
     return Contours()
       .size([n, m])
       .thresholds(tz.map(d => d * pow4k))(values)
       .map((c, i) => ((c.value = +tz[i]), transform(c)))
   }
-
   density.contours = function (data) {
     var values = grid(data),
       contours = Contours().size([n, m]),
@@ -420,44 +383,35 @@ export function () {
     Object.defineProperty(contour, "max", { get: () => max(values) / pow4k })
     return contour
   }
-
   function transform(geometry) {
     geometry.coordinates.forEach(transformPolygon)
     return geometry
   }
-
   function transformPolygon(coordinates) {
     coordinates.forEach(transformRing)
   }
-
   function transformRing(coordinates) {
     coordinates.forEach(transformPoint)
   }
-
   function transformPoint(coordinates) {
     coordinates[0] = coordinates[0] * Math.pow(2, k) - o
     coordinates[1] = coordinates[1] * Math.pow(2, k) - o
   }
-
   function resize() {
     o = r * 3
     n = (dx + o * 2) >> k
     m = (dy + o * 2) >> k
     return density
   }
-
   density.x = function (_) {
     return arguments.length ? ((x = typeof _ === "function" ? _ : constant(+_)), density) : x
   }
-
   density.y = function (_) {
     return arguments.length ? ((y = typeof _ === "function" ? _ : constant(+_)), density) : y
   }
-
   density.weight = function (_) {
     return arguments.length ? ((weight = typeof _ === "function" ? _ : constant(+_)), density) : weight
   }
-
   density.size = function (_) {
     if (!arguments.length) return [dx, dy]
     var _0 = +_[0],
@@ -465,25 +419,21 @@ export function () {
     if (!(_0 >= 0 && _1 >= 0)) throw new Error("invalid size")
     return (dx = _0), (dy = _1), resize()
   }
-
   density.cellSize = function (_) {
     if (!arguments.length) return 1 << k
     if (!((_ = +_) >= 1)) throw new Error("invalid cell size")
     return (k = Math.floor(Math.log(_) / Math.LN2)), resize()
   }
-
   density.thresholds = function (_) {
     return arguments.length
       ? ((threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant(slice.call(_)) : constant(_)), density)
       : threshold
   }
-
   density.bandwidth = function (_) {
     if (!arguments.length) return Math.sqrt(r * (r + 1))
     if (!((_ = +_) >= 0)) throw new Error("invalid bandwidth")
     return (r = (Math.sqrt(4 * _ * _ + 1) - 1) / 2), resize()
   }
-
   return density
 }
 export { default as contours } from "./contours.js"

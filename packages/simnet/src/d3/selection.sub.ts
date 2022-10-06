@@ -1,5 +1,4 @@
 import creator from "../creator.js"
-
 export function (name) {
   var create = typeof name === "function" ? name : creator(name)
   return this.select(function () {
@@ -7,31 +6,26 @@ export function (name) {
   })
 }
 import namespace from "../namespace.js"
-
 function attrRemove(name) {
   return function () {
     this.removeAttribute(name)
   }
 }
-
 function attrRemoveNS(fullname) {
   return function () {
     this.removeAttributeNS(fullname.space, fullname.local)
   }
 }
-
 function attrConstant(name, value) {
   return function () {
     this.setAttribute(name, value)
   }
 }
-
 function attrConstantNS(fullname, value) {
   return function () {
     this.setAttributeNS(fullname.space, fullname.local, value)
   }
 }
-
 function attrFunction(name, value) {
   return function () {
     var v = value.apply(this, arguments)
@@ -39,7 +33,6 @@ function attrFunction(name, value) {
     else this.setAttribute(name, v)
   }
 }
-
 function attrFunctionNS(fullname, value) {
   return function () {
     var v = value.apply(this, arguments)
@@ -47,15 +40,12 @@ function attrFunctionNS(fullname, value) {
     else this.setAttributeNS(fullname.space, fullname.local, v)
   }
 }
-
 export function (name, value) {
   var fullname = namespace(name)
-
   if (arguments.length < 2) {
     var node = this.node()
     return fullname.local ? node.getAttributeNS(fullname.space, fullname.local) : node.getAttribute(fullname)
   }
-
   return this.each(
     (value == null
       ? fullname.local
@@ -79,16 +69,13 @@ export function () {
 function classArray(string) {
   return string.trim().split(/^|\s+/)
 }
-
 function classList(node) {
   return node.classList || new ClassList(node)
 }
-
 function ClassList(node) {
   this._node = node
   this._names = classArray(node.getAttribute("class") || "")
 }
-
 ClassList.prototype = {
   add: function (name) {
     var i = this._names.indexOf(name)
@@ -108,42 +95,35 @@ ClassList.prototype = {
     return this._names.indexOf(name) >= 0
   },
 }
-
 function classedAdd(node, names) {
   var list = classList(node),
     i = -1,
     n = names.length
   while (++i < n) list.add(names[i])
 }
-
 function classedRemove(node, names) {
   var list = classList(node),
     i = -1,
     n = names.length
   while (++i < n) list.remove(names[i])
 }
-
 function classedTrue(names) {
   return function () {
     classedAdd(this, names)
   }
 }
-
 function classedFalse(names) {
   return function () {
     classedRemove(this, names)
   }
 }
-
 function classedFunction(names, value) {
   return function () {
     ;(value.apply(this, arguments) ? classedAdd : classedRemove)(this, names)
   }
 }
-
 export function (name, value) {
   var names = classArray(name + "")
-
   if (arguments.length < 2) {
     var list = classList(this.node()),
       i = -1,
@@ -151,7 +131,6 @@ export function (name, value) {
     while (++i < n) if (!list.contains(names[i])) return false
     return true
   }
-
   return this.each((typeof value === "function" ? classedFunction : value ? classedTrue : classedFalse)(names, value))
 }
 function selection_cloneShallow() {
@@ -159,26 +138,22 @@ function selection_cloneShallow() {
     parent = this.parentNode
   return parent ? parent.insertBefore(clone, this.nextSibling) : clone
 }
-
 function selection_cloneDeep() {
   var clone = this.cloneNode(true),
     parent = this.parentNode
   return parent ? parent.insertBefore(clone, this.nextSibling) : clone
 }
-
 export function (deep) {
   return this.select(deep ? selection_cloneDeep : selection_cloneShallow)
 }
 import { Selection } from "./index.js"
 import { EnterNode } from "./enter.js"
 import constant from "../constant.js"
-
 function bindIndex(parent, group, enter, update, exit, data) {
   var i = 0,
     node,
     groupLength = group.length,
     dataLength = data.length
-
   for (; i < dataLength; ++i) {
     if ((node = group[i])) {
       node.__data__ = data[i]
@@ -187,14 +162,12 @@ function bindIndex(parent, group, enter, update, exit, data) {
       enter[i] = new EnterNode(parent, data[i])
     }
   }
-
   for (; i < groupLength; ++i) {
     if ((node = group[i])) {
       exit[i] = node
     }
   }
 }
-
 function bindKey(parent, group, enter, update, exit, data, key) {
   var i,
     node,
@@ -203,7 +176,6 @@ function bindKey(parent, group, enter, update, exit, data, key) {
     dataLength = data.length,
     keyValues = new Array(groupLength),
     keyValue
-
   for (i = 0; i < groupLength; ++i) {
     if ((node = group[i])) {
       keyValues[i] = keyValue = key.call(node, node.__data__, i, group) + ""
@@ -214,7 +186,6 @@ function bindKey(parent, group, enter, update, exit, data, key) {
       }
     }
   }
-
   for (i = 0; i < dataLength; ++i) {
     keyValue = key.call(parent, data[i], i, data) + ""
     if ((node = nodeByKeyValue.get(keyValue))) {
@@ -225,27 +196,21 @@ function bindKey(parent, group, enter, update, exit, data, key) {
       enter[i] = new EnterNode(parent, data[i])
     }
   }
-
   for (i = 0; i < groupLength; ++i) {
     if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) {
       exit[i] = node
     }
   }
 }
-
 function datum(node) {
   return node.__data__
 }
-
 export function (value, key) {
   if (!arguments.length) return Array.from(this, datum)
-
   var bind = key ? bindKey : bindIndex,
     parents = this._parents,
     groups = this._groups
-
   if (typeof value !== "function") value = constant(value)
-
   for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
     var parent = parents[j],
       group = groups[j],
@@ -255,9 +220,7 @@ export function (value, key) {
       enterGroup = (enter[j] = new Array(dataLength)),
       updateGroup = (update[j] = new Array(dataLength)),
       exitGroup = (exit[j] = new Array(groupLength))
-
     bind(parent, group, enterGroup, updateGroup, exitGroup, data, key)
-
     for (var i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
       if ((previous = enterGroup[i0])) {
         if (i0 >= i1) i1 = i0 + 1
@@ -266,13 +229,11 @@ export function (value, key) {
       }
     }
   }
-
   update = new Selection(update, parents)
   update._enter = enter
   update._exit = exit
   return update
 }
-
 function arraylike(data) {
   return typeof data === "object" && "length" in data
     ? data // Array, TypedArray, NodeList, array-like
@@ -282,11 +243,9 @@ export function (value) {
   return arguments.length ? this.property("__data__", value) : this.node().__data__
 }
 import defaultView from "../window.js"
-
 function dispatchEvent(node, type, params) {
   var window = defaultView(node),
     event = window.CustomEvent
-
   if (typeof event === "function") {
     event = new event(type, params)
   } else {
@@ -294,22 +253,18 @@ function dispatchEvent(node, type, params) {
     if (params) event.initEvent(type, params.bubbles, params.cancelable), (event.detail = params.detail)
     else event.initEvent(type, false, false)
   }
-
   node.dispatchEvent(event)
 }
-
 function dispatchConstant(type, params) {
   return function () {
     return dispatchEvent(this, type, params)
   }
 }
-
 function dispatchFunction(type, params) {
   return function () {
     return dispatchEvent(this, type, params.apply(this, arguments))
   }
 }
-
 export function (type, params) {
   return this.each((typeof params === "function" ? dispatchFunction : dispatchConstant)(type, params))
 }
@@ -319,7 +274,6 @@ export function (callback) {
       if ((node = group[i])) callback.call(node, node.__data__, i, group)
     }
   }
-
   return this
 }
 export function () {
@@ -327,11 +281,9 @@ export function () {
 }
 import sparse from "./sparse.js"
 import { Selection } from "./index.js"
-
 export function () {
   return new Selection(this._enter || this._groups.map(sparse), this._parents)
 }
-
 export function EnterNode(parent, datum) {
   this.ownerDocument = parent.ownerDocument
   this.namespaceURI = parent.namespaceURI
@@ -339,7 +291,6 @@ export function EnterNode(parent, datum) {
   this._parent = parent
   this.__data__ = datum
 }
-
 EnterNode.prototype = {
   constructor: EnterNode,
   appendChild: function (child) {
@@ -357,16 +308,13 @@ EnterNode.prototype = {
 }
 import sparse from "./sparse.js"
 import { Selection } from "./index.js"
-
 export function () {
   return new Selection(this._exit || this._groups.map(sparse), this._parents)
 }
 import { Selection } from "./index.js"
 import matcher from "../matcher.js"
-
 export function (match) {
   if (typeof match !== "function") match = matcher(match)
-
   for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
     for (var group = groups[j], n = group.length, subgroup = (subgroups[j] = []), node, i = 0; i < n; ++i) {
       if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
@@ -374,26 +322,22 @@ export function (match) {
       }
     }
   }
-
   return new Selection(subgroups, this._parents)
 }
 function htmlRemove() {
   this.innerHTML = ""
 }
-
 function htmlConstant(value) {
   return function () {
     this.innerHTML = value
   }
 }
-
 function htmlFunction(value) {
   return function () {
     var v = value.apply(this, arguments)
     this.innerHTML = v == null ? "" : v
   }
 }
-
 export function (value) {
   return arguments.length
     ? this.each(value == null ? htmlRemove : (typeof value === "function" ? htmlFunction : htmlConstant)(value))
@@ -433,22 +377,17 @@ import selection_datum from "./datum.js"
 import selection_on from "./on.js"
 import selection_dispatch from "./dispatch.js"
 import selection_iterator from "./iterator.js"
-
-export var root = [null]
-
+export const root = [null]
 export function Selection(groups, parents) {
   this._groups = groups
   this._parents = parents
 }
-
 function selection() {
   return new Selection([[document.documentElement]], root)
 }
-
 function selection_selection() {
   return this
 }
-
 Selection.prototype = selection.prototype = {
   constructor: Selection,
   select: selection_select,
@@ -487,15 +426,12 @@ Selection.prototype = selection.prototype = {
   dispatch: selection_dispatch,
   [Symbol.iterator]: selection_iterator,
 }
-
 export default selection
 import creator from "../creator.js"
 import selector from "../selector.js"
-
 function constantNull() {
   return null
 }
-
 export function (name, before) {
   var create = typeof name === "function" ? name : creator(name),
     select = before == null ? constantNull : typeof before === "function" ? before : selector(before)
@@ -531,15 +467,12 @@ export function (onenter, onupdate, onexit) {
 function lower() {
   if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild)
 }
-
 export function () {
   return this.each(lower)
 }
 import { Selection } from "./index.js"
-
 export function (context) {
   var selection = context.selection ? context.selection() : context
-
   for (
     var groups0 = this._groups,
       groups1 = selection._groups,
@@ -561,11 +494,9 @@ export function (context) {
       }
     }
   }
-
   for (; j < m0; ++j) {
     merges[j] = groups0[j]
   }
-
   return new Selection(merges, this._parents)
 }
 export function () {
@@ -575,7 +506,6 @@ export function () {
       if (node) return node
     }
   }
-
   return null
 }
 export function () {
@@ -586,7 +516,6 @@ function contextListener(listener) {
     listener.call(this, event, this.__data__)
   }
 }
-
 function parseTypenames(typenames) {
   return typenames
     .trim()
@@ -598,7 +527,6 @@ function parseTypenames(typenames) {
       return { type: t, name: name }
     })
 }
-
 function onRemove(typename) {
   return function () {
     var on = this.__on
@@ -614,7 +542,6 @@ function onRemove(typename) {
     else delete this.__on
   }
 }
-
 function onAdd(typename, value, options) {
   return function () {
     var on = this.__on,
@@ -635,13 +562,11 @@ function onAdd(typename, value, options) {
     else on.push(o)
   }
 }
-
 export function (typename, value, options) {
   var typenames = parseTypenames(typename + ""),
     i,
     n = typenames.length,
     t
-
   if (arguments.length < 2) {
     var on = this.node().__on
     if (on)
@@ -654,7 +579,6 @@ export function (typename, value, options) {
       }
     return
   }
-
   on = value ? onAdd : onRemove
   for (i = 0; i < n; ++i) this.each(on(typenames[i], value, options))
   return this
@@ -668,7 +592,6 @@ export function () {
       }
     }
   }
-
   return this
 }
 function propertyRemove(name) {
@@ -676,13 +599,11 @@ function propertyRemove(name) {
     delete this[name]
   }
 }
-
 function propertyConstant(name, value) {
   return function () {
     this[name] = value
   }
 }
-
 function propertyFunction(name, value) {
   return function () {
     var v = value.apply(this, arguments)
@@ -690,7 +611,6 @@ function propertyFunction(name, value) {
     else this[name] = v
   }
 }
-
 export function (name, value) {
   return arguments.length > 1
     ? this.each(
@@ -704,7 +624,6 @@ export function (name, value) {
 function raise() {
   if (this.nextSibling) this.parentNode.appendChild(this)
 }
-
 export function () {
   return this.each(raise)
 }
@@ -712,16 +631,13 @@ function remove() {
   var parent = this.parentNode
   if (parent) parent.removeChild(this)
 }
-
 export function () {
   return this.each(remove)
 }
 import { Selection } from "./index.js"
 import selector from "../selector.js"
-
 export function (select) {
   if (typeof select !== "function") select = selector(select)
-
   for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
     for (
       var group = groups[j], n = group.length, subgroup = (subgroups[j] = new Array(n)), node, subnode, i = 0;
@@ -734,23 +650,19 @@ export function (select) {
       }
     }
   }
-
   return new Selection(subgroups, this._parents)
 }
 import { Selection } from "./index.js"
 import array from "../array.js"
 import selectorAll from "../selectorAll.js"
-
 function arrayAll(select) {
   return function () {
     return array(select.apply(this, arguments))
   }
 }
-
 export function (select) {
   if (typeof select === "function") select = arrayAll(select)
   else select = selectorAll(select)
-
   for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
     for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
       if ((node = group[i])) {
@@ -759,40 +671,31 @@ export function (select) {
       }
     }
   }
-
   return new Selection(subgroups, parents)
 }
 import { childMatcher } from "../matcher.js"
-
 var find = Array.prototype.find
-
 function childFind(match) {
   return function () {
     return find.call(this.children, match)
   }
 }
-
 function childFirst() {
   return this.firstElementChild
 }
-
 export function (match) {
   return this.select(match == null ? childFirst : childFind(typeof match === "function" ? match : childMatcher(match)))
 }
 import { childMatcher } from "../matcher.js"
-
 var filter = Array.prototype.filter
-
 function children() {
   return Array.from(this.children)
 }
-
 function childrenFilter(match) {
   return function () {
     return filter.call(this.children, match)
   }
 }
-
 export function (match) {
   return this.selectAll(
     match == null ? children : childrenFilter(typeof match === "function" ? match : childMatcher(match))
@@ -804,14 +707,11 @@ export function () {
   return size
 }
 import { Selection } from "./index.js"
-
 export function (compare) {
   if (!compare) compare = ascending
-
   function compareNode(a, b) {
     return a && b ? compare(a.__data__, b.__data__) : !a - !b
   }
-
   for (var groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
     for (var group = groups[j], n = group.length, sortgroup = (sortgroups[j] = new Array(n)), node, i = 0; i < n; ++i) {
       if ((node = group[i])) {
@@ -820,10 +720,8 @@ export function (compare) {
     }
     sortgroup.sort(compareNode)
   }
-
   return new Selection(sortgroups, this._parents).order()
 }
-
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
 }
@@ -831,19 +729,16 @@ export function (update) {
   return new Array(update.length)
 }
 import defaultView from "../window.js"
-
 function styleRemove(name) {
   return function () {
     this.style.removeProperty(name)
   }
 }
-
 function styleConstant(name, value, priority) {
   return function () {
     this.style.setProperty(name, value, priority)
   }
 }
-
 function styleFunction(name, value, priority) {
   return function () {
     var v = value.apply(this, arguments)
@@ -851,7 +746,6 @@ function styleFunction(name, value, priority) {
     else this.style.setProperty(name, v, priority)
   }
 }
-
 export function (name, value, priority) {
   return arguments.length > 1
     ? this.each(
@@ -863,27 +757,23 @@ export function (name, value, priority) {
       )
     : styleValue(this.node(), name)
 }
-
 export function styleValue(node, name) {
   return node.style.getPropertyValue(name) || defaultView(node).getComputedStyle(node, null).getPropertyValue(name)
 }
 function textRemove() {
   this.textContent = ""
 }
-
 function textConstant(value) {
   return function () {
     this.textContent = value
   }
 }
-
 function textFunction(value) {
   return function () {
     var v = value.apply(this, arguments)
     this.textContent = v == null ? "" : v
   }
 }
-
 export function (value) {
   return arguments.length
     ? this.each(value == null ? textRemove : (typeof value === "function" ? textFunction : textConstant)(value))

@@ -2,18 +2,14 @@ import Delaunator from "delaunator"
 import Path from "./path.js"
 import Polygon from "./polygon.js"
 import Voronoi from "./voronoi.js"
-
 const tau = 2 * Math.PI,
   pow = Math.pow
-
 function pointX(p) {
   return p[0]
 }
-
 function pointY(p) {
   return p[1]
 }
-
 function collinear(d) {
   const { triangles, coords } = d
   for (let i = 0; i < triangles.length; i += 3) {
@@ -27,11 +23,9 @@ function collinear(d) {
   }
   return true
 }
-
 function jitter(x, y, r) {
   return [x + Math.sin(x + y) * r, y + Math.cos(x - y) * r]
 }
-
 export default class Delaunay {
   static from(points, fx = pointX, fy = pointY, that) {
     return new Delaunay(
@@ -53,7 +47,6 @@ export default class Delaunay {
   _init() {
     const d = this._delaunator,
       points = this.points
-
     if (d.hull && d.hull.length > 2 && collinear(d)) {
       this.collinear = Int32Array.from({ length: points.length / 2 }, (_, i) => i).sort(
         (i, j) => points[2 * i] - points[2 * j] || points[2 * i + 1] - points[2 * j + 1]
@@ -71,13 +64,11 @@ export default class Delaunay {
     } else {
       delete this.collinear
     }
-
     const halfedges = (this.halfedges = this._delaunator.halfedges)
     const hull = (this.hull = this._delaunator.hull)
     const triangles = (this.triangles = this._delaunator.triangles)
     const inedges = this.inedges.fill(-1)
     const hullIndex = this._hullIndex.fill(-1)
-
     for (let e = 0, n = halfedges.length; e < n; ++e) {
       const p = triangles[e % 3 === 2 ? e - 2 : e + 1]
       if (halfedges[e] === -1 || inedges[p] === -1) inedges[p] = e
@@ -85,7 +76,6 @@ export default class Delaunay {
     for (let i = 0, n = hull.length; i < n; ++i) {
       hullIndex[hull[i]] = i
     }
-
     if (hull.length <= 2 && hull.length > 0) {
       this.triangles = new Int32Array(3).fill(-1)
       this.halfedges = new Int32Array(3).fill(-1)
@@ -103,14 +93,12 @@ export default class Delaunay {
   }
   *neighbors(i) {
     const { inedges, hull, _hullIndex, halfedges, triangles, collinear } = this
-
     if (collinear) {
       const l = collinear.indexOf(i)
       if (l > 0) yield collinear[l - 1]
       if (l < collinear.length - 1) yield collinear[l + 1]
       return
     }
-
     const e0 = inedges[i]
     if (e0 === -1) return // coincident point
     let e = e0,
@@ -227,7 +215,6 @@ export default class Delaunay {
     return polygon.value()
   }
 }
-
 function flatArray(points, fx, fy, that) {
   const n = points.length
   const array = new Float64Array(n * 2)
@@ -238,7 +225,6 @@ function flatArray(points, fx, fy, that) {
   }
   return array
 }
-
 function* flatIterable(points, fx, fy, that) {
   let i = 0
   for (const p of points) {
@@ -250,7 +236,6 @@ function* flatIterable(points, fx, fy, that) {
 export { default as Delaunay } from "./delaunay.js"
 export { default as Voronoi } from "./voronoi.js"
 const epsilon = 1e-6
-
 export default class Path {
   constructor() {
     this._x0 =
@@ -308,7 +293,6 @@ export default class Polygon {
 }
 import Path from "./path.js"
 import Polygon from "./polygon.js"
-
 export default class Voronoi {
   constructor(delaunay, [xmin, ymin, xmax, ymax] = [0, 0, 960, 500]) {
     if (!((xmax = +xmax) >= (xmin = +xmin)) || !((ymax = +ymax) >= (ymin = +ymin))) throw new Error("invalid bounds")
@@ -329,7 +313,6 @@ export default class Voronoi {
       delaunay: { points, hull, triangles },
       vectors,
     } = this
-
     const circumcenters = (this.circumcenters = this._circumcenters.subarray(0, (triangles.length / 3) * 2))
     for (let i = 0, j = 0, n = triangles.length, x, y; i < n; i += 3, j += 2) {
       const t1 = triangles[i] * 2
@@ -341,16 +324,13 @@ export default class Voronoi {
       const y2 = points[t2 + 1]
       const x3 = points[t3]
       const y3 = points[t3 + 1]
-
       const dx = x2 - x1
       const dy = y2 - y1
       const ex = x3 - x1
       const ey = y3 - y1
       const ab = (dx * ey - dy * ex) * 2
-
       if (Math.abs(ab) < 1e-9) {
         let a = 1e9
-
         const r = triangles[0] * 2
         a *= Math.sign((points[r] - x1) * ey - (points[r + 1] - y1) * ex)
         x = (x1 + x3) / 2 - a * ey
@@ -365,7 +345,6 @@ export default class Voronoi {
       circumcenters[j] = x
       circumcenters[j + 1] = y
     }
-
     let h = hull[hull.length - 1]
     let p0,
       p1 = h * 4
@@ -467,7 +446,6 @@ export default class Voronoi {
     if (ci)
       for (const j of this.delaunay.neighbors(i)) {
         const cj = this._clip(j)
-
         if (cj)
           loop: for (let ai = 0, li = ci.length; ai < li; ai += 2) {
             for (let aj = 0, lj = cj.length; aj < lj; aj += 2) {
@@ -618,7 +596,6 @@ export default class Voronoi {
           ;(e0 = 0b0101), (x = this.xmin), (y = this.ymin)
           break // left
       }
-
       if ((P[j] !== x || P[j + 1] !== y) && this.contains(i, x, y)) {
         P.splice(j, 0, x, y), (j += 2)
       }

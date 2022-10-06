@@ -3,7 +3,6 @@ const pi = Math.PI,
   tau = 2 * pi,
   epsilon = 1e-6,
   tauEpsilon = tau - epsilon
-
 function Path() {
   this._x0 =
     this._y0 = // start of current subpath
@@ -12,11 +11,9 @@ function Path() {
       null // end of current subpath
   this._ = ""
 }
-
 function path() {
   return new Path()
 }
-
 Path.prototype = path.prototype = {
   constructor: Path,
   moveTo: function (x, y) {
@@ -46,9 +43,7 @@ Path.prototype = path.prototype = {
       x01 = x0 - x1,
       y01 = y0 - y1,
       l01_2 = x01 * x01 + y01 * y01
-
     if (r < 0) throw new Error("negative radius: " + r)
-
     if (this._x1 === null) {
       this._ += "M" + (this._x1 = x1) + "," + (this._y1 = y1)
     } else if (!(l01_2 > epsilon));
@@ -64,11 +59,9 @@ Path.prototype = path.prototype = {
         l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
         t01 = l / l01,
         t21 = l / l21
-
       if (Math.abs(t01 - 1) > epsilon) {
         this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01)
       }
-
       this._ +=
         "A" +
         r +
@@ -90,19 +83,14 @@ Path.prototype = path.prototype = {
       y0 = y + dy,
       cw = 1 ^ ccw,
       da = ccw ? a0 - a1 : a1 - a0
-
     if (r < 0) throw new Error("negative radius: " + r)
-
     if (this._x1 === null) {
       this._ += "M" + x0 + "," + y0
     } else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
       this._ += "L" + x0 + "," + y0
     }
-
     if (!r) return
-
     if (da < 0) da = (da % tau) + tau
-
     if (da > tauEpsilon) {
       this._ +=
         "A" +
@@ -148,5 +136,4 @@ Path.prototype = path.prototype = {
     return this._
   },
 }
-
 export default path

@@ -1,11 +1,9 @@
-import {selection} from "d3-selection";
+import {selection} from "./selection.js";
 import selection_interrupt from "./interrupt.js";
 import selection_transition from "./transition.js";
-
 selection.prototype.interrupt = selection_interrupt;
 selection.prototype.transition = selection_transition;
 import interrupt from "../interrupt.js";
-
 export function(name) {
   return this.each(function() {
     interrupt(this, name);
@@ -13,16 +11,14 @@ export function(name) {
 }
 import {Transition, newId} from "../transition/index.js";
 import schedule from "../transition/schedule.js";
-import {easeCubicInOut} from "d3-ease";
-import {now} from "d3-timer";
-
+import {easeCubicInOut} from "./ease.js";
+import {now} from "./timer.js";
 var defaultTiming = {
   time: null, // Set on use.
   delay: 0,
   duration: 250,
   ease: easeCubicInOut
 };
-
 function inherit(node, id) {
   var timing;
   while (!(timing = node.__transition) || !(timing = timing[id])) {
@@ -32,17 +28,14 @@ function inherit(node, id) {
   }
   return timing;
 }
-
 export function(name) {
   var id,
       timing;
-
   if (name instanceof Transition) {
     id = name._id, name = name._name;
   } else {
     id = newId(), (timing = defaultTiming).time = now(), name = name == null ? null : name + "";
   }
-
   for (var groups = this._groups, m = groups.length, j = 0; j < m; ++j) {
     for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
       if (node = group[i]) {
@@ -50,6 +43,5 @@ export function(name) {
       }
     }
   }
-
   return new Transition(groups, this._parents, name, id);
 }

@@ -1,37 +1,29 @@
 import { shuffle } from "../array.js"
 import lcg from "../lcg.js"
-
 export function (circles) {
   return packEncloseRandom(circles, lcg())
 }
-
 export function packEncloseRandom(circles, random) {
   var i = 0,
     n = (circles = shuffle(Array.from(circles), random)).length,
     B = [],
     p,
     e
-
   while (i < n) {
     p = circles[i]
     if (e && enclosesWeak(e, p)) ++i
     else (e = encloseBasis((B = extendBasis(B, p)))), (i = 0)
   }
-
   return e
 }
-
 function extendBasis(B, p) {
   var i, j
-
   if (enclosesWeakAll(p, B)) return [p]
-
   for (i = 0; i < B.length; ++i) {
     if (enclosesNot(p, B[i]) && enclosesWeakAll(encloseBasis2(B[i], p), B)) {
       return [B[i], p]
     }
   }
-
   for (i = 0; i < B.length - 1; ++i) {
     for (j = i + 1; j < B.length; ++j) {
       if (
@@ -44,24 +36,20 @@ function extendBasis(B, p) {
       }
     }
   }
-
   throw new Error()
 }
-
 function enclosesNot(a, b) {
   var dr = a.r - b.r,
     dx = b.x - a.x,
     dy = b.y - a.y
   return dr < 0 || dr * dr < dx * dx + dy * dy
 }
-
 function enclosesWeak(a, b) {
   var dr = a.r - b.r + Math.max(a.r, b.r, 1) * 1e-9,
     dx = b.x - a.x,
     dy = b.y - a.y
   return dr > 0 && dr * dr > dx * dx + dy * dy
 }
-
 function enclosesWeakAll(a, B) {
   for (var i = 0; i < B.length; ++i) {
     if (!enclosesWeak(a, B[i])) {
@@ -70,7 +58,6 @@ function enclosesWeakAll(a, B) {
   }
   return true
 }
-
 function encloseBasis(B) {
   switch (B.length) {
     case 1:
@@ -81,7 +68,6 @@ function encloseBasis(B) {
       return encloseBasis3(B[0], B[1], B[2])
   }
 }
-
 function encloseBasis1(a) {
   return {
     x: a.x,
@@ -89,7 +75,6 @@ function encloseBasis1(a) {
     r: a.r,
   }
 }
-
 function encloseBasis2(a, b) {
   var x1 = a.x,
     y1 = a.y,
@@ -107,7 +92,6 @@ function encloseBasis2(a, b) {
     r: (l + r1 + r2) / 2,
   }
 }
-
 function encloseBasis3(a, b, c) {
   var x1 = a.x,
     y1 = a.y,
@@ -146,17 +130,14 @@ import { optional } from "../accessors.js"
 import constant, { constantZero } from "../constant.js"
 import lcg from "../lcg.js"
 import { packSiblingsRandom } from "./siblings.js"
-
 function defaultRadius(d) {
   return Math.sqrt(d.value)
 }
-
 export function () {
   var radius = null,
     dx = 1,
     dy = 1,
     padding = constantZero
-
   function pack(root) {
     const random = lcg()
     ;(root.x = dx / 2), (root.y = dy / 2)
@@ -174,22 +155,17 @@ export function () {
     }
     return root
   }
-
   pack.radius = function (x) {
     return arguments.length ? ((radius = optional(x)), pack) : radius
   }
-
   pack.size = function (x) {
     return arguments.length ? ((dx = +x[0]), (dy = +x[1]), pack) : [dx, dy]
   }
-
   pack.padding = function (x) {
     return arguments.length ? ((padding = typeof x === "function" ? x : constant(+x)), pack) : padding
   }
-
   return pack
 }
-
 function radiusLeaf(radius) {
   return function (node) {
     if (!node.children) {
@@ -197,7 +173,6 @@ function radiusLeaf(radius) {
     }
   }
 }
-
 function packChildrenRandom(padding, k, random) {
   return function (node) {
     if ((children = node.children)) {
@@ -206,7 +181,6 @@ function packChildrenRandom(padding, k, random) {
         n = children.length,
         r = padding(node) * k || 0,
         e
-
       if (r) for (i = 0; i < n; ++i) children[i].r += r
       e = packSiblingsRandom(children, random)
       if (r) for (i = 0; i < n; ++i) children[i].r -= r
@@ -214,7 +188,6 @@ function packChildrenRandom(padding, k, random) {
     }
   }
 }
-
 function translateChild(k) {
   return function (node) {
     var parent = node.parent
@@ -228,7 +201,6 @@ function translateChild(k) {
 import array from "../array.js"
 import lcg from "../lcg.js"
 import { packEncloseRandom } from "./enclose.js"
-
 function place(b, a, c) {
   var dx = b.x - a.x,
     x,
@@ -256,14 +228,12 @@ function place(b, a, c) {
     c.y = a.y
   }
 }
-
 function intersects(a, b) {
   var dr = a.r + b.r - 1e-6,
     dx = b.x - a.x,
     dy = b.y - a.y
   return dr > 0 && dr * dr > dx * dx + dy * dy
 }
-
 function score(node) {
   var a = node._,
     b = node.next._,
@@ -272,28 +242,23 @@ function score(node) {
     dy = (a.y * b.r + b.y * a.r) / ab
   return dx * dx + dy * dy
 }
-
 function Node(circle) {
   this._ = circle
   this.next = null
   this.previous = null
 }
-
 export function packSiblingsRandom(circles, random) {
   if (!(n = (circles = array(circles)).length)) return 0
-
   var a, b, c, n, aa, ca, i, j, k, sj, sk
   ;(a = circles[0]), (a.x = 0), (a.y = 0)
   if (!(n > 1)) return a.r
   ;(b = circles[1]), (a.x = -b.r), (b.x = a.r), (b.y = 0)
   if (!(n > 2)) return a.r + b.r
-
   place(b, a, (c = circles[2]))
   ;(a = new Node(a)), (b = new Node(b)), (c = new Node(c))
   a.next = c.previous = b
   b.next = a.previous = c
   c.next = b.previous = a
-
   pack: for (i = 3; i < n; ++i) {
     place(a._, b._, (c = circles[i])), (c = new Node(c))
     ;(j = b.next), (k = a.previous), (sj = b._.r), (sk = a._.r)
@@ -313,7 +278,6 @@ export function packSiblingsRandom(circles, random) {
       }
     } while (j !== k.next)
     ;(c.previous = a), (c.next = b), (a.next = b.previous = b = c)
-
     aa = score(a)
     while ((c = c.next) !== b) {
       if ((ca = score(c)) < aa) {
@@ -322,16 +286,12 @@ export function packSiblingsRandom(circles, random) {
     }
     b = a.next
   }
-
   ;(a = [b._]), (c = b)
   while ((c = c.next) !== b) a.push(c._)
   c = packEncloseRandom(a, random)
-
   for (i = 0; i < n; ++i) (a = circles[i]), (a.x -= c.x), (a.y -= c.y)
-
   return c.r
 }
-
 export function (circles) {
   packSiblingsRandom(circles, lcg())
   return circles

@@ -18,25 +18,21 @@ export function autoType(object) {
   }
   return object
 }
-
 const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours()
 import dsv from "./dsv.js"
-
 var csv = dsv(",")
-
-export var csvParse = csv.parse
-export var csvParseRows = csv.parseRows
-export var csvFormat = csv.format
-export var csvFormatBody = csv.formatBody
-export var csvFormatRows = csv.formatRows
-export var csvFormatRow = csv.formatRow
-export var csvFormatValue = csv.formatValue
+export const csvParse = csv.parse
+export const csvParseRows = csv.parseRows
+export const csvFormat = csv.format
+export const csvFormatBody = csv.formatBody
+export const csvFormatRows = csv.formatRows
+export const csvFormatRow = csv.formatRow
+export const csvFormatValue = csv.formatValue
 var EOL = {},
   EOF = {},
   QUOTE = 34,
   NEWLINE = 10,
   RETURN = 13
-
 function objectConverter(columns) {
   return new Function(
     "d",
@@ -49,18 +45,15 @@ function objectConverter(columns) {
       "}"
   )
 }
-
 function customConverter(columns, f) {
   var object = objectConverter(columns)
   return function (row, i) {
     return f(object(row), i, columns)
   }
 }
-
 function inferColumns(rows) {
   var columnSet = Object.create(null),
     columns = []
-
   rows.forEach(function (row) {
     for (var column in row) {
       if (!(column in columnSet)) {
@@ -68,20 +61,16 @@ function inferColumns(rows) {
       }
     }
   })
-
   return columns
 }
-
 function pad(value, width) {
   var s = value + "",
     length = s.length
   return length < width ? new Array(width - length + 1).join(0) + s : s
 }
-
 function formatYear(year) {
   return year < 0 ? "-" + pad(-year, 6) : year > 9999 ? "+" + pad(year, 6) : pad(year, 4)
 }
-
 function formatDate(date) {
   var hours = date.getUTCHours(),
     minutes = date.getUTCMinutes(),
@@ -102,11 +91,9 @@ function formatDate(date) {
           ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + "Z"
           : "")
 }
-
 export function (delimiter) {
   var reFormat = new RegExp('["' + delimiter + "\n\r]"),
     DELIMITER = delimiter.charCodeAt(0)
-
   function parse(text, f) {
     var convert,
       columns,
@@ -117,7 +104,6 @@ export function (delimiter) {
     rows.columns = columns || []
     return rows
   }
-
   function parseRows(text, f) {
     var rows = [], // output rows
       N = text.length,
@@ -126,14 +112,11 @@ export function (delimiter) {
       t, // current token
       eof = N <= 0, // current token followed by EOF?
       eol = false // current token followed by EOL?
-
     if (text.charCodeAt(N - 1) === NEWLINE) --N
     if (text.charCodeAt(N - 1) === RETURN) --N
-
     function token() {
       if (eof) return EOF
       if (eol) return (eol = false), EOL
-
       var i,
         j = I,
         c
@@ -147,7 +130,6 @@ export function (delimiter) {
         }
         return text.slice(j + 1, i - 1).replace(/""/g, '"')
       }
-
       while (I < N) {
         if ((c = text.charCodeAt((i = I++))) === NEWLINE) eol = true
         else if (c === RETURN) {
@@ -156,20 +138,16 @@ export function (delimiter) {
         } else if (c !== DELIMITER) continue
         return text.slice(j, i)
       }
-
       return (eof = true), text.slice(j, N)
     }
-
     while ((t = token()) !== EOF) {
       var row = []
       while (t !== EOL && t !== EOF) row.push(t), (t = token())
       if (f && (row = f(row, n++)) == null) continue
       rows.push(row)
     }
-
     return rows
   }
-
   function preformatBody(rows, columns) {
     return rows.map(function (row) {
       return columns
@@ -179,25 +157,20 @@ export function (delimiter) {
         .join(delimiter)
     })
   }
-
   function format(rows, columns) {
     if (columns == null) columns = inferColumns(rows)
     return [columns.map(formatValue).join(delimiter)].concat(preformatBody(rows, columns)).join("\n")
   }
-
   function formatBody(rows, columns) {
     if (columns == null) columns = inferColumns(rows)
     return preformatBody(rows, columns).join("\n")
   }
-
   function formatRows(rows) {
     return rows.map(formatRow).join("\n")
   }
-
   function formatRow(row) {
     return row.map(formatValue).join(delimiter)
   }
-
   function formatValue(value) {
     return value == null
       ? ""
@@ -207,7 +180,6 @@ export function (delimiter) {
       ? '"' + value.replace(/"/g, '""') + '"'
       : value
   }
-
   return {
     parse: parse,
     parseRows: parseRows,
@@ -223,13 +195,11 @@ export { csvParse, csvParseRows, csvFormat, csvFormatBody, csvFormatRows, csvFor
 export { tsvParse, tsvParseRows, tsvFormat, tsvFormatBody, tsvFormatRows, tsvFormatRow, tsvFormatValue } from "./tsv.js"
 export { default as autoType } from "./autoType.js"
 import dsv from "./dsv.js"
-
 var tsv = dsv("\t")
-
-export var tsvParse = tsv.parse
-export var tsvParseRows = tsv.parseRows
-export var tsvFormat = tsv.format
-export var tsvFormatBody = tsv.formatBody
-export var tsvFormatRows = tsv.formatRows
-export var tsvFormatRow = tsv.formatRow
-export var tsvFormatValue = tsv.formatValue
+export const tsvParse = tsv.parse
+export const tsvParseRows = tsv.parseRows
+export const tsvFormat = tsv.format
+export const tsvFormatBody = tsv.formatBody
+export const tsvFormatRows = tsv.formatRows
+export const tsvFormatRow = tsv.formatRow
+export const tsvFormatValue = tsv.formatValue

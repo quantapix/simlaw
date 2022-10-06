@@ -1,15 +1,12 @@
 import formatLocale from "./locale.js"
-
 var locale
-export var format
-export var formatPrefix
-
+export const format
+export const formatPrefix
 defaultLocale({
   thousands: ",",
   grouping: [3],
   currency: ["$", ""],
 })
-
 export function defaultLocale(definition) {
   locale = formatLocale(definition)
   format = locale.format
@@ -17,19 +14,16 @@ export function defaultLocale(definition) {
   return locale
 }
 import { formatDecimalParts } from "./formatDecimal.js"
-
 export function (x) {
   return (x = formatDecimalParts(Math.abs(x))), x ? x[1] : NaN
 }
 export function (x) {
   return Math.abs((x = Math.round(x))) >= 1e21 ? x.toLocaleString("en").replace(/,/g, "") : x.toString(10)
 }
-
 export function formatDecimalParts(x, p) {
   if ((i = (x = p ? x.toExponential(p - 1) : x.toExponential()).indexOf("e")) < 0) return null // NaN, ±Infinity
   var i,
     coefficient = x.slice(0, i)
-
   return [coefficient.length > 1 ? coefficient[0] + coefficient.slice(2) : coefficient, +x.slice(i + 1)]
 }
 export function (grouping, thousands) {
@@ -39,14 +33,12 @@ export function (grouping, thousands) {
       j = 0,
       g = grouping[0],
       length = 0
-
     while (i > 0 && g > 0) {
       if (length + g + 1 > width) g = Math.max(1, width - length)
       t.push(value.substring((i -= g), i + g))
       if ((length += g + 1) > width) break
       g = grouping[(j = (j + 1) % grouping.length)]
     }
-
     return t.reverse().join(thousands)
   }
 }
@@ -58,9 +50,7 @@ export function (numerals) {
   }
 }
 import { formatDecimalParts } from "./formatDecimal.js"
-
-export var prefixExponent
-
+export const prefixExponent
 export function (x, p) {
   var d = formatDecimalParts(x, p)
   if (!d) return x + ""
@@ -77,7 +67,6 @@ export function (x, p) {
     : "0." + new Array(1 - i).join("0") + formatDecimalParts(x, Math.max(0, p + i - 1))[0] // less than 1y!
 }
 import { formatDecimalParts } from "./formatDecimal.js"
-
 export function (x, p) {
   var d = formatDecimalParts(x, p)
   if (!d) return x + ""
@@ -89,9 +78,7 @@ export function (x, p) {
     ? coefficient.slice(0, exponent + 1) + "." + coefficient.slice(exponent + 1)
     : coefficient + new Array(exponent - coefficient.length + 2).join("0")
 }
-
 var re = /^(?:(.)?([<>=^]))?([+\-( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?(~)?([a-z%])?$/i
-
 export function formatSpecifier(specifier) {
   if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier)
   var match
@@ -108,9 +95,7 @@ export function formatSpecifier(specifier) {
     type: match[10],
   })
 }
-
 formatSpecifier.prototype = FormatSpecifier.prototype // instanceof
-
 export function FormatSpecifier(specifier) {
   this.fill = specifier.fill === undefined ? " " : specifier.fill + ""
   this.align = specifier.align === undefined ? ">" : specifier.align + ""
@@ -123,7 +108,6 @@ export function FormatSpecifier(specifier) {
   this.trim = !!specifier.trim
   this.type = specifier.type === undefined ? "" : specifier.type + ""
 }
-
 FormatSpecifier.prototype.toString = function () {
   return (
     this.fill +
@@ -138,7 +122,6 @@ FormatSpecifier.prototype.toString = function () {
     this.type
   )
 }
-
 export function (s) {
   out: for (var n = s.length, i = 1, i0 = -1, i1; i < n; ++i) {
     switch (s[i]) {
@@ -160,7 +143,6 @@ export function (s) {
 import formatDecimal from "./formatDecimal.js"
 import formatPrefixAuto from "./formatPrefixAuto.js"
 import formatRounded from "./formatRounded.js"
-
 export default {
   "%": (x, p) => (x * 100).toFixed(p),
   b: x => Math.round(x).toString(2),
@@ -193,10 +175,8 @@ import formatTrim from "./formatTrim.js"
 import formatTypes from "./formatTypes.js"
 import { prefixExponent } from "./formatPrefixAuto.js"
 import identity from "./identity.js"
-
 var map = Array.prototype.map,
   prefixes = ["y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y"]
-
 export function (locale) {
   var group =
       locale.grouping === undefined || locale.thousands === undefined
@@ -209,10 +189,8 @@ export function (locale) {
     percent = locale.percent === undefined ? "%" : locale.percent + "",
     minus = locale.minus === undefined ? "−" : locale.minus + "",
     nan = locale.nan === undefined ? "NaN" : locale.nan + ""
-
   function newFormat(specifier) {
     specifier = formatSpecifier(specifier)
-
     var fill = specifier.fill,
       align = specifier.align,
       sign = specifier.sign,
@@ -223,54 +201,41 @@ export function (locale) {
       precision = specifier.precision,
       trim = specifier.trim,
       type = specifier.type
-
     if (type === "n") (comma = true), (type = "g")
     else if (!formatTypes[type]) precision === undefined && (precision = 12), (trim = true), (type = "g")
-
     if (zero || (fill === "0" && align === "=")) (zero = true), (fill = "0"), (align = "=")
-
     var prefix =
         symbol === "$" ? currencyPrefix : symbol === "#" && /[boxX]/.test(type) ? "0" + type.toLowerCase() : "",
       suffix = symbol === "$" ? currencySuffix : /[%p]/.test(type) ? percent : ""
-
     var formatType = formatTypes[type],
       maybeSuffix = /[defgprs%]/.test(type)
-
     precision =
       precision === undefined
         ? 6
         : /[gprs]/.test(type)
         ? Math.max(1, Math.min(21, precision))
         : Math.max(0, Math.min(20, precision))
-
     function format(value) {
       var valuePrefix = prefix,
         valueSuffix = suffix,
         i,
         n,
         c
-
       if (type === "c") {
         valueSuffix = formatType(value) + valueSuffix
         value = ""
       } else {
         value = +value
-
         var valueNegative = value < 0 || 1 / value < 0
-
         value = isNaN(value) ? nan : formatType(Math.abs(value), precision)
-
         if (trim) value = formatTrim(value)
-
         if (valueNegative && +value === 0 && sign !== "+") valueNegative = false
-
         valuePrefix =
           (valueNegative ? (sign === "(" ? sign : minus) : sign === "-" || sign === "(" ? "" : sign) + valuePrefix
         valueSuffix =
           (type === "s" ? prefixes[8 + prefixExponent / 3] : "") +
           valueSuffix +
           (valueNegative && sign === "(" ? ")" : "")
-
         if (maybeSuffix) {
           ;(i = -1), (n = value.length)
           while (++i < n) {
@@ -282,15 +247,11 @@ export function (locale) {
           }
         }
       }
-
       if (comma && !zero) value = group(value, Infinity)
-
       var length = valuePrefix.length + value.length + valueSuffix.length,
         padding = length < width ? new Array(width - length + 1).join(fill) : ""
-
       if (comma && zero)
         (value = group(padding + value, padding.length ? width - valueSuffix.length : Infinity)), (padding = "")
-
       switch (align) {
         case "<":
           value = valuePrefix + value + valueSuffix + padding
@@ -306,17 +267,13 @@ export function (locale) {
           value = padding + valuePrefix + value + valueSuffix
           break
       }
-
       return numerals(value)
     }
-
     format.toString = function () {
       return specifier + ""
     }
-
     return format
   }
-
   function formatPrefix(specifier, value) {
     var f = newFormat(((specifier = formatSpecifier(specifier)), (specifier.type = "f"), specifier)),
       e = Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3,
@@ -326,24 +283,20 @@ export function (locale) {
       return f(k * value) + prefix
     }
   }
-
   return {
     format: newFormat,
     formatPrefix: formatPrefix,
   }
 }
 import exponent from "./exponent.js"
-
 export function (step) {
   return Math.max(0, -exponent(Math.abs(step)))
 }
 import exponent from "./exponent.js"
-
 export function (step, value) {
   return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3 - exponent(Math.abs(step)))
 }
 import exponent from "./exponent.js"
-
 export function (step, max) {
   ;(step = Math.abs(step)), (max = Math.abs(max) - step)
   return Math.max(0, exponent(max) - exponent(step)) + 1

@@ -1,13 +1,10 @@
-import { dispatch } from "d3-dispatch"
-import { dragDisable, dragEnable } from "d3-drag"
-import { interpolate } from "d3-interpolate"
-import { pointer, select } from "d3-selection"
-import { interrupt } from "d3-transition"
+import { dispatch } from "./dispatch.js"
+import { dragDisable, dragEnable } from "./drag.js"
+import { interpolate } from "./interpolate.js"
+import { pointer, select } from "./selection.js"
+import { interrupt } from "./transition.js"
 import constant from "./constant.js"
-import BrushEvent from "./event.js"
-import noevent, { nopropagation } from "./noevent.js"
 import type * as qt from "./types.js"
-
 const MODE_DRAG = { name: "drag" },
   MODE_SPACE = { name: "space" },
   MODE_HANDLE = { name: "handle" },
@@ -633,7 +630,7 @@ export { default as brush, brushX, brushY, brushSelection } from "./brush.js"
 export function nopropagation(event) {
   event.stopImmediatePropagation()
 }
-export function (event) {
+export function noevent(event) {
   event.preventDefault()
   event.stopImmediatePropagation()
 }

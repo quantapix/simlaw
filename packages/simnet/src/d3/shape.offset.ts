@@ -13,7 +13,6 @@ export function(series, order) {
   }
 }
 import none from "./none.js";
-
 export function(series, order) {
   if (!((n = series.length) > 0)) return;
   for (var i, n, j = 0, m = series[0].length, y; j < m; ++j) {
@@ -32,7 +31,6 @@ export function(series, order) {
   }
 }
 import none from "./none.js";
-
 export function(series, order) {
   if (!((n = series.length) > 0)) return;
   for (var j = 0, s0 = series[order[0]], n, m = s0.length; j < m; ++j) {
@@ -42,7 +40,6 @@ export function(series, order) {
   none(series, order);
 }
 import none from "./none.js";
-
 export function(series, order) {
   if (!((n = series.length) > 0) || !((m = (s0 = series[order[0]]).length) > 0)) return;
   for (var y = 0, j = 1, s0, m, n; j < m; ++j) {

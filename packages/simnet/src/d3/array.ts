@@ -1,9 +1,7 @@
 import * as qt from "./types.js"
-
 var array = Array.prototype
-export var slice = array.slice
-export var map = array.map
-
+export const slice = array.slice
+export const map = array.map
 export function ascending(a: qt.Primitive | undefined, b: qt.Primitive | undefined): number
 export function ascending(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
@@ -112,7 +110,6 @@ export function bisectCenter(xs: ArrayLike<string>, x: string, lo?: number, hi?:
 export function bisectCenter(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
 export function bisectCenter = bisector(number).center
 export const bisect: typeof bisectRight
-
 export function bisector<T, U>(comparator: (a: T, b: U) => number): qt.Bisector<T, U>
 export function bisector<T, U>(f: (x: T) => U): qt.Bisector<T, U>
 export function bisector(f) {
@@ -1176,7 +1173,6 @@ export function shuffle(xs: Int32Array, lo?: number, hi?: number): Int32Array
 export function shuffle(xs: Uint32Array, lo?: number, hi?: number): Uint32Array
 export function shuffle(xs: Float32Array, lo?: number, hi?: number): Float32Array
 export function shuffle(xs: Float64Array, lo?: number, hi?: number): Float64Array
-
 export default shuffler(Math.random)
 export function shuffler(random: () => number): typeof shuffle
 export function shuffler(random) {
@@ -1285,7 +1281,6 @@ function intern(value) {
 let e10 = Math.sqrt(50),
   e5 = Math.sqrt(10),
   e2 = Math.sqrt(2);
-
 export function ticks(start: number, stop: number, count: number): number[]
 export function ticks(start, stop, count) {
   var reverse,
