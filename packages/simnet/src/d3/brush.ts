@@ -6,22 +6,19 @@ import { interrupt } from "d3-transition"
 import constant from "./constant.js"
 import BrushEvent from "./event.js"
 import noevent, { nopropagation } from "./noevent.js"
+import type * as qt from "./types.js"
 
-var MODE_DRAG = { name: "drag" },
+const MODE_DRAG = { name: "drag" },
   MODE_SPACE = { name: "space" },
   MODE_HANDLE = { name: "handle" },
   MODE_CENTER = { name: "center" }
-
 const { abs, max, min } = Math
-
 function number1(e) {
   return [+e[0], +e[1]]
 }
-
 function number2(e) {
   return [number1(e[0]), number1(e[1])]
 }
-
 var X = {
   name: "x",
   handles: ["w", "e"].map(type),
@@ -37,7 +34,6 @@ var X = {
     return xy && [xy[0][0], xy[1][0]]
   },
 }
-
 var Y = {
   name: "y",
   handles: ["n", "s"].map(type),
@@ -53,7 +49,6 @@ var Y = {
     return xy && [xy[0][1], xy[1][1]]
   },
 }
-
 var XY = {
   name: "xy",
   handles: ["n", "w", "e", "s", "nw", "ne", "sw", "se"].map(type),
@@ -64,7 +59,6 @@ var XY = {
     return xy
   },
 }
-
 var cursors = {
   overlay: "crosshair",
   selection: "move",
@@ -77,7 +71,6 @@ var cursors = {
   se: "nwse-resize",
   sw: "nesw-resize",
 }
-
 var flipX = {
   e: "w",
   w: "e",
@@ -86,7 +79,6 @@ var flipX = {
   se: "sw",
   sw: "se",
 }
-
 var flipY = {
   n: "s",
   s: "n",
@@ -95,7 +87,6 @@ var flipY = {
   se: "ne",
   sw: "nw",
 }
-
 var signsX = {
   overlay: +1,
   selection: +1,
@@ -108,7 +99,6 @@ var signsX = {
   se: +1,
   sw: -1,
 }
-
 var signsY = {
   overlay: +1,
   selection: +1,
@@ -121,15 +111,12 @@ var signsY = {
   se: +1,
   sw: +1,
 }
-
 function type(t) {
   return { type: t }
 }
-
 function defaultFilter(event) {
   return !event.ctrlKey && !event.button
 }
-
 function defaultExtent() {
   var svg = this.ownerSVGElement || this
   if (svg.hasAttribute("viewBox")) {
@@ -144,37 +131,33 @@ function defaultExtent() {
     [svg.width.baseVal.value, svg.height.baseVal.value],
   ]
 }
-
 function defaultTouchable() {
   return navigator.maxTouchPoints || "ontouchstart" in this
 }
-
 function local(node) {
   while (!node.__brush) if (!(node = node.parentNode)) return
   return node.__brush
 }
-
 function empty(extent) {
   return extent[0][0] === extent[1][0] || extent[0][1] === extent[1][1]
 }
-
+export function brushSelection(node: SVGGElement): qt.BrushSelection | null
 export function brushSelection(node) {
   var state = node.__brush
   return state ? state.dim.output(state.selection) : null
 }
-
+export function brushX<T>(): qt.BrushBehavior<T>
 export function brushX() {
   return brush(X)
 }
-
+export function brushY<T>(): qt.BrushBehavior<T>
 export function brushY() {
   return brush(Y)
 }
-
 export function () {
   return brush(XY)
 }
-
+export function brush<T>(): qt.BrushBehavior<T>
 function brush(dim) {
   var extent = defaultExtent,
     filter = defaultFilter,
@@ -183,13 +166,11 @@ function brush(dim) {
     listeners = dispatch("start", "brush", "end"),
     handleSize = 6,
     touchending
-
   function brush(group) {
     var overlay = group
       .property("__brush", initialize)
       .selectAll(".overlay")
       .data([type("overlay")])
-
     overlay
       .enter()
       .append("rect")
@@ -205,7 +186,6 @@ function brush(dim) {
           .attr("width", extent[1][0] - extent[0][0])
           .attr("height", extent[1][1] - extent[0][1])
       })
-
     group
       .selectAll(".selection")
       .data([type("selection")])
@@ -217,13 +197,10 @@ function brush(dim) {
       .attr("fill-opacity", 0.3)
       .attr("stroke", "#fff")
       .attr("shape-rendering", "crispEdges")
-
     var handle = group.selectAll(".handle").data(dim.handles, function (d) {
       return d.type
     })
-
     handle.exit().remove()
-
     handle
       .enter()
       .append("rect")
@@ -233,7 +210,6 @@ function brush(dim) {
       .attr("cursor", function (d) {
         return cursors[d.type]
       })
-
     group
       .each(redraw)
       .attr("fill", "none")
@@ -246,7 +222,6 @@ function brush(dim) {
       .style("touch-action", "none")
       .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)")
   }
-
   brush.move = function (group, selection, event) {
     if (group.tween) {
       group
@@ -266,13 +241,11 @@ function brush(dim) {
               state.extent
             ),
             i = interpolate(selection0, selection1)
-
           function tween(t) {
             state.selection = t === 1 && selection1 === null ? null : i(t)
             redraw.call(that)
             emit.brush()
           }
-
           return selection0 !== null && selection1 !== null ? tween : tween(1)
         })
     } else {
@@ -285,7 +258,6 @@ function brush(dim) {
             state.extent
           ),
           emit = emitter(that, args).beforestart()
-
         interrupt(that)
         state.selection = selection1 === null ? null : selection1
         redraw.call(that)
@@ -293,15 +265,12 @@ function brush(dim) {
       })
     }
   }
-
   brush.clear = function (group, event) {
     brush.move(group, null, event)
   }
-
   function redraw() {
     var group = select(this),
       selection = local(this).selection
-
     if (selection) {
       group
         .selectAll(".selection")
@@ -310,7 +279,6 @@ function brush(dim) {
         .attr("y", selection[0][1])
         .attr("width", selection[1][0] - selection[0][0])
         .attr("height", selection[1][1] - selection[0][1])
-
       group
         .selectAll(".handle")
         .style("display", null)
@@ -336,12 +304,10 @@ function brush(dim) {
         .attr("height", null)
     }
   }
-
   function emitter(that, args, clean) {
     var emit = that.__brush.emitter
     return emit && (!clean || !emit.clean) ? emit : new Emitter(that, args, clean)
   }
-
   function Emitter(that, args, clean) {
     this.that = that
     this.args = args
@@ -349,7 +315,6 @@ function brush(dim) {
     this.active = 0
     this.clean = clean
   }
-
   Emitter.prototype = {
     beforestart: function () {
       if (++this.active === 1) (this.state.emitter = this), (this.starting = true)
@@ -384,11 +349,9 @@ function brush(dim) {
       )
     },
   }
-
   function started(event) {
     if (touchending && !event.touches) return
     if (!filter.apply(this, arguments)) return
-
     var that = this,
       type = event.target.__data__.type,
       mode =
@@ -427,10 +390,8 @@ function brush(dim) {
         t.identifier = i
         return t
       })
-
     interrupt(that)
     var emit = emitter(that, arguments, true).beforestart()
-
     if (type === "overlay") {
       if (selection) moving = true
       const pts = [points[0], points[1] || points[0]]
@@ -445,29 +406,22 @@ function brush(dim) {
       e0 = selection[1][0]
       s0 = selection[1][1]
     }
-
     w1 = w0
     n1 = n0
     e1 = e0
     s1 = s0
-
     var group = select(that).attr("pointer-events", "none")
-
     var overlay = group.selectAll(".overlay").attr("cursor", cursors[type])
-
     if (event.touches) {
       emit.moved = moved
       emit.ended = ended
     } else {
       var view = select(event.view).on("mousemove.brush", moved, true).on("mouseup.brush", ended, true)
       if (keys) view.on("keydown.brush", keydowned, true).on("keyup.brush", keyupped, true)
-
       dragDisable(event.view)
     }
-
     redraw.call(that)
     emit.start(event, mode.name)
-
     function moved(event) {
       for (const p of event.changedTouches || [event]) {
         for (const d of points) if (d.identifier === p.identifier) d.cur = pointer(p, that)
@@ -482,15 +436,12 @@ function brush(dim) {
       noevent(event)
       move(event)
     }
-
     function move(event) {
       const point = points[0],
         point0 = point.point0
       var t
-
       dx = point[0] - point0[0]
       dy = point[1] - point0[1]
-
       switch (mode) {
         case MODE_SPACE:
         case MODE_DRAG: {
@@ -516,25 +467,21 @@ function brush(dim) {
           break
         }
       }
-
       if (e1 < w1) {
         signX *= -1
         ;(t = w0), (w0 = e0), (e0 = t)
         ;(t = w1), (w1 = e1), (e1 = t)
         if (type in flipX) overlay.attr("cursor", cursors[(type = flipX[type])])
       }
-
       if (s1 < n1) {
         signY *= -1
         ;(t = n0), (n0 = s0), (s0 = t)
         ;(t = n1), (n1 = s1), (s1 = t)
         if (type in flipY) overlay.attr("cursor", cursors[(type = flipY[type])])
       }
-
       if (state.selection) selection = state.selection // May be set by brush.move!
       if (lockX) (w1 = selection[0][0]), (e1 = selection[1][0])
       if (lockY) (n1 = selection[0][1]), (s1 = selection[1][1])
-
       if (selection[0][0] !== w1 || selection[0][1] !== n1 || selection[1][0] !== e1 || selection[1][1] !== s1) {
         state.selection = [
           [w1, n1],
@@ -544,7 +491,6 @@ function brush(dim) {
         emit.brush(event, mode.name)
       }
     }
-
     function ended(event) {
       nopropagation(event)
       if (event.touches) {
@@ -563,7 +509,6 @@ function brush(dim) {
       if (empty(selection)) (state.selection = null), redraw.call(that)
       emit.end(event, mode.name)
     }
-
     function keydowned(event) {
       switch (event.keyCode) {
         case 16: {
@@ -596,7 +541,6 @@ function brush(dim) {
       }
       noevent(event)
     }
-
     function keyupped(event) {
       switch (event.keyCode) {
         case 16: {
@@ -641,47 +585,37 @@ function brush(dim) {
       noevent(event)
     }
   }
-
   function touchmoved(event) {
     emitter(this, arguments).moved(event)
   }
-
   function touchended(event) {
     emitter(this, arguments).ended(event)
   }
-
   function initialize() {
     var state = this.__brush || { selection: null }
     state.extent = number2(extent.apply(this, arguments))
     state.dim = dim
     return state
   }
-
   brush.extent = function (_) {
     return arguments.length ? ((extent = typeof _ === "function" ? _ : constant(number2(_))), brush) : extent
   }
-
   brush.filter = function (_) {
     return arguments.length ? ((filter = typeof _ === "function" ? _ : constant(!!_)), brush) : filter
   }
-
   brush.touchable = function (_) {
     return arguments.length ? ((touchable = typeof _ === "function" ? _ : constant(!!_)), brush) : touchable
   }
-
   brush.handleSize = function (_) {
     return arguments.length ? ((handleSize = +_), brush) : handleSize
   }
-
   brush.keyModifiers = function (_) {
     return arguments.length ? ((keys = !!_), brush) : keys
   }
-
   brush.on = function () {
     var value = listeners.on.apply(listeners, arguments)
     return value === listeners ? brush : value
   }
-
   return brush
 }
 export default x => () => x
@@ -699,7 +633,6 @@ export { default as brush, brushX, brushY, brushSelection } from "./brush.js"
 export function nopropagation(event) {
   event.stopImmediatePropagation()
 }
-
 export function (event) {
   event.preventDefault()
   event.stopImmediatePropagation()

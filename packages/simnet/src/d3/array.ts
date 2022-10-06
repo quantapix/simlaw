@@ -1,4 +1,3 @@
-import { InternSet, InternMap } from "internmap"
 import * as qt from "./types.js"
 
 var array = Array.prototype
@@ -9,6 +8,9 @@ export function ascending(a: qt.Primitive | undefined, b: qt.Primitive | undefin
 export function ascending(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
 }
+export function bin(): qt.HistogramGeneratorNumber<number, number>
+export function bin<T, V extends number | undefined>(): qt.HistogramGeneratorNumber<T, V>
+export function bin<T, V extends Date | undefined>(): qt.HistogramGeneratorDate<T, V>
 export function bin() {
   var value = identity,
     domain = extent,
@@ -96,7 +98,6 @@ export function bin() {
   }
   return histogram
 }
-
 const ascendingBisect = bisector(ascending)
 export function bisectLeft(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
 export function bisectLeft(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number
@@ -337,9 +338,9 @@ export function deviation(values, valueof) {
   const v = variance(values, valueof)
   return v ? Math.sqrt(v) : v
 }
-export function difference<T>(xs: Iterable<T>, ...others: Array<Iterable<T>>): InternSet<T>
+export function difference<T>(xs: Iterable<T>, ...others: Array<Iterable<T>>): qt.InternSet<T>
 export function difference(values, ...others) {
-  values = new InternSet(values)
+  values = new qt.InternSet(values)
   for (const other of others) {
     for (const value of other) {
       values.delete(value)
@@ -350,7 +351,7 @@ export function difference(values, ...others) {
 export function disjoint<T>(a: Iterable<T>, b: Iterable<T>): boolean
 export function disjoint(values, other) {
   const iterator = other[Symbol.iterator](),
-    set = new InternSet()
+    set = new qt.InternSet()
   for (const v of values) {
     if (set.has(v)) return false
     let value, done
@@ -543,18 +544,18 @@ export function greatestIndex(xs: any, f = ascending) {
   }
   return y
 }
-export function group<T, K>(xs: Iterable<T>, key: (x: T) => K): InternMap<K, T[]>
+export function group<T, K>(xs: Iterable<T>, key: (x: T) => K): qt.InternMap<K, T[]>
 export function group<T, K1, K2>(
   xs: Iterable<T>,
   key1: (x: T) => K1,
   key2: (x: T) => K2
-): InternMap<K1, InternMap<K2, T[]>>
+): qt.InternMap<K1, qt.InternMap<K2, T[]>>
 export function group<T, K1, K2, K3>(
   xs: Iterable<T>,
   key1: (x: T) => K1,
   key2: (x: T) => K2,
   key3: (x: T) => K3
-): InternMap<K1, InternMap<K2, InternMap<K3, T[]>>>
+): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, T[]>>>
 export function group(values, ...keys) {
   return nest(values, identity, identity, keys)
 }
@@ -570,8 +571,8 @@ export function groups<T, K1, K2, K3>(
   key2: (x: T) => K2,
   key3: (x: T) => K3
 ): Array<[K1, Array<[K2, Array<[K3, T[]]>]>]>
-export function groups(values, ...keys) {
-  return nest(values, Array.from, identity, keys)
+export function groups(xs, ...ks) {
+  return nest(xs, Array.from, identity, ks)
 }
 function flatten(groups, keys) {
   for (let i = 1, n = keys.length; i < n; ++i) {
@@ -607,20 +608,20 @@ export function flatRollup<T, R, K1, K2, K3>(
 export function flatRollup(values, reduce, ...keys) {
   return flatten(rollups(values, reduce, ...keys), keys)
 }
-export function rollup<T, R, K>(xs: Iterable<T>, reduce: (value: T[]) => R, key: (x: T) => K): InternMap<K, R>
+export function rollup<T, R, K>(xs: Iterable<T>, reduce: (value: T[]) => R, key: (x: T) => K): qt.InternMap<K, R>
 export function rollup<T, R, K1, K2>(
   xs: Iterable<T>,
   reduce: (value: T[]) => R,
   key1: (x: T) => K1,
   key2: (x: T) => K2
-): InternMap<K1, InternMap<K2, R>>
+): qt.InternMap<K1, qt.InternMap<K2, R>>
 export function rollup<T, R, K1, K2, K3>(
   xs: Iterable<T>,
   reduce: (value: T[]) => R,
   key1: (x: T) => K1,
   key2: (x: T) => K2,
   key3: (x: T) => K3
-): InternMap<K1, InternMap<K2, InternMap<K3, R>>>
+): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, R>>>
 export function rollup(values, reduce, ...keys) {
   return nest(values, identity, reduce, keys)
 }
@@ -641,18 +642,18 @@ export function rollups<T, R, K1, K2, K3>(
 export function rollups(values, reduce, ...keys) {
   return nest(values, Array.from, reduce, keys)
 }
-export function index<T, K>(xs: Iterable<T>, key: (x: T) => K): InternMap<K, T>
+export function index<T, K>(xs: Iterable<T>, key: (x: T) => K): qt.InternMap<K, T>
 export function index<T, K1, K2>(
   xs: Iterable<T>,
   key1: (x: T) => K1,
   key2: (x: T) => K2
-): InternMap<K1, InternMap<K2, T>>
+): qt.InternMap<K1, qt.InternMap<K2, T>>
 export function index<T, K1, K2, K3>(
   xs: Iterable<T>,
   key1: (x: T) => K1,
   key2: (x: T) => K2,
   key3: (x: T) => K3
-): InternMap<K1, InternMap<K2, InternMap<K3, T>>>
+): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, T>>>
 export function index(values, ...keys) {
   return nest(values, identity, unique, keys)
 }
@@ -671,11 +672,11 @@ function unique(values) {
   if (values.length !== 1) throw new Error("duplicate key")
   return values[0]
 }
-function nest(values, map, reduce, keys) {
+function nest(values, map, reduce, ks: any[]) {
   return (function regroup(values, i) {
-    if (i >= keys.length) return reduce(values)
-    const groups = new InternMap()
-    const keyof = keys[i++]
+    if (i >= ks.length) return reduce(values)
+    const groups = new qt.InternMap()
+    const keyof = ks[i++]
     let index = -1
     for (const value of values) {
       const key = keyof(value, ++index, values)
@@ -701,9 +702,9 @@ export function groupSort(values, reduce, key) {
 export function identity(x) {
   return x
 }
-export function intersection<T>(...xs: Array<Iterable<T>>): InternSet<T>
+export function intersection<T>(...xs: Array<Iterable<T>>): qt.InternSet<T>
 export function intersection(values, ...others) {
-  values = new InternSet(values)
+  values = new qt.InternSet(values)
   others = others.map(set)
   out: for (const value of values) {
     for (const other of others) {
@@ -716,7 +717,7 @@ export function intersection(values, ...others) {
   return values
 }
 function set(values) {
-  return values instanceof InternSet ? values : new InternSet(values)
+  return values instanceof qt.InternSet ? values : new qt.InternSet(values)
 }
 export function least<T>(xs: Iterable<T>, comparator?: (a: T, b: T) => number): T | undefined
 export function least<T>(xs: Iterable<T>, accessor: (a: T) => unknown): T | undefined
@@ -913,7 +914,7 @@ export function minIndex(values, valueof) {
 export function mode(xs: Iterable<qt.Numeric | undefined | null>): number
 export function mode<T>(xs: Iterable<T>, f: (x: T, i: number, xs: Iterable<T>) => number | undefined | null): number
 export function mode(values, valueof) {
-  const counts = new InternMap()
+  const counts = new qt.InternMap()
   if (valueof === undefined) {
     for (let value of values) {
       if (value != null && value >= value) {
@@ -1347,9 +1348,9 @@ export function transpose(matrix) {
 function length(d) {
   return d.length
 }
-export function union<T>(...xs: Array<Iterable<T>>): InternSet<T>
+export function union<T>(...xs: Array<Iterable<T>>): qt.InternSet<T>
 export function union(...others) {
-  const set = new InternSet()
+  const set = new qt.InternSet()
   for (const other of others) {
     for (const o of other) {
       set.add(o)
@@ -1391,14 +1392,17 @@ export function zip<T>(...arrays: Array<ArrayLike<T>>): T[][]
 export function zip() {
   return transpose(arguments)
 }
+export function thresholdFreedmanDiaconis(xs: ArrayLike<number | undefined>, min: number, max: number): number
 export function thresholdFreedmanDiaconis(values, min, max) {
   return Math.ceil(
     (max - min) / (2 * (quantile(values, 0.75) - quantile(values, 0.25)) * Math.pow(count(values), -1 / 3))
   )
 }
+export function thresholdScott(xs: ArrayLike<number | undefined>, min: number, max: number): number
 export function thresholdScott(values, min, max) {
   return Math.ceil(((max - min) * Math.cbrt(count(values))) / (3.49 * deviation(values)))
 }
+export function thresholdSturges(xs: ArrayLike<number | undefined>): number
 export function thresholdSturges(values) {
   return Math.ceil(Math.log(count(values)) / Math.LN2) + 1
 }

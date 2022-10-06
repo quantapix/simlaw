@@ -19,28 +19,29 @@ export interface Bin<Datum, Value extends number | Date | undefined> extends Arr
   x1: Value | undefined
 }
 export type ThresholdCountGenerator<Value extends number | undefined = number | undefined> = (
-  values: ArrayLike<Value>,
+  xs: ArrayLike<Value>,
   min: number,
   max: number
 ) => number
 export type ThresholdNumberArrayGenerator<Value extends number | undefined> = (
-  values: ArrayLike<Value>,
+  xs: ArrayLike<Value>,
   min: number,
   max: number
 ) => Value[]
 export type ThresholdDateArrayGenerator<Value extends Date | undefined> = (
-  values: ArrayLike<Value>,
+  xs: ArrayLike<Value>,
   min: Date,
   max: Date
 ) => Value[]
+
 export interface HistogramCommon<Datum, Value extends number | Date | undefined> {
   (data: ArrayLike<Datum>): Array<Bin<Datum, Value>>
   value(): (d: Datum, i: number, data: ArrayLike<Datum>) => Value
   value(valueAccessor: (d: Datum, i: number, data: ArrayLike<Datum>) => Value): this
 }
 export interface HistogramGeneratorDate<Datum, Value extends Date | undefined> extends HistogramCommon<Datum, Date> {
-  domain(): (values: ArrayLike<Value>) => [Date, Date]
-  domain(domain: [Date, Date] | ((values: ArrayLike<Value>) => [Date, Date])): this
+  domain(): (xs: ArrayLike<Value>) => [Date, Date]
+  domain(domain: [Date, Date] | ((xs: ArrayLike<Value>) => [Date, Date])): this
   thresholds(): ThresholdDateArrayGenerator<Value>
   thresholds(thresholds: ArrayLike<Value> | ThresholdDateArrayGenerator<Value>): this
 }
@@ -55,27 +56,23 @@ export interface HistogramGeneratorNumber<Datum, Value extends number | undefine
 export function histogram(): HistogramGeneratorNumber<number, number>
 export function histogram<Datum, Value extends number | undefined>(): HistogramGeneratorNumber<Datum, Value>
 export function histogram<Datum, Value extends Date | undefined>(): HistogramGeneratorDate<Datum, Value>
-export function bin(): HistogramGeneratorNumber<number, number>
-export function bin<Datum, Value extends number | undefined>(): HistogramGeneratorNumber<Datum, Value>
-export function bin<Datum, Value extends Date | undefined>(): HistogramGeneratorDate<Datum, Value>
-export function thresholdFreedmanDiaconis(values: ArrayLike<number | undefined>, min: number, max: number): number
-export function thresholdScott(values: ArrayLike<number | undefined>, min: number, max: number): number
-export function thresholdSturges(values: ArrayLike<number | undefined>): number
+
 export class InternMap<K = any, V = any> extends Map<K, V> {}
 export class InternSet<T = any> extends Set<T> {}
+
 export type AxisDomain = number | string | Date | { valueOf(): number }
 export interface AxisTimeInterval {
   range(start: Date, stop: Date, step?: number): Date[]
 }
-export interface AxisScale<Domain> {
-  (x: Domain): number | undefined
-  domain(): Domain[]
+export interface AxisScale<T> {
+  (x: T): number | undefined
+  domain(): T[]
   range(): number[]
   copy(): this
   bandwidth?(): number
 }
 export type AxisContainerElement = SVGSVGElement | SVGGElement
-export interface Axis<Domain> {
+export interface Axis<T> {
   (
     context:
       | Selection<SVGSVGElement, any, any, any>
@@ -83,18 +80,18 @@ export interface Axis<Domain> {
       | TransitionLike<SVGSVGElement, any>
       | TransitionLike<SVGGElement, any>
   ): void
-  scale<A extends AxisScale<Domain>>(): A
-  scale(scale: AxisScale<Domain>): this
+  scale<A extends AxisScale<T>>(): A
+  scale(scale: AxisScale<T>): this
   ticks(count: number, specifier?: string): this
   ticks(interval: AxisTimeInterval, specifier?: string): this
   ticks(arg0: any, ...args: any[]): this
   tickArguments(): any[]
   tickArguments(args: any[]): this
-  tickValues(): Domain[] | null
-  tickValues(xs: Iterable<Domain>): this
+  tickValues(): T[] | null
+  tickValues(xs: Iterable<T>): this
   tickValues(values: null): this
-  tickFormat(): ((domainValue: Domain, i: number) => string) | null
-  tickFormat(format: (domainValue: Domain, i: number) => string): this
+  tickFormat(): ((domainValue: T, i: number) => string) | null
+  tickFormat(format: (domainValue: T, i: number) => string): this
   tickFormat(format: null): this
   tickSize(): number
   tickSize(size: number): this
@@ -107,41 +104,34 @@ export interface Axis<Domain> {
   offset(): number
   offset(offset: number): this
 }
-export function axisTop<Domain extends AxisDomain>(scale: AxisScale<Domain>): Axis<Domain>
-export function axisRight<Domain extends AxisDomain>(scale: AxisScale<Domain>): Axis<Domain>
-export function axisBottom<Domain extends AxisDomain>(scale: AxisScale<Domain>): Axis<Domain>
-export function axisLeft<Domain extends AxisDomain>(scale: AxisScale<Domain>): Axis<Domain>
+
 export type BrushSelection = [[number, number], [number, number]] | [number, number]
-export interface BrushBehavior<Datum> {
-  (group: Selection<SVGGElement, Datum, any, any>, ...args: any[]): void
+export interface BrushBehavior<T> {
+  (group: Selection<SVGGElement, T, any, any>, ...args: any[]): void
   move(
-    group: Selection<SVGGElement, Datum, any, any> | TransitionLike<SVGGElement, Datum>,
-    selection: null | BrushSelection | ValueFn<SVGGElement, Datum, BrushSelection>,
+    group: Selection<SVGGElement, T, any, any> | TransitionLike<SVGGElement, T>,
+    selection: null | BrushSelection | ValueFn<SVGGElement, T, BrushSelection>,
     event?: Event
   ): void
-  clear(group: Selection<SVGGElement, Datum, any, any>, event?: Event): void
-  extent(): ValueFn<SVGGElement, Datum, [[number, number], [number, number]]>
+  clear(group: Selection<SVGGElement, T, any, any>, event?: Event): void
+  extent(): ValueFn<SVGGElement, T, [[number, number], [number, number]]>
   extent(extent: [[number, number], [number, number]]): this
-  extent(extent: ValueFn<SVGGElement, Datum, [[number, number], [number, number]]>): this
-  filter(): (this: SVGGElement, event: any, d: Datum) => boolean
-  filter(filterFn: (this: SVGGElement, event: any, d: Datum) => boolean): this
-  touchable(): ValueFn<SVGGElement, Datum, boolean>
+  extent(extent: ValueFn<SVGGElement, T, [[number, number], [number, number]]>): this
+  filter(): (this: SVGGElement, event: any, d: T) => boolean
+  filter(filterFn: (this: SVGGElement, event: any, d: T) => boolean): this
+  touchable(): ValueFn<SVGGElement, T, boolean>
   touchable(touchable: boolean): this
-  touchable(touchable: ValueFn<SVGGElement, Datum, boolean>): this
+  touchable(touchable: ValueFn<SVGGElement, T, boolean>): this
   keyModifiers(): boolean
   keyModifiers(modifiers: boolean): this
   handleSize(): number
   handleSize(size: number): this
-  on(typenames: string): ((this: SVGGElement, event: any, d: Datum) => void) | undefined
+  on(typenames: string): ((this: SVGGElement, event: any, d: T) => void) | undefined
   on(typenames: string, listener: null): this
-  on(typenames: string, listener: (this: SVGGElement, event: any, d: Datum) => void): this
+  on(typenames: string, listener: (this: SVGGElement, event: any, d: T) => void): this
 }
-export function brush<Datum>(): BrushBehavior<Datum>
-export function brushX<Datum>(): BrushBehavior<Datum>
-export function brushY<Datum>(): BrushBehavior<Datum>
-export function brushSelection(node: SVGGElement): BrushSelection | null
-export interface D3BrushEvent<Datum> {
-  target: BrushBehavior<Datum>
+export interface D3BrushEvent<T> {
+  target: BrushBehavior<T>
   type: "start" | "brush" | "end" | string
   selection: BrushSelection | null
   sourceEvent: any
