@@ -1,6 +1,55 @@
+import { bumpX, bumpY, bumpRadial } from "./curve/bump.js"
 import { path } from "./path.js"
-import constant from "./constant.js"
-import { abs, acos, asin, atan2, cos, epsilon, halfPi, max, min, pi, sin, sqrt, tau } from "./math.js"
+import curveLinear from "./curve/linear.js"
+import curveRadial, { curveRadialLinear } from "./curve/radial.js"
+import offsetNone from "./offset/none.js"
+import orderNone from "./order/none.js"
+import asterisk from "./symbol/asterisk.js"
+import circle from "./symbol/circle.js"
+import cross from "./symbol/cross.js"
+import diamond from "./symbol/diamond.js"
+import diamond2 from "./symbol/diamond2.js"
+import plus from "./symbol/plus.js"
+import square from "./symbol/square.js"
+import square2 from "./symbol/square2.js"
+import star from "./symbol/star.js"
+import triangle from "./symbol/triangle.js"
+import triangle2 from "./symbol/triangle2.js"
+import wye from "./symbol/wye.js"
+import x from "./symbol/x.js"
+import { namespace } from "./types.js"
+
+export { default as symbolAsterisk } from "./symbol/asterisk.js"
+export { default as symbolCircle } from "./symbol/circle.js"
+export { default as symbolCross } from "./symbol/cross.js"
+export { default as symbolDiamond } from "./symbol/diamond.js"
+export { default as symbolDiamond2 } from "./symbol/diamond2.js"
+export { default as symbolPlus } from "./symbol/plus.js"
+export { default as symbolSquare } from "./symbol/square.js"
+export { default as symbolSquare2 } from "./symbol/square2.js"
+export { default as symbolStar } from "./symbol/star.js"
+export { default as symbolTriangle } from "./symbol/triangle.js"
+export { default as symbolTriangle2 } from "./symbol/triangle2.js"
+export { default as symbolWye } from "./symbol/wye.js"
+export { default as symbolX } from "./symbol/x.js"
+export { default as curveBasisClosed } from "./curve/basisClosed.js"
+export { default as curveBasisOpen } from "./curve/basisOpen.js"
+export { default as curveBasis } from "./curve/basis.js"
+export { bumpX as curveBumpX, bumpY as curveBumpY } from "./curve/bump.js"
+export { default as curveBundle } from "./curve/bundle.js"
+export { default as curveCardinalClosed } from "./curve/cardinalClosed.js"
+export { default as curveCardinalOpen } from "./curve/cardinalOpen.js"
+export { default as curveCardinal } from "./curve/cardinal.js"
+export { default as curveCatmullRomClosed } from "./curve/catmullRomClosed.js"
+export { default as curveCatmullRomOpen } from "./curve/catmullRomOpen.js"
+export { default as curveCatmullRom } from "./curve/catmullRom.js"
+export { default as curveLinearClosed } from "./curve/linearClosed.js"
+export { default as curveLinear } from "./curve/linear.js"
+export { monotoneX as curveMonotoneX, monotoneY as curveMonotoneY } from "./curve/monotone.js"
+export { default as curveNatural } from "./curve/natural.js"
+export { default as curveStep, stepAfter as curveStepAfter, stepBefore as curveStepBefore } from "./curve/step.js"
+export { default as stack } from "./stack.js"
+
 function arcInnerRadius(d) {
   return d.innerRadius
 }
@@ -17,7 +66,7 @@ function arcPadAngle(d) {
   return d && d.padAngle // Note: optional!
 }
 function intersect(x0, y0, x1, y1, x2, y2, x3, y3) {
-  var x10 = x1 - x0,
+  let x10 = x1 - x0,
     y10 = y1 - y0,
     x32 = x3 - x2,
     y32 = y3 - y2,
@@ -27,7 +76,7 @@ function intersect(x0, y0, x1, y1, x2, y2, x3, y3) {
   return [x0 + t * x10, y0 + t * y10]
 }
 function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
-  var x01 = x0 - x1,
+  let x01 = x0 - x1,
     y01 = y0 - y1,
     lo = (cw ? rc : -rc) / sqrt(x01 * x01 + y01 * y01),
     ox = lo * y01,
@@ -62,8 +111,8 @@ function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
     y11: cy0 * (r1 / r - 1),
   }
 }
-export function () {
-  var innerRadius = arcInnerRadius,
+export function arc() {
+  let innerRadius = arcInnerRadius,
     outerRadius = arcOuterRadius,
     cornerRadius = constant(0),
     padRadius = null,
@@ -71,8 +120,8 @@ export function () {
     endAngle = arcEndAngle,
     padAngle = arcPadAngle,
     context = null
-  function arc() {
-    var buffer,
+  function y() {
+    let buffer,
       r,
       r0 = +innerRadius.apply(this, arguments),
       r1 = +outerRadius.apply(this, arguments),
@@ -91,7 +140,7 @@ export function () {
         context.arc(0, 0, r0, a1, a0, cw)
       }
     } else {
-      var a01 = a0,
+      let a01 = a0,
         a11 = a1,
         a00 = a0,
         a10 = a1,
@@ -105,14 +154,14 @@ export function () {
         t0,
         t1
       if (rp > epsilon) {
-        var p0 = asin((rp / r0) * sin(ap)),
+        let p0 = asin((rp / r0) * sin(ap)),
           p1 = asin((rp / r1) * sin(ap))
         if ((da0 -= p0 * 2) > epsilon) (p0 *= cw ? 1 : -1), (a00 += p0), (a10 -= p0)
         else (da0 = 0), (a00 = a10 = (a0 + a1) / 2)
         if ((da1 -= p1 * 2) > epsilon) (p1 *= cw ? 1 : -1), (a01 += p1), (a11 -= p1)
         else (da1 = 0), (a01 = a11 = (a0 + a1) / 2)
       }
-      var x01 = r1 * cos(a01),
+      let x01 = r1 * cos(a01),
         y01 = r1 * sin(a01),
         x10 = r0 * cos(a10),
         y10 = r0 * sin(a10)
@@ -123,7 +172,7 @@ export function () {
           y00 = r0 * sin(a00),
           oc
         if (da < pi && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
-          var ax = x01 - oc[0],
+          let ax = x01 - oc[0],
             ay = y01 - oc[1],
             bx = x11 - oc[0],
             by = y11 - oc[1],
@@ -161,47 +210,41 @@ export function () {
     context.closePath()
     if (buffer) return (context = null), buffer + "" || null
   }
-  arc.centroid = function () {
-    var r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2,
+  y.centroid = function () {
+    let r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2,
       a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - pi / 2
     return [cos(a) * r, sin(a) * r]
   }
-  arc.innerRadius = function (_) {
-    return arguments.length ? ((innerRadius = typeof _ === "function" ? _ : constant(+_)), arc) : innerRadius
+  y.innerRadius = function (_) {
+    return arguments.length ? ((innerRadius = typeof _ === "function" ? _ : constant(+_)), y) : innerRadius
   }
-  arc.outerRadius = function (_) {
-    return arguments.length ? ((outerRadius = typeof _ === "function" ? _ : constant(+_)), arc) : outerRadius
+  y.outerRadius = function (_) {
+    return arguments.length ? ((outerRadius = typeof _ === "function" ? _ : constant(+_)), y) : outerRadius
   }
-  arc.cornerRadius = function (_) {
-    return arguments.length ? ((cornerRadius = typeof _ === "function" ? _ : constant(+_)), arc) : cornerRadius
+  y.cornerRadius = function (_) {
+    return arguments.length ? ((cornerRadius = typeof _ === "function" ? _ : constant(+_)), y) : cornerRadius
   }
-  arc.padRadius = function (_) {
+  y.padRadius = function (_) {
     return arguments.length
-      ? ((padRadius = _ == null ? null : typeof _ === "function" ? _ : constant(+_)), arc)
+      ? ((padRadius = _ == null ? null : typeof _ === "function" ? _ : constant(+_)), y)
       : padRadius
   }
-  arc.startAngle = function (_) {
-    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : constant(+_)), arc) : startAngle
+  y.startAngle = function (_) {
+    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : constant(+_)), y) : startAngle
   }
-  arc.endAngle = function (_) {
-    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : constant(+_)), arc) : endAngle
+  y.endAngle = function (_) {
+    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : constant(+_)), y) : endAngle
   }
-  arc.padAngle = function (_) {
-    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : constant(+_)), arc) : padAngle
+  y.padAngle = function (_) {
+    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : constant(+_)), y) : padAngle
   }
-  arc.context = function (_) {
-    return arguments.length ? ((context = _ == null ? null : _), arc) : context
+  y.context = function (_) {
+    return arguments.length ? ((context = _ == null ? null : _), y) : context
   }
-  return arc
+  return y
 }
-import { path } from "./path.js"
-import array from "./array.js"
-import constant from "./constant.js"
-import curveLinear from "./curve/linear.js"
-import line from "./line.js"
-import { x as pointX, y as pointY } from "./point.js"
-export function (x0, y0, y1) {
-  var x1 = null,
+export function area(x0, y0, y1) {
+  let x1 = null,
     defined = constant(true),
     context = null,
     curve = curveLinear,
@@ -209,8 +252,8 @@ export function (x0, y0, y1) {
   x0 = typeof x0 === "function" ? x0 : x0 === undefined ? pointX : constant(+x0)
   y0 = typeof y0 === "function" ? y0 : y0 === undefined ? constant(0) : constant(+y0)
   y1 = typeof y1 === "function" ? y1 : y1 === undefined ? pointY : constant(+y1)
-  function area(data) {
-    var i,
+  function y(data) {
+    let i,
       j,
       k,
       n = (data = array(data)).length,
@@ -246,162 +289,104 @@ export function (x0, y0, y1) {
   function arealine() {
     return line().defined(defined).curve(curve).context(context)
   }
-  area.x = function (_) {
-    return arguments.length ? ((x0 = typeof _ === "function" ? _ : constant(+_)), (x1 = null), area) : x0
+  y.x = function (_) {
+    return arguments.length ? ((x0 = typeof _ === "function" ? _ : constant(+_)), (x1 = null), y) : x0
   }
-  area.x0 = function (_) {
-    return arguments.length ? ((x0 = typeof _ === "function" ? _ : constant(+_)), area) : x0
+  y.x0 = function (_) {
+    return arguments.length ? ((x0 = typeof _ === "function" ? _ : constant(+_)), y) : x0
   }
-  area.x1 = function (_) {
-    return arguments.length ? ((x1 = _ == null ? null : typeof _ === "function" ? _ : constant(+_)), area) : x1
+  y.x1 = function (_) {
+    return arguments.length ? ((x1 = _ == null ? null : typeof _ === "function" ? _ : constant(+_)), y) : x1
   }
-  area.y = function (_) {
-    return arguments.length ? ((y0 = typeof _ === "function" ? _ : constant(+_)), (y1 = null), area) : y0
+  y.y = function (_) {
+    return arguments.length ? ((y0 = typeof _ === "function" ? _ : constant(+_)), (y1 = null), y) : y0
   }
-  area.y0 = function (_) {
-    return arguments.length ? ((y0 = typeof _ === "function" ? _ : constant(+_)), area) : y0
+  y.y0 = function (_) {
+    return arguments.length ? ((y0 = typeof _ === "function" ? _ : constant(+_)), y) : y0
   }
-  area.y1 = function (_) {
-    return arguments.length ? ((y1 = _ == null ? null : typeof _ === "function" ? _ : constant(+_)), area) : y1
+  y.y1 = function (_) {
+    return arguments.length ? ((y1 = _ == null ? null : typeof _ === "function" ? _ : constant(+_)), y) : y1
   }
-  area.lineX0 = area.lineY0 = function () {
+  y.lineX0 = y.lineY0 = function () {
     return arealine().x(x0).y(y0)
   }
-  area.lineY1 = function () {
+  y.lineY1 = function () {
     return arealine().x(x0).y(y1)
   }
-  area.lineX1 = function () {
+  y.lineX1 = function () {
     return arealine().x(x1).y(y0)
   }
-  area.defined = function (_) {
-    return arguments.length ? ((defined = typeof _ === "function" ? _ : constant(!!_)), area) : defined
+  y.defined = function (_) {
+    return arguments.length ? ((defined = typeof _ === "function" ? _ : constant(!!_)), y) : defined
   }
-  area.curve = function (_) {
-    return arguments.length ? ((curve = _), context != null && (output = curve(context)), area) : curve
+  y.curve = function (_) {
+    return arguments.length ? ((curve = _), context != null && (output = curve(context)), y) : curve
   }
-  area.context = function (_) {
-    return arguments.length ? (_ == null ? (context = output = null) : (output = curve((context = _))), area) : context
+  y.context = function (_) {
+    return arguments.length ? (_ == null ? (context = output = null) : (output = curve((context = _))), y) : context
   }
-  return area
+  return y
 }
-import curveRadial, { curveRadialLinear } from "./curve/radial.js"
-import area from "./area.js"
-import { lineRadial } from "./lineRadial.js"
-export function () {
-  var a = area().curve(curveRadialLinear),
-    c = a.curve,
-    x0 = a.lineX0,
-    x1 = a.lineX1,
-    y0 = a.lineY0,
-    y1 = a.lineY1
-  ;(a.angle = a.x), delete a.x
-  ;(a.startAngle = a.x0), delete a.x0
-  ;(a.endAngle = a.x1), delete a.x1
-  ;(a.radius = a.y), delete a.y
-  ;(a.innerRadius = a.y0), delete a.y0
-  ;(a.outerRadius = a.y1), delete a.y1
-  ;(a.lineStartAngle = function () {
+export function areaRadial() {
+  let y = area().curve(curveRadialLinear),
+    c = y.curve,
+    x0 = y.lineX0,
+    x1 = y.lineX1,
+    y0 = y.lineY0,
+    y1 = y.lineY1
+  ;(y.angle = y.x), delete y.x
+  ;(y.startAngle = y.x0), delete y.x0
+  ;(y.endAngle = y.x1), delete y.x1
+  ;(y.radius = y.y), delete y.y
+  ;(y.innerRadius = y.y0), delete y.y0
+  ;(y.outerRadius = y.y1), delete y.y1
+  ;(y.lineStartAngle = function () {
     return lineRadial(x0())
   }),
-    delete a.lineX0
-  ;(a.lineEndAngle = function () {
+    delete y.lineX0
+  ;(y.lineEndAngle = function () {
     return lineRadial(x1())
   }),
-    delete a.lineX1
-  ;(a.lineInnerRadius = function () {
+    delete y.lineX1
+  ;(y.lineInnerRadius = function () {
     return lineRadial(y0())
   }),
-    delete a.lineY0
-  ;(a.lineOuterRadius = function () {
+    delete y.lineY0
+  ;(y.lineOuterRadius = function () {
     return lineRadial(y1())
   }),
-    delete a.lineY1
-  a.curve = function (_) {
+    delete y.lineY1
+  y.curve = function (_) {
     return arguments.length ? c(curveRadial(_)) : c()._curve
   }
-  return a
+  return y
 }
 export const slice = Array.prototype.slice
-export function (x) {
+export function array(x) {
   return typeof x === "object" && "length" in x
     ? x // Array, TypedArray, NodeList, array-like
     : Array.from(x) // Map, Set, iterable, string, or anything else
 }
-export function (x) {
+export function constant(x) {
   return function constant() {
     return x
   }
 }
-export function (a, b) {
+export function descending(a, b) {
   return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN
 }
-export function (d) {
+export function identity(d) {
   return d
 }
-export { default as arc } from "./arc.js"
-export { default as area } from "./area.js"
-export { default as line } from "./line.js"
-export { default as pie } from "./pie.js"
-export { default as areaRadial, default as radialArea } from "./areaRadial.js" // Note: radialArea is deprecated!
-export { default as lineRadial, default as radialLine } from "./lineRadial.js" // Note: radialLine is deprecated!
-export { default as pointRadial } from "./pointRadial.js"
-export { link, linkHorizontal, linkVertical, linkRadial } from "./link.js"
-export { default as symbol, symbolsStroke, symbolsFill, symbolsFill as symbols } from "./symbol.js"
-export { default as symbolAsterisk } from "./symbol/asterisk.js"
-export { default as symbolCircle } from "./symbol/circle.js"
-export { default as symbolCross } from "./symbol/cross.js"
-export { default as symbolDiamond } from "./symbol/diamond.js"
-export { default as symbolDiamond2 } from "./symbol/diamond2.js"
-export { default as symbolPlus } from "./symbol/plus.js"
-export { default as symbolSquare } from "./symbol/square.js"
-export { default as symbolSquare2 } from "./symbol/square2.js"
-export { default as symbolStar } from "./symbol/star.js"
-export { default as symbolTriangle } from "./symbol/triangle.js"
-export { default as symbolTriangle2 } from "./symbol/triangle2.js"
-export { default as symbolWye } from "./symbol/wye.js"
-export { default as symbolX } from "./symbol/x.js"
-export { default as curveBasisClosed } from "./curve/basisClosed.js"
-export { default as curveBasisOpen } from "./curve/basisOpen.js"
-export { default as curveBasis } from "./curve/basis.js"
-export { bumpX as curveBumpX, bumpY as curveBumpY } from "./curve/bump.js"
-export { default as curveBundle } from "./curve/bundle.js"
-export { default as curveCardinalClosed } from "./curve/cardinalClosed.js"
-export { default as curveCardinalOpen } from "./curve/cardinalOpen.js"
-export { default as curveCardinal } from "./curve/cardinal.js"
-export { default as curveCatmullRomClosed } from "./curve/catmullRomClosed.js"
-export { default as curveCatmullRomOpen } from "./curve/catmullRomOpen.js"
-export { default as curveCatmullRom } from "./curve/catmullRom.js"
-export { default as curveLinearClosed } from "./curve/linearClosed.js"
-export { default as curveLinear } from "./curve/linear.js"
-export { monotoneX as curveMonotoneX, monotoneY as curveMonotoneY } from "./curve/monotone.js"
-export { default as curveNatural } from "./curve/natural.js"
-export { default as curveStep, stepAfter as curveStepAfter, stepBefore as curveStepBefore } from "./curve/step.js"
-export { default as stack } from "./stack.js"
-export { default as stackOffsetExpand } from "./offset/expand.js"
-export { default as stackOffsetDiverging } from "./offset/diverging.js"
-export { default as stackOffsetNone } from "./offset/none.js"
-export { default as stackOffsetSilhouette } from "./offset/silhouette.js"
-export { default as stackOffsetWiggle } from "./offset/wiggle.js"
-export { default as stackOrderAppearance } from "./order/appearance.js"
-export { default as stackOrderAscending } from "./order/ascending.js"
-export { default as stackOrderDescending } from "./order/descending.js"
-export { default as stackOrderInsideOut } from "./order/insideOut.js"
-export { default as stackOrderNone } from "./order/none.js"
-export { default as stackOrderReverse } from "./order/reverse.js"
-import { path } from "./path.js"
-import array from "./array.js"
-import constant from "./constant.js"
-import curveLinear from "./curve/linear.js"
-import { x as pointX, y as pointY } from "./point.js"
-export function (x, y) {
-  var defined = constant(true),
+export function line(x, y) {
+  let defined = constant(true),
     context = null,
     curve = curveLinear,
     output = null
   x = typeof x === "function" ? x : x === undefined ? pointX : constant(x)
   y = typeof y === "function" ? y : y === undefined ? pointY : constant(y)
-  function line(data) {
-    var i,
+  function y(data) {
+    let i,
       n = (data = array(data)).length,
       d,
       defined0 = false,
@@ -416,42 +401,35 @@ export function (x, y) {
     }
     if (buffer) return (output = null), buffer + "" || null
   }
-  line.x = function (_) {
-    return arguments.length ? ((x = typeof _ === "function" ? _ : constant(+_)), line) : x
+  y.x = function (_) {
+    return arguments.length ? ((x = typeof _ === "function" ? _ : constant(+_)), y) : x
   }
-  line.y = function (_) {
-    return arguments.length ? ((y = typeof _ === "function" ? _ : constant(+_)), line) : y
+  y.y = function (_) {
+    return arguments.length ? ((y = typeof _ === "function" ? _ : constant(+_)), y) : y
   }
-  line.defined = function (_) {
-    return arguments.length ? ((defined = typeof _ === "function" ? _ : constant(!!_)), line) : defined
+  y.defined = function (_) {
+    return arguments.length ? ((defined = typeof _ === "function" ? _ : constant(!!_)), y) : defined
   }
-  line.curve = function (_) {
-    return arguments.length ? ((curve = _), context != null && (output = curve(context)), line) : curve
+  y.curve = function (_) {
+    return arguments.length ? ((curve = _), context != null && (output = curve(context)), y) : curve
   }
-  line.context = function (_) {
-    return arguments.length ? (_ == null ? (context = output = null) : (output = curve((context = _))), line) : context
+  y.context = function (_) {
+    return arguments.length ? (_ == null ? (context = output = null) : (output = curve((context = _))), y) : context
   }
-  return line
+  return y
 }
-import curveRadial, { curveRadialLinear } from "./curve/radial.js"
-import line from "./line.js"
-export function lineRadial(l) {
-  var c = l.curve
-  ;(l.angle = l.x), delete l.x
-  ;(l.radius = l.y), delete l.y
-  l.curve = function (_) {
-    return arguments.length ? c(curveRadial(_)) : c()._curve
+export function lineRadial() {
+  export function y(l) {
+    let c = l.curve
+    ;(l.angle = l.x), delete l.x
+    ;(l.radius = l.y), delete l.y
+    l.curve = function (_) {
+      return arguments.length ? c(curveRadial(_)) : c()._curve
+    }
+    return l
   }
-  return l
+  return y(line().curve(curveRadialLinear))
 }
-export function () {
-  return lineRadial(line().curve(curveRadialLinear))
-}
-import { path } from "./path.js"
-import { slice } from "./array.js"
-import constant from "./constant.js"
-import { bumpX, bumpY, bumpRadial } from "./curve/bump.js"
-import { x as pointX, y as pointY } from "./point.js"
 function linkSource(d) {
   return d.source
 }
@@ -523,21 +501,16 @@ export function acos(x) {
 export function asin(x) {
   return x >= 1 ? halfPi : x <= -1 ? -halfPi : Math.asin(x)
 }
-export function () {}
-import array from "./array.js"
-import constant from "./constant.js"
-import descending from "./descending.js"
-import identity from "./identity.js"
-import { tau } from "./math.js"
-export function () {
-  var value = identity,
+export function noop() {}
+export function pie() {
+  let value = identity,
     sortValues = descending,
     sort = null,
     startAngle = constant(0),
     endAngle = constant(tau),
     padAngle = constant(0)
-  function pie(data) {
-    var i,
+  function y(data) {
+    let i,
       n = (data = array(data)).length,
       j,
       k,
@@ -578,39 +551,35 @@ export function () {
     }
     return arcs
   }
-  pie.value = function (_) {
-    return arguments.length ? ((value = typeof _ === "function" ? _ : constant(+_)), pie) : value
+  y.value = function (_) {
+    return arguments.length ? ((value = typeof _ === "function" ? _ : constant(+_)), y) : value
   }
-  pie.sortValues = function (_) {
-    return arguments.length ? ((sortValues = _), (sort = null), pie) : sortValues
+  y.sortValues = function (_) {
+    return arguments.length ? ((sortValues = _), (sort = null), y) : sortValues
   }
-  pie.sort = function (_) {
-    return arguments.length ? ((sort = _), (sortValues = null), pie) : sort
+  y.sort = function (_) {
+    return arguments.length ? ((sort = _), (sortValues = null), y) : sort
   }
-  pie.startAngle = function (_) {
-    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : constant(+_)), pie) : startAngle
+  y.startAngle = function (_) {
+    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : constant(+_)), y) : startAngle
   }
-  pie.endAngle = function (_) {
-    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : constant(+_)), pie) : endAngle
+  y.endAngle = function (_) {
+    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : constant(+_)), y) : endAngle
   }
-  pie.padAngle = function (_) {
-    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : constant(+_)), pie) : padAngle
+  y.padAngle = function (_) {
+    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : constant(+_)), y) : padAngle
   }
-  return pie
+  return y
 }
-export function x(p) {
+export function pointX(p) {
   return p[0]
 }
-export function y(p) {
+export function pointY(p) {
   return p[1]
 }
-export function (x, y) {
+export function pointRadial(x, y) {
   return [(y = +y) * Math.cos((x -= Math.PI / 2)), y * Math.sin(x)]
 }
-import array from "./array.js"
-import constant from "./constant.js"
-import offsetNone from "./offset/none.js"
-import orderNone from "./order/none.js"
 function stackValue(d, key) {
   return d[key]
 }
@@ -619,13 +588,13 @@ function stackSeries(key) {
   series.key = key
   return series
 }
-export function () {
-  var keys = constant([]),
+export function stack() {
+  let keys = constant([]),
     order = orderNone,
     offset = offsetNone,
     value = stackValue
-  function stack(data) {
-    var sz = Array.from(keys.apply(this, arguments), stackSeries),
+  function y(data) {
+    let sz = Array.from(keys.apply(this, arguments), stackSeries),
       i,
       n = sz.length,
       j = -1,
@@ -641,37 +610,22 @@ export function () {
     offset(sz, oz)
     return sz
   }
-  stack.keys = function (_) {
-    return arguments.length ? ((keys = typeof _ === "function" ? _ : constant(Array.from(_))), stack) : keys
+  y.keys = function (_) {
+    return arguments.length ? ((keys = typeof _ === "function" ? _ : constant(Array.from(_))), y) : keys
   }
-  stack.value = function (_) {
-    return arguments.length ? ((value = typeof _ === "function" ? _ : constant(+_)), stack) : value
+  y.value = function (_) {
+    return arguments.length ? ((value = typeof _ === "function" ? _ : constant(+_)), y) : value
   }
-  stack.order = function (_) {
+  y.order = function (_) {
     return arguments.length
-      ? ((order = _ == null ? orderNone : typeof _ === "function" ? _ : constant(Array.from(_))), stack)
+      ? ((order = _ == null ? orderNone : typeof _ === "function" ? _ : constant(Array.from(_))), y)
       : order
   }
-  stack.offset = function (_) {
-    return arguments.length ? ((offset = _ == null ? offsetNone : _), stack) : offset
+  y.offset = function (_) {
+    return arguments.length ? ((offset = _ == null ? offsetNone : _), y) : offset
   }
-  return stack
+  return y
 }
-import { path } from "./path.js"
-import constant from "./constant.js"
-import asterisk from "./symbol/asterisk.js"
-import circle from "./symbol/circle.js"
-import cross from "./symbol/cross.js"
-import diamond from "./symbol/diamond.js"
-import diamond2 from "./symbol/diamond2.js"
-import plus from "./symbol/plus.js"
-import square from "./symbol/square.js"
-import square2 from "./symbol/square2.js"
-import star from "./symbol/star.js"
-import triangle from "./symbol/triangle.js"
-import triangle2 from "./symbol/triangle2.js"
-import wye from "./symbol/wye.js"
-import x from "./symbol/x.js"
 export const symbolsFill = [circle, cross, diamond, square, star, triangle, wye]
 export const symbolsStroke = [circle, plus, x, triangle2, asterisk, square2, diamond2]
 export function Symbol(type, size) {
@@ -694,4 +648,1300 @@ export function Symbol(type, size) {
     return arguments.length ? ((context = _ == null ? null : _), symbol) : context
   }
   return symbol
+}
+
+export namespace offset {
+  export function diverging(series, order) {
+    if (!((n = series.length) > 0)) return
+    for (var i, j = 0, d, dy, yp, yn, n, m = series[order[0]].length; j < m; ++j) {
+      for (yp = yn = 0, i = 0; i < n; ++i) {
+        if ((dy = (d = series[order[i]][j])[1] - d[0]) > 0) {
+          ;(d[0] = yp), (d[1] = yp += dy)
+        } else if (dy < 0) {
+          ;(d[1] = yn), (d[0] = yn += dy)
+        } else {
+          ;(d[0] = 0), (d[1] = dy)
+        }
+      }
+    }
+  }
+  export function expand(series, order) {
+    if (!((n = series.length) > 0)) return
+    for (var i, n, j = 0, m = series[0].length, y; j < m; ++j) {
+      for (y = i = 0; i < n; ++i) y += series[i][j][1] || 0
+      if (y) for (i = 0; i < n; ++i) series[i][j][1] /= y
+    }
+    none(series, order)
+  }
+  export function none(series, order) {
+    if (!((n = series.length) > 1)) return
+    for (var i = 1, j, s0, s1 = series[order[0]], n, m = s1.length; i < n; ++i) {
+      ;(s0 = s1), (s1 = series[order[i]])
+      for (j = 0; j < m; ++j) {
+        s1[j][1] += s1[j][0] = isNaN(s0[j][1]) ? s0[j][0] : s0[j][1]
+      }
+    }
+  }
+  export function silhouette(series, order) {
+    if (!((n = series.length) > 0)) return
+    for (var j = 0, s0 = series[order[0]], n, m = s0.length; j < m; ++j) {
+      for (var i = 0, y = 0; i < n; ++i) y += series[i][j][1] || 0
+      s0[j][1] += s0[j][0] = -y / 2
+    }
+    none(series, order)
+  }
+  export function wiggle(series, order) {
+    if (!((n = series.length) > 0) || !((m = (s0 = series[order[0]]).length) > 0)) return
+    for (var y = 0, j = 1, s0, m, n; j < m; ++j) {
+      for (var i = 0, s1 = 0, s2 = 0; i < n; ++i) {
+        let si = series[order[i]],
+          sij0 = si[j][1] || 0,
+          sij1 = si[j - 1][1] || 0,
+          s3 = (sij0 - sij1) / 2
+        for (let k = 0; k < i; ++k) {
+          let sk = series[order[k]],
+            skj0 = sk[j][1] || 0,
+            skj1 = sk[j - 1][1] || 0
+          s3 += skj0 - skj1
+        }
+        ;(s1 += sij0), (s2 += s3 * sij0)
+      }
+      s0[j - 1][1] += s0[j - 1][0] = y
+      if (s1) y -= s2 / s1
+    }
+    s0[j - 1][1] += s0[j - 1][0] = y
+    none(series, order)
+  }
+}
+
+export namespace order {
+  export function appearance(series) {
+    function peak(series) {
+      let i = -1,
+        j = 0,
+        n = series.length,
+        vi,
+        vj = -Infinity
+      while (++i < n) if ((vi = +series[i][1]) > vj) (vj = vi), (j = i)
+      return j
+    }
+    let peaks = series.map(peak)
+    return none(series).sort(function (a, b) {
+      return peaks[a] - peaks[b]
+    })
+  }
+  export function ascending(series) {
+    let sums = series.map(sum)
+    return none(series).sort(function (a, b) {
+      return sums[a] - sums[b]
+    })
+  }
+  export function sum(series) {
+    let s = 0,
+      i = -1,
+      n = series.length,
+      v
+    while (++i < n) if ((v = +series[i][1])) s += v
+    return s
+  }
+  export function descending(series) {
+    return ascending(series).reverse()
+  }
+  export function insideOut(series) {
+    let n = series.length,
+      i,
+      j,
+      sums = series.map(sum),
+      order = appearance(series),
+      top = 0,
+      bottom = 0,
+      tops = [],
+      bottoms = []
+    for (i = 0; i < n; ++i) {
+      j = order[i]
+      if (top < bottom) {
+        top += sums[j]
+        tops.push(j)
+      } else {
+        bottom += sums[j]
+        bottoms.push(j)
+      }
+    }
+    return bottoms.reverse().concat(tops)
+  }
+  export function none(series) {
+    let n = series.length,
+      o = new Array(n)
+    while (--n >= 0) o[n] = n
+    return o
+  }
+  export function reverse(series) {
+    return none(series).reverse()
+  }
+}
+
+export namespace curve {
+  export function point(that, x, y) {
+    that._context.bezierCurveTo(
+      (2 * that._x0 + that._x1) / 3,
+      (2 * that._y0 + that._y1) / 3,
+      (that._x0 + 2 * that._x1) / 3,
+      (that._y0 + 2 * that._y1) / 3,
+      (that._x0 + 4 * that._x1 + x) / 6,
+      (that._y0 + 4 * that._y1 + y) / 6
+    )
+  }
+  export class Basis {
+    constructor(context) {
+      this._context = context
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._x0 = this._x1 = this._y0 = this._y1 = NaN
+      this._point = 0
+    }
+    lineEnd() {
+      switch (this._point) {
+        case 3:
+          point(this, this._x1, this._y1)
+        case 2:
+          this._context.lineTo(this._x1, this._y1)
+          break
+      }
+      if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath()
+      this._line = 1 - this._line
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y)
+          break
+        case 1:
+          this._point = 2
+          break
+        case 2:
+          this._point = 3
+          this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6) // falls through
+        default:
+          point(this, x, y)
+          break
+      }
+      ;(this._x0 = this._x1), (this._x1 = x)
+      ;(this._y0 = this._y1), (this._y1 = y)
+    }
+  }
+  export function basis(context) {
+    return new Basis(context)
+  }
+  class BasisClosed {
+    constructor(context) {
+      this._context = context
+    }
+    areaStart: noop
+    areaEnd: noop
+    lineStart() {
+      this._x0 = this._x1 = this._x2 = this._x3 = this._x4 = this._y0 = this._y1 = this._y2 = this._y3 = this._y4 = NaN
+      this._point = 0
+    }
+    lineEnd() {
+      switch (this._point) {
+        case 1: {
+          this._context.moveTo(this._x2, this._y2)
+          this._context.closePath()
+          break
+        }
+        case 2: {
+          this._context.moveTo((this._x2 + 2 * this._x3) / 3, (this._y2 + 2 * this._y3) / 3)
+          this._context.lineTo((this._x3 + 2 * this._x2) / 3, (this._y3 + 2 * this._y2) / 3)
+          this._context.closePath()
+          break
+        }
+        case 3: {
+          this.point(this._x2, this._y2)
+          this.point(this._x3, this._y3)
+          this.point(this._x4, this._y4)
+          break
+        }
+      }
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          ;(this._x2 = x), (this._y2 = y)
+          break
+        case 1:
+          this._point = 2
+          ;(this._x3 = x), (this._y3 = y)
+          break
+        case 2:
+          this._point = 3
+          ;(this._x4 = x), (this._y4 = y)
+          this._context.moveTo((this._x0 + 4 * this._x1 + x) / 6, (this._y0 + 4 * this._y1 + y) / 6)
+          break
+        default:
+          point(this, x, y)
+          break
+      }
+      ;(this._x0 = this._x1), (this._x1 = x)
+      ;(this._y0 = this._y1), (this._y1 = y)
+    }
+  }
+  export function basisClosed(context) {
+    return new BasisClosed(context)
+  }
+  class BasisOpen {
+    constructor(context) {
+      this._context = context
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._x0 = this._x1 = this._y0 = this._y1 = NaN
+      this._point = 0
+    }
+    lineEnd() {
+      if (this._line || (this._line !== 0 && this._point === 3)) this._context.closePath()
+      this._line = 1 - this._line
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          break
+        case 1:
+          this._point = 2
+          break
+        case 2:
+          this._point = 3
+          var x0 = (this._x0 + 4 * this._x1 + x) / 6,
+            y0 = (this._y0 + 4 * this._y1 + y) / 6
+          this._line ? this._context.lineTo(x0, y0) : this._context.moveTo(x0, y0)
+          break
+        case 3:
+          this._point = 4 // falls through
+        default:
+          point(this, x, y)
+          break
+      }
+      ;(this._x0 = this._x1), (this._x1 = x)
+      ;(this._y0 = this._y1), (this._y1 = y)
+    }
+  }
+  export function basisOpen(context) {
+    return new BasisOpen(context)
+  }
+  class Bump {
+    constructor(context, x) {
+      this._context = context
+      this._x = x
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._point = 0
+    }
+    lineEnd() {
+      if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath()
+      this._line = 1 - this._line
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      switch (this._point) {
+        case 0: {
+          this._point = 1
+          if (this._line) this._context.lineTo(x, y)
+          else this._context.moveTo(x, y)
+          break
+        }
+        case 1:
+          this._point = 2 // falls through
+        default: {
+          if (this._x) this._context.bezierCurveTo((this._x0 = (this._x0 + x) / 2), this._y0, this._x0, y, x, y)
+          else this._context.bezierCurveTo(this._x0, (this._y0 = (this._y0 + y) / 2), x, this._y0, x, y)
+          break
+        }
+      }
+      ;(this._x0 = x), (this._y0 = y)
+    }
+  }
+  class BumpRadial {
+    constructor(context) {
+      this._context = context
+    }
+    lineStart() {
+      this._point = 0
+    }
+    lineEnd() {}
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      if (this._point++ === 0) {
+        ;(this._x0 = x), (this._y0 = y)
+      } else {
+        const p0 = pointRadial(this._x0, this._y0)
+        const p1 = pointRadial(this._x0, (this._y0 = (this._y0 + y) / 2))
+        const p2 = pointRadial(x, this._y0)
+        const p3 = pointRadial(x, y)
+        this._context.moveTo(...p0)
+        this._context.bezierCurveTo(...p1, ...p2, ...p3)
+      }
+    }
+  }
+  export function bumpX(context) {
+    return new Bump(context, true)
+  }
+  export function bumpY(context) {
+    return new Bump(context, false)
+  }
+  export function bumpRadial(context) {
+    return new BumpRadial(context)
+  }
+  class Bundle {
+    constructor(context, beta) {
+      this._basis = new Basis(context)
+      this._beta = beta
+    }
+    lineStart() {
+      this._x = []
+      this._y = []
+      this._basis.lineStart()
+    }
+    lineEnd() {
+      let x = this._x,
+        y = this._y,
+        j = x.length - 1
+      if (j > 0) {
+        let x0 = x[0],
+          y0 = y[0],
+          dx = x[j] - x0,
+          dy = y[j] - y0,
+          i = -1,
+          t
+        while (++i <= j) {
+          t = i / j
+          this._basis.point(
+            this._beta * x[i] + (1 - this._beta) * (x0 + t * dx),
+            this._beta * y[i] + (1 - this._beta) * (y0 + t * dy)
+          )
+        }
+      }
+      this._x = this._y = null
+      this._basis.lineEnd()
+    }
+    point(x, y) {
+      this._x.push(+x)
+      this._y.push(+y)
+    }
+  }
+  export const bundle = (function custom(beta) {
+    function y(context) {
+      return beta === 1 ? new Basis(context) : new Bundle(context, beta)
+    }
+    y.beta = function (beta) {
+      return custom(+beta)
+    }
+    return y
+  })(0.85)
+
+  export function point2(that, x, y) {
+    that._context.bezierCurveTo(
+      that._x1 + that._k * (that._x2 - that._x0),
+      that._y1 + that._k * (that._y2 - that._y0),
+      that._x2 + that._k * (that._x1 - x),
+      that._y2 + that._k * (that._y1 - y),
+      that._x2,
+      that._y2
+    )
+  }
+  class Cardinal {
+    constructor(context, tension) {
+      this._context = context
+      this._k = (1 - tension) / 6
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN
+      this._point = 0
+    }
+    lineEnd() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x2, this._y2)
+          break
+        case 3:
+          point2(this, this._x1, this._y1)
+          break
+      }
+      if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath()
+      this._line = 1 - this._line
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y)
+          break
+        case 1:
+          this._point = 2
+          ;(this._x1 = x), (this._y1 = y)
+          break
+        case 2:
+          this._point = 3 // falls through
+        default:
+          point2(this, x, y)
+          break
+      }
+      ;(this._x0 = this._x1), (this._x1 = this._x2), (this._x2 = x)
+      ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
+    }
+  }
+  export const cardinal = (function custom(tension) {
+    function y(context) {
+      return new Cardinal(context, tension)
+    }
+    y.tension = function (tension) {
+      return custom(+tension)
+    }
+    return y
+  })(0)
+
+  class CardinalClosed {
+    constructor(context, tension) {
+      this._context = context
+      this._k = (1 - tension) / 6
+    }
+    areaStart = noop
+    areaEnd = noop
+    lineStart() {
+      this._x0 =
+        this._x1 =
+        this._x2 =
+        this._x3 =
+        this._x4 =
+        this._x5 =
+        this._y0 =
+        this._y1 =
+        this._y2 =
+        this._y3 =
+        this._y4 =
+        this._y5 =
+          NaN
+      this._point = 0
+    }
+    lineEnd() {
+      switch (this._point) {
+        case 1: {
+          this._context.moveTo(this._x3, this._y3)
+          this._context.closePath()
+          break
+        }
+        case 2: {
+          this._context.lineTo(this._x3, this._y3)
+          this._context.closePath()
+          break
+        }
+        case 3: {
+          this.point(this._x3, this._y3)
+          this.point(this._x4, this._y4)
+          this.point(this._x5, this._y5)
+          break
+        }
+      }
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          ;(this._x3 = x), (this._y3 = y)
+          break
+        case 1:
+          this._point = 2
+          this._context.moveTo((this._x4 = x), (this._y4 = y))
+          break
+        case 2:
+          this._point = 3
+          ;(this._x5 = x), (this._y5 = y)
+          break
+        default:
+          point2(this, x, y)
+          break
+      }
+      ;(this._x0 = this._x1), (this._x1 = this._x2), (this._x2 = x)
+      ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
+    }
+  }
+  export const cardinalClosed = (function custom(tension) {
+    function cardinal(context) {
+      return new CardinalClosed(context, tension)
+    }
+    cardinal.tension = function (tension) {
+      return custom(+tension)
+    }
+    return cardinal
+  })(0)
+  class CardinalOpen {
+    constructor(context, tension) {
+      this._context = context
+      this._k = (1 - tension) / 6
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN
+      this._point = 0
+    }
+    lineEnd() {
+      if (this._line || (this._line !== 0 && this._point === 3)) this._context.closePath()
+      this._line = 1 - this._line
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          break
+        case 1:
+          this._point = 2
+          break
+        case 2:
+          this._point = 3
+          this._line ? this._context.lineTo(this._x2, this._y2) : this._context.moveTo(this._x2, this._y2)
+          break
+        case 3:
+          this._point = 4 // falls through
+        default:
+          point2(this, x, y)
+          break
+      }
+      ;(this._x0 = this._x1), (this._x1 = this._x2), (this._x2 = x)
+      ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
+    }
+  }
+  export const cardinalOpen = (function custom(tension) {
+    function cardinal(context) {
+      return new CardinalOpen(context, tension)
+    }
+    cardinal.tension = function (tension) {
+      return custom(+tension)
+    }
+    return cardinal
+  })(0)
+  export function point3(that, x, y) {
+    let x1 = that._x1,
+      y1 = that._y1,
+      x2 = that._x2,
+      y2 = that._y2
+    if (that._l01_a > epsilon) {
+      let a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a,
+        n = 3 * that._l01_a * (that._l01_a + that._l12_a)
+      x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n
+      y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n
+    }
+    if (that._l23_a > epsilon) {
+      let b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a,
+        m = 3 * that._l23_a * (that._l23_a + that._l12_a)
+      x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m
+      y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m
+    }
+    that._context.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2)
+  }
+  class CatmullRom {
+    constructor(context, alpha) {
+      this._context = context
+      this._alpha = alpha
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN
+      this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0
+    }
+    lineEnd() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x2, this._y2)
+          break
+        case 3:
+          this.point(this._x2, this._y2)
+          break
+      }
+      if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath()
+      this._line = 1 - this._line
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      if (this._point) {
+        let x23 = this._x2 - x,
+          y23 = this._y2 - y
+        this._l23_a = Math.sqrt((this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha)))
+      }
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y)
+          break
+        case 1:
+          this._point = 2
+          break
+        case 2:
+          this._point = 3 // falls through
+        default:
+          point3(this, x, y)
+          break
+      }
+      ;(this._l01_a = this._l12_a), (this._l12_a = this._l23_a)
+      ;(this._l01_2a = this._l12_2a), (this._l12_2a = this._l23_2a)
+      ;(this._x0 = this._x1), (this._x1 = this._x2), (this._x2 = x)
+      ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
+    }
+  }
+  export const catmullRom = (function custom(alpha) {
+    function y(context) {
+      return alpha ? new CatmullRom(context, alpha) : new Cardinal(context, 0)
+    }
+    y.alpha = function (alpha) {
+      return custom(+alpha)
+    }
+    return y
+  })(0.5)
+
+  class CatmullRomClosed {
+    constructor(context, alpha) {
+      this._context = context
+      this._alpha = alpha
+    }
+    areaStart = noop
+    areaEnd = noop
+    lineStart() {
+      this._x0 =
+        this._x1 =
+        this._x2 =
+        this._x3 =
+        this._x4 =
+        this._x5 =
+        this._y0 =
+        this._y1 =
+        this._y2 =
+        this._y3 =
+        this._y4 =
+        this._y5 =
+          NaN
+      this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0
+    }
+    lineEnd() {
+      switch (this._point) {
+        case 1: {
+          this._context.moveTo(this._x3, this._y3)
+          this._context.closePath()
+          break
+        }
+        case 2: {
+          this._context.lineTo(this._x3, this._y3)
+          this._context.closePath()
+          break
+        }
+        case 3: {
+          this.point(this._x3, this._y3)
+          this.point(this._x4, this._y4)
+          this.point(this._x5, this._y5)
+          break
+        }
+      }
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      if (this._point) {
+        let x23 = this._x2 - x,
+          y23 = this._y2 - y
+        this._l23_a = Math.sqrt((this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha)))
+      }
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          ;(this._x3 = x), (this._y3 = y)
+          break
+        case 1:
+          this._point = 2
+          this._context.moveTo((this._x4 = x), (this._y4 = y))
+          break
+        case 2:
+          this._point = 3
+          ;(this._x5 = x), (this._y5 = y)
+          break
+        default:
+          point3(this, x, y)
+          break
+      }
+      ;(this._l01_a = this._l12_a), (this._l12_a = this._l23_a)
+      ;(this._l01_2a = this._l12_2a), (this._l12_2a = this._l23_2a)
+      ;(this._x0 = this._x1), (this._x1 = this._x2), (this._x2 = x)
+      ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
+    }
+  }
+  export const catmullRomClosed = (function custom(alpha) {
+    function y(context) {
+      return alpha ? new CatmullRomClosed(context, alpha) : new CardinalClosed(context, 0)
+    }
+    y.alpha = function (alpha) {
+      return custom(+alpha)
+    }
+    return y
+  })(0.5)
+  class CatmullRomOpen {
+    constructor(context, alpha) {
+      this._context = context
+      this._alpha = alpha
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN
+      this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0
+    }
+    lineEnd() {
+      if (this._line || (this._line !== 0 && this._point === 3)) this._context.closePath()
+      this._line = 1 - this._line
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      if (this._point) {
+        let x23 = this._x2 - x,
+          y23 = this._y2 - y
+        this._l23_a = Math.sqrt((this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha)))
+      }
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          break
+        case 1:
+          this._point = 2
+          break
+        case 2:
+          this._point = 3
+          this._line ? this._context.lineTo(this._x2, this._y2) : this._context.moveTo(this._x2, this._y2)
+          break
+        case 3:
+          this._point = 4 // falls through
+        default:
+          point3(this, x, y)
+          break
+      }
+      ;(this._l01_a = this._l12_a), (this._l12_a = this._l23_a)
+      ;(this._l01_2a = this._l12_2a), (this._l12_2a = this._l23_2a)
+      ;(this._x0 = this._x1), (this._x1 = this._x2), (this._x2 = x)
+      ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
+    }
+  }
+  export const catmullRomOpen = (function custom(alpha) {
+    function y(context) {
+      return alpha ? new CatmullRomOpen(context, alpha) : new CardinalOpen(context, 0)
+    }
+    y.alpha = function (alpha) {
+      return custom(+alpha)
+    }
+    return y
+  })(0.5)
+  class Linear {
+    constructor(context) {
+      this._context = context
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._point = 0
+    }
+    lineEnd() {
+      if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath()
+      this._line = 1 - this._line
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y)
+          break
+        case 1:
+          this._point = 2 // falls through
+        default:
+          this._context.lineTo(x, y)
+          break
+      }
+    }
+  }
+  export function linear(context) {
+    return new Linear(context)
+  }
+  class LinearClosed {
+    constructor(context) {
+      this._context = context
+    }
+    areaStart = noop
+    areaEnd = noop
+    lineStart() {
+      this._point = 0
+    }
+    lineEnd() {
+      if (this._point) this._context.closePath()
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      if (this._point) this._context.lineTo(x, y)
+      else (this._point = 1), this._context.moveTo(x, y)
+    }
+  }
+  export function linearClosed(context) {
+    return new LinearClosed(context)
+  }
+  function sign(x) {
+    return x < 0 ? -1 : 1
+  }
+  function slope3(that, x2, y2) {
+    let h0 = that._x1 - that._x0,
+      h1 = x2 - that._x1,
+      s0 = (that._y1 - that._y0) / (h0 || (h1 < 0 && -0)),
+      s1 = (y2 - that._y1) / (h1 || (h0 < 0 && -0)),
+      p = (s0 * h1 + s1 * h0) / (h0 + h1)
+    return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0
+  }
+  function slope2(that, t) {
+    let h = that._x1 - that._x0
+    return h ? ((3 * (that._y1 - that._y0)) / h - t) / 2 : t
+  }
+  function point4(that, t0, t1) {
+    let x0 = that._x0,
+      y0 = that._y0,
+      x1 = that._x1,
+      y1 = that._y1,
+      dx = (x1 - x0) / 3
+    that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1)
+  }
+  class MonotoneX {
+    constructor(context) {
+      this._context = context
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN
+      this._point = 0
+    }
+    lineEnd() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x1, this._y1)
+          break
+        case 3:
+          point4(this, this._t0, slope2(this, this._t0))
+          break
+      }
+      if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath()
+      this._line = 1 - this._line
+    }
+    point(x, y) {
+      let t1 = NaN
+      ;(x = +x), (y = +y)
+      if (x === this._x1 && y === this._y1) return // Ignore coincident points.
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y)
+          break
+        case 1:
+          this._point = 2
+          break
+        case 2:
+          this._point = 3
+          point4(this, slope2(this, (t1 = slope3(this, x, y))), t1)
+          break
+        default:
+          point4(this, this._t0, (t1 = slope3(this, x, y)))
+          break
+      }
+      ;(this._x0 = this._x1), (this._x1 = x)
+      ;(this._y0 = this._y1), (this._y1 = y)
+      this._t0 = t1
+    }
+  }
+  class MonotoneY {
+    constructor(context) {
+      this._context = new ReflectContext(context)
+    }
+    point(x, y) {
+      MonotoneX.prototype.point.call(this, y, x)
+    }
+  }
+  class ReflectContext {
+    constructor(context) {
+      this._context = context
+    }
+    moveTo(x, y) {
+      this._context.moveTo(y, x)
+    }
+    closePath() {
+      this._context.closePath()
+    }
+    lineTo(x, y) {
+      this._context.lineTo(y, x)
+    }
+    bezierCurveTo(x1, y1, x2, y2, x, y) {
+      this._context.bezierCurveTo(y1, x1, y2, x2, y, x)
+    }
+  }
+  export function monotoneX(context) {
+    return new MonotoneX(context)
+  }
+  export function monotoneY(context) {
+    return new MonotoneY(context)
+  }
+  class Natural {
+    constructor(context) {
+      this._context = context
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._x = []
+      this._y = []
+    }
+    lineEnd() {
+      let x = this._x,
+        y = this._y,
+        n = x.length
+      if (n) {
+        this._line ? this._context.lineTo(x[0], y[0]) : this._context.moveTo(x[0], y[0])
+        if (n === 2) {
+          this._context.lineTo(x[1], y[1])
+        } else {
+          let px = controlPoints(x),
+            py = controlPoints(y)
+          for (let i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
+            this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1])
+          }
+        }
+      }
+      if (this._line || (this._line !== 0 && n === 1)) this._context.closePath()
+      this._line = 1 - this._line
+      this._x = this._y = null
+    }
+    point(x, y) {
+      this._x.push(+x)
+      this._y.push(+y)
+    }
+  }
+  function controlPoints(x) {
+    let i,
+      n = x.length - 1,
+      m,
+      a = new Array(n),
+      b = new Array(n),
+      r = new Array(n)
+    ;(a[0] = 0), (b[0] = 2), (r[0] = x[0] + 2 * x[1])
+    for (i = 1; i < n - 1; ++i) (a[i] = 1), (b[i] = 4), (r[i] = 4 * x[i] + 2 * x[i + 1])
+    ;(a[n - 1] = 2), (b[n - 1] = 7), (r[n - 1] = 8 * x[n - 1] + x[n])
+    for (i = 1; i < n; ++i) (m = a[i] / b[i - 1]), (b[i] -= m), (r[i] -= m * r[i - 1])
+    a[n - 1] = r[n - 1] / b[n - 1]
+    for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i]
+    b[n - 1] = (x[n] + a[n - 1]) / 2
+    for (i = 0; i < n - 1; ++i) b[i] = 2 * x[i + 1] - a[i + 1]
+    return [a, b]
+  }
+  export function natural(context) {
+    return new Natural(context)
+  }
+  export const curveRadialLinear = curveRadial(curveLinear)
+  class Radial {
+    constructor(curve) {
+      this._curve = curve
+    }
+    areaStart() {
+      this._curve.areaStart()
+    }
+    areaEnd() {
+      this._curve.areaEnd()
+    }
+    lineStart() {
+      this._curve.lineStart()
+    }
+    lineEnd() {
+      this._curve.lineEnd()
+    }
+    point(a, r) {
+      this._curve.point(r * Math.sin(a), r * -Math.cos(a))
+    }
+  }
+  export function curveRadial(curve) {
+    function y(context) {
+      return new Radial(curve(context))
+    }
+    y._curve = curve
+    return y
+  }
+  class Step {
+    constructor(context, t) {
+      this._context = context
+      this._t = t
+    }
+    areaStart() {
+      this._line = 0
+    }
+    areaEnd() {
+      this._line = NaN
+    }
+    lineStart() {
+      this._x = this._y = NaN
+      this._point = 0
+    }
+    lineEnd() {
+      if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y)
+      if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath()
+      if (this._line >= 0) (this._t = 1 - this._t), (this._line = 1 - this._line)
+    }
+    point(x, y) {
+      ;(x = +x), (y = +y)
+      switch (this._point) {
+        case 0:
+          this._point = 1
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y)
+          break
+        case 1:
+          this._point = 2 // falls through
+        default: {
+          if (this._t <= 0) {
+            this._context.lineTo(this._x, y)
+            this._context.lineTo(x, y)
+          } else {
+            let x1 = this._x * (1 - this._t) + x * this._t
+            this._context.lineTo(x1, this._y)
+            this._context.lineTo(x1, y)
+          }
+          break
+        }
+      }
+      ;(this._x = x), (this._y = y)
+    }
+  }
+  export function step(context) {
+    return new Step(context, 0.5)
+  }
+  export function stepBefore(context) {
+    return new Step(context, 0)
+  }
+  export function stepAfter(context) {
+    return new Step(context, 1)
+  }
+}
+
+export namespace symbol {
+  const sqrt3 = sqrt(3)
+  export const asterisk = {
+    draw(context, size) {
+      const r = sqrt(size + min(size / 28, 0.75)) * 0.59436
+      const t = r / 2
+      const u = t * sqrt3
+      context.moveTo(0, r)
+      context.lineTo(0, -r)
+      context.moveTo(-u, -t)
+      context.lineTo(u, t)
+      context.moveTo(-u, t)
+      context.lineTo(u, -t)
+    },
+  }
+  export const circle = {
+    draw(context, size) {
+      const r = sqrt(size / pi)
+      context.moveTo(r, 0)
+      context.arc(0, 0, r, 0, tau)
+    },
+  }
+  export const cross = {
+    draw(context, size) {
+      const r = sqrt(size / 5) / 2
+      context.moveTo(-3 * r, -r)
+      context.lineTo(-r, -r)
+      context.lineTo(-r, -3 * r)
+      context.lineTo(r, -3 * r)
+      context.lineTo(r, -r)
+      context.lineTo(3 * r, -r)
+      context.lineTo(3 * r, r)
+      context.lineTo(r, r)
+      context.lineTo(r, 3 * r)
+      context.lineTo(-r, 3 * r)
+      context.lineTo(-r, r)
+      context.lineTo(-3 * r, r)
+      context.closePath()
+    },
+  }
+  const tan30 = sqrt(1 / 3)
+  const tan30_2 = tan30 * 2
+  export const diamond = {
+    draw(context, size) {
+      const y = sqrt(size / tan30_2)
+      const x = y * tan30
+      context.moveTo(0, -y)
+      context.lineTo(x, 0)
+      context.lineTo(0, y)
+      context.lineTo(-x, 0)
+      context.closePath()
+    },
+  }
+  export const diamond2 = {
+    draw(context, size) {
+      const r = sqrt(size) * 0.62625
+      context.moveTo(0, -r)
+      context.lineTo(r, 0)
+      context.lineTo(0, r)
+      context.lineTo(-r, 0)
+      context.closePath()
+    },
+  }
+  export const plus = {
+    draw(context, size) {
+      const r = sqrt(size - min(size / 7, 2)) * 0.87559
+      context.moveTo(-r, 0)
+      context.lineTo(r, 0)
+      context.moveTo(0, r)
+      context.lineTo(0, -r)
+    },
+  }
+  export const square = {
+    draw(context, size) {
+      const w = sqrt(size)
+      const x = -w / 2
+      context.rect(x, x, w, w)
+    },
+  }
+  export const square2 = {
+    draw(context, size) {
+      const r = sqrt(size) * 0.4431
+      context.moveTo(r, r)
+      context.lineTo(r, -r)
+      context.lineTo(-r, -r)
+      context.lineTo(-r, r)
+      context.closePath()
+    },
+  }
+  const ka = 0.8908130915292852281
+  const kr = sin(pi / 10) / sin((7 * pi) / 10)
+  const kx = sin(tau / 10) * kr
+  const ky = -cos(tau / 10) * kr
+  export const star = {
+    draw(context, size) {
+      const r = sqrt(size * ka)
+      const x = kx * r
+      const y = ky * r
+      context.moveTo(0, -r)
+      context.lineTo(x, y)
+      for (let i = 1; i < 5; ++i) {
+        const a = (tau * i) / 5
+        const c = cos(a)
+        const s = sin(a)
+        context.lineTo(s * r, -c * r)
+        context.lineTo(c * x - s * y, s * x + c * y)
+      }
+      context.closePath()
+    },
+  }
+  export const triangle = {
+    draw(context, size) {
+      const y = -sqrt(size / (sqrt3 * 3))
+      context.moveTo(0, y * 2)
+      context.lineTo(-sqrt3 * y, -y)
+      context.lineTo(sqrt3 * y, -y)
+      context.closePath()
+    },
+  }
+  export const triangle2 = {
+    draw(context, size) {
+      const s = sqrt(size) * 0.6824
+      const t = s / 2
+      const u = (s * sqrt3) / 2 // cos(Math.PI / 6)
+      context.moveTo(0, -s)
+      context.lineTo(u, t)
+      context.lineTo(-u, t)
+      context.closePath()
+    },
+  }
+  const c = -0.5
+  const s = sqrt(3) / 2
+  const k = 1 / sqrt(12)
+  const a = (k / 2 + 1) * 3
+  export const wye = {
+    draw(context, size) {
+      const r = sqrt(size / a)
+      const x0 = r / 2,
+        y0 = r * k
+      const x1 = x0,
+        y1 = r * k + r
+      const x2 = -x1,
+        y2 = y1
+      context.moveTo(x0, y0)
+      context.lineTo(x1, y1)
+      context.lineTo(x2, y2)
+      context.lineTo(c * x0 - s * y0, s * x0 + c * y0)
+      context.lineTo(c * x1 - s * y1, s * x1 + c * y1)
+      context.lineTo(c * x2 - s * y2, s * x2 + c * y2)
+      context.lineTo(c * x0 + s * y0, c * y0 - s * x0)
+      context.lineTo(c * x1 + s * y1, c * y1 - s * x1)
+      context.lineTo(c * x2 + s * y2, c * y2 - s * x2)
+      context.closePath()
+    },
+  }
+  export const x = {
+    draw(context, size) {
+      const r = sqrt(size - min(size / 6, 1.7)) * 0.6189
+      context.moveTo(-r, -r)
+      context.lineTo(r, r)
+      context.moveTo(-r, r)
+      context.lineTo(r, -r)
+    },
+  }
 }
