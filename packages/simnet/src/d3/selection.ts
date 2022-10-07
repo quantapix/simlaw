@@ -140,691 +140,687 @@ export function window(node) {
   return (node.ownerDocument && node.ownerDocument.defaultView) || (node.document && node) || node.defaultView
 }
 
-export namespace sub {
-  function classArray(string) {
-    return string.trim().split(/^|\s+/)
+function classArray(string) {
+  return string.trim().split(/^|\s+/)
+}
+function classList(node) {
+  return node.classList || new ClassList(node)
+}
+class ClassList {
+  constructor(node) {
+    this._node = node
+    this._names = classArray(node.getAttribute("class") || "")
   }
-  function classList(node) {
-    return node.classList || new ClassList(node)
-  }
-  class ClassList {
-    constructor(node) {
-      this._node = node
-      this._names = classArray(node.getAttribute("class") || "")
-    }
-    add(name) {
-      let i = this._names.indexOf(name)
-      if (i < 0) {
-        this._names.push(name)
-        this._node.setAttribute("class", this._names.join(" "))
-      }
-    }
-    remove(name) {
-      let i = this._names.indexOf(name)
-      if (i >= 0) {
-        this._names.splice(i, 1)
-        this._node.setAttribute("class", this._names.join(" "))
-      }
-    }
-    contains(name) {
-      return this._names.indexOf(name) >= 0
+  add(name) {
+    let i = this._names.indexOf(name)
+    if (i < 0) {
+      this._names.push(name)
+      this._node.setAttribute("class", this._names.join(" "))
     }
   }
-  function classedAdd(node, names) {
-    let list = classList(node),
-      i = -1,
-      n = names.length
-    while (++i < n) list.add(names[i])
-  }
-  function classedRemove(node, names) {
-    let list = classList(node),
-      i = -1,
-      n = names.length
-    while (++i < n) list.remove(names[i])
-  }
-  function classedTrue(names) {
-    return function () {
-      classedAdd(this, names)
+  remove(name) {
+    let i = this._names.indexOf(name)
+    if (i >= 0) {
+      this._names.splice(i, 1)
+      this._node.setAttribute("class", this._names.join(" "))
     }
   }
-  function classedFalse(names) {
-    return function () {
-      classedRemove(this, names)
-    }
+  contains(name) {
+    return this._names.indexOf(name) >= 0
   }
-  function classedFunction(names, value) {
-    return function () {
-      ;(value.apply(this, arguments) ? classedAdd : classedRemove)(this, names)
-    }
+}
+function classedAdd(node, names) {
+  let list = classList(node),
+    i = -1,
+    n = names.length
+  while (++i < n) list.add(names[i])
+}
+function classedRemove(node, names) {
+  let list = classList(node),
+    i = -1,
+    n = names.length
+  while (++i < n) list.remove(names[i])
+}
+function classedTrue(names) {
+  return function () {
+    classedAdd(this, names)
   }
-  function selection_cloneShallow() {
-    let clone = this.cloneNode(false),
-      parent = this.parentNode
-    return parent ? parent.insertBefore(clone, this.nextSibling) : clone
+}
+function classedFalse(names) {
+  return function () {
+    classedRemove(this, names)
   }
-  function selection_cloneDeep() {
-    let clone = this.cloneNode(true),
-      parent = this.parentNode
-    return parent ? parent.insertBefore(clone, this.nextSibling) : clone
+}
+function classedFunction(names, value) {
+  return function () {
+    ;(value.apply(this, arguments) ? classedAdd : classedRemove)(this, names)
   }
-  function bindIndex(parent, group, enter, update, exit, data) {
-    let i = 0,
-      node,
-      groupLength = group.length,
-      dataLength = data.length
-    for (; i < dataLength; ++i) {
-      if ((node = group[i])) {
-        node.__data__ = data[i]
-        update[i] = node
-      } else {
-        enter[i] = new EnterNode(parent, data[i])
-      }
-    }
-    for (; i < groupLength; ++i) {
-      if ((node = group[i])) {
-        exit[i] = node
-      }
-    }
-  }
-  function bindKey(parent, group, enter, update, exit, data, key) {
-    let i,
-      node,
-      nodeByKeyValue = new Map(),
-      groupLength = group.length,
-      dataLength = data.length,
-      keyValues = new Array(groupLength),
-      keyValue
-    for (i = 0; i < groupLength; ++i) {
-      if ((node = group[i])) {
-        keyValues[i] = keyValue = key.call(node, node.__data__, i, group) + ""
-        if (nodeByKeyValue.has(keyValue)) {
-          exit[i] = node
-        } else {
-          nodeByKeyValue.set(keyValue, node)
-        }
-      }
-    }
-    for (i = 0; i < dataLength; ++i) {
-      keyValue = key.call(parent, data[i], i, data) + ""
-      if ((node = nodeByKeyValue.get(keyValue))) {
-        update[i] = node
-        node.__data__ = data[i]
-        nodeByKeyValue.delete(keyValue)
-      } else {
-        enter[i] = new EnterNode(parent, data[i])
-      }
-    }
-    for (i = 0; i < groupLength; ++i) {
-      if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) {
-        exit[i] = node
-      }
-    }
-  }
-  function arraylike(data) {
-    return typeof data === "object" && "length" in data ? data : Array.from(data)
-  }
-  function dispatchEvent(node, type, params) {
-    let window = defaultView(node),
-      event = window.CustomEvent
-    if (typeof event === "function") {
-      event = new event(type, params)
+}
+function selection_cloneShallow() {
+  let clone = this.cloneNode(false),
+    parent = this.parentNode
+  return parent ? parent.insertBefore(clone, this.nextSibling) : clone
+}
+function selection_cloneDeep() {
+  let clone = this.cloneNode(true),
+    parent = this.parentNode
+  return parent ? parent.insertBefore(clone, this.nextSibling) : clone
+}
+function bindIndex(parent, group, enter, update, exit, data) {
+  let i = 0,
+    node,
+    groupLength = group.length,
+    dataLength = data.length
+  for (; i < dataLength; ++i) {
+    if ((node = group[i])) {
+      node.__data__ = data[i]
+      update[i] = node
     } else {
-      event = window.document.createEvent("Event")
-      if (params) event.initEvent(type, params.bubbles, params.cancelable), (event.detail = params.detail)
-      else event.initEvent(type, false, false)
-    }
-    node.dispatchEvent(event)
-  }
-  function dispatchConstant(type, params) {
-    return function () {
-      return dispatchEvent(this, type, params)
+      enter[i] = new EnterNode(parent, data[i])
     }
   }
-  function dispatchFunction(type, params) {
-    return function () {
-      return dispatchEvent(this, type, params.apply(this, arguments))
+  for (; i < groupLength; ++i) {
+    if ((node = group[i])) {
+      exit[i] = node
     }
   }
-  class EnterNode {
-    constructor(parent, datum) {
-      this.ownerDocument = parent.ownerDocument
-      this.namespaceURI = parent.namespaceURI
-      this._next = null
-      this._parent = parent
-      this.__data__ = datum
-    }
-    appendChild(child) {
-      return this._parent.insertBefore(child, this._next)
-    }
-    insertBefore(child, next) {
-      return this._parent.insertBefore(child, next)
-    }
-    querySelector(selector) {
-      return this._parent.querySelector(selector)
-    }
-    querySelectorAll(selector) {
-      return this._parent.querySelectorAll(selector)
-    }
-  }
-  function htmlRemove() {
-    this.innerHTML = ""
-  }
-  function htmlConstant(value) {
-    return function () {
-      this.innerHTML = value
-    }
-  }
-  function htmlFunction(value) {
-    return function () {
-      let v = value.apply(this, arguments)
-      this.innerHTML = v == null ? "" : v
-    }
-  }
-  export const root = [null]
-  export function selection() {
-    return new Selection([[document.documentElement]], root)
-  }
-
-  export class Selection {
-    constructor(groups, parents) {
-      this._groups = groups
-      this._parents = parents
-    }
-    [Symbol.iterator] = this.iterator
-    selection() {
-      return this
-    }
-    append(name) {
-      let create = typeof name === "function" ? name : creator(name)
-      return this.select(function () {
-        return this.appendChild(create.apply(this, arguments))
-      })
-    }
-    attr(name, value) {
-      const attrRemove = name => () => {
-        this.removeAttribute(name)
-      }
-      const attrRemoveNS = fullname => () => {
-        this.removeAttributeNS(fullname.space, fullname.local)
-      }
-      const attrConstant = (name, value) => () => {
-        this.setAttribute(name, value)
-      }
-      const attrConstantNS = (fullname, value) => () => {
-        this.setAttributeNS(fullname.space, fullname.local, value)
-      }
-      const attrFunction = (name, value) => () => {
-        let v = value.apply(this, arguments)
-        if (v == null) this.removeAttribute(name)
-        else this.setAttribute(name, v)
-      }
-      const attrFunctionNS = (fullname, value) => () => {
-        let v = value.apply(this, arguments)
-        if (v == null) this.removeAttributeNS(fullname.space, fullname.local)
-        else this.setAttributeNS(fullname.space, fullname.local, v)
-      }
-      let fullname = namespace(name)
-      if (arguments.length < 2) {
-        let node = this.node()
-        return fullname.local ? node.getAttributeNS(fullname.space, fullname.local) : node.getAttribute(fullname)
-      }
-      return this.each(
-        (value == null
-          ? fullname.local
-            ? attrRemoveNS
-            : attrRemove
-          : typeof value === "function"
-          ? fullname.local
-            ? attrFunctionNS
-            : attrFunction
-          : fullname.local
-          ? attrConstantNS
-          : attrConstant)(fullname, value)
-      )
-    }
-    call() {
-      let callback = arguments[0]
-      arguments[0] = this
-      callback.apply(null, arguments)
-      return this
-    }
-    classed(name, value) {
-      let names = classArray(name + "")
-      if (arguments.length < 2) {
-        let list = classList(this.node()),
-          i = -1,
-          n = names.length
-        while (++i < n) if (!list.contains(names[i])) return false
-        return true
-      }
-      return this.each(
-        (typeof value === "function" ? classedFunction : value ? classedTrue : classedFalse)(names, value)
-      )
-    }
-    clone(deep) {
-      return this.select(deep ? selection_cloneDeep : selection_cloneShallow)
-    }
-    data(value, key) {
-      function datum(node) {
-        return node.__data__
-      }
-      if (!arguments.length) return Array.from(this, datum)
-      let bind = key ? bindKey : bindIndex,
-        parents = this._parents,
-        groups = this._groups
-      if (typeof value !== "function") value = constant(value)
-      for (let m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
-        let parent = parents[j],
-          group = groups[j],
-          groupLength = group.length,
-          data = arraylike(value.call(parent, parent && parent.__data__, j, parents)),
-          dataLength = data.length,
-          enterGroup = (enter[j] = new Array(dataLength)),
-          updateGroup = (update[j] = new Array(dataLength)),
-          exitGroup = (exit[j] = new Array(groupLength))
-        bind(parent, group, enterGroup, updateGroup, exitGroup, data, key)
-        for (let i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
-          if ((previous = enterGroup[i0])) {
-            if (i0 >= i1) i1 = i0 + 1
-            while (!(next = updateGroup[i1]) && ++i1 < dataLength);
-            previous._next = next || null
-          }
-        }
-      }
-      update = new Selection(update, parents)
-      update._enter = enter
-      update._exit = exit
-      return update
-    }
-    datum(value) {
-      return arguments.length ? this.property("__data__", value) : this.node().__data__
-    }
-    dispatch(type, params) {
-      return this.each((typeof params === "function" ? dispatchFunction : dispatchConstant)(type, params))
-    }
-    each(callback) {
-      for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-        for (let group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
-          if ((node = group[i])) callback.call(node, node.__data__, i, group)
-        }
-      }
-      return this
-    }
-    empty() {
-      return !this.node()
-    }
-    enter() {
-      return new Selection(this._enter || this._groups.map(sparse), this._parents)
-    }
-    exit() {
-      return new Selection(this._exit || this._groups.map(sparse), this._parents)
-    }
-    filter(match) {
-      if (typeof match !== "function") match = matcher(match)
-      for (let groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-        for (let group = groups[j], n = group.length, subgroup = (subgroups[j] = []), node, i = 0; i < n; ++i) {
-          if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
-            subgroup.push(node)
-          }
-        }
-      }
-      return new Selection(subgroups, this._parents)
-    }
-    html(value) {
-      return arguments.length
-        ? this.each(value == null ? htmlRemove : (typeof value === "function" ? htmlFunction : htmlConstant)(value))
-        : this.node().innerHTML
-    }
-    insert(name, before) {
-      let create = typeof name === "function" ? name : creator(name),
-        select = before == null ? constantNull : typeof before === "function" ? before : selector(before)
-      return this.select(function () {
-        return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null)
-      })
-    }
-    *iterator() {
-      for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-        for (let group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
-          if ((node = group[i])) yield node
-        }
-      }
-    }
-    join(onenter, onupdate, onexit) {
-      let enter = this.enter(),
-        update = this,
-        exit = this.exit()
-      if (typeof onenter === "function") {
-        enter = onenter(enter)
-        if (enter) enter = enter.selection()
+}
+function bindKey(parent, group, enter, update, exit, data, key) {
+  let i,
+    node,
+    nodeByKeyValue = new Map(),
+    groupLength = group.length,
+    dataLength = data.length,
+    keyValues = new Array(groupLength),
+    keyValue
+  for (i = 0; i < groupLength; ++i) {
+    if ((node = group[i])) {
+      keyValues[i] = keyValue = key.call(node, node.__data__, i, group) + ""
+      if (nodeByKeyValue.has(keyValue)) {
+        exit[i] = node
       } else {
-        enter = enter.append(onenter + "")
+        nodeByKeyValue.set(keyValue, node)
       }
-      if (onupdate != null) {
-        update = onupdate(update)
-        if (update) update = update.selection()
-      }
-      if (onexit == null) exit.remove()
-      else onexit(exit)
-      return enter && update ? enter.merge(update).order() : update
-    }
-    lower() {
-      function lower() {
-        if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild)
-      }
-      return this.each(lower)
-    }
-    merge(context) {
-      let selection = context.selection ? context.selection() : context
-      for (
-        let groups0 = this._groups,
-          groups1 = selection._groups,
-          m0 = groups0.length,
-          m1 = groups1.length,
-          m = Math.min(m0, m1),
-          merges = new Array(m0),
-          j = 0;
-        j < m;
-        ++j
-      ) {
-        for (
-          let group0 = groups0[j],
-            group1 = groups1[j],
-            n = group0.length,
-            merge = (merges[j] = new Array(n)),
-            node,
-            i = 0;
-          i < n;
-          ++i
-        ) {
-          if ((node = group0[i] || group1[i])) {
-            merge[i] = node
-          }
-        }
-      }
-      for (; j < m0; ++j) {
-        merges[j] = groups0[j]
-      }
-      return new Selection(merges, this._parents)
-    }
-    node() {
-      for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-        for (let group = groups[j], i = 0, n = group.length; i < n; ++i) {
-          let node = group[i]
-          if (node) return node
-        }
-      }
-      return null
-    }
-    nodes() {
-      return Array.from(this)
-    }
-    on(typename, value, options) {
-      let typenames = parseTypenames(typename + ""),
-        i,
-        n = typenames.length,
-        t
-      if (arguments.length < 2) {
-        let on = this.node().__on
-        if (on)
-          for (let j = 0, m = on.length, o; j < m; ++j) {
-            for (i = 0, o = on[j]; i < n; ++i) {
-              if ((t = typenames[i]).type === o.type && t.name === o.name) {
-                return o.value
-              }
-            }
-          }
-        return
-      }
-      on = value ? onAdd : onRemove
-      for (i = 0; i < n; ++i) this.each(on(typenames[i], value, options))
-      return this
-    }
-    order() {
-      for (let groups = this._groups, j = -1, m = groups.length; ++j < m; ) {
-        for (let group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0; ) {
-          if ((node = group[i])) {
-            if (next && node.compareDocumentPosition(next) ^ 4) next.parentNode.insertBefore(node, next)
-            next = node
-          }
-        }
-      }
-      return this
-    }
-    property(name, value) {
-      return arguments.length > 1
-        ? this.each(
-            (value == null ? propertyRemove : typeof value === "function" ? propertyFunction : propertyConstant)(
-              name,
-              value
-            )
-          )
-        : this.node()[name]
-    }
-    raise() {
-      function raise() {
-        if (this.nextSibling) this.parentNode.appendChild(this)
-      }
-      return this.each(raise)
-    }
-    remove() {
-      function remove() {
-        let parent = this.parentNode
-        if (parent) parent.removeChild(this)
-      }
-      return this.each(remove)
-    }
-    select(select) {
-      if (typeof select !== "function") select = selector(select)
-      for (let groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-        for (
-          let group = groups[j], n = group.length, subgroup = (subgroups[j] = new Array(n)), node, subnode, i = 0;
-          i < n;
-          ++i
-        ) {
-          if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
-            if ("__data__" in node) subnode.__data__ = node.__data__
-            subgroup[i] = subnode
-          }
-        }
-      }
-      return new Selection(subgroups, this._parents)
-    }
-    selectAll(select) {
-      if (typeof select === "function") select = arrayAll(select)
-      else select = selectorAll(select)
-      for (let groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
-        for (let group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
-          if ((node = group[i])) {
-            subgroups.push(select.call(node, node.__data__, i, group))
-            parents.push(node)
-          }
-        }
-      }
-      return new Selection(subgroups, parents)
-    }
-    selectChild(match) {
-      return this.select(
-        match == null ? childFirst : childFind(typeof match === "function" ? match : childMatcher(match))
-      )
-    }
-    selectChildren(match) {
-      return this.selectAll(
-        match == null ? children : childrenFilter(typeof match === "function" ? match : childMatcher(match))
-      )
-    }
-    size() {
-      let size = 0
-      for (const node of this) ++size
-      return size
-    }
-    sort(compare) {
-      if (!compare) compare = ascending
-      function compareNode(a, b) {
-        return a && b ? compare(a.__data__, b.__data__) : !a - !b
-      }
-      for (let groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
-        for (
-          let group = groups[j], n = group.length, sortgroup = (sortgroups[j] = new Array(n)), node, i = 0;
-          i < n;
-          ++i
-        ) {
-          if ((node = group[i])) {
-            sortgroup[i] = node
-          }
-        }
-        sortgroup.sort(compareNode)
-      }
-      return new Selection(sortgroups, this._parents).order()
-    }
-    style(name, value, priority) {
-      return arguments.length > 1
-        ? this.each(
-            (value == null ? styleRemove : typeof value === "function" ? styleFunction : styleConstant)(
-              name,
-              value,
-              priority == null ? "" : priority
-            )
-          )
-        : styleValue(this.node(), name)
-    }
-    text(value) {
-      return arguments.length
-        ? this.each(value == null ? textRemove : (typeof value === "function" ? textFunction : textConstant)(value))
-        : this.node().textContent
     }
   }
-  function constantNull() {
+  for (i = 0; i < dataLength; ++i) {
+    keyValue = key.call(parent, data[i], i, data) + ""
+    if ((node = nodeByKeyValue.get(keyValue))) {
+      update[i] = node
+      node.__data__ = data[i]
+      nodeByKeyValue.delete(keyValue)
+    } else {
+      enter[i] = new EnterNode(parent, data[i])
+    }
+  }
+  for (i = 0; i < groupLength; ++i) {
+    if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) {
+      exit[i] = node
+    }
+  }
+}
+function arraylike(data) {
+  return typeof data === "object" && "length" in data ? data : Array.from(data)
+}
+function dispatchEvent(node, type, params) {
+  let window = defaultView(node),
+    event = window.CustomEvent
+  if (typeof event === "function") {
+    event = new event(type, params)
+  } else {
+    event = window.document.createEvent("Event")
+    if (params) event.initEvent(type, params.bubbles, params.cancelable), (event.detail = params.detail)
+    else event.initEvent(type, false, false)
+  }
+  node.dispatchEvent(event)
+}
+function dispatchConstant(type, params) {
+  return function () {
+    return dispatchEvent(this, type, params)
+  }
+}
+function dispatchFunction(type, params) {
+  return function () {
+    return dispatchEvent(this, type, params.apply(this, arguments))
+  }
+}
+class EnterNode {
+  constructor(parent, datum) {
+    this.ownerDocument = parent.ownerDocument
+    this.namespaceURI = parent.namespaceURI
+    this._next = null
+    this._parent = parent
+    this.__data__ = datum
+  }
+  appendChild(child) {
+    return this._parent.insertBefore(child, this._next)
+  }
+  insertBefore(child, next) {
+    return this._parent.insertBefore(child, next)
+  }
+  querySelector(selector) {
+    return this._parent.querySelector(selector)
+  }
+  querySelectorAll(selector) {
+    return this._parent.querySelectorAll(selector)
+  }
+}
+function htmlRemove() {
+  this.innerHTML = ""
+}
+function htmlConstant(value) {
+  return function () {
+    this.innerHTML = value
+  }
+}
+function htmlFunction(value) {
+  return function () {
+    let v = value.apply(this, arguments)
+    this.innerHTML = v == null ? "" : v
+  }
+}
+export const root = [null]
+export function selection() {
+  return new Selection([[document.documentElement]], root)
+}
+
+export class Selection {
+  constructor(groups, parents) {
+    this._groups = groups
+    this._parents = parents
+  }
+  [Symbol.iterator] = this.iterator
+  selection() {
+    return this
+  }
+  append(name) {
+    let create = typeof name === "function" ? name : creator(name)
+    return this.select(function () {
+      return this.appendChild(create.apply(this, arguments))
+    })
+  }
+  attr(name, value) {
+    const attrRemove = name => () => {
+      this.removeAttribute(name)
+    }
+    const attrRemoveNS = fullname => () => {
+      this.removeAttributeNS(fullname.space, fullname.local)
+    }
+    const attrConstant = (name, value) => () => {
+      this.setAttribute(name, value)
+    }
+    const attrConstantNS = (fullname, value) => () => {
+      this.setAttributeNS(fullname.space, fullname.local, value)
+    }
+    const attrFunction = (name, value) => () => {
+      let v = value.apply(this, arguments)
+      if (v == null) this.removeAttribute(name)
+      else this.setAttribute(name, v)
+    }
+    const attrFunctionNS = (fullname, value) => () => {
+      let v = value.apply(this, arguments)
+      if (v == null) this.removeAttributeNS(fullname.space, fullname.local)
+      else this.setAttributeNS(fullname.space, fullname.local, v)
+    }
+    let fullname = namespace(name)
+    if (arguments.length < 2) {
+      let node = this.node()
+      return fullname.local ? node.getAttributeNS(fullname.space, fullname.local) : node.getAttribute(fullname)
+    }
+    return this.each(
+      (value == null
+        ? fullname.local
+          ? attrRemoveNS
+          : attrRemove
+        : typeof value === "function"
+        ? fullname.local
+          ? attrFunctionNS
+          : attrFunction
+        : fullname.local
+        ? attrConstantNS
+        : attrConstant)(fullname, value)
+    )
+  }
+  call() {
+    let callback = arguments[0]
+    arguments[0] = this
+    callback.apply(null, arguments)
+    return this
+  }
+  classed(name, value) {
+    let names = classArray(name + "")
+    if (arguments.length < 2) {
+      let list = classList(this.node()),
+        i = -1,
+        n = names.length
+      while (++i < n) if (!list.contains(names[i])) return false
+      return true
+    }
+    return this.each((typeof value === "function" ? classedFunction : value ? classedTrue : classedFalse)(names, value))
+  }
+  clone(deep) {
+    return this.select(deep ? selection_cloneDeep : selection_cloneShallow)
+  }
+  data(value, key) {
+    function datum(node) {
+      return node.__data__
+    }
+    if (!arguments.length) return Array.from(this, datum)
+    let bind = key ? bindKey : bindIndex,
+      parents = this._parents,
+      groups = this._groups
+    if (typeof value !== "function") value = constant(value)
+    for (let m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
+      let parent = parents[j],
+        group = groups[j],
+        groupLength = group.length,
+        data = arraylike(value.call(parent, parent && parent.__data__, j, parents)),
+        dataLength = data.length,
+        enterGroup = (enter[j] = new Array(dataLength)),
+        updateGroup = (update[j] = new Array(dataLength)),
+        exitGroup = (exit[j] = new Array(groupLength))
+      bind(parent, group, enterGroup, updateGroup, exitGroup, data, key)
+      for (let i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
+        if ((previous = enterGroup[i0])) {
+          if (i0 >= i1) i1 = i0 + 1
+          while (!(next = updateGroup[i1]) && ++i1 < dataLength);
+          previous._next = next || null
+        }
+      }
+    }
+    update = new Selection(update, parents)
+    update._enter = enter
+    update._exit = exit
+    return update
+  }
+  datum(value) {
+    return arguments.length ? this.property("__data__", value) : this.node().__data__
+  }
+  dispatch(type, params) {
+    return this.each((typeof params === "function" ? dispatchFunction : dispatchConstant)(type, params))
+  }
+  each(callback) {
+    for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
+      for (let group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
+        if ((node = group[i])) callback.call(node, node.__data__, i, group)
+      }
+    }
+    return this
+  }
+  empty() {
+    return !this.node()
+  }
+  enter() {
+    return new Selection(this._enter || this._groups.map(sparse), this._parents)
+  }
+  exit() {
+    return new Selection(this._exit || this._groups.map(sparse), this._parents)
+  }
+  filter(match) {
+    if (typeof match !== "function") match = matcher(match)
+    for (let groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+      for (let group = groups[j], n = group.length, subgroup = (subgroups[j] = []), node, i = 0; i < n; ++i) {
+        if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
+          subgroup.push(node)
+        }
+      }
+    }
+    return new Selection(subgroups, this._parents)
+  }
+  html(value) {
+    return arguments.length
+      ? this.each(value == null ? htmlRemove : (typeof value === "function" ? htmlFunction : htmlConstant)(value))
+      : this.node().innerHTML
+  }
+  insert(name, before) {
+    let create = typeof name === "function" ? name : creator(name),
+      select = before == null ? constantNull : typeof before === "function" ? before : selector(before)
+    return this.select(function () {
+      return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null)
+    })
+  }
+  *iterator() {
+    for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
+      for (let group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
+        if ((node = group[i])) yield node
+      }
+    }
+  }
+  join(onenter, onupdate, onexit) {
+    let enter = this.enter(),
+      update = this,
+      exit = this.exit()
+    if (typeof onenter === "function") {
+      enter = onenter(enter)
+      if (enter) enter = enter.selection()
+    } else {
+      enter = enter.append(onenter + "")
+    }
+    if (onupdate != null) {
+      update = onupdate(update)
+      if (update) update = update.selection()
+    }
+    if (onexit == null) exit.remove()
+    else onexit(exit)
+    return enter && update ? enter.merge(update).order() : update
+  }
+  lower() {
+    function lower() {
+      if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild)
+    }
+    return this.each(lower)
+  }
+  merge(context) {
+    let selection = context.selection ? context.selection() : context
+    for (
+      let groups0 = this._groups,
+        groups1 = selection._groups,
+        m0 = groups0.length,
+        m1 = groups1.length,
+        m = Math.min(m0, m1),
+        merges = new Array(m0),
+        j = 0;
+      j < m;
+      ++j
+    ) {
+      for (
+        let group0 = groups0[j],
+          group1 = groups1[j],
+          n = group0.length,
+          merge = (merges[j] = new Array(n)),
+          node,
+          i = 0;
+        i < n;
+        ++i
+      ) {
+        if ((node = group0[i] || group1[i])) {
+          merge[i] = node
+        }
+      }
+    }
+    for (; j < m0; ++j) {
+      merges[j] = groups0[j]
+    }
+    return new Selection(merges, this._parents)
+  }
+  node() {
+    for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
+      for (let group = groups[j], i = 0, n = group.length; i < n; ++i) {
+        let node = group[i]
+        if (node) return node
+      }
+    }
     return null
   }
-  function contextListener(listener) {
-    return function (event) {
-      listener.call(this, event, this.__data__)
-    }
+  nodes() {
+    return Array.from(this)
   }
-  function parseTypenames(typenames) {
-    return typenames
-      .trim()
-      .split(/^|\s+/)
-      .map(function (t) {
-        let name = "",
-          i = t.indexOf(".")
-        if (i >= 0) (name = t.slice(i + 1)), (t = t.slice(0, i))
-        return { type: t, name: name }
-      })
-  }
-  function onRemove(typename) {
-    return function () {
-      let on = this.__on
-      if (!on) return
-      for (let j = 0, i = -1, m = on.length, o; j < m; ++j) {
-        if (((o = on[j]), (!typename.type || o.type === typename.type) && o.name === typename.name)) {
-          this.removeEventListener(o.type, o.listener, o.options)
-        } else {
-          on[++i] = o
-        }
-      }
-      if (++i) on.length = i
-      else delete this.__on
-    }
-  }
-  function onAdd(typename, value, options) {
-    return function () {
-      let on = this.__on,
-        o,
-        listener = contextListener(value)
+  on(typename, value, options) {
+    let typenames = parseTypenames(typename + ""),
+      i,
+      n = typenames.length,
+      t
+    if (arguments.length < 2) {
+      let on = this.node().__on
       if (on)
-        for (let j = 0, m = on.length; j < m; ++j) {
-          if ((o = on[j]).type === typename.type && o.name === typename.name) {
-            this.removeEventListener(o.type, o.listener, o.options)
-            this.addEventListener(o.type, (o.listener = listener), (o.options = options))
-            o.value = value
-            return
+        for (let j = 0, m = on.length, o; j < m; ++j) {
+          for (i = 0, o = on[j]; i < n; ++i) {
+            if ((t = typenames[i]).type === o.type && t.name === o.name) {
+              return o.value
+            }
           }
         }
-      this.addEventListener(typename.type, listener, options)
-      o = { type: typename.type, name: typename.name, value: value, listener: listener, options: options }
-      if (!on) this.__on = [o]
-      else on.push(o)
+      return
     }
+    on = value ? onAdd : onRemove
+    for (i = 0; i < n; ++i) this.each(on(typenames[i], value, options))
+    return this
   }
-  function propertyRemove(name) {
-    return function () {
-      delete this[name]
+  order() {
+    for (let groups = this._groups, j = -1, m = groups.length; ++j < m; ) {
+      for (let group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0; ) {
+        if ((node = group[i])) {
+          if (next && node.compareDocumentPosition(next) ^ 4) next.parentNode.insertBefore(node, next)
+          next = node
+        }
+      }
     }
+    return this
   }
-  function propertyConstant(name, value) {
-    return function () {
-      this[name] = value
+  property(name, value) {
+    return arguments.length > 1
+      ? this.each(
+          (value == null ? propertyRemove : typeof value === "function" ? propertyFunction : propertyConstant)(
+            name,
+            value
+          )
+        )
+      : this.node()[name]
+  }
+  raise() {
+    function raise() {
+      if (this.nextSibling) this.parentNode.appendChild(this)
     }
+    return this.each(raise)
   }
-  function propertyFunction(name, value) {
-    return function () {
-      let v = value.apply(this, arguments)
-      if (v == null) delete this[name]
-      else this[name] = v
+  remove() {
+    function remove() {
+      let parent = this.parentNode
+      if (parent) parent.removeChild(this)
     }
+    return this.each(remove)
   }
-  function arrayAll(select) {
-    return function () {
-      return array(select.apply(this, arguments))
+  select(select) {
+    if (typeof select !== "function") select = selector(select)
+    for (let groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+      for (
+        let group = groups[j], n = group.length, subgroup = (subgroups[j] = new Array(n)), node, subnode, i = 0;
+        i < n;
+        ++i
+      ) {
+        if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
+          if ("__data__" in node) subnode.__data__ = node.__data__
+          subgroup[i] = subnode
+        }
+      }
     }
+    return new Selection(subgroups, this._parents)
   }
-  let find = Array.prototype.find
-  function childFind(match) {
-    return function () {
-      return find.call(this.children, match)
+  selectAll(select) {
+    if (typeof select === "function") select = arrayAll(select)
+    else select = selectorAll(select)
+    for (let groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
+      for (let group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
+        if ((node = group[i])) {
+          subgroups.push(select.call(node, node.__data__, i, group))
+          parents.push(node)
+        }
+      }
     }
+    return new Selection(subgroups, parents)
   }
-  function childFirst() {
-    return this.firstElementChild
+  selectChild(match) {
+    return this.select(
+      match == null ? childFirst : childFind(typeof match === "function" ? match : childMatcher(match))
+    )
   }
-  let filter = Array.prototype.filter
-  function children() {
-    return Array.from(this.children)
+  selectChildren(match) {
+    return this.selectAll(
+      match == null ? children : childrenFilter(typeof match === "function" ? match : childMatcher(match))
+    )
   }
-  function childrenFilter(match) {
-    return function () {
-      return filter.call(this.children, match)
+  size() {
+    let size = 0
+    for (const node of this) ++size
+    return size
+  }
+  sort(compare) {
+    if (!compare) compare = ascending
+    function compareNode(a, b) {
+      return a && b ? compare(a.__data__, b.__data__) : !a - !b
     }
-  }
-  function ascending(a, b) {
-    return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
-  }
-  export function sparse(update) {
-    return new Array(update.length)
-  }
-  function styleRemove(name) {
-    return function () {
-      this.style.removeProperty(name)
+    for (let groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
+      for (
+        let group = groups[j], n = group.length, sortgroup = (sortgroups[j] = new Array(n)), node, i = 0;
+        i < n;
+        ++i
+      ) {
+        if ((node = group[i])) {
+          sortgroup[i] = node
+        }
+      }
+      sortgroup.sort(compareNode)
     }
+    return new Selection(sortgroups, this._parents).order()
   }
-  function styleConstant(name, value, priority) {
-    return function () {
-      this.style.setProperty(name, value, priority)
+  style(name, value, priority) {
+    return arguments.length > 1
+      ? this.each(
+          (value == null ? styleRemove : typeof value === "function" ? styleFunction : styleConstant)(
+            name,
+            value,
+            priority == null ? "" : priority
+          )
+        )
+      : styleValue(this.node(), name)
+  }
+  text(value) {
+    return arguments.length
+      ? this.each(value == null ? textRemove : (typeof value === "function" ? textFunction : textConstant)(value))
+      : this.node().textContent
+  }
+}
+function constantNull() {
+  return null
+}
+function contextListener(listener) {
+  return function (event) {
+    listener.call(this, event, this.__data__)
+  }
+}
+function parseTypenames(typenames) {
+  return typenames
+    .trim()
+    .split(/^|\s+/)
+    .map(function (t) {
+      let name = "",
+        i = t.indexOf(".")
+      if (i >= 0) (name = t.slice(i + 1)), (t = t.slice(0, i))
+      return { type: t, name: name }
+    })
+}
+function onRemove(typename) {
+  return function () {
+    let on = this.__on
+    if (!on) return
+    for (let j = 0, i = -1, m = on.length, o; j < m; ++j) {
+      if (((o = on[j]), (!typename.type || o.type === typename.type) && o.name === typename.name)) {
+        this.removeEventListener(o.type, o.listener, o.options)
+      } else {
+        on[++i] = o
+      }
     }
+    if (++i) on.length = i
+    else delete this.__on
   }
-  function styleFunction(name, value, priority) {
-    return function () {
-      let v = value.apply(this, arguments)
-      if (v == null) this.style.removeProperty(name)
-      else this.style.setProperty(name, v, priority)
-    }
+}
+function onAdd(typename, value, options) {
+  return function () {
+    let on = this.__on,
+      o,
+      listener = contextListener(value)
+    if (on)
+      for (let j = 0, m = on.length; j < m; ++j) {
+        if ((o = on[j]).type === typename.type && o.name === typename.name) {
+          this.removeEventListener(o.type, o.listener, o.options)
+          this.addEventListener(o.type, (o.listener = listener), (o.options = options))
+          o.value = value
+          return
+        }
+      }
+    this.addEventListener(typename.type, listener, options)
+    o = { type: typename.type, name: typename.name, value: value, listener: listener, options: options }
+    if (!on) this.__on = [o]
+    else on.push(o)
   }
-  export function styleValue(node, name) {
-    return node.style.getPropertyValue(name) || defaultView(node).getComputedStyle(node, null).getPropertyValue(name)
+}
+function propertyRemove(name) {
+  return function () {
+    delete this[name]
   }
-  function textRemove() {
-    this.textContent = ""
+}
+function propertyConstant(name, value) {
+  return function () {
+    this[name] = value
   }
-  function textConstant(value) {
-    return function () {
-      this.textContent = value
-    }
+}
+function propertyFunction(name, value) {
+  return function () {
+    let v = value.apply(this, arguments)
+    if (v == null) delete this[name]
+    else this[name] = v
   }
-  function textFunction(value) {
-    return function () {
-      let v = value.apply(this, arguments)
-      this.textContent = v == null ? "" : v
-    }
+}
+function arrayAll(select) {
+  return function () {
+    return array(select.apply(this, arguments))
+  }
+}
+let find = Array.prototype.find
+function childFind(match) {
+  return function () {
+    return find.call(this.children, match)
+  }
+}
+function childFirst() {
+  return this.firstElementChild
+}
+let filter = Array.prototype.filter
+function children() {
+  return Array.from(this.children)
+}
+function childrenFilter(match) {
+  return function () {
+    return filter.call(this.children, match)
+  }
+}
+function ascending(a, b) {
+  return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
+}
+export function sparse(update) {
+  return new Array(update.length)
+}
+function styleRemove(name) {
+  return function () {
+    this.style.removeProperty(name)
+  }
+}
+function styleConstant(name, value, priority) {
+  return function () {
+    this.style.setProperty(name, value, priority)
+  }
+}
+function styleFunction(name, value, priority) {
+  return function () {
+    let v = value.apply(this, arguments)
+    if (v == null) this.style.removeProperty(name)
+    else this.style.setProperty(name, v, priority)
+  }
+}
+export function styleValue(node, name) {
+  return node.style.getPropertyValue(name) || defaultView(node).getComputedStyle(node, null).getPropertyValue(name)
+}
+function textRemove() {
+  this.textContent = ""
+}
+function textConstant(value) {
+  return function () {
+    this.textContent = value
+  }
+}
+function textFunction(value) {
+  return function () {
+    let v = value.apply(this, arguments)
+    this.textContent = v == null ? "" : v
   }
 }
