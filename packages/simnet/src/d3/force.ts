@@ -1,3 +1,9 @@
+import { dispatch } from "./dispatch.js"
+import { quadtree } from "./quadtree.js"
+import { timer } from "./timer.js"
+import { x, y } from "./simulation.js"
+import lcg from "./lcg.js"
+
 export function (x, y) {
   var nodes,
     strength = 1
@@ -30,9 +36,6 @@ export function (x, y) {
   }
   return force
 }
-import { quadtree } from "./quadtree.js"
-import constant from "./constant.js"
-import jiggle from "./jiggle.js"
 function x(d) {
   return d.x + d.vx
 }
@@ -144,8 +147,6 @@ export function () {
   let s = 1
   return () => (s = (a * s + c) % m) / m
 }
-import constant from "./constant.js"
-import jiggle from "./jiggle.js"
 function index(d) {
   return d.index
 }
@@ -243,10 +244,6 @@ export function (links) {
   }
   return force
 }
-import { quadtree } from "./quadtree.js"
-import constant from "./constant.js"
-import jiggle from "./jiggle.js"
-import { x, y } from "./simulation.js"
 export function () {
   var nodes,
     node,
@@ -344,7 +341,6 @@ export function () {
   }
   return force
 }
-import constant from "./constant.js"
 export function (radius, x, y) {
   var nodes,
     strength = constant(0.1),
@@ -392,9 +388,6 @@ export function (radius, x, y) {
   }
   return force
 }
-import { dispatch } from "./dispatch.js"
-import { timer } from "./timer.js"
-import lcg from "./lcg.js"
 export function x(d) {
   return d.x
 }
@@ -522,7 +515,6 @@ export function (nodes) {
     },
   })
 }
-import constant from "./constant.js"
 export function (x) {
   var strength = constant(0.1),
     nodes,
@@ -556,7 +548,6 @@ export function (x) {
   }
   return force
 }
-import constant from "./constant.js"
 export function (y) {
   var strength = constant(0.1),
     nodes,

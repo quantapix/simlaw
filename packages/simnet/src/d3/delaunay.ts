@@ -1,7 +1,4 @@
 import Delaunator from "delaunator"
-import Path from "./path.js"
-import Polygon from "./polygon.js"
-import Voronoi from "./voronoi.js"
 const tau = 2 * Math.PI,
   pow = Math.pow
 function pointX(p) {
@@ -26,7 +23,7 @@ function collinear(d) {
 function jitter(x, y, r) {
   return [x + Math.sin(x + y) * r, y + Math.cos(x - y) * r]
 }
-export default class Delaunay {
+export class Delaunay {
   static from(points, fx = pointX, fy = pointY, that) {
     return new Delaunay(
       "length" in points ? flatArray(points, fx, fy, that) : Float64Array.from(flatIterable(points, fx, fy, that))
@@ -233,10 +230,8 @@ function* flatIterable(points, fx, fy, that) {
     ++i
   }
 }
-export { default as Delaunay } from "./delaunay.js"
-export { default as Voronoi } from "./voronoi.js"
 const epsilon = 1e-6
-export default class Path {
+export class Path {
   constructor() {
     this._x0 =
       this._y0 = // start of current subpath
@@ -274,7 +269,7 @@ export default class Path {
     return this._ || null
   }
 }
-export default class Polygon {
+export class Polygon {
   constructor() {
     this._ = []
   }
@@ -291,9 +286,7 @@ export default class Polygon {
     return this._.length ? this._ : null
   }
 }
-import Path from "./path.js"
-import Polygon from "./polygon.js"
-export default class Voronoi {
+export class Voronoi {
   constructor(delaunay, [xmin, ymin, xmax, ymax] = [0, 0, 960, 500]) {
     if (!((xmax = +xmax) >= (xmin = +xmin)) || !((ymax = +ymax) >= (ymin = +ymin))) throw new Error("invalid bounds")
     this.delaunay = delaunay

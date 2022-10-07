@@ -1,3 +1,15 @@
+import { extent, thresholdSturges, ticks, tickStep } from "./array.js"
+import { slice } from "./array.js"
+import ascending from "./ascending.js"
+import area from "./area.js"
+import constant from "./constant.js"
+import contains from "./contains.js"
+import noop from "./noop.js"
+import { blur2, max, ticks } from "./array.js"
+import { slice } from "./array.js"
+import constant from "./constant.js"
+import Contours from "./contours.js"
+
 export function (ring) {
   var i = 0,
     n = ring.length,
@@ -44,13 +56,6 @@ function collinear(a, b, c) {
 function within(p, q, r) {
   return (p <= q && q <= r) || (r <= q && q <= p)
 }
-import { extent, thresholdSturges, ticks, tickStep } from "./array.js"
-import { slice } from "./array.js"
-import ascending from "./ascending.js"
-import area from "./area.js"
-import constant from "./constant.js"
-import contains from "./contains.js"
-import noop from "./noop.js"
 var cases = [
   [],
   [
@@ -311,10 +316,6 @@ export function () {
   }
   return contours
 }
-import { blur2, max, ticks } from "./array.js"
-import { slice } from "./array.js"
-import constant from "./constant.js"
-import Contours from "./contours.js"
 function defaultX(d) {
   return d[0]
 }
@@ -436,6 +437,4 @@ export function () {
   }
   return density
 }
-export { default as contours } from "./contours.js"
-export { default as contourDensity } from "./density.js"
 export function () {}

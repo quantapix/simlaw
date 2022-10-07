@@ -1,10 +1,11 @@
-export default x => () => x
 import { dispatch } from "./dispatch.js"
 import { select, pointer } from "./selection.js"
-import nodrag, { yesdrag } from "./nodrag.js"
-import noevent, { nonpassive, nonpassivecapture, nopropagation } from "./noevent.js"
 import constant from "./constant.js"
 import DragEvent from "./event.js"
+import nodrag, { yesdrag } from "./nodrag.js"
+import noevent, { nonpassive, nonpassivecapture, nopropagation } from "./noevent.js"
+
+export default x => () => x
 function defaultFilter(event) {
   return !event.ctrlKey && !event.button
 }
@@ -209,10 +210,6 @@ DragEvent.prototype.on = function () {
   var value = this._.on.apply(this._, arguments)
   return value === this._ ? this : value
 }
-export { default as drag } from "./drag.js"
-export { default as dragDisable, yesdrag as dragEnable } from "./nodrag.js"
-import { select } from "./selection.js"
-import noevent, { nonpassivecapture } from "./noevent.js"
 export function (view) {
   var root = view.document.documentElement,
     selection = select(view).on("dragstart.drag", noevent, nonpassivecapture)

@@ -1,3 +1,5 @@
+import { csvParse, dsvFormat, tsvParse } from "./dsv.js"
+import text from "./text.js"
 function responseBlob(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText)
   return response.blob()
@@ -12,8 +14,6 @@ function responseArrayBuffer(response) {
 export function (input, init) {
   return fetch(input, init).then(responseArrayBuffer)
 }
-import { csvParse, dsvFormat, tsvParse } from "./dsv.js"
-import text from "./text.js"
 function dsvParse(parse) {
   return function (input, init, row) {
     if (arguments.length === 2 && typeof init === "function") (row = init), (init = undefined)
@@ -42,13 +42,6 @@ export function (input, init) {
     image.src = input
   })
 }
-export { default as blob } from "./blob.js"
-export { default as buffer } from "./buffer.js"
-export { default as dsv, csv, tsv } from "./dsv.js"
-export { default as image } from "./image.js"
-export { default as json } from "./json.js"
-export { default as text } from "./text.js"
-export { default as xml, html, svg } from "./xml.js"
 function responseJson(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText)
   if (response.status === 204 || response.status === 205) return
@@ -64,7 +57,6 @@ function responseText(response) {
 export function (input, init) {
   return fetch(input, init).then(responseText)
 }
-import text from "./text.js"
 function parser(type) {
   return (input, init) => text(input, init).then(text => new DOMParser().parseFromString(text, type))
 }

@@ -19,7 +19,6 @@ export function autoType(object) {
   return object
 }
 const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours()
-import dsv from "./dsv.js"
 var csv = dsv(",")
 export const csvParse = csv.parse
 export const csvParseRows = csv.parseRows
@@ -105,13 +104,13 @@ export function (delimiter) {
     return rows
   }
   function parseRows(text, f) {
-    var rows = [], // output rows
+    var rows = [],
       N = text.length,
-      I = 0, // current character index
-      n = 0, // current line number
-      t, // current token
-      eof = N <= 0, // current token followed by EOF?
-      eol = false // current token followed by EOL?
+      I = 0,
+      n = 0, 
+      t,
+      eof = N <= 0,
+      eol = false
     if (text.charCodeAt(N - 1) === NEWLINE) --N
     if (text.charCodeAt(N - 1) === RETURN) --N
     function token() {
@@ -190,11 +189,6 @@ export function (delimiter) {
     formatValue: formatValue,
   }
 }
-export { default as dsvFormat } from "./dsv.js"
-export { csvParse, csvParseRows, csvFormat, csvFormatBody, csvFormatRows, csvFormatRow, csvFormatValue } from "./csv.js"
-export { tsvParse, tsvParseRows, tsvFormat, tsvFormatBody, tsvFormatRows, tsvFormatRow, tsvFormatValue } from "./tsv.js"
-export { default as autoType } from "./autoType.js"
-import dsv from "./dsv.js"
 var tsv = dsv("\t")
 export const tsvParse = tsv.parse
 export const tsvParseRows = tsv.parseRows

@@ -1,30 +1,30 @@
-var noop = { value: () => {} }
-function dispatch() {
+const noop = { value: () => {} }
+export function dispatch() {
   for (var i = 0, n = arguments.length, _ = {}, t; i < n; ++i) {
     if (!(t = arguments[i] + "") || t in _ || /[\s.]/.test(t)) throw new Error("illegal type: " + t)
     _[t] = []
   }
   return new Dispatch(_)
 }
-function Dispatch(_) {
-  this._ = _
-}
 function parseTypenames(typenames, types) {
   return typenames
     .trim()
     .split(/^|\s+/)
     .map(function (t) {
-      var name = "",
+      let name = "",
         i = t.indexOf(".")
       if (i >= 0) (name = t.slice(i + 1)), (t = t.slice(0, i))
       if (t && !types.hasOwnProperty(t)) throw new Error("unknown type: " + t)
       return { type: t, name: name }
     })
 }
-Dispatch.prototype = dispatch.prototype = {
-  constructor: Dispatch,
-  on: function (typename, callback) {
-    var _ = this._,
+
+export class Dispatch {
+  constructor(_) {
+    this._ = _
+  }
+  on(typename, callback) {
+    let _ = this._,
       T = parseTypenames(typename + "", _),
       t,
       i = -1,
@@ -39,33 +39,33 @@ Dispatch.prototype = dispatch.prototype = {
       else if (callback == null) for (t in _) _[t] = set(_[t], typename.name, null)
     }
     return this
-  },
-  copy: function () {
-    var copy = {},
+  }
+  copy() {
+    const copy = {},
       _ = this._
-    for (var t in _) copy[t] = _[t].slice()
+    for (const t in _) copy[t] = _[t].slice()
     return new Dispatch(copy)
-  },
-  call: function (type, that) {
+  }
+  call(type, that) {
     if ((n = arguments.length - 2) > 0)
       for (var args = new Array(n), i = 0, n, t; i < n; ++i) args[i] = arguments[i + 2]
     if (!this._.hasOwnProperty(type)) throw new Error("unknown type: " + type)
     for (t = this._[type], i = 0, n = t.length; i < n; ++i) t[i].value.apply(that, args)
-  },
-  apply: function (type, that, args) {
+  }
+  apply(type, that, args) {
     if (!this._.hasOwnProperty(type)) throw new Error("unknown type: " + type)
-    for (var t = this._[type], i = 0, n = t.length; i < n; ++i) t[i].value.apply(that, args)
-  },
+    for (let t = this._[type], i = 0, n = t.length; i < n; ++i) t[i].value.apply(that, args)
+  }
 }
 function get(type, name) {
-  for (var i = 0, n = type.length, c; i < n; ++i) {
+  for (let i = 0, n = type.length, c; i < n; ++i) {
     if ((c = type[i]).name === name) {
       return c.value
     }
   }
 }
 function set(type, name, callback) {
-  for (var i = 0, n = type.length; i < n; ++i) {
+  for (let i = 0, n = type.length; i < n; ++i) {
     if (type[i].name === name) {
       ;(type[i] = noop), (type = type.slice(0, i).concat(type.slice(i + 1)))
       break
@@ -74,5 +74,3 @@ function set(type, name, callback) {
   if (callback != null) type.push({ name: name, value: callback })
   return type
 }
-export default dispatch
-export { default as dispatch } from "./dispatch.js"

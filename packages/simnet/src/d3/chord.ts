@@ -1,5 +1,17 @@
+import { path } from "./path.js"
+import { slice } from "./array.js"
+
+export const abs = Math.abs
+export const cos = Math.cos
+export const sin = Math.sin
+export const pi = Math.PI
+export const halfPi = pi / 2
+export const tau = pi * 2
+export const max = Math.max
+export const epsilon = 1e-12
+
 export const slice = Array.prototype.slice
-import { max, tau } from "./math.js"
+
 function range(i, j) {
   return Array.from({ length: j - i }, (_, k) => i + k)
 }
@@ -136,18 +148,6 @@ export function (x) {
 }
 export { default as chord, chordTranspose, chordDirected } from "./chord.js"
 export { default as ribbon, ribbonArrow } from "./ribbon.js"
-export const abs = Math.abs
-export const cos = Math.cos
-export const sin = Math.sin
-export const pi = Math.PI
-export const halfPi = pi / 2
-export const tau = pi * 2
-export const max = Math.max
-export const epsilon = 1e-12
-import { path } from "./path.js"
-import { slice } from "./array.js"
-import constant from "./constant.js"
-import { abs, cos, epsilon, halfPi, sin } from "./math.js"
 function defaultSource(d) {
   return d.source
 }

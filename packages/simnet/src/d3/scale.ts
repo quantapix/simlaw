@@ -1,6 +1,26 @@
+import { ascending, bisect, quantile, quantileSorted as threshold } from "./array.js"
+import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix, precisionRound } from "./format.js"
+import { InternMap } from "./array.js"
+import { interpolate as interpolateValue, interpolateNumber, interpolateRound } from "./interpolate.js"
+import { interpolate, piecewise } from "./interpolate.js"
 import { range as sequence } from "./array.js"
-import { initRange } from "./init.js"
-import ordinal from "./ordinal.js"
+import { ticks, tickIncrement } from "./array.js"
+import { tickStep } from "./array.js"
+import { timeFormat } from "./time-format.js"
+import { utcFormat } from "./time-format.js"
+import { utcYear, utcMonth, utcWeek, utcDay, utcHour, utcMinute, utcSecond, utcTicks, utcTickInterval } from "./time.js"
+import {
+  timeYear,
+  timeMonth,
+  timeWeek,
+  timeDay,
+  timeHour,
+  timeMinute,
+  timeSecond,
+  timeTicks,
+  timeTickInterval,
+} from "./time.js"
+
 export function band() {
   let scale = ordinal().unknown(undefined),
     domain = scale.domain,
@@ -87,10 +107,6 @@ export function constants(x) {
     return x
   }
 }
-import { bisect } from "./array.js"
-import { interpolate as interpolateValue, interpolateNumber, interpolateRound } from "./interpolate.js"
-import constant from "./constant.js"
-import number from "./number.js"
 const unit = [0, 1]
 export function identity(x) {
   return x
@@ -198,14 +214,6 @@ export function transformer() {
 export function continuous() {
   return transformer()(identity, identity)
 }
-import { interpolate, interpolateRound, piecewise } from "./interpolate.js"
-import { identity } from "./continuous.js"
-import { initInterpolator } from "./init.js"
-import { linearish } from "./linear.js"
-import { loggish } from "./log.js"
-import { copy } from "./sequential.js"
-import { symlogish } from "./symlog.js"
-import { powish } from "./pow.js"
 function transformer() {
   let x0 = 0,
     x1 = 0.5,
@@ -299,8 +307,6 @@ export function divergingPow() {
 export function divergingSqrt() {
   return divergingPow.apply(null, arguments).exponent(0.5)
 }
-import { linearish } from "./linear.js"
-import number from "./number.js"
 export function identity(domain) {
   let unknown
   function scale(x) {
@@ -319,35 +325,6 @@ export function identity(domain) {
   domain = arguments.length ? Array.from(domain, number) : [0, 1]
   return linearish(scale)
 }
-export { default as scaleBand, point as scalePoint } from "./band.js"
-export { default as scaleIdentity } from "./identity.js"
-export { default as scaleLinear } from "./linear.js"
-export { default as scaleLog } from "./log.js"
-export { default as scaleSymlog } from "./symlog.js"
-export { default as scaleOrdinal, implicit as scaleImplicit } from "./ordinal.js"
-export { default as scalePow, sqrt as scaleSqrt } from "./pow.js"
-export { default as scaleRadial } from "./radial.js"
-export { default as scaleQuantile } from "./quantile.js"
-export { default as scaleQuantize } from "./quantize.js"
-export { default as scaleThreshold } from "./threshold.js"
-export { default as scaleTime } from "./time.js"
-export { default as scaleUtc } from "./utcTime.js"
-export {
-  default as scaleSequential,
-  sequentialLog as scaleSequentialLog,
-  sequentialPow as scaleSequentialPow,
-  sequentialSqrt as scaleSequentialSqrt,
-  sequentialSymlog as scaleSequentialSymlog,
-} from "./sequential.js"
-export { default as scaleSequentialQuantile } from "./sequentialQuantile.js"
-export {
-  default as scaleDiverging,
-  divergingLog as scaleDivergingLog,
-  divergingPow as scaleDivergingPow,
-  divergingSqrt as scaleDivergingSqrt,
-  divergingSymlog as scaleDivergingSymlog,
-} from "./diverging.js"
-export { default as tickFormat } from "./tickFormat.js"
 export function initRange(domain, range) {
   switch (arguments.length) {
     case 0:
@@ -379,10 +356,6 @@ export function initInterpolator(domain, interpolator) {
   }
   return this
 }
-import { ticks, tickIncrement } from "./array.js"
-import continuous, { copy } from "./continuous.js"
-import { initRange } from "./init.js"
-import tickFormat from "./tickFormat.js"
 export function linearish(scale) {
   const domain = scale.domain
   scale.ticks = function (count) {
@@ -436,11 +409,6 @@ export function linear() {
   initRange.apply(scale, arguments)
   return linearish(scale)
 }
-import { ticks } from "./array.js"
-import { format, formatSpecifier } from "./format.js"
-import nice from "./nice.js"
-import { copy, transformer } from "./continuous.js"
-import { initRange } from "./init.js"
 function transformLog(x) {
   return Math.log(x)
 }
@@ -576,8 +544,6 @@ export function nice(domain, interval) {
 export function number(x) {
   return +x
 }
-import { InternMap } from "./array.js"
-import { initRange } from "./init.js"
 export const implicit = Symbol("implicit")
 export function ordinal() {
   let index = new InternMap(),
@@ -613,9 +579,6 @@ export function ordinal() {
   initRange.apply(scale, arguments)
   return scale
 }
-import { linearish } from "./linear.js"
-import { copy, identity, transformer } from "./continuous.js"
-import { initRange } from "./init.js"
 function transformPow(exponent) {
   return function (x) {
     return x < 0 ? -Math.pow(-x, exponent) : Math.pow(x, exponent)
@@ -653,8 +616,6 @@ export function pow() {
 export function sqrt() {
   return pow.apply(null, arguments).exponent(0.5)
 }
-import { ascending, bisect, quantileSorted as threshold } from "./array.js"
-import { initRange } from "./init.js"
 export function quantile() {
   let domain = [],
     range = [],
@@ -697,9 +658,6 @@ export function quantile() {
   }
   return initRange.apply(scale, arguments)
 }
-import { bisect } from "./array.js"
-import { linearish } from "./linear.js"
-import { initRange } from "./init.js"
 export function quantize() {
   let x0 = 0,
     x1 = 1,
@@ -737,10 +695,6 @@ export function quantize() {
   }
   return initRange.apply(linearish(scale), arguments)
 }
-import continuous from "./continuous.js"
-import { initRange } from "./init.js"
-import { linearish } from "./linear.js"
-import number from "./number.js"
 function square(x) {
   return Math.sign(x) * x * x
 }
@@ -783,13 +737,6 @@ export function radial() {
   initRange.apply(scale, arguments)
   return linearish(scale)
 }
-import { interpolate, interpolateRound } from "./interpolate.js"
-import { identity } from "./continuous.js"
-import { initInterpolator } from "./init.js"
-import { linearish } from "./linear.js"
-import { loggish } from "./log.js"
-import { symlogish } from "./symlog.js"
-import { powish } from "./pow.js"
 function transformer() {
   let x0 = 0,
     x1 = 1,
@@ -876,9 +823,6 @@ export function sequentialPow() {
 export function sequentialSqrt() {
   return sequentialPow.apply(null, arguments).exponent(0.5)
 }
-import { ascending, bisect, quantile } from "./array.js"
-import { identity } from "./continuous.js"
-import { initInterpolator } from "./init.js"
 export function sequentialQuantile() {
   let domain = [],
     interpolator = identity
@@ -906,9 +850,6 @@ export function sequentialQuantile() {
   }
   return initInterpolator.apply(scale, arguments)
 }
-import { linearish } from "./linear.js"
-import { copy, transformer } from "./continuous.js"
-import { initRange } from "./init.js"
 function transformSymlog(c) {
   return function (x) {
     return Math.sign(x) * Math.log1p(Math.abs(x / c))
@@ -934,8 +875,6 @@ export function symlog() {
   }
   return initRange.apply(scale, arguments)
 }
-import { bisect } from "./array.js"
-import { initRange } from "./init.js"
 export function threshold() {
   let domain = [0.5],
     range = [0, 1],
@@ -966,8 +905,6 @@ export function threshold() {
   }
   return initRange.apply(scale, arguments)
 }
-import { tickStep } from "./array.js"
-import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix, precisionRound } from "./format.js"
 export function tickFormat(start, stop, count, specifier) {
   let step = tickStep(start, stop, count),
     precision
@@ -1000,21 +937,6 @@ export function tickFormat(start, stop, count, specifier) {
   }
   return format(specifier)
 }
-import {
-  timeYear,
-  timeMonth,
-  timeWeek,
-  timeDay,
-  timeHour,
-  timeMinute,
-  timeSecond,
-  timeTicks,
-  timeTickInterval,
-} from "./time.js"
-import { timeFormat } from "./time-format.js"
-import continuous, { copy } from "./continuous.js"
-import { initRange } from "./init.js"
-import nice from "./nice.js"
 function date(t) {
   return new Date(t)
 }
@@ -1093,10 +1015,6 @@ export function time() {
     arguments
   )
 }
-import { utcYear, utcMonth, utcWeek, utcDay, utcHour, utcMinute, utcSecond, utcTicks, utcTickInterval } from "./time.js"
-import { utcFormat } from "./time-format.js"
-import { calendar } from "./time.js"
-import { initRange } from "./init.js"
 export function utcTime() {
   return initRange.apply(
     calendar(
