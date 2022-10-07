@@ -1,5 +1,10 @@
-export function (parent, x0, y0, x1, y1) {
-  var nodes = parent.children,
+import { required } from "../accessors.js"
+import constant, { constantZero } from "../constant.js"
+
+export const phi = (1 + Math.sqrt(5)) / 2
+
+export function binary(parent, x0, y0, x1, y1) {
+  let nodes = parent.children,
     i,
     n = nodes.length,
     sum,
@@ -10,37 +15,37 @@ export function (parent, x0, y0, x1, y1) {
   partition(0, n, parent.value, x0, y0, x1, y1)
   function partition(i, j, value, x0, y0, x1, y1) {
     if (i >= j - 1) {
-      var node = nodes[i]
+      let node = nodes[i]
       ;(node.x0 = x0), (node.y0 = y0)
       ;(node.x1 = x1), (node.y1 = y1)
       return
     }
-    var valueOffset = sums[i],
+    let valueOffset = sums[i],
       valueTarget = value / 2 + valueOffset,
       k = i + 1,
       hi = j - 1
     while (k < hi) {
-      var mid = (k + hi) >>> 1
+      let mid = (k + hi) >>> 1
       if (sums[mid] < valueTarget) k = mid + 1
       else hi = mid
     }
     if (valueTarget - sums[k - 1] < sums[k] - valueTarget && i + 1 < k) --k
-    var valueLeft = sums[k] - valueOffset,
+    let valueLeft = sums[k] - valueOffset,
       valueRight = value - valueLeft
     if (x1 - x0 > y1 - y0) {
-      var xk = value ? (x0 * valueRight + x1 * valueLeft) / value : x1
+      let xk = value ? (x0 * valueRight + x1 * valueLeft) / value : x1
       partition(i, k, valueLeft, x0, y0, xk, y1)
       partition(k, j, valueRight, xk, y0, x1, y1)
     } else {
-      var yk = value ? (y0 * valueRight + y1 * valueLeft) / value : y1
+      let yk = value ? (y0 * valueRight + y1 * valueLeft) / value : y1
       partition(i, k, valueLeft, x0, y0, x1, yk)
       partition(k, j, valueRight, x0, yk, x1, y1)
     }
   }
 }
-export function (parent, x0, y0, x1, y1) {
-  var nodes = parent.children,
-    node,
+export function dice(parent, x0, y0, x1, y1) {
+  const nodes = parent.children
+  let node,
     i = -1,
     n = nodes.length,
     k = parent.value && (x1 - x0) / parent.value
@@ -49,12 +54,9 @@ export function (parent, x0, y0, x1, y1) {
     ;(node.x0 = x0), (node.x1 = x0 += node.value * k)
   }
 }
-import roundNode from "./round.js"
-import squarify from "./squarify.js"
-import { required } from "../accessors.js"
-import constant, { constantZero } from "../constant.js"
-export function () {
-  var tile = squarify,
+
+export function treemap() {
+  let tile = squarify,
     round = false,
     dx = 1,
     dy = 1,
@@ -74,7 +76,7 @@ export function () {
     return root
   }
   function positionNode(node) {
-    var p = paddingStack[node.depth],
+    let p = paddingStack[node.depth],
       x0 = node.x0 + p,
       y0 = node.y0 + p,
       x1 = node.x1 - p,
@@ -130,14 +132,12 @@ export function () {
   }
   return treemap
 }
-import treemapDice from "./dice.js"
-import treemapSlice from "./slice.js"
-import { phi, squarifyRatio } from "./squarify.js"
-export default (function custom(ratio) {
-  function resquarify(parent, x0, y0, x1, y1) {
+
+export const resquarify = (function f(ratio) {
+  function y(parent, x0, y0, x1, y1) {
+    let rows: any
     if ((rows = parent._squarify) && rows.ratio === ratio) {
-      var rows,
-        row,
+      let row,
         nodes,
         i,
         j = -1,
@@ -147,8 +147,8 @@ export default (function custom(ratio) {
       while (++j < m) {
         ;(row = rows[j]), (nodes = row.children)
         for (i = row.value = 0, n = nodes.length; i < n; ++i) row.value += nodes[i].value
-        if (row.dice) treemapDice(row, x0, y0, x1, value ? (y0 += ((y1 - y0) * row.value) / value) : y1)
-        else treemapSlice(row, x0, y0, value ? (x0 += ((x1 - x0) * row.value) / value) : x1, y1)
+        if (row.dice) dice(row, x0, y0, x1, value ? (y0 += ((y1 - y0) * row.value) / value) : y1)
+        else slice(row, x0, y0, value ? (x0 += ((x1 - x0) * row.value) / value) : x1, y1)
         value -= row.value
       }
     } else {
@@ -156,19 +156,19 @@ export default (function custom(ratio) {
       rows.ratio = ratio
     }
   }
-  resquarify.ratio = function (x) {
-    return custom((x = +x) > 1 ? x : 1)
-  }
-  return resquarify
+  y.ratio = x => f((x = +x) > 1 ? x : 1)
+  return y
 })(phi)
-export function (node) {
-  node.x0 = Math.round(node.x0)
-  node.y0 = Math.round(node.y0)
-  node.x1 = Math.round(node.x1)
-  node.y1 = Math.round(node.y1)
+
+export function roundNode(x) {
+  x.x0 = Math.round(x.x0)
+  x.y0 = Math.round(x.y0)
+  x.x1 = Math.round(x.x1)
+  x.y1 = Math.round(x.y1)
 }
-export function (parent, x0, y0, x1, y1) {
-  var nodes = parent.children,
+
+export function slice(parent, x0, y0, x1, y1) {
+  let nodes = parent.children,
     node,
     i = -1,
     n = nodes.length,
@@ -178,16 +178,13 @@ export function (parent, x0, y0, x1, y1) {
     ;(node.y0 = y0), (node.y1 = y0 += node.value * k)
   }
 }
-import dice from "./dice.js"
-import slice from "./slice.js"
-export function (parent, x0, y0, x1, y1) {
+
+export function sliceDice(parent, x0, y0, x1, y1) {
   ;(parent.depth & 1 ? slice : dice)(parent, x0, y0, x1, y1)
 }
-import treemapDice from "./dice.js"
-import treemapSlice from "./slice.js"
-export const phi = (1 + Math.sqrt(5)) / 2
+
 export function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
-  var rows = [],
+  let rows = [],
     nodes = parent.children,
     row,
     nodeValue,
@@ -225,18 +222,16 @@ export function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
       minRatio = newRatio
     }
     rows.push((row = { value: sumValue, dice: dx < dy, children: nodes.slice(i0, i1) }))
-    if (row.dice) treemapDice(row, x0, y0, x1, value ? (y0 += (dy * sumValue) / value) : y1)
-    else treemapSlice(row, x0, y0, value ? (x0 += (dx * sumValue) / value) : x1, y1)
+    if (row.dice) dice(row, x0, y0, x1, value ? (y0 += (dy * sumValue) / value) : y1)
+    else slice(row, x0, y0, value ? (x0 += (dx * sumValue) / value) : x1, y1)
     ;(value -= sumValue), (i0 = i1)
   }
   return rows
 }
-export default (function custom(ratio) {
-  function squarify(parent, x0, y0, x1, y1) {
+export const squarify = (function f(ratio) {
+  function y(parent, x0, y0, x1, y1) {
     squarifyRatio(ratio, parent, x0, y0, x1, y1)
   }
-  squarify.ratio = function (x) {
-    return custom((x = +x) > 1 ? x : 1)
-  }
-  return squarify
+  y.ratio = x => f((x = +x) > 1 ? x : 1)
+  return y
 })(phi)

@@ -111,8 +111,8 @@ export interface BrushBehavior<T> {
   extent(): ValueFn<SVGGElement, T, [[number, number], [number, number]]>
   extent(extent: [[number, number], [number, number]]): this
   extent(extent: ValueFn<SVGGElement, T, [[number, number], [number, number]]>): this
-  filter(): (this: SVGGElement, event: any, d: T) => boolean
-  filter(filterFn: (this: SVGGElement, event: any, d: T) => boolean): this
+  filter(): (this: SVGGElement, event: any, x: T) => boolean
+  filter(filterFn: (this: SVGGElement, event: any, x: T) => boolean): this
   touchable(): ValueFn<SVGGElement, T, boolean>
   touchable(touchable: boolean): this
   touchable(touchable: ValueFn<SVGGElement, T, boolean>): this
@@ -120,9 +120,9 @@ export interface BrushBehavior<T> {
   keyModifiers(modifiers: boolean): this
   handleSize(): number
   handleSize(size: number): this
-  on(typenames: string): ((this: SVGGElement, event: any, d: T) => void) | undefined
+  on(typenames: string): ((this: SVGGElement, event: any, x: T) => void) | undefined
   on(typenames: string, listener: null): this
-  on(typenames: string, listener: (this: SVGGElement, event: any, d: T) => void): this
+  on(typenames: string, listener: (this: SVGGElement, event: any, x: T) => void): this
 }
 export interface D3BrushEvent<T> {
   target: BrushBehavior<T>
@@ -1091,46 +1091,44 @@ export function geoIdentity(): GeoIdentityTransform
 export const geoClipAntimeridian: (stream: GeoStream) => GeoStream
 export function geoClipCircle(angle: number): (stream: GeoStream) => GeoStream
 export function geoClipRectangle(x0: number, y0: number, x1: number, y1: number): (stream: GeoStream) => GeoStream
-export interface HierarchyLink<Datum> {
-  source: HierarchyNode<Datum>
-  target: HierarchyNode<Datum>
+
+export interface HierarchyLink<T> {
+  source: HierarchyNode<T>
+  target: HierarchyNode<T>
 }
-export interface HierarchyNode<Datum> {
-  data: Datum
+export interface HierarchyNode<T> {
+  children?: this[] | undefined
+  data: T
+  parent: this | null
   readonly depth: number
   readonly height: number
-  parent: this | null
-  children?: this[] | undefined
-  readonly value?: number | undefined
   readonly id?: string | undefined
-  ancestors(): this[]
-  descendants(): this[]
-  leaves(): this[]
-  find(filter: (node: this) => boolean): this | undefined
-  path(target: this): this[]
-  links(): Array<HierarchyLink<Datum>>
-  sum(value: (d: Datum) => number): this
-  count(): this
-  sort(compare: (a: this, b: this) => number): this
+  readonly value?: number | undefined
   [Symbol.iterator](): Iterator<this>
-  each<T = undefined>(func: (this: T, node: this, i: number, thisNode: this) => void, that?: T): this
-  eachAfter<T = undefined>(func: (this: T, node: this, i: number, thisNode: this) => void, that?: T): this
-  eachBefore<T = undefined>(func: (this: T, node: this, i: number, thisNode: this) => void, that?: T): this
+  ancestors(): this[]
   copy(): this
+  count(): this
+  descendants(): this[]
+  each<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
+  eachAfter<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
+  eachBefore<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
+  find(f: (x: this) => boolean): this | undefined
+  leaves(): this[]
+  links(): Array<HierarchyLink<T>>
+  path(x: this): this[]
+  sort(f: (a: this, b: this) => number): this
+  sum(f: (x: T) => number): this
 }
-export function hierarchy<Datum>(
-  data: Datum,
-  children?: (d: Datum) => Iterable<Datum> | null | undefined
-): HierarchyNode<Datum>
-export interface StratifyOperator<Datum> {
-  (data: Datum[]): HierarchyNode<Datum>
-  id(): (d: Datum, i: number, data: Datum[]) => string | null | "" | undefined
-  id(id: (d: Datum, i: number, data: Datum[]) => string | null | "" | undefined): this
-  parentId(): (d: Datum, i: number, data: Datum[]) => string | null | "" | undefined
-  parentId(parentId: (d: Datum, i: number, data: Datum[]) => string | null | "" | undefined): this
-  path(): ((d: Datum, i: number, data: Datum[]) => string) | null | undefined
-  path(path: ((d: Datum, i: number, data: Datum[]) => string) | null | undefined): this
+export interface StratifyOperator<T> {
+  (xs: T[]): HierarchyNode<T>
+  id(): (x: T, i: number, xs: T[]) => string | null | "" | undefined
+  id(id: (x: T, i: number, xs: T[]) => string | null | "" | undefined): this
+  parentId(): (x: T, i: number, xs: T[]) => string | null | "" | undefined
+  parentId(parentId: (x: T, i: number, xs: T[]) => string | null | "" | undefined): this
+  path(): ((x: T, i: number, xs: T[]) => string) | null | undefined
+  path(path: ((x: T, i: number, xs: T[]) => string) | null | undefined): this
 }
+
 export function stratify<Datum>(): StratifyOperator<Datum>
 export interface HierarchyPointLink<Datum> {
   source: HierarchyPointNode<Datum>
@@ -1141,6 +1139,7 @@ export interface HierarchyPointNode<Datum> extends HierarchyNode<Datum> {
   y: number
   links(): Array<HierarchyPointLink<Datum>>
 }
+
 export interface ClusterLayout<Datum> {
   (root: HierarchyNode<Datum>): HierarchyPointNode<Datum>
   size(): [number, number] | null
@@ -1375,17 +1374,17 @@ export interface QuadtreeInternalNode<T> extends Array<QuadtreeInternalNode<T> |
   length: 4
 }
 export interface Quadtree<T> {
-  x(): (d: T) => number
-  x(x: (d: T) => number): this
-  y(): (d: T) => number
-  y(y: (d: T) => number): this
+  x(): (x: T) => number
+  x(x: (x: T) => number): this
+  y(): (x: T) => number
+  y(y: (x: T) => number): this
   extent(): [[number, number], [number, number]] | undefined
   extent(extend: [[number, number], [number, number]]): this
   cover(x: number, y: number): this
   add(x: T): this
-  addAll(data: T[]): this
+  addAll(xs: T[]): this
   remove(x: T): this
-  removeAll(data: T[]): this
+  removeAll(xs: T[]): this
   copy(): Quadtree<T>
   root(): QuadtreeInternalNode<T> | QuadtreeLeaf<T>
   data(): T[]
@@ -1404,8 +1403,8 @@ export interface Quadtree<T> {
     callback: (node: QuadtreeInternalNode<T> | QuadtreeLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void
   ): this
 }
-export function quadtree<T = [number, number]>(data?: T[]): Quadtree<T>
-export function quadtree<T = [number, number]>(data: T[], x: (d: T) => number, y: (d: T) => number): Quadtree<T>
+export function quadtree<T = [number, number]>(xs?: T[]): Quadtree<T>
+export function quadtree<T = [number, number]>(xs: T[], x: (x: T) => number, y: (x: T) => number): Quadtree<T>
 export interface RandomNumberGenerationSource {
   source(source: () => number): this
 }

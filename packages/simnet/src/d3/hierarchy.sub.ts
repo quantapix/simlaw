@@ -1,99 +1,13 @@
-export function () {
-  var node = this,
-    nodes = [node]
-  while ((node = node.parent)) {
-    nodes.push(node)
-  }
-  return nodes
-}
-function count(node) {
-  var sum = 0,
-    children = node.children,
-    i = children && children.length
-  if (!i) sum = 1
-  else while (--i >= 0) sum += children[i].value
-  node.value = sum
-}
-export function () {
-  return this.eachAfter(count)
-}
-export function () {
-  return Array.from(this)
-}
-export function (callback, that) {
-  let index = -1
-  for (const node of this) {
-    callback.call(that, node, ++index, this)
-  }
-  return this
-}
-export function (callback, that) {
-  var node = this,
-    nodes = [node],
-    next = [],
-    children,
-    i,
-    n,
-    index = -1
-  while ((node = nodes.pop())) {
-    next.push(node)
-    if ((children = node.children)) {
-      for (i = 0, n = children.length; i < n; ++i) {
-        nodes.push(children[i])
-      }
-    }
-  }
-  while ((node = next.pop())) {
-    callback.call(that, node, ++index, this)
-  }
-  return this
-}
-export function (callback, that) {
-  var node = this,
-    nodes = [node],
-    children,
-    i,
-    index = -1
-  while ((node = nodes.pop())) {
-    callback.call(that, node, ++index, this)
-    if ((children = node.children)) {
-      for (i = children.length - 1; i >= 0; --i) {
-        nodes.push(children[i])
-      }
-    }
-  }
-  return this
-}
-export function (callback, that) {
-  let index = -1
-  for (const node of this) {
-    if (callback.call(that, node, ++index, this)) {
-      return node
-    }
-  }
-}
-import node_count from "./count.js"
-import node_each from "./each.js"
-import node_eachBefore from "./eachBefore.js"
-import node_eachAfter from "./eachAfter.js"
-import node_find from "./find.js"
-import node_sum from "./sum.js"
-import node_sort from "./sort.js"
-import node_path from "./path.js"
-import node_ancestors from "./ancestors.js"
-import node_descendants from "./descendants.js"
-import node_leaves from "./leaves.js"
-import node_links from "./links.js"
-import node_iterator from "./iterator.js"
-export function hierarchy(data, children) {
+/* eslint-disable @typescript-eslint/no-this-alias */
+import type * as qt from "./types.js"
+
+export function hierarchy<T>(data: T, children?: (x: T) => Iterable<T> | null | undefined): qt.HierarchyNode<T> {
   if (data instanceof Map) {
     data = [undefined, data]
     if (children === undefined) children = mapChildren
-  } else if (children === undefined) {
-    children = objectChildren
-  }
-  var root = new Node(data),
-    node,
+  } else if (children === undefined) children = objectChildren
+  const root = new Node(data)
+  let node,
     nodes = [root],
     child,
     childs,
@@ -111,104 +25,176 @@ export function hierarchy(data, children) {
   }
   return root.eachBefore(computeHeight)
 }
-function node_copy() {
-  return hierarchy(this).eachBefore(copyData)
+
+function objectChildren(x: any) {
+  return x.children
 }
-function objectChildren(d) {
-  return d.children
+function mapChildren(x: any) {
+  return Array.isArray(x) ? x[1] : null
 }
-function mapChildren(d) {
-  return Array.isArray(d) ? d[1] : null
+function copyData(x) {
+  if (x.data.value !== undefined) x.value = x.data.value
+  x.data = x.data.data
 }
-function copyData(node) {
-  if (node.data.value !== undefined) node.value = node.data.value
-  node.data = node.data.data
+function computeHeight(x) {
+  let height = 0
+  do x.height = height
+  while ((x = x.parent) && x.height < ++height)
 }
-export function computeHeight(node) {
-  var height = 0
-  do node.height = height
-  while ((node = node.parent) && node.height < ++height)
-}
-export function Node(data) {
-  this.data = data
-  this.depth = this.height = 0
-  this.parent = null
-}
-Node.prototype = hierarchy.prototype = {
-  constructor: Node,
-  count: node_count,
-  each: node_each,
-  eachAfter: node_eachAfter,
-  eachBefore: node_eachBefore,
-  find: node_find,
-  sum: node_sum,
-  sort: node_sort,
-  path: node_path,
-  ancestors: node_ancestors,
-  descendants: node_descendants,
-  leaves: node_leaves,
-  links: node_links,
-  copy: node_copy,
-  [Symbol.iterator]: node_iterator,
-}
-export function* () {
-  var node = this,
-    current,
-    next = [node],
-    children,
-    i,
-    n
-  do {
-    ;(current = next.reverse()), (next = [])
-    while ((node = current.pop())) {
-      yield node
-      if ((children = node.children)) {
-        for (i = 0, n = children.length; i < n; ++i) {
-          next.push(children[i])
+
+export class Node<T> implements qt.HierarchyNode<T> {
+  children?: this[]
+  parent = null
+  depth = 0
+  height = 0
+  constructor(public data: T) {}
+  ancestors() {
+    let y: this | null = this
+    const ys = [y]
+    while ((y = y.parent)) {
+      ys.push(y)
+    }
+    return ys
+  }
+  copy() {
+    return hierarchy(this).eachBefore(copyData)
+  }
+  count() {
+    const count = (x: this) => {
+      const children = x.children
+      let sum = 0,
+        i = children && children.length
+      if (!i) sum = 1
+      else while (--i >= 0) sum += children[i]?.value
+      x.value = sum
+    }
+    return this.eachAfter(count)
+  }
+  descendants() {
+    return Array.from(this)
+  }
+  each<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
+  each(f: any, ctx?: unknown) {
+    let i = -1
+    for (const y of this) {
+      f.call(ctx, y, ++i, this)
+    }
+    return this
+  }
+  eachAfter<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
+  eachAfter(f: any, ctx?: unknown) {
+    let y: this | undefined = this
+    const ys = [y]
+    const next = []
+    while ((y = ys.pop())) {
+      next.push(y)
+      let children
+      if ((children = y.children)) {
+        for (const c of children) {
+          ys.push(c)
         }
       }
     }
-  } while (next.length)
-}
-export function () {
-  var leaves = []
-  this.eachBefore(function (node) {
-    if (!node.children) {
-      leaves.push(node)
+    let i = -1
+    while ((y = next.pop())) {
+      f.call(ctx, y, ++i, this)
     }
-  })
-  return leaves
-}
-export function () {
-  var root = this,
-    links = []
-  root.each(function (node) {
-    if (node !== root) {
-      links.push({ source: node.parent, target: node })
+    return this
+  }
+  eachBefore<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
+  eachBefore(f: any, ctx?: unknown) {
+    let y: this | undefined = this
+    const ys = [y]
+    let i = -1
+    while ((y = ys.pop())) {
+      f.call(ctx, y, ++i, this)
+      let children
+      if ((children = y.children)) {
+        for (let j = children.length - 1; j >= 0; --j) {
+          ys.push(children[j])
+        }
+      }
     }
-  })
-  return links
-}
-export function (end) {
-  var start = this,
-    ancestor = leastCommonAncestor(start, end),
-    nodes = [start]
-  while (start !== ancestor) {
-    start = start.parent
-    nodes.push(start)
+    return this
   }
-  var k = nodes.length
-  while (end !== ancestor) {
-    nodes.splice(k, 0, end)
-    end = end.parent
+  find(f: (x: this) => boolean): this | undefined
+  find(f: any, ctx?: unknown) {
+    let i = -1
+    for (const y of this) {
+      if (f.call(ctx, y, ++i, this)) return y
+    }
+    return
   }
-  return nodes
+  *iterator() {
+    let y: this | undefined = this,
+      current,
+      next = [y]
+    do {
+      ;(current = next.reverse()), (next = [])
+      while ((y = current.pop())) {
+        yield y
+        let children
+        if ((children = y.children)) {
+          for (const c of children) {
+            next.push(c)
+          }
+        }
+      }
+    } while (next.length)
+  }
+  [Symbol.iterator] = this.iterator
+  leaves() {
+    const ys: this[] = []
+    this.eachBefore(x => {
+      if (!x.children) ys.push(x)
+    })
+    return ys
+  }
+  links() {
+    const ys: qt.HierarchyLink<T>[] = []
+    this.each(x => {
+      if (x !== this) ys.push({ source: x.parent, target: x })
+    })
+    return ys
+  }
+  path(end: this) {
+    let y: this | null = this
+    const ys = [y]
+    const ancestor = leastCommonAncestor(y, end)
+    while (y !== ancestor) {
+      y = y?.parent
+      ys.push(y)
+    }
+    const k = ys.length
+    while (end !== ancestor) {
+      ys.splice(k, 0, end)
+      end = end.parent
+    }
+    return ys
+  }
+  sort(f: (a: this, b: this) => number): this
+  sort(f: any) {
+    return this.eachBefore((x: any) => {
+      if (x.children) x.children.sort(f)
+    })
+  }
+  sum(f: (x: T) => number): this
+  sum(f: any) {
+    return this.eachAfter((x: any) => {
+      const children = x.children
+      let y = +f(x.data) || 0
+      let i = children && children.length
+      while (--i >= 0) y += children[i].value
+      x.value = y
+    })
+  }
 }
+
 function leastCommonAncestor(a, b) {
   if (a === b) return a
-  var aNodes = a.ancestors(),
-    bNodes = b.ancestors(),
-    c = null
+  const aNodes = a.ancestors(),
+    bNodes = b.ancestors()
+  let c = null
   a = aNodes.pop()
   b = bNodes.pop()
   while (a === b) {
@@ -217,20 +203,4 @@ function leastCommonAncestor(a, b) {
     b = bNodes.pop()
   }
   return c
-}
-export function (compare) {
-  return this.eachBefore(function (node) {
-    if (node.children) {
-      node.children.sort(compare)
-    }
-  })
-}
-export function (value) {
-  return this.eachAfter(function (node) {
-    var sum = +value(node.data) || 0,
-      children = node.children,
-      i = children && children.length
-    while (--i >= 0) sum += children[i].value
-    node.value = sum
-  })
 }

@@ -1,6 +1,12 @@
-import { shuffle } from "../array.js"
+import { optional } from "../accessors.js"
+import { shuffle } from "./array.js"
+import array from "../array.js"
+import constant, { constantZero } from "../constant.js"
 import lcg from "../lcg.js"
-export function (circles) {
+import lcg from "../lcg.js"
+import lcg from "../lcg.js"
+
+export function enclose(circles) {
   return packEncloseRandom(circles, lcg())
 }
 export function packEncloseRandom(circles, random) {
@@ -126,14 +132,10 @@ function encloseBasis3(a, b, c) {
     r: r,
   }
 }
-import { optional } from "../accessors.js"
-import constant, { constantZero } from "../constant.js"
-import lcg from "../lcg.js"
-import { packSiblingsRandom } from "./siblings.js"
 function defaultRadius(d) {
   return Math.sqrt(d.value)
 }
-export function () {
+export function pack() {
   var radius = null,
     dx = 1,
     dy = 1,
@@ -198,9 +200,6 @@ function translateChild(k) {
     }
   }
 }
-import array from "../array.js"
-import lcg from "../lcg.js"
-import { packEncloseRandom } from "./enclose.js"
 function place(b, a, c) {
   var dx = b.x - a.x,
     x,
@@ -292,7 +291,7 @@ export function packSiblingsRandom(circles, random) {
   for (i = 0; i < n; ++i) (a = circles[i]), (a.x -= c.x), (a.y -= c.y)
   return c.r
 }
-export function (circles) {
+export function siblings(circles) {
   packSiblingsRandom(circles, lcg())
   return circles
 }

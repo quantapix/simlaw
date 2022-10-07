@@ -1,9 +1,10 @@
 import * as qt from "./types.js"
+
 const array = Array.prototype
 export const slice = array.slice
 export const map = array.map
-export function ascending(a: qt.Primitive | undefined, b: qt.Primitive | undefined): number
-export function ascending(a, b) {
+
+export function ascending(a: qt.Primitive | undefined, b: qt.Primitive | undefined): number {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
 }
 export function bin(): qt.HistogramGeneratorNumber<number, number>
@@ -110,10 +111,10 @@ export function bisectCenter(xs: ArrayLike<string>, x: string, lo?: number, hi?:
 export function bisectCenter(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
 //export function bisectCenter = bisector(number).center
 //export const bisect: typeof bisectRight
-export function bisector<T, U>(comparator: (a: T, b: U) => number): qt.Bisector<T, U>
+export function bisector<T, U>(f: (a: T, b: U) => number): qt.Bisector<T, U>
 export function bisector<T, U>(f: (x: T) => U): qt.Bisector<T, U>
-export function bisector(f) {
-  let compare1, compare2, delta
+export function bisector(f: Function) {
+  let compare1: Function, compare2: Function, delta: Function
   if (f.length !== 2) {
     compare1 = ascending
     compare2 = (d, x) => ascending(f(d), x)
@@ -225,7 +226,7 @@ function blurf(radius) {
   const t = radius - radius0
   const w = 2 * radius + 1
   return (T, S, start, stop, step) => {
-    if (!((stop -= step) >= start)) return // inclusive stop
+    if (!((stop -= step) >= start)) return
     let sum = radius0 * S[start]
     const s0 = step * radius0
     const s1 = s0 + step
@@ -242,7 +243,7 @@ function blurf(radius) {
 function bluri(radius) {
   const w = 2 * radius + 1
   return (T, S, start, stop, step) => {
-    if (!((stop -= step) >= start)) return // inclusive stop
+    if (!((stop -= step) >= start)) return
     let sum = radius * S[start]
     const s = step * radius
     for (let i = start, j = start + s; i < j; i += step) {
@@ -255,28 +256,24 @@ function bluri(radius) {
     }
   }
 }
-export function constant(x) {
+export function constant(x: any) {
   return () => x
 }
 export function count(xs: Iterable<unknown>): number
-export function count<T>(xs: Iterable<T>, accessor: (a: T, b: T) => number | null | undefined): number
-export function count(values, valueof) {
-  let count = 0
-  if (valueof === undefined) {
-    for (let value of values) {
-      if (value != null && (value = +value) >= value) {
-        ++count
-      }
+export function count<T>(xs: Iterable<T>, f: (a: T, b: T) => number | null | undefined): number
+export function count(xs: any, f?: Function) {
+  let y = 0
+  if (f === undefined) {
+    for (let x of xs) {
+      if (x != null && (x = +x) >= x) ++y
     }
   } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
-        ++count
-      }
+    let i = -1
+    for (let x of xs) {
+      if ((x = f(x, ++i, xs)) != null && (x = +x) >= x) ++y
     }
   }
-  return count
+  return y
 }
 function length(x: any) {
   return x.length | 0
@@ -284,8 +281,8 @@ function length(x: any) {
 function empty(length) {
   return !(length > 0)
 }
-function arrayify(values) {
-  return typeof values !== "object" || "length" in values ? values : Array.from(values)
+function arrayify(xs) {
+  return typeof xs !== "object" || "length" in xs ? xs : Array.from(xs)
 }
 function reducer(reduce) {
   return values => reduce(...values)
