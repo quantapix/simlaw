@@ -61,11 +61,11 @@ export class Node<T> implements qt.HierarchyNode<T> {
   }
   count() {
     const count = (x: this) => {
-      const children = x.children
+      const cs = x.children
       let sum = 0,
-        i = children && children.length
+        i = cs && cs.length
       if (!i) sum = 1
-      else while (--i >= 0) sum += children[i]?.value
+      else while (--i >= 0) sum += cs[i]?.value
       x.value = sum
     }
     return this.eachAfter(count)
@@ -88,9 +88,9 @@ export class Node<T> implements qt.HierarchyNode<T> {
     const next = []
     while ((y = ys.pop())) {
       next.push(y)
-      let children
-      if ((children = y.children)) {
-        for (const c of children) {
+      let cs
+      if ((cs = y.children)) {
+        for (const c of cs) {
           ys.push(c)
         }
       }
@@ -108,10 +108,10 @@ export class Node<T> implements qt.HierarchyNode<T> {
     let i = -1
     while ((y = ys.pop())) {
       f.call(ctx, y, ++i, this)
-      let children
-      if ((children = y.children)) {
-        for (let j = children.length - 1; j >= 0; --j) {
-          ys.push(children[j])
+      let cs
+      if ((cs = y.children)) {
+        for (let j = cs.length - 1; j >= 0; --j) {
+          ys.push(cs[j])
         }
       }
     }
@@ -133,9 +133,9 @@ export class Node<T> implements qt.HierarchyNode<T> {
       ;(current = next.reverse()), (next = [])
       while ((y = current.pop())) {
         yield y
-        let children
-        if ((children = y.children)) {
-          for (const c of children) {
+        let cs
+        if ((cs = y.children)) {
+          for (const c of cs) {
             next.push(c)
           }
         }
@@ -181,10 +181,10 @@ export class Node<T> implements qt.HierarchyNode<T> {
   sum(f: (x: T) => number): this
   sum(f: any) {
     return this.eachAfter((x: any) => {
-      const children = x.children
+      const cs = x.children
       let y = +f(x.data) || 0
-      let i = children && children.length
-      while (--i >= 0) y += children[i].value
+      let i = cs && cs.length
+      while (--i >= 0) y += cs[i].value
       x.value = y
     })
   }

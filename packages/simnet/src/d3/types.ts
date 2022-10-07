@@ -1122,14 +1122,13 @@ export interface HierarchyNode<T> {
 export interface StratifyOperator<T> {
   (xs: T[]): HierarchyNode<T>
   id(): (x: T, i: number, xs: T[]) => string | null | "" | undefined
-  id(id: (x: T, i: number, xs: T[]) => string | null | "" | undefined): this
+  id(f: (x: T, i: number, xs: T[]) => string | null | "" | undefined): this
   parentId(): (x: T, i: number, xs: T[]) => string | null | "" | undefined
-  parentId(parentId: (x: T, i: number, xs: T[]) => string | null | "" | undefined): this
+  parentId(f: (x: T, i: number, xs: T[]) => string | null | "" | undefined): this
   path(): ((x: T, i: number, xs: T[]) => string) | null | undefined
-  path(path: ((x: T, i: number, xs: T[]) => string) | null | undefined): this
+  path(f: ((x: T, i: number, xs: T[]) => string) | null | undefined): this
 }
 
-export function stratify<Datum>(): StratifyOperator<Datum>
 export interface HierarchyPointLink<Datum> {
   source: HierarchyPointNode<Datum>
   target: HierarchyPointNode<Datum>
@@ -1140,115 +1139,99 @@ export interface HierarchyPointNode<Datum> extends HierarchyNode<Datum> {
   links(): Array<HierarchyPointLink<Datum>>
 }
 
-export interface ClusterLayout<Datum> {
-  (root: HierarchyNode<Datum>): HierarchyPointNode<Datum>
-  size(): [number, number] | null
-  size(size: [number, number]): this
+export interface ClusterLayout<T> {
+  (x: HierarchyNode<T>): HierarchyPointNode<T>
   nodeSize(): [number, number] | null
-  nodeSize(size: [number, number]): this
-  separation(): (a: HierarchyPointNode<Datum>, b: HierarchyPointNode<Datum>) => number
-  separation(separation: (a: HierarchyPointNode<Datum>, b: HierarchyPointNode<Datum>) => number): this
-}
-export function cluster<Datum>(): ClusterLayout<Datum>
-export interface TreeLayout<Datum> {
-  (root: HierarchyNode<Datum>): HierarchyPointNode<Datum>
+  nodeSize(x: [number, number]): this
+  separation(): (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number
+  separation(f: (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number): this
   size(): [number, number] | null
-  size(size: [number, number]): this
+  size(x: [number, number]): this
+}
+
+export interface TreeLayout<T> {
+  (x: HierarchyNode<T>): HierarchyPointNode<T>
   nodeSize(): [number, number] | null
-  nodeSize(size: [number, number]): this
-  separation(): (a: HierarchyPointNode<Datum>, b: HierarchyPointNode<Datum>) => number
-  separation(separation: (a: HierarchyPointNode<Datum>, b: HierarchyPointNode<Datum>) => number): this
+  nodeSize(x: [number, number]): this
+  separation(): (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number
+  separation(f: (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number): this
+  size(): [number, number] | null
+  size(x: [number, number]): this
 }
-export function tree<Datum>(): TreeLayout<Datum>
-export interface HierarchyRectangularLink<Datum> {
-  source: HierarchyRectangularNode<Datum>
-  target: HierarchyRectangularNode<Datum>
+export interface HierarchyRectangularLink<T> {
+  source: HierarchyRectangularNode<T>
+  target: HierarchyRectangularNode<T>
 }
-export interface HierarchyRectangularNode<Datum> extends HierarchyNode<Datum> {
+export interface HierarchyRectangularNode<T> extends HierarchyNode<T> {
   x0: number
   y0: number
   x1: number
   y1: number
-  links(): Array<HierarchyRectangularLink<Datum>>
+  links(): Array<HierarchyRectangularLink<T>>
 }
-export interface TreemapLayout<Datum> {
-  (root: HierarchyNode<Datum>): HierarchyRectangularNode<Datum>
-  tile(): (node: HierarchyRectangularNode<Datum>, x0: number, y0: number, x1: number, y1: number) => void
-  tile(tile: (node: HierarchyRectangularNode<Datum>, x0: number, y0: number, x1: number, y1: number) => void): this
+export interface TreemapLayout<T> {
+  (x: HierarchyNode<T>): HierarchyRectangularNode<T>
+  tile(): (x: HierarchyRectangularNode<T>, x0: number, y0: number, x1: number, y1: number) => void
+  tile(tile: (x: HierarchyRectangularNode<T>, x0: number, y0: number, x1: number, y1: number) => void): this
   size(): [number, number]
-  size(size: [number, number]): this
+  size(x: [number, number]): this
   round(): boolean
-  round(round: boolean): this
-  padding(): (node: HierarchyRectangularNode<Datum>) => number
-  padding(padding: number): this
-  padding(padding: (node: HierarchyRectangularNode<Datum>) => number): this
-  paddingInner(): (node: HierarchyRectangularNode<Datum>) => number
-  paddingInner(padding: number): this
-  paddingInner(padding: (node: HierarchyRectangularNode<Datum>) => number): this
-  paddingOuter(): (node: HierarchyRectangularNode<Datum>) => number
-  paddingOuter(padding: number): this
-  paddingOuter(padding: (node: HierarchyRectangularNode<Datum>) => number): this
-  paddingTop(): (node: HierarchyRectangularNode<Datum>) => number
-  paddingTop(padding: number): this
-  paddingTop(padding: (node: HierarchyRectangularNode<Datum>) => number): this
-  paddingRight(): (node: HierarchyRectangularNode<Datum>) => number
-  paddingRight(padding: number): this
-  paddingRight(padding: (node: HierarchyRectangularNode<Datum>) => number): this
-  paddingBottom(): (node: HierarchyRectangularNode<Datum>) => number
-  paddingBottom(padding: number): this
-  paddingBottom(padding: (node: HierarchyRectangularNode<Datum>) => number): this
-  paddingLeft(): (node: HierarchyRectangularNode<Datum>) => number
-  paddingLeft(padding: number): this
-  paddingLeft(padding: (node: HierarchyRectangularNode<Datum>) => number): this
+  round(x: boolean): this
+  padding(): (x: HierarchyRectangularNode<T>) => number
+  padding(x: number): this
+  padding(f: (x: HierarchyRectangularNode<T>) => number): this
+  paddingInner(): (x: HierarchyRectangularNode<T>) => number
+  paddingInner(x: number): this
+  paddingInner(f: (x: HierarchyRectangularNode<T>) => number): this
+  paddingOuter(): (x: HierarchyRectangularNode<T>) => number
+  paddingOuter(x: number): this
+  paddingOuter(x: (x: HierarchyRectangularNode<T>) => number): this
+  paddingTop(): (x: HierarchyRectangularNode<T>) => number
+  paddingTop(x: number): this
+  paddingTop(f: (x: HierarchyRectangularNode<T>) => number): this
+  paddingRight(): (x: HierarchyRectangularNode<T>) => number
+  paddingRight(x: number): this
+  paddingRight(f: (x: HierarchyRectangularNode<T>) => number): this
+  paddingBottom(): (x: HierarchyRectangularNode<T>) => number
+  paddingBottom(x: number): this
+  paddingBottom(f: (x: HierarchyRectangularNode<T>) => number): this
+  paddingLeft(): (x: HierarchyRectangularNode<T>) => number
+  paddingLeft(x: number): this
+  paddingLeft(f: (x: HierarchyRectangularNode<T>) => number): this
 }
-export function treemap<Datum>(): TreemapLayout<Datum>
-export function treemapBinary(node: HierarchyRectangularNode<any>, x0: number, y0: number, x1: number, y1: number): void
-export function treemapDice(node: HierarchyRectangularNode<any>, x0: number, y0: number, x1: number, y1: number): void
-export function treemapSlice(node: HierarchyRectangularNode<any>, x0: number, y0: number, x1: number, y1: number): void
-export function treemapSliceDice(
-  node: HierarchyRectangularNode<any>,
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number
-): void
 export interface RatioSquarifyTilingFactory {
-  (node: HierarchyRectangularNode<any>, x0: number, y0: number, x1: number, y1: number): void
-  ratio(ratio: number): RatioSquarifyTilingFactory
+  (x: HierarchyRectangularNode<any>, x0: number, y0: number, x1: number, y1: number): void
+  ratio(x: number): RatioSquarifyTilingFactory
 }
-export const treemapSquarify: RatioSquarifyTilingFactory
-export const treemapResquarify: RatioSquarifyTilingFactory
 export interface PartitionLayout<Datum> {
-  (root: HierarchyNode<Datum>): HierarchyRectangularNode<Datum>
-  size(): [number, number]
-  size(size: [number, number]): this
-  round(): boolean
-  round(round: boolean): this
+  (x: HierarchyNode<Datum>): HierarchyRectangularNode<Datum>
   padding(): number
-  padding(padding: number): this
+  padding(x: number): this
+  round(): boolean
+  round(x: boolean): this
+  size(): [number, number]
+  size(x: [number, number]): this
 }
-export function partition<Datum>(): PartitionLayout<Datum>
-export interface HierarchyCircularLink<Datum> {
-  source: HierarchyCircularNode<Datum>
-  target: HierarchyCircularNode<Datum>
+export interface HierarchyCircularLink<T> {
+  source: HierarchyCircularNode<T>
+  target: HierarchyCircularNode<T>
 }
-export interface HierarchyCircularNode<Datum> extends HierarchyNode<Datum> {
+export interface HierarchyCircularNode<T> extends HierarchyNode<T> {
   x: number
   y: number
   r: number
-  links(): Array<HierarchyCircularLink<Datum>>
+  links(): Array<HierarchyCircularLink<T>>
 }
-export interface PackLayout<Datum> {
-  (root: HierarchyNode<Datum>): HierarchyCircularNode<Datum>
-  radius(): null | ((node: HierarchyCircularNode<Datum>) => number)
-  radius(radius: null | ((node: HierarchyCircularNode<Datum>) => number)): this
+export interface PackLayout<T> {
+  (x: HierarchyNode<T>): HierarchyCircularNode<T>
+  padding(): (x: HierarchyCircularNode<T>) => number
+  padding(f: (x: HierarchyCircularNode<T>) => number): this
+  padding(x: number): this
+  radius(): null | ((x: HierarchyCircularNode<T>) => number)
+  radius(f: null | ((x: HierarchyCircularNode<T>) => number)): this
   size(): [number, number]
-  size(size: [number, number]): this
-  padding(): (node: HierarchyCircularNode<Datum>) => number
-  padding(padding: number): this
-  padding(padding: (node: HierarchyCircularNode<Datum>) => number): this
+  size(x: [number, number]): this
 }
-export function pack<Datum>(): PackLayout<Datum>
 export interface PackRadius {
   r: number
   x?: number | undefined
@@ -1259,8 +1242,6 @@ export interface PackCircle {
   x: number
   y: number
 }
-export function packSiblings<Datum extends PackRadius>(circles: Datum[]): Array<Datum & PackCircle>
-export function packEnclose<Datum extends PackCircle>(circles: Datum[]): PackCircle
 export interface ZoomInterpolator extends Function {
   (t: number): ZoomView
   duration: number

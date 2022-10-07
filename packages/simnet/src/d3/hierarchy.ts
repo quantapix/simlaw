@@ -3,6 +3,7 @@ import treemapDice from "./treemap/dice.js"
 import { optional } from "./accessors.js"
 import { Node, computeHeight } from "./hierarchy/index.js"
 import { Node } from "./hierarchy/index.js"
+import type * as qt from "./types.js"
 
 export function optional(x: any) {
   return x == null ? null : required(x)
@@ -51,7 +52,7 @@ function leafRight(node) {
   while ((children = node.children)) node = children[children.length - 1]
   return node
 }
-export function cluster() {
+export function cluster<T>(): qt.ClusterLayout<T> {
   let separation = defaultSeparation,
     dx = 1,
     dy = 1,
@@ -127,7 +128,7 @@ export function lcg() {
   let s = 1
   return () => (s = (a * s + c) % m) / m
 }
-export function partition() {
+export function partition<T>(): qt.PartitionLayout<T> {
   let dx = 1,
     dy = 1,
     padding = 0,
@@ -178,7 +179,7 @@ function defaultId(d) {
 function defaultParentId(d) {
   return d.parentId
 }
-export function stratify() {
+export function stratify<T>(): qt.StratifyOperator<T> {
   let id = defaultId,
     parentId = defaultParentId,
     path
@@ -356,7 +357,7 @@ function treeRoot(root) {
   ;(tree.parent = new TreeNode(null, 0)).children = [tree]
   return tree
 }
-export function tree() {
+export function tree<T>(): qt.TreeLayout<T> {
   let separation = defaultSeparation,
     dx = 1,
     dy = 1,

@@ -1,9 +1,16 @@
 import { required } from "../accessors.js"
 import constant, { constantZero } from "../constant.js"
+import type * as qt from "./types.js"
 
 export const phi = (1 + Math.sqrt(5)) / 2
 
-export function binary(parent, x0, y0, x1, y1) {
+export function treemapBinary(
+  parent: qt.HierarchyRectangularNode<any>,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number
+): void {
   let nodes = parent.children,
     i,
     n = nodes.length,
@@ -43,19 +50,25 @@ export function binary(parent, x0, y0, x1, y1) {
     }
   }
 }
-export function dice(parent, x0, y0, x1, y1) {
-  const nodes = parent.children
+export function treemapDice(
+  parent: qt.HierarchyRectangularNode<any>,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number
+): void {
+  const ys = parent.children
   let node,
     i = -1,
-    n = nodes.length,
+    n = ys.length,
     k = parent.value && (x1 - x0) / parent.value
   while (++i < n) {
-    ;(node = nodes[i]), (node.y0 = y0), (node.y1 = y1)
+    ;(node = ys[i]), (node.y0 = y0), (node.y1 = y1)
     ;(node.x0 = x0), (node.x1 = x0 += node.value * k)
   }
 }
 
-export function treemap() {
+export function treemap<T>(): qt.TreemapLayout<T> {
   let tile = squarify,
     round = false,
     dx = 1,
@@ -133,7 +146,7 @@ export function treemap() {
   return treemap
 }
 
-export const resquarify = (function f(ratio) {
+export const treemapResquarify: qt.RatioSquarifyTilingFactory = (function f(ratio) {
   function y(parent, x0, y0, x1, y1) {
     let rows: any
     if ((rows = parent._squarify) && rows.ratio === ratio) {
@@ -167,23 +180,35 @@ export function roundNode(x) {
   x.y1 = Math.round(x.y1)
 }
 
-export function slice(parent, x0, y0, x1, y1) {
-  let nodes = parent.children,
+export function treemapSlice(
+  parent: qt.HierarchyRectangularNode<any>,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number
+): void {
+  let ys = parent.children,
     node,
     i = -1,
-    n = nodes.length,
+    n = ys.length,
     k = parent.value && (y1 - y0) / parent.value
   while (++i < n) {
-    ;(node = nodes[i]), (node.x0 = x0), (node.x1 = x1)
+    ;(node = ys[i]), (node.x0 = x0), (node.x1 = x1)
     ;(node.y0 = y0), (node.y1 = y0 += node.value * k)
   }
 }
 
-export function sliceDice(parent, x0, y0, x1, y1) {
-  ;(parent.depth & 1 ? slice : dice)(parent, x0, y0, x1, y1)
+export function treemapSliceDice(
+  parent: qt.HierarchyRectangularNode<any>,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number
+): void {
+  ;(parent.depth & 1 ? treemapSlice : treemapDice)(parent, x0, y0, x1, y1)
 }
 
-export function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
+function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
   let rows = [],
     nodes = parent.children,
     row,
@@ -228,7 +253,8 @@ export function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
   }
   return rows
 }
-export const squarify = (function f(ratio) {
+
+export const treemapSquarify: qt.RatioSquarifyTilingFactory = (function f(ratio) {
   function y(parent, x0, y0, x1, y1) {
     squarifyRatio(ratio, parent, x0, y0, x1, y1)
   }

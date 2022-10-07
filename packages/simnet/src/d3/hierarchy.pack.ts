@@ -3,11 +3,10 @@ import { shuffle } from "./array.js"
 import array from "../array.js"
 import constant, { constantZero } from "../constant.js"
 import lcg from "../lcg.js"
-import lcg from "../lcg.js"
-import lcg from "../lcg.js"
+import type * as qt from "./types.js"
 
-export function enclose(circles) {
-  return packEncloseRandom(circles, lcg())
+export function packEnclose<T extends qt.PackCircle>(xs: T[]): qt.PackCircle {
+  return packEncloseRandom(xs, lcg())
 }
 export function packEncloseRandom(circles, random) {
   var i = 0,
@@ -135,7 +134,7 @@ function encloseBasis3(a, b, c) {
 function defaultRadius(d) {
   return Math.sqrt(d.value)
 }
-export function pack() {
+export function pack<T>(): qt.PackLayout<T> {
   var radius = null,
     dx = 1,
     dy = 1,
@@ -291,7 +290,7 @@ export function packSiblingsRandom(circles, random) {
   for (i = 0; i < n; ++i) (a = circles[i]), (a.x -= c.x), (a.y -= c.y)
   return c.r
 }
-export function siblings(circles) {
-  packSiblingsRandom(circles, lcg())
-  return circles
+export function packSiblings<T extends qt.PackRadius>(xs: T[]): Array<T & qt.PackCircle> {
+  packSiblingsRandom(xs, lcg())
+  return xs
 }
