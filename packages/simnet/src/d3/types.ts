@@ -646,8 +646,9 @@ export function tsv<ParsedRow extends object, Columns extends string = string>(
   row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
 ): Promise<DSVParsedArray<ParsedRow>>
 export function xml(url: string, init?: RequestInit): Promise<XMLDocument>
-export interface SimulationNodeDatum {
-  index?: number | undefined
+
+export interface SimNode {
+  idx?: number | undefined
   x?: number | undefined
   y?: number | undefined
   vx?: number | undefined
@@ -655,139 +656,108 @@ export interface SimulationNodeDatum {
   fx?: number | null | undefined
   fy?: number | null | undefined
 }
-export interface SimulationLinkDatum<NodeDatum extends SimulationNodeDatum> {
-  source: NodeDatum | string | number
-  target: NodeDatum | string | number
-  index?: number | undefined
+export interface SimLink<T extends SimNode> {
+  src: T | string | number
+  tgt: T | string | number
+  idx?: number | undefined
 }
-export interface Simulation<
-  NodeDatum extends SimulationNodeDatum,
-  LinkDatum extends SimulationLinkDatum<NodeDatum> | undefined
-> {
+export interface Sim<N extends SimNode, L extends SimLink<N> | undefined> {
+  alpha(): number
+  alpha(x: number): this
+  alphaDecay(): number
+  alphaDecay(x: number): this
+  alphaMin(): number
+  alphaMin(x: number): this
+  alphaTarget(): number
+  alphaTarget(x: number): this
+  find(x: number, y: number, radius?: number): N | undefined
+  force(x: string, f: null | Force<N, L>): this
+  force<T extends Force<N, L>>(x: string): T | undefined
+  nodes(): N[]
+  nodes(xs: N[]): this
+  on(x: "tick" | "end" | string, f: null | ((this: this) => void)): this
+  on(x: "tick" | "end" | string): ((this: Sim<N, L>) => void) | undefined
+  randomSource(): () => number
+  randomSource(f: () => number): this
   restart(): this
   stop(): this
-  tick(iterations?: number): this
-  nodes(): NodeDatum[]
-  nodes(nodesData: NodeDatum[]): this
-  alpha(): number
-  alpha(alpha: number): this
-  alphaMin(): number
-  alphaMin(min: number): this
-  alphaDecay(): number
-  alphaDecay(decay: number): this
-  alphaTarget(): number
-  alphaTarget(target: number): this
+  tick(n?: number): this
   velocityDecay(): number
-  velocityDecay(decay: number): this
-  force<F extends Force<NodeDatum, LinkDatum>>(name: string): F | undefined
-  force(name: string, force: null | Force<NodeDatum, LinkDatum>): this
-  find(x: number, y: number, radius?: number): NodeDatum | undefined
-  randomSource(): () => number
-  randomSource(source: () => number): this
-  on(typenames: "tick" | "end" | string): ((this: Simulation<NodeDatum, LinkDatum>) => void) | undefined
-  on(typenames: "tick" | "end" | string, listener: null | ((this: this) => void)): this
+  velocityDecay(x: number): this
 }
-export function forceSimulation<NodeDatum extends SimulationNodeDatum>(
-  nodesData?: NodeDatum[]
-): Simulation<NodeDatum, undefined>
-export function forceSimulation<
-  NodeDatum extends SimulationNodeDatum,
-  LinkDatum extends SimulationLinkDatum<NodeDatum>
->(nodesData?: NodeDatum[]): Simulation<NodeDatum, LinkDatum>
-export interface Force<
-  NodeDatum extends SimulationNodeDatum,
-  LinkDatum extends SimulationLinkDatum<NodeDatum> | undefined
-> {
+
+export interface Force<N extends SimNode, L extends SimLink<N> | undefined> {
   (alpha: number): void
-  initialize?(nodes: NodeDatum[], random: () => number): void
+  init?(xs: N[], f: () => number): void
 }
-export interface ForceCenter<NodeDatum extends SimulationNodeDatum> extends Force<NodeDatum, any> {
-  initialize(nodes: NodeDatum[], random: () => number): void
+export interface ForceCenter<T extends SimNode> extends Force<T, any> {
+  init(xs: T[], f: () => number): void
+  strength(): number
+  strength(x: number): this
   x(): number
   x(x: number): this
   y(): number
-  y(y: number): this
-  strength(): number
-  strength(strength: number): this
+  y(x: number): this
 }
-export function forceCenter<NodeDatum extends SimulationNodeDatum>(x?: number, y?: number): ForceCenter<NodeDatum>
-export interface ForceCollide<NodeDatum extends SimulationNodeDatum> extends Force<NodeDatum, any> {
-  initialize(nodes: NodeDatum[], random: () => number): void
-  radius(): (node: NodeDatum, i: number, nodes: NodeDatum[]) => number
-  radius(radius: number | ((node: NodeDatum, i: number, nodes: NodeDatum[]) => number)): this
-  strength(): number
-  strength(strength: number): this
+export interface ForceCollide<T extends SimNode> extends Force<T, any> {
+  init(xs: T[], f: () => number): void
   iterations(): number
-  iterations(iterations: number): this
+  iterations(x: number): this
+  radius(): (x: T, i: number, xs: T[]) => number
+  radius(x: number | ((x: T, i: number, xs: T[]) => number)): this
+  strength(): number
+  strength(x: number): this
 }
-export function forceCollide<NodeDatum extends SimulationNodeDatum>(
-  radius?: number | ((node: NodeDatum, i: number, nodes: NodeDatum[]) => number)
-): ForceCollide<NodeDatum>
-export interface ForceLink<NodeDatum extends SimulationNodeDatum, LinkDatum extends SimulationLinkDatum<NodeDatum>>
-  extends Force<NodeDatum, LinkDatum> {
-  initialize(nodes: NodeDatum[], random: () => number): void
-  links(): LinkDatum[]
-  links(links: LinkDatum[]): this
-  id(): (node: NodeDatum, i: number, nodesData: NodeDatum[]) => string | number
-  id(id: (node: NodeDatum, i: number, nodesData: NodeDatum[]) => string | number): this
-  distance(): (link: LinkDatum, i: number, links: LinkDatum[]) => number
-  distance(distance: number | ((link: LinkDatum, i: number, links: LinkDatum[]) => number)): this
-  strength(): (link: LinkDatum, i: number, links: LinkDatum[]) => number
-  strength(strength: number | ((link: LinkDatum, i: number, links: LinkDatum[]) => number)): this
+export interface ForceLink<N extends SimNode, L extends SimLink<N>> extends Force<N, L> {
+  distance(): (x: L, i: number, xs: L[]) => number
+  distance(x: number | ((x: L, i: number, xs: L[]) => number)): this
+  id(): (x: N, i: number, xs: N[]) => string | number
+  id(f: (x: N, i: number, xs: N[]) => string | number): this
+  init(xs: N[], f: () => number): void
   iterations(): number
-  iterations(iterations: number): this
+  iterations(x: number): this
+  links(): L[]
+  links(xs: L[]): this
+  strength(): (x: L, i: number, xs: L[]) => number
+  strength(s: number | ((x: L, i: number, xs: L[]) => number)): this
 }
-export function forceLink<NodeDatum extends SimulationNodeDatum, LinksDatum extends SimulationLinkDatum<NodeDatum>>(
-  links?: LinksDatum[]
-): ForceLink<NodeDatum, LinksDatum>
-export interface ForceManyBody<NodeDatum extends SimulationNodeDatum> extends Force<NodeDatum, any> {
-  initialize(nodes: NodeDatum[], random: () => number): void
-  strength(): (d: NodeDatum, i: number, data: NodeDatum[]) => number
-  strength(strength: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)): this
-  theta(): number
-  theta(theta: number): this
-  distanceMin(): number
-  distanceMin(distance: number): this
+export interface ForceManyBody<T extends SimNode> extends Force<T, any> {
   distanceMax(): number
-  distanceMax(distance: number): this
+  distanceMax(x: number): this
+  distanceMin(): number
+  distanceMin(x: number): this
+  init(xs: T[], f: () => number): void
+  strength(): (x: T, i: number, xs: T[]) => number
+  strength(x: number | ((x: T, i: number, xs: T[]) => number)): this
+  theta(): number
+  theta(x: number): this
 }
-export function forceManyBody<NodeDatum extends SimulationNodeDatum>(): ForceManyBody<NodeDatum>
-export interface ForceX<NodeDatum extends SimulationNodeDatum> extends Force<NodeDatum, any> {
-  initialize(nodes: NodeDatum[], random: () => number): void
-  strength(): (d: NodeDatum, i: number, data: NodeDatum[]) => number
-  strength(strength: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)): this
-  x(): (d: NodeDatum, i: number, data: NodeDatum[]) => number
-  x(x: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)): this
+export interface ForceX<T extends SimNode> extends Force<T, any> {
+  init(xs: T[], f: () => number): void
+  strength(): (x: T, i: number, xs: T[]) => number
+  strength(x: number | ((x: T, i: number, xs: T[]) => number)): this
+  x(): (x: T, i: number, xs: T[]) => number
+  x(x: number | ((x: T, i: number, xs: T[]) => number)): this
 }
-export function forceX<NodeDatum extends SimulationNodeDatum>(
-  x?: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)
-): ForceX<NodeDatum>
-export interface ForceY<NodeDatum extends SimulationNodeDatum> extends Force<NodeDatum, any> {
-  initialize(nodes: NodeDatum[], random: () => number): void
-  strength(): (d: NodeDatum, i: number, data: NodeDatum[]) => number
-  strength(strength: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)): this
-  y(): (d: NodeDatum, i: number, data: NodeDatum[]) => number
-  y(y: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)): this
+export interface ForceY<T extends SimNode> extends Force<T, any> {
+  init(xs: T[], f: () => number): void
+  strength(): (x: T, i: number, xs: T[]) => number
+  strength(x: number | ((x: T, i: number, xs: T[]) => number)): this
+  y(): (x: T, i: number, xs: T[]) => number
+  y(x: number | ((x: T, i: number, xs: T[]) => number)): this
 }
-export function forceY<NodeDatum extends SimulationNodeDatum>(
-  y?: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)
-): ForceY<NodeDatum>
-export interface ForceRadial<NodeDatum extends SimulationNodeDatum> extends Force<NodeDatum, any> {
-  initialize(nodes: NodeDatum[], random: () => number): void
-  strength(): (d: NodeDatum, i: number, data: NodeDatum[]) => number
-  strength(strength: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)): this
-  radius(): (d: NodeDatum, i: number, data: NodeDatum[]) => number
-  radius(radius: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)): this
-  x(): (d: NodeDatum, i: number, data: NodeDatum[]) => number
-  x(x: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)): this
-  y(): (d: NodeDatum, i: number, data: NodeDatum[]) => number
-  y(y: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)): this
+export interface ForceRadial<T extends SimNode> extends Force<T, any> {
+  init(xs: T[], f: () => number): void
+  strength(): (x: T, i: number, xs: T[]) => number
+  strength(x: number | ((x: T, i: number, xs: T[]) => number)): this
+  radius(): (x: T, i: number, xs: T[]) => number
+  radius(x: number | ((x: T, i: number, xs: T[]) => number)): this
+  x(): (x: T, i: number, xs: T[]) => number
+  x(x: number | ((x: T, i: number, xs: T[]) => number)): this
+  y(): (x: T, i: number, xs: T[]) => number
+  y(x: number | ((x: T, i: number, xs: T[]) => number)): this
 }
-export function forceRadial<NodeDatum extends SimulationNodeDatum>(
-  radius: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number),
-  x?: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number),
-  y?: number | ((d: NodeDatum, i: number, data: NodeDatum[]) => number)
-): ForceRadial<NodeDatum>
+
 export interface FormatLocaleDefinition {
   decimal: string
   thousands: string

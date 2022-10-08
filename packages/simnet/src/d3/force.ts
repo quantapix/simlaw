@@ -1,16 +1,15 @@
 import { dispatch } from "./dispatch.js"
 import { quadtree } from "./quadtree.js"
 import { timer } from "./timer.js"
-import { x, y } from "./simulation.js"
-import lcg from "./lcg.js"
+import type * as qt from "./types.js"
 
-export function (x, y) {
-  var nodes,
+export function forceCenter<T extends qt.SimNode>(x?: number, y?: number): qt.ForceCenter<T> {
+  let nodes,
     strength = 1
   if (x == null) x = 0
   if (y == null) y = 0
   function force() {
-    var i,
+    let i,
       n = nodes.length,
       node,
       sx = 0,
@@ -42,15 +41,17 @@ function x(d) {
 function y(d) {
   return d.y + d.vy
 }
-export function (radius) {
-  var nodes,
+export function forceCollide<T extends qt.SimNode>(
+  radius?: number | ((node: T, i: number, nodes: T[]) => number)
+): qt.ForceCollide<T> {
+  let nodes,
     radii,
     random,
     strength = 1,
     iterations = 1
   if (typeof radius !== "function") radius = constant(radius == null ? 1 : +radius)
   function force() {
-    var i,
+    let i,
       n = nodes.length,
       tree,
       node,
@@ -58,7 +59,7 @@ export function (radius) {
       yi,
       ri,
       ri2
-    for (var k = 0; k < iterations; ++k) {
+    for (let k = 0; k < iterations; ++k) {
       tree = quadtree(nodes, x, y).visitAfter(prepare)
       for (i = 0; i < n; ++i) {
         node = nodes[i]
@@ -69,12 +70,12 @@ export function (radius) {
       }
     }
     function apply(quad, x0, y0, x1, y1) {
-      var data = quad.data,
+      let data = quad.data,
         rj = quad.r,
         r = ri + rj
       if (data) {
         if (data.index > node.index) {
-          var x = xi - data.x - data.vx,
+          let x = xi - data.x - data.vx,
             y = yi - data.y - data.vy,
             l = x * x + y * y
           if (l < r * r) {
@@ -94,7 +95,7 @@ export function (radius) {
   }
   function prepare(quad) {
     if (quad.data) return (quad.r = radii[quad.data.index])
-    for (var i = (quad.r = 0); i < 4; ++i) {
+    for (let i = (quad.r = 0); i < 4; ++i) {
       if (quad[i] && quad[i].r > quad.r) {
         quad.r = quad[i].r
       }
@@ -102,7 +103,7 @@ export function (radius) {
   }
   function initialize() {
     if (!nodes) return
-    var i,
+    let i,
       n = nodes.length,
       node
     radii = new Array(n)
@@ -124,26 +125,18 @@ export function (radius) {
   }
   return force
 }
-export function (x) {
+export function constant(x) {
   return function () {
     return x
   }
 }
-export { default as forceCenter } from "./center.js"
-export { default as forceCollide } from "./collide.js"
-export { default as forceLink } from "./link.js"
-export { default as forceManyBody } from "./manyBody.js"
-export { default as forceRadial } from "./radial.js"
-export { default as forceSimulation } from "./simulation.js"
-export { default as forceX } from "./x.js"
-export { default as forceY } from "./y.js"
-export function (random) {
+export function jiggle(random) {
   return (random() - 0.5) * 1e-6
 }
 const a = 1664525
 const c = 1013904223
 const m = 4294967296 // 2^32
-export function () {
+export function lcg() {
   let s = 1
   return () => (s = (a * s + c) % m) / m
 }
@@ -151,12 +144,12 @@ function index(d) {
   return d.index
 }
 function find(nodeById, nodeId) {
-  var node = nodeById.get(nodeId)
+  let node = nodeById.get(nodeId)
   if (!node) throw new Error("node not found: " + nodeId)
   return node
 }
-export function (links) {
-  var id = index,
+export function forceLink<N extends qt.SimNode, L extends qt.SimLink<N>>(xs?: L[]): qt.ForceLink<N, L> {
+  let id = index,
     strength = defaultStrength,
     strengths,
     distance = constant(30),
@@ -166,14 +159,14 @@ export function (links) {
     bias,
     random,
     iterations = 1
-  if (links == null) links = []
+  const ls = xs ?? []
   function defaultStrength(link) {
     return 1 / Math.min(count[link.source.index], count[link.target.index])
   }
   function force(alpha) {
-    for (var k = 0, n = links.length; k < iterations; ++k) {
+    for (let k = 0, n = ls.length; k < iterations; ++k) {
       for (var i = 0, link, source, target, x, y, l, b; i < n; ++i) {
-        ;(link = links[i]), (source = link.source), (target = link.target)
+        ;(link = ls[i]), (source = link.source), (target = link.target)
         x = target.x + target.vx - source.x - source.vx || jiggle(random)
         y = target.y + target.vy - source.y - source.vy || jiggle(random)
         l = Math.sqrt(x * x + y * y)
@@ -188,34 +181,34 @@ export function (links) {
   }
   function initialize() {
     if (!nodes) return
-    var i,
+    let i,
       n = nodes.length,
-      m = links.length,
+      m = ls.length,
       nodeById = new Map(nodes.map((d, i) => [id(d, i, nodes), d])),
       link
     for (i = 0, count = new Array(n); i < m; ++i) {
-      ;(link = links[i]), (link.index = i)
+      ;(link = ls[i]), (link.index = i)
       if (typeof link.source !== "object") link.source = find(nodeById, link.source)
       if (typeof link.target !== "object") link.target = find(nodeById, link.target)
       count[link.source.index] = (count[link.source.index] || 0) + 1
       count[link.target.index] = (count[link.target.index] || 0) + 1
     }
     for (i = 0, bias = new Array(m); i < m; ++i) {
-      ;(link = links[i]), (bias[i] = count[link.source.index] / (count[link.source.index] + count[link.target.index]))
+      ;(link = ls[i]), (bias[i] = count[link.source.index] / (count[link.source.index] + count[link.target.index]))
     }
     ;(strengths = new Array(m)), initializeStrength()
     ;(distances = new Array(m)), initializeDistance()
   }
   function initializeStrength() {
     if (!nodes) return
-    for (var i = 0, n = links.length; i < n; ++i) {
-      strengths[i] = +strength(links[i], i, links)
+    for (let i = 0, n = ls.length; i < n; ++i) {
+      strengths[i] = +strength(ls[i], i, ls)
     }
   }
   function initializeDistance() {
     if (!nodes) return
-    for (var i = 0, n = links.length; i < n; ++i) {
-      distances[i] = +distance(links[i], i, links)
+    for (let i = 0, n = ls.length; i < n; ++i) {
+      distances[i] = +distance(ls[i], i, ls)
     }
   }
   force.initialize = function (_nodes, _random) {
@@ -224,7 +217,7 @@ export function (links) {
     initialize()
   }
   force.links = function (_) {
-    return arguments.length ? ((links = _), initialize(), force) : links
+    return arguments.length ? ((ls = _), initialize(), force) : ls
   }
   force.id = function (_) {
     return arguments.length ? ((id = _), force) : id
@@ -244,8 +237,8 @@ export function (links) {
   }
   return force
 }
-export function () {
-  var nodes,
+export function forceManyBody<T extends qt.SimNode>(): qt.ForceManyBody<T> {
+  let nodes,
     node,
     random,
     alpha,
@@ -255,21 +248,21 @@ export function () {
     distanceMax2 = Infinity,
     theta2 = 0.81
   function force(_) {
-    var i,
+    let i,
       n = nodes.length,
       tree = quadtree(nodes, x, y).visitAfter(accumulate)
     for (alpha = _, i = 0; i < n; ++i) (node = nodes[i]), tree.visit(apply)
   }
   function initialize() {
     if (!nodes) return
-    var i,
+    let i,
       n = nodes.length,
       node
     strengths = new Array(n)
     for (i = 0; i < n; ++i) (node = nodes[i]), (strengths[node.index] = +strength(node, i, nodes))
   }
   function accumulate(quad) {
-    var strength = 0,
+    let strength = 0,
       q,
       c,
       weight = 0,
@@ -295,7 +288,7 @@ export function () {
   }
   function apply(quad, x1, _, x2) {
     if (!quad.value) return true
-    var x = quad.x - node.x,
+    let x = quad.x - node.x,
       y = quad.y - node.y,
       w = x2 - x1,
       l = x * x + y * y
@@ -341,8 +334,12 @@ export function () {
   }
   return force
 }
-export function (radius, x, y) {
-  var nodes,
+export function forceRadial<T extends qt.SimNode>(
+  radius: number | ((x: T, i: number, xs: T[]) => number),
+  x?: number | ((x: T, i: number, xs: T[]) => number),
+  y?: number | ((x: T, i: number, xs: T[]) => number)
+): qt.ForceRadial<T> {
+  let nodes,
     strength = constant(0.1),
     strengths,
     radiuses
@@ -350,8 +347,8 @@ export function (radius, x, y) {
   if (x == null) x = 0
   if (y == null) y = 0
   function force(alpha) {
-    for (var i = 0, n = nodes.length; i < n; ++i) {
-      var node = nodes[i],
+    for (let i = 0, n = nodes.length; i < n; ++i) {
+      let node = nodes[i],
         dx = node.x - x || 1e-6,
         dy = node.y - y || 1e-6,
         r = Math.sqrt(dx * dx + dy * dy),
@@ -362,7 +359,7 @@ export function (radius, x, y) {
   }
   function initialize() {
     if (!nodes) return
-    var i,
+    let i,
       n = nodes.length
     strengths = new Array(n)
     radiuses = new Array(n)
@@ -394,129 +391,120 @@ export function x(d) {
 export function y(d) {
   return d.y
 }
-var initialRadius = 10,
-  initialAngle = Math.PI * (3 - Math.sqrt(5))
-export function (nodes) {
-  var simulation,
+
+const initRadius = 10
+const initAngle = Math.PI * (3 - Math.sqrt(5))
+
+export function forceSimulation<T extends qt.SimNode>(xs?: T[]): qt.Sim<T, undefined>
+export function forceSimulation<N extends qt.SimNode, L extends qt.SimLink<N>>(xs?: N[]): qt.Sim<N, L>
+export function forceSimulation(xs?: qt.SimNode[]) {
+  const ns = xs ?? []
+  let sim: any,
     alpha = 1,
     alphaMin = 0.001,
     alphaDecay = 1 - Math.pow(alphaMin, 1 / 300),
     alphaTarget = 0,
     velocityDecay = 0.6,
-    forces = new Map(),
-    stepper = timer(step),
-    event = dispatch("tick", "end"),
     random = lcg()
-  if (nodes == null) nodes = []
+  const forces = new Map(),
+    stepper = timer(step),
+    event = dispatch("tick", "end")
+  function initNodes() {
+    ns.forEach((x, i) => {
+      x.idx = i
+      if (x.fx != null) x.x = x.fx
+      if (x.fy != null) x.y = x.fy
+      if (isNaN(x.x!) || isNaN(x.y!)) {
+        const radius = initRadius * Math.sqrt(0.5 + i),
+          angle = i * initAngle
+        x.x = radius * Math.cos(angle)
+        x.y = radius * Math.sin(angle)
+      }
+      if (isNaN(x.vx!) || isNaN(x.vy!)) {
+        x.vx = x.vy = 0
+      }
+    })
+  }
+  function initForce(x: any) {
+    if (x.init) x.init(ns, random)
+    return x
+  }
+  initNodes()
+  function tick(n?: number) {
+    if (n === undefined) n = 1
+    for (let i = 0; i < n; ++i) {
+      alpha += (alphaTarget - alpha) * alphaDecay
+      forces.forEach(function (f) {
+        f(alpha)
+      })
+      ns.forEach(x => {
+        if (x.fx == null) x.x! += x.vx! *= velocityDecay
+        else (x.x = x.fx), (x.vx = 0)
+        if (x.fy == null) x.y! += x.vy! *= velocityDecay
+        else (x.y = x.fy), (x.vy = 0)
+      })
+    }
+    return sim
+  }
   function step() {
     tick()
-    event.call("tick", simulation)
+    event.call("tick", sim)
     if (alpha < alphaMin) {
       stepper.stop()
-      event.call("end", simulation)
+      event.call("end", sim)
     }
   }
-  function tick(iterations) {
-    var i,
-      n = nodes.length,
-      node
-    if (iterations === undefined) iterations = 1
-    for (var k = 0; k < iterations; ++k) {
-      alpha += (alphaTarget - alpha) * alphaDecay
-      forces.forEach(function (force) {
-        force(alpha)
-      })
-      for (i = 0; i < n; ++i) {
-        node = nodes[i]
-        if (node.fx == null) node.x += node.vx *= velocityDecay
-        else (node.x = node.fx), (node.vx = 0)
-        if (node.fy == null) node.y += node.vy *= velocityDecay
-        else (node.y = node.fy), (node.vy = 0)
+  return (sim = {
+    alpha: function (x?: number) {
+      return x === undefined ? alpha : ((alpha = +x), sim)
+    },
+    alphaDecay: function (x?: number) {
+      return x === undefined ? +alphaDecay : ((alphaDecay = +x), sim)
+    },
+    alphaMin: function (x?: number) {
+      return x === undefined ? alphaMin : ((alphaMin = +x), sim)
+    },
+    alphaTarget: function (x?: number) {
+      return x === undefined ? alphaTarget : ((alphaTarget = +x), sim)
+    },
+    find: function (x: number, y: number, radius?: number) {
+      let res
+      if (radius === undefined) radius = Infinity
+      else radius *= radius
+      for (const n of ns) {
+        const dx = x - n.x
+        const dy = y - n.y
+        const d2 = dx * dx + dy * dy
+        if (d2 < radius) (res = n), (radius = d2)
       }
-    }
-    return simulation
-  }
-  function initializeNodes() {
-    for (var i = 0, n = nodes.length, node; i < n; ++i) {
-      ;(node = nodes[i]), (node.index = i)
-      if (node.fx != null) node.x = node.fx
-      if (node.fy != null) node.y = node.fy
-      if (isNaN(node.x) || isNaN(node.y)) {
-        var radius = initialRadius * Math.sqrt(0.5 + i),
-          angle = i * initialAngle
-        node.x = radius * Math.cos(angle)
-        node.y = radius * Math.sin(angle)
-      }
-      if (isNaN(node.vx) || isNaN(node.vy)) {
-        node.vx = node.vy = 0
-      }
-    }
-  }
-  function initializeForce(force) {
-    if (force.initialize) force.initialize(nodes, random)
-    return force
-  }
-  initializeNodes()
-  return (simulation = {
-    tick: tick,
+      return res
+    },
+    force: function (x: string, f?: any) {
+      return f === undefined ? forces.get(x) : (f == null ? forces.delete(x) : forces.set(x, initForce(f)), sim)
+    },
+    nodes: function (xs?: any[]) {
+      return xs === undefined ? ns : ((ns = xs), initNodes(), forces.forEach(initForce), sim)
+    },
+    on: function (x: any, f?: any) {
+      return f === undefined ? event.on(x) : (event.on(x, f), sim)
+    },
+    randomSource: function (f?: any) {
+      return f === undefined ? random : ((random = f), forces.forEach(initForce), sim)
+    },
     restart: function () {
-      return stepper.restart(step), simulation
+      return stepper.restart(step), sim
     },
     stop: function () {
-      return stepper.stop(), simulation
+      return stepper.stop(), sim
     },
-    nodes: function (_) {
-      return arguments.length ? ((nodes = _), initializeNodes(), forces.forEach(initializeForce), simulation) : nodes
-    },
-    alpha: function (_) {
-      return arguments.length ? ((alpha = +_), simulation) : alpha
-    },
-    alphaMin: function (_) {
-      return arguments.length ? ((alphaMin = +_), simulation) : alphaMin
-    },
-    alphaDecay: function (_) {
-      return arguments.length ? ((alphaDecay = +_), simulation) : +alphaDecay
-    },
-    alphaTarget: function (_) {
-      return arguments.length ? ((alphaTarget = +_), simulation) : alphaTarget
-    },
-    velocityDecay: function (_) {
-      return arguments.length ? ((velocityDecay = 1 - _), simulation) : 1 - velocityDecay
-    },
-    randomSource: function (_) {
-      return arguments.length ? ((random = _), forces.forEach(initializeForce), simulation) : random
-    },
-    force: function (name, _) {
-      return arguments.length > 1
-        ? (_ == null ? forces.delete(name) : forces.set(name, initializeForce(_)), simulation)
-        : forces.get(name)
-    },
-    find: function (x, y, radius) {
-      var i = 0,
-        n = nodes.length,
-        dx,
-        dy,
-        d2,
-        node,
-        closest
-      if (radius == null) radius = Infinity
-      else radius *= radius
-      for (i = 0; i < n; ++i) {
-        node = nodes[i]
-        dx = x - node.x
-        dy = y - node.y
-        d2 = dx * dx + dy * dy
-        if (d2 < radius) (closest = node), (radius = d2)
-      }
-      return closest
-    },
-    on: function (name, _) {
-      return arguments.length > 1 ? (event.on(name, _), simulation) : event.on(name)
+    tick: tick,
+    velocityDecay: function (x?: number) {
+      return x === undefined ? 1 - velocityDecay : ((velocityDecay = 1 - x), sim)
     },
   })
 }
-export function (x) {
-  var strength = constant(0.1),
+export function forceX<T extends qt.SimNode>(x?: number | ((x: T, i: number, xs: T[]) => number)): qt.ForceX<T> {
+  let strength = constant(0.1),
     nodes,
     strengths,
     xz
@@ -528,7 +516,7 @@ export function (x) {
   }
   function initialize() {
     if (!nodes) return
-    var i,
+    let i,
       n = nodes.length
     strengths = new Array(n)
     xz = new Array(n)
@@ -548,12 +536,12 @@ export function (x) {
   }
   return force
 }
-export function (y) {
-  var strength = constant(0.1),
+export function forceY<T extends SimNode>(x?: number | ((x: T, i: number, xs: T[]) => number)): ForceY<T> {
+  let strength = constant(0.1),
     nodes,
     strengths,
     yz
-  if (typeof y !== "function") y = constant(y == null ? 0 : +y)
+  if (typeof x !== "function") x = constant(x == null ? 0 : +x)
   function force(alpha) {
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
       ;(node = nodes[i]), (node.vy += (yz[i] - node.y) * strengths[i] * alpha)
@@ -561,12 +549,12 @@ export function (y) {
   }
   function initialize() {
     if (!nodes) return
-    var i,
+    let i,
       n = nodes.length
     strengths = new Array(n)
     yz = new Array(n)
     for (i = 0; i < n; ++i) {
-      strengths[i] = isNaN((yz[i] = +y(nodes[i], i, nodes))) ? 0 : +strength(nodes[i], i, nodes)
+      strengths[i] = isNaN((yz[i] = +x(nodes[i], i, nodes))) ? 0 : +strength(nodes[i], i, nodes)
     }
   }
   force.initialize = function (_) {
@@ -577,7 +565,7 @@ export function (y) {
     return arguments.length ? ((strength = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : strength
   }
   force.y = function (_) {
-    return arguments.length ? ((y = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : y
+    return arguments.length ? ((x = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : x
   }
   return force
 }
