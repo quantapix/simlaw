@@ -3,37 +3,151 @@ import { quadtree } from "./quadtree.js"
 import { timer } from "./timer.js"
 import type * as qt from "./types.js"
 
-export function forceCenter<T extends qt.SimNode>(x?: number, y?: number): qt.ForceCenter<T> {
-  let nodes,
-    strength = 1
-  if (x == null) x = 0
-  if (y == null) y = 0
+const initRadius = 10
+const initAngle = Math.PI * (3 - Math.sqrt(5))
+
+export function forceSimulation<T extends qt.SimNode>(xs?: T[]): qt.Sim<T, undefined>
+export function forceSimulation<N extends qt.SimNode, L extends qt.SimLink<N>>(xs?: N[]): qt.Sim<N, L>
+export function forceSimulation(xs?: qt.SimNode[]) {
+  let ns = xs ?? []
+  let sim: any,
+    alpha = 1,
+    alphaMin = 0.001,
+    alphaDecay = 1 - Math.pow(alphaMin, 1 / 300),
+    alphaTarget = 0,
+    velocityDecay = 0.6,
+    random = lcg()
+  const forces = new Map(),
+    stepper = timer(step),
+    event = dispatch("tick", "end")
+  function initNodes() {
+    ns.forEach((x, i) => {
+      x.idx = i
+      if (x.fx != null) x.x = x.fx
+      if (x.fy != null) x.y = x.fy
+      if (isNaN(x.x!) || isNaN(x.y!)) {
+        const radius = initRadius * Math.sqrt(0.5 + i),
+          angle = i * initAngle
+        x.x = radius * Math.cos(angle)
+        x.y = radius * Math.sin(angle)
+      }
+      if (isNaN(x.vx!) || isNaN(x.vy!)) {
+        x.vx = x.vy = 0
+      }
+    })
+  }
+  function initForce(x: any) {
+    if (x.init) x.init(ns, random)
+    return x
+  }
+  initNodes()
+  function tick(n?: number) {
+    if (n === undefined) n = 1
+    for (let i = 0; i < n; ++i) {
+      alpha += (alphaTarget - alpha) * alphaDecay
+      forces.forEach(function (f) {
+        f(alpha)
+      })
+      ns.forEach(x => {
+        if (x.fx == null) x.x! += x.vx! *= velocityDecay
+        else (x.x = x.fx), (x.vx = 0)
+        if (x.fy == null) x.y! += x.vy! *= velocityDecay
+        else (x.y = x.fy), (x.vy = 0)
+      })
+    }
+    return sim
+  }
+  function step() {
+    tick()
+    event.call("tick", sim)
+    if (alpha < alphaMin) {
+      stepper.stop()
+      event.call("end", sim)
+    }
+  }
+  return (sim = {
+    alpha: function (x?: number) {
+      return x === undefined ? alpha : ((alpha = +x), sim)
+    },
+    alphaDecay: function (x?: number) {
+      return x === undefined ? +alphaDecay : ((alphaDecay = +x), sim)
+    },
+    alphaMin: function (x?: number) {
+      return x === undefined ? alphaMin : ((alphaMin = +x), sim)
+    },
+    alphaTarget: function (x?: number) {
+      return x === undefined ? alphaTarget : ((alphaTarget = +x), sim)
+    },
+    find: function (x: number, y: number, radius?: number) {
+      let res
+      if (radius === undefined) radius = Infinity
+      else radius *= radius
+      for (const n of ns) {
+        const dx = x - n.x!
+        const dy = y - n.y!
+        const d2 = dx * dx + dy * dy
+        if (d2 < radius) (res = n), (radius = d2)
+      }
+      return res
+    },
+    force: function (x: string, f?: any) {
+      return f === undefined ? forces.get(x) : (f == null ? forces.delete(x) : forces.set(x, initForce(f)), sim)
+    },
+    nodes: function (xs?: any[]) {
+      return xs === undefined ? ns : ((ns = xs), initNodes(), forces.forEach(initForce), sim)
+    },
+    on: function (x: any, f?: any) {
+      return f === undefined ? event.on(x) : (event.on(x, f), sim)
+    },
+    randomSource: function (f?: any) {
+      return f === undefined ? random : ((random = f), forces.forEach(initForce), sim)
+    },
+    restart: function () {
+      return stepper.restart(step), sim
+    },
+    stop: function () {
+      return stepper.stop(), sim
+    },
+    tick: tick,
+    velocityDecay: function (x?: number) {
+      return x === undefined ? 1 - velocityDecay : ((velocityDecay = 1 - x), sim)
+    },
+  })
+}
+
+export function forceCenter<T extends qt.SimNode>(x?: number, y?: number) {
+  if (x == undefined) x = 0
+  if (y == undefined) y = 0
+  let ns: qt.SimNode[]
+  let strength = 1
   function force() {
-    let i,
-      n = nodes.length,
-      node,
-      sx = 0,
+    const n = ns.length
+    let sx = 0,
       sy = 0
-    for (i = 0; i < n; ++i) {
-      ;(node = nodes[i]), (sx += node.x), (sy += node.y)
-    }
-    for (sx = (sx / n - x) * strength, sy = (sy / n - y) * strength, i = 0; i < n; ++i) {
-      ;(node = nodes[i]), (node.x -= sx), (node.y -= sy)
-    }
+    ns.forEach(x => {
+      sx += x.x!
+      sy += x.y!
+    })
+    sx = (sx / n - x!) * strength
+    sy = (sy / n - y!) * strength
+    ns.forEach(x => {
+      x.x! -= sx
+      x.y! -= sy
+    })
   }
-  force.initialize = function (_) {
-    nodes = _
+  force.init = function (xs: any) {
+    ns = xs
   }
-  force.x = function (_) {
-    return arguments.length ? ((x = +_), force) : x
+  force.strength = function (x?: number) {
+    return x === undefined ? strength : ((strength = +x), force)
   }
-  force.y = function (_) {
-    return arguments.length ? ((y = +_), force) : y
+  force.x = function (x2?: number) {
+    return x2 === undefined ? x : ((x = +x2), force)
   }
-  force.strength = function (_) {
-    return arguments.length ? ((strength = +_), force) : strength
+  force.y = function (x?: number) {
+    return x === undefined ? y : ((y = +x), force)
   }
-  return force
+  return force as qt.ForceCenter<T>
 }
 function x(d) {
   return d.x + d.vx
@@ -392,117 +506,6 @@ export function y(d) {
   return d.y
 }
 
-const initRadius = 10
-const initAngle = Math.PI * (3 - Math.sqrt(5))
-
-export function forceSimulation<T extends qt.SimNode>(xs?: T[]): qt.Sim<T, undefined>
-export function forceSimulation<N extends qt.SimNode, L extends qt.SimLink<N>>(xs?: N[]): qt.Sim<N, L>
-export function forceSimulation(xs?: qt.SimNode[]) {
-  const ns = xs ?? []
-  let sim: any,
-    alpha = 1,
-    alphaMin = 0.001,
-    alphaDecay = 1 - Math.pow(alphaMin, 1 / 300),
-    alphaTarget = 0,
-    velocityDecay = 0.6,
-    random = lcg()
-  const forces = new Map(),
-    stepper = timer(step),
-    event = dispatch("tick", "end")
-  function initNodes() {
-    ns.forEach((x, i) => {
-      x.idx = i
-      if (x.fx != null) x.x = x.fx
-      if (x.fy != null) x.y = x.fy
-      if (isNaN(x.x!) || isNaN(x.y!)) {
-        const radius = initRadius * Math.sqrt(0.5 + i),
-          angle = i * initAngle
-        x.x = radius * Math.cos(angle)
-        x.y = radius * Math.sin(angle)
-      }
-      if (isNaN(x.vx!) || isNaN(x.vy!)) {
-        x.vx = x.vy = 0
-      }
-    })
-  }
-  function initForce(x: any) {
-    if (x.init) x.init(ns, random)
-    return x
-  }
-  initNodes()
-  function tick(n?: number) {
-    if (n === undefined) n = 1
-    for (let i = 0; i < n; ++i) {
-      alpha += (alphaTarget - alpha) * alphaDecay
-      forces.forEach(function (f) {
-        f(alpha)
-      })
-      ns.forEach(x => {
-        if (x.fx == null) x.x! += x.vx! *= velocityDecay
-        else (x.x = x.fx), (x.vx = 0)
-        if (x.fy == null) x.y! += x.vy! *= velocityDecay
-        else (x.y = x.fy), (x.vy = 0)
-      })
-    }
-    return sim
-  }
-  function step() {
-    tick()
-    event.call("tick", sim)
-    if (alpha < alphaMin) {
-      stepper.stop()
-      event.call("end", sim)
-    }
-  }
-  return (sim = {
-    alpha: function (x?: number) {
-      return x === undefined ? alpha : ((alpha = +x), sim)
-    },
-    alphaDecay: function (x?: number) {
-      return x === undefined ? +alphaDecay : ((alphaDecay = +x), sim)
-    },
-    alphaMin: function (x?: number) {
-      return x === undefined ? alphaMin : ((alphaMin = +x), sim)
-    },
-    alphaTarget: function (x?: number) {
-      return x === undefined ? alphaTarget : ((alphaTarget = +x), sim)
-    },
-    find: function (x: number, y: number, radius?: number) {
-      let res
-      if (radius === undefined) radius = Infinity
-      else radius *= radius
-      for (const n of ns) {
-        const dx = x - n.x
-        const dy = y - n.y
-        const d2 = dx * dx + dy * dy
-        if (d2 < radius) (res = n), (radius = d2)
-      }
-      return res
-    },
-    force: function (x: string, f?: any) {
-      return f === undefined ? forces.get(x) : (f == null ? forces.delete(x) : forces.set(x, initForce(f)), sim)
-    },
-    nodes: function (xs?: any[]) {
-      return xs === undefined ? ns : ((ns = xs), initNodes(), forces.forEach(initForce), sim)
-    },
-    on: function (x: any, f?: any) {
-      return f === undefined ? event.on(x) : (event.on(x, f), sim)
-    },
-    randomSource: function (f?: any) {
-      return f === undefined ? random : ((random = f), forces.forEach(initForce), sim)
-    },
-    restart: function () {
-      return stepper.restart(step), sim
-    },
-    stop: function () {
-      return stepper.stop(), sim
-    },
-    tick: tick,
-    velocityDecay: function (x?: number) {
-      return x === undefined ? 1 - velocityDecay : ((velocityDecay = 1 - x), sim)
-    },
-  })
-}
 export function forceX<T extends qt.SimNode>(x?: number | ((x: T, i: number, xs: T[]) => number)): qt.ForceX<T> {
   let strength = constant(0.1),
     nodes,

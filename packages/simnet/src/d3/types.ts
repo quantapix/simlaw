@@ -687,7 +687,7 @@ export interface Sim<N extends SimNode, L extends SimLink<N> | undefined> {
 }
 
 export interface Force<N extends SimNode, L extends SimLink<N> | undefined> {
-  (alpha: number): void
+  (alpha?: number): void
   init?(xs: N[], f: () => number): void
 }
 export interface ForceCenter<T extends SimNode> extends Force<T, any> {
