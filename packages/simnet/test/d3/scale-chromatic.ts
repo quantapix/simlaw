@@ -1,5 +1,5 @@
-import assert from "assert";
-import * as d3 from "../src/index.js";
+import assert from "assert"
+import * as d3 from "../src/index.js"
 
 it("exports the expected schemes", () => {
   assert.deepStrictEqual(Object.keys(d3).sort(), [
@@ -77,6 +77,6 @@ it("exports the expected schemes", () => {
     "schemeYlGn",
     "schemeYlGnBu",
     "schemeYlOrBr",
-    "schemeYlOrRd"
-  ]);
-});
+    "schemeYlOrRd",
+  ])
+})

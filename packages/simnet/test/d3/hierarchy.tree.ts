@@ -116,7 +116,6 @@ function test(inputFile, expectedFile, tile) {
       delete node.height
       if (node.children) node.children.forEach(visit)
     })(actual)
-
     ;(function visit(node) {
       Object.setPrototypeOf(node, Node.prototype)
       node.x0 = round(node.x)
