@@ -1,4 +1,5 @@
 import type { MultiPolygon } from "geojson"
+
 export type Primitive = number | string | boolean | Date
 export interface Numeric {
   valueOf(): number
@@ -50,9 +51,6 @@ export interface HistogramGeneratorNumber<Datum, Value extends number | undefine
   thresholds(count: number | ThresholdCountGenerator<Value>): this
   thresholds(thresholds: ArrayLike<Value> | ThresholdNumberArrayGenerator<Value>): this
 }
-export function histogram(): HistogramGeneratorNumber<number, number>
-export function histogram<Datum, Value extends number | undefined>(): HistogramGeneratorNumber<Datum, Value>
-export function histogram<Datum, Value extends Date | undefined>(): HistogramGeneratorDate<Datum, Value>
 export class InternMap<K = any, V = any> extends Map<K, V> {}
 export class InternSet<T = any> extends Set<T> {}
 export type AxisDomain = number | string | Date | { valueOf(): number }
@@ -161,9 +159,6 @@ export interface ChordLayout {
   sortChords(): ((a: number, b: number) => number) | null
   sortChords(compare: null | ((a: number, b: number) => number)): this
 }
-export function chord(): ChordLayout
-export function chordDirected(): ChordLayout
-export function chordTranspose(): ChordLayout
 export interface RibbonSubgroup {
   startAngle: number
   endAngle: number
@@ -207,12 +202,6 @@ export interface RibbonArrowGenerator<This, RibbonDatum, RibbonSubgroupDatum>
   headRadius(radius: number): this
   headRadius(radius: (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number): this
 }
-export function ribbon(): RibbonGenerator<any, Ribbon, RibbonSubgroup>
-export function ribbon<Datum, SubgroupDatum>(): RibbonGenerator<any, Datum, SubgroupDatum>
-export function ribbon<This, Datum, SubgroupDatum>(): RibbonGenerator<This, Datum, SubgroupDatum>
-export function ribbonArrow(): RibbonArrowGenerator<any, Ribbon, RibbonSubgroup>
-export function ribbonArrow<Datum, SubgroupDatum>(): RibbonArrowGenerator<any, Datum, SubgroupDatum>
-export function ribbonArrow<This, Datum, SubgroupDatum>(): RibbonArrowGenerator<This, Datum, SubgroupDatum>
 export type ColorSpaceObject = RGBColor | HSLColor | LabColor | HCLColor | CubehelixColor
 export interface ColorCommonInstance {
   displayable(): boolean

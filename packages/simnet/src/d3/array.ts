@@ -97,6 +97,8 @@ export function bin() {
   }
   return histogram
 }
+export const histogram = bin
+
 const ascendingBisect = bisector(ascending)
 export function bisectLeft(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
 export function bisectLeft(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number

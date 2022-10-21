@@ -1,5 +1,6 @@
 import { path } from "./path.js"
 import { slice } from "./array.js"
+import * as qt from "./types.js"
 
 export const abs = Math.abs
 export const cos = Math.cos
@@ -20,22 +21,22 @@ function compareValue(compare) {
     return compare(a.source.value + a.target.value, b.source.value + b.target.value)
   }
 }
-export function () {
-  return chord(false, false)
+export function chord() {
+  return _chord(false, false)
 }
 export function chordTranspose() {
-  return chord(false, true)
+  return _chord(false, true)
 }
 export function chordDirected() {
-  return chord(true, false)
+  return _chord(true, false)
 }
-function chord(directed, transpose) {
-  var padAngle = 0,
+function _chord(directed, transpose): qt.ChordLayout {
+  let padAngle = 0,
     sortGroups = null,
     sortSubgroups = null,
     sortChords = null
   function chord(matrix) {
-    var n = matrix.length,
+    let n = matrix.length,
       groupSums = new Array(n),
       groupIndex = range(0, n),
       chords = new Array(n * n),
@@ -141,13 +142,11 @@ function chord(directed, transpose) {
   }
   return chord
 }
-export function (x) {
+export function constant(x) {
   return function () {
     return x
   }
 }
-export { default as chord, chordTranspose, chordDirected } from "./chord.js"
-export { default as ribbon, ribbonArrow } from "./ribbon.js"
 function defaultSource(d) {
   return d.source
 }
@@ -169,8 +168,8 @@ function defaultPadAngle() {
 function defaultArrowheadRadius() {
   return 10
 }
-function ribbon(headRadius) {
-  var source = defaultSource,
+function _ribbon(headRadius) {
+  let source = defaultSource,
     target = defaultTarget,
     sourceRadius = defaultRadius,
     targetRadius = defaultRadius,
@@ -178,8 +177,8 @@ function ribbon(headRadius) {
     endAngle = defaultEndAngle,
     padAngle = defaultPadAngle,
     context = null
-  function ribbon() {
-    var buffer,
+  function y() {
+    let buffer,
       s = source.apply(this, arguments),
       t = target.apply(this, arguments),
       ap = padAngle.apply(this, arguments) / 2,
@@ -201,7 +200,7 @@ function ribbon(headRadius) {
     context.arc(0, 0, sr, sa0, sa1)
     if (sa0 !== ta0 || sa1 !== ta1) {
       if (headRadius) {
-        var hr = +headRadius.apply(this, arguments),
+        let hr = +headRadius.apply(this, arguments),
           tr2 = tr - hr,
           ta2 = (ta0 + ta1) / 2
         context.quadraticCurveTo(0, 0, tr2 * cos(ta0), tr2 * sin(ta0))
@@ -217,43 +216,47 @@ function ribbon(headRadius) {
     if (buffer) return (context = null), buffer + "" || null
   }
   if (headRadius)
-    ribbon.headRadius = function (_) {
-      return arguments.length ? ((headRadius = typeof _ === "function" ? _ : constant(+_)), ribbon) : headRadius
+    y.headRadius = function (_) {
+      return arguments.length ? ((headRadius = typeof _ === "function" ? _ : constant(+_)), y) : headRadius
     }
-  ribbon.radius = function (_) {
+  y.radius = function (_) {
     return arguments.length
-      ? ((sourceRadius = targetRadius = typeof _ === "function" ? _ : constant(+_)), ribbon)
+      ? ((sourceRadius = targetRadius = typeof _ === "function" ? _ : constant(+_)), y)
       : sourceRadius
   }
-  ribbon.sourceRadius = function (_) {
-    return arguments.length ? ((sourceRadius = typeof _ === "function" ? _ : constant(+_)), ribbon) : sourceRadius
+  y.sourceRadius = function (_) {
+    return arguments.length ? ((sourceRadius = typeof _ === "function" ? _ : constant(+_)), y) : sourceRadius
   }
-  ribbon.targetRadius = function (_) {
-    return arguments.length ? ((targetRadius = typeof _ === "function" ? _ : constant(+_)), ribbon) : targetRadius
+  y.targetRadius = function (_) {
+    return arguments.length ? ((targetRadius = typeof _ === "function" ? _ : constant(+_)), y) : targetRadius
   }
-  ribbon.startAngle = function (_) {
-    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : constant(+_)), ribbon) : startAngle
+  y.startAngle = function (_) {
+    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : constant(+_)), y) : startAngle
   }
-  ribbon.endAngle = function (_) {
-    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : constant(+_)), ribbon) : endAngle
+  y.endAngle = function (_) {
+    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : constant(+_)), y) : endAngle
   }
-  ribbon.padAngle = function (_) {
-    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : constant(+_)), ribbon) : padAngle
+  y.padAngle = function (_) {
+    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : constant(+_)), y) : padAngle
   }
-  ribbon.source = function (_) {
-    return arguments.length ? ((source = _), ribbon) : source
+  y.source = function (_) {
+    return arguments.length ? ((source = _), y) : source
   }
-  ribbon.target = function (_) {
-    return arguments.length ? ((target = _), ribbon) : target
+  y.target = function (_) {
+    return arguments.length ? ((target = _), y) : target
   }
-  ribbon.context = function (_) {
-    return arguments.length ? ((context = _ == null ? null : _), ribbon) : context
+  y.context = function (_) {
+    return arguments.length ? ((context = _ == null ? null : _), y) : context
   }
-  return ribbon
+  return y
 }
-export function () {
-  return ribbon()
+export function ribbon(): qt.RibbonGenerator<any, qt.Ribbon, qt.RibbonSubgroup>
+export function ribbon<T, U>(): qt.RibbonGenerator<any, T, U>
+export function ribbon<This, T, U>(): qt.RibbonGenerator<This, T, U> {
+  return _ribbon()
 }
-export function ribbonArrow() {
-  return ribbon(defaultArrowheadRadius)
+export function ribbonArrow(): qt.RibbonArrowGenerator<any, qt.Ribbon, qt.RibbonSubgroup>
+export function ribbonArrow<T, U>(): qt.RibbonArrowGenerator<any, T, U>
+export function ribbonArrow<This, T, U>(): qt.RibbonArrowGenerator<This, T, U> {
+  return _ribbon(defaultArrowheadRadius)
 }
