@@ -1,6 +1,8 @@
+import type * as qt from "./types.js"
+
 const noop = { value: () => {} }
-export function dispatch() {
-  for (var i = 0, n = arguments.length, _ = {}, t; i < n; ++i) {
+export function dispatch<T extends object>(...xs: string[]): Dispatch<T> {
+  for (let i = 0, n = xs.length, _ = {}, t; i < n; ++i) {
     if (!(t = arguments[i] + "") || t in _ || /[\s.]/.test(t)) throw new Error("illegal type: " + t)
     _[t] = []
   }
@@ -19,7 +21,7 @@ function parseTypenames(typenames, types) {
     })
 }
 
-export class Dispatch {
+export class Dispatch<T extends object> implements qt.Dispatch<T> {
   constructor(_) {
     this._ = _
   }

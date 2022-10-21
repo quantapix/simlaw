@@ -1,4 +1,6 @@
 import Delaunator from "delaunator"
+import type * as qt from "./types.js"
+
 const tau = 2 * Math.PI,
   pow = Math.pow
 function pointX(p) {
@@ -23,13 +25,20 @@ function collinear(d) {
 function jitter(x, y, r) {
   return [x + Math.sin(x + y) * r, y + Math.cos(x - y) * r]
 }
-export class Delaunay {
-  static from(points, fx = pointX, fy = pointY, that) {
+export class Delaunay<T> implements qt.Delaunay<T> {
+  static from(points: ArrayLike<qt.Delaunay.Point> | Iterable<qt.Delaunay.Point>): Delaunay<qt.Delaunay.Point>
+  static from<T>(
+    points: ArrayLike<T> | Iterable<T>,
+    fx: qt.Delaunay.GetCoordinate<T, ArrayLike<T> | Iterable<T>>,
+    fy: qt.Delaunay.GetCoordinate<T, ArrayLike<T> | Iterable<T>>,
+    that?: any
+  ): Delaunay<T>
+  static from(points: any, fx = pointX, fy = pointY, that?: any) {
     return new Delaunay(
       "length" in points ? flatArray(points, fx, fy, that) : Float64Array.from(flatIterable(points, fx, fy, that))
     )
   }
-  constructor(points) {
+  constructor(points: ArrayLike<number>) {
     this._delaunator = new Delaunator(points)
     this.inedges = new Int32Array(points.length / 2)
     this._hullIndex = new Int32Array(points.length / 2)
@@ -286,7 +295,7 @@ export class Polygon {
     return this._.length ? this._ : null
   }
 }
-export class Voronoi {
+export class Voronoi<T> implements qt.Voronoi<T> {
   constructor(delaunay, [xmin, ymin, xmax, ymax] = [0, 0, 960, 500]) {
     if (!((xmax = +xmax) >= (xmin = +xmin)) || !((ymax = +ymax) >= (ymin = +ymin))) throw new Error("invalid bounds")
     this.delaunay = delaunay

@@ -361,7 +361,6 @@ export interface Contours {
     thresholds: number | number[] | ThresholdCountGenerator<number> | ThresholdNumberArrayGenerator<number>
   ): this
 }
-export function contours(): Contours
 export interface ContourDensity<Datum = [number, number]> {
   (data: Datum[]): ContourMultiPolygon[]
   x(): (d: Datum) => number
@@ -381,16 +380,7 @@ export interface ContourDensity<Datum = [number, number]> {
   bandwidth(): number
   bandwidth(bandwidth: number): this
 }
-export function contourDensity<Datum = [number, number]>(): ContourDensity<Datum>
-export class Delaunay<P> {
-  constructor(points: ArrayLike<number>)
-  static from(points: ArrayLike<Delaunay.Point> | Iterable<Delaunay.Point>): Delaunay<Delaunay.Point>
-  static from<P>(
-    points: ArrayLike<P> | Iterable<P>,
-    getX: Delaunay.GetCoordinate<P, ArrayLike<P> | Iterable<P>>,
-    getY: Delaunay.GetCoordinate<P, ArrayLike<P> | Iterable<P>>,
-    that?: any
-  ): Delaunay<P>
+export interface Delaunay<T> {
   points: ArrayLike<number>
   halfedges: Int32Array
   hull: Uint32Array
@@ -411,32 +401,32 @@ export class Delaunay<P> {
   trianglePolygon(i: number): Delaunay.Triangle
   trianglePolygons(): IterableIterator<Delaunay.Triangle>
   update(): this
-  voronoi(bounds?: Delaunay.Bounds): Voronoi<P>
+  voronoi(bounds?: Delaunay.Bounds): Voronoi<T>
 }
 export namespace Delaunay {
-  type Point = [number, number]
-  type Triangle = Point[]
-  type Polygon = Point[]
-  type Bounds = [number, number, number, number]
-  type GetCoordinate<P, PS> = (point: P, i: number, points: PS) => number
-  interface RectContext {
+  export type Point = [number, number]
+  export type Triangle = Point[]
+  export type Polygon = Point[]
+  export type Bounds = [number, number, number, number]
+  export type GetCoordinate<P, PS> = (point: P, i: number, points: PS) => number
+  export interface RectContext {
     rect(x: number, y: number, width: number, height: number): void
   }
-  interface MoveContext {
+  export interface MoveContext {
     moveTo(x: number, y: number): void
   }
-  interface LineContext {
+  export interface LineContext {
     lineTo(x: number, y: number): void
   }
-  interface ArcContext {
+  export interface ArcContext {
     arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterclockwise?: boolean): void
   }
-  interface ClosableContext {
+  export interface ClosableContext {
     closePath(): void
   }
 }
-export class Voronoi<P> {
-  delaunay: Delaunay<P>
+export interface Voronoi<T> {
+  delaunay: Delaunay<T>
   circumcenters: Float64Array
   vectors: Float64Array
   xmin: number
@@ -462,7 +452,6 @@ export interface Dispatch<T extends object> {
   on(typenames: string): ((this: T, ...args: any[]) => void) | undefined
   on(typenames: string, callback: null | ((this: T, ...args: any[]) => void)): this
 }
-export function dispatch<T extends object>(...types: string[]): Dispatch<T>
 export type DraggedElementBaseType = Element
 export type DragContainerElement = HTMLElement | SVGSVGElement | SVGGElement
 export interface SubjectPosition {
