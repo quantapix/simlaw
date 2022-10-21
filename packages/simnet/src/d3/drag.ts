@@ -1,11 +1,8 @@
 import { dispatch } from "./dispatch.js"
 import { select, pointer } from "./selection.js"
-import constant from "./constant.js"
-import DragEvent from "./event.js"
-import nodrag, { yesdrag } from "./nodrag.js"
-import noevent, { nonpassive, nonpassivecapture, nopropagation } from "./noevent.js"
+import type * as qt from "./types.js"
 
-export default x => () => x
+export const constant = x => () => x
 function defaultFilter(event) {
   return !event.ctrlKey && !event.button
 }
@@ -18,8 +15,10 @@ function defaultSubject(event, d) {
 function defaultTouchable() {
   return navigator.maxTouchPoints || "ontouchstart" in this
 }
-export function () {
-  var filter = defaultFilter,
+export function drag<B extends qt.DraggedElementBaseType, T>(): qt.DragBehavior<B, T, T | qt.SubjectPosition>
+export function drag<B extends qt.DraggedElementBaseType, T, U>(): qt.DragBehavior<B, T, U>
+export function drag() {
+  let filter = defaultFilter,
     container = defaultContainer,
     subject = defaultSubject,
     touchable = defaultTouchable,
@@ -43,7 +42,7 @@ export function () {
   }
   function mousedowned(event, d) {
     if (touchending || !filter.call(this, event, d)) return
-    var gesture = beforestart(this, container.call(this, event, d), event, d, "mouse")
+    let gesture = beforestart(this, container.call(this, event, d), event, d, "mouse")
     if (!gesture) return
     select(event.view)
       .on("mousemove.drag", mousemoved, nonpassivecapture)
@@ -58,7 +57,7 @@ export function () {
   function mousemoved(event) {
     noevent(event)
     if (!mousemoving) {
-      var dx = event.clientX - mousedownx,
+      let dx = event.clientX - mousedownx,
         dy = event.clientY - mousedowny
       mousemoving = dx * dx + dy * dy > clickDistance2
     }
@@ -72,7 +71,7 @@ export function () {
   }
   function touchstarted(event, d) {
     if (!filter.call(this, event, d)) return
-    var touches = event.changedTouches,
+    let touches = event.changedTouches,
       c = container.call(this, event, d),
       n = touches.length,
       i,
@@ -85,7 +84,7 @@ export function () {
     }
   }
   function touchmoved(event) {
-    var touches = event.changedTouches,
+    let touches = event.changedTouches,
       n = touches.length,
       i,
       gesture
@@ -97,7 +96,7 @@ export function () {
     }
   }
   function touchended(event) {
-    var touches = event.changedTouches,
+    let touches = event.changedTouches,
       n = touches.length,
       i,
       gesture
@@ -113,7 +112,7 @@ export function () {
     }
   }
   function beforestart(that, container, event, d, identifier, touch) {
-    var dispatch = listeners.copy(),
+    let dispatch = listeners.copy(),
       p = pointer(touch || event, container),
       dx,
       dy,
@@ -139,7 +138,7 @@ export function () {
     dx = s.x - p[0] || 0
     dy = s.y - p[1] || 0
     return function gesture(type, event, touch) {
-      var p0 = p,
+      let p0 = p,
         n
       switch (type) {
         case "start":
@@ -183,7 +182,7 @@ export function () {
     return arguments.length ? ((touchable = typeof _ === "function" ? _ : constant(!!_)), drag) : touchable
   }
   drag.on = function () {
-    var value = listeners.on.apply(listeners, arguments)
+    let value = listeners.on.apply(listeners, arguments)
     return value === listeners ? drag : value
   }
   drag.clickDistance = function (_) {
@@ -207,12 +206,12 @@ export function DragEvent(type, { sourceEvent, subject, target, identifier, acti
   })
 }
 DragEvent.prototype.on = function () {
-  var value = this._.on.apply(this._, arguments)
+  const value = this._.on.apply(this._, arguments)
   return value === this._ ? this : value
 }
-export function (view) {
-  var root = view.document.documentElement,
-    selection = select(view).on("dragstart.drag", noevent, nonpassivecapture)
+export function dragDisable(x: Window) {
+  let root = x.document.documentElement,
+    selection = select(x).on("dragstart.drag", noevent, nonpassivecapture)
   if ("onselectstart" in root) {
     selection.on("selectstart.drag", noevent, nonpassivecapture)
   } else {
@@ -220,9 +219,9 @@ export function (view) {
     root.style.MozUserSelect = "none"
   }
 }
-export function yesdrag(view, noclick) {
-  var root = view.document.documentElement,
-    selection = select(view).on("dragstart.drag", null)
+export function dragEnable(x: Window, noclick?: boolean) {
+  let root = x.document.documentElement,
+    selection = select(x).on("dragstart.drag", null)
   if (noclick) {
     selection.on("click.drag", noevent, nonpassivecapture)
     setTimeout(function () {
@@ -241,7 +240,7 @@ export const nonpassivecapture = { capture: true, passive: false }
 export function nopropagation(event) {
   event.stopImmediatePropagation()
 }
-export function (event) {
+export function noevent(event) {
   event.preventDefault()
   event.stopImmediatePropagation()
 }

@@ -1,5 +1,9 @@
-export function autoType(object) {
-  for (var key in object) {
+import type * as qt from "./types.js"
+
+export function autoType<R extends object | undefined | null, T extends string>(
+  object: qt.DSVRowString<T> | readonly string[]
+): R {
+  for (const key in object) {
     var value = object[key].trim(),
       number,
       m
@@ -19,15 +23,30 @@ export function autoType(object) {
   return object
 }
 const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours()
-var csv = dsv(",")
-export const csvParse = csv.parse
-export const csvParseRows = csv.parseRows
-export const csvFormat = csv.format
-export const csvFormatBody = csv.formatBody
-export const csvFormatRows = csv.formatRows
-export const csvFormatRow = csv.formatRow
-export const csvFormatValue = csv.formatValue
-var EOL = {},
+const csv = dsvFormat(",")
+export function csvParse<C extends string>(csvString: string): qt.DSVRowArray<C>
+export function csvParse<R extends object, T extends string>(
+  csvString: string,
+  row: (rawRow: qt.DSVRowString<T>, i: number, columns: T[]) => R | undefined | null
+): qt.DSVParsedArray<R>
+export function csvParse = csv.parse
+export function csvParseRows(csvString: string): string[][]
+export function csvParseRows<R extends object>(
+  csvString: string,
+  row: (rawRow: string[], i: number) => R | undefined | null
+): R[]
+export function csvParseRows = csv.parseRows
+export function csvFormat<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
+export function csvFormat = csv.format
+export function csvFormatBody<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
+export function csvFormatBody = csv.formatBody
+export function csvFormatRows(xs: readonly string[][]): string
+export function csvFormatRows = csv.formatRows
+export function csvFormatRow(x: readonly string[]): string
+export function csvFormatRow = csv.formatRow
+export function csvFormatValue(x: string): string
+export function csvFormatValue = csv.formatValue
+const EOL = {},
   EOF = {},
   QUOTE = 34,
   NEWLINE = 10,
@@ -45,16 +64,16 @@ function objectConverter(columns) {
   )
 }
 function customConverter(columns, f) {
-  var object = objectConverter(columns)
+  const object = objectConverter(columns)
   return function (row, i) {
     return f(object(row), i, columns)
   }
 }
 function inferColumns(rows) {
-  var columnSet = Object.create(null),
+  const columnSet = Object.create(null),
     columns = []
   rows.forEach(function (row) {
-    for (var column in row) {
+    for (const column in row) {
       if (!(column in columnSet)) {
         columns.push((columnSet[column] = column))
       }
@@ -63,7 +82,7 @@ function inferColumns(rows) {
   return columns
 }
 function pad(value, width) {
-  var s = value + "",
+  const s = value + "",
     length = s.length
   return length < width ? new Array(width - length + 1).join(0) + s : s
 }
@@ -71,7 +90,7 @@ function formatYear(year) {
   return year < 0 ? "-" + pad(-year, 6) : year > 9999 ? "+" + pad(year, 6) : pad(year, 4)
 }
 function formatDate(date) {
-  var hours = date.getUTCHours(),
+  const hours = date.getUTCHours(),
     minutes = date.getUTCMinutes(),
     seconds = date.getUTCSeconds(),
     milliseconds = date.getUTCMilliseconds()
@@ -90,11 +109,11 @@ function formatDate(date) {
           ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + "Z"
           : "")
 }
-export function (delimiter) {
-  var reFormat = new RegExp('["' + delimiter + "\n\r]"),
+export function dsvFormat(delimiter: string): qt.DSV {
+  const reFormat = new RegExp('["' + delimiter + "\n\r]"),
     DELIMITER = delimiter.charCodeAt(0)
   function parse(text, f) {
-    var convert,
+    let convert,
       columns,
       rows = parseRows(text, function (row, i) {
         if (convert) return convert(row, i - 1)
@@ -104,10 +123,10 @@ export function (delimiter) {
     return rows
   }
   function parseRows(text, f) {
-    var rows = [],
+    let rows = [],
       N = text.length,
       I = 0,
-      n = 0, 
+      n = 0,
       t,
       eof = N <= 0,
       eol = false
@@ -116,7 +135,7 @@ export function (delimiter) {
     function token() {
       if (eof) return EOF
       if (eol) return (eol = false), EOL
-      var i,
+      let i,
         j = I,
         c
       if (text.charCodeAt(j) === QUOTE) {
@@ -140,7 +159,7 @@ export function (delimiter) {
       return (eof = true), text.slice(j, N)
     }
     while ((t = token()) !== EOF) {
-      var row = []
+      let row = []
       while (t !== EOL && t !== EOF) row.push(t), (t = token())
       if (f && (row = f(row, n++)) == null) continue
       rows.push(row)
@@ -189,11 +208,26 @@ export function (delimiter) {
     formatValue: formatValue,
   }
 }
-var tsv = dsv("\t")
-export const tsvParse = tsv.parse
-export const tsvParseRows = tsv.parseRows
-export const tsvFormat = tsv.format
-export const tsvFormatBody = tsv.formatBody
-export const tsvFormatRows = tsv.formatRows
-export const tsvFormatRow = tsv.formatRow
-export const tsvFormatValue = tsv.formatValue
+const tsv = dsvFormat("\t")
+export function tsvParse<C extends string>(tsvString: string): qt.DSVRowArray<C>
+export function tsvParse<R extends object, C extends string>(
+  tsvString: string,
+  row: (rawRow: qt.DSVRowString<C>, i: number, columns: C[]) => R | undefined | null
+): qt.DSVParsedArray<R>
+export function tsvParse = tsv.parse
+export function tsvParseRows(tsvString: string): string[][]
+export function tsvParseRows<T extends object>(
+  tsvString: string,
+  row: (rawRow: string[], i: number) => T | undefined | null
+): T[]
+export function tsvParseRows = tsv.parseRows
+export function tsvFormat<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
+export function tsvFormat = tsv.format
+export function tsvFormatBody<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
+export function tsvFormatBody = tsv.formatBody
+export function tsvFormatRows(xs: readonly string[][]): string
+export function tsvFormatRows = tsv.formatRows
+export function tsvFormatRow(x: readonly string[]): string
+export function tsvFormatRow = tsv.formatRow
+export function tsvFormatValue(x: string): string
+export function tsvFormatValue = tsv.formatValue

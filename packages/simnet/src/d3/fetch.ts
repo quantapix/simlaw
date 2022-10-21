@@ -1,18 +1,21 @@
 import { csvParse, dsvFormat, tsvParse } from "./dsv.js"
-import text from "./text.js"
+import type * as qt from "./types.js"
+
 function responseBlob(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText)
   return response.blob()
 }
-export function (input, init) {
-  return fetch(input, init).then(responseBlob)
+export async function blob(url: string, init?: RequestInit): Promise<Blob> {
+  const response = await fetch(url, init)
+  return responseBlob(response)
 }
 function responseArrayBuffer(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText)
   return response.arrayBuffer()
 }
-export function (input, init) {
-  return fetch(input, init).then(responseArrayBuffer)
+export async function buffer(url: string, init?: RequestInit): Promise<ArrayBuffer> {
+  const response = await fetch(url, init)
+  return responseArrayBuffer(response)
 }
 function dsvParse(parse) {
   return function (input, init, row) {
@@ -22,24 +25,59 @@ function dsvParse(parse) {
     })
   }
 }
-export function dsv(delimiter, input, init, row) {
+export async function dsv<C extends string>(
+  delimiter: string,
+  url: string,
+  init?: RequestInit
+): Promise<qt.DSVRowArray<C>>
+export async function dsv<R extends object, T extends string = string>(
+  delimiter: string,
+  url: string,
+  row: (rawRow: qt.DSVRowString<T>, i: number, columns: T[]) => R | undefined | null
+): Promise<qt.DSVParsedArray<R>>
+export function dsv<R extends object, C extends string = string>(
+  delimiter: string,
+  url: string,
+  init: RequestInit,
+  row: (rawRow: qt.DSVRowString<C>, i: number, columns: C[]) => R | undefined | null
+): Promise<qt.DSVParsedArray<R>>
+export async function dsv(delimiter, input, init, row) {
   if (arguments.length === 3 && typeof init === "function") (row = init), (init = undefined)
-  var format = dsvFormat(delimiter)
-  return text(input, init).then(function (response) {
-    return format.parse(response, row)
-  })
+  const format = dsvFormat(delimiter)
+  const response = await text(input, init)
+  return format.parse(response, row)
 }
-export const csv = dsvParse(csvParse)
-export const tsv = dsvParse(tsvParse)
-export function (input, init) {
+export function csv<C extends string>(url: string, init?: RequestInit): Promise<qt.DSVRowArray<C>>
+export function csv<R extends object, C extends string = string>(
+  url: string,
+  row: (rawRow: qt.DSVRowString<C>, i: number, columns: C[]) => R | undefined | null
+): Promise<qt.DSVParsedArray<R>>
+export function csv<R extends object, T extends string = string>(
+  url: string,
+  init: RequestInit,
+  row: (rawRow: qt.DSVRowString<T>, i: number, columns: T[]) => R | undefined | null
+): Promise<qt.DSVParsedArray<R>>
+export function csv = dsvParse(csvParse)
+export function tsv<C extends string>(url: string, init?: RequestInit): Promise<qt.DSVRowArray<C>>
+export function tsv<R extends object, C extends string = string>(
+  url: string,
+  row: (rawRow: qt.DSVRowString<C>, i: number, columns: C[]) => R | undefined | null
+): Promise<qt.DSVParsedArray<R>>
+export function tsv<R extends object, C extends string = string>(
+  url: string,
+  init: RequestInit,
+  row: (rawRow: qt.DSVRowString<C>, i: number, columns: C[]) => R | undefined | null
+): Promise<qt.DSVParsedArray<R>>
+export function tsv = dsvParse(tsvParse)
+export function image(url: string, init?: Partial<HTMLImageElement>): Promise<HTMLImageElement> {
   return new Promise(function (resolve, reject) {
-    var image = new Image()
-    for (var key in init) image[key] = init[key]
+    const image = new Image()
+    for (const key in init) image[key] = init[key]
     image.onerror = reject
     image.onload = function () {
       resolve(image)
     }
-    image.src = input
+    image.src = url
   })
 }
 function responseJson(response) {
@@ -47,19 +85,24 @@ function responseJson(response) {
   if (response.status === 204 || response.status === 205) return
   return response.json()
 }
-export function (input, init) {
-  return fetch(input, init).then(responseJson)
+export async function json<T>(url: string, init?: RequestInit): Promise<T | undefined> {
+  const response = await fetch(url, init)
+  return responseJson(response)
 }
 function responseText(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText)
   return response.text()
 }
-export function (input, init) {
-  return fetch(input, init).then(responseText)
+export async function text(url: string, init?: RequestInit): Promise<string> {
+  const response = await fetch(url, init)
+  return responseText(response)
 }
 function parser(type) {
   return (input, init) => text(input, init).then(text => new DOMParser().parseFromString(text, type))
 }
-export default parser("application/xml")
-export const html = parser("text/html")
-export const svg = parser("image/svg+xml")
+export function xml(url: string, init?: RequestInit): Promise<XMLDocument>
+export function xml = parser("application/xml")
+export function html(url: string, init?: RequestInit): Promise<Document>
+export function html = parser("text/html")
+export function svg(url: string, init?: RequestInit): Promise<Document>
+export function svg = parser("image/svg+xml")

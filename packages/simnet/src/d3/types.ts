@@ -476,12 +476,6 @@ export interface DragBehavior<GElement extends DraggedElementBaseType, Datum, Su
   on(typenames: string, listener: null): this
   on(typenames: string, listener: (this: GElement, event: any, d: Datum) => void): this
 }
-export function drag<GElement extends DraggedElementBaseType, Datum>(): DragBehavior<
-  GElement,
-  Datum,
-  Datum | SubjectPosition
->
-export function drag<GElement extends DraggedElementBaseType, Datum, Subject>(): DragBehavior<GElement, Datum, Subject>
 export interface D3DragEvent<GElement extends DraggedElementBaseType, Datum, Subject> {
   target: DragBehavior<GElement, Datum, Subject>
   type: "start" | "drag" | "end" | string
@@ -497,8 +491,6 @@ export interface D3DragEvent<GElement extends DraggedElementBaseType, Datum, Sub
   on(typenames: string, listener: null): this
   on(typenames: string, listener: (this: GElement, event: any, d: Datum) => void): this
 }
-export function dragDisable(window: Window): void
-export function dragEnable(window: Window, noClick?: boolean): void
 export type DSVRowString<Columns extends string = string> = {
   [key in Columns]: string | undefined
 }
@@ -514,36 +506,6 @@ export interface DSVRowArray<Columns extends string = string> extends Array<DSVR
 export interface DSVParsedArray<T> extends Array<T> {
   columns: Array<keyof T>
 }
-export function csvParse<Columns extends string>(csvString: string): DSVRowArray<Columns>
-export function csvParse<ParsedRow extends object, Columns extends string>(
-  csvString: string,
-  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
-): DSVParsedArray<ParsedRow>
-export function csvParseRows(csvString: string): string[][]
-export function csvParseRows<ParsedRow extends object>(
-  csvString: string,
-  row: (rawRow: string[], i: number) => ParsedRow | undefined | null
-): ParsedRow[]
-export function csvFormat<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
-export function csvFormatBody<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
-export function csvFormatRows(rows: readonly string[][]): string
-export function csvFormatRow(row: readonly string[]): string
-export function csvFormatValue(value: string): string
-export function tsvParse<Columns extends string>(tsvString: string): DSVRowArray<Columns>
-export function tsvParse<ParsedRow extends object, Columns extends string>(
-  tsvString: string,
-  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
-): DSVParsedArray<ParsedRow>
-export function tsvParseRows(tsvString: string): string[][]
-export function tsvParseRows<ParsedRow extends object>(
-  tsvString: string,
-  row: (rawRow: string[], i: number) => ParsedRow | undefined | null
-): ParsedRow[]
-export function tsvFormat<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
-export function tsvFormatBody<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
-export function tsvFormatRows(rows: readonly string[][]): string
-export function tsvFormatRow(row: readonly string[]): string
-export function tsvFormatValue(value: string): string
 export interface DSV {
   parse<Columns extends string>(dsvString: string): DSVRowArray<Columns>
   parse<ParsedRow extends object, Columns extends string>(
@@ -561,10 +523,6 @@ export interface DSV {
   formatRow(row: readonly string[]): string
   formatValue(value: string): string
 }
-export function dsvFormat(delimiter: string): DSV
-export function autoType<ParsedRow extends object | undefined | null, Columns extends string>(
-  object: DSVRowString<Columns> | readonly string[]
-): ParsedRow
 
 export interface PolyEasingFactory {
   (normalizedTime: number): number
@@ -579,51 +537,6 @@ export interface ElasticEasingFactory {
   amplitude(a: number): ElasticEasingFactory
   period(p: number): ElasticEasingFactory
 }
-
-export function blob(url: string, init?: RequestInit): Promise<Blob>
-export function buffer(url: string, init?: RequestInit): Promise<ArrayBuffer>
-export function csv<Columns extends string>(url: string, init?: RequestInit): Promise<DSVRowArray<Columns>>
-export function csv<ParsedRow extends object, Columns extends string = string>(
-  url: string,
-  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
-): Promise<DSVParsedArray<ParsedRow>>
-export function csv<ParsedRow extends object, Columns extends string = string>(
-  url: string,
-  init: RequestInit,
-  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
-): Promise<DSVParsedArray<ParsedRow>>
-export function dsv<Columns extends string>(
-  delimiter: string,
-  url: string,
-  init?: RequestInit
-): Promise<DSVRowArray<Columns>>
-export function dsv<ParsedRow extends object, Columns extends string = string>(
-  delimiter: string,
-  url: string,
-  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
-): Promise<DSVParsedArray<ParsedRow>>
-export function dsv<ParsedRow extends object, Columns extends string = string>(
-  delimiter: string,
-  url: string,
-  init: RequestInit,
-  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
-): Promise<DSVParsedArray<ParsedRow>>
-export function html(url: string, init?: RequestInit): Promise<Document>
-export function image(url: string, init?: Partial<HTMLImageElement>): Promise<HTMLImageElement>
-export function json<ParsedJSONObject>(url: string, init?: RequestInit): Promise<ParsedJSONObject | undefined>
-export function svg(url: string, init?: RequestInit): Promise<Document>
-export function text(url: string, init?: RequestInit): Promise<string>
-export function tsv<Columns extends string>(url: string, init?: RequestInit): Promise<DSVRowArray<Columns>>
-export function tsv<ParsedRow extends object, Columns extends string = string>(
-  url: string,
-  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
-): Promise<DSVParsedArray<ParsedRow>>
-export function tsv<ParsedRow extends object, Columns extends string = string>(
-  url: string,
-  init: RequestInit,
-  row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
-): Promise<DSVParsedArray<ParsedRow>>
-export function xml(url: string, init?: RequestInit): Promise<XMLDocument>
 
 export interface SimNode {
   idx?: number | undefined
