@@ -1,17 +1,19 @@
-export { default as path } from "./path.js"
 const pi = Math.PI,
   tau = 2 * pi,
   epsilon = 1e-6,
   tauEpsilon = tau - epsilon
-function Path() {
-  this._x0 =
-    this._y0 = // start of current subpath
-    this._x1 =
-    this._y1 =
-      null // end of current subpath
-  this._ = ""
+
+class Path {
+  constructor() {
+    this._x0 =
+      this._y0 = // start of current subpath
+      this._x1 =
+      this._y1 =
+        null // end of current subpath
+    this._ = ""
+  }
 }
-function path() {
+export function path() {
   return new Path()
 }
 Path.prototype = path.prototype = {
@@ -136,4 +138,3 @@ Path.prototype = path.prototype = {
     return this._
   },
 }
-export default path

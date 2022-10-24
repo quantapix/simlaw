@@ -615,7 +615,7 @@ function brush(dim) {
   }
   return brush
 }
-export default x => () => x
+export const constant = x => () => x
 export function BrushEvent(type, { sourceEvent, target, selection, mode, dispatch }) {
   Object.defineProperties(this, {
     type: { value: type, enumerable: true, configurable: true },
