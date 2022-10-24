@@ -1,19 +1,43 @@
-export { now, timer, timerFlush } from "./timer.js"
-export { default as timeout } from "./timeout.js"
-export { default as interval } from "./interval.js"
-import { Timer, now } from "./timer.js"
-export function (callback, delay, time) {
-  var t = new Timer(),
+let head: any
+let tail: any
+
+export class Timer {
+  _call: any = null
+  _time: any = null
+  _next: any = null
+  restart(callback, delay, time) {
+    if (typeof callback !== "function") throw new TypeError("callback is not a function")
+    time = (time == null ? now() : +time) + (delay == null ? 0 : +delay)
+    if (!this._next && tail !== this) {
+      if (tail) tail._next = this
+      else head = this
+      tail = this
+    }
+    this._call = callback
+    this._time = time
+    sleep()
+  }
+  stop() {
+    if (this._call) {
+      this._call = null
+      this._time = Infinity
+      sleep()
+    }
+  }
+}
+
+export function interval(callback, delay, time) {
+  let t = new Timer(),
     total = delay
   if (delay == null) return t.restart(callback, delay, time), t
   t._restart = t.restart
   t.restart = function (callback, delay, time) {
     ;(delay = +delay), (time = time == null ? now() : +time)
     t._restart(
-      function tick(elapsed) {
-        elapsed += total
+      function tick(x) {
+        x += total
         t._restart(tick, (total += delay), time)
-        callback(elapsed)
+        callback(x)
       },
       delay,
       time
@@ -22,76 +46,54 @@ export function (callback, delay, time) {
   t.restart(callback, delay, time)
   return t
 }
-import { Timer } from "./timer.js"
-export function (callback, delay, time) {
-  var t = new Timer()
+
+export function timeout(callback, delay, time) {
+  const t = new Timer()
   delay = delay == null ? 0 : +delay
   t.restart(
-    elapsed => {
+    x => {
       t.stop()
-      callback(elapsed + delay)
+      callback(x + delay)
     },
     delay,
     time
   )
   return t
 }
-var frame = 0, // is an animation frame pending?
-  timeout = 0, // is a timeout pending?
-  interval = 0, // are any timers active?
-  pokeDelay = 1000, // how frequently we check for clock skew
-  taskHead,
-  taskTail,
-  clockLast = 0,
-  clockNow = 0,
-  clockSkew = 0,
-  clock = typeof performance === "object" && performance.now ? performance : Date,
+
+const pokeDelay = 1000,
+  clock = typeof performance === "object" ? performance : Date,
   setFrame =
     typeof window === "object" && window.requestAnimationFrame
       ? window.requestAnimationFrame.bind(window)
       : function (f) {
           setTimeout(f, 17)
         }
+let frame = 0,
+  clockTimeout: any = 0,
+  clockInterval: any = 0,
+  clockLast = 0,
+  clockNow = 0,
+  clockSkew = 0
+
 export function now() {
   return clockNow || (setFrame(clearNow), (clockNow = clock.now() + clockSkew))
 }
+
 function clearNow() {
   clockNow = 0
 }
-export function Timer() {
-  this._call = this._time = this._next = null
-}
-Timer.prototype = timer.prototype = {
-  constructor: Timer,
-  restart: function (callback, delay, time) {
-    if (typeof callback !== "function") throw new TypeError("callback is not a function")
-    time = (time == null ? now() : +time) + (delay == null ? 0 : +delay)
-    if (!this._next && taskTail !== this) {
-      if (taskTail) taskTail._next = this
-      else taskHead = this
-      taskTail = this
-    }
-    this._call = callback
-    this._time = time
-    sleep()
-  },
-  stop: function () {
-    if (this._call) {
-      this._call = null
-      this._time = Infinity
-      sleep()
-    }
-  },
-}
+
 export function timer(callback, delay, time) {
-  var t = new Timer()
+  const t = new Timer()
   t.restart(callback, delay, time)
   return t
 }
+
 export function timerFlush() {
-  now() // Get the current time, if not already set.
-  ++frame // Pretend we’ve set an alarm, if we haven’t already.
-  var t = taskHead,
+  now()
+  ++frame
+  let t = head,
     e
   while (t) {
     if ((e = clockNow - t._time) >= 0) t._call.call(undefined, e)
@@ -99,9 +101,10 @@ export function timerFlush() {
   }
   --frame
 }
+
 function wake() {
   clockNow = (clockLast = clock.now()) + clockSkew
-  frame = timeout = 0
+  frame = clockTimeout = 0
   try {
     timerFlush()
   } finally {
@@ -110,14 +113,16 @@ function wake() {
     clockNow = 0
   }
 }
+
 function poke() {
-  var now = clock.now(),
+  const now = clock.now(),
     delay = now - clockLast
   if (delay > pokeDelay) (clockSkew -= delay), (clockLast = now)
 }
+
 function nap() {
-  var t0,
-    t1 = taskHead,
+  let t0,
+    t1 = head,
     t2,
     time = Infinity
   while (t1) {
@@ -126,21 +131,22 @@ function nap() {
       ;(t0 = t1), (t1 = t1._next)
     } else {
       ;(t2 = t1._next), (t1._next = null)
-      t1 = t0 ? (t0._next = t2) : (taskHead = t2)
+      t1 = t0 ? (t0._next = t2) : (head = t2)
     }
   }
-  taskTail = t0
+  tail = t0
   sleep(time)
 }
-function sleep(time) {
-  if (frame) return // Soonest alarm already set, or will be.
-  if (timeout) timeout = clearTimeout(timeout)
-  var delay = time - clockNow // Strictly less than if we recomputed clockNow.
+
+function sleep(time?) {
+  if (frame) return
+  if (clockTimeout) clockTimeout = clearTimeout(clockTimeout)
+  const delay = time - clockNow
   if (delay > 24) {
-    if (time < Infinity) timeout = setTimeout(wake, time - clock.now() - clockSkew)
-    if (interval) interval = clearInterval(interval)
+    if (time < Infinity) clockTimeout = setTimeout(wake, time - clock.now() - clockSkew)
+    if (clockInterval) clockInterval = clearInterval(clockInterval)
   } else {
-    if (!interval) (clockLast = clock.now()), (interval = setInterval(poke, pokeDelay))
+    if (!interval) (clockLast = clock.now()), (clockInterval = setInterval(poke, pokeDelay))
     ;(frame = 1), setFrame(wake)
   }
 }
