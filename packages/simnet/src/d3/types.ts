@@ -675,12 +675,9 @@ export interface FormatSpecifierObject {
   trim?: string | undefined
   type?: string | undefined
 }
-export function formatLocale(locale: FormatLocaleDefinition): FormatLocaleObject
-export function formatDefaultLocale(defaultLocale: FormatLocaleDefinition): FormatLocaleObject
 export function format(specifier: string): (n: number | { valueOf(): number }) => string
 export function formatPrefix(specifier: string, value: number): (n: number | { valueOf(): number }) => string
-export class FormatSpecifier {
-  constructor(specifier: FormatSpecifierObject)
+export interface FormatSpecifier {
   fill: string
   align: ">" | "<" | "^" | "="
   sign: "-" | "+" | "(" | " "
@@ -694,6 +691,7 @@ export class FormatSpecifier {
   toString(): string
 }
 export function formatSpecifier(specifier: string): FormatSpecifier
+
 export function precisionFixed(step: number): number
 export function precisionPrefix(step: number, value: number): number
 export function precisionRound(step: number, max: number): number
@@ -2384,6 +2382,7 @@ export function stackOffsetDiverging(series: Series<any, any>, order: Iterable<n
 export function stackOffsetNone(series: Series<any, any>, order: Iterable<number>): void
 export function stackOffsetSilhouette(series: Series<any, any>, order: Iterable<number>): void
 export function stackOffsetWiggle(series: Series<any, any>, order: Iterable<number>): void
+
 export interface TimeInterval {
   (date?: Date): Date
   floor(date: Date): Date
@@ -2397,77 +2396,6 @@ export interface CountableTimeInterval extends TimeInterval {
   count(start: Date, end: Date): number
   every(step: number): TimeInterval | null
 }
-export function timeInterval(floor: (date: Date) => void, offset: (date: Date, step: number) => void): TimeInterval
-export function timeInterval(
-  floor: (date: Date) => void,
-  offset: (date: Date, step: number) => void,
-  count: (start: Date, end: Date) => number,
-  field?: (date: Date) => number
-): CountableTimeInterval
-export const timeMillisecond: CountableTimeInterval
-export function timeMilliseconds(start: Date, stop: Date, step?: number): Date[]
-export const timeSecond: CountableTimeInterval
-export function timeSeconds(start: Date, stop: Date, step?: number): Date[]
-export const timeMinute: CountableTimeInterval
-export function timeMinutes(start: Date, stop: Date, step?: number): Date[]
-export const timeHour: CountableTimeInterval
-export function timeHours(start: Date, stop: Date, step?: number): Date[]
-export const timeDay: CountableTimeInterval
-export function timeDays(start: Date, stop: Date, step?: number): Date[]
-export const timeWeek: CountableTimeInterval
-export function timeWeeks(start: Date, stop: Date, step?: number): Date[]
-export const timeSunday: CountableTimeInterval
-export function timeSundays(start: Date, stop: Date, step?: number): Date[]
-export const timeMonday: CountableTimeInterval
-export function timeMondays(start: Date, stop: Date, step?: number): Date[]
-export const timeTuesday: CountableTimeInterval
-export function timeTuesdays(start: Date, stop: Date, step?: number): Date[]
-export const timeWednesday: CountableTimeInterval
-export function timeWednesdays(start: Date, stop: Date, step?: number): Date[]
-export const timeThursday: CountableTimeInterval
-export function timeThursdays(start: Date, stop: Date, step?: number): Date[]
-export const timeFriday: CountableTimeInterval
-export function timeFridays(start: Date, stop: Date, step?: number): Date[]
-export const timeSaturday: CountableTimeInterval
-export function timeSaturdays(start: Date, stop: Date, step?: number): Date[]
-export const timeMonth: CountableTimeInterval
-export function timeMonths(start: Date, stop: Date, step?: number): Date[]
-export const timeYear: CountableTimeInterval
-export function timeYears(start: Date, stop: Date, step?: number): Date[]
-export const utcMillisecond: CountableTimeInterval
-export function utcMilliseconds(start: Date, stop: Date, step?: number): Date[]
-export const utcSecond: CountableTimeInterval
-export function utcSeconds(start: Date, stop: Date, step?: number): Date[]
-export const utcMinute: CountableTimeInterval
-export function utcMinutes(start: Date, stop: Date, step?: number): Date[]
-export const utcHour: CountableTimeInterval
-export function utcHours(start: Date, stop: Date, step?: number): Date[]
-export const utcDay: CountableTimeInterval
-export function utcDays(start: Date, stop: Date, step?: number): Date[]
-export const utcWeek: CountableTimeInterval
-export function utcWeeks(start: Date, stop: Date, step?: number): Date[]
-export const utcSunday: CountableTimeInterval
-export function utcSundays(start: Date, stop: Date, step?: number): Date[]
-export const utcMonday: CountableTimeInterval
-export function utcMondays(start: Date, stop: Date, step?: number): Date[]
-export const utcTuesday: CountableTimeInterval
-export function utcTuesdays(start: Date, stop: Date, step?: number): Date[]
-export const utcWednesday: CountableTimeInterval
-export function utcWednesdays(start: Date, stop: Date, step?: number): Date[]
-export const utcThursday: CountableTimeInterval
-export function utcThursdays(start: Date, stop: Date, step?: number): Date[]
-export const utcFriday: CountableTimeInterval
-export function utcFridays(start: Date, stop: Date, step?: number): Date[]
-export const utcSaturday: CountableTimeInterval
-export function utcSaturdays(start: Date, stop: Date, step?: number): Date[]
-export const utcMonth: CountableTimeInterval
-export function utcMonths(start: Date, stop: Date, step?: number): Date[]
-export const utcYear: CountableTimeInterval
-export function utcYears(start: Date, stop: Date, step?: number): Date[]
-export function timeTicks(start: Date, stop: Date, count: number): Date[]
-export function timeTickInterval(start: Date, stop: Date, count: number): TimeInterval | null
-export function utcTicks(start: Date, stop: Date, count: number): Date[]
-export function utcTickInterval(start: Date, stop: Date, count: number): TimeInterval | null
 export interface TimeLocaleDefinition {
   dateTime: string
   date: string
@@ -2484,23 +2412,10 @@ export interface TimeLocaleObject {
   utcFormat(specifier: string): (date: Date) => string
   utcParse(specifier: string): (dateString: string) => Date | null
 }
-export function timeFormatLocale(definition: TimeLocaleDefinition): TimeLocaleObject
-export function timeFormatDefaultLocale(definition: TimeLocaleDefinition): TimeLocaleObject
-export function timeFormat(specifier: string): (date: Date) => string
-export function timeParse(specifier: string): (dateString: string) => Date | null
-export function utcFormat(specifier: string): (date: Date) => string
-export function utcParse(specifier: string): (dateString: string) => Date | null
-export function isoFormat(date: Date): string
-export function isoParse(dateString: string): Date | null
-export function now(): number
 export interface Timer {
-  restart(callbackFn: (elapsed: number) => void, delay?: number, time?: number): void
+  restart(cb: (x: number) => void, delay?: number, time?: number): void
   stop(): void
 }
-export function timer(callback: (elapsed: number) => void, delay?: number, time?: number): Timer
-export function timerFlush(): void
-export function timeout(callback: (elapsed: number) => void, delay?: number, time?: number): Timer
-export function interval(callback: (elapsed: number) => void, delay?: number, time?: number): Timer
 declare module "d3-selection" {
   interface Selection<GElement extends BaseType, Datum, PElement extends BaseType, PDatum> {
     interrupt(name?: string): this

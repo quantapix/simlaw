@@ -1,19 +1,21 @@
+import type * as qt from "./types.js"
+
 let head: any
 let tail: any
 
-export class Timer {
+export class Timer implements qt.Timer {
   _call: any = null
   _time: any = null
   _next: any = null
-  restart(callback, delay, time) {
-    if (typeof callback !== "function") throw new TypeError("callback is not a function")
+  restart(cb: (x: number) => void, delay?: number, time?: number) {
+    if (typeof cb !== "function") throw new TypeError("callback is not a function")
     time = (time == null ? now() : +time) + (delay == null ? 0 : +delay)
     if (!this._next && tail !== this) {
       if (tail) tail._next = this
       else head = this
       tail = this
     }
-    this._call = callback
+    this._call = cb
     this._time = time
     sleep()
   }
@@ -26,10 +28,10 @@ export class Timer {
   }
 }
 
-export function interval(callback, delay, time) {
+export function interval(cb: (x: number) => void, delay?: number, time?: number): Timer {
   let t = new Timer(),
     total = delay
-  if (delay == null) return t.restart(callback, delay, time), t
+  if (delay == null) return t.restart(cb, delay, time), t
   t._restart = t.restart
   t.restart = function (callback, delay, time) {
     ;(delay = +delay), (time = time == null ? now() : +time)
@@ -43,17 +45,17 @@ export function interval(callback, delay, time) {
       time
     )
   }
-  t.restart(callback, delay, time)
+  t.restart(cb, delay, time)
   return t
 }
 
-export function timeout(callback, delay, time) {
+export function timeout(cb: (x: number) => void, delay?: number, time?: number): Timer {
   const t = new Timer()
-  delay = delay == null ? 0 : +delay
+  delay = delay ?? 0
   t.restart(
     x => {
       t.stop()
-      callback(x + delay)
+      cb(x + delay!)
     },
     delay,
     time
@@ -76,7 +78,7 @@ let frame = 0,
   clockNow = 0,
   clockSkew = 0
 
-export function now() {
+export function now(): number {
   return clockNow || (setFrame(clearNow), (clockNow = clock.now() + clockSkew))
 }
 
@@ -84,9 +86,9 @@ function clearNow() {
   clockNow = 0
 }
 
-export function timer(callback, delay, time) {
+export function timer(cb: (x: number) => void, delay?: number, time?: number): Timer {
   const t = new Timer()
-  t.restart(callback, delay, time)
+  t.restart(cb, delay, time)
   return t
 }
 

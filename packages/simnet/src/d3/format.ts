@@ -2,6 +2,25 @@ import formatLocale from "./locale.js"
 var locale
 export const format
 export const formatPrefix
+
+export function formatLocale(locale: qt.FormatLocaleDefinition): qt.FormatLocaleObject {
+export function formatDefaultLocale(definition: qt.FormatLocaleDefinition): qt.FormatLocaleObject {
+
+export class FormatSpecifier implements  qt.FormatSpecifier {
+  constructor(specifier: FormatSpecifierObject)
+  fill: string
+  align: ">" | "<" | "^" | "="
+  sign: "-" | "+" | "(" | " "
+  symbol: "$" | "#" | ""
+  zero: boolean
+  width: number | undefined
+  comma: boolean
+  precision: number | undefined
+  trim: boolean
+  type: "e" | "f" | "g" | "r" | "s" | "%" | "p" | "b" | "o" | "d" | "x" | "X" | "c" | "" | "n"
+  toString(): string
+}
+
 defaultLocale({
   thousands: ",",
   grouping: [3],
