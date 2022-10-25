@@ -10,7 +10,7 @@ import { Selection } from "./selection.js"
 import { timer, timeout } from "./timer.js"
 import { interpolate } from "./interpolate.js"
 
-let root = [null]
+const root = [null]
 export function active(node, name) {
   let schedules = node.__transition,
     schedule,
@@ -56,7 +56,7 @@ export namespace selection {
       interrupt(this, name)
     })
   }
-  let defaultTiming = {
+  const defaultTiming = {
     time: null,
     delay: 0,
     duration: 250,
@@ -98,7 +98,7 @@ export class Transition {
   }
   [Symbol.iterator] = Selection.prototype[Symbol.iterator]
   attr(name, value) {
-    let fullname = namespace(name),
+    const fullname = namespace(name),
       i = fullname === "transform" ? interpolateTransform : interpolate
     return this.attrTween(
       name,
@@ -113,7 +113,7 @@ export class Transition {
     function attrTween(name, value) {
       let t0, i0
       function tween() {
-        let i = value.apply(this, arguments)
+        const i = value.apply(this, arguments)
         if (i !== i0) t0 = (i0 = i) && attrInterpolate(name, i)
         return t0
       }
@@ -124,31 +124,31 @@ export class Transition {
     if (arguments.length < 2) return (key = this.tween(key)) && key._value
     if (value == null) return this.tween(key, null)
     if (typeof value !== "function") throw new Error()
-    let fullname = namespace(name)
+    const fullname = namespace(name)
     return this.tween(key, (fullname.local ? attrTweenNS : attrTween)(fullname, value))
   }
   call = Selection.prototype.call
   delay(value) {
-    let id = this._id
+    const id = this._id
     return arguments.length
       ? this.each((typeof value === "function" ? delayFunction : delayConstant)(id, value))
       : get(this.node(), id).delay
   }
   duration(value) {
-    let id = this._id
+    const id = this._id
     return arguments.length
       ? this.each((typeof value === "function" ? durationFunction : durationConstant)(id, value))
       : get(this.node(), id).duration
   }
   each = Selection.prototype.each
   ease(value) {
-    let id = this._id
+    const id = this._id
     return arguments.length ? this.each(easeConstant(id, value)) : get(this.node(), id).ease
   }
   easeVarying(value) {
     function easeVarying(id, value) {
       return function () {
-        let v = value.apply(this, arguments)
+        const v = value.apply(this, arguments)
         if (typeof v !== "function") throw new Error()
         set(this, id).ease = v
       }
@@ -164,14 +164,14 @@ export class Transition {
       id = that._id,
       size = that.size()
     return new Promise(function (resolve, reject) {
-      let cancel = { value: reject },
+      const cancel = { value: reject },
         end = {
           value: function () {
             if (--size === 0) resolve()
           },
         }
       that.each(function () {
-        let schedule = set(this, id),
+        const schedule = set(this, id),
           on = schedule.on
         if (on !== on0) {
           on1 = (on0 = on).copy()
@@ -231,14 +231,14 @@ export class Transition {
   node = Selection.prototype.node
   nodes = Selection.prototype.nodes
   on(name, listener) {
-    let id = this._id
+    const id = this._id
     return arguments.length < 2 ? get(this.node(), id).on.on(name) : this.each(onFunction(id, name, listener))
   }
   remove() {
     return this.on("end.remove", removeFunction(this._id))
   }
   select(select) {
-    let name = this._name,
+    const name = this._name,
       id = this._id
     if (typeof select !== "function") select = selector(select)
     for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
@@ -257,7 +257,7 @@ export class Transition {
     return new Transition(subgroups, this._parents, name, id)
   }
   selectAll(select) {
-    let name = this._name,
+    const name = this._name,
       id = this._id
     if (typeof select !== "function") select = selectorAll(select)
     for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
@@ -290,7 +290,7 @@ export class Transition {
   }
   size = Selection.prototype.size
   style(name, value, priority) {
-    let i = (name += "") === "transform" ? interpolateTransform : interpolate
+    const i = (name += "") === "transform" ? interpolateTransform : interpolate
     return value == null
       ? this.styleTween(name, styleNull(name, i)).on("end.style." + name, styleRemove(name))
       : typeof value === "function"
@@ -303,7 +303,7 @@ export class Transition {
     function styleTween(name, value, priority) {
       let t, i0
       function tween() {
-        let i = value.apply(this, arguments)
+        const i = value.apply(this, arguments)
         if (i !== i0) t = (i0 = i) && styleInterpolate(name, i, priority)
         return t
       }
@@ -328,7 +328,7 @@ export class Transition {
     function textTween(value) {
       let t0, i0
       function tween() {
-        let i = value.apply(this, arguments)
+        const i = value.apply(this, arguments)
         if (i !== i0) t0 = (i0 = i) && textInterpolate(i)
         return t0
       }
@@ -342,13 +342,13 @@ export class Transition {
     return this.tween(key, textTween(value))
   }
   transition() {
-    let name = this._name,
+    const name = this._name,
       id0 = this._id,
       id1 = newId()
     for (var groups = this._groups, m = groups.length, j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
         if ((node = group[i])) {
-          let inherit = get(node, id0)
+          const inherit = get(node, id0)
           schedule(node, name, id1, i, group, {
             time: inherit.time + inherit.delay + inherit.duration,
             delay: 0,
@@ -361,10 +361,10 @@ export class Transition {
     return new Transition(groups, this._parents, name, id1)
   }
   tween(name, value) {
-    let id = this._id
+    const id = this._id
     name += ""
     if (arguments.length < 2) {
-      let tween = get(this.node(), id).tween
+      const tween = get(this.node(), id).tween
       for (var i = 0, n = tween.length, t; i < n; ++i) {
         if ((t = tween[i]).name === name) {
           return t.value
@@ -391,7 +391,7 @@ function attrConstant(name, interpolate, value1) {
     string1 = value1 + "",
     interpolate0
   return function () {
-    let string0 = this.getAttribute(name)
+    const string0 = this.getAttribute(name)
     return string0 === string1
       ? null
       : string0 === string00
@@ -404,7 +404,7 @@ function attrConstantNS(fullname, interpolate, value1) {
     string1 = value1 + "",
     interpolate0
   return function () {
-    let string0 = this.getAttributeNS(fullname.space, fullname.local)
+    const string0 = this.getAttributeNS(fullname.space, fullname.local)
     return string0 === string1
       ? null
       : string0 === string00
@@ -457,7 +457,7 @@ function attrInterpolateNS(fullname, i) {
 function attrTweenNS(fullname, value) {
   let t0, i0
   function tween() {
-    let i = value.apply(this, arguments)
+    const i = value.apply(this, arguments)
     if (i !== i0) t0 = (i0 = i) && attrInterpolateNS(fullname, i)
     return t0
   }
@@ -521,7 +521,7 @@ function start(name) {
     .trim()
     .split(/^|\s+/)
     .every(function (t) {
-      let i = t.indexOf(".")
+      const i = t.indexOf(".")
       if (i >= 0) t = t.slice(0, i)
       return !t || t === "start"
     })
@@ -531,7 +531,7 @@ function onFunction(id, name, listener) {
     on1,
     sit = start(name) ? init : set
   return function () {
-    let schedule = sit(this, id),
+    const schedule = sit(this, id),
       on = schedule.on
     if (on !== on0) (on1 = (on0 = on).copy()).on(name, listener)
     schedule.on = on1
@@ -539,13 +539,13 @@ function onFunction(id, name, listener) {
 }
 function removeFunction(id) {
   return function () {
-    let parent = this.parentNode
-    for (let i in this.__transition) if (+i !== id) return
+    const parent = this.parentNode
+    for (const i in this.__transition) if (+i !== id) return
     if (parent) parent.removeChild(this)
   }
 }
-let emptyOn = dispatch("start", "end", "cancel", "interrupt")
-let emptyTween = []
+const emptyOn = dispatch("start", "end", "cancel", "interrupt")
+const emptyTween = []
 export const CREATED = 0
 export const SCHEDULED = 1
 export const STARTING = 2
@@ -554,13 +554,13 @@ export const RUNNING = 4
 export const ENDING = 5
 export const ENDED = 6
 export function schedule(node, name, id, index, group, timing) {
-  let schedules = node.__transition
+  const schedules = node.__transition
   if (!schedules) node.__transition = {}
   else if (id in schedules) return
   create(node, id, {
     name: name,
-    index: index, // For context during callback.
-    group: group, // For context during callback.
+    index: index,
+    group: group,
     on: emptyOn,
     tween: emptyTween,
     time: timing.time,
@@ -572,12 +572,12 @@ export function schedule(node, name, id, index, group, timing) {
   })
 }
 export function init(node, id) {
-  let schedule = get(node, id)
+  const schedule = get(node, id)
   if (schedule.state > CREATED) throw new Error("too late; already scheduled")
   return schedule
 }
 export function set(node, id) {
-  let schedule = get(node, id)
+  const schedule = get(node, id)
   if (schedule.state > STARTED) throw new Error("too late; already running")
   return schedule
 }
@@ -653,14 +653,14 @@ function create(node, id, self) {
     self.state = ENDED
     self.timer.stop()
     delete schedules[id]
-    for (let i in schedules) return // eslint-disable-line no-unused-vars
+    for (const i in schedules) return // eslint-disable-line no-unused-vars
     delete node.__transition
   }
 }
 function styleNull(name, interpolate) {
   let string00, string10, interpolate0
   return function () {
-    let string0 = style(this, name),
+    const string0 = style(this, name),
       string1 = (this.style.removeProperty(name), style(this, name))
     return string0 === string1
       ? null
@@ -679,7 +679,7 @@ function styleConstant(name, interpolate, value1) {
     string1 = value1 + "",
     interpolate0
   return function () {
-    let string0 = style(this, name)
+    const string0 = style(this, name)
     return string0 === string1
       ? null
       : string0 === string00
@@ -709,7 +709,7 @@ function styleMaybeRemove(id, name) {
     event = "end." + key,
     remove
   return function () {
-    let schedule = set(this, id),
+    const schedule = set(this, id),
       on = schedule.on,
       listener = schedule.value[key] == null ? remove || (remove = styleRemove(name)) : undefined
     if (on !== on0 || listener0 !== listener) (on1 = (on0 = on).copy()).on(event, (listener0 = listener))
@@ -728,7 +728,7 @@ function textConstant(value) {
 }
 function textFunction(value) {
   return function () {
-    let value1 = value(this)
+    const value1 = value(this)
     this.textContent = value1 == null ? "" : value1
   }
 }
@@ -740,7 +740,7 @@ function textInterpolate(i) {
 function tweenRemove(id, name) {
   let tween0, tween1
   return function () {
-    let schedule = set(this, id),
+    const schedule = set(this, id),
       tween = schedule.tween
     if (tween !== tween0) {
       tween1 = tween0 = tween
@@ -759,7 +759,7 @@ function tweenFunction(id, name, value) {
   let tween0, tween1
   if (typeof value !== "function") throw new Error()
   return function () {
-    let schedule = set(this, id),
+    const schedule = set(this, id),
       tween = schedule.tween
     if (tween !== tween0) {
       tween1 = (tween0 = tween).slice()
@@ -775,9 +775,9 @@ function tweenFunction(id, name, value) {
   }
 }
 export function tweenValue(transition, name, value) {
-  let id = transition._id
+  const id = transition._id
   transition.each(function () {
-    let schedule = set(this, id)
+    const schedule = set(this, id)
     ;(schedule.value || (schedule.value = {}))[name] = value.apply(this, arguments)
   })
   return function (node) {
