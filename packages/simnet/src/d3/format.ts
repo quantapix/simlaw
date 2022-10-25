@@ -1,53 +1,37 @@
-import formatLocale from "./locale.js"
-var locale
-export const format
-export const formatPrefix
+import type { Nmeta } from "../graph/cluster.js"
+import type * as qt from "./types.js"
 
-export function formatLocale(locale: qt.FormatLocaleDefinition): qt.FormatLocaleObject {
-export function formatDefaultLocale(definition: qt.FormatLocaleDefinition): qt.FormatLocaleObject {
+let locale
+export let format: (x: string) => (n: number | { valueOf(): number }) => string
+export let formatPrefix: (x: string, value: number) => (n: number | { valueOf(): number }) => string
 
-export class FormatSpecifier implements  qt.FormatSpecifier {
-  constructor(specifier: FormatSpecifierObject)
-  fill: string
-  align: ">" | "<" | "^" | "="
-  sign: "-" | "+" | "(" | " "
-  symbol: "$" | "#" | ""
-  zero: boolean
-  width: number | undefined
-  comma: boolean
-  precision: number | undefined
-  trim: boolean
-  type: "e" | "f" | "g" | "r" | "s" | "%" | "p" | "b" | "o" | "d" | "x" | "X" | "c" | "" | "n"
-  toString(): string
-}
-
-defaultLocale({
+formatDefaultLocale({
   thousands: ",",
   grouping: [3],
   currency: ["$", ""],
 })
-export function defaultLocale(definition) {
+
+export function formatDefaultLocale(definition: qt.FormatLocaleDefinition): qt.FormatLocaleObject {
   locale = formatLocale(definition)
   format = locale.format
   formatPrefix = locale.formatPrefix
   return locale
 }
-import { formatDecimalParts } from "./formatDecimal.js"
-export function (x) {
+export function exponent(x) {
   return (x = formatDecimalParts(Math.abs(x))), x ? x[1] : NaN
 }
-export function (x) {
+export function formatDecimal(x) {
   return Math.abs((x = Math.round(x))) >= 1e21 ? x.toLocaleString("en").replace(/,/g, "") : x.toString(10)
 }
 export function formatDecimalParts(x, p) {
-  if ((i = (x = p ? x.toExponential(p - 1) : x.toExponential()).indexOf("e")) < 0) return null // NaN, ±Infinity
-  var i,
-    coefficient = x.slice(0, i)
+  let i
+  if ((i = (x = p ? x.toExponential(p - 1) : x.toExponential()).indexOf("e")) < 0) return null
+  const coefficient = x.slice(0, i)
   return [coefficient.length > 1 ? coefficient[0] + coefficient.slice(2) : coefficient, +x.slice(i + 1)]
 }
-export function (grouping, thousands) {
+export function formatGroup(grouping, thousands) {
   return function (value, width) {
-    var i = value.length,
+    let i = value.length,
       t = [],
       j = 0,
       g = grouping[0],
@@ -61,19 +45,21 @@ export function (grouping, thousands) {
     return t.reverse().join(thousands)
   }
 }
-export function (numerals) {
-  return function (value) {
-    return value.replace(/[0-9]/g, function (i) {
+
+export function formatNumerals(numerals) {
+  return function (x) {
+    return x.replace(/[0-9]/g, function (i) {
       return numerals[+i]
     })
   }
 }
-import { formatDecimalParts } from "./formatDecimal.js"
-export const prefixExponent
-export function (x, p) {
-  var d = formatDecimalParts(x, p)
+
+export let prefixExponent: number
+
+export function formatPrefixAuto(x, p) {
+  const d = formatDecimalParts(x, p)
   if (!d) return x + ""
-  var coefficient = d[0],
+  const coefficient = d[0],
     exponent = d[1],
     i = exponent - (prefixExponent = Math.max(-8, Math.min(8, Math.floor(exponent / 3))) * 3) + 1,
     n = coefficient.length
@@ -85,11 +71,11 @@ export function (x, p) {
     ? coefficient.slice(0, i) + "." + coefficient.slice(i)
     : "0." + new Array(1 - i).join("0") + formatDecimalParts(x, Math.max(0, p + i - 1))[0] // less than 1y!
 }
-import { formatDecimalParts } from "./formatDecimal.js"
-export function (x, p) {
-  var d = formatDecimalParts(x, p)
+
+export function formatRounded(x, p) {
+  const d = formatDecimalParts(x, p)
   if (!d) return x + ""
-  var coefficient = d[0],
+  const coefficient = d[0],
     exponent = d[1]
   return exponent < 0
     ? "0." + new Array(-exponent).join("0") + coefficient
@@ -97,10 +83,11 @@ export function (x, p) {
     ? coefficient.slice(0, exponent + 1) + "." + coefficient.slice(exponent + 1)
     : coefficient + new Array(exponent - coefficient.length + 2).join("0")
 }
-var re = /^(?:(.)?([<>=^]))?([+\-( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?(~)?([a-z%])?$/i
-export function formatSpecifier(specifier) {
-  if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier)
-  var match
+
+const re = /^(?:(.)?([<>=^]))?([+\-( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?(~)?([a-z%])?$/i
+export function formatSpecifier(x: string) {
+  let match
+  if (!(match = re.exec(x))) throw new Error("invalid format: " + x)
   return new FormatSpecifier({
     fill: match[1],
     align: match[2],
@@ -114,35 +101,48 @@ export function formatSpecifier(specifier) {
     type: match[10],
   })
 }
-formatSpecifier.prototype = FormatSpecifier.prototype // instanceof
-export function FormatSpecifier(specifier) {
-  this.fill = specifier.fill === undefined ? " " : specifier.fill + ""
-  this.align = specifier.align === undefined ? ">" : specifier.align + ""
-  this.sign = specifier.sign === undefined ? "-" : specifier.sign + ""
-  this.symbol = specifier.symbol === undefined ? "" : specifier.symbol + ""
-  this.zero = !!specifier.zero
-  this.width = specifier.width === undefined ? undefined : +specifier.width
-  this.comma = !!specifier.comma
-  this.precision = specifier.precision === undefined ? undefined : +specifier.precision
-  this.trim = !!specifier.trim
-  this.type = specifier.type === undefined ? "" : specifier.type + ""
+
+export class FormatSpecifier implements qt.FormatSpecifier {
+  fill: string
+  align: ">" | "<" | "^" | "="
+  sign: "-" | "+" | "(" | " "
+  symbol: "$" | "#" | ""
+  zero: boolean
+  width: number | undefined
+  comma: boolean
+  precision: number | undefined
+  trim: boolean
+  type: "e" | "f" | "g" | "r" | "s" | "%" | "p" | "b" | "o" | "d" | "x" | "X" | "c" | "" | "n"
+
+  constructor(specifier: qt.FormatSpecifierObject) {
+    this.fill = specifier.fill === undefined ? " " : specifier.fill + ""
+    this.align = specifier.align === undefined ? ">" : specifier.align + ""
+    this.sign = specifier.sign === undefined ? "-" : specifier.sign + ""
+    this.symbol = specifier.symbol === undefined ? "" : specifier.symbol + ""
+    this.zero = !!specifier.zero
+    this.width = specifier.width === undefined ? undefined : +specifier.width
+    this.comma = !!specifier.comma
+    this.precision = specifier.precision === undefined ? undefined : +specifier.precision
+    this.trim = !!specifier.trim
+    this.type = specifier.type === undefined ? "" : specifier.type + ""
+  }
+  toString() {
+    return (
+      this.fill +
+      this.align +
+      this.sign +
+      this.symbol +
+      (this.zero ? "0" : "") +
+      (this.width === undefined ? "" : Math.max(1, this.width | 0)) +
+      (this.comma ? "," : "") +
+      (this.precision === undefined ? "" : "." + Math.max(0, this.precision | 0)) +
+      (this.trim ? "~" : "") +
+      this.type
+    )
+  }
 }
-FormatSpecifier.prototype.toString = function () {
-  return (
-    this.fill +
-    this.align +
-    this.sign +
-    this.symbol +
-    (this.zero ? "0" : "") +
-    (this.width === undefined ? "" : Math.max(1, this.width | 0)) +
-    (this.comma ? "," : "") +
-    (this.precision === undefined ? "" : "." + Math.max(0, this.precision | 0)) +
-    (this.trim ? "~" : "") +
-    this.type
-  )
-}
-export function (s) {
-  out: for (var n = s.length, i = 1, i0 = -1, i1; i < n; ++i) {
+export function formatTrim(s) {
+  out: for (let n = s.length, i = 1, i0 = -1, i1; i < n; ++i) {
     switch (s[i]) {
       case ".":
         i0 = i1 = i
@@ -159,10 +159,8 @@ export function (s) {
   }
   return i0 > 0 ? s.slice(0, i0) + s.slice(i1 + 1) : s
 }
-import formatDecimal from "./formatDecimal.js"
-import formatPrefixAuto from "./formatPrefixAuto.js"
-import formatRounded from "./formatRounded.js"
-export default {
+
+export const formatTypes = {
   "%": (x, p) => (x * 100).toFixed(p),
   b: x => Math.round(x).toString(2),
   c: x => x + "",
@@ -177,27 +175,15 @@ export default {
   X: x => Math.round(x).toString(16).toUpperCase(),
   x: x => Math.round(x).toString(16),
 }
-export function (x) {
+
+export function identity(x) {
   return x
 }
-export { default as formatDefaultLocale, format, formatPrefix } from "./defaultLocale.js"
-export { default as formatLocale } from "./locale.js"
-export { default as formatSpecifier, FormatSpecifier } from "./formatSpecifier.js"
-export { default as precisionFixed } from "./precisionFixed.js"
-export { default as precisionPrefix } from "./precisionPrefix.js"
-export { default as precisionRound } from "./precisionRound.js"
-import exponent from "./exponent.js"
-import formatGroup from "./formatGroup.js"
-import formatNumerals from "./formatNumerals.js"
-import formatSpecifier from "./formatSpecifier.js"
-import formatTrim from "./formatTrim.js"
-import formatTypes from "./formatTypes.js"
-import { prefixExponent } from "./formatPrefixAuto.js"
-import identity from "./identity.js"
-var map = Array.prototype.map,
+
+const map = Array.prototype.map,
   prefixes = ["y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y"]
-export function (locale) {
-  var group =
+export function formatLocale(locale: qt.FormatLocaleDefinition): qt.FormatLocaleObject {
+  const group =
       locale.grouping === undefined || locale.thousands === undefined
         ? identity
         : formatGroup(map.call(locale.grouping, Number), locale.thousands + ""),
@@ -210,7 +196,7 @@ export function (locale) {
     nan = locale.nan === undefined ? "NaN" : locale.nan + ""
   function newFormat(specifier) {
     specifier = formatSpecifier(specifier)
-    var fill = specifier.fill,
+    let fill = specifier.fill,
       align = specifier.align,
       sign = specifier.sign,
       symbol = specifier.symbol,
@@ -223,10 +209,10 @@ export function (locale) {
     if (type === "n") (comma = true), (type = "g")
     else if (!formatTypes[type]) precision === undefined && (precision = 12), (trim = true), (type = "g")
     if (zero || (fill === "0" && align === "=")) (zero = true), (fill = "0"), (align = "=")
-    var prefix =
+    const prefix =
         symbol === "$" ? currencyPrefix : symbol === "#" && /[boxX]/.test(type) ? "0" + type.toLowerCase() : "",
       suffix = symbol === "$" ? currencySuffix : /[%p]/.test(type) ? percent : ""
-    var formatType = formatTypes[type],
+    const formatType = formatTypes[type],
       maybeSuffix = /[defgprs%]/.test(type)
     precision =
       precision === undefined
@@ -235,7 +221,7 @@ export function (locale) {
         ? Math.max(1, Math.min(21, precision))
         : Math.max(0, Math.min(20, precision))
     function format(value) {
-      var valuePrefix = prefix,
+      let valuePrefix = prefix,
         valueSuffix = suffix,
         i,
         n,
@@ -245,7 +231,7 @@ export function (locale) {
         value = ""
       } else {
         value = +value
-        var valueNegative = value < 0 || 1 / value < 0
+        let valueNegative = value < 0 || 1 / value < 0
         value = isNaN(value) ? nan : formatType(Math.abs(value), precision)
         if (trim) value = formatTrim(value)
         if (valueNegative && +value === 0 && sign !== "+") valueNegative = false
@@ -267,7 +253,7 @@ export function (locale) {
         }
       }
       if (comma && !zero) value = group(value, Infinity)
-      var length = valuePrefix.length + value.length + valueSuffix.length,
+      let length = valuePrefix.length + value.length + valueSuffix.length,
         padding = length < width ? new Array(width - length + 1).join(fill) : ""
       if (comma && zero)
         (value = group(padding + value, padding.length ? width - valueSuffix.length : Infinity)), (padding = "")
@@ -294,7 +280,7 @@ export function (locale) {
     return format
   }
   function formatPrefix(specifier, value) {
-    var f = newFormat(((specifier = formatSpecifier(specifier)), (specifier.type = "f"), specifier)),
+    const f = newFormat(((specifier = formatSpecifier(specifier)), (specifier.type = "f"), specifier)),
       e = Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3,
       k = Math.pow(10, -e),
       prefix = prefixes[8 + e / 3]
@@ -307,16 +293,14 @@ export function (locale) {
     formatPrefix: formatPrefix,
   }
 }
-import exponent from "./exponent.js"
-export function (step) {
+
+export function precisionFixed(step: number) {
   return Math.max(0, -exponent(Math.abs(step)))
 }
-import exponent from "./exponent.js"
-export function (step, value) {
+export function precisionPrefix(step: number, value: number) {
   return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3 - exponent(Math.abs(step)))
 }
-import exponent from "./exponent.js"
-export function (step, max) {
+export function precisionRound(step: number, max: number) {
   ;(step = Math.abs(step)), (max = Math.abs(max) - step)
   return Math.max(0, exponent(max) - exponent(step)) + 1
 }

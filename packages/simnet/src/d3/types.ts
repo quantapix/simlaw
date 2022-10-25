@@ -675,8 +675,6 @@ export interface FormatSpecifierObject {
   trim?: string | undefined
   type?: string | undefined
 }
-export function format(specifier: string): (n: number | { valueOf(): number }) => string
-export function formatPrefix(specifier: string, value: number): (n: number | { valueOf(): number }) => string
 export interface FormatSpecifier {
   fill: string
   align: ">" | "<" | "^" | "="
@@ -690,11 +688,7 @@ export interface FormatSpecifier {
   type: "e" | "f" | "g" | "r" | "s" | "%" | "p" | "b" | "o" | "d" | "x" | "X" | "c" | "" | "n"
   toString(): string
 }
-export function formatSpecifier(specifier: string): FormatSpecifier
 
-export function precisionFixed(step: number): number
-export function precisionPrefix(step: number, value: number): number
-export function precisionRound(step: number, max: number): number
 export interface GeoSphere {
   type: "Sphere"
 }
