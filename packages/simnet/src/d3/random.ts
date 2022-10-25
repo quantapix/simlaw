@@ -1,33 +1,34 @@
-import defaultSource from "./defaultSource.js"
-import irwinHall from "./irwinHall.js"
-export default (function sourceRandomBates(source) {
-  const I = irwinHall.source(source)
-  function randomBates(n) {
-    if ((n = +n) === 0) return source
+import type * as qt from "./types.js"
+
+export const src = Math.random
+
+export const bates: qt.RandomBates = (function s(x) {
+  const I = irwinHall.source(x)
+  function y(n) {
+    if ((n = +n) === 0) return x
     const randomIrwinHall = I(n)
     return function () {
       return randomIrwinHall() / n
     }
   }
-  randomBates.source = sourceRandomBates
-  return randomBates
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomBernoulli(source) {
-  function randomBernoulli(p) {
+  y.source = s
+  return y
+})(src)
+
+export const bernoulli: qt.RandomBernoulli = (function s(x) {
+  function y(p) {
     if ((p = +p) < 0 || p > 1) throw new RangeError("invalid p")
     return function () {
-      return Math.floor(source() + p)
+      return Math.floor(x() + p)
     }
   }
-  randomBernoulli.source = sourceRandomBernoulli
-  return randomBernoulli
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-import gamma from "./gamma.js"
-export default (function sourceRandomBeta(source) {
-  const G = gamma.source(source)
-  function randomBeta(alpha, beta) {
+  y.source = s
+  return y
+})(src)
+
+export const beta: qt.RandomBeta = (function s(x) {
+  const G = gamma.source(x)
+  function y(alpha, beta) {
     const X = G(alpha),
       Y = G(beta)
     return function () {
@@ -35,16 +36,14 @@ export default (function sourceRandomBeta(source) {
       return x === 0 ? 0 : x / (x + Y())
     }
   }
-  randomBeta.source = sourceRandomBeta
-  return randomBeta
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-import beta from "./beta.js"
-import geometric from "./geometric.js"
-export default (function sourceRandomBinomial(source) {
-  const G = geometric.source(source),
-    B = beta.source(source)
-  function randomBinomial(n, p) {
+  y.source = s
+  return y
+})(src)
+
+export const binomial: qt.RandomBinomial = (function s(x) {
+  const G = geometric.source(x),
+    B = beta.source(x)
+  function y(n, p) {
     n = +n
     if ((p = +p) >= 1) return () => n
     if (p <= 0) return () => 0
@@ -67,156 +66,140 @@ export default (function sourceRandomBinomial(source) {
       const sign = pp < 0.5,
         pFinal = sign ? pp : 1 - pp,
         g = G(pFinal)
-      for (var s = g(), k = 0; s <= nn; ++k) s += g()
+      for (let s = g(), k = 0; s <= nn; ++k) s += g()
       return acc + (sign ? k : nn - k)
     }
   }
-  randomBinomial.source = sourceRandomBinomial
-  return randomBinomial
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomCauchy(source) {
-  function randomCauchy(a, b) {
+  y.source = s
+  return y
+})(src)
+
+export const cauchy: qt.RandomCauchy = (function s(x) {
+  function y(a, b) {
     a = a == null ? 0 : +a
     b = b == null ? 1 : +b
     return function () {
-      return a + b * Math.tan(Math.PI * source())
+      return a + b * Math.tan(Math.PI * x())
     }
   }
-  randomCauchy.source = sourceRandomCauchy
-  return randomCauchy
-})(defaultSource)
-export default Math.random
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomExponential(source) {
-  function randomExponential(lambda) {
+  y.source = s
+  return y
+})(src)
+
+export const exponential: qt.RandomExponential = (function s(x) {
+  function y(lambda) {
     return function () {
-      return -Math.log1p(-source()) / lambda
+      return -Math.log1p(-x()) / lambda
     }
   }
-  randomExponential.source = sourceRandomExponential
-  return randomExponential
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-import normal from "./normal.js"
-export default (function sourceRandomGamma(source) {
-  const randomNormal = normal.source(source)()
-  function randomGamma(k, theta) {
+  y.source = s
+  return y
+})(src)
+
+export const gamma: qt.RandomGamma = (function s(x) {
+  const randomNormal = normal.source(x)()
+  function y(k, theta) {
     if ((k = +k) < 0) throw new RangeError("invalid k")
     if (k === 0) return () => 0
     theta = theta == null ? 1 : +theta
-    if (k === 1) return () => -Math.log1p(-source()) * theta
+    if (k === 1) return () => -Math.log1p(-x()) * theta
     const d = (k < 1 ? k + 1 : k) - 1 / 3,
       c = 1 / (3 * Math.sqrt(d)),
-      multiplier = k < 1 ? () => Math.pow(source(), 1 / k) : () => 1
+      multiplier = k < 1 ? () => Math.pow(x(), 1 / k) : () => 1
     return function () {
+      let u, v
       do {
         do {
-          var x = randomNormal(),
-            v = 1 + c * x
+          const x = randomNormal()
+          v = 1 + c * x
         } while (v <= 0)
         v *= v * v
-        var u = 1 - source()
+        u = 1 - x()
       } while (u >= 1 - 0.0331 * x * x * x * x && Math.log(u) >= 0.5 * x * x + d * (1 - v + Math.log(v)))
       return d * v * multiplier() * theta
     }
   }
-  randomGamma.source = sourceRandomGamma
-  return randomGamma
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomGeometric(source) {
-  function randomGeometric(p) {
+  y.source = s
+  return y
+})(src)
+
+export const geometric: qt.RandomGeometric = (function s(x) {
+  function y(p) {
     if ((p = +p) < 0 || p > 1) throw new RangeError("invalid p")
     if (p === 0) return () => Infinity
     if (p === 1) return () => 1
     p = Math.log1p(-p)
     return function () {
-      return 1 + Math.floor(Math.log1p(-source()) / p)
+      return 1 + Math.floor(Math.log1p(-x()) / p)
     }
   }
-  randomGeometric.source = sourceRandomGeometric
-  return randomGeometric
-})(defaultSource)
-export { default as randomUniform } from "./uniform.js"
-export { default as randomInt } from "./int.js"
-export { default as randomNormal } from "./normal.js"
-export { default as randomLogNormal } from "./logNormal.js"
-export { default as randomBates } from "./bates.js"
-export { default as randomIrwinHall } from "./irwinHall.js"
-export { default as randomExponential } from "./exponential.js"
-export { default as randomPareto } from "./pareto.js"
-export { default as randomBernoulli } from "./bernoulli.js"
-export { default as randomGeometric } from "./geometric.js"
-export { default as randomBinomial } from "./binomial.js"
-export { default as randomGamma } from "./gamma.js"
-export { default as randomBeta } from "./beta.js"
-export { default as randomWeibull } from "./weibull.js"
-export { default as randomCauchy } from "./cauchy.js"
-export { default as randomLogistic } from "./logistic.js"
-export { default as randomPoisson } from "./poisson.js"
-export { default as randomLcg } from "./lcg.js"
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomInt(source) {
-  function randomInt(min, max) {
+  y.source = s
+  return y
+})(src)
+
+export const int: qt.RandomInt = (function s(x) {
+  function y(min, max) {
     if (arguments.length < 2) (max = min), (min = 0)
     min = Math.floor(min)
     max = Math.floor(max) - min
     return function () {
-      return Math.floor(source() * max + min)
+      return Math.floor(x() * max + min)
     }
   }
-  randomInt.source = sourceRandomInt
-  return randomInt
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomIrwinHall(source) {
-  function randomIrwinHall(n) {
+  y.source = s
+  return y
+})(src)
+
+export const irwinHall: qt.RandomIrwinHall = (function s(x) {
+  function y(n) {
     if ((n = +n) <= 0) return () => 0
     return function () {
-      for (var sum = 0, i = n; i > 1; --i) sum += source()
-      return sum + i * source()
+      let sum = 0
+      let i = n
+      for (; i > 1; --i) sum += x()
+      return sum + i * x()
     }
   }
-  randomIrwinHall.source = sourceRandomIrwinHall
-  return randomIrwinHall
-})(defaultSource)
+  y.source = s
+  return y
+})(src)
+
 const mul = 0x19660d
 const inc = 0x3c6ef35f
 const eps = 1 / 0x100000000
+
 export function lcg(seed = Math.random()) {
   let state = (0 <= seed && seed < 1 ? seed / eps : Math.abs(seed)) | 0
   return () => ((state = (mul * state + inc) | 0), eps * (state >>> 0))
 }
-import defaultSource from "./defaultSource.js"
-import normal from "./normal.js"
-export default (function sourceRandomLogNormal(source) {
-  const N = normal.source(source)
-  function randomLogNormal() {
+
+export const logNormal: qt.RandomLogNormal = (function s(x) {
+  const N = normal.source(x)
+  function y() {
     const randomNormal = N.apply(this, arguments)
     return function () {
       return Math.exp(randomNormal())
     }
   }
-  randomLogNormal.source = sourceRandomLogNormal
-  return randomLogNormal
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomLogistic(source) {
-  function randomLogistic(a, b) {
+  y.source = s
+  return y
+})(src)
+
+export const logistic: qt.RandomLogistic = (function s(x) {
+  function y(a, b) {
     a = a == null ? 0 : +a
     b = b == null ? 1 : +b
     return function () {
-      const u = source()
+      const u = x()
       return a + b * Math.log(u / (1 - u))
     }
   }
-  randomLogistic.source = sourceRandomLogistic
-  return randomLogistic
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomNormal(source) {
-  function randomNormal(mu, sigma) {
+  y.source = s
+  return y
+})(src)
+
+export const normal: qt.RandomNormal = (function s(x) {
+  function y(mu, sigma) {
     let x, r
     mu = mu == null ? 0 : +mu
     sigma = sigma == null ? 1 : +sigma
@@ -225,35 +208,33 @@ export default (function sourceRandomNormal(source) {
       if (x != null) (y = x), (x = null)
       else
         do {
-          x = source() * 2 - 1
-          y = source() * 2 - 1
+          x = x() * 2 - 1
+          y = x() * 2 - 1
           r = x * x + y * y
         } while (!r || r > 1)
       return mu + sigma * y * Math.sqrt((-2 * Math.log(r)) / r)
     }
   }
-  randomNormal.source = sourceRandomNormal
-  return randomNormal
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomPareto(source) {
-  function randomPareto(alpha) {
+  y.source = s
+  return y
+})(src)
+
+export const pareto: qt.RandomPareto = (function s(x) {
+  function y(alpha) {
     if ((alpha = +alpha) < 0) throw new RangeError("invalid alpha")
     alpha = 1 / -alpha
     return function () {
-      return Math.pow(1 - source(), alpha)
+      return Math.pow(1 - x(), alpha)
     }
   }
-  randomPareto.source = sourceRandomPareto
-  return randomPareto
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-import binomial from "./binomial.js"
-import gamma from "./gamma.js"
-export default (function sourceRandomPoisson(source) {
-  const G = gamma.source(source),
-    B = binomial.source(source)
-  function randomPoisson(lambda) {
+  y.source = s
+  return y
+})(src)
+
+export const poisson: qt.RandomPoisson = (function s(x) {
+  const G = gamma.source(x),
+    B = binomial.source(x)
+  function y(lambda) {
     return function () {
       let acc = 0,
         l = lambda
@@ -264,43 +245,43 @@ export default (function sourceRandomPoisson(source) {
         acc += n
         l -= t
       }
-      for (var s = -Math.log1p(-source()), k = 0; s <= l; ++k) s -= Math.log1p(-source())
+      for (let s = -Math.log1p(-x()), k = 0; s <= l; ++k) s -= Math.log1p(-x())
       return acc + k
     }
   }
-  randomPoisson.source = sourceRandomPoisson
-  return randomPoisson
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomUniform(source) {
-  function randomUniform(min, max) {
+  y.source = s
+  return y
+})(src)
+
+export const uniform: qt.RandomUniform = (function s(x) {
+  function y(min, max) {
     min = min == null ? 0 : +min
     max = max == null ? 1 : +max
     if (arguments.length === 1) (max = min), (min = 0)
     else max -= min
     return function () {
-      return source() * max + min
+      return x() * max + min
     }
   }
-  randomUniform.source = sourceRandomUniform
-  return randomUniform
-})(defaultSource)
-import defaultSource from "./defaultSource.js"
-export default (function sourceRandomWeibull(source) {
-  function randomWeibull(k, a, b) {
-    let outerFunc
+  y.source = s
+  return y
+})(src)
+
+export const weibull: qt.RandomWeibull = (function s(x) {
+  function y(k, a, b) {
+    let outer: Function
     if ((k = +k) === 0) {
-      outerFunc = x => -Math.log(x)
+      outer = x => -Math.log(x)
     } else {
       k = 1 / k
-      outerFunc = x => Math.pow(x, k)
+      outer = x => Math.pow(x, k)
     }
     a = a == null ? 0 : +a
     b = b == null ? 1 : +b
     return function () {
-      return a + b * outerFunc(-Math.log1p(-source()))
+      return a + b * outer(-Math.log1p(-x()))
     }
   }
-  randomWeibull.source = sourceRandomWeibull
-  return randomWeibull
-})(defaultSource)
+  y.source = s
+  return y
+})(src)

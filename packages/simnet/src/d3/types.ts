@@ -1195,11 +1195,6 @@ export interface Path {
   toString(): string
 }
 
-export function polygonArea(polygon: Array<[number, number]>): number
-export function polygonCentroid(polygon: Array<[number, number]>): [number, number]
-export function polygonHull(points: Array<[number, number]>): Array<[number, number]> | null
-export function polygonContains(polygon: Array<[number, number]>, point: [number, number]): boolean
-export function polygonLength(polygon: Array<[number, number]>): number
 export interface QuadtreeLeaf<T> {
   data: T
   next?: QuadtreeLeaf<T> | undefined
@@ -1240,6 +1235,7 @@ export interface Quadtree<T> {
 }
 export function quadtree<T = [number, number]>(xs?: T[]): Quadtree<T>
 export function quadtree<T = [number, number]>(xs: T[], x: (x: T) => number, y: (x: T) => number): Quadtree<T>
+
 export interface RandomNumberGenerationSource {
   source(source: () => number): this
 }
@@ -1247,73 +1243,56 @@ export interface RandomUniform extends RandomNumberGenerationSource {
   (max?: number): () => number
   (min: number, max: number): () => number
 }
-export const randomUniform: RandomUniform
 export interface RandomInt extends RandomNumberGenerationSource {
   (max: number): () => number
   (min: number, max: number): () => number
 }
-export const randomInt: RandomInt
 export interface RandomNormal extends RandomNumberGenerationSource {
   (mu?: number, sigma?: number): () => number
 }
-export const randomNormal: RandomNormal
 export interface RandomLogNormal extends RandomNumberGenerationSource {
   (mu?: number, sigma?: number): () => number
 }
-export const randomLogNormal: RandomLogNormal
 export interface RandomBates extends RandomNumberGenerationSource {
   (n: number): () => number
 }
-export const randomBates: RandomBates
 export interface RandomIrwinHall extends RandomNumberGenerationSource {
   (n: number): () => number
 }
-export const randomIrwinHall: RandomIrwinHall
 export interface RandomExponential extends RandomNumberGenerationSource {
   (lambda: number): () => number
 }
-export const randomExponential: RandomExponential
 export interface RandomPareto extends RandomNumberGenerationSource {
   (alpha: number): () => number
 }
-export const randomPareto: RandomPareto
 export interface RandomBernoulli extends RandomNumberGenerationSource {
   (p: number): () => number
 }
-export const randomBernoulli: RandomBernoulli
 export interface RandomGeometric extends RandomNumberGenerationSource {
   (p: number): () => number
 }
-export const randomGeometric: RandomGeometric
 export interface RandomBinomial extends RandomNumberGenerationSource {
   (p: number): () => number
 }
-export const randomBinomial: RandomBinomial
 export interface RandomGamma extends RandomNumberGenerationSource {
   (k: number, theta?: number): () => number
 }
-export const randomGamma: RandomGamma
 export interface RandomBeta extends RandomNumberGenerationSource {
   (alpha: number, beta: number): () => number
 }
-export const randomBeta: RandomBeta
 export interface RandomWeibull extends RandomNumberGenerationSource {
   (k: number, a?: number, b?: number): () => number
 }
-export const randomWeibull: RandomWeibull
 export interface RandomCauchy extends RandomNumberGenerationSource {
   (a?: number, b?: number): () => number
 }
-export const randomCauchy: RandomCauchy
 export interface RandomLogistic extends RandomNumberGenerationSource {
   (a?: number, b?: number): () => number
 }
-export const randomLogistic: RandomLogistic
 export interface RandomPoisson extends RandomNumberGenerationSource {
   (lambda: number): () => number
 }
-export const randomPoisson: RandomPoisson
-export function randomLcg(seed?: number): () => number
+
 export interface InterpolatorFactory<T, U> {
   (a: T, b: T): (t: number) => U
 }
