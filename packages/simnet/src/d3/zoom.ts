@@ -1,4 +1,12 @@
-export default x => () => x
+import { dispatch } from "./dispatch.js"
+import { dragDisable, dragEnable } from "./drag.js"
+import { interpolateZoom } from "./interpolate.js"
+import { select, pointer } from "./selection.js"
+import { interrupt } from "./transition.js"
+import type * as qt from "./types.js"
+
+export const constant = x => () => x
+
 export function ZoomEvent(type, { sourceEvent, target, transform, dispatch }) {
   Object.defineProperties(this, {
     type: { value: type, enumerable: true, configurable: true },
@@ -8,76 +16,62 @@ export function ZoomEvent(type, { sourceEvent, target, transform, dispatch }) {
     _: { value: dispatch },
   })
 }
-export { default as zoom } from "./zoom.js"
-export { default as zoomTransform, identity as zoomIdentity, Transform as ZoomTransform } from "./transform.js"
 export function nopropagation(event) {
   event.stopImmediatePropagation()
 }
-export function (event) {
+export function noevent(event) {
   event.preventDefault()
   event.stopImmediatePropagation()
 }
-export function Transform(k, x, y) {
-  this.k = k
-  this.x = x
-  this.y = y
-}
-Transform.prototype = {
-  constructor: Transform,
-  scale: function (k) {
-    return k === 1 ? this : new Transform(this.k * k, this.x, this.y)
-  },
-  translate: function (x, y) {
-    return (x === 0) & (y === 0) ? this : new Transform(this.k, this.x + this.k * x, this.y + this.k * y)
-  },
-  apply: function (point) {
+export class Transform implements qt.ZoomTransform {
+  constructor(public k: number, public x: number, public y: number) {}
+  apply(point: [number, number]): [number, number] {
     return [point[0] * this.k + this.x, point[1] * this.k + this.y]
-  },
-  applyX: function (x) {
+  }
+  applyX(x: number) {
     return x * this.k + this.x
-  },
-  applyY: function (y) {
+  }
+  applyY(y: number) {
     return y * this.k + this.y
-  },
-  invert: function (location) {
-    return [(location[0] - this.x) / this.k, (location[1] - this.y) / this.k]
-  },
-  invertX: function (x) {
+  }
+  invert(point: [number, number]): [number, number] {
+    return [(point[0] - this.x) / this.k, (point[1] - this.y) / this.k]
+  }
+  invertX(x: number) {
     return (x - this.x) / this.k
-  },
-  invertY: function (y) {
+  }
+  invertY(y: number) {
     return (y - this.y) / this.k
-  },
-  rescaleX: function (x) {
+  }
+  rescaleX<T extends qt.ZoomScale>(x: T): T {
     return x.copy().domain(x.range().map(this.invertX, this).map(x.invert, x))
-  },
-  rescaleY: function (y) {
+  }
+  rescaleY<T extends qt.ZoomScale>(y: T): T {
     return y.copy().domain(y.range().map(this.invertY, this).map(y.invert, y))
-  },
-  toString: function () {
+  }
+  scale(k: number) {
+    return k === 1 ? this : new Transform(this.k * k, this.x, this.y)
+  }
+  toString() {
     return "translate(" + this.x + "," + this.y + ") scale(" + this.k + ")"
-  },
+  }
+  translate(x: number, y: number) {
+    return x === 0 && y === 0 ? this : new Transform(this.k, this.x + this.k * x, this.y + this.k * y)
+  }
 }
-export const identity = new Transform(1, 0, 0)
-transform.prototype = Transform.prototype
-export function transform(node) {
+
+export const identity: qt.ZoomTransform = new Transform(1, 0, 0)
+
+export function transform(node: qt.ZoomedElementBaseType): qt.ZoomTransform {
   while (!node.__zoom) if (!(node = node.parentNode)) return identity
   return node.__zoom
 }
-import { dispatch } from "./dispatch.js"
-import { dragDisable, dragEnable } from "./drag.js"
-import { interpolateZoom } from "./interpolate.js"
-import { select, pointer } from "./selection.js"
-import { interrupt } from "./transition.js"
-import constant from "./constant.js"
-import ZoomEvent from "./event.js"
-import { Transform, identity } from "./transform.js"
-import noevent, { nopropagation } from "./noevent.js"
+
 function defaultFilter(event) {
   return (!event.ctrlKey || event.type === "wheel") && !event.button
 }
 function defaultExtent() {
-  var e = this
+  let e = this
   if (e instanceof SVGElement) {
     e = e.ownerSVGElement || e
     if (e.hasAttribute("viewBox")) {
@@ -107,7 +101,7 @@ function defaultTouchable() {
   return navigator.maxTouchPoints || "ontouchstart" in this
 }
 function defaultConstrain(transform, extent, translateExtent) {
-  var dx0 = transform.invertX(extent[0][0]) - translateExtent[0][0],
+  const dx0 = transform.invertX(extent[0][0]) - translateExtent[0][0],
     dx1 = transform.invertX(extent[1][0]) - translateExtent[1][0],
     dy0 = transform.invertY(extent[0][1]) - translateExtent[0][1],
     dy1 = transform.invertY(extent[1][1]) - translateExtent[1][1]
@@ -116,8 +110,8 @@ function defaultConstrain(transform, extent, translateExtent) {
     dy1 > dy0 ? (dy0 + dy1) / 2 : Math.min(0, dy0) || Math.max(0, dy1)
   )
 }
-export function () {
-  var filter = defaultFilter,
+export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B, T> {
+  let filter = defaultFilter,
     extent = defaultExtent,
     constrain = defaultConstrain,
     wheelDelta = defaultWheelDelta,
@@ -150,7 +144,7 @@ export function () {
       .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)")
   }
   zoom.transform = function (collection, transform, point, event) {
-    var selection = collection.selection ? collection.selection() : collection
+    const selection = collection.selection ? collection.selection() : collection
     selection.property("__zoom", defaultTransform)
     if (collection !== selection) {
       schedule(collection, transform, point, event)
@@ -168,7 +162,7 @@ export function () {
     zoom.scaleTo(
       selection,
       function () {
-        var k0 = this.__zoom.k,
+        const k0 = this.__zoom.k,
           k1 = typeof k === "function" ? k.apply(this, arguments) : k
         return k0 * k1
       },
@@ -180,7 +174,7 @@ export function () {
     zoom.transform(
       selection,
       function () {
-        var e = extent.apply(this, arguments),
+        const e = extent.apply(this, arguments),
           t0 = this.__zoom,
           p0 = p == null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p,
           p1 = t0.invert(p0),
@@ -212,7 +206,7 @@ export function () {
     zoom.transform(
       selection,
       function () {
-        var e = extent.apply(this, arguments),
+        const e = extent.apply(this, arguments),
           t = this.__zoom,
           p0 = p == null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p
         return constrain(
@@ -236,7 +230,7 @@ export function () {
     return k === transform.k ? transform : new Transform(k, transform.x, transform.y)
   }
   function translate(transform, p0, p1) {
-    var x = p0[0] - p1[0] * transform.k,
+    const x = p0[0] - p1[0] * transform.k,
       y = p0[1] - p1[1] * transform.k
     return x === transform.x && y === transform.y ? transform : new Transform(transform.k, x, y)
   }
@@ -252,7 +246,7 @@ export function () {
         gesture(this, arguments).event(event).end()
       })
       .tween("zoom", function () {
-        var that = this,
+        const that = this,
           args = arguments,
           g = gesture(that, args).event(event),
           e = extent.apply(that, args),
@@ -264,7 +258,7 @@ export function () {
         return function (t) {
           if (t === 1) t = b // Avoid rounding error on end.
           else {
-            var l = i(t),
+            const l = i(t),
               k = w / l[2]
             t = new Transform(k, p[0] - l[0] * k, p[1] - l[1] * k)
           }
@@ -275,43 +269,43 @@ export function () {
   function gesture(that, args, clean) {
     return (!clean && that.__zooming) || new Gesture(that, args)
   }
-  function Gesture(that, args) {
-    this.that = that
-    this.args = args
-    this.active = 0
-    this.sourceEvent = null
-    this.extent = extent.apply(that, args)
-    this.taps = 0
-  }
-  Gesture.prototype = {
-    event: function (event) {
+  class Gesture {
+    constructor(that, args) {
+      this.that = that
+      this.args = args
+      this.active = 0
+      this.sourceEvent = null
+      this.extent = extent.apply(that, args)
+      this.taps = 0
+    }
+    event(event) {
       if (event) this.sourceEvent = event
       return this
-    },
-    start: function () {
+    }
+    start() {
       if (++this.active === 1) {
         this.that.__zooming = this
         this.emit("start")
       }
       return this
-    },
-    zoom: function (key, transform) {
+    }
+    zoom(key, transform) {
       if (this.mouse && key !== "mouse") this.mouse[1] = transform.invert(this.mouse[0])
       if (this.touch0 && key !== "touch") this.touch0[1] = transform.invert(this.touch0[0])
       if (this.touch1 && key !== "touch") this.touch1[1] = transform.invert(this.touch1[0])
       this.that.__zoom = transform
       this.emit("zoom")
       return this
-    },
-    end: function () {
+    }
+    end() {
       if (--this.active === 0) {
         delete this.that.__zooming
         this.emit("end")
       }
       return this
-    },
-    emit: function (type) {
-      var d = select(this.that).datum()
+    }
+    emit(type) {
+      const d = select(this.that).datum()
       listeners.call(
         type,
         this.that,
@@ -324,11 +318,11 @@ export function () {
         }),
         d
       )
-    },
+    }
   }
   function wheeled(event, ...args) {
     if (!filter.apply(this, arguments)) return
-    var g = gesture(this, args).event(event),
+    const g = gesture(this, args).event(event),
       t = this.__zoom,
       k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], t.k * Math.pow(2, wheelDelta.apply(this, arguments)))),
       p = pointer(event)
@@ -353,7 +347,7 @@ export function () {
   }
   function mousedowned(event, ...args) {
     if (touchending || !filter.apply(this, arguments)) return
-    var currentTarget = event.currentTarget,
+    const currentTarget = event.currentTarget,
       g = gesture(this, args, true).event(event),
       v = select(event.view).on("mousemove.zoom", mousemoved, true).on("mouseup.zoom", mouseupped, true),
       p = pointer(event, currentTarget),
@@ -367,7 +361,7 @@ export function () {
     function mousemoved(event) {
       noevent(event)
       if (!g.moved) {
-        var dx = event.clientX - x0,
+        const dx = event.clientX - x0,
           dy = event.clientY - y0
         g.moved = dx * dx + dy * dy > clickDistance2
       }
@@ -389,7 +383,7 @@ export function () {
   }
   function dblclicked(event, ...args) {
     if (!filter.apply(this, arguments)) return
-    var t0 = this.__zoom,
+    const t0 = this.__zoom,
       p0 = pointer(event.changedTouches ? event.changedTouches[0] : event, this),
       p1 = t0.invert(p0),
       k1 = t0.k * (event.shiftKey ? 0.5 : 2),
@@ -400,7 +394,7 @@ export function () {
   }
   function touchstarted(event, ...args) {
     if (!filter.apply(this, arguments)) return
-    var touches = event.touches,
+    let touches = event.touches,
       n = touches.length,
       g = gesture(this, args, event.changedTouches.length === n).event(event),
       started,
@@ -427,7 +421,7 @@ export function () {
   }
   function touchmoved(event, ...args) {
     if (!this.__zooming) return
-    var g = gesture(this, args).event(event),
+    let g = gesture(this, args).event(event),
       touches = event.changedTouches,
       n = touches.length,
       i,
@@ -457,7 +451,7 @@ export function () {
   }
   function touchended(event, ...args) {
     if (!this.__zooming) return
-    var g = gesture(this, args).event(event),
+    let g = gesture(this, args).event(event),
       touches = event.changedTouches,
       n = touches.length,
       i,
@@ -479,7 +473,7 @@ export function () {
       if (g.taps === 2) {
         t = pointer(t, this)
         if (Math.hypot(touchfirst[0] - t[0], touchfirst[1] - t[1]) < tapDistance) {
-          var p = select(this).on("dblclick.zoom")
+          const p = select(this).on("dblclick.zoom")
           if (p) p.apply(this, arguments)
         }
       }
@@ -533,7 +527,7 @@ export function () {
     return arguments.length ? ((interpolate = _), zoom) : interpolate
   }
   zoom.on = function () {
-    var value = listeners.on.apply(listeners, arguments)
+    const value = listeners.on.apply(listeners, arguments)
     return value === listeners ? zoom : value
   }
   zoom.clickDistance = function (_) {

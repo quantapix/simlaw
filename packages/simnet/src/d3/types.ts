@@ -2503,6 +2503,7 @@ export function transition<OldDatum>(name?: string): Transition<BaseType, OldDat
 export function transition<OldDatum>(
   transition: Transition<BaseType, any, BaseType, any>
 ): Transition<BaseType, OldDatum, null, undefined>
+
 export type ZoomedElementBaseType = Element
 export interface ZoomScale {
   domain(): number[] | Date[]
@@ -2580,15 +2581,13 @@ export interface ZoomBehavior<ZoomRefElement extends ZoomedElementBaseType, Datu
   on(typenames: string, listener: null): this
   on(typenames: string, listener: (this: ZoomRefElement, event: any, d: Datum) => void): this
 }
-export function zoom<ZoomRefElement extends ZoomedElementBaseType, Datum>(): ZoomBehavior<ZoomRefElement, Datum>
 export interface D3ZoomEvent<ZoomRefElement extends ZoomedElementBaseType, Datum> {
   target: ZoomBehavior<ZoomRefElement, Datum>
   type: "start" | "zoom" | "end" | string
   transform: ZoomTransform
   sourceEvent: any
 }
-export class ZoomTransform {
-  constructor(k: number, x: number, y: number)
+export interface ZoomTransform {
   readonly x: number
   readonly y: number
   readonly k: number
@@ -2604,5 +2603,3 @@ export class ZoomTransform {
   toString(): string
   translate(x: number, y: number): ZoomTransform
 }
-export function zoomTransform(node: ZoomedElementBaseType): ZoomTransform
-export const zoomIdentity: ZoomTransform
