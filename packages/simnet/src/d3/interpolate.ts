@@ -1,11 +1,17 @@
-import value from "./value.js"
-import numberArray, { isNumberArray } from "./numberArray.js"
+import { cubehelix as colorCubehelix } from "./color.js"
+import { hcl as colorHcl } from "./color.js"
+import { hsl as colorHsl } from "./color.js"
+import { lab as colorLab } from "./color.js"
+import { rgb as colorRgb } from "./color.js"
+import type * as qt from "./types.js"
 
-export function (a, b) {
+export function array<T extends any[]>(a: any[], b: T): qt.ArrayInterpolator<T>
+export function array<T extends qt.NumberArray>(a: qt.NumberArray | number[], b: T): (t: number) => T
+export function array(a: any, b: any) {
   return (isNumberArray(b) ? numberArray : genericArray)(a, b)
 }
 export function genericArray(a, b) {
-  var nb = b ? b.length : 0,
+  let nb = b ? b.length : 0,
     na = a ? Math.min(nb, a.length) : 0,
     x = new Array(na),
     c = new Array(nb),
@@ -17,37 +23,35 @@ export function genericArray(a, b) {
     return c
   }
 }
-export function basis(t1, v0, v1, v2, v3) {
-  var t2 = t1 * t1,
+function _basis(t1, v0, v1, v2, v3) {
+  const t2 = t1 * t1,
     t3 = t2 * t1
   return (
     ((1 - 3 * t1 + 3 * t2 - t3) * v0 + (4 - 6 * t2 + 3 * t3) * v1 + (1 + 3 * t1 + 3 * t2 - 3 * t3) * v2 + t3 * v3) / 6
   )
 }
-export function (values) {
-  var n = values.length - 1
+export function basis(xs: number[]): (t: number) => number {
+  const n = xs.length - 1
   return function (t) {
-    var i = t <= 0 ? (t = 0) : t >= 1 ? ((t = 1), n - 1) : Math.floor(t * n),
-      v1 = values[i],
-      v2 = values[i + 1],
-      v0 = i > 0 ? values[i - 1] : 2 * v1 - v2,
-      v3 = i < n - 1 ? values[i + 2] : 2 * v2 - v1
-    return basis((t - i / n) * n, v0, v1, v2, v3)
+    const i = t <= 0 ? (t = 0) : t >= 1 ? ((t = 1), n - 1) : Math.floor(t * n),
+      v1 = xs[i],
+      v2 = xs[i + 1],
+      v0 = i > 0 ? xs[i - 1] : 2 * v1 - v2,
+      v3 = i < n - 1 ? xs[i + 2] : 2 * v2 - v1
+    return _basis((t - i / n) * n, v0, v1, v2, v3)
   }
 }
-import { basis } from "./basis.js"
-export function (values) {
-  var n = values.length
+export function basisClosed(xs: number[]): (t: number) => number {
+  const n = xs.length
   return function (t) {
-    var i = Math.floor(((t %= 1) < 0 ? ++t : t) * n),
-      v0 = values[(i + n - 1) % n],
-      v1 = values[i % n],
-      v2 = values[(i + 1) % n],
-      v3 = values[(i + 2) % n]
-    return basis((t - i / n) * n, v0, v1, v2, v3)
+    const i = Math.floor(((t %= 1) < 0 ? ++t : t) * n),
+      v0 = xs[(i + n - 1) % n],
+      v1 = xs[i % n],
+      v2 = xs[(i + 1) % n],
+      v3 = xs[(i + 2) % n]
+    return _basis((t - i / n) * n, v0, v1, v2, v3)
   }
 }
-import constant from "./constant.js"
 function linear(a, d) {
   return function (t) {
     return a + t * d
@@ -64,7 +68,7 @@ function exponential(a, b, y) {
   )
 }
 export function hue(a, b) {
-  var d = b - a
+  const d = b - a
   return d ? linear(a, d > 180 || d < -180 ? d - 360 * Math.round(d / 360) : d) : constant(isNaN(a) ? b : a)
 }
 export function gamma(y) {
@@ -75,17 +79,17 @@ export function gamma(y) {
       }
 }
 export function nogamma(a, b) {
-  var d = b - a
+  const d = b - a
   return d ? linear(a, d) : constant(isNaN(a) ? b : a)
 }
-export default x => () => x
-import { cubehelix as colorCubehelix } from "./color.js"
-import color, { hue } from "./color.js"
-function cubehelix(hue) {
+export const color = nogamma
+export const constant = x => () => x
+
+function _cubehelix(hue) {
   return (function cubehelixGamma(y) {
     y = +y
     function cubehelix(start, end) {
-      var h = hue((start = colorCubehelix(start)).h, (end = colorCubehelix(end)).h),
+      const h = hue((start = colorCubehelix(start)).h, (end = colorCubehelix(end)).h),
         s = color(start.s, end.s),
         l = color(start.l, end.l),
         opacity = color(start.opacity, end.opacity)
@@ -101,10 +105,11 @@ function cubehelix(hue) {
     return cubehelix
   })(1)
 }
-export default cubehelix(hue)
-export const cubehelixLong = cubehelix(color)
-export function (a, b) {
-  var d = new Date()
+export const cubehelix: qt.ColorGammaInterpolationFactory = _cubehelix(hue)
+export const cubehelixLong: qt.ColorGammaInterpolationFactory = _cubehelix(color)
+
+export function date(a: Date, b: Date): (t: number) => Date {
+  const d = new Date()
   return (
     (a = +a),
     (b = +b),
@@ -113,17 +118,15 @@ export function (a, b) {
     }
   )
 }
-export function (range) {
-  var n = range.length
-  return function (t) {
-    return range[Math.max(0, Math.min(n - 1, Math.floor(t * n)))]
+export function discrete<T>(xs: T[]): (x: number) => T {
+  const n = xs.length
+  return function (x) {
+    return xs[Math.max(0, Math.min(n - 1, Math.floor(x * n)))]
   }
 }
-import { hcl as colorHcl } from "./color.js"
-import color, { hue } from "./color.js"
-function hcl(hue) {
+function _hcl(hue) {
   return function (start, end) {
-    var h = hue((start = colorHcl(start)).h, (end = colorHcl(end)).h),
+    const h = hue((start = colorHcl(start)).h, (end = colorHcl(end)).h),
       c = color(start.c, end.c),
       l = color(start.l, end.l),
       opacity = color(start.opacity, end.opacity)
@@ -136,13 +139,16 @@ function hcl(hue) {
     }
   }
 }
-export default hcl(hue)
-export const hclLong = hcl(color)
-import { hsl as colorHsl } from "./color.js"
-import color, { hue } from "./color.js"
-function hsl(hue) {
+export const hcl: (a: string | qt.ColorCommonInstance, b: string | qt.ColorCommonInstance) => (t: number) => string =
+  _hcl(hue)
+export const hclLong: (
+  a: string | qt.ColorCommonInstance,
+  b: string | qt.ColorCommonInstance
+) => (t: number) => string = _hcl(color)
+
+function _hsl(hue) {
   return function (start, end) {
-    var h = hue((start = colorHsl(start)).h, (end = colorHsl(end)).h),
+    const h = hue((start = colorHsl(start)).h, (end = colorHsl(end)).h),
       s = color(start.s, end.s),
       l = color(start.l, end.l),
       opacity = color(start.opacity, end.opacity)
@@ -155,45 +161,25 @@ function hsl(hue) {
     }
   }
 }
-export default hsl(hue)
-export const hslLong = hsl(color)
-import { hue } from "./color.js"
-export function (a, b) {
-  var i = hue(+a, +b)
+export const hsl: (a: string | qt.ColorCommonInstance, b: string | qt.ColorCommonInstance) => (t: number) => string =
+  _hsl(hue)
+export const hslLong: (
+  a: string | qt.ColorCommonInstance,
+  b: string | qt.ColorCommonInstance
+) => (t: number) => string = _hsl(color)
+export function interpolateHue(a: number, b: number): (t: number) => number {
+  const i = hue(+a, +b)
   return function (t) {
-    var x = i(t)
+    const x = i(t)
     return x - 360 * Math.floor(x / 360)
   }
 }
-export { default as interpolate } from "./value.js"
-export { default as interpolateArray } from "./array.js"
-export { default as interpolateBasis } from "./basis.js"
-export { default as interpolateBasisClosed } from "./basisClosed.js"
-export { default as interpolateDate } from "./date.js"
-export { default as interpolateDiscrete } from "./discrete.js"
-export { default as interpolateHue } from "./hue.js"
-export { default as interpolateNumber } from "./number.js"
-export { default as interpolateNumberArray } from "./numberArray.js"
-export { default as interpolateObject } from "./object.js"
-export { default as interpolateRound } from "./round.js"
-export { default as interpolateString } from "./string.js"
-export { interpolateTransformCss, interpolateTransformSvg } from "./transform/index.js"
-export { default as interpolateZoom } from "./zoom.js"
-export {
-  default as interpolateRgb,
-  rgbBasis as interpolateRgbBasis,
-  rgbBasisClosed as interpolateRgbBasisClosed,
-} from "./rgb.js"
-export { default as interpolateHsl, hslLong as interpolateHslLong } from "./hsl.js"
-export { default as interpolateLab } from "./lab.js"
-export { default as interpolateHcl, hclLong as interpolateHclLong } from "./hcl.js"
-export { default as interpolateCubehelix, cubehelixLong as interpolateCubehelixLong } from "./cubehelix.js"
-export { default as piecewise } from "./piecewise.js"
-export { default as quantize } from "./quantize.js"
-import { lab as colorLab } from "./color.js"
-import color from "./color.js"
-export function lab(start, end) {
-  var l = color((start = colorLab(start)).l, (end = colorLab(end)).l),
+
+export function lab(
+  start: string | qt.ColorCommonInstance,
+  end: string | qt.ColorCommonInstance
+): (t: number) => string {
+  const l = color((start = colorLab(start)).l, (end = colorLab(end)).l),
     a = color(start.a, end.a),
     b = color(start.b, end.b),
     opacity = color(start.opacity, end.opacity)
@@ -205,7 +191,7 @@ export function lab(start, end) {
     return start + ""
   }
 }
-export function (a, b) {
+export function number(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (t: number) => number {
   return (
     (a = +a),
     (b = +b),
@@ -214,9 +200,9 @@ export function (a, b) {
     }
   )
 }
-export function (a, b) {
+export function numberArray<T extends qt.NumberArray | number[]>(a: qt.NumberArray | number[], b: T): (t: number) => T {
   if (!b) b = []
-  var n = a ? Math.min(b.length, a.length) : 0,
+  let n = a ? Math.min(b.length, a.length) : 0,
     c = b.slice(),
     i
   return function (t) {
@@ -227,9 +213,8 @@ export function (a, b) {
 export function isNumberArray(x) {
   return ArrayBuffer.isView(x) && !(x instanceof DataView)
 }
-import value from "./value.js"
-export function (a, b) {
-  var i = {},
+export function object<T extends object>(a: any, b: T): (t: number) => T {
+  let i = {},
     c = {},
     k
   if (a === null || typeof a !== "object") a = {}
@@ -246,32 +231,39 @@ export function (a, b) {
     return c
   }
 }
-import { default as value } from "./value.js"
-export function piecewise(interpolate, values) {
+export function piecewise(values: qt.ZoomView[]): qt.ZoomInterpolator
+export function piecewise(
+  interpolate: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomInterpolator,
+  values: qt.ZoomView[]
+): qt.ZoomInterpolator
+export function piecewise<T extends any[]>(values: T[]): qt.ArrayInterpolator<T>
+export function piecewise<T extends any[]>(
+  interpolate: (a: any[], b: T) => qt.ArrayInterpolator<T>,
+  values: T[]
+): qt.ArrayInterpolator<T>
+export function piecewise(values: unknown[]): (t: number) => any
+export function piecewise<T>(interpolate: (a: T, b: T) => unknown, values: T[]): (t: number) => any
+export function piecewise(interpolate: any, values?: any) {
   if (values === undefined) (values = interpolate), (interpolate = value)
-  var i = 0,
+  let i = 0,
     n = values.length - 1,
     v = values[0],
     I = new Array(n < 0 ? 0 : n)
   while (i < n) I[i] = interpolate(v, (v = values[++i]))
   return function (t) {
-    var i = Math.max(0, Math.min(n - 1, Math.floor((t *= n))))
+    const i = Math.max(0, Math.min(n - 1, Math.floor((t *= n))))
     return I[i](t - i)
   }
 }
-export function (interpolator, n) {
-  var samples = new Array(n)
-  for (var i = 0; i < n; ++i) samples[i] = interpolator(i / (n - 1))
-  return samples
+export function quantize<T>(f: (t: number) => T, n: number): T[] {
+  const y = new Array(n)
+  for (let i = 0; i < n; ++i) y[i] = f(i / (n - 1))
+  return y
 }
-import { rgb as colorRgb } from "./color.js"
-import basis from "./basis.js"
-import basisClosed from "./basisClosed.js"
-import nogamma, { gamma } from "./color.js"
-export default (function rgbGamma(y) {
-  var color = gamma(y)
+export const rgb: qt.ColorGammaInterpolationFactory = (function rgbGamma(y) {
+  const color = gamma(y)
   function rgb(start, end) {
-    var r = color((start = colorRgb(start)).r, (end = colorRgb(end)).r),
+    const r = color((start = colorRgb(start)).r, (end = colorRgb(end)).r),
       g = color(start.g, end.g),
       b = color(start.b, end.b),
       opacity = nogamma(start.opacity, end.opacity)
@@ -288,7 +280,7 @@ export default (function rgbGamma(y) {
 })(1)
 function rgbSpline(spline) {
   return function (colors) {
-    var n = colors.length,
+    let n = colors.length,
       r = new Array(n),
       g = new Array(n),
       b = new Array(n),
@@ -312,9 +304,11 @@ function rgbSpline(spline) {
     }
   }
 }
-export const rgbBasis = rgbSpline(basis)
-export const rgbBasisClosed = rgbSpline(basisClosed)
-export function (a, b) {
+export const rgbBasis: (xs: Array<string | qt.ColorCommonInstance>) => (x: number) => string = rgbSpline(basis)
+export const rgbBasisClosed: (xs: Array<string | qt.ColorCommonInstance>) => (x: number) => string =
+  rgbSpline(basisClosed)
+
+export function round(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (t: number) => number {
   return (
     (a = +a),
     (b = +b),
@@ -323,8 +317,7 @@ export function (a, b) {
     }
   )
 }
-import number from "./number.js"
-var reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g,
+const reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g,
   reB = new RegExp(reA.source, "g")
 function zero(b) {
   return function () {
@@ -336,23 +329,23 @@ function one(b) {
     return b(t) + ""
   }
 }
-export function (a, b) {
-  var bi = (reA.lastIndex = reB.lastIndex = 0), // scan index for next number in b
-    am, // current match in a
-    bm, // current match in b
-    bs, // string preceding current number in b, if any
-    i = -1, // index in s
-    s = [], // string constants and placeholders
-    q = [] // number interpolators
+export function string(a: string | { toString(): string }, b: string | { toString(): string }): (t: number) => string {
+  let bi = (reA.lastIndex = reB.lastIndex = 0),
+    am,
+    bm,
+    bs,
+    i = -1,
+    s = [],
+    q = []
   ;(a = a + ""), (b = b + "")
   while ((am = reA.exec(a)) && (bm = reB.exec(b))) {
     if ((bs = bm.index) > bi) {
       bs = b.slice(bi, bs)
-      if (s[i]) s[i] += bs // coalesce with previous string
+      if (s[i]) s[i] += bs
       else s[++i] = bs
     }
     if ((am = am[0]) === (bm = bm[0])) {
-      if (s[i]) s[i] += bm // coalesce with previous string
+      if (s[i]) s[i] += bm
       else s[++i] = bm
     } else {
       s[++i] = null
@@ -362,7 +355,7 @@ export function (a, b) {
   }
   if (bi < b.length) {
     bs = b.slice(bi)
-    if (s[i]) s[i] += bs // coalesce with previous string
+    if (s[i]) s[i] += bs
     else s[++i] = bs
   }
   return s.length < 2
@@ -371,21 +364,21 @@ export function (a, b) {
       : zero(b)
     : ((b = q.length),
       function (t) {
-        for (var i = 0, o; i < b; ++i) s[(o = q[i]).i] = o.x(t)
+        for (let i = 0, o; i < b; ++i) s[(o = q[i]).i] = o.x(t)
         return s.join("")
       })
 }
-import { color } from "./color.js"
-import rgb from "./rgb.js"
-import { genericArray } from "./array.js"
-import date from "./date.js"
-import number from "./number.js"
-import object from "./object.js"
-import string from "./string.js"
-import constant from "./constant.js"
-import numberArray, { isNumberArray } from "./numberArray.js"
-export function (a, b) {
-  var t = typeof b,
+export function value(a: any, b: null): (t: number) => null
+export function value(a: any, b: boolean): (t: number) => boolean
+export function value(a: string | qt.ColorCommonInstance, b: qt.ColorCommonInstance): (t: number) => string
+export function value(a: Date, b: Date): (t: number) => Date
+export function value(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (t: number) => number
+export function value<T extends qt.NumberArray>(a: qt.NumberArray | number[], b: T): (t: number) => T
+export function value(a: string | { toString(): string }, b: string): (t: number) => string
+export function value<T extends any[]>(a: any[], b: T): (t: number) => T
+export function value<T extends object>(a: any, b: T): (t: number) => T
+export function value(a: any, b: any) {
+  let t = typeof b,
     c
   return b == null || t === "boolean"
     ? constant(b)
@@ -407,7 +400,7 @@ export function (a, b) {
         ? object
         : number)(a, b)
 }
-var epsilon2 = 1e-12
+const epsilon2 = 1e-12
 function cosh(x) {
   return ((x = Math.exp(x)) + 1 / x) / 2
 }
@@ -417,9 +410,9 @@ function sinh(x) {
 function tanh(x) {
   return ((x = Math.exp(2 * x)) - 1) / (x + 1)
 }
-export default (function zoomRho(rho, rho2, rho4) {
+export const zoom: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomInterpolator = (function zoomRho(rho, rho2, rho4) {
   function zoom(p0, p1) {
-    var ux0 = p0[0],
+    let ux0 = p0[0],
       uy0 = p0[1],
       w0 = p0[2],
       ux1 = p1[0],
@@ -436,14 +429,14 @@ export default (function zoomRho(rho, rho2, rho4) {
         return [ux0 + t * dx, uy0 + t * dy, w0 * Math.exp(rho * t * S)]
       }
     } else {
-      var d1 = Math.sqrt(d2),
+      const d1 = Math.sqrt(d2),
         b0 = (w1 * w1 - w0 * w0 + rho4 * d2) / (2 * w0 * rho2 * d1),
         b1 = (w1 * w1 - w0 * w0 - rho4 * d2) / (2 * w1 * rho2 * d1),
         r0 = Math.log(Math.sqrt(b0 * b0 + 1) - b0),
         r1 = Math.log(Math.sqrt(b1 * b1 + 1) - b1)
       S = (r1 - r0) / rho
       i = function (t) {
-        var s = t * S,
+        const s = t * S,
           coshr0 = cosh(r0),
           u = (w0 / (rho2 * d1)) * (coshr0 * tanh(rho * s + r0) - sinh(r0))
         return [ux0 + u * dx, uy0 + u * dy, (w0 * coshr0) / cosh(rho * s + r0)]
@@ -453,14 +446,15 @@ export default (function zoomRho(rho, rho2, rho4) {
     return i
   }
   zoom.rho = function (_) {
-    var _1 = Math.max(1e-3, +_),
+    const _1 = Math.max(1e-3, +_),
       _2 = _1 * _1,
       _4 = _2 * _2
     return zoomRho(_1, _2, _4)
   }
   return zoom
 })(Math.SQRT2, 2, 4)
-var degrees = 180 / Math.PI
+
+const degrees = 180 / Math.PI
 export const identity = {
   translateX: 0,
   translateY: 0,
@@ -469,8 +463,8 @@ export const identity = {
   scaleX: 1,
   scaleY: 1,
 }
-export function (a, b, c, d, e, f) {
-  var scaleX, scaleY, skewX
+export function decompose(a, b, c, d, e, f) {
+  let scaleX, scaleY, skewX
   if ((scaleX = Math.sqrt(a * a + b * b))) (a /= scaleX), (b /= scaleX)
   if ((skewX = a * c + b * d)) (c -= a * skewX), (d -= b * skewX)
   if ((scaleY = Math.sqrt(c * c + d * d))) (c /= scaleY), (d /= scaleY), (skewX /= scaleY)
@@ -484,15 +478,13 @@ export function (a, b, c, d, e, f) {
     scaleY: scaleY,
   }
 }
-import number from "../number.js"
-import { parseCss, parseSvg } from "./parse.js"
 function interpolateTransform(parse, pxComma, pxParen, degParen) {
   function pop(s) {
     return s.length ? s.pop() + " " : ""
   }
   function translate(xa, ya, xb, yb, s, q) {
     if (xa !== xb || ya !== yb) {
-      var i = s.push("translate(", null, pxComma, null, pxParen)
+      const i = s.push("translate(", null, pxComma, null, pxParen)
       q.push({ i: i - 4, x: number(xa, xb) }, { i: i - 2, x: number(ya, yb) })
     } else if (xb || yb) {
       s.push("translate(" + xb + pxComma + yb + pxParen)
@@ -516,14 +508,14 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
   }
   function scale(xa, ya, xb, yb, s, q) {
     if (xa !== xb || ya !== yb) {
-      var i = s.push(pop(s) + "scale(", null, ",", null, ")")
+      const i = s.push(pop(s) + "scale(", null, ",", null, ")")
       q.push({ i: i - 4, x: number(xa, xb) }, { i: i - 2, x: number(ya, yb) })
     } else if (xb !== 1 || yb !== 1) {
       s.push(pop(s) + "scale(" + xb + "," + yb + ")")
     }
   }
   return function (a, b) {
-    var s = [], // string constants and placeholders
+    const s = [], // string constants and placeholders
       q = [] // number interpolators
     ;(a = parse(a)), (b = parse(b))
     translate(a.translateX, a.translateY, b.translateX, b.translateY, s, q)
@@ -532,7 +524,7 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
     scale(a.scaleX, a.scaleY, b.scaleX, b.scaleY, s, q)
     a = b = null // gc
     return function (t) {
-      var i = -1,
+      let i = -1,
         n = q.length,
         o
       while (++i < n) s[(o = q[i]).i] = o.x(t)
@@ -540,11 +532,20 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
     }
   }
 }
-export const interpolateTransformCss = interpolateTransform(parseCss, "px, ", "px)", "deg)")
-export const interpolateTransformSvg = interpolateTransform(parseSvg, ", ", ")", ")")
-import decompose, { identity } from "./decompose.js"
-var svgNode
-/* eslint-disable no-undef */
+export const interpolateTransformCss: (a: string, b: string) => (x: number) => string = interpolateTransform(
+  parseCss,
+  "px, ",
+  "px)",
+  "deg)"
+)
+export const interpolateTransformSvg: (a: string, b: string) => (x: number) => string = interpolateTransform(
+  parseSvg,
+  ", ",
+  ")",
+  ")"
+)
+
+let svgNode
 export function parseCss(value) {
   const m = new (typeof DOMMatrix === "function" ? DOMMatrix : WebKitCSSMatrix)(value + "")
   return m.isIdentity ? identity : decompose(m.a, m.b, m.c, m.d, m.e, m.f)

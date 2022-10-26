@@ -1116,72 +1116,8 @@ export type TypedArray =
   | Float32Array
   | Float64Array
 export type NumberArray = TypedArray | DataView
-export function interpolate(a: any, b: null): (t: number) => null
-export function interpolate(a: any, b: boolean): (t: number) => boolean
-export function interpolate(a: string | ColorCommonInstance, b: ColorCommonInstance): (t: number) => string
-export function interpolate(a: Date, b: Date): (t: number) => Date
-export function interpolate(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (t: number) => number
-export function interpolate<T extends NumberArray>(a: NumberArray | number[], b: T): (t: number) => T
-export function interpolate(a: string | { toString(): string }, b: string): (t: number) => string
-export function interpolate<U extends any[]>(a: any[], b: U): (t: number) => U
-export function interpolate<U extends object>(a: any, b: U): (t: number) => U
-export function interpolateNumber(
-  a: number | { valueOf(): number },
-  b: number | { valueOf(): number }
-): (t: number) => number
-export function interpolateRound(
-  a: number | { valueOf(): number },
-  b: number | { valueOf(): number }
-): (t: number) => number
-export function interpolateString(
-  a: string | { toString(): string },
-  b: string | { toString(): string }
-): (t: number) => string
-export function interpolateDate(a: Date, b: Date): (t: number) => Date
+
 export type ArrayInterpolator<A extends any[]> = (t: number) => A
-export function interpolateArray<A extends any[]>(a: any[], b: A): ArrayInterpolator<A>
-export function interpolateArray<T extends NumberArray>(a: NumberArray | number[], b: T): (t: number) => T
-export function interpolateNumberArray<T extends NumberArray | number[]>(
-  a: NumberArray | number[],
-  b: T
-): (t: number) => T
-export function interpolateObject<U extends object>(a: any, b: U): (t: number) => U
-export function interpolateTransformCss(a: string, b: string): (t: number) => string
-export function interpolateTransformSvg(a: string, b: string): (t: number) => string
-export function interpolateZoom(a: ZoomView, b: ZoomView): ZoomInterpolator
-export function interpolateDiscrete<T>(values: T[]): (t: number) => T
-export function quantize<T>(interpolator: (t: number) => T, n: number): T[]
-export const interpolateRgb: ColorGammaInterpolationFactory
-export function interpolateRgbBasis(colors: Array<string | ColorCommonInstance>): (t: number) => string
-export function interpolateRgbBasisClosed(colors: Array<string | ColorCommonInstance>): (t: number) => string
-export function interpolateHsl(a: string | ColorCommonInstance, b: string | ColorCommonInstance): (t: number) => string
-export function interpolateHslLong(
-  a: string | ColorCommonInstance,
-  b: string | ColorCommonInstance
-): (t: number) => string
-export function interpolateLab(a: string | ColorCommonInstance, b: string | ColorCommonInstance): (t: number) => string
-export function interpolateHcl(a: string | ColorCommonInstance, b: string | ColorCommonInstance): (t: number) => string
-export function interpolateHclLong(
-  a: string | ColorCommonInstance,
-  b: string | ColorCommonInstance
-): (t: number) => string
-export const interpolateCubehelix: ColorGammaInterpolationFactory
-export const interpolateCubehelixLong: ColorGammaInterpolationFactory
-export function interpolateHue(a: number, b: number): (t: number) => number
-export function interpolateBasis(splineNodes: number[]): (t: number) => number
-export function interpolateBasisClosed(splineNodes: number[]): (t: number) => number
-export function piecewise(values: ZoomView[]): ZoomInterpolator
-export function piecewise(
-  interpolate: (a: ZoomView, b: ZoomView) => ZoomInterpolator,
-  values: ZoomView[]
-): ZoomInterpolator
-export function piecewise<A extends any[]>(values: A[]): ArrayInterpolator<A>
-export function piecewise<A extends any[]>(
-  interpolate: (a: any[], b: A) => ArrayInterpolator<A>,
-  values: A[]
-): ArrayInterpolator<A>
-export function piecewise(values: unknown[]): (t: number) => any
-export function piecewise<TData>(interpolate: (a: TData, b: TData) => unknown, values: TData[]): (t: number) => any
 
 export interface Path {
   arc(x: number, y: number, r: number, a0: number, a1: number, ccw?: boolean): void

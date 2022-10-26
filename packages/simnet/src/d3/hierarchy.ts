@@ -306,12 +306,6 @@ export function constant(x) {
     return x
   }
 }
-export { default as pack } from "./pack/index.js"
-export { default as packSiblings } from "./pack/siblings.js"
-export { default as packEnclose } from "./pack/enclose.js"
-export { default as partition } from "./partition.js"
-export { default as stratify } from "./stratify.js"
-export { default as tree } from "./tree.js"
 
 const a = 1664525
 const c = 1013904223
