@@ -13,9 +13,9 @@ export interface Bisector<T, U> {
   right(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
   center(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
 }
-export interface Bin<Datum, Value extends number | Date | undefined> extends Array<Datum> {
-  x0: Value | undefined
-  x1: Value | undefined
+export interface Bin<T, V extends number | Date | undefined> extends Array<T> {
+  x0: V | undefined
+  x1: V | undefined
 }
 export type ThresholdCountGenerator<Value extends number | undefined = number | undefined> = (
   xs: ArrayLike<Value>,
@@ -32,24 +32,23 @@ export type ThresholdDateArrayGenerator<Value extends Date | undefined> = (
   min: Date,
   max: Date
 ) => Value[]
-export interface HistogramCommon<Datum, Value extends number | Date | undefined> {
-  (data: ArrayLike<Datum>): Array<Bin<Datum, Value>>
-  value(): (d: Datum, i: number, data: ArrayLike<Datum>) => Value
-  value(valueAccessor: (d: Datum, i: number, data: ArrayLike<Datum>) => Value): this
+export interface HistogramCommon<T, V extends number | Date | undefined> {
+  (data: ArrayLike<T>): Array<Bin<T, V>>
+  value(): (x: T, i: number, data: ArrayLike<T>) => V
+  value(valueAccessor: (x: T, i: number, data: ArrayLike<T>) => V): this
 }
-export interface HistogramGeneratorDate<Datum, Value extends Date | undefined> extends HistogramCommon<Datum, Date> {
-  domain(): (xs: ArrayLike<Value>) => [Date, Date]
-  domain(domain: [Date, Date] | ((xs: ArrayLike<Value>) => [Date, Date])): this
-  thresholds(): ThresholdDateArrayGenerator<Value>
-  thresholds(thresholds: ArrayLike<Value> | ThresholdDateArrayGenerator<Value>): this
+export interface HistogramGeneratorDate<T, V extends Date | undefined> extends HistogramCommon<T, Date> {
+  domain(): (xs: ArrayLike<V>) => [Date, Date]
+  domain(domain: [Date, Date] | ((xs: ArrayLike<V>) => [Date, Date])): this
+  thresholds(): ThresholdDateArrayGenerator<V>
+  thresholds(thresholds: ArrayLike<V> | ThresholdDateArrayGenerator<V>): this
 }
-export interface HistogramGeneratorNumber<Datum, Value extends number | undefined>
-  extends HistogramCommon<Datum, Value> {
-  domain(): (xs: Iterable<Value>) => [number, number] | [undefined, undefined]
-  domain(domain: [number, number] | ((xs: Iterable<Value>) => [number, number] | [undefined, undefined])): this
-  thresholds(): ThresholdCountGenerator<Value> | ThresholdNumberArrayGenerator<Value>
-  thresholds(count: number | ThresholdCountGenerator<Value>): this
-  thresholds(thresholds: ArrayLike<Value> | ThresholdNumberArrayGenerator<Value>): this
+export interface HistogramGeneratorNumber<T, V extends number | undefined> extends HistogramCommon<T, V> {
+  domain(): (xs: Iterable<V>) => [number, number] | [undefined, undefined]
+  domain(domain: [number, number] | ((xs: Iterable<V>) => [number, number] | [undefined, undefined])): this
+  thresholds(): ThresholdCountGenerator<V> | ThresholdNumberArrayGenerator<V>
+  thresholds(count: number | ThresholdCountGenerator<V>): this
+  thresholds(thresholds: ArrayLike<V> | ThresholdNumberArrayGenerator<V>): this
 }
 export class InternMap<K = any, V = any> extends Map<K, V> {}
 export class InternSet<T = any> extends Set<T> {}
@@ -77,7 +76,7 @@ export interface Axis<T> {
   scale(scale: AxisScale<T>): this
   ticks(count: number, specifier?: string): this
   ticks(interval: AxisTimeInterval, specifier?: string): this
-  ticks(arg0: any, ...args: any[]): this
+  ticks(arg0: any, ...xs: any[]): this
   tickArguments(): any[]
   tickArguments(args: any[]): this
   tickValues(): T[] | null
@@ -99,7 +98,7 @@ export interface Axis<T> {
 }
 export type BrushSelection = [[number, number], [number, number]] | [number, number]
 export interface BrushBehavior<T> {
-  (group: Selection<SVGGElement, T, any, any>, ...args: any[]): void
+  (group: Selection<SVGGElement, T, any, any>, ...xs: any[]): void
   move(
     group: Selection<SVGGElement, T, any, any> | TransitionLike<SVGGElement, T>,
     selection: null | BrushSelection | ValueFn<SVGGElement, T, BrushSelection>,
@@ -168,39 +167,38 @@ export interface Ribbon {
   source: RibbonSubgroup
   target: RibbonSubgroup
 }
-export interface RibbonGenerator<This, RibbonDatum, RibbonSubgroupDatum> {
-  (this: This, d: RibbonDatum, ...args: any[]): void
-  (this: This, d: RibbonDatum, ...args: any[]): string | null
-  source(): (this: This, d: RibbonDatum, ...args: any[]) => RibbonSubgroupDatum
-  source(source: (this: This, d: RibbonDatum, ...args: any[]) => RibbonSubgroupDatum): this
-  target(): (this: This, d: RibbonDatum, ...args: any[]) => RibbonSubgroupDatum
-  target(target: (this: This, d: RibbonDatum, ...args: any[]) => RibbonSubgroupDatum): this
-  radius(): (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number
+export interface RibbonGenerator<This, T, S> {
+  (this: This, x: T, ...xs: any[]): void
+  (this: This, x: T, ...xs: any[]): string | null
+  source(): (this: This, x: T, ...xs: any[]) => S
+  source(source: (this: This, x: T, ...xs: any[]) => S): this
+  target(): (this: This, x: T, ...xs: any[]) => S
+  target(target: (this: This, x: T, ...xs: any[]) => S): this
+  radius(): (this: This, d: S, ...xs: any[]) => number
   radius(radius: number): this
-  radius(radius: (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number): this
-  sourceRadius(): (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number
+  radius(radius: (this: This, d: S, ...xs: any[]) => number): this
+  sourceRadius(): (this: This, d: S, ...xs: any[]) => number
   sourceRadius(radius: number): this
-  sourceRadius(radius: (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number): this
-  targetRadius(): (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number
+  sourceRadius(radius: (this: This, d: S, ...xs: any[]) => number): this
+  targetRadius(): (this: This, d: S, ...xs: any[]) => number
   targetRadius(radius: number): this
-  targetRadius(radius: (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number): this
-  startAngle(): (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number
+  targetRadius(radius: (this: This, d: S, ...xs: any[]) => number): this
+  startAngle(): (this: This, d: S, ...xs: any[]) => number
   startAngle(angle: number): this
-  startAngle(angle: (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number): this
-  endAngle(): (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number
+  startAngle(angle: (this: This, d: S, ...xs: any[]) => number): this
+  endAngle(): (this: This, d: S, ...xs: any[]) => number
   endAngle(angle: number): this
-  endAngle(angle: (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number): this
-  padAngle(): (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number
+  endAngle(angle: (this: This, d: S, ...xs: any[]) => number): this
+  padAngle(): (this: This, d: S, ...xs: any[]) => number
   padAngle(angle: number): this
-  padAngle(angle: (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number): this
+  padAngle(angle: (this: This, d: S, ...xs: any[]) => number): this
   context(): CanvasRenderingContext2D | null
   context(context: CanvasRenderingContext2D | null): this
 }
-export interface RibbonArrowGenerator<This, RibbonDatum, RibbonSubgroupDatum>
-  extends RibbonGenerator<This, RibbonDatum, RibbonSubgroupDatum> {
-  headRadius(): (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number
+export interface RibbonArrowGenerator<This, T, S> extends RibbonGenerator<This, T, S> {
+  headRadius(): (this: This, d: S, ...xs: any[]) => number
   headRadius(radius: number): this
-  headRadius(radius: (this: This, d: RibbonSubgroupDatum, ...args: any[]) => number): this
+  headRadius(radius: (this: This, d: S, ...xs: any[]) => number): this
 }
 export type ColorSpaceObject = RGBColor | HSLColor | LabColor | HCLColor | CubehelixColor
 export interface ColorCommonInstance {
@@ -361,14 +359,14 @@ export interface Contours {
     thresholds: number | number[] | ThresholdCountGenerator<number> | ThresholdNumberArrayGenerator<number>
   ): this
 }
-export interface ContourDensity<Datum = [number, number]> {
-  (data: Datum[]): ContourMultiPolygon[]
-  x(): (d: Datum) => number
-  x(x: (d: Datum) => number): this
-  y(): (d: Datum) => number
-  y(y: (d: Datum) => number): this
-  weight(): (d: Datum) => number
-  weight(weight: (d: Datum) => number): this
+export interface ContourDensity<T = [number, number]> {
+  (data: T[]): ContourMultiPolygon[]
+  x(): (x: T) => number
+  x(x: (x: T) => number): this
+  y(): (x: T) => number
+  y(y: (x: T) => number): this
+  weight(): (x: T) => number
+  weight(weight: (x: T) => number): this
   size(): [number, number]
   size(size: [number, number]): this
   cellSize(): number
@@ -447,10 +445,10 @@ export interface Voronoi<T> {
 }
 export interface Dispatch<T extends object> {
   apply(type: string, that?: T, args?: any[]): void
-  call(type: string, that?: T, ...args: any[]): void
+  call(type: string, that?: T, ...xs: any[]): void
   copy(): Dispatch<T>
-  on(typenames: string): ((this: T, ...args: any[]) => void) | undefined
-  on(typenames: string, callback: null | ((this: T, ...args: any[]) => void)): this
+  on(typenames: string): ((this: T, ...xs: any[]) => void) | undefined
+  on(typenames: string, callback: null | ((this: T, ...xs: any[]) => void)): this
 }
 export type DraggedElementBaseType = Element
 export type DragContainerElement = HTMLElement | SVGSVGElement | SVGGElement
@@ -458,26 +456,26 @@ export interface SubjectPosition {
   x: number
   y: number
 }
-export interface DragBehavior<GElement extends DraggedElementBaseType, Datum, Subject> extends Function {
-  (selection: Selection<GElement, Datum, any, any>, ...args: any[]): void
-  container(): ValueFn<GElement, Datum, DragContainerElement>
-  container(accessor: ValueFn<GElement, Datum, DragContainerElement>): this
+export interface DragBehavior<B extends DraggedElementBaseType, T, Subject> extends Function {
+  (selection: Selection<B, T, any, any>, ...xs: any[]): void
+  container(): ValueFn<B, T, DragContainerElement>
+  container(accessor: ValueFn<B, T, DragContainerElement>): this
   container(container: DragContainerElement): this
-  filter(): (this: GElement, event: any, d: Datum) => boolean
-  filter(filterFn: (this: GElement, event: any, d: Datum) => boolean): this
-  touchable(): ValueFn<GElement, Datum, boolean>
+  filter(): (this: B, event: any, x: T) => boolean
+  filter(filterFn: (this: B, event: any, x: T) => boolean): this
+  touchable(): ValueFn<B, T, boolean>
   touchable(touchable: boolean): this
-  touchable(touchable: ValueFn<GElement, Datum, boolean>): this
-  subject(): (this: GElement, event: any, d: Datum) => Subject
-  subject(accessor: (this: GElement, event: any, d: Datum) => Subject): this
+  touchable(touchable: ValueFn<B, T, boolean>): this
+  subject(): (this: B, event: any, x: T) => Subject
+  subject(accessor: (this: B, event: any, x: T) => Subject): this
   clickDistance(): number
   clickDistance(distance: number): this
-  on(typenames: string): ((this: GElement, event: any, d: Datum) => void) | undefined
+  on(typenames: string): ((this: B, event: any, x: T) => void) | undefined
   on(typenames: string, listener: null): this
-  on(typenames: string, listener: (this: GElement, event: any, d: Datum) => void): this
+  on(typenames: string, listener: (this: B, event: any, x: T) => void): this
 }
-export interface D3DragEvent<GElement extends DraggedElementBaseType, Datum, Subject> {
-  target: DragBehavior<GElement, Datum, Subject>
+export interface D3DragEvent<B extends DraggedElementBaseType, T, Subject> {
+  target: DragBehavior<B, T, Subject>
   type: "start" | "drag" | "end" | string
   subject: Subject
   x: number
@@ -487,9 +485,9 @@ export interface D3DragEvent<GElement extends DraggedElementBaseType, Datum, Sub
   identifier: "mouse" | number
   active: number
   sourceEvent: any
-  on(typenames: string): ((this: GElement, event: any, d: Datum) => void) | undefined
+  on(typenames: string): ((this: B, event: any, x: T) => void) | undefined
   on(typenames: string, listener: null): this
-  on(typenames: string, listener: (this: GElement, event: any, d: Datum) => void): this
+  on(typenames: string, listener: (this: B, event: any, x: T) => void): this
 }
 export type DSVRowString<Columns extends string = string> = {
   [key in Columns]: string | undefined
@@ -744,18 +742,18 @@ export interface GeoRotation {
   invert(point: [number, number]): [number, number]
 }
 export function geoRotation(angles: [number, number] | [number, number, number]): GeoRotation
-export interface GeoCircleGenerator<This = any, Datum = any> {
-  (this: This, d?: Datum, ...args: any[]): GeoJSON.Polygon
-  center(): (this: This, d: Datum, ...args: any[]) => [number, number]
-  center(center: [number, number] | ((this: This, d: Datum, ...args: any[]) => [number, number])): this
-  radius(): (this: This, d: Datum, ...args: any[]) => number
-  radius(radius: number | ((this: This, d: Datum, ...args: any[]) => number)): this
-  precision(): (this: This, d: Datum, ...args: any[]) => number
-  precision(precision: number | ((this: This, d: Datum, ...args: any[]) => number)): this
+export interface GeoCircleGenerator<This = any, T = any> {
+  (this: This, d?: T, ...xs: any[]): GeoJSON.Polygon
+  center(): (this: This, x: T, ...xs: any[]) => [number, number]
+  center(center: [number, number] | ((this: This, x: T, ...xs: any[]) => [number, number])): this
+  radius(): (this: This, x: T, ...xs: any[]) => number
+  radius(radius: number | ((this: This, x: T, ...xs: any[]) => number)): this
+  precision(): (this: This, x: T, ...xs: any[]) => number
+  precision(precision: number | ((this: This, x: T, ...xs: any[]) => number)): this
 }
 export function geoCircle(): GeoCircleGenerator
-export function geoCircle<Datum>(): GeoCircleGenerator<any, Datum>
-export function geoCircle<This, Datum>(): GeoCircleGenerator<This, Datum>
+export function geoCircle<T>(): GeoCircleGenerator<any, T>
+export function geoCircle<This, T>(): GeoCircleGenerator<This, T>
 export interface GeoGraticuleGenerator {
   (): GeoJSON.MultiLineString
   lines(): GeoJSON.LineString[]
@@ -851,31 +849,31 @@ export interface GeoContext {
   lineTo(x: number, y: number): void
   moveTo(x: number, y: number): void
 }
-export interface GeoPath<This = any, DatumObject extends GeoPermissibleObjects = GeoPermissibleObjects> {
-  (this: This, object: DatumObject, ...args: any[]): string | null
-  (this: This, object: DatumObject, ...args: any[]): void
-  area(object: DatumObject): number
-  bounds(object: DatumObject): [[number, number], [number, number]]
-  centroid(object: DatumObject): [number, number]
-  measure(object: DatumObject): number
+export interface GeoPath<This = any, T extends GeoPermissibleObjects = GeoPermissibleObjects> {
+  (this: This, object: T, ...xs: any[]): string | null
+  (this: This, object: T, ...xs: any[]): void
+  area(object: T): number
+  bounds(object: T): [[number, number], [number, number]]
+  centroid(object: T): [number, number]
+  measure(object: T): number
   context<C extends GeoContext | null>(): C
   context(context: null | GeoContext): this
   projection<P extends GeoConicProjection | GeoProjection | GeoStreamWrapper | null>(): P
   projection(projection: null | GeoProjection | GeoStreamWrapper): this
-  pointRadius(): ((this: This, object: DatumObject, ...args: any[]) => number) | number
-  pointRadius(value: number | ((this: This, object: DatumObject, ...args: any[]) => number)): this
+  pointRadius(): ((this: This, object: T, ...xs: any[]) => number) | number
+  pointRadius(value: number | ((this: This, object: T, ...xs: any[]) => number)): this
 }
 export function geoPath(projection?: GeoProjection | GeoStreamWrapper | null, context?: GeoContext | null): GeoPath
-export function geoPath<DatumObject extends GeoPermissibleObjects>(
+export function geoPath<T extends GeoPermissibleObjects>(
   projection?: GeoProjection | GeoStreamWrapper | null,
   context?: GeoContext | null
-): GeoPath<any, DatumObject>
-export function geoPath<This, DatumObject extends GeoPermissibleObjects>(
+): GeoPath<any, T>
+export function geoPath<This, T extends GeoPermissibleObjects>(
   projection?: GeoProjection | GeoStreamWrapper | null,
   context?: GeoContext | null
-): GeoPath<This, DatumObject>
+): GeoPath<This, T>
 export function geoProjection(project: GeoRawProjection): GeoProjection
-export function geoProjectionMutator(factory: (...args: any[]) => GeoRawProjection): () => GeoProjection
+export function geoProjectionMutator(factory: (...xs: any[]) => GeoRawProjection): () => GeoProjection
 export function geoAzimuthalEqualArea(): GeoProjection
 export function geoAzimuthalEqualAreaRaw(): GeoRawProjection
 export function geoAzimuthalEquidistant(): GeoProjection
@@ -982,14 +980,14 @@ export interface StratifyOperator<T> {
   path(f: ((x: T, i: number, xs: T[]) => string) | null | undefined): this
 }
 
-export interface HierarchyPointLink<Datum> {
-  source: HierarchyPointNode<Datum>
-  target: HierarchyPointNode<Datum>
+export interface HierarchyPointLink<T> {
+  source: HierarchyPointNode<T>
+  target: HierarchyPointNode<T>
 }
-export interface HierarchyPointNode<Datum> extends HierarchyNode<Datum> {
+export interface HierarchyPointNode<T> extends HierarchyNode<T> {
   x: number
   y: number
-  links(): Array<HierarchyPointLink<Datum>>
+  links(): Array<HierarchyPointLink<T>>
 }
 
 export interface ClusterLayout<T> {
@@ -1056,8 +1054,8 @@ export interface RatioSquarifyTilingFactory {
   (x: HierarchyRectangularNode<any>, x0: number, y0: number, x1: number, y1: number): void
   ratio(x: number): RatioSquarifyTilingFactory
 }
-export interface PartitionLayout<Datum> {
-  (x: HierarchyNode<Datum>): HierarchyRectangularNode<Datum>
+export interface PartitionLayout<T> {
+  (x: HierarchyNode<T>): HierarchyRectangularNode<T>
   padding(): number
   padding(x: number): this
   round(): boolean
@@ -1660,62 +1658,44 @@ export interface CustomEventParameters {
   cancelable: boolean
   detail: any
 }
-export type ValueFn<T extends BaseType, Datum, Result> = (
-  this: T,
-  datum: Datum,
-  i: number,
-  groups: T[] | ArrayLike<T>
-) => Result
-export interface TransitionLike<GElement extends BaseType, Datum> {
-  selection(): Selection<GElement, Datum, any, any>
-  on(type: string, listener: null): TransitionLike<GElement, Datum>
-  on(type: string, listener: ValueFn<GElement, Datum, void>): TransitionLike<GElement, Datum>
-  tween(name: string, tweenFn: null): TransitionLike<GElement, Datum>
-  tween(name: string, tweenFn: ValueFn<GElement, Datum, (t: number) => void>): TransitionLike<GElement, Datum>
+export type ValueFn<B extends BaseType, T, Result> = (this: B, x: T, i: number, groups: B[] | ArrayLike<B>) => Result
+export interface TransitionLike<B extends BaseType, T> {
+  selection(): Selection<B, T, any, any>
+  on(type: string, listener: null): TransitionLike<B, T>
+  on(type: string, listener: ValueFn<B, T, void>): TransitionLike<B, T>
+  tween(name: string, tweenFn: null): TransitionLike<B, T>
+  tween(name: string, tweenFn: ValueFn<B, T, (t: number) => void>): TransitionLike<B, T>
 }
-export function select<GElement extends BaseType, OldDatum>(
-  selector: string
-): Selection<GElement, OldDatum, HTMLElement, any>
-export function select<GElement extends BaseType, OldDatum>(
-  node: GElement
-): Selection<GElement, OldDatum, null, undefined>
+export function select<B extends BaseType, T>(selector: string): Selection<B, T, HTMLElement, any>
+export function select<B extends BaseType, T>(node: B): Selection<B, T, null, undefined>
 export function selectAll(selector?: null): Selection<null, undefined, null, undefined>
-export function selectAll<GElement extends BaseType, OldDatum>(
-  selector: string
-): Selection<GElement, OldDatum, HTMLElement, any>
-export function selectAll<GElement extends BaseType, OldDatum>(
-  nodes: GElement[] | ArrayLike<GElement> | Iterable<GElement>
-): Selection<GElement, OldDatum, null, undefined>
-export interface Selection<GElement extends BaseType, Datum, PElement extends BaseType, PDatum> {
-  select<DescElement extends BaseType>(selector: string): Selection<DescElement, Datum, PElement, PDatum>
-  select<DescElement extends BaseType>(selector: null): Selection<null, undefined, PElement, PDatum>
-  select<DescElement extends BaseType>(
-    selector: ValueFn<GElement, Datum, DescElement>
-  ): Selection<DescElement, Datum, PElement, PDatum>
-  selectAll(selector?: null): Selection<null, undefined, GElement, Datum>
-  selectAll<DescElement extends BaseType, OldDatum>(selector: string): Selection<DescElement, OldDatum, GElement, Datum>
-  selectAll<DescElement extends BaseType, OldDatum>(
-    selector: ValueFn<GElement, Datum, DescElement[] | ArrayLike<DescElement> | Iterable<DescElement>>
-  ): Selection<DescElement, OldDatum, GElement, Datum>
-  filter(selector: string): Selection<GElement, Datum, PElement, PDatum>
-  filter<FilteredElement extends BaseType>(selector: string): Selection<FilteredElement, Datum, PElement, PDatum>
-  filter(selector: ValueFn<GElement, Datum, boolean>): Selection<GElement, Datum, PElement, PDatum>
-  filter<FilteredElement extends BaseType>(
-    selector: ValueFn<GElement, Datum, boolean>
-  ): Selection<FilteredElement, Datum, PElement, PDatum>
-  merge(
-    other: Selection<GElement, Datum, PElement, PDatum> | TransitionLike<GElement, Datum>
-  ): Selection<GElement, Datum, PElement, PDatum>
-  selectChild<DescElement extends BaseType>(selector?: string): Selection<DescElement, Datum, PElement, PDatum>
+export function selectAll<B extends BaseType, T>(selector: string): Selection<B, T, HTMLElement, any>
+export function selectAll<B extends BaseType, T>(
+  nodes: B[] | ArrayLike<B> | Iterable<B>
+): Selection<B, T, null, undefined>
+
+export interface Selection<B extends BaseType, T, PElement extends BaseType, P> {
+  select<DescElement extends BaseType>(selector: string): Selection<DescElement, T, PElement, P>
+  select<DescElement extends BaseType>(selector: null): Selection<null, undefined, PElement, P>
+  select<DescElement extends BaseType>(selector: ValueFn<B, T, DescElement>): Selection<DescElement, T, PElement, P>
+  selectAll(selector?: null): Selection<null, undefined, B, T>
+  selectAll<DescElement extends BaseType, O>(selector: string): Selection<DescElement, O, B, T>
+  selectAll<DescElement extends BaseType, O>(
+    selector: ValueFn<B, T, DescElement[] | ArrayLike<DescElement> | Iterable<DescElement>>
+  ): Selection<DescElement, O, B, T>
+  filter(selector: string): Selection<B, T, PElement, P>
+  filter<FilteredElement extends BaseType>(selector: string): Selection<FilteredElement, T, PElement, P>
+  filter(selector: ValueFn<B, T, boolean>): Selection<B, T, PElement, P>
+  filter<FilteredElement extends BaseType>(selector: ValueFn<B, T, boolean>): Selection<FilteredElement, T, PElement, P>
+  merge(other: Selection<B, T, PElement, P> | TransitionLike<B, T>): Selection<B, T, PElement, P>
+  selectChild<DescElement extends BaseType>(selector?: string): Selection<DescElement, T, PElement, P>
   selectChild<ResultElement extends BaseType, ChildElement extends BaseType>(
     selector: (child: ChildElement, i: number, children: ChildElement[]) => boolean
-  ): Selection<ResultElement, Datum, PElement, PDatum>
-  selectChildren<DescElement extends BaseType, OldDatum>(
-    selector?: string
-  ): Selection<DescElement, OldDatum, GElement, Datum>
+  ): Selection<ResultElement, T, PElement, P>
+  selectChildren<DescElement extends BaseType, O>(selector?: string): Selection<DescElement, O, B, T>
   selectChildren<ResultElement extends BaseType, ResultDatum, ChildElement extends BaseType>(
     selector: (child: ChildElement, i: number, children: ChildElement[]) => boolean
-  ): Selection<ResultElement, ResultDatum, GElement, Datum>
+  ): Selection<ResultElement, ResultDatum, B, T>
   selection(): this
   attr(name: string): string
   attr(
@@ -1726,89 +1706,79 @@ export interface Selection<GElement extends BaseType, Datum, PElement extends Ba
       | number
       | boolean
       | ReadonlyArray<string | number>
-      | ValueFn<GElement, Datum, null | string | number | boolean | ReadonlyArray<string | number>>
+      | ValueFn<B, T, null | string | number | boolean | ReadonlyArray<string | number>>
   ): this
   classed(names: string): boolean
   classed(names: string, value: boolean): this
-  classed(names: string, value: ValueFn<GElement, Datum, boolean>): this
+  classed(names: string, value: ValueFn<B, T, boolean>): this
   style(name: string): string
   style(name: string, value: null): this
   style(name: string, value: string | number | boolean, priority?: null | "important"): this
-  style(
-    name: string,
-    value: ValueFn<GElement, Datum, string | number | boolean | null>,
-    priority?: null | "important"
-  ): this
+  style(name: string, value: ValueFn<B, T, string | number | boolean | null>, priority?: null | "important"): this
   property(name: string): any
   property<T>(name: Local<T>): T | undefined
-  property(name: string, value: ValueFn<GElement, Datum, any> | null): this
+  property(name: string, value: ValueFn<B, T, any> | null): this
   property(name: string, value: any): this
-  property<T>(name: Local<T>, value: ValueFn<GElement, Datum, T>): this
+  property<T>(name: Local<T>, value: ValueFn<B, T, T>): this
   property<T>(name: Local<T>, value: T): this
   text(): string
-  text(value: null | string | number | boolean | ValueFn<GElement, Datum, string | number | boolean | null>): this
+  text(value: null | string | number | boolean | ValueFn<B, T, string | number | boolean | null>): this
   html(): string
-  html(value: null | string | ValueFn<GElement, Datum, string | null>): this
-  append<K extends keyof ElementTagNameMap>(type: K): Selection<ElementTagNameMap[K], Datum, PElement, PDatum>
-  append<ChildElement extends BaseType>(type: string): Selection<ChildElement, Datum, PElement, PDatum>
-  append<ChildElement extends BaseType>(
-    type: ValueFn<GElement, Datum, ChildElement>
-  ): Selection<ChildElement, Datum, PElement, PDatum>
+  html(value: null | string | ValueFn<B, T, string | null>): this
+  append<K extends keyof ElementTagNameMap>(type: K): Selection<ElementTagNameMap[K], T, PElement, P>
+  append<ChildElement extends BaseType>(type: string): Selection<ChildElement, T, PElement, P>
+  append<ChildElement extends BaseType>(type: ValueFn<B, T, ChildElement>): Selection<ChildElement, T, PElement, P>
   insert<K extends keyof ElementTagNameMap>(
     type: K,
-    before?: string | ValueFn<GElement, Datum, BaseType>
-  ): Selection<ElementTagNameMap[K], Datum, PElement, PDatum>
+    before?: string | ValueFn<B, T, BaseType>
+  ): Selection<ElementTagNameMap[K], T, PElement, P>
   insert<ChildElement extends BaseType>(
-    type: string | ValueFn<GElement, Datum, ChildElement>,
-    before?: string | ValueFn<GElement, Datum, BaseType>
-  ): Selection<ChildElement, Datum, PElement, PDatum>
+    type: string | ValueFn<B, T, ChildElement>,
+    before?: string | ValueFn<B, T, BaseType>
+  ): Selection<ChildElement, T, PElement, P>
   remove(): this
-  clone(deep?: boolean): Selection<GElement, Datum, PElement, PDatum>
-  sort(comparator?: (a: Datum, b: Datum) => number): this
+  clone(deep?: boolean): Selection<B, T, PElement, P>
+  sort(comparator?: (a: T, b: T) => number): this
   order(): this
   raise(): this
   lower(): this
-  data(): Datum[]
+  data(): T[]
   data<NewDatum>(
-    data: NewDatum[] | Iterable<NewDatum> | ValueFn<PElement, PDatum, NewDatum[] | Iterable<NewDatum>>,
-    key?: ValueFn<GElement | PElement, Datum | NewDatum, KeyType>
-  ): Selection<GElement, NewDatum, PElement, PDatum>
-  join<K extends keyof ElementTagNameMap, OldDatum = Datum>(
+    data: NewDatum[] | Iterable<NewDatum> | ValueFn<PElement, P, NewDatum[] | Iterable<NewDatum>>,
+    key?: ValueFn<B | PElement, T | NewDatum, KeyType>
+  ): Selection<B, NewDatum, PElement, P>
+  join<K extends keyof ElementTagNameMap, OldDatum = T>(
     enter: K,
-    update?: (
-      elem: Selection<GElement, Datum, PElement, PDatum>
-    ) => Selection<GElement, Datum, PElement, PDatum> | TransitionLike<GElement, Datum> | undefined,
-    exit?: (elem: Selection<GElement, OldDatum, PElement, PDatum>) => void
-  ): Selection<GElement | ElementTagNameMap[K], Datum, PElement, PDatum>
-  join<ChildElement extends BaseType, OldDatum = Datum>(
+    update?: (elem: Selection<B, T, PElement, P>) => Selection<B, T, PElement, P> | TransitionLike<B, T> | undefined,
+    exit?: (elem: Selection<B, OldDatum, PElement, P>) => void
+  ): Selection<B | ElementTagNameMap[K], T, PElement, P>
+  join<ChildElement extends BaseType, OldDatum = T>(
     enter:
       | string
       | ((
-          elem: Selection<EnterElement, Datum, PElement, PDatum>
-        ) => Selection<ChildElement, Datum, PElement, PDatum> | TransitionLike<GElement, Datum>),
-    update?: (
-      elem: Selection<GElement, Datum, PElement, PDatum>
-    ) => Selection<GElement, Datum, PElement, PDatum> | TransitionLike<GElement, Datum> | undefined,
-    exit?: (elem: Selection<GElement, OldDatum, PElement, PDatum>) => void
-  ): Selection<ChildElement | GElement, Datum, PElement, PDatum>
-  enter(): Selection<EnterElement, Datum, PElement, PDatum>
-  exit<OldDatum>(): Selection<GElement, OldDatum, PElement, PDatum>
-  datum(): Datum
-  datum(value: null): Selection<GElement, undefined, PElement, PDatum>
-  datum<NewDatum>(value: ValueFn<GElement, Datum, NewDatum>): Selection<GElement, NewDatum, PElement, PDatum>
-  datum<NewDatum>(value: NewDatum): Selection<GElement, NewDatum, PElement, PDatum>
-  on(typenames: string): ((this: GElement, event: any, d: Datum) => void) | undefined
+          elem: Selection<EnterElement, T, PElement, P>
+        ) => Selection<ChildElement, T, PElement, P> | TransitionLike<B, T>),
+    update?: (elem: Selection<B, T, PElement, P>) => Selection<B, T, PElement, P> | TransitionLike<B, T> | undefined,
+    exit?: (elem: Selection<B, OldDatum, PElement, P>) => void
+  ): Selection<ChildElement | B, T, PElement, P>
+  enter(): Selection<EnterElement, T, PElement, P>
+  exit<OldDatum>(): Selection<B, OldDatum, PElement, P>
+  datum(): T
+  datum(value: null): Selection<B, undefined, PElement, P>
+  datum<NewDatum>(value: ValueFn<B, T, NewDatum>): Selection<B, NewDatum, PElement, P>
+  datum<NewDatum>(value: NewDatum): Selection<B, NewDatum, PElement, P>
+  on(typenames: string): ((this: B, event: any, x: T) => void) | undefined
   on(typenames: string, listener: null): this
-  on(typenames: string, listener: (this: GElement, event: any, d: Datum) => void, options?: any): this
+  on(typenames: string, listener: (this: B, event: any, x: T) => void, options?: any): this
   dispatch(type: string, parameters?: CustomEventParameters): this
-  dispatch(type: string, parameters?: ValueFn<GElement, Datum, CustomEventParameters>): this
-  each(func: ValueFn<GElement, Datum, void>): this
-  call(func: (selection: Selection<GElement, Datum, PElement, PDatum>, ...args: any[]) => void, ...args: any[]): this
+  dispatch(type: string, parameters?: ValueFn<B, T, CustomEventParameters>): this
+  each(func: ValueFn<B, T, void>): this
+  call(func: (selection: Selection<B, T, PElement, P>, ...xs: any[]) => void, ...xs: any[]): this
   empty(): boolean
-  nodes(): GElement[]
-  node(): GElement | null
+  nodes(): B[]
+  node(): B | null
   size(): number
-  [Symbol.iterator](): Iterator<GElement>
+  [Symbol.iterator](): Iterator<B>
 }
 export type SelectionFn = () => Selection<HTMLElement, any, null, undefined>
 export const selection: SelectionFn
@@ -1842,7 +1812,7 @@ export function matcher(selector: string): (this: BaseType) => boolean
 export function selector<DescElement extends Element>(selector: string): (this: BaseType) => DescElement
 export function selectorAll<DescElement extends Element>(selector: string): (this: BaseType) => NodeListOf<DescElement>
 declare global {
-  interface CanvasRenderingContext2D {} // tslint:disable-line no-empty-interface
+  interface CanvasRenderingContext2D {}
 }
 export interface CanvasPath_D3Shape {
   arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, anticlockwise?: boolean): void
@@ -1871,36 +1841,33 @@ export interface DefaultArcObject {
   endAngle: number
   padAngle?: number | undefined
 }
-export interface Arc<This, Datum> {
-  (this: This, d: Datum, ...args: any[]): string | null
-  (this: This, d: Datum, ...args: any[]): void
-  centroid(d: Datum, ...args: any[]): [number, number]
-  innerRadius(): (this: This, d: Datum, ...args: any[]) => number
+export interface Arc<This, T> {
+  (this: This, x: T, ...xs: any[]): string | null
+  (this: This, x: T, ...xs: any[]): void
+  centroid(x: T, ...xs: any[]): [number, number]
+  innerRadius(): (this: This, x: T, ...xs: any[]) => number
   innerRadius(radius: number): this
-  innerRadius(radius: (this: This, d: Datum, ...args: any[]) => number): this
-  outerRadius(): (this: This, d: Datum, ...args: any[]) => number
+  innerRadius(radius: (this: This, x: T, ...xs: any[]) => number): this
+  outerRadius(): (this: This, x: T, ...xs: any[]) => number
   outerRadius(radius: number): this
-  outerRadius(radius: (this: This, d: Datum, ...args: any[]) => number): this
-  cornerRadius(): (this: This, d: Datum, ...args: any[]) => number
+  outerRadius(radius: (this: This, x: T, ...xs: any[]) => number): this
+  cornerRadius(): (this: This, x: T, ...xs: any[]) => number
   cornerRadius(radius: number): this
-  cornerRadius(radius: (this: This, d: Datum, ...args: any[]) => number): this
-  startAngle(): (this: This, d: Datum, ...args: any[]) => number
+  cornerRadius(radius: (this: This, x: T, ...xs: any[]) => number): this
+  startAngle(): (this: This, x: T, ...xs: any[]) => number
   startAngle(angle: number): this
-  startAngle(angle: (this: This, d: Datum, ...args: any[]) => number): this
-  endAngle(): (this: This, d: Datum, ...args: any[]) => number
+  startAngle(angle: (this: This, x: T, ...xs: any[]) => number): this
+  endAngle(): (this: This, x: T, ...xs: any[]) => number
   endAngle(angle: number): this
-  endAngle(angle: (this: This, d: Datum, ...args: any[]) => number): this
-  padAngle(): (this: This, d: Datum, ...args: any[]) => number | undefined
+  endAngle(angle: (this: This, x: T, ...xs: any[]) => number): this
+  padAngle(): (this: This, x: T, ...xs: any[]) => number | undefined
   padAngle(angle: number | undefined): this
-  padAngle(angle: (this: This, d: Datum, ...args: any[]) => number | undefined): this
-  padRadius(): ((this: This, d: Datum, ...args: any[]) => number) | null
-  padRadius(radius: null | number | ((this: This, d: Datum, ...args: any[]) => number)): this
+  padAngle(angle: (this: This, x: T, ...xs: any[]) => number | undefined): this
+  padRadius(): ((this: This, x: T, ...xs: any[]) => number) | null
+  padRadius(radius: null | number | ((this: This, x: T, ...xs: any[]) => number)): this
   context(): CanvasRenderingContext2D | null
   context(context: CanvasRenderingContext2D | null): this
 }
-export function arc(): Arc<any, DefaultArcObject>
-export function arc<Datum>(): Arc<any, Datum>
-export function arc<This, Datum>(): Arc<This, Datum>
 export interface PieArcDatum<T> {
   data: T
   value: number
@@ -1909,74 +1876,65 @@ export interface PieArcDatum<T> {
   endAngle: number
   padAngle: number
 }
-export interface Pie<This, Datum> {
-  (this: This, data: Datum[], ...args: any[]): Array<PieArcDatum<Datum>>
-  value(): (d: Datum, i: number, data: Datum[]) => number
+export interface Pie<This, T> {
+  (this: This, data: T[], ...xs: any[]): Array<PieArcDatum<T>>
+  value(): (x: T, i: number, data: T[]) => number
   value(value: number): this
-  value(value: (d: Datum, i: number, data: Datum[]) => number): this
-  sort(): ((a: Datum, b: Datum) => number) | null
-  sort(comparator: (a: Datum, b: Datum) => number): this
+  value(value: (x: T, i: number, data: T[]) => number): this
+  sort(): ((a: T, b: T) => number) | null
+  sort(comparator: (a: T, b: T) => number): this
   sort(comparator: null): this
   sortValues(): ((a: number, b: number) => number) | null
   sortValues(comparator: ((a: number, b: number) => number) | null): this
-  startAngle(): (this: This, data: Datum[], ...args: any[]) => number
+  startAngle(): (this: This, data: T[], ...xs: any[]) => number
   startAngle(angle: number): this
-  startAngle(angle: (this: This, data: Datum[], ...args: any[]) => number): this
-  endAngle(): (this: This, data: Datum[], ...args: any[]) => number
+  startAngle(angle: (this: This, data: T[], ...xs: any[]) => number): this
+  endAngle(): (this: This, data: T[], ...xs: any[]) => number
   endAngle(angle: number): this
-  endAngle(angle: (this: This, data: Datum[], ...args: any[]) => number): this
-  padAngle(): (this: This, data: Datum[], ...args: any[]) => number
+  endAngle(angle: (this: This, data: T[], ...xs: any[]) => number): this
+  padAngle(): (this: This, data: T[], ...xs: any[]) => number
   padAngle(angle: number): this
-  padAngle(angle: (this: This, data: Datum[], ...args: any[]) => number): this
+  padAngle(angle: (this: This, data: T[], ...xs: any[]) => number): this
 }
-export function pie(): Pie<any, number | { valueOf(): number }>
-export function pie<Datum>(): Pie<any, Datum>
-export function pie<This, Datum>(): Pie<This, Datum>
-export interface Line<Datum> {
-  (data: Iterable<Datum> | Datum[]): string | null
-  (data: Iterable<Datum> | Datum[]): void
-  x(): (d: Datum, i: number, data: Datum[]) => number
+export interface Line<T> {
+  (data: Iterable<T> | T[]): string | null
+  (data: Iterable<T> | T[]): void
+  x(): (x: T, i: number, data: T[]) => number
   x(x: number): this
-  x(x: (d: Datum, i: number, data: Datum[]) => number): this
-  y(): (d: Datum, i: number, data: Datum[]) => number
+  x(x: (x: T, i: number, data: T[]) => number): this
+  y(): (x: T, i: number, data: T[]) => number
   y(y: number): this
-  y(y: (d: Datum, i: number, data: Datum[]) => number): this
-  defined(): (d: Datum, i: number, data: Datum[]) => boolean
+  y(y: (x: T, i: number, data: T[]) => number): this
+  defined(): (x: T, i: number, data: T[]) => boolean
   defined(defined: boolean): this
-  defined(defined: (d: Datum, i: number, data: Datum[]) => boolean): this
+  defined(defined: (x: T, i: number, data: T[]) => boolean): this
   curve(): CurveFactory | CurveFactoryLineOnly
   curve<C extends CurveFactory | CurveFactoryLineOnly>(): C
   curve(curve: CurveFactory | CurveFactoryLineOnly): this
   context(): CanvasRenderingContext2D | null
   context(context: CanvasRenderingContext2D | null): this
 }
-export function line<Datum = [number, number]>(
-  x?: number | ((d: Datum, i: number, data: Datum[]) => number),
-  y?: number | ((d: Datum, i: number, data: Datum[]) => number)
-): Line<Datum>
-export interface LineRadial<Datum> {
-  (data: Iterable<Datum> | Datum[]): string | null
-  (data: Iterable<Datum> | Datum[]): void
-  angle(): (d: Datum, i: number, data: Datum[]) => number
+export interface LineRadial<T> {
+  (data: Iterable<T> | T[]): string | null
+  (data: Iterable<T> | T[]): void
+  angle(): (x: T, i: number, data: T[]) => number
   angle(angle: number): this
-  angle(angle: (d: Datum, i: number, data: Datum[]) => number): this
-  radius(): (d: Datum, i: number, data: Datum[]) => number
+  angle(angle: (x: T, i: number, data: T[]) => number): this
+  radius(): (x: T, i: number, data: T[]) => number
   radius(radius: number): this
-  radius(radius: (d: Datum, i: number, data: Datum[]) => number): this
-  defined(): (d: Datum, i: number, data: Datum[]) => boolean
+  radius(radius: (x: T, i: number, data: T[]) => number): this
+  defined(): (x: T, i: number, data: T[]) => boolean
   defined(defined: boolean): this
-  defined(defined: (d: Datum, i: number, data: Datum[]) => boolean): this
+  defined(defined: (x: T, i: number, data: T[]) => boolean): this
   curve(): CurveFactory | CurveFactoryLineOnly
   curve<C extends CurveFactory | CurveFactoryLineOnly>(): C
   curve(curve: CurveFactory | CurveFactoryLineOnly): this
   context(): CanvasRenderingContext2D | null
   context(context: CanvasRenderingContext2D | null): this
 }
-export function lineRadial(): LineRadial<[number, number]>
-export function lineRadial<Datum>(): LineRadial<Datum>
-export type RadialLine<Datum> = LineRadial<Datum>
+export type RadialLine<T> = LineRadial<T>
 export function radialLine(): RadialLine<[number, number]>
-export function radialLine<Datum>(): RadialLine<Datum>
+export function radialLine<T>(): RadialLine<T>
 
 export interface Area<T> {
   (xs: Iterable<T> | T[]): string | null
@@ -2046,11 +2004,9 @@ export interface AreaRadial<T> {
   startAngle(f: (x: T, i: number, xs: T[]) => number): this
   startAngle(x: number): this
 }
-export function areaRadial(): AreaRadial<[number, number]>
-export function areaRadial<Datum>(): AreaRadial<Datum>
-export type RadialArea<Datum> = AreaRadial<Datum>
+export type RadialArea<T> = AreaRadial<T>
 export function radialArea(): RadialArea<[number, number]>
-export function radialArea<Datum>(): RadialArea<Datum>
+export function radialArea<T>(): RadialArea<T>
 
 export interface CurveGeneratorLineOnly {
   lineStart(): void
@@ -2061,71 +2017,51 @@ export interface CurveGenerator extends CurveGeneratorLineOnly {
   areaStart(): void
   areaEnd(): void
 }
-export type CurveFactoryLineOnly = (context: CanvasRenderingContext2D | Path) => CurveGeneratorLineOnly
-export type CurveFactory = (context: CanvasRenderingContext2D | Path) => CurveGenerator
+export type CurveFactoryLineOnly = (x: CanvasRenderingContext2D | Path) => CurveGeneratorLineOnly
+export type CurveFactory = (x: CanvasRenderingContext2D | Path) => CurveGenerator
 
 export interface CurveBundleFactory extends CurveFactoryLineOnly {
-  beta(beta: number): this
+  beta(x: number): this
 }
-export const curveBundle: CurveBundleFactory
 export interface CurveCardinalFactory extends CurveFactory {
-  tension(tension: number): this
+  tension(x: number): this
 }
-export const curveCardinal: CurveCardinalFactory
-export const curveCardinalClosed: CurveCardinalFactory
-export const curveCardinalOpen: CurveCardinalFactory
 export interface CurveCatmullRomFactory extends CurveFactory {
-  alpha(alpha: number): this
+  alpha(x: number): this
 }
-export const curveCatmullRom: CurveCatmullRomFactory
-export const curveCatmullRomClosed: CurveCatmullRomFactory
-export const curveCatmullRomOpen: CurveCatmullRomFactory
-
 export interface DefaultLinkObject {
   source: [number, number]
   target: [number, number]
 }
-export interface Link<This, LinkDatum, NodeDatum> {
-  (this: This, d: LinkDatum, ...args: any[]): string | null
-  (this: This, d: LinkDatum, ...args: any[]): void
-  source(): (this: This, d: LinkDatum, ...args: any[]) => NodeDatum
-  source(source: (this: This, d: LinkDatum, ...args: any[]) => NodeDatum): this
-  target(): (this: This, d: LinkDatum, ...args: any[]) => NodeDatum
-  target(target: (this: This, d: LinkDatum, ...args: any[]) => NodeDatum): this
-  x(): (this: This, node: NodeDatum, ...args: any[]) => number
-  x(x: (this: This, node: NodeDatum, ...args: any[]) => number): this
-  y(): (this: This, node: NodeDatum, ...args: any[]) => number
-  y(y: (this: This, node: NodeDatum, ...args: any[]) => number): this
+export interface Link<This, L, N> {
+  (this: This, d: L, ...xs: any[]): string | null
+  (this: This, d: L, ...xs: any[]): void
+  source(): (this: This, d: L, ...xs: any[]) => N
+  source(source: (this: This, d: L, ...xs: any[]) => N): this
+  target(): (this: This, d: L, ...xs: any[]) => N
+  target(target: (this: This, d: L, ...xs: any[]) => N): this
+  x(): (this: This, node: N, ...xs: any[]) => number
+  x(x: (this: This, node: N, ...xs: any[]) => number): this
+  y(): (this: This, node: N, ...xs: any[]) => number
+  y(y: (this: This, node: N, ...xs: any[]) => number): this
   context(): CanvasRenderingContext2D | null
   context(context: CanvasRenderingContext2D | null): this
 }
-export function link(curve: CurveFactory): Link<any, DefaultLinkObject, [number, number]>
-export function link<LinkDatum, NodeDatum>(curve: CurveFactory): Link<any, LinkDatum, NodeDatum>
-export function link<This, LinkDatum, NodeDatum>(curve: CurveFactory): Link<This, LinkDatum, NodeDatum>
-export function linkHorizontal(): Link<any, DefaultLinkObject, [number, number]>
-export function linkHorizontal<LinkDatum, NodeDatum>(): Link<any, LinkDatum, NodeDatum>
-export function linkHorizontal<This, LinkDatum, NodeDatum>(): Link<This, LinkDatum, NodeDatum>
-export function linkVertical(): Link<any, DefaultLinkObject, [number, number]>
-export function linkVertical<LinkDatum, NodeDatum>(): Link<any, LinkDatum, NodeDatum>
-export function linkVertical<This, LinkDatum, NodeDatum>(): Link<This, LinkDatum, NodeDatum>
-export interface LinkRadial<This, LinkDatum, NodeDatum> {
-  (this: This, d: LinkDatum, ...args: any[]): string | null
-  (this: This, d: LinkDatum, ...args: any[]): void
-  source(): (this: This, d: LinkDatum, ...args: any[]) => NodeDatum
-  source(source: (this: This, d: LinkDatum, ...args: any[]) => NodeDatum): this
-  target(): (this: This, d: LinkDatum, ...args: any[]) => NodeDatum
-  target(target: (this: This, d: LinkDatum, ...args: any[]) => NodeDatum): this
-  angle(): (this: This, node: NodeDatum, ...args: any[]) => number
-  angle(angle: (this: This, node: NodeDatum, ...args: any[]) => number): this
-  radius(): (this: This, node: NodeDatum, ...args: any[]) => number
-  radius(radius: (this: This, node: NodeDatum, ...args: any[]) => number): this
+export interface LinkRadial<This, L, N> {
+  (this: This, d: L, ...xs: any[]): string | null
+  (this: This, d: L, ...xs: any[]): void
+  source(): (this: This, d: L, ...xs: any[]) => N
+  source(source: (this: This, d: L, ...xs: any[]) => N): this
+  target(): (this: This, d: L, ...xs: any[]) => N
+  target(target: (this: This, d: L, ...xs: any[]) => N): this
+  angle(): (this: This, node: N, ...xs: any[]) => number
+  angle(angle: (this: This, node: N, ...xs: any[]) => number): this
+  radius(): (this: This, node: N, ...xs: any[]) => number
+  radius(radius: (this: This, node: N, ...xs: any[]) => number): this
   context(): CanvasRenderingContext2D | null
   context(context: CanvasRenderingContext2D | null): this
 }
-export type RadialLink<This, LinkDatum, NodeDatum> = LinkRadial<This, LinkDatum, NodeDatum>
-export function linkRadial(): LinkRadial<any, DefaultLinkObject, [number, number]>
-export function linkRadial<LinkDatum, NodeDatum>(): LinkRadial<any, LinkDatum, NodeDatum>
-export function linkRadial<This, LinkDatum, NodeDatum>(): LinkRadial<This, LinkDatum, NodeDatum>
+export type RadialLink<This, L, N> = LinkRadial<This, L, N>
 
 export interface SymbolType {
   draw(path: CanvasPath_D3Shape, size: number): void
@@ -2143,34 +2079,29 @@ export interface Symbol<This, T> {
   type(x: SymbolType): this
 }
 
-export function pointRadial(angle: number, radius: number): [number, number]
-export interface SeriesPoint<Datum> extends Array<number> {
+export interface SeriesPoint<T> extends Array<number> {
   0: number
   1: number
-  data: Datum
+  data: T
 }
-export interface Series<Datum, Key> extends Array<SeriesPoint<Datum>> {
-  key: Key
+export interface Series<T, K> extends Array<SeriesPoint<T>> {
+  key: K
   i: number
 }
-export interface Stack<This, Datum, Key> {
-  (data: Iterable<Datum>, ...args: any[]): Array<Series<Datum, Key>>
-  keys(): (this: This, data: Datum[], ...args: any[]) => Key[]
-  keys(keys: Iterable<Key> | ((this: This, data: Datum[], ...args: any[]) => Key[])): this
-  value(): (d: Datum, key: Key, i: number, data: Datum[]) => number
+export interface Stack<This, T, K> {
+  (data: Iterable<T>, ...xs: any[]): Array<Series<T, K>>
+  keys(): (this: This, data: T[], ...xs: any[]) => K[]
+  keys(keys: Iterable<K> | ((this: This, data: T[], ...xs: any[]) => K[])): this
+  value(): (x: T, key: K, i: number, data: T[]) => number
   value(value: number): this
-  value(value: (d: Datum, key: Key, i: number, data: Datum[]) => number): this
-  order(): (series: Series<Datum, Key>) => Iterable<number>
+  value(value: (x: T, key: K, i: number, data: T[]) => number): this
+  order(): (series: Series<T, K>) => Iterable<number>
   order(order: null | Iterable<number>): this
-  order(order: (series: Series<Datum, Key>) => Iterable<number>): this
-  offset(): (series: Series<Datum, Key>, order: number[]) => void
+  order(order: (series: Series<T, K>) => Iterable<number>): this
+  offset(): (series: Series<T, K>, order: number[]) => void
   offset(offset: null): this
-  offset(offset: (series: Series<Datum, Key>, order: number[]) => void): this
+  offset(offset: (series: Series<T, K>, order: number[]) => void): this
 }
-export function stack(): Stack<any, { [key: string]: number }, string>
-export function stack<Datum>(): Stack<any, Datum, string>
-export function stack<Datum, Key>(): Stack<any, Datum, Key>
-export function stack<This, Datum, Key>(): Stack<This, Datum, Key>
 export function stackOrderAppearance(series: Series<any, any>): number[]
 export function stackOrderAscending(series: Series<any, any>): number[]
 export function stackOrderDescending(series: Series<any, any>): number[]
@@ -2223,88 +2154,78 @@ declare module "d3-selection" {
     transition(transition: Transition<BaseType, any, any, any>): Transition<GElement, Datum, PElement, PDatum>
   }
 }
-export function active<GElement extends BaseType, Datum, PElement extends BaseType, PDatum>(
-  node: GElement,
+export function active<B extends BaseType, T, PElement extends BaseType, PDatum>(
+  node: B,
   name?: string
-): Transition<GElement, Datum, PElement, PDatum> | null
+): Transition<B, T, PElement, PDatum> | null
 export function interrupt(node: BaseType, name?: string): void
-export interface Transition<GElement extends BaseType, Datum, PElement extends BaseType, PDatum> {
-  select<DescElement extends BaseType>(selector: string): Transition<DescElement, Datum, PElement, PDatum>
+export interface Transition<B extends BaseType, T, PElement extends BaseType, PDatum> {
+  select<DescElement extends BaseType>(selector: string): Transition<DescElement, T, PElement, PDatum>
   select<DescElement extends BaseType>(
-    selector: ValueFn<GElement, Datum, DescElement>
-  ): Transition<DescElement, Datum, PElement, PDatum>
+    selector: ValueFn<B, T, DescElement>
+  ): Transition<DescElement, T, PElement, PDatum>
+  selectAll<DescElement extends BaseType, OldDatum>(selector: string): Transition<DescElement, OldDatum, B, T>
   selectAll<DescElement extends BaseType, OldDatum>(
-    selector: string
-  ): Transition<DescElement, OldDatum, GElement, Datum>
-  selectAll<DescElement extends BaseType, OldDatum>(
-    selector: ValueFn<GElement, Datum, DescElement[] | ArrayLike<DescElement>>
-  ): Transition<DescElement, OldDatum, GElement, Datum>
+    selector: ValueFn<B, T, DescElement[] | ArrayLike<DescElement>>
+  ): Transition<DescElement, OldDatum, B, T>
   selectChild<DescElement extends BaseType, OldDatum>(
-    selector?: string | ValueFn<GElement, Datum, DescElement>
-  ): Transition<DescElement, OldDatum, GElement, Datum>
+    selector?: string | ValueFn<B, T, DescElement>
+  ): Transition<DescElement, OldDatum, B, T>
   selectChildren<DescElement extends BaseType, OldDatum>(
-    selector?: string | ValueFn<GElement, Datum, DescElement>
-  ): Transition<DescElement, OldDatum, GElement, Datum>
-  selection(): Selection<GElement, Datum, PElement, PDatum>
-  transition(): Transition<GElement, Datum, PElement, PDatum>
+    selector?: string | ValueFn<B, T, DescElement>
+  ): Transition<DescElement, OldDatum, B, T>
+  selection(): Selection<B, T, PElement, PDatum>
+  transition(): Transition<B, T, PElement, PDatum>
   attr(name: string, value: null | string | number | boolean): this
-  attr(name: string, value: ValueFn<GElement, Datum, string | number | boolean | null>): this
-  attrTween(name: string): ValueFn<GElement, Datum, (this: GElement, t: number) => string> | undefined
+  attr(name: string, value: ValueFn<B, T, string | number | boolean | null>): this
+  attrTween(name: string): ValueFn<B, T, (this: B, t: number) => string> | undefined
   attrTween(name: string, factory: null): this
-  attrTween(name: string, factory: ValueFn<GElement, Datum, (this: GElement, t: number) => string>): this
+  attrTween(name: string, factory: ValueFn<B, T, (this: B, t: number) => string>): this
   style(name: string, value: null): this
   style(name: string, value: string | number | boolean, priority?: null | "important"): this
-  style(
-    name: string,
-    value: ValueFn<GElement, Datum, string | number | boolean | null>,
-    priority?: null | "important"
-  ): this
-  styleTween(name: string): ValueFn<GElement, Datum, (this: GElement, t: number) => string> | undefined
+  style(name: string, value: ValueFn<B, T, string | number | boolean | null>, priority?: null | "important"): this
+  styleTween(name: string): ValueFn<B, T, (this: B, t: number) => string> | undefined
   styleTween(name: string, factory: null): this
-  styleTween(
-    name: string,
-    factory: ValueFn<GElement, Datum, (this: GElement, t: number) => string>,
-    priority?: null | "important"
-  ): this
+  styleTween(name: string, factory: ValueFn<B, T, (this: B, t: number) => string>, priority?: null | "important"): this
   text(value: null | string | number | boolean): this
-  text(value: ValueFn<GElement, Datum, string | number | boolean>): this
-  textTween(): ValueFn<GElement, Datum, (this: GElement, t: number) => string> | undefined
+  text(value: ValueFn<B, T, string | number | boolean>): this
+  textTween(): ValueFn<B, T, (this: B, t: number) => string> | undefined
   textTween(factory: null): this
-  textTween(factory: ValueFn<GElement, Datum, (this: GElement, t: number) => string>): this
+  textTween(factory: ValueFn<B, T, (this: B, t: number) => string>): this
   remove(): this
-  tween(name: string): ValueFn<GElement, Datum, (this: GElement, t: number) => void> | undefined
+  tween(name: string): ValueFn<B, T, (this: B, t: number) => void> | undefined
   tween(name: string, tweenFn: null): this
-  tween(name: string, tweenFn: ValueFn<GElement, Datum, (this: GElement, t: number) => void>): this
-  merge(other: Transition<GElement, Datum, PElement, PDatum>): Transition<GElement, Datum, PElement, PDatum>
-  filter(filter: string): Transition<GElement, Datum, PElement, PDatum>
-  filter<FilteredElement extends BaseType>(filter: string): Transition<FilteredElement, Datum, PElement, PDatum>
-  filter(filter: ValueFn<GElement, Datum, boolean>): Transition<GElement, Datum, PElement, PDatum>
+  tween(name: string, tweenFn: ValueFn<B, T, (this: B, t: number) => void>): this
+  merge(other: Transition<B, T, PElement, PDatum>): Transition<B, T, PElement, PDatum>
+  filter(filter: string): Transition<B, T, PElement, PDatum>
+  filter<FilteredElement extends BaseType>(filter: string): Transition<FilteredElement, T, PElement, PDatum>
+  filter(filter: ValueFn<B, T, boolean>): Transition<B, T, PElement, PDatum>
   filter<FilteredElement extends BaseType>(
-    filter: ValueFn<GElement, Datum, boolean>
-  ): Transition<FilteredElement, Datum, PElement, PDatum>
-  on(typenames: string): ValueFn<GElement, Datum, void> | undefined
+    filter: ValueFn<B, T, boolean>
+  ): Transition<FilteredElement, T, PElement, PDatum>
+  on(typenames: string): ValueFn<B, T, void> | undefined
   on(typenames: string, listener: null): this
-  on(typenames: string, listener: ValueFn<GElement, Datum, void>): this
+  on(typenames: string, listener: ValueFn<B, T, void>): this
   end(): Promise<void>
-  each(func: ValueFn<GElement, Datum, void>): this
-  call(func: (transition: Transition<GElement, Datum, PElement, PDatum>, ...args: any[]) => any, ...args: any[]): this
+  each(func: ValueFn<B, T, void>): this
+  call(func: (transition: Transition<B, T, PElement, PDatum>, ...xs: any[]) => any, ...xs: any[]): this
   empty(): boolean
-  node(): GElement | null
-  nodes(): GElement[]
+  node(): B | null
+  nodes(): B[]
   size(): number
   delay(): number
   delay(milliseconds: number): this
-  delay(milliseconds: ValueFn<GElement, Datum, number>): this
+  delay(milliseconds: ValueFn<B, T, number>): this
   duration(): number
   duration(milliseconds: number): this
-  duration(milliseconds: ValueFn<GElement, Datum, number>): this
+  duration(milliseconds: ValueFn<B, T, number>): this
   ease(): (normalizedTime: number) => number
   ease(easingFn: (normalizedTime: number) => number): this
-  easeVarying(factory: ValueFn<GElement, Datum, (normalizedTime: number) => number>): this
+  easeVarying(factory: ValueFn<B, T, (normalizedTime: number) => number>): this
 }
-export type SelectionOrTransition<GElement extends BaseType, Datum, PElement extends BaseType, PDatum> =
-  | Selection<GElement, Datum, PElement, PDatum>
-  | Transition<GElement, Datum, PElement, PDatum>
+export type SelectionOrTransition<B extends BaseType, T, PElement extends BaseType, PDatum> =
+  | Selection<B, T, PElement, PDatum>
+  | Transition<B, T, PElement, PDatum>
 export function transition<OldDatum>(name?: string): Transition<BaseType, OldDatum, null, undefined>
 export function transition<OldDatum>(
   transition: Transition<BaseType, any, BaseType, any>
@@ -2319,32 +2240,32 @@ export interface ZoomScale {
   copy(): ZoomScale
   invert(value: number): number | Date
 }
-export interface ZoomBehavior<ZoomRefElement extends ZoomedElementBaseType, Datum> extends Function {
-  (selection: Selection<ZoomRefElement, Datum, any, any>, ...args: any[]): void
+export interface ZoomBehavior<B extends ZoomedElementBaseType, T> extends Function {
+  (selection: Selection<B, T, any, any>, ...xs: any[]): void
   transform(
-    selection: Selection<ZoomRefElement, Datum, any, any> | TransitionLike<ZoomRefElement, Datum>,
-    transform: ZoomTransform | ((this: ZoomRefElement, event: any, d: Datum) => ZoomTransform),
-    point?: [number, number] | ((this: ZoomRefElement, event: any, d: Datum) => [number, number])
+    selection: Selection<B, T, any, any> | TransitionLike<B, T>,
+    transform: ZoomTransform | ((this: B, event: any, x: T) => ZoomTransform),
+    point?: [number, number] | ((this: B, event: any, x: T) => [number, number])
   ): void
   translateBy(
-    selection: Selection<ZoomRefElement, Datum, any, any> | TransitionLike<ZoomRefElement, Datum>,
-    x: number | ValueFn<ZoomRefElement, Datum, number>,
-    y: number | ValueFn<ZoomRefElement, Datum, number>
+    selection: Selection<B, T, any, any> | TransitionLike<B, T>,
+    x: number | ValueFn<B, T, number>,
+    y: number | ValueFn<B, T, number>
   ): void
   translateTo(
-    selection: Selection<ZoomRefElement, Datum, any, any> | TransitionLike<ZoomRefElement, Datum>,
-    x: number | ValueFn<ZoomRefElement, Datum, number>,
-    y: number | ValueFn<ZoomRefElement, Datum, number>,
-    p?: [number, number] | ValueFn<ZoomRefElement, Datum, [number, number]>
+    selection: Selection<B, T, any, any> | TransitionLike<B, T>,
+    x: number | ValueFn<B, T, number>,
+    y: number | ValueFn<B, T, number>,
+    p?: [number, number] | ValueFn<B, T, [number, number]>
   ): void
   scaleBy(
-    selection: Selection<ZoomRefElement, Datum, any, any> | TransitionLike<ZoomRefElement, Datum>,
-    k: number | ValueFn<ZoomRefElement, Datum, number>,
-    p?: [number, number] | ValueFn<ZoomRefElement, Datum, [number, number]>
+    selection: Selection<B, T, any, any> | TransitionLike<B, T>,
+    k: number | ValueFn<B, T, number>,
+    p?: [number, number] | ValueFn<B, T, [number, number]>
   ): void
   scaleTo(
-    selection: Selection<ZoomRefElement, Datum, any, any> | TransitionLike<ZoomRefElement, Datum>,
-    k: number | ValueFn<ZoomRefElement, Datum, number>,
+    selection: Selection<B, T, any, any> | TransitionLike<B, T>,
+    k: number | ValueFn<B, T, number>,
     p?: [number, number]
   ): void
   constrain(): (
@@ -2359,16 +2280,16 @@ export interface ZoomBehavior<ZoomRefElement extends ZoomedElementBaseType, Datu
       translateExtent: [[number, number], [number, number]]
     ) => ZoomTransform
   ): this
-  filter(): (this: ZoomRefElement, event: any, datum: Datum) => boolean
-  filter(filter: (this: ZoomRefElement, event: any, datum: Datum) => boolean): this
-  touchable(): ValueFn<ZoomRefElement, Datum, boolean>
+  filter(): (this: B, event: any, x: T) => boolean
+  filter(filter: (this: B, event: any, x: T) => boolean): this
+  touchable(): ValueFn<B, T, boolean>
   touchable(touchable: boolean): this
-  touchable(touchable: ValueFn<ZoomRefElement, Datum, boolean>): this
-  wheelDelta(): ValueFn<ZoomRefElement, Datum, number>
+  touchable(touchable: ValueFn<B, T, boolean>): this
+  wheelDelta(): ValueFn<B, T, number>
   wheelDelta(delta: ((event: WheelEvent) => number) | number): this
-  extent(): (this: ZoomRefElement, datum: Datum) => [[number, number], [number, number]]
+  extent(): (this: B, x: T) => [[number, number], [number, number]]
   extent(extent: [[number, number], [number, number]]): this
-  extent(extent: (this: ZoomRefElement, datum: Datum) => [[number, number], [number, number]]): this
+  extent(extent: (this: B, x: T) => [[number, number], [number, number]]): this
   scaleExtent(): [number, number]
   scaleExtent(extent: [number, number]): this
   translateExtent(): [[number, number], [number, number]]
@@ -2383,9 +2304,9 @@ export interface ZoomBehavior<ZoomRefElement extends ZoomedElementBaseType, Datu
     InterpolationFactory extends (a: ZoomView, b: ZoomView) => (t: number) => ZoomView
   >(): InterpolationFactory
   interpolate(interpolatorFactory: (a: ZoomView, b: ZoomView) => (t: number) => ZoomView): this
-  on(typenames: string): ((this: ZoomRefElement, event: any, d: Datum) => void) | undefined
+  on(typenames: string): ((this: B, event: any, x: T) => void) | undefined
   on(typenames: string, listener: null): this
-  on(typenames: string, listener: (this: ZoomRefElement, event: any, d: Datum) => void): this
+  on(typenames: string, listener: (this: B, event: any, x: T) => void): this
 }
 export interface D3ZoomEvent<ZoomRefElement extends ZoomedElementBaseType, Datum> {
   target: ZoomBehavior<ZoomRefElement, Datum>

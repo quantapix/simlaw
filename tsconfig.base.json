@@ -23,7 +23,7 @@
     "moduleResolution": "NodeNext",
     "newLine": "lf",
     "noEmitOnError": true,
-    "noFallthroughCasesInSwitch": true,
+    "noFallthroughCasesInSwitch": false, //true,
     "noImplicitAny": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
