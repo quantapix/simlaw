@@ -23,67 +23,68 @@ export function genericArray(a, b) {
     return c
   }
 }
-function _basis(t1, v0, v1, v2, v3) {
-  const t2 = t1 * t1,
-    t3 = t2 * t1
+function _basis(x1: number, v0: number, v1: number, v2: number, v3: number) {
+  const x2 = x1 * x1,
+    x3 = x2 * x1
   return (
-    ((1 - 3 * t1 + 3 * t2 - t3) * v0 + (4 - 6 * t2 + 3 * t3) * v1 + (1 + 3 * t1 + 3 * t2 - 3 * t3) * v2 + t3 * v3) / 6
+    ((1 - 3 * x1 + 3 * x2 - x3) * v0 + (4 - 6 * x2 + 3 * x3) * v1 + (1 + 3 * x1 + 3 * x2 - 3 * x3) * v2 + x3 * v3) / 6
   )
 }
-export function basis(xs: number[]): (t: number) => number {
-  const n = xs.length - 1
-  return function (t) {
-    const i = t <= 0 ? (t = 0) : t >= 1 ? ((t = 1), n - 1) : Math.floor(t * n),
-      v1 = xs[i],
-      v2 = xs[i + 1],
-      v0 = i > 0 ? xs[i - 1] : 2 * v1 - v2,
-      v3 = i < n - 1 ? xs[i + 2] : 2 * v2 - v1
-    return _basis((t - i / n) * n, v0, v1, v2, v3)
+export function basis(vs: number[]): (x: number) => number {
+  const n = vs.length - 1
+  return function (x) {
+    const i = x <= 0 ? (x = 0) : x >= 1 ? ((x = 1), n - 1) : Math.floor(x * n),
+      v1 = vs[i]!,
+      v2 = vs[i + 1]!,
+      v0 = i > 0 ? vs[i - 1]! : 2 * v1 - v2,
+      v3 = i < n - 1 ? vs[i + 2]! : 2 * v2 - v1
+    return _basis((x - i / n) * n, v0, v1, v2, v3)
   }
 }
-export function basisClosed(xs: number[]): (t: number) => number {
-  const n = xs.length
+export function basisClosed(vs: number[]): (x: number) => number {
+  const n = vs.length
   return function (t) {
     const i = Math.floor(((t %= 1) < 0 ? ++t : t) * n),
-      v0 = xs[(i + n - 1) % n],
-      v1 = xs[i % n],
-      v2 = xs[(i + 1) % n],
-      v3 = xs[(i + 2) % n]
+      v0 = vs[(i + n - 1) % n]!,
+      v1 = vs[i % n]!,
+      v2 = vs[(i + 1) % n]!,
+      v3 = vs[(i + 2) % n]!
     return _basis((t - i / n) * n, v0, v1, v2, v3)
   }
 }
-function linear(a, d) {
-  return function (t) {
-    return a + t * d
+export const constant = (x: any) => () => x
+function linear(a: number, d: number) {
+  return function (x: number) {
+    return a + x * d
   }
 }
-function exponential(a, b, y) {
+export function nogamma(a: number, b: number) {
+  const d = b - a
+  return d ? linear(a, d) : constant(isNaN(a) ? b : a)
+}
+
+function exponential(a: number, b: number, y: number) {
   return (
     (a = Math.pow(a, y)),
     (b = Math.pow(b, y) - a),
     (y = 1 / y),
-    function (t) {
-      return Math.pow(a + t * b, y)
+    function (x: number) {
+      return Math.pow(a + x * b, y)
     }
   )
 }
-export function hue(a, b) {
+export function hue(a: number, b: number) {
   const d = b - a
   return d ? linear(a, d > 180 || d < -180 ? d - 360 * Math.round(d / 360) : d) : constant(isNaN(a) ? b : a)
 }
-export function gamma(y) {
-  return (y = +y) === 1
+export function gamma(x: number) {
+  return (x = +x) === 1
     ? nogamma
-    : function (a, b) {
-        return b - a ? exponential(a, b, y) : constant(isNaN(a) ? b : a)
+    : function (a: number, b: number) {
+        return b - a ? exponential(a, b, x) : constant(isNaN(a) ? b : a)
       }
 }
-export function nogamma(a, b) {
-  const d = b - a
-  return d ? linear(a, d) : constant(isNaN(a) ? b : a)
-}
 export const color = nogamma
-export const constant = x => () => x
 
 function _cubehelix(hue) {
   return (function cubehelixGamma(y) {
@@ -108,20 +109,20 @@ function _cubehelix(hue) {
 export const cubehelix: qt.ColorGammaInterpolationFactory = _cubehelix(hue)
 export const cubehelixLong: qt.ColorGammaInterpolationFactory = _cubehelix(color)
 
-export function date(a: Date, b: Date): (t: number) => Date {
+export function date(a: Date, b: Date): (x: number) => Date {
   const d = new Date()
   return (
     (a = +a),
     (b = +b),
-    function (t) {
-      return d.setTime(a * (1 - t) + b * t), d
+    function (x) {
+      return d.setTime(a * (1 - x) + b * x), d
     }
   )
 }
-export function discrete<T>(xs: T[]): (x: number) => T {
-  const n = xs.length
+export function discrete<T>(vs: T[]): (x: number) => T {
+  const n = vs.length
   return function (x) {
-    return xs[Math.max(0, Math.min(n - 1, Math.floor(x * n)))]
+    return vs[Math.max(0, Math.min(n - 1, Math.floor(x * n)))]!
   }
 }
 function _hcl(hue) {
@@ -130,21 +131,21 @@ function _hcl(hue) {
       c = color(start.c, end.c),
       l = color(start.l, end.l),
       opacity = color(start.opacity, end.opacity)
-    return function (t) {
-      start.h = h(t)
-      start.c = c(t)
-      start.l = l(t)
-      start.opacity = opacity(t)
+    return function (x) {
+      start.h = h(x)
+      start.c = c(x)
+      start.l = l(x)
+      start.opacity = opacity(x)
       return start + ""
     }
   }
 }
-export const hcl: (a: string | qt.ColorCommonInstance, b: string | qt.ColorCommonInstance) => (t: number) => string =
+export const hcl: (a: string | qt.ColorCommonInstance, b: string | qt.ColorCommonInstance) => (x: number) => string =
   _hcl(hue)
 export const hclLong: (
   a: string | qt.ColorCommonInstance,
   b: string | qt.ColorCommonInstance
-) => (t: number) => string = _hcl(color)
+) => (x: number) => string = _hcl(color)
 
 function _hsl(hue) {
   return function (start, end) {
@@ -152,11 +153,11 @@ function _hsl(hue) {
       s = color(start.s, end.s),
       l = color(start.l, end.l),
       opacity = color(start.opacity, end.opacity)
-    return function (t) {
-      start.h = h(t)
-      start.s = s(t)
-      start.l = l(t)
-      start.opacity = opacity(t)
+    return function (x) {
+      start.h = h(x)
+      start.s = s(x)
+      start.l = l(x)
+      start.opacity = opacity(x)
       return start + ""
     }
   }
@@ -167,7 +168,7 @@ export const hslLong: (
   a: string | qt.ColorCommonInstance,
   b: string | qt.ColorCommonInstance
 ) => (t: number) => string = _hsl(color)
-export function interpolateHue(a: number, b: number): (t: number) => number {
+export function interpolateHue(a: number, b: number): (x: number) => number {
   const i = hue(+a, +b)
   return function (t) {
     const x = i(t)
@@ -191,7 +192,7 @@ export function lab(
     return start + ""
   }
 }
-export function number(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (t: number) => number {
+export function number(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (x: number) => number {
   return (
     (a = +a),
     (b = +b),
@@ -231,31 +232,31 @@ export function object<T extends object>(a: any, b: T): (t: number) => T {
     return c
   }
 }
-export function piecewise(values: qt.ZoomView[]): qt.ZoomInterpolator
+export function piecewise(vs: qt.ZoomView[]): qt.ZoomInterpolator
 export function piecewise(
-  interpolate: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomInterpolator,
-  values: qt.ZoomView[]
+  f: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomInterpolator,
+  vs: qt.ZoomView[]
 ): qt.ZoomInterpolator
-export function piecewise<T extends any[]>(values: T[]): qt.ArrayInterpolator<T>
+export function piecewise<T extends any[]>(vs: T[]): qt.ArrayInterpolator<T>
 export function piecewise<T extends any[]>(
-  interpolate: (a: any[], b: T) => qt.ArrayInterpolator<T>,
-  values: T[]
+  f: (a: any[], b: T) => qt.ArrayInterpolator<T>,
+  vs: T[]
 ): qt.ArrayInterpolator<T>
-export function piecewise(values: unknown[]): (t: number) => any
-export function piecewise<T>(interpolate: (a: T, b: T) => unknown, values: T[]): (t: number) => any
-export function piecewise(interpolate: any, values?: any) {
-  if (values === undefined) (values = interpolate), (interpolate = value)
+export function piecewise(vs: unknown[]): (x: number) => any
+export function piecewise<T>(f: (a: T, b: T) => unknown, vs: T[]): (x: number) => any
+export function piecewise(f: any, vs?: any) {
+  if (vs === undefined) (vs = f), (f = value)
+  const n = vs.length - 1,
+    ys = new Array(n < 0 ? 0 : n)
   let i = 0,
-    n = values.length - 1,
-    v = values[0],
-    I = new Array(n < 0 ? 0 : n)
-  while (i < n) I[i] = interpolate(v, (v = values[++i]))
-  return function (t) {
-    const i = Math.max(0, Math.min(n - 1, Math.floor((t *= n))))
-    return I[i](t - i)
+    v = vs[0]
+  while (i < n) ys[i] = f(v, (v = vs[++i]))
+  return function (x: number) {
+    const i = Math.max(0, Math.min(n - 1, Math.floor((x *= n))))
+    return ys[i](x - i)
   }
 }
-export function quantize<T>(f: (t: number) => T, n: number): T[] {
+export function quantize<T>(f: (x: number) => T, n: number): T[] {
   const y = new Array(n)
   for (let i = 0; i < n; ++i) y[i] = f(i / (n - 1))
   return y
@@ -308,7 +309,7 @@ export const rgbBasis: (xs: Array<string | qt.ColorCommonInstance>) => (x: numbe
 export const rgbBasisClosed: (xs: Array<string | qt.ColorCommonInstance>) => (x: number) => string =
   rgbSpline(basisClosed)
 
-export function round(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (t: number) => number {
+export function round(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (x: number) => number {
   return (
     (a = +a),
     (b = +b),
@@ -319,17 +320,18 @@ export function round(a: number | { valueOf(): number }, b: number | { valueOf()
 }
 const reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g,
   reB = new RegExp(reA.source, "g")
-function zero(b) {
+
+function zero(x: any) {
   return function () {
-    return b
+    return x
   }
 }
-function one(b) {
-  return function (t) {
-    return b(t) + ""
+function one(f: Function) {
+  return function (x: any) {
+    return f(x) + ""
   }
 }
-export function string(a: string | { toString(): string }, b: string | { toString(): string }): (t: number) => string {
+export function string(a: string | { toString(): string }, b: string | { toString(): string }): (x: number) => string {
   let bi = (reA.lastIndex = reB.lastIndex = 0),
     am,
     bm,
@@ -372,7 +374,7 @@ export function value(a: any, b: null): (t: number) => null
 export function value(a: any, b: boolean): (t: number) => boolean
 export function value(a: string | qt.ColorCommonInstance, b: qt.ColorCommonInstance): (t: number) => string
 export function value(a: Date, b: Date): (t: number) => Date
-export function value(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (t: number) => number
+export function value(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (x: number) => number
 export function value<T extends qt.NumberArray>(a: qt.NumberArray | number[], b: T): (t: number) => T
 export function value(a: string | { toString(): string }, b: string): (t: number) => string
 export function value<T extends any[]>(a: any[], b: T): (t: number) => T
@@ -401,13 +403,13 @@ export function value(a: any, b: any) {
         : number)(a, b)
 }
 const epsilon2 = 1e-12
-function cosh(x) {
+function cosh(x: number) {
   return ((x = Math.exp(x)) + 1 / x) / 2
 }
-function sinh(x) {
+function sinh(x: number) {
   return ((x = Math.exp(x)) - 1 / x) / 2
 }
-function tanh(x) {
+function tanh(x: number) {
   return ((x = Math.exp(2 * x)) - 1) / (x + 1)
 }
 export const zoom: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomInterpolator = (function zoomRho(rho, rho2, rho4) {
@@ -478,7 +480,7 @@ export function decompose(a, b, c, d, e, f) {
     scaleY: scaleY,
   }
 }
-function interpolateTransform(parse, pxComma, pxParen, degParen) {
+function transform(parse, pxComma, pxParen, degParen) {
   function pop(s) {
     return s.length ? s.pop() + " " : ""
   }
@@ -493,7 +495,7 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
   function rotate(a, b, s, q) {
     if (a !== b) {
       if (a - b > 180) b += 360
-      else if (b - a > 180) a += 360 // shortest path
+      else if (b - a > 180) a += 360
       q.push({ i: s.push(pop(s) + "rotate(", null, degParen) - 2, x: number(a, b) })
     } else if (b) {
       s.push(pop(s) + "rotate(" + b + degParen)
@@ -515,14 +517,14 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
     }
   }
   return function (a, b) {
-    const s = [], // string constants and placeholders
-      q = [] // number interpolators
+    const s = [],
+      q = []
     ;(a = parse(a)), (b = parse(b))
     translate(a.translateX, a.translateY, b.translateX, b.translateY, s, q)
     rotate(a.rotate, b.rotate, s, q)
     skewX(a.skewX, b.skewX, s, q)
     scale(a.scaleX, a.scaleY, b.scaleX, b.scaleY, s, q)
-    a = b = null // gc
+    a = b = null
     return function (t) {
       let i = -1,
         n = q.length,
@@ -532,29 +534,19 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
     }
   }
 }
-export const interpolateTransformCss: (a: string, b: string) => (x: number) => string = interpolateTransform(
-  parseCss,
-  "px, ",
-  "px)",
-  "deg)"
-)
-export const interpolateTransformSvg: (a: string, b: string) => (x: number) => string = interpolateTransform(
-  parseSvg,
-  ", ",
-  ")",
-  ")"
-)
+export const transformCss: (a: string, b: string) => (x: number) => string = transform(parseCss, "px, ", "px)", "deg)")
+export const transformSvg: (a: string, b: string) => (x: number) => string = transform(parseSvg, ", ", ")", ")")
 
-let svgNode
-export function parseCss(value) {
-  const m = new (typeof DOMMatrix === "function" ? DOMMatrix : WebKitCSSMatrix)(value + "")
+export function parseCss(x: string) {
+  const m = new (typeof DOMMatrix === "function" ? DOMMatrix : WebKitCSSMatrix)(x + "")
   return m.isIdentity ? identity : decompose(m.a, m.b, m.c, m.d, m.e, m.f)
 }
-export function parseSvg(value) {
-  if (value == null) return identity
-  if (!svgNode) svgNode = document.createElementNS("http://www.w3.org/2000/svg", "g")
-  svgNode.setAttribute("transform", value)
-  if (!(value = svgNode.transform.baseVal.consolidate())) return identity
-  value = value.matrix
-  return decompose(value.a, value.b, value.c, value.d, value.e, value.f)
+let svg: any = undefined
+export function parseSvg(x: any) {
+  if (x == null) return identity
+  if (!svg) svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
+  svg.setAttribute("transform", x)
+  if (!(x = svg.transform.baseVal.consolidate())) return identity
+  x = x.matrix
+  return decompose(x.a, x.b, x.c, x.d, x.e, x.f)
 }
