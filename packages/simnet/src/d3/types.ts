@@ -2055,22 +2055,19 @@ export function areaRadial<Datum>(): AreaRadial<Datum>
 export type RadialArea<Datum> = AreaRadial<Datum>
 export function radialArea(): RadialArea<[number, number]>
 export function radialArea<Datum>(): RadialArea<Datum>
+
 export interface CurveGeneratorLineOnly {
   lineStart(): void
   lineEnd(): void
   point(x: number, y: number): void
 }
-export type CurveFactoryLineOnly = (context: CanvasRenderingContext2D | Path) => CurveGeneratorLineOnly
 export interface CurveGenerator extends CurveGeneratorLineOnly {
   areaStart(): void
   areaEnd(): void
 }
+export type CurveFactoryLineOnly = (context: CanvasRenderingContext2D | Path) => CurveGeneratorLineOnly
 export type CurveFactory = (context: CanvasRenderingContext2D | Path) => CurveGenerator
-export const curveBasis: CurveFactory
-export const curveBasisClosed: CurveFactory
-export const curveBasisOpen: CurveFactory
-export const curveBumpX: CurveFactory
-export const curveBumpY: CurveFactory
+
 export interface CurveBundleFactory extends CurveFactoryLineOnly {
   beta(beta: number): this
 }
@@ -2087,6 +2084,7 @@ export interface CurveCatmullRomFactory extends CurveFactory {
 export const curveCatmullRom: CurveCatmullRomFactory
 export const curveCatmullRomClosed: CurveCatmullRomFactory
 export const curveCatmullRomOpen: CurveCatmullRomFactory
+
 export const curveLinear: CurveFactory
 export const curveLinearClosed: CurveFactory
 export const curveMonotoneX: CurveFactory
@@ -2140,45 +2138,23 @@ export type RadialLink<This, LinkDatum, NodeDatum> = LinkRadial<This, LinkDatum,
 export function linkRadial(): LinkRadial<any, DefaultLinkObject, [number, number]>
 export function linkRadial<LinkDatum, NodeDatum>(): LinkRadial<any, LinkDatum, NodeDatum>
 export function linkRadial<This, LinkDatum, NodeDatum>(): LinkRadial<This, LinkDatum, NodeDatum>
+
 export interface SymbolType {
-  draw(context: CanvasPath_D3Shape, size: number): void
+  draw(path: CanvasPath_D3Shape, size: number): void
 }
-export interface Symbol<This, Datum> {
-  (this: This, d?: Datum, ...args: any[]): string | null
-  (this: This, d?: Datum, ...args: any[]): void
-  size(): (this: This, d: Datum, ...args: any[]) => number
-  size(size: number): this
-  size(size: (this: This, d: Datum, ...args: any[]) => number): this
-  type(): (this: This, d: Datum, ...args: any[]) => SymbolType
-  type(type: SymbolType): this
-  type(type: (this: This, d: Datum, ...args: any[]) => SymbolType): this
+export interface Symbol<This, T> {
+  (this: This, x?: T, ...xs: any[]): string | null
+  (this: This, x?: T, ...xs: any[]): void
   context(): CanvasRenderingContext2D | null
-  context(context: CanvasRenderingContext2D | null): this
+  context(x: CanvasRenderingContext2D | null): this
+  size(): (this: This, x: T, ...xs: any[]) => number
+  size(f: (this: This, x: T, ...xs: any[]) => number): this
+  size(size: number): this
+  type(): (this: This, x: T, ...xs: any[]) => SymbolType
+  type(f: (this: This, x: T, ...xs: any[]) => SymbolType): this
+  type(x: SymbolType): this
 }
-export function symbol<Datum = any>(
-  type?: SymbolType | ((this: any, d: Datum, ...args: any[]) => SymbolType),
-  size?: number | ((this: any, d: Datum, ...args: any[]) => number)
-): Symbol<any, Datum>
-export function symbol<This, Datum>(
-  type?: SymbolType | ((this: This, d: Datum, ...args: any[]) => SymbolType),
-  size?: number | ((this: This, d: Datum, ...args: any[]) => number)
-): Symbol<This, Datum>
-export const symbolsFill: SymbolType[]
-export const symbolsStroke: SymbolType[]
-export const symbols: SymbolType[]
-export const symbolAsterisk: SymbolType
-export const symbolCircle: SymbolType
-export const symbolCross: SymbolType
-export const symbolDiamond: SymbolType
-export const symbolDiamond2: SymbolType
-export const symbolPlus: SymbolType
-export const symbolSquare: SymbolType
-export const symbolSquare2: SymbolType
-export const symbolStar: SymbolType
-export const symbolTriangle: SymbolType
-export const symbolTriangle2: SymbolType
-export const symbolWye: SymbolType
-export const symbolX: SymbolType
+
 export function pointRadial(angle: number, radius: number): [number, number]
 export interface SeriesPoint<Datum> extends Array<number> {
   0: number

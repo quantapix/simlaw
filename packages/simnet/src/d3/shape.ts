@@ -1,53 +1,6 @@
-import { bumpX, bumpY, bumpRadial } from "./curve/bump.js"
-import { path } from "./path.js"
-import curveLinear from "./curve/linear.js"
-import curveRadial, { curveRadialLinear } from "./curve/radial.js"
-import offsetNone from "./offset/none.js"
-import orderNone from "./order/none.js"
-import asterisk from "./symbol/asterisk.js"
-import circle from "./symbol/circle.js"
-import cross from "./symbol/cross.js"
-import diamond from "./symbol/diamond.js"
-import diamond2 from "./symbol/diamond2.js"
-import plus from "./symbol/plus.js"
-import square from "./symbol/square.js"
-import square2 from "./symbol/square2.js"
-import star from "./symbol/star.js"
-import triangle from "./symbol/triangle.js"
-import triangle2 from "./symbol/triangle2.js"
-import wye from "./symbol/wye.js"
-import x from "./symbol/x.js"
-import { namespace } from "./types.js"
+import { Path } from "./path.js"
+import type * as qt from "./types.js"
 
-export { default as symbolAsterisk } from "./symbol/asterisk.js"
-export { default as symbolCircle } from "./symbol/circle.js"
-export { default as symbolCross } from "./symbol/cross.js"
-export { default as symbolDiamond } from "./symbol/diamond.js"
-export { default as symbolDiamond2 } from "./symbol/diamond2.js"
-export { default as symbolPlus } from "./symbol/plus.js"
-export { default as symbolSquare } from "./symbol/square.js"
-export { default as symbolSquare2 } from "./symbol/square2.js"
-export { default as symbolStar } from "./symbol/star.js"
-export { default as symbolTriangle } from "./symbol/triangle.js"
-export { default as symbolTriangle2 } from "./symbol/triangle2.js"
-export { default as symbolWye } from "./symbol/wye.js"
-export { default as symbolX } from "./symbol/x.js"
-export { default as curveBasisClosed } from "./curve/basisClosed.js"
-export { default as curveBasisOpen } from "./curve/basisOpen.js"
-export { default as curveBasis } from "./curve/basis.js"
-export { bumpX as curveBumpX, bumpY as curveBumpY } from "./curve/bump.js"
-export { default as curveBundle } from "./curve/bundle.js"
-export { default as curveCardinalClosed } from "./curve/cardinalClosed.js"
-export { default as curveCardinalOpen } from "./curve/cardinalOpen.js"
-export { default as curveCardinal } from "./curve/cardinal.js"
-export { default as curveCatmullRomClosed } from "./curve/catmullRomClosed.js"
-export { default as curveCatmullRomOpen } from "./curve/catmullRomOpen.js"
-export { default as curveCatmullRom } from "./curve/catmullRom.js"
-export { default as curveLinearClosed } from "./curve/linearClosed.js"
-export { default as curveLinear } from "./curve/linear.js"
-export { monotoneX as curveMonotoneX, monotoneY as curveMonotoneY } from "./curve/monotone.js"
-export { default as curveNatural } from "./curve/natural.js"
-export { default as curveStep, stepAfter as curveStepAfter, stepBefore as curveStepBefore } from "./curve/step.js"
 export { default as stack } from "./stack.js"
 
 function arcInnerRadius(d) {
@@ -626,28 +579,39 @@ export function stack() {
   }
   return y
 }
-export const symbolsFill = [circle, cross, diamond, square, star, triangle, wye]
-export const symbolsStroke = [circle, plus, x, triangle2, asterisk, square2, diamond2]
-export function Symbol(type, size) {
-  let context = null
-  type = typeof type === "function" ? type : constant(type || circle)
-  size = typeof size === "function" ? size : constant(size === undefined ? 64 : +size)
-  function symbol() {
-    let buffer
-    if (!context) context = buffer = path()
-    type.apply(this, arguments).draw(context, +size.apply(this, arguments))
-    if (buffer) return (context = null), buffer + "" || null
+
+export function symbol<T = any>(
+  type?: qt.SymbolType | ((this: any, x: T, ...xs: any[]) => qt.SymbolType),
+  size?: number | ((this: any, x: T, ...xs: any[]) => number)
+): qt.Symbol<any, T>
+export function symbol<This, T>(
+  type?: qt.SymbolType | ((this: This, x: T, ...xs: any[]) => qt.SymbolType),
+  size?: number | ((this: This, x: T, ...xs: any[]) => number)
+): qt.Symbol<This, T>
+export function symbol(...xs: any[]) {
+  let buffer
+  if (!context) context = buffer = new Path()
+  type.apply(this, ...xs).draw(context, +size.apply(this, ...xs))
+  if (buffer) return (context = null), buffer + "" || null
+}
+
+export class Symbol<This, T> implements qt.Symbol<This, T> {
+  context = null
+  size: any
+  type: any
+  constructor(type, size?: number) {
+    this.size = typeof size === "function" ? size : constant(size === undefined ? 64 : +size)
+    this.type = typeof type === "function" ? type : constant(type || circle)
   }
-  symbol.type = function (_) {
-    return arguments.length ? ((type = typeof _ === "function" ? _ : constant(_)), symbol) : type
+  context(...xs: any[]) {
+    return xs.length ? ((this.context = xs == null ? null : xs), symbol) : this.context
   }
-  symbol.size = function (_) {
-    return arguments.length ? ((size = typeof _ === "function" ? _ : constant(+_)), symbol) : size
+  size(...xs: any[]) {
+    return xs.length ? ((this.size = typeof xs === "function" ? xs : constant(+xs)), symbol) : this.size
   }
-  symbol.context = function (_) {
-    return arguments.length ? ((context = _ == null ? null : _), symbol) : context
+  type(...xs: any[]) {
+    return xs.length ? ((this.type = typeof xs === "function" ? xs : constant(xs)), symbol) : this.type
   }
-  return symbol
 }
 
 export namespace offset {
@@ -781,20 +745,8 @@ export namespace order {
 }
 
 export namespace curve {
-  export function point(that, x, y) {
-    that._context.bezierCurveTo(
-      (2 * that._x0 + that._x1) / 3,
-      (2 * that._y0 + that._y1) / 3,
-      (that._x0 + 2 * that._x1) / 3,
-      (that._y0 + 2 * that._y1) / 3,
-      (that._x0 + 4 * that._x1 + x) / 6,
-      (that._y0 + 4 * that._y1 + y) / 6
-    )
-  }
-  export class Basis {
-    constructor(context) {
-      this._context = context
-    }
+  export class Basis implements qt.CurveGenerator {
+    constructor(public ctx: CanvasRenderingContext2D | Path) {}
     areaStart() {
       this._line = 0
     }
@@ -810,10 +762,10 @@ export namespace curve {
         case 3:
           point(this, this._x1, this._y1)
         case 2:
-          this._context.lineTo(this._x1, this._y1)
+          this.ctx.lineTo(this._x1, this._y1)
           break
       }
-      if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath()
+      if (this._line || (this._line !== 0 && this._point === 1)) this.ctx.closePath()
       this._line = 1 - this._line
     }
     point(x, y) {
@@ -821,14 +773,14 @@ export namespace curve {
       switch (this._point) {
         case 0:
           this._point = 1
-          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y)
+          this._line ? this.ctx.lineTo(x, y) : this.ctx.moveTo(x, y)
           break
         case 1:
           this._point = 2
           break
         case 2:
           this._point = 3
-          this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6) // falls through
+          this.ctx.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6) // falls through
         default:
           point(this, x, y)
           break
@@ -837,13 +789,8 @@ export namespace curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export function basis(context) {
-    return new Basis(context)
-  }
-  class BasisClosed {
-    constructor(context) {
-      this._context = context
-    }
+  class BasisClosed implements qt.CurveGenerator {
+    constructor(public ctx: CanvasRenderingContext2D | Path) {}
     areaStart: noop
     areaEnd: noop
     lineStart() {
@@ -853,14 +800,14 @@ export namespace curve {
     lineEnd() {
       switch (this._point) {
         case 1: {
-          this._context.moveTo(this._x2, this._y2)
-          this._context.closePath()
+          this.ctx.moveTo(this._x2, this._y2)
+          this.ctx.closePath()
           break
         }
         case 2: {
-          this._context.moveTo((this._x2 + 2 * this._x3) / 3, (this._y2 + 2 * this._y3) / 3)
-          this._context.lineTo((this._x3 + 2 * this._x2) / 3, (this._y3 + 2 * this._y2) / 3)
-          this._context.closePath()
+          this.ctx.moveTo((this._x2 + 2 * this._x3) / 3, (this._y2 + 2 * this._y3) / 3)
+          this.ctx.lineTo((this._x3 + 2 * this._x2) / 3, (this._y3 + 2 * this._y2) / 3)
+          this.ctx.closePath()
           break
         }
         case 3: {
@@ -885,7 +832,7 @@ export namespace curve {
         case 2:
           this._point = 3
           ;(this._x4 = x), (this._y4 = y)
-          this._context.moveTo((this._x0 + 4 * this._x1 + x) / 6, (this._y0 + 4 * this._y1 + y) / 6)
+          this.ctx.moveTo((this._x0 + 4 * this._x1 + x) / 6, (this._y0 + 4 * this._y1 + y) / 6)
           break
         default:
           point(this, x, y)
@@ -895,13 +842,8 @@ export namespace curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export function basisClosed(context) {
-    return new BasisClosed(context)
-  }
-  class BasisOpen {
-    constructor(context) {
-      this._context = context
-    }
+  class BasisOpen implements qt.CurveGenerator {
+    constructor(public ctx: CanvasRenderingContext2D | Path) {}
     areaStart() {
       this._line = 0
     }
@@ -913,7 +855,7 @@ export namespace curve {
       this._point = 0
     }
     lineEnd() {
-      if (this._line || (this._line !== 0 && this._point === 3)) this._context.closePath()
+      if (this._line || (this._line !== 0 && this._point === 3)) this.ctx.closePath()
       this._line = 1 - this._line
     }
     point(x, y) {
@@ -929,7 +871,7 @@ export namespace curve {
           this._point = 3
           var x0 = (this._x0 + 4 * this._x1 + x) / 6,
             y0 = (this._y0 + 4 * this._y1 + y) / 6
-          this._line ? this._context.lineTo(x0, y0) : this._context.moveTo(x0, y0)
+          this._line ? this.ctx.lineTo(x0, y0) : this.ctx.moveTo(x0, y0)
           break
         case 3:
           this._point = 4 // falls through
@@ -941,14 +883,8 @@ export namespace curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export function basisOpen(context) {
-    return new BasisOpen(context)
-  }
-  class Bump {
-    constructor(context, x) {
-      this._context = context
-      this._x = x
-    }
+  class Bump implements qt.CurveGenerator {
+    constructor(public ctx: CanvasRenderingContext2D | Path, public isX: boolean) {}
     areaStart() {
       this._line = 0
     }
@@ -959,7 +895,7 @@ export namespace curve {
       this._point = 0
     }
     lineEnd() {
-      if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath()
+      if (this._line || (this._line !== 0 && this._point === 1)) this.ctx.closePath()
       this._line = 1 - this._line
     }
     point(x, y) {
@@ -967,20 +903,26 @@ export namespace curve {
       switch (this._point) {
         case 0: {
           this._point = 1
-          if (this._line) this._context.lineTo(x, y)
-          else this._context.moveTo(x, y)
+          if (this._line) this.ctx.lineTo(x, y)
+          else this.ctx.moveTo(x, y)
           break
         }
         case 1:
           this._point = 2 // falls through
         default: {
-          if (this._x) this._context.bezierCurveTo((this._x0 = (this._x0 + x) / 2), this._y0, this._x0, y, x, y)
-          else this._context.bezierCurveTo(this._x0, (this._y0 = (this._y0 + y) / 2), x, this._y0, x, y)
+          if (this.isX) this.ctx.bezierCurveTo((this._x0 = (this._x0 + x) / 2), this._y0, this._x0, y, x, y)
+          else this.ctx.bezierCurveTo(this._x0, (this._y0 = (this._y0 + y) / 2), x, this._y0, x, y)
           break
         }
       }
       ;(this._x0 = x), (this._y0 = y)
     }
+  }
+  export function bumpX(context) {
+    return new Bump(context, true)
+  }
+  export function bumpY(context) {
+    return new Bump(context, false)
   }
   class BumpRadial {
     constructor(context) {
@@ -1003,15 +945,6 @@ export namespace curve {
         this._context.bezierCurveTo(...p1, ...p2, ...p3)
       }
     }
-  }
-  export function bumpX(context) {
-    return new Bump(context, true)
-  }
-  export function bumpY(context) {
-    return new Bump(context, false)
-  }
-  export function bumpRadial(context) {
-    return new BumpRadial(context)
   }
   class Bundle {
     constructor(context, beta) {
@@ -1059,7 +992,16 @@ export namespace curve {
     }
     return y
   })(0.85)
-
+  export function point(that, x, y) {
+    that._context.bezierCurveTo(
+      (2 * that._x0 + that._x1) / 3,
+      (2 * that._y0 + that._y1) / 3,
+      (that._x0 + 2 * that._x1) / 3,
+      (that._y0 + 2 * that._y1) / 3,
+      (that._x0 + 4 * that._x1 + x) / 6,
+      (that._y0 + 4 * that._y1 + y) / 6
+    )
+  }
   export function point2(that, x, y) {
     that._context.bezierCurveTo(
       that._x1 + that._k * (that._x2 - that._x0),
@@ -1254,6 +1196,7 @@ export namespace curve {
     }
     return cardinal
   })(0)
+
   export function point3(that, x, y) {
     let x1 = that._x1,
       y1 = that._y1,
@@ -1509,9 +1452,6 @@ export namespace curve {
       }
     }
   }
-  export function linear(context) {
-    return new Linear(context)
-  }
   class LinearClosed {
     constructor(context) {
       this._context = context
@@ -1529,9 +1469,6 @@ export namespace curve {
       if (this._point) this._context.lineTo(x, y)
       else (this._point = 1), this._context.moveTo(x, y)
     }
-  }
-  export function linearClosed(context) {
-    return new LinearClosed(context)
   }
   function sign(x) {
     return x < 0 ? -1 : 1
@@ -1632,12 +1569,6 @@ export namespace curve {
       this._context.bezierCurveTo(y1, x1, y2, x2, y, x)
     }
   }
-  export function monotoneX(context) {
-    return new MonotoneX(context)
-  }
-  export function monotoneY(context) {
-    return new MonotoneY(context)
-  }
   class Natural {
     constructor(context) {
       this._context = context
@@ -1693,9 +1624,6 @@ export namespace curve {
     b[n - 1] = (x[n] + a[n - 1]) / 2
     for (i = 0; i < n - 1; ++i) b[i] = 2 * x[i + 1] - a[i + 1]
     return [a, b]
-  }
-  export function natural(context) {
-    return new Natural(context)
   }
   export const curveRadialLinear = curveRadial(curveLinear)
   class Radial {
@@ -1782,140 +1710,140 @@ export namespace curve {
 
 export namespace symbol {
   const sqrt3 = sqrt(3)
-  export const asterisk = {
-    draw(context, size) {
+  export const asterisk: qt.SymbolType = {
+    draw(p, size) {
       const r = sqrt(size + min(size / 28, 0.75)) * 0.59436
       const t = r / 2
       const u = t * sqrt3
-      context.moveTo(0, r)
-      context.lineTo(0, -r)
-      context.moveTo(-u, -t)
-      context.lineTo(u, t)
-      context.moveTo(-u, t)
-      context.lineTo(u, -t)
+      p.moveTo(0, r)
+      p.lineTo(0, -r)
+      p.moveTo(-u, -t)
+      p.lineTo(u, t)
+      p.moveTo(-u, t)
+      p.lineTo(u, -t)
     },
   }
-  export const circle = {
-    draw(context, size) {
+  export const circle: qt.SymbolType = {
+    draw(p, size) {
       const r = sqrt(size / pi)
-      context.moveTo(r, 0)
-      context.arc(0, 0, r, 0, tau)
+      p.moveTo(r, 0)
+      p.arc(0, 0, r, 0, tau)
     },
   }
-  export const cross = {
-    draw(context, size) {
+  export const cross: qt.SymbolType = {
+    draw(p, size) {
       const r = sqrt(size / 5) / 2
-      context.moveTo(-3 * r, -r)
-      context.lineTo(-r, -r)
-      context.lineTo(-r, -3 * r)
-      context.lineTo(r, -3 * r)
-      context.lineTo(r, -r)
-      context.lineTo(3 * r, -r)
-      context.lineTo(3 * r, r)
-      context.lineTo(r, r)
-      context.lineTo(r, 3 * r)
-      context.lineTo(-r, 3 * r)
-      context.lineTo(-r, r)
-      context.lineTo(-3 * r, r)
-      context.closePath()
+      p.moveTo(-3 * r, -r)
+      p.lineTo(-r, -r)
+      p.lineTo(-r, -3 * r)
+      p.lineTo(r, -3 * r)
+      p.lineTo(r, -r)
+      p.lineTo(3 * r, -r)
+      p.lineTo(3 * r, r)
+      p.lineTo(r, r)
+      p.lineTo(r, 3 * r)
+      p.lineTo(-r, 3 * r)
+      p.lineTo(-r, r)
+      p.lineTo(-3 * r, r)
+      p.closePath()
     },
   }
   const tan30 = sqrt(1 / 3)
   const tan30_2 = tan30 * 2
-  export const diamond = {
-    draw(context, size) {
+  export const diamond: qt.SymbolType = {
+    draw(p, size) {
       const y = sqrt(size / tan30_2)
       const x = y * tan30
-      context.moveTo(0, -y)
-      context.lineTo(x, 0)
-      context.lineTo(0, y)
-      context.lineTo(-x, 0)
-      context.closePath()
+      p.moveTo(0, -y)
+      p.lineTo(x, 0)
+      p.lineTo(0, y)
+      p.lineTo(-x, 0)
+      p.closePath()
     },
   }
-  export const diamond2 = {
-    draw(context, size) {
+  export const diamond2: qt.SymbolType = {
+    draw(p, size) {
       const r = sqrt(size) * 0.62625
-      context.moveTo(0, -r)
-      context.lineTo(r, 0)
-      context.lineTo(0, r)
-      context.lineTo(-r, 0)
-      context.closePath()
+      p.moveTo(0, -r)
+      p.lineTo(r, 0)
+      p.lineTo(0, r)
+      p.lineTo(-r, 0)
+      p.closePath()
     },
   }
-  export const plus = {
-    draw(context, size) {
+  export const plus: qt.SymbolType = {
+    draw(p, size) {
       const r = sqrt(size - min(size / 7, 2)) * 0.87559
-      context.moveTo(-r, 0)
-      context.lineTo(r, 0)
-      context.moveTo(0, r)
-      context.lineTo(0, -r)
+      p.moveTo(-r, 0)
+      p.lineTo(r, 0)
+      p.moveTo(0, r)
+      p.lineTo(0, -r)
     },
   }
-  export const square = {
-    draw(context, size) {
+  export const square: qt.SymbolType = {
+    draw(p, size) {
       const w = sqrt(size)
       const x = -w / 2
-      context.rect(x, x, w, w)
+      p.rect(x, x, w, w)
     },
   }
-  export const square2 = {
-    draw(context, size) {
+  export const square2: qt.SymbolType = {
+    draw(p, size) {
       const r = sqrt(size) * 0.4431
-      context.moveTo(r, r)
-      context.lineTo(r, -r)
-      context.lineTo(-r, -r)
-      context.lineTo(-r, r)
-      context.closePath()
+      p.moveTo(r, r)
+      p.lineTo(r, -r)
+      p.lineTo(-r, -r)
+      p.lineTo(-r, r)
+      p.closePath()
     },
   }
   const ka = 0.8908130915292852281
   const kr = sin(pi / 10) / sin((7 * pi) / 10)
   const kx = sin(tau / 10) * kr
   const ky = -cos(tau / 10) * kr
-  export const star = {
-    draw(context, size) {
+  export const star: qt.SymbolType = {
+    draw(p, size) {
       const r = sqrt(size * ka)
       const x = kx * r
       const y = ky * r
-      context.moveTo(0, -r)
-      context.lineTo(x, y)
+      p.moveTo(0, -r)
+      p.lineTo(x, y)
       for (let i = 1; i < 5; ++i) {
         const a = (tau * i) / 5
         const c = cos(a)
         const s = sin(a)
-        context.lineTo(s * r, -c * r)
-        context.lineTo(c * x - s * y, s * x + c * y)
+        p.lineTo(s * r, -c * r)
+        p.lineTo(c * x - s * y, s * x + c * y)
       }
-      context.closePath()
+      p.closePath()
     },
   }
-  export const triangle = {
-    draw(context, size) {
+  export const triangle: qt.SymbolType = {
+    draw(p, size) {
       const y = -sqrt(size / (sqrt3 * 3))
-      context.moveTo(0, y * 2)
-      context.lineTo(-sqrt3 * y, -y)
-      context.lineTo(sqrt3 * y, -y)
-      context.closePath()
+      p.moveTo(0, y * 2)
+      p.lineTo(-sqrt3 * y, -y)
+      p.lineTo(sqrt3 * y, -y)
+      p.closePath()
     },
   }
-  export const triangle2 = {
-    draw(context, size) {
+  export const triangle2: qt.SymbolType = {
+    draw(p, size) {
       const s = sqrt(size) * 0.6824
       const t = s / 2
       const u = (s * sqrt3) / 2 // cos(Math.PI / 6)
-      context.moveTo(0, -s)
-      context.lineTo(u, t)
-      context.lineTo(-u, t)
-      context.closePath()
+      p.moveTo(0, -s)
+      p.lineTo(u, t)
+      p.lineTo(-u, t)
+      p.closePath()
     },
   }
   const c = -0.5
   const s = sqrt(3) / 2
   const k = 1 / sqrt(12)
   const a = (k / 2 + 1) * 3
-  export const wye = {
-    draw(context, size) {
+  export const wye: qt.SymbolType = {
+    draw(p, size) {
       const r = sqrt(size / a)
       const x0 = r / 2,
         y0 = r * k
@@ -1923,25 +1851,27 @@ export namespace symbol {
         y1 = r * k + r
       const x2 = -x1,
         y2 = y1
-      context.moveTo(x0, y0)
-      context.lineTo(x1, y1)
-      context.lineTo(x2, y2)
-      context.lineTo(c * x0 - s * y0, s * x0 + c * y0)
-      context.lineTo(c * x1 - s * y1, s * x1 + c * y1)
-      context.lineTo(c * x2 - s * y2, s * x2 + c * y2)
-      context.lineTo(c * x0 + s * y0, c * y0 - s * x0)
-      context.lineTo(c * x1 + s * y1, c * y1 - s * x1)
-      context.lineTo(c * x2 + s * y2, c * y2 - s * x2)
-      context.closePath()
+      p.moveTo(x0, y0)
+      p.lineTo(x1, y1)
+      p.lineTo(x2, y2)
+      p.lineTo(c * x0 - s * y0, s * x0 + c * y0)
+      p.lineTo(c * x1 - s * y1, s * x1 + c * y1)
+      p.lineTo(c * x2 - s * y2, s * x2 + c * y2)
+      p.lineTo(c * x0 + s * y0, c * y0 - s * x0)
+      p.lineTo(c * x1 + s * y1, c * y1 - s * x1)
+      p.lineTo(c * x2 + s * y2, c * y2 - s * x2)
+      p.closePath()
     },
   }
-  export const x = {
-    draw(context, size) {
+  export const x: qt.SymbolType = {
+    draw(p, size) {
       const r = sqrt(size - min(size / 6, 1.7)) * 0.6189
-      context.moveTo(-r, -r)
-      context.lineTo(r, r)
-      context.moveTo(-r, r)
-      context.lineTo(r, -r)
+      p.moveTo(-r, -r)
+      p.lineTo(r, r)
+      p.moveTo(-r, r)
+      p.lineTo(r, -r)
     },
   }
+  export const fills: qt.SymbolType[] = [circle, cross, diamond, square, star, triangle, wye]
+  export const strokes: qt.SymbolType[] = [circle, plus, x, triangle2, asterisk, square2, diamond2]
 }

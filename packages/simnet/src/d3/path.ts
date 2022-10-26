@@ -5,11 +5,7 @@ const tau = 2 * pi
 const epsilon = 1e-6
 const tauEpsilon = tau - epsilon
 
-export function path() {
-  return new Path()
-}
-
-class Path implements qt.Path {
+export class Path implements qt.Path {
   x0?: number | undefined
   x1?: number | undefined
   y0?: number | undefined
