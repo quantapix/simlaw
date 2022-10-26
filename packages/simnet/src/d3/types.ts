@@ -1228,63 +1228,45 @@ export interface RandomPoisson extends RandomNumberGenerationSource {
 }
 
 export interface InterpolatorFactory<T, U> {
-  (a: T, b: T): (t: number) => U
+  (a: T, b: T): (x: number) => U
 }
+
 export type NumberValue = number | { valueOf(): number }
-export type UnknownReturnType<Unknown, DefaultUnknown> = [Unknown] extends [never] ? DefaultUnknown : Unknown
-export interface ScaleContinuousNumeric<Range, Output, Unknown = never> {
-  (value: NumberValue): Output | Unknown
-  invert(value: NumberValue): number
-  domain(): number[]
-  domain(domain: Iterable<NumberValue>): this
-  range(): Range[]
-  range(range: Iterable<Range>): this
-  rangeRound(range: Iterable<NumberValue>): this
+export type UnknownReturnType<U, DefaultUnknown> = [U] extends [never] ? DefaultUnknown : U
+
+export interface ScaleContinuousNumeric<Range, Output, U = never> {
+  (x: NumberValue): Output | U
   clamp(): boolean
-  clamp(clamp: boolean): this
-  ticks(count?: number): number[]
-  tickFormat(count?: number, specifier?: string): (d: NumberValue) => string
-  nice(count?: number): this
+  clamp(x: boolean): this
   copy(): this
+  domain(): number[]
+  domain(x: Iterable<NumberValue>): this
+  invert(x: NumberValue): number
+  nice(count?: number): this
+  range(): Range[]
+  range(x: Iterable<Range>): this
+  rangeRound(x: Iterable<NumberValue>): this
+  tickFormat(count?: number, specifier?: string): (x: NumberValue) => string
+  ticks(count?: number): number[]
 }
-export function tickFormat(start: number, stop: number, count: number, specifier?: string): (d: NumberValue) => string
-export interface ScaleLinear<Range, Output, Unknown = never> extends ScaleContinuousNumeric<Range, Output, Unknown> {
+
+export interface ScaleLinear<Range, Output, U = never> extends ScaleContinuousNumeric<Range, Output, U> {
   interpolate(): InterpolatorFactory<any, any>
-  interpolate(interpolate: InterpolatorFactory<Range, Output>): this
-  interpolate<NewOutput>(interpolate: InterpolatorFactory<Range, NewOutput>): ScaleLinear<Range, NewOutput, Unknown>
-  unknown(): UnknownReturnType<Unknown, undefined>
-  unknown<NewUnknown>(value: NewUnknown): ScaleLinear<Range, Output, NewUnknown>
+  interpolate(f: InterpolatorFactory<Range, Output>): this
+  interpolate<O2>(f: InterpolatorFactory<Range, O2>): ScaleLinear<Range, O2, U>
+  unknown(): UnknownReturnType<U, undefined>
+  unknown<U2>(x: U2): ScaleLinear<Range, Output, U2>
 }
-export function scaleLinear<Range = number, Output = Range, Unknown = never>(
-  range?: Iterable<Range>
-): ScaleLinear<Range, Output, Unknown>
-export function scaleLinear<Range, Output = Range, Unknown = never>(
-  domain: Iterable<NumberValue>,
-  range: Iterable<Range>
-): ScaleLinear<Range, Output, Unknown>
-export interface ScalePower<Range, Output, Unknown = never> extends ScaleContinuousNumeric<Range, Output, Unknown> {
-  interpolate(): InterpolatorFactory<any, any>
-  interpolate(interpolate: InterpolatorFactory<Range, Output>): this
-  interpolate<NewOutput>(interpolate: InterpolatorFactory<Range, NewOutput>): ScalePower<Range, NewOutput, Unknown>
+
+export interface ScalePower<Range, Output, U = never> extends ScaleContinuousNumeric<Range, Output, U> {
   exponent(): number
-  exponent(exponent: number): this
-  unknown(): UnknownReturnType<Unknown, undefined>
-  unknown<NewUnknown>(value: NewUnknown): ScalePower<Range, Output, NewUnknown>
+  exponent(x: number): this
+  interpolate(): InterpolatorFactory<any, any>
+  interpolate(f: InterpolatorFactory<Range, Output>): this
+  interpolate<NewOutput>(f: InterpolatorFactory<Range, NewOutput>): ScalePower<Range, NewOutput, U>
+  unknown(): UnknownReturnType<U, undefined>
+  unknown<U2>(x: U2): ScalePower<Range, Output, U2>
 }
-export function scalePow<Range = number, Output = Range, Unknown = never>(
-  range?: Iterable<Range>
-): ScalePower<Range, Output, Unknown>
-export function scalePow<Range, Output = Range, Unknown = never>(
-  domain: Iterable<NumberValue>,
-  range: Iterable<Range>
-): ScalePower<Range, Output, Unknown>
-export function scaleSqrt<Range = number, Output = Range, Unknown = never>(
-  range?: Iterable<Range>
-): ScalePower<Range, Output, Unknown>
-export function scaleSqrt<Range, Output = Range, Unknown = never>(
-  domain: Iterable<NumberValue>,
-  range: Iterable<Range>
-): ScalePower<Range, Output, Unknown>
 export interface ScaleLogarithmic<Range, Output, Unknown = never>
   extends ScaleContinuousNumeric<Range, Output, Unknown> {
   domain(): number[]
@@ -1309,6 +1291,7 @@ export function scaleLog<Range, Output = Range, Unknown = never>(
   domain: Iterable<NumberValue>,
   range: Iterable<Range>
 ): ScaleLogarithmic<Range, Output, Unknown>
+
 export interface ScaleSymLog<Range, Output, Unknown = never> extends ScaleContinuousNumeric<Range, Output, Unknown> {
   tickFormat(count?: number, specifier?: string): (d: NumberValue) => string
   constant(): number
@@ -1323,69 +1306,51 @@ export function scaleSymlog<Range, Output = Range, Unknown = never>(
   domain: Iterable<NumberValue>,
   range: Iterable<Range>
 ): ScaleSymLog<Range, Output, Unknown>
-export interface ScaleIdentity<Unknown = never> {
-  (value: NumberValue): number | Unknown
-  invert(value: NumberValue): number
+
+export interface ScaleIdentity<U = never> {
+  (x: NumberValue): number | U
+  copy(): this
   domain(): number[]
-  domain(domain: Iterable<NumberValue>): this
+  domain(x: Iterable<NumberValue>): this
+  invert(x: NumberValue): number
+  nice(count?: number): this
   range(): number[]
-  range(range: Iterable<NumberValue>): this
+  range(x: Iterable<NumberValue>): this
+  tickFormat(count?: number, specifier?: string): (x: NumberValue) => string
   ticks(count?: number): number[]
-  tickFormat(count?: number, specifier?: string): (d: NumberValue) => string
-  nice(count?: number): this
-  copy(): this
-  unknown(): UnknownReturnType<Unknown, undefined>
-  unknown<NewUnknown>(value: NewUnknown): ScaleIdentity<NewUnknown>
+  unknown(): UnknownReturnType<U, undefined>
+  unknown<U2>(x: U2): ScaleIdentity<U2>
 }
-export function scaleIdentity<Unknown = never>(range?: Iterable<NumberValue>): ScaleIdentity<Unknown>
-export interface ScaleRadial<Range, Output, Unknown = never> extends ScaleContinuousNumeric<Range, Output, Unknown> {
-  unknown(): UnknownReturnType<Unknown, undefined>
-  unknown<NewUnknown>(value: NewUnknown): ScaleRadial<Range, Output, NewUnknown>
+
+export interface ScaleRadial<Range, Output, U = never> extends ScaleContinuousNumeric<Range, Output, U> {
+  unknown(): UnknownReturnType<U, undefined>
+  unknown<U2>(x: U2): ScaleRadial<Range, Output, U2>
 }
-export function scaleRadial<Range = number, Unknown = never>(
-  range?: Iterable<Range>
-): ScaleRadial<Range, Range, Unknown>
-export function scaleRadial<Range, Unknown = never>(
-  domain: Iterable<NumberValue>,
-  range: Iterable<Range>
-): ScaleRadial<Range, Range, Unknown>
+
 export interface ScaleTime<Range, Output, Unknown = never> {
-  (value: Date | NumberValue): Output | Unknown
-  invert(value: NumberValue): Date
-  domain(): Date[]
-  domain(domain: Iterable<Date | NumberValue>): this
-  range(): Range[]
-  range(range: Iterable<Range>): this
-  rangeRound(range: Iterable<NumberValue>): this
+  (x: Date | NumberValue): Output | Unknown
   clamp(): boolean
-  clamp(clamp: boolean): this
-  interpolate(): InterpolatorFactory<any, any>
-  interpolate(interpolate: InterpolatorFactory<Range, Output>): this
-  interpolate<NewOutput>(interpolate: InterpolatorFactory<Range, NewOutput>): ScaleTime<Range, NewOutput, Unknown>
-  ticks(count?: number): Date[]
-  ticks(interval: TimeInterval): Date[]
-  tickFormat(count?: number, specifier?: string): (d: Date) => string
-  tickFormat(interval: TimeInterval, specifier?: string): (d: Date) => string
-  nice(count?: number): this
-  nice(interval: CountableTimeInterval): this
+  clamp(x: boolean): this
   copy(): this
+  domain(): Date[]
+  domain(x: Iterable<Date | NumberValue>): this
+  interpolate(): InterpolatorFactory<any, any>
+  interpolate(f: InterpolatorFactory<Range, Output>): this
+  interpolate<O2>(f: InterpolatorFactory<Range, O2>): ScaleTime<Range, O2, Unknown>
+  invert(x: NumberValue): Date
+  nice(count?: number): this
+  nice(x: CountableTimeInterval): this
+  range(): Range[]
+  range(x: Iterable<Range>): this
+  rangeRound(x: Iterable<NumberValue>): this
+  tickFormat(count?: number, specifier?: string): (x: Date) => string
+  tickFormat(x: TimeInterval, specifier?: string): (x: Date) => string
+  ticks(count?: number): Date[]
+  ticks(x: TimeInterval): Date[]
   unknown(): UnknownReturnType<Unknown, undefined>
-  unknown<NewUnknown>(value: NewUnknown): ScaleTime<Range, Output, NewUnknown>
+  unknown<U2>(x: U2): ScaleTime<Range, Output, U2>
 }
-export function scaleTime<Range = number, Output = Range, Unknown = never>(
-  range?: Iterable<Range>
-): ScaleTime<Range, Output, Unknown>
-export function scaleTime<Range, Output = Range, Unknown = never>(
-  domain: Iterable<Date | NumberValue>,
-  range: Iterable<Range>
-): ScaleTime<Range, Output, Unknown>
-export function scaleUtc<Range = number, Output = Range, Unknown = never>(
-  range?: Iterable<Range>
-): ScaleTime<Range, Output, Unknown>
-export function scaleUtc<Range, Output = Range, Unknown = never>(
-  domain: Iterable<NumberValue>,
-  range: Iterable<Range>
-): ScaleTime<Range, Output, Unknown>
+
 export interface ScaleSequentialBase<Output, Unknown = never> {
   (value: NumberValue): Output | Unknown
   domain(): [number, number]
@@ -1439,6 +1404,7 @@ export function scaleSequentialSymlog<Output, Unknown = never>(
   domain: Iterable<NumberValue>,
   interpolator: (t: number) => Output
 ): ScaleSequential<Output, Unknown>
+
 export interface ScaleSequentialQuantile<Output, Unknown = never> extends ScaleSequentialBase<Output, Unknown> {
   quantiles(): number[]
   interpolator(): (t: number) => Output
@@ -1454,6 +1420,7 @@ export function scaleSequentialQuantile<Output, Unknown = never>(
   domain: Iterable<NumberValue>,
   interpolator: (t: number) => Output
 ): ScaleSequentialQuantile<Output, Unknown>
+
 export interface ScaleDiverging<Output, Unknown = never> {
   (value: NumberValue): Output | Unknown
   domain(): [number, number, number]
@@ -1504,110 +1471,80 @@ export function scaleDivergingSymlog<Output, Unknown = never>(
   domain: Iterable<NumberValue>,
   interpolator: (t: number) => Output
 ): ScaleDiverging<Output, Unknown>
-export interface ScaleQuantize<Range, Unknown = never> {
-  (value: NumberValue): Range | Unknown
-  invertExtent(value: Range): [number, number]
+
+export interface ScaleQuantize<Range, U = never> {
+  (x: NumberValue): Range | U
+  copy(): this
   domain(): [number, number]
-  domain(domain: Iterable<NumberValue>): this
-  range(): Range[]
-  range(range: Iterable<Range>): this
-  ticks(count?: number): number[]
-  tickFormat(count?: number, specifier?: string): (d: NumberValue) => string
+  domain(x: Iterable<NumberValue>): this
+  invertExtent(x: Range): [number, number]
   nice(count?: number): this
-  unknown(): UnknownReturnType<Unknown, undefined>
-  unknown<NewUnknown>(value: NewUnknown): ScaleQuantize<Range, NewUnknown>
+  range(): Range[]
+  range(x: Iterable<Range>): this
   thresholds(): number[]
-  copy(): this
+  tickFormat(count?: number, specifier?: string): (x: NumberValue) => string
+  ticks(count?: number): number[]
+  unknown(): UnknownReturnType<U, undefined>
+  unknown<U2>(x: U2): ScaleQuantize<Range, U2>
 }
-export function scaleQuantize<Range = number, Unknown = never>(range?: Iterable<Range>): ScaleQuantize<Range, Unknown>
-export function scaleQuantize<Range, Unknown = never>(
-  domain: Iterable<NumberValue>,
-  range: Iterable<Range>
-): ScaleQuantize<Range, Unknown>
-export interface ScaleQuantile<Range, Unknown = never> {
-  (value: NumberValue): Range | Unknown
-  invertExtent(value: Range): [number, number]
+
+export interface ScaleQuantile<Range, U = never> {
+  (x: NumberValue): Range | U
+  copy(): this
   domain(): number[]
-  domain(domain: Iterable<NumberValue | null | undefined>): this
-  range(): Range[]
-  range(range: Iterable<Range>): this
+  domain(x: Iterable<NumberValue | null | undefined>): this
+  invertExtent(x: Range): [number, number]
   quantiles(): number[]
-  copy(): this
-  unknown(): UnknownReturnType<Unknown, undefined>
-  unknown<NewUnknown>(value: NewUnknown): ScaleQuantile<Range, NewUnknown>
-}
-export function scaleQuantile<Range = number, Unknown = never>(range?: Iterable<Range>): ScaleQuantile<Range, Unknown>
-export function scaleQuantile<Range, Unknown = never>(
-  domain: Iterable<NumberValue | null | undefined>,
-  range: Iterable<Range>
-): ScaleQuantile<Range, Unknown>
-export interface ScaleThreshold<Domain extends number | string | Date, Range, Unknown = never> {
-  (value: Domain): Range | Unknown
-  invertExtent(value: Range): [Domain | undefined, Domain | undefined]
-  domain(): Domain[]
-  domain(domain: Iterable<Domain>): this
   range(): Range[]
-  range(range: Iterable<Range>): this
-  copy(): this
-  unknown(): UnknownReturnType<Unknown, undefined>
-  unknown<NewUnknown>(value: NewUnknown): ScaleThreshold<Domain, Range, NewUnknown>
+  range(x: Iterable<Range>): this
+  unknown(): UnknownReturnType<U, undefined>
+  unknown<U2>(x: U2): ScaleQuantile<Range, U2>
 }
-export function scaleThreshold<Domain extends number | string | Date = number, Range = number, Unknown = never>(
-  range?: Iterable<Range>
-): ScaleThreshold<Domain, Range, Unknown>
-export function scaleThreshold<Domain extends number | string | Date, Range, Unknown = never>(
-  domain: Iterable<Domain>,
-  range: Iterable<Range>
-): ScaleThreshold<Domain, Range, Unknown>
-export interface ScaleOrdinal<Domain extends { toString(): string }, Range, Unknown = never> {
-  (x: Domain): Range | Unknown
-  domain(): Domain[]
-  domain(domain: Iterable<Domain>): this
+
+export interface ScaleThreshold<T extends number | string | Date, Range, U = never> {
+  (x: T): Range | U
+  copy(): this
+  domain(): T[]
+  domain(x: Iterable<T>): this
+  invertExtent(x: Range): [T | undefined, T | undefined]
   range(): Range[]
-  range(range: Iterable<Range>): this
-  unknown(): UnknownReturnType<Unknown, { name: "implicit" }>
-  unknown<NewUnknown>(
-    value: NewUnknown
-  ): NewUnknown extends { name: "implicit" } ? ScaleOrdinal<Domain, Range> : ScaleOrdinal<Domain, Range, NewUnknown>
-  copy(): this
+  range(x: Iterable<Range>): this
+  unknown(): UnknownReturnType<U, undefined>
+  unknown<U2>(x: U2): ScaleThreshold<T, Range, U2>
 }
-export function scaleOrdinal<Range>(range?: Iterable<Range>): ScaleOrdinal<string, Range>
-export function scaleOrdinal<Domain extends { toString(): string }, Range, Unknown = never>(
-  range?: Iterable<Range>
-): ScaleOrdinal<Domain, Range, Unknown>
-export function scaleOrdinal<Domain extends { toString(): string }, Range, Unknown = never>(
-  domain: Iterable<Domain>,
-  range: Iterable<Range>
-): ScaleOrdinal<Domain, Range, Unknown>
-export const scaleImplicit: { name: "implicit" }
-export interface ScaleBand<Domain extends { toString(): string }> {
-  (x: Domain): number | undefined
-  domain(): Domain[]
-  domain(domain: Iterable<Domain>): this
-  range(): [number, number]
-  range(range: Iterable<NumberValue>): this
-  rangeRound(range: Iterable<NumberValue>): this
-  round(): boolean
-  round(round: boolean): this
-  paddingInner(): number
-  paddingInner(padding: number): this
-  paddingOuter(): number
-  paddingOuter(padding: number): this
-  padding(): number
-  padding(padding: number): this
+export interface ScaleOrdinal<T extends { toString(): string }, Range, U = never> {
+  (x: T): Range | U
+  copy(): this
+  domain(): T[]
+  domain(x: Iterable<T>): this
+  range(): Range[]
+  range(x: Iterable<Range>): this
+  unknown(): UnknownReturnType<U, { name: "implicit" }>
+  unknown<U2>(x: U2): U2 extends { name: "implicit" } ? ScaleOrdinal<T, Range> : ScaleOrdinal<T, Range, U2>
+}
+
+export interface ScaleBand<T extends { toString(): string }> {
+  (x: T): number | undefined
   align(): number
-  align(align: number): this
+  align(x: number): this
   bandwidth(): number
-  step(): number
   copy(): this
+  domain(): T[]
+  domain(x: Iterable<T>): this
+  padding(): number
+  padding(x: number): this
+  paddingInner(): number
+  paddingInner(x: number): this
+  paddingOuter(): number
+  paddingOuter(x: number): this
+  range(): [number, number]
+  range(x: Iterable<NumberValue>): this
+  rangeRound(x: Iterable<NumberValue>): this
+  round(): boolean
+  round(x: boolean): this
+  step(): number
 }
-export function scaleBand<Domain extends { toString(): string } = string>(
-  range?: Iterable<NumberValue>
-): ScaleBand<Domain>
-export function scaleBand<Domain extends { toString(): string }>(
-  domain: Iterable<Domain>,
-  range: Iterable<NumberValue>
-): ScaleBand<Domain>
+
 export interface ScalePoint<Domain extends { toString(): string }> {
   (x: Domain): number | undefined
   domain(): Domain[]
@@ -1625,13 +1562,6 @@ export interface ScalePoint<Domain extends { toString(): string }> {
   step(): number
   copy(): this
 }
-export function scalePoint<Domain extends { toString(): string } = string>(
-  range?: Iterable<NumberValue>
-): ScalePoint<Domain>
-export function scalePoint<Domain extends { toString(): string }>(
-  domain: Iterable<Domain>,
-  range: Iterable<NumberValue>
-): ScalePoint<Domain>
 
 export type BaseType = Element | EnterElement | Document | Window | null
 export type KeyType = string | number

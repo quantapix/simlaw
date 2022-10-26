@@ -797,6 +797,25 @@ export class Curve {
   static bumpY(x) {
     return new Curve.Bump(x, false)
   }
+  static linear(x) {
+    return new Curve.Linear(x)
+  }
+  static linearClosed(x) {
+    return new Curve.LinearClosed(x)
+  }
+  static natural(x) {
+    return new Curve.Natural(x)
+  }
+  static step(x) {
+    return new Curve.Step(x)
+  }
+  static stepBefore(x) {
+    return new Curve.Step(x, 0)
+  }
+  static stepAfter(x) {
+    return new Curve.Step(x, 1)
+  }
+
   static bundle: qt.CurveBundleFactory = (function f(beta) {
     function y(x) {
       return beta === 1 ? new Curve.Basis(x) : new Curve.Bundle(x, beta)
@@ -1479,7 +1498,7 @@ export namespace Curve {
       }
     }
   }
-  export class LinearClosed implements qt.CurveGenerator {
+  export class LinearClosed extends Curve implements qt.CurveGenerator {
     constructor(public ctx: CanvasRenderingContext2D | Path) {}
     areaStart = noop
     areaEnd = noop
@@ -1510,7 +1529,7 @@ export namespace Curve {
       this.ctx.bezierCurveTo(y1, x1, y2, x2, y, x)
     }
   }
-  class MonotoneX implements qt.CurveGenerator {
+  export class MonotoneX extends Curve implements qt.CurveGenerator {
     constructor(public ctx: CanvasRenderingContext2D | Path) {}
     areaStart() {
       this._line = 0
@@ -1559,7 +1578,7 @@ export namespace Curve {
       this._t0 = t1
     }
   }
-  class MonotoneY implements qt.CurveGenerator {
+  export class MonotoneY extends Curve implements qt.CurveGenerator {
     ctx
     constructor(x: CanvasRenderingContext2D | Path) {
       this.ctx = new ReflectContext(x)
@@ -1568,7 +1587,7 @@ export namespace Curve {
       MonotoneX.point.call(this, y, x)
     }
   }
-  class Natural implements qt.CurveGenerator {
+  export class Natural extends Curve implements qt.CurveGenerator {
     constructor(public ctx: CanvasRenderingContext2D | Path) {}
     areaStart() {
       this._line = 0
@@ -1606,7 +1625,7 @@ export namespace Curve {
     }
   }
   export const curveRadialLinear = curveRadial(curveLinear)
-  class Radial {
+  export class Radial {
     constructor(curve) {
       this._curve = curve
     }
@@ -1633,7 +1652,7 @@ export namespace Curve {
     y._curve = curve
     return y
   }
-  class Step implements qt.CurveGenerator {
+  export class Step extends Curve implements qt.CurveGenerator {
     constructor(public ctx: CanvasRenderingContext2D | Path, public pos = 0.5) {}
     areaStart() {
       this._line = 0
@@ -1673,12 +1692,6 @@ export namespace Curve {
       }
       ;(this._x = x), (this._y = y)
     }
-  }
-  export function stepBefore(context) {
-    return new Step(context, 0)
-  }
-  export function stepAfter(context) {
-    return new Step(context, 1)
   }
 }
 
