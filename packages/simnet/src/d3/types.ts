@@ -1977,78 +1977,74 @@ export function lineRadial<Datum>(): LineRadial<Datum>
 export type RadialLine<Datum> = LineRadial<Datum>
 export function radialLine(): RadialLine<[number, number]>
 export function radialLine<Datum>(): RadialLine<Datum>
-export interface Area<Datum> {
-  (data: Iterable<Datum> | Datum[]): string | null
-  (data: Iterable<Datum> | Datum[]): void
-  x(): (d: Datum, i: number, data: Datum[]) => number
+
+export interface Area<T> {
+  (xs: Iterable<T> | T[]): string | null
+  (xs: Iterable<T> | T[]): void
+  context(): CanvasRenderingContext2D | null
+  context(x: CanvasRenderingContext2D | null): this
+  curve(): CurveFactory
+  curve(x: CurveFactory): this
+  curve<C extends CurveFactory>(): C
+  defined(): (x: T, i: number, xs: T[]) => boolean
+  defined(f: (x: T, i: number, xs: T[]) => boolean): this
+  defined(x: boolean): this
+  lineX0(): Line<T>
+  lineX1(): Line<T>
+  lineY0(): Line<T>
+  lineY1(): Line<T>
+  x(): (x: T, i: number, xs: T[]) => number
+  x(f: (x: T, i: number, xs: T[]) => number): this
   x(x: number): this
-  x(x: (d: Datum, i: number, data: Datum[]) => number): this
-  x0(): (d: Datum, i: number, data: Datum[]) => number
+  x0(): (x: T, i: number, xs: T[]) => number
+  x0(f: (x: T, i: number, xs: T[]) => number): this
   x0(x: number): this
-  x0(x: (d: Datum, i: number, data: Datum[]) => number): this
-  x1(): ((d: Datum, i: number, data: Datum[]) => number) | null
+  x1(): ((x: T, i: number, xs: T[]) => number) | null
+  x1(f: (x: T, i: number, xs: T[]) => number): this
   x1(x: null | number): this
-  x1(x: (d: Datum, i: number, data: Datum[]) => number): this
-  y(): (d: Datum, i: number, data: Datum[]) => number
+  y(): (x: T, i: number, xs: T[]) => number
+  y(f: (x: T, i: number, xs: T[]) => number): this
   y(y: number): this
-  y(y: (d: Datum, i: number, data: Datum[]) => number): this
-  y0(): (d: Datum, i: number, data: Datum[]) => number
+  y0(): (x: T, i: number, xs: T[]) => number
+  y0(f: (x: T, i: number, xs: T[]) => number): this
   y0(y: number): this
-  y0(y: (d: Datum, i: number, data: Datum[]) => number): this
-  y1(): ((d: Datum, i: number, data: Datum[]) => number) | null
+  y1(): ((x: T, i: number, xs: T[]) => number) | null
+  y1(f: (x: T, i: number, xs: T[]) => number): this
   y1(y: null | number): this
-  y1(y: (d: Datum, i: number, data: Datum[]) => number): this
-  defined(): (d: Datum, i: number, data: Datum[]) => boolean
-  defined(defined: boolean): this
-  defined(defined: (d: Datum, i: number, data: Datum[]) => boolean): this
-  curve(): CurveFactory
-  curve<C extends CurveFactory>(): C
-  curve(curve: CurveFactory): this
-  context(): CanvasRenderingContext2D | null
-  context(context: CanvasRenderingContext2D | null): this
-  lineX0(): Line<Datum>
-  lineY0(): Line<Datum>
-  lineX1(): Line<Datum>
-  lineY1(): Line<Datum>
 }
-export function area<Datum = [number, number]>(
-  x?: number | ((d: Datum, i: number, data: Datum[]) => number),
-  y0?: number | ((d: Datum, i: number, data: Datum[]) => number),
-  y1?: number | ((d: Datum, i: number, data: Datum[]) => number)
-): Area<Datum>
-export interface AreaRadial<Datum> {
-  (data: Iterable<Datum> | Datum[]): string | null
-  (data: Iterable<Datum> | Datum[]): void
-  angle(): (d: Datum, i: number, data: Datum[]) => number
-  angle(angle: number): this
-  angle(angle: (d: Datum, i: number, data: Datum[]) => number): this
-  startAngle(): (d: Datum, i: number, data: Datum[]) => number
-  startAngle(angle: number): this
-  startAngle(angle: (d: Datum, i: number, data: Datum[]) => number): this
-  endAngle(): ((d: Datum, i: number, data: Datum[]) => number) | null
-  endAngle(angle: null | number): this
-  endAngle(angle: (d: Datum, i: number, data: Datum[]) => number): this
-  radius(): (d: Datum, i: number, data: Datum[]) => number
-  radius(radius: number): this
-  radius(radius: (d: Datum, i: number, data: Datum[]) => number): this
-  innerRadius(): (d: Datum, i: number, data: Datum[]) => number
-  innerRadius(radius: number): this
-  innerRadius(radius: (d: Datum, i: number, data: Datum[]) => number): this
-  outerRadius(): ((d: Datum, i: number, data: Datum[]) => number) | null
-  outerRadius(radius: null | number): this
-  outerRadius(radius: (d: Datum, i: number, data: Datum[]) => number): this
-  defined(): (d: Datum, i: number, data: Datum[]) => boolean
-  defined(defined: boolean): this
-  defined(defined: (d: Datum, i: number, data: Datum[]) => boolean): this
-  curve(): CurveFactory
-  curve<C extends CurveFactory>(): C
-  curve(curve: CurveFactory): this
+export interface AreaRadial<T> {
+  (xs: Iterable<T> | T[]): string | null
+  (xs: Iterable<T> | T[]): void
+  angle(): (x: T, i: number, xs: T[]) => number
+  angle(f: (x: T, i: number, xs: T[]) => number): this
+  angle(x: number): this
   context(): CanvasRenderingContext2D | null
-  context(context: CanvasRenderingContext2D | null): this
-  lineStartAngle(): LineRadial<Datum>
-  lineInnerRadius(): LineRadial<Datum>
-  lineEndAngle(): LineRadial<Datum>
-  lineOuterRadius(): LineRadial<Datum>
+  context(x: CanvasRenderingContext2D | null): this
+  curve(): CurveFactory
+  curve(x: CurveFactory): this
+  curve<C extends CurveFactory>(): C
+  defined(): (x: T, i: number, xs: T[]) => boolean
+  defined(f: (x: T, i: number, xs: T[]) => boolean): this
+  defined(x: boolean): this
+  endAngle(): ((x: T, i: number, xs: T[]) => number) | null
+  endAngle(f: (x: T, i: number, xs: T[]) => number): this
+  endAngle(x: null | number): this
+  innerRadius(): (x: T, i: number, xs: T[]) => number
+  innerRadius(f: (x: T, i: number, xs: T[]) => number): this
+  innerRadius(x: number): this
+  lineEndAngle(): LineRadial<T>
+  lineInnerRadius(): LineRadial<T>
+  lineOuterRadius(): LineRadial<T>
+  lineStartAngle(): LineRadial<T>
+  outerRadius(): ((x: T, i: number, xs: T[]) => number) | null
+  outerRadius(f: (x: T, i: number, xs: T[]) => number): this
+  outerRadius(x: null | number): this
+  radius(): (x: T, i: number, xs: T[]) => number
+  radius(f: (x: T, i: number, xs: T[]) => number): this
+  radius(x: number): this
+  startAngle(): (x: T, i: number, xs: T[]) => number
+  startAngle(f: (x: T, i: number, xs: T[]) => number): this
+  startAngle(x: number): this
 }
 export function areaRadial(): AreaRadial<[number, number]>
 export function areaRadial<Datum>(): AreaRadial<Datum>
@@ -2085,14 +2081,6 @@ export const curveCatmullRom: CurveCatmullRomFactory
 export const curveCatmullRomClosed: CurveCatmullRomFactory
 export const curveCatmullRomOpen: CurveCatmullRomFactory
 
-export const curveLinear: CurveFactory
-export const curveLinearClosed: CurveFactory
-export const curveMonotoneX: CurveFactory
-export const curveMonotoneY: CurveFactory
-export const curveNatural: CurveFactory
-export const curveStep: CurveFactory
-export const curveStepAfter: CurveFactory
-export const curveStepBefore: CurveFactory
 export interface DefaultLinkObject {
   source: [number, number]
   target: [number, number]
