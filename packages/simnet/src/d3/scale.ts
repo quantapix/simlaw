@@ -287,36 +287,63 @@ function transformer() {
     return scale
   }
 }
-export function diverging() {
-  const scale = linearish(transformer()(identity))
-  scale.copy = function () {
-    return copy(scale, diverging())
+export function diverging<Output = number, U = never>(
+  f?: ((x: number) => Output) | Iterable<Output>
+): qt.ScaleDiverging<Output, U>
+export function diverging<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: ((x: number) => Output) | Iterable<Output>
+): qt.ScaleDiverging<Output, U>
+export function diverging(...xs: any[]) {
+  const f = linearish(transformer()(identity))
+  f.copy = function () {
+    return copy(f, diverging())
   }
-  return initInterpolator.apply(scale, arguments)
+  return initInterpolator.apply(f, ...xs)
 }
-export function divergingLog() {
-  const scale = loggish(transformer()).domain([0.1, 1, 10])
-  scale.copy = function () {
-    return copy(scale, divergingLog()).base(scale.base())
+export function divergingLog<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleDiverging<Output, U>
+export function divergingLog<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: (x: number) => Output
+): qt.ScaleDiverging<Output, U>
+export function divergingLog(...xs: any[]) {
+  const f = loggish(transformer()).domain([0.1, 1, 10])
+  f.copy = function () {
+    return copy(f, divergingLog()).base(f.base())
   }
-  return initInterpolator.apply(scale, arguments)
+  return initInterpolator.apply(f, ...xs)
 }
-export function divergingSymlog() {
-  const scale = symlogish(transformer())
-  scale.copy = function () {
-    return copy(scale, divergingSymlog()).constant(scale.constant())
+export function divergingSymlog<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleDiverging<Output, U>
+export function divergingSymlog<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: (x: number) => Output
+): qt.ScaleDiverging<Output, U>
+export function divergingSymlog(...xs: any[]) {
+  const f = symlogish(transformer())
+  f.copy = function () {
+    return copy(f, divergingSymlog()).constant(f.constant())
   }
-  return initInterpolator.apply(scale, arguments)
+  return initInterpolator.apply(f, ...xs)
 }
-export function divergingPow() {
-  const scale = powish(transformer())
-  scale.copy = function () {
-    return copy(scale, divergingPow()).exponent(scale.exponent())
+export function divergingPow<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleDiverging<Output, U>
+export function divergingPow<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: (x: number) => Output
+): qt.ScaleDiverging<Output, U>
+export function divergingPow(...xs: any[]) {
+  const f = powish(transformer())
+  f.copy = function () {
+    return copy(f, divergingPow()).exponent(f.exponent())
   }
-  return initInterpolator.apply(scale, arguments)
+  return initInterpolator.apply(f, ...xs)
 }
-export function divergingSqrt() {
-  return divergingPow.apply(null, arguments).exponent(0.5)
+export function divergingSqrt<Output = number, U = never>(f?: (t: number) => Output): qt.ScaleDiverging<Output, U>
+export function divergingSqrt<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: (x: number) => Output
+): qt.ScaleDiverging<Output, U>
+export function divergingSqrt(...xs: any[]) {
+  return divergingPow.apply(null, ...xs).exponent(0.5)
 }
 export function scaleIdentity<U = never>(range?: Iterable<qt.NumberValue>): qt.ScaleIdentity<U>
 export function scaleIdentity(domain) {
@@ -539,11 +566,18 @@ export function loggish(transform) {
   }
   return scale
 }
-export function log() {
-  const scale = loggish(transformer()).domain([1, 10])
-  scale.copy = () => copy(scale, log()).base(scale.base())
-  initRange.apply(scale, arguments)
-  return scale
+export function log<Range = number, Output = Range, U = never>(
+  range?: Iterable<Range>
+): qt.ScaleLogarithmic<Range, Output, U>
+export function log<Range, Output = Range, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  range: Iterable<Range>
+): qt.ScaleLogarithmic<Range, Output, U>
+export function log(...xs: any[]) {
+  const f = loggish(transformer()).domain([1, 10])
+  f.copy = () => copy(f, log()).base(f.base())
+  initRange.apply(f, ...xs)
+  return f
 }
 export function nice(domain, interval) {
   domain = domain.slice()
@@ -848,63 +882,97 @@ export function copy(source, target) {
     .clamp(source.clamp())
     .unknown(source.unknown())
 }
-export function sequential() {
-  const scale = linearish(transformer()(identity))
-  scale.copy = function () {
-    return copy(scale, sequential())
+export function sequential<Output = number, U = never>(
+  f?: ((x: number) => Output) | Iterable<Output>
+): qt.ScaleSequential<Output, U>
+export function sequential<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: ((x: number) => Output) | Iterable<Output>
+): qt.ScaleSequential<Output, U>
+export function sequential(...xs: any[]) {
+  const f = linearish(transformer()(identity))
+  f.copy = function () {
+    return copy(f, sequential())
   }
-  return initInterpolator.apply(scale, arguments)
+  return initInterpolator.apply(f, ...xs)
 }
-export function sequentialLog() {
-  const scale = loggish(transformer()).domain([1, 10])
-  scale.copy = function () {
-    return copy(scale, sequentialLog()).base(scale.base())
+export function sequentialLog<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleSequential<Output, U>
+export function sequentialLog<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: (x: number) => Output
+): qt.ScaleSequential<Output, U>
+export function sequentialLog(...xs: any[]) {
+  const f = loggish(transformer()).domain([1, 10])
+  f.copy = function () {
+    return copy(f, sequentialLog()).base(f.base())
   }
-  return initInterpolator.apply(scale, arguments)
+  return initInterpolator.apply(f, ...xs)
 }
-export function sequentialSymlog() {
-  const scale = symlogish(transformer())
-  scale.copy = function () {
-    return copy(scale, sequentialSymlog()).constant(scale.constant())
+export function sequentialSymlog<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleSequential<Output, U>
+export function sequentialSymlog<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: (x: number) => Output
+): qt.ScaleSequential<Output, U>
+export function sequentialSymlog(...xs: any[]) {
+  const f = symlogish(transformer())
+  f.copy = function () {
+    return copy(f, sequentialSymlog()).constant(f.constant())
   }
-  return initInterpolator.apply(scale, arguments)
+  return initInterpolator.apply(f, ...xs)
 }
-export function sequentialPow() {
-  const scale = powish(transformer())
-  scale.copy = function () {
-    return copy(scale, sequentialPow()).exponent(scale.exponent())
+export function sequentialPow<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleSequential<Output, U>
+export function sequentialPow<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: (x: number) => Output
+): qt.ScaleSequential<Output, U>
+export function sequentialPow(...xs: any[]) {
+  const f = powish(transformer())
+  f.copy = function () {
+    return copy(f, sequentialPow()).exponent(f.exponent())
   }
-  return initInterpolator.apply(scale, arguments)
+  return initInterpolator.apply(f, ...xs)
 }
-export function sequentialSqrt() {
-  return sequentialPow.apply(null, arguments).exponent(0.5)
+export function sequentialSqrt<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleSequential<Output, U>
+export function sequentialSqrt<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: (x: number) => Output
+): qt.ScaleSequential<Output, U>
+export function sequentialSqrt(...xs: any[]) {
+  return sequentialPow.apply(null, ...xs).exponent(0.5)
 }
-export function sequentialQuantile() {
+export function sequentialQuantile<Output = number, U = never>(
+  f?: (x: number) => Output
+): qt.ScaleSequentialQuantile<Output, U>
+export function sequentialQuantile<Output, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  f: (x: number) => Output
+): qt.ScaleSequentialQuantile<Output, U>
+export function sequentialQuantile(...xs: any[]) {
   let domain = [],
     interpolator = identity
-  function scale(x) {
+  function f(x) {
     if (x != null && !isNaN((x = +x))) return interpolator((bisect(domain, x, 1) - 1) / (domain.length - 1))
   }
-  scale.domain = function (_) {
+  f.domain = function (_) {
     if (!arguments.length) return domain.slice()
     domain = []
     for (let d of _) if (d != null && !isNaN((d = +d))) domain.push(d)
     domain.sort(ascending)
-    return scale
+    return f
   }
-  scale.interpolator = function (_) {
-    return arguments.length ? ((interpolator = _), scale) : interpolator
+  f.interpolator = function (_) {
+    return arguments.length ? ((interpolator = _), f) : interpolator
   }
-  scale.range = function () {
+  f.range = function () {
     return domain.map((d, i) => interpolator(i / (domain.length - 1)))
   }
-  scale.quantiles = function (n) {
+  f.quantiles = function (n) {
     return Array.from({ length: n + 1 }, (_, i) => quantile(domain, i / n))
   }
-  scale.copy = function () {
+  f.copy = function () {
     return sequentialQuantile(interpolator).domain(domain)
   }
-  return initInterpolator.apply(scale, arguments)
+  return initInterpolator.apply(f, ...xs)
 }
 function transformSymlog(c) {
   return function (x) {
@@ -924,12 +992,19 @@ export function symlogish(transform) {
   }
   return linearish(scale)
 }
-export function symlog() {
-  const scale = symlogish(transformer())
-  scale.copy = function () {
-    return copy(scale, symlog()).constant(scale.constant())
+export function symlog<Range = number, Output = Range, U = never>(
+  range?: Iterable<Range>
+): qt.ScaleSymLog<Range, Output, U>
+export function symlog<Range, Output = Range, U = never>(
+  domain: Iterable<qt.NumberValue>,
+  range: Iterable<Range>
+): qt.ScaleSymLog<Range, Output, U>
+export function symlog(...xs: any[]) {
+  const f = symlogish(transformer())
+  f.copy = function () {
+    return copy(f, symlog()).constant(f.constant())
   }
-  return initRange.apply(scale, arguments)
+  return initRange.apply(f, ...xs)
 }
 export function threshold<T extends number | string | Date = number, Range = number, U = never>(
   range?: Iterable<Range>
