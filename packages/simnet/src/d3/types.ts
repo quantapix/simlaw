@@ -1497,41 +1497,35 @@ export interface CustomEventParameters {
   cancelable: boolean
   detail: any
 }
-export type ValueFn<B extends BaseType, T, Result> = (this: B, x: T, i: number, groups: B[] | ArrayLike<B>) => Result
+export type ValueFn<B extends BaseType, T, R> = (this: B, x: T, i: number, groups: B[] | ArrayLike<B>) => R
+
 export interface TransitionLike<B extends BaseType, T> {
   selection(): Selection<B, T, any, any>
-  on(type: string, listener: null): TransitionLike<B, T>
-  on(type: string, listener: ValueFn<B, T, void>): TransitionLike<B, T>
-  tween(name: string, tweenFn: null): TransitionLike<B, T>
-  tween(name: string, tweenFn: ValueFn<B, T, (t: number) => void>): TransitionLike<B, T>
+  on(type: string, x: null): TransitionLike<B, T>
+  on(type: string, f: ValueFn<B, T, void>): TransitionLike<B, T>
+  tween(name: string, x: null): TransitionLike<B, T>
+  tween(name: string, f: ValueFn<B, T, (t: number) => void>): TransitionLike<B, T>
 }
-export function select<B extends BaseType, T>(selector: string): Selection<B, T, HTMLElement, any>
-export function select<B extends BaseType, T>(node: B): Selection<B, T, null, undefined>
-export function selectAll(selector?: null): Selection<null, undefined, null, undefined>
-export function selectAll<B extends BaseType, T>(selector: string): Selection<B, T, HTMLElement, any>
-export function selectAll<B extends BaseType, T>(
-  nodes: B[] | ArrayLike<B> | Iterable<B>
-): Selection<B, T, null, undefined>
 
 export interface Selection<B extends BaseType, T, PElement extends BaseType, P> {
-  select<DescElement extends BaseType>(selector: string): Selection<DescElement, T, PElement, P>
-  select<DescElement extends BaseType>(selector: null): Selection<null, undefined, PElement, P>
-  select<DescElement extends BaseType>(selector: ValueFn<B, T, DescElement>): Selection<DescElement, T, PElement, P>
-  selectAll(selector?: null): Selection<null, undefined, B, T>
-  selectAll<DescElement extends BaseType, O>(selector: string): Selection<DescElement, O, B, T>
+  select<DescElement extends BaseType>(x: string): Selection<DescElement, T, PElement, P>
+  select<DescElement extends BaseType>(x: null): Selection<null, undefined, PElement, P>
+  select<DescElement extends BaseType>(f: ValueFn<B, T, DescElement>): Selection<DescElement, T, PElement, P>
+  selectAll(x?: null): Selection<null, undefined, B, T>
+  selectAll<DescElement extends BaseType, O>(x: string): Selection<DescElement, O, B, T>
   selectAll<DescElement extends BaseType, O>(
-    selector: ValueFn<B, T, DescElement[] | ArrayLike<DescElement> | Iterable<DescElement>>
+    f: ValueFn<B, T, DescElement[] | ArrayLike<DescElement> | Iterable<DescElement>>
   ): Selection<DescElement, O, B, T>
-  filter(selector: string): Selection<B, T, PElement, P>
-  filter<FilteredElement extends BaseType>(selector: string): Selection<FilteredElement, T, PElement, P>
-  filter(selector: ValueFn<B, T, boolean>): Selection<B, T, PElement, P>
-  filter<FilteredElement extends BaseType>(selector: ValueFn<B, T, boolean>): Selection<FilteredElement, T, PElement, P>
+  filter(x: string): Selection<B, T, PElement, P>
+  filter<FilteredElement extends BaseType>(x: string): Selection<FilteredElement, T, PElement, P>
+  filter(f: ValueFn<B, T, boolean>): Selection<B, T, PElement, P>
+  filter<FilteredElement extends BaseType>(f: ValueFn<B, T, boolean>): Selection<FilteredElement, T, PElement, P>
   merge(other: Selection<B, T, PElement, P> | TransitionLike<B, T>): Selection<B, T, PElement, P>
-  selectChild<DescElement extends BaseType>(selector?: string): Selection<DescElement, T, PElement, P>
+  selectChild<DescElement extends BaseType>(x?: string): Selection<DescElement, T, PElement, P>
   selectChild<ResultElement extends BaseType, ChildElement extends BaseType>(
     selector: (child: ChildElement, i: number, children: ChildElement[]) => boolean
   ): Selection<ResultElement, T, PElement, P>
-  selectChildren<DescElement extends BaseType, O>(selector?: string): Selection<DescElement, O, B, T>
+  selectChildren<DescElement extends BaseType, O>(x?: string): Selection<DescElement, O, B, T>
   selectChildren<ResultElement extends BaseType, ResultDatum, ChildElement extends BaseType>(
     selector: (child: ChildElement, i: number, children: ChildElement[]) => boolean
   ): Selection<ResultElement, ResultDatum, B, T>
@@ -1620,36 +1614,20 @@ export interface Selection<B extends BaseType, T, PElement extends BaseType, P> 
   [Symbol.iterator](): Iterator<B>
 }
 export type SelectionFn = () => Selection<HTMLElement, any, null, undefined>
-export const selection: SelectionFn
-export function pointer(event: any, target?: any): [number, number]
-export function pointers(event: any, target?: any): Array<[number, number]>
-export function style(node: Element, name: string): string
+
 export interface Local<T> {
-  get(node: Element): T | undefined
-  remove(node: Element): boolean
-  set(node: Element, value: T): T
+  get(k: Element): T | undefined
+  remove(k: Element): boolean
+  set(k: Element, x: T): T
   toString(): string
 }
-export function local<T>(): Local<T>
 export interface NamespaceLocalObject {
   space: string
   local: string
 }
-export function namespace(prefixedLocal: string): NamespaceLocalObject | string
 export interface NamespaceMap {
-  [prefix: string]: string
+  [k: string]: string
 }
-export const namespaces: NamespaceMap
-export function window(DOMNode: Window | Document | Element): Window
-export function create<K extends keyof ElementTagNameMap>(
-  name: K
-): Selection<ElementTagNameMap[K], undefined, null, undefined>
-export function create<NewGElement extends Element>(name: string): Selection<NewGElement, undefined, null, undefined>
-export function creator<K extends keyof ElementTagNameMap>(name: K): (this: BaseType) => ElementTagNameMap[K]
-export function creator<NewGElement extends Element>(name: string): (this: BaseType) => NewGElement
-export function matcher(selector: string): (this: BaseType) => boolean
-export function selector<DescElement extends Element>(selector: string): (this: BaseType) => DescElement
-export function selectorAll<DescElement extends Element>(selector: string): (this: BaseType) => NodeListOf<DescElement>
 declare global {
   interface CanvasRenderingContext2D {}
 }
@@ -1941,17 +1919,6 @@ export interface Stack<This, T, K> {
   offset(offset: null): this
   offset(offset: (series: Series<T, K>, order: number[]) => void): this
 }
-export function stackOrderAppearance(series: Series<any, any>): number[]
-export function stackOrderAscending(series: Series<any, any>): number[]
-export function stackOrderDescending(series: Series<any, any>): number[]
-export function stackOrderInsideOut(series: Series<any, any>): number[]
-export function stackOrderNone(series: Series<any, any>): number[]
-export function stackOrderReverse(series: Series<any, any>): number[]
-export function stackOffsetExpand(series: Series<any, any>, order: Iterable<number>): void
-export function stackOffsetDiverging(series: Series<any, any>, order: Iterable<number>): void
-export function stackOffsetNone(series: Series<any, any>, order: Iterable<number>): void
-export function stackOffsetSilhouette(series: Series<any, any>, order: Iterable<number>): void
-export function stackOffsetWiggle(series: Series<any, any>, order: Iterable<number>): void
 
 export interface TimeInterval {
   (date?: Date): Date
@@ -1962,10 +1929,12 @@ export interface TimeInterval {
   range(start: Date, stop: Date, step?: number): Date[]
   filter(test: (date: Date) => boolean): TimeInterval
 }
+
 export interface CountableTimeInterval extends TimeInterval {
   count(start: Date, end: Date): number
   every(step: number): TimeInterval | null
 }
+
 export interface TimeLocaleDefinition {
   dateTime: string
   date: string

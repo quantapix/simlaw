@@ -1,3 +1,14 @@
+import type * as qt from "./types.js"
+
+export const xhtml = "http://www.w3.org/1999/xhtml"
+export const namespaces: qt.NamespaceMap = {
+  svg: "http://www.w3.org/2000/svg",
+  xhtml: xhtml,
+  xlink: "http://www.w3.org/1999/xlink",
+  xml: "http://www.w3.org/XML/1998/namespace",
+  xmlns: "http://www.w3.org/2000/xmlns/",
+}
+
 export function array(x) {
   return x == null ? [] : Array.isArray(x) ? x : Array.from(x)
 }
@@ -6,32 +17,38 @@ export function constant(x) {
     return x
   }
 }
-export function create(name) {
-  return select(creator(name).call(document.documentElement))
+export function create<T extends keyof ElementTagNameMap>(
+  x: T
+): qt.Selection<ElementTagNameMap[T], undefined, null, undefined>
+export function create<T extends Element>(x: string): qt.Selection<T, undefined, null, undefined>
+export function create(x: any) {
+  return select(creator(x).call(document.documentElement))
 }
-function creatorInherit(name) {
-  return function () {
-    let document = this.ownerDocument,
+function creatorInherit(x: any) {
+  return function (this: any) {
+    const document = this.ownerDocument,
       uri = this.namespaceURI
     return uri === xhtml && document.documentElement.namespaceURI === xhtml
-      ? document.createElement(name)
-      : document.createElementNS(uri, name)
+      ? document.createElement(x)
+      : document.createElementNS(uri, x)
   }
 }
-function creatorFixed(fullname) {
-  return function () {
-    return this.ownerDocument.createElementNS(fullname.space, fullname.local)
+function creatorFixed(x: any) {
+  return function (this: any) {
+    return this.ownerDocument.createElementNS(x.space, x.local)
   }
 }
-export function creator(name) {
-  let fullname = namespace(name)
-  return (fullname.local ? creatorFixed : creatorInherit)(fullname)
+export function creator<T extends keyof ElementTagNameMap>(x: T): (this: qt.BaseType) => ElementTagNameMap[T]
+export function creator<T extends Element>(x: string): (this: qt.BaseType) => T
+export function creator(x: any) {
+  const y: any = namespace(x)
+  return (y.local ? creatorFixed : creatorInherit)(y)
 }
 export function identity(x) {
   return x
 }
 let nextId = 0
-export function local() {
+export function local<T>(): qt.Local<T> {
   return new Local()
 }
 class Local {
@@ -39,7 +56,7 @@ class Local {
     this._ = "@" + (++nextId).toString(36)
   }
   get(node) {
-    let id = this._
+    const id = this._
     while (!(id in node)) if (!(node = node.parentNode)) return
     return node[id]
   }
@@ -53,82 +70,79 @@ class Local {
     return this._
   }
 }
-export function matcher(selector) {
-  return function () {
-    return this.matches(selector)
+export function matcher(sel: string): (this: qt.BaseType) => boolean {
+  return function (this: qt.BaseType) {
+    return this.matches(sel)
   }
 }
-export function childMatcher(selector) {
+export function childMatcher(sel: string) {
   return function (node) {
-    return node.matches(selector)
+    return node.matches(sel)
   }
 }
-export function namespace(name) {
+export function namespace(name: string): qt.NamespaceLocalObject | string {
   let prefix = (name += ""),
     i = prefix.indexOf(":")
   if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1)
   return namespaces.hasOwnProperty(prefix) ? { space: namespaces[prefix], local: name } : name // eslint-disable-line no-prototype-builtins
 }
-export const xhtml = "http://www.w3.org/1999/xhtml"
-export const namespaces = {
-  svg: "http://www.w3.org/2000/svg",
-  xhtml: xhtml,
-  xlink: "http://www.w3.org/1999/xlink",
-  xml: "http://www.w3.org/XML/1998/namespace",
-  xmlns: "http://www.w3.org/2000/xmlns/",
-}
-export function pointer(event, node) {
+export function pointer(event: any, target?: any): [number, number] {
   event = sourceEvent(event)
-  if (node === undefined) node = event.currentTarget
-  if (node) {
-    let svg = node.ownerSVGElement || node
+  if (target === undefined) target = event.currentTarget
+  if (target) {
+    const svg = target.ownerSVGElement || target
     if (svg.createSVGPoint) {
       let point = svg.createSVGPoint()
       ;(point.x = event.clientX), (point.y = event.clientY)
-      point = point.matrixTransform(node.getScreenCTM().inverse())
+      point = point.matrixTransform(target.getScreenCTM().inverse())
       return [point.x, point.y]
     }
-    if (node.getBoundingClientRect) {
-      let rect = node.getBoundingClientRect()
-      return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop]
+    if (target.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect()
+      return [event.clientX - rect.left - target.clientLeft, event.clientY - rect.top - target.clientTop]
     }
   }
   return [event.pageX, event.pageY]
 }
-export function pointers(events, node) {
-  if (events.target) {
-    events = sourceEvent(events)
-    if (node === undefined) node = events.currentTarget
-    events = events.touches || [events]
+export function pointers(event: any, target?: any): Array<[number, number]> {
+  if (event.target) {
+    event = sourceEvent(event)
+    if (target === undefined) target = event.currentTarget
+    event = event.touches || [event]
   }
-  return Array.from(events, event => pointer(event, node))
+  return Array.from(event, event => pointer(event, target))
 }
-export function select(selector) {
-  return typeof selector === "string"
-    ? new Selection([[document.querySelector(selector)]], [document.documentElement])
-    : new Selection([[selector]], root)
+export function select<B extends qt.BaseType, T>(x: string): qt.Selection<B, T, HTMLElement, any>
+export function select<B extends qt.BaseType, T>(x: B): qt.Selection<B, T, null, undefined>
+export function select(x: any) {
+  return typeof x === "string"
+    ? new Selection([[document.querySelector(x)]], [document.documentElement])
+    : new Selection([[x]], root)
 }
-export function selectAll(selector) {
-  return typeof selector === "string"
-    ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
-    : new Selection([array(selector)], root)
+export function selectAll(x?: null): qt.Selection<null, undefined, null, undefined>
+export function selectAll<B extends qt.BaseType, T>(x: string): qt.Selection<B, T, HTMLElement, any>
+export function selectAll<B extends qt.BaseType, T>(
+  x: B[] | ArrayLike<B> | Iterable<B>
+): qt.Selection<B, T, null, undefined>
+export function selectAll(x: any) {
+  return typeof x === "string"
+    ? new Selection([document.querySelectorAll(x)], [document.documentElement])
+    : new Selection([array(x)], root)
 }
-function none() {}
-export function selector(selector) {
-  return selector == null
-    ? none
-    : function () {
-        return this.querySelector(selector)
+export function selector<T extends Element>(x: string | null): (this: qt.BaseType) => T | void {
+  return x == null
+    ? function (this: qt.BaseType) {}
+    : function (this: qt.BaseType) {
+        return this.querySelector(x)
       }
 }
-function empty() {
-  return []
-}
-export function selectorAll(selector) {
-  return selector == null
-    ? empty
+export function selectorAll<T extends Element>(x: string | null): (this: qt.BaseType) => NodeListOf<T> {
+  return x == null
+    ? function empty() {
+        return []
+      }
     : function () {
-        return this.querySelectorAll(selector)
+        return this.querySelectorAll(x)
       }
 }
 export function sourceEvent(event) {
@@ -136,8 +150,8 @@ export function sourceEvent(event) {
   while ((sourceEvent = event.sourceEvent)) event = sourceEvent
   return event
 }
-export function window(node) {
-  return (node.ownerDocument && node.ownerDocument.defaultView) || (node.document && node) || node.defaultView
+export function window(x: Window | Document | Element): Window {
+  return (x.ownerDocument && x.ownerDocument.defaultView) || (x.document && x) || x.defaultView
 }
 
 function classArray(string) {
@@ -152,14 +166,14 @@ class ClassList {
     this._names = classArray(node.getAttribute("class") || "")
   }
   add(name) {
-    let i = this._names.indexOf(name)
+    const i = this._names.indexOf(name)
     if (i < 0) {
       this._names.push(name)
       this._node.setAttribute("class", this._names.join(" "))
     }
   }
   remove(name) {
-    let i = this._names.indexOf(name)
+    const i = this._names.indexOf(name)
     if (i >= 0) {
       this._names.splice(i, 1)
       this._node.setAttribute("class", this._names.join(" "))
@@ -197,12 +211,12 @@ function classedFunction(names, value) {
   }
 }
 function selection_cloneShallow() {
-  let clone = this.cloneNode(false),
+  const clone = this.cloneNode(false),
     parent = this.parentNode
   return parent ? parent.insertBefore(clone, this.nextSibling) : clone
 }
 function selection_cloneDeep() {
-  let clone = this.cloneNode(true),
+  const clone = this.cloneNode(true),
     parent = this.parentNode
   return parent ? parent.insertBefore(clone, this.nextSibling) : clone
 }
@@ -315,12 +329,12 @@ function htmlConstant(value) {
 }
 function htmlFunction(value) {
   return function () {
-    let v = value.apply(this, arguments)
+    const v = value.apply(this, arguments)
     this.innerHTML = v == null ? "" : v
   }
 }
 export const root = [null]
-export function selection() {
+export const selection: qt.SelectionFn = () => {
   return new Selection([[document.documentElement]], root)
 }
 
@@ -334,7 +348,7 @@ export class Selection {
     return this
   }
   append(name) {
-    let create = typeof name === "function" ? name : creator(name)
+    const create = typeof name === "function" ? name : creator(name)
     return this.select(function () {
       return this.appendChild(create.apply(this, arguments))
     })
@@ -353,18 +367,18 @@ export class Selection {
       this.setAttributeNS(fullname.space, fullname.local, value)
     }
     const attrFunction = (name, value) => () => {
-      let v = value.apply(this, arguments)
+      const v = value.apply(this, arguments)
       if (v == null) this.removeAttribute(name)
       else this.setAttribute(name, v)
     }
     const attrFunctionNS = (fullname, value) => () => {
-      let v = value.apply(this, arguments)
+      const v = value.apply(this, arguments)
       if (v == null) this.removeAttributeNS(fullname.space, fullname.local)
       else this.setAttributeNS(fullname.space, fullname.local, v)
     }
-    let fullname = namespace(name)
+    const fullname = namespace(name)
     if (arguments.length < 2) {
-      let node = this.node()
+      const node = this.node()
       return fullname.local ? node.getAttributeNS(fullname.space, fullname.local) : node.getAttribute(fullname)
     }
     return this.each(
@@ -382,13 +396,13 @@ export class Selection {
     )
   }
   call() {
-    let callback = arguments[0]
+    const callback = arguments[0]
     arguments[0] = this
     callback.apply(null, arguments)
     return this
   }
   classed(name, value) {
-    let names = classArray(name + "")
+    const names = classArray(name + "")
     if (arguments.length < 2) {
       let list = classList(this.node()),
         i = -1,
@@ -406,12 +420,12 @@ export class Selection {
       return node.__data__
     }
     if (!arguments.length) return Array.from(this, datum)
-    let bind = key ? bindKey : bindIndex,
+    const bind = key ? bindKey : bindIndex,
       parents = this._parents,
       groups = this._groups
     if (typeof value !== "function") value = constant(value)
     for (let m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
-      let parent = parents[j],
+      const parent = parents[j],
         group = groups[j],
         groupLength = group.length,
         data = arraylike(value.call(parent, parent && parent.__data__, j, parents)),
@@ -473,7 +487,7 @@ export class Selection {
       : this.node().innerHTML
   }
   insert(name, before) {
-    let create = typeof name === "function" ? name : creator(name),
+    const create = typeof name === "function" ? name : creator(name),
       select = before == null ? constantNull : typeof before === "function" ? before : selector(before)
     return this.select(function () {
       return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null)
@@ -511,7 +525,7 @@ export class Selection {
     return this.each(lower)
   }
   merge(context) {
-    let selection = context.selection ? context.selection() : context
+    const selection = context.selection ? context.selection() : context
     for (
       let groups0 = this._groups,
         groups1 = selection._groups,
@@ -546,7 +560,7 @@ export class Selection {
   node() {
     for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
       for (let group = groups[j], i = 0, n = group.length; i < n; ++i) {
-        let node = group[i]
+        const node = group[i]
         if (node) return node
       }
     }
@@ -561,7 +575,7 @@ export class Selection {
       n = typenames.length,
       t
     if (arguments.length < 2) {
-      let on = this.node().__on
+      const on = this.node().__on
       if (on)
         for (let j = 0, m = on.length, o; j < m; ++j) {
           for (i = 0, o = on[j]; i < n; ++i) {
@@ -605,7 +619,7 @@ export class Selection {
   }
   remove() {
     function remove() {
-      let parent = this.parentNode
+      const parent = this.parentNode
       if (parent) parent.removeChild(this)
     }
     return this.each(remove)
@@ -711,7 +725,7 @@ function parseTypenames(typenames) {
 }
 function onRemove(typename) {
   return function () {
-    let on = this.__on
+    const on = this.__on
     if (!on) return
     for (let j = 0, i = -1, m = on.length, o; j < m; ++j) {
       if (((o = on[j]), (!typename.type || o.type === typename.type) && o.name === typename.name)) {
@@ -756,7 +770,7 @@ function propertyConstant(name, value) {
 }
 function propertyFunction(name, value) {
   return function () {
-    let v = value.apply(this, arguments)
+    const v = value.apply(this, arguments)
     if (v == null) delete this[name]
     else this[name] = v
   }
@@ -766,7 +780,7 @@ function arrayAll(select) {
     return array(select.apply(this, arguments))
   }
 }
-let find = Array.prototype.find
+const find = Array.prototype.find
 function childFind(match) {
   return function () {
     return find.call(this.children, match)
@@ -775,7 +789,7 @@ function childFind(match) {
 function childFirst() {
   return this.firstElementChild
 }
-let filter = Array.prototype.filter
+const filter = Array.prototype.filter
 function children() {
   return Array.from(this.children)
 }
@@ -802,12 +816,12 @@ function styleConstant(name, value, priority) {
 }
 function styleFunction(name, value, priority) {
   return function () {
-    let v = value.apply(this, arguments)
+    const v = value.apply(this, arguments)
     if (v == null) this.style.removeProperty(name)
     else this.style.setProperty(name, v, priority)
   }
 }
-export function styleValue(node, name) {
+export function styleValue(node: Element, name: string): string {
   return node.style.getPropertyValue(name) || defaultView(node).getComputedStyle(node, null).getPropertyValue(name)
 }
 function textRemove() {
@@ -820,7 +834,7 @@ function textConstant(value) {
 }
 function textFunction(value) {
   return function () {
-    let v = value.apply(this, arguments)
+    const v = value.apply(this, arguments)
     this.textContent = v == null ? "" : v
   }
 }

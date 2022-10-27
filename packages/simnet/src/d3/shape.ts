@@ -124,7 +124,7 @@ export function arc() {
         if ((da1 -= p1 * 2) > epsilon) (p1 *= cw ? 1 : -1), (a01 += p1), (a11 -= p1)
         else (da1 = 0), (a01 = a11 = (a0 + a1) / 2)
       }
-      let x01 = r1 * cos(a01),
+      const x01 = r1 * cos(a01),
         y01 = r1 * sin(a01),
         x10 = r0 * cos(a10),
         y10 = r0 * sin(a10)
@@ -135,7 +135,7 @@ export function arc() {
           y00 = r0 * sin(a00),
           oc
         if (da < pi && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
-          let ax = x01 - oc[0],
+          const ax = x01 - oc[0],
             ay = y01 - oc[1],
             bx = x11 - oc[0],
             by = y11 - oc[1],
@@ -174,7 +174,7 @@ export function arc() {
     if (buffer) return (context = null), buffer + "" || null
   }
   y.centroid = function () {
-    let r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2,
+    const r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2,
       a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - pi / 2
     return [cos(a) * r, sin(a) * r]
   }
@@ -300,7 +300,7 @@ export function area<T = [number, number]>(
 export function areaRadial(): qt.AreaRadial<[number, number]>
 export function areaRadial<T>(): qt.AreaRadial<T>
 export function areaRadial() {
-  let y = area().curve(curveRadialLinear),
+  const y = area().curve(curveRadialLinear),
     c = y.curve,
     x0 = y.lineX0,
     x1 = y.lineX1,
@@ -397,7 +397,7 @@ export function lineRadial(): qt.LineRadial<[number, number]>
 export function lineRadial<T>(): qt.LineRadial<T>
 export function lineRadial() {
   function y(l) {
-    let c = l.curve
+    const c = l.curve
     ;(l.angle = l.x), delete l.x
     ;(l.radius = l.y), delete l.y
     l.curve = function (_) {
@@ -652,11 +652,12 @@ export class Symbol<This, T> implements qt.Symbol<This, T> {
 }
 
 export namespace offset {
-  export function diverging(series, order) {
-    if (!((n = series.length) > 0)) return
-    for (var i, j = 0, d, dy, yp, yn, n, m = series[order[0]].length; j < m; ++j) {
+  export function diverging(xs: qt.Series<any, any>, order: Iterable<number>) {
+    const n = xs.length
+    if (!(n > 0)) return
+    for (let i, j = 0, d, dy, yp, yn, m = xs[order[0]].length; j < m; ++j) {
       for (yp = yn = 0, i = 0; i < n; ++i) {
-        if ((dy = (d = series[order[i]][j])[1] - d[0]) > 0) {
+        if ((dy = (d = xs[order[i]][j])[1] - d[0]) > 0) {
           ;(d[0] = yp), (d[1] = yp += dy)
         } else if (dy < 0) {
           ;(d[1] = yn), (d[0] = yn += dy)
@@ -666,41 +667,45 @@ export namespace offset {
       }
     }
   }
-  export function expand(series, order) {
-    if (!((n = series.length) > 0)) return
-    for (var i, n, j = 0, m = series[0].length, y; j < m; ++j) {
-      for (y = i = 0; i < n; ++i) y += series[i][j][1] || 0
-      if (y) for (i = 0; i < n; ++i) series[i][j][1] /= y
+  export function expand(xs: qt.Series<any, any>, order: Iterable<number>) {
+    const n = xs.length
+    if (!(n > 0)) return
+    for (let i, j = 0, m = xs[0].length, y; j < m; ++j) {
+      for (y = i = 0; i < n; ++i) y += xs[i][j][1] || 0
+      if (y) for (i = 0; i < n; ++i) xs[i][j][1] /= y
     }
-    none(series, order)
+    none(xs, order)
   }
-  export function none(series, order) {
-    if (!((n = series.length) > 1)) return
-    for (var i = 1, j, s0, s1 = series[order[0]], n, m = s1.length; i < n; ++i) {
-      ;(s0 = s1), (s1 = series[order[i]])
+  export function none(xs: qt.Series<any, any>, order: Iterable<number>) {
+    const n = xs.length
+    if (!(n > 1)) return
+    for (let i = 1, j, s0, s1 = xs[order[0]], n, m = s1.length; i < n; ++i) {
+      ;(s0 = s1), (s1 = xs[order[i]])
       for (j = 0; j < m; ++j) {
         s1[j][1] += s1[j][0] = isNaN(s0[j][1]) ? s0[j][0] : s0[j][1]
       }
     }
   }
-  export function silhouette(series, order) {
-    if (!((n = series.length) > 0)) return
-    for (var j = 0, s0 = series[order[0]], n, m = s0.length; j < m; ++j) {
-      for (var i = 0, y = 0; i < n; ++i) y += series[i][j][1] || 0
+  export function silhouette(xs: qt.Series<any, any>, order: Iterable<number>) {
+    const n = xs.length
+    if (!(n > 0)) return
+    for (let j = 0, s0 = xs[order[0]], m = s0.length; j < m; ++j) {
+      for (let i = 0, y = 0; i < n; ++i) y += xs[i][j][1] || 0
       s0[j][1] += s0[j][0] = -y / 2
     }
-    none(series, order)
+    none(xs, order)
   }
-  export function wiggle(series, order) {
-    if (!((n = series.length) > 0) || !((m = (s0 = series[order[0]]).length) > 0)) return
-    for (var y = 0, j = 1, s0, m, n; j < m; ++j) {
-      for (var i = 0, s1 = 0, s2 = 0; i < n; ++i) {
-        let si = series[order[i]],
+  export function wiggle(xs: qt.Series<any, any>, order: Iterable<number>) {
+    const n = xs.length
+    if (!(n > 0) || !((m = (s0 = xs[order[0]]).length) > 0)) return
+    for (let y = 0, j = 1, s0, m; j < m; ++j) {
+      for (let i = 0, s1 = 0, s2 = 0; i < n; ++i) {
+        let si = xs[order[i]],
           sij0 = si[j][1] || 0,
           sij1 = si[j - 1][1] || 0,
           s3 = (sij0 - sij1) / 2
         for (let k = 0; k < i; ++k) {
-          let sk = series[order[k]],
+          const sk = xs[order[k]],
             skj0 = sk[j][1] || 0,
             skj1 = sk[j - 1][1] || 0
           s3 += skj0 - skj1
@@ -711,53 +716,53 @@ export namespace offset {
       if (s1) y -= s2 / s1
     }
     s0[j - 1][1] += s0[j - 1][0] = y
-    none(series, order)
+    none(xs, order)
   }
 }
 
 export namespace order {
-  export function appearance(series) {
+  export function appearance(xs: qt.Series<any, any>): number[] {
     function peak(series) {
+      const n = series.length
       let i = -1,
         j = 0,
-        n = series.length,
         vi,
         vj = -Infinity
       while (++i < n) if ((vi = +series[i][1]) > vj) (vj = vi), (j = i)
       return j
     }
-    let peaks = series.map(peak)
-    return none(series).sort(function (a, b) {
+    const peaks = xs.map(peak)
+    return none(xs).sort(function (a, b) {
       return peaks[a] - peaks[b]
     })
   }
-  export function ascending(series) {
-    let sums = series.map(sum)
-    return none(series).sort(function (a, b) {
+  export function ascending(xs: qt.Series<any, any>): number[] {
+    const sums = xs.map(sum)
+    return none(xs).sort(function (a, b) {
       return sums[a] - sums[b]
     })
   }
-  export function sum(series) {
+  export function sum(xs) {
+    const n = xs.length
     let s = 0,
       i = -1,
-      n = series.length,
       v
-    while (++i < n) if ((v = +series[i][1])) s += v
+    while (++i < n) if ((v = +xs[i][1])) s += v
     return s
   }
-  export function descending(series) {
-    return ascending(series).reverse()
+  export function descending(xs: qt.Series<any, any>): number[] {
+    return ascending(xs).reverse()
   }
-  export function insideOut(series) {
-    let n = series.length,
-      i,
-      j,
-      sums = series.map(sum),
-      order = appearance(series),
-      top = 0,
-      bottom = 0,
+  export function insideOut(xs: qt.Series<any, any>): number[] {
+    const n = xs.length,
+      sums = xs.map(sum),
+      order = appearance(xs),
       tops = [],
       bottoms = []
+    let i,
+      j,
+      top = 0,
+      bottom = 0
     for (i = 0; i < n; ++i) {
       j = order[i]
       if (top < bottom) {
@@ -770,14 +775,14 @@ export namespace order {
     }
     return bottoms.reverse().concat(tops)
   }
-  export function none(series) {
-    let n = series.length,
-      o = new Array(n)
+  export function none(xs: qt.Series<any, any>): number[] {
+    let n = xs.length
+    const o = new Array(n)
     while (--n >= 0) o[n] = n
     return o
   }
-  export function reverse(series) {
-    return none(series).reverse()
+  export function reverse(xs: qt.Series<any, any>): number[] {
+    return none(xs).reverse()
   }
 }
 
@@ -1324,7 +1329,7 @@ export namespace Curve {
     point(x: number, y: number) {
       ;(x = +x), (y = +y)
       if (this._point) {
-        let x23 = this._x2 - x,
+        const x23 = this._x2 - x,
           y23 = this._y2 - y
         this._l23_a = Math.sqrt((this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this.alpha)))
       }
@@ -1391,7 +1396,7 @@ export namespace Curve {
     point(x: number, y: number) {
       ;(x = +x), (y = +y)
       if (this._point) {
-        let x23 = this._x2 - x,
+        const x23 = this._x2 - x,
           y23 = this._y2 - y
         this._l23_a = Math.sqrt((this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this.alpha)))
       }
@@ -1439,7 +1444,7 @@ export namespace Curve {
     point(x: number, y: number) {
       ;(x = +x), (y = +y)
       if (this._point) {
-        let x23 = this._x2 - x,
+        const x23 = this._x2 - x,
           y23 = this._y2 - y
         this._l23_a = Math.sqrt((this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this.alpha)))
       }
@@ -1600,7 +1605,7 @@ export namespace Curve {
       this._y = []
     }
     lineEnd() {
-      let x = this._x,
+      const x = this._x,
         y = this._y,
         n = x.length
       if (n) {
@@ -1608,7 +1613,7 @@ export namespace Curve {
         if (n === 2) {
           this.ctx.lineTo(x[1], y[1])
         } else {
-          let px = controlPoints(x),
+          const px = controlPoints(x),
             py = controlPoints(y)
           for (let i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
             this.ctx.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1])
@@ -1683,7 +1688,7 @@ export namespace Curve {
             this.ctx.lineTo(this._x, y)
             this.ctx.lineTo(x, y)
           } else {
-            let x1 = this._x * (1 - this.pos) + x * this.pos
+            const x1 = this._x * (1 - this.pos) + x * this.pos
             this.ctx.lineTo(x1, this._y)
             this.ctx.lineTo(x1, y)
           }
@@ -1737,13 +1742,13 @@ function point3(that, x, y) {
     x2 = that._x2,
     y2 = that._y2
   if (that._l01_a > epsilon) {
-    let a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a,
+    const a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a,
       n = 3 * that._l01_a * (that._l01_a + that._l12_a)
     x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n
     y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n
   }
   if (that._l23_a > epsilon) {
-    let b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a,
+    const b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a,
       m = 3 * that._l23_a * (that._l23_a + that._l12_a)
     x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m
     y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m
