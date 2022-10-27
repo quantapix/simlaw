@@ -1,4 +1,3 @@
-import type { Nmeta } from "../graph/cluster.js"
 import type * as qt from "./types.js"
 
 let locale

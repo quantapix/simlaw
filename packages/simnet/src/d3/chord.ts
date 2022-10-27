@@ -1,6 +1,6 @@
-import { path } from "./path.js"
 import { slice } from "./array.js"
-import * as qt from "./types.js"
+import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 export const abs = Math.abs
 export const cos = Math.cos
@@ -189,7 +189,7 @@ function _ribbon(headRadius) {
       tr = +targetRadius.apply(this, ((argv[0] = t), argv)),
       ta0 = startAngle.apply(this, argv) - halfPi,
       ta1 = endAngle.apply(this, argv) - halfPi
-    if (!context) context = buffer = path()
+    if (!context) context = buffer = new qu.Path()
     if (ap > epsilon) {
       if (abs(sa1 - sa0) > ap * 2 + epsilon) sa1 > sa0 ? ((sa0 += ap), (sa1 -= ap)) : ((sa0 -= ap), (sa1 += ap))
       else sa0 = sa1 = (sa0 + sa1) / 2

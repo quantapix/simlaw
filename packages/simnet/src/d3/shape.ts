@@ -1,6 +1,6 @@
 /* eslint-disable no-fallthrough */
-import { Path } from "./path.js"
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 export const abs = Math.abs
 export const atan2 = Math.atan2
@@ -92,7 +92,7 @@ export function arc() {
       a1 = endAngle.apply(this, arguments) - halfPi,
       da = abs(a1 - a0),
       cw = a1 > a0
-    if (!context) context = buffer = path()
+    if (!context) context = buffer = new qu.Path()
     if (r1 < r0) (r = r1), (r1 = r0), (r0 = r)
     if (!(r1 > epsilon)) context.moveTo(0, 0)
     else if (da > tau - epsilon) {
@@ -232,7 +232,7 @@ export function area<T = [number, number]>(
       d,
       defined0 = false,
       buffer
-    if (context == null) output = curve((buffer = new Path()))
+    if (context == null) output = curve((buffer = new qu.Path()))
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined((d = xs[i]), i, xs)) === defined0) {
         if ((defined0 = !defined0)) {
@@ -366,7 +366,7 @@ export function line<T = [number, number]>(
       d,
       defined0 = false,
       buffer
-    if (context == null) output = curve((buffer = path()))
+    if (context == null) output = curve((buffer = new qu.Path()))
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined((d = data[i]), i, data)) === defined0) {
         if ((defined0 = !defined0)) output.lineStart()
@@ -428,7 +428,7 @@ export function link(curve) {
     const argv = slice.call(arguments)
     const s = source.apply(this, argv)
     const t = target.apply(this, argv)
-    if (context == null) output = curve((buffer = path()))
+    if (context == null) output = curve((buffer = new qu.Path()))
     output.lineStart()
     ;(argv[0] = s), output.point(+x.apply(this, argv), +y.apply(this, argv))
     ;(argv[0] = t), output.point(+x.apply(this, argv), +y.apply(this, argv))
@@ -627,7 +627,7 @@ export function symbol<This, T>(
 ): qt.Symbol<This, T>
 export function symbol(...xs: any[]) {
   let buffer
-  if (!context) context = buffer = new Path()
+  if (!context) context = buffer = new qu.Path()
   type.apply(this, ...xs).draw(context, +size.apply(this, ...xs))
   if (buffer) return (context = null), buffer + "" || null
 }
@@ -899,13 +899,13 @@ export class Curve {
   _y3
   _y4
   _y5
-  constructor(public ctx: CanvasRenderingContext2D | Path) {}
+  constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
   areaStart() {}
   areaEnd() {}
 }
 export namespace Curve {
   export class Basis extends Curve implements qt.CurveGenerator {
-    constructor(ctx: CanvasRenderingContext2D | Path) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
     override areaStart() {
@@ -951,7 +951,7 @@ export namespace Curve {
     }
   }
   export class BasisClosed extends Curve implements qt.CurveGenerator {
-    constructor(ctx: CanvasRenderingContext2D | Path) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
     lineStart() {
@@ -1004,7 +1004,7 @@ export namespace Curve {
     }
   }
   export class BasisOpen extends Curve implements qt.CurveGenerator {
-    constructor(ctx: CanvasRenderingContext2D | Path) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
     override areaStart() {
@@ -1047,7 +1047,7 @@ export namespace Curve {
     }
   }
   export class Bump extends Curve implements qt.CurveGenerator {
-    constructor(ctx: CanvasRenderingContext2D | Path, public isX: boolean) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path, public isX: boolean) {
       super(ctx)
     }
     override areaStart() {
@@ -1084,7 +1084,7 @@ export namespace Curve {
     }
   }
   export class BumpRadial extends Curve implements qt.CurveGenerator {
-    constructor(ctx: CanvasRenderingContext2D | Path) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
     lineStart() {
@@ -1108,7 +1108,7 @@ export namespace Curve {
   export class Bundle extends Basis {
     xs
     ys
-    constructor(ctx: CanvasRenderingContext2D | Path, public beta: number) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path, public beta: number) {
       super(ctx)
     }
     override lineStart() {
@@ -1145,7 +1145,7 @@ export namespace Curve {
   }
   export class Cardinal extends Curve implements qt.CurveGenerator {
     _k
-    constructor(ctx: CanvasRenderingContext2D | Path, tension: number) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
       super(ctx)
       this._k = (1 - tension) / 6
     }
@@ -1194,7 +1194,7 @@ export namespace Curve {
   }
   export class CardinalClosed extends Curve implements qt.CurveGenerator {
     _k
-    constructor(ctx: CanvasRenderingContext2D | Path, tension: number) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
       super(ctx)
       this._k = (1 - tension) / 6
     }
@@ -1259,7 +1259,7 @@ export namespace Curve {
   }
   export class CardinalOpen extends Curve implements qt.CurveGenerator {
     _k
-    constructor(ctx: CanvasRenderingContext2D | Path, tension: number) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
       super(ctx)
       this._k = (1 - tension) / 6
     }
@@ -1301,7 +1301,7 @@ export namespace Curve {
     }
   }
   export class CatmullRom extends Curve implements qt.CurveGenerator {
-    constructor(ctx: CanvasRenderingContext2D | Path, public alpha: number) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
       super(ctx)
     }
     override areaStart() {
@@ -1354,7 +1354,7 @@ export namespace Curve {
     }
   }
   export class CatmullRomClosed extends Curve implements qt.CurveGenerator {
-    constructor(ctx: CanvasRenderingContext2D | Path, public alpha: number) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
       super(ctx)
     }
     lineStart() {
@@ -1424,7 +1424,7 @@ export namespace Curve {
     }
   }
   export class CatmullRomOpen extends Curve implements qt.CurveGenerator {
-    constructor(ctx: CanvasRenderingContext2D | Path, public alpha: number) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
       super(ctx)
     }
     override areaStart() {
@@ -1472,7 +1472,7 @@ export namespace Curve {
     }
   }
   export class Linear extends Curve implements qt.CurveGenerator {
-    constructor(ctx: CanvasRenderingContext2D | Path) {
+    constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
     override areaStart() {
@@ -1504,7 +1504,7 @@ export namespace Curve {
     }
   }
   export class LinearClosed extends Curve implements qt.CurveGenerator {
-    constructor(public ctx: CanvasRenderingContext2D | Path) {}
+    constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
     areaStart = noop
     areaEnd = noop
     lineStart() {
@@ -1520,7 +1520,7 @@ export namespace Curve {
     }
   }
   class ReflectContext {
-    constructor(public ctx: CanvasRenderingContext2D | Path) {}
+    constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
     moveTo(x, y) {
       this.ctx.moveTo(y, x)
     }
@@ -1535,7 +1535,7 @@ export namespace Curve {
     }
   }
   export class MonotoneX extends Curve implements qt.CurveGenerator {
-    constructor(public ctx: CanvasRenderingContext2D | Path) {}
+    constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
     areaStart() {
       this._line = 0
     }
@@ -1585,7 +1585,7 @@ export namespace Curve {
   }
   export class MonotoneY extends Curve implements qt.CurveGenerator {
     ctx
-    constructor(x: CanvasRenderingContext2D | Path) {
+    constructor(x: CanvasRenderingContext2D | qu.Path) {
       this.ctx = new ReflectContext(x)
     }
     point(x: number, y: number) {
@@ -1593,7 +1593,7 @@ export namespace Curve {
     }
   }
   export class Natural extends Curve implements qt.CurveGenerator {
-    constructor(public ctx: CanvasRenderingContext2D | Path) {}
+    constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
     areaStart() {
       this._line = 0
     }
@@ -1658,7 +1658,7 @@ export namespace Curve {
     return y
   }
   export class Step extends Curve implements qt.CurveGenerator {
-    constructor(public ctx: CanvasRenderingContext2D | Path, public pos = 0.5) {}
+    constructor(public ctx: CanvasRenderingContext2D | qu.Path, public pos = 0.5) {}
     areaStart() {
       this._line = 0
     }
