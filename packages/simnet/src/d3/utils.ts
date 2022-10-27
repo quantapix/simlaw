@@ -2,114 +2,102 @@ import type * as qt from "./types.js"
 
 export function area(xs: Array<[number, number]>): number {
   const n = xs.length
-  let i = -1,
+  let r = 0,
     a,
-    b = xs[n - 1],
-    y = 0
+    b = xs[n - 1]!,
+    i = -1
   while (++i < n) {
     a = b
-    b = xs[i]
-    y += a[1] * b[0] - a[0] * b[1]
+    b = xs[i]!
+    r += a[1] * b[0] - a[0] * b[1]
   }
-  return y / 2
+  return r / 2
 }
 
 export function centroid(xs: Array<[number, number]>): [number, number] {
   const n = xs.length
-  let i = -1,
+  let r = 0,
+    a,
+    b = xs[n - 1]!,
+    c,
     x = 0,
     y = 0,
-    a,
-    b = xs[n - 1],
-    c,
-    k = 0
+    i = -1
   while (++i < n) {
     a = b
-    b = xs[i]
-    k += c = a[0] * b[1] - b[0] * a[1]
+    b = xs[i]!
+    r += c = a[0] * b[1] - b[0] * a[1]
     x += (a[0] + b[0]) * c
     y += (a[1] + b[1]) * c
   }
-  return (k *= 3), [x / k, y / k]
+  return (r *= 3), [x / r, y / r]
 }
 
-export function contains(xs: Array<[number, number]>, point: [number, number]): boolean {
+export function contains(xs: Array<[number, number]>, p0: [number, number]): boolean {
   const n = xs.length,
-    x = point[0],
-    y = point[1]
-  let p = xs[n - 1],
-    x0 = p[0],
-    y0 = p[1],
-    x1,
-    y1,
-    inside = false
+    [x0, y0] = p0
+  let r = false,
+    [x1, y1] = xs[n - 1]!
   for (let i = 0; i < n; ++i) {
-    ;(p = xs[i]), (x1 = p[0]), (y1 = p[1])
-    if (y1 > y !== y0 > y && x < ((x0 - x1) * (y - y1)) / (y0 - y1) + x1) inside = !inside
-    ;(x0 = x1), (y0 = y1)
+    const [x2, y2] = xs[i]!
+    if (y2 > y0 !== y1 > y0 && x0 < ((x1 - x2) * (y0 - y2)) / (y1 - y2) + x2) r = !r
+    ;[x1, y1] = [x2, y2]
   }
-  return inside
+  return r
 }
 
 export function cross(a: [number, number], b: [number, number], c: [number, number]) {
   return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 }
 
-function lexicographicOrder(a: [number, number], b: [number, number]) {
+function lexOrder(a: [number, number], b: [number, number]) {
   return a[0] - b[0] || a[1] - b[1]
 }
 
-function computeUpperHullIndexes(points) {
-  const n = points.length,
-    indexes = [0, 1]
-  let size = 2,
-    i
-  for (i = 2; i < n; ++i) {
-    while (size > 1 && cross(points[indexes[size - 2]], points[indexes[size - 1]], points[i]) <= 0) --size
-    indexes[size++] = i
+function upperIndexes(xs: Array<[number, number]>) {
+  const n = xs.length,
+    r = [0, 1]
+  let size = 2
+  for (let i = 2; i < n; ++i) {
+    while (size > 1 && cross(xs[r[size - 2]!]!, xs[r[size - 1]!]!, xs[i]!) <= 0) --size
+    r[size++] = i
   }
-  return indexes.slice(0, size)
+  return r.slice(0, size)
 }
 
 export function hull(xs: Array<[number, number]>): Array<[number, number]> | undefined {
-  if ((n = xs.length) < 3) return undefined
-  let i,
-    n,
-    sortedPoints = new Array(n),
-    flippedPoints = new Array(n)
-  for (i = 0; i < n; ++i) sortedPoints[i] = [+xs[i][0], +xs[i][1], i]
-  sortedPoints.sort(lexicographicOrder)
-  for (i = 0; i < n; ++i) flippedPoints[i] = [sortedPoints[i][0], -sortedPoints[i][1]]
-  const upperIndexes = computeUpperHullIndexes(sortedPoints),
-    lowerIndexes = computeUpperHullIndexes(flippedPoints)
-  const skipLeft = lowerIndexes[0] === upperIndexes[0],
-    skipRight = lowerIndexes[lowerIndexes.length - 1] === upperIndexes[upperIndexes.length - 1],
-    y = []
-  for (i = upperIndexes.length - 1; i >= 0; --i) y.push(xs[sortedPoints[upperIndexes[i]][2]])
-  for (i = +skipLeft; i < lowerIndexes.length - skipRight; ++i) y.push(xs[sortedPoints[lowerIndexes[i]][2]])
-  return y
+  const n = xs.length
+  if (n < 3) return undefined
+  const sorted = new Array(n),
+    flipped = new Array(n)
+  for (let i = 0; i < n; ++i) sorted[i] = [+xs[i]![0], +xs[i]![1], i]
+  sorted.sort(lexOrder)
+  for (let i = 0; i < n; ++i) flipped[i] = [sorted[i][0], -sorted[i][1]]
+  const us = upperIndexes(sorted),
+    ls = upperIndexes(flipped)
+  const r = [],
+    skipLeft = ls[0] === us[0],
+    skipRight = ls[ls.length - 1] === us[us.length - 1] ? 1 : 0
+  for (let i = us.length - 1; i >= 0; --i) r.push(xs[sorted[us[i]!][2]]!)
+  for (let i = +skipLeft; i < ls.length - skipRight; ++i) r.push(xs[sorted[ls[i]!][2]]!)
+  return r
 }
 
 export function length(xs: Array<[number, number]>): number {
   const n = xs.length
-  let i = -1,
-    b = xs[n - 1],
-    xa,
-    ya,
-    xb = b[0],
-    yb = b[1],
-    y = 0
+  let r = 0,
+    b = xs[n - 1]!,
+    [xb, yb] = b,
+    i = -1
   while (++i < n) {
-    xa = xb
-    ya = yb
-    b = xs[i]
-    xb = b[0]
-    yb = b[1]
+    let [xa, ya] = [xb, yb]
+    b = xs[i]!
+    ;[xb, yb] = b
     xa -= xb
     ya -= yb
-    y += Math.hypot(xa, ya)
+    r += Math.hypot(xa, ya)
   }
-  return y
+  return r
 }
 
 const pi = Math.PI
@@ -129,7 +117,7 @@ export class Path implements qt.Path {
       dy = r * Math.sin(a0),
       x0 = x + dx,
       y0 = y + dy,
-      cw = 1 ^ ccw
+      cw = !ccw
     let da = ccw ? a0 - a1 : a1 - a0
     if (r < 0) throw new Error("negative radius: " + r)
     if (this.x1 === undefined) {
@@ -179,8 +167,8 @@ export class Path implements qt.Path {
   }
   arcTo(x1: number, y1: number, x2: number, y2: number, r: number) {
     ;(x1 = +x1), (y1 = +y1), (x2 = +x2), (y2 = +y2), (r = +r)
-    const x0 = this.x1,
-      y0 = this.y1,
+    const x0 = this.x1!,
+      y0 = this.y1!,
       x21 = x2 - x1,
       y21 = y2 - y1,
       x01 = x0 - x1,
@@ -189,8 +177,8 @@ export class Path implements qt.Path {
     if (r < 0) throw new Error("negative radius: " + r)
     if (this.x1 === undefined) {
       this.v += "M" + (this.x1 = x1) + "," + (this.y1 = y1)
-    } else if (!(l01_2 > epsilon));
-    else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
+    } else if (!(l01_2 > epsilon)) {
+    } else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
       this.v += "L" + (this.x1 = x1) + "," + (this.y1 = y1)
     } else {
       const x20 = x2 - x0,
@@ -218,10 +206,10 @@ export class Path implements qt.Path {
         (this.y1 = y1 + t21 * y21)
     }
   }
-  bezierCurveTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number) {
+  bezierTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number) {
     this.v += "C" + +x1 + "," + +y1 + "," + +x2 + "," + +y2 + "," + (this.x1 = +x) + "," + (this.y1 = +y)
   }
-  closePath() {
+  close() {
     if (this.x1 !== undefined) {
       ;(this.x1 = this.x0), (this.y1 = this.y0)
       this.v += "Z"
@@ -233,7 +221,7 @@ export class Path implements qt.Path {
   moveTo(x: number, y: number) {
     this.v += "M" + (this.x0 = this.x1 = +x) + "," + (this.y0 = this.y1 = +y)
   }
-  quadraticCurveTo(x1: number, y1: number, x: number, y: number) {
+  quadraticTo(x1: number, y1: number, x: number, y: number) {
     this.v += "Q" + +x1 + "," + +y1 + "," + (this.x1 = +x) + "," + (this.y1 = +y)
   }
   rect(x: number, y: number, w: number, h: number) {
@@ -249,10 +237,10 @@ const top = 1,
   bottom = 3,
   left = 4
 
-function translateX(x) {
+function translateX(x: any) {
   return "translate(" + x + ",0)"
 }
-function translateY(y) {
+function translateY(y: any) {
   return "translate(0," + y + ")"
 }
 function number(scale) {
@@ -475,8 +463,6 @@ function set(type, name, callback) {
   if (callback != null) type.push({ name: name, value: callback })
   return type
 }
-
-import type * as qt from "./types.js"
 
 let head: any
 let tail: any
