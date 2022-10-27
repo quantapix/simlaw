@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import type * as qt from "./types.js"
 
 export function area(xs: Array<[number, number]>): number {
@@ -244,33 +245,31 @@ function translateY(y: any) {
   return "translate(0," + y + ")"
 }
 function number(scale) {
-  return d => +scale(d)
+  return x => +scale(x)
 }
 function center(scale, offset) {
   offset = Math.max(0, scale.bandwidth() - offset * 2) / 2
   if (scale.round()) offset = Math.round(offset)
-  return d => +scale(d) + offset
+  return x => +scale(x) + offset
 }
 function entering() {
   return !this.__axis
 }
-function axis<T>(orient, scale: qt.AxisScale<T>) {
-  let tickArguments = [],
-    tickValues = null,
-    tickFormat = null,
-    tickSizeInner = 6,
-    tickSizeOuter = 6,
-    tickPadding = 3,
-    offset = typeof window !== "undefined" && window.devicePixelRatio > 1 ? 0 : 0.5,
-    k = orient === top || orient === left ? -1 : 1,
+function axis<T>(orient, scale: qt.AxisScale<T>): qt.Axis<T> {
+  let args: any[] = [],
+    vals: any[] | null = null,
+    format: ((x: T, i: number) => string) | null = null,
+    sizeInner = 6,
+    sizeOuter = 6,
+    padding = 3,
+    offset = typeof window !== "undefined" && window.devicePixelRatio > 1 ? 0 : 0.5
+  const k = orient === top || orient === left ? -1 : 1,
     x = orient === left || orient === right ? "x" : "y",
     transform = orient === top || orient === bottom ? translateX : translateY
-  function axis(context) {
-    let values =
-        tickValues == null ? (scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain()) : tickValues,
-      format =
-        tickFormat == null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : identity) : tickFormat,
-      spacing = Math.max(tickSizeInner, 0) + tickPadding,
+  function f(context) {
+    let values = values == null ? (scale.ticks ? scale.ticks.apply(scale, args) : scale.domain()) : values,
+      format = format == null ? (scale.tickFormat ? scale.tickFormat.apply(scale, args) : identity) : format,
+      spacing = Math.max(sizeInner, 0) + padding,
       range = scale.range(),
       range0 = +range[0] + offset,
       range1 = +range[range.length - 1] + offset,
@@ -288,7 +287,7 @@ function axis<T>(orient, scale: qt.AxisScale<T>) {
       tickEnter
         .append("line")
         .attr("stroke", "currentColor")
-        .attr(x + "2", k * tickSizeInner)
+        .attr(x + "2", k * sizeInner)
     )
     text = text.merge(
       tickEnter
@@ -317,17 +316,17 @@ function axis<T>(orient, scale: qt.AxisScale<T>) {
     path.attr(
       "d",
       orient === left || orient === right
-        ? tickSizeOuter
-          ? "M" + k * tickSizeOuter + "," + range0 + "H" + offset + "V" + range1 + "H" + k * tickSizeOuter
+        ? sizeOuter
+          ? "M" + k * sizeOuter + "," + range0 + "H" + offset + "V" + range1 + "H" + k * sizeOuter
           : "M" + offset + "," + range0 + "V" + range1
-        : tickSizeOuter
-        ? "M" + range0 + "," + k * tickSizeOuter + "V" + offset + "H" + range1 + "V" + k * tickSizeOuter
+        : sizeOuter
+        ? "M" + range0 + "," + k * sizeOuter + "V" + offset + "H" + range1 + "V" + k * sizeOuter
         : "M" + range0 + "," + offset + "H" + range1
     )
     tick.attr("opacity", 1).attr("transform", function (d) {
       return transform(position(d) + offset)
     })
-    line.attr(x + "2", k * tickSizeInner)
+    line.attr(x + "2", k * sizeInner)
     text.attr(x, k * spacing).text(format)
     selection
       .filter(entering)
@@ -339,37 +338,37 @@ function axis<T>(orient, scale: qt.AxisScale<T>) {
       this.__axis = position
     })
   }
-  axis.scale = function (_) {
-    return arguments.length ? ((scale = _), axis) : scale
+  f.offset = function (...xs: any[]) {
+    return xs.length ? ((offset = +xs[0]), f) : offset
   }
-  axis.ticks = function () {
-    return (tickArguments = Array.from(arguments)), axis
+  f.scale = function (...xs: any[]) {
+    return xs.length ? ((scale = xs[0]), f) : scale
   }
-  axis.tickArguments = function (_) {
-    return arguments.length ? ((tickArguments = _ == null ? [] : Array.from(_)), axis) : tickArguments.slice()
+  f.tickArgs = function (...xs: any[]) {
+    return xs.length ? ((args = xs == null ? [] : Array.from(xs)), f) : args.slice()
   }
-  axis.tickValues = function (_) {
-    return arguments.length ? ((tickValues = _ == null ? null : Array.from(_)), axis) : tickValues && tickValues.slice()
+  f.tickFormat = function (...xs: any[]) {
+    return xs.length ? ((format = xs[0]), f) : format
   }
-  axis.tickFormat = function (_) {
-    return arguments.length ? ((tickFormat = _), axis) : tickFormat
+  f.tickPadding = function (...xs: any[]) {
+    return xs.length ? ((padding = +xs[0]), f) : padding
   }
-  axis.tickSize = function (_) {
-    return arguments.length ? ((tickSizeInner = tickSizeOuter = +_), axis) : tickSizeInner
+  f.ticks = function (...xs: any[]) {
+    return (args = Array.from(xs)), f
   }
-  axis.tickSizeInner = function (_) {
-    return arguments.length ? ((tickSizeInner = +_), axis) : tickSizeInner
+  f.tickSize = function (...xs: any[]) {
+    return xs.length ? ((sizeInner = sizeOuter = +xs[0]), f) : sizeInner
   }
-  axis.tickSizeOuter = function (_) {
-    return arguments.length ? ((tickSizeOuter = +_), axis) : tickSizeOuter
+  f.tickSizeInner = function (...xs: any[]) {
+    return xs.length ? ((sizeInner = +xs[0]), f) : sizeInner
   }
-  axis.tickPadding = function (_) {
-    return arguments.length ? ((tickPadding = +_), axis) : tickPadding
+  f.tickSizeOuter = function (...xs: any[]) {
+    return xs.length ? ((sizeOuter = +xs[0]), f) : sizeOuter
   }
-  axis.offset = function (_) {
-    return arguments.length ? ((offset = +_), axis) : offset
+  f.tickValues = function (...xs: any[]) {
+    return xs.length ? ((vals = xs[0] == null ? null : Array.from(xs)), f) : vals && vals.slice()
   }
-  return axis
+  return f
 }
 export function axisTop<T extends qt.AxisDomain>(scale: qt.AxisScale<T>): qt.Axis<T> {
   return axis(top, scale)
@@ -468,25 +467,24 @@ let head: any
 let tail: any
 
 export class Timer implements qt.Timer {
-  _call: any = null
-  _time: any = null
-  _next: any = null
+  cb?: Function | undefined
+  time?: number
+  next?: any
   restart(cb: (x: number) => void, delay?: number, time?: number) {
-    if (typeof cb !== "function") throw new TypeError("callback is not a function")
-    time = (time == null ? now() : +time) + (delay == null ? 0 : +delay)
-    if (!this._next && tail !== this) {
-      if (tail) tail._next = this
+    time = (time == undefined ? now() : +time) + (delay == undefined ? 0 : +delay)
+    if (!this.next && tail !== this) {
+      if (tail) tail.next = this
       else head = this
       tail = this
     }
-    this._call = cb
-    this._time = time
+    this.cb = cb
+    this.time = time
     sleep()
   }
   stop() {
-    if (this._call) {
-      this._call = null
-      this._time = Infinity
+    if (this.cb) {
+      this.cb = undefined
+      this.time = Infinity
       sleep()
     }
   }

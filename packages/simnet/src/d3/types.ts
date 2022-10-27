@@ -62,7 +62,7 @@ export interface AxisScale<T> {
 export type AxisContainerElement = SVGSVGElement | SVGGElement
 export interface Axis<T> {
   (
-    context:
+    x:
       | Selection<SVGSVGElement, any, any, any>
       | Selection<SVGGElement, any, any, any>
       | TransitionLike<SVGSVGElement, any>
@@ -72,8 +72,8 @@ export interface Axis<T> {
   offset(x: number): this
   scale(x: AxisScale<T>): this
   scale<A extends AxisScale<T>>(): A
-  tickArguments(): any[]
-  tickArguments(xs: any[]): this
+  tickArgs(): any[]
+  tickArgs(xs: any[]): this
   tickFormat(): ((x: T, i: number) => string) | null
   tickFormat(f: (x: T, i: number) => string): this
   tickFormat(x: null): this
