@@ -1,10 +1,10 @@
-import { dispatch } from "./dispatch.js"
 import { dragDisable, dragEnable } from "./drag.js"
 import { interpolate } from "./interpolate.js"
 import { pointer, select } from "./selection.js"
 import { interrupt } from "./transition.js"
-import constant from "./constant.js"
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
+
 const MODE_DRAG = { name: "drag" },
   MODE_SPACE = { name: "space" },
   MODE_HANDLE = { name: "handle" },
@@ -160,7 +160,7 @@ function brush(dim) {
     filter = defaultFilter,
     touchable = defaultTouchable,
     keys = true,
-    listeners = dispatch("start", "brush", "end"),
+    listeners = qu.dispatch("start", "brush", "end"),
     handleSize = 6,
     touchending
   function brush(group) {
@@ -595,13 +595,13 @@ function brush(dim) {
     return state
   }
   brush.extent = function (_) {
-    return arguments.length ? ((extent = typeof _ === "function" ? _ : constant(number2(_))), brush) : extent
+    return arguments.length ? ((extent = typeof _ === "function" ? _ : qu.constant(number2(_))), brush) : extent
   }
   brush.filter = function (_) {
-    return arguments.length ? ((filter = typeof _ === "function" ? _ : constant(!!_)), brush) : filter
+    return arguments.length ? ((filter = typeof _ === "function" ? _ : qu.constant(!!_)), brush) : filter
   }
   brush.touchable = function (_) {
-    return arguments.length ? ((touchable = typeof _ === "function" ? _ : constant(!!_)), brush) : touchable
+    return arguments.length ? ((touchable = typeof _ === "function" ? _ : qu.constant(!!_)), brush) : touchable
   }
   brush.handleSize = function (_) {
     return arguments.length ? ((handleSize = +_), brush) : handleSize
@@ -615,7 +615,6 @@ function brush(dim) {
   }
   return brush
 }
-export const constant = x => () => x
 export function BrushEvent(type, { sourceEvent, target, selection, mode, dispatch }) {
   Object.defineProperties(this, {
     type: { value: type, enumerable: true, configurable: true },

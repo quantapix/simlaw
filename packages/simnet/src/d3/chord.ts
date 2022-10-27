@@ -142,11 +142,6 @@ function _chord(directed, transpose): qt.ChordLayout {
   }
   return chord
 }
-export function constant(x) {
-  return function () {
-    return x
-  }
-}
 function defaultSource(d) {
   return d.source
 }
@@ -217,27 +212,27 @@ function _ribbon(headRadius) {
   }
   if (headRadius)
     y.headRadius = function (_) {
-      return arguments.length ? ((headRadius = typeof _ === "function" ? _ : constant(+_)), y) : headRadius
+      return arguments.length ? ((headRadius = typeof _ === "function" ? _ : qu.constant(+_)), y) : headRadius
     }
   y.radius = function (_) {
     return arguments.length
-      ? ((sourceRadius = targetRadius = typeof _ === "function" ? _ : constant(+_)), y)
+      ? ((sourceRadius = targetRadius = typeof _ === "function" ? _ : qu.constant(+_)), y)
       : sourceRadius
   }
   y.sourceRadius = function (_) {
-    return arguments.length ? ((sourceRadius = typeof _ === "function" ? _ : constant(+_)), y) : sourceRadius
+    return arguments.length ? ((sourceRadius = typeof _ === "function" ? _ : qu.constant(+_)), y) : sourceRadius
   }
   y.targetRadius = function (_) {
-    return arguments.length ? ((targetRadius = typeof _ === "function" ? _ : constant(+_)), y) : targetRadius
+    return arguments.length ? ((targetRadius = typeof _ === "function" ? _ : qu.constant(+_)), y) : targetRadius
   }
   y.startAngle = function (_) {
-    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : constant(+_)), y) : startAngle
+    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : startAngle
   }
   y.endAngle = function (_) {
-    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : constant(+_)), y) : endAngle
+    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : endAngle
   }
   y.padAngle = function (_) {
-    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : constant(+_)), y) : padAngle
+    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : padAngle
   }
   y.source = function (_) {
     return arguments.length ? ((source = _), y) : source

@@ -439,13 +439,17 @@ export interface Voronoi<T> {
   cellPolygon(i: number): Delaunay.Polygon
   update(): this
 }
+
+export type DispatchCB<T extends object> = (this: T, ...xs: any[]) => void
+
 export interface Dispatch<T extends object> {
-  apply(type: string, that?: T, args?: any[]): void
-  call(type: string, that?: T, ...xs: any[]): void
+  apply(k: string, x?: T, ...xs: any[]): void
+  call(k: string, x?: T, ...xs: any[]): void
   copy(): Dispatch<T>
-  on(typenames: string): ((this: T, ...xs: any[]) => void) | undefined
-  on(typenames: string, callback: null | ((this: T, ...xs: any[]) => void)): this
+  on(k: string, f?: DispatchCB<T>): this
+  on(k: string): DispatchCB<T> | undefined
 }
+
 export type DraggedElementBaseType = Element
 export type DragContainerElement = HTMLElement | SVGSVGElement | SVGGElement
 export interface SubjectPosition {

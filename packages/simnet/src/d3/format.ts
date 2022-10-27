@@ -1,4 +1,5 @@
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 let locale
 export let format: (x: string) => (n: number | { valueOf(): number }) => string
@@ -175,21 +176,17 @@ export const formatTypes = {
   x: x => Math.round(x).toString(16),
 }
 
-export function identity(x) {
-  return x
-}
-
 const map = Array.prototype.map,
   prefixes = ["y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y"]
 export function formatLocale(locale: qt.FormatLocaleDefinition): qt.FormatLocaleObject {
   const group =
       locale.grouping === undefined || locale.thousands === undefined
-        ? identity
+        ? qu.identity
         : formatGroup(map.call(locale.grouping, Number), locale.thousands + ""),
     currencyPrefix = locale.currency === undefined ? "" : locale.currency[0] + "",
     currencySuffix = locale.currency === undefined ? "" : locale.currency[1] + "",
     decimal = locale.decimal === undefined ? "." : locale.decimal + "",
-    numerals = locale.numerals === undefined ? identity : formatNumerals(map.call(locale.numerals, String)),
+    numerals = locale.numerals === undefined ? qu.identity : formatNumerals(map.call(locale.numerals, String)),
     percent = locale.percent === undefined ? "%" : locale.percent + "",
     minus = locale.minus === undefined ? "−" : locale.minus + "",
     nan = locale.nan === undefined ? "NaN" : locale.nan + ""

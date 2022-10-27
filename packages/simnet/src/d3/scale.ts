@@ -21,6 +21,7 @@ import {
   timeTickInterval,
 } from "./time.js"
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 export function band<T extends { toString(): string } = string>(range?: Iterable<qt.NumberValue>): qt.ScaleBand<T>
 export function band<T extends { toString(): string }>(
@@ -113,21 +114,13 @@ export function colors(s) {
     return "#" + x
   })
 }
-export function constants(x) {
-  return function () {
-    return x
-  }
-}
 const unit = [0, 1]
-export function identity(x) {
-  return x
-}
 function normalize(a, b) {
   return (b -= a = +a)
     ? function (x) {
         return (x - a) / b
       }
-    : constant(isNaN(b) ? NaN : 0.5)
+    : qu.constant(isNaN(b) ? NaN : 0.5)
 }
 function clamper(a, b) {
   let t
@@ -180,13 +173,13 @@ export function transformer() {
     transform,
     untransform,
     unknown,
-    clamp = identity,
+    clamp = qu.identity,
     piecewise,
     output,
     input
   function rescale() {
     const n = Math.min(domain.length, range.length)
-    if (clamp !== identity) clamp = clamper(domain[0], domain[n - 1])
+    if (clamp !== qu.identity) clamp = clamper(domain[0], domain[n - 1])
     piecewise = n > 2 ? polymap : bimap
     output = input = null
     return scale
@@ -209,7 +202,7 @@ export function transformer() {
     return (range = Array.from(_)), (interpolate = interpolateRound), rescale()
   }
   scale.clamp = function (_) {
-    return arguments.length ? ((clamp = _ ? true : identity), rescale()) : clamp !== identity
+    return arguments.length ? ((clamp = _ ? true : qu.identity), rescale()) : clamp !== qu.identity
   }
   scale.interpolate = function (_) {
     return arguments.length ? ((interpolate = _), rescale()) : interpolate
@@ -223,7 +216,7 @@ export function transformer() {
   }
 }
 export function continuous() {
-  return transformer()(identity, identity)
+  return transformer()(identity, qu.identity)
 }
 function transformer() {
   let x0 = 0,
@@ -235,7 +228,7 @@ function transformer() {
     t2,
     k10,
     k21,
-    interpolator = identity,
+    interpolator = qu.identity,
     transform,
     clamp = false,
     unknown
@@ -359,7 +352,7 @@ export function scaleIdentity(domain) {
     return arguments.length ? ((unknown = _), f) : unknown
   }
   f.copy = function () {
-    return identity(domain).unknown(unknown)
+    return qu.identity(domain).unknown(unknown)
   }
   domain = arguments.length ? Array.from(domain, number) : [0, 1]
   return linearish(f)
@@ -654,11 +647,11 @@ function transformSquare(x) {
   return x < 0 ? -x * x : x * x
 }
 export function powish(transform) {
-  let scale = transform(identity, identity),
+  let scale = transform(identity, qu.identity),
     exponent = 1
   function rescale() {
     return exponent === 1
-      ? transform(identity, identity)
+      ? transform(identity, qu.identity)
       : exponent === 0.5
       ? transform(transformSqrt, transformSquare)
       : transform(transformPow(exponent), transformPow(1 / exponent))
@@ -834,7 +827,7 @@ function transformer() {
     t1,
     k10,
     transform,
-    interpolator = identity,
+    interpolator = qu.identity,
     clamp = false,
     unknown
   function scale(x) {
@@ -949,7 +942,7 @@ export function sequentialQuantile<Output, U = never>(
 ): qt.ScaleSequentialQuantile<Output, U>
 export function sequentialQuantile(...xs: any[]) {
   let domain = [],
-    interpolator = identity
+    interpolator = qu.identity
   function f(x) {
     if (x != null && !isNaN((x = +x))) return interpolator((bisect(domain, x, 1) - 1) / (domain.length - 1))
   }

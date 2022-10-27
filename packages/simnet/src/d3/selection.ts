@@ -1,4 +1,5 @@
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 export const xhtml = "http://www.w3.org/1999/xhtml"
 export const namespaces: qt.NamespaceMap = {
@@ -11,11 +12,6 @@ export const namespaces: qt.NamespaceMap = {
 
 export function array(x) {
   return x == null ? [] : Array.isArray(x) ? x : Array.from(x)
-}
-export function constant(x) {
-  return function () {
-    return x
-  }
 }
 export function create<T extends keyof ElementTagNameMap>(
   x: T
@@ -43,9 +39,6 @@ export function creator<T extends Element>(x: string): (this: qt.BaseType) => T
 export function creator(x: any) {
   const y: any = namespace(x)
   return (y.local ? creatorFixed : creatorInherit)(y)
-}
-export function identity(x) {
-  return x
 }
 let nextId = 0
 export function local<T>(): qt.Local<T> {
@@ -423,7 +416,7 @@ export class Selection {
     const bind = key ? bindKey : bindIndex,
       parents = this._parents,
       groups = this._groups
-    if (typeof value !== "function") value = constant(value)
+    if (typeof value !== "function") value = qu.constant(value)
     for (let m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
       const parent = parents[j],
         group = groups[j],

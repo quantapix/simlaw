@@ -1,5 +1,6 @@
 import { Adder, range } from "./array.js"
-import { namespace } from "./types.js"
+import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 export const areaRingSum = new Adder()
 var areaSum = new Adder(),
@@ -395,9 +396,9 @@ function circleRadius(cosRadius, point) {
   return ((-point[2] < 0 ? -radius : radius) + tau - epsilon) % tau
 }
 export function circle() {
-  let center = constant([0, 0]),
-    radius = constant(90),
-    precision = constant(6),
+  let center = qu.constant([0, 0]),
+    radius = qu.constant(90),
+    precision = qu.constant(6),
     ring,
     rotate,
     stream = { point: point }
@@ -417,13 +418,13 @@ export function circle() {
     return c
   }
   circle.center = function (_) {
-    return arguments.length ? ((center = typeof _ === "function" ? _ : constant([+_[0], +_[1]])), circle) : center
+    return arguments.length ? ((center = typeof _ === "function" ? _ : qu.constant([+_[0], +_[1]])), circle) : center
   }
   circle.radius = function (_) {
-    return arguments.length ? ((radius = typeof _ === "function" ? _ : constant(+_)), circle) : radius
+    return arguments.length ? ((radius = typeof _ === "function" ? _ : qu.constant(+_)), circle) : radius
   }
   circle.precision = function (_) {
-    return arguments.length ? ((precision = typeof _ === "function" ? _ : constant(+_)), circle) : precision
+    return arguments.length ? ((precision = typeof _ === "function" ? _ : qu.constant(+_)), circle) : precision
   }
   return circle
 }
@@ -436,11 +437,6 @@ export function compose(a, b) {
       return (x = b.invert(x, y)), x && a.invert(x[0], x[1])
     }
   return compose
-}
-export function constant(x) {
-  return function () {
-    return x
-  }
 }
 let containsObjectType = {
   Feature: function (object, point) {
@@ -670,7 +666,6 @@ export function graticule() {
 export function graticule10() {
   return graticule()()
 }
-export const identity = x => x
 export function interpolate(a, b) {
   let x0 = a[0] * radians,
     y0 = a[1] * radians,
@@ -1706,7 +1701,6 @@ export namespace clip {
 export namespace path {
   import { abs, sqrt, tau } from "../math.js"
   import { Adder } from "./array.js"
-  import identity from "../identity.js"
   import noop from "../noop.js"
   import stream from "../stream.js"
 
@@ -2450,7 +2444,7 @@ export namespace proj {
           this.stream.point(p[0], p[1])
         },
       }),
-      postclip = identity,
+      postclip = qu.identity,
       cache,
       cacheStream
     function reset() {
@@ -2489,7 +2483,7 @@ export namespace proj {
       return arguments.length
         ? ((postclip =
             _ == null
-              ? ((x0 = y0 = x1 = y1 = null), identity)
+              ? ((x0 = y0 = x1 = y1 = null), qu.identity)
               : clipRectangle((x0 = +_[0][0]), (y0 = +_[0][1]), (x1 = +_[1][0]), (y1 = +_[1][1]))),
           reset())
         : x0 == null
@@ -2599,7 +2593,7 @@ export namespace proj {
       y0,
       x1,
       y1,
-      postclip = identity, // post-clip extent
+      postclip = qu.identity, // post-clip extent
       delta2 = 0.5, // precision
       projectResample,
       projectTransform,
@@ -2635,7 +2629,7 @@ export namespace proj {
       return arguments.length
         ? ((postclip =
             _ == null
-              ? ((x0 = y0 = x1 = y1 = null), identity)
+              ? ((x0 = y0 = x1 = y1 = null), qu.identity)
               : clipRectangle((x0 = +_[0][0]), (y0 = +_[0][1]), (x1 = +_[1][0]), (y1 = +_[1][1]))),
           reset())
         : x0 == null

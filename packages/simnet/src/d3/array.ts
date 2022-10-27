@@ -1,4 +1,5 @@
 import * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 const array = Array.prototype
 export const slice = array.slice
@@ -11,7 +12,7 @@ export function bin(): qt.HistogramGeneratorNumber<number, number>
 export function bin<T, V extends number | undefined>(): qt.HistogramGeneratorNumber<T, V>
 export function bin<T, V extends Date | undefined>(): qt.HistogramGeneratorDate<T, V>
 export function bin() {
-  let value = identity,
+  let value = qu.identity,
     domain = extent,
     threshold = sturges
   function histogram(data) {
@@ -84,14 +85,14 @@ export function bin() {
     return bins
   }
   histogram.value = function (_) {
-    return arguments.length ? ((value = typeof _ === "function" ? _ : constant(_)), histogram) : value
+    return arguments.length ? ((value = typeof _ === "function" ? _ : qu.constant(_)), histogram) : value
   }
   histogram.domain = function (_) {
-    return arguments.length ? ((domain = typeof _ === "function" ? _ : constant([_[0], _[1]])), histogram) : domain
+    return arguments.length ? ((domain = typeof _ === "function" ? _ : qu.constant([_[0], _[1]])), histogram) : domain
   }
   histogram.thresholds = function (_) {
     return arguments.length
-      ? ((threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant(slice.call(_)) : constant(_)),
+      ? ((threshold = typeof _ === "function" ? _ : Array.isArray(_) ? qu.constant(slice.call(_)) : qu.constant(_)),
         histogram)
       : threshold
   }
@@ -257,9 +258,6 @@ function bluri(radius) {
       sum -= S[Math.max(start, i - s)]
     }
   }
-}
-export function constant(x: any) {
-  return () => x
 }
 export function count(xs: Iterable<unknown>): number
 export function count<T>(xs: Iterable<T>, f: (a: T, b: T) => number | null | undefined): number
@@ -539,7 +537,7 @@ export function group<T, K1, K2, K3>(
   k3: (x: T) => K3
 ): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, T[]>>>
 export function group(xs: any, ...ks: any) {
-  return nest(xs, identity, identity, ks)
+  return nest(xs, qu.identity, qu.identity, ks)
 }
 export function groups<T, K>(xs: Iterable<T>, k: (x: T) => K): Array<[K, T[]]>
 export function groups<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Array<[K1, Array<[K2, T[]]>]>
@@ -550,7 +548,7 @@ export function groups<T, K1, K2, K3>(
   k3: (x: T) => K3
 ): Array<[K1, Array<[K2, Array<[K3, T[]]>]>]>
 export function groups(xs: any, ...ks: any) {
-  return nest(xs, Array.from, identity, ks)
+  return nest(xs, Array.from, qu.identity, ks)
 }
 function flatten(xs, ks) {
   for (let i = 1, n = ks.length; i < n; ++i) {
@@ -601,7 +599,7 @@ export function rollup<T, R, K1, K2, K3>(
   k3: (x: T) => K3
 ): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, R>>>
 export function rollup(xs: any, f: Function, ...ks: any) {
-  return nest(xs, identity, f, ks)
+  return nest(xs, qu.identity, f, ks)
 }
 export function rollups<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: (x: T) => K): Array<[K, R]>
 export function rollups<T, R, K1, K2>(
@@ -633,7 +631,7 @@ export function index<T, K1, K2, K3>(
   k3: (x: T) => K3
 ): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, T>>>
 export function index(xs: any, ...ks: any) {
-  return nest(xs, identity, unique, ks)
+  return nest(xs, qu.identity, unique, ks)
 }
 export function indexes<T, K>(xs: Iterable<T>, k: (x: T) => K): Array<[K, T]>
 export function indexes<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Array<[K1, Array<[K2, T]>]>
@@ -676,9 +674,6 @@ export function groupSort(xs: any, f: Function, key: Function) {
       ? sort(rollup(xs, f, key), ([ak, av], [bk, bv]) => ascending(av, bv) || ascending(ak, bk))
       : sort(group(xs, key), ([ak, av], [bk, bv]) => f(av, bv) || ascending(ak, bk))
   ).map(([key]) => key)
-}
-export function identity(x: any) {
-  return x
 }
 export function intersection<T>(...xs: Array<Iterable<T>>): qt.InternSet<T>
 export function intersection(x: any, ...xs: any) {

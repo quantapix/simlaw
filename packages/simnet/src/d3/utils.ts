@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import type * as qt from "./types.js"
 
+export const identity = (x: unknown) => x
+export const constant = (x: unknown) => () => x
+
 export function area(xs: Array<[number, number]>): number {
   const n = xs.length
   let r = 0,
@@ -252,9 +255,6 @@ function center(scale, offset) {
   if (scale.round()) offset = Math.round(offset)
   return x => +scale(x) + offset
 }
-function entering() {
-  return !this.__axis
-}
 function axis<T>(orient, scale: qt.AxisScale<T>): qt.Axis<T> {
   let args: any[] = [],
     vals: any[] | null = null,
@@ -329,7 +329,9 @@ function axis<T>(orient, scale: qt.AxisScale<T>): qt.Axis<T> {
     line.attr(x + "2", k * sizeInner)
     text.attr(x, k * spacing).text(format)
     selection
-      .filter(entering)
+      .filter(function () {
+        return !this.__axis
+      })
       .attr("fill", "none")
       .attr("font-size", 10)
       .attr("font-family", "sans-serif")
@@ -382,85 +384,81 @@ export function axisBottom<T extends qt.AxisDomain>(scale: qt.AxisScale<T>): qt.
 export function axisLeft<T extends qt.AxisDomain>(scale: qt.AxisScale<T>): qt.Axis<T> {
   return axis(left, scale)
 }
-export function identity(x: unknown) {
-  return x
-}
 
-const noop = { value: () => {} }
+class DispatchMap<T extends object> extends Map<string, (qt.DispatchCB<T> | undefined)[]> {}
+
 export function dispatch<T extends object>(...xs: string[]): Dispatch<T> {
-  for (let i = 0, n = xs.length, _ = {}, t; i < n; ++i) {
-    if (!(t = arguments[i] + "") || t in _ || /[\s.]/.test(t)) throw new Error("illegal type: " + t)
-    _[t] = []
+  const m = new DispatchMap<T>()
+  for (const x of xs) {
+    if (x in m || /[\s.]/.test(x)) throw new Error("illegal type: " + x)
+    m.set(x, [])
   }
-  return new Dispatch(_)
-}
-function parseTypenames(typenames, types) {
-  return typenames
-    .trim()
-    .split(/^|\s+/)
-    .map(function (t) {
-      let name = "",
-        i = t.indexOf(".")
-      if (i >= 0) (name = t.slice(i + 1)), (t = t.slice(0, i))
-      if (t && !types.hasOwnProperty(t)) throw new Error("unknown type: " + t)
-      return { type: t, name: name }
-    })
+  return new Dispatch(m)
 }
 
 export class Dispatch<T extends object> implements qt.Dispatch<T> {
-  constructor(_) {
-    this._ = _
+  constructor(public map: DispatchMap<T>) {}
+  apply(k: string, x?: T, ...xs: any[]) {
+    const fs = this.map.get(k)
+    fs?.forEach(f => f?.apply(x, xs))
   }
-  on(typename, callback) {
-    let _ = this._,
-      T = parseTypenames(typename + "", _),
+  call(k: string, x?: T, ...xs: any[]) {
+    const fs = this.map.get(k)
+    fs?.forEach(f => f?.call(x, xs))
+  }
+  copy() {
+    const r = new DispatchMap<T>()
+    for (const k in this.map) r.set(k, this.map.get(k)!)
+    return new Dispatch(r)
+  }
+  on(types: string, f?: Function) {
+    function parseTypenames(typenames, types) {
+      return typenames
+        .trim()
+        .split(/^|\s+/)
+        .map(function (t) {
+          let name = "",
+            i = t.indexOf(".")
+          if (i >= 0) (name = t.slice(i + 1)), (t = t.slice(0, i))
+          if (t && !types.hasOwnProperty(t)) throw new Error("unknown type: " + t)
+          return { type: t, name: name }
+        })
+    }
+
+    let tgt = this.map,
+      T = parseTypenames(types + "", tgt),
       t,
       i = -1,
       n = T.length
     if (arguments.length < 2) {
-      while (++i < n) if ((t = (typename = T[i]).type) && (t = get(_[t], typename.name))) return t
+      while (++i < n) if ((t = (types = T[i]).type) && (t = get(tgt[t], types.name))) return t
       return
     }
-    if (callback != null && typeof callback !== "function") throw new Error("invalid callback: " + callback)
     while (++i < n) {
-      if ((t = (typename = T[i]).type)) _[t] = set(_[t], typename.name, callback)
-      else if (callback == null) for (t in _) _[t] = set(_[t], typename.name, null)
+      if ((t = (types = T[i]).type)) tgt[t] = set(tgt[t], types.name, f)
+      else if (f == null) for (t in tgt) tgt[t] = set(tgt[t], types.name, null)
     }
     return this
   }
-  copy() {
-    const copy = {},
-      _ = this._
-    for (const t in _) copy[t] = _[t].slice()
-    return new Dispatch(copy)
-  }
-  call(type, that) {
-    if ((n = arguments.length - 2) > 0)
-      for (var args = new Array(n), i = 0, n, t; i < n; ++i) args[i] = arguments[i + 2]
-    if (!this._.hasOwnProperty(type)) throw new Error("unknown type: " + type)
-    for (t = this._[type], i = 0, n = t.length; i < n; ++i) t[i].value.apply(that, args)
-  }
-  apply(type, that, args) {
-    if (!this._.hasOwnProperty(type)) throw new Error("unknown type: " + type)
-    for (let t = this._[type], i = 0, n = t.length; i < n; ++i) t[i].value.apply(that, args)
-  }
 }
-function get(type, name) {
-  for (let i = 0, n = type.length, c; i < n; ++i) {
-    if ((c = type[i]).name === name) {
-      return c.value
-    }
+
+function get(xs: CB[], key: string) {
+  for (const x of xs) {
+    if (x.key === key) return x.cb
   }
+  return
 }
-function set(type, name, callback) {
-  for (let i = 0, n = type.length; i < n; ++i) {
-    if (type[i].name === name) {
-      ;(type[i] = noop), (type = type.slice(0, i).concat(type.slice(i + 1)))
+
+function set(xs: CB[], key: string, cb?: Function) {
+  const n = xs.length
+  for (let i = 0; i < n; ++i) {
+    if (xs[i]?.key === key) {
+      ;(xs[i] = { key, cb: () => {} }), (xs = xs.slice(0, i).concat(xs.slice(i + 1)))
       break
     }
   }
-  if (callback != null) type.push({ name: name, value: callback })
-  return type
+  if (cb != undefined) xs.push({ key, cb })
+  return xs
 }
 
 let head: any

@@ -1,7 +1,6 @@
-import { dispatch } from "./dispatch.js"
 import { quadtree } from "./quadtree.js"
-import { timer } from "./timer.js"
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 const initRadius = 10
 const initAngle = Math.PI * (3 - Math.sqrt(5))
@@ -18,8 +17,8 @@ export function forceSimulation(xs?: qt.SimNode[]) {
     velocityDecay = 0.6,
     random = lcg()
   const forces = new Map(),
-    stepper = timer(step),
-    event = dispatch("tick", "end")
+    stepper = qu.timer(step),
+    event = qu.dispatch("tick", "end")
   function initNodes() {
     ns.forEach((x, i) => {
       x.idx = i
@@ -163,7 +162,7 @@ export function forceCollide<T extends qt.SimNode>(
     random,
     strength = 1,
     iterations = 1
-  if (typeof radius !== "function") radius = constant(radius == null ? 1 : +radius)
+  if (typeof radius !== "function") radius = qu.constant(radius == null ? 1 : +radius)
   function force() {
     let i,
       n = nodes.length,
@@ -235,14 +234,9 @@ export function forceCollide<T extends qt.SimNode>(
     return arguments.length ? ((strength = +_), force) : strength
   }
   force.radius = function (_) {
-    return arguments.length ? ((radius = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : radius
+    return arguments.length ? ((radius = typeof _ === "function" ? _ : qu.constant(+_)), initialize(), force) : radius
   }
   return force
-}
-export function constant(x) {
-  return function () {
-    return x
-  }
 }
 export function jiggle(random) {
   return (random() - 0.5) * 1e-6
@@ -266,7 +260,7 @@ export function forceLink<N extends qt.SimNode, L extends qt.SimLink<N>>(xs?: L[
   let id = index,
     strength = defaultStrength,
     strengths,
-    distance = constant(30),
+    distance = qu.constant(30),
     distances,
     nodes,
     count,
@@ -341,12 +335,12 @@ export function forceLink<N extends qt.SimNode, L extends qt.SimLink<N>>(xs?: L[
   }
   force.strength = function (_) {
     return arguments.length
-      ? ((strength = typeof _ === "function" ? _ : constant(+_)), initializeStrength(), force)
+      ? ((strength = typeof _ === "function" ? _ : qu.constant(+_)), initializeStrength(), force)
       : strength
   }
   force.distance = function (_) {
     return arguments.length
-      ? ((distance = typeof _ === "function" ? _ : constant(+_)), initializeDistance(), force)
+      ? ((distance = typeof _ === "function" ? _ : qu.constant(+_)), initializeDistance(), force)
       : distance
   }
   return force
@@ -356,7 +350,7 @@ export function forceManyBody<T extends qt.SimNode>(): qt.ForceManyBody<T> {
     node,
     random,
     alpha,
-    strength = constant(-30),
+    strength = qu.constant(-30),
     strengths,
     distanceMin2 = 1,
     distanceMax2 = Infinity,
@@ -435,7 +429,9 @@ export function forceManyBody<T extends qt.SimNode>(): qt.ForceManyBody<T> {
     initialize()
   }
   force.strength = function (_) {
-    return arguments.length ? ((strength = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : strength
+    return arguments.length
+      ? ((strength = typeof _ === "function" ? _ : qu.constant(+_)), initialize(), force)
+      : strength
   }
   force.distanceMin = function (_) {
     return arguments.length ? ((distanceMin2 = _ * _), force) : Math.sqrt(distanceMin2)
@@ -454,10 +450,10 @@ export function forceRadial<T extends qt.SimNode>(
   y?: number | ((x: T, i: number, xs: T[]) => number)
 ): qt.ForceRadial<T> {
   let nodes,
-    strength = constant(0.1),
+    strength = qu.constant(0.1),
     strengths,
     radiuses
-  if (typeof radius !== "function") radius = constant(+radius)
+  if (typeof radius !== "function") radius = qu.constant(+radius)
   if (x == null) x = 0
   if (y == null) y = 0
   function force(alpha) {
@@ -486,10 +482,12 @@ export function forceRadial<T extends qt.SimNode>(
     ;(nodes = _), initialize()
   }
   force.strength = function (_) {
-    return arguments.length ? ((strength = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : strength
+    return arguments.length
+      ? ((strength = typeof _ === "function" ? _ : qu.constant(+_)), initialize(), force)
+      : strength
   }
   force.radius = function (_) {
-    return arguments.length ? ((radius = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : radius
+    return arguments.length ? ((radius = typeof _ === "function" ? _ : qu.constant(+_)), initialize(), force) : radius
   }
   force.x = function (_) {
     return arguments.length ? ((x = +_), force) : x
@@ -507,11 +505,11 @@ export function y(d) {
 }
 
 export function forceX<T extends qt.SimNode>(x?: number | ((x: T, i: number, xs: T[]) => number)): qt.ForceX<T> {
-  let strength = constant(0.1),
+  let strength = qu.constant(0.1),
     nodes,
     strengths,
     xz
-  if (typeof x !== "function") x = constant(x == null ? 0 : +x)
+  if (typeof x !== "function") x = qu.constant(x == null ? 0 : +x)
   function force(alpha) {
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
       ;(node = nodes[i]), (node.vx += (xz[i] - node.x) * strengths[i] * alpha)
@@ -532,19 +530,21 @@ export function forceX<T extends qt.SimNode>(x?: number | ((x: T, i: number, xs:
     initialize()
   }
   force.strength = function (_) {
-    return arguments.length ? ((strength = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : strength
+    return arguments.length
+      ? ((strength = typeof _ === "function" ? _ : qu.constant(+_)), initialize(), force)
+      : strength
   }
   force.x = function (_) {
-    return arguments.length ? ((x = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : x
+    return arguments.length ? ((x = typeof _ === "function" ? _ : qu.constant(+_)), initialize(), force) : x
   }
   return force
 }
-export function forceY<T extends SimNode>(x?: number | ((x: T, i: number, xs: T[]) => number)): ForceY<T> {
-  let strength = constant(0.1),
+export function forceY<T extends qt.SimNode>(x?: number | ((x: T, i: number, xs: T[]) => number)): ForceY<T> {
+  let strength = qu.constant(0.1),
     nodes,
     strengths,
     yz
-  if (typeof x !== "function") x = constant(x == null ? 0 : +x)
+  if (typeof x !== "function") x = qu.constant(x == null ? 0 : +x)
   function force(alpha) {
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
       ;(node = nodes[i]), (node.vy += (yz[i] - node.y) * strengths[i] * alpha)
@@ -565,10 +565,12 @@ export function forceY<T extends SimNode>(x?: number | ((x: T, i: number, xs: T[
     initialize()
   }
   force.strength = function (_) {
-    return arguments.length ? ((strength = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : strength
+    return arguments.length
+      ? ((strength = typeof _ === "function" ? _ : qu.constant(+_)), initialize(), force)
+      : strength
   }
   force.y = function (_) {
-    return arguments.length ? ((x = typeof _ === "function" ? _ : constant(+_)), initialize(), force) : x
+    return arguments.length ? ((x = typeof _ === "function" ? _ : qu.constant(+_)), initialize(), force) : x
   }
   return force
 }

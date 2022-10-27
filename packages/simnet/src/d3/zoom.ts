@@ -1,11 +1,9 @@
-import { dispatch } from "./dispatch.js"
 import { dragDisable, dragEnable } from "./drag.js"
 import { interpolateZoom } from "./interpolate.js"
 import { select, pointer } from "./selection.js"
 import { interrupt } from "./transition.js"
 import type * as qt from "./types.js"
-
-export const constant = x => () => x
+import * as qu from "./utils.js"
 
 export function ZoomEvent(type, { sourceEvent, target, transform, dispatch }) {
   Object.defineProperties(this, {
@@ -123,7 +121,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
     ],
     duration = 250,
     interpolate = interpolateZoom,
-    listeners = dispatch("start", "zoom", "end"),
+    listeners = qu.dispatch("start", "zoom", "end"),
     touchstarting,
     touchfirst,
     touchending,
@@ -480,20 +478,20 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
     }
   }
   zoom.wheelDelta = function (_) {
-    return arguments.length ? ((wheelDelta = typeof _ === "function" ? _ : constant(+_)), zoom) : wheelDelta
+    return arguments.length ? ((wheelDelta = typeof _ === "function" ? _ : qu.constant(+_)), zoom) : wheelDelta
   }
   zoom.filter = function (_) {
-    return arguments.length ? ((filter = typeof _ === "function" ? _ : constant(!!_)), zoom) : filter
+    return arguments.length ? ((filter = typeof _ === "function" ? _ : qu.constant(!!_)), zoom) : filter
   }
   zoom.touchable = function (_) {
-    return arguments.length ? ((touchable = typeof _ === "function" ? _ : constant(!!_)), zoom) : touchable
+    return arguments.length ? ((touchable = typeof _ === "function" ? _ : qu.constant(!!_)), zoom) : touchable
   }
   zoom.extent = function (_) {
     return arguments.length
       ? ((extent =
           typeof _ === "function"
             ? _
-            : constant([
+            : qu.constant([
                 [+_[0][0], +_[0][1]],
                 [+_[1][0], +_[1][1]],
               ])),

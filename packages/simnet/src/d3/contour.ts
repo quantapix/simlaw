@@ -2,6 +2,7 @@ import { extent, thresholdSturges, ticks, tickStep } from "./array.js"
 import { slice } from "./array.js"
 import { blur2, max } from "./array.js"
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 export function area(ring) {
   let i = 0,
@@ -13,7 +14,6 @@ export function area(ring) {
 export function ascending(a, b) {
   return a - b
 }
-export const constant = x => () => x
 export function contains(ring, hole) {
   let i = -1,
     n = hole.length,
@@ -299,7 +299,7 @@ export function contours(): qt.Contours {
   }
   f.thresholds = function (_) {
     return arguments.length
-      ? ((threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant(slice.call(_)) : constant(_)), f)
+      ? ((threshold = typeof _ === "function" ? _ : Array.isArray(_) ? qu.constant(slice.call(_)) : qu.constant(_)), f)
       : threshold
   }
   f.smooth = function (_) {
@@ -327,7 +327,7 @@ export function density<T = [number, number]>(): qt.ContourDensity<T> {
     o = r * 3, // grid offset, to pad for blur
     n = (dx + o * 2) >> k, // grid width
     m = (dy + o * 2) >> k, // grid height
-    threshold = constant(20)
+    threshold = qu.constant(20)
   function grid(data) {
     let values = new Float32Array(n * m),
       pow2k = Math.pow(2, -k),
@@ -396,13 +396,13 @@ export function density<T = [number, number]>(): qt.ContourDensity<T> {
     return f
   }
   f.x = function (_) {
-    return arguments.length ? ((x = typeof _ === "function" ? _ : constant(+_)), f) : x
+    return arguments.length ? ((x = typeof _ === "function" ? _ : qu.constant(+_)), f) : x
   }
   f.y = function (_) {
-    return arguments.length ? ((y = typeof _ === "function" ? _ : constant(+_)), f) : y
+    return arguments.length ? ((y = typeof _ === "function" ? _ : qu.constant(+_)), f) : y
   }
   f.weight = function (_) {
-    return arguments.length ? ((weight = typeof _ === "function" ? _ : constant(+_)), f) : weight
+    return arguments.length ? ((weight = typeof _ === "function" ? _ : qu.constant(+_)), f) : weight
   }
   f.size = function (_) {
     if (!arguments.length) return [dx, dy]
@@ -418,7 +418,7 @@ export function density<T = [number, number]>(): qt.ContourDensity<T> {
   }
   f.thresholds = function (_) {
     return arguments.length
-      ? ((threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant(slice.call(_)) : constant(_)), f)
+      ? ((threshold = typeof _ === "function" ? _ : Array.isArray(_) ? qu.constant(slice.call(_)) : qu.constant(_)), f)
       : threshold
   }
   f.bandwidth = function (_) {

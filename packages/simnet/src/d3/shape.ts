@@ -77,7 +77,7 @@ export function arc<This, T>(): qt.Arc<This, T>
 export function arc() {
   let innerRadius = arcInnerRadius,
     outerRadius = arcOuterRadius,
-    cornerRadius = constant(0),
+    cornerRadius = qu.constant(0),
     padRadius = null,
     startAngle = arcStartAngle,
     endAngle = arcEndAngle,
@@ -179,27 +179,27 @@ export function arc() {
     return [cos(a) * r, sin(a) * r]
   }
   y.innerRadius = function (_) {
-    return arguments.length ? ((innerRadius = typeof _ === "function" ? _ : constant(+_)), y) : innerRadius
+    return arguments.length ? ((innerRadius = typeof _ === "function" ? _ : qu.constant(+_)), y) : innerRadius
   }
   y.outerRadius = function (_) {
-    return arguments.length ? ((outerRadius = typeof _ === "function" ? _ : constant(+_)), y) : outerRadius
+    return arguments.length ? ((outerRadius = typeof _ === "function" ? _ : qu.constant(+_)), y) : outerRadius
   }
   y.cornerRadius = function (_) {
-    return arguments.length ? ((cornerRadius = typeof _ === "function" ? _ : constant(+_)), y) : cornerRadius
+    return arguments.length ? ((cornerRadius = typeof _ === "function" ? _ : qu.constant(+_)), y) : cornerRadius
   }
   y.padRadius = function (_) {
     return arguments.length
-      ? ((padRadius = _ == null ? null : typeof _ === "function" ? _ : constant(+_)), y)
+      ? ((padRadius = _ == null ? null : typeof _ === "function" ? _ : qu.constant(+_)), y)
       : padRadius
   }
   y.startAngle = function (_) {
-    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : constant(+_)), y) : startAngle
+    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : startAngle
   }
   y.endAngle = function (_) {
-    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : constant(+_)), y) : endAngle
+    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : endAngle
   }
   y.padAngle = function (_) {
-    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : constant(+_)), y) : padAngle
+    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : padAngle
   }
   y.context = function (_) {
     return arguments.length ? ((context = _ == null ? null : _), y) : context
@@ -213,13 +213,13 @@ export function area<T = [number, number]>(
   y1?: number | ((x: T, i: number, xs: T[]) => number)
 ): qt.Area<T> {
   let x1 = null,
-    defined = constant(true),
+    defined = qu.constant(true),
     context = null,
     curve = curveLinear,
     output = null
-  x0 = typeof x0 === "function" ? x0 : x0 === undefined ? pointX : constant(+x0)
-  y0 = typeof y0 === "function" ? y0 : y0 === undefined ? constant(0) : constant(+y0)
-  y1 = typeof y1 === "function" ? y1 : y1 === undefined ? pointY : constant(+y1)
+  x0 = typeof x0 === "function" ? x0 : x0 === undefined ? pointX : qu.constant(+x0)
+  y0 = typeof y0 === "function" ? y0 : y0 === undefined ? qu.constant(0) : qu.constant(+y0)
+  y1 = typeof y1 === "function" ? y1 : y1 === undefined ? pointY : qu.constant(+y1)
   function y(xs: Iterable<T> | T[]): string | null
   function y(xs: Iterable<T> | T[]): void
   function y(xs: any) {
@@ -260,22 +260,22 @@ export function area<T = [number, number]>(
     return line().defined(defined).curve(curve).context(context)
   }
   y.x = function (_) {
-    return arguments.length ? ((x0 = typeof _ === "function" ? _ : constant(+_)), (x1 = null), y) : x0
+    return arguments.length ? ((x0 = typeof _ === "function" ? _ : qu.constant(+_)), (x1 = null), y) : x0
   }
   y.x0 = function (...xs: any[]) {
-    return xs.length ? ((x0 = typeof _ === "function" ? _ : constant(+_)), y) : x0
+    return xs.length ? ((x0 = typeof _ === "function" ? _ : qu.constant(+_)), y) : x0
   }
   y.x1 = function (_) {
-    return arguments.length ? ((x1 = _ == null ? null : typeof _ === "function" ? _ : constant(+_)), y) : x1
+    return arguments.length ? ((x1 = _ == null ? null : typeof _ === "function" ? _ : qu.constant(+_)), y) : x1
   }
   y.y = function (_) {
-    return arguments.length ? ((y0 = typeof _ === "function" ? _ : constant(+_)), (y1 = null), y) : y0
+    return arguments.length ? ((y0 = typeof _ === "function" ? _ : qu.constant(+_)), (y1 = null), y) : y0
   }
   y.y0 = function (_) {
-    return arguments.length ? ((y0 = typeof _ === "function" ? _ : constant(+_)), y) : y0
+    return arguments.length ? ((y0 = typeof _ === "function" ? _ : qu.constant(+_)), y) : y0
   }
   y.y1 = function (_) {
-    return arguments.length ? ((y1 = _ == null ? null : typeof _ === "function" ? _ : constant(+_)), y) : y1
+    return arguments.length ? ((y1 = _ == null ? null : typeof _ === "function" ? _ : qu.constant(+_)), y) : y1
   }
   y.lineX0 = y.lineY0 = function () {
     return arealine().x(x0).y(y0)
@@ -287,7 +287,7 @@ export function area<T = [number, number]>(
     return arealine().x(x1).y(y0)
   }
   y.defined = function (_) {
-    return arguments.length ? ((defined = typeof _ === "function" ? _ : constant(!!_)), y) : defined
+    return arguments.length ? ((defined = typeof _ === "function" ? _ : qu.constant(!!_)), y) : defined
   }
   y.curve = function (_) {
     return arguments.length ? ((curve = _), context != null && (output = curve(context)), y) : curve
@@ -339,27 +339,19 @@ export function array(x) {
     ? x // Array, TypedArray, NodeList, array-like
     : Array.from(x) // Map, Set, iterable, string, or anything else
 }
-export function constant(x) {
-  return function constant() {
-    return x
-  }
-}
 export function descending(a, b) {
   return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN
-}
-export function identity(d) {
-  return d
 }
 export function line<T = [number, number]>(
   x?: number | ((d: T, i: number, data: T[]) => number),
   y?: number | ((d: T, i: number, data: T[]) => number)
 ): qt.Line<T> {
-  let defined = constant(true),
+  let defined = qu.constant(true),
     context = null,
     curve = curveLinear,
     output = null
-  x = typeof x === "function" ? x : x === undefined ? pointX : constant(x)
-  y = typeof y === "function" ? y : y === undefined ? pointY : constant(y)
+  x = typeof x === "function" ? x : x === undefined ? pointX : qu.constant(x)
+  y = typeof y === "function" ? y : y === undefined ? pointY : qu.constant(y)
   function y(data) {
     let i,
       n = (data = array(data)).length,
@@ -377,13 +369,13 @@ export function line<T = [number, number]>(
     if (buffer) return (output = null), buffer + "" || null
   }
   y.x = function (_) {
-    return arguments.length ? ((x = typeof _ === "function" ? _ : constant(+_)), y) : x
+    return arguments.length ? ((x = typeof _ === "function" ? _ : qu.constant(+_)), y) : x
   }
   y.y = function (_) {
-    return arguments.length ? ((y = typeof _ === "function" ? _ : constant(+_)), y) : y
+    return arguments.length ? ((y = typeof _ === "function" ? _ : qu.constant(+_)), y) : y
   }
   y.defined = function (_) {
-    return arguments.length ? ((defined = typeof _ === "function" ? _ : constant(!!_)), y) : defined
+    return arguments.length ? ((defined = typeof _ === "function" ? _ : qu.constant(!!_)), y) : defined
   }
   y.curve = function (_) {
     return arguments.length ? ((curve = _), context != null && (output = curve(context)), y) : curve
@@ -442,10 +434,10 @@ export function link(curve) {
     return arguments.length ? ((target = _), f) : target
   }
   f.x = function (_) {
-    return arguments.length ? ((x = typeof _ === "function" ? _ : constant(+_)), f) : x
+    return arguments.length ? ((x = typeof _ === "function" ? _ : qu.constant(+_)), f) : x
   }
   f.y = function (_) {
-    return arguments.length ? ((y = typeof _ === "function" ? _ : constant(+_)), f) : y
+    return arguments.length ? ((y = typeof _ === "function" ? _ : qu.constant(+_)), f) : y
   }
   f.context = function (_) {
     return arguments.length ? (_ == null ? (context = output = null) : (output = curve((context = _))), f) : context
@@ -489,12 +481,12 @@ export function pie(): qt.Pie<any, number | { valueOf(): number }>
 export function pie<T>(): qt.Pie<any, T>
 export function pie<This, T>(): qt.Pie<This, T>
 export function pie() {
-  let value = identity,
+  let value = qu.identity,
     sortValues = descending,
     sort = null,
-    startAngle = constant(0),
-    endAngle = constant(tau),
-    padAngle = constant(0)
+    startAngle = qu.constant(0),
+    endAngle = qu.constant(tau),
+    padAngle = qu.constant(0)
   function y(data) {
     let i,
       n = (data = array(data)).length,
@@ -538,7 +530,7 @@ export function pie() {
     return arcs
   }
   y.value = function (_) {
-    return arguments.length ? ((value = typeof _ === "function" ? _ : constant(+_)), y) : value
+    return arguments.length ? ((value = typeof _ === "function" ? _ : qu.constant(+_)), y) : value
   }
   y.sortValues = function (_) {
     return arguments.length ? ((sortValues = _), (sort = null), y) : sortValues
@@ -547,13 +539,13 @@ export function pie() {
     return arguments.length ? ((sort = _), (sortValues = null), y) : sort
   }
   y.startAngle = function (_) {
-    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : constant(+_)), y) : startAngle
+    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : startAngle
   }
   y.endAngle = function (_) {
-    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : constant(+_)), y) : endAngle
+    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : endAngle
   }
   y.padAngle = function (_) {
-    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : constant(+_)), y) : padAngle
+    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : padAngle
   }
   return y
 }
@@ -579,7 +571,7 @@ export function stack<T>(): qt.Stack<any, T, string>
 export function stack<T, K>(): qt.Stack<any, T, K>
 export function stack<This, T, K>(): qt.Stack<This, T, K>
 export function stack() {
-  let keys = constant([]),
+  let keys = qu.constant([]),
     order = orderNone,
     offset = offsetNone,
     value = stackValue
@@ -601,14 +593,14 @@ export function stack() {
     return sz
   }
   y.keys = function (_) {
-    return arguments.length ? ((keys = typeof _ === "function" ? _ : constant(Array.from(_))), y) : keys
+    return arguments.length ? ((keys = typeof _ === "function" ? _ : qu.constant(Array.from(_))), y) : keys
   }
   y.value = function (_) {
-    return arguments.length ? ((value = typeof _ === "function" ? _ : constant(+_)), y) : value
+    return arguments.length ? ((value = typeof _ === "function" ? _ : qu.constant(+_)), y) : value
   }
   y.order = function (_) {
     return arguments.length
-      ? ((order = _ == null ? orderNone : typeof _ === "function" ? _ : constant(Array.from(_))), y)
+      ? ((order = _ == null ? orderNone : typeof _ === "function" ? _ : qu.constant(Array.from(_))), y)
       : order
   }
   y.offset = function (_) {
@@ -637,17 +629,17 @@ export class Symbol<This, T> implements qt.Symbol<This, T> {
   size: any
   type: any
   constructor(type, size?: number) {
-    this.size = typeof size === "function" ? size : constant(size === undefined ? 64 : +size)
-    this.type = typeof type === "function" ? type : constant(type || circle)
+    this.size = typeof size === "function" ? size : qu.constant(size === undefined ? 64 : +size)
+    this.type = typeof type === "function" ? type : qu.constant(type || circle)
   }
   context(...xs: any[]) {
     return xs.length ? ((this.context = xs == null ? null : xs), symbol) : this.context
   }
   size(...xs: any[]) {
-    return xs.length ? ((this.size = typeof xs === "function" ? xs : constant(+xs)), symbol) : this.size
+    return xs.length ? ((this.size = typeof xs === "function" ? xs : qu.constant(+xs)), symbol) : this.size
   }
   type(...xs: any[]) {
-    return xs.length ? ((this.type = typeof xs === "function" ? xs : constant(xs)), symbol) : this.type
+    return xs.length ? ((this.type = typeof xs === "function" ? xs : qu.constant(xs)), symbol) : this.type
   }
 }
 

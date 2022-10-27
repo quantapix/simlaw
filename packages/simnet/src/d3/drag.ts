@@ -1,8 +1,7 @@
-import { dispatch } from "./dispatch.js"
 import { select, pointer } from "./selection.js"
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
-export const constant = x => () => x
 function defaultFilter(event) {
   return !event.ctrlKey && !event.button
 }
@@ -23,7 +22,7 @@ export function drag() {
     subject = defaultSubject,
     touchable = defaultTouchable,
     gestures = {},
-    listeners = dispatch("start", "drag", "end"),
+    listeners = qu.dispatch("start", "drag", "end"),
     active = 0,
     mousedownx,
     mousedowny,
@@ -170,16 +169,16 @@ export function drag() {
     }
   }
   drag.filter = function (_) {
-    return arguments.length ? ((filter = typeof _ === "function" ? _ : constant(!!_)), drag) : filter
+    return arguments.length ? ((filter = typeof _ === "function" ? _ : qu.constant(!!_)), drag) : filter
   }
   drag.container = function (_) {
-    return arguments.length ? ((container = typeof _ === "function" ? _ : constant(_)), drag) : container
+    return arguments.length ? ((container = typeof _ === "function" ? _ : qu.constant(_)), drag) : container
   }
   drag.subject = function (_) {
-    return arguments.length ? ((subject = typeof _ === "function" ? _ : constant(_)), drag) : subject
+    return arguments.length ? ((subject = typeof _ === "function" ? _ : qu.constant(_)), drag) : subject
   }
   drag.touchable = function (_) {
-    return arguments.length ? ((touchable = typeof _ === "function" ? _ : constant(!!_)), drag) : touchable
+    return arguments.length ? ((touchable = typeof _ === "function" ? _ : qu.constant(!!_)), drag) : touchable
   }
   drag.on = function () {
     let value = listeners.on.apply(listeners, arguments)

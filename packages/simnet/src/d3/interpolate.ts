@@ -4,6 +4,7 @@ import { hsl as colorHsl } from "./color.js"
 import { lab as colorLab } from "./color.js"
 import { rgb as colorRgb } from "./color.js"
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 export function array<T extends any[]>(a: any[], b: T): qt.ArrayInterpolator<T>
 export function array<T extends qt.NumberArray>(a: qt.NumberArray | number[], b: T): (t: number) => T
@@ -52,7 +53,6 @@ export function basisClosed(vs: number[]): (x: number) => number {
     return _basis((t - i / n) * n, v0, v1, v2, v3)
   }
 }
-export const constant = (x: any) => () => x
 function linear(a: number, d: number) {
   return function (x: number) {
     return a + x * d
@@ -60,7 +60,7 @@ function linear(a: number, d: number) {
 }
 export function nogamma(a: number, b: number) {
   const d = b - a
-  return d ? linear(a, d) : constant(isNaN(a) ? b : a)
+  return d ? linear(a, d) : qu.constant(isNaN(a) ? b : a)
 }
 
 function exponential(a: number, b: number, y: number) {
@@ -75,13 +75,13 @@ function exponential(a: number, b: number, y: number) {
 }
 export function hue(a: number, b: number) {
   const d = b - a
-  return d ? linear(a, d > 180 || d < -180 ? d - 360 * Math.round(d / 360) : d) : constant(isNaN(a) ? b : a)
+  return d ? linear(a, d > 180 || d < -180 ? d - 360 * Math.round(d / 360) : d) : qu.constant(isNaN(a) ? b : a)
 }
 export function gamma(x: number) {
   return (x = +x) === 1
     ? nogamma
     : function (a: number, b: number) {
-        return b - a ? exponential(a, b, x) : constant(isNaN(a) ? b : a)
+        return b - a ? exponential(a, b, x) : qu.constant(isNaN(a) ? b : a)
       }
 }
 export const color = nogamma
@@ -383,7 +383,7 @@ export function value(a: any, b: any) {
   let t = typeof b,
     c
   return b == null || t === "boolean"
-    ? constant(b)
+    ? qu.constant(b)
     : (t === "number"
         ? number
         : t === "string"

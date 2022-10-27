@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 export function hierarchy<T>(data: T, children?: (x: T) => Iterable<T> | null | undefined): qt.HierarchyNode<T> {
   if (data instanceof Map) {
@@ -297,14 +298,6 @@ export function cluster<T>(): qt.ClusterLayout<T> {
     return arguments.length ? ((nodeSize = true), (dx = +x[0]), (dy = +x[1]), y) : nodeSize ? [dx, dy] : null
   }
   return y
-}
-export function constantZero() {
-  return 0
-}
-export function constant(x) {
-  return function () {
-    return x
-  }
 }
 
 const a = 1664525
@@ -717,11 +710,11 @@ export function treemap<T>(): qt.TreemapLayout<T> {
     dx = 1,
     dy = 1,
     paddingStack = [0],
-    paddingInner = constantZero,
-    paddingTop = constantZero,
-    paddingRight = constantZero,
-    paddingBottom = constantZero,
-    paddingLeft = constantZero
+    paddingInner = qu.constant(0),
+    paddingTop = qu.constant(0),
+    paddingRight = qu.constant(0),
+    paddingBottom = qu.constant(0),
+    paddingLeft = qu.constant(0)
   function treemap(root) {
     root.x0 = root.y0 = 0
     root.x1 = dx
@@ -767,7 +760,7 @@ export function treemap<T>(): qt.TreemapLayout<T> {
     return arguments.length ? treemap.paddingInner(x).paddingOuter(x) : treemap.paddingInner()
   }
   treemap.paddingInner = function (x) {
-    return arguments.length ? ((paddingInner = typeof x === "function" ? x : constant(+x)), treemap) : paddingInner
+    return arguments.length ? ((paddingInner = typeof x === "function" ? x : qu.constant(+x)), treemap) : paddingInner
   }
   treemap.paddingOuter = function (x) {
     return arguments.length
@@ -775,16 +768,16 @@ export function treemap<T>(): qt.TreemapLayout<T> {
       : treemap.paddingTop()
   }
   treemap.paddingTop = function (x) {
-    return arguments.length ? ((paddingTop = typeof x === "function" ? x : constant(+x)), treemap) : paddingTop
+    return arguments.length ? ((paddingTop = typeof x === "function" ? x : qu.constant(+x)), treemap) : paddingTop
   }
   treemap.paddingRight = function (x) {
-    return arguments.length ? ((paddingRight = typeof x === "function" ? x : constant(+x)), treemap) : paddingRight
+    return arguments.length ? ((paddingRight = typeof x === "function" ? x : qu.constant(+x)), treemap) : paddingRight
   }
   treemap.paddingBottom = function (x) {
-    return arguments.length ? ((paddingBottom = typeof x === "function" ? x : constant(+x)), treemap) : paddingBottom
+    return arguments.length ? ((paddingBottom = typeof x === "function" ? x : qu.constant(+x)), treemap) : paddingBottom
   }
   treemap.paddingLeft = function (x) {
-    return arguments.length ? ((paddingLeft = typeof x === "function" ? x : constant(+x)), treemap) : paddingLeft
+    return arguments.length ? ((paddingLeft = typeof x === "function" ? x : qu.constant(+x)), treemap) : paddingLeft
   }
   return treemap
 }
@@ -1038,7 +1031,7 @@ export function pack<T>(): qt.PackLayout<T> {
   let radius = null,
     dx = 1,
     dy = 1,
-    padding = constantZero
+    padding = qu.constant(0)
   function pack(root) {
     const random = lcg()
     ;(root.x = dx / 2), (root.y = dy / 2)
@@ -1050,7 +1043,7 @@ export function pack<T>(): qt.PackLayout<T> {
     } else {
       root
         .eachBefore(radiusLeaf(defaultRadius))
-        .eachAfter(packChildrenRandom(constantZero, 1, random))
+        .eachAfter(packChildrenRandom(qu.constant(0), 1, random))
         .eachAfter(packChildrenRandom(padding, root.r / Math.min(dx, dy), random))
         .eachBefore(translateChild(Math.min(dx, dy) / (2 * root.r)))
     }
@@ -1063,7 +1056,7 @@ export function pack<T>(): qt.PackLayout<T> {
     return arguments.length ? ((dx = +x[0]), (dy = +x[1]), pack) : [dx, dy]
   }
   pack.padding = function (x) {
-    return arguments.length ? ((padding = typeof x === "function" ? x : constant(+x)), pack) : padding
+    return arguments.length ? ((padding = typeof x === "function" ? x : qu.constant(+x)), pack) : padding
   }
   return pack
 }
