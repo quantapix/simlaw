@@ -1,4 +1,5 @@
 import type * as qt from "./types.js"
+
 import { color } from "./color.js"
 import { dispatch } from "./dispatch.js"
 import { easeCubicInOut } from "./ease.js"
@@ -11,10 +12,12 @@ import { timer, timeout } from "./timer.js"
 import { interpolate } from "./interpolate.js"
 
 const root = [null]
-export function active(node, name) {
-  let schedules = node.__transition,
-    schedule,
-    i
+export function active<B extends qt.BaseType, T, PElement extends qt.BaseType, PDatum>(
+  node: B,
+  name?: string
+): qt.Transition<B, T, PElement, PDatum> | null {
+  const schedules = node.__transition
+  let schedule, i
   if (schedules) {
     name = name == null ? null : name + ""
     for (i in schedules) {
@@ -25,9 +28,9 @@ export function active(node, name) {
   }
   return null
 }
-export function interrupt(node, name) {
-  let schedules = node.__transition,
-    schedule,
+export function interrupt(node: qt.BaseType, name?: string): void {
+  const schedules = node.__transition
+  let schedule,
     active,
     empty = true,
     i
@@ -497,8 +500,12 @@ function easeConstant(id, value) {
   }
 }
 let id = 0
-export function transition(name) {
-  return selection().transition(name)
+export function transition<T>(x?: string): qt.Transition<qt.BaseType, T, null, undefined>
+export function transition<T>(
+  x: qt.Transition<qt.BaseType, any, qt.BaseType, any>
+): qt.Transition<qt.BaseType, T, null, undefined>
+export function transition(x: any) {
+  return selection().transition(x)
 }
 export function newId() {
   return ++id

@@ -13,42 +13,38 @@ export interface Bisector<T, U> {
   right(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
   center(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
 }
-export interface Bin<T, V extends number | Date | undefined> extends Array<T> {
-  x0: V | undefined
-  x1: V | undefined
+export interface Bin<T, U extends number | Date | undefined> extends Array<T> {
+  x0: U | undefined
+  x1: U | undefined
 }
-export type ThresholdCountGenerator<Value extends number | undefined = number | undefined> = (
-  xs: ArrayLike<Value>,
+export type ThresholdCountGenerator<T extends number | undefined = number | undefined> = (
+  xs: ArrayLike<T>,
   min: number,
   max: number
 ) => number
-export type ThresholdNumberArrayGenerator<Value extends number | undefined> = (
-  xs: ArrayLike<Value>,
+export type ThresholdNumberArrayGenerator<T extends number | undefined> = (
+  xs: ArrayLike<T>,
   min: number,
   max: number
-) => Value[]
-export type ThresholdDateArrayGenerator<Value extends Date | undefined> = (
-  xs: ArrayLike<Value>,
-  min: Date,
-  max: Date
-) => Value[]
-export interface HistogramCommon<T, V extends number | Date | undefined> {
-  (data: ArrayLike<T>): Array<Bin<T, V>>
-  value(): (x: T, i: number, data: ArrayLike<T>) => V
-  value(valueAccessor: (x: T, i: number, data: ArrayLike<T>) => V): this
+) => T[]
+export type ThresholdDateArrayGenerator<T extends Date | undefined> = (xs: ArrayLike<T>, min: Date, max: Date) => T[]
+export interface HistogramCommon<T, U extends number | Date | undefined> {
+  (xs: ArrayLike<T>): Array<Bin<T, U>>
+  value(): (x: T, i: number, xs: ArrayLike<T>) => U
+  value(f: (x: T, i: number, xs: ArrayLike<T>) => U): this
 }
-export interface HistogramGeneratorDate<T, V extends Date | undefined> extends HistogramCommon<T, Date> {
-  domain(): (xs: ArrayLike<V>) => [Date, Date]
-  domain(domain: [Date, Date] | ((xs: ArrayLike<V>) => [Date, Date])): this
-  thresholds(): ThresholdDateArrayGenerator<V>
-  thresholds(thresholds: ArrayLike<V> | ThresholdDateArrayGenerator<V>): this
+export interface HistogramGeneratorDate<T, U extends Date | undefined> extends HistogramCommon<T, Date> {
+  domain(): (xs: ArrayLike<U>) => [Date, Date]
+  domain(x: [Date, Date] | ((xs: ArrayLike<U>) => [Date, Date])): this
+  thresholds(): ThresholdDateArrayGenerator<U>
+  thresholds(xs: ArrayLike<U> | ThresholdDateArrayGenerator<U>): this
 }
-export interface HistogramGeneratorNumber<T, V extends number | undefined> extends HistogramCommon<T, V> {
-  domain(): (xs: Iterable<V>) => [number, number] | [undefined, undefined]
-  domain(domain: [number, number] | ((xs: Iterable<V>) => [number, number] | [undefined, undefined])): this
-  thresholds(): ThresholdCountGenerator<V> | ThresholdNumberArrayGenerator<V>
-  thresholds(count: number | ThresholdCountGenerator<V>): this
-  thresholds(thresholds: ArrayLike<V> | ThresholdNumberArrayGenerator<V>): this
+export interface HistogramGeneratorNumber<T, U extends number | undefined> extends HistogramCommon<T, U> {
+  domain(): (xs: Iterable<U>) => [number, number] | [undefined, undefined]
+  domain(x: [number, number] | ((xs: Iterable<U>) => [number, number] | [undefined, undefined])): this
+  thresholds(): ThresholdCountGenerator<U> | ThresholdNumberArrayGenerator<U>
+  thresholds(count: number | ThresholdCountGenerator<U>): this
+  thresholds(xs: ArrayLike<U> | ThresholdNumberArrayGenerator<U>): this
 }
 export class InternMap<K = any, V = any> extends Map<K, V> {}
 export class InternSet<T = any> extends Set<T> {}
@@ -58,10 +54,10 @@ export interface AxisTimeInterval {
 }
 export interface AxisScale<T> {
   (x: T): number | undefined
+  bandwidth?(): number
+  copy(): this
   domain(): T[]
   range(): number[]
-  copy(): this
-  bandwidth?(): number
 }
 export type AxisContainerElement = SVGSVGElement | SVGGElement
 export interface Axis<T> {
@@ -72,67 +68,67 @@ export interface Axis<T> {
       | TransitionLike<SVGSVGElement, any>
       | TransitionLike<SVGGElement, any>
   ): void
-  scale<A extends AxisScale<T>>(): A
-  scale(scale: AxisScale<T>): this
-  ticks(count: number, specifier?: string): this
-  ticks(interval: AxisTimeInterval, specifier?: string): this
-  ticks(arg0: any, ...xs: any[]): this
-  tickArguments(): any[]
-  tickArguments(args: any[]): this
-  tickValues(): T[] | null
-  tickValues(xs: Iterable<T>): this
-  tickValues(values: null): this
-  tickFormat(): ((domainValue: T, i: number) => string) | null
-  tickFormat(format: (domainValue: T, i: number) => string): this
-  tickFormat(format: null): this
-  tickSize(): number
-  tickSize(size: number): this
-  tickSizeInner(): number
-  tickSizeInner(size: number): this
-  tickSizeOuter(): number
-  tickSizeOuter(size: number): this
-  tickPadding(): number
-  tickPadding(padding: number): this
   offset(): number
-  offset(offset: number): this
+  offset(x: number): this
+  scale(x: AxisScale<T>): this
+  scale<A extends AxisScale<T>>(): A
+  tickArguments(): any[]
+  tickArguments(xs: any[]): this
+  tickFormat(): ((x: T, i: number) => string) | null
+  tickFormat(f: (x: T, i: number) => string): this
+  tickFormat(x: null): this
+  tickPadding(): number
+  tickPadding(x: number): this
+  ticks(count: number, specifier?: string): this
+  ticks(x: any, ...xs: any[]): this
+  ticks(x: AxisTimeInterval, specifier?: string): this
+  tickSize(): number
+  tickSize(x: number): this
+  tickSizeInner(): number
+  tickSizeInner(x: number): this
+  tickSizeOuter(): number
+  tickSizeOuter(x: number): this
+  tickValues(): T[] | null
+  tickValues(x: null): this
+  tickValues(xs: Iterable<T>): this
 }
 export type BrushSelection = [[number, number], [number, number]] | [number, number]
 export interface BrushBehavior<T> {
-  (group: Selection<SVGGElement, T, any, any>, ...xs: any[]): void
+  (x: Selection<SVGGElement, T, any, any>, ...xs: any[]): void
   move(
     group: Selection<SVGGElement, T, any, any> | TransitionLike<SVGGElement, T>,
     selection: null | BrushSelection | ValueFn<SVGGElement, T, BrushSelection>,
-    event?: Event
+    e?: Event
   ): void
   clear(group: Selection<SVGGElement, T, any, any>, event?: Event): void
   extent(): ValueFn<SVGGElement, T, [[number, number], [number, number]]>
-  extent(extent: [[number, number], [number, number]]): this
-  extent(extent: ValueFn<SVGGElement, T, [[number, number], [number, number]]>): this
+  extent(f: ValueFn<SVGGElement, T, [[number, number], [number, number]]>): this
+  extent(x: [[number, number], [number, number]]): this
   filter(): (this: SVGGElement, event: any, x: T) => boolean
-  filter(filterFn: (this: SVGGElement, event: any, x: T) => boolean): this
-  touchable(): ValueFn<SVGGElement, T, boolean>
-  touchable(touchable: boolean): this
-  touchable(touchable: ValueFn<SVGGElement, T, boolean>): this
-  keyModifiers(): boolean
-  keyModifiers(modifiers: boolean): this
+  filter(f: (this: SVGGElement, event: any, x: T) => boolean): this
   handleSize(): number
-  handleSize(size: number): this
-  on(typenames: string): ((this: SVGGElement, event: any, x: T) => void) | undefined
-  on(typenames: string, listener: null): this
-  on(typenames: string, listener: (this: SVGGElement, event: any, x: T) => void): this
+  handleSize(x: number): this
+  keyModifiers(): boolean
+  keyModifiers(x: boolean): this
+  on(types: string, f: (this: SVGGElement, event: any, x: T) => void): this
+  on(types: string, x: null): this
+  on(types: string): ((this: SVGGElement, event: any, x: T) => void) | undefined
+  touchable(): ValueFn<SVGGElement, T, boolean>
+  touchable(f: ValueFn<SVGGElement, T, boolean>): this
+  touchable(x: boolean): this
 }
 export interface D3BrushEvent<T> {
-  target: BrushBehavior<T>
-  type: "start" | "brush" | "end" | string
+  mode: "drag" | "space" | "handle" | "center"
   selection: BrushSelection | null
   sourceEvent: any
-  mode: "drag" | "space" | "handle" | "center"
+  target: BrushBehavior<T>
+  type: "start" | "brush" | "end" | string
 }
 export interface ChordSubgroup {
-  startAngle: number
   endAngle: number
-  value: number
   i: number
+  startAngle: number
+  value: number
 }
 export interface Chord {
   source: ChordSubgroup
@@ -148,7 +144,7 @@ export interface Chords extends Array<Chord> {
   groups: ChordGroup[]
 }
 export interface ChordLayout {
-  (matrix: number[][]): Chords
+  (xs: number[][]): Chords
   padAngle(): number
   padAngle(angle: number): this
   sortGroups(): ((a: number, b: number) => number) | null
@@ -1167,8 +1163,6 @@ export interface Quadtree<T> {
     callback: (node: QuadtreeInternalNode<T> | QuadtreeLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void
   ): this
 }
-export function quadtree<T = [number, number]>(xs?: T[]): Quadtree<T>
-export function quadtree<T = [number, number]>(xs: T[], x: (x: T) => number, y: (x: T) => number): Quadtree<T>
 
 export interface RandomNumberGenerationSource {
   source(source: () => number): this
@@ -1612,6 +1606,9 @@ export interface Selection<B extends BaseType, T, PElement extends BaseType, P> 
   node(): B | null
   size(): number
   [Symbol.iterator](): Iterator<B>
+  interrupt(name?: string): this
+  transition(name?: string): Transition<B, T, PElement, P>
+  transition(transition: Transition<BaseType, any, any, any>): Transition<B, T, PElement, P>
 }
 export type SelectionFn = () => Selection<HTMLElement, any, null, undefined>
 
@@ -1749,9 +1746,6 @@ export interface LineRadial<T> {
   context(): CanvasRenderingContext2D | null
   context(context: CanvasRenderingContext2D | null): this
 }
-export type RadialLine<T> = LineRadial<T>
-export function radialLine(): RadialLine<[number, number]>
-export function radialLine<T>(): RadialLine<T>
 
 export interface Area<T> {
   (xs: Iterable<T> | T[]): string | null
@@ -1821,9 +1815,6 @@ export interface AreaRadial<T> {
   startAngle(f: (x: T, i: number, xs: T[]) => number): this
   startAngle(x: number): this
 }
-export type RadialArea<T> = AreaRadial<T>
-export function radialArea(): RadialArea<[number, number]>
-export function radialArea<T>(): RadialArea<T>
 
 export interface CurveGeneratorLineOnly {
   lineStart(): void
@@ -1955,18 +1946,7 @@ export interface Timer {
   restart(cb: (x: number) => void, delay?: number, time?: number): void
   stop(): void
 }
-declare module "d3-selection" {
-  interface Selection<GElement extends BaseType, Datum, PElement extends BaseType, PDatum> {
-    interrupt(name?: string): this
-    transition(name?: string): Transition<GElement, Datum, PElement, PDatum>
-    transition(transition: Transition<BaseType, any, any, any>): Transition<GElement, Datum, PElement, PDatum>
-  }
-}
-export function active<B extends BaseType, T, PElement extends BaseType, PDatum>(
-  node: B,
-  name?: string
-): Transition<B, T, PElement, PDatum> | null
-export function interrupt(node: BaseType, name?: string): void
+
 export interface Transition<B extends BaseType, T, PElement extends BaseType, PDatum> {
   select<DescElement extends BaseType>(selector: string): Transition<DescElement, T, PElement, PDatum>
   select<DescElement extends BaseType>(
@@ -2034,10 +2014,6 @@ export interface Transition<B extends BaseType, T, PElement extends BaseType, PD
 export type SelectionOrTransition<B extends BaseType, T, PElement extends BaseType, PDatum> =
   | Selection<B, T, PElement, PDatum>
   | Transition<B, T, PElement, PDatum>
-export function transition<OldDatum>(name?: string): Transition<BaseType, OldDatum, null, undefined>
-export function transition<OldDatum>(
-  transition: Transition<BaseType, any, BaseType, any>
-): Transition<BaseType, OldDatum, null, undefined>
 
 export type ZoomedElementBaseType = Element
 export interface ZoomScale {

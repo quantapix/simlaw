@@ -1,7 +1,11 @@
 /* eslint-disable no-cond-assign */
-export function quadtree(nodes, x, y) {
-  let tree = new Quadtree(x == null ? defaultX : x, y == null ? defaultY : y, NaN, NaN, NaN, NaN)
-  return nodes == null ? tree : tree.addAll(nodes)
+import type * as qt from "./types.js"
+
+export function quadtree<T = [number, number]>(xs?: T[]): qt.Quadtree<T>
+export function quadtree<T = [number, number]>(xs: T[], x: (x: T) => number, y: (x: T) => number): qt.Quadtree<T>
+export function quadtree(xs: any, x?: Function, y?: Function) {
+  const tree = new Quadtree(x == null ? defaultX : x, y == null ? defaultY : y, NaN, NaN, NaN, NaN)
+  return xs == null ? tree : tree.addAll(xs)
 }
 function leaf_copy(leaf) {
   let copy = { data: leaf.data },
@@ -187,7 +191,7 @@ class Quadtree {
     while ((q = quads.pop())) {
       if (!(node = q.node) || (x1 = q.x0) > x3 || (y1 = q.y0) > y3 || (x2 = q.x1) < x0 || (y2 = q.y1) < y0) continue
       if (node.length) {
-        let xm = (x1 + x2) / 2,
+        const xm = (x1 + x2) / 2,
           ym = (y1 + y2) / 2
         quads.push(
           new Quad(node[3], xm, ym, x2, y2),
@@ -201,11 +205,11 @@ class Quadtree {
           quads[quads.length - 1 - i] = q
         }
       } else {
-        let dx = x - +this._x.call(null, node.data),
+        const dx = x - +this._x.call(null, node.data),
           dy = y - +this._y.call(null, node.data),
           d2 = dx * dx + dy * dy
         if (d2 < radius) {
-          let d = Math.sqrt((radius = d2))
+          const d = Math.sqrt((radius = d2))
           ;(x0 = x - d), (y0 = y - d)
           ;(x3 = x + d), (y3 = y + d)
           data = node.data
@@ -287,7 +291,7 @@ class Quadtree {
     if (node) quads.push(new Quad(node, this._x0, this._y0, this._x1, this._y1))
     while ((q = quads.pop())) {
       if (!callback((node = q.node), (x0 = q.x0), (y0 = q.y0), (x1 = q.x1), (y1 = q.y1)) && node.length) {
-        let xm = (x0 + x1) / 2,
+        const xm = (x0 + x1) / 2,
           ym = (y0 + y1) / 2
         if ((child = node[3])) quads.push(new Quad(child, xm, ym, x1, y1))
         if ((child = node[2])) quads.push(new Quad(child, x0, ym, xm, y1))
@@ -303,7 +307,7 @@ class Quadtree {
       q
     if (this._root) quads.push(new Quad(this._root, this._x0, this._y0, this._x1, this._y1))
     while ((q = quads.pop())) {
-      let node = q.node
+      const node = q.node
       if (node.length) {
         var child,
           x0 = q.x0,
@@ -331,6 +335,7 @@ class Quadtree {
     return arguments.length ? ((this._y = _), this) : this._y
   }
 }
+
 class Quad {
   constructor(node, x0, y0, x1, y1) {
     this.node = node
