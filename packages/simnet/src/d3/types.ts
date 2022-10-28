@@ -559,7 +559,7 @@ export interface Sim<N extends SimNode, L extends SimLink<N> | undefined> {
   alphaMin(x: number): this
   alphaTarget(): number
   alphaTarget(x: number): this
-  find(x: number, y: number, radius?: number): N | undefined
+  find(x: number, y: number, r?: number): N | undefined
   force(x: string, f: null | Force<N, L>): this
   force<T extends Force<N, L>>(x: string): T | undefined
   nodes(): N[]
@@ -579,72 +579,75 @@ export interface Force<N extends SimNode, L extends SimLink<N> | undefined> {
   (alpha?: number): void
   init?(xs: N[], f: () => number): void
 }
-export interface ForceCenter<T extends SimNode> extends Force<T, any> {
-  init(xs: T[], f: () => number): void
-  strength(): number
-  strength(x: number): this
-  x(): number
-  x(x: number): this
-  y(): number
-  y(x: number): this
-}
-export interface ForceCollide<T extends SimNode> extends Force<T, any> {
-  init(xs: T[], f: () => number): void
-  iterations(): number
-  iterations(x: number): this
-  radius(): (x: T, i: number, xs: T[]) => number
-  radius(x: number | ((x: T, i: number, xs: T[]) => number)): this
-  strength(): number
-  strength(x: number): this
-}
-export interface ForceLink<N extends SimNode, L extends SimLink<N>> extends Force<N, L> {
-  distance(): (x: L, i: number, xs: L[]) => number
-  distance(x: number | ((x: L, i: number, xs: L[]) => number)): this
-  id(): (x: N, i: number, xs: N[]) => string | number
-  id(f: (x: N, i: number, xs: N[]) => string | number): this
-  init(xs: N[], f: () => number): void
-  iterations(): number
-  iterations(x: number): this
-  links(): L[]
-  links(xs: L[]): this
-  strength(): (x: L, i: number, xs: L[]) => number
-  strength(s: number | ((x: L, i: number, xs: L[]) => number)): this
-}
-export interface ForceManyBody<T extends SimNode> extends Force<T, any> {
-  distanceMax(): number
-  distanceMax(x: number): this
-  distanceMin(): number
-  distanceMin(x: number): this
-  init(xs: T[], f: () => number): void
-  strength(): (x: T, i: number, xs: T[]) => number
-  strength(x: number | ((x: T, i: number, xs: T[]) => number)): this
-  theta(): number
-  theta(x: number): this
-}
-export interface ForceX<T extends SimNode> extends Force<T, any> {
-  init(xs: T[], f: () => number): void
-  strength(): (x: T, i: number, xs: T[]) => number
-  strength(x: number | ((x: T, i: number, xs: T[]) => number)): this
-  x(): (x: T, i: number, xs: T[]) => number
-  x(x: number | ((x: T, i: number, xs: T[]) => number)): this
-}
-export interface ForceY<T extends SimNode> extends Force<T, any> {
-  init(xs: T[], f: () => number): void
-  strength(): (x: T, i: number, xs: T[]) => number
-  strength(x: number | ((x: T, i: number, xs: T[]) => number)): this
-  y(): (x: T, i: number, xs: T[]) => number
-  y(x: number | ((x: T, i: number, xs: T[]) => number)): this
-}
-export interface ForceRadial<T extends SimNode> extends Force<T, any> {
-  init(xs: T[], f: () => number): void
-  strength(): (x: T, i: number, xs: T[]) => number
-  strength(x: number | ((x: T, i: number, xs: T[]) => number)): this
-  radius(): (x: T, i: number, xs: T[]) => number
-  radius(x: number | ((x: T, i: number, xs: T[]) => number)): this
-  x(): (x: T, i: number, xs: T[]) => number
-  x(x: number | ((x: T, i: number, xs: T[]) => number)): this
-  y(): (x: T, i: number, xs: T[]) => number
-  y(x: number | ((x: T, i: number, xs: T[]) => number)): this
+export namespace Force {
+  export type Op<T, R = number> = (x: T, i: number, xs: T[]) => R
+  export interface Center<N extends SimNode> extends Force<N, any> {
+    init(xs: N[], f: () => number): void
+    strength(): number
+    strength(x: number): this
+    x(): number
+    x(x: number): this
+    y(): number
+    y(x: number): this
+  }
+  export interface Collide<N extends SimNode> extends Force<N, any> {
+    init(xs: N[], f: () => number): void
+    iters(): number
+    iters(x: number): this
+    radius(): Op<N>
+    radius(x: number | Op<N>): this
+    strength(): number
+    strength(x: number): this
+  }
+  export interface Radial<N extends SimNode> extends Force<N, any> {
+    init(xs: N[], f: () => number): void
+    strength(): Op<N>
+    strength(x: number | Op<N>): this
+    radius(): Op<N>
+    radius(x: number | Op<N>): this
+    x(): Op<N>
+    x(x: number | Op<N>): this
+    y(): Op<N>
+    y(x: number | Op<N>): this
+  }
+  export interface X<N extends SimNode> extends Force<N, any> {
+    init(xs: N[], f: () => number): void
+    strength(): Op<N>
+    strength(x: number | Op<N>): this
+    x(): Op<N>
+    x(x: number | Op<N>): this
+  }
+  export interface Y<N extends SimNode> extends Force<N, any> {
+    init(xs: N[], f: () => number): void
+    strength(): Op<N>
+    strength(x: number | Op<N>): this
+    y(): Op<N>
+    y(x: number | Op<N>): this
+  }
+  export interface ManyBody<N extends SimNode> extends Force<N, any> {
+    distanceMax(): number
+    distanceMax(x: number): this
+    distanceMin(): number
+    distanceMin(x: number): this
+    init(xs: N[], f: () => number): void
+    strength(): Op<N>
+    strength(x: number | Op<N>): this
+    theta(): number
+    theta(x: number): this
+  }
+  export interface Link<N extends SimNode, L extends SimLink<N>> extends Force<N, L> {
+    distance(): Op<L>
+    distance(x: number | Op<L>): this
+    id(): Op<N, number | string>
+    id(f: Op<N, number | string>): this
+    init(xs: N[], f: () => number): void
+    iters(): number
+    iters(x: number): this
+    links(): L[]
+    links(xs: L[]): this
+    strength(): Op<L>
+    strength(s: number | Op<L>): this
+  }
 }
 
 export interface FormatLocaleDefinition {
@@ -1766,30 +1769,30 @@ export interface Area<T> {
   lineX1(): Line<T>
   lineY0(): Line<T>
   lineY1(): Line<T>
-  x(): (x: T, i: number, xs: T[]) => number
-  x(f: (x: T, i: number, xs: T[]) => number): this
+  x(): Op<T>
+  x(f: Op<T>): this
   x(x: number): this
-  x0(): (x: T, i: number, xs: T[]) => number
-  x0(f: (x: T, i: number, xs: T[]) => number): this
+  x0(): Op<T>
+  x0(f: Op<T>): this
   x0(x: number): this
-  x1(): ((x: T, i: number, xs: T[]) => number) | null
-  x1(f: (x: T, i: number, xs: T[]) => number): this
+  x1(): Op<T> | null
+  x1(f: Op<T>): this
   x1(x: null | number): this
-  y(): (x: T, i: number, xs: T[]) => number
-  y(f: (x: T, i: number, xs: T[]) => number): this
+  y(): Op<T>
+  y(f: Op<T>): this
   y(y: number): this
-  y0(): (x: T, i: number, xs: T[]) => number
-  y0(f: (x: T, i: number, xs: T[]) => number): this
+  y0(): Op<T>
+  y0(f: Op<T>): this
   y0(y: number): this
-  y1(): ((x: T, i: number, xs: T[]) => number) | null
-  y1(f: (x: T, i: number, xs: T[]) => number): this
+  y1(): Op<T> | null
+  y1(f: Op<T>): this
   y1(y: null | number): this
 }
 export interface AreaRadial<T> {
   (xs: Iterable<T> | T[]): string | null
   (xs: Iterable<T> | T[]): void
-  angle(): (x: T, i: number, xs: T[]) => number
-  angle(f: (x: T, i: number, xs: T[]) => number): this
+  angle(): Op<T>
+  angle(f: Op<T>): this
   angle(x: number): this
   context(): CanvasRenderingContext2D | null
   context(x: CanvasRenderingContext2D | null): this
@@ -1799,24 +1802,24 @@ export interface AreaRadial<T> {
   defined(): (x: T, i: number, xs: T[]) => boolean
   defined(f: (x: T, i: number, xs: T[]) => boolean): this
   defined(x: boolean): this
-  endAngle(): ((x: T, i: number, xs: T[]) => number) | null
-  endAngle(f: (x: T, i: number, xs: T[]) => number): this
+  endAngle(): Op<T> | null
+  endAngle(f: Op<T>): this
   endAngle(x: null | number): this
-  innerRadius(): (x: T, i: number, xs: T[]) => number
-  innerRadius(f: (x: T, i: number, xs: T[]) => number): this
+  innerRadius(): Op<T>
+  innerRadius(f: Op<T>): this
   innerRadius(x: number): this
   lineEndAngle(): LineRadial<T>
   lineInnerRadius(): LineRadial<T>
   lineOuterRadius(): LineRadial<T>
   lineStartAngle(): LineRadial<T>
-  outerRadius(): ((x: T, i: number, xs: T[]) => number) | null
-  outerRadius(f: (x: T, i: number, xs: T[]) => number): this
+  outerRadius(): Op<T> | null
+  outerRadius(f: Op<T>): this
   outerRadius(x: null | number): this
-  radius(): (x: T, i: number, xs: T[]) => number
-  radius(f: (x: T, i: number, xs: T[]) => number): this
+  radius(): Op<T>
+  radius(f: Op<T>): this
   radius(x: number): this
-  startAngle(): (x: T, i: number, xs: T[]) => number
-  startAngle(f: (x: T, i: number, xs: T[]) => number): this
+  startAngle(): Op<T>
+  startAngle(f: Op<T>): this
   startAngle(x: number): this
 }
 

@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import type * as qt from "./types.js"
 
-export const identity = (x: unknown) => x
-export const constant = (x: unknown) => () => x
+export const identity = <T>(x: T) => x
+export const constant =
+  <T>(x: T) =>
+  () =>
+    x
 
 export function area(xs: Array<[number, number]>): number {
   const n = xs.length
