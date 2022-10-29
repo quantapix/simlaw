@@ -560,19 +560,19 @@ export interface Sim<N extends SimNode, L extends SimLink<N> | undefined> {
   alphaTarget(): number
   alphaTarget(x: number): this
   find(x: number, y: number, r?: number): N | undefined
-  force(x: string, f: null | Force<N, L>): this
+  force(x: string, f: Force<N, L> | null): this
   force<T extends Force<N, L>>(x: string): T | undefined
   nodes(): N[]
   nodes(xs: N[]): this
-  on(x: "tick" | "end" | string, f: null | ((this: this) => void)): this
+  on(x: "tick" | "end" | string, f: ((this: this) => void) | null): this
   on(x: "tick" | "end" | string): ((this: Sim<N, L>) => void) | undefined
   randomSource(): () => number
   randomSource(f: () => number): this
   restart(): this
   stop(): this
   tick(n?: number): this
-  velocityDecay(): number
-  velocityDecay(x: number): this
+  veloDecay(): number
+  veloDecay(x: number): this
 }
 
 export interface Force<N extends SimNode, L extends SimLink<N> | undefined> {

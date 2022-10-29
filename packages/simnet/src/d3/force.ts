@@ -2,115 +2,113 @@
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
-export function sim<T extends qt.SimNode>(xs?: T[]): qt.Sim<T, undefined>
+export function sim<N extends qt.SimNode>(xs?: N[]): qt.Sim<N, undefined>
 export function sim<N extends qt.SimNode, L extends qt.SimLink<N>>(xs?: N[]): qt.Sim<N, L>
-export function sim(xs?: qt.SimNode[]) {
-  let ns = xs ?? []
-  let sim: any,
-    alpha = 1,
-    alphaMin = 0.001,
-    alphaDecay = 1 - Math.pow(alphaMin, 1 / 300),
-    alphaTarget = 0,
-    velocityDecay = 0.6,
-    random = lcg()
-  const forces = new Map(),
-    stepper = qu.timer(step),
-    event = qu.dispatch("tick", "end")
+export function sim<N extends qt.SimNode>(xs: N[] = []) {
+  const _event = qu.dispatch("tick", "end")
+  const _fs = new Map()
+  const _stepper = qu.timer(step)
+  let _alpha = 1
+  let _alphaMin = 0.001
+  let _alphaDecay = 1 - Math.pow(_alphaMin, 1 / 300)
+  let _alphaTarget = 0
+  let _ns = xs
+  let _rnd = lcg()
+  let _veloDecay = 0.6
   function initNodes() {
     const initRadius = 10
     const initAngle = Math.PI * (3 - Math.sqrt(5))
-    ns.forEach((x, i) => {
-      x.idx = i
-      if (x.fx != null) x.x = x.fx
-      if (x.fy != null) x.y = x.fy
-      if (isNaN(x.x!) || isNaN(x.y!)) {
-        const radius = initRadius * Math.sqrt(0.5 + i),
-          angle = i * initAngle
-        x.x = radius * Math.cos(angle)
-        x.y = radius * Math.sin(angle)
+    _ns.forEach((n, i) => {
+      n.idx = i
+      if (n.fx != null) n.x = n.fx
+      if (n.fy != null) n.y = n.fy
+      if (isNaN(n.x!) || isNaN(n.y!)) {
+        const r = initRadius * Math.sqrt(0.5 + i)
+        const a = i * initAngle
+        n.x = r * Math.cos(a)
+        n.y = r * Math.sin(a)
       }
-      if (isNaN(x.vx!) || isNaN(x.vy!)) {
-        x.vx = x.vy = 0
-      }
+      if (isNaN(n.vx!) || isNaN(n.vy!)) n.vx = n.vy = 0
     })
-  }
-  function initForce(x: any) {
-    if (x.init) x.init(ns, random)
-    return x
   }
   initNodes()
   function tick(n?: number) {
     if (n === undefined) n = 1
     for (let i = 0; i < n; ++i) {
-      alpha += (alphaTarget - alpha) * alphaDecay
-      forces.forEach(function (f) {
-        f(alpha)
+      _alpha += (_alphaTarget - _alpha) * _alphaDecay
+      _fs.forEach(f => {
+        f(_alpha)
       })
-      ns.forEach(x => {
-        if (x.fx == null) x.x! += x.vx! *= velocityDecay
-        else (x.x = x.fx), (x.vx = 0)
-        if (x.fy == null) x.y! += x.vy! *= velocityDecay
-        else (x.y = x.fy), (x.vy = 0)
+      _ns.forEach(n => {
+        if (n.fx == null) n.x! += n.vx! *= _veloDecay
+        else (n.x = n.fx), (n.vx = 0)
+        if (n.fy == null) n.y! += n.vy! *= _veloDecay
+        else (n.y = n.fy), (n.vy = 0)
       })
     }
     return sim
   }
   function step() {
     tick()
-    event.call("tick", sim)
-    if (alpha < alphaMin) {
-      stepper.stop()
-      event.call("end", sim)
+    _event.call("tick", sim)
+    if (_alpha < _alphaMin) {
+      _stepper.stop()
+      _event.call("end", sim)
     }
   }
-  return (sim = {
+  function initForce(x: any) {
+    if (x.init) x.init(_ns, _rnd)
+    return x
+  }
+  const sim = {
     alpha: function (x?: number) {
-      return x === undefined ? alpha : ((alpha = +x), sim)
+      return x === undefined ? _alpha : ((_alpha = +x), sim)
     },
     alphaDecay: function (x?: number) {
-      return x === undefined ? +alphaDecay : ((alphaDecay = +x), sim)
+      return x === undefined ? +_alphaDecay : ((_alphaDecay = +x), sim)
     },
     alphaMin: function (x?: number) {
-      return x === undefined ? alphaMin : ((alphaMin = +x), sim)
+      return x === undefined ? _alphaMin : ((_alphaMin = +x), sim)
     },
     alphaTarget: function (x?: number) {
-      return x === undefined ? alphaTarget : ((alphaTarget = +x), sim)
+      return x === undefined ? _alphaTarget : ((_alphaTarget = +x), sim)
     },
-    find: function (x: number, y: number, radius?: number) {
-      let res
-      if (radius === undefined) radius = Infinity
-      else radius *= radius
-      for (const n of ns) {
+    find: function (x: number, y: number, r?: number) {
+      let res: N | undefined
+      if (r === undefined) r = Infinity
+      else r *= r
+      _ns.forEach(n => {
         const dx = x - n.x!
         const dy = y - n.y!
         const d2 = dx * dx + dy * dy
-        if (d2 < radius) (res = n), (radius = d2)
-      }
+        if (d2 < r!) (res = n), (r = d2)
+      })
       return res
     },
     force: function (x: string, f?: any) {
-      return f === undefined ? forces.get(x) : (f == null ? forces.delete(x) : forces.set(x, initForce(f)), sim)
+      return f === undefined ? _fs.get(x) : (f == null ? _fs.delete(x) : _fs.set(x, initForce(f)), sim)
     },
     nodes: function (xs?: any[]) {
-      return xs === undefined ? ns : ((ns = xs), initNodes(), forces.forEach(initForce), sim)
+      return xs === undefined ? _ns : ((_ns = xs), initNodes(), _fs.forEach(initForce), sim)
     },
     on: function (x: any, f?: any) {
-      return f === undefined ? event.on(x) : (event.on(x, f), sim)
+      return f === undefined ? _event.on(x) : (_event.on(x, f), sim)
     },
     randomSource: function (f?: any) {
-      return f === undefined ? random : ((random = f), forces.forEach(initForce), sim)
+      return f === undefined ? _rnd : ((_rnd = f), _fs.forEach(initForce), sim)
     },
     restart: function () {
-      return stepper.restart(step), sim
+      return _stepper.restart(step), sim
     },
     stop: function () {
-      return stepper.stop(), sim
+      return _stepper.stop(), sim
     },
-    tick: tick,
-    velocityDecay: function (x?: number) {
-      return x === undefined ? 1 - velocityDecay : ((velocityDecay = 1 - x), sim)
+    tick,
+    veloDecay: function (x?: number) {
+      return x === undefined ? 1 - _veloDecay : ((_veloDecay = 1 - x), sim)
     },
-  })
+  }
+  return sim
 }
 
 export function center<N extends qt.SimNode>(x = 0, y = 0) {
