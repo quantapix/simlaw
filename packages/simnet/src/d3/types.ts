@@ -610,21 +610,21 @@ export namespace Force {
     y(): Op<N>
     y(x: number | Op<N>): this
   }
-  export interface X<N extends SimNode> extends Force<N, any> {
+  export interface PosX<N extends SimNode> extends Force<N, any> {
     init(xs: N[], f: () => number): void
     strength(): Op<N>
     strength(x: number | Op<N>): this
     x(): Op<N>
     x(x: number | Op<N>): this
   }
-  export interface Y<N extends SimNode> extends Force<N, any> {
+  export interface PosY<N extends SimNode> extends Force<N, any> {
     init(xs: N[], f: () => number): void
     strength(): Op<N>
     strength(x: number | Op<N>): this
     y(): Op<N>
     y(x: number | Op<N>): this
   }
-  export interface ManyBody<N extends SimNode> extends Force<N, any> {
+  export interface Many<N extends SimNode> extends Force<N, any> {
     distanceMax(): number
     distanceMax(x: number): this
     distanceMin(): number
@@ -639,14 +639,14 @@ export namespace Force {
     distance(): Op<L>
     distance(x: number | Op<L>): this
     id(): Op<N, number | string>
-    id(f: Op<N, number | string>): this
+    id(x: Op<N, number | string>): this
     init(xs: N[], f: () => number): void
     iters(): number
     iters(x: number): this
     links(): L[]
     links(xs: L[]): this
     strength(): Op<L>
-    strength(s: number | Op<L>): this
+    strength(x: number | Op<L>): this
   }
 }
 
