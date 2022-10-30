@@ -32,8 +32,11 @@ export function sim<N extends qt.SimNode>(xs: N[] = []) {
     })
   }
   initNodes()
-  function tick(n?: number) {
-    if (n === undefined) n = 1
+  function initForce(x: any) {
+    if (x.init) x.init(_ns, _rnd)
+    return x
+  }
+  function tick(n = 1) {
     for (let i = 0; i < n; ++i) {
       _alpha += (_alphaTarget - _alpha) * _alphaDecay
       _fs.forEach(f => {
@@ -55,10 +58,6 @@ export function sim<N extends qt.SimNode>(xs: N[] = []) {
       _stepper.stop()
       _event.call("end", sim)
     }
-  }
-  function initForce(x: any) {
-    if (x.init) x.init(_ns, _rnd)
-    return x
   }
   const sim = {
     alpha: function (x?: number) {
@@ -110,7 +109,6 @@ export function sim<N extends qt.SimNode>(xs: N[] = []) {
   }
   return sim
 }
-
 export function center<N extends qt.SimNode>(x = 0, y = 0) {
   let _ns: N[] = []
   let _strength = 1
@@ -346,34 +344,15 @@ export function posY<N extends qt.SimNode>(x: number | qt.Force.Op<N> = 0) {
   return f as qt.Force.PosY<N>
 }
 export function many<N extends qt.SimNode>() {
-  let _ns: N[] = [],
-    node,
-    _rnd: Function,
-    _alpha: number,
-    _strength: qt.Force.Op<N> = qu.constant(-30),
-    _ss: number[] = [],
-    _dmin = 1,
-    _dmax = Infinity,
-    _theta = 0.81
-  function f(alpha: number) {
-    function xxx(d) {
-      return d.x
-    }
-    function yyy(d) {
-      return d.y
-    }
-    let i,
-      n = _ns.length,
-      tree = quadtree(_ns, xxx, yyy).visitAfter(accumulate)
-    for (_alpha = alpha, i = 0; i < n; ++i) (node = _ns[i]), tree.visit(apply)
-  }
-  function init() {
-    if (!_ns) return
-    _ss = new Array(_ns.length)
-    _ns.forEach((n, i) => {
-      _ss[n.idx!] = +_strength(n, i, _ns)
-    })
-  }
+  let _alpha: number
+  let _dmax = Infinity
+  let _dmin = 1
+  let _ns: N[] = []
+  let _rnd: Function
+  let _ss: number[] = []
+  let _strength: qt.Force.Op<N> = qu.constant(-30)
+  let _theta = 0.81
+  let node
   function accumulate(quad) {
     let strength = 0,
       q,
@@ -394,7 +373,7 @@ export function many<N extends qt.SimNode>() {
       q = quad
       q.x = q.data.x
       q.y = q.data.y
-      do strength += _ss[q.data.idx]
+      do strength += _ss[q.data.idx]!
       while ((q = q.next))
     }
     quad.value = strength
@@ -427,6 +406,22 @@ export function many<N extends qt.SimNode>() {
         node.vy += y * w
       }
     while ((quad = quad.next))
+  }
+  function f(alpha: number) {
+    _alpha = alpha
+    const tree = quadtree(
+      _ns,
+      n => n.x,
+      n => n.y
+    ).visitAfter(accumulate)
+    for (let i = 0; i < _ns.length; ++i) (node = _ns[i]), tree.visit(apply)
+  }
+  function init() {
+    if (!_ns) return
+    _ss = new Array(_ns.length)
+    _ns.forEach((n, i) => {
+      _ss[n.idx!] = +_strength(n, i, _ns)
+    })
   }
   f.distanceMax = function (x?: number) {
     return x === undefined ? Math.sqrt(_dmax) : ((_dmax = x * x), f)
@@ -552,23 +547,38 @@ function jiggle(rnd: Function) {
   return (rnd() - 0.5) * 1e-6
 }
 
+class Quad {
+  constructor(public node, public x0: number, public y0: number, public x1: number, public y1: number) {}
+}
+
 export function quadtree<T = [number, number]>(xs?: T[]): qt.Quadtree<T>
 export function quadtree<T = [number, number]>(xs: T[], x: (x: T) => number, y: (x: T) => number): qt.Quadtree<T>
 export function quadtree(xs: any, x?: Function, y?: Function) {
-  const defaultX = (x: any) => x[0]
-  const defaultY = (x: any) => x[1]
-  const tree = new Quadtree(x == null ? defaultX : x, y == null ? defaultY : y, NaN, NaN, NaN, NaN)
-  return xs == null ? tree : tree.addAll(xs)
+  const r = new Quadtree(
+    x == undefined ? (x: any) => x[0] : x,
+    y == undefined ? (x: any) => x[1] : y,
+    NaN,
+    NaN,
+    NaN,
+    NaN
+  )
+  return xs == undefined ? r : r.addAll(xs)
 }
 class Quadtree {
-  constructor(x, y, x0, y0, x1, y1) {
+  _x
+  _y
+  _x0
+  _y0
+  _x1
+  _y1
+  _root = undefined
+  constructor(x, y, x0: number, y0: number, x1: number, y1: number) {
     this._x = x
     this._y = y
     this._x0 = x0
     this._y0 = y0
     this._x1 = x1
     this._y1 = y1
-    this._root = undefined
   }
   copy() {
     let copy = new Quadtree(this._x, this._y, this._x0, this._y0, this._x1, this._y1),
@@ -657,7 +667,7 @@ class Quadtree {
     if (x0 > x1 || y0 > y1) return this
     this.cover(x0, y0).cover(x1, y1)
     for (let i = 0; i < n; ++i) {
-      add(this, xz[i], yz[i], data[i])
+      this.add(xz[i], yz[i], data[i])
     }
     return this
   }
@@ -816,8 +826,10 @@ class Quadtree {
     }
     return this
   }
-  removeAll(data) {
-    for (let i = 0, n = data.length; i < n; ++i) this.remove(data[i])
+  removeAll(xs: any[]) {
+    xs.forEach(x => {
+      this.remove(x)
+    })
     return this
   }
   root() {
@@ -832,68 +844,59 @@ class Quadtree {
     })
     return size
   }
-  visit(callback) {
-    let quads = [],
-      q,
+  visit(cb) {
+    const qs = []
+    let q,
       node = this._root,
       child,
       x0,
       y0,
       x1,
       y1
-    if (node) quads.push(new Quad(node, this._x0, this._y0, this._x1, this._y1))
-    while ((q = quads.pop())) {
-      if (!callback((node = q.node), (x0 = q.x0), (y0 = q.y0), (x1 = q.x1), (y1 = q.y1)) && node.length) {
+    if (node) qs.push(new Quad(node, this._x0, this._y0, this._x1, this._y1))
+    while ((q = qs.pop())) {
+      if (!cb((node = q.node), (x0 = q.x0), (y0 = q.y0), (x1 = q.x1), (y1 = q.y1)) && node.length) {
         const xm = (x0 + x1) / 2,
           ym = (y0 + y1) / 2
-        if ((child = node[3])) quads.push(new Quad(child, xm, ym, x1, y1))
-        if ((child = node[2])) quads.push(new Quad(child, x0, ym, xm, y1))
-        if ((child = node[1])) quads.push(new Quad(child, xm, y0, x1, ym))
-        if ((child = node[0])) quads.push(new Quad(child, x0, y0, xm, ym))
+        if ((child = node[3])) qs.push(new Quad(child, xm, ym, x1, y1))
+        if ((child = node[2])) qs.push(new Quad(child, x0, ym, xm, y1))
+        if ((child = node[1])) qs.push(new Quad(child, xm, y0, x1, ym))
+        if ((child = node[0])) qs.push(new Quad(child, x0, y0, xm, ym))
       }
     }
     return this
   }
-  visitAfter(callback) {
-    let quads = [],
+  visitAfter(cb) {
+    let qs = [],
       next = [],
       q
-    if (this._root) quads.push(new Quad(this._root, this._x0, this._y0, this._x1, this._y1))
-    while ((q = quads.pop())) {
+    if (this._root) qs.push(new Quad(this._root, this._x0, this._y0, this._x1, this._y1))
+    while ((q = qs.pop())) {
       const node = q.node
       if (node.length) {
-        var child,
+        let child,
           x0 = q.x0,
           y0 = q.y0,
           x1 = q.x1,
           y1 = q.y1,
           xm = (x0 + x1) / 2,
           ym = (y0 + y1) / 2
-        if ((child = node[0])) quads.push(new Quad(child, x0, y0, xm, ym))
-        if ((child = node[1])) quads.push(new Quad(child, xm, y0, x1, ym))
-        if ((child = node[2])) quads.push(new Quad(child, x0, ym, xm, y1))
-        if ((child = node[3])) quads.push(new Quad(child, xm, ym, x1, y1))
+        if ((child = node[0])) qs.push(new Quad(child, x0, y0, xm, ym))
+        if ((child = node[1])) qs.push(new Quad(child, xm, y0, x1, ym))
+        if ((child = node[2])) qs.push(new Quad(child, x0, ym, xm, y1))
+        if ((child = node[3])) qs.push(new Quad(child, xm, ym, x1, y1))
       }
       next.push(q)
     }
     while ((q = next.pop())) {
-      callback(q.node, q.x0, q.y0, q.x1, q.y1)
+      cb(q.node, q.x0, q.y0, q.x1, q.y1)
     }
     return this
   }
-  x(_) {
-    return arguments.length ? ((this._x = _), this) : this._x
+  x(x?: any) {
+    return x === undefined ? this._x : ((this._x = x), this)
   }
-  y(_) {
-    return arguments.length ? ((this._y = _), this) : this._y
-  }
-}
-class Quad {
-  constructor(node, x0, y0, x1, y1) {
-    this.node = node
-    this.x0 = x0
-    this.y0 = y0
-    this.x1 = x1
-    this.y1 = y1
+  y(x?: any) {
+    return x === undefined ? this._y : ((this._y = x), this)
   }
 }
