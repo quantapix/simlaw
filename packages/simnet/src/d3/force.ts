@@ -587,33 +587,33 @@ class Quadtree<T> implements qt.Quadtree<T> {
     this._y1 = y1
   }
   copy() {
-    let copy = new Quadtree(this._x, this._y, this._x0, this._y0, this._x1, this._y1),
-      node = this._root,
-      nodes,
-      child
-    if (!node) return copy
-    function leaf_copy(leaf) {
-      let copy = { data: leaf.data },
-        next = copy
-      while ((leaf = leaf.next)) next = next.next = { data: leaf.data }
-      return copy
+    const r = new Quadtree<T>(this._x, this._y, this._x0, this._y0, this._x1, this._y1)
+    const n = this._root
+    if (!n) return r
+    function leaf(x?: qt.QuadLeaf<T>) {
+      const r: qt.QuadLeaf<T> = { data: x!.data }
+      let n = r
+      while ((x = x!.next)) n = n.next = { data: x.data }
+      return r
     }
-    if (!node.length) return (copy._root = leaf_copy(node)), copy
-    nodes = [{ source: node, target: (copy._root = new Array(4)) }]
-    while ((node = nodes.pop())) {
-      for (let i = 0; i < 4; ++i) {
-        if ((child = node.source[i])) {
-          if (child.length) nodes.push({ source: child, target: (node.target[i] = new Array(4)) })
-          else node.target[i] = leaf_copy(child)
+    if (!n.length) return (r._root = leaf(n)), r
+    const xs = [{ src: n, tgt: (r._root = new Array(4) as qt.QuadNode<T>) }]
+    while (true) {
+      const x = xs.pop()
+      if (!x) break
+      x.src.forEach((c, i) => {
+        if (c) {
+          if (c.length) xs.push({ src: c, tgt: (x.tgt[i] = new Array(4) as qt.QuadNode<T>) })
+          else x.tgt[i] = leaf(c)
         }
-      }
+      })
     }
-    return copy
+    return r
   }
   add(d) {
-    const x = +this._x.call(null, d),
-      y = +this._y.call(null, d)
-    return add(this.cover(x, y), x, y, d)
+    const x = +this._x.call(null, d)
+    const y = +this._y.call(null, d)
+    return this.cover(x, y)._add(x, y, d)
   }
   addAll(xs: any[]) {
     if (!Array.isArray(xs)) xs = Array.from(xs)
@@ -636,11 +636,11 @@ class Quadtree<T> implements qt.Quadtree<T> {
     if (x0 > x1 || y0 > y1) return this
     this.cover(x0, y0).cover(x1, y1)
     for (let i = 0; i < n; ++i) {
-      add(this, xz[i], yz[i], xs[i])
+      this._add(xz[i]!, yz[i]!, xs[i])
     }
     return this
   }
-  cover(x, y) {
+  cover(x: number, y: number) {
     if (isNaN((x = +x)) || isNaN((y = +y))) return this
     let x0 = this._x0,
       y0 = this._y0,
@@ -820,8 +820,9 @@ class Quadtree<T> implements qt.Quadtree<T> {
   visit(cb: Function) {
     const qs: Quad[] = []
     if (this._root) qs.push(new Quad(this._root, this._x0, this._y0, this._x1, this._y1))
-    let q: Quad | undefined
-    while ((q = qs.pop())) {
+    while (true) {
+      const q = qs.pop()
+      if (!q) break
       const n = q.node
       const { x0, y0, x1, y1 } = q
       if (!cb(n, x0, y0, x1, y1) && n.length) {
@@ -839,9 +840,10 @@ class Quadtree<T> implements qt.Quadtree<T> {
   visitAfter(cb: Function) {
     const qs: Quad[] = []
     if (this._root) qs.push(new Quad(this._root, this._x0, this._y0, this._x1, this._y1))
-    let q: Quad | undefined
     const next: Quad[] = []
-    while ((q = qs.pop())) {
+    while (true) {
+      const q = qs.pop()
+      if (!q) break
       const n = q.node
       if (n.length) {
         const { x0, y0, x1, y1 } = q
@@ -855,7 +857,9 @@ class Quadtree<T> implements qt.Quadtree<T> {
       }
       next.push(q)
     }
-    while ((q = next.pop())) {
+    while (true) {
+      const q = next.pop()
+      if (!q) break
       cb(q.node, q.x0, q.y0, q.x1, q.y1)
     }
     return this
@@ -866,42 +870,41 @@ class Quadtree<T> implements qt.Quadtree<T> {
   y(x?: any) {
     return x === undefined ? this._y : ((this._y = x), this)
   }
-}
-
-function add(tree, x, y, d) {
-  if (isNaN(x) || isNaN(y)) return tree
-  let parent,
-    node = tree._root,
-    leaf = { data: d },
-    x0 = tree._x0,
-    y0 = tree._y0,
-    x1 = tree._x1,
-    y1 = tree._y1,
-    xm: number,
-    ym: number,
-    xp: number,
-    yp: number,
-    right: any,
-    bottom: any,
-    i: number,
-    j: number
-  if (!node) return (tree._root = leaf), tree
-  while (node.length) {
-    if ((right = x >= (xm = (x0 + x1) / 2))) x0 = xm
-    else x1 = xm
-    if ((bottom = y >= (ym = (y0 + y1) / 2))) y0 = ym
-    else y1 = ym
-    if (((parent = node), !(node = node[(i = (bottom << 1) | right)]))) return (parent[i] = leaf), tree
+  _add(x: number, y: number, d) {
+    if (isNaN(x) || isNaN(y)) return this
+    let parent,
+      node = this._root,
+      leaf = { data: d },
+      x0 = this._x0,
+      y0 = this._y0,
+      x1 = this._x1,
+      y1 = this._y1,
+      xm: number,
+      ym: number,
+      xp: number,
+      yp: number,
+      right: any,
+      bottom: any,
+      i: number,
+      j: number
+    if (!node) return (this._root = leaf), this
+    while (node.length) {
+      if ((right = x >= (xm = (x0 + x1) / 2))) x0 = xm
+      else x1 = xm
+      if ((bottom = y >= (ym = (y0 + y1) / 2))) y0 = ym
+      else y1 = ym
+      if (((parent = node), !(node = node[(i = (bottom << 1) | right)]))) return (parent[i] = leaf), this
+    }
+    xp = +this._x.call(null, node.data)
+    yp = +this._y.call(null, node.data)
+    if (x === xp && y === yp) return (leaf.next = node), parent ? (parent[i] = leaf) : (this._root = leaf), this
+    do {
+      parent = parent ? (parent[i] = new Array(4)) : (this._root = new Array(4))
+      if ((right = x >= (xm = (x0 + x1) / 2))) x0 = xm
+      else x1 = xm
+      if ((bottom = y >= (ym = (y0 + y1) / 2))) y0 = ym
+      else y1 = ym
+    } while ((i = (bottom << 1) | right) === (j = (((yp >= ym) as any) << 1) | ((xp >= xm) as any)))
+    return (parent[j] = node), (parent[i] = leaf), this
   }
-  xp = +tree._x.call(null, node.data)
-  yp = +tree._y.call(null, node.data)
-  if (x === xp && y === yp) return (leaf.next = node), parent ? (parent[i] = leaf) : (tree._root = leaf), tree
-  do {
-    parent = parent ? (parent[i] = new Array(4)) : (tree._root = new Array(4))
-    if ((right = x >= (xm = (x0 + x1) / 2))) x0 = xm
-    else x1 = xm
-    if ((bottom = y >= (ym = (y0 + y1) / 2))) y0 = ym
-    else y1 = ym
-  } while ((i = (bottom << 1) | right) === (j = (((yp >= ym) as any) << 1) | ((xp >= xm) as any)))
-  return (parent[j] = node), (parent[i] = leaf), tree
 }
