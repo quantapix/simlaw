@@ -1132,43 +1132,33 @@ export interface Path {
   toString(): string
 }
 
-export interface QuadtreeLeaf<T> {
+export interface QuadLeaf<T> {
   data: T
-  next?: QuadtreeLeaf<T> | undefined
+  next?: QuadLeaf<T> | undefined
   length?: undefined
 }
-export interface QuadtreeInternalNode<T> extends Array<QuadtreeInternalNode<T> | QuadtreeLeaf<T> | undefined> {
+export interface QuadNode<T> extends Array<QuadNode<T> | QuadLeaf<T> | undefined> {
   length: 4
 }
 export interface Quadtree<T> {
+  add(x: T): this
+  addAll(xs: T[]): this
+  copy(): Quadtree<T>
+  cover(x: number, y: number): this
+  data(): T[]
+  extent(): [[number, number], [number, number]] | undefined
+  extent(x: [[number, number], [number, number]]): this
+  find(x: number, y: number, radius?: number): T | undefined
+  remove(x: T): this
+  removeAll(xs: T[]): this
+  root(): QuadNode<T> | QuadLeaf<T>
+  size(): number
+  visit(f: (x: QuadNode<T> | QuadLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void | boolean): this
+  visitAfter(f: (x: QuadNode<T> | QuadLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void): this
   x(): (x: T) => number
   x(x: (x: T) => number): this
   y(): (x: T) => number
   y(y: (x: T) => number): this
-  extent(): [[number, number], [number, number]] | undefined
-  extent(extend: [[number, number], [number, number]]): this
-  cover(x: number, y: number): this
-  add(x: T): this
-  addAll(xs: T[]): this
-  remove(x: T): this
-  removeAll(xs: T[]): this
-  copy(): Quadtree<T>
-  root(): QuadtreeInternalNode<T> | QuadtreeLeaf<T>
-  data(): T[]
-  size(): number
-  find(x: number, y: number, radius?: number): T | undefined
-  visit(
-    callback: (
-      node: QuadtreeInternalNode<T> | QuadtreeLeaf<T>,
-      x0: number,
-      y0: number,
-      x1: number,
-      y1: number
-    ) => void | boolean
-  ): this
-  visitAfter(
-    callback: (node: QuadtreeInternalNode<T> | QuadtreeLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void
-  ): this
 }
 
 export interface RandomNumberGenerationSource {
