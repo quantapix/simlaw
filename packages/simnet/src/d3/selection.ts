@@ -309,20 +309,6 @@ class EnterNode {
     return this._parent.querySelectorAll(selector)
   }
 }
-function htmlRemove() {
-  this.innerHTML = ""
-}
-function htmlConstant(value) {
-  return function () {
-    this.innerHTML = value
-  }
-}
-function htmlFunction(value) {
-  return function () {
-    const v = value.apply(this, arguments)
-    this.innerHTML = v == null ? "" : v
-  }
-}
 export const root = [null]
 export const selection: qt.SelectionFn = () => {
   return new Selection([[document.documentElement]], root)
@@ -471,9 +457,15 @@ export class Selection {
     }
     return new Selection(subgroups, this._parents)
   }
-  html(value) {
+  html(v) {
+    const remove = () => (this.innerHTML = "")
+    const constant = v => () => (this.innerHTML = v)
+    const func = v => () => {
+      const x = v.apply(this, arguments)
+      this.innerHTML = x == null ? "" : x
+    }
     return arguments.length
-      ? this.each(value == null ? htmlRemove : (typeof value === "function" ? htmlFunction : htmlConstant)(value))
+      ? this.each(v == null ? remove : (typeof v === "function" ? func : constant)(v))
       : this.node().innerHTML
   }
   insert(name, before) {
@@ -591,26 +583,28 @@ export class Selection {
     }
     return this
   }
-  property(name, value) {
+  property(k, v) {
+    const remove = k => () => delete this[k]
+    const constant = (k, v) => () => (this[k] = v)
+    const func = (k, v) => () => {
+      const x = v.apply(this, arguments)
+      if (x == null) delete this[k]
+      else this[k] = x
+    }
     return arguments.length > 1
-      ? this.each(
-          (value == null ? propertyRemove : typeof value === "function" ? propertyFunction : propertyConstant)(
-            name,
-            value
-          )
-        )
-      : this.node()[name]
+      ? this.each((v == null ? remove : typeof v === "function" ? func : constant)(k, v))
+      : this.node()[k]
   }
   raise() {
-    function raise() {
+    const raise = () => {
       if (this.nextSibling) this.parentNode.appendChild(this)
     }
     return this.each(raise)
   }
   remove() {
-    function remove() {
-      const parent = this.parentNode
-      if (parent) parent.removeChild(this)
+    const remove = () => {
+      const x = this.parentNode
+      if (x) x.removeChild(this)
     }
     return this.each(remove)
   }
@@ -631,6 +625,7 @@ export class Selection {
     return new Selection(subgroups, this._parents)
   }
   selectAll(select) {
+    const arrayAll = x => () => qu.array(x.apply(this, arguments))
     if (typeof select === "function") select = arrayAll(select)
     else select = selectorAll(select)
     for (let groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
@@ -643,54 +638,64 @@ export class Selection {
     }
     return new Selection(subgroups, parents)
   }
-  selectChild(match) {
-    return this.select(
-      match == null ? childFirst : childFind(typeof match === "function" ? match : childMatcher(match))
-    )
+  selectChild(x) {
+    const first = () => this.firstElementChild
+    const f = Array.prototype.find
+    const find = x => () => f.call(this.children, x)
+    return this.select(x == null ? first : find(typeof x === "function" ? x : childMatcher(x)))
   }
-  selectChildren(match) {
-    return this.selectAll(
-      match == null ? children : childrenFilter(typeof match === "function" ? match : childMatcher(match))
-    )
+  selectChildren(x) {
+    const children = () => Array.from(this.children)
+    const f = Array.prototype.filter
+    const filter = x => () => f.call(this.children, x)
+    return this.selectAll(x == null ? children : filter(typeof x === "function" ? x : childMatcher(x)))
   }
   size() {
     let size = 0
-    for (const node of this) ++size
+    for (const _ of this) ++size
     return size
   }
-  sort(compare) {
-    if (!compare) compare = ascending
-    function compareNode(a, b) {
-      return a && b ? compare(a.__data__, b.__data__) : !a - !b
-    }
+  sort(cmp) {
+    const ascending = (a, b) => (a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN)
+    if (!cmp) cmp = ascending
+    const cmp2 = (a, b) => (a && b ? cmp(a.__data__, b.__data__) : !a - !b)
     for (let groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
       for (
         let group = groups[j], n = group.length, sortgroup = (sortgroups[j] = new Array(n)), node, i = 0;
         i < n;
         ++i
       ) {
-        if ((node = group[i])) {
-          sortgroup[i] = node
-        }
+        if ((node = group[i])) sortgroup[i] = node
       }
-      sortgroup.sort(compareNode)
+      sortgroup.sort(cmp2)
     }
     return new Selection(sortgroups, this._parents).order()
   }
-  style(name, value, priority) {
+  style(k, v, priority) {
+    const remove = k => () => this.style.removeProperty(k)
+    const constant = (k, v, priority) => () => this.style.setProperty(k, v, priority)
+    const func = (k, v, priority) => () => {
+      const x = v.apply(this, arguments)
+      if (x == null) this.style.removeProperty(k)
+      else this.style.setProperty(k, x, priority)
+    }
+    const value = (x, n: string): string =>
+      x.style.getPropertyValue(n) || defaultView(x).getComputedStyle(x, null).getPropertyValue(n)
     return arguments.length > 1
       ? this.each(
-          (value == null ? styleRemove : typeof value === "function" ? styleFunction : styleConstant)(
-            name,
-            value,
-            priority == null ? "" : priority
-          )
+          (v == null ? remove : typeof v === "function" ? func : constant)(k, v, priority == null ? "" : priority)
         )
-      : styleValue(this.node(), name)
+      : value(this.node(), k)
   }
-  text(value) {
+  text(x) {
+    const remove = () => (this.textContent = "")
+    const constant = v => () => (this.textContent = v)
+    const func = v => () => {
+      const x = v.apply(this, arguments)
+      this.textContent = x == null ? "" : x
+    }
     return arguments.length
-      ? this.each(value == null ? textRemove : (typeof value === "function" ? textFunction : textConstant)(value))
+      ? this.each(x == null ? remove : (typeof x === "function" ? func : constant)(x))
       : this.node().textContent
   }
 }
@@ -748,83 +753,6 @@ function onAdd(typename, value, options) {
     else on.push(o)
   }
 }
-function propertyRemove(name) {
-  return function () {
-    delete this[name]
-  }
-}
-function propertyConstant(name, value) {
-  return function () {
-    this[name] = value
-  }
-}
-function propertyFunction(name, value) {
-  return function () {
-    const v = value.apply(this, arguments)
-    if (v == null) delete this[name]
-    else this[name] = v
-  }
-}
-function arrayAll(select) {
-  return function () {
-    return qu.array(select.apply(this, arguments))
-  }
-}
-const find = Array.prototype.find
-function childFind(match) {
-  return function () {
-    return find.call(this.children, match)
-  }
-}
-function childFirst() {
-  return this.firstElementChild
-}
-const filter = Array.prototype.filter
-function children() {
-  return Array.from(this.children)
-}
-function childrenFilter(match) {
-  return function () {
-    return filter.call(this.children, match)
-  }
-}
-function ascending(a, b) {
-  return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
-}
 export function sparse(update) {
   return new Array(update.length)
-}
-function styleRemove(name) {
-  return function () {
-    this.style.removeProperty(name)
-  }
-}
-function styleConstant(name, value, priority) {
-  return function () {
-    this.style.setProperty(name, value, priority)
-  }
-}
-function styleFunction(name, value, priority) {
-  return function () {
-    const v = value.apply(this, arguments)
-    if (v == null) this.style.removeProperty(name)
-    else this.style.setProperty(name, v, priority)
-  }
-}
-export function styleValue(node: Element, name: string): string {
-  return node.style.getPropertyValue(name) || defaultView(node).getComputedStyle(node, null).getPropertyValue(name)
-}
-function textRemove() {
-  this.textContent = ""
-}
-function textConstant(value) {
-  return function () {
-    this.textContent = value
-  }
-}
-function textFunction(value) {
-  return function () {
-    const v = value.apply(this, arguments)
-    this.textContent = v == null ? "" : v
-  }
 }
