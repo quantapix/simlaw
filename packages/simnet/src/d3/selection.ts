@@ -10,9 +10,32 @@ export const namespaces: qt.NamespaceMap = {
   xmlns: "http://www.w3.org/2000/xmlns/",
 }
 
-export function array(x) {
-  return x == null ? [] : Array.isArray(x) ? x : Array.from(x)
+export function namespace(x: string): qt.NamespaceLocalObject | string {
+  let pre = (x += "")
+  const i = pre.indexOf(":")
+  if (i >= 0 && (pre = x.slice(0, i)) !== "xmlns") x = x.slice(i + 1)
+  return namespaces.hasOwnProperty(pre) ? { space: namespaces[pre]!, local: x } : x
 }
+
+function creator<T extends keyof ElementTagNameMap>(x: T): (this: qt.BaseType) => ElementTagNameMap[T]
+function creator<T extends Element>(x: string): (this: qt.BaseType) => T
+function creator(x: any) {
+  function fixed(x: any) {
+    return function (this: any) {
+      return this.ownerDocument.createElementNS(x.space, x.local)
+    }
+  }
+  function inherit(x: any) {
+    return function (this: any) {
+      const d = this.ownerDocument
+      const n = this.namespaceURI
+      return n === xhtml && d.documentElement.namespaceURI === xhtml ? d.createElement(x) : d.createElementNS(n, x)
+    }
+  }
+  const n: any = namespace(x)
+  return (n.local ? fixed : inherit)(n)
+}
+
 export function create<T extends keyof ElementTagNameMap>(
   x: T
 ): qt.Selection<ElementTagNameMap[T], undefined, null, undefined>
@@ -20,49 +43,29 @@ export function create<T extends Element>(x: string): qt.Selection<T, undefined,
 export function create(x: any) {
   return select(creator(x).call(document.documentElement))
 }
-function creatorInherit(x: any) {
-  return function (this: any) {
-    const document = this.ownerDocument,
-      uri = this.namespaceURI
-    return uri === xhtml && document.documentElement.namespaceURI === xhtml
-      ? document.createElement(x)
-      : document.createElementNS(uri, x)
-  }
-}
-function creatorFixed(x: any) {
-  return function (this: any) {
-    return this.ownerDocument.createElementNS(x.space, x.local)
-  }
-}
-export function creator<T extends keyof ElementTagNameMap>(x: T): (this: qt.BaseType) => ElementTagNameMap[T]
-export function creator<T extends Element>(x: string): (this: qt.BaseType) => T
-export function creator(x: any) {
-  const y: any = namespace(x)
-  return (y.local ? creatorFixed : creatorInherit)(y)
-}
-let nextId = 0
+
 export function local<T>(): qt.Local<T> {
+  let nextId = 0
+  class Local {
+    id = "@" + (++nextId).toString(36)
+    get(x: any) {
+      const id = this.id
+      while (!(id in x)) if (!(x = x.parentNode)) return
+      return x[id]
+    }
+    remove(x: any) {
+      return this.id in x && delete x[this.id]
+    }
+    set(x: any, v: any) {
+      return (x[this.id] = v)
+    }
+    toString() {
+      return this.id
+    }
+  }
   return new Local()
 }
-class Local {
-  constructor() {
-    this._ = "@" + (++nextId).toString(36)
-  }
-  get(node) {
-    const id = this._
-    while (!(id in node)) if (!(node = node.parentNode)) return
-    return node[id]
-  }
-  set(node, value) {
-    return (node[this._] = value)
-  }
-  remove(node) {
-    return this._ in node && delete node[this._]
-  }
-  toString() {
-    return this._
-  }
-}
+
 export function matcher(sel: string): (this: qt.BaseType) => boolean {
   return function (this: qt.BaseType) {
     return this.matches(sel)
@@ -72,12 +75,6 @@ export function childMatcher(sel: string) {
   return function (node) {
     return node.matches(sel)
   }
-}
-export function namespace(name: string): qt.NamespaceLocalObject | string {
-  let prefix = (name += ""),
-    i = prefix.indexOf(":")
-  if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1)
-  return namespaces.hasOwnProperty(prefix) ? { space: namespaces[prefix], local: name } : name // eslint-disable-line no-prototype-builtins
 }
 export function pointer(event: any, target?: any): [number, number] {
   event = sourceEvent(event)
@@ -120,7 +117,7 @@ export function selectAll<B extends qt.BaseType, T>(
 export function selectAll(x: any) {
   return typeof x === "string"
     ? new Selection([document.querySelectorAll(x)], [document.documentElement])
-    : new Selection([array(x)], root)
+    : new Selection([qu.array(x)], root)
 }
 export function selector<T extends Element>(x: string | null): (this: qt.BaseType) => T | void {
   return x == null
@@ -770,7 +767,7 @@ function propertyFunction(name, value) {
 }
 function arrayAll(select) {
   return function () {
-    return array(select.apply(this, arguments))
+    return qu.array(select.apply(this, arguments))
   }
 }
 const find = Array.prototype.find

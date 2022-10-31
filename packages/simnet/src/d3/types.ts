@@ -1610,9 +1610,9 @@ export interface Selection<B extends BaseType, T, PElement extends BaseType, P> 
 export type SelectionFn = () => Selection<HTMLElement, any, null, undefined>
 
 export interface Local<T> {
-  get(k: Element): T | undefined
-  remove(k: Element): boolean
-  set(k: Element, x: T): T
+  get(x: Element): T | undefined
+  remove(x: Element): boolean
+  set(x: Element, v: T): T
   toString(): string
 }
 export interface NamespaceLocalObject {
