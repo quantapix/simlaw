@@ -66,11 +66,6 @@ export function local<T>(): qt.Local<T> {
   return new Local()
 }
 
-export function matcher(sel: string): (this: qt.BaseType) => boolean {
-  return function (this: qt.BaseType) {
-    return this.matches(sel)
-  }
-}
 export function childMatcher(sel: string) {
   return function (node) {
     return node.matches(sel)
@@ -171,33 +166,6 @@ class ClassList {
   }
   contains(name) {
     return this._names.indexOf(name) >= 0
-  }
-}
-function classedAdd(node, names) {
-  let list = classList(node),
-    i = -1,
-    n = names.length
-  while (++i < n) list.add(names[i])
-}
-function classedRemove(node, names) {
-  let list = classList(node),
-    i = -1,
-    n = names.length
-  while (++i < n) list.remove(names[i])
-}
-function classedTrue(names) {
-  return function () {
-    classedAdd(this, names)
-  }
-}
-function classedFalse(names) {
-  return function () {
-    classedRemove(this, names)
-  }
-}
-function classedFunction(names, value) {
-  return function () {
-    ;(value.apply(this, arguments) ? classedAdd : classedRemove)(this, names)
   }
 }
 function selection_cloneShallow() {
@@ -378,15 +346,32 @@ export class Selection {
     return this
   }
   classed(name, value) {
+    const add = (node, names) => {
+      const cs = classList(node)
+      const n = names.length
+      let i = -1
+      while (++i < n) cs.add(names[i])
+    }
+    const remove = (node, names) => {
+      const cs = classList(node)
+      const n = names.length
+      let i = -1
+      while (++i < n) cs.remove(names[i])
+    }
+    const classedTrue = names => () => add(this, names)
+    const classedFalse = names => () => remove(this, names)
+    const func = (names, value) => () => {
+      ;(value.apply(this, arguments) ? add : remove)(this, names)
+    }
     const names = classArray(name + "")
     if (arguments.length < 2) {
-      let list = classList(this.node()),
-        i = -1,
-        n = names.length
-      while (++i < n) if (!list.contains(names[i])) return false
+      const cs = classList(this.node())
+      const n = names.length
+      let i = -1
+      while (++i < n) if (!cs.contains(names[i])) return false
       return true
     }
-    return this.each((typeof value === "function" ? classedFunction : value ? classedTrue : classedFalse)(names, value))
+    return this.each((typeof value === "function" ? func : value ? classedTrue : classedFalse)(names, value))
   }
   clone(deep) {
     return this.select(deep ? selection_cloneDeep : selection_cloneShallow)
@@ -447,6 +432,7 @@ export class Selection {
     return new Selection(this._exit || this._groups.map(sparse), this._parents)
   }
   filter(match) {
+    const matcher = (sel: string) => () => this.matches(sel)
     if (typeof match !== "function") match = matcher(match)
     for (let groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
       for (let group = groups[j], n = group.length, subgroup = (subgroups[j] = []), node, i = 0; i < n; ++i) {
