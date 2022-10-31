@@ -1149,16 +1149,16 @@ export interface Quadtree<T> {
   extent(): [[number, number], [number, number]] | undefined
   extent(x: [[number, number], [number, number]]): this
   find(x: number, y: number, r?: number): T | undefined
-  remove(x: T): this
-  removeAll(xs: T[]): this
+  remove(t: T): this
+  removeAll(ts: T[]): this
   root(): QuadNode<T> | QuadLeaf<T>
   size(): number
-  visit(f: (x: QuadNode<T> | QuadLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void | boolean): this
-  visitAfter(f: (x: QuadNode<T> | QuadLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void): this
-  x(): (x: T) => number
-  x(x: (x: T) => number): this
-  y(): (x: T) => number
-  y(y: (x: T) => number): this
+  visit(f: (n: QuadNode<T> | QuadLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void | boolean): this
+  visitAfter(f: (n: QuadNode<T> | QuadLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void): this
+  x(): (t: T) => number
+  x(x: (t: T) => number): this
+  y(): (t: T) => number
+  y(y: (t: T) => number): this
 }
 
 export interface RandomNumberGenerationSource {
