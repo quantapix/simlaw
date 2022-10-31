@@ -1141,14 +1141,14 @@ export interface QuadNode<T> extends Array<QuadNode<T> | QuadLeaf<T> | undefined
   length: 4
 }
 export interface Quadtree<T> {
-  add(x: T): this
-  addAll(xs: T[]): this
+  add(t: T): this
+  addAll(ts: T[]): this
   copy(): Quadtree<T>
   cover(x: number, y: number): this
   data(): T[]
   extent(): [[number, number], [number, number]] | undefined
   extent(x: [[number, number], [number, number]]): this
-  find(x: number, y: number, radius?: number): T | undefined
+  find(x: number, y: number, r?: number): T | undefined
   remove(x: T): this
   removeAll(xs: T[]): this
   root(): QuadNode<T> | QuadLeaf<T>
