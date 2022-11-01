@@ -4,6 +4,9 @@ import type * as qt from "./types.js"
 export function array(x?: any) {
   return x === undefined ? [] : Array.isArray(x) ? x : Array.from(x)
 }
+export function arraylike(x: any) {
+  return typeof x === "object" && "length" in x ? x : Array.from(x)
+}
 
 export const identity = <T>(x: T) => x
 export const constant =

@@ -168,41 +168,6 @@ class ClassList {
     return this._names.indexOf(name) >= 0
   }
 }
-function selection_cloneShallow() {
-  const clone = this.cloneNode(false),
-    parent = this.parentNode
-  return parent ? parent.insertBefore(clone, this.nextSibling) : clone
-}
-function selection_cloneDeep() {
-  const clone = this.cloneNode(true),
-    parent = this.parentNode
-  return parent ? parent.insertBefore(clone, this.nextSibling) : clone
-}
-function arraylike(data) {
-  return typeof data === "object" && "length" in data ? data : Array.from(data)
-}
-function dispatchEvent(node, type, params) {
-  let window = defaultView(node),
-    event = window.CustomEvent
-  if (typeof event === "function") {
-    event = new event(type, params)
-  } else {
-    event = window.document.createEvent("Event")
-    if (params) event.initEvent(type, params.bubbles, params.cancelable), (event.detail = params.detail)
-    else event.initEvent(type, false, false)
-  }
-  node.dispatchEvent(event)
-}
-function dispatchConstant(type, params) {
-  return function () {
-    return dispatchEvent(this, type, params)
-  }
-}
-function dispatchFunction(type, params) {
-  return function () {
-    return dispatchEvent(this, type, params.apply(this, arguments))
-  }
-}
 class EnterNode {
   constructor(parent, datum) {
     this.ownerDocument = parent.ownerDocument
@@ -321,7 +286,17 @@ export class Selection {
     return this.each((typeof value === "function" ? func : value ? classedTrue : classedFalse)(names, value))
   }
   clone(deep) {
-    return this.select(deep ? selection_cloneDeep : selection_cloneShallow)
+    const shallow = () => {
+      const r = this.cloneNode(false)
+      const x = this.parentNode
+      return x ? x.insertBefore(r, this.nextSibling) : r
+    }
+    const deep = () => {
+      const r = this.cloneNode(true)
+      const x = this.parentNode
+      return x ? x.insertBefore(r, this.nextSibling) : r
+    }
+    return this.select(deep ? deep : shallow)
   }
   data(value, key) {
     function datum(node) {
@@ -389,7 +364,7 @@ export class Selection {
       const parent = parents[j],
         group = groups[j],
         groupLength = group.length,
-        data = arraylike(value.call(parent, parent && parent.__data__, j, parents)),
+        data = qu.arraylike(value.call(parent, parent && parent.__data__, j, parents)),
         dataLength = data.length,
         enterGroup = (enter[j] = new Array(dataLength)),
         updateGroup = (update[j] = new Array(dataLength)),
@@ -412,7 +387,20 @@ export class Selection {
     return arguments.length ? this.property("__data__", value) : this.node().__data__
   }
   dispatch(type, params) {
-    return this.each((typeof params === "function" ? dispatchFunction : dispatchConstant)(type, params))
+    const event = (node, type, params) => {
+      const window = defaultView(node)
+      let e = window.CustomEvent
+      if (typeof e === "function") e = new e(type, params)
+      else {
+        e = window.document.createEvent("Event")
+        if (params) e.initEvent(type, params.bubbles, params.cancelable), (e.detail = params.detail)
+        else e.initEvent(type, false, false)
+      }
+      node.dispatchEvent(e)
+    }
+    const constant = (type, params) => () => event(this, type, params)
+    const func = (type, params) => () => event(this, type, params.apply(this, arguments))
+    return this.each((typeof params === "function" ? func : constant)(type, params))
   }
   each(callback) {
     for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
