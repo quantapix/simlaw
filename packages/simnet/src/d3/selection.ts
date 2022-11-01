@@ -66,7 +66,7 @@ export function local<T>(): qt.Local<T> {
   return new Local()
 }
 
-export function childMatcher(sel: string) {
+function childMatcher(sel: string) {
   return function (node) {
     return node.matches(sel)
   }
@@ -177,59 +177,6 @@ function selection_cloneDeep() {
   const clone = this.cloneNode(true),
     parent = this.parentNode
   return parent ? parent.insertBefore(clone, this.nextSibling) : clone
-}
-function bindIndex(parent, group, enter, update, exit, data) {
-  let i = 0,
-    node,
-    groupLength = group.length,
-    dataLength = data.length
-  for (; i < dataLength; ++i) {
-    if ((node = group[i])) {
-      node.__data__ = data[i]
-      update[i] = node
-    } else {
-      enter[i] = new EnterNode(parent, data[i])
-    }
-  }
-  for (; i < groupLength; ++i) {
-    if ((node = group[i])) {
-      exit[i] = node
-    }
-  }
-}
-function bindKey(parent, group, enter, update, exit, data, key) {
-  let i,
-    node,
-    nodeByKeyValue = new Map(),
-    groupLength = group.length,
-    dataLength = data.length,
-    keyValues = new Array(groupLength),
-    keyValue
-  for (i = 0; i < groupLength; ++i) {
-    if ((node = group[i])) {
-      keyValues[i] = keyValue = key.call(node, node.__data__, i, group) + ""
-      if (nodeByKeyValue.has(keyValue)) {
-        exit[i] = node
-      } else {
-        nodeByKeyValue.set(keyValue, node)
-      }
-    }
-  }
-  for (i = 0; i < dataLength; ++i) {
-    keyValue = key.call(parent, data[i], i, data) + ""
-    if ((node = nodeByKeyValue.get(keyValue))) {
-      update[i] = node
-      node.__data__ = data[i]
-      nodeByKeyValue.delete(keyValue)
-    } else {
-      enter[i] = new EnterNode(parent, data[i])
-    }
-  }
-  for (i = 0; i < groupLength; ++i) {
-    if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) {
-      exit[i] = node
-    }
-  }
 }
 function arraylike(data) {
   return typeof data === "object" && "length" in data ? data : Array.from(data)
@@ -381,7 +328,60 @@ export class Selection {
       return node.__data__
     }
     if (!arguments.length) return Array.from(this, datum)
-    const bind = key ? bindKey : bindIndex,
+    function index(parent, group, enter, update, exit, data) {
+      let i = 0,
+        node,
+        groupLength = group.length,
+        dataLength = data.length
+      for (; i < dataLength; ++i) {
+        if ((node = group[i])) {
+          node.__data__ = data[i]
+          update[i] = node
+        } else {
+          enter[i] = new EnterNode(parent, data[i])
+        }
+      }
+      for (; i < groupLength; ++i) {
+        if ((node = group[i])) {
+          exit[i] = node
+        }
+      }
+    }
+    function key(parent, group, enter, update, exit, data, key) {
+      let i,
+        node,
+        nodeByKeyValue = new Map(),
+        groupLength = group.length,
+        dataLength = data.length,
+        keyValues = new Array(groupLength),
+        keyValue
+      for (i = 0; i < groupLength; ++i) {
+        if ((node = group[i])) {
+          keyValues[i] = keyValue = key.call(node, node.__data__, i, group) + ""
+          if (nodeByKeyValue.has(keyValue)) {
+            exit[i] = node
+          } else {
+            nodeByKeyValue.set(keyValue, node)
+          }
+        }
+      }
+      for (i = 0; i < dataLength; ++i) {
+        keyValue = key.call(parent, data[i], i, data) + ""
+        if ((node = nodeByKeyValue.get(keyValue))) {
+          update[i] = node
+          node.__data__ = data[i]
+          nodeByKeyValue.delete(keyValue)
+        } else {
+          enter[i] = new EnterNode(parent, data[i])
+        }
+      }
+      for (i = 0; i < groupLength; ++i) {
+        if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) {
+          exit[i] = node
+        }
+      }
+    }
+    const bind = key ? key : index,
       parents = this._parents,
       groups = this._groups
     if (typeof value !== "function") value = qu.constant(value)
@@ -455,6 +455,7 @@ export class Selection {
       : this.node().innerHTML
   }
   insert(name, before) {
+    const constantNull = () => null
     const create = typeof name === "function" ? name : creator(name),
       select = before == null ? constantNull : typeof before === "function" ? before : selector(before)
     return this.select(function () {
@@ -538,6 +539,17 @@ export class Selection {
     return Array.from(this)
   }
   on(typename, value, options) {
+    function parseTypenames(typenames) {
+      return typenames
+        .trim()
+        .split(/^|\s+/)
+        .map(function (t) {
+          let name = "",
+            i = t.indexOf(".")
+          if (i >= 0) (name = t.slice(i + 1)), (t = t.slice(0, i))
+          return { type: t, name: name }
+        })
+    }
     let typenames = parseTypenames(typename + ""),
       i,
       n = typenames.length,
@@ -554,7 +566,43 @@ export class Selection {
         }
       return
     }
-    on = value ? onAdd : onRemove
+    const onAdd = (typename, value, options) => {
+      const contextListener = listener => event => listener.call(this, event, this.__data__)
+      return () => {
+        let on = this.__on,
+          o,
+          listener = contextListener(value)
+        if (on)
+          for (let j = 0, m = on.length; j < m; ++j) {
+            if ((o = on[j]).type === typename.type && o.name === typename.name) {
+              this.removeEventListener(o.type, o.listener, o.options)
+              this.addEventListener(o.type, (o.listener = listener), (o.options = options))
+              o.value = value
+              return
+            }
+          }
+        this.addEventListener(typename.type, listener, options)
+        o = { type: typename.type, name: typename.name, value: value, listener: listener, options: options }
+        if (!on) this.__on = [o]
+        else on.push(o)
+      }
+    }
+    const onRemove = typename => {
+      return () => {
+        const on = this.__on
+        if (!on) return
+        for (let j = 0, i = -1, m = on.length, o; j < m; ++j) {
+          if (((o = on[j]), (!typename.type || o.type === typename.type) && o.name === typename.name)) {
+            this.removeEventListener(o.type, o.listener, o.options)
+          } else {
+            on[++i] = o
+          }
+        }
+        if (++i) on.length = i
+        else delete this.__on
+      }
+    }
+    const on = value ? onAdd : onRemove
     for (i = 0; i < n; ++i) this.each(on(typenames[i], value, options))
     return this
   }
@@ -685,60 +733,6 @@ export class Selection {
       : this.node().textContent
   }
 }
-function constantNull() {
-  return null
-}
-function contextListener(listener) {
-  return function (event) {
-    listener.call(this, event, this.__data__)
-  }
-}
-function parseTypenames(typenames) {
-  return typenames
-    .trim()
-    .split(/^|\s+/)
-    .map(function (t) {
-      let name = "",
-        i = t.indexOf(".")
-      if (i >= 0) (name = t.slice(i + 1)), (t = t.slice(0, i))
-      return { type: t, name: name }
-    })
-}
-function onRemove(typename) {
-  return function () {
-    const on = this.__on
-    if (!on) return
-    for (let j = 0, i = -1, m = on.length, o; j < m; ++j) {
-      if (((o = on[j]), (!typename.type || o.type === typename.type) && o.name === typename.name)) {
-        this.removeEventListener(o.type, o.listener, o.options)
-      } else {
-        on[++i] = o
-      }
-    }
-    if (++i) on.length = i
-    else delete this.__on
-  }
-}
-function onAdd(typename, value, options) {
-  return function () {
-    let on = this.__on,
-      o,
-      listener = contextListener(value)
-    if (on)
-      for (let j = 0, m = on.length; j < m; ++j) {
-        if ((o = on[j]).type === typename.type && o.name === typename.name) {
-          this.removeEventListener(o.type, o.listener, o.options)
-          this.addEventListener(o.type, (o.listener = listener), (o.options = options))
-          o.value = value
-          return
-        }
-      }
-    this.addEventListener(typename.type, listener, options)
-    o = { type: typename.type, name: typename.name, value: value, listener: listener, options: options }
-    if (!on) this.__on = [o]
-    else on.push(o)
-  }
-}
-export function sparse(update) {
+function sparse(update) {
   return new Array(update.length)
 }
