@@ -139,62 +139,12 @@ export function window(x: Window | Document | Element): Window {
   return (x.ownerDocument && x.ownerDocument.defaultView) || (x.document && x) || x.defaultView
 }
 
-function classArray(string) {
-  return string.trim().split(/^|\s+/)
-}
-function classList(node) {
-  return node.classList || new ClassList(node)
-}
-class ClassList {
-  constructor(node) {
-    this._node = node
-    this._names = classArray(node.getAttribute("class") || "")
-  }
-  add(name) {
-    const i = this._names.indexOf(name)
-    if (i < 0) {
-      this._names.push(name)
-      this._node.setAttribute("class", this._names.join(" "))
-    }
-  }
-  remove(name) {
-    const i = this._names.indexOf(name)
-    if (i >= 0) {
-      this._names.splice(i, 1)
-      this._node.setAttribute("class", this._names.join(" "))
-    }
-  }
-  contains(name) {
-    return this._names.indexOf(name) >= 0
-  }
-}
-class EnterNode {
-  constructor(parent, datum) {
-    this.ownerDocument = parent.ownerDocument
-    this.namespaceURI = parent.namespaceURI
-    this._next = null
-    this._parent = parent
-    this.__data__ = datum
-  }
-  appendChild(child) {
-    return this._parent.insertBefore(child, this._next)
-  }
-  insertBefore(child, next) {
-    return this._parent.insertBefore(child, next)
-  }
-  querySelector(selector) {
-    return this._parent.querySelector(selector)
-  }
-  querySelectorAll(selector) {
-    return this._parent.querySelectorAll(selector)
-  }
-}
 export const root = [null]
 export const selection: qt.SelectionFn = () => {
   return new Selection([[document.documentElement]], root)
 }
 
-export class Selection {
+export class Selection implements qt.Selection {
   constructor(groups, parents) {
     this._groups = groups
     this._parents = parents
@@ -257,35 +207,62 @@ export class Selection {
     callback.apply(null, arguments)
     return this
   }
-  classed(name, value) {
-    const add = (node, names) => {
-      const cs = classList(node)
-      const n = names.length
-      let i = -1
-      while (++i < n) cs.add(names[i])
+  classed(k: string, v?: any) {
+    const array = (x: string) => x.trim().split(/^|\s+/)
+    class List {
+      ns: string[]
+      constructor(public elem: Element) {
+        this.ns = array(elem.getAttribute("class") || "")
+      }
+      add(x: string) {
+        const i = this.ns.indexOf(x)
+        if (i < 0) {
+          this.ns.push(x)
+          this.elem.setAttribute("class", this.ns.join(" "))
+        }
+      }
+      remove(x: string) {
+        const i = this.ns.indexOf(x)
+        if (i >= 0) {
+          this.ns.splice(i, 1)
+          this.elem.setAttribute("class", this.ns.join(" "))
+        }
+      }
+      contains(x: string) {
+        return this.ns.indexOf(x) >= 0
+      }
     }
-    const remove = (node, names) => {
-      const cs = classList(node)
-      const n = names.length
-      let i = -1
-      while (++i < n) cs.remove(names[i])
+    const list = (x: Element) => x.classList || new List(x)
+    const add = (x: Element, ns: string[]) => {
+      const cs = list(x)
+      ns.forEach(n => {
+        cs.add(n)
+      })
     }
-    const classedTrue = names => () => add(this, names)
-    const classedFalse = names => () => remove(this, names)
-    const func = (names, value) => () => {
-      ;(value.apply(this, arguments) ? add : remove)(this, names)
+    const remove = (x: Element, ns: string[]) => {
+      const cs = list(x)
+      ns.forEach(n => {
+        cs.remove(n)
+      })
     }
-    const names = classArray(name + "")
-    if (arguments.length < 2) {
-      const cs = classList(this.node())
-      const n = names.length
-      let i = -1
-      while (++i < n) if (!cs.contains(names[i])) return false
+    const addF = (ns: string[]) => () => add(this, ns)
+    const removeF = (ns: string[]) => () => remove(this, ns)
+    const func =
+      (ns: string[], f: Function) =>
+      (...xs: any[]) => {
+        ;(f.apply(this, ...xs) ? add : remove)(this, ns)
+      }
+    const ks = array(k + "")
+    if (v === undefined) {
+      const cs = list(this.node())
+      for (const k of ks) {
+        if (!cs.contains(k)) return false
+      }
       return true
     }
-    return this.each((typeof value === "function" ? func : value ? classedTrue : classedFalse)(names, value))
+    return this.each((typeof v === "function" ? func : v ? addF : removeF)(ks, v))
   }
-  clone(deep) {
+  clone(d: boolean) {
     const shallow = () => {
       const r = this.cloneNode(false)
       const x = this.parentNode
@@ -296,13 +273,35 @@ export class Selection {
       const x = this.parentNode
       return x ? x.insertBefore(r, this.nextSibling) : r
     }
-    return this.select(deep ? deep : shallow)
+    return this.select(d ? deep : shallow)
   }
   data(value, key) {
     function datum(node) {
       return node.__data__
     }
     if (!arguments.length) return Array.from(this, datum)
+    class EnterElem implements qt.EnterElem {
+      ownerDocument: Document
+      namespaceURI: string
+      next: Node | null = null
+      constructor(public parent: any, data: any) {
+        this.ownerDocument = parent.ownerDocument
+        this.namespaceURI = parent.namespaceURI
+        this.__data__ = data
+      }
+      appendChild(x: Node) {
+        return this.parent.insertBefore(x, this.next)
+      }
+      insertBefore(x: Node, next: Node) {
+        return this.parent.insertBefore(x, next)
+      }
+      querySelector(x: string) {
+        return this.parent.querySelector(x)
+      }
+      querySelectorAll(x: string) {
+        return this.parent.querySelectorAll(x)
+      }
+    }
     function index(parent, group, enter, update, exit, data) {
       let i = 0,
         node,
@@ -313,7 +312,7 @@ export class Selection {
           node.__data__ = data[i]
           update[i] = node
         } else {
-          enter[i] = new EnterNode(parent, data[i])
+          enter[i] = new EnterElem(parent, data[i])
         }
       }
       for (; i < groupLength; ++i) {
@@ -347,7 +346,7 @@ export class Selection {
           node.__data__ = data[i]
           nodeByKeyValue.delete(keyValue)
         } else {
-          enter[i] = new EnterNode(parent, data[i])
+          enter[i] = new EnterElem(parent, data[i])
         }
       }
       for (i = 0; i < groupLength; ++i) {

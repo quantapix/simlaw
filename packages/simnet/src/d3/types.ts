@@ -1463,20 +1463,21 @@ export interface ScalePoint<Domain extends { toString(): string }> {
   copy(): this
 }
 
-export type BaseType = Element | EnterElement | Document | Window | null
+export type BaseType = Element | EnterElem | Document | Window | null
 export type KeyType = string | number
+
 export interface ArrayLike<T> {
   length: number
   item(i: number): T | null
   [i: number]: T
 }
-export interface EnterElement {
+export interface EnterElem {
   ownerDocument: Document
   namespaceURI: string
-  appendChild(newChild: Node): Node
-  insertBefore(newChild: Node, refChild: Node): Node
-  querySelector(selectors: string): Element
-  querySelectorAll(selectors: string): NodeListOf<Element>
+  appendChild(x: Node): Node
+  insertBefore(x: Node, next: Node): Node
+  querySelector(x: string): Element
+  querySelectorAll(x: string): NodeListOf<Element>
 }
 export type ContainerElement = HTMLElement | SVGSVGElement | SVGGElement
 export interface ClientPointEvent {
@@ -1532,9 +1533,9 @@ export interface Selection<B extends BaseType, T, PElement extends BaseType, P> 
       | ReadonlyArray<string | number>
       | ValueFn<B, T, null | string | number | boolean | ReadonlyArray<string | number>>
   ): this
-  classed(names: string): boolean
-  classed(names: string, value: boolean): this
-  classed(names: string, value: ValueFn<B, T, boolean>): this
+  classed(k: string): boolean
+  classed(k: string, v: boolean): this
+  classed(k: string, f: ValueFn<B, T, boolean>): this
   style(name: string): string
   style(name: string, value: null): this
   style(name: string, value: string | number | boolean, priority?: null | "important"): this
@@ -1580,12 +1581,12 @@ export interface Selection<B extends BaseType, T, PElement extends BaseType, P> 
     enter:
       | string
       | ((
-          elem: Selection<EnterElement, T, PElement, P>
+          elem: Selection<EnterElem, T, PElement, P>
         ) => Selection<ChildElement, T, PElement, P> | TransitionLike<B, T>),
     update?: (elem: Selection<B, T, PElement, P>) => Selection<B, T, PElement, P> | TransitionLike<B, T> | undefined,
     exit?: (elem: Selection<B, OldDatum, PElement, P>) => void
   ): Selection<ChildElement | B, T, PElement, P>
-  enter(): Selection<EnterElement, T, PElement, P>
+  enter(): Selection<EnterElem, T, PElement, P>
   exit<OldDatum>(): Selection<B, OldDatum, PElement, P>
   datum(): T
   datum(value: null): Selection<B, undefined, PElement, P>
