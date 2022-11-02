@@ -11,9 +11,6 @@ export function area(ring) {
   while (++i < n) area += ring[i - 1][1] * ring[i][0] - ring[i - 1][0] * ring[i][1]
   return area
 }
-export function ascending(a, b) {
-  return a - b
-}
 export function contains(ring, hole) {
   let i = -1,
     n = hole.length,
@@ -155,7 +152,7 @@ export function contours(): qt.Contours {
         ts = tickStep(e[0], e[1], tz)
       tz = ticks(Math.floor(e[0] / ts) * ts, Math.floor(e[1] / ts - 1) * ts, tz)
     } else {
-      tz = tz.slice().sort(ascending)
+      tz = tz.slice().sort(qu.ascending)
     }
     return tz.map(value => contour(values, value))
   }

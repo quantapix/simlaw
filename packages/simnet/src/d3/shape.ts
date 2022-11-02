@@ -339,9 +339,6 @@ export function array(x) {
     ? x // Array, TypedArray, NodeList, array-like
     : Array.from(x) // Map, Set, iterable, string, or anything else
 }
-export function descending(a, b) {
-  return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN
-}
 export function line<T = [number, number]>(
   x?: number | ((d: T, i: number, data: T[]) => number),
   y?: number | ((d: T, i: number, data: T[]) => number)
@@ -482,7 +479,7 @@ export function pie<T>(): qt.Pie<any, T>
 export function pie<This, T>(): qt.Pie<This, T>
 export function pie() {
   let value = qu.identity,
-    sortValues = descending,
+    sortValues = qu.descending,
     sort = null,
     startAngle = qu.constant(0),
     endAngle = qu.constant(tau),

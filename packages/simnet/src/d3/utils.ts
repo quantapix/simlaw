@@ -14,6 +14,14 @@ export const constant =
   () =>
     x
 
+export function ascending(a?: qt.Primitive, b?: qt.Primitive) {
+  return a == undefined || b == undefined ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
+}
+
+export function descending(a?: qt.Primitive, b?: qt.Primitive) {
+  return a == undefined || b == undefined ? NaN : b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN
+}
+
 export function area(xs: Array<[number, number]>): number {
   const n = xs.length
   let r = 0,

@@ -677,8 +677,7 @@ export class Selection implements qt.Selection {
     return size
   }
   sort(cmp) {
-    const ascending = (a, b) => (a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN)
-    if (!cmp) cmp = ascending
+    if (!cmp) cmp = qu.ascending
     const cmp2 = (a, b) => (a && b ? cmp(a.__data__, b.__data__) : !a - !b)
     for (let groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
       for (

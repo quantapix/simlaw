@@ -1,4 +1,4 @@
-import { ascending, bisect, quantile, quantileSorted as threshold } from "./array.js"
+import { bisect, quantile, quantileSorted as threshold } from "./array.js"
 import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix, precisionRound } from "./format.js"
 import { InternMap } from "./array.js"
 import { interpolate as interpolateValue, interpolateNumber, interpolateRound } from "./interpolate.js"
@@ -714,7 +714,7 @@ export function quantile(...xs: any[]) {
     if (!arguments.length) return domain.slice()
     domain = []
     for (let d of _) if (d != null && !isNaN((d = +d))) domain.push(d)
-    domain.sort(ascending)
+    domain.sort(qu.ascending)
     return rescale()
   }
   f.range = function (_) {
@@ -950,7 +950,7 @@ export function sequentialQuantile(...xs: any[]) {
     if (!arguments.length) return domain.slice()
     domain = []
     for (let d of _) if (d != null && !isNaN((d = +d))) domain.push(d)
-    domain.sort(ascending)
+    domain.sort(qu.ascending)
     return f
   }
   f.interpolator = function (_) {
