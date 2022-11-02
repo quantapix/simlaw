@@ -579,8 +579,8 @@ export interface Force<N extends SimNode, L extends SimLink<N> | undefined> {
   (alpha?: number): void
   init?(xs: N[], f: () => number): void
 }
+export type Op<T, R = number> = (x: T, i: number, xs: T[]) => R
 export namespace Force {
-  export type Op<T, R = number> = (x: T, i: number, xs: T[]) => R
   export interface Center<N extends SimNode> extends Force<N, any> {
     init(xs: N[], f: () => number): void
     strength(): number
