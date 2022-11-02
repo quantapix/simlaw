@@ -1,4 +1,4 @@
-import { bisector, tickStep } from "./array.js"
+import { bisector, tickStep } from "./utils_seq.js"
 import type * as qt from "./types.js"
 
 const t0 = new Date(),

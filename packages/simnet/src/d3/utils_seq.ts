@@ -1,6 +1,151 @@
 import * as qt from "./types.js"
 import * as qu from "./utils.js"
 
+export type Comp<S, T = S, R = number> = (a: S, b: T) => R
+
+export namespace comp {
+  export function cross<S, T>(a: Iterable<S>, b: Iterable<T>): Array<[S, T]>
+  export function cross<S, T, R>(a: Iterable<S>, b: Iterable<T>, f: Comp<S, T, R>): R[]
+  export function cross(...xs: any[]) {
+    const f = typeof xs[xs.length - 1] === "function" && reducer(xs.pop())
+    xs = xs.map(qu.array)
+    const lengths = xs.map(length)
+    const j = xs.length - 1
+    const index = new Array(j + 1).fill(0)
+    const ys: any[] = []
+    if (j < 0 || lengths.some(empty)) return ys
+    while (true) {
+      ys.push(index.map((j, i) => xs[i][j]))
+      let i = j
+      while (++index[i] === lengths[i]) {
+        if (i === 0) return f ? ys.map(f) : ys
+        index[i--] = 0
+      }
+    }
+  }
+  export function greatest<T>(xs: Iterable<T>, f?: Comp<T>): T | undefined
+  export function greatest<T>(xs: Iterable<T>, f: (a: T) => unknown): T | undefined
+  export function greatest(xs: any, f: any = qu.ascending) {
+    let y
+    let defined = false
+    if (f.length === 1) {
+      let max
+      for (const x of xs) {
+        const x2 = f(x)
+        if (defined ? qu.ascending(x2, max) > 0 : qu.ascending(x2, x2) === 0) {
+          y = x
+          max = x2
+          defined = true
+        }
+      }
+    } else {
+      for (const x of xs) {
+        if (defined ? f(x, y) > 0 : f(x, x) === 0) {
+          y = x
+          defined = true
+        }
+      }
+    }
+    return y
+  }
+  export function greatestIndex(xs: Iterable<unknown>): number | undefined
+  export function greatestIndex<T>(xs: Iterable<T>, f: Comp<T>): number | undefined
+  export function greatestIndex<T>(xs: Iterable<T>, f: (a: T) => unknown): number | undefined
+  export function greatestIndex(xs: any, f: any = qu.ascending) {
+    if (f.length === 1) return each.maxIndex(xs, f)
+    let max
+    let y = -1
+    let i = -1
+    for (const x of xs) {
+      ++i
+      if (y < 0 ? f(x, x) === 0 : f(x, max) > 0) {
+        max = x
+        y = i
+      }
+    }
+    return y
+  }
+  export function least<T>(xs: Iterable<T>, f?: Comp<T>): T | undefined
+  export function least<T>(xs: Iterable<T>, f: (a: T) => unknown): T | undefined
+  export function least(xs: any, f: any = qu.ascending) {
+    let y
+    let defined = false
+    if (f.length === 1) {
+      let min
+      for (const x of xs) {
+        const x2 = f(x)
+        if (defined ? qu.ascending(x2, min) < 0 : qu.ascending(x2, x2) === 0) {
+          y = x
+          min = x2
+          defined = true
+        }
+      }
+    } else {
+      for (const x of xs) {
+        if (defined ? f(x, y) < 0 : f(x, x) === 0) {
+          y = x
+          defined = true
+        }
+      }
+    }
+    return y
+  }
+  export function leastIndex(xs: Iterable<unknown>): number | undefined
+  export function leastIndex<T>(xs: Iterable<T>, f: Comp<T>): number | undefined
+  export function leastIndex<T>(xs: Iterable<T>, f: (a: T) => unknown): number | undefined
+  export function leastIndex(xs: any, f: any = qu.ascending) {
+    if (f.length === 1) return each.minIndex(xs, f)
+    let min
+    let y = -1
+    let i = -1
+    for (const x of xs) {
+      ++i
+      if (y < 0 ? f(x, x) === 0 : f(x, min) < 0) {
+        min = x
+        y = i
+      }
+    }
+    return y
+  }
+  export function pairs<T, R>(xs: Iterable<T>, f: Comp<T, T, R>): R[]
+  export function pairs<T>(xs: Iterable<T>): Array<[T, T]>
+  export function pairs(xs: any, f = (a: any, b: any) => [a, b]) {
+    const y = []
+    let x0
+    let first = false
+    for (const x of xs) {
+      if (first) y.push(f(x0, x))
+      x0 = x
+      first = true
+    }
+    return y
+  }
+  export function sort<T>(xs: Iterable<T>, ...fs: Array<(a: T) => unknown>): T[]
+  export function sort<T>(xs: Iterable<T>, f?: Comp<T>): T[]
+  export function sort(xs: any, ...fs: any[]) {
+    xs = Array.from(xs)
+    let [f] = fs
+    if ((f && f.length !== 2) || fs.length > 1) {
+      const idx = Uint32Array.from(xs, (_, i) => i)
+      if (fs.length > 1) {
+        fs = fs.map(f => xs.map(f))
+        idx.sort((i, j) => {
+          for (const f of fs) {
+            const c = ascendingDefined(f[i], f[j])
+            if (c) return c
+          }
+          return 0
+        })
+      } else {
+        f = xs.map(f)
+        idx.sort((i, j) => ascendingDefined(f[i], f[j]))
+      }
+      return permute(xs, idx)
+    }
+    return xs.sort(compareDefined(f))
+  }
+}
+
 export type Each<T, R = number | undefined> = (x: T, i: number, xs: Iterable<T>) => R
 
 export namespace each {
@@ -27,7 +172,6 @@ export namespace each {
     let i = 0
     return Float64Array.from(xs, f === undefined ? x => (y += +x || 0) : x => (y += +f(x, i++, xs) || 0))
   }
-
   export function deviation(xs: Iterable<qt.Numeric | undefined>): number | undefined
   export function deviation<T>(xs: Iterable<T>, f: Each<T>): number | undefined
   export function deviation(xs: any, f?: any) {
@@ -359,6 +503,69 @@ export namespace each {
   }
 }
 
+export namespace set {
+  export function difference<T>(xs: Iterable<T>, ...zss: Array<Iterable<T>>): Set<T> {
+    const ys = new Set<T>(xs)
+    for (const zs of zss) {
+      for (const z of zs) {
+        ys.delete(z)
+      }
+    }
+    return ys
+  }
+  export function disjoint<T>(xs: Iterable<T>, zs: Iterable<T>): boolean {
+    const it = zs[Symbol.iterator]()
+    const y = new Set<T>()
+    for (const x of xs) {
+      if (y.has(x)) return false
+      let value, done
+      while (({ value, done } = it.next())) {
+        if (done) break
+        if (Object.is(x, value)) return false
+        y.add(value)
+      }
+    }
+    return true
+  }
+  export function intersection<T>(x: Iterable<T>, ...xs: Array<Iterable<T>>): Set<T> {
+    const ys = new Set<T>(x)
+    const xs2: Set<T>[] = xs.map(x => (x instanceof Set ? x : new Set<T>(x)))
+    out: for (const y of ys) {
+      for (const x of xs2) {
+        if (!x.has(y)) {
+          ys.delete(y)
+          continue out
+        }
+      }
+    }
+    return ys
+  }
+  export function transpose<T>(xs: ArrayLike<ArrayLike<T>>): T[][] {
+    const n = xs.length
+    if (!n) return []
+    const m = min(xs, length)
+    const y = new Array(m)
+    for (let i = -1; ++i < m; ) {
+      for (let j = -1, row = (y[i] = new Array(n)); ++j < n; ) {
+        row[j] = xs[j][i]
+      }
+    }
+    return y
+  }
+  export function union<T>(...xs: Array<Iterable<T>>): Set<T> {
+    const y = new Set<T>()
+    for (const x of xs) {
+      for (const x2 of x) {
+        y.add(x2)
+      }
+    }
+    return y
+  }
+  export function zip<T>(...xs: Array<ArrayLike<T>>): T[][] {
+    return transpose(xs)
+  }
+}
+
 const array = Array.prototype
 export const slice = array.slice
 export const map = array.map
@@ -620,49 +827,6 @@ function empty(length) {
 function reducer(reduce) {
   return values => reduce(...values)
 }
-export function cross<S, T>(a: Iterable<S>, b: Iterable<T>): Array<[S, T]>
-export function cross<S, T, U>(a: Iterable<S>, b: Iterable<T>, reducer: (a: S, b: T) => U): U[]
-export function cross(...values) {
-  const reduce = typeof values[values.length - 1] === "function" && reducer(values.pop())
-  values = values.map(qu.array)
-  const lengths = values.map(length)
-  const j = values.length - 1
-  const index = new Array(j + 1).fill(0)
-  const product = []
-  if (j < 0 || lengths.some(empty)) return product
-  while (true) {
-    product.push(index.map((j, i) => values[i][j]))
-    let i = j
-    while (++index[i] === lengths[i]) {
-      if (i === 0) return reduce ? product.map(reduce) : product
-      index[i--] = 0
-    }
-  }
-}
-export function difference<T>(xs: Iterable<T>, ...others: Array<Iterable<T>>): qt.InternSet<T>
-export function difference(values, ...others) {
-  values = new qt.InternSet(values)
-  for (const other of others) {
-    for (const value of other) {
-      values.delete(value)
-    }
-  }
-  return values
-}
-export function disjoint<T>(xs: Iterable<T>, other: Iterable<T>): boolean {
-  const it = other[Symbol.iterator]()
-  const y = new qt.InternSet()
-  for (const x of xs) {
-    if (y.has(x)) return false
-    let value, done
-    while (({ value, done } = it.next())) {
-      if (done) break
-      if (Object.is(x, value)) return false
-      y.add(value)
-    }
-  }
-  return true
-}
 export class Adder implements qt.Adder {
   constructor() {
     this._partials = new Float64Array(32)
@@ -706,48 +870,6 @@ export class Adder implements qt.Adder {
     }
     return hi
   }
-}
-export function greatest<T>(xs: Iterable<T>, comparator?: (a: T, b: T) => number): T | undefined
-export function greatest<T>(xs: Iterable<T>, accessor: (a: T) => unknown): T | undefined
-export function greatest(xs: any, f: Function = qu.ascending) {
-  let y
-  let defined = false
-  if (f.length === 1) {
-    let max
-    for (const x of xs) {
-      const x2 = f(x)
-      if (defined ? qu.ascending(x2, max) > 0 : qu.ascending(x2, x2) === 0) {
-        y = x
-        max = x2
-        defined = true
-      }
-    }
-  } else {
-    for (const x of xs) {
-      if (defined ? f(x, y) > 0 : f(x, x) === 0) {
-        y = x
-        defined = true
-      }
-    }
-  }
-  return y
-}
-export function greatestIndex(xs: Iterable<unknown>): number | undefined
-export function greatestIndex<T>(xs: Iterable<T>, f: (a: T, b: T) => number): number | undefined
-export function greatestIndex<T>(xs: Iterable<T>, f: (a: T) => unknown): number | undefined
-export function greatestIndex(xs: any, f: Function = qu.ascending) {
-  if (f.length === 1) return maxIndex(xs, f)
-  let max
-  let y = -1
-  let i = -1
-  for (const x of xs) {
-    ++i
-    if (y < 0 ? f(x, x) === 0 : f(x, max) > 0) {
-      max = x
-      y = i
-    }
-  }
-  return y
 }
 export function group<T, K>(xs: Iterable<T>, k: (x: T) => K): qt.InternMap<K, T[]>
 export function group<T, K1, K2>(
@@ -900,65 +1022,6 @@ export function groupSort(xs: any, f: Function, key: Function) {
       : sort(group(xs, key), ([ak, av], [bk, bv]) => f(av, bv) || qu.ascending(ak, bk))
   ).map(([key]) => key)
 }
-export function intersection<T>(...xs: Array<Iterable<T>>): qt.InternSet<T>
-export function intersection(x: any, ...xs: any) {
-  const ys = new qt.InternSet(x)
-  xs = xs.map(set)
-  out: for (const y of ys) {
-    for (const x of xs) {
-      if (!x.has(y)) {
-        ys.delete(y)
-        continue out
-      }
-    }
-  }
-  return ys
-}
-function set(xs: any) {
-  return xs instanceof qt.InternSet ? xs : new qt.InternSet(xs)
-}
-export function least<T>(xs: Iterable<T>, f?: (a: T, b: T) => number): T | undefined
-export function least<T>(xs: Iterable<T>, f: (a: T) => unknown): T | undefined
-export function least(xs: any, f: Function = qu.ascending) {
-  let y
-  let defined = false
-  if (f.length === 1) {
-    let min
-    for (const x of xs) {
-      const x2 = f(x)
-      if (defined ? qu.ascending(x2, min) < 0 : qu.ascending(x2, x2) === 0) {
-        y = x
-        min = x2
-        defined = true
-      }
-    }
-  } else {
-    for (const x of xs) {
-      if (defined ? f(x, y) < 0 : f(x, x) === 0) {
-        y = x
-        defined = true
-      }
-    }
-  }
-  return y
-}
-export function leastIndex(xs: Iterable<unknown>): number | undefined
-export function leastIndex<T>(xs: Iterable<T>, f: (a: T, b: T) => number): number | undefined
-export function leastIndex<T>(xs: Iterable<T>, f: (a: T) => unknown): number | undefined
-export function leastIndex(xs: any, f: Function = qu.ascending) {
-  if (f.length === 1) return minIndex(xs, f)
-  let min
-  let y = -1
-  let i = -1
-  for (const x of xs) {
-    ++i
-    if (y < 0 ? f(x, x) === 0 : f(x, min) < 0) {
-      min = x
-      y = i
-    }
-  }
-  return y
-}
 export function medianIndex(xs: any, f: Function) {
   return quantileIndex(xs, 0.5, f)
 }
@@ -998,22 +1061,6 @@ export function* numbers(xs: any, f?: Function) {
       if ((x = f(x, ++i, xs)) !== undefined && (x = +x) >= x) yield x
     }
   }
-}
-export function pairs<T, U>(xs: Iterable<T>, reducer: (a: T, b: T) => U): U[]
-export function pairs<T>(xs: Iterable<T>): Array<[T, T]>
-export function pairs(xs: any, f = pair) {
-  const y = []
-  let x0
-  let first = false
-  for (const x of xs) {
-    if (first) y.push(f(x0, x))
-    x0 = x
-    first = true
-  }
-  return y
-}
-export function pair(a: any, b: any) {
-  return [a, b]
 }
 export function permute<T, K extends keyof T>(x: T, ks: Iterable<K>): Array<T[K]>
 export function permute<T>(x: { [key: number]: T }, ks: Iterable<number>): T[]
@@ -1125,30 +1172,6 @@ export function shuffler(rand: () => number) {
   return shuffle
 }
 export const shuffle = shuffler(Math.random)
-export function sort<T>(xs: Iterable<T>, ...fs: Array<(a: T) => unknown>): T[]
-export function sort<T>(xs: Iterable<T>, f?: (a: T, b: T) => number): T[]
-export function sort(xs: any, ...F) {
-  if (typeof xs[Symbol.iterator] !== "function") throw new TypeError("values is not iterable")
-  xs = Array.from(xs)
-  let [f] = F
-  if ((f && f.length !== 2) || F.length > 1) {
-    const idx = Uint32Array.from(xs, (d, i) => i)
-    if (F.length > 1) {
-      F = F.map(f => xs.map(f))
-      idx.sort((i, j) => {
-        for (const f of F) {
-          const c = ascendingDefined(f[i], f[j])
-          if (c) return c
-        }
-      })
-    } else {
-      f = xs.map(f)
-      idx.sort((i, j) => ascendingDefined(f[i], f[j]))
-    }
-    return permute(xs, idx)
-  }
-  return xs.sort(compareDefined(f))
-}
 function compareDefined(f = qu.ascending) {
   if (f === qu.ascending) return ascendingDefined
   if (typeof f !== "function") throw new TypeError("compare is not a function")
@@ -1167,6 +1190,7 @@ export function subset<T>(a: Iterable<T>, b: Iterable<T>) {
 export function superset<T>(a: Iterable<T>, b: Iterable<T>) {
   const it = a[Symbol.iterator]()
   const y = new Set()
+  const intern = (x: any) => (x !== undefined && typeof x === "object" ? x.valueOf() : x)
   for (const v of b) {
     const v1 = intern(v)
     if (y.has(v1)) continue
@@ -1179,9 +1203,6 @@ export function superset<T>(a: Iterable<T>, b: Iterable<T>) {
     }
   }
   return true
-}
-function intern(x: any) {
-  return x !== undefined && typeof x === "object" ? x.valueOf() : x
 }
 
 const e10 = Math.sqrt(50)
@@ -1232,29 +1253,6 @@ export function tickStep(start: number, stop: number, count: number) {
   else if (e >= e5) y *= 5
   else if (e >= e2) y *= 2
   return stop < start ? -y : y
-}
-export function transpose<T>(xs: ArrayLike<ArrayLike<T>>): T[][] {
-  if (!(n = xs.length)) return []
-  const m = min(xs, length)
-  const y = new Array(m)
-  for (let i = -1; ++i < m; ) {
-    for (let j = -1, n, row = (y[i] = new Array(n)); ++j < n; ) {
-      row[j] = xs[j][i]
-    }
-  }
-  return y
-}
-export function union<T>(...xs: Array<Iterable<T>>): qt.InternSet<T> {
-  const y = new qt.InternSet()
-  for (const x of xs) {
-    for (const x2 of x) {
-      y.add(x2)
-    }
-  }
-  return y
-}
-export function zip<T>(...xs: Array<ArrayLike<T>>): T[][] {
-  return transpose(xs)
 }
 export function thresholdFreedmanDiaconis(xs: ArrayLike<number | undefined>, min: number, max: number) {
   return Math.ceil((max - min) / (2 * (quantile(xs, 0.75) - quantile(xs, 0.25)) * Math.pow(count(xs), -1 / 3)))

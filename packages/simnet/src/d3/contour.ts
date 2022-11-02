@@ -1,6 +1,6 @@
-import { extent, thresholdSturges, ticks, tickStep } from "./array.js"
-import { slice } from "./array.js"
-import { blur2, max } from "./array.js"
+import { extent, thresholdSturges, ticks, tickStep } from "./utils_seq.js"
+import { slice } from "./utils_seq.js"
+import { blur2, max } from "./utils_seq.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 

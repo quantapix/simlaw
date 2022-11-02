@@ -48,6 +48,7 @@ export interface HistogramGeneratorNumber<T, U extends number | undefined> exten
 }
 export class InternMap<K = any, V = any> extends Map<K, V> {}
 export class InternSet<T = any> extends Set<T> {}
+
 export type AxisDomain = number | string | Date | { valueOf(): number }
 export interface AxisTimeInterval {
   range(start: Date, stop: Date, step?: number): Date[]
