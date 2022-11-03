@@ -1159,61 +1159,61 @@ export interface Quadtree<T> {
   y(y: (t: T) => number): this
 }
 
-export interface RandomNumberGenerationSource {
-  source(source: () => number): this
+export interface RandomSrc {
+  source(f: () => number): this
 }
-export interface RandomUniform extends RandomNumberGenerationSource {
-  (max?: number): () => number
-  (min: number, max: number): () => number
+export interface RandIrwinHall extends RandomSrc {
+  (n: number): () => number
 }
-export interface RandomInt extends RandomNumberGenerationSource {
+export interface RandBates extends RandomSrc {
+  (n: number): () => number
+}
+export interface RandBernoulli extends RandomSrc {
+  (p: number): () => number
+}
+export interface RandNormal extends RandomSrc {
+  (mu?: number, sigma?: number): () => number
+}
+export interface RandGamma extends RandomSrc {
+  (k: number, theta?: number): () => number
+}
+export interface RandBeta extends RandomSrc {
+  (alpha: number, beta: number): () => number
+}
+export interface RandGeometric extends RandomSrc {
+  (p: number): () => number
+}
+export interface RandBinomial extends RandomSrc {
+  (n: number, p: number): () => number
+}
+export interface RandCauchy extends RandomSrc {
+  (a?: number, b?: number): () => number
+}
+export interface RandExponential extends RandomSrc {
+  (lambda: number): () => number
+}
+export interface RandInt extends RandomSrc {
   (max: number): () => number
   (min: number, max: number): () => number
 }
-export interface RandomNormal extends RandomNumberGenerationSource {
+export interface RandLogNormal extends RandomSrc {
   (mu?: number, sigma?: number): () => number
 }
-export interface RandomLogNormal extends RandomNumberGenerationSource {
-  (mu?: number, sigma?: number): () => number
+export interface RandLogistic extends RandomSrc {
+  (a?: number, b?: number): () => number
 }
-export interface RandomBates extends RandomNumberGenerationSource {
-  (n: number): () => number
-}
-export interface RandomIrwinHall extends RandomNumberGenerationSource {
-  (n: number): () => number
-}
-export interface RandomExponential extends RandomNumberGenerationSource {
-  (lambda: number): () => number
-}
-export interface RandomPareto extends RandomNumberGenerationSource {
+export interface RandPareto extends RandomSrc {
   (alpha: number): () => number
 }
-export interface RandomBernoulli extends RandomNumberGenerationSource {
-  (p: number): () => number
-}
-export interface RandomGeometric extends RandomNumberGenerationSource {
-  (p: number): () => number
-}
-export interface RandomBinomial extends RandomNumberGenerationSource {
-  (p: number): () => number
-}
-export interface RandomGamma extends RandomNumberGenerationSource {
-  (k: number, theta?: number): () => number
-}
-export interface RandomBeta extends RandomNumberGenerationSource {
-  (alpha: number, beta: number): () => number
-}
-export interface RandomWeibull extends RandomNumberGenerationSource {
-  (k: number, a?: number, b?: number): () => number
-}
-export interface RandomCauchy extends RandomNumberGenerationSource {
-  (a?: number, b?: number): () => number
-}
-export interface RandomLogistic extends RandomNumberGenerationSource {
-  (a?: number, b?: number): () => number
-}
-export interface RandomPoisson extends RandomNumberGenerationSource {
+export interface RandPoisson extends RandomSrc {
   (lambda: number): () => number
+}
+export interface RandUniform extends RandomSrc {
+  (max?: number): () => number
+  (min: number, max: number): () => number
+}
+export interface RandWeibull extends RandomSrc {
+  (k: number, a?: number, b?: number): () => number
 }
 
 export interface InterpolatorFactory<T, U> {
