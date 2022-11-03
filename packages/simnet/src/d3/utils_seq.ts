@@ -863,139 +863,141 @@ export class Adder implements qt.Adder {
     return hi
   }
 }
-export function group<T, K>(xs: Iterable<T>, k: (x: T) => K): Map<K, T[]>
-export function group<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Map<K1, Map<K2, T[]>>
+export type Proj<T, R> = (x: T) => R
+
+export function group<T, K>(xs: Iterable<T>, k: Proj<T, K>): Map<K, T[]>
+export function group<T, K1, K2>(xs: Iterable<T>, k1: Proj<T, K1>, k2: Proj<T, K2>): Map<K1, Map<K2, T[]>>
 export function group<T, K1, K2, K3>(
   xs: Iterable<T>,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2,
-  k3: (x: T) => K3
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>,
+  k3: Proj<T, K3>
 ): Map<K1, Map<K2, Map<K3, T[]>>>
 export function group(xs: any, ...ks: any) {
   return nest(xs, qu.identity, qu.identity, ks)
 }
-export function groups<T, K>(xs: Iterable<T>, k: (x: T) => K): Array<[K, T[]]>
-export function groups<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Array<[K1, Array<[K2, T[]]>]>
+export function groups<T, K>(xs: Iterable<T>, k: Proj<T, K>): Array<[K, T[]]>
+export function groups<T, K1, K2>(xs: Iterable<T>, k1: Proj<T, K1>, k2: Proj<T, K2>): Array<[K1, Array<[K2, T[]]>]>
 export function groups<T, K1, K2, K3>(
   xs: Iterable<T>,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2,
-  k3: (x: T) => K3
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>,
+  k3: Proj<T, K3>
 ): Array<[K1, Array<[K2, Array<[K3, T[]]>]>]>
 export function groups(xs: any, ...ks: any) {
   return nest(xs, Array.from, qu.identity, ks)
 }
-function flatten(xs, ks) {
+function flatten(xs: any[], ks: any) {
   for (let i = 1, n = ks.length; i < n; ++i) {
-    xs = xs.flatMap(x => x.pop().map(([k, v]) => [...x, k, v]))
+    xs = xs.flatMap(x => x.pop().map(([k, v]: [any, any]) => [...x, k, v]))
   }
   return xs
 }
-export function flatGroup<T, K>(xs: Iterable<T>, k: (x: T) => K): Array<[K, T[]]>
-export function flatGroup<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Array<[K1, K2, T[]]>
+export function flatGroup<T, K>(xs: Iterable<T>, k: Proj<T, K>): Array<[K, T[]]>
+export function flatGroup<T, K1, K2>(xs: Iterable<T>, k1: Proj<T, K1>, k2: Proj<T, K2>): Array<[K1, K2, T[]]>
 export function flatGroup<T, K1, K2, K3>(
   xs: Iterable<T>,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2,
-  k3: (x: T) => K3
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>,
+  k3: Proj<T, K3>
 ): Array<[K1, K2, K3, T[]]>
 export function flatGroup(xs: any, ...ks: any) {
   return flatten(groups(xs, ...ks), ks)
 }
-export function flatRollup<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: (x: T) => K): Array<[K, R]>
+export function flatRollup<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: Proj<T, K>): Array<[K, R]>
 export function flatRollup<T, R, K1, K2>(
   xs: Iterable<T>,
   f: (x: T[]) => R,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>
 ): Array<[K1, K2, R]>
 export function flatRollup<T, R, K1, K2, K3>(
   xs: Iterable<T>,
   f: (x: T[]) => R,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2,
-  k3: (x: T) => K3
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>,
+  k3: Proj<T, K3>
 ): Array<[K1, K2, K3, R]>
-export function flatRollup(xs: any, f: Function, ...ks: any) {
+export function flatRollup(xs: any, f: any, ...ks: any) {
   return flatten(rollups(xs, f, ...ks), ks)
 }
-export function rollup<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: (x: T) => K): Map<K, R>
+export function rollup<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: Proj<T, K>): Map<K, R>
 export function rollup<T, R, K1, K2>(
   xs: Iterable<T>,
   f: (x: T[]) => R,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>
 ): Map<K1, Map<K2, R>>
 export function rollup<T, R, K1, K2, K3>(
   xs: Iterable<T>,
   f: (x: T[]) => R,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2,
-  k3: (x: T) => K3
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>,
+  k3: Proj<T, K3>
 ): Map<K1, Map<K2, Map<K3, R>>>
-export function rollup(xs: any, f: Function, ...ks: any) {
+export function rollup(xs: any, f: any, ...ks: any) {
   return nest(xs, qu.identity, f, ks)
 }
-export function rollups<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: (x: T) => K): Array<[K, R]>
+export function rollups<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: Proj<T, K>): Array<[K, R]>
 export function rollups<T, R, K1, K2>(
   xs: Iterable<T>,
   f: (x: T[]) => R,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>
 ): Array<[K1, Array<[K2, R]>]>
 export function rollups<T, R, K1, K2, K3>(
   xs: Iterable<T>,
   f: (x: T[]) => R,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2,
-  k3: (x: T) => K3
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>,
+  k3: Proj<T, K3>
 ): Array<[K1, Array<[K2, Array<[K3, R]>]>]>
-export function rollups(xs: any, f: Function, ...ks: any) {
+export function rollups(xs: any, f: any, ...ks: any) {
   return nest(xs, Array.from, f, ks)
 }
-export function index<T, K>(xs: Iterable<T>, k: (x: T) => K): Map<K, T>
-export function index<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Map<K1, Map<K2, T>>
+export function index<T, K>(xs: Iterable<T>, k: Proj<T, K>): Map<K, T>
+export function index<T, K1, K2>(xs: Iterable<T>, k1: Proj<T, K1>, k2: Proj<T, K2>): Map<K1, Map<K2, T>>
 export function index<T, K1, K2, K3>(
   xs: Iterable<T>,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2,
-  k3: (x: T) => K3
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>,
+  k3: Proj<T, K3>
 ): Map<K1, Map<K2, Map<K3, T>>>
 export function index(xs: any, ...ks: any) {
   return nest(xs, qu.identity, unique, ks)
 }
-export function indexes<T, K>(xs: Iterable<T>, k: (x: T) => K): Array<[K, T]>
-export function indexes<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Array<[K1, Array<[K2, T]>]>
+export function indexes<T, K>(xs: Iterable<T>, k: Proj<T, K>): Array<[K, T]>
+export function indexes<T, K1, K2>(xs: Iterable<T>, k1: Proj<T, K1>, k2: Proj<T, K2>): Array<[K1, Array<[K2, T]>]>
 export function indexes<T, K1, K2, K3>(
   xs: Iterable<T>,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2,
-  k3: (x: T) => K3
+  k1: Proj<T, K1>,
+  k2: Proj<T, K2>,
+  k3: Proj<T, K3>
 ): Array<[K1, Array<[K2, Array<[K3, T]>]>]>
 export function indexes(xs: any, ...ks: any) {
   return nest(xs, Array.from, unique, ks)
 }
-function unique(values) {
-  if (values.length !== 1) throw new Error("duplicate key")
-  return values[0]
+function unique(xs: any[]) {
+  if (xs.length !== 1) throw new Error("duplicate key")
+  return xs[0]
 }
-function nest(values, map, reduce, ks: any[]) {
-  return (function regroup(values, i) {
-    if (i >= ks.length) return reduce(values)
-    const groups = new Map()
+function nest(xs: any, map: Function, reduce: Function, ks: any[]) {
+  return (function regroup(vs, i) {
+    if (i >= ks.length) return reduce(vs)
+    const gs = new Map()
     const keyof = ks[i++]
-    let index = -1
-    for (const value of values) {
-      const key = keyof(value, ++index, values)
-      const group = groups.get(key)
-      if (group) group.push(value)
-      else groups.set(key, [value])
+    let j = -1
+    for (const x of vs) {
+      const k = keyof(x, ++j, vs)
+      const g = gs.get(k)
+      if (g) g.push(x)
+      else gs.set(k, [x])
     }
-    for (const [key, values] of groups) {
-      groups.set(key, regroup(values, i))
+    for (const [k, vs] of gs) {
+      gs.set(k, regroup(vs, i))
     }
-    return map(groups)
-  })(values, 0)
+    return map(gs)
+  })(xs, 0)
 }
 export function groupSort<T, K>(xs: Iterable<T>, f: (a: T[], b: T[]) => number, key: (x: T) => K): K[]
 export function groupSort<T, K>(xs: Iterable<T>, f: (x: T[]) => unknown, key: (x: T) => K): K[]
