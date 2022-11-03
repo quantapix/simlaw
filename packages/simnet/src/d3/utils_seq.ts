@@ -1,4 +1,4 @@
-import * as qt from "./types.js"
+import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
 export type Comp<S, T = S, R = number> = (a: S, b: T) => R
@@ -9,11 +9,11 @@ export namespace comp {
   export function cross(...xs: any[]) {
     const f = typeof xs[xs.length - 1] === "function" && reducer(xs.pop())
     xs = xs.map(qu.array)
-    const lengths = xs.map(length)
+    const lengths = xs.map(x => x.length | 0)
     const j = xs.length - 1
     const index = new Array(j + 1).fill(0)
     const ys: any[] = []
-    if (j < 0 || lengths.some(empty)) return ys
+    if (j < 0 || lengths.some(x => x <= 0)) return ys
     while (true) {
       ys.push(index.map((j, i) => xs[i][j]))
       let i = j
@@ -543,7 +543,7 @@ export namespace set {
   export function transpose<T>(xs: ArrayLike<ArrayLike<T>>): T[][] {
     const n = xs.length
     if (!n) return []
-    const m = min(xs, length)
+    const m = each.min(xs, (x: any) => x.length | 0)
     const y = new Array(m)
     for (let i = -1; ++i < m; ) {
       for (let j = -1, row = (y[i] = new Array(n)); ++j < n; ) {
@@ -818,51 +818,43 @@ function bluri(radius) {
     }
   }
 }
-function length(x: any) {
-  return x.length | 0
-}
-function empty(length) {
-  return !(length > 0)
-}
 function reducer(reduce) {
   return values => reduce(...values)
 }
 export class Adder implements qt.Adder {
-  constructor() {
-    this._partials = new Float64Array(32)
-    this._n = 0
-  }
-  add(x) {
-    const p = this._partials
+  n = 0
+  xs = new Float64Array(32)
+  add(x: number) {
     let i = 0
-    for (let j = 0; j < this._n && j < 32; j++) {
-      const y = p[j],
-        hi = x + y,
-        lo = Math.abs(x) < Math.abs(y) ? x - (hi - y) : y - (hi - x)
-      if (lo) p[i++] = lo
+    const xs = this.xs
+    for (let j = 0; j < this.n && j < 32; j++) {
+      const y = xs[j]!
+      const hi = x + y
+      const lo = Math.abs(x) < Math.abs(y) ? x - (hi - y) : y - (hi - x)
+      if (lo) xs[i++] = lo
       x = hi
     }
-    p[i] = x
-    this._n = i + 1
+    xs[i] = x
+    this.n = i + 1
     return this
   }
   valueOf() {
-    const p = this._partials
-    let n = this._n,
+    const xs = this.xs
+    let n = this.n,
       x,
       y,
-      lo,
       hi = 0
     if (n > 0) {
-      hi = p[--n]
+      hi = xs[--n]!
+      let lo = 0
       while (n > 0) {
         x = hi
-        y = p[--n]
+        y = xs[--n]!
         hi = x + y
         lo = y - (hi - x)
         if (lo) break
       }
-      if (n > 0 && ((lo < 0 && p[n - 1] < 0) || (lo > 0 && p[n - 1] > 0))) {
+      if (n > 0 && ((lo < 0 && xs[n - 1]! < 0) || (lo > 0 && xs[n - 1]! > 0))) {
         y = lo * 2
         x = hi + y
         if (y == x - hi) hi = x
@@ -871,18 +863,14 @@ export class Adder implements qt.Adder {
     return hi
   }
 }
-export function group<T, K>(xs: Iterable<T>, k: (x: T) => K): qt.InternMap<K, T[]>
-export function group<T, K1, K2>(
-  xs: Iterable<T>,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2
-): qt.InternMap<K1, qt.InternMap<K2, T[]>>
+export function group<T, K>(xs: Iterable<T>, k: (x: T) => K): Map<K, T[]>
+export function group<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Map<K1, Map<K2, T[]>>
 export function group<T, K1, K2, K3>(
   xs: Iterable<T>,
   k1: (x: T) => K1,
   k2: (x: T) => K2,
   k3: (x: T) => K3
-): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, T[]>>>
+): Map<K1, Map<K2, Map<K3, T[]>>>
 export function group(xs: any, ...ks: any) {
   return nest(xs, qu.identity, qu.identity, ks)
 }
@@ -931,20 +919,20 @@ export function flatRollup<T, R, K1, K2, K3>(
 export function flatRollup(xs: any, f: Function, ...ks: any) {
   return flatten(rollups(xs, f, ...ks), ks)
 }
-export function rollup<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: (x: T) => K): qt.InternMap<K, R>
+export function rollup<T, R, K>(xs: Iterable<T>, f: (x: T[]) => R, k: (x: T) => K): Map<K, R>
 export function rollup<T, R, K1, K2>(
   xs: Iterable<T>,
   f: (x: T[]) => R,
   k1: (x: T) => K1,
   k2: (x: T) => K2
-): qt.InternMap<K1, qt.InternMap<K2, R>>
+): Map<K1, Map<K2, R>>
 export function rollup<T, R, K1, K2, K3>(
   xs: Iterable<T>,
   f: (x: T[]) => R,
   k1: (x: T) => K1,
   k2: (x: T) => K2,
   k3: (x: T) => K3
-): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, R>>>
+): Map<K1, Map<K2, Map<K3, R>>>
 export function rollup(xs: any, f: Function, ...ks: any) {
   return nest(xs, qu.identity, f, ks)
 }
@@ -965,18 +953,14 @@ export function rollups<T, R, K1, K2, K3>(
 export function rollups(xs: any, f: Function, ...ks: any) {
   return nest(xs, Array.from, f, ks)
 }
-export function index<T, K>(xs: Iterable<T>, k: (x: T) => K): qt.InternMap<K, T>
-export function index<T, K1, K2>(
-  xs: Iterable<T>,
-  k1: (x: T) => K1,
-  k2: (x: T) => K2
-): qt.InternMap<K1, qt.InternMap<K2, T>>
+export function index<T, K>(xs: Iterable<T>, k: (x: T) => K): Map<K, T>
+export function index<T, K1, K2>(xs: Iterable<T>, k1: (x: T) => K1, k2: (x: T) => K2): Map<K1, Map<K2, T>>
 export function index<T, K1, K2, K3>(
   xs: Iterable<T>,
   k1: (x: T) => K1,
   k2: (x: T) => K2,
   k3: (x: T) => K3
-): qt.InternMap<K1, qt.InternMap<K2, qt.InternMap<K3, T>>>
+): Map<K1, Map<K2, Map<K3, T>>>
 export function index(xs: any, ...ks: any) {
   return nest(xs, qu.identity, unique, ks)
 }
@@ -998,7 +982,7 @@ function unique(values) {
 function nest(values, map, reduce, ks: any[]) {
   return (function regroup(values, i) {
     if (i >= ks.length) return reduce(values)
-    const groups = new qt.InternMap()
+    const groups = new Map()
     const keyof = ks[i++]
     let index = -1
     for (const value of values) {

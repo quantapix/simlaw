@@ -1,6 +1,5 @@
 import { bisect, quantile, quantileSorted as threshold } from "./utils_seq.js"
 import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix, precisionRound } from "./format.js"
-import { InternMap } from "./utils_seq.js"
 import { interpolate as interpolateValue, interpolateNumber, interpolateRound } from "./interpolate.js"
 import { interpolate, piecewise } from "./interpolate.js"
 import { range as sequence } from "./utils_seq.js"
@@ -601,7 +600,7 @@ export function ordinal<T extends { toString(): string }, Range, U = never>(
   range: Iterable<Range>
 ): qt.ScaleOrdinal<T, Range, U>
 export function ordinal(...xs: any[]) {
-  let index = new InternMap(),
+  let index = new Map(),
     domain = [],
     range = [],
     unknown = implicit
@@ -615,7 +614,7 @@ export function ordinal(...xs: any[]) {
   }
   f.domain = function (_) {
     if (!arguments.length) return domain.slice()
-    ;(domain = []), (index = new InternMap())
+    ;(domain = []), (index = new Map())
     for (const value of _) {
       if (index.has(value)) continue
       index.set(value, domain.push(value) - 1)

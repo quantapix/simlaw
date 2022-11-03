@@ -4,9 +4,8 @@ export type Primitive = number | string | boolean | Date
 export interface Numeric {
   valueOf(): number
 }
-export interface Adder {
+export interface Adder extends Numeric {
   add(x: number): Adder
-  valueOf(): number
 }
 export interface Bisector<T, U> {
   left(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
@@ -46,8 +45,6 @@ export interface HistogramGeneratorNumber<T, U extends number | undefined> exten
   thresholds(count: number | ThresholdCountGenerator<U>): this
   thresholds(xs: ArrayLike<U> | ThresholdNumberArrayGenerator<U>): this
 }
-export class InternMap<K = any, V = any> extends Map<K, V> {}
-export class InternSet<T = any> extends Set<T> {}
 
 export type AxisDomain = number | string | Date | { valueOf(): number }
 export interface AxisTimeInterval {
