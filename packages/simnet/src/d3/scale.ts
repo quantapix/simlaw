@@ -3,35 +3,24 @@ import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix,
 import { interpolate as interpolateValue, interpolateNumber, interpolateRound } from "./interpolate.js"
 import { interpolate, piecewise } from "./interpolate.js"
 import { range as sequence } from "./utils_seq.js"
-import { ticks, tickIncrement } from "./utils_seq.js"
-import { tickStep } from "./utils_seq.js"
-import { timeFormat } from "./time-format.js"
-import { utcFormat } from "./time-format.js"
+import { ticks, tickIncrement, tickStep } from "./utils_seq.js"
+import { timeFormat, utcFormat } from "./time.js"
 import { utcYear, utcMonth, utcWeek, utcDay, utcHour, utcMinute, utcSecond, utcTicks, utcTickInterval } from "./time.js"
-import {
-  timeYear,
-  timeMonth,
-  timeWeek,
-  timeDay,
-  timeHour,
-  timeMinute,
-  timeSecond,
-  timeTicks,
-  timeTickInterval,
-} from "./time.js"
+import { year, month, week, day, hour, minute, second, timeTicks, timeTickInterval } from "./time.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
-export function band<T extends { toString(): string } = string>(range?: Iterable<qt.NumberValue>): qt.ScaleBand<T>
-export function band<T extends { toString(): string }>(
-  domain: Iterable<T>,
-  range: Iterable<qt.NumberValue>
-): qt.ScaleBand<T>
+export function band<T extends { toString(): string } = string>(range?: Iterable<qt.NumVal>): qt.ScaleBand<T>
+export function band<T extends { toString(): string }>(domain: Iterable<T>, range: Iterable<qt.NumVal>): qt.ScaleBand<T>
 export function band() {
-  let scale = ordinal().unknown(undefined),
-    domain = scale.domain,
-    ordinalRange = scale.range,
-    r0 = 0,
+  const scale = ordinal().unknown(undefined)
+  scale.align = function (_) {
+    return arguments.length ? ((align = Math.max(0, Math.min(1, _))), rescale()) : align
+  }
+
+  const domain = scale.domain
+  const ordinalRange = scale.range
+  let r0 = 0,
     r1 = 1,
     step,
     bandwidth,
@@ -82,9 +71,6 @@ export function band() {
   scale.paddingOuter = function (_) {
     return arguments.length ? ((paddingOuter = +_), rescale()) : paddingOuter
   }
-  scale.align = function (_) {
-    return arguments.length ? ((align = Math.max(0, Math.min(1, _))), rescale()) : align
-  }
   scale.copy = function () {
     return band(domain(), [r0, r1]).round(round).paddingInner(paddingInner).paddingOuter(paddingOuter).align(align)
   }
@@ -100,10 +86,10 @@ function pointish(scale) {
   }
   return scale
 }
-export function point<T extends { toString(): string } = string>(range?: Iterable<qt.NumberValue>): qt.ScalePoint<T>
+export function point<T extends { toString(): string } = string>(range?: Iterable<qt.NumVal>): qt.ScalePoint<T>
 export function point<T extends { toString(): string }>(
   domain: Iterable<T>,
-  range: Iterable<qt.NumberValue>
+  range: Iterable<qt.NumVal>
 ): qt.ScalePoint<T>
 export function point(...xs: any[]) {
   return pointish(band(...xs).paddingInner(1))
@@ -128,35 +114,6 @@ function clamper(a, b) {
     return Math.max(a, Math.min(b, x))
   }
 }
-function bimap(domain, range, interpolate) {
-  let d0 = domain[0],
-    d1 = domain[1],
-    r0 = range[0],
-    r1 = range[1]
-  if (d1 < d0) (d0 = normalize(d1, d0)), (r0 = interpolate(r1, r0))
-  else (d0 = normalize(d0, d1)), (r0 = interpolate(r0, r1))
-  return function (x) {
-    return r0(d0(x))
-  }
-}
-function polymap(domain, range, interpolate) {
-  let j = Math.min(domain.length, range.length) - 1,
-    d = new Array(j),
-    r = new Array(j),
-    i = -1
-  if (domain[j] < domain[0]) {
-    domain = domain.slice().reverse()
-    range = range.slice().reverse()
-  }
-  while (++i < j) {
-    d[i] = normalize(domain[i], domain[i + 1])
-    r[i] = interpolate(range[i], range[i + 1])
-  }
-  return function (x) {
-    const i = bisect(domain, x, 1, j) - 1
-    return r[i](d[i](x))
-  }
-}
 export function copy(source, target) {
   return target
     .domain(source.domain())
@@ -179,6 +136,35 @@ export function transformer() {
   function rescale() {
     const n = Math.min(domain.length, range.length)
     if (clamp !== qu.identity) clamp = clamper(domain[0], domain[n - 1])
+    function bimap(domain, range, interpolate) {
+      let d0 = domain[0],
+        d1 = domain[1],
+        r0 = range[0],
+        r1 = range[1]
+      if (d1 < d0) (d0 = normalize(d1, d0)), (r0 = interpolate(r1, r0))
+      else (d0 = normalize(d0, d1)), (r0 = interpolate(r0, r1))
+      return function (x) {
+        return r0(d0(x))
+      }
+    }
+    function polymap(domain, range, interpolate) {
+      let j = Math.min(domain.length, range.length) - 1,
+        d = new Array(j),
+        r = new Array(j),
+        i = -1
+      if (domain[j] < domain[0]) {
+        domain = domain.slice().reverse()
+        range = range.slice().reverse()
+      }
+      while (++i < j) {
+        d[i] = normalize(domain[i], domain[i + 1])
+        r[i] = interpolate(range[i], range[i + 1])
+      }
+      return function (x) {
+        const i = bisect(domain, x, 1, j) - 1
+        return r[i](d[i](x))
+      }
+    }
     piecewise = n > 2 ? polymap : bimap
     output = input = null
     return scale
@@ -214,7 +200,7 @@ export function transformer() {
     return rescale()
   }
 }
-export function continuous() {
+export function smooth(): qt.Scale.Smooth {
   return transformer()(identity, qu.identity)
 }
 function transformer() {
@@ -281,11 +267,11 @@ function transformer() {
 }
 export function diverging<Output = number, U = never>(
   f?: ((x: number) => Output) | Iterable<Output>
-): qt.ScaleDiverging<Output, U>
+): qt.Scale.Diverging<Output, U>
 export function diverging<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: ((x: number) => Output) | Iterable<Output>
-): qt.ScaleDiverging<Output, U>
+): qt.Scale.Diverging<Output, U>
 export function diverging(...xs: any[]) {
   const f = linearish(transformer()(identity))
   f.copy = function () {
@@ -293,11 +279,11 @@ export function diverging(...xs: any[]) {
   }
   return initInterpolator.apply(f, ...xs)
 }
-export function divergingLog<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleDiverging<Output, U>
+export function divergingLog<Output = number, U = never>(f?: (x: number) => Output): qt.Scale.Diverging<Output, U>
 export function divergingLog<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: (x: number) => Output
-): qt.ScaleDiverging<Output, U>
+): qt.Scale.Diverging<Output, U>
 export function divergingLog(...xs: any[]) {
   const f = loggish(transformer()).domain([0.1, 1, 10])
   f.copy = function () {
@@ -305,11 +291,11 @@ export function divergingLog(...xs: any[]) {
   }
   return initInterpolator.apply(f, ...xs)
 }
-export function divergingSymlog<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleDiverging<Output, U>
+export function divergingSymlog<Output = number, U = never>(f?: (x: number) => Output): qt.Scale.Diverging<Output, U>
 export function divergingSymlog<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: (x: number) => Output
-): qt.ScaleDiverging<Output, U>
+): qt.Scale.Diverging<Output, U>
 export function divergingSymlog(...xs: any[]) {
   const f = symlogish(transformer())
   f.copy = function () {
@@ -317,11 +303,11 @@ export function divergingSymlog(...xs: any[]) {
   }
   return initInterpolator.apply(f, ...xs)
 }
-export function divergingPow<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleDiverging<Output, U>
+export function divergingPow<Output = number, U = never>(f?: (x: number) => Output): qt.Scale.Diverging<Output, U>
 export function divergingPow<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: (x: number) => Output
-): qt.ScaleDiverging<Output, U>
+): qt.Scale.Diverging<Output, U>
 export function divergingPow(...xs: any[]) {
   const f = powish(transformer())
   f.copy = function () {
@@ -329,15 +315,15 @@ export function divergingPow(...xs: any[]) {
   }
   return initInterpolator.apply(f, ...xs)
 }
-export function divergingSqrt<Output = number, U = never>(f?: (t: number) => Output): qt.ScaleDiverging<Output, U>
+export function divergingSqrt<Output = number, U = never>(f?: (t: number) => Output): qt.Scale.Diverging<Output, U>
 export function divergingSqrt<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: (x: number) => Output
-): qt.ScaleDiverging<Output, U>
+): qt.Scale.Diverging<Output, U>
 export function divergingSqrt(...xs: any[]) {
   return divergingPow.apply(null, ...xs).exponent(0.5)
 }
-export function scaleIdentity<U = never>(range?: Iterable<qt.NumberValue>): qt.ScaleIdentity<U>
+export function scaleIdentity<U = never>(range?: Iterable<qt.NumVal>): qt.ScaleIdentity<U>
 export function scaleIdentity(domain) {
   let unknown
   function f(x) {
@@ -387,17 +373,17 @@ export function initInterpolator(domain, interpolator) {
   }
   return this
 }
-export function linearish(scale) {
-  const domain = scale.domain
-  scale.ticks = function (count) {
+export function linearish(f: Function) {
+  const domain = f.domain
+  f.ticks = function (count) {
     const d = domain()
     return ticks(d[0], d[d.length - 1], count == null ? 10 : count)
   }
-  scale.tickFormat = function (count, specifier) {
+  f.tickFormat = function (count, specifier) {
     const d = domain()
     return tickFormat(d[0], d[d.length - 1], count == null ? 10 : count, specifier)
   }
-  scale.nice = function (count) {
+  f.nice = function (count) {
     if (count == null) count = 10
     const d = domain()
     let i0 = 0
@@ -428,25 +414,24 @@ export function linearish(scale) {
       }
       prestep = step
     }
-    return scale
+    return f
   }
-  return scale
+  return f
 }
-export function linear<Range = number, Output = Range, U = never>(
-  range?: Iterable<Range>
-): qt.ScaleLinear<Range, Output, U>
-export function linear<Range, Output = Range, U = never>(
-  domain: Iterable<qt.NumberValue>,
+export function linear<Range = number, Out = Range, U = never>(range?: Iterable<Range>): qt.Scale.Linear<Range, Out, U>
+export function linear<Range, Out = Range, U = never>(
+  domain: Iterable<qt.NumVal>,
   range: Iterable<Range>
-): qt.ScaleLinear<Range, Output, U>
+): qt.Scale.Linear<Range, Out, U>
 export function linear(...xs: any[]) {
-  const f = continuous()
+  const f = smooth()
   f.copy = function () {
     return copy(f, linear())
   }
   initRange.apply(f, ...xs)
   return linearish(f)
 }
+
 function transformLog(x) {
   return Math.log(x)
 }
@@ -562,7 +547,7 @@ export function log<Range = number, Output = Range, U = never>(
   range?: Iterable<Range>
 ): qt.ScaleLogarithmic<Range, Output, U>
 export function log<Range, Output = Range, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   range: Iterable<Range>
 ): qt.ScaleLogarithmic<Range, Output, U>
 export function log(...xs: any[]) {
@@ -662,7 +647,7 @@ export function powish(transform) {
 }
 export function pow<Range = number, Output = Range, U = never>(range?: Iterable<Range>): qt.ScalePower<Range, Output, U>
 export function pow<Range, Output = Range, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   range: Iterable<Range>
 ): qt.ScalePower<Range, Output, U>
 export function pow(...xs: any[]) {
@@ -677,7 +662,7 @@ export function sqrt<Range = number, Output = Range, U = never>(
   range?: Iterable<Range>
 ): qt.ScalePower<Range, Output, U>
 export function sqrt<Range, Output = Range, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   range: Iterable<Range>
 ): qt.ScalePower<Range, Output, U>
 export function sqrt(...xs: any[]) {
@@ -685,7 +670,7 @@ export function sqrt(...xs: any[]) {
 }
 export function quantile<Range = number, U = never>(range?: Iterable<Range>): qt.ScaleQuantile<Range, U>
 export function quantile<Range, U = never>(
-  domain: Iterable<qt.NumberValue | null | undefined>,
+  domain: Iterable<qt.NumVal | null | undefined>,
   range: Iterable<Range>
 ): qt.ScaleQuantile<Range, U>
 export function quantile(...xs: any[]) {
@@ -732,7 +717,7 @@ export function quantile(...xs: any[]) {
 }
 export function quantize<Range = number, U = never>(range?: Iterable<Range>): qt.ScaleQuantize<Range, U>
 export function quantize<Range, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   range: Iterable<Range>
 ): qt.ScaleQuantize<Range, U>
 export function quantize(...xs: any[]) {
@@ -780,11 +765,11 @@ function unsquare(x) {
 }
 export function radial<Range = number, U = never>(range?: Iterable<Range>): qt.ScaleRadial<Range, Range, U>
 export function radial<Range, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   range: Iterable<Range>
 ): qt.ScaleRadial<Range, Range, U>
 export function radial(...xs: any[]) {
-  let squared = continuous(),
+  let squared = smooth(),
     range = [0, 1],
     round = false,
     unknown
@@ -878,7 +863,7 @@ export function sequential<Output = number, U = never>(
   f?: ((x: number) => Output) | Iterable<Output>
 ): qt.ScaleSequential<Output, U>
 export function sequential<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: ((x: number) => Output) | Iterable<Output>
 ): qt.ScaleSequential<Output, U>
 export function sequential(...xs: any[]) {
@@ -890,7 +875,7 @@ export function sequential(...xs: any[]) {
 }
 export function sequentialLog<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleSequential<Output, U>
 export function sequentialLog<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: (x: number) => Output
 ): qt.ScaleSequential<Output, U>
 export function sequentialLog(...xs: any[]) {
@@ -902,7 +887,7 @@ export function sequentialLog(...xs: any[]) {
 }
 export function sequentialSymlog<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleSequential<Output, U>
 export function sequentialSymlog<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: (x: number) => Output
 ): qt.ScaleSequential<Output, U>
 export function sequentialSymlog(...xs: any[]) {
@@ -914,7 +899,7 @@ export function sequentialSymlog(...xs: any[]) {
 }
 export function sequentialPow<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleSequential<Output, U>
 export function sequentialPow<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: (x: number) => Output
 ): qt.ScaleSequential<Output, U>
 export function sequentialPow(...xs: any[]) {
@@ -926,7 +911,7 @@ export function sequentialPow(...xs: any[]) {
 }
 export function sequentialSqrt<Output = number, U = never>(f?: (x: number) => Output): qt.ScaleSequential<Output, U>
 export function sequentialSqrt<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: (x: number) => Output
 ): qt.ScaleSequential<Output, U>
 export function sequentialSqrt(...xs: any[]) {
@@ -936,7 +921,7 @@ export function sequentialQuantile<Output = number, U = never>(
   f?: (x: number) => Output
 ): qt.ScaleSequentialQuantile<Output, U>
 export function sequentialQuantile<Output, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   f: (x: number) => Output
 ): qt.ScaleSequentialQuantile<Output, U>
 export function sequentialQuantile(...xs: any[]) {
@@ -988,7 +973,7 @@ export function symlog<Range = number, Output = Range, U = never>(
   range?: Iterable<Range>
 ): qt.ScaleSymLog<Range, Output, U>
 export function symlog<Range, Output = Range, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   range: Iterable<Range>
 ): qt.ScaleSymLog<Range, Output, U>
 export function symlog(...xs: any[]) {
@@ -1036,12 +1021,7 @@ export function threshold(...xs: any[]) {
   return initRange.apply(f, ...xs)
 }
 
-export function tickFormat(
-  start: number,
-  stop: number,
-  count: number,
-  specifier?: string
-): (x: qt.NumberValue) => string {
+export function tickFormat(start: number, stop: number, count: number, specifier?: string): (x: qt.NumVal) => string {
   let step = tickStep(start, stop, count),
     precision
   specifier = formatSpecifier(specifier == null ? ",f" : specifier)
@@ -1081,7 +1061,7 @@ function number(t) {
 }
 
 export function calendar(ticks, tickInterval, year, month, week, day, hour, minute, second, format) {
-  const f = continuous(),
+  const f = smooth(),
     invert = f.invert,
     domain = f.domain
   const formatMillisecond = format(".%L"),
@@ -1137,23 +1117,15 @@ export function calendar(ticks, tickInterval, year, month, week, day, hour, minu
 }
 export function time<Range = number, Output = Range, U = never>(range?: Iterable<Range>): qt.ScaleTime<Range, Output, U>
 export function time<Range, Output = Range, U = never>(
-  domain: Iterable<Date | qt.NumberValue>,
+  domain: Iterable<Date | qt.NumVal>,
   range: Iterable<Range>
 ): qt.ScaleTime<Range, Output, U>
 export function time(...xs: any[]) {
   return initRange.apply(
-    calendar(
-      timeTicks,
-      timeTickInterval,
-      timeYear,
-      timeMonth,
-      timeWeek,
-      timeDay,
-      timeHour,
-      timeMinute,
-      timeSecond,
-      timeFormat
-    ).domain([new Date(2000, 0, 1), new Date(2000, 0, 2)]),
+    calendar(timeTicks, timeTickInterval, year, month, week, day, hour, minute, second, timeFormat).domain([
+      new Date(2000, 0, 1),
+      new Date(2000, 0, 2),
+    ]),
     ...xs
   )
 }
@@ -1162,7 +1134,7 @@ export function utcTime<Range = number, Output = Range, U = never>(
   range?: Iterable<Range>
 ): qt.ScaleTime<Range, Output, U>
 export function utcTime<Range, Output = Range, U = never>(
-  domain: Iterable<qt.NumberValue>,
+  domain: Iterable<qt.NumVal>,
   range: Iterable<Range>
 ): qt.ScaleTime<Range, Output, U>
 export function utcTime(...xs: any[]) {
