@@ -195,7 +195,7 @@ export function quantile<Range, U = never>(
 export function quantile(...xs: any[]) {
   let _dom: number[] = [],
     _range: number[] = [],
-    _thresholds: number[] = [],
+    _thresholds: any[] = [],
     _unk: any
   function f(x?: qt.NumVal) {
     return x === undefined || isNaN((x = +x)) ? _unk : _range[bisect(_thresholds, x)]
@@ -227,90 +227,129 @@ export function quantile(...xs: any[]) {
   return initRange.apply(f, xs)
 }
 
-export function band<T extends { toString(): string } = string>(range?: Iterable<qt.NumVal>): qt.ScaleBand<T>
-export function band<T extends { toString(): string }>(domain: Iterable<T>, range: Iterable<qt.NumVal>): qt.ScaleBand<T>
-export function band() {
-  const scale = ordinal().unknown(undefined)
-  scale.align = function (_) {
-    return arguments.length ? ((align = Math.max(0, Math.min(1, _))), rescale()) : align
+export function ordinal<Range>(r?: Iterable<Range>): qt.Scale.Ordinal<string, Range>
+export function ordinal<T extends { toString(): string }, Range, U = never>(
+  r?: Iterable<Range>
+): qt.Scale.Ordinal<T, Range, U>
+export function ordinal<T extends { toString(): string }, Range, U = never>(
+  dom: Iterable<T>,
+  r: Iterable<Range>
+): qt.Scale.Ordinal<T, Range, U>
+export function ordinal(...xs: any[]) {
+  const implicit: { name: "implicit" } = Symbol("implicit")
+  let _dom: number[] = [],
+    _range: number[] = [],
+    _idx = new Map(),
+    _unk = implicit
+  function f(d: any) {
+    let i = _idx.get(d)
+    if (i === undefined) {
+      if (_unk !== implicit) return _unk
+      _idx.set(d, (i = _dom.push(d) - 1))
+    }
+    return _range[i % _range.length]
   }
+  f.copy = () => ordinal(_dom, _range).unknown(_unk)
+  f.domain = (x?: any) => {
+    if (x === undefined) return _dom.slice()
+    ;(_dom = []), (_idx = new Map())
+    for (const d of x) {
+      if (_idx.has(d)) continue
+      _idx.set(d, _dom.push(d) - 1)
+    }
+    return f
+  }
+  f.range = (x?: any) => (x === undefined ? _range.slice() : ((_range = Array.from(x)), f))
+  f.unknown = (x?: any) => (x === undefined ? _unk : ((_unk = x), f))
+  initRange(f, xs)
+  return f
+}
 
-  const domain = scale.domain
-  const ordinalRange = scale.range
+export function band<T extends { toString(): string } = string>(r?: Iterable<qt.NumVal>): qt.Scale.Band<T>
+export function band<T extends { toString(): string }>(dom: Iterable<T>, r: Iterable<qt.NumVal>): qt.Scale.Band<T>
+export function band(...xs: any[]) {
   let r0 = 0,
     r1 = 1,
-    step,
-    bandwidth,
-    round = false,
-    paddingInner = 0,
-    paddingOuter = 0,
-    align = 0.5
-  delete scale.unknown
+    _step: number,
+    _bandwidth: number,
+    _round = false,
+    _padInner = 0,
+    _padOuter = 0,
+    _align = 0.5
+  const f: any = ordinal().unknown(undefined)
+  const domain = f.domain
+  const ordinalRange = f.range
   function rescale() {
-    let n = domain().length,
+    const n = domain().length,
       reverse = r1 < r0,
-      start = reverse ? r1 : r0,
       stop = reverse ? r0 : r1
-    step = (stop - start) / Math.max(1, n - paddingInner + paddingOuter * 2)
-    if (round) step = Math.floor(step)
-    start += (stop - start - step * (n - paddingInner)) * align
-    bandwidth = step * (1 - paddingInner)
-    if (round) (start = Math.round(start)), (bandwidth = Math.round(bandwidth))
-    const values = range(n).map(function (i) {
-      return start + step * i
-    })
-    return ordinalRange(reverse ? values.reverse() : values)
+    let start = reverse ? r1 : r0,
+      step = (stop - start) / Math.max(1, n - _padInner + _padOuter * 2)
+    if (_round) step = Math.floor(step)
+    start += (stop - start - step * (n - _padInner)) * _align
+    _bandwidth = step * (1 - _padInner)
+    if (_round) (start = Math.round(start)), (_bandwidth = Math.round(_bandwidth))
+    const vs = range(n).map(i => start + step * i)
+    return ordinalRange(reverse ? vs.reverse() : vs)
   }
-  scale.domain = function (_) {
-    return arguments.length ? (domain(_), rescale()) : domain()
-  }
-  scale.range = function (_) {
-    return arguments.length ? (([r0, r1] = _), (r0 = +r0), (r1 = +r1), rescale()) : [r0, r1]
-  }
-  scale.rangeRound = function (_) {
-    return ([r0, r1] = _), (r0 = +r0), (r1 = +r1), (round = true), rescale()
-  }
-  scale.bandwidth = function () {
-    return bandwidth
-  }
-  scale.step = function () {
-    return step
-  }
-  scale.round = function (_) {
-    return arguments.length ? ((round = !!_), rescale()) : round
-  }
-  scale.padding = function (_) {
-    return arguments.length ? ((paddingInner = Math.min(1, (paddingOuter = +_))), rescale()) : paddingInner
-  }
-  scale.paddingInner = function (_) {
-    return arguments.length ? ((paddingInner = Math.min(1, _)), rescale()) : paddingInner
-  }
-  scale.paddingOuter = function (_) {
-    return arguments.length ? ((paddingOuter = +_), rescale()) : paddingOuter
-  }
-  scale.copy = function () {
-    return band(domain(), [r0, r1]).round(round).paddingInner(paddingInner).paddingOuter(paddingOuter).align(align)
-  }
-  return initRange.apply(rescale(), arguments)
+  f.align = (x?: any) => (x === undefined ? _align : ((_align = Math.max(0, Math.min(1, x))), rescale()))
+  f.bandwidth = () => _bandwidth
+  f.copy = () => band(domain(), [r0, r1]).round(_round).paddingInner(_padInner).paddingOuter(_padOuter).align(_align)
+  f.domain = (x?: any) => (x === undefined ? domain() : (domain(x), rescale()))
+  f.padding = (x?: any) => (x === undefined ? _padInner : ((_padInner = Math.min(1, (_padOuter = +x))), rescale()))
+  f.paddingInner = (x?: any) => (x === undefined ? _padInner : ((_padInner = Math.min(1, x)), rescale()))
+  f.paddingOuter = (x?: any) => (x === undefined ? _padOuter : ((_padOuter = +x), rescale()))
+  f.range = (x?: any) => (x === undefined ? [r0, r1] : (([r0, r1] = x), (r0 = +r0), (r1 = +r1), rescale()))
+  ;(f.rangeRound = (x: any) => ([r0, r1] = x)), (r0 = +r0), (r1 = +r1), (_round = true), rescale()
+  f.step = () => _step
+  f.round = (x?: any) => (x === undefined ? _round : ((_round = !!x), rescale()))
+  delete f.unknown
+  return initRange.apply(rescale(), xs)
 }
-function pointish(scale) {
-  const copy = scale.copy
-  scale.padding = scale.paddingOuter
-  delete scale.paddingInner
-  delete scale.paddingOuter
-  scale.copy = function () {
-    return pointish(copy())
-  }
-  return scale
+
+function pointish(f: any) {
+  const copy = f.copy
+  f.padding = f.paddingOuter
+  delete f.paddingInner
+  delete f.paddingOuter
+  f.copy = () => pointish(copy())
+  return f
 }
-export function point<T extends { toString(): string } = string>(range?: Iterable<qt.NumVal>): qt.ScalePoint<T>
-export function point<T extends { toString(): string }>(
-  domain: Iterable<T>,
-  range: Iterable<qt.NumVal>
-): qt.ScalePoint<T>
+
+export function point<T extends { toString(): string } = string>(r?: Iterable<qt.NumVal>): qt.Scale.Point<T>
+export function point<T extends { toString(): string }>(dom: Iterable<T>, r: Iterable<qt.NumVal>): qt.Scale.Point<T>
 export function point(...xs: any[]) {
   return pointish(band(...xs).paddingInner(1))
 }
+
+export function threshold<T extends number | string | Date = number, Range = number, U = never>(
+  r?: Iterable<Range>
+): qt.Scale.Threshold<T, Range, U>
+export function threshold<T extends number | string | Date, Range, U = never>(
+  dom: Iterable<T>,
+  r: Iterable<Range>
+): qt.Scale.Threshold<T, Range, U>
+export function threshold(...xs: any[]) {
+  let _dom = [0.5],
+    _range = [0, 1],
+    _unk: any,
+    _n = 1
+  function f(x?: any) {
+    return x !== undefined && x <= x ? _range[bisect(_dom, x, 0, _n)] : _unk
+  }
+  f.copy = () => threshold().domain(_dom).range(_range).unknown(_unk)
+  f.domain = (x?: any) =>
+    x === undefined ? _dom.slice() : ((_dom = Array.from(x)), (_n = Math.min(_dom.length, _range.length - 1)), f)
+  f.invertExtent = (x: any) => {
+    const i = _range.indexOf(x)
+    return [_dom[i - 1], _dom[i]]
+  }
+  f.range = (x?: any) =>
+    x === undefined ? _range.slice() : ((_range = Array.from(x)), (_n = Math.min(_dom.length, _range.length - 1)), f)
+  f.unknown = (x?: any) => (x === undefined ? _unk : ((_unk = x), f))
+  return initRange.apply(f, xs)
+}
+
 export function colors(s) {
   return s.match(/.{6}/g).map(function (x) {
     return "#" + x
@@ -682,50 +721,6 @@ export function nice(domain, interval) {
 export function number(x) {
   return +x
 }
-export const implicit: { name: "implicit" } = Symbol("implicit")
-
-export function ordinal<Range>(range?: Iterable<Range>): qt.ScaleOrdinal<string, Range>
-export function ordinal<T extends { toString(): string }, Range, U = never>(
-  range?: Iterable<Range>
-): qt.ScaleOrdinal<T, Range, U>
-export function ordinal<T extends { toString(): string }, Range, U = never>(
-  domain: Iterable<T>,
-  range: Iterable<Range>
-): qt.ScaleOrdinal<T, Range, U>
-export function ordinal(...xs: any[]) {
-  let index = new Map(),
-    domain = [],
-    range = [],
-    unknown = implicit
-  function f(d) {
-    let i = index.get(d)
-    if (i === undefined) {
-      if (unknown !== implicit) return unknown
-      index.set(d, (i = domain.push(d) - 1))
-    }
-    return range[i % range.length]
-  }
-  f.domain = function (_) {
-    if (!arguments.length) return domain.slice()
-    ;(domain = []), (index = new Map())
-    for (const value of _) {
-      if (index.has(value)) continue
-      index.set(value, domain.push(value) - 1)
-    }
-    return f
-  }
-  f.range = function (_) {
-    return arguments.length ? ((range = Array.from(_)), f) : range.slice()
-  }
-  f.unknown = function (_) {
-    return arguments.length ? ((unknown = _), f) : unknown
-  }
-  f.copy = function () {
-    return ordinal(domain, range).unknown(unknown)
-  }
-  initRange(f, ...xs)
-  return f
-}
 
 function transformPow(exponent) {
   return function (x) {
@@ -999,43 +994,6 @@ export function symlog(...xs: any[]) {
   const f = symlogish(transformer())
   f.copy = function () {
     return copy(f, symlog()).constant(f.constant())
-  }
-  return initRange.apply(f, ...xs)
-}
-export function threshold<T extends number | string | Date = number, Range = number, U = never>(
-  range?: Iterable<Range>
-): qt.ScaleThreshold<T, Range, U>
-export function threshold<T extends number | string | Date, Range, U = never>(
-  domain: Iterable<T>,
-  range: Iterable<Range>
-): qt.ScaleThreshold<T, Range, U>
-export function threshold(...xs: any[]) {
-  let domain = [0.5],
-    range = [0, 1],
-    unknown,
-    n = 1
-  function f(x) {
-    return x != null && x <= x ? range[bisect(domain, x, 0, n)] : unknown
-  }
-  f.domain = function (_) {
-    return arguments.length
-      ? ((domain = Array.from(_)), (n = Math.min(domain.length, range.length - 1)), f)
-      : domain.slice()
-  }
-  f.range = function (_) {
-    return arguments.length
-      ? ((range = Array.from(_)), (n = Math.min(domain.length, range.length - 1)), f)
-      : range.slice()
-  }
-  f.invertExtent = function (y) {
-    const i = range.indexOf(y)
-    return [domain[i - 1], domain[i]]
-  }
-  f.unknown = function (_) {
-    return arguments.length ? ((unknown = _), f) : unknown
-  }
-  f.copy = function () {
-    return threshold().domain(domain).range(range).unknown(unknown)
   }
   return initRange.apply(f, ...xs)
 }
