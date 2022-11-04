@@ -1,14 +1,231 @@
-import { bisect, quantile, quantileSorted as threshold } from "./utils_seq.js"
+import { range, ticks, tickIncrement, tickStep, bisect, quantile, quantileSorted as threshold } from "./utils_seq.js"
 import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix, precisionRound } from "./format.js"
 import { interpolate as interpolateValue, interpolateNumber, interpolateRound } from "./interpolate.js"
 import { interpolate, piecewise } from "./interpolate.js"
-import { range as sequence } from "./utils_seq.js"
-import { ticks, tickIncrement, tickStep } from "./utils_seq.js"
 import { timeFormat, utcFormat } from "./time.js"
 import { utcYear, utcMonth, utcWeek, utcDay, utcHour, utcMinute, utcSecond, utcTicks, utcTickInterval } from "./time.js"
 import { year, month, week, day, hour, minute, second, timeTicks, timeTickInterval } from "./time.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
+
+function tickFormat(start: number, stop: number, n: number, x?: string): (x: qt.NumVal) => string {
+  const step = tickStep(start, stop, n)
+  let precision
+  const spec = formatSpecifier(x === undefined ? ",f" : x)
+  switch (spec.type) {
+    case "s": {
+      const v = Math.max(Math.abs(start), Math.abs(stop))
+      if (spec.precision == null && !isNaN((precision = precisionPrefix(step, v)))) spec.precision = precision
+      return formatPrefix(x!, v)
+    }
+    case "":
+    case "e":
+    case "g":
+    case "p":
+    case "r": {
+      if (
+        spec.precision == null &&
+        !isNaN((precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop)))))
+      )
+        spec.precision = precision - (spec.type === "e" ? 1 : 0)
+      break
+    }
+    case "f":
+    case "%": {
+      if (spec.precision == null && !isNaN((precision = precisionFixed(step))))
+        spec.precision = precision - (spec.type === "%" ? 1 : 0) * 2
+      break
+    }
+  }
+  return format(x!)
+}
+
+export function linearish(f: any) {
+  const domain = f.domain
+  f.tickFormat = (n?: number, spec?: string) => {
+    const d = domain()
+    return tickFormat(d[0], d[d.length - 1], n == undefined ? 10 : n, spec)
+  }
+  f.ticks = (n?: number) => {
+    const d = domain()
+    return ticks(d[0], d[d.length - 1], n == undefined ? 10 : n)
+  }
+  f.nice = (n?: number) => {
+    if (n == undefined) n = 10
+    const d = domain()
+    let i0 = 0
+    let i1 = d.length - 1
+    let start = d[i0]
+    let stop = d[i1]
+    let prestep
+    let step
+    let maxIter = 10
+    if (stop < start) {
+      ;(step = start), (start = stop), (stop = step)
+      ;(step = i0), (i0 = i1), (i1 = step)
+    }
+    while (maxIter-- > 0) {
+      step = tickIncrement(start, stop, n)
+      if (step === prestep) {
+        d[i0] = start
+        d[i1] = stop
+        return domain(d)
+      } else if (step > 0) {
+        start = Math.floor(start / step) * step
+        stop = Math.ceil(stop / step) * step
+      } else if (step < 0) {
+        start = Math.ceil(start * step) / step
+        stop = Math.floor(stop * step) / step
+      } else break
+      prestep = step
+    }
+    return f
+  }
+  return f
+}
+
+export function identity<U = never>(x?: Iterable<qt.NumVal>): qt.Scale.Identity<U> {
+  let _dom = x === undefined ? [0, 1] : Array.from(x, number)
+  let _unk: any = undefined
+  function f(x?: qt.NumVal) {
+    return x === undefined || isNaN((x = +x)) ? _unk : x
+  }
+  f.copy = () => qu.identity(_dom).unknown(_unk)
+  f.domain = (x?: any) => (x === undefined ? ((_dom = Array.from(x, number)), f) : _dom.slice())
+  f.invert = f
+  f.range = f.domain
+  f.unknown = (x?: any) => (x === undefined ? _unk : ((_unk = x), f))
+  return linearish(f)
+}
+
+function initRange(this: any, ...xs: any[]) {
+  switch (xs.length) {
+    case 0:
+      break
+    case 1:
+      this.range(xs[0])
+      break
+    default:
+      this.range(xs[1]).domain(xs[0])
+      break
+  }
+  return this
+}
+
+export function time<Range = number, Out = Range, U = never>(r?: Iterable<Range>): qt.Scale.Time<Range, Out, U>
+export function time<Range, Out = Range, U = never>(
+  dom: Iterable<Date | qt.NumVal>,
+  r: Iterable<Range>
+): qt.Scale.Time<Range, Out, U>
+export function time(...xs: any[]) {
+  return initRange.apply(
+    calendar(timeTicks, timeTickInterval, year, month, week, day, hour, minute, second, timeFormat).domain([
+      new Date(2000, 0, 1),
+      new Date(2000, 0, 2),
+    ]),
+    xs
+  )
+}
+
+function initInterpolator(this: any, ...xs: any[]) {
+  switch (xs.length) {
+    case 0:
+      break
+    case 1: {
+      if (typeof xs[0] === "function") this.interpolator(xs[0])
+      else this.range(xs[0])
+      break
+    }
+    default: {
+      this.domain(xs[0])
+      if (typeof xs[1] === "function") this.interpolator(xs[1])
+      else this.range(xs[1])
+      break
+    }
+  }
+  return this
+}
+
+export function diverging<Out = number, U = never>(f?: ((x: number) => Out) | Iterable<Out>): qt.Scale.Diverging<Out, U>
+export function diverging<Out, U = never>(
+  dom: Iterable<qt.NumVal>,
+  f: ((x: number) => Out) | Iterable<Out>
+): qt.Scale.Diverging<Out, U>
+export function diverging(...xs: any[]) {
+  const f = linearish(transformer()(identity))
+  f.copy = () => copy(f, diverging())
+  return initInterpolator.apply(f, xs)
+}
+
+export function quantize<Range = number, U = never>(r?: Iterable<Range>): qt.Scale.Quantize<Range, U>
+export function quantize<Range, U = never>(dom: Iterable<qt.NumVal>, r: Iterable<Range>): qt.Scale.Quantize<Range, U>
+export function quantize(...xs: any[]) {
+  let x0 = 0,
+    x1 = 1,
+    n = 1,
+    _dom = [0.5],
+    _range = [0, 1]
+  let _unk: any = undefined
+  function f(x?: qt.NumVal) {
+    return x !== undefined && x <= x ? _range[bisect(_dom, x, 0, n)] : _unk
+  }
+  function rescale() {
+    let i = -1
+    _dom = new Array(n)
+    while (++i < n) _dom[i] = ((i + 1) * x1 - (i - n) * x0) / (n + 1)
+    return f
+  }
+  f.copy = () => quantize().domain([x0, x1]).range(_range).unknown(_unk)
+  f.domain = (x?: any) => (x === undefined ? [x0, x1] : (([x0, x1] = x), (x0 = +x0), (x1 = +x1), rescale()))
+  f.invertExtent = (x: any) => {
+    const i = _range.indexOf(x)
+    return i < 0 ? [NaN, NaN] : i < 1 ? [x0, _dom[0]] : i >= n ? [_dom[n - 1], x1] : [_dom[i - 1], _dom[i]]
+  }
+  f.range = (x?: any) => (x === undefined ? _range.slice() : ((n = (_range = Array.from(x)).length - 1), rescale()))
+  f.thresholds = () => _dom.slice()
+  f.unknown = (x?: any) => (x === undefined ? f : ((_unk = x), f))
+  return initRange.apply(linearish(f), xs)
+}
+
+export function quantile<Range = number, U = never>(r?: Iterable<Range>): qt.Scale.Quantile<Range, U>
+export function quantile<Range, U = never>(
+  dom: Iterable<qt.NumVal | null | undefined>,
+  r: Iterable<Range>
+): qt.Scale.Quantile<Range, U>
+export function quantile(...xs: any[]) {
+  let _dom: number[] = [],
+    _range: number[] = [],
+    _thresholds: number[] = [],
+    _unk: any
+  function f(x?: qt.NumVal) {
+    return x === undefined || isNaN((x = +x)) ? _unk : _range[bisect(_thresholds, x)]
+  }
+  function rescale() {
+    const n = Math.max(1, _range.length)
+    let i = 0
+    _thresholds = new Array(n - 1)
+    while (++i < n) _thresholds[i - 1] = threshold(_dom, i / n)
+    return f
+  }
+  f.copy = () => quantile().domain(_dom).range(_range).unknown(_unk)
+  f.domain = (x?: any) => {
+    if (x === undefined) return _dom.slice()
+    _dom = []
+    for (let d of x) if (d != null && !isNaN((d = +d))) _dom.push(d)
+    _dom.sort(qu.ascending)
+    return rescale()
+  }
+  f.invertExtent = (x: any) => {
+    const i = _range.indexOf(x)
+    return i < 0
+      ? [NaN, NaN]
+      : [i > 0 ? _thresholds[i - 1] : _dom[0], i < _thresholds.length ? _thresholds[i] : _dom[_dom.length - 1]]
+  }
+  f.quantiles = () => _thresholds.slice()
+  f.range = (x?: any) => (x === undefined ? _range.slice() : ((_range = Array.from(x)), rescale()))
+  f.unknown = (x?: any) => (x === undefined ? _unk : ((_unk = x), f))
+  return initRange.apply(f, xs)
+}
 
 export function band<T extends { toString(): string } = string>(range?: Iterable<qt.NumVal>): qt.ScaleBand<T>
 export function band<T extends { toString(): string }>(domain: Iterable<T>, range: Iterable<qt.NumVal>): qt.ScaleBand<T>
@@ -39,7 +256,7 @@ export function band() {
     start += (stop - start - step * (n - paddingInner)) * align
     bandwidth = step * (1 - paddingInner)
     if (round) (start = Math.round(start)), (bandwidth = Math.round(bandwidth))
-    const values = sequence(n).map(function (i) {
+    const values = range(n).map(function (i) {
       return start + step * i
     })
     return ordinalRange(reverse ? values.reverse() : values)
@@ -265,20 +482,6 @@ function transformer() {
     return scale
   }
 }
-export function diverging<Output = number, U = never>(
-  f?: ((x: number) => Output) | Iterable<Output>
-): qt.Scale.Diverging<Output, U>
-export function diverging<Output, U = never>(
-  domain: Iterable<qt.NumVal>,
-  f: ((x: number) => Output) | Iterable<Output>
-): qt.Scale.Diverging<Output, U>
-export function diverging(...xs: any[]) {
-  const f = linearish(transformer()(identity))
-  f.copy = function () {
-    return copy(f, diverging())
-  }
-  return initInterpolator.apply(f, ...xs)
-}
 export function divergingLog<Output = number, U = never>(f?: (x: number) => Output): qt.Scale.Diverging<Output, U>
 export function divergingLog<Output, U = never>(
   domain: Iterable<qt.NumVal>,
@@ -322,101 +525,6 @@ export function divergingSqrt<Output, U = never>(
 ): qt.Scale.Diverging<Output, U>
 export function divergingSqrt(...xs: any[]) {
   return divergingPow.apply(null, ...xs).exponent(0.5)
-}
-export function scaleIdentity<U = never>(range?: Iterable<qt.NumVal>): qt.ScaleIdentity<U>
-export function scaleIdentity(domain) {
-  let unknown
-  function f(x) {
-    return x == null || isNaN((x = +x)) ? unknown : x
-  }
-  f.invert = f
-  f.domain = f.range = function (_) {
-    return arguments.length ? ((domain = Array.from(_, number)), f) : domain.slice()
-  }
-  f.unknown = function (_) {
-    return arguments.length ? ((unknown = _), f) : unknown
-  }
-  f.copy = function () {
-    return qu.identity(domain).unknown(unknown)
-  }
-  domain = arguments.length ? Array.from(domain, number) : [0, 1]
-  return linearish(f)
-}
-export function initRange(domain, range) {
-  switch (arguments.length) {
-    case 0:
-      break
-    case 1:
-      this.range(domain)
-      break
-    default:
-      this.range(range).domain(domain)
-      break
-  }
-  return this
-}
-export function initInterpolator(domain, interpolator) {
-  switch (arguments.length) {
-    case 0:
-      break
-    case 1: {
-      if (typeof domain === "function") this.interpolator(domain)
-      else this.range(domain)
-      break
-    }
-    default: {
-      this.domain(domain)
-      if (typeof interpolator === "function") this.interpolator(interpolator)
-      else this.range(interpolator)
-      break
-    }
-  }
-  return this
-}
-export function linearish(f: Function) {
-  const domain = f.domain
-  f.ticks = function (count) {
-    const d = domain()
-    return ticks(d[0], d[d.length - 1], count == null ? 10 : count)
-  }
-  f.tickFormat = function (count, specifier) {
-    const d = domain()
-    return tickFormat(d[0], d[d.length - 1], count == null ? 10 : count, specifier)
-  }
-  f.nice = function (count) {
-    if (count == null) count = 10
-    const d = domain()
-    let i0 = 0
-    let i1 = d.length - 1
-    let start = d[i0]
-    let stop = d[i1]
-    let prestep
-    let step
-    let maxIter = 10
-    if (stop < start) {
-      ;(step = start), (start = stop), (stop = step)
-      ;(step = i0), (i0 = i1), (i1 = step)
-    }
-    while (maxIter-- > 0) {
-      step = tickIncrement(start, stop, count)
-      if (step === prestep) {
-        d[i0] = start
-        d[i1] = stop
-        return domain(d)
-      } else if (step > 0) {
-        start = Math.floor(start / step) * step
-        stop = Math.ceil(stop / step) * step
-      } else if (step < 0) {
-        start = Math.ceil(start * step) / step
-        stop = Math.floor(stop * step) / step
-      } else {
-        break
-      }
-      prestep = step
-    }
-    return f
-  }
-  return f
 }
 export function linear<Range = number, Out = Range, U = never>(range?: Iterable<Range>): qt.Scale.Linear<Range, Out, U>
 export function linear<Range, Out = Range, U = never>(
@@ -667,95 +775,6 @@ export function sqrt<Range, Output = Range, U = never>(
 ): qt.ScalePower<Range, Output, U>
 export function sqrt(...xs: any[]) {
   return pow.apply(null, ...xs).exponent(0.5)
-}
-export function quantile<Range = number, U = never>(range?: Iterable<Range>): qt.ScaleQuantile<Range, U>
-export function quantile<Range, U = never>(
-  domain: Iterable<qt.NumVal | null | undefined>,
-  range: Iterable<Range>
-): qt.ScaleQuantile<Range, U>
-export function quantile(...xs: any[]) {
-  let domain = [],
-    range = [],
-    thresholds = [],
-    unknown
-  function rescale() {
-    let i = 0,
-      n = Math.max(1, range.length)
-    thresholds = new Array(n - 1)
-    while (++i < n) thresholds[i - 1] = threshold(domain, i / n)
-    return f
-  }
-  function f(x) {
-    return x == null || isNaN((x = +x)) ? unknown : range[bisect(thresholds, x)]
-  }
-  f.invertExtent = function (y) {
-    const i = range.indexOf(y)
-    return i < 0
-      ? [NaN, NaN]
-      : [i > 0 ? thresholds[i - 1] : domain[0], i < thresholds.length ? thresholds[i] : domain[domain.length - 1]]
-  }
-  f.domain = function (_) {
-    if (!arguments.length) return domain.slice()
-    domain = []
-    for (let d of _) if (d != null && !isNaN((d = +d))) domain.push(d)
-    domain.sort(qu.ascending)
-    return rescale()
-  }
-  f.range = function (_) {
-    return arguments.length ? ((range = Array.from(_)), rescale()) : range.slice()
-  }
-  f.unknown = function (_) {
-    return arguments.length ? ((unknown = _), f) : unknown
-  }
-  f.quantiles = function () {
-    return thresholds.slice()
-  }
-  f.copy = function () {
-    return quantile().domain(domain).range(range).unknown(unknown)
-  }
-  return initRange.apply(f, ...xs)
-}
-export function quantize<Range = number, U = never>(range?: Iterable<Range>): qt.ScaleQuantize<Range, U>
-export function quantize<Range, U = never>(
-  domain: Iterable<qt.NumVal>,
-  range: Iterable<Range>
-): qt.ScaleQuantize<Range, U>
-export function quantize(...xs: any[]) {
-  let x0 = 0,
-    x1 = 1,
-    n = 1,
-    domain = [0.5],
-    range = [0, 1],
-    unknown
-  function f(x) {
-    return x != null && x <= x ? range[bisect(domain, x, 0, n)] : unknown
-  }
-  function rescale() {
-    let i = -1
-    domain = new Array(n)
-    while (++i < n) domain[i] = ((i + 1) * x1 - (i - n) * x0) / (n + 1)
-    return f
-  }
-  f.domain = function (_) {
-    return arguments.length ? (([x0, x1] = _), (x0 = +x0), (x1 = +x1), rescale()) : [x0, x1]
-  }
-  f.range = function (_) {
-    return arguments.length ? ((n = (range = Array.from(_)).length - 1), rescale()) : range.slice()
-  }
-  f.invertExtent = function (y) {
-    const i = range.indexOf(y)
-    return i < 0 ? [NaN, NaN] : i < 1 ? [x0, domain[0]] : i >= n ? [domain[n - 1], x1] : [domain[i - 1], domain[i]]
-  }
-  f.unknown = function (_) {
-    return arguments.length ? ((unknown = _), f) : f
-  }
-  f.thresholds = function () {
-    return domain.slice()
-  }
-  f.copy = function () {
-    return quantize().domain([x0, x1]).range(range).unknown(unknown)
-  }
-  return initRange.apply(linearish(f), ...xs)
 }
 function square(x) {
   return Math.sign(x) * x * x
@@ -1021,38 +1040,6 @@ export function threshold(...xs: any[]) {
   return initRange.apply(f, ...xs)
 }
 
-export function tickFormat(start: number, stop: number, count: number, specifier?: string): (x: qt.NumVal) => string {
-  let step = tickStep(start, stop, count),
-    precision
-  specifier = formatSpecifier(specifier == null ? ",f" : specifier)
-  switch (specifier.type) {
-    case "s": {
-      const value = Math.max(Math.abs(start), Math.abs(stop))
-      if (specifier.precision == null && !isNaN((precision = precisionPrefix(step, value))))
-        specifier.precision = precision
-      return formatPrefix(specifier, value)
-    }
-    case "":
-    case "e":
-    case "g":
-    case "p":
-    case "r": {
-      if (
-        specifier.precision == null &&
-        !isNaN((precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop)))))
-      )
-        specifier.precision = precision - (specifier.type === "e")
-      break
-    }
-    case "f":
-    case "%": {
-      if (specifier.precision == null && !isNaN((precision = precisionFixed(step))))
-        specifier.precision = precision - (specifier.type === "%") * 2
-      break
-    }
-  }
-  return format(specifier)
-}
 function date(t) {
   return new Date(t)
 }
@@ -1114,20 +1101,6 @@ export function calendar(ticks, tickInterval, year, month, week, day, hour, minu
     return copy(f, calendar(ticks, tickInterval, year, month, week, day, hour, minute, second, format))
   }
   return f
-}
-export function time<Range = number, Output = Range, U = never>(range?: Iterable<Range>): qt.ScaleTime<Range, Output, U>
-export function time<Range, Output = Range, U = never>(
-  domain: Iterable<Date | qt.NumVal>,
-  range: Iterable<Range>
-): qt.ScaleTime<Range, Output, U>
-export function time(...xs: any[]) {
-  return initRange.apply(
-    calendar(timeTicks, timeTickInterval, year, month, week, day, hour, minute, second, timeFormat).domain([
-      new Date(2000, 0, 1),
-      new Date(2000, 0, 2),
-    ]),
-    ...xs
-  )
 }
 
 export function utcTime<Range = number, Output = Range, U = never>(

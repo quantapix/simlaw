@@ -42,7 +42,7 @@ export interface HistogramGeneratorNumber<T, U extends number | undefined> exten
   domain(): (xs: Iterable<U>) => [number, number] | [undefined, undefined]
   domain(x: [number, number] | ((xs: Iterable<U>) => [number, number] | [undefined, undefined])): this
   thresholds(): ThresholdCountGenerator<U> | ThresholdNumberArrayGenerator<U>
-  thresholds(count: number | ThresholdCountGenerator<U>): this
+  thresholds(n: number | ThresholdCountGenerator<U>): this
   thresholds(xs: ArrayLike<U> | ThresholdNumberArrayGenerator<U>): this
 }
 
@@ -77,9 +77,9 @@ export interface Axis<T> {
   tickFormat(x: null): this
   tickPadding(): number
   tickPadding(x: number): this
-  ticks(count: number, specifier?: string): this
+  ticks(n: number, spec?: string): this
   ticks(x: any, ...xs: any[]): this
-  ticks(x: AxisTimeInterval, specifier?: string): this
+  ticks(x: AxisTimeInterval, spec?: string): this
   tickSize(): number
   tickSize(x: number): this
   tickSizeInner(): number
@@ -659,8 +659,8 @@ export interface FormatLocaleDefinition {
   nan?: string | undefined
 }
 export interface FormatLocaleObject {
-  format(specifier: string): (n: number | { valueOf(): number }) => string
-  formatPrefix(specifier: string, value: number): (n: number | { valueOf(): number }) => string
+  format(spec: string): (n: number | { valueOf(): number }) => string
+  formatPrefix(spec: string, value: number): (n: number | { valueOf(): number }) => string
 }
 export interface FormatSpecifierObject {
   fill?: string | undefined
@@ -1230,11 +1230,11 @@ export namespace Scale {
     domain(): number[]
     domain(x: Iterable<NumVal>): this
     invert(x: NumVal): number
-    nice(count?: number): this
+    nice(n?: number): this
     range(): number[]
     range(x: Iterable<NumVal>): this
-    tickFormat(count?: number, specifier?: string): (x: NumVal) => string
-    ticks(count?: number): number[]
+    tickFormat(n?: number, spec?: string): (x: NumVal) => string
+    ticks(n?: number): number[]
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Identity<U2>
   }
@@ -1250,14 +1250,14 @@ export namespace Scale {
     interpolate(f: InterpolatorFactory<Range, Out>): this
     interpolate<O2>(f: InterpolatorFactory<Range, O2>): Time<Range, O2, U>
     invert(x: NumVal): Date
-    nice(count?: number): this
+    nice(n?: number): this
     nice(x: CountableTimeInterval): this
     range(): Range[]
     range(x: Iterable<Range>): this
     rangeRound(x: Iterable<NumVal>): this
-    tickFormat(count?: number, specifier?: string): (x: Date) => string
-    tickFormat(x: TimeInterval, specifier?: string): (x: Date) => string
-    ticks(count?: number): Date[]
+    tickFormat(n?: number, spec?: string): (x: Date) => string
+    tickFormat(x: TimeInterval, spec?: string): (x: Date) => string
+    ticks(n?: number): Date[]
     ticks(x: TimeInterval): Date[]
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Time<Range, Out, U2>
@@ -1285,12 +1285,12 @@ export namespace Scale {
     domain(): [number, number]
     domain(x: Iterable<NumVal>): this
     invertExtent(x: Range): [number, number]
-    nice(count?: number): this
+    nice(n?: number): this
     range(): Range[]
     range(x: Iterable<Range>): this
     thresholds(): number[]
-    tickFormat(count?: number, specifier?: string): (x: NumVal) => string
-    ticks(count?: number): number[]
+    tickFormat(n?: number, spec?: string): (x: NumVal) => string
+    ticks(n?: number): number[]
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Quantize<Range, U2>
   }
@@ -1379,12 +1379,12 @@ export namespace Scale {
     domain(): number[]
     domain(x: Iterable<NumVal>): this
     invert(x: NumVal): number
-    nice(count?: number): this
+    nice(n?: number): this
     range(): Range[]
     range(x: Iterable<Range>): this
     rangeRound(x: Iterable<NumVal>): this
-    tickFormat(count?: number, specifier?: string): (x: NumVal) => string
-    ticks(count?: number): number[]
+    tickFormat(n?: number, spec?: string): (x: NumVal) => string
+    ticks(n?: number): number[]
   }
   export interface Linear<Range, Out, U = never> extends Smooth<Range, Out, U> {
     interpolate(): InterpolatorFactory<any, any>
@@ -1411,15 +1411,15 @@ export namespace Scale {
     interpolate(f: InterpolatorFactory<Range, Out>): this
     interpolate<O2>(f: InterpolatorFactory<Range, O2>): Log<Range, O2, U>
     nice(): this
-    tickFormat(count?: number, specifier?: string): (d: NumVal) => string
-    ticks(count?: number): number[]
+    tickFormat(n?: number, spec?: string): (d: NumVal) => string
+    ticks(n?: number): number[]
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Log<Range, Out, U2>
   }
   export interface SymLog<Range, Out, U = never> extends Smooth<Range, Out, U> {
     constant(): number
     constant(x: number): this
-    tickFormat(count?: number, specifier?: string): (d: NumVal) => string
+    tickFormat(n?: number, spec?: string): (d: NumVal) => string
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): SymLog<Range, Out, U2>
   }
@@ -1928,10 +1928,10 @@ export interface TimeLocaleDefinition {
   shortMonths: [string, string, string, string, string, string, string, string, string, string, string, string]
 }
 export interface TimeLocaleObject {
-  format(specifier: string): (date: Date) => string
-  parse(specifier: string): (dateString: string) => Date | null
-  utcFormat(specifier: string): (date: Date) => string
-  utcParse(specifier: string): (dateString: string) => Date | null
+  format(spec: string): (date: Date) => string
+  parse(spec: string): (dateString: string) => Date | null
+  utcFormat(spec: string): (date: Date) => string
+  utcParse(spec: string): (dateString: string) => Date | null
 }
 export interface Timer {
   restart(cb: (x: number) => void, delay?: number, time?: number): void
