@@ -196,24 +196,24 @@ export interface RibbonArrowGenerator<This, T, S> extends RibbonGenerator<This, 
 }
 export type ColorSpaceObject = RGBColor | HSLColor | LabColor | HCLColor | CubehelixColor
 export interface ColorCommonInstance {
-  displayable(): boolean
-  toString(): string
   brighter(k?: number): this
   darker(k?: number): this
-  rgb(): RGBColor
+  displayable(): boolean
   hex(): string
+  rgb(): RGBColor
+  toString(): string
 }
 export interface Color {
   displayable(): boolean
-  toString(): string
   formatHex(): string
   formatHex8(): string
   formatHsl(): string
   formatRgb(): string
   hex(): string
+  toString(): string
 }
 export interface ColorFactory extends Function {
-  (cssColorSpecifier: string): RGBColor | HSLColor | null
+  (spec: string): RGBColor | HSLColor | null
   (color: ColorSpaceObject | ColorCommonInstance): RGBColor | HSLColor
   readonly prototype: Color
 }
@@ -235,7 +235,7 @@ export interface RGBColor extends Color {
 }
 export interface RGBColorFactory extends Function {
   (r: number, g: number, b: number, opacity?: number): RGBColor
-  (cssColorSpecifier: string): RGBColor
+  (spec: string): RGBColor
   (color: ColorSpaceObject | ColorCommonInstance): RGBColor
   readonly prototype: RGBColor
 }
@@ -257,7 +257,7 @@ export interface HSLColor extends Color {
 }
 export interface HSLColorFactory extends Function {
   (h: number, s: number, l: number, opacity?: number): HSLColor
-  (cssColorSpecifier: string): HSLColor
+  (spec: string): HSLColor
   (color: ColorSpaceObject | ColorCommonInstance): HSLColor
   readonly prototype: HSLColor
 }
@@ -278,7 +278,7 @@ export interface LabColor extends Color {
 }
 export interface LabColorFactory extends Function {
   (l: number, a: number, b: number, opacity?: number): LabColor
-  (cssColorSpecifier: string): LabColor
+  (spec: string): LabColor
   (color: ColorSpaceObject | ColorCommonInstance): LabColor
   readonly prototype: LabColor
 }
@@ -300,13 +300,13 @@ export interface HCLColor extends Color {
 }
 export interface HCLColorFactory extends Function {
   (h: number, c: number, l: number, opacity?: number): HCLColor
-  (cssColorSpecifier: string): HCLColor
+  (spec: string): HCLColor
   (color: ColorSpaceObject | ColorCommonInstance): HCLColor
   readonly prototype: HCLColor
 }
 export interface LCHColorFactory {
   (l: number, c: number, h: number, opacity?: number): HCLColor
-  (cssColorSpecifier: string): HCLColor
+  (spec: string): HCLColor
   (color: ColorSpaceObject | ColorCommonInstance): HCLColor
 }
 export interface CubehelixColor extends Color {
@@ -326,7 +326,7 @@ export interface CubehelixColor extends Color {
 }
 export interface CubehelixColorFactory extends Function {
   (h: number, s: number, l: number, opacity?: number): CubehelixColor
-  (cssColorSpecifier: string): CubehelixColor
+  (spec: string): CubehelixColor
   (color: ColorSpaceObject | ColorCommonInstance): CubehelixColor
   readonly prototype: CubehelixColor
 }
@@ -1393,14 +1393,14 @@ export namespace Scale {
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Linear<Range, Out, U2>
   }
-  export interface Power<Range, Out, U = never> extends Smooth<Range, Out, U> {
+  export interface Pow<Range, Out, U = never> extends Smooth<Range, Out, U> {
     exponent(): number
     exponent(x: number): this
     interpolate(): InterpolatorFactory<any, any>
     interpolate(f: InterpolatorFactory<Range, Out>): this
-    interpolate<O2>(f: InterpolatorFactory<Range, O2>): Power<Range, O2, U>
+    interpolate<O2>(f: InterpolatorFactory<Range, O2>): Pow<Range, O2, U>
     unknown(): UnknownReturn<U, undefined>
-    unknown<U2>(x: U2): Power<Range, Out, U2>
+    unknown<U2>(x: U2): Pow<Range, Out, U2>
   }
   export interface Log<Range, Out, U = never> extends Smooth<Range, Out, U> {
     base(): number

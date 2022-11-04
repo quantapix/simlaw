@@ -2051,7 +2051,6 @@ export namespace proj {
   import { cartesian } from "../cartesian.js"
   import { default as geoStream } from "../stream.js"
   import { rotateRadians } from "../rotation.js"
-  import { transformer } from "../transform.js"
   import boundsStream from "../path/bounds.js"
   import clipAntimeridian from "../clip/antimeridian.js"
   import clipCircle from "../clip/circle.js"
