@@ -1,3 +1,4 @@
+/* eslint-disable no-inner-declarations */
 import { range, ticks, tickIncrement, tickStep, bisect, quantile, quantileSorted as threshold } from "./utils_seq.js"
 import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix, precisionRound } from "./format.js"
 import { interpolate as interpolateValue, interpolateNumber, interpolateRound } from "./interpolate.js"
@@ -129,58 +130,51 @@ function nice(dom: any[], interval) {
 }
 
 function calendar(ticks, tickInterval, year, month, week, day, hour, minute, second, format) {
+  const date = (x: any) => new Date(x)
+  const number = (x: any) => (x instanceof Date ? +x : +new Date(+x))
   const f = smooth(),
     invert = f.invert,
     domain = f.domain
-  const formatMillisecond = format(".%L"),
-    formatSecond = format(":%S"),
-    formatMinute = format("%I:%M"),
-    formatHour = format("%I %p"),
-    formatDay = format("%a %d"),
-    formatWeek = format("%b %d"),
-    formatMonth = format("%B"),
-    formatYear = format("%Y")
-  function tickFormat(date) {
+  const _milli = format(".%L"),
+    _second = format(":%S"),
+    _minute = format("%I:%M"),
+    _hour = format("%I %p"),
+    _day = format("%a %d"),
+    _week = format("%b %d"),
+    _month = format("%B"),
+    _year = format("%Y")
+  function tickFormat(x: number) {
     return (
-      second(date) < date
-        ? formatMillisecond
-        : minute(date) < date
-        ? formatSecond
-        : hour(date) < date
-        ? formatMinute
-        : day(date) < date
-        ? formatHour
-        : month(date) < date
-        ? week(date) < date
-          ? formatDay
-          : formatWeek
-        : year(date) < date
-        ? formatMonth
-        : formatYear
-    )(date)
+      second(x) < x
+        ? _milli
+        : minute(x) < x
+        ? _second
+        : hour(x) < x
+        ? _minute
+        : day(x) < x
+        ? _hour
+        : month(x) < x
+        ? week(x) < x
+          ? _day
+          : _week
+        : year(x) < x
+        ? _month
+        : _year
+    )(x)
   }
-  f.invert = function (y) {
-    return new Date(invert(y))
-  }
-  f.domain = function (_) {
-    return arguments.length ? domain(Array.from(_, number)) : domain().map(date)
-  }
-  f.ticks = function (interval) {
+  f.domain = (x?: any) => (x === undefined ? domain().map(date) : domain(Array.from(x, number)))
+  f.invert = x => new Date(invert(x))
+  f.ticks = function (x?: number) {
     const d = domain()
-    return ticks(d[0], d[d.length - 1], interval == null ? 10 : interval)
+    return ticks(d[0], d[d.length - 1], x === undefined ? 10 : x)
   }
-  f.tickFormat = function (count, specifier) {
-    return specifier == null ? tickFormat : format(specifier)
-  }
-  f.nice = function (interval) {
+  f.tickFormat = (n: number, spec?: string) => (spec === undefined ? tickFormat : format(spec))
+  f.nice = function (x?: any) {
     const d = domain()
-    if (!interval || typeof interval.range !== "function")
-      interval = tickInterval(d[0], d[d.length - 1], interval == null ? 10 : interval)
-    return interval ? domain(nice(d, interval)) : f
+    if (!x || typeof x.range !== "function") x = tickInterval(d[0], d[d.length - 1], x === undefined ? 10 : x)
+    return x ? domain(nice(d, x)) : f
   }
-  f.copy = function () {
-    return copy(f, calendar(ticks, tickInterval, year, month, week, day, hour, minute, second, format))
-  }
+  f.copy = () => copy(f, calendar(ticks, tickInterval, year, month, week, day, hour, minute, second, format))
   return f
 }
 
@@ -543,6 +537,7 @@ export function transformer() {
 export function smooth<Range, Out, U = never>(): qt.Scale.Smooth<Range, Out, U> {
   return transformer()(identity, qu.identity)
 }
+
 export function linear<Range = number, Out = Range, U = never>(r?: Iterable<Range>): qt.Scale.Linear<Range, Out, U>
 export function linear<Range, Out = Range, U = never>(
   dom: Iterable<qt.NumVal>,
@@ -579,6 +574,7 @@ export function pow(...xs: any[]) {
   initRange.apply(f, xs)
   return f
 }
+
 export function sqrt<Range = number, Out = Range, U = never>(r?: Iterable<Range>): qt.Scale.Pow<Range, Out, U>
 export function sqrt<Range, Out = Range, U = never>(
   dom: Iterable<qt.NumVal>,
@@ -739,63 +735,63 @@ export function radial(...xs: any[]) {
   return linearish(f)
 }
 
-function transformer2() {
-  let x0 = 0,
-    x1 = 0.5,
-    x2 = 1,
-    s = 1,
-    t0,
-    t1,
-    t2,
-    k10,
-    k21,
-    interpolator = qu.identity,
-    transform,
-    _clamp = false,
-    _unk: any = undefined
-  function f(x) {
-    return isNaN((x = +x))
-      ? _unk
-      : ((x = 0.5 + ((x = +transform(x)) - t1) * (s * x < s * t1 ? k10 : k21)),
-        interpolator(_clamp ? Math.max(0, Math.min(1, x)) : x))
-  }
-  f.clamp = (x?: any) => (x === undefined ? _clamp : ((_clamp = !!x), f))
-  f.domain = (x?: any) => {
-    return x === undefined
-      ? [x0, x1, x2]
-      : (([x0, x1, x2] = x),
-        (t0 = transform((x0 = +x0))),
-        (t1 = transform((x1 = +x1))),
-        (t2 = transform((x2 = +x2))),
+export namespace diverging {
+  function transformer() {
+    let x0 = 0,
+      x1 = 0.5,
+      x2 = 1,
+      s = 1,
+      t0,
+      t1,
+      t2,
+      k10,
+      k21,
+      interpolator = qu.identity,
+      transform,
+      _clamp = false,
+      _unk: any = undefined
+    function f(x) {
+      return isNaN((x = +x))
+        ? _unk
+        : ((x = 0.5 + ((x = +transform(x)) - t1) * (s * x < s * t1 ? k10 : k21)),
+          interpolator(_clamp ? Math.max(0, Math.min(1, x)) : x))
+    }
+    f.clamp = (x?: any) => (x === undefined ? _clamp : ((_clamp = !!x), f))
+    f.domain = (x?: any) => {
+      return x === undefined
+        ? [x0, x1, x2]
+        : (([x0, x1, x2] = x),
+          (t0 = transform((x0 = +x0))),
+          (t1 = transform((x1 = +x1))),
+          (t2 = transform((x2 = +x2))),
+          (k10 = t0 === t1 ? 0 : 0.5 / (t1 - t0)),
+          (k21 = t1 === t2 ? 0 : 0.5 / (t2 - t1)),
+          (s = t1 < t0 ? -1 : 1),
+          f)
+    }
+    f.interpolator = (x?: any) => (x === undefined ? interpolator : ((interpolator = x), f))
+    function range(x: any) {
+      return (x2?: any) => {
+        let r0, r1, r2
+        return x2 === undefined
+          ? [interpolator(0), interpolator(0.5), interpolator(1)]
+          : (([r0, r1, r2] = x2), (interpolator = piecewise(x, [r0, r1, r2])), f)
+      }
+    }
+    f.range = range(interpolate)
+    f.rangeRound = range(interpolateRound)
+    f.unknown = (x?: any) => (x === undefined ? _unk : ((_unk = x), f))
+    return x => {
+      ;(transform = x),
+        (t0 = x(x0)),
+        (t1 = x(x1)),
+        (t2 = x(x2)),
         (k10 = t0 === t1 ? 0 : 0.5 / (t1 - t0)),
         (k21 = t1 === t2 ? 0 : 0.5 / (t2 - t1)),
-        (s = t1 < t0 ? -1 : 1),
-        f)
-  }
-  f.interpolator = (x?: any) => (x === undefined ? interpolator : ((interpolator = x), f))
-  function range(x: any) {
-    return (x2?: any) => {
-      let r0, r1, r2
-      return x2 === undefined
-        ? [interpolator(0), interpolator(0.5), interpolator(1)]
-        : (([r0, r1, r2] = x2), (interpolator = piecewise(x, [r0, r1, r2])), f)
+        (s = t1 < t0 ? -1 : 1)
+      return f
     }
   }
-  f.range = range(interpolate)
-  f.rangeRound = range(interpolateRound)
-  f.unknown = (x?: any) => (x === undefined ? _unk : ((_unk = x), f))
-  return x => {
-    ;(transform = x),
-      (t0 = x(x0)),
-      (t1 = x(x1)),
-      (t2 = x(x2)),
-      (k10 = t0 === t1 ? 0 : 0.5 / (t1 - t0)),
-      (k21 = t1 === t2 ? 0 : 0.5 / (t2 - t1)),
-      (s = t1 < t0 ? -1 : 1)
-    return f
-  }
-}
-export namespace diverging {
   export function log<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.Diverging<Out, U>
   export function log<Out, U = never>(dom: Iterable<qt.NumVal>, f: (x: number) => Out): qt.Scale.Diverging<Out, U>
   export function log(...xs: any[]) {
@@ -838,46 +834,46 @@ function transformer3() {
     interpolator = qu.identity,
     clamp = false,
     unknown
-  function scale(x) {
+  function f(x) {
     return x == null || isNaN((x = +x))
       ? unknown
       : interpolator(k10 === 0 ? 0.5 : ((x = (transform(x) - t0) * k10), clamp ? Math.max(0, Math.min(1, x)) : x))
   }
-  scale.domain = function (_) {
+  f.domain = function (_) {
     return arguments.length
       ? (([x0, x1] = _),
         (t0 = transform((x0 = +x0))),
         (t1 = transform((x1 = +x1))),
         (k10 = t0 === t1 ? 0 : 1 / (t1 - t0)),
-        scale)
+        f)
       : [x0, x1]
   }
-  scale.clamp = function (_) {
-    return arguments.length ? ((clamp = !!_), scale) : clamp
+  f.clamp = function (_) {
+    return arguments.length ? ((clamp = !!_), f) : clamp
   }
-  scale.interpolator = function (_) {
-    return arguments.length ? ((interpolator = _), scale) : interpolator
+  f.interpolator = function (_) {
+    return arguments.length ? ((interpolator = _), f) : interpolator
   }
   function range(interpolate) {
     return function (_) {
       let r0, r1
       return arguments.length
-        ? (([r0, r1] = _), (interpolator = interpolate(r0, r1)), scale)
+        ? (([r0, r1] = _), (interpolator = interpolate(r0, r1)), f)
         : [interpolator(0), interpolator(1)]
     }
   }
-  scale.range = range(interpolate)
-  scale.rangeRound = range(interpolateRound)
-  scale.unknown = function (_) {
-    return arguments.length ? ((unknown = _), scale) : unknown
+  f.range = range(interpolate)
+  f.rangeRound = range(interpolateRound)
+  f.unknown = function (_) {
+    return arguments.length ? ((unknown = _), f) : unknown
   }
   return function (t) {
     ;(transform = t), (t0 = t(x0)), (t1 = t(x1)), (k10 = t0 === t1 ? 0 : 1 / (t1 - t0))
-    return scale
+    return f
   }
 }
 
-export function copy(source, target) {
+function copy(source, target) {
   return target
     .domain(source.domain())
     .interpolator(source.interpolator())
@@ -898,83 +894,59 @@ export function sequential(...xs: any[]) {
   return initInterpolator.apply(f, xs)
 }
 
-export function sequentialLog<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.Sequential<Out, U>
-export function sequentialLog<Out, U = never>(
-  dom: Iterable<qt.NumVal>,
-  f: (x: number) => Out
-): qt.Scale.Sequential<Out, U>
-export function sequentialLog(...xs: any[]) {
-  const f = loggish(transformer()).domain([1, 10])
-  f.copy = () => copy(f, sequentialLog()).base(f.base())
-  return initInterpolator.apply(f, xs)
-}
+export namespace seq {
+  export function log<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.Sequential<Out, U>
+  export function log<Out, U = never>(dom: Iterable<qt.NumVal>, f: (x: number) => Out): qt.Scale.Sequential<Out, U>
+  export function log(...xs: any[]) {
+    const f = loggish(transformer()).domain([1, 10])
+    f.copy = () => copy(f, log()).base(f.base())
+    return initInterpolator.apply(f, xs)
+  }
 
-export function sequentialSymlog<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.Sequential<Out, U>
-export function sequentialSymlog<Out, U = never>(
-  dom: Iterable<qt.NumVal>,
-  f: (x: number) => Out
-): qt.Scale.Sequential<Out, U>
-export function sequentialSymlog(...xs: any[]) {
-  const f = symlogish(transformer())
-  f.copy = () => copy(f, sequentialSymlog()).constant(f.constant())
-  return initInterpolator.apply(f, xs)
-}
-export function sequentialPow<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.Sequential<Out, U>
-export function sequentialPow<Out, U = never>(
-  dom: Iterable<qt.NumVal>,
-  f: (x: number) => Out
-): qt.Scale.Sequential<Out, U>
-export function sequentialPow(...xs: any[]) {
-  const f = powish(transformer())
-  f.copy = () => copy(f, sequentialPow()).exponent(f.exponent())
-  return initInterpolator.apply(f, xs)
-}
+  export function symlog<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.Sequential<Out, U>
+  export function symlog<Out, U = never>(dom: Iterable<qt.NumVal>, f: (x: number) => Out): qt.Scale.Sequential<Out, U>
+  export function symlog(...xs: any[]) {
+    const f = symlogish(transformer())
+    f.copy = () => copy(f, symlog()).constant(f.constant())
+    return initInterpolator.apply(f, xs)
+  }
+  export function pow<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.Sequential<Out, U>
+  export function pow<Out, U = never>(dom: Iterable<qt.NumVal>, f: (x: number) => Out): qt.Scale.Sequential<Out, U>
+  export function pow(...xs: any[]) {
+    const f = powish(transformer())
+    f.copy = () => copy(f, pow()).exponent(f.exponent())
+    return initInterpolator.apply(f, xs)
+  }
 
-export function sequentialSqrt<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.Sequential<Out, U>
-export function sequentialSqrt<Out, U = never>(
-  dom: Iterable<qt.NumVal>,
-  f: (x: number) => Out
-): qt.Scale.Sequential<Out, U>
-export function sequentialSqrt(...xs: any[]) {
-  return sequentialPow.apply(null, ...xs).exponent(0.5)
-}
+  export function sqrt<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.Sequential<Out, U>
+  export function sqrt<Out, U = never>(dom: Iterable<qt.NumVal>, f: (x: number) => Out): qt.Scale.Sequential<Out, U>
+  export function sqrt(...xs: any[]) {
+    return pow.apply(null, ...xs).exponent(0.5)
+  }
 
-export function sequentialQuantile<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.SeqQuantile<Out, U>
-export function sequentialQuantile<Out, U = never>(
-  dom: Iterable<qt.NumVal>,
-  f: (x: number) => Out
-): qt.Scale.SeqQuantile<Out, U>
-export function sequentialQuantile(...xs: any[]) {
-  let domain = [],
-    interpolator = qu.identity
-  function f(x) {
-    if (x != null && !isNaN((x = +x))) return interpolator((bisect(domain, x, 1) - 1) / (domain.length - 1))
+  export function quantile<Out = number, U = never>(f?: (x: number) => Out): qt.Scale.SeqQuantile<Out, U>
+  export function quantile<Out, U = never>(
+    dom: Iterable<qt.NumVal>,
+    f: (x: number) => Out
+  ): qt.Scale.SeqQuantile<Out, U>
+  export function quantile(...xs: any[]) {
+    let _dom: any[] = [],
+      interpolator = qu.identity
+    function f(x?: any) {
+      if (x != undefined && !isNaN((x = +x))) return interpolator((bisect(_dom, x, 1) - 1) / (_dom.length - 1))
+      return
+    }
+    f.copy = () => quantile(interpolator).domain(_dom)
+    f.domain = function (x?: any) {
+      if (x === undefined) return _dom.slice()
+      _dom = []
+      for (let d of x) if (d != undefined && !isNaN((d = +d))) _dom.push(d)
+      _dom.sort(qu.ascending)
+      return f
+    }
+    f.interpolator = (x?: any) => (x === undefined ? interpolator : ((interpolator = x), f))
+    f.quantiles = (n: number) => Array.from({ length: n + 1 }, (_, i) => quantile(_dom, i / n))
+    f.range = () => _dom.map((_, i) => interpolator(i / (_dom.length - 1)))
+    return initInterpolator.apply(f, xs)
   }
-  f.domain = function (_) {
-    if (!arguments.length) return domain.slice()
-    domain = []
-    for (let d of _) if (d != null && !isNaN((d = +d))) domain.push(d)
-    domain.sort(qu.ascending)
-    return f
-  }
-  f.interpolator = function (_) {
-    return arguments.length ? ((interpolator = _), f) : interpolator
-  }
-  f.range = function () {
-    return domain.map((d, i) => interpolator(i / (domain.length - 1)))
-  }
-  f.quantiles = function (n) {
-    return Array.from({ length: n + 1 }, (_, i) => quantile(domain, i / n))
-  }
-  f.copy = function () {
-    return sequentialQuantile(interpolator).domain(domain)
-  }
-  return initInterpolator.apply(f, xs)
-}
-
-function date(t) {
-  return new Date(t)
-}
-function number(t) {
-  return t instanceof Date ? +t : +new Date(+t)
 }
