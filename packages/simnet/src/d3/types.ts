@@ -720,18 +720,6 @@ export type GeoPermissibleObjects =
   | ExtendedGeometryCollection
   | ExtendedFeature
   | ExtendedFeatureCollection
-export function geoBounds(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
-): [[number, number], [number, number]]
-export function geoContains(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection,
-  point: [number, number]
-): boolean
-export function geoDistance(a: [number, number], b: [number, number]): number
-export function geoLength(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
-): number
-export function geoInterpolate(a: [number, number], b: [number, number]): (t: number) => [number, number]
 export interface GeoRotation {
   (point: [number, number]): [number, number]
   invert(point: [number, number]): [number, number]
@@ -745,9 +733,6 @@ export interface GeoCircleGenerator<This = any, T = any> {
   precision(): (this: This, x: T, ...xs: any[]) => number
   precision(precision: number | ((this: This, x: T, ...xs: any[]) => number)): this
 }
-export function geoCircle(): GeoCircleGenerator
-export function geoCircle<T>(): GeoCircleGenerator<any, T>
-export function geoCircle<This, T>(): GeoCircleGenerator<This, T>
 export interface GeoGraticuleGenerator {
   (): GeoJSON.MultiLineString
   lines(): GeoJSON.LineString[]

@@ -1,64 +1,63 @@
+/* eslint-disable no-inner-declarations */
 import { Adder, range } from "./utils_seq.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
-export const areaRingSum = new Adder()
-var areaSum = new Adder(),
-  lambda00,
-  phi00,
-  lambda0,
-  cosPhi0,
-  sinPhi0
-export const areaStream = {
-  point: noop,
-  lineStart: noop,
-  lineEnd: noop,
-  polygonStart: function () {
-    areaRingSum = new Adder()
-    areaStream.lineStart = areaRingStart
-    areaStream.lineEnd = areaRingEnd
-  },
-  polygonEnd: function () {
-    let areaRing = +areaRingSum
-    areaSum.add(areaRing < 0 ? tau + areaRing : areaRing)
-    this.lineStart = this.lineEnd = this.point = noop
-  },
-  sphere: function () {
-    areaSum.add(tau)
-  },
-}
-function areaRingStart() {
-  areaStream.point = areaPointFirst
-}
-function areaRingEnd() {
-  areaPoint(lambda00, phi00)
-}
-function areaPointFirst(lambda, phi) {
-  areaStream.point = areaPoint
-  ;(lambda00 = lambda), (phi00 = phi)
-  ;(lambda *= radians), (phi *= radians)
-  ;(lambda0 = lambda), (cosPhi0 = cos((phi = phi / 2 + quarterPi))), (sinPhi0 = sin(phi))
-}
-function areaPoint(lambda, phi) {
-  ;(lambda *= radians), (phi *= radians)
-  phi = phi / 2 + quarterPi // half the angular distance from south pole
-  let dLambda = lambda - lambda0,
-    sdLambda = dLambda >= 0 ? 1 : -1,
-    adLambda = sdLambda * dLambda,
-    cosPhi = cos(phi),
-    sinPhi = sin(phi),
-    k = sinPhi0 * sinPhi,
-    u = cosPhi0 * cosPhi + k * cos(adLambda),
-    v = k * sdLambda * sin(adLambda)
-  areaRingSum.add(atan2(v, u))
-  ;(lambda0 = lambda), (cosPhi0 = cosPhi), (sinPhi0 = sinPhi)
+export namespace area {
+  export const ringSum = new Adder()
+  export let sum = new Adder()
+  let lambda00, phi00, lambda0, cosPhi0, sinPhi0
+  export const stream = {
+    point: noop,
+    lineStart: noop,
+    lineEnd: noop,
+    polygonStart: function () {
+      ringSum = new Adder()
+      stream.lineStart = ringStart
+      stream.lineEnd = areaRingEnd
+    },
+    polygonEnd: function () {
+      const y = +ringSum
+      sum.add(y < 0 ? tau + y : y)
+      this.lineStart = this.lineEnd = this.point = noop
+    },
+    sphere: function () {
+      sum.add(tau)
+    },
+  }
+  function ringStart() {
+    stream.point = pointFirst
+  }
+  function areaRingEnd() {
+    point(lambda00, phi00)
+  }
+  function pointFirst(lambda, phi) {
+    stream.point = point
+    ;(lambda00 = lambda), (phi00 = phi)
+    ;(lambda *= radians), (phi *= radians)
+    ;(lambda0 = lambda), (cosPhi0 = cos((phi = phi / 2 + quarterPi))), (sinPhi0 = sin(phi))
+  }
+  function point(lambda, phi) {
+    ;(lambda *= radians), (phi *= radians)
+    phi = phi / 2 + quarterPi
+    const dLambda = lambda - lambda0,
+      sdLambda = dLambda >= 0 ? 1 : -1,
+      adLambda = sdLambda * dLambda,
+      cosPhi = cos(phi),
+      sinPhi = sin(phi),
+      k = sinPhi0 * sinPhi,
+      u = cosPhi0 * cosPhi + k * cos(adLambda),
+      v = k * sdLambda * sin(adLambda)
+    ringSum.add(atan2(v, u))
+    ;(lambda0 = lambda), (cosPhi0 = cosPhi), (sinPhi0 = sinPhi)
+  }
 }
 export function area(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+  x: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
 ): number {
-  areaSum = new Adder()
-  stream(object, areaStream)
-  return areaSum * 2
+  area.sum = new Adder()
+  stream(x, area.stream)
+  return area.sum * 2
 }
 var lambda0,
   phi0,
@@ -102,7 +101,7 @@ function boundsPoint(lambda, phi) {
   if (phi > phi1) phi1 = phi
 }
 function linePoint(lambda, phi) {
-  let p = cartesian([lambda * radians, phi * radians])
+  const p = cartesian([lambda * radians, phi * radians])
   if (p0) {
     let normal = cartesianCross(p0, p),
       equatorial = [normal[1], -normal[0], 0],
@@ -161,7 +160,7 @@ function boundsLineEnd() {
 }
 function boundsRingPoint(lambda, phi) {
   if (p0) {
-    let delta = lambda - lambda2
+    const delta = lambda - lambda2
     deltaSum.add(abs(delta) > 180 ? delta + (delta > 0 ? 360 : -360) : delta)
   } else {
     ;(lambda00 = lambda), (phi00 = phi)
@@ -188,11 +187,13 @@ function rangeCompare(a, b) {
 function rangeContains(range, x) {
   return range[0] <= range[1] ? range[0] <= x && x <= range[1] : x < range[0] || range[1] < x
 }
-export function bounds(feature) {
+export function bounds(
+  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+): [[number, number], [number, number]] {
   let i, n, a, b, merged, deltaMax, delta
   phi1 = lambda1 = -(lambda0 = phi0 = Infinity)
   ranges = []
-  stream(feature, boundsStream)
+  stream(object, boundsStream)
   if ((n = ranges.length)) {
     ranges.sort(rangeCompare)
     for (i = 1, a = ranges[0], merged = [a]; i < n; ++i) {
@@ -224,7 +225,7 @@ export function spherical(cartesian) {
   return [atan2(cartesian[1], cartesian[0]), asin(cartesian[2])]
 }
 export function cartesian(spherical) {
-  let lambda = spherical[0],
+  const lambda = spherical[0],
     phi = spherical[1],
     cosPhi = cos(phi)
   return [cosPhi * cos(lambda), cosPhi * sin(lambda), sin(phi)]
@@ -242,7 +243,7 @@ export function cartesianScale(vector, k) {
   return [vector[0] * k, vector[1] * k, vector[2] * k]
 }
 export function cartesianNormalizeInPlace(d) {
-  let l = sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
+  const l = sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
   ;(d[0] /= l), (d[1] /= l), (d[2] /= l)
 }
 var W0,
@@ -277,7 +278,7 @@ var centroidStream = {
 }
 function centroidPoint(lambda, phi) {
   ;(lambda *= radians), (phi *= radians)
-  let cosPhi = cos(phi)
+  const cosPhi = cos(phi)
   centroidPointCartesian(cosPhi * cos(lambda), cosPhi * sin(lambda), sin(phi))
 }
 function centroidPointCartesian(x, y, z) {
@@ -291,7 +292,7 @@ function centroidLineStart() {
 }
 function centroidLinePointFirst(lambda, phi) {
   ;(lambda *= radians), (phi *= radians)
-  let cosPhi = cos(phi)
+  const cosPhi = cos(phi)
   x0 = cosPhi * cos(lambda)
   y0 = cosPhi * sin(lambda)
   z0 = sin(phi)
@@ -328,7 +329,7 @@ function centroidRingPointFirst(lambda, phi) {
   ;(lambda00 = lambda), (phi00 = phi)
   ;(lambda *= radians), (phi *= radians)
   centroidStream.point = centroidRingPoint
-  let cosPhi = cos(phi)
+  const cosPhi = cos(phi)
   x0 = cosPhi * cos(lambda)
   y0 = cosPhi * sin(lambda)
   z0 = sin(phi)
@@ -336,7 +337,7 @@ function centroidRingPointFirst(lambda, phi) {
 }
 function centroidRingPoint(lambda, phi) {
   ;(lambda *= radians), (phi *= radians)
-  let cosPhi = cos(phi),
+  const cosPhi = cos(phi),
     x = cosPhi * cos(lambda),
     y = cosPhi * sin(lambda),
     z = sin(phi),
@@ -355,8 +356,8 @@ function centroidRingPoint(lambda, phi) {
   Z1 += w * (z0 + (z0 = z))
   centroidPointCartesian(x0, y0, z0)
 }
-export function geoCentroid(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+export function centroid(
+  object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
 ): [number, number] {
   W0 = W1 = X0 = Y0 = Z0 = X1 = Y1 = Z1 = 0
   X2 = new Adder()
@@ -377,7 +378,7 @@ export function geoCentroid(
 }
 export function circleStream(stream, radius, delta, direction, t0, t1) {
   if (!delta) return
-  let cosRadius = cos(radius),
+  const cosRadius = cos(radius),
     sinRadius = sin(radius),
     step = direction * delta
   if (t0 == null) {
@@ -396,9 +397,12 @@ export function circleStream(stream, radius, delta, direction, t0, t1) {
 function circleRadius(cosRadius, point) {
   ;(point = cartesian(point)), (point[0] -= cosRadius)
   cartesianNormalizeInPlace(point)
-  let radius = acos(-point[1])
+  const radius = acos(-point[1])
   return ((-point[2] < 0 ? -radius : radius) + tau - epsilon) % tau
 }
+export function circle(): GeoCircleGenerator
+export function circle<T>(): GeoCircleGenerator<any, T>
+export function circle<This, T>(): GeoCircleGenerator<This, T>
 export function circle() {
   let center = qu.constant([0, 0]),
     radius = qu.constant(90),
@@ -442,7 +446,7 @@ export function compose(a, b) {
     }
   return compose
 }
-let containsObjectType = {
+const containsObjectType = {
   Feature: function (object, point) {
     return containsGeometry(object.geometry, point)
   },
@@ -454,7 +458,7 @@ let containsObjectType = {
     return false
   },
 }
-let containsGeometryType = {
+const containsGeometryType = {
   Sphere: function () {
     return true
   },
@@ -527,20 +531,23 @@ function ringRadians(ring) {
 function pointRadians(point) {
   return [point[0] * radians, point[1] * radians]
 }
-export function contains(object, point) {
+export function contains(
+  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection,
+  point: [number, number]
+): boolean {
   return (
     object && containsObjectType.hasOwnProperty(object.type) ? containsObjectType[object.type] : containsGeometry
   )(object, point)
 }
-let coordinates = [null, null],
+const coordinates = [null, null],
   object = { type: "LineString", coordinates: coordinates }
-export function distance(a, b) {
+export function geoDistance(a: [number, number], b: [number, number]): number {
   coordinates[0] = a
   coordinates[1] = b
   return length(object)
 }
 function graticuleX(y0, y1, dy) {
-  let y = range(y0, y1 - epsilon, dy).concat(y1)
+  const y = range(y0, y1 - epsilon, dy).concat(y1)
   return function (x) {
     return y.map(function (y) {
       return [x, y]
@@ -548,7 +555,7 @@ function graticuleX(y0, y1, dy) {
   }
 }
 function graticuleY(x0, x1, dx) {
-  let x = range(x0, x1 - epsilon, dx).concat(x1)
+  const x = range(x0, x1 - epsilon, dx).concat(x1)
   return function (y) {
     return x.map(function (x) {
       return [x, y]
@@ -670,8 +677,8 @@ export function graticule(): qt.GeoGraticuleGenerator {
 export function graticule10(): GeoJSON.MultiLineString {
   return graticule()()
 }
-export function interpolate(a, b) {
-  let x0 = a[0] * radians,
+export function interpolate(a: [number, number], b: [number, number]): (t: number) => [number, number] {
+  const x0 = a[0] * radians,
     y0 = a[1] * radians,
     x1 = b[0] * radians,
     y1 = b[1] * radians,
@@ -685,7 +692,7 @@ export function interpolate(a, b) {
     ky1 = cy1 * sin(x1),
     d = 2 * asin(sqrt(haversin(y1 - y0) + cy0 * cy1 * haversin(x1 - x0))),
     k = sin(d)
-  let interpolate = d
+  const interpolate = d
     ? function (t) {
         let B = sin((t *= d)) / k,
           A = sin(d - t) / k,
@@ -701,7 +708,7 @@ export function interpolate(a, b) {
   return interpolate
 }
 var lengthSum, lambda0, sinPhi0, cosPhi0
-let lengthStream = {
+const lengthStream = {
   sphere: noop,
   point: noop,
   lineStart: lengthLineStart,
@@ -723,7 +730,7 @@ function lengthPointFirst(lambda, phi) {
 }
 function lengthPoint(lambda, phi) {
   ;(lambda *= radians), (phi *= radians)
-  let sinPhi = sin(phi),
+  const sinPhi = sin(phi),
     cosPhi = cos(phi),
     delta = abs(lambda - lambda0),
     cosDelta = cos(delta),
@@ -734,7 +741,9 @@ function lengthPoint(lambda, phi) {
   lengthSum.add(atan2(sqrt(x * x + y * y), z))
   ;(lambda0 = lambda), (sinPhi0 = sinPhi), (cosPhi0 = cosPhi)
 }
-export function length(object) {
+export function length(
+  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+): number {
   lengthSum = new Adder()
   stream(object, lengthStream)
   return +lengthSum
@@ -788,7 +797,7 @@ export function polygonContains(polygon, point) {
     normal = [sin(lambda), -cos(lambda), 0],
     angle = 0,
     winding = 0
-  let sum = new Adder()
+  const sum = new Adder()
   if (sinPhi === 1) phi = halfPi + epsilon
   else if (sinPhi === -1) phi = -halfPi - epsilon
   for (let i = 0, n = polygon.length; i < n; ++i) {
@@ -814,11 +823,11 @@ export function polygonContains(polygon, point) {
       sum.add(atan2(k * sign * sin(absDelta), cosPhi0 * cosPhi1 + k * cos(absDelta)))
       angle += antimeridian ? delta + sign * tau : delta
       if (antimeridian ^ (lambda0 >= lambda) ^ (lambda1 >= lambda)) {
-        let arc = cartesianCross(cartesian(point0), cartesian(point1))
+        const arc = cartesianCross(cartesian(point0), cartesian(point1))
         cartesianNormalizeInPlace(arc)
-        let intersection = cartesianCross(normal, arc)
+        const intersection = cartesianCross(normal, arc)
         cartesianNormalizeInPlace(intersection)
-        let phiArc = (antimeridian ^ (delta >= 0) ? -1 : 1) * asin(intersection[2])
+        const phiArc = (antimeridian ^ (delta >= 0) ? -1 : 1) * asin(intersection[2])
         if (phi > phiArc || (phi === phiArc && (arc[0] || arc[1]))) {
           winding += antimeridian ^ (delta >= 0) ? 1 : -1
         }
@@ -849,17 +858,17 @@ function forwardRotationLambda(deltaLambda) {
   }
 }
 function rotationLambda(deltaLambda) {
-  let rotation = forwardRotationLambda(deltaLambda)
+  const rotation = forwardRotationLambda(deltaLambda)
   rotation.invert = forwardRotationLambda(-deltaLambda)
   return rotation
 }
 function rotationPhiGamma(deltaPhi, deltaGamma) {
-  let cosDeltaPhi = cos(deltaPhi),
+  const cosDeltaPhi = cos(deltaPhi),
     sinDeltaPhi = sin(deltaPhi),
     cosDeltaGamma = cos(deltaGamma),
     sinDeltaGamma = sin(deltaGamma)
   function rotation(lambda, phi) {
-    let cosPhi = cos(phi),
+    const cosPhi = cos(phi),
       x = cos(lambda) * cosPhi,
       y = sin(lambda) * cosPhi,
       z = sin(phi),
@@ -870,7 +879,7 @@ function rotationPhiGamma(deltaPhi, deltaGamma) {
     ]
   }
   rotation.invert = function (lambda, phi) {
-    let cosPhi = cos(phi),
+    const cosPhi = cos(phi),
       x = cos(lambda) * cosPhi,
       y = sin(lambda) * cosPhi,
       z = sin(phi),
@@ -899,7 +908,7 @@ function streamGeometry(geometry, stream) {
     streamGeometryType[geometry.type](geometry, stream)
   }
 }
-let streamObjectType = {
+const streamObjectType = {
   Feature: function (object, stream) {
     streamGeometry(object.geometry, stream)
   },
@@ -965,7 +974,7 @@ function streamPolygon(coordinates, stream) {
   stream.polygonEnd()
 }
 export function stream(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection,
+  object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection,
   stream: GeoStream
 ): void {
   if (object && streamObjectType.hasOwnProperty(object.type)) {
@@ -981,8 +990,8 @@ export function transform(methods) {
 }
 export function transformer(methods) {
   return function (stream) {
-    let s = new TransformStream()
-    for (let key in methods) s[key] = methods[key]
+    const s = new TransformStream()
+    for (const key in methods) s[key] = methods[key]
     s.stream = stream
     return s
   }
@@ -1045,7 +1054,7 @@ export namespace clip {
         clean = 1
       },
       point: function (lambda1, phi1) {
-        let sign1 = lambda1 > 0 ? pi : -pi,
+        const sign1 = lambda1 > 0 ? pi : -pi,
           delta = abs(lambda1 - lambda0)
         if (abs(delta - pi) < epsilon) {
           stream.point(lambda0, (phi0 = (phi0 + phi1) / 2 > 0 ? halfPi : -halfPi))
@@ -1102,7 +1111,7 @@ export namespace clip {
       stream.point(-pi, 0)
       stream.point(-pi, phi)
     } else if (abs(from[0] - to[0]) > epsilon) {
-      let lambda = from[0] < to[0] ? pi : -pi
+      const lambda = from[0] < to[0] ? pi : -pi
       phi = (direction * lambda) / 2
       stream.point(-lambda, phi)
       stream.point(0, phi)
@@ -1126,7 +1135,7 @@ export namespace clip {
         if (lines.length > 1) lines.push(lines.pop().concat(lines.shift()))
       },
       result: function () {
-        let result = lines
+        const result = lines
         lines = []
         line = null
         return result
@@ -1134,7 +1143,7 @@ export namespace clip {
     }
   }
   export function circle(radius) {
-    let cr = cos(radius),
+    const cr = cos(radius),
       delta = 6 * radians,
       smallRadius = cr > 0,
       notHemisphere = abs(cr) > epsilon // TODO optimise for this common case
@@ -1209,21 +1218,21 @@ export namespace clip {
       }
     }
     function intersect(a, b, two) {
-      let pa = cartesian(a),
+      const pa = cartesian(a),
         pb = cartesian(b)
-      let n1 = [1, 0, 0], // normal
+      const n1 = [1, 0, 0], // normal
         n2 = cartesianCross(pa, pb),
         n2n2 = cartesianDot(n2, n2),
         n1n2 = n2[0], // cartesianDot(n1, n2),
         determinant = n2n2 - n1n2 * n1n2
       if (!determinant) return !two && a
-      let c1 = (cr * n2n2) / determinant,
+      const c1 = (cr * n2n2) / determinant,
         c2 = (-cr * n1n2) / determinant,
         n1xn2 = cartesianCross(n1, n2),
         A = cartesianScale(n1, c1),
         B = cartesianScale(n2, c2)
       cartesianAddInPlace(A, B)
-      let u = n1xn2,
+      const u = n1xn2,
         w = cartesianDot(A, u),
         uu = cartesianDot(u, u),
         t2 = w * w - uu * (cartesianDot(A, A) - 1)
@@ -1239,7 +1248,7 @@ export namespace clip {
         phi1 = b[1],
         z
       if (lambda1 < lambda0) (z = lambda0), (lambda0 = lambda1), (lambda1 = z)
-      let delta = lambda1 - lambda0,
+      const delta = lambda1 - lambda0,
         polar = abs(delta - pi) < epsilon,
         meridian = polar || delta < epsilon
       if (!polar && phi1 < phi0) (z = phi0), (phi0 = phi1), (phi1 = z)
@@ -1250,7 +1259,7 @@ export namespace clip {
             : phi0 <= q[1] && q[1] <= phi1
           : (delta > pi) ^ (lambda0 <= q[0] && q[0] <= lambda1)
       ) {
-        let q1 = cartesianScale(u, (-w + t) / uu)
+        const q1 = cartesianScale(u, (-w + t) / uu)
         cartesianAddInPlace(q1, A)
         return [q, spherical(q1)]
       }
@@ -1313,7 +1322,7 @@ export namespace clip {
           clip.lineStart = lineStart
           clip.lineEnd = lineEnd
           segments = merge(segments)
-          let startInside = polygonContains(polygon, start)
+          const startInside = polygonContains(polygon, start)
           if (segments.length) {
             if (!polygonStarted) sink.polygonStart(), (polygonStarted = true)
             clipRejoin(segments, compareIntersection, startInside, interpolate, sink)
@@ -1449,7 +1458,7 @@ export namespace clip {
     if (t1 < 1) (b[0] = ax + t1 * dx), (b[1] = ay + t1 * dy)
     return true
   }
-  let clipMax = 1e9,
+  const clipMax = 1e9,
     clipMin = -clipMax
   export function clipRectangle(x0, y0, x1, y1) {
     function visible(x, y) {
@@ -1490,7 +1499,7 @@ export namespace clip {
       return comparePoint(a.x, b.x)
     }
     function comparePoint(a, b) {
-      let ca = corner(a, 1),
+      const ca = corner(a, 1),
         cb = corner(b, 1)
       return ca !== cb
         ? ca - cb
@@ -1516,7 +1525,7 @@ export namespace clip {
         v_, // previous point
         first,
         clean
-      let clipStream = {
+      const clipStream = {
         point: point,
         lineStart: lineStart,
         lineEnd: lineEnd,
@@ -1548,7 +1557,7 @@ export namespace clip {
         ;(activeStream = bufferStream), (segments = []), (polygon = []), (clean = true)
       }
       function polygonEnd() {
-        let startInside = polygonInside(),
+        const startInside = polygonInside(),
           cleanInside = clean && startInside,
           visible = (segments = merge(segments)).length
         if (cleanInside || visible) {
@@ -1582,7 +1591,7 @@ export namespace clip {
         if (v_) activeStream.lineEnd()
       }
       function linePoint(x, y) {
-        let v = visible(x, y)
+        const v = visible(x, y)
         if (polygon) ring.push([x, y])
         if (first) {
           ;(x__ = x), (y__ = y), (v__ = v)
@@ -1594,7 +1603,10 @@ export namespace clip {
         } else {
           if (v && v_) activeStream.point(x, y)
           else {
-            let a = [(x_ = Math.max(clipMin, Math.min(clipMax, x_))), (y_ = Math.max(clipMin, Math.min(clipMax, y_)))],
+            const a = [
+                (x_ = Math.max(clipMin, Math.min(clipMax, x_))),
+                (y_ = Math.max(clipMin, Math.min(clipMax, y_))),
+              ],
               b = [(x = Math.max(clipMin, Math.min(clipMax, x))), (y = Math.max(clipMin, Math.min(clipMax, y)))]
             if (clipLine(a, b, x0, y0, x1, y1)) {
               if (!v_) {
@@ -1731,7 +1743,7 @@ export namespace path {
       areaRingSum = new Adder()
     },
     result: function () {
-      let area = areaSum / 2
+      const area = areaSum / 2
       areaSum = new Adder()
       return area
     },
@@ -1755,7 +1767,7 @@ export namespace path {
     y0 = x0,
     x1 = -x0,
     y1 = x1
-  let boundsStream = {
+  const boundsStream = {
     point: boundsPoint,
     lineStart: noop,
     lineEnd: noop,
@@ -1804,7 +1816,7 @@ export namespace path {
       centroidStream.lineEnd = centroidLineEnd
     },
     result: function () {
-      let centroid = Z2 ? [X2 / Z2, Y2 / Z2] : Z1 ? [X1 / Z1, Y1 / Z1] : Z0 ? [X0 / Z0, Y0 / Z0] : [NaN, NaN]
+      const centroid = Z2 ? [X2 / Z2, Y2 / Z2] : Z1 ? [X1 / Z1, Y1 / Z1] : Z0 ? [X0 / Z0, Y0 / Z0] : [NaN, NaN]
       X0 = Y0 = Z0 = X1 = Y1 = Z1 = X2 = Y2 = Z2 = 0
       return centroid
     },
@@ -1822,7 +1834,7 @@ export namespace path {
     centroidPoint((x0 = x), (y0 = y))
   }
   function centroidPointLine(x, y) {
-    let dx = x - x0,
+    const dx = x - x0,
       dy = y - y0,
       z = sqrt(dx * dx + dy * dy)
     X1 += (z * (x0 + x)) / 2
@@ -1965,7 +1977,7 @@ export namespace path {
       lengthRing = null
     },
     result: function () {
-      let length = +lengthSum
+      const length = +lengthSum
       lengthSum = new Adder()
       return length
     },
@@ -2023,7 +2035,7 @@ export namespace path {
     }
     result() {
       if (this._string.length) {
-        let result = this._string.join("")
+        const result = this._string.join("")
         this._string = []
         return result
       } else {
@@ -2075,7 +2087,7 @@ export namespace proj {
       .center([-0.6, 38.7])
   }
   function multiplex(streams) {
-    let n = streams.length
+    const n = streams.length
     return {
       point: function (x, y) {
         let i = -1
@@ -2119,7 +2131,7 @@ export namespace proj {
         },
       }
     function albersUsa(coordinates) {
-      let x = coordinates[0],
+      const x = coordinates[0],
         y = coordinates[1]
       return (
         (point = null),
@@ -2127,7 +2139,7 @@ export namespace proj {
       )
     }
     albersUsa.invert = function (coordinates) {
-      let k = lower48.scale(),
+      const k = lower48.scale(),
         t = lower48.translate(),
         x = (coordinates[0] - t[0]) / k,
         y = (coordinates[1] - t[1]) / k
@@ -2156,7 +2168,7 @@ export namespace proj {
     }
     albersUsa.translate = function (_) {
       if (!arguments.length) return lower48.translate()
-      let k = lower48.scale(),
+      const k = lower48.scale(),
         x = +_[0],
         y = +_[1]
       lower48Point = lower48
@@ -2202,7 +2214,7 @@ export namespace proj {
   }
   export function azimuthalRaw(scale) {
     return function (x, y) {
-      let cx = cos(x),
+      const cx = cos(x),
         cy = cos(y),
         k = scale(cx * cy)
       if (k === Infinity) return [2, 0]
@@ -2211,7 +2223,7 @@ export namespace proj {
   }
   export function azimuthalInvert(angle) {
     return function (x, y) {
-      let z = sqrt(x * x + y * y),
+      const z = sqrt(x * x + y * y),
         c = angle(z),
         sc = sin(c),
         cc = cos(c)
@@ -2254,7 +2266,7 @@ export namespace proj {
     return tan((halfPi + y) / 2)
   }
   export function conicConformalRaw(y0, y1) {
-    let cy0 = cos(y0),
+    const cy0 = cos(y0),
       n = y0 === y1 ? sin(y0) : log(cy0 / cos(y1)) / log(tany(y1) / tany(y0)),
       f = (cy0 * pow(tany(y0), n)) / n
     if (!n) return mercatorRaw
@@ -2264,7 +2276,7 @@ export namespace proj {
       } else {
         if (y > halfPi - epsilon) y = halfPi - epsilon
       }
-      let r = f / pow(tany(y), n)
+      const r = f / pow(tany(y), n)
       return [r * sin(n * x), f - r * cos(n * x)]
     }
     project.invert = function (x, y) {
@@ -2280,13 +2292,13 @@ export namespace proj {
     return conicProjection(conicConformalRaw).scale(109.5).parallels([30, 30])
   }
   export function conicEqualAreaRaw(y0, y1) {
-    let sy0 = sin(y0),
+    const sy0 = sin(y0),
       n = (sy0 + sin(y1)) / 2
     if (abs(n) < epsilon) return cylindricalEqualAreaRaw(y0)
-    let c = 1 + sy0 * (2 * n - sy0),
+    const c = 1 + sy0 * (2 * n - sy0),
       r0 = sqrt(c) / n
     function project(x, y) {
-      let r = sqrt(c - 2 * n * sin(y)) / n
+      const r = sqrt(c - 2 * n * sin(y)) / n
       return [r * sin((x *= n)), r0 - r * cos(x)]
     }
     project.invert = function (x, y) {
@@ -2301,12 +2313,12 @@ export namespace proj {
     return conicProjection(conicEqualAreaRaw).scale(155.424).center([0, 33.6442])
   }
   export function conicEquidistantRaw(y0, y1) {
-    let cy0 = cos(y0),
+    const cy0 = cos(y0),
       n = y0 === y1 ? sin(y0) : (cy0 - cos(y1)) / (y1 - y0),
       g = cy0 / n + y0
     if (abs(n) < epsilon) return equirectangularRaw
     function project(x, y) {
-      let gy = g - y,
+      const gy = g - y,
         nx = n * x
       return [gy * sin(nx), g - gy * cos(nx)]
     }
@@ -2322,7 +2334,7 @@ export namespace proj {
     return conicProjection(conicEquidistantRaw).scale(131.154).center([0, 13.9389])
   }
   export function cylindricalEqualAreaRaw(phi0) {
-    let cosPhi0 = cos(phi0)
+    const cosPhi0 = cos(phi0)
     function forward(lambda, phi) {
       return [lambda * cosPhi0, sin(phi) / cosPhi0]
     }
@@ -2331,14 +2343,14 @@ export namespace proj {
     }
     return forward
   }
-  let A1 = 1.340264,
+  const A1 = 1.340264,
     A2 = -0.081106,
     A3 = 0.000893,
     A4 = 0.003796,
     M = sqrt(3) / 2,
     iterations = 12
   export function equalEarthRaw(lambda, phi) {
-    let l = asin(M * sin(phi)),
+    const l = asin(M * sin(phi)),
       l2 = l * l,
       l6 = l2 * l2 * l2
     return [
@@ -2369,7 +2381,7 @@ export namespace proj {
     return projection(equirectangularRaw).scale(152.63)
   }
   function fit(projection, fitBounds, object) {
-    let clip = projection.clipExtent && projection.clipExtent()
+    const clip = projection.clipExtent && projection.clipExtent()
     projection.scale(150).translate([0, 0])
     if (clip != null) projection.clipExtent(null)
     geoStream(object, projection.stream(boundsStream))
@@ -2381,7 +2393,7 @@ export namespace proj {
     return fit(
       projection,
       function (b) {
-        let w = extent[1][0] - extent[0][0],
+        const w = extent[1][0] - extent[0][0],
           h = extent[1][1] - extent[0][1],
           k = Math.min(w / (b[1][0] - b[0][0]), h / (b[1][1] - b[0][1])),
           x = +extent[0][0] + (w - k * (b[1][0] + b[0][0])) / 2,
@@ -2398,7 +2410,7 @@ export namespace proj {
     return fit(
       projection,
       function (b) {
-        let w = +width,
+        const w = +width,
           k = w / (b[1][0] - b[0][0]),
           x = (w - k * (b[1][0] + b[0][0])) / 2,
           y = -k * b[0][1]
@@ -2411,7 +2423,7 @@ export namespace proj {
     return fit(
       projection,
       function (b) {
-        let h = +height,
+        const h = +height,
           k = h / (b[1][1] - b[0][1]),
           x = -k * b[0][0],
           y = (h - k * (b[1][1] + b[0][1])) / 2
@@ -2421,7 +2433,7 @@ export namespace proj {
     )
   }
   export function gnomonicRaw(x, y) {
-    let cy = cos(y),
+    const cy = cos(y),
       k = cos(x) * cy
     return [(cy * sin(x)) / k, sin(y) / k]
   }
@@ -2446,7 +2458,7 @@ export namespace proj {
       ky = 1,
       transform = transformer({
         point: function (x, y) {
-          let p = projection([x, y])
+          const p = projection([x, y])
           this.stream.point(p[0], p[1])
         },
       }),
@@ -2463,7 +2475,7 @@ export namespace proj {
       let x = p[0] * kx,
         y = p[1] * ky
       if (alpha) {
-        let t = y * ca - x * sa
+        const t = y * ca - x * sa
         x = x * ca + y * sa
         y = t
       }
@@ -2473,7 +2485,7 @@ export namespace proj {
       let x = p[0] - tx,
         y = p[1] - ty
       if (alpha) {
-        let t = y * ca + x * sa
+        const t = y * ca + x * sa
         x = x * ca - y * sa
         y = t
       }
@@ -2530,7 +2542,7 @@ export namespace proj {
     }
     return projection
   }
-  let transformRadians = transformer({
+  const transformRadians = transformer({
     point: function (x, y) {
       this.stream.point(x * radians, y * radians)
     },
@@ -2538,7 +2550,7 @@ export namespace proj {
   function transformRotate(rotate) {
     return transformer({
       point: function (x, y) {
-        let r = rotate(x, y)
+        const r = rotate(x, y)
         return this.stream.point(r[0], r[1])
       },
     })
@@ -2556,7 +2568,7 @@ export namespace proj {
   }
   function scaleTranslateRotate(k, dx, dy, sx, sy, alpha) {
     if (!alpha) return scaleTranslate(k, dx, dy, sx, sy)
-    let cosAlpha = cos(alpha),
+    const cosAlpha = cos(alpha),
       sinAlpha = sin(alpha),
       a = cosAlpha * k,
       b = sinAlpha * k,
@@ -2691,7 +2703,7 @@ export namespace proj {
       return fitHeight(projection, height, object)
     }
     function recenter() {
-      let center = scaleTranslateRotate(k, 0, 0, sx, sy, alpha).apply(null, project(lambda, phi)),
+      const center = scaleTranslateRotate(k, 0, 0, sx, sy, alpha).apply(null, project(lambda, phi)),
         transform = scaleTranslateRotate(k, x - center[0], y - center[1], sx, sy, alpha)
       rotate = rotateRadians(deltaLambda, deltaPhi, deltaGamma)
       projectTransform = compose(project, transform)
@@ -2751,7 +2763,7 @@ export namespace proj {
           ]
     }
     function reclip() {
-      let k = pi * scale(),
+      const k = pi * scale(),
         t = m(rotation(m.rotate()).invert([0, 0]))
       return clipExtent(
         x0 == null
@@ -2773,7 +2785,7 @@ export namespace proj {
     return reclip()
   }
   export function naturalEarth1Raw(lambda, phi) {
-    let phi2 = phi * phi,
+    const phi2 = phi * phi,
       phi4 = phi2 * phi2
     return [
       lambda * (0.8707 - 0.131979 * phi2 + phi4 * (-0.013791 + phi4 * (0.003971 * phi2 - 0.001529 * phi4))),
@@ -2810,7 +2822,7 @@ export namespace proj {
       .scale(249.5)
       .clipAngle(90 + epsilon)
   }
-  let maxDepth = 16, // maximum depth of subdivision
+  const maxDepth = 16, // maximum depth of subdivision
     cosMinDistance = cos(30 * radians) // cos(minimum angular distance)
   export function resample(project, delta2) {
     function resampleNone(project) {
@@ -2823,7 +2835,7 @@ export namespace proj {
     }
     function resample(project, delta2) {
       function resampleLineTo(x0, y0, lambda0, a0, b0, c0, x1, y1, lambda1, a1, b1, c1, depth, stream) {
-        let dx = x1 - x0,
+        const dx = x1 - x0,
           dy = y1 - y0,
           d2 = dx * dx + dy * dy
         if (d2 > 4 * delta2 && depth--) {
@@ -2887,7 +2899,7 @@ export namespace proj {
           stream.lineStart()
         }
         function linePoint(lambda, phi) {
-          let c = cartesian([lambda, phi]),
+          const c = cartesian([lambda, phi]),
             p = project(lambda, phi)
           resampleLineTo(
             x0,
@@ -2931,7 +2943,7 @@ export namespace proj {
     return +delta2 ? resample(project, delta2) : resampleNone(project)
   }
   export function stereographicRaw(x, y) {
-    let cy = cos(y),
+    const cy = cos(y),
       k = 1 + cos(x) * cy
     return [(cy * sin(x)) / k, sin(y) / k]
   }
@@ -2948,7 +2960,7 @@ export namespace proj {
     return [-y, 2 * atan(exp(x)) - halfPi]
   }
   export function transverseMercator() {
-    let m = mercatorProjection(transverseMercatorRaw),
+    const m = mercatorProjection(transverseMercatorRaw),
       center = m.center,
       rotate = m.rotate
     m.center = function (_) {
