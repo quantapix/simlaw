@@ -53,7 +53,9 @@ function areaPoint(lambda, phi) {
   areaRingSum.add(atan2(v, u))
   ;(lambda0 = lambda), (cosPhi0 = cosPhi), (sinPhi0 = sinPhi)
 }
-export function area(object) {
+export function area(
+  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+): number {
   areaSum = new Adder()
   stream(object, areaStream)
   return areaSum * 2
@@ -353,7 +355,9 @@ function centroidRingPoint(lambda, phi) {
   Z1 += w * (z0 + (z0 = z))
   centroidPointCartesian(x0, y0, z0)
 }
-export function centroid(object) {
+export function geoCentroid(
+  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+): [number, number] {
   W0 = W1 = X0 = Y0 = Z0 = X1 = Y1 = Z1 = 0
   X2 = new Adder()
   Y2 = new Adder()
@@ -551,7 +555,7 @@ function graticuleY(x0, x1, dx) {
     })
   }
 }
-export function graticule() {
+export function graticule(): qt.GeoGraticuleGenerator {
   let x1,
     x0,
     X1,
@@ -663,7 +667,7 @@ export function graticule() {
       [180, 80 + epsilon],
     ])
 }
-export function graticule10() {
+export function graticule10(): GeoJSON.MultiLineString {
   return graticule()()
 }
 export function interpolate(a, b) {
@@ -878,7 +882,7 @@ function rotationPhiGamma(deltaPhi, deltaGamma) {
   }
   return rotation
 }
-export function rotation(rotate) {
+export function rotation(angles: [number, number] | [number, number, number]): GeoRotation {
   rotate = rotateRadians(rotate[0] * radians, rotate[1] * radians, rotate.length > 2 ? rotate[2] * radians : 0)
   function forward(coordinates) {
     coordinates = rotate(coordinates[0] * radians, coordinates[1] * radians)
@@ -960,7 +964,10 @@ function streamPolygon(coordinates, stream) {
   while (++i < n) streamLine(coordinates[i], stream, 1)
   stream.polygonEnd()
 }
-export function stream(object, stream) {
+export function stream(
+  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection,
+  stream: GeoStream
+): void {
   if (object && streamObjectType.hasOwnProperty(object.type)) {
     streamObjectType[object.type](object, stream)
   } else {

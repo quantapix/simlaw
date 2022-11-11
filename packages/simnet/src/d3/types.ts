@@ -720,15 +720,9 @@ export type GeoPermissibleObjects =
   | ExtendedGeometryCollection
   | ExtendedFeature
   | ExtendedFeatureCollection
-export function geoArea(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
-): number
 export function geoBounds(
   object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
 ): [[number, number], [number, number]]
-export function geoCentroid(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
-): [number, number]
 export function geoContains(
   object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection,
   point: [number, number]
@@ -742,7 +736,6 @@ export interface GeoRotation {
   (point: [number, number]): [number, number]
   invert(point: [number, number]): [number, number]
 }
-export function geoRotation(angles: [number, number] | [number, number, number]): GeoRotation
 export interface GeoCircleGenerator<This = any, T = any> {
   (this: This, d?: T, ...xs: any[]): GeoJSON.Polygon
   center(): (this: This, x: T, ...xs: any[]) => [number, number]
@@ -774,8 +767,6 @@ export interface GeoGraticuleGenerator {
   precision(): number
   precision(angle: number): this
 }
-export function geoGraticule(): GeoGraticuleGenerator
-export function geoGraticule10(): GeoJSON.MultiLineString
 export interface GeoStream {
   lineEnd(): void
   lineStart(): void
@@ -784,10 +775,6 @@ export interface GeoStream {
   polygonStart(): void
   sphere?(): void
 }
-export function geoStream(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection,
-  stream: GeoStream
-): void
 export interface GeoRawProjection {
   (lambda: number, phi: number): [number, number]
   invert?(x: number, y: number): [number, number]
