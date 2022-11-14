@@ -25,11 +25,11 @@ export namespace area {
     },
     polygonEnd: function () {
       const y = +ringSum
-      sum.add(y < 0 ? tau + y : y)
+      sum.add(y < 0 ? qu.tau + y : y)
       this.lineStart = this.lineEnd = this.point = noop
     },
     sphere: function () {
-      sum.add(tau)
+      sum.add(qu.tau)
     },
   }
   function ringStart() {
@@ -41,21 +41,21 @@ export namespace area {
   function pointFirst(lambda, phi) {
     stream.point = point
     ;(lambda00 = lambda), (phi00 = phi)
-    ;(lambda *= radians), (phi *= radians)
-    ;(lambda0 = lambda), (cosPhi0 = cos((phi = phi / 2 + quarterPi))), (sinPhi0 = sin(phi))
+    ;(lambda *= qu.radians), (phi *= qu.radians)
+    ;(lambda0 = lambda), (cosPhi0 = qu.cos((phi = phi / 2 + qu.quarterPi))), (sinPhi0 = qu.sin(phi))
   }
   function point(lambda, phi) {
-    ;(lambda *= radians), (phi *= radians)
-    phi = phi / 2 + quarterPi
+    ;(lambda *= qu.radians), (phi *= qu.radians)
+    phi = phi / 2 + qu.quarterPi
     const dLambda = lambda - lambda0,
       sdLambda = dLambda >= 0 ? 1 : -1,
       adLambda = sdLambda * dLambda,
-      cosPhi = cos(phi),
-      sinPhi = sin(phi),
+      cosPhi = qu.cos(phi),
+      sinPhi = qu.sin(phi),
       k = sinPhi0 * sinPhi,
-      u = cosPhi0 * cosPhi + k * cos(adLambda),
-      v = k * sdLambda * sin(adLambda)
-    ringSum.add(atan2(v, u))
+      u = cosPhi0 * cosPhi + k * qu.cos(adLambda),
+      v = k * sdLambda * qu.sin(adLambda)
+    ringSum.add(qu.atan2(v, u))
     ;(lambda0 = lambda), (cosPhi0 = cosPhi), (sinPhi0 = sinPhi)
   }
 }
@@ -125,8 +125,8 @@ export namespace bounds {
       stream.lineStart = lineStart
       stream.lineEnd = lineEnd
       if (areaRingSum < 0) (lambda0 = -(lambda1 = 180)), (phi0 = -(phi1 = 90))
-      else if (deltaSum > epsilon) phi1 = 90
-      else if (deltaSum < -epsilon) phi0 = -90
+      else if (deltaSum > qu.epsilon) phi1 = 90
+      else if (deltaSum < -qu.epsilon) phi0 = -90
       ;(range[0] = lambda0), (range[1] = lambda1)
     },
     sphere: function () {
@@ -139,7 +139,7 @@ export namespace bounds {
     if (phi > phi1) phi1 = phi
   }
   function linePoint(lambda: number, phi: number) {
-    const p = cartesian([lambda * radians, phi * radians])
+    const p = cartesian([lambda * qu.radians, phi * qu.radians])
     if (p0) {
       let normal = cartesianCross(p0, p),
         equatorial = [normal[1], -normal[0], 0],
@@ -148,17 +148,17 @@ export namespace bounds {
       inflection = spherical(inflection)
       let delta = lambda - lambda2,
         sign = delta > 0 ? 1 : -1,
-        lambdai = inflection[0] * degrees * sign,
+        lambdai = inflection[0] * qu.degrees * sign,
         phii,
-        antimeridian = abs(delta) > 180
+        antimeridian = qu.abs(delta) > 180
       if (antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda)) {
-        phii = inflection[1] * degrees
+        phii = inflection[1] * qu.degrees
         if (phii > phi1) phi1 = phii
       } else if (
         ((lambdai = ((lambdai + 360) % 360) - 180),
         antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda))
       ) {
-        phii = -inflection[1] * degrees
+        phii = -inflection[1] * qu.degrees
         if (phii < phi0) phi0 = phii
       } else {
         if (phi < phi0) phi0 = phi
@@ -200,7 +200,7 @@ export namespace bounds {
   function ringPoint(lambda: number, phi: number) {
     if (p0) {
       const delta = lambda - lambda2
-      deltaSum.add(abs(delta) > 180 ? delta + (delta > 0 ? 360 : -360) : delta)
+      deltaSum.add(qu.abs(delta) > 180 ? delta + (delta > 0 ? 360 : -360) : delta)
     } else {
       ;(lambda00 = lambda), (phi00 = phi)
     }
@@ -213,19 +213,19 @@ export namespace bounds {
   function ringEnd() {
     ringPoint(lambda00, phi00)
     areaStream.lineEnd()
-    if (abs(deltaSum) > epsilon) lambda0 = -(lambda1 = 180)
+    if (qu.abs(deltaSum) > qu.epsilon) lambda0 = -(lambda1 = 180)
     ;(range[0] = lambda0), (range[1] = lambda1)
     p0 = null
   }
 }
 export function spherical(cartesian) {
-  return [atan2(cartesian[1], cartesian[0]), asin(cartesian[2])]
+  return [qu.atan2(cartesian[1], cartesian[0]), asin(cartesian[2])]
 }
 export function cartesian(spherical) {
   const lambda = spherical[0],
     phi = spherical[1],
-    cosPhi = cos(phi)
-  return [cosPhi * cos(lambda), cosPhi * sin(lambda), sin(phi)]
+    cosPhi = qu.cos(phi)
+  return [cosPhi * qu.cos(lambda), cosPhi * qu.sin(lambda), qu.sin(phi)]
 }
 export function cartesianDot(a, b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
@@ -240,118 +240,8 @@ export function cartesianScale(vector, k) {
   return [vector[0] * k, vector[1] * k, vector[2] * k]
 }
 export function cartesianNormalizeInPlace(d) {
-  const l = sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
+  const l = qu.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
   ;(d[0] /= l), (d[1] /= l), (d[2] /= l)
-}
-var W0,
-  W1,
-  X0,
-  Y0,
-  Z0,
-  X1,
-  Y1,
-  Z1,
-  X2,
-  Y2,
-  Z2,
-  lambda00,
-  phi00, // first point
-  x0,
-  y0,
-  z0 // previous point
-var centroidStream = {
-  sphere: noop,
-  point: centroidPoint,
-  lineStart: centroidLineStart,
-  lineEnd: centroidLineEnd,
-  polygonStart: function () {
-    centroidStream.lineStart = centroidRingStart
-    centroidStream.lineEnd = centroidRingEnd
-  },
-  polygonEnd: function () {
-    centroidStream.lineStart = centroidLineStart
-    centroidStream.lineEnd = centroidLineEnd
-  },
-}
-function centroidPoint(lambda, phi) {
-  ;(lambda *= radians), (phi *= radians)
-  const cosPhi = cos(phi)
-  centroidPointCartesian(cosPhi * cos(lambda), cosPhi * sin(lambda), sin(phi))
-}
-function centroidPointCartesian(x, y, z) {
-  ++W0
-  X0 += (x - X0) / W0
-  Y0 += (y - Y0) / W0
-  Z0 += (z - Z0) / W0
-}
-function centroidLineStart() {
-  centroidStream.point = centroidLinePointFirst
-}
-function centroidLinePointFirst(lambda, phi) {
-  ;(lambda *= radians), (phi *= radians)
-  const cosPhi = cos(phi)
-  x0 = cosPhi * cos(lambda)
-  y0 = cosPhi * sin(lambda)
-  z0 = sin(phi)
-  centroidStream.point = centroidLinePoint
-  centroidPointCartesian(x0, y0, z0)
-}
-function centroidLinePoint(lambda, phi) {
-  ;(lambda *= radians), (phi *= radians)
-  var cosPhi = cos(phi),
-    x = cosPhi * cos(lambda),
-    y = cosPhi * sin(lambda),
-    z = sin(phi),
-    w = atan2(
-      sqrt((w = y0 * z - z0 * y) * w + (w = z0 * x - x0 * z) * w + (w = x0 * y - y0 * x) * w),
-      x0 * x + y0 * y + z0 * z
-    )
-  W1 += w
-  X1 += w * (x0 + (x0 = x))
-  Y1 += w * (y0 + (y0 = y))
-  Z1 += w * (z0 + (z0 = z))
-  centroidPointCartesian(x0, y0, z0)
-}
-function centroidLineEnd() {
-  centroidStream.point = centroidPoint
-}
-function centroidRingStart() {
-  centroidStream.point = centroidRingPointFirst
-}
-function centroidRingEnd() {
-  centroidRingPoint(lambda00, phi00)
-  centroidStream.point = centroidPoint
-}
-function centroidRingPointFirst(lambda, phi) {
-  ;(lambda00 = lambda), (phi00 = phi)
-  ;(lambda *= radians), (phi *= radians)
-  centroidStream.point = centroidRingPoint
-  const cosPhi = cos(phi)
-  x0 = cosPhi * cos(lambda)
-  y0 = cosPhi * sin(lambda)
-  z0 = sin(phi)
-  centroidPointCartesian(x0, y0, z0)
-}
-function centroidRingPoint(lambda, phi) {
-  ;(lambda *= radians), (phi *= radians)
-  const cosPhi = cos(phi),
-    x = cosPhi * cos(lambda),
-    y = cosPhi * sin(lambda),
-    z = sin(phi),
-    cx = y0 * z - z0 * y,
-    cy = z0 * x - x0 * z,
-    cz = x0 * y - y0 * x,
-    m = hypot(cx, cy, cz),
-    w = asin(m), // line weight = angle
-    v = m && -w / m // area weight multiplier
-  X2.add(v * cx)
-  Y2.add(v * cy)
-  Z2.add(v * cz)
-  W1 += w
-  X1 += w * (x0 + (x0 = x))
-  Y1 += w * (y0 + (y0 = y))
-  Z1 += w * (z0 + (z0 = z))
-  centroidPointCartesian(x0, y0, z0)
 }
 export function centroid(
   object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
@@ -360,46 +250,134 @@ export function centroid(
   X2 = new Adder()
   Y2 = new Adder()
   Z2 = new Adder()
-  stream(object, centroidStream)
+  stream(object, centroid.stream)
   let x = +X2,
     y = +Y2,
     z = +Z2,
-    m = hypot(x, y, z)
-  if (m < epsilon2) {
+    m = qu.hypot(x, y, z)
+  if (m < qu.epsilon2) {
     ;(x = X1), (y = Y1), (z = Z1)
-    if (W1 < epsilon) (x = X0), (y = Y0), (z = Z0)
-    m = hypot(x, y, z)
-    if (m < epsilon2) return [NaN, NaN]
+    if (W1 < qu.epsilon) (x = X0), (y = Y0), (z = Z0)
+    m = qu.hypot(x, y, z)
+    if (m < qu.epsilon2) return [NaN, NaN]
   }
-  return [atan2(y, x) * degrees, asin(z / m) * degrees]
+  return [qu.atan2(y, x) * qu.degrees, asin(z / m) * qu.degrees]
 }
-export function circleStream(stream, radius, delta, direction, t0, t1) {
-  if (!delta) return
-  const cosRadius = cos(radius),
-    sinRadius = sin(radius),
-    step = direction * delta
-  if (t0 == null) {
-    t0 = radius + direction * tau
-    t1 = radius - step / 2
-  } else {
-    t0 = circleRadius(cosRadius, t0)
-    t1 = circleRadius(cosRadius, t1)
-    if (direction > 0 ? t0 < t1 : t0 > t1) t0 += direction * tau
+export namespace centroid {
+  let W0,
+    W1,
+    X0,
+    Y0,
+    Z0,
+    X1,
+    Y1,
+    Z1,
+    X2,
+    Y2,
+    Z2,
+    lambda00,
+    phi00, // first point
+    x0,
+    y0,
+    z0 // previous point
+  export const stream = {
+    sphere: noop,
+    point: point,
+    lineStart: lineStart,
+    lineEnd: lineEnd,
+    polygonStart: function () {
+      stream.lineStart = ringStart
+      stream.lineEnd = ringEnd
+    },
+    polygonEnd: function () {
+      stream.lineStart = lineStart
+      stream.lineEnd = lineEnd
+    },
   }
-  for (var point, t = t0; direction > 0 ? t > t1 : t < t1; t -= step) {
-    point = spherical([cosRadius, -sinRadius * cos(t), -sinRadius * sin(t)])
-    stream.point(point[0], point[1])
+  function point(lambda, phi) {
+    ;(lambda *= qu.radians), (phi *= qu.radians)
+    const cosPhi = qu.cos(phi)
+    pointCartesian(cosPhi * qu.cos(lambda), cosPhi * qu.sin(lambda), qu.sin(phi))
+  }
+  function pointCartesian(x, y, z) {
+    ++W0
+    X0 += (x - X0) / W0
+    Y0 += (y - Y0) / W0
+    Z0 += (z - Z0) / W0
+  }
+  function lineStart() {
+    stream.point = linePointFirst
+  }
+  function linePointFirst(lambda: number, phi: number) {
+    ;(lambda *= qu.radians), (phi *= qu.radians)
+    const cosPhi = qu.cos(phi)
+    x0 = cosPhi * qu.cos(lambda)
+    y0 = cosPhi * qu.sin(lambda)
+    z0 = qu.sin(phi)
+    stream.point = linePoint
+    pointCartesian(x0, y0, z0)
+  }
+  function linePoint(lambda: number, phi: number) {
+    ;(lambda *= qu.radians), (phi *= qu.radians)
+    let cosPhi = qu.cos(phi),
+      x = cosPhi * qu.cos(lambda),
+      y = cosPhi * qu.sin(lambda),
+      z = qu.sin(phi),
+      w = qu.atan2(
+        qu.sqrt((w = y0 * z - z0 * y) * w + (w = z0 * x - x0 * z) * w + (w = x0 * y - y0 * x) * w),
+        x0 * x + y0 * y + z0 * z
+      )
+    W1 += w
+    X1 += w * (x0 + (x0 = x))
+    Y1 += w * (y0 + (y0 = y))
+    Z1 += w * (z0 + (z0 = z))
+    pointCartesian(x0, y0, z0)
+  }
+  function lineEnd() {
+    stream.point = point
+  }
+  function ringStart() {
+    stream.point = ringPointFirst
+  }
+  function ringEnd() {
+    ringPoint(lambda00, phi00)
+    stream.point = point
+  }
+  function ringPointFirst(lambda: number, phi: number) {
+    ;(lambda00 = lambda), (phi00 = phi)
+    ;(lambda *= qu.radians), (phi *= qu.radians)
+    stream.point = ringPoint
+    const cosPhi = qu.cos(phi)
+    x0 = cosPhi * qu.cos(lambda)
+    y0 = cosPhi * qu.sin(lambda)
+    z0 = qu.sin(phi)
+    pointCartesian(x0, y0, z0)
+  }
+  function ringPoint(lambda: number, phi: number) {
+    ;(lambda *= qu.radians), (phi *= qu.radians)
+    const cosPhi = qu.cos(phi),
+      x = cosPhi * qu.cos(lambda),
+      y = cosPhi * qu.sin(lambda),
+      z = qu.sin(phi),
+      cx = y0 * z - z0 * y,
+      cy = z0 * x - x0 * z,
+      cz = x0 * y - y0 * x,
+      m = qu.hypot(cx, cy, cz),
+      w = asin(m), // line weight = angle
+      v = m && -w / m // area weight multiplier
+    X2.add(v * cx)
+    Y2.add(v * cy)
+    Z2.add(v * cz)
+    W1 += w
+    X1 += w * (x0 + (x0 = x))
+    Y1 += w * (y0 + (y0 = y))
+    Z1 += w * (z0 + (z0 = z))
+    pointCartesian(x0, y0, z0)
   }
 }
-function circleRadius(cosRadius, point) {
-  ;(point = cartesian(point)), (point[0] -= cosRadius)
-  cartesianNormalizeInPlace(point)
-  const radius = acos(-point[1])
-  return ((-point[2] < 0 ? -radius : radius) + tau - epsilon) % tau
-}
-export function circle(): GeoCircleGenerator
-export function circle<T>(): GeoCircleGenerator<any, T>
-export function circle<This, T>(): GeoCircleGenerator<This, T>
+export function circle(): qt.GeoCircleGenerator
+export function circle<T>(): qt.GeoCircleGenerator<any, T>
+export function circle<This, T>(): qt.GeoCircleGenerator<This, T>
 export function circle() {
   let center = qu.constant([0, 0]),
     radius = qu.constant(90),
@@ -409,14 +387,14 @@ export function circle() {
     stream = { point: point }
   function point(x, y) {
     ring.push((x = rotate(x, y)))
-    ;(x[0] *= degrees), (x[1] *= degrees)
+    ;(x[0] *= qu.degrees), (x[1] *= qu.degrees)
   }
   function circle() {
     let c = center.apply(this, arguments),
-      r = radius.apply(this, arguments) * radians,
-      p = precision.apply(this, arguments) * radians
+      r = radius.apply(this, arguments) * qu.radians,
+      p = precision.apply(this, arguments) * qu.radians
     ring = []
-    rotate = rotateRadians(-c[0] * radians, -c[1] * radians, 0).invert
+    rotate = rotateRadians(-c[0] * qu.radians, -c[1] * qu.radians, 0).invert
     circleStream(stream, r, p, 1)
     c = { type: "Polygon", coordinates: [ring] }
     ring = rotate = null
@@ -433,6 +411,32 @@ export function circle() {
   }
   return circle
 }
+export namespace circle {
+  export function stream(stream, radius, delta, direction, t0, t1) {
+    if (!delta) return
+    const cosRadius = qu.cos(radius),
+      sinRadius = qu.sin(radius),
+      step = direction * delta
+    if (t0 == null) {
+      t0 = radius + direction * qu.tau
+      t1 = radius - step / 2
+    } else {
+      t0 = radius(cosRadius, t0)
+      t1 = radius(cosRadius, t1)
+      if (direction > 0 ? t0 < t1 : t0 > t1) t0 += direction * qu.tau
+    }
+    for (var point, t = t0; direction > 0 ? t > t1 : t < t1; t -= step) {
+      point = spherical([cosRadius, -sinRadius * qu.cos(t), -sinRadius * qu.sin(t)])
+      stream.point(point[0], point[1])
+    }
+  }
+  function radius(cosRadius, point) {
+    ;(point = cartesian(point)), (point[0] -= cosRadius)
+    cartesianNormalizeInPlace(point)
+    const radius = acos(-point[1])
+    return ((-point[2] < 0 ? -radius : radius) + qu.tau - qu.epsilon) % qu.tau
+  }
+}
 export function compose(a, b) {
   function compose(x, y) {
     return (x = a(x, y)), b(x[0], x[1])
@@ -443,91 +447,6 @@ export function compose(a, b) {
     }
   return compose
 }
-const containsObjectType = {
-  Feature: function (object, point) {
-    return containsGeometry(object.geometry, point)
-  },
-  FeatureCollection: function (object, point) {
-    let features = object.features,
-      i = -1,
-      n = features.length
-    while (++i < n) if (containsGeometry(features[i].geometry, point)) return true
-    return false
-  },
-}
-const containsGeometryType = {
-  Sphere: function () {
-    return true
-  },
-  Point: function (object, point) {
-    return containsPoint(object.coordinates, point)
-  },
-  MultiPoint: function (object, point) {
-    let coordinates = object.coordinates,
-      i = -1,
-      n = coordinates.length
-    while (++i < n) if (containsPoint(coordinates[i], point)) return true
-    return false
-  },
-  LineString: function (object, point) {
-    return containsLine(object.coordinates, point)
-  },
-  MultiLineString: function (object, point) {
-    let coordinates = object.coordinates,
-      i = -1,
-      n = coordinates.length
-    while (++i < n) if (containsLine(coordinates[i], point)) return true
-    return false
-  },
-  Polygon: function (object, point) {
-    return containsPolygon(object.coordinates, point)
-  },
-  MultiPolygon: function (object, point) {
-    let coordinates = object.coordinates,
-      i = -1,
-      n = coordinates.length
-    while (++i < n) if (containsPolygon(coordinates[i], point)) return true
-    return false
-  },
-  GeometryCollection: function (object, point) {
-    let geometries = object.geometries,
-      i = -1,
-      n = geometries.length
-    while (++i < n) if (containsGeometry(geometries[i], point)) return true
-    return false
-  },
-}
-function containsGeometry(geometry, point) {
-  return geometry && containsGeometryType.hasOwnProperty(geometry.type)
-    ? containsGeometryType[geometry.type](geometry, point)
-    : false
-}
-function containsPoint(coordinates, point) {
-  return distance(coordinates, point) === 0
-}
-function containsLine(coordinates, point) {
-  let ao, bo, ab
-  for (let i = 0, n = coordinates.length; i < n; i++) {
-    bo = distance(coordinates[i], point)
-    if (bo === 0) return true
-    if (i > 0) {
-      ab = distance(coordinates[i], coordinates[i - 1])
-      if (ab > 0 && ao <= ab && bo <= ab && (ao + bo - ab) * (1 - Math.pow((ao - bo) / ab, 2)) < epsilon2 * ab)
-        return true
-    }
-    ao = bo
-  }
-  return false
-}
-function containsPolygon(coordinates, point) {
-  return !!polygonContains(coordinates.map(ringRadians), pointRadians(point))
-}
-function ringRadians(ring) {
-  return (ring = ring.map(pointRadians)), ring.pop(), ring
-}
-function pointRadians(point) {
-  return [point[0] * radians, point[1] * radians]
-}
 export function contains(
   object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection,
   point: [number, number]
@@ -536,28 +455,97 @@ export function contains(
     object && containsObjectType.hasOwnProperty(object.type) ? containsObjectType[object.type] : containsGeometry
   )(object, point)
 }
+export namespace contains {
+  const objType = {
+    Feature: function (object, point) {
+      return geo(object.geometry, point)
+    },
+    FeatureCollection: function (object, point) {
+      let features = object.features,
+        i = -1,
+        n = features.length
+      while (++i < n) if (geo(features[i].geometry, point)) return true
+      return false
+    },
+  }
+  const geoType = {
+    Sphere: function () {
+      return true
+    },
+    Point: function (object, point) {
+      return point(object.coordinates, point)
+    },
+    MultiPoint: function (object, point) {
+      let coordinates = object.coordinates,
+        i = -1,
+        n = coordinates.length
+      while (++i < n) if (point(coordinates[i], point)) return true
+      return false
+    },
+    LineString: function (object, point) {
+      return line(object.coordinates, point)
+    },
+    MultiLineString: function (object, point) {
+      let coordinates = object.coordinates,
+        i = -1,
+        n = coordinates.length
+      while (++i < n) if (line(coordinates[i], point)) return true
+      return false
+    },
+    Polygon: function (object, point) {
+      return polygon(object.coordinates, point)
+    },
+    MultiPolygon: function (object, point) {
+      let coordinates = object.coordinates,
+        i = -1,
+        n = coordinates.length
+      while (++i < n) if (polygon(coordinates[i], point)) return true
+      return false
+    },
+    GeometryCollection: function (object, point) {
+      let geometries = object.geometries,
+        i = -1,
+        n = geometries.length
+      while (++i < n) if (geo(geometries[i], point)) return true
+      return false
+    },
+  }
+  function geo(geometry, point) {
+    return geometry && geoType.hasOwnProperty(geometry.type) ? geoType[geometry.type](geometry, point) : false
+  }
+  function point(coordinates, point) {
+    return distance(coordinates, point) === 0
+  }
+  function line(coordinates, point) {
+    let ao, bo, ab
+    for (let i = 0, n = coordinates.length; i < n; i++) {
+      bo = distance(coordinates[i], point)
+      if (bo === 0) return true
+      if (i > 0) {
+        ab = distance(coordinates[i], coordinates[i - 1])
+        if (ab > 0 && ao <= ab && bo <= ab && (ao + bo - ab) * (1 - Math.pow((ao - bo) / ab, 2)) < qu.epsilon2 * ab)
+          return true
+      }
+      ao = bo
+    }
+    return false
+  }
+  function polygon(coordinates, point) {
+    function pointRadians(point) {
+      return [point[0] * qu.radians, point[1] * qu.radians]
+    }
+    function ringRadians(ring) {
+      return (ring = ring.map(pointRadians)), ring.pop(), ring
+    }
+    return !!polygonContains(coordinates.map(ringRadians), pointRadians(point))
+  }
+}
 const coordinates = [null, null],
   object = { type: "LineString", coordinates: coordinates }
-export function geoDistance(a: [number, number], b: [number, number]): number {
+export function distance(a: [number, number], b: [number, number]): number {
   coordinates[0] = a
   coordinates[1] = b
   return length(object)
-}
-function graticuleX(y0, y1, dy) {
-  const y = range(y0, y1 - epsilon, dy).concat(y1)
-  return function (x) {
-    return y.map(function (y) {
-      return [x, y]
-    })
-  }
-}
-function graticuleY(x0, x1, dx) {
-  const x = range(x0, x1 - epsilon, dx).concat(x1)
-  return function (y) {
-    return x.map(function (x) {
-      return [x, y]
-    })
-  }
 }
 export function graticule(): qt.GeoGraticuleGenerator {
   let x1,
@@ -577,44 +565,44 @@ export function graticule(): qt.GeoGraticuleGenerator {
     X,
     Y,
     precision = 2.5
-  function graticule() {
+  function f() {
     return { type: "MultiLineString", coordinates: lines() }
   }
   function lines() {
-    return range(ceil(X0 / DX) * DX, X1, DX)
+    return range(qu.ceil(X0 / DX) * DX, X1, DX)
       .map(X)
-      .concat(range(ceil(Y0 / DY) * DY, Y1, DY).map(Y))
+      .concat(range(qu.ceil(Y0 / DY) * DY, Y1, DY).map(Y))
       .concat(
-        range(ceil(x0 / dx) * dx, x1, dx)
+        range(qu.ceil(x0 / dx) * dx, x1, dx)
           .filter(function (x) {
-            return abs(x % DX) > epsilon
+            return qu.abs(x % DX) > qu.epsilon
           })
           .map(x)
       )
       .concat(
-        range(ceil(y0 / dy) * dy, y1, dy)
+        range(qu.ceil(y0 / dy) * dy, y1, dy)
           .filter(function (y) {
-            return abs(y % DY) > epsilon
+            return qu.abs(y % DY) > qu.epsilon
           })
           .map(y)
       )
   }
-  graticule.lines = function () {
+  f.lines = function () {
     return lines().map(function (coordinates) {
       return { type: "LineString", coordinates: coordinates }
     })
   }
-  graticule.outline = function () {
+  f.outline = function () {
     return {
       type: "Polygon",
       coordinates: [X(X0).concat(Y(Y1).slice(1), X(X1).reverse().slice(1), Y(Y0).reverse().slice(1))],
     }
   }
-  graticule.extent = function (_) {
-    if (!arguments.length) return graticule.extentMinor()
-    return graticule.extentMajor(_).extentMinor(_)
+  f.extent = function (_) {
+    if (!arguments.length) return f.extentMinor()
+    return f.extentMajor(_).extentMinor(_)
   }
-  graticule.extentMajor = function (_) {
+  f.extentMajor = function (_) {
     if (!arguments.length)
       return [
         [X0, Y0],
@@ -624,9 +612,9 @@ export function graticule(): qt.GeoGraticuleGenerator {
     ;(Y0 = +_[0][1]), (Y1 = +_[1][1])
     if (X0 > X1) (_ = X0), (X0 = X1), (X1 = _)
     if (Y0 > Y1) (_ = Y0), (Y0 = Y1), (Y1 = _)
-    return graticule.precision(precision)
+    return f.precision(precision)
   }
-  graticule.extentMinor = function (_) {
+  f.extentMinor = function (_) {
     if (!arguments.length)
       return [
         [x0, y0],
@@ -636,189 +624,186 @@ export function graticule(): qt.GeoGraticuleGenerator {
     ;(y0 = +_[0][1]), (y1 = +_[1][1])
     if (x0 > x1) (_ = x0), (x0 = x1), (x1 = _)
     if (y0 > y1) (_ = y0), (y0 = y1), (y1 = _)
-    return graticule.precision(precision)
+    return f.precision(precision)
   }
-  graticule.step = function (_) {
-    if (!arguments.length) return graticule.stepMinor()
-    return graticule.stepMajor(_).stepMinor(_)
+  f.step = function (_) {
+    if (!arguments.length) return f.stepMinor()
+    return f.stepMajor(_).stepMinor(_)
   }
-  graticule.stepMajor = function (_) {
+  f.stepMajor = function (_) {
     if (!arguments.length) return [DX, DY]
     ;(DX = +_[0]), (DY = +_[1])
-    return graticule
+    return f
   }
-  graticule.stepMinor = function (_) {
+  f.stepMinor = function (_) {
     if (!arguments.length) return [dx, dy]
     ;(dx = +_[0]), (dy = +_[1])
-    return graticule
+    return f
   }
-  graticule.precision = function (_) {
+  function graticuleX(y0, y1, dy) {
+    const y = range(y0, y1 - qu.epsilon, dy).concat(y1)
+    return function (x) {
+      return y.map(function (y) {
+        return [x, y]
+      })
+    }
+  }
+  function graticuleY(x0, x1, dx) {
+    const x = range(x0, x1 - qu.epsilon, dx).concat(x1)
+    return function (y) {
+      return x.map(function (x) {
+        return [x, y]
+      })
+    }
+  }
+  f.precision = function (_) {
     if (!arguments.length) return precision
     precision = +_
     x = graticuleX(y0, y1, 90)
     y = graticuleY(x0, x1, precision)
     X = graticuleX(Y0, Y1, 90)
     Y = graticuleY(X0, X1, precision)
-    return graticule
+    return f
   }
-  return graticule
+  return f
     .extentMajor([
-      [-180, -90 + epsilon],
-      [180, 90 - epsilon],
+      [-180, -90 + qu.epsilon],
+      [180, 90 - qu.epsilon],
     ])
     .extentMinor([
-      [-180, -80 - epsilon],
-      [180, 80 + epsilon],
+      [-180, -80 - qu.epsilon],
+      [180, 80 + qu.epsilon],
     ])
 }
 export function graticule10(): GeoJSON.MultiLineString {
   return graticule()()
 }
 export function interpolate(a: [number, number], b: [number, number]): (t: number) => [number, number] {
-  const x0 = a[0] * radians,
-    y0 = a[1] * radians,
-    x1 = b[0] * radians,
-    y1 = b[1] * radians,
-    cy0 = cos(y0),
-    sy0 = sin(y0),
-    cy1 = cos(y1),
-    sy1 = sin(y1),
-    kx0 = cy0 * cos(x0),
-    ky0 = cy0 * sin(x0),
-    kx1 = cy1 * cos(x1),
-    ky1 = cy1 * sin(x1),
-    d = 2 * asin(sqrt(haversin(y1 - y0) + cy0 * cy1 * haversin(x1 - x0))),
-    k = sin(d)
+  const x0 = a[0] * qu.radians,
+    y0 = a[1] * qu.radians,
+    x1 = b[0] * qu.radians,
+    y1 = b[1] * qu.radians,
+    cy0 = qu.cos(y0),
+    sy0 = qu.sin(y0),
+    cy1 = qu.cos(y1),
+    sy1 = qu.sin(y1),
+    kx0 = cy0 * qu.cos(x0),
+    ky0 = cy0 * qu.sin(x0),
+    kx1 = cy1 * qu.cos(x1),
+    ky1 = cy1 * qu.sin(x1),
+    d = 2 * asin(qu.sqrt(haversin(y1 - y0) + cy0 * cy1 * haversin(x1 - x0))),
+    k = qu.sin(d)
   const interpolate = d
     ? function (t) {
-        let B = sin((t *= d)) / k,
-          A = sin(d - t) / k,
+        let B = qu.sin((t *= d)) / k,
+          A = qu.sin(d - t) / k,
           x = A * kx0 + B * kx1,
           y = A * ky0 + B * ky1,
           z = A * sy0 + B * sy1
-        return [atan2(y, x) * degrees, atan2(z, sqrt(x * x + y * y)) * degrees]
+        return [qu.atan2(y, x) * qu.degrees, qu.atan2(z, qu.sqrt(x * x + y * y)) * qu.degrees]
       }
     : function () {
-        return [x0 * degrees, y0 * degrees]
+        return [x0 * qu.degrees, y0 * qu.degrees]
       }
   interpolate.distance = d
   return interpolate
-}
-var lengthSum, lambda0, sinPhi0, cosPhi0
-const lengthStream = {
-  sphere: noop,
-  point: noop,
-  lineStart: lengthLineStart,
-  lineEnd: noop,
-  polygonStart: noop,
-  polygonEnd: noop,
-}
-function lengthLineStart() {
-  lengthStream.point = lengthPointFirst
-  lengthStream.lineEnd = lengthLineEnd
-}
-function lengthLineEnd() {
-  lengthStream.point = lengthStream.lineEnd = noop
-}
-function lengthPointFirst(lambda, phi) {
-  ;(lambda *= radians), (phi *= radians)
-  ;(lambda0 = lambda), (sinPhi0 = sin(phi)), (cosPhi0 = cos(phi))
-  lengthStream.point = lengthPoint
-}
-function lengthPoint(lambda, phi) {
-  ;(lambda *= radians), (phi *= radians)
-  const sinPhi = sin(phi),
-    cosPhi = cos(phi),
-    delta = abs(lambda - lambda0),
-    cosDelta = cos(delta),
-    sinDelta = sin(delta),
-    x = cosPhi * sinDelta,
-    y = cosPhi0 * sinPhi - sinPhi0 * cosPhi * cosDelta,
-    z = sinPhi0 * sinPhi + cosPhi0 * cosPhi * cosDelta
-  lengthSum.add(atan2(sqrt(x * x + y * y), z))
-  ;(lambda0 = lambda), (sinPhi0 = sinPhi), (cosPhi0 = cosPhi)
 }
 export function length(
   object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
 ): number {
   lengthSum = new Adder()
-  stream(object, lengthStream)
+  stream(object, length.stream)
   return +lengthSum
 }
-export const epsilon = 1e-6
-export const epsilon2 = 1e-12
-export const pi = Math.PI
-export const halfPi = pi / 2
-export const quarterPi = pi / 4
-export const tau = pi * 2
-export const degrees = 180 / pi
-export const radians = pi / 180
-export const abs = Math.abs
-export const atan = Math.atan
-export const atan2 = Math.atan2
-export const cos = Math.cos
-export const ceil = Math.ceil
-export const exp = Math.exp
-export const floor = Math.floor
-export const hypot = Math.hypot
-export const log = Math.log
-export const pow = Math.pow
-export const sin = Math.sin
+export namespace length {
+  var lengthSum, lambda0, sinPhi0, cosPhi0
+  export const stream = {
+    sphere: noop,
+    point: noop,
+    lineStart: lineStart,
+    lineEnd: noop,
+    polygonStart: noop,
+    polygonEnd: noop,
+  }
+  function lineStart() {
+    stream.point = pointFirst
+    stream.lineEnd = lineEnd
+  }
+  function lineEnd() {
+    stream.point = stream.lineEnd = noop
+  }
+  function pointFirst(lambda: number, phi: number) {
+    ;(lambda *= qu.radians), (phi *= qu.radians)
+    ;(lambda0 = lambda), (sinPhi0 = qu.sin(phi)), (cosPhi0 = qu.cos(phi))
+    stream.point = point
+  }
+  function point(lambda: number, phi: number) {
+    ;(lambda *= qu.radians), (phi *= qu.radians)
+    const sinPhi = qu.sin(phi),
+      cosPhi = qu.cos(phi),
+      delta = qu.abs(lambda - lambda0),
+      cosDelta = qu.cos(delta),
+      sinDelta = qu.sin(delta),
+      x = cosPhi * sinDelta,
+      y = cosPhi0 * sinPhi - sinPhi0 * cosPhi * cosDelta,
+      z = sinPhi0 * sinPhi + cosPhi0 * cosPhi * cosDelta
+    lengthSum.add(qu.atan2(qu.sqrt(x * x + y * y), z))
+    ;(lambda0 = lambda), (sinPhi0 = sinPhi), (cosPhi0 = cosPhi)
+  }
+}
 export const sign =
   Math.sign ||
   function (x) {
     return x > 0 ? 1 : x < 0 ? -1 : 0
   }
-export const sqrt = Math.sqrt
-export const tan = Math.tan
 export function acos(x) {
-  return x > 1 ? 0 : x < -1 ? pi : Math.acos(x)
+  return x > 1 ? 0 : x < -1 ? qu.pi : Math.acos(x)
 }
 export function asin(x) {
-  return x > 1 ? halfPi : x < -1 ? -halfPi : Math.asin(x)
+  return x > 1 ? qu.halfPi : x < -1 ? -qu.halfPi : Math.asin(x)
 }
 export function haversin(x) {
-  return (x = sin(x / 2)) * x
+  return (x = qu.sin(x / 2)) * x
 }
 export function noop() {}
 export function pointEqual(a, b) {
-  return abs(a[0] - b[0]) < epsilon && abs(a[1] - b[1]) < epsilon
+  return qu.abs(a[0] - b[0]) < qu.epsilon && qu.abs(a[1] - b[1]) < qu.epsilon
 }
 function longitude(point) {
-  return abs(point[0]) <= pi ? point[0] : sign(point[0]) * (((abs(point[0]) + pi) % tau) - pi)
+  return qu.abs(point[0]) <= qu.pi ? point[0] : sign(point[0]) * (((qu.abs(point[0]) + qu.pi) % qu.tau) - qu.pi)
 }
 export function polygonContains(polygon, point) {
   let lambda = longitude(point),
     phi = point[1],
-    sinPhi = sin(phi),
-    normal = [sin(lambda), -cos(lambda), 0],
+    sinPhi = qu.sin(phi),
+    normal = [qu.sin(lambda), -qu.cos(lambda), 0],
     angle = 0,
     winding = 0
   const sum = new Adder()
-  if (sinPhi === 1) phi = halfPi + epsilon
-  else if (sinPhi === -1) phi = -halfPi - epsilon
+  if (sinPhi === 1) phi = qu.halfPi + qu.epsilon
+  else if (sinPhi === -1) phi = -qu.halfPi - qu.epsilon
   for (let i = 0, n = polygon.length; i < n; ++i) {
     if (!(m = (ring = polygon[i]).length)) continue
     var ring,
       m,
       point0 = ring[m - 1],
       lambda0 = longitude(point0),
-      phi0 = point0[1] / 2 + quarterPi,
-      sinPhi0 = sin(phi0),
-      cosPhi0 = cos(phi0)
+      phi0 = point0[1] / 2 + qu.quarterPi,
+      sinPhi0 = qu.sin(phi0),
+      cosPhi0 = qu.cos(phi0)
     for (let j = 0; j < m; ++j, lambda0 = lambda1, sinPhi0 = sinPhi1, cosPhi0 = cosPhi1, point0 = point1) {
       var point1 = ring[j],
         lambda1 = longitude(point1),
-        phi1 = point1[1] / 2 + quarterPi,
-        sinPhi1 = sin(phi1),
-        cosPhi1 = cos(phi1),
+        phi1 = point1[1] / 2 + qu.quarterPi,
+        sinPhi1 = qu.sin(phi1),
+        cosPhi1 = qu.cos(phi1),
         delta = lambda1 - lambda0,
         sign = delta >= 0 ? 1 : -1,
         absDelta = sign * delta,
-        antimeridian = absDelta > pi,
+        antimeridian = absDelta > qu.pi,
         k = sinPhi0 * sinPhi1
-      sum.add(atan2(k * sign * sin(absDelta), cosPhi0 * cosPhi1 + k * cos(absDelta)))
-      angle += antimeridian ? delta + sign * tau : delta
+      sum.add(qu.atan2(k * sign * qu.sin(absDelta), cosPhi0 * cosPhi1 + k * qu.cos(absDelta)))
+      angle += antimeridian ? delta + sign * qu.tau : delta
       if (antimeridian ^ (lambda0 >= lambda) ^ (lambda1 >= lambda)) {
         const arc = cartesianCross(cartesian(point0), cartesian(point1))
         cartesianNormalizeInPlace(arc)
@@ -831,144 +816,76 @@ export function polygonContains(polygon, point) {
       }
     }
   }
-  return (angle < -epsilon || (angle < epsilon && sum < -epsilon2)) ^ (winding & 1)
+  return (angle < -qu.epsilon || (angle < qu.epsilon && sum < -qu.epsilon2)) ^ (winding & 1)
 }
-function rotationIdentity(lambda, phi) {
-  if (abs(lambda) > pi) lambda -= Math.round(lambda / tau) * tau
-  return [lambda, phi]
-}
-rotationIdentity.invert = rotationIdentity
 export function rotateRadians(deltaLambda, deltaPhi, deltaGamma) {
-  return (deltaLambda %= tau)
+  return (deltaLambda %= qu.tau)
     ? deltaPhi || deltaGamma
-      ? compose(rotationLambda(deltaLambda), rotationPhiGamma(deltaPhi, deltaGamma))
-      : rotationLambda(deltaLambda)
+      ? compose(lambda(deltaLambda), phiGamma(deltaPhi, deltaGamma))
+      : lambda(deltaLambda)
     : deltaPhi || deltaGamma
-    ? rotationPhiGamma(deltaPhi, deltaGamma)
-    : rotationIdentity
-}
-function forwardRotationLambda(deltaLambda) {
-  return function (lambda, phi) {
-    lambda += deltaLambda
-    if (abs(lambda) > pi) lambda -= Math.round(lambda / tau) * tau
-    return [lambda, phi]
-  }
-}
-function rotationLambda(deltaLambda) {
-  const rotation = forwardRotationLambda(deltaLambda)
-  rotation.invert = forwardRotationLambda(-deltaLambda)
-  return rotation
-}
-function rotationPhiGamma(deltaPhi, deltaGamma) {
-  const cosDeltaPhi = cos(deltaPhi),
-    sinDeltaPhi = sin(deltaPhi),
-    cosDeltaGamma = cos(deltaGamma),
-    sinDeltaGamma = sin(deltaGamma)
-  function rotation(lambda, phi) {
-    const cosPhi = cos(phi),
-      x = cos(lambda) * cosPhi,
-      y = sin(lambda) * cosPhi,
-      z = sin(phi),
-      k = z * cosDeltaPhi + x * sinDeltaPhi
-    return [
-      atan2(y * cosDeltaGamma - k * sinDeltaGamma, x * cosDeltaPhi - z * sinDeltaPhi),
-      asin(k * cosDeltaGamma + y * sinDeltaGamma),
-    ]
-  }
-  rotation.invert = function (lambda, phi) {
-    const cosPhi = cos(phi),
-      x = cos(lambda) * cosPhi,
-      y = sin(lambda) * cosPhi,
-      z = sin(phi),
-      k = z * cosDeltaGamma - y * sinDeltaGamma
-    return [
-      atan2(y * cosDeltaGamma + z * sinDeltaGamma, x * cosDeltaPhi + k * sinDeltaPhi),
-      asin(k * cosDeltaPhi - x * sinDeltaPhi),
-    ]
-  }
-  return rotation
+    ? phiGamma(deltaPhi, deltaGamma)
+    : identity
 }
 export function rotation(angles: [number, number] | [number, number, number]): GeoRotation {
-  rotate = rotateRadians(rotate[0] * radians, rotate[1] * radians, rotate.length > 2 ? rotate[2] * radians : 0)
+  rotate = rotateRadians(rotate[0] * qu.radians, rotate[1] * qu.radians, rotate.length > 2 ? rotate[2] * qu.radians : 0)
   function forward(coordinates) {
-    coordinates = rotate(coordinates[0] * radians, coordinates[1] * radians)
-    return (coordinates[0] *= degrees), (coordinates[1] *= degrees), coordinates
+    coordinates = rotate(coordinates[0] * qu.radians, coordinates[1] * qu.radians)
+    return (coordinates[0] *= qu.degrees), (coordinates[1] *= qu.degrees), coordinates
   }
   forward.invert = function (coordinates) {
-    coordinates = rotate.invert(coordinates[0] * radians, coordinates[1] * radians)
-    return (coordinates[0] *= degrees), (coordinates[1] *= degrees), coordinates
+    coordinates = rotate.invert(coordinates[0] * qu.radians, coordinates[1] * qu.radians)
+    return (coordinates[0] *= qu.degrees), (coordinates[1] *= qu.degrees), coordinates
   }
   return forward
 }
-function streamGeometry(geometry, stream) {
-  if (geometry && streamGeometryType.hasOwnProperty(geometry.type)) {
-    streamGeometryType[geometry.type](geometry, stream)
+export namespace rotation {
+  function identity(lambda, phi) {
+    if (qu.abs(lambda) > qu.pi) lambda -= Math.round(lambda / qu.tau) * qu.tau
+    return [lambda, phi]
   }
-}
-const streamObjectType = {
-  Feature: function (object, stream) {
-    streamGeometry(object.geometry, stream)
-  },
-  FeatureCollection: function (object, stream) {
-    let features = object.features,
-      i = -1,
-      n = features.length
-    while (++i < n) streamGeometry(features[i].geometry, stream)
-  },
-}
-var streamGeometryType = {
-  Sphere: function (object, stream) {
-    stream.sphere()
-  },
-  Point: function (object, stream) {
-    object = object.coordinates
-    stream.point(object[0], object[1], object[2])
-  },
-  MultiPoint: function (object, stream) {
-    let coordinates = object.coordinates,
-      i = -1,
-      n = coordinates.length
-    while (++i < n) (object = coordinates[i]), stream.point(object[0], object[1], object[2])
-  },
-  LineString: function (object, stream) {
-    streamLine(object.coordinates, stream, 0)
-  },
-  MultiLineString: function (object, stream) {
-    let coordinates = object.coordinates,
-      i = -1,
-      n = coordinates.length
-    while (++i < n) streamLine(coordinates[i], stream, 0)
-  },
-  Polygon: function (object, stream) {
-    streamPolygon(object.coordinates, stream)
-  },
-  MultiPolygon: function (object, stream) {
-    let coordinates = object.coordinates,
-      i = -1,
-      n = coordinates.length
-    while (++i < n) streamPolygon(coordinates[i], stream)
-  },
-  GeometryCollection: function (object, stream) {
-    let geometries = object.geometries,
-      i = -1,
-      n = geometries.length
-    while (++i < n) streamGeometry(geometries[i], stream)
-  },
-}
-function streamLine(coordinates, stream, closed) {
-  let i = -1,
-    n = coordinates.length - closed,
-    coordinate
-  stream.lineStart()
-  while (++i < n) (coordinate = coordinates[i]), stream.point(coordinate[0], coordinate[1], coordinate[2])
-  stream.lineEnd()
-}
-function streamPolygon(coordinates, stream) {
-  let i = -1,
-    n = coordinates.length
-  stream.polygonStart()
-  while (++i < n) streamLine(coordinates[i], stream, 1)
-  stream.polygonEnd()
+  identity.invert = identity
+  function lambda(deltaLambda) {
+    function forward(deltaLambda) {
+      return function (lambda, phi) {
+        lambda += deltaLambda
+        if (qu.abs(lambda) > qu.pi) lambda -= Math.round(lambda / qu.tau) * qu.tau
+        return [lambda, phi]
+      }
+    }
+    const rotation = forward(deltaLambda)
+    rotation.invert = forward(-deltaLambda)
+    return rotation
+  }
+  function phiGamma(deltaPhi, deltaGamma) {
+    const cosDeltaPhi = qu.cos(deltaPhi),
+      sinDeltaPhi = qu.sin(deltaPhi),
+      cosDeltaGamma = qu.cos(deltaGamma),
+      sinDeltaGamma = qu.sin(deltaGamma)
+    function rotation(lambda, phi) {
+      const cosPhi = qu.cos(phi),
+        x = qu.cos(lambda) * cosPhi,
+        y = qu.sin(lambda) * cosPhi,
+        z = qu.sin(phi),
+        k = z * cosDeltaPhi + x * sinDeltaPhi
+      return [
+        qu.atan2(y * cosDeltaGamma - k * sinDeltaGamma, x * cosDeltaPhi - z * sinDeltaPhi),
+        asin(k * cosDeltaGamma + y * sinDeltaGamma),
+      ]
+    }
+    rotation.invert = function (lambda, phi) {
+      const cosPhi = qu.cos(phi),
+        x = qu.cos(lambda) * cosPhi,
+        y = qu.sin(lambda) * cosPhi,
+        z = qu.sin(phi),
+        k = z * cosDeltaGamma - y * sinDeltaGamma
+      return [
+        qu.atan2(y * cosDeltaGamma + z * sinDeltaGamma, x * cosDeltaPhi + k * sinDeltaPhi),
+        asin(k * cosDeltaPhi - x * sinDeltaPhi),
+      ]
+    }
+    return rotation
+  }
 }
 export function stream(
   object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection,
@@ -978,6 +895,78 @@ export function stream(
     streamObjectType[object.type](object, stream)
   } else {
     streamGeometry(object, stream)
+  }
+}
+export namespace stream {
+  function geo(geometry, stream) {
+    if (geometry && geoType.hasOwnProperty(geometry.type)) {
+      geoType[geometry.type](geometry, stream)
+    }
+  }
+  const objType = {
+    Feature: function (object, stream) {
+      geo(object.geometry, stream)
+    },
+    FeatureCollection: function (object, stream) {
+      let features = object.features,
+        i = -1,
+        n = features.length
+      while (++i < n) geo(features[i].geometry, stream)
+    },
+  }
+  const geoType = {
+    Sphere: function (object, stream) {
+      stream.sphere()
+    },
+    Point: function (object, stream) {
+      object = object.coordinates
+      stream.point(object[0], object[1], object[2])
+    },
+    MultiPoint: function (object, stream) {
+      let coordinates = object.coordinates,
+        i = -1,
+        n = coordinates.length
+      while (++i < n) (object = coordinates[i]), stream.point(object[0], object[1], object[2])
+    },
+    LineString: function (object, stream) {
+      line(object.coordinates, stream, 0)
+    },
+    MultiLineString: function (object, stream) {
+      let coordinates = object.coordinates,
+        i = -1,
+        n = coordinates.length
+      while (++i < n) line(coordinates[i], stream, 0)
+    },
+    Polygon: function (object, stream) {
+      polygon(object.coordinates, stream)
+    },
+    MultiPolygon: function (object, stream) {
+      let coordinates = object.coordinates,
+        i = -1,
+        n = coordinates.length
+      while (++i < n) polygon(coordinates[i], stream)
+    },
+    GeometryCollection: function (object, stream) {
+      let geometries = object.geometries,
+        i = -1,
+        n = geometries.length
+      while (++i < n) geo(geometries[i], stream)
+    },
+  }
+  function line(coordinates, stream, closed) {
+    let i = -1,
+      n = coordinates.length - closed,
+      coordinate
+    stream.lineStart()
+    while (++i < n) (coordinate = coordinates[i]), stream.point(coordinate[0], coordinate[1], coordinate[2])
+    stream.lineEnd()
+  }
+  function polygon(coordinates, stream) {
+    let i = -1,
+      n = coordinates.length
+    stream.polygonStart()
+    while (++i < n) line(coordinates[i], stream, 1)
+    stream.polygonEnd()
   }
 }
 export function transform(methods) {

@@ -1,6 +1,30 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import type * as qt from "./types.js"
 
+export const pi = Math.PI
+export const halfPi = pi / 2
+export const quarterPi = pi / 4
+export const degrees = 180 / pi
+export const radians = pi / 180
+export const tau = 2 * pi
+export const epsilon = 1e-6
+export const epsilon2 = 1e-12
+export const tauEpsilon = tau - epsilon
+
+export const abs = Math.abs
+export const atan = Math.atan
+export const atan2 = Math.atan2
+export const ceil = Math.ceil
+export const cos = Math.cos
+export const exp = Math.exp
+export const floor = Math.floor
+export const hypot = Math.hypot
+export const log = Math.log
+export const pow = Math.pow
+export const sin = Math.sin
+export const sqrt = Math.sqrt
+export const tan = Math.tan
+
 export function array(x?: any) {
   return x === undefined ? [] : Array.isArray(x) ? x : Array.from(x)
 }
@@ -125,11 +149,6 @@ export function length(xs: Array<[number, number]>): number {
   }
   return r
 }
-
-const pi = Math.PI
-const tau = 2 * pi
-const epsilon = 1e-6
-const tauEpsilon = tau - epsilon
 
 export class Path implements qt.Path {
   x0?: number | undefined
