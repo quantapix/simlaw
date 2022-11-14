@@ -3,6 +3,13 @@ import { Adder, range } from "./utils_seq.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
+export function area(
+  x: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
+): number {
+  area.sum = new Adder()
+  stream(x, area.stream)
+  return area.sum * 2
+}
 export namespace area {
   export const ringSum = new Adder()
   export let sum = new Adder()
@@ -14,7 +21,7 @@ export namespace area {
     polygonStart: function () {
       ringSum = new Adder()
       stream.lineStart = ringStart
-      stream.lineEnd = areaRingEnd
+      stream.lineEnd = ringEnd
     },
     polygonEnd: function () {
       const y = +ringSum
@@ -28,7 +35,7 @@ export namespace area {
   function ringStart() {
     stream.point = pointFirst
   }
-  function areaRingEnd() {
+  function ringEnd() {
     point(lambda00, phi00)
   }
   function pointFirst(lambda, phi) {
@@ -52,162 +59,30 @@ export namespace area {
     ;(lambda0 = lambda), (cosPhi0 = cosPhi), (sinPhi0 = sinPhi)
   }
 }
-export function area(
-  x: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
-): number {
-  area.sum = new Adder()
-  stream(x, area.stream)
-  return area.sum * 2
-}
-var lambda0,
-  phi0,
-  lambda1,
-  phi1, // bounds
-  lambda2, // previous lambda-coordinate
-  lambda00,
-  phi00, // first point
-  p0, // previous 3D point
-  deltaSum,
-  ranges,
-  range
-var boundsStream = {
-  point: boundsPoint,
-  lineStart: boundsLineStart,
-  lineEnd: boundsLineEnd,
-  polygonStart: function () {
-    boundsStream.point = boundsRingPoint
-    boundsStream.lineStart = boundsRingStart
-    boundsStream.lineEnd = boundsRingEnd
-    deltaSum = new Adder()
-    areaStream.polygonStart()
-  },
-  polygonEnd: function () {
-    areaStream.polygonEnd()
-    boundsStream.point = boundsPoint
-    boundsStream.lineStart = boundsLineStart
-    boundsStream.lineEnd = boundsLineEnd
-    if (areaRingSum < 0) (lambda0 = -(lambda1 = 180)), (phi0 = -(phi1 = 90))
-    else if (deltaSum > epsilon) phi1 = 90
-    else if (deltaSum < -epsilon) phi0 = -90
-    ;(range[0] = lambda0), (range[1] = lambda1)
-  },
-  sphere: function () {
-    ;(lambda0 = -(lambda1 = 180)), (phi0 = -(phi1 = 90))
-  },
-}
-function boundsPoint(lambda, phi) {
-  ranges.push((range = [(lambda0 = lambda), (lambda1 = lambda)]))
-  if (phi < phi0) phi0 = phi
-  if (phi > phi1) phi1 = phi
-}
-function linePoint(lambda, phi) {
-  const p = cartesian([lambda * radians, phi * radians])
-  if (p0) {
-    let normal = cartesianCross(p0, p),
-      equatorial = [normal[1], -normal[0], 0],
-      inflection = cartesianCross(equatorial, normal)
-    cartesianNormalizeInPlace(inflection)
-    inflection = spherical(inflection)
-    let delta = lambda - lambda2,
-      sign = delta > 0 ? 1 : -1,
-      lambdai = inflection[0] * degrees * sign,
-      phii,
-      antimeridian = abs(delta) > 180
-    if (antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda)) {
-      phii = inflection[1] * degrees
-      if (phii > phi1) phi1 = phii
-    } else if (
-      ((lambdai = ((lambdai + 360) % 360) - 180), antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda))
-    ) {
-      phii = -inflection[1] * degrees
-      if (phii < phi0) phi0 = phii
-    } else {
-      if (phi < phi0) phi0 = phi
-      if (phi > phi1) phi1 = phi
-    }
-    if (antimeridian) {
-      if (lambda < lambda2) {
-        if (angle(lambda0, lambda) > angle(lambda0, lambda1)) lambda1 = lambda
-      } else {
-        if (angle(lambda, lambda1) > angle(lambda0, lambda1)) lambda0 = lambda
-      }
-    } else {
-      if (lambda1 >= lambda0) {
-        if (lambda < lambda0) lambda0 = lambda
-        if (lambda > lambda1) lambda1 = lambda
-      } else {
-        if (lambda > lambda2) {
-          if (angle(lambda0, lambda) > angle(lambda0, lambda1)) lambda1 = lambda
-        } else {
-          if (angle(lambda, lambda1) > angle(lambda0, lambda1)) lambda0 = lambda
-        }
-      }
-    }
-  } else {
-    ranges.push((range = [(lambda0 = lambda), (lambda1 = lambda)]))
-  }
-  if (phi < phi0) phi0 = phi
-  if (phi > phi1) phi1 = phi
-  ;(p0 = p), (lambda2 = lambda)
-}
-function boundsLineStart() {
-  boundsStream.point = linePoint
-}
-function boundsLineEnd() {
-  ;(range[0] = lambda0), (range[1] = lambda1)
-  boundsStream.point = boundsPoint
-  p0 = null
-}
-function boundsRingPoint(lambda, phi) {
-  if (p0) {
-    const delta = lambda - lambda2
-    deltaSum.add(abs(delta) > 180 ? delta + (delta > 0 ? 360 : -360) : delta)
-  } else {
-    ;(lambda00 = lambda), (phi00 = phi)
-  }
-  areaStream.point(lambda, phi)
-  linePoint(lambda, phi)
-}
-function boundsRingStart() {
-  areaStream.lineStart()
-}
-function boundsRingEnd() {
-  boundsRingPoint(lambda00, phi00)
-  areaStream.lineEnd()
-  if (abs(deltaSum) > epsilon) lambda0 = -(lambda1 = 180)
-  ;(range[0] = lambda0), (range[1] = lambda1)
-  p0 = null
-}
-function angle(lambda0, lambda1) {
-  return (lambda1 -= lambda0) < 0 ? lambda1 + 360 : lambda1
-}
-function rangeCompare(a, b) {
-  return a[0] - b[0]
-}
-function rangeContains(range, x) {
-  return range[0] <= range[1] ? range[0] <= x && x <= range[1] : x < range[0] || range[1] < x
-}
 export function bounds(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+  x: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
 ): [[number, number], [number, number]] {
   let i, n, a, b, merged, deltaMax, delta
-  phi1 = lambda1 = -(lambda0 = phi0 = Infinity)
-  ranges = []
-  stream(object, boundsStream)
+  let phi1 = (lambda1 = -(lambda0 = phi0 = Infinity))
+  let ranges: number[][] = []
+  stream(x, bounds.stream)
   if ((n = ranges.length)) {
-    ranges.sort(rangeCompare)
+    ranges.sort((a, b) => a[0]! - b[0]!)
+    function contains(xs: [number, number], x: number) {
+      return xs[0] <= xs[1] ? xs[0] <= x && x <= xs[1] : x < xs[0] || xs[1] < x
+    }
     for (i = 1, a = ranges[0], merged = [a]; i < n; ++i) {
       b = ranges[i]
-      if (rangeContains(a, b[0]) || rangeContains(a, b[1])) {
-        if (angle(a[0], b[1]) > angle(a[0], a[1])) a[1] = b[1]
-        if (angle(b[0], a[1]) > angle(a[0], a[1])) a[0] = b[0]
+      if (contains(a, b[0]) || contains(a, b[1])) {
+        if (qu.angle(a[0], b[1]) > qu.angle(a[0], a[1])) a[1] = b[1]
+        if (qu.angle(b[0], a[1]) > qu.angle(a[0], a[1])) a[0] = b[0]
       } else {
         merged.push((a = b))
       }
     }
     for (deltaMax = -Infinity, n = merged.length - 1, i = 0, a = merged[n]; i <= n; a = b, ++i) {
       b = merged[i]
-      if ((delta = angle(a[1], b[0])) > deltaMax) (deltaMax = delta), (lambda0 = b[0]), (lambda1 = a[1])
+      if ((delta = qu.angle(a[1], b[0])) > deltaMax) (deltaMax = delta), (lambda0 = b[0]), (lambda1 = a[1])
     }
   }
   ranges = range = null
@@ -220,6 +95,128 @@ export function bounds(
         [lambda0, phi0],
         [lambda1, phi1],
       ]
+}
+export namespace bounds {
+  let lambda0,
+    phi0,
+    lambda1,
+    phi1, // bounds
+    lambda2, // previous lambda-coordinate
+    lambda00,
+    phi00, // first point
+    p0, // previous 3D point
+    deltaSum,
+    ranges,
+    range
+  export const stream = {
+    point: point,
+    lineStart: lineStart,
+    lineEnd: lineEnd,
+    polygonStart: function () {
+      stream.point = ringPoint
+      stream.lineStart = ringStart
+      stream.lineEnd = ringEnd
+      deltaSum = new Adder()
+      areaStream.polygonStart()
+    },
+    polygonEnd: function () {
+      areaStream.polygonEnd()
+      stream.point = point
+      stream.lineStart = lineStart
+      stream.lineEnd = lineEnd
+      if (areaRingSum < 0) (lambda0 = -(lambda1 = 180)), (phi0 = -(phi1 = 90))
+      else if (deltaSum > epsilon) phi1 = 90
+      else if (deltaSum < -epsilon) phi0 = -90
+      ;(range[0] = lambda0), (range[1] = lambda1)
+    },
+    sphere: function () {
+      ;(lambda0 = -(lambda1 = 180)), (phi0 = -(phi1 = 90))
+    },
+  }
+  function point(lambda: number, phi: number) {
+    ranges.push((range = [(lambda0 = lambda), (lambda1 = lambda)]))
+    if (phi < phi0) phi0 = phi
+    if (phi > phi1) phi1 = phi
+  }
+  function linePoint(lambda: number, phi: number) {
+    const p = cartesian([lambda * radians, phi * radians])
+    if (p0) {
+      let normal = cartesianCross(p0, p),
+        equatorial = [normal[1], -normal[0], 0],
+        inflection = cartesianCross(equatorial, normal)
+      cartesianNormalizeInPlace(inflection)
+      inflection = spherical(inflection)
+      let delta = lambda - lambda2,
+        sign = delta > 0 ? 1 : -1,
+        lambdai = inflection[0] * degrees * sign,
+        phii,
+        antimeridian = abs(delta) > 180
+      if (antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda)) {
+        phii = inflection[1] * degrees
+        if (phii > phi1) phi1 = phii
+      } else if (
+        ((lambdai = ((lambdai + 360) % 360) - 180),
+        antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda))
+      ) {
+        phii = -inflection[1] * degrees
+        if (phii < phi0) phi0 = phii
+      } else {
+        if (phi < phi0) phi0 = phi
+        if (phi > phi1) phi1 = phi
+      }
+      if (antimeridian) {
+        if (lambda < lambda2) {
+          if (qu.angle(lambda0, lambda) > qu.angle(lambda0, lambda1)) lambda1 = lambda
+        } else {
+          if (qu.angle(lambda, lambda1) > qu.angle(lambda0, lambda1)) lambda0 = lambda
+        }
+      } else {
+        if (lambda1 >= lambda0) {
+          if (lambda < lambda0) lambda0 = lambda
+          if (lambda > lambda1) lambda1 = lambda
+        } else {
+          if (lambda > lambda2) {
+            if (qu.angle(lambda0, lambda) > qu.angle(lambda0, lambda1)) lambda1 = lambda
+          } else {
+            if (qu.angle(lambda, lambda1) > qu.angle(lambda0, lambda1)) lambda0 = lambda
+          }
+        }
+      }
+    } else {
+      ranges.push((range = [(lambda0 = lambda), (lambda1 = lambda)]))
+    }
+    if (phi < phi0) phi0 = phi
+    if (phi > phi1) phi1 = phi
+    ;(p0 = p), (lambda2 = lambda)
+  }
+  function lineStart() {
+    stream.point = linePoint
+  }
+  function lineEnd() {
+    ;(range[0] = lambda0), (range[1] = lambda1)
+    stream.point = point
+    p0 = null
+  }
+  function ringPoint(lambda: number, phi: number) {
+    if (p0) {
+      const delta = lambda - lambda2
+      deltaSum.add(abs(delta) > 180 ? delta + (delta > 0 ? 360 : -360) : delta)
+    } else {
+      ;(lambda00 = lambda), (phi00 = phi)
+    }
+    area.stream.point(lambda, phi)
+    linePoint(lambda, phi)
+  }
+  function ringStart() {
+    areaStream.lineStart()
+  }
+  function ringEnd() {
+    ringPoint(lambda00, phi00)
+    areaStream.lineEnd()
+    if (abs(deltaSum) > epsilon) lambda0 = -(lambda1 = 180)
+    ;(range[0] = lambda0), (range[1] = lambda1)
+    p0 = null
+  }
 }
 export function spherical(cartesian) {
   return [atan2(cartesian[1], cartesian[0]), asin(cartesian[2])]
@@ -532,7 +529,7 @@ function pointRadians(point) {
   return [point[0] * radians, point[1] * radians]
 }
 export function contains(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection,
+  object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection,
   point: [number, number]
 ): boolean {
   return (
@@ -742,7 +739,7 @@ function lengthPoint(lambda, phi) {
   ;(lambda0 = lambda), (sinPhi0 = sinPhi), (cosPhi0 = cosPhi)
 }
 export function length(
-  object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+  object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
 ): number {
   lengthSum = new Adder()
   stream(object, lengthStream)

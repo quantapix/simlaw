@@ -22,6 +22,10 @@ export function descending(a?: qt.Primitive, b?: qt.Primitive) {
   return a == undefined || b == undefined ? NaN : b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN
 }
 
+export function angle(a: number, b: number) {
+  return (b -= a) < 0 ? b + 360 : b
+}
+
 export function area(xs: Array<[number, number]>): number {
   const n = xs.length
   let r = 0,
