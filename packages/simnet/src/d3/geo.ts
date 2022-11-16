@@ -12,7 +12,7 @@ export function area(
 }
 export namespace area {
   export const ringSum = new Adder()
-  export let sum = new Adder()
+  export const sum = new Adder()
   let lambda00, phi00, lambda0, cosPhi0, sinPhi0
   export const stream = {
     point: noop,
@@ -63,7 +63,7 @@ export function bounds(
   x: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
 ): [[number, number], [number, number]] {
   let i, n, a, b, merged, deltaMax, delta
-  let phi1 = (lambda1 = -(lambda0 = phi0 = Infinity))
+  const phi1 = (lambda1 = -(lambda0 = phi0 = Infinity))
   let ranges: number[][] = []
   stream(x, bounds.stream)
   if ((n = ranges.length)) {
@@ -695,7 +695,7 @@ export function interpolate(a: [number, number], b: [number, number]): (t: numbe
     k = qu.sin(d)
   const interpolate = d
     ? function (t) {
-        let B = qu.sin((t *= d)) / k,
+        const B = qu.sin((t *= d)) / k,
           A = qu.sin(d - t) / k,
           x = A * kx0 + B * kx1,
           y = A * ky0 + B * ky1,
@@ -1006,21 +1006,6 @@ TransformStream.prototype = {
 }
 
 export namespace clip {
-  import {
-    cartesian,
-    cartesianAddInPlace,
-    cartesianCross,
-    cartesianDot,
-    cartesianScale,
-    spherical,
-  } from "../cartesian.js"
-  import { abs, atan, cos, epsilon, halfPi, pi, sin, radians, sqrt } from "../math.js"
-  import { circleStream } from "../circle.js"
-  import { merge } from "./array.js"
-  import noop from "../noop.js"
-  import pointEqual from "../pointEqual.js"
-  import polygonContains from "../polygonContains.js"
-
   export default clip(
     function () {
       return true
@@ -1704,18 +1689,13 @@ export namespace clip {
   }
 }
 export namespace path {
-  import { abs, sqrt, tau } from "../math.js"
-  import { Adder } from "./array.js"
-  import noop from "../noop.js"
-  import stream from "../stream.js"
-
-  var areaSum = new Adder(),
+  let areaSum = new Adder(),
     areaRingSum = new Adder(),
     x00,
     y00,
     x0,
     y0
-  var areaStream = {
+  const areaStream = {
     point: noop,
     lineStart: noop,
     lineEnd: noop,
@@ -1749,7 +1729,7 @@ export namespace path {
     areaPoint(x00, y00)
   }
   export const area = areaStream
-  var x0 = Infinity,
+  let x0 = Infinity,
     y0 = x0,
     x1 = -x0,
     y1 = x1
@@ -1760,7 +1740,7 @@ export namespace path {
     polygonStart: noop,
     polygonEnd: noop,
     result: function () {
-      let bounds = [
+      const bounds = [
         [x0, y0],
         [x1, y1],
       ]
@@ -1775,7 +1755,7 @@ export namespace path {
     if (y > y1) y1 = y
   }
   export const bounds = boundsStream
-  var X0 = 0,
+  let X0 = 0,
     Y0 = 0,
     Z0 = 0,
     X1 = 0,
@@ -1788,7 +1768,7 @@ export namespace path {
     y00,
     x0,
     y0
-  var centroidStream = {
+  const centroidStream = {
     point: centroidPoint,
     lineStart: centroidLineStart,
     lineEnd: centroidLineEnd,
@@ -1941,13 +1921,13 @@ export namespace path {
     }
     return path.projection(projection).context(context)
   }
-  var lengthSum = new Adder(),
+  let lengthSum = new Adder(),
     lengthRing,
     x00,
     y00,
     x0,
     y0
-  var lengthStream = {
+  let lengthStream = {
     point: noop,
     lineStart: function () {
       lengthStream.point = lengthPointFirst
@@ -2050,20 +2030,6 @@ export namespace path {
   }
 }
 export namespace proj {
-  import { abs, asin, atan2, cos, epsilon, epsilon2, pi, pow, sign, sin, sqrt } from "../math.js"
-  import { acos, tau, degrees, radians } from "../math.js"
-  import { atan, exp, halfPi, log, tan } from "../math.js"
-  import { cartesian } from "../cartesian.js"
-  import { default as geoStream } from "../stream.js"
-  import { rotateRadians } from "../rotation.js"
-  import boundsStream from "../path/bounds.js"
-  import clipAntimeridian from "../clip/antimeridian.js"
-  import clipCircle from "../clip/circle.js"
-  import clipRectangle from "../clip/rectangle.js"
-  import compose from "../compose.js"
-  import identity from "../identity.js"
-  import rotation from "../rotation.js"
-
   export function albers() {
     return conicEqualArea()
       .parallels([29.5, 45.5])
