@@ -845,36 +845,6 @@ export function geoPath<This, T extends GeoPermissibleObjects>(
   projection?: GeoProjection | GeoStreamWrapper | null,
   context?: GeoContext | null
 ): GeoPath<This, T>
-export function geoProjection(project: GeoRawProjection): GeoProjection
-export function geoProjectionMutator(factory: (...xs: any[]) => GeoRawProjection): () => GeoProjection
-export function geoAzimuthalEqualArea(): GeoProjection
-export function geoAzimuthalEqualAreaRaw(): GeoRawProjection
-export function geoAzimuthalEquidistant(): GeoProjection
-export function geoAzimuthalEquidistantRaw(): GeoRawProjection
-export function geoGnomonic(): GeoProjection
-export function geoGnomonicRaw(): GeoRawProjection
-export function geoOrthographic(): GeoProjection
-export function geoOrthographicRaw(): GeoRawProjection
-export function geoStereographic(): GeoProjection
-export function geoStereographicRaw(): GeoRawProjection
-export function geoEqualEarth(): GeoProjection
-export function geoEqualEarthRaw(): GeoRawProjection
-export function geoAlbersUsa(): GeoProjection
-export function geoAlbers(): GeoConicProjection
-export function geoConicConformal(): GeoConicProjection
-export function geoConicConformalRaw(phi0: number, phi1: number): GeoRawProjection
-export function geoConicEqualArea(): GeoConicProjection
-export function geoConicEqualAreaRaw(phi0: number, phi1: number): GeoRawProjection
-export function geoConicEquidistant(): GeoConicProjection
-export function geoConicEquidistantRaw(phi0: number, phi1: number): GeoRawProjection
-export function geoEquirectangular(): GeoProjection
-export function geoEquirectangularRaw(): GeoRawProjection
-export function geoMercator(): GeoProjection
-export function geoMercatorRaw(): GeoRawProjection
-export function geoTransverseMercator(): GeoProjection
-export function geoTransverseMercatorRaw(): GeoRawProjection
-export function geoNaturalEarth1(): GeoProjection
-export function geoNaturalEarth1Raw(): GeoRawProjection
 export interface GeoTransformPrototype {
   lineEnd?(this: this & { stream: GeoStream }): void
   lineStart?(this: this & { stream: GeoStream }): void
@@ -911,7 +881,6 @@ export interface GeoIdentityTransform extends GeoStreamWrapper {
   reflectY(): boolean
   reflectY(reflect: boolean): this
 }
-export function geoIdentity(): GeoIdentityTransform
 export const geoClipAntimeridian: (stream: GeoStream) => GeoStream
 export function geoClipCircle(angle: number): (stream: GeoStream) => GeoStream
 export function geoClipRectangle(x0: number, y0: number, x1: number, y1: number): (stream: GeoStream) => GeoStream

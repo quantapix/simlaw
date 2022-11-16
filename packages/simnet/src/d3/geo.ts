@@ -2030,121 +2030,131 @@ export namespace path {
   }
 }
 
-export namespace azimuthal {
-  export function raw(scale) {
-    return function (x, y) {
-      const cx = cos(x),
-        cy = cos(y),
-        k = scale(cx * cy)
-      if (k === Infinity) return [2, 0]
-      return [k * cy * sin(x), k * sin(y)]
+export namespace proj {
+  export namespace azimuthal {
+    function raw(scale): GeoRawProjection {
+      return function (x, y) {
+        const cx = cos(x),
+          cy = cos(y),
+          k = scale(cx * cy)
+        if (k === Infinity) return [2, 0]
+        return [k * cy * sin(x), k * sin(y)]
+      }
+    }
+    export function invert(angle) {
+      return function (x, y) {
+        const z = sqrt(x * x + y * y),
+          c = angle(z),
+          sc = sin(c),
+          cc = cos(c)
+        return [atan2(x * sc, z * cc), asin(z && (y * sc) / z)]
+      }
+    }
+    export const equalAreaRaw = raw(cxcy => sqrt(2 / (1 + cxcy)))
+    equalAreaRaw.invert = invert(z => 2 * asin(z / 2))
+    export function equalArea() {
+      return projection(equalAreaRaw)
+        .scale(124.75)
+        .clipAngle(180 - 1e-3)
+    }
+    export const equidistantRaw = raw(c => (c = acos(c)) && c / sin(c))
+    equidistantRaw.invert = invert(z => z)
+    export function equidistant() {
+      return projection(equidistantRaw)
+        .scale(79.4188)
+        .clipAngle(180 - 1e-3)
     }
   }
-  export function invert(angle) {
-    return function (x, y) {
-      const z = sqrt(x * x + y * y),
-        c = angle(z),
-        sc = sin(c),
-        cc = cos(c)
-      return [atan2(x * sc, z * cc), asin(z && (y * sc) / z)]
-    }
-  }
-  export const equalAreaRaw = raw(cxcy => sqrt(2 / (1 + cxcy)))
-  equalAreaRaw.invert = invert(z => 2 * asin(z / 2))
-  export function equalArea() {
-    return projection(equalAreaRaw)
-      .scale(124.75)
-      .clipAngle(180 - 1e-3)
-  }
-  export const equidistantRaw = raw(c => (c = acos(c)) && c / sin(c))
-  equidistantRaw.invert = invert(z => z)
-  export function equidistant() {
-    return projection(equidistantRaw)
-      .scale(79.4188)
-      .clipAngle(180 - 1e-3)
-  }
-}
-
-export namespace conic {
-  export function projection(projectAt) {
+  export function conic(projectAt): GeoConicProjection {
     let phi0 = 0,
       phi1 = pi / 3
-    const m = projectionMutator(projectAt),
+    const m = mutator(projectAt),
       p = m(phi0, phi1)
     p.parallels = function (_) {
       return arguments.length ? m((phi0 = _[0] * radians), (phi1 = _[1] * radians)) : [phi0 * degrees, phi1 * degrees]
     }
     return p
   }
-  function tany(y) {
-    return tan((halfPi + y) / 2)
-  }
-  export function conformalRaw(y0, y1) {
-    const cy0 = cos(y0),
-      n = y0 === y1 ? sin(y0) : log(cy0 / cos(y1)) / log(tany(y1) / tany(y0)),
-      f = (cy0 * pow(tany(y0), n)) / n
-    if (!n) return mercatorRaw
-    function project(x, y) {
-      if (f > 0) {
-        if (y < -halfPi + epsilon) y = -halfPi + epsilon
-      } else {
-        if (y > halfPi - epsilon) y = halfPi - epsilon
+  export namespace conic {
+    export function conformalRaw(y0: number, y1: number): GeoRawProjection {
+      const cy0 = cos(y0),
+        n = y0 === y1 ? sin(y0) : log(cy0 / cos(y1)) / log(tany(y1) / tany(y0)),
+        p = (cy0 * pow(tany(y0), n)) / n
+      if (!n) return mercatorRaw
+      function f(x, y) {
+        if (p > 0) {
+          if (y < -halfPi + epsilon) y = -halfPi + epsilon
+        } else {
+          if (y > halfPi - epsilon) y = halfPi - epsilon
+        }
+        const r = p / pow(tany(y), n)
+        return [r * sin(n * x), p - r * cos(n * x)]
       }
-      const r = f / pow(tany(y), n)
-      return [r * sin(n * x), f - r * cos(n * x)]
+      f.invert = function (x, y) {
+        const py = p - y,
+          r = sign(n) * sqrt(x * x + py * py)
+        let l = atan2(x, abs(py)) * sign(py)
+        if (py * n < 0) l -= pi * sign(x) * sign(py)
+        return [l / n, 2 * atan(pow(p / r, 1 / n)) - halfPi]
+      }
+      return f
     }
-    project.invert = function (x, y) {
-      const fy = f - y,
-        r = sign(n) * sqrt(x * x + fy * fy)
-      let l = atan2(x, abs(fy)) * sign(fy)
-      if (fy * n < 0) l -= pi * sign(x) * sign(fy)
-      return [l / n, 2 * atan(pow(f / r, 1 / n)) - halfPi]
+    export const conformal = () => conic(conformalRaw).scale(109.5).parallels([30, 30])
+    export function equalAreaRaw(y0, y1): GeoRawProjection {
+      const sy0 = sin(y0),
+        n = (sy0 + sin(y1)) / 2
+      if (abs(n) < epsilon) return cylindrical.equalAreaRaw(y0)
+      const c = 1 + sy0 * (2 * n - sy0),
+        r0 = sqrt(c) / n
+      function f(x, y) {
+        const r = sqrt(c - 2 * n * sin(y)) / n
+        return [r * sin((x *= n)), r0 - r * cos(x)]
+      }
+      f.invert = function (x, y) {
+        const r0y = r0 - y
+        let l = atan2(x, abs(r0y)) * sign(r0y)
+        if (r0y * n < 0) l -= pi * sign(x) * sign(r0y)
+        return [l / n, asin((c - (x * x + r0y * r0y) * n * n) / (2 * n))]
+      }
+      return f
     }
-    return project
+    export const equalArea = () => conic(equalAreaRaw).scale(155.424).center([0, 33.6442])
+    export function equidistantRaw(y0, y1): GeoRawProjection {
+      const cy0 = cos(y0),
+        n = y0 === y1 ? sin(y0) : (cy0 - cos(y1)) / (y1 - y0),
+        g = cy0 / n + y0
+      if (abs(n) < epsilon) return equirectangularRaw
+      function f(x, y) {
+        const gy = g - y,
+          nx = n * x
+        return [gy * sin(nx), g - gy * cos(nx)]
+      }
+      f.invert = function (x, y) {
+        const gy = g - y
+        let l = atan2(x, abs(gy)) * sign(gy)
+        if (gy * n < 0) l -= pi * sign(x) * sign(gy)
+        return [l / n, g - sign(n) * sqrt(x * x + gy * gy)]
+      }
+      return f
+    }
+    export const equidistant = () => conic(equidistantRaw).scale(131.154).center([0, 13.9389])
+    function tany(y) {
+      return tan((halfPi + y) / 2)
+    }
   }
-  export const conformal = () => projection(conformalRaw).scale(109.5).parallels([30, 30])
-  export function equalAreaRaw(y0, y1) {
-    const sy0 = sin(y0),
-      n = (sy0 + sin(y1)) / 2
-    if (abs(n) < epsilon) return cylindricalEqualAreaRaw(y0)
-    const c = 1 + sy0 * (2 * n - sy0),
-      r0 = sqrt(c) / n
-    function f(x, y) {
-      const r = sqrt(c - 2 * n * sin(y)) / n
-      return [r * sin((x *= n)), r0 - r * cos(x)]
+  namespace cylindrical {
+    export function equalAreaRaw(phi0) {
+      const cosPhi0 = cos(phi0)
+      function f(lambda, phi) {
+        return [lambda * cosPhi0, sin(phi) / cosPhi0]
+      }
+      f.invert = function (x, y) {
+        return [x / cosPhi0, asin(y * cosPhi0)]
+      }
+      return f
     }
-    f.invert = function (x, y) {
-      const r0y = r0 - y
-      let l = atan2(x, abs(r0y)) * sign(r0y)
-      if (r0y * n < 0) l -= pi * sign(x) * sign(r0y)
-      return [l / n, asin((c - (x * x + r0y * r0y) * n * n) / (2 * n))]
-    }
-    return f
   }
-  export const equalArea = () => projection(equalAreaRaw).scale(155.424).center([0, 33.6442])
-  export function equidistantRaw(y0, y1) {
-    const cy0 = cos(y0),
-      n = y0 === y1 ? sin(y0) : (cy0 - cos(y1)) / (y1 - y0),
-      g = cy0 / n + y0
-    if (abs(n) < epsilon) return equirectangularRaw
-    function f(x, y) {
-      const gy = g - y,
-        nx = n * x
-      return [gy * sin(nx), g - gy * cos(nx)]
-    }
-    f.invert = function (x, y) {
-      const gy = g - y
-      let l = atan2(x, abs(gy)) * sign(gy)
-      if (gy * n < 0) l -= pi * sign(x) * sign(gy)
-      return [l / n, g - sign(n) * sqrt(x * x + gy * gy)]
-    }
-    return f
-  }
-  export const equidistant = () => projection(equidistantRaw).scale(131.154).center([0, 13.9389])
-}
-
-export namespace proj {
-  export function albers() {
+  export function albers(): GeoConicProjection {
     return conic
       .equalArea()
       .parallels([29.5, 45.5])
@@ -2153,36 +2163,7 @@ export namespace proj {
       .rotate([96, 0])
       .center([-0.6, 38.7])
   }
-  function multiplex(streams) {
-    const n = streams.length
-    return {
-      point: function (x, y) {
-        let i = -1
-        while (++i < n) streams[i].point(x, y)
-      },
-      sphere: function () {
-        let i = -1
-        while (++i < n) streams[i].sphere()
-      },
-      lineStart: function () {
-        let i = -1
-        while (++i < n) streams[i].lineStart()
-      },
-      lineEnd: function () {
-        let i = -1
-        while (++i < n) streams[i].lineEnd()
-      },
-      polygonStart: function () {
-        let i = -1
-        while (++i < n) streams[i].polygonStart()
-      },
-      polygonEnd: function () {
-        let i = -1
-        while (++i < n) streams[i].polygonEnd()
-      },
-    }
-  }
-  export function albersUsa() {
+  export function albersUsa(): GeoProjection {
     let cache,
       cacheStream,
       lower48 = albers(),
@@ -2204,6 +2185,35 @@ export namespace proj {
         (point = null),
         (lower48Point.point(x, y), point) || (alaskaPoint.point(x, y), point) || (hawaiiPoint.point(x, y), point)
       )
+    }
+    function multiplex(streams) {
+      const n = streams.length
+      return {
+        point: function (x, y) {
+          let i = -1
+          while (++i < n) streams[i].point(x, y)
+        },
+        sphere: function () {
+          let i = -1
+          while (++i < n) streams[i].sphere()
+        },
+        lineStart: function () {
+          let i = -1
+          while (++i < n) streams[i].lineStart()
+        },
+        lineEnd: function () {
+          let i = -1
+          while (++i < n) streams[i].lineEnd()
+        },
+        polygonStart: function () {
+          let i = -1
+          while (++i < n) streams[i].polygonStart()
+        },
+        polygonEnd: function () {
+          let i = -1
+          while (++i < n) streams[i].polygonEnd()
+        },
+      }
     }
     f.invert = function (coordinates) {
       const k = lower48.scale(),
@@ -2261,33 +2271,15 @@ export namespace proj {
         .stream(pointStream)
       return reset()
     }
-    f.fitExtent = function (extent, object) {
-      return fitExtent(f, extent, object)
-    }
-    f.fitSize = function (size, object) {
-      return fitSize(f, size, object)
-    }
-    f.fitWidth = function (width, object) {
-      return fitWidth(f, width, object)
-    }
-    f.fitHeight = function (height, object) {
-      return fitHeight(f, height, object)
-    }
+    f.fitExtent = (extent, x) => fit.extent(f, extent, x)
+    f.fitSize = (size, x) => fit.size(f, size, x)
+    f.fitWidth = (width, x) => fit.width(f, width, x)
+    f.fitHeight = (height, x) => fit.height(f, height, x)
     function reset() {
       cache = cacheStream = null
       return f
     }
     return f.scale(1070)
-  }
-  export function cylindricalEqualAreaRaw(phi0) {
-    const cosPhi0 = cos(phi0)
-    function forward(lambda, phi) {
-      return [lambda * cosPhi0, sin(phi) / cosPhi0]
-    }
-    forward.invert = function (x, y) {
-      return [x / cosPhi0, asin(y * cosPhi0)]
-    }
-    return forward
   }
   const A1 = 1.340264,
     A2 = -0.081106,
@@ -2295,7 +2287,8 @@ export namespace proj {
     A4 = 0.003796,
     M = sqrt(3) / 2,
     iterations = 12
-  export function equalEarthRaw(lambda, phi) {
+
+  export function equalEarthRaw(lambda, phi): GeoRawProjection {
     const l = asin(M * sin(phi)),
       l2 = l * l,
       l6 = l2 * l2 * l2
@@ -2319,66 +2312,14 @@ export namespace proj {
   export function equalEarth() {
     return projection(equalEarthRaw).scale(177.158)
   }
-  export function equirectangularRaw(lambda, phi) {
+  export function equirectangularRaw(lambda, phi): GeoRawProjection {
     return [lambda, phi]
   }
   equirectangularRaw.invert = equirectangularRaw
   export function equirectangular() {
     return projection(equirectangularRaw).scale(152.63)
   }
-  function fit(projection, fitBounds, object) {
-    const clip = projection.clipExtent && projection.clipExtent()
-    projection.scale(150).translate([0, 0])
-    if (clip != null) projection.clipExtent(null)
-    geoStream(object, projection.stream(boundsStream))
-    fitBounds(boundsStream.result())
-    if (clip != null) projection.clipExtent(clip)
-    return projection
-  }
-  export function fitExtent(projection, extent, object) {
-    return fit(
-      projection,
-      function (b) {
-        const w = extent[1][0] - extent[0][0],
-          h = extent[1][1] - extent[0][1],
-          k = Math.min(w / (b[1][0] - b[0][0]), h / (b[1][1] - b[0][1])),
-          x = +extent[0][0] + (w - k * (b[1][0] + b[0][0])) / 2,
-          y = +extent[0][1] + (h - k * (b[1][1] + b[0][1])) / 2
-        projection.scale(150 * k).translate([x, y])
-      },
-      object
-    )
-  }
-  export function fitSize(projection, size, object) {
-    return fitExtent(projection, [[0, 0], size], object)
-  }
-  export function fitWidth(projection, width, object) {
-    return fit(
-      projection,
-      function (b) {
-        const w = +width,
-          k = w / (b[1][0] - b[0][0]),
-          x = (w - k * (b[1][0] + b[0][0])) / 2,
-          y = -k * b[0][1]
-        projection.scale(150 * k).translate([x, y])
-      },
-      object
-    )
-  }
-  export function fitHeight(projection, height, object) {
-    return fit(
-      projection,
-      function (b) {
-        const h = +height,
-          k = h / (b[1][1] - b[0][1]),
-          x = -k * b[0][0],
-          y = (h - k * (b[1][1] + b[0][1])) / 2
-        projection.scale(150 * k).translate([x, y])
-      },
-      object
-    )
-  }
-  export function gnomonicRaw(x, y) {
+  export function gnomonicRaw(x, y): qt.GeoRawProjection {
     const cy = cos(y),
       k = cos(x) * cy
     return [(cy * sin(x)) / k, sin(y) / k]
@@ -2387,7 +2328,7 @@ export namespace proj {
   export function gnomonic() {
     return projection(gnomonicRaw).scale(144.049).clipAngle(60)
   }
-  export function identity() {
+  export function identity(): GeoIdentityTransform {
     let k = 1,
       tx = 0,
       ty = 0,
@@ -2404,7 +2345,7 @@ export namespace proj {
       ky = 1,
       transform = transformer({
         point: function (x, y) {
-          const p = projection([x, y])
+          const p = f([x, y])
           this.stream.point(p[0], p[1])
         },
       }),
@@ -2415,9 +2356,9 @@ export namespace proj {
       kx = k * sx
       ky = k * sy
       cache = cacheStream = null
-      return projection
+      return f
     }
-    function projection(p) {
+    function f(p) {
       let x = p[0] * kx,
         y = p[1] * ky
       if (alpha) {
@@ -2427,7 +2368,7 @@ export namespace proj {
       }
       return [x + tx, y + ty]
     }
-    projection.invert = function (p) {
+    f.invert = function (p) {
       let x = p[0] - tx,
         y = p[1] - ty
       if (alpha) {
@@ -2437,13 +2378,13 @@ export namespace proj {
       }
       return [x / kx, y / ky]
     }
-    projection.stream = function (stream) {
+    f.stream = function (stream) {
       return cache && cacheStream === stream ? cache : (cache = transform(postclip((cacheStream = stream))))
     }
-    projection.postclip = function (_) {
+    f.postclip = function (_) {
       return arguments.length ? ((postclip = _), (x0 = y0 = x1 = y1 = null), reset()) : postclip
     }
-    projection.clipExtent = function (_) {
+    f.clipExtent = function (_) {
       return arguments.length
         ? ((postclip =
             _ == null
@@ -2457,36 +2398,28 @@ export namespace proj {
             [x1, y1],
           ]
     }
-    projection.scale = function (_) {
+    f.scale = function (_) {
       return arguments.length ? ((k = +_), reset()) : k
     }
-    projection.translate = function (_) {
+    f.translate = function (_) {
       return arguments.length ? ((tx = +_[0]), (ty = +_[1]), reset()) : [tx, ty]
     }
-    projection.angle = function (_) {
+    f.angle = function (_) {
       return arguments.length
         ? ((alpha = (_ % 360) * radians), (sa = sin(alpha)), (ca = cos(alpha)), reset())
         : alpha * degrees
     }
-    projection.reflectX = function (_) {
+    f.reflectX = function (_) {
       return arguments.length ? ((sx = _ ? -1 : 1), reset()) : sx < 0
     }
-    projection.reflectY = function (_) {
+    f.reflectY = function (_) {
       return arguments.length ? ((sy = _ ? -1 : 1), reset()) : sy < 0
     }
-    projection.fitExtent = function (extent, object) {
-      return fitExtent(projection, extent, object)
-    }
-    projection.fitSize = function (size, object) {
-      return fitSize(projection, size, object)
-    }
-    projection.fitWidth = function (width, object) {
-      return fitWidth(projection, width, object)
-    }
-    projection.fitHeight = function (height, object) {
-      return fitHeight(projection, height, object)
-    }
-    return projection
+    f.fitExtent = (extent, x) => fit.extent(f, extent, x)
+    f.fitSize = (size, x) => fit.size(f, size, x)
+    f.fitWidth = (width, x) => fit.width(f, width, x)
+    f.fitHeight = (height, x) => fit.height(f, height, x)
+    return f
   }
   const transformRadians = transformer({
     point: function (x, y) {
@@ -2532,12 +2465,10 @@ export namespace proj {
     }
     return transform
   }
-  export function projection(project) {
-    return projectionMutator(function () {
-      return project
-    })()
+  export function projection(x: GeoRawProjection): GeoProjection {
+    return mutator(() => x)()
   }
-  export function projectionMutator(projectAt) {
+  export function mutator(projectAt: (...xs: any[]) => GeoRawProjection): () => GeoProjection {
     let project,
       k = 150, // scale
       x = 480,
@@ -2564,32 +2495,32 @@ export namespace proj {
       projectRotateTransform,
       cache,
       cacheStream
-    function projection(point) {
+    function f(point) {
       return projectRotateTransform(point[0] * radians, point[1] * radians)
     }
     function invert(point) {
       point = projectRotateTransform.invert(point[0], point[1])
       return point && [point[0] * degrees, point[1] * degrees]
     }
-    projection.stream = function (stream) {
+    f.stream = function (stream) {
       return cache && cacheStream === stream
         ? cache
         : (cache = transformRadians(
             transformRotate(rotate)(preclip(projectResample(postclip((cacheStream = stream)))))
           ))
     }
-    projection.preclip = function (_) {
+    f.preclip = function (_) {
       return arguments.length ? ((preclip = _), (theta = undefined), reset()) : preclip
     }
-    projection.postclip = function (_) {
+    f.postclip = function (_) {
       return arguments.length ? ((postclip = _), (x0 = y0 = x1 = y1 = null), reset()) : postclip
     }
-    projection.clipAngle = function (_) {
+    f.clipAngle = function (_) {
       return arguments.length
         ? ((preclip = +_ ? clipCircle((theta = _ * radians)) : ((theta = null), clipAntimeridian)), reset())
         : theta * degrees
     }
-    projection.clipExtent = function (_) {
+    f.clipExtent = function (_) {
       return arguments.length
         ? ((postclip =
             _ == null
@@ -2603,18 +2534,18 @@ export namespace proj {
             [x1, y1],
           ]
     }
-    projection.scale = function (_) {
+    f.scale = function (_) {
       return arguments.length ? ((k = +_), recenter()) : k
     }
-    projection.translate = function (_) {
+    f.translate = function (_) {
       return arguments.length ? ((x = +_[0]), (y = +_[1]), recenter()) : [x, y]
     }
-    projection.center = function (_) {
+    f.center = function (_) {
       return arguments.length
         ? ((lambda = (_[0] % 360) * radians), (phi = (_[1] % 360) * radians), recenter())
         : [lambda * degrees, phi * degrees]
     }
-    projection.rotate = function (_) {
+    f.rotate = function (_) {
       return arguments.length
         ? ((deltaLambda = (_[0] % 360) * radians),
           (deltaPhi = (_[1] % 360) * radians),
@@ -2622,32 +2553,24 @@ export namespace proj {
           recenter())
         : [deltaLambda * degrees, deltaPhi * degrees, deltaGamma * degrees]
     }
-    projection.angle = function (_) {
+    f.angle = function (_) {
       return arguments.length ? ((alpha = (_ % 360) * radians), recenter()) : alpha * degrees
     }
-    projection.reflectX = function (_) {
+    f.reflectX = function (_) {
       return arguments.length ? ((sx = _ ? -1 : 1), recenter()) : sx < 0
     }
-    projection.reflectY = function (_) {
+    f.reflectY = function (_) {
       return arguments.length ? ((sy = _ ? -1 : 1), recenter()) : sy < 0
     }
-    projection.precision = function (_) {
+    f.precision = function (_) {
       return arguments.length
         ? ((projectResample = resample(projectTransform, (delta2 = _ * _))), reset())
         : sqrt(delta2)
     }
-    projection.fitExtent = function (extent, object) {
-      return fitExtent(projection, extent, object)
-    }
-    projection.fitSize = function (size, object) {
-      return fitSize(projection, size, object)
-    }
-    projection.fitWidth = function (width, object) {
-      return fitWidth(projection, width, object)
-    }
-    projection.fitHeight = function (height, object) {
-      return fitHeight(projection, height, object)
-    }
+    f.fitExtent = (extent, x) => fit.extent(f, extent, x)
+    f.fitSize = (size, x) => fit.size(f, size, x)
+    f.fitWidth = (width, x) => fit.width(f, width, x)
+    f.fitHeight = (height, x) => fit.height(f, height, x)
     function recenter() {
       const center = scaleTranslateRotate(k, 0, 0, sx, sy, alpha).apply(null, project(lambda, phi)),
         transform = scaleTranslateRotate(k, x - center[0], y - center[1], sx, sy, alpha)
@@ -2659,15 +2582,15 @@ export namespace proj {
     }
     function reset() {
       cache = cacheStream = null
-      return projection
+      return f
     }
-    return function () {
-      project = projectAt.apply(this, arguments)
-      projection.invert = project.invert && invert
+    return function (xs: any[]) {
+      project = projectAt.apply(this, xs)
+      f.invert = project.invert && invert
       return recenter()
     }
   }
-  export function mercatorRaw(lambda, phi) {
+  export function mercatorRaw(lambda, phi): GeoRawProjection {
     return [lambda, log(tan((halfPi + phi) / 2))]
   }
   mercatorRaw.invert = function (x, y) {
@@ -2677,29 +2600,23 @@ export namespace proj {
     return mercatorProjection(mercatorRaw).scale(961 / tau)
   }
   export function mercatorProjection(project) {
-    let m = projection(project),
-      center = m.center,
-      scale = m.scale,
-      translate = m.translate,
-      clipExtent = m.clipExtent,
-      x0 = null,
+    const f = projection(project),
+      center = f.center,
+      scale = f.scale,
+      translate = f.translate,
+      clipExtent = f.clipExtent
+    let x0 = null,
       y0,
       x1,
       y1 // clip extent
-    m.scale = function (_) {
-      return arguments.length ? (scale(_), reclip()) : scale()
-    }
-    m.translate = function (_) {
-      return arguments.length ? (translate(_), reclip()) : translate()
-    }
-    m.center = function (_) {
-      return arguments.length ? (center(_), reclip()) : center()
-    }
-    m.clipExtent = function (_) {
-      return arguments.length
-        ? (_ == null
+    f.scale = (xs: number[]) => (xs.length ? (scale(xs), reclip()) : scale())
+    f.translate = (xs: number[]) => (xs.length ? (translate(xs), reclip()) : translate())
+    f.center = (xs: number[]) => (xs.length ? (center(xs), reclip()) : center())
+    f.clipExtent = function (xs) {
+      return xs.length
+        ? (xs == null
             ? (x0 = y0 = x1 = y1 = null)
-            : ((x0 = +_[0][0]), (y0 = +_[0][1]), (x1 = +_[1][0]), (y1 = +_[1][1])),
+            : ((x0 = +xs[0][0]), (y0 = +xs[0][1]), (x1 = +xs[1][0]), (y1 = +xs[1][1])),
           reclip())
         : x0 == null
         ? null
@@ -2710,7 +2627,7 @@ export namespace proj {
     }
     function reclip() {
       const k = pi * scale(),
-        t = m(rotation(m.rotate()).invert([0, 0]))
+        t = f(rotation(f.rotate()).invert([0, 0]))
       return clipExtent(
         x0 == null
           ? [
@@ -2730,7 +2647,7 @@ export namespace proj {
     }
     return reclip()
   }
-  export function naturalEarth1Raw(lambda, phi) {
+  export function naturalEarth1Raw(lambda, phi): GeoRawProjection {
     const phi2 = phi * phi,
       phi4 = phi2 * phi2
     return [
@@ -2743,7 +2660,7 @@ export namespace proj {
       i = 25,
       delta
     do {
-      var phi2 = phi * phi,
+      const phi2 = phi * phi,
         phi4 = phi2 * phi2
       phi -= delta =
         (phi * (1.007226 + phi2 * (0.015085 + phi4 * (-0.044475 + 0.028874 * phi2 - 0.005916 * phi4))) - y) /
@@ -2759,7 +2676,7 @@ export namespace proj {
   export function naturalEarth1() {
     return projection(naturalEarth1Raw).scale(175.295)
   }
-  export function orthographicRaw(x, y) {
+  export function orthographicRaw(x, y): GeoRawProjection {
     return [cos(y) * sin(x), sin(y)]
   }
   orthographicRaw.invert = azimuthal.invert(asin)
@@ -2888,7 +2805,7 @@ export namespace proj {
     }
     return +delta2 ? resample(project, delta2) : resampleNone(project)
   }
-  export function stereographicRaw(x, y) {
+  export function stereographicRaw(x, y): GeoRawProjection {
     const cy = cos(y),
       k = 1 + cos(x) * cy
     return [(cy * sin(x)) / k, sin(y) / k]
@@ -2899,24 +2816,78 @@ export namespace proj {
   export function stereographic() {
     return projection(stereographicRaw).scale(250).clipAngle(142)
   }
-  export function transverseMercatorRaw(lambda, phi) {
+  export function transverseMercatorRaw(lambda, phi): GeoRawProjection {
     return [log(tan((halfPi + phi) / 2)), -lambda]
   }
   transverseMercatorRaw.invert = function (x, y) {
     return [-y, 2 * atan(exp(x)) - halfPi]
   }
   export function transverseMercator() {
-    const m = mercatorProjection(transverseMercatorRaw),
-      center = m.center,
-      rotate = m.rotate
-    m.center = function (_) {
-      return arguments.length ? center([-_[1], _[0]]) : ((_ = center()), [_[1], -_[0]])
+    const f = mercatorProjection(transverseMercatorRaw),
+      center = f.center,
+      rotate = f.rotate
+    f.center = function (xs: number[]) {
+      return xs.length ? center([-xs[1], xs[0]]) : ((xs = center()), [xs[1], -xs[0]])
     }
-    m.rotate = function (_) {
-      return arguments.length
-        ? rotate([_[0], _[1], _.length > 2 ? _[2] + 90 : 90])
-        : ((_ = rotate()), [_[0], _[1], _[2] - 90])
+    f.rotate = function (xs: number[]) {
+      return xs.length
+        ? rotate([xs[0], xs[1], xs.length > 2 ? xs[2] + 90 : 90])
+        : ((xs = rotate()), [xs[0], xs[1], xs[2] - 90])
     }
     return rotate([0, 0, 90]).scale(159.155)
+  }
+  function fit(f, bounds, x) {
+    const clip = f.clipExtent && f.clipExtent()
+    f.scale(150).translate([0, 0])
+    if (clip != null) f.clipExtent(null)
+    geoStream(x, f.stream(bounds.stream))
+    bounds(bounds.stream.result())
+    if (clip != null) f.clipExtent(clip)
+    return f
+  }
+  namespace fit {
+    export function extent(f, extent, x) {
+      return fit(
+        f,
+        function (b) {
+          const w = extent[1][0] - extent[0][0],
+            h = extent[1][1] - extent[0][1],
+            k = Math.min(w / (b[1][0] - b[0][0]), h / (b[1][1] - b[0][1])),
+            x = +extent[0][0] + (w - k * (b[1][0] + b[0][0])) / 2,
+            y = +extent[0][1] + (h - k * (b[1][1] + b[0][1])) / 2
+          f.scale(150 * k).translate([x, y])
+        },
+        x
+      )
+    }
+    export function size(f, size, x) {
+      return extent(f, [[0, 0], size], x)
+    }
+    export function width(f, width, x) {
+      return fit(
+        f,
+        function (b) {
+          const w = +width,
+            k = w / (b[1][0] - b[0][0]),
+            x = (w - k * (b[1][0] + b[0][0])) / 2,
+            y = -k * b[0][1]
+          f.scale(150 * k).translate([x, y])
+        },
+        x
+      )
+    }
+    export function height(f, height, x) {
+      return fit(
+        f,
+        function (b) {
+          const h = +height,
+            k = h / (b[1][1] - b[0][1]),
+            x = -k * b[0][0],
+            y = (h - k * (b[1][1] + b[0][1])) / 2
+          f.scale(150 * k).translate([x, y])
+        },
+        x
+      )
+    }
   }
 }
