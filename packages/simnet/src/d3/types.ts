@@ -535,11 +535,11 @@ export interface ElasticEasingFactory {
 }
 
 export interface SimNode {
-  idx?: number | undefined
-  x?: number | undefined
-  y?: number | undefined
-  vx?: number | undefined
-  vy?: number | undefined
+  idx: number
+  x: number
+  y: number
+  vx: number
+  vy: number
   fx?: number | null | undefined
   fy?: number | null | undefined
 }
