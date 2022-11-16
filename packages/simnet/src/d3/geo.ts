@@ -2029,9 +2029,124 @@ export namespace path {
     )
   }
 }
+
+export namespace azimuthal {
+  export function raw(scale) {
+    return function (x, y) {
+      const cx = cos(x),
+        cy = cos(y),
+        k = scale(cx * cy)
+      if (k === Infinity) return [2, 0]
+      return [k * cy * sin(x), k * sin(y)]
+    }
+  }
+  export function invert(angle) {
+    return function (x, y) {
+      const z = sqrt(x * x + y * y),
+        c = angle(z),
+        sc = sin(c),
+        cc = cos(c)
+      return [atan2(x * sc, z * cc), asin(z && (y * sc) / z)]
+    }
+  }
+  export const equalAreaRaw = raw(cxcy => sqrt(2 / (1 + cxcy)))
+  equalAreaRaw.invert = invert(z => 2 * asin(z / 2))
+  export function equalArea() {
+    return projection(equalAreaRaw)
+      .scale(124.75)
+      .clipAngle(180 - 1e-3)
+  }
+  export const equidistantRaw = raw(c => (c = acos(c)) && c / sin(c))
+  equidistantRaw.invert = invert(z => z)
+  export function equidistant() {
+    return projection(equidistantRaw)
+      .scale(79.4188)
+      .clipAngle(180 - 1e-3)
+  }
+}
+
+export namespace conic {
+  export function projection(projectAt) {
+    let phi0 = 0,
+      phi1 = pi / 3
+    const m = projectionMutator(projectAt),
+      p = m(phi0, phi1)
+    p.parallels = function (_) {
+      return arguments.length ? m((phi0 = _[0] * radians), (phi1 = _[1] * radians)) : [phi0 * degrees, phi1 * degrees]
+    }
+    return p
+  }
+  function tany(y) {
+    return tan((halfPi + y) / 2)
+  }
+  export function conformalRaw(y0, y1) {
+    const cy0 = cos(y0),
+      n = y0 === y1 ? sin(y0) : log(cy0 / cos(y1)) / log(tany(y1) / tany(y0)),
+      f = (cy0 * pow(tany(y0), n)) / n
+    if (!n) return mercatorRaw
+    function project(x, y) {
+      if (f > 0) {
+        if (y < -halfPi + epsilon) y = -halfPi + epsilon
+      } else {
+        if (y > halfPi - epsilon) y = halfPi - epsilon
+      }
+      const r = f / pow(tany(y), n)
+      return [r * sin(n * x), f - r * cos(n * x)]
+    }
+    project.invert = function (x, y) {
+      const fy = f - y,
+        r = sign(n) * sqrt(x * x + fy * fy)
+      let l = atan2(x, abs(fy)) * sign(fy)
+      if (fy * n < 0) l -= pi * sign(x) * sign(fy)
+      return [l / n, 2 * atan(pow(f / r, 1 / n)) - halfPi]
+    }
+    return project
+  }
+  export const conformal = () => projection(conformalRaw).scale(109.5).parallels([30, 30])
+  export function equalAreaRaw(y0, y1) {
+    const sy0 = sin(y0),
+      n = (sy0 + sin(y1)) / 2
+    if (abs(n) < epsilon) return cylindricalEqualAreaRaw(y0)
+    const c = 1 + sy0 * (2 * n - sy0),
+      r0 = sqrt(c) / n
+    function f(x, y) {
+      const r = sqrt(c - 2 * n * sin(y)) / n
+      return [r * sin((x *= n)), r0 - r * cos(x)]
+    }
+    f.invert = function (x, y) {
+      const r0y = r0 - y
+      let l = atan2(x, abs(r0y)) * sign(r0y)
+      if (r0y * n < 0) l -= pi * sign(x) * sign(r0y)
+      return [l / n, asin((c - (x * x + r0y * r0y) * n * n) / (2 * n))]
+    }
+    return f
+  }
+  export const equalArea = () => projection(equalAreaRaw).scale(155.424).center([0, 33.6442])
+  export function equidistantRaw(y0, y1) {
+    const cy0 = cos(y0),
+      n = y0 === y1 ? sin(y0) : (cy0 - cos(y1)) / (y1 - y0),
+      g = cy0 / n + y0
+    if (abs(n) < epsilon) return equirectangularRaw
+    function f(x, y) {
+      const gy = g - y,
+        nx = n * x
+      return [gy * sin(nx), g - gy * cos(nx)]
+    }
+    f.invert = function (x, y) {
+      const gy = g - y
+      let l = atan2(x, abs(gy)) * sign(gy)
+      if (gy * n < 0) l -= pi * sign(x) * sign(gy)
+      return [l / n, g - sign(n) * sqrt(x * x + gy * gy)]
+    }
+    return f
+  }
+  export const equidistant = () => projection(equidistantRaw).scale(131.154).center([0, 13.9389])
+}
+
 export namespace proj {
   export function albers() {
-    return conicEqualArea()
+    return conic
+      .equalArea()
       .parallels([29.5, 45.5])
       .scale(1070)
       .translate([480, 250])
@@ -2072,9 +2187,9 @@ export namespace proj {
       cacheStream,
       lower48 = albers(),
       lower48Point,
-      alaska = conicEqualArea().rotate([154, 0]).center([-2, 58.5]).parallels([55, 65]),
+      alaska = conic.equalArea().rotate([154, 0]).center([-2, 58.5]).parallels([55, 65]),
       alaskaPoint, // EPSG:3338
-      hawaii = conicEqualArea().rotate([157, 0]).center([-3, 19.9]).parallels([8, 18]),
+      hawaii = conic.equalArea().rotate([157, 0]).center([-3, 19.9]).parallels([8, 18]),
       hawaiiPoint, // ESRI:102007
       point,
       pointStream = {
@@ -2082,7 +2197,7 @@ export namespace proj {
           point = [x, y]
         },
       }
-    function albersUsa(coordinates) {
+    function f(coordinates) {
       const x = coordinates[0],
         y = coordinates[1]
       return (
@@ -2090,7 +2205,7 @@ export namespace proj {
         (lower48Point.point(x, y), point) || (alaskaPoint.point(x, y), point) || (hawaiiPoint.point(x, y), point)
       )
     }
-    albersUsa.invert = function (coordinates) {
+    f.invert = function (coordinates) {
       const k = lower48.scale(),
         t = lower48.translate(),
         x = (coordinates[0] - t[0]) / k,
@@ -2103,22 +2218,22 @@ export namespace proj {
           : lower48
       ).invert(coordinates)
     }
-    albersUsa.stream = function (stream) {
+    f.stream = function (stream) {
       return cache && cacheStream === stream
         ? cache
         : (cache = multiplex([lower48.stream((cacheStream = stream)), alaska.stream(stream), hawaii.stream(stream)]))
     }
-    albersUsa.precision = function (_) {
+    f.precision = function (_) {
       if (!arguments.length) return lower48.precision()
       lower48.precision(_), alaska.precision(_), hawaii.precision(_)
       return reset()
     }
-    albersUsa.scale = function (_) {
+    f.scale = function (_) {
       if (!arguments.length) return lower48.scale()
       lower48.scale(_), alaska.scale(_ * 0.35), hawaii.scale(_)
-      return albersUsa.translate(lower48.translate())
+      return f.translate(lower48.translate())
     }
-    albersUsa.translate = function (_) {
+    f.translate = function (_) {
       if (!arguments.length) return lower48.translate()
       const k = lower48.scale(),
         x = +_[0],
@@ -2146,144 +2261,23 @@ export namespace proj {
         .stream(pointStream)
       return reset()
     }
-    albersUsa.fitExtent = function (extent, object) {
-      return fitExtent(albersUsa, extent, object)
+    f.fitExtent = function (extent, object) {
+      return fitExtent(f, extent, object)
     }
-    albersUsa.fitSize = function (size, object) {
-      return fitSize(albersUsa, size, object)
+    f.fitSize = function (size, object) {
+      return fitSize(f, size, object)
     }
-    albersUsa.fitWidth = function (width, object) {
-      return fitWidth(albersUsa, width, object)
+    f.fitWidth = function (width, object) {
+      return fitWidth(f, width, object)
     }
-    albersUsa.fitHeight = function (height, object) {
-      return fitHeight(albersUsa, height, object)
+    f.fitHeight = function (height, object) {
+      return fitHeight(f, height, object)
     }
     function reset() {
       cache = cacheStream = null
-      return albersUsa
+      return f
     }
-    return albersUsa.scale(1070)
-  }
-  export function azimuthalRaw(scale) {
-    return function (x, y) {
-      const cx = cos(x),
-        cy = cos(y),
-        k = scale(cx * cy)
-      if (k === Infinity) return [2, 0]
-      return [k * cy * sin(x), k * sin(y)]
-    }
-  }
-  export function azimuthalInvert(angle) {
-    return function (x, y) {
-      const z = sqrt(x * x + y * y),
-        c = angle(z),
-        sc = sin(c),
-        cc = cos(c)
-      return [atan2(x * sc, z * cc), asin(z && (y * sc) / z)]
-    }
-  }
-  export const azimuthalEqualAreaRaw = azimuthalRaw(function (cxcy) {
-    return sqrt(2 / (1 + cxcy))
-  })
-  azimuthalEqualAreaRaw.invert = azimuthalInvert(function (z) {
-    return 2 * asin(z / 2)
-  })
-  export function azimuthalEqualArea() {
-    return projection(azimuthalEqualAreaRaw)
-      .scale(124.75)
-      .clipAngle(180 - 1e-3)
-  }
-  export const azimuthalEquidistantRaw = azimuthalRaw(function (c) {
-    return (c = acos(c)) && c / sin(c)
-  })
-  azimuthalEquidistantRaw.invert = azimuthalInvert(function (z) {
-    return z
-  })
-  export function azimuthalEquidistant() {
-    return projection(azimuthalEquidistantRaw)
-      .scale(79.4188)
-      .clipAngle(180 - 1e-3)
-  }
-  export function conicProjection(projectAt) {
-    let phi0 = 0,
-      phi1 = pi / 3,
-      m = projectionMutator(projectAt),
-      p = m(phi0, phi1)
-    p.parallels = function (_) {
-      return arguments.length ? m((phi0 = _[0] * radians), (phi1 = _[1] * radians)) : [phi0 * degrees, phi1 * degrees]
-    }
-    return p
-  }
-  function tany(y) {
-    return tan((halfPi + y) / 2)
-  }
-  export function conicConformalRaw(y0, y1) {
-    const cy0 = cos(y0),
-      n = y0 === y1 ? sin(y0) : log(cy0 / cos(y1)) / log(tany(y1) / tany(y0)),
-      f = (cy0 * pow(tany(y0), n)) / n
-    if (!n) return mercatorRaw
-    function project(x, y) {
-      if (f > 0) {
-        if (y < -halfPi + epsilon) y = -halfPi + epsilon
-      } else {
-        if (y > halfPi - epsilon) y = halfPi - epsilon
-      }
-      const r = f / pow(tany(y), n)
-      return [r * sin(n * x), f - r * cos(n * x)]
-    }
-    project.invert = function (x, y) {
-      let fy = f - y,
-        r = sign(n) * sqrt(x * x + fy * fy),
-        l = atan2(x, abs(fy)) * sign(fy)
-      if (fy * n < 0) l -= pi * sign(x) * sign(fy)
-      return [l / n, 2 * atan(pow(f / r, 1 / n)) - halfPi]
-    }
-    return project
-  }
-  export function conicConformal() {
-    return conicProjection(conicConformalRaw).scale(109.5).parallels([30, 30])
-  }
-  export function conicEqualAreaRaw(y0, y1) {
-    const sy0 = sin(y0),
-      n = (sy0 + sin(y1)) / 2
-    if (abs(n) < epsilon) return cylindricalEqualAreaRaw(y0)
-    const c = 1 + sy0 * (2 * n - sy0),
-      r0 = sqrt(c) / n
-    function project(x, y) {
-      const r = sqrt(c - 2 * n * sin(y)) / n
-      return [r * sin((x *= n)), r0 - r * cos(x)]
-    }
-    project.invert = function (x, y) {
-      let r0y = r0 - y,
-        l = atan2(x, abs(r0y)) * sign(r0y)
-      if (r0y * n < 0) l -= pi * sign(x) * sign(r0y)
-      return [l / n, asin((c - (x * x + r0y * r0y) * n * n) / (2 * n))]
-    }
-    return project
-  }
-  export function conicEqualArea() {
-    return conicProjection(conicEqualAreaRaw).scale(155.424).center([0, 33.6442])
-  }
-  export function conicEquidistantRaw(y0, y1) {
-    const cy0 = cos(y0),
-      n = y0 === y1 ? sin(y0) : (cy0 - cos(y1)) / (y1 - y0),
-      g = cy0 / n + y0
-    if (abs(n) < epsilon) return equirectangularRaw
-    function project(x, y) {
-      const gy = g - y,
-        nx = n * x
-      return [gy * sin(nx), g - gy * cos(nx)]
-    }
-    project.invert = function (x, y) {
-      let gy = g - y,
-        l = atan2(x, abs(gy)) * sign(gy)
-      if (gy * n < 0) l -= pi * sign(x) * sign(gy)
-      return [l / n, g - sign(n) * sqrt(x * x + gy * gy)]
-    }
-    return project
-  }
-  export function conicEquidistant() {
-    return conicProjection(conicEquidistantRaw).scale(131.154).center([0, 13.9389])
+    return f.scale(1070)
   }
   export function cylindricalEqualAreaRaw(phi0) {
     const cosPhi0 = cos(phi0)
@@ -2389,7 +2383,7 @@ export namespace proj {
       k = cos(x) * cy
     return [(cy * sin(x)) / k, sin(y) / k]
   }
-  gnomonicRaw.invert = azimuthalInvert(atan)
+  gnomonicRaw.invert = azimuthal.invert(atan)
   export function gnomonic() {
     return projection(gnomonicRaw).scale(144.049).clipAngle(60)
   }
@@ -2768,7 +2762,7 @@ export namespace proj {
   export function orthographicRaw(x, y) {
     return [cos(y) * sin(x), sin(y)]
   }
-  orthographicRaw.invert = azimuthalInvert(asin)
+  orthographicRaw.invert = azimuthal.invert(asin)
   export function orthographic() {
     return projection(orthographicRaw)
       .scale(249.5)
@@ -2899,7 +2893,7 @@ export namespace proj {
       k = 1 + cos(x) * cy
     return [(cy * sin(x)) / k, sin(y) / k]
   }
-  stereographicRaw.invert = azimuthalInvert(function (z) {
+  stereographicRaw.invert = azimuthal.invert(function (z) {
     return 2 * atan(z)
   })
   export function stereographic() {
