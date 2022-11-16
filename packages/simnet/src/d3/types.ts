@@ -540,13 +540,13 @@ export interface SimNode {
   y: number
   vx: number
   vy: number
-  fx?: number | null | undefined
-  fy?: number | null | undefined
+  fx?: number | undefined
+  fy?: number | undefined
 }
 export interface SimLink<T extends SimNode> {
+  idx: number
   src: T | string | number
   tgt: T | string | number
-  idx?: number | undefined
 }
 export interface Sim<N extends SimNode, L extends SimLink<N> | undefined> {
   alpha(): number

@@ -9,43 +9,43 @@ export function sim<N extends qt.SimNode>(xs: N[] = []) {
   const _fs = new Map()
   const _stepper = qu.timer(step)
   let _alpha = 1
-  let _alphaMin = 0.001
-  let _alphaDecay = 1 - Math.pow(_alphaMin, 1 / 300)
-  let _alphaTarget = 0
+  let _min = 0.001
+  let _decay = 1 - Math.pow(_min, 1 / 300)
+  let _target = 0
   let _ns = xs
   let _rnd = lcg()
-  let _veloDecay = 0.6
-  function initNodes() {
-    const initRadius = 10
-    const initAngle = Math.PI * (3 - Math.sqrt(5))
+  let _vDecay = 0.6
+  function init() {
+    const r0 = 10
+    const a0 = Math.PI * (3 - Math.sqrt(5))
     _ns.forEach((n, i) => {
       n.idx = i
-      if (n.fx != null) n.x = n.fx
-      if (n.fy != null) n.y = n.fy
+      if (n.fx !== undefined) n.x = n.fx
+      if (n.fy !== undefined) n.y = n.fy
       if (isNaN(n.x) || isNaN(n.y)) {
-        const r = initRadius * Math.sqrt(0.5 + i)
-        const a = i * initAngle
+        const r = r0 * Math.sqrt(0.5 + i)
+        const a = i * a0
         n.x = r * Math.cos(a)
         n.y = r * Math.sin(a)
       }
       if (isNaN(n.vx) || isNaN(n.vy)) n.vx = n.vy = 0
     })
   }
-  initNodes()
+  init()
   function initForce(x: any) {
     if (x.init) x.init(_ns, _rnd)
     return x
   }
   function tick(n = 1) {
     for (let i = 0; i < n; ++i) {
-      _alpha += (_alphaTarget - _alpha) * _alphaDecay
+      _alpha += (_target - _alpha) * _decay
       _fs.forEach(f => {
         f(_alpha)
       })
       _ns.forEach(n => {
-        if (n.fx == null) n.x += n.vx *= _veloDecay
+        if (n.fx === undefined) n.x += n.vx *= _vDecay
         else (n.x = n.fx), (n.vx = 0)
-        if (n.fy == null) n.y += n.vy *= _veloDecay
+        if (n.fy === undefined) n.y += n.vy *= _vDecay
         else (n.y = n.fy), (n.vy = 0)
       })
     }
@@ -54,16 +54,16 @@ export function sim<N extends qt.SimNode>(xs: N[] = []) {
   function step() {
     tick()
     _event.call("tick", sim)
-    if (_alpha < _alphaMin) {
+    if (_alpha < _min) {
       _stepper.stop()
       _event.call("end", sim)
     }
   }
   const sim = {
     alpha: (x?: number) => (x === undefined ? _alpha : ((_alpha = +x), sim)),
-    alphaDecay: (x?: number) => (x === undefined ? +_alphaDecay : ((_alphaDecay = +x), sim)),
-    alphaMin: (x?: number) => (x === undefined ? _alphaMin : ((_alphaMin = +x), sim)),
-    alphaTarget: (x?: number) => (x === undefined ? _alphaTarget : ((_alphaTarget = +x), sim)),
+    alphaDecay: (x?: number) => (x === undefined ? +_decay : ((_decay = +x), sim)),
+    alphaMin: (x?: number) => (x === undefined ? _min : ((_min = +x), sim)),
+    alphaTarget: (x?: number) => (x === undefined ? _target : ((_target = +x), sim)),
     find: function (x: number, y: number, r?: number) {
       let res: N | undefined
       if (r === undefined) r = Infinity
@@ -78,13 +78,13 @@ export function sim<N extends qt.SimNode>(xs: N[] = []) {
     },
     force: (x: string, f?: any) =>
       f === undefined ? _fs.get(x) : (f == null ? _fs.delete(x) : _fs.set(x, initForce(f)), sim),
-    nodes: (xs?: any[]) => (xs === undefined ? _ns : ((_ns = xs), initNodes(), _fs.forEach(initForce), sim)),
+    nodes: (xs?: any[]) => (xs === undefined ? _ns : ((_ns = xs), init(), _fs.forEach(initForce), sim)),
     on: (x: any, f?: any) => (f === undefined ? _event.on(x) : (_event.on(x, f), sim)),
     randomSource: (f?: any) => (f === undefined ? _rnd : ((_rnd = f), _fs.forEach(initForce), sim)),
     restart: () => (_stepper.restart(step), sim),
     stop: () => (_stepper.stop(), sim),
     tick,
-    veloDecay: (x?: number) => (x === undefined ? 1 - _veloDecay : ((_veloDecay = 1 - x), sim)),
+    veloDecay: (x?: number) => (x === undefined ? 1 - _vDecay : ((_vDecay = 1 - x), sim)),
   }
   return sim
 }
@@ -137,8 +137,8 @@ export function collide<N extends qt.SimNode>(r: number | qt.Op<N> = 1) {
       }
     }
     function apply(quad, x0, y0, x1, y1) {
-      let data = quad.data,
-        rj = quad.r,
+      const data = quad.data
+      let rj = quad.r,
         r = ri + rj
       if (data) {
         if (data.idx > node.idx) {
@@ -190,10 +190,10 @@ export function radial<N extends qt.SimNode>(r: number | qt.Op<N>, x: number | q
   function f(alpha: number) {
     let dx, dy, k
     _ns.forEach((n, i) => {
-      ;(dx = n.x - _x || 1e-6),
-        (dy = n.y - _y || 1e-6),
-        (r = Math.sqrt(dx * dx + dy * dy)),
-        (k = ((_rs[i]! - r) * _ss[i]! * alpha) / r)
+      dx = n.x - _x || 1e-6
+      dy = n.y - _y || 1e-6
+      r = Math.sqrt(dx * dx + dy * dy)
+      k = ((_rs[i]! - r) * _ss[i]! * alpha) / r
       n.vx += dx * k
       n.vy += dy * k
     })
@@ -329,7 +329,7 @@ export function many<N extends qt.SimNode>() {
     }
     do
       if (quad.data !== node) {
-        w = (_ss[quad.data.idx] * _alpha) / l
+        w = (_ss[quad.data.idx]! * _alpha) / l
         node.vx += x * w
         node.vy += y * w
       }
