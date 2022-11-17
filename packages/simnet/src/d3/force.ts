@@ -455,7 +455,14 @@ function jiggle(rnd: Function) {
 }
 
 class Quad<T> {
-  constructor(public n: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined, public ps: qt.Pair<qt.Point>) {}
+  n: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined
+  ps: qt.Pair<qt.Point>
+  constructor(n: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined, ps: qt.Pair<qt.Point>)
+  constructor(n: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined, ...ps: number[])
+  constructor(n: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined, ps: any) {
+    this.n = n
+    this.ps = ps
+  }
 }
 
 export function quadtree<T>(xs?: T[]): qt.Quadtree<T>
@@ -544,11 +551,7 @@ class Quadtree<T> implements qt.Quadtree<T> {
     return this
   }
   copy() {
-    const [[x0, y0], [x1, y1]] = this.ps
-    const r = new Quadtree<T>(this._x, this._y, [
-      [x0, y0],
-      [x1, y1],
-    ])
+    const r = new Quadtree<T>(this._x, this._y, this.ps)
     const n = this._root
     if (!n) return r
     function leaf(x?: qt.QuadLeaf<T>) {
@@ -627,23 +630,13 @@ class Quadtree<T> implements qt.Quadtree<T> {
       ? this.cover(+x[0][0], +x[0][1]).cover(+x[1][0], +x[1][1])
       : isNaN(this.ps[0][0])
       ? undefined
-      : [
-          [this.x0, this.y0],
-          [this.x1, this.y1],
-        ]
+      : this.ps
   }
   find(x: number, y: number, r?: number) {
     const qs: Quad<T>[] = []
     let n = this._root
-    let [x0, y0] = this.ps[0]
-    let [x3, y3] = this.ps[1]
-    if (n)
-      qs.push(
-        new Quad(n, [
-          [x0, y0],
-          [x3, y3],
-        ])
-      )
+    let [[x0, y0], [x3, y3]] = this.ps
+    if (n) qs.push(new Quad(n, x0, y0, x3, y3))
     if (r === undefined) r = Infinity
     else {
       ;(x0 = x - r), (y0 = y - r)
@@ -655,31 +648,16 @@ class Quadtree<T> implements qt.Quadtree<T> {
       let q = qs.pop()
       if (!q) break
       n = q.n
-      const x1 = q.x0
-      const y1 = q.y0
-      const x2 = q.x1
-      const y2 = q.y1
+      const [[x1, y1], [x2, y2]] = q.ps
       if (!n || x1 > x3 || y1 > y3 || x2 < x0 || y2 < y0) continue
       if (n.length) {
         const xm = (x1 + x2) / 2
         const ym = (y1 + y2) / 2
         qs.push(
-          new Quad(n[3], [
-            [xm, ym],
-            [x2, y2],
-          ]),
-          new Quad(n[2], [
-            [x1, ym],
-            [xm, y2],
-          ]),
-          new Quad(n[1], [
-            [xm, y1],
-            [x2, ym],
-          ]),
-          new Quad(n[0], [
-            [x1, y1],
-            [xm, ym],
-          ])
+          new Quad(n[3], xm, ym, x2, y2),
+          new Quad(n[2], x1, ym, xm, y2),
+          new Quad(n[1], xm, y1, x2, ym),
+          new Quad(n[0], x1, y1, xm, ym)
         )
         const i = ((y >= ym ? 1 : 0) << 1) | (x >= xm ? 1 : 0)
         if (i) {
@@ -767,15 +745,7 @@ class Quadtree<T> implements qt.Quadtree<T> {
   visit(f: Function) {
     const qs: Quad<T>[] = []
     let n = this._root
-    if (n) {
-      const [[x0, y0], [x1, y1]] = this.ps
-      qs.push(
-        new Quad(n, [
-          [x0, y0],
-          [x1, y1],
-        ])
-      )
-    }
+    if (n) qs.push(new Quad(n, this.ps))
     while (true) {
       const q = qs.pop()
       if (!q) break
@@ -785,34 +755,10 @@ class Quadtree<T> implements qt.Quadtree<T> {
         const xm = (x0 + x1) / 2
         const ym = (y0 + y1) / 2
         let c
-        if ((c = n[3]))
-          qs.push(
-            new Quad(c, [
-              [xm, ym],
-              [x1, y1],
-            ])
-          )
-        if ((c = n[2]))
-          qs.push(
-            new Quad(c, [
-              [x0, ym],
-              [xm, y1],
-            ])
-          )
-        if ((c = n[1]))
-          qs.push(
-            new Quad(c, [
-              [xm, y0],
-              [x1, ym],
-            ])
-          )
-        if ((c = n[0]))
-          qs.push(
-            new Quad(c, [
-              [x0, y0],
-              [xm, ym],
-            ])
-          )
+        if ((c = n[3])) qs.push(new Quad(c, xm, ym, x1, y1))
+        if ((c = n[2])) qs.push(new Quad(c, x0, ym, xm, y1))
+        if ((c = n[1])) qs.push(new Quad(c, xm, y0, x1, ym))
+        if ((c = n[0])) qs.push(new Quad(c, x0, y0, xm, ym))
       }
     }
     return this
@@ -820,15 +766,7 @@ class Quadtree<T> implements qt.Quadtree<T> {
   visitAfter(f: Function) {
     const qs: Quad<T>[] = []
     let n = this._root
-    if (n) {
-      const [[x0, y0], [x1, y1]] = this.ps
-      qs.push(
-        new Quad(n, [
-          [x0, y0],
-          [x1, y1],
-        ])
-      )
-    }
+    if (n) qs.push(new Quad(n, this.ps))
     const qs2: Quad<T>[] = []
     while (true) {
       const q = qs.pop()
@@ -839,34 +777,10 @@ class Quadtree<T> implements qt.Quadtree<T> {
         const xm = (x0 + x1) / 2
         const ym = (y0 + y1) / 2
         let c
-        if ((c = n[0]))
-          qs.push(
-            new Quad(c, [
-              [x0, y0],
-              [xm, ym],
-            ])
-          )
-        if ((c = n[1]))
-          qs.push(
-            new Quad(c, [
-              [xm, y0],
-              [x1, ym],
-            ])
-          )
-        if ((c = n[2]))
-          qs.push(
-            new Quad(c, [
-              [x0, ym],
-              [xm, y1],
-            ])
-          )
-        if ((c = n[3]))
-          qs.push(
-            new Quad(c, [
-              [xm, ym],
-              [x1, y1],
-            ])
-          )
+        if ((c = n[0])) qs.push(new Quad(c, x0, y0, xm, ym))
+        if ((c = n[1])) qs.push(new Quad(c, xm, y0, x1, ym))
+        if ((c = n[2])) qs.push(new Quad(c, x0, ym, xm, y1))
+        if ((c = n[3])) qs.push(new Quad(c, xm, ym, x1, y1))
       }
       qs2.push(q)
     }
