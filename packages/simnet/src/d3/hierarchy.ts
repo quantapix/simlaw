@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
+import type { hierarchy as qh } from "./types.js"
 
-export function hierarchy<T>(data: T, children?: (x: T) => Iterable<T> | null | undefined): qt.HierarchyNode<T> {
+export function hierarchy<T>(data: T, children?: (x: T) => Iterable<T> | null | undefined): qh.Node<T> {
   if (data instanceof Map) {
     data = [undefined, data]
-    if (children === undefined) children = mapChildren
-  } else if (children === undefined) children = objectChildren
+    if (children === undefined) children = (x: any) => (Array.isArray(x) ? x[1] : null)
+  } else if (children === undefined) children = (x: any) => x.children
   const root = new Node(data)
   let node,
     nodes = [root],
@@ -27,28 +28,31 @@ export function hierarchy<T>(data: T, children?: (x: T) => Iterable<T> | null | 
   return root.eachBefore(computeHeight)
 }
 
-function objectChildren(x: any) {
-  return x.children
-}
-function mapChildren(x: any) {
-  return Array.isArray(x) ? x[1] : null
-}
-function copyData(x) {
-  if (x.data.value !== undefined) x.value = x.data.value
-  x.data = x.data.data
-}
-function computeHeight(x) {
-  let height = 0
-  do x.height = height
-  while ((x = x.parent) && x.height < ++height)
-}
-
-export class Node<T> implements qt.HierarchyNode<T> {
+export class Node<T> implements qh.Node<T> {
   children?: this[]
   parent = null
   depth = 0
   height = 0
   constructor(public data: T) {}
+  *iterator() {
+    let y: this | undefined = this,
+      current,
+      next = [y]
+    do {
+      current = next.reverse()
+      next = []
+      while ((y = current.pop())) {
+        yield y
+        const cs = y.children
+        if (cs) {
+          for (const c of cs) {
+            next.push(c)
+          }
+        }
+      }
+    } while (next.length)
+  }
+  [Symbol.iterator] = this.iterator
   ancestors() {
     let y: this | null = this
     const ys = [y]
@@ -58,18 +62,20 @@ export class Node<T> implements qt.HierarchyNode<T> {
     return ys
   }
   copy() {
-    return hierarchy(this).eachBefore(copyData)
+    return hierarchy(this).eachBefore(x => {
+      if (x.data.value !== undefined) x.value = x.data.value
+      x.data = x.data.data
+    })
   }
   count() {
-    const count = (x: this) => {
+    return this.eachAfter((x: this) => {
       const cs = x.children
-      let sum = 0,
-        i = cs && cs.length
+      let sum = 0
+      let i = cs && cs.length
       if (!i) sum = 1
-      else while (--i >= 0) sum += cs[i]?.value
+      else while (--i >= 0) sum += cs![i]?.value
       x.value = sum
-    }
-    return this.eachAfter(count)
+    })
   }
   descendants() {
     return Array.from(this)
@@ -89,8 +95,8 @@ export class Node<T> implements qt.HierarchyNode<T> {
     const next = []
     while ((y = ys.pop())) {
       next.push(y)
-      let cs
-      if ((cs = y.children)) {
+      const cs = y.children
+      if (cs) {
         for (const c of cs) {
           ys.push(c)
         }
@@ -109,10 +115,10 @@ export class Node<T> implements qt.HierarchyNode<T> {
     let i = -1
     while ((y = ys.pop())) {
       f.call(ctx, y, ++i, this)
-      let cs
-      if ((cs = y.children)) {
+      const cs = y.children
+      if (cs) {
         for (let j = cs.length - 1; j >= 0; --j) {
-          ys.push(cs[j])
+          ys.push(cs[j]!)
         }
       }
     }
@@ -126,24 +132,6 @@ export class Node<T> implements qt.HierarchyNode<T> {
     }
     return
   }
-  *iterator() {
-    let y: this | undefined = this,
-      current,
-      next = [y]
-    do {
-      ;(current = next.reverse()), (next = [])
-      while ((y = current.pop())) {
-        yield y
-        let cs
-        if ((cs = y.children)) {
-          for (const c of cs) {
-            next.push(c)
-          }
-        }
-      }
-    } while (next.length)
-  }
-  [Symbol.iterator] = this.iterator
   leaves() {
     const ys: this[] = []
     this.eachBefore(x => {
@@ -152,16 +140,30 @@ export class Node<T> implements qt.HierarchyNode<T> {
     return ys
   }
   links() {
-    const ys: qt.HierarchyLink<T>[] = []
+    const ys: qh.Link<T>[] = []
     this.each(x => {
-      if (x !== this) ys.push({ source: x.parent, target: x })
+      if (x !== this) ys.push({ src: x.parent, tgt: x })
     })
     return ys
   }
   path(end: this) {
     let y: this | null = this
     const ys = [y]
-    const ancestor = leastCommonAncestor(y, end)
+    const leastCommon = (a: this, b: this) => {
+      if (a === b) return a
+      const aNodes = a.ancestors(),
+        bNodes = b.ancestors()
+      let c = null
+      a = aNodes.pop()
+      b = bNodes.pop()
+      while (a === b) {
+        c = a
+        a = aNodes.pop()
+        b = bNodes.pop()
+      }
+      return c
+    }
+    const ancestor = leastCommon(y, end)
     while (y !== ancestor) {
       y = y?.parent
       ys.push(y)
@@ -175,35 +177,20 @@ export class Node<T> implements qt.HierarchyNode<T> {
   }
   sort(f: (a: this, b: this) => number): this
   sort(f: any) {
-    return this.eachBefore((x: any) => {
+    return this.eachBefore(x => {
       if (x.children) x.children.sort(f)
     })
   }
   sum(f: (x: T) => number): this
   sum(f: any) {
-    return this.eachAfter((x: any) => {
-      const cs = x.children
+    return this.eachAfter(x => {
       let y = +f(x.data) || 0
-      let i = cs && cs.length
-      while (--i >= 0) y += cs[i].value
+      const cs = x.children
+      let i = (cs && cs.length) ?? 0
+      while (--i >= 0) y += cs![i]!.value
       x.value = y
     })
   }
-}
-
-function leastCommonAncestor(a, b) {
-  if (a === b) return a
-  const aNodes = a.ancestors(),
-    bNodes = b.ancestors()
-  let c = null
-  a = aNodes.pop()
-  b = bNodes.pop()
-  while (a === b) {
-    c = a
-    a = aNodes.pop()
-    b = bNodes.pop()
-  }
-  return c
 }
 
 export function optional(x: any) {
@@ -253,7 +240,7 @@ function leafRight(x) {
   while ((cs = x.children)) x = cs[cs.length - 1]
   return x
 }
-export function cluster<T>(): qt.ClusterLayout<T> {
+export function cluster<T>(): qh.Cluster<T> {
   let separation = defaultSeparation,
     dx = 1,
     dy = 1,
@@ -307,7 +294,7 @@ export function lcg() {
   let s = 1
   return () => (s = (a * s + c) % m) / m
 }
-export function partition<T>(): qt.PartitionLayout<T> {
+export function partition<T>(): qh.Partition<T> {
   let dx = 1,
     dy = 1,
     padding = 0,
@@ -358,7 +345,7 @@ function defaultId(d) {
 function defaultParentId(d) {
   return d.parentId
 }
-export function stratify<T>(): qt.StratifyOperator<T> {
+export function stratify<T>(): qh.StratifyOp<T> {
   let id = defaultId,
     parentId = defaultParentId,
     path
@@ -532,7 +519,7 @@ function treeRoot(root) {
   ;(tree.parent = new TreeNode(null, 0)).children = [tree]
   return tree
 }
-export function tree<T>(): qt.TreeLayout<T> {
+export function tree<T>(): qh.Tree<T> {
   let separation = defaultSeparation,
     dx = 1,
     dy = 1,
@@ -640,13 +627,7 @@ export function tree<T>(): qt.TreeLayout<T> {
 
 export const phi = (1 + Math.sqrt(5)) / 2
 
-export function treemapBinary(
-  parent: qt.HierarchyRectangularNode<any>,
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number
-): void {
+export function treemapBinary(parent: qh.RectNode<any>, x0: number, y0: number, x1: number, y1: number): void {
   let nodes = parent.children,
     i,
     n = nodes.length,
@@ -686,13 +667,7 @@ export function treemapBinary(
     }
   }
 }
-export function treemapDice(
-  parent: qt.HierarchyRectangularNode<any>,
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number
-): void {
+export function treemapDice(parent: qh.RectNode<any>, x0: number, y0: number, x1: number, y1: number): void {
   const ys = parent.children
   let node,
     i = -1,
@@ -704,7 +679,7 @@ export function treemapDice(
   }
 }
 
-export function treemap<T>(): qt.TreemapLayout<T> {
+export function treemap<T>(): qh.Treemap<T> {
   let tile = squarify,
     round = false,
     dx = 1,
@@ -782,7 +757,7 @@ export function treemap<T>(): qt.TreemapLayout<T> {
   return treemap
 }
 
-export const treemapResquarify: qt.RatioSquarifyTilingFactory = (function f(ratio) {
+export const treemapResquarify: qh.RatioFac = (function f(ratio) {
   function y(parent, x0, y0, x1, y1) {
     let rows: any
     if ((rows = parent._squarify) && rows.ratio === ratio) {
@@ -816,13 +791,7 @@ export function roundNode(x) {
   x.y1 = Math.round(x.y1)
 }
 
-export function treemapSlice(
-  parent: qt.HierarchyRectangularNode<any>,
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number
-): void {
+export function treemapSlice(parent: qh.RectNode<any>, x0: number, y0: number, x1: number, y1: number): void {
   let ys = parent.children,
     node,
     i = -1,
@@ -834,13 +803,7 @@ export function treemapSlice(
   }
 }
 
-export function treemapSliceDice(
-  parent: qt.HierarchyRectangularNode<any>,
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number
-): void {
+export function treemapSliceDice(parent: qh.RectNode<any>, x0: number, y0: number, x1: number, y1: number): void {
   ;(parent.depth & 1 ? treemapSlice : treemapDice)(parent, x0, y0, x1, y1)
 }
 
@@ -890,7 +853,7 @@ function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
   return rows
 }
 
-export const treemapSquarify: qt.RatioSquarifyTilingFactory = (function f(ratio) {
+export const treemapSquarify: qh.RatioFac = (function f(ratio) {
   function y(parent, x0, y0, x1, y1) {
     squarifyRatio(ratio, parent, x0, y0, x1, y1)
   }
@@ -898,7 +861,7 @@ export const treemapSquarify: qt.RatioSquarifyTilingFactory = (function f(ratio)
   return y
 })(phi)
 
-export function packEnclose<T extends qt.PackCircle>(xs: T[]): qt.PackCircle {
+export function packEnclose<T extends qh.PackCircle>(xs: T[]): qh.PackCircle {
   return packEncloseRandom(xs, lcg())
 }
 export function packEncloseRandom(circles, random) {
@@ -1024,73 +987,59 @@ function encloseBasis3(a, b, c) {
     r: r,
   }
 }
-function defaultRadius(d) {
-  return Math.sqrt(d.value)
-}
-export function pack<T>(): qt.PackLayout<T> {
-  let radius = null,
+export function pack<T>(): qh.Pack<T> {
+  let _r: null | ((x: qh.CircNode<T>) => number) = null,
     dx = 1,
     dy = 1,
     padding = qu.constant(0)
-  function pack(root) {
-    const random = lcg()
+  function f(root: qh.Node<T>) {
+    const rnd = lcg()
     ;(root.x = dx / 2), (root.y = dy / 2)
-    if (radius) {
-      root
-        .eachBefore(radiusLeaf(radius))
-        .eachAfter(packChildrenRandom(padding, 0.5, random))
-        .eachBefore(translateChild(1))
+    function radiusLeaf(f = (x: qh.Node<T>) => Math.sqrt(x.value)) {
+      return function (x: qh.CircNode<T>) {
+        if (!x.children) x.r = Math.max(0, +f(x) || 0)
+      }
+    }
+    function packRandom(padding, k, random) {
+      return function (node) {
+        if ((children = node.children)) {
+          let children,
+            i,
+            n = children.length,
+            r = padding(node) * k || 0,
+            e
+          if (r) for (i = 0; i < n; ++i) children[i].r += r
+          e = packSiblingsRandom(children, random)
+          if (r) for (i = 0; i < n; ++i) children[i].r -= r
+          node.r = e + r
+        }
+      }
+    }
+    function translate(k) {
+      return function (node) {
+        let parent = node.parent
+        node.r *= k
+        if (parent) {
+          node.x = parent.x + k * node.x
+          node.y = parent.y + k * node.y
+        }
+      }
+    }
+    if (_r) {
+      root.eachBefore(radiusLeaf(_r)).eachAfter(packRandom(padding, 0.5, rnd)).eachBefore(translate(1))
     } else {
       root
-        .eachBefore(radiusLeaf(defaultRadius))
-        .eachAfter(packChildrenRandom(qu.constant(0), 1, random))
-        .eachAfter(packChildrenRandom(padding, root.r / Math.min(dx, dy), random))
-        .eachBefore(translateChild(Math.min(dx, dy) / (2 * root.r)))
+        .eachBefore(radiusLeaf())
+        .eachAfter(packRandom(qu.constant(0), 1, rnd))
+        .eachAfter(packRandom(padding, root.r / Math.min(dx, dy), rnd))
+        .eachBefore(translate(Math.min(dx, dy) / (2 * root.r)))
     }
     return root
   }
-  pack.radius = function (x) {
-    return arguments.length ? ((radius = optional(x)), pack) : radius
-  }
-  pack.size = function (x) {
-    return arguments.length ? ((dx = +x[0]), (dy = +x[1]), pack) : [dx, dy]
-  }
-  pack.padding = function (x) {
-    return arguments.length ? ((padding = typeof x === "function" ? x : qu.constant(+x)), pack) : padding
-  }
-  return pack
-}
-function radiusLeaf(radius) {
-  return function (node) {
-    if (!node.children) {
-      node.r = Math.max(0, +radius(node) || 0)
-    }
-  }
-}
-function packChildrenRandom(padding, k, random) {
-  return function (node) {
-    if ((children = node.children)) {
-      let children,
-        i,
-        n = children.length,
-        r = padding(node) * k || 0,
-        e
-      if (r) for (i = 0; i < n; ++i) children[i].r += r
-      e = packSiblingsRandom(children, random)
-      if (r) for (i = 0; i < n; ++i) children[i].r -= r
-      node.r = e + r
-    }
-  }
-}
-function translateChild(k) {
-  return function (node) {
-    let parent = node.parent
-    node.r *= k
-    if (parent) {
-      node.x = parent.x + k * node.x
-      node.y = parent.y + k * node.y
-    }
-  }
+  f.padding = (x: any) => (x === undefined ? padding : ((padding = typeof x === "function" ? x : qu.constant(+x)), f))
+  f.radius = (x: any) => (x === undefined ? _r : ((_r = optional(x)), f))
+  f.size = (x: any) => (x === undefined ? [dx, dy] : ((dx = +x[0]), (dy = +x[1]), f))
+  return f
 }
 function place(b, a, c) {
   let dx = b.x - a.x,
@@ -1184,7 +1133,13 @@ export function packSiblingsRandom(circles, random) {
   for (i = 0; i < n; ++i) (a = circles[i]), (a.x -= c.x), (a.y -= c.y)
   return c.r
 }
-export function packSiblings<T extends qt.PackRadius>(xs: T[]): Array<T & qt.PackCircle> {
+export function packSiblings<T extends qh.PackRadius>(xs: T[]): Array<T & qh.PackCircle> {
   packSiblingsRandom(xs, lcg())
   return xs
+}
+
+function computeHeight(x) {
+  let height = 0
+  do x.height = height
+  while ((x = x.parent) && x.height < ++height)
 }

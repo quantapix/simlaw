@@ -888,155 +888,154 @@ export const geoClipAntimeridian: (stream: GeoStream) => GeoStream
 export function geoClipCircle(angle: number): (stream: GeoStream) => GeoStream
 export function geoClipRectangle(x0: number, y0: number, x1: number, y1: number): (stream: GeoStream) => GeoStream
 
-export interface HierarchyLink<T> {
-  source: HierarchyNode<T>
-  target: HierarchyNode<T>
-}
-export interface HierarchyNode<T> {
-  children?: this[] | undefined
-  data: T
-  parent: this | null
-  readonly depth: number
-  readonly height: number
-  readonly id?: string | undefined
-  readonly value?: number | undefined
-  [Symbol.iterator](): Iterator<this>
-  ancestors(): this[]
-  copy(): this
-  count(): this
-  descendants(): this[]
-  each<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
-  eachAfter<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
-  eachBefore<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
-  find(f: (x: this) => boolean): this | undefined
-  leaves(): this[]
-  links(): Array<HierarchyLink<T>>
-  path(x: this): this[]
-  sort(f: (a: this, b: this) => number): this
-  sum(f: (x: T) => number): this
-}
-export interface StratifyOperator<T> {
-  (xs: T[]): HierarchyNode<T>
-  id(): (x: T, i: number, xs: T[]) => string | null | "" | undefined
-  id(f: (x: T, i: number, xs: T[]) => string | null | "" | undefined): this
-  parentId(): (x: T, i: number, xs: T[]) => string | null | "" | undefined
-  parentId(f: (x: T, i: number, xs: T[]) => string | null | "" | undefined): this
-  path(): ((x: T, i: number, xs: T[]) => string) | null | undefined
-  path(f: ((x: T, i: number, xs: T[]) => string) | null | undefined): this
-}
-
-export interface HierarchyPointLink<T> {
-  source: HierarchyPointNode<T>
-  target: HierarchyPointNode<T>
-}
-export interface HierarchyPointNode<T> extends HierarchyNode<T> {
-  x: number
-  y: number
-  links(): Array<HierarchyPointLink<T>>
-}
-
-export interface ClusterLayout<T> {
-  (x: HierarchyNode<T>): HierarchyPointNode<T>
-  nodeSize(): Point | null
-  nodeSize(x: Point): this
-  separation(): (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number
-  separation(f: (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number): this
-  size(): Point | null
-  size(x: Point): this
-}
-
-export interface TreeLayout<T> {
-  (x: HierarchyNode<T>): HierarchyPointNode<T>
-  nodeSize(): Point | null
-  nodeSize(x: Point): this
-  separation(): (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number
-  separation(f: (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number): this
-  size(): Point | null
-  size(x: Point): this
-}
-export interface HierarchyRectangularLink<T> {
-  source: HierarchyRectangularNode<T>
-  target: HierarchyRectangularNode<T>
-}
-export interface HierarchyRectangularNode<T> extends HierarchyNode<T> {
-  x0: number
-  y0: number
-  x1: number
-  y1: number
-  links(): Array<HierarchyRectangularLink<T>>
-}
-export interface TreemapLayout<T> {
-  (x: HierarchyNode<T>): HierarchyRectangularNode<T>
-  tile(): (x: HierarchyRectangularNode<T>, x0: number, y0: number, x1: number, y1: number) => void
-  tile(tile: (x: HierarchyRectangularNode<T>, x0: number, y0: number, x1: number, y1: number) => void): this
-  size(): Point
-  size(x: Point): this
-  round(): boolean
-  round(x: boolean): this
-  padding(): (x: HierarchyRectangularNode<T>) => number
-  padding(x: number): this
-  padding(f: (x: HierarchyRectangularNode<T>) => number): this
-  paddingInner(): (x: HierarchyRectangularNode<T>) => number
-  paddingInner(x: number): this
-  paddingInner(f: (x: HierarchyRectangularNode<T>) => number): this
-  paddingOuter(): (x: HierarchyRectangularNode<T>) => number
-  paddingOuter(x: number): this
-  paddingOuter(x: (x: HierarchyRectangularNode<T>) => number): this
-  paddingTop(): (x: HierarchyRectangularNode<T>) => number
-  paddingTop(x: number): this
-  paddingTop(f: (x: HierarchyRectangularNode<T>) => number): this
-  paddingRight(): (x: HierarchyRectangularNode<T>) => number
-  paddingRight(x: number): this
-  paddingRight(f: (x: HierarchyRectangularNode<T>) => number): this
-  paddingBottom(): (x: HierarchyRectangularNode<T>) => number
-  paddingBottom(x: number): this
-  paddingBottom(f: (x: HierarchyRectangularNode<T>) => number): this
-  paddingLeft(): (x: HierarchyRectangularNode<T>) => number
-  paddingLeft(x: number): this
-  paddingLeft(f: (x: HierarchyRectangularNode<T>) => number): this
-}
-export interface RatioSquarifyTilingFactory {
-  (x: HierarchyRectangularNode<any>, x0: number, y0: number, x1: number, y1: number): void
-  ratio(x: number): RatioSquarifyTilingFactory
-}
-export interface PartitionLayout<T> {
-  (x: HierarchyNode<T>): HierarchyRectangularNode<T>
-  padding(): number
-  padding(x: number): this
-  round(): boolean
-  round(x: boolean): this
-  size(): Point
-  size(x: Point): this
-}
-export interface HierarchyCircularLink<T> {
-  source: HierarchyCircularNode<T>
-  target: HierarchyCircularNode<T>
-}
-export interface HierarchyCircularNode<T> extends HierarchyNode<T> {
-  x: number
-  y: number
-  r: number
-  links(): Array<HierarchyCircularLink<T>>
-}
-export interface PackLayout<T> {
-  (x: HierarchyNode<T>): HierarchyCircularNode<T>
-  padding(): (x: HierarchyCircularNode<T>) => number
-  padding(f: (x: HierarchyCircularNode<T>) => number): this
-  padding(x: number): this
-  radius(): null | ((x: HierarchyCircularNode<T>) => number)
-  radius(f: null | ((x: HierarchyCircularNode<T>) => number)): this
-  size(): Point
-  size(x: Point): this
-}
-export interface PackRadius {
-  r: number
-  x?: number | undefined
-  y?: number | undefined
-}
-export interface PackCircle {
-  r: number
-  x: number
-  y: number
+export namespace hierarchy {
+  export interface Link<T> {
+    src: Node<T>
+    tgt: Node<T>
+  }
+  export interface Node<T> {
+    [Symbol.iterator](): Iterator<this>
+    children?: this[] | undefined
+    data: T
+    parent: this | null
+    readonly depth: number
+    readonly height: number
+    readonly id?: string | undefined
+    readonly value?: number | undefined
+    ancestors(): this[]
+    copy(): this
+    count(): this
+    descendants(): this[]
+    each<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
+    eachAfter<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
+    eachBefore<U = undefined>(f: (this: U, x: this, i: number, thisNode: this) => void, ctx?: U): this
+    find(f: (x: this) => boolean): this | undefined
+    leaves(): this[]
+    links(): Array<Link<T>>
+    path(x: this): this[]
+    sort(f: (a: this, b: this) => number): this
+    sum(f: (x: T) => number): this
+  }
+  export interface StratifyOp<T> {
+    (xs: T[]): Node<T>
+    id(): Op<T, string | null | "" | undefined>
+    id(f: Op<T, string | null | "" | undefined>): this
+    parentId(): Op<T, string | null | "" | undefined>
+    parentId(f: Op<T, string | null | "" | undefined>): this
+    path(): Op<T, string> | null | undefined
+    path(f: Op<T, string> | null | undefined): this
+  }
+  export interface PointLink<T> {
+    src: PointNode<T>
+    tgt: PointNode<T>
+  }
+  export interface PointNode<T> extends Node<T> {
+    x: number
+    y: number
+    links(): Array<PointLink<T>>
+  }
+  export interface RectLink<T> {
+    src: RectNode<T>
+    tgt: RectNode<T>
+  }
+  export interface RectNode<T> extends Node<T> {
+    x0: number
+    y0: number
+    x1: number
+    y1: number
+    links(): Array<RectLink<T>>
+  }
+  export interface CircLink<T> {
+    src: CircNode<T>
+    tgt: CircNode<T>
+  }
+  export interface CircNode<T> extends Node<T> {
+    x: number
+    y: number
+    r: number
+    links(): Array<CircLink<T>>
+  }
+  export interface Cluster<T> {
+    (x: Node<T>): PointNode<T>
+    nodeSize(): Point | null
+    nodeSize(x: Point): this
+    separation(): (a: PointNode<T>, b: PointNode<T>) => number
+    separation(f: (a: PointNode<T>, b: PointNode<T>) => number): this
+    size(): Point | null
+    size(x: Point): this
+  }
+  export interface Tree<T> {
+    (x: Node<T>): PointNode<T>
+    nodeSize(): Point | null
+    nodeSize(x: Point): this
+    separation(): (a: PointNode<T>, b: PointNode<T>) => number
+    separation(f: (a: PointNode<T>, b: PointNode<T>) => number): this
+    size(): Point | null
+    size(x: Point): this
+  }
+  export interface Treemap<T> {
+    (x: Node<T>): RectNode<T>
+    padBottom(): (x: RectNode<T>) => number
+    padBottom(f: (x: RectNode<T>) => number): this
+    padBottom(x: number): this
+    padding(): (x: RectNode<T>) => number
+    padding(f: (x: RectNode<T>) => number): this
+    padding(x: number): this
+    padInner(): (x: RectNode<T>) => number
+    padInner(f: (x: RectNode<T>) => number): this
+    padInner(x: number): this
+    padLeft(): (x: RectNode<T>) => number
+    padLeft(f: (x: RectNode<T>) => number): this
+    padLeft(x: number): this
+    padOuter(): (x: RectNode<T>) => number
+    padOuter(x: (x: RectNode<T>) => number): this
+    padOuter(x: number): this
+    padRight(): (x: RectNode<T>) => number
+    padRight(f: (x: RectNode<T>) => number): this
+    padRight(x: number): this
+    padTop(): (x: RectNode<T>) => number
+    padTop(f: (x: RectNode<T>) => number): this
+    padTop(x: number): this
+    round(): boolean
+    round(x: boolean): this
+    size(): Point
+    size(x: Point): this
+    tile(): (x: RectNode<T>, x0: number, y0: number, x1: number, y1: number) => void
+    tile(f: (x: RectNode<T>, x0: number, y0: number, x1: number, y1: number) => void): this
+  }
+  export interface RatioFac {
+    (x: RectNode<any>, x0: number, y0: number, x1: number, y1: number): void
+    ratio(x: number): RatioFac
+  }
+  export interface Partition<T> {
+    (x: Node<T>): RectNode<T>
+    padding(): number
+    padding(x: number): this
+    round(): boolean
+    round(x: boolean): this
+    size(): Point
+    size(x: Point): this
+  }
+  export interface PackRadius {
+    r: number
+    x?: number | undefined
+    y?: number | undefined
+  }
+  export interface PackCircle {
+    r: number
+    x: number
+    y: number
+  }
+  export interface Pack<T> {
+    (x: Node<T>): CircNode<T>
+    padding(): (x: CircNode<T>) => number
+    padding(f: (x: CircNode<T>) => number): this
+    padding(x: number): this
+    radius(): null | ((x: CircNode<T>) => number)
+    radius(f: null | ((x: CircNode<T>) => number)): this
+    size(): Point
+    size(x: Point): this
+  }
 }
 export interface ZoomInterpolator extends Function {
   (t: number): ZoomView
