@@ -33,6 +33,7 @@ export class Node<T> implements qh.Node<T> {
   parent = null
   depth = 0
   height = 0
+  value = 0
   constructor(public data: T) {}
   *iterator() {
     let y: this | undefined = this,
@@ -73,7 +74,7 @@ export class Node<T> implements qh.Node<T> {
       let sum = 0
       let i = cs && cs.length
       if (!i) sum = 1
-      else while (--i >= 0) sum += cs![i]?.value
+      else while (--i >= 0) sum += cs![i]!.value
       x.value = sum
     })
   }
@@ -202,18 +203,6 @@ export function required(x: any) {
 }
 export function array(x: any) {
   return typeof x === "object" && "length" in x ? x : Array.from(x)
-}
-export function shuffle(x, random) {
-  let m = x.length,
-    t,
-    i
-  while (m) {
-    i = (random() * m--) | 0
-    t = x[m]
-    x[m] = x[i]
-    x[i] = t
-  }
-  return x
 }
 function defaultSeparation(a, b) {
   return a.parent === b.parent ? 1 : 2
@@ -349,7 +338,7 @@ export function stratify<T>(): qh.StratifyOp<T> {
   let id = defaultId,
     parentId = defaultParentId,
     path
-  function stratify(data) {
+  function f(data) {
     let nodes = Array.from(data),
       currentId = id,
       currentParentId = parentId,
@@ -423,20 +412,14 @@ export function stratify<T>(): qh.StratifyOp<T> {
     if (n > 0) throw new Error("cycle")
     return root
   }
-  stratify.id = function (x) {
-    return arguments.length ? ((id = optional(x)), stratify) : id
-  }
-  stratify.parentId = function (x) {
-    return arguments.length ? ((parentId = optional(x)), stratify) : parentId
-  }
-  stratify.path = function (x) {
-    return arguments.length ? ((path = optional(x)), stratify) : path
-  }
-  return stratify
+  f.id = (x: any) => (x === undefined ? id : ((id = optional(x)), f))
+  f.parentId = (x: any) => (x === undefined ? parentId : ((parentId = optional(x)), f))
+  f.path = (x: any) => (x === undefined ? path : ((path = optional(x)), f))
+  return f
 }
 function normalize(path) {
   path = `${path}`
-  let i = path.length
+  const i = path.length
   if (slash(path, i - 1) && !slash(path, i - 2)) path = path.slice(0, -1)
   return path[0] === "/" ? path : `/${path}`
 }
@@ -861,146 +844,128 @@ export const treemapSquarify: qh.RatioFac = (function f(ratio) {
   return y
 })(phi)
 
-export function packEnclose<T extends qh.PackCircle>(xs: T[]): qh.PackCircle {
-  return packEncloseRandom(xs, lcg())
+export function packEnclose<T extends qh.PackCircle>(xs: T[]): qh.PackCircle | undefined {
+  return packRandom(xs, lcg())
 }
-export function packEncloseRandom(circles, random) {
-  let i = 0,
-    n = (circles = shuffle(Array.from(circles), random)).length,
-    B = [],
-    p,
-    e
-  while (i < n) {
-    p = circles[i]
-    if (e && enclosesWeak(e, p)) ++i
-    else (e = encloseBasis((B = extendBasis(B, p)))), (i = 0)
+export function packRandom(xs: qh.PackCircle[], rnd: () => number) {
+  function weak(a: qh.PackCircle, b: qh.PackCircle) {
+    const dr = a.r - b.r + Math.max(a.r, b.r, 1) * 1e-9
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+    return dr > 0 && dr * dr > dx * dx + dy * dy
   }
-  return e
-}
-function extendBasis(B, p) {
-  let i, j
-  if (enclosesWeakAll(p, B)) return [p]
-  for (i = 0; i < B.length; ++i) {
-    if (enclosesNot(p, B[i]) && enclosesWeakAll(encloseBasis2(B[i], p), B)) {
-      return [B[i], p]
+  function weakAll(a: qh.PackCircle, bs: qh.PackCircle[]) {
+    for (const b of bs) {
+      if (!weak(a, b)) return false
     }
+    return true
   }
-  for (i = 0; i < B.length - 1; ++i) {
-    for (j = i + 1; j < B.length; ++j) {
-      if (
-        enclosesNot(encloseBasis2(B[i], B[j]), p) &&
-        enclosesNot(encloseBasis2(B[i], p), B[j]) &&
-        enclosesNot(encloseBasis2(B[j], p), B[i]) &&
-        enclosesWeakAll(encloseBasis3(B[i], B[j], p), B)
-      ) {
-        return [B[i], B[j], p]
+  function basis2(a: qh.PackCircle, b: qh.PackCircle) {
+    const { r: r1, x: x1, y: y1 } = a
+    const { r: r2, x: x2, y: y2 } = b
+    const x21 = x2 - x1,
+      y21 = y2 - y1,
+      r21 = r2 - r1,
+      l = Math.sqrt(x21 * x21 + y21 * y21)
+    return {
+      r: (l + r1 + r2) / 2,
+      x: (x1 + x2 + (x21 / l) * r21) / 2,
+      y: (y1 + y2 + (y21 / l) * r21) / 2,
+    } as qh.PackCircle
+  }
+  function basis3(a: qh.PackCircle, b: qh.PackCircle, c: qh.PackCircle) {
+    const { r: r1, x: x1, y: y1 } = a
+    const { r: r2, x: x2, y: y2 } = b
+    const { r: r3, x: x3, y: y3 } = c
+    const a2 = x1 - x2,
+      a3 = x1 - x3,
+      b2 = y1 - y2,
+      b3 = y1 - y3,
+      c2 = r2 - r1,
+      c3 = r3 - r1
+    const d1 = x1 * x1 + y1 * y1 - r1 * r1,
+      d2 = d1 - x2 * x2 - y2 * y2 + r2 * r2,
+      d3 = d1 - x3 * x3 - y3 * y3 + r3 * r3
+    const ab = a3 * b2 - a2 * b3,
+      xa = (b2 * d3 - b3 * d2) / (ab * 2) - x1,
+      xb = (b3 * c2 - b2 * c3) / ab,
+      ya = (a3 * d2 - a2 * d3) / (ab * 2) - y1,
+      yb = (a2 * c3 - a3 * c2) / ab
+    const A = xb * xb + yb * yb - 1,
+      B = 2 * (r1 + xa * xb + ya * yb),
+      C = xa * xa + ya * ya - r1 * r1,
+      r = -(Math.abs(A) > 1e-6 ? (B + Math.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B)
+    return {
+      r: r,
+      x: x1 + xa + xb * r,
+      y: y1 + ya + yb * r,
+    } as qh.PackCircle
+  }
+  function extend(ps: qh.PackCircle[], p: qh.PackCircle) {
+    let i, j
+    if (weakAll(p, ps)) return [p]
+    function not(a: qh.PackCircle, b: qh.PackCircle) {
+      const dr = a.r - b.r
+      const dx = b.x - a.x
+      const dy = b.y - a.y
+      return dr < 0 || dr * dr < dx * dx + dy * dy
+    }
+    for (const b of ps) {
+      if (not(p, b) && weakAll(basis2(b, p), ps)) return [b, p]
+    }
+    for (i = 0; i < ps.length - 1; ++i) {
+      for (j = i + 1; j < ps.length; ++j) {
+        if (
+          not(basis2(ps[i]!, ps[j]!), p) &&
+          not(basis2(ps[i]!, p), ps[j]!) &&
+          not(basis2(ps[j]!, p), ps[i]!) &&
+          weakAll(basis3(ps[i]!, ps[j]!, p), ps)
+        ) {
+          return [ps[i]!, ps[j]!, p]
+        }
       }
     }
+    throw new Error()
   }
-  throw new Error()
-}
-function enclosesNot(a, b) {
-  let dr = a.r - b.r,
-    dx = b.x - a.x,
-    dy = b.y - a.y
-  return dr < 0 || dr * dr < dx * dx + dy * dy
-}
-function enclosesWeak(a, b) {
-  let dr = a.r - b.r + Math.max(a.r, b.r, 1) * 1e-9,
-    dx = b.x - a.x,
-    dy = b.y - a.y
-  return dr > 0 && dr * dr > dx * dx + dy * dy
-}
-function enclosesWeakAll(a, B) {
-  for (let i = 0; i < B.length; ++i) {
-    if (!enclosesWeak(a, B[i])) {
-      return false
+  function enclose(ps: qh.PackCircle[]) {
+    switch (ps.length) {
+      case 1:
+        return (a => ({
+          x: a.x,
+          y: a.y,
+          r: a.r,
+        }))(ps[0]!)
+      case 2:
+        return basis2(ps[0]!, ps[1]!)
+      default:
+        return basis3(ps[0]!, ps[1]!, ps[2]!)
     }
   }
-  return true
-}
-function encloseBasis(B) {
-  switch (B.length) {
-    case 1:
-      return encloseBasis1(B[0])
-    case 2:
-      return encloseBasis2(B[0], B[1])
-    case 3:
-      return encloseBasis3(B[0], B[1], B[2])
+  const n = (xs = qu.shuffle(Array.from(xs), rnd)).length
+  let i = 0,
+    ps: qh.PackCircle[] = [],
+    e
+  while (i < n) {
+    const p = xs[i]!
+    if (e && weak(e, p)) ++i
+    else (e = enclose((ps = extend(ps, p)))), (i = 0)
   }
-}
-function encloseBasis1(a) {
-  return {
-    x: a.x,
-    y: a.y,
-    r: a.r,
-  }
-}
-function encloseBasis2(a, b) {
-  let x1 = a.x,
-    y1 = a.y,
-    r1 = a.r,
-    x2 = b.x,
-    y2 = b.y,
-    r2 = b.r,
-    x21 = x2 - x1,
-    y21 = y2 - y1,
-    r21 = r2 - r1,
-    l = Math.sqrt(x21 * x21 + y21 * y21)
-  return {
-    x: (x1 + x2 + (x21 / l) * r21) / 2,
-    y: (y1 + y2 + (y21 / l) * r21) / 2,
-    r: (l + r1 + r2) / 2,
-  }
-}
-function encloseBasis3(a, b, c) {
-  let x1 = a.x,
-    y1 = a.y,
-    r1 = a.r,
-    x2 = b.x,
-    y2 = b.y,
-    r2 = b.r,
-    x3 = c.x,
-    y3 = c.y,
-    r3 = c.r,
-    a2 = x1 - x2,
-    a3 = x1 - x3,
-    b2 = y1 - y2,
-    b3 = y1 - y3,
-    c2 = r2 - r1,
-    c3 = r3 - r1,
-    d1 = x1 * x1 + y1 * y1 - r1 * r1,
-    d2 = d1 - x2 * x2 - y2 * y2 + r2 * r2,
-    d3 = d1 - x3 * x3 - y3 * y3 + r3 * r3,
-    ab = a3 * b2 - a2 * b3,
-    xa = (b2 * d3 - b3 * d2) / (ab * 2) - x1,
-    xb = (b3 * c2 - b2 * c3) / ab,
-    ya = (a3 * d2 - a2 * d3) / (ab * 2) - y1,
-    yb = (a2 * c3 - a3 * c2) / ab,
-    A = xb * xb + yb * yb - 1,
-    B = 2 * (r1 + xa * xb + ya * yb),
-    C = xa * xa + ya * ya - r1 * r1,
-    r = -(Math.abs(A) > 1e-6 ? (B + Math.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B)
-  return {
-    x: x1 + xa + xb * r,
-    y: y1 + ya + yb * r,
-    r: r,
-  }
+  return e
 }
 export function pack<T>(): qh.Pack<T> {
   let _r: null | ((x: qh.CircNode<T>) => number) = null,
     dx = 1,
     dy = 1,
     padding = qu.constant(0)
-  function f(root: qh.Node<T>) {
+  function f(root: Node<T>) {
     const rnd = lcg()
     ;(root.x = dx / 2), (root.y = dy / 2)
-    function radiusLeaf(f = (x: qh.Node<T>) => Math.sqrt(x.value)) {
-      return function (x: qh.CircNode<T>) {
+    function radiusLeaf(f = (x: Node<T>) => Math.sqrt(x.value)) {
+      return function (x: Node<T>) {
         if (!x.children) x.r = Math.max(0, +f(x) || 0)
       }
     }
-    function packRandom(padding, k, random) {
+    function random(padding, k, random) {
       return function (node) {
         if ((children = node.children)) {
           let children,
@@ -1026,12 +991,12 @@ export function pack<T>(): qh.Pack<T> {
       }
     }
     if (_r) {
-      root.eachBefore(radiusLeaf(_r)).eachAfter(packRandom(padding, 0.5, rnd)).eachBefore(translate(1))
+      root.eachBefore(radiusLeaf(_r)).eachAfter(random(padding, 0.5, rnd)).eachBefore(translate(1))
     } else {
       root
         .eachBefore(radiusLeaf())
-        .eachAfter(packRandom(qu.constant(0), 1, rnd))
-        .eachAfter(packRandom(padding, root.r / Math.min(dx, dy), rnd))
+        .eachAfter(random(qu.constant(0), 1, rnd))
+        .eachAfter(random(padding, root.r / Math.min(dx, dy), rnd))
         .eachBefore(translate(Math.min(dx, dy) / (2 * root.r)))
     }
     return root
@@ -1129,7 +1094,7 @@ export function packSiblingsRandom(circles, random) {
   }
   ;(a = [b._]), (c = b)
   while ((c = c.next) !== b) a.push(c._)
-  c = packEncloseRandom(a, random)
+  c = packRandom(a, random)
   for (i = 0; i < n; ++i) (a = circles[i]), (a.x -= c.x), (a.y -= c.y)
   return c.r
 }

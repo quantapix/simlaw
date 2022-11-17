@@ -32,6 +32,17 @@ export function arraylike(x: any) {
   return typeof x === "object" && "length" in x ? x : Array.from(x)
 }
 
+export function shuffle(xs: any[], rnd: () => number) {
+  let n = xs.length
+  while (n) {
+    const i = (rnd() * n--) | 0
+    const x = xs[n]
+    xs[n] = xs[i]
+    xs[i] = x
+  }
+  return xs
+}
+
 export const identity = <T>(x: T) => x
 export const constant =
   <T>(x: T) =>
