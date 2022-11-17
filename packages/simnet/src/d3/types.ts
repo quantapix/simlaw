@@ -1,6 +1,6 @@
 import type { MultiPolygon } from "geojson"
 
-export type Pair<T> = [T, T]
+export type Pair<T = number> = [T, T]
 
 export type Primitive = number | string | boolean | Date
 export interface Numeric {
@@ -41,8 +41,8 @@ export interface HistogramGeneratorDate<T, U extends Date | undefined> extends H
   thresholds(xs: ArrayLike<U> | ThresholdDateArrayGenerator<U>): this
 }
 export interface HistogramGeneratorNumber<T, U extends number | undefined> extends HistogramCommon<T, U> {
-  domain(): (xs: Iterable<U>) => [number, number] | [undefined, undefined]
-  domain(x: [number, number] | ((xs: Iterable<U>) => [number, number] | [undefined, undefined])): this
+  domain(): (xs: Iterable<U>) => Pair | Pair<undefined>
+  domain(x: Pair | ((xs: Iterable<U>) => Pair | Pair<undefined>)): this
   thresholds(): ThresholdCountGenerator<U> | ThresholdNumberArrayGenerator<U>
   thresholds(n: number | ThresholdCountGenerator<U>): this
   thresholds(xs: ArrayLike<U> | ThresholdNumberArrayGenerator<U>): this
@@ -1226,9 +1226,9 @@ export namespace Scale {
   export interface Quantize<Range, U = never> {
     (x: NumVal): Range | U
     copy(): this
-    domain(): [number, number]
+    domain(): Pair
     domain(x: Iterable<NumVal>): this
-    invertExtent(x: Range): [number, number]
+    invertExtent(x: Range): Span
     nice(n?: number): this
     range(): Range[]
     range(x: Iterable<Range>): this
@@ -1244,7 +1244,7 @@ export namespace Scale {
     copy(): this
     domain(): number[]
     domain(x: Iterable<NumVal | null | undefined>): this
-    invertExtent(x: Range): [number, number]
+    invertExtent(x: Range): Span
     quantiles(): number[]
     range(): Range[]
     range(x: Iterable<Range>): this
@@ -1277,7 +1277,7 @@ export namespace Scale {
     paddingInner(x: number): this
     paddingOuter(): number
     paddingOuter(x: number): this
-    range(): [number, number]
+    range(): Span
     range(x: Iterable<NumVal>): this
     rangeRound(x: Iterable<NumVal>): this
     round(): boolean
@@ -1289,7 +1289,7 @@ export namespace Scale {
     (x: Domain): number | undefined
     domain(): Domain[]
     domain(domain: Iterable<Domain>): this
-    range(): [number, number]
+    range(): Span
     range(range: Iterable<NumVal>): this
     rangeRound(range: Iterable<NumVal>): this
     round(): boolean
@@ -1377,7 +1377,7 @@ export namespace Scale {
     clamp(): boolean
     clamp(x: boolean): this
     copy(): this
-    domain(): [number, number]
+    domain(): Pair
     domain(x: Iterable<NumVal>): this
     range(): () => [Out, Out]
     range(x: Iterable<Out>): this
@@ -1593,7 +1593,7 @@ export interface DefaultArcObject {
 export interface Arc<This, T> {
   (this: This, x: T, ...xs: any[]): string | null
   (this: This, x: T, ...xs: any[]): void
-  centroid(x: T, ...xs: any[]): [number, number]
+  centroid(x: T, ...xs: any[]): Point
   innerRadius(): (this: This, x: T, ...xs: any[]) => number
   innerRadius(radius: number): this
   innerRadius(radius: (this: This, x: T, ...xs: any[]) => number): this
@@ -1773,8 +1773,8 @@ export interface CurveCatmullRomFactory extends CurveFactory {
   alpha(x: number): this
 }
 export interface DefaultLinkObject {
-  source: [number, number]
-  target: [number, number]
+  source: Point
+  target: Point
 }
 export interface Link<This, L, N> {
   (this: This, d: L, ...xs: any[]): string | null
@@ -1964,7 +1964,7 @@ export interface ZoomBehavior<B extends ZoomedElementBaseType, T> extends Functi
   transform(
     selection: Selection<B, T, any, any> | TransitionLike<B, T>,
     transform: ZoomTransform | ((this: B, event: any, x: T) => ZoomTransform),
-    point?: [number, number] | ((this: B, event: any, x: T) => [number, number])
+    point?: Point | ((this: B, event: any, x: T) => Point)
   ): void
   translateBy(
     selection: Selection<B, T, any, any> | TransitionLike<B, T>,
@@ -1975,29 +1975,21 @@ export interface ZoomBehavior<B extends ZoomedElementBaseType, T> extends Functi
     selection: Selection<B, T, any, any> | TransitionLike<B, T>,
     x: number | ValueFn<B, T, number>,
     y: number | ValueFn<B, T, number>,
-    p?: [number, number] | ValueFn<B, T, [number, number]>
+    p?: Point | ValueFn<B, T, Point>
   ): void
   scaleBy(
     selection: Selection<B, T, any, any> | TransitionLike<B, T>,
     k: number | ValueFn<B, T, number>,
-    p?: [number, number] | ValueFn<B, T, [number, number]>
+    p?: Point | ValueFn<B, T, Point>
   ): void
   scaleTo(
     selection: Selection<B, T, any, any> | TransitionLike<B, T>,
     k: number | ValueFn<B, T, number>,
-    p?: [number, number]
+    p?: Point
   ): void
-  constrain(): (
-    transform: ZoomTransform,
-    extent: [[number, number], [number, number]],
-    translateExtent: [[number, number], [number, number]]
-  ) => ZoomTransform
+  constrain(): (transform: ZoomTransform, extent: [Point, Span], translateExtent: [Point, Span]) => ZoomTransform
   constrain(
-    constraint: (
-      transform: ZoomTransform,
-      extent: [[number, number], [number, number]],
-      translateExtent: [[number, number], [number, number]]
-    ) => ZoomTransform
+    constraint: (transform: ZoomTransform, extent: [Point, Span], translateExtent: [Point, Span]) => ZoomTransform
   ): this
   filter(): (this: B, event: any, x: T) => boolean
   filter(filter: (this: B, event: any, x: T) => boolean): this
@@ -2006,13 +1998,13 @@ export interface ZoomBehavior<B extends ZoomedElementBaseType, T> extends Functi
   touchable(touchable: ValueFn<B, T, boolean>): this
   wheelDelta(): ValueFn<B, T, number>
   wheelDelta(delta: ((event: WheelEvent) => number) | number): this
-  extent(): (this: B, x: T) => [[number, number], [number, number]]
-  extent(extent: [[number, number], [number, number]]): this
-  extent(extent: (this: B, x: T) => [[number, number], [number, number]]): this
-  scaleExtent(): [number, number]
-  scaleExtent(extent: [number, number]): this
-  translateExtent(): [[number, number], [number, number]]
-  translateExtent(extent: [[number, number], [number, number]]): this
+  extent(): (this: B, x: T) => [Point, Span]
+  extent(x: [Point, Span]): this
+  extent(f: (this: B, x: T) => [Point, Span]): this
+  scaleExtent(): Span
+  scaleExtent(x: Span): this
+  translateExtent(): [Point, Span]
+  translateExtent(x: [Point, Span]): this
   clickDistance(): number
   clickDistance(distance: number): this
   tapDistance(): number
@@ -2037,10 +2029,10 @@ export interface ZoomTransform {
   readonly x: number
   readonly y: number
   readonly k: number
-  apply(point: [number, number]): [number, number]
+  apply(point: Point): Point
   applyX(x: number): number
   applyY(y: number): number
-  invert(point: [number, number]): [number, number]
+  invert(point: Point): Point
   invertX(x: number): number
   invertY(y: number): number
   rescaleX<S extends ZoomScale>(xScale: S): S

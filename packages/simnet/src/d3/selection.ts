@@ -71,7 +71,7 @@ function childMatcher(sel: string) {
     return node.matches(sel)
   }
 }
-export function pointer(event: any, target?: any): [number, number] {
+export function pointer(event: any, target?: any): qt.Point {
   event = sourceEvent(event)
   if (target === undefined) target = event.currentTarget
   if (target) {
@@ -89,7 +89,7 @@ export function pointer(event: any, target?: any): [number, number] {
   }
   return [event.pageX, event.pageY]
 }
-export function pointers(event: any, target?: any): Array<[number, number]> {
+export function pointers(event: any, target?: any): Array<qt.Point> {
   if (event.target) {
     event = sourceEvent(event)
     if (target === undefined) target = event.currentTarget

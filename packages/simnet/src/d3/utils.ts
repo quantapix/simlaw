@@ -50,7 +50,7 @@ export function angle(a: number, b: number) {
   return (b -= a) < 0 ? b + 360 : b
 }
 
-export function area(xs: Array<[number, number]>): number {
+export function area(xs: Array<qt.Point>): number {
   const n = xs.length
   let r = 0,
     a,
@@ -64,7 +64,7 @@ export function area(xs: Array<[number, number]>): number {
   return r / 2
 }
 
-export function centroid(xs: Array<[number, number]>): [number, number] {
+export function centroid(xs: Array<qt.Point>): qt.Point {
   const n = xs.length
   let r = 0,
     a,
@@ -83,7 +83,7 @@ export function centroid(xs: Array<[number, number]>): [number, number] {
   return (r *= 3), [x / r, y / r]
 }
 
-export function contains(xs: Array<[number, number]>, p0: [number, number]): boolean {
+export function contains(xs: Array<qt.Point>, p0: qt.Point): boolean {
   const n = xs.length,
     [x0, y0] = p0
   let r = false,
@@ -96,15 +96,15 @@ export function contains(xs: Array<[number, number]>, p0: [number, number]): boo
   return r
 }
 
-export function cross(a: [number, number], b: [number, number], c: [number, number]) {
+export function cross(a: qt.Point, b: qt.Point, c: qt.Point) {
   return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 }
 
-function lexOrder(a: [number, number], b: [number, number]) {
+function lexOrder(a: qt.Point, b: qt.Point) {
   return a[0] - b[0] || a[1] - b[1]
 }
 
-function upperIndexes(xs: Array<[number, number]>) {
+function upperIndexes(xs: Array<qt.Point>) {
   const n = xs.length,
     r = [0, 1]
   let size = 2
@@ -115,7 +115,7 @@ function upperIndexes(xs: Array<[number, number]>) {
   return r.slice(0, size)
 }
 
-export function hull(xs: Array<[number, number]>): Array<[number, number]> | undefined {
+export function hull(xs: Array<qt.Point>): Array<qt.Point> | undefined {
   const n = xs.length
   if (n < 3) return undefined
   const sorted = new Array(n),
@@ -133,7 +133,7 @@ export function hull(xs: Array<[number, number]>): Array<[number, number]> | und
   return r
 }
 
-export function length(xs: Array<[number, number]>): number {
+export function length(xs: Array<qt.Point>): number {
   const n = xs.length
   let r = 0,
     b = xs[n - 1]!,

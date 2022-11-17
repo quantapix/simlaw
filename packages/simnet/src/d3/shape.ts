@@ -207,7 +207,7 @@ export function arc() {
   return y
 }
 
-export function area<T = [number, number]>(
+export function area<T = qt.Point>(
   x0?: number | ((x: T, i: number, xs: T[]) => number),
   y0?: number | ((x: T, i: number, xs: T[]) => number),
   y1?: number | ((x: T, i: number, xs: T[]) => number)
@@ -297,7 +297,7 @@ export function area<T = [number, number]>(
   }
   return y
 }
-export function areaRadial(): qt.AreaRadial<[number, number]>
+export function areaRadial(): qt.AreaRadial<qt.Point>
 export function areaRadial<T>(): qt.AreaRadial<T>
 export function areaRadial() {
   const y = area().curve(curveRadialLinear),
@@ -339,7 +339,7 @@ export function array(x) {
     ? x // Array, TypedArray, NodeList, array-like
     : Array.from(x) // Map, Set, iterable, string, or anything else
 }
-export function line<T = [number, number]>(
+export function line<T = qt.Point>(
   x?: number | ((d: T, i: number, data: T[]) => number),
   y?: number | ((d: T, i: number, data: T[]) => number)
 ): qt.Line<T> {
@@ -382,7 +382,7 @@ export function line<T = [number, number]>(
   }
   return y
 }
-export function lineRadial(): qt.LineRadial<[number, number]>
+export function lineRadial(): qt.LineRadial<qt.Point>
 export function lineRadial<T>(): qt.LineRadial<T>
 export function lineRadial() {
   function y(l) {
@@ -402,7 +402,7 @@ function linkSource(d) {
 function linkTarget(d) {
   return d.target
 }
-export function link(x: qt.CurveFactory): qt.Link<any, qt.DefaultLinkObject, [number, number]>
+export function link(x: qt.CurveFactory): qt.Link<any, qt.DefaultLinkObject, qt.Point>
 export function link<L, N>(x: qt.CurveFactory): qt.Link<any, L, N>
 export function link<This, L, N>(x: qt.CurveFactory): qt.Link<This, L, N>
 export function link(curve) {
@@ -441,19 +441,19 @@ export function link(curve) {
   }
   return f
 }
-export function linkHorizontal(): qt.Link<any, qt.DefaultLinkObject, [number, number]>
+export function linkHorizontal(): qt.Link<any, qt.DefaultLinkObject, qt.Point>
 export function linkHorizontal<L, N>(): qt.Link<any, L, N>
 export function linkHorizontal<This, L, N>(): qt.Link<This, L, N>
 export function linkHorizontal() {
   return link(bumpX)
 }
-export function linkVertical(): qt.Link<any, qt.DefaultLinkObject, [number, number]>
+export function linkVertical(): qt.Link<any, qt.DefaultLinkObject, qt.Point>
 export function linkVertical<L, N>(): qt.Link<any, L, N>
 export function linkVertical<This, L, N>(): qt.Link<This, L, N>
 export function linkVertical() {
   return link(bumpY)
 }
-export function linkRadial(): qt.LinkRadial<any, qt.DefaultLinkObject, [number, number]>
+export function linkRadial(): qt.LinkRadial<any, qt.DefaultLinkObject, qt.Point>
 export function linkRadial<L, N>(): qt.LinkRadial<any, L, N>
 export function linkRadial<This, L, N>(): qt.LinkRadial<This, L, N>
 export function linkRadial() {
@@ -552,7 +552,7 @@ export function pointX(p) {
 export function pointY(p) {
   return p[1]
 }
-export function pointRadial(a: number, r: number): [number, number] {
+export function pointRadial(a: number, r: number): qt.Point {
   return [(r = +r) * Math.cos((a -= Math.PI / 2)), r * Math.sin(a)]
 }
 function stackValue(d, key) {

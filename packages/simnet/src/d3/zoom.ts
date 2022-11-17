@@ -23,7 +23,7 @@ export function noevent(event) {
 }
 export class Transform implements qt.ZoomTransform {
   constructor(public k: number, public x: number, public y: number) {}
-  apply(point: [number, number]): [number, number] {
+  apply(point: qt.Point): qt.Point {
     return [point[0] * this.k + this.x, point[1] * this.k + this.y]
   }
   applyX(x: number) {
@@ -32,7 +32,7 @@ export class Transform implements qt.ZoomTransform {
   applyY(y: number) {
     return y * this.k + this.y
   }
-  invert(point: [number, number]): [number, number] {
+  invert(point: qt.Point): qt.Point {
     return [(point[0] - this.x) / this.k, (point[1] - this.y) / this.k]
   }
   invertX(x: number) {

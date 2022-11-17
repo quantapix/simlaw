@@ -313,7 +313,7 @@ function defaultY(d) {
 function defaultWeight() {
   return 1
 }
-export function density<T = [number, number]>(): qt.ContourDensity<T> {
+export function density<T = qt.Point>(): qt.ContourDensity<T> {
   let x = defaultX,
     y = defaultY,
     weight = defaultWeight,
@@ -326,9 +326,9 @@ export function density<T = [number, number]>(): qt.ContourDensity<T> {
     m = (dy + o * 2) >> k, // grid height
     threshold = qu.constant(20)
   function grid(data) {
-    let values = new Float32Array(n * m),
-      pow2k = Math.pow(2, -k),
-      i = -1
+    const values = new Float32Array(n * m),
+      pow2k = Math.pow(2, -k)
+    let i = -1
     for (const d of data) {
       const xi = (x(d, ++i, data) + o) * pow2k,
         yi = (y(d, i, data) + o) * pow2k,

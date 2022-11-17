@@ -61,18 +61,18 @@ export namespace area {
 }
 export function bounds(
   x: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
-): [[number, number], [number, number]] {
+): [qt.Point, qt.Span] {
   let i, n, a, b, merged, deltaMax, delta
   const phi1 = (lambda1 = -(lambda0 = phi0 = Infinity))
-  let ranges: number[][] = []
+  let spans: qt.Span[] = []
   stream(x, bounds.stream)
-  if ((n = ranges.length)) {
-    ranges.sort((a, b) => a[0]! - b[0]!)
-    function contains(xs: [number, number], x: number) {
-      return xs[0] <= xs[1] ? xs[0] <= x && x <= xs[1] : x < xs[0] || xs[1] < x
+  if ((n = spans.length)) {
+    spans.sort((a, b) => a[0]! - b[0]!)
+    function contains(s: qt.Span, x: number) {
+      return s[0] <= s[1] ? s[0] <= x && x <= s[1] : x < s[0] || s[1] < x
     }
-    for (i = 1, a = ranges[0], merged = [a]; i < n; ++i) {
-      b = ranges[i]
+    for (i = 1, a = spans[0]!, merged = [a]; i < n; ++i) {
+      b = spans[i]!
       if (contains(a, b[0]) || contains(a, b[1])) {
         if (qu.angle(a[0], b[1]) > qu.angle(a[0], a[1])) a[1] = b[1]
         if (qu.angle(b[0], a[1]) > qu.angle(a[0], a[1])) a[0] = b[0]
@@ -85,7 +85,7 @@ export function bounds(
       if ((delta = qu.angle(a[1], b[0])) > deltaMax) (deltaMax = delta), (lambda0 = b[0]), (lambda1 = a[1])
     }
   }
-  ranges = range = null
+  spans = range = null
   return lambda0 === Infinity || phi0 === Infinity
     ? [
         [NaN, NaN],
@@ -245,7 +245,7 @@ export function cartesianNormalizeInPlace(d) {
 }
 export function centroid(
   object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
-): [number, number] {
+): qt.Point {
   W0 = W1 = X0 = Y0 = Z0 = X1 = Y1 = Z1 = 0
   X2 = new Adder()
   Y2 = new Adder()
@@ -449,7 +449,7 @@ export function compose(a, b) {
 }
 export function contains(
   object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection,
-  point: [number, number]
+  point: qt.Point
 ): boolean {
   return (
     object && containsObjectType.hasOwnProperty(object.type) ? containsObjectType[object.type] : containsGeometry
@@ -542,7 +542,7 @@ export namespace contains {
 }
 const coordinates = [null, null],
   object = { type: "LineString", coordinates: coordinates }
-export function distance(a: [number, number], b: [number, number]): number {
+export function distance(a: qt.Point, b: qt.Point): number {
   coordinates[0] = a
   coordinates[1] = b
   return length(object)
@@ -678,7 +678,7 @@ export function graticule(): qt.GeoGraticuleGenerator {
 export function graticule10(): GeoJSON.MultiLineString {
   return graticule()()
 }
-export function interpolate(a: [number, number], b: [number, number]): (t: number) => [number, number] {
+export function interpolate(a: qt.Point, b: qt.Point): (t: number) => qt.Point {
   const x0 = a[0] * qu.radians,
     y0 = a[1] * qu.radians,
     x1 = b[0] * qu.radians,
@@ -827,7 +827,7 @@ export function rotateRadians(deltaLambda, deltaPhi, deltaGamma) {
     ? phiGamma(deltaPhi, deltaGamma)
     : identity
 }
-export function rotation(angles: [number, number] | [number, number, number]): GeoRotation {
+export function rotation(angles: qt.Pair | [number, number, number]): qt.GeoRotation {
   rotate = rotateRadians(rotate[0] * qu.radians, rotate[1] * qu.radians, rotate.length > 2 ? rotate[2] * qu.radians : 0)
   function forward(coordinates) {
     coordinates = rotate(coordinates[0] * qu.radians, coordinates[1] * qu.radians)

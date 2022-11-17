@@ -1017,7 +1017,7 @@ export function merge<T>(xs: Iterable<Iterable<T>>): T[] {
   }
   return Array.from(flatten(xs))
 }
-export function nice(start: number, stop: number, count: number): [number, number] {
+export function nice(start: number, stop: number, count: number): qt.Pair {
   let prestep
   while (true) {
     const step = tickIncrement(start, stop, count)
