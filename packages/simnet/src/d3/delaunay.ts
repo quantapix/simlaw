@@ -1,13 +1,12 @@
 import Delaunator from "delaunator"
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
-const tau = 2 * Math.PI,
-  pow = Math.pow
-function pointX(p) {
-  return p[0]
+function pointX(x) {
+  return x[0]
 }
-function pointY(p) {
-  return p[1]
+function pointY(x) {
+  return x[1]
 }
 function collinear(d) {
   const { triangles, coords } = d
@@ -132,12 +131,12 @@ export class Delaunay<T> implements qt.Delaunay<T> {
     const { inedges, hull, _hullIndex, halfedges, triangles, points } = this
     if (inedges[i] === -1 || !points.length) return (i + 1) % (points.length >> 1)
     let c = i
-    let dc = pow(x - points[i * 2], 2) + pow(y - points[i * 2 + 1], 2)
+    let dc = qu.pow(x - points[i * 2], 2) + qu.pow(y - points[i * 2 + 1], 2)
     const e0 = inedges[i]
     let e = e0
     do {
       let t = triangles[e]
-      const dt = pow(x - points[t * 2], 2) + pow(y - points[t * 2 + 1], 2)
+      const dt = qu.pow(x - points[t * 2], 2) + qu.pow(y - points[t * 2 + 1], 2)
       if (dt < dc) (dc = dt), (c = t)
       e = e % 3 === 2 ? e - 2 : e + 1
       if (triangles[e] !== i) break // bad triangulation
@@ -145,7 +144,7 @@ export class Delaunay<T> implements qt.Delaunay<T> {
       if (e === -1) {
         e = hull[(_hullIndex[i] + 1) % hull.length]
         if (e !== t) {
-          if (pow(x - points[e * 2], 2) + pow(y - points[e * 2 + 1], 2) < dc) return e
+          if (qu.pow(x - points[e * 2], 2) + qu.pow(y - points[e * 2 + 1], 2) < dc) return e
         }
         break
       }
@@ -175,7 +174,7 @@ export class Delaunay<T> implements qt.Delaunay<T> {
       const x = points[i],
         y = points[i + 1]
       context.moveTo(x + r, y)
-      context.arc(x, y, r, 0, tau)
+      context.arc(x, y, r, 0, qu.tau)
     }
     return buffer && buffer.value()
   }

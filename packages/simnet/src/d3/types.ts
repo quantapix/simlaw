@@ -1,5 +1,7 @@
 import type { MultiPolygon } from "geojson"
 
+export type Pair<T> = [T, T]
+
 export type Primitive = number | string | boolean | Date
 export interface Numeric {
   valueOf(): number
@@ -90,7 +92,7 @@ export interface Axis<T> {
   tickValues(x: null): this
   tickValues(xs: Iterable<T>): this
 }
-export type BrushSelection = [[number, number], [number, number]] | [number, number]
+export type BrushSelection = [Point, Point] | Point
 export interface BrushBehavior<T> {
   (x: Selection<SVGGElement, T, any, any>, ...xs: any[]): void
   move(
@@ -99,9 +101,9 @@ export interface BrushBehavior<T> {
     e?: Event
   ): void
   clear(group: Selection<SVGGElement, T, any, any>, event?: Event): void
-  extent(): ValueFn<SVGGElement, T, [[number, number], [number, number]]>
-  extent(f: ValueFn<SVGGElement, T, [[number, number], [number, number]]>): this
-  extent(x: [[number, number], [number, number]]): this
+  extent(): ValueFn<SVGGElement, T, [Point, Point]>
+  extent(f: ValueFn<SVGGElement, T, [Point, Point]>): this
+  extent(x: [Point, Point]): this
   filter(): (this: SVGGElement, event: any, x: T) => boolean
   filter(f: (this: SVGGElement, event: any, x: T) => boolean): this
   handleSize(): number
@@ -344,8 +346,8 @@ export interface ContourMultiPolygon extends MultiPolygon {
 export interface Contours {
   (values: number[]): ContourMultiPolygon[]
   contour(values: number[], threshold: number): ContourMultiPolygon
-  size(): [number, number]
-  size(size: [number, number]): this
+  size(): Point
+  size(size: Point): this
   smooth(): boolean
   smooth(smooth: boolean): this
   thresholds(): ThresholdCountGenerator<number> | ThresholdNumberArrayGenerator<number>
@@ -353,7 +355,7 @@ export interface Contours {
     thresholds: number | number[] | ThresholdCountGenerator<number> | ThresholdNumberArrayGenerator<number>
   ): this
 }
-export interface ContourDensity<T = [number, number]> {
+export interface ContourDensity<T = Point> {
   (data: T[]): ContourMultiPolygon[]
   x(): (x: T) => number
   x(x: (x: T) => number): this
@@ -361,8 +363,8 @@ export interface ContourDensity<T = [number, number]> {
   y(y: (x: T) => number): this
   weight(): (x: T) => number
   weight(weight: (x: T) => number): this
-  size(): [number, number]
-  size(size: [number, number]): this
+  size(): Point
+  size(size: Point): this
   cellSize(): number
   cellSize(cellSize: number): this
   thresholds(): ThresholdCountGenerator<number> | ThresholdNumberArrayGenerator<number>
@@ -395,8 +397,9 @@ export interface Delaunay<T> {
   update(): this
   voronoi(bounds?: Delaunay.Bounds): Voronoi<T>
 }
+export type Point = Pair<number>
+export type Span = Pair<number>
 export namespace Delaunay {
-  export type Point = [number, number]
   export type Triangle = Point[]
   export type Polygon = Point[]
   export type Bounds = [number, number, number, number]
@@ -721,13 +724,13 @@ export type GeoPermissibleObjects =
   | ExtendedFeature
   | ExtendedFeatureCollection
 export interface GeoRotation {
-  (point: [number, number]): [number, number]
-  invert(point: [number, number]): [number, number]
+  (x: Point): Point
+  invert(x: Point): Point
 }
 export interface GeoCircleGenerator<This = any, T = any> {
   (this: This, d?: T, ...xs: any[]): GeoJSON.Polygon
-  center(): (this: This, x: T, ...xs: any[]) => [number, number]
-  center(center: [number, number] | ((this: This, x: T, ...xs: any[]) => [number, number])): this
+  center(): (this: This, x: T, ...xs: any[]) => Point
+  center(center: Point | ((this: This, x: T, ...xs: any[]) => Point)): this
   radius(): (this: This, x: T, ...xs: any[]) => number
   radius(radius: number | ((this: This, x: T, ...xs: any[]) => number)): this
   precision(): (this: This, x: T, ...xs: any[]) => number
@@ -737,18 +740,18 @@ export interface GeoGraticuleGenerator {
   (): GeoJSON.MultiLineString
   lines(): GeoJSON.LineString[]
   outline(): GeoJSON.Polygon
-  extent(): [[number, number], [number, number]]
-  extent(extent: [[number, number], [number, number]]): this
-  extentMajor(): [[number, number], [number, number]]
-  extentMajor(extent: [[number, number], [number, number]]): this
-  extentMinor(): [[number, number], [number, number]]
-  extentMinor(extent: [[number, number], [number, number]]): this
-  step(): [number, number]
-  step(step: [number, number]): this
-  stepMajor(): [number, number]
-  stepMajor(step: [number, number]): this
-  stepMinor(): [number, number]
-  stepMinor(step: [number, number]): this
+  extent(): [Point, Point]
+  extent(extent: [Point, Point]): this
+  extentMajor(): [Point, Point]
+  extentMajor(extent: [Point, Point]): this
+  extentMinor(): [Point, Point]
+  extentMinor(extent: [Point, Point]): this
+  step(): Point
+  step(step: Point): this
+  stepMajor(): Point
+  stepMajor(step: Point): this
+  stepMinor(): Point
+  stepMinor(step: Point): this
   precision(): number
   precision(angle: number): this
 }
@@ -761,29 +764,29 @@ export interface GeoStream {
   sphere?(): void
 }
 export interface GeoRawProjection {
-  (lambda: number, phi: number): [number, number]
-  invert?(x: number, y: number): [number, number]
+  (lambda: number, phi: number): Point
+  invert?(x: number, y: number): Point
 }
 export interface GeoStreamWrapper {
   stream(stream: GeoStream): GeoStream
 }
 export interface GeoProjection extends GeoStreamWrapper {
-  (point: [number, number]): [number, number] | null
-  invert?(point: [number, number]): [number, number] | null
+  (point: Point): Point | null
+  invert?(point: Point): Point | null
   preclip(): (stream: GeoStream) => GeoStream
   preclip(preclip: (stream: GeoStream) => GeoStream): this
   postclip(): (stream: GeoStream) => GeoStream
   postclip(postclip: (stream: GeoStream) => GeoStream): this
   clipAngle(): number | null
   clipAngle(angle: null | number): this
-  clipExtent(): [[number, number], [number, number]] | null
-  clipExtent(extent: null | [[number, number], [number, number]]): this
+  clipExtent(): [Point, Point] | null
+  clipExtent(extent: null | [Point, Point]): this
   scale(): number
   scale(scale: number): this
-  translate(): [number, number]
-  translate(point: [number, number]): this
-  center(): [number, number]
-  center(point: [number, number]): this
+  translate(): Point
+  translate(point: Point): this
+  center(): Point
+  center(point: Point): this
   angle(): number
   angle(angle: number): this
   reflectX(): boolean
@@ -791,15 +794,15 @@ export interface GeoProjection extends GeoStreamWrapper {
   reflectY(): boolean
   reflectY(reflect: boolean): this
   rotate(): [number, number, number]
-  rotate(angles: [number, number] | [number, number, number]): this
+  rotate(angles: Point | [number, number, number]): this
   precision(): number
   precision(precision: number): this
   fitExtent(
-    extent: [[number, number], [number, number]],
+    extent: [Point, Point],
     object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
   ): this
   fitSize(
-    size: [number, number],
+    size: Point,
     object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
   ): this
   fitWidth(
@@ -812,8 +815,8 @@ export interface GeoProjection extends GeoStreamWrapper {
   ): this
 }
 export interface GeoConicProjection extends GeoProjection {
-  parallels(): [number, number]
-  parallels(value: [number, number]): this
+  parallels(): Point
+  parallels(value: Point): this
 }
 export interface GeoContext {
   arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, anticlockwise?: boolean): void
@@ -826,8 +829,8 @@ export interface GeoPath<This = any, T extends GeoPermissibleObjects = GeoPermis
   (this: This, object: T, ...xs: any[]): string | null
   (this: This, object: T, ...xs: any[]): void
   area(object: T): number
-  bounds(object: T): [[number, number], [number, number]]
-  centroid(object: T): [number, number]
+  bounds(object: T): [Point, Point]
+  centroid(object: T): Point
   measure(object: T): number
   context<C extends GeoContext | null>(): C
   context(context: null | GeoContext): this
@@ -856,26 +859,26 @@ export interface GeoTransformPrototype {
 export function geoTransform<T extends GeoTransformPrototype>(methods: T): { stream(s: GeoStream): T & GeoStream }
 export type GeoIdentityTranform = GeoIdentityTransform
 export interface GeoIdentityTransform extends GeoStreamWrapper {
-  (point: [number, number]): [number, number] | null
-  invert(point: [number, number]): [number, number] | null
+  (point: Point): Point | null
+  invert(point: Point): Point | null
   postclip(): (stream: GeoStream) => GeoStream
   postclip(postclip: (stream: GeoStream) => GeoStream): this
   scale(): number
   scale(scale: number): this
-  translate(): [number, number]
-  translate(point: [number, number]): this
+  translate(): Point
+  translate(point: Point): this
   angle(): number
   angle(angle: number): this
   fitExtent(
-    extent: [[number, number], [number, number]],
+    extent: [Point, Point],
     object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
   ): this
   fitSize(
-    size: [number, number],
+    size: Point,
     object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
   ): this
-  clipExtent(): [[number, number], [number, number]] | null
-  clipExtent(extent: null | [[number, number], [number, number]]): this
+  clipExtent(): [Point, Point] | null
+  clipExtent(extent: null | [Point, Point]): this
   reflectX(): boolean
   reflectX(reflect: boolean): this
   reflectY(): boolean
@@ -934,22 +937,22 @@ export interface HierarchyPointNode<T> extends HierarchyNode<T> {
 
 export interface ClusterLayout<T> {
   (x: HierarchyNode<T>): HierarchyPointNode<T>
-  nodeSize(): [number, number] | null
-  nodeSize(x: [number, number]): this
+  nodeSize(): Point | null
+  nodeSize(x: Point): this
   separation(): (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number
   separation(f: (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number): this
-  size(): [number, number] | null
-  size(x: [number, number]): this
+  size(): Point | null
+  size(x: Point): this
 }
 
 export interface TreeLayout<T> {
   (x: HierarchyNode<T>): HierarchyPointNode<T>
-  nodeSize(): [number, number] | null
-  nodeSize(x: [number, number]): this
+  nodeSize(): Point | null
+  nodeSize(x: Point): this
   separation(): (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number
   separation(f: (a: HierarchyPointNode<T>, b: HierarchyPointNode<T>) => number): this
-  size(): [number, number] | null
-  size(x: [number, number]): this
+  size(): Point | null
+  size(x: Point): this
 }
 export interface HierarchyRectangularLink<T> {
   source: HierarchyRectangularNode<T>
@@ -966,8 +969,8 @@ export interface TreemapLayout<T> {
   (x: HierarchyNode<T>): HierarchyRectangularNode<T>
   tile(): (x: HierarchyRectangularNode<T>, x0: number, y0: number, x1: number, y1: number) => void
   tile(tile: (x: HierarchyRectangularNode<T>, x0: number, y0: number, x1: number, y1: number) => void): this
-  size(): [number, number]
-  size(x: [number, number]): this
+  size(): Point
+  size(x: Point): this
   round(): boolean
   round(x: boolean): this
   padding(): (x: HierarchyRectangularNode<T>) => number
@@ -1002,8 +1005,8 @@ export interface PartitionLayout<T> {
   padding(x: number): this
   round(): boolean
   round(x: boolean): this
-  size(): [number, number]
-  size(x: [number, number]): this
+  size(): Point
+  size(x: Point): this
 }
 export interface HierarchyCircularLink<T> {
   source: HierarchyCircularNode<T>
@@ -1022,8 +1025,8 @@ export interface PackLayout<T> {
   padding(x: number): this
   radius(): null | ((x: HierarchyCircularNode<T>) => number)
   radius(f: null | ((x: HierarchyCircularNode<T>) => number)): this
-  size(): [number, number]
-  size(x: [number, number]): this
+  size(): Point
+  size(x: Point): this
 }
 export interface PackRadius {
   r: number
@@ -1085,12 +1088,12 @@ export interface Quadtree<T> {
   copy(): Quadtree<T>
   cover(x: number, y: number): this
   data(): T[]
-  extent(): [[number, number], [number, number]] | undefined
-  extent(x: [[number, number], [number, number]]): this
+  extent(): Pair<Point> | undefined
+  extent(x: Pair<Point>): this
   find(x: number, y: number, r?: number): T | undefined
   remove(t: T): this
   removeAll(ts: T[]): this
-  root(): QuadNode<T> | QuadLeaf<T>
+  root(): QuadNode<T> | QuadLeaf<T> | undefined
   size(): number
   visit(f: (n: QuadNode<T> | QuadLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void | boolean): this
   visitAfter(f: (n: QuadNode<T> | QuadLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void): this
