@@ -468,19 +468,24 @@ class Quad<T> {
 export function quadtree<T>(xs?: T[]): qt.Quadtree<T>
 export function quadtree<T>(xs: T[], x: (t: T) => number, y: (t: T) => number): qt.Quadtree<T>
 export function quadtree(xs: any, x?: (t: any) => number, y?: (t: any) => number) {
-  const r = new Quadtree(x === undefined ? (t: any) => t[0] : x, y === undefined ? (t: any) => t[1] : y, [
-    [NaN, NaN],
-    [NaN, NaN],
-  ])
+  const r = new Quadtree(x === undefined ? (t: any) => t[0] : x, y === undefined ? (t: any) => t[1] : y)
   return xs == undefined ? r : r.addAll(xs)
 }
 class Quadtree<T> implements qt.Quadtree<T> {
   _x
   _y
   _root?: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined
-  constructor(x: (t: T) => number, y: (t: T) => number, public ps: qt.Pair<qt.Point>) {
+  ps: qt.Pair<qt.Point> = [
+    [NaN, NaN],
+    [NaN, NaN],
+  ]
+  constructor(x: Quadtree<T>)
+  constructor(x: (t: T) => number, y: (t: T) => number, ps?: qt.Pair<qt.Point>)
+  constructor(x: any, y?: (t: T) => number, ps?: qt.Pair<qt.Point>) {
+    if (typeof x !== "function") (x = x._x), (y = x._y), (ps = x.ps)
     this._x = x
-    this._y = y
+    this._y = y!
+    if (ps) this.ps = ps
   }
   add(t: T) {
     const x = +this._x.call(null, t)
@@ -492,7 +497,7 @@ class Quadtree<T> implements qt.Quadtree<T> {
     const leaf = { data } as qt.QuadLeaf<T>
     let n = this._root
     if (!n) return (this._root = leaf), this
-    let { x0, y0, x1, y1 } = this
+    let [[x0, y0], [x1, y1]] = this.ps
     let xm: number,
       ym: number,
       right: number,
@@ -551,7 +556,7 @@ class Quadtree<T> implements qt.Quadtree<T> {
     return this
   }
   copy() {
-    const r = new Quadtree<T>(this._x, this._y, this.ps)
+    const r = new Quadtree<T>(this)
     const n = this._root
     if (!n) return r
     function leaf(x?: qt.QuadLeaf<T>) {
