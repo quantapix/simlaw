@@ -6,7 +6,7 @@ import { rgb as colorRgb } from "./color.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
-export function array<T extends any[]>(a: any[], b: T): qt.ArrayInterpolator<T>
+export function array<T extends any[]>(a: any[], b: T): qt.ArrayIpolator<T>
 export function array<T extends qt.NumberArray>(a: qt.NumberArray | number[], b: T): (t: number) => T
 export function array(a: any, b: any) {
   return (isNumberArray(b) ? numberArray : genericArray)(a, b)
@@ -106,8 +106,8 @@ function _cubehelix(hue) {
     return cubehelix
   })(1)
 }
-export const cubehelix: qt.ColorGammaInterpolationFactory = _cubehelix(hue)
-export const cubehelixLong: qt.ColorGammaInterpolationFactory = _cubehelix(color)
+export const cubehelix: qt.ColorGammaIpolatorFac = _cubehelix(hue)
+export const cubehelixLong: qt.ColorGammaIpolatorFac = _cubehelix(color)
 
 export function date(a: Date, b: Date): (x: number) => Date {
   const d = new Date()
@@ -232,16 +232,10 @@ export function object<T extends object>(a: any, b: T): (t: number) => T {
     return c
   }
 }
-export function piecewise(vs: qt.ZoomView[]): qt.ZoomInterpolator
-export function piecewise(
-  f: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomInterpolator,
-  vs: qt.ZoomView[]
-): qt.ZoomInterpolator
-export function piecewise<T extends any[]>(vs: T[]): qt.ArrayInterpolator<T>
-export function piecewise<T extends any[]>(
-  f: (a: any[], b: T) => qt.ArrayInterpolator<T>,
-  vs: T[]
-): qt.ArrayInterpolator<T>
+export function piecewise(vs: qt.ZoomView[]): qt.ZoomIpolator
+export function piecewise(f: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomIpolator, vs: qt.ZoomView[]): qt.ZoomIpolator
+export function piecewise<T extends any[]>(vs: T[]): qt.ArrayIpolator<T>
+export function piecewise<T extends any[]>(f: (a: any[], b: T) => qt.ArrayIpolator<T>, vs: T[]): qt.ArrayIpolator<T>
 export function piecewise(vs: unknown[]): (x: number) => any
 export function piecewise<T>(f: (a: T, b: T) => unknown, vs: T[]): (x: number) => any
 export function piecewise(f: any, vs?: any) {
@@ -261,7 +255,7 @@ export function quantize<T>(f: (x: number) => T, n: number): T[] {
   for (let i = 0; i < n; ++i) y[i] = f(i / (n - 1))
   return y
 }
-export const rgb: qt.ColorGammaInterpolationFactory = (function rgbGamma(y) {
+export const rgb: qt.ColorGammaIpolatorFac = (function rgbGamma(y) {
   const color = gamma(y)
   function rgb(start, end) {
     const r = color((start = colorRgb(start)).r, (end = colorRgb(end)).r),
@@ -412,7 +406,7 @@ function sinh(x: number) {
 function tanh(x: number) {
   return ((x = Math.exp(2 * x)) - 1) / (x + 1)
 }
-export const zoom: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomInterpolator = (function zoomRho(rho, rho2, rho4) {
+export const zoom: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomIpolator = (function zoomRho(rho, rho2, rho4) {
   function zoom(p0, p1) {
     let ux0 = p0[0],
       uy0 = p0[1],

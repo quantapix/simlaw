@@ -109,35 +109,29 @@ export function contains(xs: Array<qt.Point>, p0: qt.Point): boolean {
   return r
 }
 
-export function cross(a: qt.Point, b: qt.Point, c: qt.Point) {
-  return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
-}
-
-function lexOrder(a: qt.Point, b: qt.Point) {
-  return a[0] - b[0] || a[1] - b[1]
-}
-
-function upperIndexes(xs: Array<qt.Point>) {
-  const n = xs.length,
-    r = [0, 1]
-  let size = 2
-  for (let i = 2; i < n; ++i) {
-    while (size > 1 && cross(xs[r[size - 2]!]!, xs[r[size - 1]!]!, xs[i]!) <= 0) --size
-    r[size++] = i
-  }
-  return r.slice(0, size)
-}
-
 export function hull(xs: Array<qt.Point>): Array<qt.Point> | undefined {
   const n = xs.length
   if (n < 3) return undefined
-  const sorted = new Array(n),
-    flipped = new Array(n)
+  const sorted = new Array(n)
   for (let i = 0; i < n; ++i) sorted[i] = [+xs[i]![0], +xs[i]![1], i]
+  const lexOrder = (a: qt.Point, b: qt.Point) => a[0] - b[0] || a[1] - b[1]
   sorted.sort(lexOrder)
+  const flipped = new Array(n)
   for (let i = 0; i < n; ++i) flipped[i] = [sorted[i][0], -sorted[i][1]]
-  const us = upperIndexes(sorted),
-    ls = upperIndexes(flipped)
+  const uppers = (xs: Array<qt.Point>) => {
+    const n = xs.length,
+      r = [0, 1]
+    let size = 2
+    const cross = (a: qt.Point, b: qt.Point, c: qt.Point) =>
+      (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+    for (let i = 2; i < n; ++i) {
+      while (size > 1 && cross(xs[r[size - 2]!]!, xs[r[size - 1]!]!, xs[i]!) <= 0) --size
+      r[size++] = i
+    }
+    return r.slice(0, size)
+  }
+  const us = uppers(sorted)
+  const ls = uppers(flipped)
   const r = [],
     skipLeft = ls[0] === us[0],
     skipRight = ls[ls.length - 1] === us[us.length - 1] ? 1 : 0
@@ -316,7 +310,7 @@ function axis<T>(orient, scale: qt.AxisScale<T>): qt.Axis<T> {
     sizeInner = 6,
     sizeOuter = 6,
     padding = 3,
-    offset = typeof window !== "undefined" && window.devicePixelRatio > 1 ? 0 : 0.5
+    _off = typeof window !== "undefined" && window.devicePixelRatio > 1 ? 0 : 0.5
   const k = orient === top || orient === left ? -1 : 1,
     x = orient === left || orient === right ? "x" : "y",
     transform = orient === top || orient === bottom ? translateX : translateY
@@ -325,9 +319,9 @@ function axis<T>(orient, scale: qt.AxisScale<T>): qt.Axis<T> {
       format = format == null ? (scale.tickFormat ? scale.tickFormat.apply(scale, args) : identity) : format,
       spacing = Math.max(sizeInner, 0) + padding,
       range = scale.range(),
-      range0 = +range[0] + offset,
-      range1 = +range[range.length - 1] + offset,
-      position = (scale.bandwidth ? center : number)(scale.copy(), offset),
+      range0 = +range[0] + _off,
+      range1 = +range[range.length - 1] + _off,
+      position = (scale.bandwidth ? center : number)(scale.copy(), _off),
       selection = context.selection ? context.selection() : context,
       path = selection.selectAll(".domain").data([null]),
       tick = selection.selectAll(".tick").data(values, scale).order(),
@@ -359,11 +353,11 @@ function axis<T>(orient, scale: qt.AxisScale<T>): qt.Axis<T> {
         .transition(context)
         .attr("opacity", epsilon)
         .attr("transform", function (d) {
-          return isFinite((d = position(d))) ? transform(d + offset) : this.getAttribute("transform")
+          return isFinite((d = position(d))) ? transform(d + _off) : this.getAttribute("transform")
         })
       tickEnter.attr("opacity", epsilon).attr("transform", function (d) {
         var p = this.parentNode.__axis
-        return transform((p && isFinite((p = p(d))) ? p : position(d)) + offset)
+        return transform((p && isFinite((p = p(d))) ? p : position(d)) + _off)
       })
     }
     tickExit.remove()
@@ -371,14 +365,14 @@ function axis<T>(orient, scale: qt.AxisScale<T>): qt.Axis<T> {
       "d",
       orient === left || orient === right
         ? sizeOuter
-          ? "M" + k * sizeOuter + "," + range0 + "H" + offset + "V" + range1 + "H" + k * sizeOuter
-          : "M" + offset + "," + range0 + "V" + range1
+          ? "M" + k * sizeOuter + "," + range0 + "H" + _off + "V" + range1 + "H" + k * sizeOuter
+          : "M" + _off + "," + range0 + "V" + range1
         : sizeOuter
-        ? "M" + range0 + "," + k * sizeOuter + "V" + offset + "H" + range1 + "V" + k * sizeOuter
-        : "M" + range0 + "," + offset + "H" + range1
+        ? "M" + range0 + "," + k * sizeOuter + "V" + _off + "H" + range1 + "V" + k * sizeOuter
+        : "M" + range0 + "," + _off + "H" + range1
     )
     tick.attr("opacity", 1).attr("transform", function (d) {
-      return transform(position(d) + offset)
+      return transform(position(d) + _off)
     })
     line.attr(x + "2", k * sizeInner)
     text.attr(x, k * spacing).text(format)
@@ -394,36 +388,17 @@ function axis<T>(orient, scale: qt.AxisScale<T>): qt.Axis<T> {
       this.__axis = position
     })
   }
-  f.offset = function (...xs: any[]) {
-    return xs.length ? ((offset = +xs[0]), f) : offset
-  }
-  f.scale = function (...xs: any[]) {
-    return xs.length ? ((scale = xs[0]), f) : scale
-  }
-  f.tickArgs = function (...xs: any[]) {
-    return xs.length ? ((args = xs == null ? [] : Array.from(xs)), f) : args.slice()
-  }
-  f.tickFormat = function (...xs: any[]) {
-    return xs.length ? ((format = xs[0]), f) : format
-  }
-  f.tickPadding = function (...xs: any[]) {
-    return xs.length ? ((padding = +xs[0]), f) : padding
-  }
-  f.ticks = function (...xs: any[]) {
-    return (args = Array.from(xs)), f
-  }
-  f.tickSize = function (...xs: any[]) {
-    return xs.length ? ((sizeInner = sizeOuter = +xs[0]), f) : sizeInner
-  }
-  f.tickSizeInner = function (...xs: any[]) {
-    return xs.length ? ((sizeInner = +xs[0]), f) : sizeInner
-  }
-  f.tickSizeOuter = function (...xs: any[]) {
-    return xs.length ? ((sizeOuter = +xs[0]), f) : sizeOuter
-  }
-  f.tickValues = function (...xs: any[]) {
-    return xs.length ? ((vals = xs[0] == null ? null : Array.from(xs)), f) : vals && vals.slice()
-  }
+  f.offset = (x: any) => (x === undefined ? _off : ((_off = +x), f))
+  f.scale = (x: any) => (x === undefined ? scale : ((scale = x), f))
+  f.tickArgs = (x: any) => (x === undefined ? args.slice() : ((args = x == null ? [] : Array.from(x)), f))
+  f.tickFormat = (x: any) => (x === undefined ? format : ((format = x), f))
+  f.tickPadding = (x: any) => (x === undefined ? padding : ((padding = +x), f))
+  f.ticks = (...xs: any[]) => ((args = Array.from(xs)), f)
+  f.tickSize = (x: any) => (x === undefined ? sizeInner : ((sizeInner = sizeOuter = +x), f))
+  f.tickSizeInner = (x: any) => (x === undefined ? sizeInner : ((sizeInner = +x), f))
+  f.tickSizeOuter = (x: any) => (x === undefined ? sizeOuter : ((sizeOuter = +x), f))
+  f.tickValues = (x: any) =>
+    x === undefined ? vals && vals.slice() : ((vals = x[0] == null ? null : Array.from(x)), f)
   return f
 }
 export function axisTop<T extends qt.AxisDomain>(scale: qt.AxisScale<T>): qt.Axis<T> {
@@ -539,8 +514,8 @@ export class Timer implements qt.Timer {
 }
 
 export function interval(cb: (x: number) => void, delay?: number, time?: number): Timer {
-  let t = new Timer(),
-    total = delay
+  const t = new Timer()
+  let total = delay
   if (delay == null) return t.restart(cb, delay, time), t
   t._restart = t.restart
   t.restart = function (callback, delay, time) {

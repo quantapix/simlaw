@@ -1,7 +1,7 @@
 import type * as qt from "./types.js"
 
 const overshoot = 1.70158
-export const backIn: qt.BackEasingFactory = (function custom(s) {
+export const backIn: qt.BackEasingFac = (function custom(s) {
   s = +s
   function y(x: number) {
     return (x = +x) * x * (s * (x - 1) + x)
@@ -9,7 +9,7 @@ export const backIn: qt.BackEasingFactory = (function custom(s) {
   y.overshoot = custom
   return y
 })(overshoot)
-export const backOut: qt.BackEasingFactory = (function custom(s) {
+export const backOut: qt.BackEasingFac = (function custom(s) {
   s = +s
   function y(x: number) {
     return --x * x * ((x + 1) * s + x) + 1
@@ -17,7 +17,7 @@ export const backOut: qt.BackEasingFactory = (function custom(s) {
   y.overshoot = custom
   return y
 })(overshoot)
-export const back: qt.BackEasingFactory = (function custom(s) {
+export const back: qt.BackEasingFac = (function custom(s) {
   s = +s
   function y(x: number) {
     return ((x *= 2) < 1 ? x * x * ((s + 1) * x - s) : (x -= 2) * x * ((s + 1) * x + s) + 2) / 2
@@ -75,7 +75,7 @@ export function cubic(x: number) {
 const tau = 2 * Math.PI
 const amplitude = 1
 const period = 0.3
-export const elasticIn: qt.ElasticEasingFactory = (function custom(a, p) {
+export const elasticIn: qt.ElasticEasingFac = (function custom(a, p) {
   const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= tau)
   function y(x: number) {
     return a * tpmt(-(--x)) * Math.sin((s - x) / p)
@@ -88,7 +88,7 @@ export const elasticIn: qt.ElasticEasingFactory = (function custom(a, p) {
   }
   return y
 })(amplitude, period)
-export const elasticOut: qt.ElasticEasingFactory = (function custom(a, p) {
+export const elasticOut: qt.ElasticEasingFac = (function custom(a, p) {
   const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= tau)
   function y(x: number) {
     return 1 - a * tpmt((x = +x)) * Math.sin((x + s) / p)
@@ -101,7 +101,7 @@ export const elasticOut: qt.ElasticEasingFactory = (function custom(a, p) {
   }
   return y
 })(amplitude, period)
-export const elastic: qt.ElasticEasingFactory = (function custom(a, p) {
+export const elastic: qt.ElasticEasingFac = (function custom(a, p) {
   const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= tau)
   function y(x: number) {
     return ((x = x * 2 - 1) < 0 ? a * tpmt(-x) * Math.sin((s - x) / p) : 2 - a * tpmt(x) * Math.sin((s + x) / p)) / 2
@@ -132,7 +132,7 @@ export function tpmt(x: number) {
 }
 
 const exponent = 3
-export const polyIn: qt.PolyEasingFactory = (function custom(e) {
+export const polyIn: qt.PolyEasingFac = (function custom(e) {
   e = +e
   function y(x: number) {
     return Math.pow(x, e)
@@ -140,7 +140,7 @@ export const polyIn: qt.PolyEasingFactory = (function custom(e) {
   y.exponent = custom
   return y
 })(exponent)
-export const polyOut: qt.PolyEasingFactory = (function custom(e) {
+export const polyOut: qt.PolyEasingFac = (function custom(e) {
   e = +e
   function y(x: number) {
     return 1 - Math.pow(1 - x, e)
@@ -148,7 +148,7 @@ export const polyOut: qt.PolyEasingFactory = (function custom(e) {
   y.exponent = custom
   return y
 })(exponent)
-export const poly: qt.PolyEasingFactory = (function custom(e) {
+export const poly: qt.PolyEasingFac = (function custom(e) {
   e = +e
   function y(x: number) {
     return ((x *= 2) <= 1 ? Math.pow(x, e) : 2 - Math.pow(2 - x, e)) / 2

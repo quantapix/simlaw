@@ -402,9 +402,9 @@ function linkSource(d) {
 function linkTarget(d) {
   return d.target
 }
-export function link(x: qt.CurveFactory): qt.Link<any, qt.DefaultLinkObject, qt.Point>
-export function link<L, N>(x: qt.CurveFactory): qt.Link<any, L, N>
-export function link<This, L, N>(x: qt.CurveFactory): qt.Link<This, L, N>
+export function link(x: qt.CurveFac): qt.Link<any, qt.DefaultLinkObject, qt.Point>
+export function link<L, N>(x: qt.CurveFac): qt.Link<any, L, N>
+export function link<This, L, N>(x: qt.CurveFac): qt.Link<This, L, N>
 export function link(curve) {
   let source = linkSource
   let target = linkTarget
@@ -810,7 +810,7 @@ export class Curve {
     return new Curve.Step(x, 1)
   }
 
-  static bundle: qt.CurveBundleFactory = (function f(beta) {
+  static bundle: qt.BundleFac = (function f(beta) {
     function y(x) {
       return beta === 1 ? new Curve.Basis(x) : new Curve.Bundle(x, beta)
     }
@@ -819,7 +819,7 @@ export class Curve {
     }
     return y
   })(0.85)
-  static cardinal: qt.CurveCardinalFactory = (function f(tension) {
+  static cardinal: qt.CardinalFac = (function f(tension) {
     function y(x) {
       return new Curve.Cardinal(x, tension)
     }
@@ -828,7 +828,7 @@ export class Curve {
     }
     return y
   })(0)
-  static cardinalClosed: qt.CurveCardinalFactory = (function f(tension) {
+  static cardinalClosed: qt.CardinalFac = (function f(tension) {
     function y(x) {
       return new Curve.CardinalClosed(x, tension)
     }
@@ -837,7 +837,7 @@ export class Curve {
     }
     return y
   })(0)
-  static cardinalOpen: qt.CurveCardinalFactory = (function f(tension) {
+  static cardinalOpen: qt.CardinalFac = (function f(tension) {
     function y(x) {
       return new Curve.CardinalOpen(x, tension)
     }
@@ -846,7 +846,7 @@ export class Curve {
     }
     return y
   })(0)
-  static catmullRom: qt.CurveCatmullRomFactory = (function f(alpha) {
+  static catmullRom: qt.CatmullRomFac = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRom(x, alpha) : new Curve.Cardinal(x, 0)
     }
@@ -855,7 +855,7 @@ export class Curve {
     }
     return y
   })(0.5)
-  static catmullRomClosed: qt.CurveCatmullRomFactory = (function f(alpha) {
+  static catmullRomClosed: qt.CatmullRomFac = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRomClosed(x, alpha) : new Curve.CardinalClosed(x, 0)
     }
@@ -864,7 +864,7 @@ export class Curve {
     }
     return y
   })(0.5)
-  static catmullRomOpen: qt.CurveCatmullRomFactory = (function f(alpha) {
+  static catmullRomOpen: qt.CatmullRomFac = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRomOpen(x, alpha) : new Curve.CardinalOpen(x, 0)
     }
@@ -893,7 +893,7 @@ export class Curve {
   areaEnd() {}
 }
 export namespace Curve {
-  export class Basis extends Curve implements qt.CurveGenerator {
+  export class Basis extends Curve implements qt.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
@@ -939,7 +939,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export class BasisClosed extends Curve implements qt.CurveGenerator {
+  export class BasisClosed extends Curve implements qt.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
@@ -992,7 +992,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export class BasisOpen extends Curve implements qt.CurveGenerator {
+  export class BasisOpen extends Curve implements qt.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
@@ -1035,7 +1035,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export class Bump extends Curve implements qt.CurveGenerator {
+  export class Bump extends Curve implements qt.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path, public isX: boolean) {
       super(ctx)
     }
@@ -1072,7 +1072,7 @@ export namespace Curve {
       ;(this._x0 = x), (this._y0 = y)
     }
   }
-  export class BumpRadial extends Curve implements qt.CurveGenerator {
+  export class BumpRadial extends Curve implements qt.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
@@ -1132,7 +1132,7 @@ export namespace Curve {
       this.ys.push(+y)
     }
   }
-  export class Cardinal extends Curve implements qt.CurveGenerator {
+  export class Cardinal extends Curve implements qt.CurveGen {
     _k
     constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
       super(ctx)
@@ -1181,7 +1181,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CardinalClosed extends Curve implements qt.CurveGenerator {
+  export class CardinalClosed extends Curve implements qt.CurveGen {
     _k
     constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
       super(ctx)
@@ -1246,7 +1246,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CardinalOpen extends Curve implements qt.CurveGenerator {
+  export class CardinalOpen extends Curve implements qt.CurveGen {
     _k
     constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
       super(ctx)
@@ -1289,7 +1289,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CatmullRom extends Curve implements qt.CurveGenerator {
+  export class CatmullRom extends Curve implements qt.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
       super(ctx)
     }
@@ -1342,7 +1342,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CatmullRomClosed extends Curve implements qt.CurveGenerator {
+  export class CatmullRomClosed extends Curve implements qt.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
       super(ctx)
     }
@@ -1412,7 +1412,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CatmullRomOpen extends Curve implements qt.CurveGenerator {
+  export class CatmullRomOpen extends Curve implements qt.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
       super(ctx)
     }
@@ -1460,7 +1460,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class Linear extends Curve implements qt.CurveGenerator {
+  export class Linear extends Curve implements qt.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
@@ -1492,7 +1492,7 @@ export namespace Curve {
       }
     }
   }
-  export class LinearClosed extends Curve implements qt.CurveGenerator {
+  export class LinearClosed extends Curve implements qt.CurveGen {
     constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
     areaStart = noop
     areaEnd = noop
@@ -1523,7 +1523,7 @@ export namespace Curve {
       this.ctx.bezierCurveTo(y1, x1, y2, x2, y, x)
     }
   }
-  export class MonotoneX extends Curve implements qt.CurveGenerator {
+  export class MonotoneX extends Curve implements qt.CurveGen {
     constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
     areaStart() {
       this._line = 0
@@ -1572,7 +1572,7 @@ export namespace Curve {
       this._t0 = t1
     }
   }
-  export class MonotoneY extends Curve implements qt.CurveGenerator {
+  export class MonotoneY extends Curve implements qt.CurveGen {
     ctx
     constructor(x: CanvasRenderingContext2D | qu.Path) {
       this.ctx = new ReflectContext(x)
@@ -1581,7 +1581,7 @@ export namespace Curve {
       MonotoneX.point.call(this, y, x)
     }
   }
-  export class Natural extends Curve implements qt.CurveGenerator {
+  export class Natural extends Curve implements qt.CurveGen {
     constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
     areaStart() {
       this._line = 0
@@ -1646,7 +1646,7 @@ export namespace Curve {
     y._curve = curve
     return y
   }
-  export class Step extends Curve implements qt.CurveGenerator {
+  export class Step extends Curve implements qt.CurveGen {
     constructor(public ctx: CanvasRenderingContext2D | qu.Path, public pos = 0.5) {}
     areaStart() {
       this._line = 0

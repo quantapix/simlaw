@@ -375,9 +375,9 @@ export namespace centroid {
     pointCartesian(x0, y0, z0)
   }
 }
-export function circle(): qt.GeoCircleGenerator
-export function circle<T>(): qt.GeoCircleGenerator<any, T>
-export function circle<This, T>(): qt.GeoCircleGenerator<This, T>
+export function circle(): qt.GeoCircleGen
+export function circle<T>(): qt.GeoCircleGen<any, T>
+export function circle<This, T>(): qt.GeoCircleGen<This, T>
 export function circle() {
   let center = qu.constant([0, 0]),
     radius = qu.constant(90),
@@ -547,7 +547,7 @@ export function distance(a: qt.Point, b: qt.Point): number {
   coordinates[1] = b
   return length(object)
 }
-export function graticule(): qt.GeoGraticuleGenerator {
+export function graticule(): qt.GeoGraticuleGen {
   let x1,
     x0,
     X1,

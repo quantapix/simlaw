@@ -30,13 +30,13 @@ export interface HistogramCommon<T, U extends number | Date | undefined> {
   value(): (x: T, i: number, xs: ArrayLike<T>) => U
   value(f: (x: T, i: number, xs: ArrayLike<T>) => U): this
 }
-export interface HistogramGeneratorDate<T, U extends Date | undefined> extends HistogramCommon<T, Date> {
+export interface HistoDateGen<T, U extends Date | undefined> extends HistogramCommon<T, Date> {
   domain(): (xs: ArrayLike<U>) => [Date, Date]
   domain(x: [Date, Date] | ((xs: ArrayLike<U>) => [Date, Date])): this
   thresholds(): ThresholdDatesGen<U>
   thresholds(xs: ArrayLike<U> | ThresholdDatesGen<U>): this
 }
-export interface HistogramGeneratorNumber<T, U extends number | undefined> extends HistogramCommon<T, U> {
+export interface HistoNumGen<T, U extends number | undefined> extends HistogramCommon<T, U> {
   domain(): (xs: Iterable<U>) => Pair | Pair<undefined>
   domain(x: Pair | ((xs: Iterable<U>) => Pair | Pair<undefined>)): this
   thresholds(): ThresholdGen<U> | ThresholdNumsGen<U>
@@ -212,7 +212,7 @@ export interface Color {
   hex(): string
   toString(): string
 }
-export interface ColorFactory extends Function {
+export interface ColorFac extends Function {
   (spec: string): RGBColor | HSLColor | null
   (color: ColorSpaceObject | ColorCommonInstance): RGBColor | HSLColor
   readonly prototype: Color
@@ -233,7 +233,7 @@ export interface RGBColor extends Color {
   }): this
   clamp(): this
 }
-export interface RGBColorFactory extends Function {
+export interface RGBColorFac extends Function {
   (r: number, g: number, b: number, opacity?: number): RGBColor
   (spec: string): RGBColor
   (color: ColorSpaceObject | ColorCommonInstance): RGBColor
@@ -255,7 +255,7 @@ export interface HSLColor extends Color {
   }): this
   clamp(): this
 }
-export interface HSLColorFactory extends Function {
+export interface HSLColorFac extends Function {
   (h: number, s: number, l: number, opacity?: number): HSLColor
   (spec: string): HSLColor
   (color: ColorSpaceObject | ColorCommonInstance): HSLColor
@@ -276,13 +276,13 @@ export interface LabColor extends Color {
     opacity?: number | undefined
   }): this
 }
-export interface LabColorFactory extends Function {
+export interface LabColorFac extends Function {
   (l: number, a: number, b: number, opacity?: number): LabColor
   (spec: string): LabColor
   (color: ColorSpaceObject | ColorCommonInstance): LabColor
   readonly prototype: LabColor
 }
-export type GrayColorFactory = (l: number, opacity?: number) => LabColor
+export type GrayColorFac = (l: number, opacity?: number) => LabColor
 export interface HCLColor extends Color {
   h: number
   c: number
@@ -298,13 +298,13 @@ export interface HCLColor extends Color {
     opacity?: number | undefined
   }): this
 }
-export interface HCLColorFactory extends Function {
+export interface HCLColorFac extends Function {
   (h: number, c: number, l: number, opacity?: number): HCLColor
   (spec: string): HCLColor
   (color: ColorSpaceObject | ColorCommonInstance): HCLColor
   readonly prototype: HCLColor
 }
-export interface LCHColorFactory {
+export interface LCHColorFac {
   (l: number, c: number, h: number, opacity?: number): HCLColor
   (spec: string): HCLColor
   (color: ColorSpaceObject | ColorCommonInstance): HCLColor
@@ -324,20 +324,20 @@ export interface CubehelixColor extends Color {
     opacity?: number | undefined
   }): this
 }
-export interface CubehelixColorFactory extends Function {
+export interface CubehelixColorFac extends Function {
   (h: number, s: number, l: number, opacity?: number): CubehelixColor
   (spec: string): CubehelixColor
   (color: ColorSpaceObject | ColorCommonInstance): CubehelixColor
   readonly prototype: CubehelixColor
 }
-export const color: ColorFactory
-export const rgb: RGBColorFactory
-export const hsl: HSLColorFactory
-export const lab: LabColorFactory
-export const gray: GrayColorFactory
-export const hcl: HCLColorFactory
-export const lch: LCHColorFactory
-export const cubehelix: CubehelixColorFactory
+export const color: ColorFac
+export const rgb: RGBColorFac
+export const hsl: HSLColorFac
+export const lab: LabColorFac
+export const gray: GrayColorFac
+export const hcl: HCLColorFac
+export const lch: LCHColorFac
+export const cubehelix: CubehelixColorFac
 
 export interface ContourPoly extends MultiPolygon {
   value: number
@@ -518,18 +518,18 @@ export interface DSV {
   formatValue(value: string): string
 }
 
-export interface PolyEasingFactory {
+export interface PolyEasingFac {
   (normalizedTime: number): number
-  exponent(e: number): PolyEasingFactory
+  exponent(e: number): PolyEasingFac
 }
-export interface BackEasingFactory {
+export interface BackEasingFac {
   (normalizedTime: number): number
-  overshoot(s: number): BackEasingFactory
+  overshoot(s: number): BackEasingFac
 }
-export interface ElasticEasingFactory {
+export interface ElasticEasingFac {
   (normalizedTime: number): number
-  amplitude(a: number): ElasticEasingFactory
-  period(p: number): ElasticEasingFactory
+  amplitude(a: number): ElasticEasingFac
+  period(p: number): ElasticEasingFac
 }
 
 export interface SimNode {
@@ -722,7 +722,7 @@ export interface GeoRotation {
   (x: Point): Point
   invert(x: Point): Point
 }
-export interface GeoCircleGenerator<This = any, T = any> {
+export interface GeoCircleGen<This = any, T = any> {
   (this: This, d?: T, ...xs: any[]): GeoJSON.Polygon
   center(): (this: This, x: T, ...xs: any[]) => Point
   center(center: Point | ((this: This, x: T, ...xs: any[]) => Point)): this
@@ -731,7 +731,7 @@ export interface GeoCircleGenerator<This = any, T = any> {
   precision(): (this: This, x: T, ...xs: any[]) => number
   precision(precision: number | ((this: This, x: T, ...xs: any[]) => number)): this
 }
-export interface GeoGraticuleGenerator {
+export interface GeoGraticuleGen {
   (): GeoJSON.MultiLineString
   lines(): GeoJSON.LineString[]
   outline(): GeoJSON.Polygon
@@ -1032,14 +1032,14 @@ export namespace hierarchy {
     size(x: Point): this
   }
 }
-export interface ZoomInterpolator extends Function {
+export interface ZoomIpolator extends Function {
   (t: number): ZoomView
   duration: number
   rho(rho: number): this
 }
-export interface ColorGammaInterpolationFactory extends Function {
+export interface ColorGammaIpolatorFac extends Function {
   (a: string | ColorCommonInstance, b: string | ColorCommonInstance): (t: number) => string
-  gamma(g: number): ColorGammaInterpolationFactory
+  gamma(g: number): ColorGammaIpolatorFac
 }
 export type ZoomView = [number, number, number]
 export type TypedArray =
@@ -1054,7 +1054,7 @@ export type TypedArray =
   | Float64Array
 export type NumberArray = TypedArray | DataView
 
-export type ArrayInterpolator<A extends any[]> = (t: number) => A
+export type ArrayIpolator<A extends any[]> = (t: number) => A
 
 export interface Path {
   arc(x: number, y: number, r: number, a0: number, a1: number, ccw?: boolean): void
@@ -1154,7 +1154,7 @@ export interface RandWeibull extends RandomSrc {
   (k: number, a?: number, b?: number): () => number
 }
 
-export interface InterpolatorFactory<T, U> {
+export interface IpolatorFac<T, U> {
   (a: T, b: T): (x: number) => U
 }
 
@@ -1184,9 +1184,9 @@ export namespace Scale {
     copy(): this
     domain(): Date[]
     domain(x: Iterable<Date | NumVal>): this
-    interpolate(): InterpolatorFactory<any, any>
-    interpolate(f: InterpolatorFactory<Range, Out>): this
-    interpolate<O2>(f: InterpolatorFactory<Range, O2>): Time<Range, O2, U>
+    interpolate(): IpolatorFac<any, any>
+    interpolate(f: IpolatorFac<Range, Out>): this
+    interpolate<O2>(f: IpolatorFac<Range, O2>): Time<Range, O2, U>
     invert(x: NumVal): Date
     nice(n?: number): this
     nice(x: CountableTimeInterval): this
@@ -1325,18 +1325,18 @@ export namespace Scale {
     ticks(n?: number): number[]
   }
   export interface Linear<Range, Out, U = never> extends Smooth<Range, Out, U> {
-    interpolate(): InterpolatorFactory<any, any>
-    interpolate(f: InterpolatorFactory<Range, Out>): this
-    interpolate<O2>(f: InterpolatorFactory<Range, O2>): Linear<Range, O2, U>
+    interpolate(): IpolatorFac<any, any>
+    interpolate(f: IpolatorFac<Range, Out>): this
+    interpolate<O2>(f: IpolatorFac<Range, O2>): Linear<Range, O2, U>
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Linear<Range, Out, U2>
   }
   export interface Pow<Range, Out, U = never> extends Smooth<Range, Out, U> {
     exponent(): number
     exponent(x: number): this
-    interpolate(): InterpolatorFactory<any, any>
-    interpolate(f: InterpolatorFactory<Range, Out>): this
-    interpolate<O2>(f: InterpolatorFactory<Range, O2>): Pow<Range, O2, U>
+    interpolate(): IpolatorFac<any, any>
+    interpolate(f: IpolatorFac<Range, Out>): this
+    interpolate<O2>(f: IpolatorFac<Range, O2>): Pow<Range, O2, U>
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Pow<Range, Out, U2>
   }
@@ -1345,9 +1345,9 @@ export namespace Scale {
     base(x: number): this
     domain(): number[]
     domain(x: Iterable<NumVal>): this
-    interpolate(): InterpolatorFactory<any, any>
-    interpolate(f: InterpolatorFactory<Range, Out>): this
-    interpolate<O2>(f: InterpolatorFactory<Range, O2>): Log<Range, O2, U>
+    interpolate(): IpolatorFac<any, any>
+    interpolate(f: IpolatorFac<Range, Out>): this
+    interpolate<O2>(f: IpolatorFac<Range, O2>): Log<Range, O2, U>
     nice(): this
     tickFormat(n?: number, spec?: string): (d: NumVal) => string
     ticks(n?: number): number[]
@@ -1651,9 +1651,9 @@ export interface Line<T> {
   defined(): (x: T, i: number, data: T[]) => boolean
   defined(defined: boolean): this
   defined(defined: (x: T, i: number, data: T[]) => boolean): this
-  curve(): CurveFactory | CurveFactoryLineOnly
-  curve<C extends CurveFactory | CurveFactoryLineOnly>(): C
-  curve(curve: CurveFactory | CurveFactoryLineOnly): this
+  curve(): CurveFac | LineOnlyFac
+  curve<C extends CurveFac | LineOnlyFac>(): C
+  curve(curve: CurveFac | LineOnlyFac): this
   context(): CanvasRenderingContext2D | null
   context(context: CanvasRenderingContext2D | null): this
 }
@@ -1669,9 +1669,9 @@ export interface LineRadial<T> {
   defined(): (x: T, i: number, data: T[]) => boolean
   defined(defined: boolean): this
   defined(defined: (x: T, i: number, data: T[]) => boolean): this
-  curve(): CurveFactory | CurveFactoryLineOnly
-  curve<C extends CurveFactory | CurveFactoryLineOnly>(): C
-  curve(curve: CurveFactory | CurveFactoryLineOnly): this
+  curve(): CurveFac | LineOnlyFac
+  curve<C extends CurveFac | LineOnlyFac>(): C
+  curve(curve: CurveFac | LineOnlyFac): this
   context(): CanvasRenderingContext2D | null
   context(context: CanvasRenderingContext2D | null): this
 }
@@ -1681,9 +1681,9 @@ export interface Area<T> {
   (xs: Iterable<T> | T[]): void
   context(): CanvasRenderingContext2D | null
   context(x: CanvasRenderingContext2D | null): this
-  curve(): CurveFactory
-  curve(x: CurveFactory): this
-  curve<C extends CurveFactory>(): C
+  curve(): CurveFac
+  curve(x: CurveFac): this
+  curve<C extends CurveFac>(): C
   defined(): (x: T, i: number, xs: T[]) => boolean
   defined(f: (x: T, i: number, xs: T[]) => boolean): this
   defined(x: boolean): this
@@ -1718,9 +1718,9 @@ export interface AreaRadial<T> {
   angle(x: number): this
   context(): CanvasRenderingContext2D | null
   context(x: CanvasRenderingContext2D | null): this
-  curve(): CurveFactory
-  curve(x: CurveFactory): this
-  curve<C extends CurveFactory>(): C
+  curve(): CurveFac
+  curve(x: CurveFac): this
+  curve<C extends CurveFac>(): C
   defined(): (x: T, i: number, xs: T[]) => boolean
   defined(f: (x: T, i: number, xs: T[]) => boolean): this
   defined(x: boolean): this
@@ -1745,25 +1745,25 @@ export interface AreaRadial<T> {
   startAngle(x: number): this
 }
 
-export interface CurveGeneratorLineOnly {
+export interface LineOnlyGen {
   lineStart(): void
   lineEnd(): void
   point(x: number, y: number): void
 }
-export interface CurveGenerator extends CurveGeneratorLineOnly {
+export interface CurveGen extends LineOnlyGen {
   areaStart(): void
   areaEnd(): void
 }
-export type CurveFactoryLineOnly = (x: CanvasRenderingContext2D | Path) => CurveGeneratorLineOnly
-export type CurveFactory = (x: CanvasRenderingContext2D | Path) => CurveGenerator
+export type LineOnlyFac = (x: CanvasRenderingContext2D | Path) => LineOnlyGen
+export type CurveFac = (x: CanvasRenderingContext2D | Path) => CurveGen
 
-export interface CurveBundleFactory extends CurveFactoryLineOnly {
+export interface BundleFac extends LineOnlyFac {
   beta(x: number): this
 }
-export interface CurveCardinalFactory extends CurveFactory {
+export interface CardinalFac extends CurveFac {
   tension(x: number): this
 }
-export interface CurveCatmullRomFactory extends CurveFactory {
+export interface CatmullRomFac extends CurveFac {
   alpha(x: number): this
 }
 export interface DefaultLinkObject {
@@ -2005,10 +2005,8 @@ export interface ZoomBehavior<B extends ZoomedElementBaseType, T> extends Functi
   tapDistance(distance: number): this
   duration(): number
   duration(duration: number): this
-  interpolate<
-    InterpolationFactory extends (a: ZoomView, b: ZoomView) => (t: number) => ZoomView
-  >(): InterpolationFactory
-  interpolate(interpolatorFactory: (a: ZoomView, b: ZoomView) => (t: number) => ZoomView): this
+  interpolate<IpolationFac extends (a: ZoomView, b: ZoomView) => (t: number) => ZoomView>(): IpolationFac
+  interpolate(f: (a: ZoomView, b: ZoomView) => (t: number) => ZoomView): this
   on(typenames: string): ((this: B, event: any, x: T) => void) | undefined
   on(typenames: string, listener: null): this
   on(typenames: string, listener: (this: B, event: any, x: T) => void): this
