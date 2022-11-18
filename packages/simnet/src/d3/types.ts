@@ -120,6 +120,7 @@ export interface BrushEvent<T> {
   target: BrushBehavior<T>
   type: "start" | "brush" | "end" | string
 }
+
 export interface ChordSubgroup {
   endAngle: number
   i: number
@@ -127,14 +128,14 @@ export interface ChordSubgroup {
   value: number
 }
 export interface Chord {
-  source: ChordSubgroup
-  target: ChordSubgroup
+  src: ChordSubgroup
+  tgt: ChordSubgroup
 }
 export interface ChordGroup {
-  startAngle: number
   endAngle: number
-  value: number
   i: number
+  startAngle: number
+  value: number
 }
 export interface Chords extends Array<Chord> {
   groups: ChordGroup[]
@@ -142,56 +143,57 @@ export interface Chords extends Array<Chord> {
 export interface ChordLayout {
   (xs: number[][]): Chords
   padAngle(): number
-  padAngle(angle: number): this
+  padAngle(x: number): this
   sortGroups(): ((a: number, b: number) => number) | null
-  sortGroups(compare: null | ((a: number, b: number) => number)): this
+  sortGroups(f: null | ((a: number, b: number) => number)): this
   sortSubgroups(): ((a: number, b: number) => number) | null
-  sortSubgroups(compare: null | ((a: number, b: number) => number)): this
+  sortSubgroups(f: null | ((a: number, b: number) => number)): this
   sortChords(): ((a: number, b: number) => number) | null
-  sortChords(compare: null | ((a: number, b: number) => number)): this
+  sortChords(f: null | ((a: number, b: number) => number)): this
 }
 export interface RibbonSubgroup {
-  startAngle: number
   endAngle: number
   radius: number
+  startAngle: number
 }
 export interface Ribbon {
-  source: RibbonSubgroup
-  target: RibbonSubgroup
+  src: RibbonSubgroup
+  tgt: RibbonSubgroup
 }
-export interface RibbonGenerator<This, T, S> {
+export interface RibbonGen<This, T, S> {
   (this: This, x: T, ...xs: any[]): void
   (this: This, x: T, ...xs: any[]): string | null
   source(): (this: This, x: T, ...xs: any[]) => S
-  source(source: (this: This, x: T, ...xs: any[]) => S): this
+  source(f: (this: This, x: T, ...xs: any[]) => S): this
   target(): (this: This, x: T, ...xs: any[]) => S
-  target(target: (this: This, x: T, ...xs: any[]) => S): this
+  target(f: (this: This, x: T, ...xs: any[]) => S): this
   radius(): (this: This, d: S, ...xs: any[]) => number
-  radius(radius: number): this
-  radius(radius: (this: This, d: S, ...xs: any[]) => number): this
+  radius(x: number): this
+  radius(f: (this: This, d: S, ...xs: any[]) => number): this
   sourceRadius(): (this: This, d: S, ...xs: any[]) => number
-  sourceRadius(radius: number): this
-  sourceRadius(radius: (this: This, d: S, ...xs: any[]) => number): this
+  sourceRadius(x: number): this
+  sourceRadius(f: (this: This, d: S, ...xs: any[]) => number): this
   targetRadius(): (this: This, d: S, ...xs: any[]) => number
-  targetRadius(radius: number): this
-  targetRadius(radius: (this: This, d: S, ...xs: any[]) => number): this
+  targetRadius(x: number): this
+  targetRadius(f: (this: This, d: S, ...xs: any[]) => number): this
   startAngle(): (this: This, d: S, ...xs: any[]) => number
-  startAngle(angle: number): this
-  startAngle(angle: (this: This, d: S, ...xs: any[]) => number): this
+  startAngle(x: number): this
+  startAngle(f: (this: This, d: S, ...xs: any[]) => number): this
   endAngle(): (this: This, d: S, ...xs: any[]) => number
-  endAngle(angle: number): this
-  endAngle(angle: (this: This, d: S, ...xs: any[]) => number): this
+  endAngle(x: number): this
+  endAngle(f: (this: This, d: S, ...xs: any[]) => number): this
   padAngle(): (this: This, d: S, ...xs: any[]) => number
-  padAngle(angle: number): this
-  padAngle(angle: (this: This, d: S, ...xs: any[]) => number): this
+  padAngle(x: number): this
+  padAngle(f: (this: This, d: S, ...xs: any[]) => number): this
   context(): CanvasRenderingContext2D | null
-  context(context: CanvasRenderingContext2D | null): this
+  context(x: CanvasRenderingContext2D | null): this
 }
-export interface RibbonArrowGenerator<This, T, S> extends RibbonGenerator<This, T, S> {
+export interface RibbonArrowGen<This, T, S> extends RibbonGen<This, T, S> {
   headRadius(): (this: This, d: S, ...xs: any[]) => number
-  headRadius(radius: number): this
-  headRadius(radius: (this: This, d: S, ...xs: any[]) => number): this
+  headRadius(x: number): this
+  headRadius(f: (this: This, d: S, ...xs: any[]) => number): this
 }
+
 export type ColorSpaceObject = RGBColor | HSLColor | LabColor | HCLColor | CubehelixColor
 export interface ColorCommonInstance {
   brighter(k?: number): this
