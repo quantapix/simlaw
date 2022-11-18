@@ -436,14 +436,14 @@ export interface Voronoi<T> {
   update(): this
 }
 
-export type DispatchCB<T extends object> = (this: T, ...xs: any[]) => void
+export type CB<T extends object> = (this: T, ...xs: any[]) => void
 
 export interface Dispatch<T extends object> {
   apply(k: string, x?: T, ...xs: any[]): void
   call(k: string, x?: T, ...xs: any[]): void
   copy(): Dispatch<T>
-  on(k: string, f?: DispatchCB<T>): this
-  on(k: string): DispatchCB<T> | undefined
+  on(k: string, f?: CB<T>): this
+  on(k: string): CB<T> | undefined
 }
 
 export type DraggedElementBaseType = Element
