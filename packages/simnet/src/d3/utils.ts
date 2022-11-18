@@ -11,6 +11,8 @@ export const epsilon = 1e-6
 export const epsilon2 = 1e-12
 export const tauEpsilon = tau - epsilon
 
+export const SQRT2 = Math.SQRT2
+
 export const abs = Math.abs
 export const atan = Math.atan
 export const atan2 = Math.atan2
@@ -23,9 +25,20 @@ export const log = Math.log
 export const max = Math.max
 export const min = Math.min
 export const pow = Math.pow
+export const round = Math.round
 export const sin = Math.sin
 export const sqrt = Math.sqrt
 export const tan = Math.tan
+
+export function sinh(x: number) {
+  return ((x = exp(x)) - 1 / x) / 2
+}
+export function cosh(x: number) {
+  return ((x = exp(x)) + 1 / x) / 2
+}
+export function tanh(x: number) {
+  return ((x = exp(2 * x)) - 1) / (x + 1)
+}
 
 export function array(x?: any) {
   return x === undefined ? [] : Array.isArray(x) ? x : Array.from(x)
@@ -43,6 +56,17 @@ export function shuffle(xs: any[], rnd: () => number) {
     xs[i] = x
   }
   return xs
+}
+
+export function discrete<T>(xs: T[]): (x: number) => T {
+  const n = xs.length
+  return x => xs[max(0, min(n - 1, floor(x * n)))]!
+}
+
+export function quantize<T>(f: (x: number) => T, n: number): T[] {
+  const y = new Array(n)
+  for (let i = 0; i < n; ++i) y[i] = f(i / (n - 1))
+  return y
 }
 
 export const identity = <T>(x: T) => x

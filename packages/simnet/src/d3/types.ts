@@ -1038,7 +1038,7 @@ export interface ZoomIpolator extends Function {
   rho(rho: number): this
 }
 export interface ColorGammaIpolatorFac extends Function {
-  (a: string | ColorCommonInstance, b: string | ColorCommonInstance): (t: number) => string
+  (a: string | ColorCommonInstance, b: string | ColorCommonInstance): (x: number) => string
   gamma(g: number): ColorGammaIpolatorFac
 }
 export type ZoomView = [number, number, number]
@@ -1052,9 +1052,9 @@ export type TypedArray =
   | Uint8ClampedArray
   | Float32Array
   | Float64Array
-export type NumberArray = TypedArray | DataView
+export type NumArray = TypedArray | DataView
 
-export type ArrayIpolator<A extends any[]> = (t: number) => A
+export type ArrayIpolator<T extends any[]> = (x: number) => T
 
 export interface Path {
   arc(x: number, y: number, r: number, a0: number, a1: number, ccw?: boolean): void
