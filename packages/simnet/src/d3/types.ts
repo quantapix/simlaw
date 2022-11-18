@@ -18,17 +18,13 @@ export interface Bin<T, U extends number | Date | undefined> extends Array<T> {
   x0: U | undefined
   x1: U | undefined
 }
-export type ThresholdCountGenerator<T extends number | undefined = number | undefined> = (
+export type ThresholdGen<T extends number | undefined = number | undefined> = (
   xs: ArrayLike<T>,
   min: number,
   max: number
 ) => number
-export type ThresholdNumberArrayGenerator<T extends number | undefined> = (
-  xs: ArrayLike<T>,
-  min: number,
-  max: number
-) => T[]
-export type ThresholdDateArrayGenerator<T extends Date | undefined> = (xs: ArrayLike<T>, min: Date, max: Date) => T[]
+export type ThresholdDatesGen<T extends Date | undefined> = (xs: ArrayLike<T>, min: Date, max: Date) => T[]
+export type ThresholdNumsGen<T extends number | undefined> = (xs: ArrayLike<T>, min: number, max: number) => T[]
 export interface HistogramCommon<T, U extends number | Date | undefined> {
   (xs: ArrayLike<T>): Array<Bin<T, U>>
   value(): (x: T, i: number, xs: ArrayLike<T>) => U
@@ -37,15 +33,15 @@ export interface HistogramCommon<T, U extends number | Date | undefined> {
 export interface HistogramGeneratorDate<T, U extends Date | undefined> extends HistogramCommon<T, Date> {
   domain(): (xs: ArrayLike<U>) => [Date, Date]
   domain(x: [Date, Date] | ((xs: ArrayLike<U>) => [Date, Date])): this
-  thresholds(): ThresholdDateArrayGenerator<U>
-  thresholds(xs: ArrayLike<U> | ThresholdDateArrayGenerator<U>): this
+  thresholds(): ThresholdDatesGen<U>
+  thresholds(xs: ArrayLike<U> | ThresholdDatesGen<U>): this
 }
 export interface HistogramGeneratorNumber<T, U extends number | undefined> extends HistogramCommon<T, U> {
   domain(): (xs: Iterable<U>) => Pair | Pair<undefined>
   domain(x: Pair | ((xs: Iterable<U>) => Pair | Pair<undefined>)): this
-  thresholds(): ThresholdCountGenerator<U> | ThresholdNumberArrayGenerator<U>
-  thresholds(n: number | ThresholdCountGenerator<U>): this
-  thresholds(xs: ArrayLike<U> | ThresholdNumberArrayGenerator<U>): this
+  thresholds(): ThresholdGen<U> | ThresholdNumsGen<U>
+  thresholds(n: number | ThresholdGen<U>): this
+  thresholds(xs: ArrayLike<U> | ThresholdNumsGen<U>): this
 }
 
 export type AxisDomain = number | string | Date | { valueOf(): number }
@@ -341,39 +337,35 @@ export const hcl: HCLColorFactory
 export const lch: LCHColorFactory
 export const cubehelix: CubehelixColorFactory
 
-export interface ContourMultiPolygon extends MultiPolygon {
+export interface ContourPoly extends MultiPolygon {
   value: number
 }
 export interface Contours {
-  (values: number[]): ContourMultiPolygon[]
-  contour(values: number[], threshold: number): ContourMultiPolygon
-  size(): Point
-  size(size: Point): this
+  (xs: number[]): ContourPoly[]
+  contour(xs: number[], threshold: number): ContourPoly
+  size(): Span
+  size(x: Span): this
   smooth(): boolean
-  smooth(smooth: boolean): this
-  thresholds(): ThresholdCountGenerator<number> | ThresholdNumberArrayGenerator<number>
-  thresholds(
-    thresholds: number | number[] | ThresholdCountGenerator<number> | ThresholdNumberArrayGenerator<number>
-  ): this
+  smooth(x: boolean): this
+  thresholds(): ThresholdGen<number> | ThresholdNumsGen<number>
+  thresholds(x: number | number[] | ThresholdGen<number> | ThresholdNumsGen<number>): this
 }
-export interface ContourDensity<T = Point> {
-  (data: T[]): ContourMultiPolygon[]
+export interface Density<T = Point> {
+  (xs: T[]): ContourPoly[]
+  bandwidth(): number
+  bandwidth(x: number): this
+  cellSize(): number
+  cellSize(x: number): this
+  size(): Span
+  size(x: Span): this
+  thresholds(): ThresholdGen<number> | ThresholdNumsGen<number>
+  thresholds(x: number | number[] | ThresholdGen<number> | ThresholdNumsGen<number>): this
+  weight(): (x: T) => number
+  weight(weight: (x: T) => number): this
   x(): (x: T) => number
   x(x: (x: T) => number): this
   y(): (x: T) => number
   y(y: (x: T) => number): this
-  weight(): (x: T) => number
-  weight(weight: (x: T) => number): this
-  size(): Point
-  size(size: Point): this
-  cellSize(): number
-  cellSize(cellSize: number): this
-  thresholds(): ThresholdCountGenerator<number> | ThresholdNumberArrayGenerator<number>
-  thresholds(
-    thresholds: number | number[] | ThresholdCountGenerator<number> | ThresholdNumberArrayGenerator<number>
-  ): this
-  bandwidth(): number
-  bandwidth(bandwidth: number): this
 }
 export interface Delaunay<T> {
   points: ArrayLike<number>
