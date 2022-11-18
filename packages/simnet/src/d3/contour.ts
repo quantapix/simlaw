@@ -1,145 +1,42 @@
-import { extent, thresholdSturges, ticks, tickStep } from "./utils_seq.js"
-import { slice } from "./utils_seq.js"
-import { blur2, max } from "./utils_seq.js"
+import { thresholdSturges, ticks, tickStep } from "./utils_seq.js"
+import { each, slice, blur2 } from "./utils_seq.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
-export function area(ring) {
+export function area(ps: qt.Point[]) {
+  const n = ps.length
   let i = 0,
-    n = ring.length,
-    area = ring[n - 1][1] * ring[0][0] - ring[n - 1][0] * ring[0][1]
-  while (++i < n) area += ring[i - 1][1] * ring[i][0] - ring[i - 1][0] * ring[i][1]
-  return area
+    y = ps[n - 1]![1] * ps[0]![0] - ps[n - 1]![0] * ps[0]![1]
+  while (++i < n) y += ps[i - 1]![1] * ps[i]![0] - ps[i - 1]![0] * ps[i]![1]
+  return y
 }
-export function contains(ring, hole) {
-  let i = -1,
-    n = hole.length,
-    c
-  while (++i < n) if ((c = ringContains(ring, hole[i]))) return c
+export function contains(ps: qt.Point[], xs: qt.Point[]) {
+  function inRing(p: qt.Point) {
+    const [x, y] = p
+    let contains = -1
+    function inSegment(a: qt.Point, b: qt.Point, c: qt.Point) {
+      const collinear = (a: qt.Point, b: qt.Point, c: qt.Point) =>
+        (b[0] - a[0]) * (c[1] - a[1]) === (c[0] - a[0]) * (b[1] - a[1])
+      const within = (x: number, y: number, z: number) => (x <= y && y <= z) || (z <= y && y <= x)
+      let i: number
+      return collinear(a, b, c) && within(a[(i = +(a[0] === b[0]))]!, c[i]!, b[i]!)
+    }
+    for (let i = 0, n = ps.length, j = n - 1; i < n; j = i++) {
+      const pi = ps[i]!
+      const [xi, yi] = pi
+      const pj = ps[j]!
+      const [xj, yj] = pj
+      if (inSegment(pi, pj, p)) return 0
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) contains = -contains
+    }
+    return contains
+  }
+  for (const x of xs) {
+    const c = inRing(x)
+    if (c) return c
+  }
   return 0
 }
-function ringContains(ring, point) {
-  let x = point[0],
-    y = point[1],
-    contains = -1
-  for (let i = 0, n = ring.length, j = n - 1; i < n; j = i++) {
-    const pi = ring[i],
-      xi = pi[0],
-      yi = pi[1],
-      pj = ring[j],
-      xj = pj[0],
-      yj = pj[1]
-    if (segmentContains(pi, pj, point)) return 0
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) contains = -contains
-  }
-  return contains
-}
-function segmentContains(a, b, c) {
-  let i
-  return collinear(a, b, c) && within(a[(i = +(a[0] === b[0]))], c[i], b[i])
-}
-function collinear(a, b, c) {
-  return (b[0] - a[0]) * (c[1] - a[1]) === (c[0] - a[0]) * (b[1] - a[1])
-}
-function within(p, q, r) {
-  return (p <= q && q <= r) || (r <= q && q <= p)
-}
-const cases = [
-  [],
-  [
-    [
-      [1.0, 1.5],
-      [0.5, 1.0],
-    ],
-  ],
-  [
-    [
-      [1.5, 1.0],
-      [1.0, 1.5],
-    ],
-  ],
-  [
-    [
-      [1.5, 1.0],
-      [0.5, 1.0],
-    ],
-  ],
-  [
-    [
-      [1.0, 0.5],
-      [1.5, 1.0],
-    ],
-  ],
-  [
-    [
-      [1.0, 1.5],
-      [0.5, 1.0],
-    ],
-    [
-      [1.0, 0.5],
-      [1.5, 1.0],
-    ],
-  ],
-  [
-    [
-      [1.0, 0.5],
-      [1.0, 1.5],
-    ],
-  ],
-  [
-    [
-      [1.0, 0.5],
-      [0.5, 1.0],
-    ],
-  ],
-  [
-    [
-      [0.5, 1.0],
-      [1.0, 0.5],
-    ],
-  ],
-  [
-    [
-      [1.0, 1.5],
-      [1.0, 0.5],
-    ],
-  ],
-  [
-    [
-      [0.5, 1.0],
-      [1.0, 0.5],
-    ],
-    [
-      [1.5, 1.0],
-      [1.0, 1.5],
-    ],
-  ],
-  [
-    [
-      [1.5, 1.0],
-      [1.0, 0.5],
-    ],
-  ],
-  [
-    [
-      [0.5, 1.0],
-      [1.5, 1.0],
-    ],
-  ],
-  [
-    [
-      [1.0, 1.5],
-      [1.5, 1.0],
-    ],
-  ],
-  [
-    [
-      [0.5, 1.0],
-      [1.0, 1.5],
-    ],
-  ],
-  [],
-]
 export function contours(): qt.Contours {
   let dx = 1,
     dy = 1,
@@ -148,7 +45,7 @@ export function contours(): qt.Contours {
   function f(values) {
     let tz = threshold(values)
     if (!Array.isArray(tz)) {
-      const e = extent(values),
+      const e = each.extent(values),
         ts = tickStep(e[0], e[1], tz)
       tz = ticks(Math.floor(e[0] / ts) * ts, Math.floor(e[1] / ts - 1) * ts, tz)
     } else {
@@ -300,7 +197,7 @@ export function contours(): qt.Contours {
       : threshold
   }
   f.smooth = function (_) {
-    return arguments.length ? ((smooth = _ ? smoothLinear : noop), f) : smooth === smoothLinear
+    return arguments.length ? ((smooth = _ ? smoothLinear : () => {}), f) : smooth === smoothLinear
   }
   return f
 }
@@ -352,7 +249,7 @@ export function density<T = qt.Point>(): qt.ContourDensity<T> {
       tz = threshold(values),
       pow4k = Math.pow(2, 2 * k)
     if (!Array.isArray(tz)) {
-      tz = ticks(Number.MIN_VALUE, max(values) / pow4k, tz)
+      tz = ticks(Number.MIN_VALUE, each.max(values) / pow4k, tz)
     }
     return Contours()
       .size([n, m])
@@ -369,7 +266,7 @@ export function density<T = qt.Point>(): qt.ContourDensity<T> {
         c.value = value // preserve exact threshold value
         return c
       }
-    Object.defineProperty(contour, "max", { get: () => max(values) / pow4k })
+    Object.defineProperty(contour, "max", { get: () => each.max(values) / pow4k })
     return contour
   }
   function transform(geometry) {
@@ -425,4 +322,99 @@ export function density<T = qt.Point>(): qt.ContourDensity<T> {
   }
   return f
 }
-export function noop() {}
+const cases = [
+  [],
+  [
+    [
+      [1.0, 1.5],
+      [0.5, 1.0],
+    ],
+  ],
+  [
+    [
+      [1.5, 1.0],
+      [1.0, 1.5],
+    ],
+  ],
+  [
+    [
+      [1.5, 1.0],
+      [0.5, 1.0],
+    ],
+  ],
+  [
+    [
+      [1.0, 0.5],
+      [1.5, 1.0],
+    ],
+  ],
+  [
+    [
+      [1.0, 1.5],
+      [0.5, 1.0],
+    ],
+    [
+      [1.0, 0.5],
+      [1.5, 1.0],
+    ],
+  ],
+  [
+    [
+      [1.0, 0.5],
+      [1.0, 1.5],
+    ],
+  ],
+  [
+    [
+      [1.0, 0.5],
+      [0.5, 1.0],
+    ],
+  ],
+  [
+    [
+      [0.5, 1.0],
+      [1.0, 0.5],
+    ],
+  ],
+  [
+    [
+      [1.0, 1.5],
+      [1.0, 0.5],
+    ],
+  ],
+  [
+    [
+      [0.5, 1.0],
+      [1.0, 0.5],
+    ],
+    [
+      [1.5, 1.0],
+      [1.0, 1.5],
+    ],
+  ],
+  [
+    [
+      [1.5, 1.0],
+      [1.0, 0.5],
+    ],
+  ],
+  [
+    [
+      [0.5, 1.0],
+      [1.5, 1.0],
+    ],
+  ],
+  [
+    [
+      [1.0, 1.5],
+      [1.5, 1.0],
+    ],
+  ],
+  [
+    [
+      [0.5, 1.0],
+      [1.0, 1.5],
+    ],
+  ],
+  [],
+]

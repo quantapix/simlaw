@@ -340,6 +340,7 @@ export const gray: GrayColorFactory
 export const hcl: HCLColorFactory
 export const lch: LCHColorFactory
 export const cubehelix: CubehelixColorFactory
+
 export interface ContourMultiPolygon extends MultiPolygon {
   value: number
 }
