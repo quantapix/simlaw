@@ -95,12 +95,7 @@ export interface Axis<T> {
 export type BrushSelection = [Point, Point] | Point
 export interface BrushBehavior<T> {
   (x: Selection<SVGGElement, T, any, any>, ...xs: any[]): void
-  move(
-    group: Selection<SVGGElement, T, any, any> | TransitionLike<SVGGElement, T>,
-    selection: null | BrushSelection | ValueFn<SVGGElement, T, BrushSelection>,
-    e?: Event
-  ): void
-  clear(group: Selection<SVGGElement, T, any, any>, event?: Event): void
+  clear(x: Selection<SVGGElement, T, any, any>, event?: Event): void
   extent(): ValueFn<SVGGElement, T, [Point, Point]>
   extent(f: ValueFn<SVGGElement, T, [Point, Point]>): this
   extent(x: [Point, Point]): this
@@ -110,6 +105,11 @@ export interface BrushBehavior<T> {
   handleSize(x: number): this
   keyModifiers(): boolean
   keyModifiers(x: boolean): this
+  move(
+    group: Selection<SVGGElement, T, any, any> | TransitionLike<SVGGElement, T>,
+    selection: null | BrushSelection | ValueFn<SVGGElement, T, BrushSelection>,
+    e?: Event
+  ): void
   on(types: string, f: (this: SVGGElement, event: any, x: T) => void): this
   on(types: string, x: null): this
   on(types: string): ((this: SVGGElement, event: any, x: T) => void) | undefined
@@ -117,7 +117,7 @@ export interface BrushBehavior<T> {
   touchable(f: ValueFn<SVGGElement, T, boolean>): this
   touchable(x: boolean): this
 }
-export interface D3BrushEvent<T> {
+export interface BrushEvent<T> {
   mode: "drag" | "space" | "handle" | "center"
   selection: BrushSelection | null
   sourceEvent: any
