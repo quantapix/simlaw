@@ -1,5 +1,4 @@
 import type { MultiPolygon } from "geojson"
-import type { Lab } from "./color.js"
 
 export type Pair<T = number> = [T, T]
 
@@ -195,149 +194,50 @@ export interface RibbonArrowGen<This, T, S> extends RibbonGen<This, T, S> {
   headRadius(f: (this: This, d: S, ...xs: any[]) => number): this
 }
 
-export type ColorSpaceObject = RGBColor | HSLColor | LabColor | HCLColor | CubehelixColor
-export interface ColorCommonInstance {
-  brighter(k?: number): this
-  darker(k?: number): this
-  displayable(): boolean
-  hex(): string
-  rgb(): RGBColor
-  toString(): string
-}
 export interface Color {
+  alpha: number
+  brighter(k?: number): Color
+  darker(k?: number): Color
   displayable(): boolean
   formatHex(): string
   formatHex8(): string
   formatHsl(): string
   formatRgb(): string
+  rgb(): RGB
   toString(): string
 }
-export interface ColorFac extends Function {
-  (spec: string): RGBColor | HSLColor | null
-  (color: ColorSpaceObject | ColorCommonInstance): RGBColor | HSLColor
-  readonly prototype: Color
-}
-export interface RGBColor extends Color {
+export interface RGB extends Color {
   r: number
   g: number
   b: number
-  opacity: number
-  brighter(k?: number): RGBColor
-  clamp(): RGBColor
-  copy(x?: {
-    r?: number | undefined
-    g?: number | undefined
-    b?: number | undefined
-    opacity?: number | undefined
-  }): this
-  darker(k?: number): RGBColor
-  rgb(): this
+  clamp(): Color
+  copy(x?: { r?: number | undefined; g?: number | undefined; b?: number | undefined; alpha?: number | undefined }): this
 }
-export interface RGBColorFac extends Function {
-  (r: number, g: number, b: number, opacity?: number): RGBColor
-  (spec: string): RGBColor
-  (color: ColorSpaceObject | ColorCommonInstance): RGBColor
-  readonly prototype: RGBColor
-}
-export interface HSLColor extends Color {
+export interface HSL extends Color {
   h: number
   s: number
   l: number
-  opacity: number
-  brighter(k?: number): HSLColor
-  clamp(): HSLColor
-  copy(x?: {
-    h?: number | undefined
-    s?: number | undefined
-    l?: number | undefined
-    opacity?: number | undefined
-  }): this
-  darker(k?: number): HSLColor
-  rgb(): RGBColor
+  clamp(): Color
+  copy(x?: { h?: number | undefined; s?: number | undefined; l?: number | undefined; alpha?: number | undefined }): this
 }
-export interface HSLColorFac extends Function {
-  (h: number, s: number, l: number, opacity?: number): HSLColor
-  (spec: string): HSLColor
-  (color: ColorSpaceObject | ColorCommonInstance): HSLColor
-  readonly prototype: HSLColor
-}
-export interface LabColor extends Color {
+export interface LAB extends Color {
   l: number
   a: number
   b: number
-  opacity: number
-  brighter(k?: number): LabColor
-  copy(x?: {
-    l?: number | undefined
-    a?: number | undefined
-    b?: number | undefined
-    opacity?: number | undefined
-  }): this
-  darker(k?: number): LabColor
-  rgb(): RGBColor
+  copy(x?: { l?: number | undefined; a?: number | undefined; b?: number | undefined; alpha?: number | undefined }): this
 }
-export interface LabColorFac extends Function {
-  (l: number, a: number, b: number, opacity?: number): LabColor
-  (spec: string): LabColor
-  (color: ColorSpaceObject | ColorCommonInstance): LabColor
-  readonly prototype: LabColor
-}
-export type GrayColorFac = (l: number, opacity?: number) => LabColor
-export interface HCLColor extends Color {
+export interface HCL extends Color {
   h: number
   c: number
   l: number
-  opacity: number
-  brighter(k?: number): HCLColor
-  copy(x?: {
-    h?: number | undefined
-    c?: number | undefined
-    l?: number | undefined
-    opacity?: number | undefined
-  }): this
-  darker(k?: number): HCLColor
-  rgb(): RGBColor
+  copy(x?: { h?: number | undefined; c?: number | undefined; l?: number | undefined; alpha?: number | undefined }): this
 }
-export interface HCLColorFac extends Function {
-  (h: number, c: number, l: number, opacity?: number): HCLColor
-  (spec: string): HCLColor
-  (color: ColorSpaceObject | ColorCommonInstance): HCLColor
-  readonly prototype: HCLColor
-}
-export interface LCHColorFac {
-  (l: number, c: number, h: number, opacity?: number): HCLColor
-  (spec: string): HCLColor
-  (color: ColorSpaceObject | ColorCommonInstance): HCLColor
-}
-export interface CubehelixColor extends Color {
+export interface Cubehelix extends Color {
   h: number
   s: number
   l: number
-  opacity: number
-  brighter(k?: number): CubehelixColor
-  copy(x?: {
-    h?: number | undefined
-    s?: number | undefined
-    l?: number | undefined
-    opacity?: number | undefined
-  }): this
-  darker(k?: number): CubehelixColor
-  rgb(): RGBColor
+  copy(x?: { h?: number | undefined; s?: number | undefined; l?: number | undefined; alpha?: number | undefined }): this
 }
-export interface CubehelixColorFac extends Function {
-  (h: number, s: number, l: number, opacity?: number): CubehelixColor
-  (spec: string): CubehelixColor
-  (color: ColorSpaceObject | ColorCommonInstance): CubehelixColor
-  readonly prototype: CubehelixColor
-}
-export const color: ColorFac
-export const rgb: RGBColorFac
-export const hsl: HSLColorFac
-export const lab: LabColorFac
-export const gray: GrayColorFac
-export const hcl: HCLColorFac
-export const lch: LCHColorFac
-export const cubehelix: CubehelixColorFac
 
 export interface ContourPoly extends MultiPolygon {
   value: number
@@ -1038,7 +938,7 @@ export interface ZoomIpolator extends Function {
   rho(rho: number): this
 }
 export interface ColorGammaIpolatorFac extends Function {
-  (a: string | ColorCommonInstance, b: string | ColorCommonInstance): (x: number) => string
+  (a: string | Color, b: string | Color): (x: number) => string
   gamma(g: number): ColorGammaIpolatorFac
 }
 export type ZoomView = [number, number, number]

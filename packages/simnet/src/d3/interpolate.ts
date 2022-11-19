@@ -72,12 +72,12 @@ export const rgb: qt.ColorGammaIpolatorFac = (function rgbGamma(y) {
     const r = color((start = qc.rgb(start)).r, (end = qc.rgb(end)).r),
       g = color(start.g, end.g),
       b = color(start.b, end.b),
-      opacity = nogamma(start.opacity, end.opacity)
+      alpha = nogamma(start.alpha, end.alpha)
     return function (t) {
       start.r = r(t)
       start.g = g(t)
       start.b = b(t)
-      start.opacity = opacity(t)
+      start.alpha = alpha(t)
       return start + ""
     }
   }
@@ -92,12 +92,12 @@ function _cubehelix(hue: Function) {
       const h = hue((start = qc.cubehelix(start)).h, (end = qc.cubehelix(end)).h),
         s = color(start.s, end.s),
         l = color(start.l, end.l),
-        opacity = color(start.opacity, end.opacity)
+        alpha = color(start.alpha, end.alpha)
       return x => {
         start.h = h(x)
         start.s = s(x)
         start.l = l(qu.pow(x, y))
-        start.opacity = opacity(x)
+        start.alpha = alpha(x)
         return start + ""
       }
     }
@@ -113,58 +113,47 @@ function _hcl(hue: Function) {
     const h = hue((start = qc.hcl(start)).h, (end = qc.hcl(end)).h),
       c = color(start.c, end.c),
       l = color(start.l, end.l),
-      opacity = color(start.opacity, end.opacity)
+      alpha = color(start.alpha, end.alpha)
     return x => {
       start.h = h(x)
       start.c = c(x)
       start.l = l(x)
-      start.opacity = opacity(x)
+      start.alpha = alpha(x)
       return start + ""
     }
   }
 }
-export const hcl: (a: string | qt.ColorCommonInstance, b: string | qt.ColorCommonInstance) => (x: number) => string =
-  _hcl(hue)
-export const hclLong: (
-  a: string | qt.ColorCommonInstance,
-  b: string | qt.ColorCommonInstance
-) => (x: number) => string = _hcl(color)
+export const hcl: (a: string | qt.Color, b: string | qt.Color) => (x: number) => string = _hcl(hue)
+export const hclLong: (a: string | qt.Color, b: string | qt.Color) => (x: number) => string = _hcl(color)
 
 function _hsl(hue: Function) {
   return function (start, end) {
     const h = hue((start = qc.hsl(start)).h, (end = qc.hsl(end)).h),
       s = color(start.s, end.s),
       l = color(start.l, end.l),
-      opacity = color(start.opacity, end.opacity)
+      alpha = color(start.alpha, end.alpha)
     return x => {
       start.h = h(x)
       start.s = s(x)
       start.l = l(x)
-      start.opacity = opacity(x)
+      start.alpha = alpha(x)
       return start + ""
     }
   }
 }
-export const hsl: (a: string | qt.ColorCommonInstance, b: string | qt.ColorCommonInstance) => (x: number) => string =
-  _hsl(hue)
-export const hslLong: (
-  a: string | qt.ColorCommonInstance,
-  b: string | qt.ColorCommonInstance
-) => (t: number) => string = _hsl(color)
+export const hsl: (a: string | qt.Color, b: string | qt.Color) => (x: number) => string = _hsl(hue)
+export const hslLong: (a: string | qt.Color, b: string | qt.Color) => (t: number) => string = _hsl(color)
 
-export function lab(
-  start: string | qt.ColorCommonInstance,
-  end: string | qt.ColorCommonInstance
-): (x: number) => string {
+export function lab(start: string | qt.Color, end: string | qt.Color): (x: number) => string {
   const l = color((start = qc.lab(start)).l, (end = qc.lab(end)).l),
     a = color(start.a, end.a),
     b = color(start.b, end.b),
-    opacity = color(start.opacity, end.opacity)
+    alpha = color(start.alpha, end.alpha)
   return x => {
     start.l = l(x)
     start.a = a(x)
     start.b = b(x)
-    start.opacity = opacity(x)
+    start.alpha = alpha(x)
     return start + ""
   }
 }
@@ -186,7 +175,7 @@ function rgbSpline(spline) {
     r = spline(r)
     g = spline(g)
     b = spline(b)
-    color.opacity = 1
+    color.alpha = 1
     return function (t) {
       color.r = r(t)
       color.g = g(t)
@@ -226,9 +215,8 @@ export function basisClosed(vs: number[]): (x: number) => number {
   }
 }
 
-export const rgbBasis: (xs: Array<string | qt.ColorCommonInstance>) => (x: number) => string = rgbSpline(basis)
-export const rgbBasisClosed: (xs: Array<string | qt.ColorCommonInstance>) => (x: number) => string =
-  rgbSpline(basisClosed)
+export const rgbBasis: (xs: Array<string | qt.Color>) => (x: number) => string = rgbSpline(basis)
+export const rgbBasisClosed: (xs: Array<string | qt.Color>) => (x: number) => string = rgbSpline(basisClosed)
 
 const reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g
 const reB = new RegExp(reA.source, "g")
@@ -312,7 +300,7 @@ export function object<T extends object>(a: any, b: T): (x: number) => T {
 
 export function value(a: any, b: null): (t: number) => null
 export function value(a: any, b: boolean): (t: number) => boolean
-export function value(a: string | qt.ColorCommonInstance, b: qt.ColorCommonInstance): (t: number) => string
+export function value(a: string | qt.Color, b: qt.Color): (t: number) => string
 export function value(a: Date, b: Date): (t: number) => Date
 export function value(a: number | { valueOf(): number }, b: number | { valueOf(): number }): (x: number) => number
 export function value<T extends qt.NumArray>(a: qt.NumArray | number[], b: T): (t: number) => T

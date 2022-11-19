@@ -2,16 +2,338 @@
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
+abstract class Color implements qt.Color {
+  constructor(public alpha = NaN) {}
+  abstract brighter(k?: number): qt.Color
+  abstract darker(k?: number): qt.Color
+  displayable() {
+    return this.rgb().displayable()
+  }
+  formatHex() {
+    return this.rgb().formatHex()
+  }
+  formatHex8() {
+    return this.rgb().formatHex8()
+  }
+  formatHsl(): string {
+    return HSL.from(this).formatHsl()
+  }
+  formatRgb() {
+    return this.rgb().formatRgb()
+  }
+  abstract rgb(): qt.RGB
+  toString = this.formatRgb
+  copy(x: any) {
+    const C = Object.getPrototypeOf(this).constructor
+    return Object.assign(new C(), this, x)
+  }
+}
+
 export const darker = 0.7
 export const brighter = 1 / darker
+
+export class RGB extends Color implements qt.RGB {
+  static from(x: string): RGB
+  static from(x?: qt.Color): RGB
+  static from(r: number, g: number, b: number, alpha?: number): RGB
+  static from(x: any, g?: number, b?: number, alpha = 1) {
+    const convert = (x?: string | Color) => {
+      x = typeof x === "string" ? color(x) : x
+      if (x === undefined) return new RGB()
+      if (x instanceof RGB) return new RGB(x.r, x.g, x.b, x.alpha)
+      const y = x.rgb()
+      return new RGB(y.r, y.g, y.b, y.alpha)
+    }
+    return g === undefined ? convert(x) : new RGB(x, g, b, alpha)
+  }
+  constructor(public r = NaN, public g = NaN, public b = NaN, alpha = 1) {
+    super(alpha)
+  }
+  brighter(k?: number) {
+    k = k === undefined ? brighter : qu.pow(brighter, k)
+    return new RGB(this.r * k, this.g * k, this.b * k, this.alpha)
+  }
+  clamp() {
+    return new RGB(clampi(this.r), clampi(this.g), clampi(this.b), clampa(this.alpha))
+  }
+  darker(k?: number) {
+    k = k === undefined ? darker : qu.pow(darker, k)
+    return new RGB(this.r * k, this.g * k, this.b * k, this.alpha)
+  }
+  override displayable() {
+    return (
+      -0.5 <= this.r &&
+      this.r < 255.5 &&
+      -0.5 <= this.g &&
+      this.g < 255.5 &&
+      -0.5 <= this.b &&
+      this.b < 255.5 &&
+      0 <= this.alpha &&
+      this.alpha <= 1
+    )
+  }
+  override formatHex() {
+    return `#${hex(this.r)}${hex(this.g)}${hex(this.b)}`
+  }
+  override formatHex8() {
+    return `#${hex(this.r)}${hex(this.g)}${hex(this.b)}${hex((isNaN(this.alpha) ? 1 : this.alpha) * 255)}`
+  }
+  override formatRgb() {
+    const a = clampa(this.alpha)
+    return `${a === 1 ? "rgb(" : "rgba("}${clampi(this.r)}, ${clampi(this.g)}, ${clampi(this.b)}${
+      a === 1 ? ")" : `, ${a})`
+    }`
+  }
+  rgb() {
+    return this
+  }
+}
+
+export class HSL extends Color implements qt.HSL {
+  static from(x: string): HSL
+  static from(x?: qt.Color): HSL
+  static from(h: number, s: number, l: number, alpha?: number): HSL
+  static from(x: any, s?: number, l?: number, alpha = 1) {
+    const convert = (x?: string | Color) => {
+      x = typeof x === "string" ? color(x) : x
+      if (x === undefined) return new HSL()
+      if (x instanceof HSL) return new HSL(x.h, x.s, x.l, x.alpha)
+      const y = x.rgb()
+      const r = y.r / 255,
+        g = y.g / 255,
+        b = y.b / 255,
+        min = qu.min(r, g, b),
+        max = qu.max(r, g, b),
+        l = (max + min) / 2
+      let h = NaN,
+        s = max - min
+      if (s) {
+        if (r === max) h = (g - b) / s + (g < b ? 1 : 0) * 6
+        else if (g === max) h = (b - r) / s + 2
+        else h = (r - g) / s + 4
+        s /= l < 0.5 ? max + min : 2 - max - min
+        h *= 60
+      } else {
+        s = l > 0 && l < 1 ? 0 : h
+      }
+      return new HSL(h, s, l, y.alpha)
+    }
+    return s === undefined ? convert(x) : new HSL(x, s, l, alpha)
+  }
+  constructor(public h = NaN, public s = NaN, public l = NaN, alpha = 1) {
+    super(alpha)
+  }
+  brighter(k?: number) {
+    k = k === undefined ? brighter : qu.pow(brighter, k)
+    return new HSL(this.h, this.s, this.l * k, this.alpha)
+  }
+  clamp() {
+    return new HSL(clamph(this.h), clampt(this.s), clampt(this.l), clampa(this.alpha))
+  }
+  darker(k?: number) {
+    k = k === undefined ? darker : qu.pow(darker, k)
+    return new HSL(this.h, this.s, this.l * k, this.alpha)
+  }
+  override displayable() {
+    return (
+      ((0 <= this.s && this.s <= 1) || isNaN(this.s)) &&
+      0 <= this.l &&
+      this.l <= 1 &&
+      0 <= this.alpha &&
+      this.alpha <= 1
+    )
+  }
+  override formatHsl() {
+    const a = clampa(this.alpha)
+    return `${a === 1 ? "hsl(" : "hsla("}${clamph(this.h)}, ${clampt(this.s) * 100}%, ${clampt(this.l) * 100}%${
+      a === 1 ? ")" : `, ${a})`
+    }`
+  }
+  rgb() {
+    const h = (this.h % 360) + (this.h < 0 ? 1 : 0) * 360,
+      s = isNaN(h) || isNaN(this.s) ? 0 : this.s,
+      l = this.l,
+      m2 = l + (l < 0.5 ? l : 1 - l) * s,
+      m1 = 2 * l - m2
+    const toRgb = (h: number, m1: number, m2: number) =>
+      (h < 60 ? m1 + ((m2 - m1) * h) / 60 : h < 180 ? m2 : h < 240 ? m1 + ((m2 - m1) * (240 - h)) / 60 : m1) * 255
+    return new RGB(
+      toRgb(h >= 240 ? h - 240 : h + 120, m1, m2),
+      toRgb(h, m1, m2),
+      toRgb(h < 120 ? h + 240 : h - 120, m1, m2),
+      this.alpha
+    )
+  }
+}
+
+const K = 18,
+  Xn = 0.96422,
+  Yn = 1,
+  Zn = 0.82521
+
+const t0 = 4 / 29,
+  t1 = 6 / 29,
+  t2 = 3 * t1 * t1,
+  t3 = t1 * t1 * t1
+
+export class LAB extends Color implements qt.LAB {
+  static from(x: string): LAB
+  static from(x?: qt.Color): LAB
+  static from(r: number, g: number, b: number, alpha?: number): LAB
+  static from(x: any, a?: number, b?: number, alpha = 1) {
+    const convert = (o?: string | Color) => {
+      o = typeof o === "string" ? color(o) : o
+      if (o === undefined) return new LAB()
+      if (o instanceof LAB) return new LAB(o.l, o.a, o.b, o.alpha)
+      if (o instanceof HCL) return o.toLab()
+      const o2 = o instanceof RGB ? o : RGB.from(o)
+      const toLrgb = (x: number) => ((x /= 255) <= 0.04045 ? x / 12.92 : qu.pow((x + 0.055) / 1.055, 2.4))
+      const toLab = (x: number) => (x > t3 ? qu.pow(x, 1 / 3) : x / t2 + t0)
+      const r = toLrgb(o2.r),
+        g = toLrgb(o2.g),
+        b = toLrgb(o2.b),
+        y = toLab((0.2225045 * r + 0.7168786 * g + 0.0606169 * b) / Yn)
+      let x, z
+      if (r === g && g === b) x = z = y
+      else {
+        x = toLab((0.4360747 * r + 0.3850649 * g + 0.1430804 * b) / Xn)
+        z = toLab((0.0139322 * r + 0.0971045 * g + 0.7141733 * b) / Zn)
+      }
+      return new LAB(116 * y - 16, 500 * (x - y), 200 * (y - z), o.alpha)
+    }
+    return a === undefined ? convert(x) : new LAB(x, a, b, alpha)
+  }
+  static gray(l: number, alpha = 1) {
+    return new LAB(l, 0, 0, alpha)
+  }
+  constructor(public l = NaN, public a = NaN, public b = NaN, alpha = 1) {
+    super(alpha)
+  }
+  brighter(k?: number) {
+    return new LAB(this.l + K * (k === undefined ? 1 : k), this.a, this.b, this.alpha)
+  }
+  darker(k?: number) {
+    return new LAB(this.l - K * (k === undefined ? 1 : k), this.a, this.b, this.alpha)
+  }
+  rgb() {
+    let y = (this.l + 16) / 116,
+      x = isNaN(this.a) ? y : y + this.a / 500,
+      z = isNaN(this.b) ? y : y - this.b / 200
+    const toXyz = (x: number) => (x > t1 ? x * x * x : t2 * (x - t0))
+    x = Xn * toXyz(x)
+    y = Yn * toXyz(y)
+    z = Zn * toXyz(z)
+    const toRgb = (x: number) => 255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * qu.pow(x, 1 / 2.4) - 0.055)
+    return new RGB(
+      toRgb(3.1338561 * x - 1.6168667 * y - 0.4906146 * z),
+      toRgb(-0.9787684 * x + 1.9161415 * y + 0.033454 * z),
+      toRgb(0.0719453 * x - 0.2289914 * y + 1.4052427 * z),
+      this.alpha
+    )
+  }
+}
+
+export class HCL extends Color implements qt.HCL {
+  static from(x: string): HCL
+  static from(x?: qt.Color): HCL
+  static from(h: number, c: number, l: number, alpha?: number): HCL
+  static from(x: any, c?: number, l?: number, alpha = 1) {
+    const convert = (x?: string | Color) => {
+      x = typeof x === "string" ? color(x) : x
+      if (x === undefined) return new HCL()
+      if (x instanceof HCL) return new HCL(x.h, x.c, x.l, x.alpha)
+      const y = x instanceof LAB ? x : LAB.from(x)
+      if (y.a === 0 && y.b === 0) return new HCL(NaN, 0 < y.l && y.l < 100 ? 0 : NaN, y.l, y.alpha)
+      const h = qu.atan2(y.b, y.a) * qu.degrees
+      return new HCL(h < 0 ? h + 360 : h, qu.sqrt(y.a * y.a + y.b * y.b), y.l, y.alpha)
+    }
+
+    return c === undefined ? convert(x) : new HCL(x, c, l, alpha)
+  }
+  static fromLch(l: number, c?: number, h?: number, alpha = 1) {
+    return c === undefined ? new HCL(l) : new HCL(h, c, l, alpha)
+  }
+  constructor(public h = NaN, public c = NaN, public l = NaN, alpha = 1) {
+    super(alpha)
+  }
+  brighter(k?: number) {
+    return new HCL(this.h, this.c, this.l + K * (k === undefined ? 1 : k), this.alpha)
+  }
+  darker(k?: number) {
+    return new HCL(this.h, this.c, this.l - K * (k === undefined ? 1 : k), this.alpha)
+  }
+  rgb() {
+    return this.toLab().rgb()
+  }
+  toLab() {
+    if (isNaN(this.h)) return new LAB(this.l, 0, 0, this.alpha)
+    const h = this.h * qu.radians
+    return new LAB(this.l, qu.cos(h) * this.c, qu.sin(h) * this.c, this.alpha)
+  }
+}
+
+const A = -0.14861,
+  B = +1.78277,
+  C = -0.29227,
+  D = -0.90649,
+  E = +1.97294,
+  ED = E * D,
+  EB = E * B,
+  BC_DA = B * C - D * A
+
+export class Cubehelix extends Color implements qt.Cubehelix {
+  static from(x: string): Cubehelix
+  static from(x?: qt.Color): Cubehelix
+  static from(h: number, s: number, l: number, alpha?: number): Cubehelix
+  static from(x: any, s?: number, l?: number, alpha = 1) {
+    const convert = (o: any) => {
+      if (o instanceof Cubehelix) return new Cubehelix(o.h, o.s, o.l, o.alpha)
+      if (!(o instanceof RGB)) o = RGB.from(o)
+      const r = o.r / 255,
+        g = o.g / 255,
+        b = o.b / 255,
+        l = (BC_DA * b + ED * r - EB * g) / (BC_DA + ED - EB),
+        bl = b - l,
+        k = (E * (g - l) - C * bl) / D,
+        s = qu.sqrt(k * k + bl * bl) / (E * l * (1 - l)), // NaN if l=0 or l=1
+        h = s ? qu.atan2(k, bl) * qu.degrees - 120 : NaN
+      return new Cubehelix(h < 0 ? h + 360 : h, s, l, o.alpha)
+    }
+    return s === undefined ? convert(x) : new Cubehelix(x, s, l, alpha)
+  }
+  constructor(public h = NaN, public s = NaN, public l = NaN, alpha = 1) {
+    super(alpha)
+  }
+  brighter(k?: number) {
+    k = k === undefined ? brighter : qu.pow(brighter, k)
+    return new Cubehelix(this.h, this.s, this.l * k, this.alpha)
+  }
+  darker(k?: number) {
+    k = k === undefined ? darker : qu.pow(darker, k)
+    return new Cubehelix(this.h, this.s, this.l * k, this.alpha)
+  }
+  rgb() {
+    const h = isNaN(this.h) ? 0 : (this.h + 120) * qu.radians,
+      l = +this.l,
+      a = isNaN(this.s) ? 0 : this.s * l * (1 - l),
+      cosh = qu.cos(h),
+      sinh = qu.sin(h)
+    return new RGB(
+      255 * (l + a * (A * cosh + B * sinh)),
+      255 * (l + a * (C * cosh + D * sinh)),
+      255 * (l + a * (E * cosh)),
+      this.alpha
+    )
+  }
+}
 
 const reI = "\\s*([+-]?\\d+)\\s*",
   reN = "\\s*([+-]?(?:\\d*\\.)?\\d+(?:[eE][+-]?\\d+)?)\\s*",
   reP = "\\s*([+-]?(?:\\d*\\.)?\\d+(?:[eE][+-]?\\d+)?)%\\s*",
   reHex = /^#([0-9a-f]{3,8})$/,
-  reRgbInteger = new RegExp(`^rgb\\(${reI},${reI},${reI}\\)$`),
+  reRgbInt = new RegExp(`^rgb\\(${reI},${reI},${reI}\\)$`),
   reRgbPercent = new RegExp(`^rgb\\(${reP},${reP},${reP}\\)$`),
-  reRgbaInteger = new RegExp(`^rgba\\(${reI},${reI},${reI},${reN}\\)$`),
+  reRgbaInt = new RegExp(`^rgba\\(${reI},${reI},${reI},${reN}\\)$`),
   reRgbaPercent = new RegExp(`^rgba\\(${reP},${reP},${reP},${reN}\\)$`),
   reHslPercent = new RegExp(`^hsl\\(${reN},${reP},${reP}\\)$`),
   reHslaPercent = new RegExp(`^hsla\\(${reN},${reP},${reP},${reN}\\)$`)
@@ -19,16 +341,16 @@ const reI = "\\s*([+-]?\\d+)\\s*",
 export function color(fmt: string) {
   fmt = (fmt + "").trim().toLowerCase()
   let m: RegExpExecArray | null, l, v: number
-  const rgbn = (x: number) => new Rgb((x >> 16) & 0xff, (x >> 8) & 0xff, x & 0xff, 1)
+  const rgbn = (x: number) => new RGB((x >> 16) & 0xff, (x >> 8) & 0xff, x & 0xff, 1)
   const rgba = (r: number, g: number, b: number, a: number) => {
     if (a <= 0) r = g = b = NaN
-    return new Rgb(r, g, b, a)
+    return new RGB(r, g, b, a)
   }
   const hsla = (h: number, s: number, l: number, a: number) => {
     if (a <= 0) h = s = l = NaN
     else if (l <= 0 || l >= 1) h = s = NaN
     else if (s <= 0) h = NaN
-    return new Hsl(h, s, l, a)
+    return new HSL(h, s, l, a)
   }
   return (m = reHex.exec(fmt))
     ? ((l = m[1]!.length),
@@ -36,7 +358,7 @@ export function color(fmt: string) {
       l === 6
         ? rgbn(v) // #ff0000
         : l === 3
-        ? new Rgb(((v >> 8) & 0xf) | ((v >> 4) & 0xf0), ((v >> 4) & 0xf) | (v & 0xf0), ((v & 0xf) << 4) | (v & 0xf), 1) // #f00
+        ? new RGB(((v >> 8) & 0xf) | ((v >> 4) & 0xf0), ((v >> 4) & 0xf) | (v & 0xf0), ((v & 0xf) << 4) | (v & 0xf), 1) // #f00
         : l === 8
         ? rgba((v >> 24) & 0xff, (v >> 16) & 0xff, (v >> 8) & 0xff, (v & 0xff) / 0xff) // #ff000000
         : l === 4
@@ -46,12 +368,12 @@ export function color(fmt: string) {
             ((v >> 4) & 0xf) | (v & 0xf0),
             (((v & 0xf) << 4) | (v & 0xf)) / 0xff
           ) // #f000
-        : null) // invalid hex
-    : (m = reRgbInteger.exec(fmt))
-    ? new Rgb(+m[1]!, +m[2]!, +m[3]!, 1) // rgb(255, 0, 0)
+        : undefined) // invalid hex
+    : (m = reRgbInt.exec(fmt))
+    ? new RGB(+m[1]!, +m[2]!, +m[3]!, 1) // rgb(255, 0, 0)
     : (m = reRgbPercent.exec(fmt))
-    ? new Rgb((+m[1]! * 255) / 100, (+m[2]! * 255) / 100, (+m[3]! * 255) / 100, 1) // rgb(100%, 0%, 0%)
-    : (m = reRgbaInteger.exec(fmt))
+    ? new RGB((+m[1]! * 255) / 100, (+m[2]! * 255) / 100, (+m[3]! * 255) / 100, 1) // rgb(100%, 0%, 0%)
+    : (m = reRgbaInt.exec(fmt))
     ? rgba(+m[1]!, +m[2]!, +m[3]!, +m[4]!) // rgba(255, 0, 0, 1)
     : (m = reRgbaPercent.exec(fmt))
     ? rgba((+m[1]! * 255) / 100, (+m[2]! * 255) / 100, (+m[3]! * 255) / 100, +m[4]!) // rgb(100%, 0%, 0%, 1)
@@ -62,304 +384,13 @@ export function color(fmt: string) {
     : named.hasOwnProperty(fmt)
     ? rgbn(named[fmt]!)
     : fmt === "transparent"
-    ? new Rgb(NaN, NaN, NaN, 0)
-    : null
-}
-function rgbConvert(o: any) {
-  if (!(o instanceof Color)) o = color(o)
-  if (!o) return new Rgb()
-  o = o.rgb()
-  return new Rgb(o.r, o.g, o.b, o.opacity)
-}
-export function rgb(r: number, g?: number, b?: number, opacity = 1) {
-  return g === undefined ? rgbConvert(r) : new Rgb(r, g, b, opacity)
-}
-function hslConvert(o: any) {
-  if (o instanceof Hsl) return new Hsl(o.h, o.s, o.l, o.opacity)
-  if (!(o instanceof Color)) o = color(o)
-  if (!o) return new Hsl()
-  if (o instanceof Hsl) return o
-  o = o.rgb()
-  const r = o.r / 255,
-    g = o.g / 255,
-    b = o.b / 255,
-    min = qu.min(r, g, b),
-    max = qu.max(r, g, b),
-    l = (max + min) / 2
-  let h = NaN,
-    s = max - min
-  if (s) {
-    if (r === max) h = (g - b) / s + (g < b ? 1 : 0) * 6
-    else if (g === max) h = (b - r) / s + 2
-    else h = (r - g) / s + 4
-    s /= l < 0.5 ? max + min : 2 - max - min
-    h *= 60
-  } else {
-    s = l > 0 && l < 1 ? 0 : h
-  }
-  return new Hsl(h, s, l, o.opacity)
-}
-export function hsl(h: number, s?: number, l?: number, opacity = 1) {
-  return s === undefined ? hslConvert(h) : new Hsl(h, s, l, opacity)
-}
-const A = -0.14861,
-  B = +1.78277,
-  C = -0.29227,
-  D = -0.90649,
-  E = +1.97294,
-  ED = E * D,
-  EB = E * B,
-  BC_DA = B * C - D * A
-function cubehelixConvert(o: any) {
-  if (o instanceof Cubehelix) return new Cubehelix(o.h, o.s, o.l, o.opacity)
-  if (!(o instanceof Rgb)) o = rgbConvert(o)
-  const r = o.r / 255,
-    g = o.g / 255,
-    b = o.b / 255,
-    l = (BC_DA * b + ED * r - EB * g) / (BC_DA + ED - EB),
-    bl = b - l,
-    k = (E * (g - l) - C * bl) / D,
-    s = qu.sqrt(k * k + bl * bl) / (E * l * (1 - l)), // NaN if l=0 or l=1
-    h = s ? qu.atan2(k, bl) * qu.degrees - 120 : NaN
-  return new Cubehelix(h < 0 ? h + 360 : h, s, l, o.opacity)
-}
-export function cubehelix(h: number, s?: number, l?: number, opacity = 1) {
-  return s === undefined ? cubehelixConvert(h) : new Cubehelix(h, s, l, opacity)
-}
-const K = 18,
-  Xn = 0.96422,
-  Yn = 1,
-  Zn = 0.82521,
-  t0 = 4 / 29,
-  t1 = 6 / 29,
-  t2 = 3 * t1 * t1,
-  t3 = t1 * t1 * t1
-function labConvert(o: any) {
-  if (o instanceof Lab) return new Lab(o.l, o.a, o.b, o.opacity)
-  if (o instanceof Hcl) return hcl2lab(o)
-  if (!(o instanceof Rgb)) o = rgbConvert(o)
-  const xyz2lab = (x: number) => (x > t3 ? qu.pow(x, 1 / 3) : x / t2 + t0)
-  const rgb2lrgb = (x: number) => ((x /= 255) <= 0.04045 ? x / 12.92 : qu.pow((x + 0.055) / 1.055, 2.4))
-  const r = rgb2lrgb(o.r),
-    g = rgb2lrgb(o.g),
-    b = rgb2lrgb(o.b),
-    y = xyz2lab((0.2225045 * r + 0.7168786 * g + 0.0606169 * b) / Yn)
-  let x, z
-  if (r === g && g === b) x = z = y
-  else {
-    x = xyz2lab((0.4360747 * r + 0.3850649 * g + 0.1430804 * b) / Xn)
-    z = xyz2lab((0.0139322 * r + 0.0971045 * g + 0.7141733 * b) / Zn)
-  }
-  return new Lab(116 * y - 16, 500 * (x - y), 200 * (y - z), o.opacity)
-}
-export function gray(l: number, opacity = 1) {
-  return new Lab(l, 0, 0, opacity)
-}
-export function lab(l: number, a?: number, b?: number, opacity = 1) {
-  return a === undefined ? labConvert(l) : new Lab(l, a, b, opacity)
-}
-function hclConvert(o: any) {
-  if (o instanceof Hcl) return new Hcl(o.h, o.c, o.l, o.opacity)
-  if (!(o instanceof Lab)) o = labConvert(o)
-  if (o.a === 0 && o.b === 0) return new Hcl(NaN, 0 < o.l && o.l < 100 ? 0 : NaN, o.l, o.opacity)
-  const h = qu.atan2(o.b, o.a) * qu.degrees
-  return new Hcl(h < 0 ? h + 360 : h, qu.sqrt(o.a * o.a + o.b * o.b), o.l, o.opacity)
-}
-export function lch(l: number, c?: number, h?: number, opacity = 1) {
-  return c === undefined ? hclConvert(l) : new Hcl(h, c, l, opacity)
-}
-export function hcl(h: number, c?: number, l?: number, opacity = 1) {
-  return c === undefined ? hclConvert(h) : new Hcl(h, c, l, opacity)
+    ? new RGB(NaN, NaN, NaN, 0)
+    : undefined
 }
 
-abstract class Color implements qt.Color {
-  displayable() {
-    return this.rgb().displayable()
-  }
-  formatHex() {
-    return this.rgb().formatHex()
-  }
-  formatHex8() {
-    return this.rgb().formatHex8()
-  }
-  formatHsl() {
-    return hslConvert(this).formatHsl()
-  }
-  formatRgb() {
-    return this.rgb().formatRgb()
-  }
-  toString = this.formatRgb
-  abstract rgb(): qt.Color
-  copy(x: any) {
-    return Object.assign(new this.constructor(), this, x)
-  }
-}
-
-export class Rgb extends Color implements qt.RGBColor {
-  constructor(public r = 0, public g = 0, public b = 0, public opacity = 1) {
-    super()
-  }
-  override displayable() {
-    return (
-      -0.5 <= this.r &&
-      this.r < 255.5 &&
-      -0.5 <= this.g &&
-      this.g < 255.5 &&
-      -0.5 <= this.b &&
-      this.b < 255.5 &&
-      0 <= this.opacity &&
-      this.opacity <= 1
-    )
-  }
-  override formatHex() {
-    return `#${hex(this.r)}${hex(this.g)}${hex(this.b)}`
-  }
-  override formatHex8() {
-    return `#${hex(this.r)}${hex(this.g)}${hex(this.b)}${hex((isNaN(this.opacity) ? 1 : this.opacity) * 255)}`
-  }
-  override formatRgb() {
-    const a = clampa(this.opacity)
-    return `${a === 1 ? "rgb(" : "rgba("}${clampi(this.r)}, ${clampi(this.g)}, ${clampi(this.b)}${
-      a === 1 ? ")" : `, ${a})`
-    }`
-  }
-  brighter(k?: number) {
-    k = k === undefined ? brighter : qu.pow(brighter, k)
-    return new Rgb(this.r * k, this.g * k, this.b * k, this.opacity)
-  }
-  darker(k?: number) {
-    k = k === undefined ? darker : qu.pow(darker, k)
-    return new Rgb(this.r * k, this.g * k, this.b * k, this.opacity)
-  }
-  clamp() {
-    return new Rgb(clampi(this.r), clampi(this.g), clampi(this.b), clampa(this.opacity))
-  }
-  rgb() {
-    return this
-  }
-}
-
-export class Hsl extends Color implements qt.HSLColor {
-  constructor(public h = 0, public s = 0, public l = 0, public opacity = 1) {
-    super()
-  }
-  override displayable() {
-    return (
-      ((0 <= this.s && this.s <= 1) || isNaN(this.s)) &&
-      0 <= this.l &&
-      this.l <= 1 &&
-      0 <= this.opacity &&
-      this.opacity <= 1
-    )
-  }
-  override formatHsl() {
-    const a = clampa(this.opacity)
-    return `${a === 1 ? "hsl(" : "hsla("}${clamph(this.h)}, ${clampt(this.s) * 100}%, ${clampt(this.l) * 100}%${
-      a === 1 ? ")" : `, ${a})`
-    }`
-  }
-  brighter(k?: number) {
-    k = k === undefined ? brighter : qu.pow(brighter, k)
-    return new Hsl(this.h, this.s, this.l * k, this.opacity)
-  }
-  clamp() {
-    return new Hsl(clamph(this.h), clampt(this.s), clampt(this.l), clampa(this.opacity))
-  }
-  darker(k?: number) {
-    k = k === undefined ? darker : qu.pow(darker, k)
-    return new Hsl(this.h, this.s, this.l * k, this.opacity)
-  }
-  rgb() {
-    const h = (this.h % 360) + (this.h < 0 ? 1 : 0) * 360,
-      s = isNaN(h) || isNaN(this.s) ? 0 : this.s,
-      l = this.l,
-      m2 = l + (l < 0.5 ? l : 1 - l) * s,
-      m1 = 2 * l - m2
-    const hsl2rgb = (h: number, m1: number, m2: number) =>
-      (h < 60 ? m1 + ((m2 - m1) * h) / 60 : h < 180 ? m2 : h < 240 ? m1 + ((m2 - m1) * (240 - h)) / 60 : m1) * 255
-    return new Rgb(
-      hsl2rgb(h >= 240 ? h - 240 : h + 120, m1, m2),
-      hsl2rgb(h, m1, m2),
-      hsl2rgb(h < 120 ? h + 240 : h - 120, m1, m2),
-      this.opacity
-    )
-  }
-}
-
-export class Cubehelix extends Color implements qt.CubehelixColor {
-  constructor(public h = 0, public s = 0, public l = 0, public opacity = 1) {
-    super()
-  }
-  brighter(k?: number) {
-    k = k === undefined ? brighter : qu.pow(brighter, k)
-    return new Cubehelix(this.h, this.s, this.l * k, this.opacity)
-  }
-  darker(k?: number) {
-    k = k === undefined ? darker : qu.pow(darker, k)
-    return new Cubehelix(this.h, this.s, this.l * k, this.opacity)
-  }
-  rgb() {
-    const h = isNaN(this.h) ? 0 : (this.h + 120) * qu.radians,
-      l = +this.l,
-      a = isNaN(this.s) ? 0 : this.s * l * (1 - l),
-      cosh = qu.cos(h),
-      sinh = qu.sin(h)
-    return new Rgb(
-      255 * (l + a * (A * cosh + B * sinh)),
-      255 * (l + a * (C * cosh + D * sinh)),
-      255 * (l + a * (E * cosh)),
-      this.opacity
-    )
-  }
-}
-
-export class Lab extends Color implements qt.LabColor {
-  constructor(public l = 0, public a = 0, public b = 0, public opacity = 1) {
-    super()
-  }
-  brighter(k?: number) {
-    return new Lab(this.l + K * (k === undefined ? 1 : k), this.a, this.b, this.opacity)
-  }
-  darker(k?: number) {
-    return new Lab(this.l - K * (k === undefined ? 1 : k), this.a, this.b, this.opacity)
-  }
-  rgb() {
-    let y = (this.l + 16) / 116,
-      x = isNaN(this.a) ? y : y + this.a / 500,
-      z = isNaN(this.b) ? y : y - this.b / 200
-    const lab2xyz = (x: number) => (x > t1 ? x * x * x : t2 * (x - t0))
-    x = Xn * lab2xyz(x)
-    y = Yn * lab2xyz(y)
-    z = Zn * lab2xyz(z)
-    const lrgb2rgb = (x: number) => 255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * qu.pow(x, 1 / 2.4) - 0.055)
-    return new Rgb(
-      lrgb2rgb(3.1338561 * x - 1.6168667 * y - 0.4906146 * z),
-      lrgb2rgb(-0.9787684 * x + 1.9161415 * y + 0.033454 * z),
-      lrgb2rgb(0.0719453 * x - 0.2289914 * y + 1.4052427 * z),
-      this.opacity
-    )
-  }
-}
-
-export class Hcl extends Color implements qt.HCLColor {
-  constructor(public h = 0, public c = 0, public l = 0, public opacity = 1) {
-    super()
-  }
-  brighter(k?: number) {
-    return new Hcl(this.h, this.c, this.l + K * (k === undefined ? 1 : k), this.opacity)
-  }
-  darker(k?: number) {
-    return new Hcl(this.h, this.c, this.l - K * (k === undefined ? 1 : k), this.opacity)
-  }
-  rgb() {
-    return hcl2lab(this).rgb()
-  }
-}
-
-function hcl2lab(o: qt.HCLColor) {
-  if (isNaN(o.h)) return new Lab(o.l, 0, 0, o.opacity)
-  const h = o.h * qu.radians
-  return new Lab(o.l, qu.cos(h) * o.c, qu.sin(h) * o.c, o.opacity)
+function hex(x: number) {
+  x = clampi(x)
+  return (x < 16 ? "0" : "") + x.toString(16)
 }
 
 function clampa(x: number) {
@@ -374,10 +405,6 @@ function clamph(x: number) {
 }
 function clampt(x: number) {
   return qu.max(0, qu.min(1, x || 0))
-}
-function hex(x: number) {
-  x = clampi(x)
-  return (x < 16 ? "0" : "") + x.toString(16)
 }
 
 const named: { [k: string]: number } = {
