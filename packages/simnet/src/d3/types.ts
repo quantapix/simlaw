@@ -209,7 +209,6 @@ export interface Color {
   formatHex8(): string
   formatHsl(): string
   formatRgb(): string
-  hex(): string
   toString(): string
 }
 export interface ColorFac extends Function {

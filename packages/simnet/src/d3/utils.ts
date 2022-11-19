@@ -1,18 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import type * as qt from "./types.js"
 
-export const pi = Math.PI
-export const halfPi = pi / 2
-export const quarterPi = pi / 4
-export const degrees = 180 / pi
-export const radians = pi / 180
-export const tau = 2 * pi
-export const epsilon = 1e-6
-export const epsilon2 = 1e-12
-export const tauEpsilon = tau - epsilon
-
-export const SQRT2 = Math.SQRT2
-
 export const abs = Math.abs
 export const atan = Math.atan
 export const atan2 = Math.atan2
@@ -29,6 +17,18 @@ export const round = Math.round
 export const sin = Math.sin
 export const sqrt = Math.sqrt
 export const tan = Math.tan
+
+export const PI = Math.PI
+export const SQRT2 = Math.SQRT2
+
+export const degrees = 180 / PI
+export const epsilon = 1e-6
+export const epsilon2 = 1e-12
+export const halfPi = PI / 2
+export const quarterPi = PI / 4
+export const radians = PI / 180
+export const tau = 2 * PI
+export const tauEpsilon = tau - epsilon
 
 export function sinh(x: number) {
   return ((x = exp(x)) - 1 / x) / 2
@@ -232,7 +232,7 @@ export class Path implements qt.Path {
         "," +
         r +
         ",0," +
-        +(da >= pi) +
+        +(da >= PI) +
         "," +
         cw +
         "," +
@@ -263,7 +263,7 @@ export class Path implements qt.Path {
         l20_2 = x20 * x20 + y20 * y20,
         l21 = Math.sqrt(l21_2),
         l01 = Math.sqrt(l01_2),
-        l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
+        l = r * Math.tan((PI - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
         t01 = l / l01,
         t21 = l / l21
       if (Math.abs(t01 - 1) > epsilon) {

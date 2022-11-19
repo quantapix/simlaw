@@ -1,10 +1,6 @@
-import { cubehelix as colorCubehelix } from "./color.js"
-import { hcl as colorHcl } from "./color.js"
-import { hsl as colorHsl } from "./color.js"
-import { lab as colorLab } from "./color.js"
-import { rgb as colorRgb } from "./color.js"
-import type * as qt from "./types.js"
+import * as qc from "./color.js"
 import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 
 function isNumArray(x: any) {
   return ArrayBuffer.isView(x) && !(x instanceof DataView)
@@ -73,7 +69,7 @@ export function gamma(x: number) {
 export const rgb: qt.ColorGammaIpolatorFac = (function rgbGamma(y) {
   const color = gamma(y)
   function rgb(start, end) {
-    const r = color((start = colorRgb(start)).r, (end = colorRgb(end)).r),
+    const r = color((start = qc.rgb(start)).r, (end = qc.rgb(end)).r),
       g = color(start.g, end.g),
       b = color(start.b, end.b),
       opacity = nogamma(start.opacity, end.opacity)
@@ -93,7 +89,7 @@ function _cubehelix(hue: Function) {
   return (function gamma(y) {
     y = +y
     function f(start, end) {
-      const h = hue((start = colorCubehelix(start)).h, (end = colorCubehelix(end)).h),
+      const h = hue((start = qc.cubehelix(start)).h, (end = qc.cubehelix(end)).h),
         s = color(start.s, end.s),
         l = color(start.l, end.l),
         opacity = color(start.opacity, end.opacity)
@@ -114,7 +110,7 @@ export const cubehelixLong: qt.ColorGammaIpolatorFac = _cubehelix(color)
 
 function _hcl(hue: Function) {
   return function (start, end) {
-    const h = hue((start = colorHcl(start)).h, (end = colorHcl(end)).h),
+    const h = hue((start = qc.hcl(start)).h, (end = qc.hcl(end)).h),
       c = color(start.c, end.c),
       l = color(start.l, end.l),
       opacity = color(start.opacity, end.opacity)
@@ -136,7 +132,7 @@ export const hclLong: (
 
 function _hsl(hue: Function) {
   return function (start, end) {
-    const h = hue((start = colorHsl(start)).h, (end = colorHsl(end)).h),
+    const h = hue((start = qc.hsl(start)).h, (end = qc.hsl(end)).h),
       s = color(start.s, end.s),
       l = color(start.l, end.l),
       opacity = color(start.opacity, end.opacity)
@@ -160,7 +156,7 @@ export function lab(
   start: string | qt.ColorCommonInstance,
   end: string | qt.ColorCommonInstance
 ): (x: number) => string {
-  const l = color((start = colorLab(start)).l, (end = colorLab(end)).l),
+  const l = color((start = qc.lab(start)).l, (end = qc.lab(end)).l),
     a = color(start.a, end.a),
     b = color(start.b, end.b),
     opacity = color(start.opacity, end.opacity)
@@ -182,7 +178,7 @@ function rgbSpline(spline) {
       i,
       color
     for (i = 0; i < n; ++i) {
-      color = colorRgb(colors[i])
+      color = qc.rgb(colors[i])
       r[i] = color.r || 0
       g[i] = color.g || 0
       b[i] = color.b || 0
@@ -488,7 +484,6 @@ function parseSvg(x: any) {
   x = x.matrix
   return decompose(x.a, x.b, x.c, x.d, x.e, x.f)
 }
-const degrees = 180 / qu.pi
 function decompose(a, b, c, d, e, f) {
   let scaleX, scaleY, skewX
   if ((scaleX = qu.sqrt(a * a + b * b))) (a /= scaleX), (b /= scaleX)
@@ -498,8 +493,8 @@ function decompose(a, b, c, d, e, f) {
   return {
     translateX: e,
     translateY: f,
-    rotate: qu.atan2(b, a) * degrees,
-    skewX: qu.atan(skewX) * degrees,
+    rotate: qu.atan2(b, a) * qu.degrees,
+    skewX: qu.atan(skewX) * qu.degrees,
     scaleX: scaleX,
     scaleY: scaleY,
   }

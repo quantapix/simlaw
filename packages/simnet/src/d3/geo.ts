@@ -757,7 +757,7 @@ export const sign =
     return x > 0 ? 1 : x < 0 ? -1 : 0
   }
 export function acos(x) {
-  return x > 1 ? 0 : x < -1 ? qu.pi : Math.acos(x)
+  return x > 1 ? 0 : x < -1 ? qu.PI : Math.acos(x)
 }
 export function asin(x) {
   return x > 1 ? qu.halfPi : x < -1 ? -qu.halfPi : Math.asin(x)
@@ -770,7 +770,7 @@ export function pointEqual(a, b) {
   return qu.abs(a[0] - b[0]) < qu.epsilon && qu.abs(a[1] - b[1]) < qu.epsilon
 }
 function longitude(point) {
-  return qu.abs(point[0]) <= qu.pi ? point[0] : sign(point[0]) * (((qu.abs(point[0]) + qu.pi) % qu.tau) - qu.pi)
+  return qu.abs(point[0]) <= qu.PI ? point[0] : sign(point[0]) * (((qu.abs(point[0]) + qu.PI) % qu.tau) - qu.PI)
 }
 export function polygonContains(polygon, point) {
   let lambda = longitude(point),
@@ -800,7 +800,7 @@ export function polygonContains(polygon, point) {
         delta = lambda1 - lambda0,
         sign = delta >= 0 ? 1 : -1,
         absDelta = sign * delta,
-        antimeridian = absDelta > qu.pi,
+        antimeridian = absDelta > qu.PI,
         k = sinPhi0 * sinPhi1
       sum.add(qu.atan2(k * sign * qu.sin(absDelta), cosPhi0 * cosPhi1 + k * qu.cos(absDelta)))
       angle += antimeridian ? delta + sign * qu.tau : delta
@@ -841,7 +841,7 @@ export function rotation(angles: qt.Pair | [number, number, number]): qt.GeoRota
 }
 export namespace rotation {
   function identity(lambda, phi) {
-    if (qu.abs(lambda) > qu.pi) lambda -= Math.round(lambda / qu.tau) * qu.tau
+    if (qu.abs(lambda) > qu.PI) lambda -= Math.round(lambda / qu.tau) * qu.tau
     return [lambda, phi]
   }
   identity.invert = identity
@@ -849,7 +849,7 @@ export namespace rotation {
     function forward(deltaLambda) {
       return function (lambda, phi) {
         lambda += deltaLambda
-        if (qu.abs(lambda) > qu.pi) lambda -= Math.round(lambda / qu.tau) * qu.tau
+        if (qu.abs(lambda) > qu.PI) lambda -= Math.round(lambda / qu.tau) * qu.tau
         return [lambda, phi]
       }
     }
