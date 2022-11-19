@@ -1,4 +1,5 @@
 import type { MultiPolygon } from "geojson"
+import type { Lab } from "./color.js"
 
 export type Pair<T = number> = [T, T]
 
@@ -221,16 +222,16 @@ export interface RGBColor extends Color {
   g: number
   b: number
   opacity: number
-  brighter(k?: number): this
-  darker(k?: number): this
-  rgb(): this
-  copy(values?: {
+  brighter(k?: number): RGBColor
+  clamp(): RGBColor
+  copy(x?: {
     r?: number | undefined
     g?: number | undefined
     b?: number | undefined
     opacity?: number | undefined
   }): this
-  clamp(): this
+  darker(k?: number): RGBColor
+  rgb(): this
 }
 export interface RGBColorFac extends Function {
   (r: number, g: number, b: number, opacity?: number): RGBColor
@@ -243,16 +244,16 @@ export interface HSLColor extends Color {
   s: number
   l: number
   opacity: number
-  brighter(k?: number): this
-  darker(k?: number): this
-  rgb(): RGBColor
-  copy(values?: {
+  brighter(k?: number): HSLColor
+  clamp(): HSLColor
+  copy(x?: {
     h?: number | undefined
     s?: number | undefined
     l?: number | undefined
     opacity?: number | undefined
   }): this
-  clamp(): this
+  darker(k?: number): HSLColor
+  rgb(): RGBColor
 }
 export interface HSLColorFac extends Function {
   (h: number, s: number, l: number, opacity?: number): HSLColor
@@ -265,15 +266,15 @@ export interface LabColor extends Color {
   a: number
   b: number
   opacity: number
-  brighter(k?: number): this
-  darker(k?: number): this
-  rgb(): RGBColor
-  copy(values?: {
+  brighter(k?: number): LabColor
+  copy(x?: {
     l?: number | undefined
     a?: number | undefined
     b?: number | undefined
     opacity?: number | undefined
   }): this
+  darker(k?: number): LabColor
+  rgb(): RGBColor
 }
 export interface LabColorFac extends Function {
   (l: number, a: number, b: number, opacity?: number): LabColor
@@ -287,15 +288,15 @@ export interface HCLColor extends Color {
   c: number
   l: number
   opacity: number
-  brighter(k?: number): this
-  darker(k?: number): this
-  rgb(): RGBColor
-  copy(values?: {
+  brighter(k?: number): HCLColor
+  copy(x?: {
     h?: number | undefined
     c?: number | undefined
     l?: number | undefined
     opacity?: number | undefined
   }): this
+  darker(k?: number): HCLColor
+  rgb(): RGBColor
 }
 export interface HCLColorFac extends Function {
   (h: number, c: number, l: number, opacity?: number): HCLColor
@@ -313,15 +314,15 @@ export interface CubehelixColor extends Color {
   s: number
   l: number
   opacity: number
-  brighter(k?: number): this
-  darker(k?: number): this
-  rgb(): RGBColor
-  copy(values?: {
+  brighter(k?: number): CubehelixColor
+  copy(x?: {
     h?: number | undefined
     s?: number | undefined
     l?: number | undefined
     opacity?: number | undefined
   }): this
+  darker(k?: number): CubehelixColor
+  rgb(): RGBColor
 }
 export interface CubehelixColorFac extends Function {
   (h: number, s: number, l: number, opacity?: number): CubehelixColor
