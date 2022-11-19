@@ -66,97 +66,107 @@ export function gamma(x: number) {
     : (a: number, b: number) => (b - a ? exponential(a, b, x) : qu.constant(isNaN(a) ? b : a))
 }
 
-export const rgb: qt.ColorGammaIpolatorFac = (function rgbGamma(y) {
+export const rgb = (function g(y) {
   const color = gamma(y)
-  function rgb(start, end) {
-    const r = color((start = qc.rgb(start)).r, (end = qc.rgb(end)).r),
-      g = color(start.g, end.g),
-      b = color(start.b, end.b),
-      alpha = nogamma(start.alpha, end.alpha)
-    return function (t) {
-      start.r = r(t)
-      start.g = g(t)
-      start.b = b(t)
-      start.alpha = alpha(t)
-      return start + ""
+  function f(start: string | qt.Color, end: string | qt.Color) {
+    const xs = qc.RGB.from(start)
+    const xe = qc.RGB.from(end)
+    const r = color(xs.r, xe.r),
+      g = color(xs.g, xe.g),
+      b = color(xs.b, xe.b),
+      alpha = nogamma(xs.alpha, xe.alpha)
+    return (x: number) => {
+      xs.r = r(x)
+      xs.g = g(x)
+      xs.b = b(x)
+      xs.alpha = alpha(x)
+      return xs + ""
     }
   }
-  rgb.gamma = rgbGamma
-  return rgb
+  f.gamma = g
+  return f
 })(1)
 
+function _hsl(hue: Function) {
+  return function (start: string | qt.Color, end: string | qt.Color) {
+    const xs = qc.HSL.from(start)
+    const xe = qc.HSL.from(end)
+    const h = hue(xs.h, xe.h),
+      s = color(xs.s, xe.s),
+      l = color(xs.l, xe.l),
+      alpha = color(xs.alpha, xe.alpha)
+    return (x: number) => {
+      xs.h = h(x)
+      xs.s = s(x)
+      xs.l = l(x)
+      xs.alpha = alpha(x)
+      return xs + ""
+    }
+  }
+}
+export const hsl = _hsl(hue)
+export const hslLong = _hsl(color)
+
+function _hcl(hue: Function) {
+  return function (start: string | qt.Color, end: string | qt.Color) {
+    const xs = qc.HCL.from(start)
+    const xe = qc.HCL.from(end)
+    const h = hue(xs.h, xe.h),
+      c = color(xs.c, xe.c),
+      l = color(xs.l, xe.l),
+      alpha = color(xs.alpha, xe.alpha)
+    return (x: number) => {
+      xs.h = h(x)
+      xs.c = c(x)
+      xs.l = l(x)
+      xs.alpha = alpha(x)
+      return xs + ""
+    }
+  }
+}
+export const hcl = _hcl(hue)
+export const hclLong = _hcl(color)
+
+export function lab(start: string | qt.Color, end: string | qt.Color) {
+  const xs = qc.LAB.from(start)
+  const xe = qc.LAB.from(end)
+  const l = color(xs.l, xe.l),
+    a = color(xs.a, xe.a),
+    b = color(xs.b, xe.b),
+    alpha = color(xs.alpha, xe.alpha)
+  return (x: number) => {
+    xs.l = l(x)
+    xs.a = a(x)
+    xs.b = b(x)
+    xs.alpha = alpha(x)
+    return xs + ""
+  }
+}
+
 function _cubehelix(hue: Function) {
-  return (function gamma(y) {
+  return (function g(y) {
     y = +y
-    function f(start, end) {
-      const h = hue((start = qc.cubehelix(start)).h, (end = qc.cubehelix(end)).h),
-        s = color(start.s, end.s),
-        l = color(start.l, end.l),
-        alpha = color(start.alpha, end.alpha)
-      return x => {
-        start.h = h(x)
-        start.s = s(x)
-        start.l = l(qu.pow(x, y))
-        start.alpha = alpha(x)
-        return start + ""
+    function f(start: string | qt.Color, end: string | qt.Color) {
+      const xs = qc.Cubehelix.from(start)
+      const xe = qc.Cubehelix.from(end)
+      const h = hue(xs.h, xe.h),
+        s = color(xs.s, xs.s),
+        l = color(xs.l, xs.l),
+        alpha = color(xs.alpha, xe.alpha)
+      return (x: number) => {
+        xs.h = h(x)
+        xs.s = s(x)
+        xs.l = l(qu.pow(x, y))
+        xs.alpha = alpha(x)
+        return xs + ""
       }
     }
-    f.gamma = gamma
+    f.gamma = g
     return f
   })(1)
 }
-export const cubehelix: qt.ColorGammaIpolatorFac = _cubehelix(hue)
-export const cubehelixLong: qt.ColorGammaIpolatorFac = _cubehelix(color)
-
-function _hcl(hue: Function) {
-  return function (start, end) {
-    const h = hue((start = qc.hcl(start)).h, (end = qc.hcl(end)).h),
-      c = color(start.c, end.c),
-      l = color(start.l, end.l),
-      alpha = color(start.alpha, end.alpha)
-    return x => {
-      start.h = h(x)
-      start.c = c(x)
-      start.l = l(x)
-      start.alpha = alpha(x)
-      return start + ""
-    }
-  }
-}
-export const hcl: (a: string | qt.Color, b: string | qt.Color) => (x: number) => string = _hcl(hue)
-export const hclLong: (a: string | qt.Color, b: string | qt.Color) => (x: number) => string = _hcl(color)
-
-function _hsl(hue: Function) {
-  return function (start, end) {
-    const h = hue((start = qc.hsl(start)).h, (end = qc.hsl(end)).h),
-      s = color(start.s, end.s),
-      l = color(start.l, end.l),
-      alpha = color(start.alpha, end.alpha)
-    return x => {
-      start.h = h(x)
-      start.s = s(x)
-      start.l = l(x)
-      start.alpha = alpha(x)
-      return start + ""
-    }
-  }
-}
-export const hsl: (a: string | qt.Color, b: string | qt.Color) => (x: number) => string = _hsl(hue)
-export const hslLong: (a: string | qt.Color, b: string | qt.Color) => (t: number) => string = _hsl(color)
-
-export function lab(start: string | qt.Color, end: string | qt.Color): (x: number) => string {
-  const l = color((start = qc.lab(start)).l, (end = qc.lab(end)).l),
-    a = color(start.a, end.a),
-    b = color(start.b, end.b),
-    alpha = color(start.alpha, end.alpha)
-  return x => {
-    start.l = l(x)
-    start.a = a(x)
-    start.b = b(x)
-    start.alpha = alpha(x)
-    return start + ""
-  }
-}
+export const cubehelix = _cubehelix(hue)
+export const cubehelixLong = _cubehelix(color)
 
 function rgbSpline(spline) {
   return function (colors) {

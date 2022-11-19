@@ -937,10 +937,6 @@ export interface ZoomIpolator extends Function {
   duration: number
   rho(rho: number): this
 }
-export interface ColorGammaIpolatorFac extends Function {
-  (a: string | Color, b: string | Color): (x: number) => string
-  gamma(g: number): ColorGammaIpolatorFac
-}
 export type ZoomView = [number, number, number]
 export type TypedArray =
   | Int8Array

@@ -33,11 +33,10 @@ export const darker = 0.7
 export const brighter = 1 / darker
 
 export class RGB extends Color implements qt.RGB {
-  static from(x: string): RGB
-  static from(x?: qt.Color): RGB
+  static from(x?: string | qt.Color): RGB
   static from(r: number, g: number, b: number, alpha?: number): RGB
   static from(x: any, g?: number, b?: number, alpha = 1) {
-    const convert = (x?: string | Color) => {
+    const convert = (x?: string | qt.Color) => {
       x = typeof x === "string" ? color(x) : x
       if (x === undefined) return new RGB()
       if (x instanceof RGB) return new RGB(x.r, x.g, x.b, x.alpha)
@@ -90,11 +89,10 @@ export class RGB extends Color implements qt.RGB {
 }
 
 export class HSL extends Color implements qt.HSL {
-  static from(x: string): HSL
-  static from(x?: qt.Color): HSL
+  static from(x?: string | qt.Color): HSL
   static from(h: number, s: number, l: number, alpha?: number): HSL
   static from(x: any, s?: number, l?: number, alpha = 1) {
-    const convert = (x?: string | Color) => {
+    const convert = (x?: string | qt.Color) => {
       x = typeof x === "string" ? color(x) : x
       if (x === undefined) return new HSL()
       if (x instanceof HSL) return new HSL(x.h, x.s, x.l, x.alpha)
@@ -177,11 +175,10 @@ const t0 = 4 / 29,
   t3 = t1 * t1 * t1
 
 export class LAB extends Color implements qt.LAB {
-  static from(x: string): LAB
-  static from(x?: qt.Color): LAB
+  static from(x?: string | qt.Color): LAB
   static from(r: number, g: number, b: number, alpha?: number): LAB
   static from(x: any, a?: number, b?: number, alpha = 1) {
-    const convert = (o?: string | Color) => {
+    const convert = (o?: string | qt.Color) => {
       o = typeof o === "string" ? color(o) : o
       if (o === undefined) return new LAB()
       if (o instanceof LAB) return new LAB(o.l, o.a, o.b, o.alpha)
@@ -234,11 +231,10 @@ export class LAB extends Color implements qt.LAB {
 }
 
 export class HCL extends Color implements qt.HCL {
-  static from(x: string): HCL
-  static from(x?: qt.Color): HCL
+  static from(x?: string | qt.Color): HCL
   static from(h: number, c: number, l: number, alpha?: number): HCL
   static from(x: any, c?: number, l?: number, alpha = 1) {
-    const convert = (x?: string | Color) => {
+    const convert = (x?: string | qt.Color) => {
       x = typeof x === "string" ? color(x) : x
       if (x === undefined) return new HCL()
       if (x instanceof HCL) return new HCL(x.h, x.c, x.l, x.alpha)
@@ -282,22 +278,23 @@ const A = -0.14861,
   BC_DA = B * C - D * A
 
 export class Cubehelix extends Color implements qt.Cubehelix {
-  static from(x: string): Cubehelix
-  static from(x?: qt.Color): Cubehelix
+  static from(x?: string | qt.Color): Cubehelix
   static from(h: number, s: number, l: number, alpha?: number): Cubehelix
   static from(x: any, s?: number, l?: number, alpha = 1) {
-    const convert = (o: any) => {
-      if (o instanceof Cubehelix) return new Cubehelix(o.h, o.s, o.l, o.alpha)
-      if (!(o instanceof RGB)) o = RGB.from(o)
-      const r = o.r / 255,
-        g = o.g / 255,
-        b = o.b / 255,
+    const convert = (x?: string | qt.Color) => {
+      x = typeof x === "string" ? color(x) : x
+      if (x === undefined) return new Cubehelix()
+      if (x instanceof Cubehelix) return new Cubehelix(x.h, x.s, x.l, x.alpha)
+      const y = x instanceof RGB ? x : RGB.from(x)
+      const r = y.r / 255,
+        g = y.g / 255,
+        b = y.b / 255,
         l = (BC_DA * b + ED * r - EB * g) / (BC_DA + ED - EB),
         bl = b - l,
         k = (E * (g - l) - C * bl) / D,
         s = qu.sqrt(k * k + bl * bl) / (E * l * (1 - l)), // NaN if l=0 or l=1
         h = s ? qu.atan2(k, bl) * qu.degrees - 120 : NaN
-      return new Cubehelix(h < 0 ? h + 360 : h, s, l, o.alpha)
+      return new Cubehelix(h < 0 ? h + 360 : h, s, l, x.alpha)
     }
     return s === undefined ? convert(x) : new Cubehelix(x, s, l, alpha)
   }
