@@ -1348,9 +1348,9 @@ export interface Selection<S extends Base, T, P extends Base, U> {
   [Symbol.iterator](): Iterator<S>
   append<C extends Base>(f: ValueFn<S, T, C>): Selection<C, T, P, U>
   append<C extends Base>(x: string): Selection<C, T, P, U>
-  append<K extends keyof TM>(k: K): Selection<TM[K], T, P, U>
-  attr(n: string, x: AV<S, T>): this
-  attr(n: string): string
+  append<K extends keyof TM>(x: K): Selection<TM[K], T, P, U>
+  attr(k: string, v: AV<S, T>): this
+  attr(k: string): string
   call(f: (x: Selection<S, T, P, U>, ...xs: any[]) => void, ...xs: any[]): this
   classed(k: string, f: ValueFn<S, T, boolean>): this
   classed(k: string, v: boolean): this
@@ -1491,12 +1491,9 @@ export interface Local<T> {
   set(x: Element, v: T): T
   toString(): string
 }
-export interface NamespaceLocalObject {
+export interface NS {
   space: string
   local: string
-}
-export interface NamespaceMap {
-  [k: string]: string
 }
 declare global {
   interface CanvasRenderingContext2D {}
