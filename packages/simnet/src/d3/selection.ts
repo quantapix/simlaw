@@ -180,19 +180,20 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
       }
     }
     const bind = key ? key : index,
-      parents = this.parents,
-      groups = this.groups
+      parents = this.parents
+    const m = this.groups.length
+    const update = new Array(m),
+      enter = new Array(m),
+      exit = new Array(m)
     if (typeof value !== "function") value = qu.constant(value)
-    for (let m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
-      const parent = parents[j],
-        group = groups[j],
-        groupLength = group.length,
-        data = qu.arraylike(value.call(parent, parent && parent.__data__, j, parents)),
+    this.groups.forEach((g, j) => {
+      const p = parents[j],
+        data = qu.arraylike(value.call(p, p && p.__data__, j, parents)),
         dataLength = data.length,
         enterGroup = (enter[j] = new Array(dataLength)),
         updateGroup = (update[j] = new Array(dataLength)),
-        exitGroup = (exit[j] = new Array(groupLength))
-      bind(parent, group, enterGroup, updateGroup, exitGroup, data, key)
+        exitGroup = (exit[j] = new Array(g.length))
+      bind(p, g, enterGroup, updateGroup, exitGroup, data, key)
       for (let i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
         if ((previous = enterGroup[i0])) {
           if (i0 >= i1) i1 = i0 + 1
@@ -200,7 +201,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
           previous._next = next || null
         }
       }
-    }
+    })
     update = new Selection(update, parents)
     update._enter = enter
     update._exit = exit
@@ -484,9 +485,9 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     for (const _ of this) ++size
     return size
   }
-  sort(f?: Function) {
+  sort(f?) {
     if (!f) f = qu.ascending
-    const f2 = (a: T, b: T) => (a && b ? f?(a.__data__, b.__data__) : !a - !b)
+    const f2 = (a: T, b: T) => (a && b ? f(a.__data__, b.__data__) : !a - !b)
     const ys = new Array(this.groups.length)
     this.groups.forEach((g, j) => {
       const y = (ys[j] = new Array(g.length))
@@ -513,16 +514,24 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
         )
       : value(this.node(), k)
   }
-  text(x) {
+  text(x: any) {
     const remove = () => (this.textContent = "")
-    const constant = v => () => (this.textContent = v)
-    const func = v => () => {
-      const x = v.apply(this, arguments)
-      this.textContent = x == null ? "" : x
-    }
-    return arguments.length
-      ? this.each(x == null ? remove : (typeof x === "function" ? func : constant)(x))
-      : this.node().textContent
+    const constant = (v: string) => () => (this.textContent = v)
+    const func =
+      (v: any) =>
+      (...xs: any[]) => {
+        const x: string = v.apply(this, ...xs)
+        this.textContent = x == null ? "" : x
+      }
+    return x === undefined
+      ? this.node().textContent
+      : this.each(x == null ? remove : (typeof x === "function" ? func : constant)(x))
+  }
+  selector<T extends Element>(x: string | null): (this: qt.Base) => T | void {
+    return x == null ? () => {} : () => this.querySelector(x)
+  }
+  selectorAll<T extends Element>(x: string | null): (this: qt.Base) => NodeListOf<T> {
+    return x == null ? () => ({} as NodeListOf<T>) : () => this.querySelectorAll(x)
   }
 }
 
@@ -623,38 +632,20 @@ export function pointers(event: any, target?: any): Array<qt.Point> {
   }
   return Array.from(event, event => pointer(event, target))
 }
-export function select<B extends qt.Base, T>(x: string): qt.Selection<B, T, HTMLElement, any>
-export function select<B extends qt.Base, T>(x: B): qt.Selection<B, T, null, undefined>
+export function select<S extends qt.Base, T>(x: string): Selection<S, T, HTMLElement, any>
+export function select<S extends qt.Base, T>(x: S): Selection<S, T, null, undefined>
 export function select(x: any) {
   return typeof x === "string"
     ? new Selection([[document.querySelector(x)]], [document.documentElement])
     : new Selection([[x]], root)
 }
-export function selectAll(x?: null): qt.Selection<null, undefined, null, undefined>
-export function selectAll<B extends qt.Base, T>(x: string): qt.Selection<B, T, HTMLElement, any>
-export function selectAll<B extends qt.Base, T>(
-  x: B[] | ArrayLike<B> | Iterable<B>
-): qt.Selection<B, T, null, undefined>
+export function selectAll(x?: null): Selection<null, undefined, null, undefined>
+export function selectAll<S extends qt.Base, T>(x: string): Selection<S, T, HTMLElement, any>
+export function selectAll<S extends qt.Base, T>(x: S[] | ArrayLike<S> | Iterable<S>): Selection<S, T, null, undefined>
 export function selectAll(x: any) {
   return typeof x === "string"
     ? new Selection([document.querySelectorAll(x)], [document.documentElement])
     : new Selection([qu.array(x)], root)
-}
-export function selector<T extends Element>(x: string | null): (this: qt.Base) => T | void {
-  return x == null
-    ? function (this: qt.Base) {}
-    : function (this: qt.Base) {
-        return this.querySelector(x)
-      }
-}
-export function selectorAll<T extends Element>(x: string | null): (this: qt.Base) => NodeListOf<T> {
-  return x == null
-    ? function empty() {
-        return []
-      }
-    : function () {
-        return this.querySelectorAll(x)
-      }
 }
 export function sourceEvent(event) {
   let sourceEvent
