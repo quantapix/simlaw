@@ -2,16 +2,14 @@ import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
 export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Element implements qt.Selection<S, T, P, U> {
-  constructor(groups, parents) {
+  constructor(public groups: S[][], public parents: P[]) {
     super()
-    this._groups = groups
-    this._parents = parents
   }
   [Symbol.iterator] = this.iterator
   selection() {
     return this
   }
-  append(x: any) {
+  override append(x: any) {
     const create = typeof x === "function" ? x : creator(x)
     return this.select((...xs: any[]) => this.appendChild(create.apply(this, xs)))
   }
@@ -115,68 +113,58 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     }
     return this.select(d ? deep : shallow)
   }
-  data(value, key) {
-    function datum(node) {
-      return node.__data__
-    }
-    if (!arguments.length) return Array.from(this, datum)
-    class EnterElem implements qt.EnterElem {
-      ownerDocument: Document
-      namespaceURI: string
+  data(value?, key?) {
+    if (!arguments.length) return Array.from(this, x => x.__data__)
+    class EnterElem extends Element implements qt.EnterElem {
+      __data__
+      override ownerDocument: Document
+      override namespaceURI: string
       next: Node | null = null
       constructor(public parent: any, data: any) {
+        super()
         this.ownerDocument = parent.ownerDocument
         this.namespaceURI = parent.namespaceURI
         this.__data__ = data
       }
-      appendChild(x: Node) {
+      override appendChild(x: any) {
         return this.parent.insertBefore(x, this.next)
       }
-      insertBefore(x: Node, next: Node) {
+      override insertBefore(x: any, next: Node | null) {
         return this.parent.insertBefore(x, next)
       }
-      querySelector(x: string) {
+      override querySelector(x: string) {
         return this.parent.querySelector(x)
       }
-      querySelectorAll(x: string) {
+      override querySelectorAll(x: string) {
         return this.parent.querySelectorAll(x)
       }
     }
     function index(parent, group, enter, update, exit, data) {
-      let i = 0,
-        node,
-        groupLength = group.length,
+      const groupLength = group.length,
         dataLength = data.length
+      let i = 0,
+        node
       for (; i < dataLength; ++i) {
         if ((node = group[i])) {
           node.__data__ = data[i]
           update[i] = node
-        } else {
-          enter[i] = new EnterElem(parent, data[i])
-        }
+        } else enter[i] = new EnterElem(parent, data[i])
       }
       for (; i < groupLength; ++i) {
-        if ((node = group[i])) {
-          exit[i] = node
-        }
+        if ((node = group[i])) exit[i] = node
       }
     }
     function key(parent, group, enter, update, exit, data, key) {
-      let i,
-        node,
-        nodeByKeyValue = new Map(),
+      const nodeByKeyValue = new Map(),
         groupLength = group.length,
         dataLength = data.length,
-        keyValues = new Array(groupLength),
-        keyValue
+        keyValues = new Array(groupLength)
+      let i, node, keyValue
       for (i = 0; i < groupLength; ++i) {
         if ((node = group[i])) {
           keyValues[i] = keyValue = key.call(node, node.__data__, i, group) + ""
-          if (nodeByKeyValue.has(keyValue)) {
-            exit[i] = node
-          } else {
-            nodeByKeyValue.set(keyValue, node)
-          }
+          if (nodeByKeyValue.has(keyValue)) exit[i] = node
+          else nodeByKeyValue.set(keyValue, node)
         }
       }
       for (i = 0; i < dataLength; ++i) {
@@ -185,19 +173,15 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
           update[i] = node
           node.__data__ = data[i]
           nodeByKeyValue.delete(keyValue)
-        } else {
-          enter[i] = new EnterElem(parent, data[i])
-        }
+        } else enter[i] = new EnterElem(parent, data[i])
       }
       for (i = 0; i < groupLength; ++i) {
-        if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) {
-          exit[i] = node
-        }
+        if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) exit[i] = node
       }
     }
     const bind = key ? key : index,
-      parents = this._parents,
-      groups = this._groups
+      parents = this.parents,
+      groups = this.groups
     if (typeof value !== "function") value = qu.constant(value)
     for (let m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
       const parent = parents[j],
@@ -241,34 +225,34 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     const func = (type, params) => () => event(this, type, params.apply(this, arguments))
     return this.each((typeof params === "function" ? func : constant)(type, params))
   }
-  each(callback) {
-    for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-      for (let group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
-        if ((node = group[i])) callback.call(node, node.__data__, i, group)
-      }
-    }
+  each(f: Function) {
+    this.groups.forEach(g => {
+      g.forEach((n, i) => {
+        f.call(n, n.__data__, i, g)
+      })
+    })
     return this
   }
   empty() {
     return !this.node()
   }
   enter() {
-    return new Selection(this._enter || this._groups.map(sparse), this._parents)
+    return new Selection(this._enter || this.groups.map(sparse), this.parents)
   }
   exit() {
-    return new Selection(this._exit || this._groups.map(sparse), this._parents)
+    return new Selection(this._exit || this.groups.map(sparse), this.parents)
   }
-  filter(match) {
-    const matcher = (sel: string) => () => this.matches(sel)
-    if (typeof match !== "function") match = matcher(match)
-    for (let groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-      for (let group = groups[j], n = group.length, subgroup = (subgroups[j] = []), node, i = 0; i < n; ++i) {
-        if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
-          subgroup.push(node)
-        }
-      }
-    }
-    return new Selection(subgroups, this._parents)
+  filter(x: any) {
+    const matcher = (x: string) => () => this.matches(x)
+    if (typeof x !== "function") x = matcher(x)
+    const subs: S[][] = new Array(this.groups.length)
+    this.groups.forEach((g, j) => {
+      const sub: S[] = (subs[j] = [])
+      g.forEach((n, i) => {
+        if (x.call(n, n.__data__, i, g)) sub.push(n)
+      })
+    })
+    return new Selection(subs, this.parents)
   }
   html(v) {
     const remove = () => (this.innerHTML = "")
@@ -290,9 +274,9 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     })
   }
   *iterator() {
-    for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-      for (let group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
-        if ((node = group[i])) yield node
+    for (const g of this.groups) {
+      for (const n of g) {
+        yield n
       }
     }
   }
@@ -315,49 +299,33 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     return enter && update ? enter.merge(update).order() : update
   }
   lower() {
-    function lower() {
-      if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild)
+    const lower = () => {
+      if (this.previousSibling) this.parentNode?.insertBefore(this, this.parentNode.firstChild)
     }
     return this.each(lower)
   }
-  merge(context) {
-    const selection = context.selection ? context.selection() : context
-    for (
-      let groups0 = this._groups,
-        groups1 = selection._groups,
-        m0 = groups0.length,
-        m1 = groups1.length,
-        m = Math.min(m0, m1),
-        merges = new Array(m0),
-        j = 0;
-      j < m;
-      ++j
-    ) {
-      for (
-        let group0 = groups0[j],
-          group1 = groups1[j],
-          n = group0.length,
-          merge = (merges[j] = new Array(n)),
-          node,
-          i = 0;
-        i < n;
-        ++i
-      ) {
-        if ((node = group0[i] || group1[i])) {
-          merge[i] = node
-        }
-      }
-    }
-    for (; j < m0; ++j) {
-      merges[j] = groups0[j]
-    }
-    return new Selection(merges, this._parents)
+  merge(x: any) {
+    const selection = x.selection ? x.selection() : x
+    const gs = this.groups,
+      n = gs.length,
+      gs2 = selection._groups,
+      min = Math.min(n, gs2.length),
+      ys = new Array(n)
+    gs.forEach((g, j) => {
+      if (j < min) {
+        const g2 = gs2[j]
+        const y = (ys[j] = new Array(g.length))
+        g.forEach((n, i) => {
+          if (g2[i]) y[i] = n
+        })
+      } else ys[j] = g
+    })
+    return new Selection(ys, this.parents)
   }
   node() {
-    for (let groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-      for (let group = groups[j], i = 0, n = group.length; i < n; ++i) {
-        const node = group[i]
-        if (node) return node
+    for (const g of this.groups) {
+      for (const n of g) {
+        return n
       }
     }
     return null
@@ -434,12 +402,11 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     return this
   }
   order() {
-    for (let groups = this._groups, j = -1, m = groups.length; ++j < m; ) {
-      for (let group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0; ) {
-        if ((node = group[i])) {
-          if (next && node.compareDocumentPosition(next) ^ 4) next.parentNode.insertBefore(node, next)
-          next = node
-        }
+    for (const g of this.groups) {
+      for (let i = g.length - 1, next = g[i]; --i >= 0; ) {
+        const n = g[i]!
+        if (next && n.compareDocumentPosition(next) ^ 4) next.parentNode.insertBefore(n, next)
+        next = n
       }
     }
     return this
@@ -462,42 +429,43 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     }
     return this.each(raise)
   }
-  remove() {
-    const remove = () => {
+  override remove() {
+    return this.each(() => {
       const x = this.parentNode
       if (x) x.removeChild(this)
-    }
-    return this.each(remove)
+    })
   }
-  select(select) {
-    if (typeof select !== "function") select = selector(select)
-    for (let groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-      for (
-        let group = groups[j], n = group.length, subgroup = (subgroups[j] = new Array(n)), node, subnode, i = 0;
-        i < n;
-        ++i
-      ) {
-        if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
-          if ("__data__" in node) subnode.__data__ = node.__data__
-          subgroup[i] = subnode
+  select(x: any) {
+    if (typeof x !== "function") x = selector(x)
+    const ys = new Array(this.groups.length)
+    this.groups.forEach((g, j) => {
+      const y = (ys[j] = new Array(g.length))
+      g.forEach((n, i) => {
+        let sub
+        if ((sub = x.call(n, n.__data__, i, g))) {
+          if ("__data__" in n) sub.__data__ = n.__data__
+          y[i] = sub
         }
-      }
-    }
-    return new Selection(subgroups, this._parents)
+      })
+    })
+    return new Selection(ys, this.parents)
   }
-  selectAll(select) {
-    const arrayAll = x => () => qu.array(x.apply(this, arguments))
-    if (typeof select === "function") select = arrayAll(select)
-    else select = selectorAll(select)
-    for (let groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
-      for (let group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
-        if ((node = group[i])) {
-          subgroups.push(select.call(node, node.__data__, i, group))
-          parents.push(node)
-        }
-      }
-    }
-    return new Selection(subgroups, parents)
+  selectAll(x: any) {
+    const all =
+      x =>
+      (...xs: any[]) =>
+        qu.array(x.apply(this, ...xs))
+    if (typeof x === "function") x = all(x)
+    else x = selectorAll(x)
+    const subs: S[][] = [],
+      parents: S[] = []
+    this.groups.forEach(g => {
+      g.forEach((n, i) => {
+        subs.push(x.call(n, n.__data__, i, g))
+        parents.push(n)
+      })
+    })
+    return new Selection(subs, parents)
   }
   selectChild(x) {
     const first = () => this.firstElementChild
@@ -516,20 +484,18 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     for (const _ of this) ++size
     return size
   }
-  sort(cmp) {
-    if (!cmp) cmp = qu.ascending
-    const cmp2 = (a, b) => (a && b ? cmp(a.__data__, b.__data__) : !a - !b)
-    for (let groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
-      for (
-        let group = groups[j], n = group.length, sortgroup = (sortgroups[j] = new Array(n)), node, i = 0;
-        i < n;
-        ++i
-      ) {
-        if ((node = group[i])) sortgroup[i] = node
-      }
-      sortgroup.sort(cmp2)
-    }
-    return new Selection(sortgroups, this._parents).order()
+  sort(f?: Function) {
+    if (!f) f = qu.ascending
+    const f2 = (a: T, b: T) => (a && b ? f?(a.__data__, b.__data__) : !a - !b)
+    const ys = new Array(this.groups.length)
+    this.groups.forEach((g, j) => {
+      const y = (ys[j] = new Array(g.length))
+      g.forEach((n, i) => {
+        y[i] = n
+      })
+      y.sort(f2)
+    })
+    return new Selection(ys, this.parents).order()
   }
   style(k, v, priority) {
     const remove = k => () => this.style.removeProperty(k)

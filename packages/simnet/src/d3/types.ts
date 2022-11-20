@@ -1295,11 +1295,11 @@ export interface ArrayLike<T> {
   item(i: number): T | null
   [i: number]: T
 }
-export interface EnterElem {
+export interface EnterElem extends Element {
   ownerDocument: Document
   namespaceURI: string
-  appendChild(x: Node): Node
-  insertBefore(x: Node, next: Node): Node
+  appendChild<T extends Node>(x: T): T
+  insertBefore<T extends Node>(x: T, next: Node | null): T
   querySelector(x: string): Element
   querySelectorAll(x: string): NodeListOf<Element>
 }
@@ -1358,8 +1358,8 @@ export interface Selection<S extends Base, T, P extends Base, U> {
   clone(deep?: boolean): Selection<S, T, P, U>
   data(): T[]
   data<T2>(
-    data: T2[] | Iterable<T2> | ValueFn<P, U, T2[] | Iterable<T2>>,
-    key?: ValueFn<S | P, T | T2, string | number>
+    x: T2[] | Iterable<T2> | ValueFn<P, U, T2[] | Iterable<T2>>,
+    f?: ValueFn<S | P, T | T2, string | number>
   ): Selection<S, T2, P, U>
   datum(): T
   datum(x: null): Selection<S, undefined, P, U>
@@ -1418,7 +1418,7 @@ export interface Selection<S extends Base, T, P extends Base, U> {
   selectChildren<D extends Base, R, C extends Base>(f: (x: C, i: number, xs: C[]) => boolean): Selection<D, R, S, T>
   selection(): this
   size(): number
-  sort(comparator?: (a: T, b: T) => number): this
+  sort(f?: (a: T, b: T) => number): this
   style(n: string, f: ValueFn<S, T, string | number | boolean | null>, priority?: null | "important"): this
   style(n: string, x: null): this
   style(n: string, x: string | number | boolean, priority?: null | "important"): this
