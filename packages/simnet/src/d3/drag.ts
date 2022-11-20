@@ -14,8 +14,8 @@ function defaultSubject(event, d) {
 function defaultTouchable() {
   return navigator.maxTouchPoints || "ontouchstart" in this
 }
-export function drag<B extends qt.DraggedElementBaseType, T>(): qt.DragBehavior<B, T, T | qt.SubjectPosition>
-export function drag<B extends qt.DraggedElementBaseType, T, U>(): qt.DragBehavior<B, T, U>
+export function drag<B extends qt.DraggedBase, T>(): qt.DragBehavior<B, T, T | qt.SubjectPosition>
+export function drag<B extends qt.DraggedBase, T, U>(): qt.DragBehavior<B, T, U>
 export function drag() {
   let filter = defaultFilter,
     container = defaultContainer,

@@ -1,96 +1,10 @@
 import type * as qt from "./types.js"
-
+import * as qu from "./utils.js"
 import { color } from "./color.js"
-import { dispatch } from "./dispatch.js"
-import { easeCubicInOut } from "./ease.js"
-import { interpolateNumber, interpolateRgb, interpolateString } from "./interpolate.js"
-import { interpolateTransformSvg as interpolateTransform } from "./interpolate.js"
-import { namespace } from "./selection.js"
-import { now } from "./timer.js"
-import { Selection } from "./selection.js"
-import { timer, timeout } from "./timer.js"
-import { interpolate } from "./interpolate.js"
 
-const root = [null]
-export function active<B extends qt.BaseType, T, PElement extends qt.BaseType, PDatum>(
-  node: B,
-  name?: string
-): qt.Transition<B, T, PElement, PDatum> | null {
-  const schedules = node.__transition
-  let schedule, i
-  if (schedules) {
-    name = name == null ? null : name + ""
-    for (i in schedules) {
-      if ((schedule = schedules[i]).state > SCHEDULED && schedule.name === name) {
-        return new Transition([[node]], root, name, +i)
-      }
-    }
-  }
-  return null
-}
-export function interrupt(node: qt.BaseType, name?: string): void {
-  const schedules = node.__transition
-  let schedule,
-    active,
-    empty = true,
-    i
-  if (!schedules) return
-  name = name == null ? null : name + ""
-  for (i in schedules) {
-    if ((schedule = schedules[i]).name !== name) {
-      empty = false
-      continue
-    }
-    active = schedule.state > STARTING && schedule.state < ENDING
-    schedule.state = ENDED
-    schedule.timer.stop()
-    schedule.on.call(active ? "interrupt" : "cancel", node, node.__data__, schedule.index, schedule.group)
-    delete schedules[i]
-  }
-  if (empty) delete node.__transition
-}
-
-export namespace selection {
-  selection.prototype.interrupt = selection_interrupt
-  selection.prototype.transition = selection_transition
-
-  export function interrupt(name) {
-    return this.each(function () {
-      interrupt(this, name)
-    })
-  }
-  const defaultTiming = {
-    time: null,
-    delay: 0,
-    duration: 250,
-    ease: easeCubicInOut,
-  }
-  function inherit(node, id) {
-    let timing
-    while (!(timing = node.__transition) || !(timing = timing[id])) {
-      if (!(node = node.parentNode)) {
-        throw new Error(`transition ${id} not found`)
-      }
-    }
-    return timing
-  }
-  export function transition(name) {
-    let id, timing
-    if (name instanceof Transition) {
-      ;(id = name._id), (name = name._name)
-    } else {
-      ;(id = newId()), ((timing = defaultTiming).time = now()), (name = name == null ? null : name + "")
-    }
-    for (let groups = this._groups, m = groups.length, j = 0; j < m; ++j) {
-      for (let group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
-        if ((node = group[i])) {
-          schedule(node, name, id, i, group, timing || inherit(node, id))
-        }
-      }
-    }
-    return new Transition(groups, this._parents, name, id)
-  }
-}
+import { interpolate, interpolateNumber, interpolateRgb, interpolateString } from "./interpolate.js"
+import { transformSvg } from "./interpolate.js"
+import { namespace, Selection } from "./selection.js"
 
 export class Transition {
   constructor(groups, parents, name, id) {
@@ -102,7 +16,7 @@ export class Transition {
   [Symbol.iterator] = Selection.prototype[Symbol.iterator]
   attr(name, value) {
     const fullname = namespace(name),
-      i = fullname === "transform" ? interpolateTransform : interpolate
+      i = fullname === "transform" ? transformSvg : interpolate
     return this.attrTween(
       name,
       typeof value === "function"
@@ -293,7 +207,7 @@ export class Transition {
   }
   size = Selection.prototype.size
   style(name, value, priority) {
-    const i = (name += "") === "transform" ? interpolateTransform : interpolate
+    const i = (name += "") === "transform" ? transformSvg : interpolate
     return value == null
       ? this.styleTween(name, styleNull(name, i)).on("end.style." + name, styleRemove(name))
       : typeof value === "function"
@@ -377,6 +291,45 @@ export class Transition {
     }
     return this.each((value == null ? tweenRemove : tweenFunction)(id, name, value))
   }
+}
+
+const root = [null]
+export function active<B extends qt.Base, T, PElement extends qt.Base, PDatum>(
+  node: B,
+  name?: string
+): qt.Transition<B, T, PElement, PDatum> | null {
+  const schedules = node.__transition
+  let schedule, i
+  if (schedules) {
+    name = name == null ? null : name + ""
+    for (i in schedules) {
+      if ((schedule = schedules[i]).state > SCHEDULED && schedule.name === name) {
+        return new Transition([[node]], root, name, +i)
+      }
+    }
+  }
+  return null
+}
+export function interrupt(node: qt.Base, name?: string): void {
+  const schedules = node.__transition
+  let schedule,
+    active,
+    empty = true,
+    i
+  if (!schedules) return
+  name = name == null ? null : name + ""
+  for (i in schedules) {
+    if ((schedule = schedules[i]).name !== name) {
+      empty = false
+      continue
+    }
+    active = schedule.state > STARTING && schedule.state < ENDING
+    schedule.state = ENDED
+    schedule.timer.stop()
+    schedule.on.call(active ? "interrupt" : "cancel", node, node.__data__, schedule.index, schedule.group)
+    delete schedules[i]
+  }
+  if (empty) delete node.__transition
 }
 
 function attrRemove(name) {
@@ -500,10 +453,8 @@ function easeConstant(id, value) {
   }
 }
 let id = 0
-export function transition<T>(x?: string): qt.Transition<qt.BaseType, T, null, undefined>
-export function transition<T>(
-  x: qt.Transition<qt.BaseType, any, qt.BaseType, any>
-): qt.Transition<qt.BaseType, T, null, undefined>
+export function transition<T>(x?: string): qt.Transition<qt.Base, T, null, undefined>
+export function transition<T>(x: qt.Transition<qt.Base, any, qt.Base, any>): qt.Transition<qt.Base, T, null, undefined>
 export function transition(x: any) {
   return selection().transition(x)
 }
@@ -551,7 +502,7 @@ function removeFunction(id) {
     if (parent) parent.removeChild(this)
   }
 }
-const emptyOn = dispatch("start", "end", "cancel", "interrupt")
+const emptyOn = qu.dispatch("start", "end", "cancel", "interrupt")
 const emptyTween = []
 export const CREATED = 0
 export const SCHEDULED = 1
@@ -597,7 +548,7 @@ function create(node, id, self) {
   let schedules = node.__transition,
     tween
   schedules[id] = self
-  self.timer = timer(schedule, 0, self.time)
+  self.timer = qu.timer(schedule, 0, self.time)
   function schedule(elapsed) {
     self.state = SCHEDULED
     self.timer.restart(start, self.delay, self.time)
@@ -609,7 +560,7 @@ function create(node, id, self) {
     for (i in schedules) {
       o = schedules[i]
       if (o.name !== self.name) continue
-      if (o.state === STARTED) return timeout(start)
+      if (o.state === STARTED) return qu.timeout(start)
       if (o.state === RUNNING) {
         o.state = ENDED
         o.timer.stop()
@@ -622,7 +573,7 @@ function create(node, id, self) {
         delete schedules[i]
       }
     }
-    timeout(function () {
+    qu.timeout(function () {
       if (self.state === STARTED) {
         self.state = RUNNING
         self.timer.restart(tick, self.delay, self.time)
@@ -789,5 +740,228 @@ export function tweenValue(transition, name, value) {
   })
   return function (node) {
     return get(node, id).value[name]
+  }
+}
+
+export namespace ease {
+  const overshoot = 1.70158
+  export const backIn: qt.BackEasingFac = (function custom(s) {
+    s = +s
+    function y(x: number) {
+      return (x = +x) * x * (s * (x - 1) + x)
+    }
+    y.overshoot = custom
+    return y
+  })(overshoot)
+  export const backOut: qt.BackEasingFac = (function custom(s) {
+    s = +s
+    function y(x: number) {
+      return --x * x * ((x + 1) * s + x) + 1
+    }
+    y.overshoot = custom
+    return y
+  })(overshoot)
+  export const back: qt.BackEasingFac = (function custom(s) {
+    s = +s
+    function y(x: number) {
+      return ((x *= 2) < 1 ? x * x * ((s + 1) * x - s) : (x -= 2) * x * ((s + 1) * x + s) + 2) / 2
+    }
+    y.overshoot = custom
+    return y
+  })(overshoot)
+
+  const b1 = 4 / 11,
+    b2 = 6 / 11,
+    b3 = 8 / 11,
+    b4 = 3 / 4,
+    b5 = 9 / 11,
+    b6 = 10 / 11,
+    b7 = 15 / 16,
+    b8 = 21 / 22,
+    b9 = 63 / 64,
+    b0 = 1 / b1 / b1
+  export function bounceIn(x: number) {
+    return 1 - bounceOut(1 - x)
+  }
+  export function bounceOut(x: number) {
+    return (x = +x) < b1
+      ? b0 * x * x
+      : x < b3
+      ? b0 * (x -= b2) * x + b4
+      : x < b6
+      ? b0 * (x -= b5) * x + b7
+      : b0 * (x -= b8) * x + b9
+  }
+  export function bounce(x: number) {
+    return ((x *= 2) <= 1 ? 1 - bounceOut(1 - x) : bounceOut(x - 1) + 1) / 2
+  }
+
+  export function circleIn(x: number) {
+    return 1 - Math.sqrt(1 - x * x)
+  }
+  export function circleOut(x: number) {
+    return Math.sqrt(1 - --x * x)
+  }
+  export function circle(x: number) {
+    return ((x *= 2) <= 1 ? 1 - Math.sqrt(1 - x * x) : Math.sqrt(1 - (x -= 2) * x) + 1) / 2
+  }
+
+  export function cubicIn(x: number) {
+    return x * x * x
+  }
+  export function cubicOut(x: number) {
+    return --x * x * x + 1
+  }
+  export function cubic(x: number) {
+    return ((x *= 2) <= 1 ? x * x * x : (x -= 2) * x * x + 2) / 2
+  }
+
+  const tau = 2 * Math.PI
+  const amplitude = 1
+  const period = 0.3
+  export const elasticIn: qt.ElasticEasingFac = (function custom(a, p) {
+    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= tau)
+    function y(x: number) {
+      return a * tpmt(-(--x)) * Math.sin((s - x) / p)
+    }
+    y.amplitude = function (x: number) {
+      return custom(x, p * tau)
+    }
+    y.period = function (x: number) {
+      return custom(a, x)
+    }
+    return y
+  })(amplitude, period)
+  export const elasticOut: qt.ElasticEasingFac = (function custom(a, p) {
+    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= tau)
+    function y(x: number) {
+      return 1 - a * tpmt((x = +x)) * Math.sin((x + s) / p)
+    }
+    y.amplitude = function (x: number) {
+      return custom(x, p * tau)
+    }
+    y.period = function (x: number) {
+      return custom(a, x)
+    }
+    return y
+  })(amplitude, period)
+  export const elastic: qt.ElasticEasingFac = (function custom(a, p) {
+    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= tau)
+    function y(x: number) {
+      return ((x = x * 2 - 1) < 0 ? a * tpmt(-x) * Math.sin((s - x) / p) : 2 - a * tpmt(x) * Math.sin((s + x) / p)) / 2
+    }
+    y.amplitude = function (x: number) {
+      return custom(x, p * tau)
+    }
+    y.period = function (x: number) {
+      return custom(a, x)
+    }
+    return y
+  })(amplitude, period)
+
+  export function expIn(x: number) {
+    return tpmt(1 - +x)
+  }
+  export function expOut(x: number) {
+    return 1 - tpmt(x)
+  }
+  export function exp(x: number) {
+    return ((x *= 2) <= 1 ? tpmt(1 - x) : 2 - tpmt(x - 1)) / 2
+  }
+
+  export const linear = (x: number) => +x
+
+  export function tpmt(x: number) {
+    return (Math.pow(2, -10 * x) - 0.0009765625) * 1.0009775171065494
+  }
+
+  const exponent = 3
+  export const polyIn: qt.PolyEasingFac = (function custom(e) {
+    e = +e
+    function y(x: number) {
+      return Math.pow(x, e)
+    }
+    y.exponent = custom
+    return y
+  })(exponent)
+  export const polyOut: qt.PolyEasingFac = (function custom(e) {
+    e = +e
+    function y(x: number) {
+      return 1 - Math.pow(1 - x, e)
+    }
+    y.exponent = custom
+    return y
+  })(exponent)
+  export const poly: qt.PolyEasingFac = (function custom(e) {
+    e = +e
+    function y(x: number) {
+      return ((x *= 2) <= 1 ? Math.pow(x, e) : 2 - Math.pow(2 - x, e)) / 2
+    }
+    y.exponent = custom
+    return y
+  })(exponent)
+
+  export function quadIn(x: number) {
+    return x * x
+  }
+  export function quadOut(x: number) {
+    return x * (2 - x)
+  }
+  export function quad(x: number) {
+    return ((x *= 2) <= 1 ? x * x : --x * (2 - x) + 1) / 2
+  }
+
+  const pi = Math.PI
+  const halfPi = pi / 2
+  export function sinIn(x: number) {
+    return +x === 1 ? 1 : 1 - Math.cos(x * halfPi)
+  }
+  export function sinOut(x: number) {
+    return Math.sin(x * halfPi)
+  }
+  export function sin(x: number) {
+    return (1 - Math.cos(pi * x)) / 2
+  }
+}
+
+export namespace selection {
+  selection.prototype.interrupt = selection_interrupt
+  selection.prototype.transition = selection_transition
+
+  export function interrupt(name) {
+    return this.each(function () {
+      interrupt(this, name)
+    })
+  }
+  const defaultTiming = {
+    time: null,
+    delay: 0,
+    duration: 250,
+    ease: easeCubicInOut,
+  }
+  function inherit(node, id) {
+    let timing
+    while (!(timing = node.__transition) || !(timing = timing[id])) {
+      if (!(node = node.parentNode)) {
+        throw new Error(`transition ${id} not found`)
+      }
+    }
+    return timing
+  }
+  export function transition(name) {
+    let id, timing
+    if (name instanceof Transition) {
+      ;(id = name._id), (name = name._name)
+    } else {
+      ;(id = newId()), ((timing = defaultTiming).time = qu.now()), (name = name == null ? null : name + "")
+    }
+    for (let groups = this._groups, m = groups.length, j = 0; j < m; ++j) {
+      for (let group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
+        if ((node = group[i])) {
+          schedule(node, name, id, i, group, timing || inherit(node, id))
+        }
+      }
+    }
+    return new Transition(groups, this._parents, name, id)
   }
 }

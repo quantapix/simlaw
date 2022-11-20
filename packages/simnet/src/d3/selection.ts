@@ -17,8 +17,8 @@ export function namespace(x: string): qt.NamespaceLocalObject | string {
   return namespaces.hasOwnProperty(pre) ? { space: namespaces[pre]!, local: x } : x
 }
 
-function creator<T extends keyof ElementTagNameMap>(x: T): (this: qt.BaseType) => ElementTagNameMap[T]
-function creator<T extends Element>(x: string): (this: qt.BaseType) => T
+function creator<T extends keyof ElementTagNameMap>(x: T): (this: qt.Base) => ElementTagNameMap[T]
+function creator<T extends Element>(x: string): (this: qt.Base) => T
 function creator(x: any) {
   function fixed(x: any) {
     return function (this: any) {
@@ -97,16 +97,16 @@ export function pointers(event: any, target?: any): Array<qt.Point> {
   }
   return Array.from(event, event => pointer(event, target))
 }
-export function select<B extends qt.BaseType, T>(x: string): qt.Selection<B, T, HTMLElement, any>
-export function select<B extends qt.BaseType, T>(x: B): qt.Selection<B, T, null, undefined>
+export function select<B extends qt.Base, T>(x: string): qt.Selection<B, T, HTMLElement, any>
+export function select<B extends qt.Base, T>(x: B): qt.Selection<B, T, null, undefined>
 export function select(x: any) {
   return typeof x === "string"
     ? new Selection([[document.querySelector(x)]], [document.documentElement])
     : new Selection([[x]], root)
 }
 export function selectAll(x?: null): qt.Selection<null, undefined, null, undefined>
-export function selectAll<B extends qt.BaseType, T>(x: string): qt.Selection<B, T, HTMLElement, any>
-export function selectAll<B extends qt.BaseType, T>(
+export function selectAll<B extends qt.Base, T>(x: string): qt.Selection<B, T, HTMLElement, any>
+export function selectAll<B extends qt.Base, T>(
   x: B[] | ArrayLike<B> | Iterable<B>
 ): qt.Selection<B, T, null, undefined>
 export function selectAll(x: any) {
@@ -114,14 +114,14 @@ export function selectAll(x: any) {
     ? new Selection([document.querySelectorAll(x)], [document.documentElement])
     : new Selection([qu.array(x)], root)
 }
-export function selector<T extends Element>(x: string | null): (this: qt.BaseType) => T | void {
+export function selector<T extends Element>(x: string | null): (this: qt.Base) => T | void {
   return x == null
-    ? function (this: qt.BaseType) {}
-    : function (this: qt.BaseType) {
+    ? function (this: qt.Base) {}
+    : function (this: qt.Base) {
         return this.querySelector(x)
       }
 }
-export function selectorAll<T extends Element>(x: string | null): (this: qt.BaseType) => NodeListOf<T> {
+export function selectorAll<T extends Element>(x: string | null): (this: qt.Base) => NodeListOf<T> {
   return x == null
     ? function empty() {
         return []
