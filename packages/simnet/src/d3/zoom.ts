@@ -1,6 +1,6 @@
 import { dragDisable, dragEnable } from "./drag.js"
 import { interpolateZoom } from "./interpolate.js"
-import { select, pointer } from "./selection.js"
+import { select } from "./selection.js"
 import { interrupt } from "./transition.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
@@ -323,7 +323,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
     const g = gesture(this, args).event(event),
       t = this.__zoom,
       k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], t.k * Math.pow(2, wheelDelta.apply(this, arguments)))),
-      p = pointer(event)
+      p = qu.pointer(event)
     if (g.wheel) {
       if (g.mouse[0][0] !== p[0] || g.mouse[0][1] !== p[1]) {
         g.mouse[1] = t.invert((g.mouse[0] = p))
@@ -348,7 +348,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
     const currentTarget = event.currentTarget,
       g = gesture(this, args, true).event(event),
       v = select(event.view).on("mousemove.zoom", mousemoved, true).on("mouseup.zoom", mouseupped, true),
-      p = pointer(event, currentTarget),
+      p = qu.pointer(event, currentTarget),
       x0 = event.clientX,
       y0 = event.clientY
     dragDisable(event.view)
@@ -366,7 +366,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
       g.event(event).zoom(
         "mouse",
         constrain(
-          translate(g.that.__zoom, (g.mouse[0] = pointer(event, currentTarget)), g.mouse[1]),
+          translate(g.that.__zoom, (g.mouse[0] = qu.pointer(event, currentTarget)), g.mouse[1]),
           g.extent,
           translateExtent
         )
@@ -382,7 +382,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
   function dblclicked(event, ...args) {
     if (!filter.apply(this, arguments)) return
     const t0 = this.__zoom,
-      p0 = pointer(event.changedTouches ? event.changedTouches[0] : event, this),
+      p0 = qu.pointer(event.changedTouches ? event.changedTouches[0] : event, this),
       p1 = t0.invert(p0),
       k1 = t0.k * (event.shiftKey ? 0.5 : 2),
       t1 = constrain(translate(scale(t0, k1), p0, p1), extent.apply(this, args), translateExtent)
@@ -401,7 +401,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
       p
     nopropagation(event)
     for (i = 0; i < n; ++i) {
-      ;(t = touches[i]), (p = pointer(t, this))
+      ;(t = touches[i]), (p = qu.pointer(t, this))
       p = [p, this.__zoom.invert(p), t.identifier]
       if (!g.touch0) (g.touch0 = p), (started = true), (g.taps = 1 + !!touchstarting)
       else if (!g.touch1 && g.touch0[2] !== p[2]) (g.touch1 = p), (g.taps = 0)
@@ -428,7 +428,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
       l
     noevent(event)
     for (i = 0; i < n; ++i) {
-      ;(t = touches[i]), (p = pointer(t, this))
+      ;(t = touches[i]), (p = qu.pointer(t, this))
       if (g.touch0 && g.touch0[2] === t.identifier) g.touch0[0] = p
       else if (g.touch1 && g.touch1[2] === t.identifier) g.touch1[0] = p
     }
@@ -469,7 +469,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
     else {
       g.end()
       if (g.taps === 2) {
-        t = pointer(t, this)
+        t = qu.pointer(t, this)
         if (Math.hypot(touchfirst[0] - t[0], touchfirst[1] - t[1]) < tapDistance) {
           const p = select(this).on("dblclick.zoom")
           if (p) p.apply(this, arguments)

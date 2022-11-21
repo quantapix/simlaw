@@ -1317,7 +1317,6 @@ export interface CustomEventParameters {
 export type Base = Element | EnterElem | Document | Window | null
 
 export type ValueFn<B extends Base, T, R> = (this: B, x: T, i: number, groups: B[] | ArrayLike<B>) => R
-export type SelectionFn = () => Selection<HTMLElement, any, null, undefined>
 
 export interface TransitionLike<S extends Base, T> {
   selection(): Selection<S, T, any, any>
@@ -1335,6 +1334,13 @@ export type AV<S extends Base, T> =
   | boolean
   | ReadonlyArray<string | number>
   | ValueFn<S, T, null | string | number | boolean | ReadonlyArray<string | number>>
+
+export interface Local<T> {
+  get(x: Element): T | undefined
+  remove(x: Element): boolean
+  set(x: Element, v: T): T
+  toString(): string
+}
 
 // S type of selected elements
 // T type of selected datum
@@ -1485,12 +1491,6 @@ export interface Transition<S extends Base, T, P extends Base, U> {
 }
 export type SelectionOrTransition<S extends Base, T, P extends Base, U> = Selection<S, T, P, U> | Transition<S, T, P, U>
 
-export interface Local<T> {
-  get(x: Element): T | undefined
-  remove(x: Element): boolean
-  set(x: Element, v: T): T
-  toString(): string
-}
 export interface NS {
   space: string
   local: string

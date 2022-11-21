@@ -2,6 +2,33 @@ import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 import { interrupt, Transition } from "./transition.js"
 
+const root = [null]
+export function selection() {
+  return new Selection([[document.documentElement]], root)
+}
+
+export function select<S extends qt.Base, T>(x: string): Selection<S, T, HTMLElement, any>
+export function select<S extends qt.Base, T>(x: S): Selection<S, T, null, undefined>
+export function select(x: any) {
+  return typeof x === "string"
+    ? new Selection([[document.querySelector(x)]], [document.documentElement])
+    : new Selection([[x]], root)
+}
+export function selectAll(x?: null): Selection<null, undefined, null, undefined>
+export function selectAll<S extends qt.Base, T>(x: string): Selection<S, T, HTMLElement, any>
+export function selectAll<S extends qt.Base, T>(x: S[] | ArrayLike<S> | Iterable<S>): Selection<S, T, null, undefined>
+export function selectAll(x: any) {
+  return typeof x === "string"
+    ? new Selection([document.querySelectorAll(x)], [document.documentElement])
+    : new Selection([qu.array(x)], root)
+}
+
+export function create<T extends keyof qt.TM>(x: T): qt.Selection<qt.TM[T], undefined, null, undefined>
+export function create<T extends Element>(x: string): qt.Selection<T, undefined, null, undefined>
+export function create(x: any): any {
+  return select(creator(x).call(document.documentElement))
+}
+
 export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Element implements qt.Selection<S, T, P, U> {
   _enter
   _exit
@@ -215,15 +242,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
   }
   dispatch(t: string, x?: any) {
     const event = (n: Node, t: string, x: any) => {
-      const window = defaultView(n)
-      let e = window.CustomEvent
-      if (typeof e === "function") e = new e(t, x)
-      else {
-        e = window.document.createEvent("Event")
-        if (x) e.initEvent(t, x.bubbles, x.cancelable), (e.detail = x.detail)
-        else e.initEvent(t, false, false)
-      }
-      n.dispatchEvent(e)
+      n.dispatchEvent(new CustomEvent(t, x))
     }
     const constant = (t: string, x: any) => () => event(this, t, x)
     const func =
@@ -244,12 +263,14 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     return !this.node()
   }
   enter(): any {
+    const sparse = (x: any[]) => new Array(x.length)
     return new Selection(this._enter || this.groups.map(sparse), this.parents)
   }
   exit(): any {
+    const sparse = (x: any[]) => new Array(x.length)
     return new Selection(this._exit || this.groups.map(sparse), this.parents)
   }
-  filter(x: any) {
+  filter(x: any): any {
     const matcher = (x: string) => () => this.matches(x)
     if (typeof x !== "function") x = matcher(x)
     const subs: S[][] = new Array(this.groups.length)
@@ -261,16 +282,17 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     })
     return new Selection(subs, this.parents)
   }
-  html(v) {
+  html(x: any) {
     const remove = () => (this.innerHTML = "")
-    const constant = v => () => (this.innerHTML = v)
-    const func = v => () => {
-      const x = v.apply(this, arguments)
-      this.innerHTML = x == null ? "" : x
-    }
-    return arguments.length
-      ? this.each(v == null ? remove : (typeof v === "function" ? func : constant)(v))
-      : this.node().innerHTML
+    const constant = (x: string) => () => (this.innerHTML = x)
+    const func =
+      (x: any) =>
+      (...xs: any[]) => {
+        this.innerHTML = x.apply(this, xs) ?? ""
+      }
+    return x === undefined
+      ? this.node().innerHTML
+      : this.each(x ? (typeof x === "function" ? func : constant)(x) : remove)
   }
   insert(name, before) {
     const constantNull = () => null
@@ -286,7 +308,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
   *iterator() {
     for (const g of this.groups) {
       for (const n of g) {
-        yield n
+        if (n) yield n
       }
     }
   }
@@ -314,7 +336,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     }
     return this.each(lower)
   }
-  merge(x: any) {
+  merge(x: any): any {
     const selection = x.selection ? x.selection() : x
     const gs = this.groups,
       n = gs.length,
@@ -326,7 +348,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
         const g2 = gs2[j]
         const y = (ys[j] = new Array(g.length))
         g.forEach((n, i) => {
-          if (g2[i]) y[i] = n
+          if (n && g2[i]) y[i] = n
         })
       } else ys[j] = g
     })
@@ -335,7 +357,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
   node() {
     for (const g of this.groups) {
       for (const n of g) {
-        return n
+        if (n) return n
       }
     }
     return null
@@ -414,21 +436,23 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
   order() {
     for (const g of this.groups) {
       for (let i = g.length - 1, next = g[i]; --i >= 0; ) {
-        const n = g[i]!
-        if (next && n.compareDocumentPosition(next) ^ 4) next.parentNode.insertBefore(n, next)
+        const n = g[i]
+        if (n && next && n.compareDocumentPosition(next) ^ 4) next.parentNode.insertBefore(n, next)
         next = n
       }
     }
     return this
   }
-  property(k, v) {
+  property(k: any, v?: any) {
     const remove = k => () => delete this[k]
     const constant = (k, v) => () => (this[k] = v)
-    const func = (k, v) => () => {
-      const x = v.apply(this, arguments)
-      if (x == null) delete this[k]
-      else this[k] = x
-    }
+    const func =
+      (k, v) =>
+      (...xs: any[]) => {
+        const x = v.apply(this, xs)
+        if (x == null) delete this[k]
+        else this[k] = x
+      }
     return arguments.length > 1
       ? this.each((v == null ? remove : typeof v === "function" ? func : constant)(k, v))
       : this.node()[k]
@@ -445,7 +469,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
       if (x) x.removeChild(this)
     })
   }
-  select(x: any) {
+  select(x: any): any {
     if (typeof x !== "function") x = selector(x)
     const ys = new Array(this.groups.length)
     this.groups.forEach((g, j) => {
@@ -477,17 +501,19 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     })
     return new Selection(subs, parents)
   }
-  selectChild(x) {
+  selectChild(x: any) {
     const first = () => this.firstElementChild
     const f = Array.prototype.find
     const find = x => () => f.call(this.children, x)
-    return this.select(x == null ? first : find(typeof x === "function" ? x : childMatcher(x)))
+    const matcher = (x: string) => (e: Element) => e.matches(x)
+    return this.select(x === undefined ? first : find(typeof x === "function" ? x : matcher(x)))
   }
-  selectChildren(x) {
+  selectChildren(x: any) {
     const children = () => Array.from(this.children)
     const f = Array.prototype.filter
     const filter = x => () => f.call(this.children, x)
-    return this.selectAll(x == null ? children : filter(typeof x === "function" ? x : childMatcher(x)))
+    const matcher = (x: string) => (e: Element) => e.matches(x)
+    return this.selectAll(x === undefined ? children : filter(typeof x === "function" ? x : matcher(x)))
   }
   size() {
     let size = 0
@@ -516,7 +542,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
       else this.style.setProperty(k, x, priority)
     }
     const value = (x, n: string): string =>
-      x.style.getPropertyValue(n) || defaultView(x).getComputedStyle(x, null).getPropertyValue(n)
+      x.style.getPropertyValue(n) || qu.defaultView(x).getComputedStyle(x, null).getPropertyValue(n)
     return arguments.length > 1
       ? this.each(
           (v == null ? remove : typeof v === "function" ? func : constant)(k, v, priority == null ? "" : priority)
@@ -590,15 +616,15 @@ export function space(x: string): qt.NS | string {
   return space ? { space, local: x } : x
 }
 
-function creator<T extends keyof ElementTagNameMap>(x: T): (this: qt.Base) => ElementTagNameMap[T]
+function creator<T extends keyof qt.TM>(x: T): (this: qt.Base) => qt.TM[T]
 function creator<T extends Element>(x: string): (this: qt.Base) => T
 function creator(x: any) {
-  function fixed(x: any) {
+  const fixed = (x: any) => {
     return function (this: any) {
       return this.ownerDocument.createElementNS(x.space, x.local)
     }
   }
-  function inherit(x: any) {
+  const inherit = (x: any) => {
     return function (this: any) {
       const d = this.ownerDocument
       const n = this.namespaceURI
@@ -607,98 +633,4 @@ function creator(x: any) {
   }
   const n: any = space(x)
   return (n.local ? fixed : inherit)(n)
-}
-
-export function create<T extends keyof ElementTagNameMap>(
-  x: T
-): qt.Selection<ElementTagNameMap[T], undefined, null, undefined>
-export function create<T extends Element>(x: string): qt.Selection<T, undefined, null, undefined>
-export function create(x: any) {
-  return select(creator(x).call(document.documentElement))
-}
-
-export function local<T>(): qt.Local<T> {
-  let nextId = 0
-  class Local {
-    id = "@" + (++nextId).toString(36)
-    get(x: any) {
-      const id = this.id
-      while (!(id in x)) if (!(x = x.parentNode)) return
-      return x[id]
-    }
-    remove(x: any) {
-      return this.id in x && delete x[this.id]
-    }
-    set(x: any, v: any) {
-      return (x[this.id] = v)
-    }
-    toString() {
-      return this.id
-    }
-  }
-  return new Local()
-}
-
-function childMatcher(sel: string) {
-  return function (node) {
-    return node.matches(sel)
-  }
-}
-export function pointer(event: any, target?: any): qt.Point {
-  event = sourceEvent(event)
-  if (target === undefined) target = event.currentTarget
-  if (target) {
-    const svg = target.ownerSVGElement || target
-    if (svg.createSVGPoint) {
-      let point = svg.createSVGPoint()
-      ;(point.x = event.clientX), (point.y = event.clientY)
-      point = point.matrixTransform(target.getScreenCTM().inverse())
-      return [point.x, point.y]
-    }
-    if (target.getBoundingClientRect) {
-      const rect = target.getBoundingClientRect()
-      return [event.clientX - rect.left - target.clientLeft, event.clientY - rect.top - target.clientTop]
-    }
-  }
-  return [event.pageX, event.pageY]
-}
-export function pointers(event: any, target?: any): Array<qt.Point> {
-  if (event.target) {
-    event = sourceEvent(event)
-    if (target === undefined) target = event.currentTarget
-    event = event.touches || [event]
-  }
-  return Array.from(event, event => pointer(event, target))
-}
-export function select<S extends qt.Base, T>(x: string): Selection<S, T, HTMLElement, any>
-export function select<S extends qt.Base, T>(x: S): Selection<S, T, null, undefined>
-export function select(x: any) {
-  return typeof x === "string"
-    ? new Selection([[document.querySelector(x)]], [document.documentElement])
-    : new Selection([[x]], root)
-}
-export function selectAll(x?: null): Selection<null, undefined, null, undefined>
-export function selectAll<S extends qt.Base, T>(x: string): Selection<S, T, HTMLElement, any>
-export function selectAll<S extends qt.Base, T>(x: S[] | ArrayLike<S> | Iterable<S>): Selection<S, T, null, undefined>
-export function selectAll(x: any) {
-  return typeof x === "string"
-    ? new Selection([document.querySelectorAll(x)], [document.documentElement])
-    : new Selection([qu.array(x)], root)
-}
-export function sourceEvent(event) {
-  let sourceEvent
-  while ((sourceEvent = event.sourceEvent)) event = sourceEvent
-  return event
-}
-export function window(x: Window | Document | Element): Window {
-  return (x.ownerDocument && x.ownerDocument.defaultView) || (x.document && x) || x.defaultView
-}
-
-export const root = [null]
-export const selection: qt.SelectionFn = () => {
-  return new Selection([[document.documentElement]], root)
-}
-
-function sparse(update) {
-  return new Array(update.length)
 }

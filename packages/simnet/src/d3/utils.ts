@@ -662,6 +662,68 @@ function sleep(time?) {
   }
 }
 
+export function defaultView(x: Window): Window
+export function defaultView(x: Document): Window
+export function defaultView(x: Element): Window
+export function defaultView(x: any): Window {
+  return (x.ownerDocument && x.ownerDocument.defaultView) || (x.document && x) || x.defaultView
+}
+
+function sourceEvent(event: any) {
+  let s
+  while ((s = event.sourceEvent)) event = s
+  return event
+}
+
+export function pointer(event: any, tgt?: any): qt.Point {
+  event = sourceEvent(event)
+  if (tgt === undefined) tgt = event.currentTarget
+  if (tgt) {
+    const svg = tgt.ownerSVGElement || tgt
+    if (svg.createSVGPoint) {
+      let p = svg.createSVGPoint()
+      ;(p.x = event.clientX), (p.y = event.clientY)
+      p = p.matrixTransform(tgt.getScreenCTM().inverse())
+      return [p.x, p.y]
+    }
+    if (tgt.getBoundingClientRect) {
+      const r = tgt.getBoundingClientRect()
+      return [event.clientX - r.left - tgt.clientLeft, event.clientY - r.top - tgt.clientTop]
+    }
+  }
+  return [event.pageX, event.pageY]
+}
+export function pointers(event: any, tgt?: any): Array<qt.Point> {
+  if (event.target) {
+    event = sourceEvent(event)
+    if (tgt === undefined) tgt = event.currentTarget
+    event = event.touches || [event]
+  }
+  return Array.from(event, x => pointer(x, tgt))
+}
+
+export function local<T>(): qt.Local<T> {
+  let nextId = 0
+  class Local {
+    id = "@" + (++nextId).toString(36)
+    get(x: any) {
+      const id = this.id
+      while (!(id in x)) if (!(x = x.parentNode)) return
+      return x[id]
+    }
+    remove(x: any) {
+      return this.id in x && delete x[this.id]
+    }
+    set(x: any, v: any) {
+      return (x[this.id] = v)
+    }
+    toString() {
+      return this.id
+    }
+  }
+  return new Local()
+}
+
 let locale
 export let format: (x: string) => (n: number | { valueOf(): number }) => string
 export let formatPrefix: (x: string, value: number) => (n: number | { valueOf(): number }) => string

@@ -1,4 +1,4 @@
-import { select, pointer } from "./selection.js"
+import { select } from "./selection.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
@@ -112,7 +112,7 @@ export function drag() {
   }
   function beforestart(that, container, event, d, identifier, touch) {
     let dispatch = listeners.copy(),
-      p = pointer(touch || event, container),
+      p = qu.pointer(touch || event, container),
       dx,
       dy,
       s
@@ -146,7 +146,7 @@ export function drag() {
         case "end":
           delete gestures[identifier], --active // falls through
         case "drag":
-          ;(p = pointer(touch || event, container)), (n = active)
+          ;(p = qu.pointer(touch || event, container)), (n = active)
           break
       }
       dispatch.call(

@@ -1,6 +1,6 @@
 import { dragDisable, dragEnable } from "./drag.js"
 import { interpolate } from "./interpolate.js"
-import { pointer, select } from "./selection.js"
+import { select } from "./selection.js"
 import { interrupt } from "./transition.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
@@ -333,7 +333,7 @@ function brush(dim) {
       lockY,
       points = Array.from(event.touches || [event], t => {
         const i = t.identifier
-        t = pointer(t, that)
+        t = qu.pointer(t, that)
         t.point0 = t.slice()
         t.identifier = i
         return t
@@ -372,7 +372,7 @@ function brush(dim) {
     emit.start(event, mode.name)
     function moved(event) {
       for (const p of event.changedTouches || [event]) {
-        for (const d of points) if (d.identifier === p.identifier) d.cur = pointer(p, that)
+        for (const d of points) if (d.identifier === p.identifier) d.cur = qu.pointer(p, that)
       }
       if (shifting && !lockX && !lockY && points.length === 1) {
         const point = points[0]
