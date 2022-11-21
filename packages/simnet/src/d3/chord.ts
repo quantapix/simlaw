@@ -140,11 +140,11 @@ function _ribbon(headRadius?) {
       ap = padAngle.apply(this, arguments) / 2,
       argv = slice.call(arguments),
       sr = +sourceRadius.apply(this, ((argv[0] = s), argv)),
-      sa0 = startAngle.apply(this, argv) - qu.halfPi,
-      sa1 = endAngle.apply(this, argv) - qu.halfPi,
+      sa0 = startAngle.apply(this, argv) - qu.halfPI,
+      sa1 = endAngle.apply(this, argv) - qu.halfPI,
       tr = +targetRadius.apply(this, ((argv[0] = t), argv)),
-      ta0 = startAngle.apply(this, argv) - qu.halfPi,
-      ta1 = endAngle.apply(this, argv) - qu.halfPi
+      ta0 = startAngle.apply(this, argv) - qu.halfPI,
+      ta1 = endAngle.apply(this, argv) - qu.halfPI
     if (!context) context = buffer = new qu.Path()
     if (ap > qu.epsilon2) {
       if (qu.abs(sa1 - sa0) > ap * 2 + qu.epsilon2) sa1 > sa0 ? ((sa0 += ap), (sa1 -= ap)) : ((sa0 -= ap), (sa1 += ap))

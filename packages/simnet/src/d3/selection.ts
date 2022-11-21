@@ -1,5 +1,6 @@
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
+import { interrupt, Transition } from "./transition.js"
 
 export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Element implements qt.Selection<S, T, P, U> {
   _enter
@@ -279,6 +280,9 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
       return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null)
     })
   }
+  interrupt(name?: string) {
+    return this.each(() => interrupt(this, name))
+  }
   *iterator() {
     for (const g of this.groups) {
       for (const n of g) {
@@ -518,6 +522,35 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
           (v == null ? remove : typeof v === "function" ? func : constant)(k, v, priority == null ? "" : priority)
         )
       : value(this.node(), k)
+  }
+  transition(name) {
+    let id, timing
+    if (name instanceof Transition) {
+      ;(id = name._id), (name = name._name)
+    } else {
+      const defaultTiming = {
+        time: null,
+        delay: 0,
+        duration: 250,
+        ease: easeCubicInOut,
+      }
+      ;(id = newId()), ((timing = defaultTiming).time = qu.now()), (name = name == null ? null : name + "")
+    }
+    function inherit(node, id) {
+      let timing
+      while (!(timing = node.__transition) || !(timing = timing[id])) {
+        if (!(node = node.parentNode)) {
+          throw new Error(`transition ${id} not found`)
+        }
+      }
+      return timing
+    }
+    this.groups.forEach(g => {
+      g.forEach((n, i) => {
+        if (n) schedule(n, name, id, i, g, timing || inherit(n, id))
+      })
+    })
+    return new Transition(this.groups, this.parents, name, id)
   }
   text(x: any) {
     const remove = () => (this.textContent = "")

@@ -293,6 +293,29 @@ export class Transition {
   }
 }
 
+export function interrupt(node: qt.Base, name?: string) {
+  const schedules = node.__transition
+  if (schedules) {
+    name = name == null ? null : name + ""
+    let schedule,
+      active,
+      empty = true,
+      i
+    for (i in schedules) {
+      if ((schedule = schedules[i]).name !== name) {
+        empty = false
+        continue
+      }
+      active = schedule.state > STARTING && schedule.state < ENDING
+      schedule.state = ENDED
+      schedule.timer.stop()
+      schedule.on.call(active ? "interrupt" : "cancel", node, node.__data__, schedule.index, schedule.group)
+      delete schedules[i]
+    }
+    if (empty) delete node.__transition
+  }
+}
+
 const root = [null]
 export function active<B extends qt.Base, T, PElement extends qt.Base, PDatum>(
   node: B,
@@ -309,27 +332,6 @@ export function active<B extends qt.Base, T, PElement extends qt.Base, PDatum>(
     }
   }
   return null
-}
-export function interrupt(node: qt.Base, name?: string): void {
-  const schedules = node.__transition
-  let schedule,
-    active,
-    empty = true,
-    i
-  if (!schedules) return
-  name = name == null ? null : name + ""
-  for (i in schedules) {
-    if ((schedule = schedules[i]).name !== name) {
-      empty = false
-      continue
-    }
-    active = schedule.state > STARTING && schedule.state < ENDING
-    schedule.state = ENDED
-    schedule.timer.stop()
-    schedule.on.call(active ? "interrupt" : "cancel", node, node.__data__, schedule.index, schedule.group)
-    delete schedules[i]
-  }
-  if (empty) delete node.__transition
 }
 
 function attrRemove(name) {
@@ -816,16 +818,15 @@ export namespace ease {
     return ((x *= 2) <= 1 ? x * x * x : (x -= 2) * x * x + 2) / 2
   }
 
-  const tau = 2 * Math.PI
   const amplitude = 1
   const period = 0.3
   export const elasticIn: qt.ElasticEasingFac = (function custom(a, p) {
-    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= tau)
+    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= qu.tau)
     function y(x: number) {
       return a * tpmt(-(--x)) * Math.sin((s - x) / p)
     }
     y.amplitude = function (x: number) {
-      return custom(x, p * tau)
+      return custom(x, p * qu.tau)
     }
     y.period = function (x: number) {
       return custom(a, x)
@@ -833,12 +834,12 @@ export namespace ease {
     return y
   })(amplitude, period)
   export const elasticOut: qt.ElasticEasingFac = (function custom(a, p) {
-    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= tau)
+    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= qu.tau)
     function y(x: number) {
       return 1 - a * tpmt((x = +x)) * Math.sin((x + s) / p)
     }
     y.amplitude = function (x: number) {
-      return custom(x, p * tau)
+      return custom(x, p * qu.tau)
     }
     y.period = function (x: number) {
       return custom(a, x)
@@ -846,12 +847,12 @@ export namespace ease {
     return y
   })(amplitude, period)
   export const elastic: qt.ElasticEasingFac = (function custom(a, p) {
-    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= tau)
+    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= qu.tau)
     function y(x: number) {
       return ((x = x * 2 - 1) < 0 ? a * tpmt(-x) * Math.sin((s - x) / p) : 2 - a * tpmt(x) * Math.sin((s + x) / p)) / 2
     }
     y.amplitude = function (x: number) {
-      return custom(x, p * tau)
+      return custom(x, p * qu.tau)
     }
     y.period = function (x: number) {
       return custom(a, x)
@@ -911,57 +912,13 @@ export namespace ease {
     return ((x *= 2) <= 1 ? x * x : --x * (2 - x) + 1) / 2
   }
 
-  const pi = Math.PI
-  const halfPi = pi / 2
   export function sinIn(x: number) {
-    return +x === 1 ? 1 : 1 - Math.cos(x * halfPi)
+    return +x === 1 ? 1 : 1 - Math.cos(x * qu.halfPI)
   }
   export function sinOut(x: number) {
-    return Math.sin(x * halfPi)
+    return Math.sin(x * qu.halfPI)
   }
   export function sin(x: number) {
-    return (1 - Math.cos(pi * x)) / 2
-  }
-}
-
-export namespace selection {
-  selection.prototype.interrupt = selection_interrupt
-  selection.prototype.transition = selection_transition
-
-  export function interrupt(name) {
-    return this.each(function () {
-      interrupt(this, name)
-    })
-  }
-  const defaultTiming = {
-    time: null,
-    delay: 0,
-    duration: 250,
-    ease: easeCubicInOut,
-  }
-  function inherit(node, id) {
-    let timing
-    while (!(timing = node.__transition) || !(timing = timing[id])) {
-      if (!(node = node.parentNode)) {
-        throw new Error(`transition ${id} not found`)
-      }
-    }
-    return timing
-  }
-  export function transition(name) {
-    let id, timing
-    if (name instanceof Transition) {
-      ;(id = name._id), (name = name._name)
-    } else {
-      ;(id = newId()), ((timing = defaultTiming).time = qu.now()), (name = name == null ? null : name + "")
-    }
-    for (let groups = this._groups, m = groups.length, j = 0; j < m; ++j) {
-      for (let group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
-        if ((node = group[i])) {
-          schedule(node, name, id, i, group, timing || inherit(node, id))
-        }
-      }
-    }
-    return new Transition(groups, this._parents, name, id)
+    return (1 - Math.cos(qu.PI * x)) / 2
   }
 }

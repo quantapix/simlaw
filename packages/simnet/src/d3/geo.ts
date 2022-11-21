@@ -42,11 +42,11 @@ export namespace area {
     stream.point = point
     ;(lambda00 = lambda), (phi00 = phi)
     ;(lambda *= qu.radians), (phi *= qu.radians)
-    ;(lambda0 = lambda), (cosPhi0 = qu.cos((phi = phi / 2 + qu.quarterPi))), (sinPhi0 = qu.sin(phi))
+    ;(lambda0 = lambda), (cosPhi0 = qu.cos((phi = phi / 2 + qu.quarterPI))), (sinPhi0 = qu.sin(phi))
   }
   function point(lambda, phi) {
     ;(lambda *= qu.radians), (phi *= qu.radians)
-    phi = phi / 2 + qu.quarterPi
+    phi = phi / 2 + qu.quarterPI
     const dLambda = lambda - lambda0,
       sdLambda = dLambda >= 0 ? 1 : -1,
       adLambda = sdLambda * dLambda,
@@ -760,7 +760,7 @@ export function acos(x) {
   return x > 1 ? 0 : x < -1 ? qu.PI : Math.acos(x)
 }
 export function asin(x) {
-  return x > 1 ? qu.halfPi : x < -1 ? -qu.halfPi : Math.asin(x)
+  return x > 1 ? qu.halfPI : x < -1 ? -qu.halfPI : Math.asin(x)
 }
 export function haversin(x) {
   return (x = qu.sin(x / 2)) * x
@@ -780,21 +780,21 @@ export function polygonContains(polygon, point) {
     angle = 0,
     winding = 0
   const sum = new Adder()
-  if (sinPhi === 1) phi = qu.halfPi + qu.epsilon
-  else if (sinPhi === -1) phi = -qu.halfPi - qu.epsilon
+  if (sinPhi === 1) phi = qu.halfPI + qu.epsilon
+  else if (sinPhi === -1) phi = -qu.halfPI - qu.epsilon
   for (let i = 0, n = polygon.length; i < n; ++i) {
     if (!(m = (ring = polygon[i]).length)) continue
     var ring,
       m,
       point0 = ring[m - 1],
       lambda0 = longitude(point0),
-      phi0 = point0[1] / 2 + qu.quarterPi,
+      phi0 = point0[1] / 2 + qu.quarterPI,
       sinPhi0 = qu.sin(phi0),
       cosPhi0 = qu.cos(phi0)
     for (let j = 0; j < m; ++j, lambda0 = lambda1, sinPhi0 = sinPhi1, cosPhi0 = cosPhi1, point0 = point1) {
       var point1 = ring[j],
         lambda1 = longitude(point1),
-        phi1 = point1[1] / 2 + qu.quarterPi,
+        phi1 = point1[1] / 2 + qu.quarterPI,
         sinPhi1 = qu.sin(phi1),
         cosPhi1 = qu.cos(phi1),
         delta = lambda1 - lambda0,
