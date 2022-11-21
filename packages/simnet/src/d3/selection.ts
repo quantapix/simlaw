@@ -2,6 +2,8 @@ import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
 export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Element implements qt.Selection<S, T, P, U> {
+  _enter
+  _exit
   constructor(public groups: S[][], public parents: P[]) {
     super()
   }
@@ -9,7 +11,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
   selection() {
     return this
   }
-  override append(x: any) {
+  override append(x: any): any {
     const create = typeof x === "function" ? x : creator(x)
     return this.select((...xs: any[]) => this.appendChild(create.apply(this, xs)))
   }
@@ -45,7 +47,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     f(...xs)
     return this
   }
-  classed(k: string, v?: any) {
+  classed(k: string, v?: any): any {
     const split = (x: string) => x.trim().split(/^|\s+/)
     class List {
       ns: string[]
@@ -100,7 +102,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     }
     return this.each((typeof v === "function" ? func : v ? adder : remover)(ks, v))
   }
-  clone(d: boolean) {
+  clone(d: boolean): any {
     const shallow = () => {
       const y = this.cloneNode(false)
       const p = this.parentNode
@@ -113,8 +115,8 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     }
     return this.select(d ? deep : shallow)
   }
-  data(value?, key?) {
-    if (!arguments.length) return Array.from(this, x => x.__data__)
+  data(x?: any, f?: any): any {
+    if (!arguments.length) return Array.from(this, x => x.__data__) as T[]
     class EnterElem extends Element implements qt.EnterElem {
       __data__
       override ownerDocument: Document
@@ -179,57 +181,60 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
         if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) exit[i] = node
       }
     }
-    const bind = key ? key : index,
+    const bind = f ? f : index,
       parents = this.parents
-    const m = this.groups.length
-    const update = new Array(m),
-      enter = new Array(m),
-      exit = new Array(m)
-    if (typeof value !== "function") value = qu.constant(value)
+    const n = this.groups.length
+    const update = new Array(n),
+      enter = new Array(n),
+      exit = new Array(n)
+    if (typeof x !== "function") x = qu.constant(x)
     this.groups.forEach((g, j) => {
       const p = parents[j],
-        data = qu.arraylike(value.call(p, p && p.__data__, j, parents)),
-        dataLength = data.length,
-        enterGroup = (enter[j] = new Array(dataLength)),
-        updateGroup = (update[j] = new Array(dataLength)),
-        exitGroup = (exit[j] = new Array(g.length))
-      bind(p, g, enterGroup, updateGroup, exitGroup, data, key)
-      for (let i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
-        if ((previous = enterGroup[i0])) {
+        ds = qu.arraylike(x.call(p, p && p.__data__, j, parents)),
+        n = ds.length,
+        es = (enter[j] = new Array(n)),
+        us = (update[j] = new Array(n)),
+        xs = (exit[j] = new Array(g.length))
+      bind(p, g, es, us, xs, ds, key)
+      for (let i0 = 0, i1 = 0, prev, next; i0 < n; ++i0) {
+        if ((prev = es[i0])) {
           if (i0 >= i1) i1 = i0 + 1
-          while (!(next = updateGroup[i1]) && ++i1 < dataLength);
-          previous._next = next || null
+          while (!(next = us[i1]) && ++i1 < n);
+          prev._next = next || null
         }
       }
     })
-    update = new Selection(update, parents)
-    update._enter = enter
-    update._exit = exit
-    return update
+    const y = new Selection<S, any, P, U>(update, parents)
+    y._enter = enter
+    y._exit = exit
+    return y
   }
-  datum(value) {
-    return arguments.length ? this.property("__data__", value) : this.node().__data__
+  datum(x?: any) {
+    return x === undefined ? this.node().__data__ : this.property("__data__", x)
   }
-  dispatch(type, params) {
-    const event = (node, type, params) => {
-      const window = defaultView(node)
+  dispatch(t: string, x?: any) {
+    const event = (n: Node, t: string, x: any) => {
+      const window = defaultView(n)
       let e = window.CustomEvent
-      if (typeof e === "function") e = new e(type, params)
+      if (typeof e === "function") e = new e(t, x)
       else {
         e = window.document.createEvent("Event")
-        if (params) e.initEvent(type, params.bubbles, params.cancelable), (e.detail = params.detail)
-        else e.initEvent(type, false, false)
+        if (x) e.initEvent(t, x.bubbles, x.cancelable), (e.detail = x.detail)
+        else e.initEvent(t, false, false)
       }
-      node.dispatchEvent(e)
+      n.dispatchEvent(e)
     }
-    const constant = (type, params) => () => event(this, type, params)
-    const func = (type, params) => () => event(this, type, params.apply(this, arguments))
-    return this.each((typeof params === "function" ? func : constant)(type, params))
+    const constant = (t: string, x: any) => () => event(this, t, x)
+    const func =
+      (t: string, x: any) =>
+      (...xs: any[]) =>
+        event(this, t, x.apply(this, xs))
+    return this.each((typeof x === "function" ? func : constant)(t, x))
   }
   each(f: Function) {
     this.groups.forEach(g => {
       g.forEach((n, i) => {
-        f.call(n, n.__data__, i, g)
+        if (n) f.call(n, n.__data__, i, g)
       })
     })
     return this
@@ -237,10 +242,10 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
   empty() {
     return !this.node()
   }
-  enter() {
+  enter(): any {
     return new Selection(this._enter || this.groups.map(sparse), this.parents)
   }
-  exit() {
+  exit(): any {
     return new Selection(this._exit || this.groups.map(sparse), this.parents)
   }
   filter(x: any) {
@@ -250,7 +255,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     this.groups.forEach((g, j) => {
       const sub: S[] = (subs[j] = [])
       g.forEach((n, i) => {
-        if (x.call(n, n.__data__, i, g)) sub.push(n)
+        if (n && x.call(n, n.__data__, i, g)) sub.push(n)
       })
     })
     return new Selection(subs, this.parents)

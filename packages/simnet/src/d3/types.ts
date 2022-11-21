@@ -1365,8 +1365,8 @@ export interface Selection<S extends Base, T, P extends Base, U> {
   datum(x: null): Selection<S, undefined, P, U>
   datum<T2>(f: ValueFn<S, T, T2>): Selection<S, T2, P, U>
   datum<T2>(x: T2): Selection<S, T2, P, U>
-  dispatch(n: string, f?: ValueFn<S, T, CustomEventParameters>): this
-  dispatch(n: string, ps?: CustomEventParameters): this
+  dispatch(t: string, f?: ValueFn<S, T, CustomEventParameters>): this
+  dispatch(t: string, ps?: CustomEventParameters): this
   each(f: ValueFn<S, T, void>): this
   empty(): boolean
   enter(): Selection<EnterElem, T, P, U>
