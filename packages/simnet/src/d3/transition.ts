@@ -4,7 +4,7 @@ import { color } from "./color.js"
 
 import { interpolate, interpolateNumber, interpolateRgb, interpolateString } from "./interpolate.js"
 import { transformSvg } from "./interpolate.js"
-import { space, Selection } from "./selection.js"
+import { Selection } from "./selection.js"
 
 export class Transition {
   constructor(groups, parents, name, id) {
@@ -15,7 +15,7 @@ export class Transition {
   }
   [Symbol.iterator] = Selection.prototype[Symbol.iterator]
   attr(name, value) {
-    const fullname = space(name),
+    const fullname = qu.space(name),
       i = fullname === "transform" ? transformSvg : interpolate
     return this.attrTween(
       name,
@@ -41,7 +41,7 @@ export class Transition {
     if (arguments.length < 2) return (key = this.tween(key)) && key._value
     if (value == null) return this.tween(key, null)
     if (typeof value !== "function") throw new Error()
-    const fullname = space(name)
+    const fullname = qu.space(name)
     return this.tween(key, (fullname.local ? attrTweenNS : attrTween)(fullname, value))
   }
   call = Selection.prototype.call

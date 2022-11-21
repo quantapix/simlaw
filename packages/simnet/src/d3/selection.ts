@@ -1,6 +1,6 @@
-import type * as qt from "./types.js"
-import * as qu from "./utils.js"
 import { interrupt, Transition } from "./transition.js"
+import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 
 const root = [null]
 export function selection() {
@@ -29,6 +29,27 @@ export function create(x: any): any {
   return select(creator(x).call(document.documentElement))
 }
 
+function creator<T extends keyof qt.TM>(x: T): (this: qt.Base) => qt.TM[T]
+function creator<T extends Element>(x: string): (this: qt.Base) => T
+function creator(x: any) {
+  const fixed = (x: any) => {
+    return function (this: any) {
+      return this.ownerDocument.createElementNS(x.space, x.local)
+    }
+  }
+  const inherit = (x: any) => {
+    return function (this: any) {
+      const d = this.ownerDocument
+      const n = this.namespaceURI
+      return n === qu.xhtml && d.documentElement.namespaceURI === qu.xhtml
+        ? d.createElement(x)
+        : d.createElementNS(n, x)
+    }
+  }
+  const n: any = qu.space(x)
+  return (n.local ? fixed : inherit)(n)
+}
+
 export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Element implements qt.Selection<S, T, P, U> {
   _enter
   _exit
@@ -36,9 +57,6 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     super()
   }
   [Symbol.iterator] = this.iterator
-  selection() {
-    return this
-  }
   override append(x: any): any {
     const create = typeof x === "function" ? x : creator(x)
     return this.select((...xs: any[]) => this.appendChild(create.apply(this, xs)))
@@ -62,7 +80,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
       }
     const val = (k: string, v: string) => () => this.setAttribute(k, v)
     const valNS = (k: qt.NS, v: string) => () => this.setAttributeNS(k.space, k.local, v)
-    const ks = space(k)
+    const ks = qu.space(k)
     const ns = typeof ks !== "string"
     if (v === undefined) {
       const n = this.node()
@@ -515,6 +533,9 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     const matcher = (x: string) => (e: Element) => e.matches(x)
     return this.selectAll(x === undefined ? children : filter(typeof x === "function" ? x : matcher(x)))
   }
+  selection() {
+    return this
+  }
   size() {
     let size = 0
     for (const _ of this) ++size
@@ -597,40 +618,4 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
   selectorAll<T extends Element>(x: string | null): (this: qt.Base) => NodeListOf<T> {
     return x == null ? () => ({} as NodeListOf<T>) : () => this.querySelectorAll(x)
   }
-}
-
-export const xhtml = "http://www.w3.org/1999/xhtml"
-export const spaces = new Map<string, string>([
-  ["svg", "http://www.w3.org/2000/svg"],
-  ["xhtml", xhtml],
-  ["xlink", "http://www.w3.org/1999/xlink"],
-  ["xml", "http://www.w3.org/XML/1998/namespace"],
-  ["xmlns", "http://www.w3.org/2000/xmlns/"],
-])
-
-export function space(x: string): qt.NS | string {
-  let pre = (x += "")
-  const i = pre.indexOf(":")
-  if (i >= 0 && (pre = x.slice(0, i)) !== "xmlns") x = x.slice(i + 1)
-  const space = spaces.get(pre)
-  return space ? { space, local: x } : x
-}
-
-function creator<T extends keyof qt.TM>(x: T): (this: qt.Base) => qt.TM[T]
-function creator<T extends Element>(x: string): (this: qt.Base) => T
-function creator(x: any) {
-  const fixed = (x: any) => {
-    return function (this: any) {
-      return this.ownerDocument.createElementNS(x.space, x.local)
-    }
-  }
-  const inherit = (x: any) => {
-    return function (this: any) {
-      const d = this.ownerDocument
-      const n = this.namespaceURI
-      return n === xhtml && d.documentElement.namespaceURI === xhtml ? d.createElement(x) : d.createElementNS(n, x)
-    }
-  }
-  const n: any = space(x)
-  return (n.local ? fixed : inherit)(n)
 }
