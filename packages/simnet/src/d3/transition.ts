@@ -6,43 +6,111 @@ import { interpolate, interpolateNumber, interpolateRgb, interpolateString } fro
 import { transformSvg } from "./interpolate.js"
 import { Selection } from "./selection.js"
 
-export class Transition {
+export class Transition<S extends qt.Base, T, P extends qt.Base, U>
+  extends Element
+  implements qt.Transition<S, T, P, U>
+{
   constructor(groups, parents, name, id) {
+    super()
     this._groups = groups
     this._parents = parents
     this._name = name
     this._id = id
   }
   [Symbol.iterator] = Selection.prototype[Symbol.iterator]
-  attr(name, value) {
-    const fullname = qu.space(name),
-      i = fullname === "transform" ? transformSvg : interpolate
+  attr(k: string, v?: any) {
+    const rem = (k: string) => () => this.removeAttribute(k)
+    const remNS = (k: qt.NS) => () => this.removeAttributeNS(k.space, k.local)
+    const func = (k: string, interpolate, f: Function) => {
+      let v1: string | null = null,
+        v2: string,
+        y
+      return () => {
+        const x = f(this)
+        if (x === null) return void this.removeAttribute(k)
+        const v = x + ""
+        const v0 = this.getAttribute(k)
+        return v0 === v ? null : v0 === v1 && v === v2 ? y : ((v2 = v), (y = interpolate((v1 = v0), x)))
+      }
+    }
+    const funcNS = (k: qt.NS, interpolate, f: Function) => {
+      let v1: string | null = null,
+        v2: string,
+        y
+      return () => {
+        const x = f(this)
+        if (x === null) return void this.removeAttributeNS(k.space, k.local)
+        const v = x + ""
+        const v0 = this.getAttributeNS(k.space, k.local)
+        return v0 === v ? null : v0 === v1 && v === v2 ? y : ((v2 = v), (y = interpolate((v1 = v0), x)))
+      }
+    }
+    const val = (k: string, interpolate, x: any) => {
+      const v = x + ""
+      let v1: string | null = null,
+        y
+      return () => {
+        const v0 = this.getAttribute(k)
+        return v0 === v ? null : v0 === v1 ? y : (y = interpolate((v1 = v0), x))
+      }
+    }
+    const valNS = (k: qt.NS, interpolate, x: any) => {
+      const v = x + ""
+      let v1: string | null = null,
+        y
+      return () => {
+        const v0 = this.getAttributeNS(k.space, k.local)
+        return v0 === v ? null : v0 === v1 ? y : (y = interpolate((v1 = v0), x))
+      }
+    }
+    const ks = qu.space(k)
+    const ns = typeof ks !== "string",
+      i = ks === "transform" ? transformSvg : interpolate
+    if (ns)
+      return this.attrTween(
+        k,
+        v == null
+          ? remNS(ks)
+          : typeof v === "function"
+          ? funcNS(ks, i, tweenValue(this, "attr." + k, v))
+          : valNS(ks, i, v)
+      )
     return this.attrTween(
-      name,
-      typeof value === "function"
-        ? (fullname.local ? attrFunctionNS : attrFunction)(fullname, i, tweenValue(this, "attr." + name, value))
-        : value == null
-        ? (fullname.local ? attrRemoveNS : attrRemove)(fullname)
-        : (fullname.local ? attrConstantNS : attrConstant)(fullname, i, value)
+      k,
+      v == null ? rem(ks) : typeof v === "function" ? func(ks, i, tweenValue(this, "attr." + k, v)) : val(ks, i, v)
     )
   }
-  attrTween(name, value) {
-    function attrTween(name, value) {
-      let t0, i0
-      function tween() {
-        const i = value.apply(this, arguments)
-        if (i !== i0) t0 = (i0 = i) && attrInterpolate(name, i)
-        return t0
+  attrTween(k: string, v?: any) {
+    const ipolate = (k: string, f: Function) => x => this.setAttribute(k, f.call(this, x))
+    const ipolateNS = (k: qt.NS, f: Function) => x => this.setAttributeNS(k.space, k.local, f.call(this, x))
+    const tween = (k: string, f: Function) => {
+      let x1, x0
+      const y = (...xs: any[]) => {
+        const x = f.apply(this, xs)
+        if (x !== x0) x1 = (x0 = x) && ipolate(k, x)
+        return x1
       }
-      tween._value = value
-      return tween
+      y._value = f
+      return y
     }
-    let key = "attr." + name
-    if (arguments.length < 2) return (key = this.tween(key)) && key._value
-    if (value == null) return this.tween(key, null)
-    if (typeof value !== "function") throw new Error()
-    const fullname = qu.space(name)
-    return this.tween(key, (fullname.local ? attrTweenNS : attrTween)(fullname, value))
+    const tweenNS = (k: qt.NS, f: Function) => {
+      let x1, x0
+      const y = (...xs: any[]) => {
+        const x = f.apply(this, xs)
+        if (x !== x0) x1 = (x0 = x) && ipolateNS(k, x)
+        return x1
+      }
+      y._value = f
+      return y
+    }
+    let key = "attr." + k
+    if (v === undefined) return (key = this.tween(key)) && key._value
+    if (v === null) return this.tween(key, null)
+    if (typeof v !== "function") throw new Error()
+    const ks = qu.space(k)
+    const ns = typeof ks !== "string"
+    if (ns) return this.tween(key, tweenNS(ks, v))
+    return this.tween(key, tween(ks, v))
   }
   call = Selection.prototype.call
   delay(value) {
@@ -334,94 +402,6 @@ export function active<B extends qt.Base, T, PElement extends qt.Base, PDatum>(
   return null
 }
 
-function attrRemove(name) {
-  return function () {
-    this.removeAttribute(name)
-  }
-}
-function attrRemoveNS(fullname) {
-  return function () {
-    this.removeAttributeNS(fullname.space, fullname.local)
-  }
-}
-function attrConstant(name, interpolate, value1) {
-  let string00,
-    string1 = value1 + "",
-    interpolate0
-  return function () {
-    const string0 = this.getAttribute(name)
-    return string0 === string1
-      ? null
-      : string0 === string00
-      ? interpolate0
-      : (interpolate0 = interpolate((string00 = string0), value1))
-  }
-}
-function attrConstantNS(fullname, interpolate, value1) {
-  let string00,
-    string1 = value1 + "",
-    interpolate0
-  return function () {
-    const string0 = this.getAttributeNS(fullname.space, fullname.local)
-    return string0 === string1
-      ? null
-      : string0 === string00
-      ? interpolate0
-      : (interpolate0 = interpolate((string00 = string0), value1))
-  }
-}
-function attrFunction(name, interpolate, value) {
-  let string00, string10, interpolate0
-  return function () {
-    let string0,
-      value1 = value(this),
-      string1
-    if (value1 == null) return void this.removeAttribute(name)
-    string0 = this.getAttribute(name)
-    string1 = value1 + ""
-    return string0 === string1
-      ? null
-      : string0 === string00 && string1 === string10
-      ? interpolate0
-      : ((string10 = string1), (interpolate0 = interpolate((string00 = string0), value1)))
-  }
-}
-function attrFunctionNS(fullname, interpolate, value) {
-  let string00, string10, interpolate0
-  return function () {
-    let string0,
-      value1 = value(this),
-      string1
-    if (value1 == null) return void this.removeAttributeNS(fullname.space, fullname.local)
-    string0 = this.getAttributeNS(fullname.space, fullname.local)
-    string1 = value1 + ""
-    return string0 === string1
-      ? null
-      : string0 === string00 && string1 === string10
-      ? interpolate0
-      : ((string10 = string1), (interpolate0 = interpolate((string00 = string0), value1)))
-  }
-}
-function attrInterpolate(name, i) {
-  return function (t) {
-    this.setAttribute(name, i.call(this, t))
-  }
-}
-function attrInterpolateNS(fullname, i) {
-  return function (t) {
-    this.setAttributeNS(fullname.space, fullname.local, i.call(this, t))
-  }
-}
-function attrTweenNS(fullname, value) {
-  let t0, i0
-  function tween() {
-    const i = value.apply(this, arguments)
-    if (i !== i0) t0 = (i0 = i) && attrInterpolateNS(fullname, i)
-    return t0
-  }
-  tween._value = value
-  return tween
-}
 function delayFunction(id, value) {
   return function () {
     init(this, id).delay = +value.apply(this, arguments)

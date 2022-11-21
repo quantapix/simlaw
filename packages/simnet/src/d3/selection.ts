@@ -65,21 +65,21 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     const rem = (k: string) => () => this.removeAttribute(k)
     const remNS = (k: qt.NS) => () => this.removeAttributeNS(k.space, k.local)
     const func =
-      (k: string, v: any) =>
+      (k: string, f: Function) =>
       (...xs: any[]) => {
-        const y = v.apply(this, xs)
-        if (y === null) this.removeAttribute(k)
-        else this.setAttribute(k, y)
+        const x = f.apply(this, xs)
+        if (x === null) this.removeAttribute(k)
+        else this.setAttribute(k, x)
       }
     const funcNS =
-      (k: qt.NS, v: any) =>
+      (k: qt.NS, f: Function) =>
       (...xs: any[]) => {
-        const y = v.apply(this, xs)
-        if (y == null) this.removeAttributeNS(k.space, k.local)
-        else this.setAttributeNS(k.space, k.local, y)
+        const x = f.apply(this, xs)
+        if (x == null) this.removeAttributeNS(k.space, k.local)
+        else this.setAttributeNS(k.space, k.local, x)
       }
-    const val = (k: string, v: string) => () => this.setAttribute(k, v)
-    const valNS = (k: qt.NS, v: string) => () => this.setAttributeNS(k.space, k.local, v)
+    const val = (k: string, v: any) => () => this.setAttribute(k, v)
+    const valNS = (k: qt.NS, v: any) => () => this.setAttributeNS(k.space, k.local, v)
     const ks = qu.space(k)
     const ns = typeof ks !== "string"
     if (v === undefined) {
