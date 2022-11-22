@@ -4,20 +4,15 @@ import { color } from "./color.js"
 
 import { interpolate, interpolateNumber, interpolateRgb, interpolateString } from "./interpolate.js"
 import { transformSvg } from "./interpolate.js"
-import { Selection } from "./selection.js"
+import { Base, Selection } from "./selection.js"
 
 export class Transition<S extends qt.Base, T, P extends qt.Base, U>
-  extends Element
+  extends Base<S, P>
   implements qt.Transition<S, T, P, U>
 {
-  constructor(groups, parents, name, id) {
-    super()
-    this._groups = groups
-    this._parents = parents
-    this._name = name
-    this._id = id
+  constructor(groups: S[][], parents: P[], public name, public id) {
+    super(groups, parents)
   }
-  [Symbol.iterator] = Selection.prototype[Symbol.iterator]
   attr(k: string, v?: any) {
     const rem = (k: string) => () => this.removeAttribute(k)
     const remNS = (k: qt.NS) => () => this.removeAttributeNS(k.space, k.local)
@@ -112,41 +107,38 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
     if (ns) return this.tween(key, tweenNS(ks, v))
     return this.tween(key, tween(ks, v))
   }
-  call = Selection.prototype.call
   delay(value) {
-    const id = this._id
+    const id = this.id
     return arguments.length
       ? this.each((typeof value === "function" ? delayFunction : delayConstant)(id, value))
       : get(this.node(), id).delay
   }
   duration(value) {
-    const id = this._id
+    const id = this.id
     return arguments.length
       ? this.each((typeof value === "function" ? durationFunction : durationConstant)(id, value))
       : get(this.node(), id).duration
   }
-  each = Selection.prototype.each
   ease(value) {
-    const id = this._id
+    const id = this.id
     return arguments.length ? this.each(easeConstant(id, value)) : get(this.node(), id).ease
   }
   easeVarying(value) {
-    function easeVarying(id, value) {
-      return function () {
-        const v = value.apply(this, arguments)
+    const easeVarying = (id, value) => {
+      return (...xs: any[]) => {
+        const v = value.apply(this, xs)
         if (typeof v !== "function") throw new Error()
         set(this, id).ease = v
       }
     }
     if (typeof value !== "function") throw new Error()
-    return this.each(easeVarying(this._id, value))
+    return this.each(easeVarying(this.id, value))
   }
-  empty = Selection.prototype.empty
   end() {
     let on0,
       on1,
       that = this,
-      id = that._id,
+      id = that.id,
       size = that.size()
     return new Promise(function (resolve, reject) {
       const cancel = { value: reject },
@@ -171,116 +163,89 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
   }
   filter(match) {
     if (typeof match !== "function") match = matcher(match)
-    for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var groups = this.groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, subgroup = (subgroups[j] = []), node, i = 0; i < n; ++i) {
         if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
           subgroup.push(node)
         }
       }
     }
-    return new Transition(subgroups, this._parents, this._name, this._id)
+    return new Transition(subgroups, this.parents, this.name, this.id)
   }
-  merge(transition) {
-    if (transition._id !== this._id) throw new Error()
-    for (
-      var groups0 = this._groups,
-        groups1 = transition._groups,
-        m0 = groups0.length,
-        m1 = groups1.length,
-        m = Math.min(m0, m1),
-        merges = new Array(m0),
-        j = 0;
-      j < m;
-      ++j
-    ) {
-      for (
-        var group0 = groups0[j],
-          group1 = groups1[j],
-          n = group0.length,
-          merge = (merges[j] = new Array(n)),
-          node,
-          i = 0;
-        i < n;
-        ++i
-      ) {
-        if ((node = group0[i] || group1[i])) {
-          merge[i] = node
-        }
-      }
-    }
-    for (; j < m0; ++j) {
-      merges[j] = groups0[j]
-    }
-    return new Transition(merges, this._parents, this._name, this._id)
+  merge(x: any): any {
+    if (x._id !== this.id) throw new Error()
+    const gs = this.groups,
+      gs2 = x.groups,
+      n = gs.length,
+      min = Math.min(n, gs2.length),
+      ys = new Array(n)
+    gs.forEach((g, j) => {
+      if (j < min) {
+        const g2 = gs2[j]
+        const y = (ys[j] = new Array(g.length))
+        g.forEach((n, i) => {
+          if (n || g2[i]) y[i] = n
+        })
+      } else ys[j] = g
+    })
+    return new Transition(ys, this.parents, this.name, this.id)
   }
-  node = Selection.prototype.node
-  nodes = Selection.prototype.nodes
   on(name, listener) {
-    const id = this._id
+    const id = this.id
     return arguments.length < 2 ? get(this.node(), id).on.on(name) : this.each(onFunction(id, name, listener))
   }
-  remove() {
-    return this.on("end.remove", removeFunction(this._id))
+  override remove() {
+    return this.on("end.remove", removeFunction(this.id))
   }
-  select(select) {
-    const name = this._name,
-      id = this._id
-    if (typeof select !== "function") select = selector(select)
-    for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-      for (
-        var group = groups[j], n = group.length, subgroup = (subgroups[j] = new Array(n)), node, subnode, i = 0;
-        i < n;
-        ++i
-      ) {
-        if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
-          if ("__data__" in node) subnode.__data__ = node.__data__
-          subgroup[i] = subnode
-          schedule(subgroup[i], name, id, i, subgroup, get(node, id))
+  select(x: any) {
+    const name = this.name,
+      id = this.id
+    if (typeof x !== "function") x = selector(x)
+    const ys = new Array(this.groups.length)
+    this.groups.forEach((g, j) => {
+      const y = (ys[j] = new Array(g.length))
+      g.forEach((n, i) => {
+        let sub
+        if (n && (sub = x.call(n, n.__data__, i, g))) {
+          if ("__data__" in n) sub.__data__ = n.__data__
+          y[i] = sub
+          schedule(y[i], name, id, i, y, get(n, id))
         }
-      }
-    }
-    return new Transition(subgroups, this._parents, name, id)
+      })
+    })
+    return new Transition(ys, this.parents, name, id)
   }
-  selectAll(select) {
-    const name = this._name,
-      id = this._id
-    if (typeof select !== "function") select = selectorAll(select)
-    for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
-      for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
-        if ((node = group[i])) {
-          for (
-            var children = select.call(node, node.__data__, i, group),
-              child,
-              inherit = get(node, id),
-              k = 0,
-              l = children.length;
-            k < l;
-            ++k
-          ) {
-            if ((child = children[k])) {
-              schedule(child, name, id, k, children, inherit)
-            }
-          }
-          subgroups.push(children)
-          parents.push(node)
+  selectAll(x: any) {
+    const name = this.name,
+      id = this.id
+    if (typeof x !== "function") x = selectorAll(x)
+    const subs: S[][] = [],
+      parents: P[] = []
+    this.groups.forEach((g, j) => {
+      g.forEach((n, i) => {
+        if (n) {
+          const cs = x.call(n, n.__data__, i, g),
+            inherit = get(n, id)
+          cs.forEach((c, k) => {
+            if (c) schedule(c, name, id, k, cs, inherit)
+          })
+          subs.push(cs)
+          parents.push(n)
         }
-      }
-    }
-    return new Transition(subgroups, parents, name, id)
+      })
+    })
+    return new Transition(subs, parents, name, id)
   }
-  selectChild = Selection.prototype.selectChild
-  selectChildren = Selection.prototype.selectChildren
   selection() {
-    return new Selection(this._groups, this._parents)
+    return new Selection(this.groups, this.parents)
   }
-  size = Selection.prototype.size
   style(name, value, priority) {
     const i = (name += "") === "transform" ? transformSvg : interpolate
     return value == null
       ? this.styleTween(name, styleNull(name, i)).on("end.style." + name, styleRemove(name))
       : typeof value === "function"
       ? this.styleTween(name, styleFunction(name, i, tweenValue(this, "style." + name, value))).each(
-          styleMaybeRemove(this._id, name)
+          styleMaybeRemove(this.id, name)
         )
       : this.styleTween(name, styleConstant(name, i, value), priority).on("end.style." + name, null)
   }
@@ -327,10 +292,10 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
     return this.tween(key, textTween(value))
   }
   transition() {
-    const name = this._name,
-      id0 = this._id,
+    const name = this.name,
+      id0 = this.id,
       id1 = newId()
-    for (var groups = this._groups, m = groups.length, j = 0; j < m; ++j) {
+    for (var groups = this.groups, m = groups.length, j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
         if ((node = group[i])) {
           const inherit = get(node, id0)
@@ -343,10 +308,10 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
         }
       }
     }
-    return new Transition(groups, this._parents, name, id1)
+    return new Transition(groups, this.parents, name, id1)
   }
   tween(name, value) {
-    const id = this._id
+    const id = this.id
     name += ""
     if (arguments.length < 2) {
       const tween = get(this.node(), id).tween

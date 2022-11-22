@@ -50,13 +50,74 @@ function creator(x: any) {
   return (n.local ? fixed : inherit)(n)
 }
 
-export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Element implements qt.Selection<S, T, P, U> {
-  _enter
-  _exit
+export abstract class Base<S extends qt.Base, P extends qt.Base> extends Element {
   constructor(public groups: S[][], public parents: P[]) {
     super()
   }
   [Symbol.iterator] = this.iterator
+  call(f: Function, ...xs: any[]) {
+    f(...xs)
+    return this
+  }
+  each(f: Function) {
+    this.groups.forEach(g => {
+      g.forEach((n, i) => {
+        if (n) f.call(n, n.__data__, i, g)
+      })
+    })
+    return this
+  }
+  empty() {
+    return !this.node()
+  }
+  *iterator() {
+    for (const g of this.groups) {
+      for (const n of g) {
+        if (n) yield n
+      }
+    }
+  }
+  node() {
+    for (const g of this.groups) {
+      for (const n of g) {
+        if (n) return n
+      }
+    }
+    return null
+  }
+  nodes() {
+    return Array.from(this)
+  }
+  selectChild(x: any) {
+    const first = () => this.firstElementChild
+    const f = Array.prototype.find
+    const find = x => () => f.call(this.children, x)
+    const matcher = (x: string) => (e: Element) => e.matches(x)
+    return this.select(x === undefined ? first : find(typeof x === "function" ? x : matcher(x)))
+  }
+  selectChildren(x: any) {
+    const children = () => Array.from(this.children)
+    const f = Array.prototype.filter
+    const filter = x => () => f.call(this.children, x)
+    const matcher = (x: string) => (e: Element) => e.matches(x)
+    return this.selectAll(x === undefined ? children : filter(typeof x === "function" ? x : matcher(x)))
+  }
+  size() {
+    let size = 0
+    for (const _ of this) ++size
+    return size
+  }
+}
+
+export class Selection<S extends qt.Base, T, P extends qt.Base, U>
+  extends Base<S, P>
+  implements qt.Selection<S, T, P, U>
+{
+  _enter
+  _exit
+  constructor(groups: S[][], parents: P[]) {
+    super(groups, parents)
+  }
   override append(x: any): any {
     const create = typeof x === "function" ? x : creator(x)
     return this.select((...xs: any[]) => this.appendChild(create.apply(this, xs)))
@@ -88,10 +149,6 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
     }
     if (ns) return this.each((v === null ? remNS : typeof v === "function" ? funcNS : valNS)(ks, v))
     return this.each((v === null ? rem : typeof v === "function" ? func : val)(ks, v))
-  }
-  call(f: Function, ...xs: any[]) {
-    f(...xs)
-    return this
   }
   classed(k: string, v?: any): any {
     const split = (x: string) => x.trim().split(/^|\s+/)
@@ -269,17 +326,6 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
         event(this, t, x.apply(this, xs))
     return this.each((typeof x === "function" ? func : constant)(t, x))
   }
-  each(f: Function) {
-    this.groups.forEach(g => {
-      g.forEach((n, i) => {
-        if (n) f.call(n, n.__data__, i, g)
-      })
-    })
-    return this
-  }
-  empty() {
-    return !this.node()
-  }
   enter(): any {
     const sparse = (x: any[]) => new Array(x.length)
     return new Selection(this._enter || this.groups.map(sparse), this.parents)
@@ -323,13 +369,6 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
   interrupt(name?: string) {
     return this.each(() => interrupt(this, name))
   }
-  *iterator() {
-    for (const g of this.groups) {
-      for (const n of g) {
-        if (n) yield n
-      }
-    }
-  }
   join(onenter, onupdate, onexit) {
     let enter = this.enter(),
       update = this,
@@ -366,22 +405,11 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
         const g2 = gs2[j]
         const y = (ys[j] = new Array(g.length))
         g.forEach((n, i) => {
-          if (n && g2[i]) y[i] = n
+          if (n || g2[i]) y[i] = n
         })
       } else ys[j] = g
     })
     return new Selection(ys, this.parents)
-  }
-  node() {
-    for (const g of this.groups) {
-      for (const n of g) {
-        if (n) return n
-      }
-    }
-    return null
-  }
-  nodes() {
-    return Array.from(this)
   }
   on(typename, value, options) {
     function parseTypenames(typenames) {
@@ -494,7 +522,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
       const y = (ys[j] = new Array(g.length))
       g.forEach((n, i) => {
         let sub
-        if ((sub = x.call(n, n.__data__, i, g))) {
+        if (n && (sub = x.call(n, n.__data__, i, g))) {
           if ("__data__" in n) sub.__data__ = n.__data__
           y[i] = sub
         }
@@ -513,33 +541,16 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
       parents: S[] = []
     this.groups.forEach(g => {
       g.forEach((n, i) => {
-        subs.push(x.call(n, n.__data__, i, g))
-        parents.push(n)
+        if (n) {
+          subs.push(x.call(n, n.__data__, i, g))
+          parents.push(n)
+        }
       })
     })
     return new Selection(subs, parents)
   }
-  selectChild(x: any) {
-    const first = () => this.firstElementChild
-    const f = Array.prototype.find
-    const find = x => () => f.call(this.children, x)
-    const matcher = (x: string) => (e: Element) => e.matches(x)
-    return this.select(x === undefined ? first : find(typeof x === "function" ? x : matcher(x)))
-  }
-  selectChildren(x: any) {
-    const children = () => Array.from(this.children)
-    const f = Array.prototype.filter
-    const filter = x => () => f.call(this.children, x)
-    const matcher = (x: string) => (e: Element) => e.matches(x)
-    return this.selectAll(x === undefined ? children : filter(typeof x === "function" ? x : matcher(x)))
-  }
   selection() {
     return this
-  }
-  size() {
-    let size = 0
-    for (const _ of this) ++size
-    return size
   }
   sort(f?) {
     if (!f) f = qu.ascending
@@ -573,7 +584,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U> extends Eleme
   transition(name) {
     let id, timing
     if (name instanceof Transition) {
-      ;(id = name._id), (name = name._name)
+      ;(id = name.id), (name = name.name)
     } else {
       const defaultTiming = {
         time: null,
