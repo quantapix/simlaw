@@ -168,16 +168,17 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
       if (size === 0) resolve()
     })
   }
-  filter(match) {
-    if (typeof match !== "function") match = matcher(match)
-    for (var groups = this.groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-      for (var group = groups[j], n = group.length, subgroup = (subgroups[j] = []), node, i = 0; i < n; ++i) {
-        if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
-          subgroup.push(node)
-        }
-      }
-    }
-    return new Transition(subgroups, this.parents, this.name, this.id)
+  filter(x: any): any {
+    const matcher = (x: string) => () => this.matches(x)
+    if (typeof x !== "function") x = matcher(x)
+    const ys: S[][] = new Array(this.groups.length)
+    this.groups.forEach((g, j) => {
+      const y: S[] = (ys[j] = [])
+      g.forEach((n, i) => {
+        if (n && x.call(n, n.__data__, i, g)) y.push(n)
+      })
+    })
+    return new Transition(ys, this.parents, this.name, this.id)
   }
   merge(x: any): any {
     if (x._id !== this.id) throw new Error()
@@ -197,9 +198,19 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
     })
     return new Transition(ys, this.parents, this.name, this.id)
   }
-  on(name, listener) {
+  on(t: string, x: any) {
     const id = this.id
-    return arguments.length < 2 ? get(this.node(), id).on.on(name) : this.each(onFunction(id, name, listener))
+    const func = (id, t: string, x: any) => {
+      const f = start(t) ? init : set
+      let on0, on1
+      return () => {
+        const schedule = f(this, id),
+          on = schedule.on
+        if (on !== on0) (on1 = (on0 = on).copy()).on(t, x)
+        schedule.on = on1
+      }
+    }
+    return x === undefined ? get(this.node(), id).on.on(t) : this.each(func(id, t, x))
   }
   override remove() {
     return this.on("end.remove", id => () => {
@@ -409,17 +420,6 @@ function start(name) {
       if (i >= 0) t = t.slice(0, i)
       return !t || t === "start"
     })
-}
-function onFunction(id, name, listener) {
-  let on0,
-    on1,
-    sit = start(name) ? init : set
-  return function () {
-    const schedule = sit(this, id),
-      on = schedule.on
-    if (on !== on0) (on1 = (on0 = on).copy()).on(name, listener)
-    schedule.on = on1
-  }
 }
 const emptyOn = qu.dispatch("start", "end", "cancel", "interrupt")
 const emptyTween = []

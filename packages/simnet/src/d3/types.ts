@@ -1392,9 +1392,9 @@ export interface Selection<S extends Base, T, P extends Base, U> {
   merge(x: Selection<S, T, P, U> | TransitionLike<S, T>): Selection<S, T, P, U>
   node(): S | null
   nodes(): S[]
-  on(n: string, f: (this: S, event: any, x: T) => void, options?: any): this
-  on(n: string, x: null): this
-  on(n: string): ((this: S, event: any, x: T) => void) | undefined
+  on(t: string, f: (this: S, event: any, x: T) => void, xs?: any): this
+  on(t: string, x: null): this
+  on(t: string): ((this: S, event: any, x: T) => void) | undefined
   order(): this
   property(n: string, f: Value<S, T, any> | null): this
   property(n: string, x: any): this
@@ -1453,9 +1453,9 @@ export interface Transition<S extends Base, T, P extends Base, U> {
   merge(x: Transition<S, T, P, U>): Transition<S, T, P, U>
   node(): S | null
   nodes(): S[]
-  on(n: string, f: Value<S, T, void>): this
-  on(n: string, x: null): this
-  on(n: string): Value<S, T, void> | undefined
+  on(t: string, f: Value<S, T, void>): this
+  on(t: string, x: null): this
+  on(t: string): Value<S, T, void> | undefined
   remove(): this
   select<D extends Base>(f: Value<S, T, D>): Transition<D, T, P, U>
   select<D extends Base>(x: string): Transition<D, T, P, U>

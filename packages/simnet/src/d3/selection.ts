@@ -337,14 +337,14 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
   filter(x: any): any {
     const matcher = (x: string) => () => this.matches(x)
     if (typeof x !== "function") x = matcher(x)
-    const subs: S[][] = new Array(this.groups.length)
+    const ys: S[][] = new Array(this.groups.length)
     this.groups.forEach((g, j) => {
-      const sub: S[] = (subs[j] = [])
+      const y: S[] = (ys[j] = [])
       g.forEach((n, i) => {
-        if (n && x.call(n, n.__data__, i, g)) sub.push(n)
+        if (n && x.call(n, n.__data__, i, g)) y.push(n)
       })
     })
-    return new Selection(subs, this.parents)
+    return new Selection(ys, this.parents)
   }
   html(x: any) {
     const remove = () => (this.innerHTML = "")
@@ -411,72 +411,75 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
     })
     return new Selection(ys, this.parents)
   }
-  on(typename, value, options) {
-    function parseTypenames(typenames) {
-      return typenames
+  on(t: string, x: any, xs?: any) {
+    function types(x: string) {
+      return x
         .trim()
         .split(/^|\s+/)
-        .map(function (t) {
-          let name = "",
-            i = t.indexOf(".")
-          if (i >= 0) (name = t.slice(i + 1)), (t = t.slice(0, i))
-          return { type: t, name: name }
+        .map(function (type) {
+          const i = type.indexOf(".")
+          let name = ""
+          if (i >= 0) (name = type.slice(i + 1)), (type = type.slice(0, i))
+          return { type, name }
         })
     }
-    let typenames = parseTypenames(typename + ""),
-      i,
-      n = typenames.length,
-      t
-    if (arguments.length < 2) {
-      const on = this.node().__on
-      if (on)
-        for (let j = 0, m = on.length, o; j < m; ++j) {
-          for (i = 0, o = on[j]; i < n; ++i) {
-            if ((t = typenames[i]).type === o.type && t.name === o.name) {
-              return o.value
-            }
+    const ts = types(t + "")
+    if (x === undefined) {
+      const on = this.node()?.__on
+      if (on) {
+        const m = on.length,
+          n = ts.length
+        for (let j = 0; j < m; ++j) {
+          const o = on[j]
+          for (let i = 0; i < n; ++i) {
+            const t = ts[i]!
+            if (t.type === o.type && t.name === o.name) return o.value
           }
         }
+      }
       return
     }
-    const onAdd = (typename, value, options) => {
-      const contextListener = listener => event => listener.call(this, event, this.__data__)
+    const add = (t, value, options: any) => {
+      const contextListener = f => e => f.call(this, e, this.__data__)
       return () => {
-        let on = this.__on,
-          o,
-          listener = contextListener(value)
-        if (on)
-          for (let j = 0, m = on.length; j < m; ++j) {
-            if ((o = on[j]).type === typename.type && o.name === typename.name) {
+        const listener = contextListener(value),
+          on = this.__on
+        if (on) {
+          const n = on.length
+          for (let i = 0; i < n; ++i) {
+            const o = on[i]
+            if (o.type === t.type && o.name === t.name) {
               this.removeEventListener(o.type, o.listener, o.options)
               this.addEventListener(o.type, (o.listener = listener), (o.options = options))
               o.value = value
               return
             }
           }
-        this.addEventListener(typename.type, listener, options)
-        o = { type: typename.type, name: typename.name, value: value, listener: listener, options: options }
+        }
+        this.addEventListener(t.type, listener, options)
+        const o = { type: t.type, name: t.name, value, listener, options }
         if (!on) this.__on = [o]
         else on.push(o)
       }
     }
-    const onRemove = typename => {
+    const rem = t => {
       return () => {
         const on = this.__on
         if (!on) return
-        for (let j = 0, i = -1, m = on.length, o; j < m; ++j) {
-          if (((o = on[j]), (!typename.type || o.type === typename.type) && o.name === typename.name)) {
+        let i = -1
+        on.forEach(o => {
+          if ((!t.type || o.type === t.type) && o.name === t.name) {
             this.removeEventListener(o.type, o.listener, o.options)
-          } else {
-            on[++i] = o
-          }
-        }
+          } else on[++i] = o
+        })
         if (++i) on.length = i
         else delete this.__on
       }
     }
-    const on = value ? onAdd : onRemove
-    for (i = 0; i < n; ++i) this.each(on(typenames[i], value, options))
+    const f = x ? add : rem
+    ts.forEach(t => {
+      this.each(f(t, x, xs))
+    })
     return this
   }
   order() {
