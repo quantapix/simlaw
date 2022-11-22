@@ -107,32 +107,39 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
     if (ns) return this.tween(key, tweenNS(ks, v))
     return this.tween(key, tween(ks, v))
   }
-  delay(value) {
+  delay(x: any) {
     const id = this.id
-    return arguments.length
-      ? this.each((typeof value === "function" ? delayFunction : delayConstant)(id, value))
-      : get(this.node(), id).delay
+    const func =
+      (id, f: Function) =>
+      (...xs: any[]) =>
+        (init(this, id).delay = +f.apply(this, xs))
+    const constant = (id, x) => ((x = +x), () => (init(this, id).delay = x))
+    return x === undefined ? get(this.node(), id).delay : this.each((typeof x === "function" ? func : constant)(id, x))
   }
-  duration(value) {
+  duration(x: any) {
     const id = this.id
-    return arguments.length
-      ? this.each((typeof value === "function" ? durationFunction : durationConstant)(id, value))
-      : get(this.node(), id).duration
+    const func =
+      (id, f: Function) =>
+      (...xs: any[]) =>
+        (set(this, id).duration = +f.apply(this, xs))
+    const constant = (id, x) => ((x = +x), () => (set(this, id).duration = x))
+    return x === undefined
+      ? get(this.node(), id).duration
+      : this.each((typeof x === "function" ? func : constant)(id, x))
   }
-  ease(value) {
+  ease(f: Function) {
     const id = this.id
-    return arguments.length ? this.each(easeConstant(id, value)) : get(this.node(), id).ease
+    const constant = (id, f: Function) => () => (set(this, id).ease = f)
+    return f === undefined ? get(this.node(), id).ease : this.each(constant(id, f))
   }
-  easeVarying(value) {
-    const easeVarying = (id, value) => {
+  easeVarying(f: Function) {
+    const varying = (id, f: Function) => {
       return (...xs: any[]) => {
-        const v = value.apply(this, xs)
-        if (typeof v !== "function") throw new Error()
+        const v: Function = f.apply(this, xs)
         set(this, id).ease = v
       }
     }
-    if (typeof value !== "function") throw new Error()
-    return this.each(easeVarying(this.id, value))
+    return this.each(varying(this.id, f))
   }
   end() {
     let on0,
@@ -195,7 +202,11 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
     return arguments.length < 2 ? get(this.node(), id).on.on(name) : this.each(onFunction(id, name, listener))
   }
   override remove() {
-    return this.on("end.remove", removeFunction(this.id))
+    return this.on("end.remove", id => () => {
+      const parent = this.parentNode
+      for (const i in this.__transition) if (+i !== id) return
+      if (parent) parent.removeChild(this)
+    })
   }
   select(x: any) {
     const name = this.name,
@@ -367,38 +378,6 @@ export function active<B extends qt.Base, T, PElement extends qt.Base, PDatum>(
   return null
 }
 
-function delayFunction(id, value) {
-  return function () {
-    init(this, id).delay = +value.apply(this, arguments)
-  }
-}
-function delayConstant(id, value) {
-  return (
-    (value = +value),
-    function () {
-      init(this, id).delay = value
-    }
-  )
-}
-function durationFunction(id, value) {
-  return function () {
-    set(this, id).duration = +value.apply(this, arguments)
-  }
-}
-function durationConstant(id, value) {
-  return (
-    (value = +value),
-    function () {
-      set(this, id).duration = value
-    }
-  )
-}
-function easeConstant(id, value) {
-  if (typeof value !== "function") throw new Error()
-  return function () {
-    set(this, id).ease = value
-  }
-}
 let id = 0
 export function transition<T>(x?: string): qt.Transition<qt.Base, T, null, undefined>
 export function transition<T>(x: qt.Transition<qt.Base, any, qt.Base, any>): qt.Transition<qt.Base, T, null, undefined>
@@ -440,13 +419,6 @@ function onFunction(id, name, listener) {
       on = schedule.on
     if (on !== on0) (on1 = (on0 = on).copy()).on(name, listener)
     schedule.on = on1
-  }
-}
-function removeFunction(id) {
-  return function () {
-    const parent = this.parentNode
-    for (const i in this.__transition) if (+i !== id) return
-    if (parent) parent.removeChild(this)
   }
 }
 const emptyOn = qu.dispatch("start", "end", "cancel", "interrupt")
