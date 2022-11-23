@@ -2,89 +2,82 @@
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
-function arcInnerRadius(d) {
-  return d.innerRadius
-}
-function arcOuterRadius(d) {
-  return d.outerRadius
-}
-function arcStartAngle(d) {
-  return d.startAngle
-}
-function arcEndAngle(d) {
-  return d.endAngle
-}
-function arcPadAngle(d) {
-  return d && d.padAngle // Note: optional!
-}
-function intersect(x0, y0, x1, y1, x2, y2, x3, y3) {
-  const x10 = x1 - x0,
-    y10 = y1 - y0,
-    x32 = x3 - x2,
-    y32 = y3 - y2
-  let t = y32 * x10 - x32 * y10
-  if (t * t < qu.epsilon2) return
-  t = (x32 * (y0 - y2) - y32 * (x0 - x2)) / t
-  return [x0 + t * x10, y0 + t * y10]
-}
-function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
-  const x01 = x0 - x1,
-    y01 = y0 - y1,
-    lo = (cw ? rc : -rc) / qu.sqrt(x01 * x01 + y01 * y01),
-    ox = lo * y01,
-    oy = -lo * x01,
-    x11 = x0 + ox,
-    y11 = y0 + oy,
-    x10 = x1 + ox,
-    y10 = y1 + oy,
-    x00 = (x11 + x10) / 2,
-    y00 = (y11 + y10) / 2,
-    dx = x10 - x11,
-    dy = y10 - y11,
-    d2 = dx * dx + dy * dy,
-    r = r1 - rc,
-    D = x11 * y10 - x10 * y11,
-    d = (dy < 0 ? -1 : 1) * qu.sqrt(qu.max(0, r * r * d2 - D * D)),
-    cx1 = (D * dy + dx * d) / d2,
-    cy1 = (-D * dx + dy * d) / d2,
-    dx1 = cx1 - x00,
-    dy1 = cy1 - y00
-  let cx0 = (D * dy - dx * d) / d2,
-    cy0 = (-D * dx - dy * d) / d2
-  const dx0 = cx0 - x00,
-    dy0 = cy0 - y00
-  if (dx0 * dx0 + dy0 * dy0 > dx1 * dx1 + dy1 * dy1) (cx0 = cx1), (cy0 = cy1)
-  return {
-    cx: cx0,
-    cy: cy0,
-    x01: -ox,
-    y01: -oy,
-    x11: cx0 * (r1 / r - 1),
-    y11: cy0 * (r1 / r - 1),
-  }
-}
-
-export function arc(): qt.Arc<any, qt.DefaultArcObject>
+export function arc(): qt.Arc<any, qt.BaseArc>
 export function arc<T>(): qt.Arc<any, T>
 export function arc<This, T>(): qt.Arc<This, T>
 export function arc() {
-  let innerRadius = arcInnerRadius,
-    outerRadius = arcOuterRadius,
+  let context: any = null,
     cornerRadius = qu.constant(0),
-    padRadius = null,
-    startAngle = arcStartAngle,
-    endAngle = arcEndAngle,
-    padAngle = arcPadAngle,
-    context = null
-  function y(...xs: any) {
-    let buffer,
-      r,
-      r0 = +innerRadius.apply(this, xs),
-      r1 = +outerRadius.apply(this, xs),
-      a0 = startAngle.apply(this, xs) - qu.halfPI,
+    endAngle = (x: any) => x.endAngle,
+    innerRadius = (x: any) => x.innerRadius,
+    outerRadius = (x: any) => x.outerRadius,
+    padAngle = (x?: any) => x && x.padAngle,
+    padRadius: any = null,
+    startAngle = (x: any) => x.startAngle
+  const intersect = (
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    x3: number,
+    y3: number
+  ) => {
+    const x10 = x1 - x0,
+      y10 = y1 - y0,
+      x32 = x3 - x2,
+      y32 = y3 - y2
+    let t = y32 * x10 - x32 * y10
+    if (t * t < qu.epsilon2) return
+    t = (x32 * (y0 - y2) - y32 * (x0 - x2)) / t
+    return [x0 + t * x10, y0 + t * y10]
+  }
+  const cornerTangents = (x0: number, y0: number, x1: number, y1: number, r1: number, rc: number, cw: boolean) => {
+    const x01 = x0 - x1,
+      y01 = y0 - y1,
+      lo = (cw ? rc : -rc) / qu.sqrt(x01 * x01 + y01 * y01),
+      ox = lo * y01,
+      oy = -lo * x01,
+      x11 = x0 + ox,
+      y11 = y0 + oy,
+      x10 = x1 + ox,
+      y10 = y1 + oy,
+      x00 = (x11 + x10) / 2,
+      y00 = (y11 + y10) / 2,
+      dx = x10 - x11,
+      dy = y10 - y11,
+      d2 = dx * dx + dy * dy,
+      r = r1 - rc,
+      D = x11 * y10 - x10 * y11,
+      d = (dy < 0 ? -1 : 1) * qu.sqrt(qu.max(0, r * r * d2 - D * D)),
+      cx1 = (D * dy + dx * d) / d2,
+      cy1 = (-D * dx + dy * d) / d2,
+      dx1 = cx1 - x00,
+      dy1 = cy1 - y00
+    let cx0 = (D * dy - dx * d) / d2,
+      cy0 = (-D * dx - dy * d) / d2
+    const dx0 = cx0 - x00,
+      dy0 = cy0 - y00
+    if (dx0 * dx0 + dy0 * dy0 > dx1 * dx1 + dy1 * dy1) (cx0 = cx1), (cy0 = cy1)
+    return {
+      cx: cx0,
+      cy: cy0,
+      x01: -ox,
+      y01: -oy,
+      x11: cx0 * (r1 / r - 1),
+      y11: cy0 * (r1 / r - 1),
+    }
+  }
+  function y(this: any, ...xs: any): any {
+    const a0 = startAngle.apply(this, xs) - qu.halfPI,
       a1 = endAngle.apply(this, xs) - qu.halfPI,
       da = qu.abs(a1 - a0),
       cw = a1 > a0
+    let buffer,
+      r,
+      r0 = +innerRadius.apply(this, xs),
+      r1 = +outerRadius.apply(this, xs)
     if (!context) context = buffer = new qu.Path()
     if (r1 < r0) (r = r1), (r1 = r0), (r0 = r)
     if (!(r1 > qu.epsilon2)) context.moveTo(0, 0)
@@ -96,15 +89,15 @@ export function arc() {
         context.arc(0, 0, r0, a1, a0, cw)
       }
     } else {
+      const ap = padAngle.apply(this, xs) / 2,
+        rp = ap > qu.epsilon2 && (padRadius ? +padRadius.apply(this, xs) : qu.sqrt(r0 * r0 + r1 * r1)),
+        rc = qu.min(qu.abs(r1 - r0) / 2, +cornerRadius.apply(this, xs))
       let a01 = a0,
         a11 = a1,
         a00 = a0,
         a10 = a1,
         da0 = da,
         da1 = da,
-        ap = padAngle.apply(this, arguments) / 2,
-        rp = ap > qu.epsilon2 && (padRadius ? +padRadius.apply(this, arguments) : qu.sqrt(r0 * r0 + r1 * r1)),
-        rc = qu.min(qu.abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)),
         rc0 = rc,
         rc1 = rc,
         t0,
@@ -128,13 +121,13 @@ export function arc() {
           y00 = r0 * qu.sin(a00)
         let oc
         if (da < qu.PI && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
-          const ax = x01 - oc[0],
-            ay = y01 - oc[1],
-            bx = x11 - oc[0],
-            by = y11 - oc[1],
+          const ax = x01 - oc[0]!,
+            ay = y01 - oc[1]!,
+            bx = x11 - oc[0]!,
+            by = y11 - oc[1]!,
             kc =
               1 / qu.sin(qu.acos((ax * bx + ay * by) / (qu.sqrt(ax * ax + ay * ay) * qu.sqrt(bx * bx + by * by))) / 2),
-            lc = qu.sqrt(oc[0] * oc[0] + oc[1] * oc[1])
+            lc = qu.sqrt(oc[0]! * oc[0]! + oc[1]! * oc[1]!)
           rc0 = qu.min(rc, (r0 - lc) / (kc - 1))
           rc1 = qu.min(rc, (r1 - lc) / (kc + 1))
         }
@@ -172,31 +165,31 @@ export function arc() {
       a = (+startAngle.apply(this, xs) + +endAngle.apply(this, xs)) / 2 - qu.PI / 2
     return [qu.cos(a) * r, qu.sin(a) * r]
   }
-  y.innerRadius = function (_) {
-    return arguments.length ? ((innerRadius = typeof _ === "function" ? _ : qu.constant(+_)), y) : innerRadius
+  y.context = function (x: any) {
+    return x === undefined ? context : ((context = x === null ? null : x), y)
   }
-  y.outerRadius = function (_) {
-    return arguments.length ? ((outerRadius = typeof _ === "function" ? _ : qu.constant(+_)), y) : outerRadius
+  y.cornerRadius = function (x: any) {
+    return x === undefined ? cornerRadius : ((cornerRadius = typeof x === "function" ? x : qu.constant(+x)), y)
   }
-  y.cornerRadius = function (_) {
-    return arguments.length ? ((cornerRadius = typeof _ === "function" ? _ : qu.constant(+_)), y) : cornerRadius
+  y.endAngle = function (x: any) {
+    return x === undefined ? endAngle : ((endAngle = typeof x === "function" ? x : qu.constant(+x)), y)
   }
-  y.padRadius = function (_) {
-    return arguments.length
-      ? ((padRadius = _ == null ? null : typeof _ === "function" ? _ : qu.constant(+_)), y)
-      : padRadius
+  y.innerRadius = function (x: any) {
+    return x === undefined ? innerRadius : ((innerRadius = typeof x === "function" ? x : qu.constant(+x)), y)
   }
-  y.startAngle = function (_) {
-    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : startAngle
+  y.outerRadius = function (x: any) {
+    return x === undefined ? outerRadius : ((outerRadius = typeof x === "function" ? x : qu.constant(+x)), y)
   }
-  y.endAngle = function (_) {
-    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : endAngle
+  y.padAngle = function (x: any) {
+    return x === undefined ? padAngle : ((padAngle = typeof x === "function" ? x : qu.constant(+x)), y)
   }
-  y.padAngle = function (_) {
-    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : padAngle
+  y.padRadius = function (x: any) {
+    return x === undefined
+      ? padRadius
+      : ((padRadius = x === null ? null : typeof x === "function" ? x : qu.constant(+x)), y)
   }
-  y.context = function (_) {
-    return arguments.length ? ((context = _ == null ? null : _), y) : context
+  y.startAngle = function (x: any) {
+    return x === undefined ? startAngle : ((startAngle = typeof x === "function" ? x : qu.constant(+x)), y)
   }
   return y
 }

@@ -1510,7 +1510,7 @@ export interface CanvasPath_D3Shape {
   quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void
   rect(x: number, y: number, w: number, h: number): void
 }
-export interface DefaultArcObject {
+export interface BaseArc {
   innerRadius: number
   outerRadius: number
   startAngle: number
