@@ -30,6 +30,12 @@ export const radians = PI / 180
 export const tau = 2 * PI
 export const tauEpsilon = tau - epsilon
 
+export function asin(x: number) {
+  return x >= 1 ? halfPI : x <= -1 ? -halfPI : Math.asin(x)
+}
+export function acos(x: number) {
+  return x > 1 ? 0 : x < -1 ? PI : Math.acos(x)
+}
 export function sinh(x: number) {
   return ((x = exp(x)) - 1 / x) / 2
 }
@@ -39,6 +45,8 @@ export function cosh(x: number) {
 export function tanh(x: number) {
   return ((x = exp(2 * x)) - 1) / (x + 1)
 }
+
+export function noop() {}
 
 export function array(x?: any) {
   return x === undefined ? [] : Array.isArray(x) ? x : Array.from(x)

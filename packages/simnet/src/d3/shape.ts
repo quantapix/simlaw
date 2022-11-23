@@ -2,14 +2,6 @@
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
-export const abs = Math.abs
-export const atan2 = Math.atan2
-export const cos = Math.cos
-export const max = Math.max
-export const min = Math.min
-export const sin = Math.sin
-export const sqrt = Math.sqrt
-
 function arcInnerRadius(d) {
   return d.innerRadius
 }
@@ -26,19 +18,19 @@ function arcPadAngle(d) {
   return d && d.padAngle // Note: optional!
 }
 function intersect(x0, y0, x1, y1, x2, y2, x3, y3) {
-  let x10 = x1 - x0,
+  const x10 = x1 - x0,
     y10 = y1 - y0,
     x32 = x3 - x2,
-    y32 = y3 - y2,
-    t = y32 * x10 - x32 * y10
-  if (t * t < epsilon) return
+    y32 = y3 - y2
+  let t = y32 * x10 - x32 * y10
+  if (t * t < qu.epsilon2) return
   t = (x32 * (y0 - y2) - y32 * (x0 - x2)) / t
   return [x0 + t * x10, y0 + t * y10]
 }
 function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
-  let x01 = x0 - x1,
+  const x01 = x0 - x1,
     y01 = y0 - y1,
-    lo = (cw ? rc : -rc) / sqrt(x01 * x01 + y01 * y01),
+    lo = (cw ? rc : -rc) / qu.sqrt(x01 * x01 + y01 * y01),
     ox = lo * y01,
     oy = -lo * x01,
     x11 = x0 + ox,
@@ -52,15 +44,15 @@ function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
     d2 = dx * dx + dy * dy,
     r = r1 - rc,
     D = x11 * y10 - x10 * y11,
-    d = (dy < 0 ? -1 : 1) * sqrt(max(0, r * r * d2 - D * D)),
-    cx0 = (D * dy - dx * d) / d2,
-    cy0 = (-D * dx - dy * d) / d2,
+    d = (dy < 0 ? -1 : 1) * qu.sqrt(qu.max(0, r * r * d2 - D * D)),
     cx1 = (D * dy + dx * d) / d2,
     cy1 = (-D * dx + dy * d) / d2,
-    dx0 = cx0 - x00,
-    dy0 = cy0 - y00,
     dx1 = cx1 - x00,
     dy1 = cy1 - y00
+  let cx0 = (D * dy - dx * d) / d2,
+    cy0 = (-D * dx - dy * d) / d2
+  const dx0 = cx0 - x00,
+    dy0 = cy0 - y00
   if (dx0 * dx0 + dy0 * dy0 > dx1 * dx1 + dy1 * dy1) (cx0 = cx1), (cy0 = cy1)
   return {
     cx: cx0,
@@ -71,6 +63,7 @@ function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
     y11: cy0 * (r1 / r - 1),
   }
 }
+
 export function arc(): qt.Arc<any, qt.DefaultArcObject>
 export function arc<T>(): qt.Arc<any, T>
 export function arc<This, T>(): qt.Arc<This, T>
@@ -83,23 +76,23 @@ export function arc() {
     endAngle = arcEndAngle,
     padAngle = arcPadAngle,
     context = null
-  function y() {
+  function y(...xs: any) {
     let buffer,
       r,
-      r0 = +innerRadius.apply(this, arguments),
-      r1 = +outerRadius.apply(this, arguments),
-      a0 = startAngle.apply(this, arguments) - halfPi,
-      a1 = endAngle.apply(this, arguments) - halfPi,
-      da = abs(a1 - a0),
+      r0 = +innerRadius.apply(this, xs),
+      r1 = +outerRadius.apply(this, xs),
+      a0 = startAngle.apply(this, xs) - qu.halfPI,
+      a1 = endAngle.apply(this, xs) - qu.halfPI,
+      da = qu.abs(a1 - a0),
       cw = a1 > a0
     if (!context) context = buffer = new qu.Path()
     if (r1 < r0) (r = r1), (r1 = r0), (r0 = r)
-    if (!(r1 > epsilon)) context.moveTo(0, 0)
-    else if (da > tau - epsilon) {
-      context.moveTo(r1 * cos(a0), r1 * sin(a0))
+    if (!(r1 > qu.epsilon2)) context.moveTo(0, 0)
+    else if (da > qu.tau - qu.epsilon2) {
+      context.moveTo(r1 * qu.cos(a0), r1 * qu.sin(a0))
       context.arc(0, 0, r1, a0, a1, !cw)
-      if (r0 > epsilon) {
-        context.moveTo(r0 * cos(a1), r0 * sin(a1))
+      if (r0 > qu.epsilon2) {
+        context.moveTo(r0 * qu.cos(a1), r0 * qu.sin(a1))
         context.arc(0, 0, r0, a1, a0, cw)
       }
     } else {
@@ -110,73 +103,74 @@ export function arc() {
         da0 = da,
         da1 = da,
         ap = padAngle.apply(this, arguments) / 2,
-        rp = ap > epsilon && (padRadius ? +padRadius.apply(this, arguments) : sqrt(r0 * r0 + r1 * r1)),
-        rc = min(abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)),
+        rp = ap > qu.epsilon2 && (padRadius ? +padRadius.apply(this, arguments) : qu.sqrt(r0 * r0 + r1 * r1)),
+        rc = qu.min(qu.abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)),
         rc0 = rc,
         rc1 = rc,
         t0,
         t1
-      if (rp > epsilon) {
-        let p0 = asin((rp / r0) * sin(ap)),
-          p1 = asin((rp / r1) * sin(ap))
-        if ((da0 -= p0 * 2) > epsilon) (p0 *= cw ? 1 : -1), (a00 += p0), (a10 -= p0)
+      if (rp > qu.epsilon2) {
+        let p0 = qu.asin((rp / r0) * qu.sin(ap)),
+          p1 = qu.asin((rp / r1) * qu.sin(ap))
+        if ((da0 -= p0 * 2) > qu.epsilon2) (p0 *= cw ? 1 : -1), (a00 += p0), (a10 -= p0)
         else (da0 = 0), (a00 = a10 = (a0 + a1) / 2)
-        if ((da1 -= p1 * 2) > epsilon) (p1 *= cw ? 1 : -1), (a01 += p1), (a11 -= p1)
+        if ((da1 -= p1 * 2) > qu.epsilon2) (p1 *= cw ? 1 : -1), (a01 += p1), (a11 -= p1)
         else (da1 = 0), (a01 = a11 = (a0 + a1) / 2)
       }
-      const x01 = r1 * cos(a01),
-        y01 = r1 * sin(a01),
-        x10 = r0 * cos(a10),
-        y10 = r0 * sin(a10)
-      if (rc > epsilon) {
-        var x11 = r1 * cos(a11),
-          y11 = r1 * sin(a11),
-          x00 = r0 * cos(a00),
-          y00 = r0 * sin(a00),
-          oc
-        if (da < pi && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
+      const x01 = r1 * qu.cos(a01),
+        y01 = r1 * qu.sin(a01),
+        x10 = r0 * qu.cos(a10),
+        y10 = r0 * qu.sin(a10)
+      if (rc > qu.epsilon2) {
+        const x11 = r1 * qu.cos(a11),
+          y11 = r1 * qu.sin(a11),
+          x00 = r0 * qu.cos(a00),
+          y00 = r0 * qu.sin(a00)
+        let oc
+        if (da < qu.PI && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
           const ax = x01 - oc[0],
             ay = y01 - oc[1],
             bx = x11 - oc[0],
             by = y11 - oc[1],
-            kc = 1 / sin(acos((ax * bx + ay * by) / (sqrt(ax * ax + ay * ay) * sqrt(bx * bx + by * by))) / 2),
-            lc = sqrt(oc[0] * oc[0] + oc[1] * oc[1])
-          rc0 = min(rc, (r0 - lc) / (kc - 1))
-          rc1 = min(rc, (r1 - lc) / (kc + 1))
+            kc =
+              1 / qu.sin(qu.acos((ax * bx + ay * by) / (qu.sqrt(ax * ax + ay * ay) * qu.sqrt(bx * bx + by * by))) / 2),
+            lc = qu.sqrt(oc[0] * oc[0] + oc[1] * oc[1])
+          rc0 = qu.min(rc, (r0 - lc) / (kc - 1))
+          rc1 = qu.min(rc, (r1 - lc) / (kc + 1))
         }
       }
-      if (!(da1 > epsilon)) context.moveTo(x01, y01)
-      else if (rc1 > epsilon) {
+      if (!(da1 > qu.epsilon2)) context.moveTo(x01, y01)
+      else if (rc1 > qu.epsilon2) {
         t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw)
         t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw)
         context.moveTo(t0.cx + t0.x01, t0.cy + t0.y01)
-        if (rc1 < rc) context.arc(t0.cx, t0.cy, rc1, atan2(t0.y01, t0.x01), atan2(t1.y01, t1.x01), !cw)
+        if (rc1 < rc) context.arc(t0.cx, t0.cy, rc1, qu.atan2(t0.y01, t0.x01), qu.atan2(t1.y01, t1.x01), !cw)
         else {
-          context.arc(t0.cx, t0.cy, rc1, atan2(t0.y01, t0.x01), atan2(t0.y11, t0.x11), !cw)
-          context.arc(0, 0, r1, atan2(t0.cy + t0.y11, t0.cx + t0.x11), atan2(t1.cy + t1.y11, t1.cx + t1.x11), !cw)
-          context.arc(t1.cx, t1.cy, rc1, atan2(t1.y11, t1.x11), atan2(t1.y01, t1.x01), !cw)
+          context.arc(t0.cx, t0.cy, rc1, qu.atan2(t0.y01, t0.x01), qu.atan2(t0.y11, t0.x11), !cw)
+          context.arc(0, 0, r1, qu.atan2(t0.cy + t0.y11, t0.cx + t0.x11), qu.atan2(t1.cy + t1.y11, t1.cx + t1.x11), !cw)
+          context.arc(t1.cx, t1.cy, rc1, qu.atan2(t1.y11, t1.x11), qu.atan2(t1.y01, t1.x01), !cw)
         }
       } else context.moveTo(x01, y01), context.arc(0, 0, r1, a01, a11, !cw)
-      if (!(r0 > epsilon) || !(da0 > epsilon)) context.lineTo(x10, y10)
-      else if (rc0 > epsilon) {
+      if (!(r0 > qu.epsilon2) || !(da0 > qu.epsilon2)) context.lineTo(x10, y10)
+      else if (rc0 > qu.epsilon2) {
         t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw)
         t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw)
         context.lineTo(t0.cx + t0.x01, t0.cy + t0.y01)
-        if (rc0 < rc) context.arc(t0.cx, t0.cy, rc0, atan2(t0.y01, t0.x01), atan2(t1.y01, t1.x01), !cw)
+        if (rc0 < rc) context.arc(t0.cx, t0.cy, rc0, qu.atan2(t0.y01, t0.x01), qu.atan2(t1.y01, t1.x01), !cw)
         else {
-          context.arc(t0.cx, t0.cy, rc0, atan2(t0.y01, t0.x01), atan2(t0.y11, t0.x11), !cw)
-          context.arc(0, 0, r0, atan2(t0.cy + t0.y11, t0.cx + t0.x11), atan2(t1.cy + t1.y11, t1.cx + t1.x11), cw)
-          context.arc(t1.cx, t1.cy, rc0, atan2(t1.y11, t1.x11), atan2(t1.y01, t1.x01), !cw)
+          context.arc(t0.cx, t0.cy, rc0, qu.atan2(t0.y01, t0.x01), qu.atan2(t0.y11, t0.x11), !cw)
+          context.arc(0, 0, r0, qu.atan2(t0.cy + t0.y11, t0.cx + t0.x11), qu.atan2(t1.cy + t1.y11, t1.cx + t1.x11), cw)
+          context.arc(t1.cx, t1.cy, rc0, qu.atan2(t1.y11, t1.x11), qu.atan2(t1.y01, t1.x01), !cw)
         }
       } else context.arc(0, 0, r0, a10, a00, cw)
     }
     context.closePath()
     if (buffer) return (context = null), buffer + "" || null
   }
-  y.centroid = function () {
-    const r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2,
-      a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - pi / 2
-    return [cos(a) * r, sin(a) * r]
+  y.centroid = function (...xs: any) {
+    const r = (+innerRadius.apply(this, xs) + +outerRadius.apply(this, xs)) / 2,
+      a = (+startAngle.apply(this, xs) + +endAngle.apply(this, xs)) / 2 - qu.PI / 2
+    return [qu.cos(a) * r, qu.sin(a) * r]
   }
   y.innerRadius = function (_) {
     return arguments.length ? ((innerRadius = typeof _ === "function" ? _ : qu.constant(+_)), y) : innerRadius
@@ -462,17 +456,6 @@ export function linkRadial() {
   ;(l.radius = l.y), delete l.y
   return l
 }
-export const epsilon = 1e-12
-export const pi = Math.PI
-export const halfPi = pi / 2
-export const tau = 2 * pi
-export function acos(x) {
-  return x > 1 ? 0 : x < -1 ? pi : Math.acos(x)
-}
-export function asin(x) {
-  return x >= 1 ? halfPi : x <= -1 ? -halfPi : Math.asin(x)
-}
-export function noop() {}
 
 export function pie(): qt.Pie<any, number | { valueOf(): number }>
 export function pie<T>(): qt.Pie<any, T>
@@ -482,7 +465,7 @@ export function pie() {
     sortValues = qu.descending,
     sort = null,
     startAngle = qu.constant(0),
-    endAngle = qu.constant(tau),
+    endAngle = qu.constant(qu.tau),
     padAngle = qu.constant(0)
   function y(data) {
     let i,
@@ -493,7 +476,7 @@ export function pie() {
       index = new Array(n),
       arcs = new Array(n),
       a0 = +startAngle.apply(this, arguments),
-      da = Math.min(tau, Math.max(-tau, endAngle.apply(this, arguments) - a0)),
+      da = Math.min(qu.tau, Math.max(-qu.tau, endAngle.apply(this, arguments) - a0)),
       a1,
       p = Math.min(Math.abs(da) / n, padAngle.apply(this, arguments)),
       pa = p * (da < 0 ? -1 : 1),
@@ -1494,8 +1477,8 @@ export namespace Curve {
   }
   export class LinearClosed extends Curve implements qt.CurveGen {
     constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
-    areaStart = noop
-    areaEnd = noop
+    areaStart = qu.noop
+    areaEnd = qu.noop
     lineStart() {
       this._point = 0
     }
@@ -1730,13 +1713,13 @@ function point3(that, x, y) {
     y1 = that._y1,
     x2 = that._x2,
     y2 = that._y2
-  if (that._l01_a > epsilon) {
+  if (that._l01_a > qu.epsilon2) {
     const a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a,
       n = 3 * that._l01_a * (that._l01_a + that._l12_a)
     x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n
     y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n
   }
-  if (that._l23_a > epsilon) {
+  if (that._l23_a > qu.epsilon2) {
     const b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a,
       m = 3 * that._l23_a * (that._l23_a + that._l12_a)
     x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m
@@ -1772,10 +1755,10 @@ function slope3(that, x2, y2) {
 }
 
 export namespace symbol {
-  const sqrt3 = sqrt(3)
+  const sqrt3 = qu.sqrt(3)
   export const asterisk: qt.SymbolType = {
     draw(p, size) {
-      const r = sqrt(size + min(size / 28, 0.75)) * 0.59436
+      const r = qu.sqrt(size + qu.min(size / 28, 0.75)) * 0.59436
       const t = r / 2
       const u = t * sqrt3
       p.moveTo(0, r)
@@ -1788,14 +1771,14 @@ export namespace symbol {
   }
   export const circle: qt.SymbolType = {
     draw(p, size) {
-      const r = sqrt(size / pi)
+      const r = qu.sqrt(size / qu.PI)
       p.moveTo(r, 0)
-      p.arc(0, 0, r, 0, tau)
+      p.arc(0, 0, r, 0, qu.tau)
     },
   }
   export const cross: qt.SymbolType = {
     draw(p, size) {
-      const r = sqrt(size / 5) / 2
+      const r = qu.sqrt(size / 5) / 2
       p.moveTo(-3 * r, -r)
       p.lineTo(-r, -r)
       p.lineTo(-r, -3 * r)
@@ -1811,11 +1794,11 @@ export namespace symbol {
       p.closePath()
     },
   }
-  const tan30 = sqrt(1 / 3)
+  const tan30 = qu.sqrt(1 / 3)
   const tan30_2 = tan30 * 2
   export const diamond: qt.SymbolType = {
     draw(p, size) {
-      const y = sqrt(size / tan30_2)
+      const y = qu.sqrt(size / tan30_2)
       const x = y * tan30
       p.moveTo(0, -y)
       p.lineTo(x, 0)
@@ -1826,7 +1809,7 @@ export namespace symbol {
   }
   export const diamond2: qt.SymbolType = {
     draw(p, size) {
-      const r = sqrt(size) * 0.62625
+      const r = qu.sqrt(size) * 0.62625
       p.moveTo(0, -r)
       p.lineTo(r, 0)
       p.lineTo(0, r)
@@ -1836,7 +1819,7 @@ export namespace symbol {
   }
   export const plus: qt.SymbolType = {
     draw(p, size) {
-      const r = sqrt(size - min(size / 7, 2)) * 0.87559
+      const r = qu.sqrt(size - qu.min(size / 7, 2)) * 0.87559
       p.moveTo(-r, 0)
       p.lineTo(r, 0)
       p.moveTo(0, r)
@@ -1845,14 +1828,14 @@ export namespace symbol {
   }
   export const square: qt.SymbolType = {
     draw(p, size) {
-      const w = sqrt(size)
+      const w = qu.sqrt(size)
       const x = -w / 2
       p.rect(x, x, w, w)
     },
   }
   export const square2: qt.SymbolType = {
     draw(p, size) {
-      const r = sqrt(size) * 0.4431
+      const r = qu.sqrt(size) * 0.4431
       p.moveTo(r, r)
       p.lineTo(r, -r)
       p.lineTo(-r, -r)
@@ -1861,20 +1844,20 @@ export namespace symbol {
     },
   }
   const ka = 0.8908130915292852281
-  const kr = sin(pi / 10) / sin((7 * pi) / 10)
-  const kx = sin(tau / 10) * kr
-  const ky = -cos(tau / 10) * kr
+  const kr = qu.sin(qu.PI / 10) / qu.sin((7 * qu.PI) / 10)
+  const kx = qu.sin(qu.tau / 10) * kr
+  const ky = -qu.cos(qu.tau / 10) * kr
   export const star: qt.SymbolType = {
     draw(p, size) {
-      const r = sqrt(size * ka)
+      const r = qu.sqrt(size * ka)
       const x = kx * r
       const y = ky * r
       p.moveTo(0, -r)
       p.lineTo(x, y)
       for (let i = 1; i < 5; ++i) {
-        const a = (tau * i) / 5
-        const c = cos(a)
-        const s = sin(a)
+        const a = (qu.tau * i) / 5
+        const c = qu.cos(a)
+        const s = qu.sin(a)
         p.lineTo(s * r, -c * r)
         p.lineTo(c * x - s * y, s * x + c * y)
       }
@@ -1883,7 +1866,7 @@ export namespace symbol {
   }
   export const triangle: qt.SymbolType = {
     draw(p, size) {
-      const y = -sqrt(size / (sqrt3 * 3))
+      const y = -qu.sqrt(size / (sqrt3 * 3))
       p.moveTo(0, y * 2)
       p.lineTo(-sqrt3 * y, -y)
       p.lineTo(sqrt3 * y, -y)
@@ -1892,7 +1875,7 @@ export namespace symbol {
   }
   export const triangle2: qt.SymbolType = {
     draw(p, size) {
-      const s = sqrt(size) * 0.6824
+      const s = qu.sqrt(size) * 0.6824
       const t = s / 2
       const u = (s * sqrt3) / 2 // cos(Math.PI / 6)
       p.moveTo(0, -s)
@@ -1902,12 +1885,12 @@ export namespace symbol {
     },
   }
   const c = -0.5
-  const s = sqrt(3) / 2
-  const k = 1 / sqrt(12)
+  const s = qu.sqrt(3) / 2
+  const k = 1 / qu.sqrt(12)
   const a = (k / 2 + 1) * 3
   export const wye: qt.SymbolType = {
     draw(p, size) {
-      const r = sqrt(size / a)
+      const r = qu.sqrt(size / a)
       const x0 = r / 2,
         y0 = r * k
       const x1 = x0,
@@ -1928,7 +1911,7 @@ export namespace symbol {
   }
   export const x: qt.SymbolType = {
     draw(p, size) {
-      const r = sqrt(size - min(size / 6, 1.7)) * 0.6189
+      const r = qu.sqrt(size - qu.min(size / 6, 1.7)) * 0.6189
       p.moveTo(-r, -r)
       p.lineTo(r, r)
       p.moveTo(-r, r)

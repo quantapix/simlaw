@@ -15,9 +15,9 @@ export namespace area {
   export const sum = new Adder()
   let lambda00, phi00, lambda0, cosPhi0, sinPhi0
   export const stream = {
-    point: noop,
-    lineStart: noop,
-    lineEnd: noop,
+    point: qu.noop,
+    lineStart: qu.noop,
+    lineEnd: qu.noop,
     polygonStart: function () {
       ringSum = new Adder()
       stream.lineStart = ringStart
@@ -26,7 +26,7 @@ export namespace area {
     polygonEnd: function () {
       const y = +ringSum
       sum.add(y < 0 ? qu.tau + y : y)
-      this.lineStart = this.lineEnd = this.point = noop
+      this.lineStart = this.lineEnd = this.point = qu.noop
     },
     sphere: function () {
       sum.add(qu.tau)
@@ -219,7 +219,7 @@ export namespace bounds {
   }
 }
 export function spherical(cartesian) {
-  return [qu.atan2(cartesian[1], cartesian[0]), asin(cartesian[2])]
+  return [qu.atan2(cartesian[1], cartesian[0]), qu.asin(cartesian[2])]
 }
 export function cartesian(spherical) {
   const lambda = spherical[0],
@@ -261,7 +261,7 @@ export function centroid(
     m = qu.hypot(x, y, z)
     if (m < qu.epsilon2) return [NaN, NaN]
   }
-  return [qu.atan2(y, x) * qu.degrees, asin(z / m) * qu.degrees]
+  return [qu.atan2(y, x) * qu.degrees, qu.asin(z / m) * qu.degrees]
 }
 export namespace centroid {
   let W0,
@@ -281,7 +281,7 @@ export namespace centroid {
     y0,
     z0 // previous point
   export const stream = {
-    sphere: noop,
+    sphere: qu.noop,
     point: point,
     lineStart: lineStart,
     lineEnd: lineEnd,
@@ -363,7 +363,7 @@ export namespace centroid {
       cy = z0 * x - x0 * z,
       cz = x0 * y - y0 * x,
       m = qu.hypot(cx, cy, cz),
-      w = asin(m), // line weight = angle
+      w = qu.asin(m), // line weight = angle
       v = m && -w / m // area weight multiplier
     X2.add(v * cx)
     Y2.add(v * cy)
@@ -433,7 +433,7 @@ export namespace circle {
   function radius(cosRadius, point) {
     ;(point = cartesian(point)), (point[0] -= cosRadius)
     cartesianNormalizeInPlace(point)
-    const radius = acos(-point[1])
+    const radius = qu.acos(-point[1])
     return ((-point[2] < 0 ? -radius : radius) + qu.tau - qu.epsilon) % qu.tau
   }
 }
@@ -691,7 +691,7 @@ export function interpolate(a: qt.Point, b: qt.Point): (t: number) => qt.Point {
     ky0 = cy0 * qu.sin(x0),
     kx1 = cy1 * qu.cos(x1),
     ky1 = cy1 * qu.sin(x1),
-    d = 2 * asin(qu.sqrt(haversin(y1 - y0) + cy0 * cy1 * haversin(x1 - x0))),
+    d = 2 * qu.asin(qu.sqrt(haversin(y1 - y0) + cy0 * cy1 * haversin(x1 - x0))),
     k = qu.sin(d)
   const interpolate = d
     ? function (t) {
@@ -718,19 +718,19 @@ export function length(
 export namespace length {
   var lengthSum, lambda0, sinPhi0, cosPhi0
   export const stream = {
-    sphere: noop,
-    point: noop,
+    sphere: qu.noop,
+    point: qu.noop,
     lineStart: lineStart,
-    lineEnd: noop,
-    polygonStart: noop,
-    polygonEnd: noop,
+    lineEnd: qu.noop,
+    polygonStart: qu.noop,
+    polygonEnd: qu.noop,
   }
   function lineStart() {
     stream.point = pointFirst
     stream.lineEnd = lineEnd
   }
   function lineEnd() {
-    stream.point = stream.lineEnd = noop
+    stream.point = stream.lineEnd = qu.noop
   }
   function pointFirst(lambda: number, phi: number) {
     ;(lambda *= qu.radians), (phi *= qu.radians)
@@ -756,16 +756,9 @@ export const sign =
   function (x) {
     return x > 0 ? 1 : x < 0 ? -1 : 0
   }
-export function acos(x) {
-  return x > 1 ? 0 : x < -1 ? qu.PI : Math.acos(x)
-}
-export function asin(x) {
-  return x > 1 ? qu.halfPI : x < -1 ? -qu.halfPI : Math.asin(x)
-}
 export function haversin(x) {
   return (x = qu.sin(x / 2)) * x
 }
-export function noop() {}
 export function pointEqual(a, b) {
   return qu.abs(a[0] - b[0]) < qu.epsilon && qu.abs(a[1] - b[1]) < qu.epsilon
 }
@@ -809,7 +802,7 @@ export function polygonContains(polygon, point) {
         cartesianNormalizeInPlace(arc)
         const intersection = cartesianCross(normal, arc)
         cartesianNormalizeInPlace(intersection)
-        const phiArc = (antimeridian ^ (delta >= 0) ? -1 : 1) * asin(intersection[2])
+        const phiArc = (antimeridian ^ (delta >= 0) ? -1 : 1) * qu.asin(intersection[2])
         if (phi > phiArc || (phi === phiArc && (arc[0] || arc[1]))) {
           winding += antimeridian ^ (delta >= 0) ? 1 : -1
         }
@@ -870,7 +863,7 @@ export namespace rotation {
         k = z * cosDeltaPhi + x * sinDeltaPhi
       return [
         qu.atan2(y * cosDeltaGamma - k * sinDeltaGamma, x * cosDeltaPhi - z * sinDeltaPhi),
-        asin(k * cosDeltaGamma + y * sinDeltaGamma),
+        qu.asin(k * cosDeltaGamma + y * sinDeltaGamma),
       ]
     }
     rotation.invert = function (lambda, phi) {
@@ -881,7 +874,7 @@ export namespace rotation {
         k = z * cosDeltaGamma - y * sinDeltaGamma
       return [
         qu.atan2(y * cosDeltaGamma + z * sinDeltaGamma, x * cosDeltaPhi + k * sinDeltaPhi),
-        asin(k * cosDeltaPhi - x * sinDeltaPhi),
+        qu.asin(k * cosDeltaPhi - x * sinDeltaPhi),
       ]
     }
     return rotation
@@ -1101,7 +1094,7 @@ export namespace clip {
       lineStart: function () {
         lines.push((line = []))
       },
-      lineEnd: noop,
+      lineEnd: qu.noop,
       rejoin: function () {
         if (lines.length > 1) lines.push(lines.pop().concat(lines.shift()))
       },
@@ -1696,15 +1689,15 @@ export namespace path {
     x0,
     y0
   const areaStream = {
-    point: noop,
-    lineStart: noop,
-    lineEnd: noop,
+    point: qu.noop,
+    lineStart: qu.noop,
+    lineEnd: qu.noop,
     polygonStart: function () {
       areaStream.lineStart = areaRingStart
       areaStream.lineEnd = areaRingEnd
     },
     polygonEnd: function () {
-      areaStream.lineStart = areaStream.lineEnd = areaStream.point = noop
+      areaStream.lineStart = areaStream.lineEnd = areaStream.point = qu.noop
       areaSum.add(abs(areaRingSum))
       areaRingSum = new Adder()
     },
@@ -1735,10 +1728,10 @@ export namespace path {
     y1 = x1
   const boundsStream = {
     point: boundsPoint,
-    lineStart: noop,
-    lineEnd: noop,
-    polygonStart: noop,
-    polygonEnd: noop,
+    lineStart: qu.noop,
+    lineEnd: qu.noop,
+    polygonStart: qu.noop,
+    polygonEnd: qu.noop,
     result: function () {
       const bounds = [
         [x0, y0],
@@ -1874,7 +1867,7 @@ export namespace path {
         }
       }
     }
-    result = noop
+    result = qu.noop
   }
   export function path(projection, context) {
     let pointRadius = 4.5,
@@ -1928,13 +1921,13 @@ export namespace path {
     x0,
     y0
   let lengthStream = {
-    point: noop,
+    point: qu.noop,
     lineStart: function () {
       lengthStream.point = lengthPointFirst
     },
     lineEnd: function () {
       if (lengthRing) lengthPoint(x00, y00)
-      lengthStream.point = noop
+      lengthStream.point = qu.noop
     },
     polygonStart: function () {
       lengthRing = true
@@ -2047,17 +2040,17 @@ export namespace proj {
           c = angle(z),
           sc = sin(c),
           cc = cos(c)
-        return [atan2(x * sc, z * cc), asin(z && (y * sc) / z)]
+        return [atan2(x * sc, z * cc), qu.asin(z && (y * sc) / z)]
       }
     }
     export const equalAreaRaw = raw(cxcy => sqrt(2 / (1 + cxcy)))
-    equalAreaRaw.invert = invert(z => 2 * asin(z / 2))
+    equalAreaRaw.invert = invert(z => 2 * qu.asin(z / 2))
     export function equalArea() {
       return projection(equalAreaRaw)
         .scale(124.75)
         .clipAngle(180 - 1e-3)
     }
-    export const equidistantRaw = raw(c => (c = acos(c)) && c / sin(c))
+    export const equidistantRaw = raw(c => (c = qu.acos(c)) && c / sin(c))
     equidistantRaw.invert = invert(z => z)
     export function equidistant() {
       return projection(equidistantRaw)
@@ -2114,7 +2107,7 @@ export namespace proj {
         const r0y = r0 - y
         let l = atan2(x, abs(r0y)) * sign(r0y)
         if (r0y * n < 0) l -= pi * sign(x) * sign(r0y)
-        return [l / n, asin((c - (x * x + r0y * r0y) * n * n) / (2 * n))]
+        return [l / n, qu.asin((c - (x * x + r0y * r0y) * n * n) / (2 * n))]
       }
       return f
     }
@@ -2149,7 +2142,7 @@ export namespace proj {
         return [lambda * cosPhi0, sin(phi) / cosPhi0]
       }
       f.invert = function (x, y) {
-        return [x / cosPhi0, asin(y * cosPhi0)]
+        return [x / cosPhi0, qu.asin(y * cosPhi0)]
       }
       return f
     }
@@ -2289,7 +2282,7 @@ export namespace proj {
     iterations = 12
 
   export function equalEarthRaw(lambda, phi): GeoRawProjection {
-    const l = asin(M * sin(phi)),
+    const l = qu.asin(M * sin(phi)),
       l2 = l * l,
       l6 = l2 * l2 * l2
     return [
@@ -2307,7 +2300,7 @@ export namespace proj {
       ;(l -= delta = fy / fpy), (l2 = l * l), (l6 = l2 * l2 * l2)
       if (abs(delta) < epsilon2) break
     }
-    return [(M * x * (A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2))) / cos(l), asin(sin(l) / M)]
+    return [(M * x * (A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2))) / cos(l), qu.asin(sin(l) / M)]
   }
   export function equalEarth() {
     return projection(equalEarthRaw).scale(177.158)
@@ -2679,7 +2672,7 @@ export namespace proj {
   export function orthographicRaw(x, y): GeoRawProjection {
     return [cos(y) * sin(x), sin(y)]
   }
-  orthographicRaw.invert = azimuthal.invert(asin)
+  orthographicRaw.invert = azimuthal.invert(qu.asin)
   export function orthographic() {
     return projection(orthographicRaw)
       .scale(249.5)
@@ -2706,7 +2699,7 @@ export namespace proj {
             b = b0 + b1,
             c = c0 + c1,
             m = sqrt(a * a + b * b + c * c),
-            phi2 = asin((c /= m)),
+            phi2 = qu.asin((c /= m)),
             lambda2 =
               abs(abs(c) - 1) < epsilon || abs(lambda0 - lambda1) < epsilon ? (lambda0 + lambda1) / 2 : atan2(b, a),
             p = project(lambda2, phi2),
