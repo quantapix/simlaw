@@ -1,4 +1,3 @@
-import { dragDisable, dragEnable } from "./drag.js"
 import { interpolateZoom } from "./interpolate.js"
 import { select } from "./selection.js"
 import { interrupt } from "./transition.js"
@@ -351,7 +350,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
       p = qu.pointer(event, currentTarget),
       x0 = event.clientX,
       y0 = event.clientY
-    dragDisable(event.view)
+    qu.drag.disable(event.view)
     nopropagation(event)
     g.mouse = [p, this.__zoom.invert(p)]
     interrupt(this)
@@ -374,7 +373,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
     }
     function mouseupped(event) {
       v.on("mousemove.zoom mouseup.zoom", null)
-      dragEnable(event.view, g.moved)
+      qu.drag.enable(event.view, g.moved)
       noevent(event)
       g.event(event).end()
     }

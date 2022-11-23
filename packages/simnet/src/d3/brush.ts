@@ -1,4 +1,3 @@
-import { dragDisable, dragEnable } from "./drag.js"
 import { interpolate } from "./interpolate.js"
 import { select } from "./selection.js"
 import { interrupt } from "./transition.js"
@@ -366,7 +365,7 @@ function brush(dim) {
     } else {
       var view = select(event.view).on("mousemove.brush", moved, true).on("mouseup.brush", ended, true)
       if (keys) view.on("keydown.brush", keydowned, true).on("keyup.brush", keyupped, true)
-      dragDisable(event.view)
+      qu.drag.disable(event.view)
     }
     redraw.call(that)
     emit.start(event, mode.name)
@@ -448,7 +447,7 @@ function brush(dim) {
           touchending = null
         }, 500) // Ghost clicks are delayed!
       } else {
-        dragEnable(event.view, moving)
+        qu.drag.enable(event.view, moving)
         view.on("keydown.brush keyup.brush mousemove.brush mouseup.brush", null)
       }
       group.attr("pointer-events", "all")
