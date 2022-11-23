@@ -677,10 +677,18 @@ export function defaultView(x: any): Window {
   return (x.ownerDocument && x.ownerDocument.defaultView) || (x.document && x) || x.defaultView
 }
 
-function sourceEvent(event: any) {
+export function nopropagation(x: Event) {
+  x.stopImmediatePropagation()
+}
+export function noevent(x: Event) {
+  x.preventDefault()
+  x.stopImmediatePropagation()
+}
+
+function sourceEvent(x: any) {
   let s
-  while ((s = event.sourceEvent)) event = s
-  return event
+  while ((s = x.sourceEvent)) x = s
+  return x
 }
 
 export function pointer(event: any, tgt?: any): qt.Point {
@@ -1051,216 +1059,191 @@ export namespace format {
 }
 
 export namespace drag {
-  export function drag<B extends qt.DraggedBase, T>(): qt.DragBehavior<B, T, T | qt.SubjectPosition>
-  export function drag<B extends qt.DraggedBase, T, U>(): qt.DragBehavior<B, T, U>
+  const nonpassive = { passive: false }
+  const capture = { capture: true, passive: false }
+
+  export class Event<D extends qt.Dragged, T, S> {
+    constructor(
+      public type: "start" | "drag" | "end" | string,
+      public id: "mouse" | number,
+      public src: any,
+      public tgt: qt.DragBehavior<D, T, S>,
+      public subject: S,
+      public active: number,
+      public x: number,
+      public y: number,
+      public dx: number,
+      public dy: number,
+      public dispatch: any
+    ) {}
+    on(n: string, f: (this: D, e: any, x: T) => void): this
+    on(n: string, x: null): this
+    on(n: string): ((this: D, e: any, x: T) => void) | undefined
+    on(...xs: any) {
+      const y = this.dispatch.on(this.dispatch, xs)
+      return y === this.dispatch ? this : y
+    }
+  }
+
+  export function drag<B extends qt.Dragged, T>(): qt.DragBehavior<B, T, T | qt.SubjectPosition>
+  export function drag<B extends qt.Dragged, T, U>(): qt.DragBehavior<B, T, U>
   export function drag() {
-    let filter = e => !e.ctrlKey && !e.button,
-      container = () => this.parentNode,
-      subject = (e, d) => (d === null ? { x: e.x, y: e.y } : d),
-      touchable = () => navigator.maxTouchPoints || "ontouchstart" in this,
-      gestures = {},
-      listeners = qu.dispatch("start", "drag", "end"),
+    const _gestures = {},
+      _listeners = dispatch("start", "drag", "end")
+    let _container = function (this: Node) {
+        return this.parentNode
+      },
+      _filter = (e: any) => !e.ctrlKey && !e.button,
+      _subject = (e: any, x: any) => (x === null ? { x: e.x, y: e.y } : x),
+      _touchable = function (this: any) {
+        return navigator.maxTouchPoints || "ontouchstart" in this
+      },
       active = 0,
       mousedownx,
       mousedowny,
       mousemoving,
       touchending,
-      clickDistance2 = 0
-    function drag(selection) {
-      selection
-        .on("mousedown.drag", mousedowned)
-        .filter(touchable)
-        .on("touchstart.drag", touchstarted)
-        .on("touchmove.drag", touchmoved, nonpassive)
-        .on("touchend.drag touchcancel.drag", touchended)
-        .style("touch-action", "none")
-        .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)")
-    }
-    function mousedowned(event, d) {
-      if (touchending || !filter.call(this, event, d)) return
-      let gesture = beforestart(this, container.call(this, event, d), event, d, "mouse")
+      _distance = 0
+    function down(e, d) {
+      if (touchending || !_filter.call(this, e, d)) return
+      let gesture = beforestart(this, _container.call(this, e, d), e, d, "mouse")
       if (!gesture) return
-      select(event.view)
-        .on("mousemove.drag", mousemoved, nonpassivecapture)
-        .on("mouseup.drag", mouseupped, nonpassivecapture)
-      nodrag(event.view)
-      nopropagation(event)
+      select(e.view).on("mousemove.drag", moved, capture).on("mouseup.drag", up, capture)
+      nodrag(e.view)
+      nopropagation(e)
       mousemoving = false
-      mousedownx = event.clientX
-      mousedowny = event.clientY
-      gesture("start", event)
+      mousedownx = e.clientX
+      mousedowny = e.clientY
+      gesture("start", e)
     }
-    function mousemoved(event) {
-      noevent(event)
+    function moved(e) {
+      noevent(e)
       if (!mousemoving) {
-        let dx = event.clientX - mousedownx,
-          dy = event.clientY - mousedowny
-        mousemoving = dx * dx + dy * dy > clickDistance2
+        let dx = e.clientX - mousedownx,
+          dy = e.clientY - mousedowny
+        mousemoving = dx * dx + dy * dy > _distance
       }
-      gestures.mouse("drag", event)
+      _gestures.mouse("drag", e)
     }
-    function mouseupped(event) {
-      select(event.view).on("mousemove.drag mouseup.drag", null)
-      yesdrag(event.view, mousemoving)
-      noevent(event)
-      gestures.mouse("end", event)
+    function up(e) {
+      select(e.view).on("mousemove.drag mouseup.drag", null)
+      yesdrag(e.view, mousemoving)
+      noevent(e)
+      _gestures.mouse("end", e)
     }
-    function touchstarted(event, d) {
-      if (!filter.call(this, event, d)) return
-      let touches = event.changedTouches,
-        c = container.call(this, event, d),
-        n = touches.length,
-        i,
-        gesture
+    function started(e, d) {
+      if (!_filter.call(this, e, d)) return
+      const touches = e.changedTouches,
+        c = _container.call(this, e, d),
+        n = touches.length
+      let i, gesture
       for (i = 0; i < n; ++i) {
-        if ((gesture = beforestart(this, c, event, d, touches[i].identifier, touches[i]))) {
-          nopropagation(event)
-          gesture("start", event, touches[i])
+        if ((gesture = beforestart(this, c, e, d, touches[i].identifier, touches[i]))) {
+          nopropagation(e)
+          gesture("start", e, touches[i])
         }
       }
     }
-    function touchmoved(event) {
-      let touches = event.changedTouches,
-        n = touches.length,
-        i,
-        gesture
+    function touchmoved(e) {
+      const touches = e.changedTouches,
+        n = touches.length
+      let i, gesture
       for (i = 0; i < n; ++i) {
-        if ((gesture = gestures[touches[i].identifier])) {
-          noevent(event)
-          gesture("drag", event, touches[i])
+        if ((gesture = _gestures[touches[i].identifier])) {
+          noevent(e)
+          gesture("drag", e, touches[i])
         }
       }
     }
-    function touchended(event) {
-      let touches = event.changedTouches,
-        n = touches.length,
-        i,
-        gesture
+    function ended(e) {
+      const touches = e.changedTouches,
+        n = touches.length
+      let i, gesture
       if (touchending) clearTimeout(touchending)
       touchending = setTimeout(function () {
         touchending = null
-      }, 500) // Ghost clicks are delayed!
+      }, 500)
       for (i = 0; i < n; ++i) {
-        if ((gesture = gestures[touches[i].identifier])) {
-          nopropagation(event)
-          gesture("end", event, touches[i])
+        if ((gesture = _gestures[touches[i].identifier])) {
+          nopropagation(e)
+          gesture("end", e, touches[i])
         }
       }
     }
-    function beforestart(that, container, event, d, identifier, touch) {
-      let dispatch = listeners.copy(),
-        p = qu.pointer(touch || event, container),
-        dx,
-        dy,
+    function f(selection) {
+      selection
+        .on("mousedown.drag", down)
+        .filter(_touchable)
+        .on("touchstart.drag", started)
+        .on("touchmove.drag", touchmoved, nonpassive)
+        .on("touchend.drag touchcancel.drag", ended)
+        .style("touch-action", "none")
+        .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)")
+    }
+    function beforestart(that, container, e, d, id, touch) {
+      const dispatch = _listeners.copy()
+      let p = pointer(touch || e, container),
         s
       if (
-        (s = subject.call(
+        (s = _subject.call(
           that,
-          new DragEvent("beforestart", {
-            sourceEvent: event,
-            target: drag,
-            identifier,
-            active,
-            x: p[0],
-            y: p[1],
-            dx: 0,
-            dy: 0,
-            dispatch,
-          }),
+          new Event("beforestart", id, e, f, undefined, active, p[0], p[1], 0, 0, dispatch),
           d
         )) == null
       )
         return
-      dx = s.x - p[0] || 0
-      dy = s.y - p[1] || 0
-      return function gesture(type, event, touch) {
+      const dx = s.x - p[0] || 0
+      const dy = s.y - p[1] || 0
+      return (type, event, touch) => {
         let p0 = p,
           n
         switch (type) {
           case "start":
-            ;(gestures[identifier] = gesture), (n = active++)
+            ;(_gestures[id] = gesture), (n = active++)
             break
           case "end":
-            delete gestures[identifier], --active // falls through
+            delete _gestures[id], --active // falls through
           case "drag":
-            ;(p = qu.pointer(touch || event, container)), (n = active)
+            ;(p = pointer(touch || event, container)), (n = active)
             break
         }
         dispatch.call(
           type,
           that,
-          new DragEvent(type, {
-            sourceEvent: event,
-            subject: s,
-            target: drag,
-            identifier,
-            active: n,
-            x: p[0] + dx,
-            y: p[1] + dy,
-            dx: p[0] - p0[0],
-            dy: p[1] - p0[1],
-            dispatch,
-          }),
+          new Event(type, id, event, f, s, n, p[0] + dx, p[1] + dy, p[0] - p0[0], p[1] - p0[1], dispatch),
           d
         )
       }
     }
-    drag.filter = function (_) {
-      return arguments.length ? ((filter = typeof _ === "function" ? _ : qu.constant(!!_)), drag) : filter
+    f.clickDistance = (x: any) => (x === undefined ? sqrt(_distance) : ((_distance = (x = +x) * x), f))
+    f.container = (x: any) =>
+      x === undefined ? _container : ((_container = typeof x === "function" ? x : constant(x)), f)
+    f.filter = (x: any) => (x === undefined ? _filter : ((_filter = typeof x === "function" ? x : constant(!!x)), f))
+    f.on = (...xs: any) => {
+      const y = _listeners.on(xs)
+      return y === _listeners ? f : y
     }
-    drag.container = function (_) {
-      return arguments.length ? ((container = typeof _ === "function" ? _ : qu.constant(_)), drag) : container
-    }
-    drag.subject = function (_) {
-      return arguments.length ? ((subject = typeof _ === "function" ? _ : qu.constant(_)), drag) : subject
-    }
-    drag.touchable = function (_) {
-      return arguments.length ? ((touchable = typeof _ === "function" ? _ : qu.constant(!!_)), drag) : touchable
-    }
-    drag.on = function () {
-      let value = listeners.on.apply(listeners, arguments)
-      return value === listeners ? drag : value
-    }
-    drag.clickDistance = function (_) {
-      return arguments.length ? ((clickDistance2 = (_ = +_) * _), drag) : Math.sqrt(clickDistance2)
-    }
-    return drag
+    f.subject = (x: any) => (x === undefined ? _subject : ((_subject = typeof x === "function" ? x : constant(x)), f))
+    f.touchable = (x: any) =>
+      x === undefined ? _touchable : ((_touchable = typeof x === "function" ? x : constant(!!x)), f)
+    return f
   }
 
-  export function DragEvent(type, { sourceEvent, subject, target, identifier, active, x, y, dx, dy, dispatch }) {
-    Object.defineProperties(this, {
-      type: { value: type, enumerable: true, configurable: true },
-      sourceEvent: { value: sourceEvent, enumerable: true, configurable: true },
-      subject: { value: subject, enumerable: true, configurable: true },
-      target: { value: target, enumerable: true, configurable: true },
-      identifier: { value: identifier, enumerable: true, configurable: true },
-      active: { value: active, enumerable: true, configurable: true },
-      x: { value: x, enumerable: true, configurable: true },
-      y: { value: y, enumerable: true, configurable: true },
-      dx: { value: dx, enumerable: true, configurable: true },
-      dy: { value: dy, enumerable: true, configurable: true },
-      _: { value: dispatch },
-    })
-  }
-  DragEvent.prototype.on = function () {
-    const value = this._.on.apply(this._, arguments)
-    return value === this._ ? this : value
-  }
   export function disable(x: Window) {
-    let root = x.document.documentElement,
-      selection = select(x).on("dragstart.drag", noevent, nonpassivecapture)
+    const root = x.document.documentElement
+    const selection = select(x).on("dragstart.drag", noevent, capture)
     if ("onselectstart" in root) {
-      selection.on("selectstart.drag", noevent, nonpassivecapture)
+      selection.on("selectstart.drag", noevent, capture)
     } else {
       root.__noselect = root.style.MozUserSelect
       root.style.MozUserSelect = "none"
     }
   }
   export function enable(x: Window, noclick?: boolean) {
-    let root = x.document.documentElement,
-      selection = select(x).on("dragstart.drag", null)
+    const root = x.document.documentElement
+    const selection = select(x).on("dragstart.drag", null)
     if (noclick) {
-      selection.on("click.drag", noevent, nonpassivecapture)
+      selection.on("click.drag", noevent, capture)
       setTimeout(function () {
         selection.on("click.drag", null)
       }, 0)
@@ -1271,14 +1254,5 @@ export namespace drag {
       root.style.MozUserSelect = root.__noselect
       delete root.__noselect
     }
-  }
-  export const nonpassive = { passive: false }
-  export const nonpassivecapture = { capture: true, passive: false }
-  export function nopropagation(event) {
-    event.stopImmediatePropagation()
-  }
-  export function noevent(event) {
-    event.preventDefault()
-    event.stopImmediatePropagation()
   }
 }

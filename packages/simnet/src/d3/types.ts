@@ -118,8 +118,8 @@ export interface BrushBehavior<T> {
 export interface BrushEvent<T> {
   mode: "drag" | "space" | "handle" | "center"
   selection: BrushSelection | null
-  sourceEvent: any
-  target: BrushBehavior<T>
+  srcEvent: any
+  tgt: BrushBehavior<T>
   type: "start" | "brush" | "end" | string
 }
 
@@ -348,45 +348,31 @@ export interface Dispatch<T extends object> {
   on(n: string): CB<T> | undefined
 }
 
-export type DraggedBase = Element
+export type Dragged = Element
 export type DragContainer = HTMLElement | SVGSVGElement | SVGGElement
 export interface SubjectPosition {
   x: number
   y: number
 }
-export interface DragBehavior<B extends DraggedBase, T, Subject> extends Function {
-  (selection: Selection<B, T, any, any>, ...xs: any[]): void
-  container(): Value<B, T, DragContainer>
-  container(f: Value<B, T, DragContainer>): this
-  container(x: DragContainer): this
-  filter(): (this: B, event: any, x: T) => boolean
-  filter(filterFn: (this: B, event: any, x: T) => boolean): this
-  touchable(): Value<B, T, boolean>
-  touchable(x: boolean): this
-  touchable(f: Value<B, T, boolean>): this
-  subject(): (this: B, event: any, x: T) => Subject
-  subject(f: (this: B, event: any, x: T) => Subject): this
+export interface DragBehavior<D extends Dragged, T, Subject> extends Function {
+  (x: Selection<D, T, any, any>, ...xs: any[]): void
   clickDistance(): number
   clickDistance(x: number): this
-  on(n: string): ((this: B, event: any, x: T) => void) | undefined
+  container(): Value<D, T, DragContainer>
+  container(f: Value<D, T, DragContainer>): this
+  container(x: DragContainer): this
+  filter(): (this: D, e: any, x: T) => boolean
+  filter(f: (this: D, e: any, x: T) => boolean): this
+  on(n: string, f: (this: D, e: any, x: T) => void): this
   on(n: string, x: null): this
-  on(n: string, f: (this: B, event: any, x: T) => void): this
+  on(n: string): ((this: D, e: any, x: T) => void) | undefined
+  subject(): (this: D, e: any, x: T) => Subject
+  subject(f: (this: D, e: any, x: T) => Subject): this
+  touchable(): Value<D, T, boolean>
+  touchable(f: Value<D, T, boolean>): this
+  touchable(x: boolean): this
 }
-export interface D3DragEvent<B extends DraggedBase, T, Subject> {
-  target: DragBehavior<B, T, Subject>
-  type: "start" | "drag" | "end" | string
-  subject: Subject
-  x: number
-  y: number
-  dx: number
-  dy: number
-  identifier: "mouse" | number
-  active: number
-  sourceEvent: any
-  on(typenames: string): ((this: B, event: any, x: T) => void) | undefined
-  on(typenames: string, listener: null): this
-  on(typenames: string, listener: (this: B, event: any, x: T) => void): this
-}
+
 export type DSVRowString<Columns extends string = string> = {
   [key in Columns]: string | undefined
 }
@@ -1700,8 +1686,8 @@ export interface CatmullRomFac extends CurveFac {
   alpha(x: number): this
 }
 export interface DefaultLinkObject {
-  source: Point
-  target: Point
+  src: Point
+  tgt: Point
 }
 export interface Link<This, L, N> {
   (this: This, d: L, ...xs: any[]): string | null
@@ -1872,11 +1858,11 @@ export interface ZoomBehavior<B extends ZoomedElementBaseType, T> extends Functi
   on(typenames: string, listener: null): this
   on(typenames: string, listener: (this: B, event: any, x: T) => void): this
 }
-export interface D3ZoomEvent<ZoomRefElement extends ZoomedElementBaseType, Datum> {
-  target: ZoomBehavior<ZoomRefElement, Datum>
-  type: "start" | "zoom" | "end" | string
+export interface ZoomEvent<ZoomRefElement extends ZoomedElementBaseType, Datum> {
+  srcEvent: any
+  tgt: ZoomBehavior<ZoomRefElement, Datum>
   transform: ZoomTransform
-  sourceEvent: any
+  type: "start" | "zoom" | "end" | string
 }
 export interface ZoomTransform {
   readonly x: number

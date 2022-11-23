@@ -13,13 +13,6 @@ export function ZoomEvent(type, { sourceEvent, target, transform, dispatch }) {
     _: { value: dispatch },
   })
 }
-export function nopropagation(event) {
-  event.stopImmediatePropagation()
-}
-export function noevent(event) {
-  event.preventDefault()
-  event.stopImmediatePropagation()
-}
 export class Transform implements qt.ZoomTransform {
   constructor(public k: number, public x: number, public y: number) {}
   apply(point: qt.Point): qt.Point {
@@ -334,7 +327,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
       interrupt(this)
       g.start()
     }
-    noevent(event)
+    qu.noevent(event)
     g.wheel = setTimeout(wheelidled, wheelDelay)
     g.zoom("mouse", constrain(translate(scale(t, k), g.mouse[0], g.mouse[1]), g.extent, translateExtent))
     function wheelidled() {
@@ -351,12 +344,12 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
       x0 = event.clientX,
       y0 = event.clientY
     qu.drag.disable(event.view)
-    nopropagation(event)
+    qu.nopropagation(event)
     g.mouse = [p, this.__zoom.invert(p)]
     interrupt(this)
     g.start()
     function mousemoved(event) {
-      noevent(event)
+      qu.noevent(event)
       if (!g.moved) {
         const dx = event.clientX - x0,
           dy = event.clientY - y0
@@ -374,7 +367,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
     function mouseupped(event) {
       v.on("mousemove.zoom mouseup.zoom", null)
       qu.drag.enable(event.view, g.moved)
-      noevent(event)
+      qu.noevent(event)
       g.event(event).end()
     }
   }
@@ -385,7 +378,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
       p1 = t0.invert(p0),
       k1 = t0.k * (event.shiftKey ? 0.5 : 2),
       t1 = constrain(translate(scale(t0, k1), p0, p1), extent.apply(this, args), translateExtent)
-    noevent(event)
+    qu.noevent(event)
     if (duration > 0) select(this).transition().duration(duration).call(schedule, t1, p0, event)
     else select(this).call(zoom.transform, t1, p0, event)
   }
@@ -398,7 +391,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
       i,
       t,
       p
-    nopropagation(event)
+    qu.nopropagation(event)
     for (i = 0; i < n; ++i) {
       ;(t = touches[i]), (p = qu.pointer(t, this))
       p = [p, this.__zoom.invert(p), t.identifier]
@@ -425,7 +418,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
       t,
       p,
       l
-    noevent(event)
+    qu.noevent(event)
     for (i = 0; i < n; ++i) {
       ;(t = touches[i]), (p = qu.pointer(t, this))
       if (g.touch0 && g.touch0[2] === t.identifier) g.touch0[0] = p
@@ -453,7 +446,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
       n = touches.length,
       i,
       t
-    nopropagation(event)
+    qu.nopropagation(event)
     if (touchending) clearTimeout(touchending)
     touchending = setTimeout(function () {
       touchending = null
