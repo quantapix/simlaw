@@ -8,7 +8,7 @@ const MODE_DRAG = { name: "drag" },
   MODE_SPACE = { name: "space" },
   MODE_HANDLE = { name: "handle" },
   MODE_CENTER = { name: "center" }
-const { abs, max, min } = Math
+
 function number1(e) {
   return [+e[0], +e[1]]
 }
@@ -55,63 +55,8 @@ const XY = {
     return xy
   },
 }
-const cursors = {
-  overlay: "crosshair",
-  selection: "move",
-  n: "ns-resize",
-  e: "ew-resize",
-  s: "ns-resize",
-  w: "ew-resize",
-  nw: "nwse-resize",
-  ne: "nesw-resize",
-  se: "nwse-resize",
-  sw: "nesw-resize",
-}
-const flipX = {
-  e: "w",
-  w: "e",
-  nw: "ne",
-  ne: "nw",
-  se: "sw",
-  sw: "se",
-}
-const flipY = {
-  n: "s",
-  s: "n",
-  nw: "sw",
-  ne: "se",
-  se: "ne",
-  sw: "nw",
-}
-const signsX = {
-  overlay: +1,
-  selection: +1,
-  n: null,
-  e: +1,
-  s: null,
-  w: -1,
-  nw: -1,
-  ne: +1,
-  se: +1,
-  sw: -1,
-}
-const signsY = {
-  overlay: +1,
-  selection: +1,
-  n: -1,
-  e: null,
-  s: +1,
-  w: null,
-  nw: -1,
-  ne: -1,
-  se: +1,
-  sw: +1,
-}
 function type(t) {
   return { type: t }
-}
-function defaultFilter(event) {
-  return !event.ctrlKey && !event.button
 }
 function defaultExtent() {
   let svg = this.ownerSVGElement || this
@@ -126,9 +71,6 @@ function defaultExtent() {
     [0, 0],
     [svg.width.baseVal.value, svg.height.baseVal.value],
   ]
-}
-function defaultTouchable() {
-  return navigator.maxTouchPoints || "ontouchstart" in this
 }
 function local(node) {
   while (!node.__brush) if (!(node = node.parentNode)) return
@@ -152,8 +94,10 @@ export function brush<T>(): qt.BrushBehavior<T> {
 }
 function brush(dim) {
   let extent = defaultExtent,
-    filter = defaultFilter,
-    touchable = defaultTouchable,
+    filter = e => !e.ctrlKey && !e.button,
+    touchable = function (this: any) {
+      return navigator.maxTouchPoints || "ontouchstart" in this
+    },
     keys = true,
     listeners = qu.dispatch("start", "brush", "end"),
     handleSize = 6,
@@ -343,8 +287,8 @@ function brush(dim) {
       if (selection) moving = true
       const pts = [points[0], points[1] || points[0]]
       state.selection = selection = [
-        [(w0 = dim === Y ? W : min(pts[0][0], pts[1][0])), (n0 = dim === X ? N : min(pts[0][1], pts[1][1]))],
-        [(e0 = dim === Y ? E : max(pts[0][0], pts[1][0])), (s0 = dim === X ? S : max(pts[0][1], pts[1][1]))],
+        [(w0 = dim === Y ? W : qu.min(pts[0][0], pts[1][0])), (n0 = dim === X ? N : qu.min(pts[0][1], pts[1][1]))],
+        [(e0 = dim === Y ? E : qu.max(pts[0][0], pts[1][0])), (s0 = dim === X ? S : qu.max(pts[0][1], pts[1][1]))],
       ]
       if (points.length > 1) move(event)
     } else {
@@ -375,7 +319,7 @@ function brush(dim) {
       }
       if (shifting && !lockX && !lockY && points.length === 1) {
         const point = points[0]
-        if (abs(point.cur[0] - point[0]) > abs(point.cur[1] - point[1])) lockY = true
+        if (qu.abs(point.cur[0] - point[0]) > qu.abs(point.cur[1] - point[1])) lockY = true
         else lockX = true
       }
       for (const point of points) if (point.cur) (point[0] = point.cur[0]), (point[1] = point.cur[1])
@@ -392,25 +336,25 @@ function brush(dim) {
       switch (mode) {
         case MODE_SPACE:
         case MODE_DRAG: {
-          if (signX) (dx = max(W - w0, min(E - e0, dx))), (w1 = w0 + dx), (e1 = e0 + dx)
-          if (signY) (dy = max(N - n0, min(S - s0, dy))), (n1 = n0 + dy), (s1 = s0 + dy)
+          if (signX) (dx = qu.max(W - w0, qu.min(E - e0, dx))), (w1 = w0 + dx), (e1 = e0 + dx)
+          if (signY) (dy = qu.max(N - n0, qu.min(S - s0, dy))), (n1 = n0 + dy), (s1 = s0 + dy)
           break
         }
         case MODE_HANDLE: {
           if (points[1]) {
-            if (signX) (w1 = max(W, min(E, points[0][0]))), (e1 = max(W, min(E, points[1][0]))), (signX = 1)
-            if (signY) (n1 = max(N, min(S, points[0][1]))), (s1 = max(N, min(S, points[1][1]))), (signY = 1)
+            if (signX) (w1 = qu.max(W, qu.min(E, points[0][0]))), (e1 = qu.max(W, qu.min(E, points[1][0]))), (signX = 1)
+            if (signY) (n1 = qu.max(N, qu.min(S, points[0][1]))), (s1 = qu.max(N, qu.min(S, points[1][1]))), (signY = 1)
           } else {
-            if (signX < 0) (dx = max(W - w0, min(E - w0, dx))), (w1 = w0 + dx), (e1 = e0)
-            else if (signX > 0) (dx = max(W - e0, min(E - e0, dx))), (w1 = w0), (e1 = e0 + dx)
-            if (signY < 0) (dy = max(N - n0, min(S - n0, dy))), (n1 = n0 + dy), (s1 = s0)
-            else if (signY > 0) (dy = max(N - s0, min(S - s0, dy))), (n1 = n0), (s1 = s0 + dy)
+            if (signX < 0) (dx = qu.max(W - w0, qu.min(E - w0, dx))), (w1 = w0 + dx), (e1 = e0)
+            else if (signX > 0) (dx = qu.max(W - e0, qu.min(E - e0, dx))), (w1 = w0), (e1 = e0 + dx)
+            if (signY < 0) (dy = qu.max(N - n0, qu.min(S - n0, dy))), (n1 = n0 + dy), (s1 = s0)
+            else if (signY > 0) (dy = qu.max(N - s0, qu.min(S - s0, dy))), (n1 = n0), (s1 = s0 + dy)
           }
           break
         }
         case MODE_CENTER: {
-          if (signX) (w1 = max(W, min(E, w0 - dx * signX))), (e1 = max(W, min(E, e0 + dx * signX)))
-          if (signY) (n1 = max(N, min(S, n0 - dy * signY))), (s1 = max(N, min(S, s0 + dy * signY)))
+          if (signX) (w1 = qu.max(W, qu.min(E, w0 - dx * signX))), (e1 = qu.max(W, qu.min(E, e0 + dx * signX)))
+          if (signY) (n1 = qu.max(N, qu.min(S, n0 - dy * signY))), (s1 = qu.max(N, qu.min(S, s0 + dy * signY)))
           break
         }
       }
@@ -562,15 +506,15 @@ export function noevent(event) {
   event.stopImmediatePropagation()
 }
 
-export function BrushEvent(type, { sourceEvent, target, selection, mode, dispatch }) {
-  Object.defineProperties(this, {
-    type: { value: type, enumerable: true, configurable: true },
-    sourceEvent: { value: sourceEvent, enumerable: true, configurable: true },
-    target: { value: target, enumerable: true, configurable: true },
-    selection: { value: selection, enumerable: true, configurable: true },
-    mode: { value: mode, enumerable: true, configurable: true },
-    _: { value: dispatch },
-  })
+export class Event<T> {
+  constructor(
+    public type: "start" | "brush" | "end" | string,
+    public srcEvent: any,
+    public tgt: qt.BrushBehavior<T>,
+    public selection: qt.BrushSelection | null,
+    public mode: "drag" | "space" | "handle" | "center",
+    public dispatch: any
+  ) {}
 }
 
 class Emitter {
@@ -584,32 +528,74 @@ class Emitter {
     if (++this.active === 1) (this.state.emitter = this), (this.starting = true)
     return this
   }
-  start(event, mode) {
-    if (this.starting) (this.starting = false), this.emit("start", event, mode)
-    else this.emit("brush", event)
+  start(e, mode) {
+    if (this.starting) (this.starting = false), this.emit("start", e, mode)
+    else this.emit("brush", e)
     return this
   }
-  brush(event, mode) {
-    this.emit("brush", event, mode)
+  brush(e, mode) {
+    this.emit("brush", e, mode)
     return this
   }
-  end(event, mode) {
-    if (--this.active === 0) delete this.state.emitter, this.emit("end", event, mode)
+  end(e, mode) {
+    if (--this.active === 0) delete this.state.emitter, this.emit("end", e, mode)
     return this
   }
-  emit(type, event, mode?) {
+  emit(type, e, mode?) {
     const d = select(this.that).datum()
-    listeners.call(
-      type,
-      this.that,
-      new BrushEvent(type, {
-        sourceEvent: event,
-        target: brush,
-        selection: dim.output(this.state.selection),
-        mode,
-        dispatch: listeners,
-      }),
-      d
-    )
+    listeners.call(type, this.that, new Event(type, e, brush, dim.output(this.state.selection), mode, listeners), d)
   }
+}
+
+const cursors = {
+  overlay: "crosshair",
+  selection: "move",
+  n: "ns-resize",
+  e: "ew-resize",
+  s: "ns-resize",
+  w: "ew-resize",
+  nw: "nwse-resize",
+  ne: "nesw-resize",
+  se: "nwse-resize",
+  sw: "nesw-resize",
+}
+const flipX = {
+  e: "w",
+  w: "e",
+  nw: "ne",
+  ne: "nw",
+  se: "sw",
+  sw: "se",
+}
+const flipY = {
+  n: "s",
+  s: "n",
+  nw: "sw",
+  ne: "se",
+  se: "ne",
+  sw: "nw",
+}
+const signsX = {
+  overlay: +1,
+  selection: +1,
+  n: null,
+  e: +1,
+  s: null,
+  w: -1,
+  nw: -1,
+  ne: +1,
+  se: +1,
+  sw: -1,
+}
+const signsY = {
+  overlay: +1,
+  selection: +1,
+  n: -1,
+  e: null,
+  s: +1,
+  w: null,
+  nw: -1,
+  ne: -1,
+  se: +1,
+  sw: +1,
 }

@@ -115,13 +115,6 @@ export interface BrushBehavior<T> {
   touchable(f: Value<SVGGElement, T, boolean>): this
   touchable(x: boolean): this
 }
-export interface BrushEvent<T> {
-  mode: "drag" | "space" | "handle" | "center"
-  selection: BrushSelection | null
-  srcEvent: any
-  tgt: BrushBehavior<T>
-  type: "start" | "brush" | "end" | string
-}
 
 export interface ChordSubgroup {
   endAngle: number
