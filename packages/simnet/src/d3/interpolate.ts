@@ -148,8 +148,11 @@ export function value(a: any, b: any) {
         : number)(a, b)
 }
 
-export function piecewise(vs: qt.ZoomView[]): qt.ZoomIpolator
-export function piecewise(f: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomIpolator, vs: qt.ZoomView[]): qt.ZoomIpolator
+export function piecewise(vs: qt.Zoom.View[]): qt.Zoom.Interpolator
+export function piecewise(
+  f: (a: qt.Zoom.View, b: qt.Zoom.View) => qt.Zoom.Interpolator,
+  vs: qt.Zoom.View[]
+): qt.Zoom.Interpolator
 export function piecewise<T extends any[]>(vs: T[]): qt.ArrayIpolator<T>
 export function piecewise<T extends any[]>(f: (a: any[], b: T) => qt.ArrayIpolator<T>, vs: T[]): qt.ArrayIpolator<T>
 export function piecewise(vs: unknown[]): (x: number) => any
@@ -167,7 +170,7 @@ export function piecewise(f: any, xs?: any) {
   }
 }
 
-export const zoom: (a: qt.ZoomView, b: qt.ZoomView) => qt.ZoomIpolator = (function zoomRho(rho, rho2, rho4) {
+export const zoom: (a: qt.Zoom.View, b: qt.Zoom.View) => qt.Zoom.Interpolator = (function zoomRho(rho, rho2, rho4) {
   function zoom(p0, p1) {
     let ux0 = p0[0],
       uy0 = p0[1],

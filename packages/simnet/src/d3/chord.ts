@@ -19,7 +19,7 @@ export function transpose() {
 export function directed() {
   return _chord(true, false)
 }
-function _chord(directed, transpose): qt.ChordLayout {
+function _chord(directed, transpose): qt.Chord.Layout {
   let padAngle = 0,
     sortGroups = null,
     sortSubgroups = null,

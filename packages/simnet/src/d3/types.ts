@@ -90,61 +90,65 @@ export interface Axis<T> {
   tickValues(x: null): this
   tickValues(xs: Iterable<T>): this
 }
-export type BrushSelection = [Point, Point] | Point
-export interface BrushBehavior<T> {
+export interface Brush<T> {
   (x: Selection<SVGGElement, T, any, any>, ...xs: any[]): void
-  clear(x: Selection<SVGGElement, T, any, any>, event?: Event): void
+  clear(x: Selection<SVGGElement, T, any, any>, e?: Event): void
   extent(): Value<SVGGElement, T, [Point, Point]>
   extent(f: Value<SVGGElement, T, [Point, Point]>): this
   extent(x: [Point, Point]): this
-  filter(): (this: SVGGElement, event: any, x: T) => boolean
-  filter(f: (this: SVGGElement, event: any, x: T) => boolean): this
+  filter(): (this: SVGGElement, e: any, x: T) => boolean
+  filter(f: (this: SVGGElement, e: any, x: T) => boolean): this
   handleSize(): number
   handleSize(x: number): this
   keyModifiers(): boolean
   keyModifiers(x: boolean): this
   move(
     group: Selection<SVGGElement, T, any, any> | TransitionLike<SVGGElement, T>,
-    selection: null | BrushSelection | Value<SVGGElement, T, BrushSelection>,
+    selection: null | Brush.Selection | Value<SVGGElement, T, Brush.Selection>,
     e?: Event
   ): void
-  on(types: string, f: (this: SVGGElement, event: any, x: T) => void): this
-  on(types: string, x: null): this
-  on(types: string): ((this: SVGGElement, event: any, x: T) => void) | undefined
+  on(n: string, f: (this: SVGGElement, e: any, x: T) => void): this
+  on(n: string, x: null): this
+  on(n: string): ((this: SVGGElement, e: any, x: T) => void) | undefined
   touchable(): Value<SVGGElement, T, boolean>
   touchable(f: Value<SVGGElement, T, boolean>): this
   touchable(x: boolean): this
 }
+export namespace Brush {
+  export type Selection = [Point, Point] | Point
+}
 
-export interface ChordSubgroup {
-  endAngle: number
-  i: number
-  startAngle: number
-  value: number
-}
 export interface Chord {
-  src: ChordSubgroup
-  tgt: ChordSubgroup
+  src: Chord.Subgroup
+  tgt: Chord.Subgroup
 }
-export interface ChordGroup {
-  endAngle: number
-  i: number
-  startAngle: number
-  value: number
+export namespace Chord {
+  export interface Group {
+    endAngle: number
+    i: number
+    startAngle: number
+    value: number
+  }
+  export interface Subgroup {
+    endAngle: number
+    i: number
+    startAngle: number
+    value: number
+  }
+  export interface Layout {
+    (xs: number[][]): Chords
+    padAngle(): number
+    padAngle(x: number): this
+    sortGroups(): ((a: number, b: number) => number) | null
+    sortGroups(f: null | ((a: number, b: number) => number)): this
+    sortSubgroups(): ((a: number, b: number) => number) | null
+    sortSubgroups(f: null | ((a: number, b: number) => number)): this
+    sortChords(): ((a: number, b: number) => number) | null
+    sortChords(f: null | ((a: number, b: number) => number)): this
+  }
 }
 export interface Chords extends Array<Chord> {
-  groups: ChordGroup[]
-}
-export interface ChordLayout {
-  (xs: number[][]): Chords
-  padAngle(): number
-  padAngle(x: number): this
-  sortGroups(): ((a: number, b: number) => number) | null
-  sortGroups(f: null | ((a: number, b: number) => number)): this
-  sortSubgroups(): ((a: number, b: number) => number) | null
-  sortSubgroups(f: null | ((a: number, b: number) => number)): this
-  sortChords(): ((a: number, b: number) => number) | null
-  sortChords(f: null | ((a: number, b: number) => number)): this
+  groups: Chord.Group[]
 }
 export interface RibbonSubgroup {
   endAngle: number
@@ -913,12 +917,7 @@ export namespace hierarchy {
     size(x: Point): this
   }
 }
-export interface ZoomIpolator extends Function {
-  (x: number): ZoomView
-  duration: number
-  rho(x: number): this
-}
-export type ZoomView = [number, number, number]
+
 export type TypedArray =
   | Int8Array
   | Uint8Array
@@ -1031,7 +1030,7 @@ export interface RandWeibull extends RandomSrc {
   (k: number, a?: number, b?: number): () => number
 }
 
-export interface IpolatorFac<T, U> {
+export interface Interpolator<T, U> {
   (a: T, b: T): (x: number) => U
 }
 
@@ -1061,9 +1060,9 @@ export namespace Scale {
     copy(): this
     domain(): Date[]
     domain(x: Iterable<Date | NumVal>): this
-    interpolate(): IpolatorFac<any, any>
-    interpolate(f: IpolatorFac<Range, Out>): this
-    interpolate<O2>(f: IpolatorFac<Range, O2>): Time<Range, O2, U>
+    interpolate(): Interpolator<any, any>
+    interpolate(f: Interpolator<Range, Out>): this
+    interpolate<O2>(f: Interpolator<Range, O2>): Time<Range, O2, U>
     invert(x: NumVal): Date
     nice(n?: number): this
     nice(x: CountableTimeInterval): this
@@ -1202,18 +1201,18 @@ export namespace Scale {
     ticks(n?: number): number[]
   }
   export interface Linear<Range, Out, U = never> extends Smooth<Range, Out, U> {
-    interpolate(): IpolatorFac<any, any>
-    interpolate(f: IpolatorFac<Range, Out>): this
-    interpolate<O2>(f: IpolatorFac<Range, O2>): Linear<Range, O2, U>
+    interpolate(): Interpolator<any, any>
+    interpolate(f: Interpolator<Range, Out>): this
+    interpolate<O2>(f: Interpolator<Range, O2>): Linear<Range, O2, U>
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Linear<Range, Out, U2>
   }
   export interface Pow<Range, Out, U = never> extends Smooth<Range, Out, U> {
     exponent(): number
     exponent(x: number): this
-    interpolate(): IpolatorFac<any, any>
-    interpolate(f: IpolatorFac<Range, Out>): this
-    interpolate<O2>(f: IpolatorFac<Range, O2>): Pow<Range, O2, U>
+    interpolate(): Interpolator<any, any>
+    interpolate(f: Interpolator<Range, Out>): this
+    interpolate<O2>(f: Interpolator<Range, O2>): Pow<Range, O2, U>
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Pow<Range, Out, U2>
   }
@@ -1222,9 +1221,9 @@ export namespace Scale {
     base(x: number): this
     domain(): number[]
     domain(x: Iterable<NumVal>): this
-    interpolate(): IpolatorFac<any, any>
-    interpolate(f: IpolatorFac<Range, Out>): this
-    interpolate<O2>(f: IpolatorFac<Range, O2>): Log<Range, O2, U>
+    interpolate(): Interpolator<any, any>
+    interpolate(f: Interpolator<Range, Out>): this
+    interpolate<O2>(f: Interpolator<Range, O2>): Log<Range, O2, U>
     nice(): this
     tickFormat(n?: number, spec?: string): (d: NumVal) => string
     ticks(n?: number): number[]
@@ -1789,20 +1788,12 @@ export interface Timer {
 }
 
 export type Zoomed = Element
-export interface ZoomScale {
-  copy(): ZoomScale
-  domain(): number[] | Date[]
-  domain(x: Array<Date | number>): this
-  invert(x: number): number | Date
-  range(): number[]
-  range(x: number[]): this
-}
-export interface ZoomBehavior<Z extends Zoomed, T> extends Function {
+export interface Zoom<Z extends Zoomed, T> extends Function {
   (x: Selection<Z, T, any, any>, ...xs: any[]): void
   clickDistance(): number
   clickDistance(x: number): this
-  constrain(): (t: ZoomTransform, ext: [Point, Span], tExt: [Point, Span]) => ZoomTransform
-  constrain(f: (t: ZoomTransform, ext: [Point, Span], tExt: [Point, Span]) => ZoomTransform): this
+  constrain(): (t: Zoom.Transform, ext: [Point, Span], tExt: [Point, Span]) => Zoom.Transform
+  constrain(f: (t: Zoom.Transform, ext: [Point, Span], tExt: [Point, Span]) => Zoom.Transform): this
   duration(): number
   duration(x: number): this
   extent(): (this: Z, x: T) => [Point, Span]
@@ -1810,8 +1801,8 @@ export interface ZoomBehavior<Z extends Zoomed, T> extends Function {
   extent(x: [Point, Span]): this
   filter(): (this: Z, e: any, x: T) => boolean
   filter(filter: (this: Z, e: any, x: T) => boolean): this
-  interpolate(f: (a: ZoomView, b: ZoomView) => (x: number) => ZoomView): this
-  interpolate<F extends (a: ZoomView, b: ZoomView) => (x: number) => ZoomView>(): F
+  interpolate(f: (a: Zoom.View, b: Zoom.View) => (x: number) => Zoom.View): this
+  interpolate<F extends (a: Zoom.View, b: Zoom.View) => (x: number) => Zoom.View>(): F
   on(n: string, f: (this: Z, e: any, x: T) => void): this
   on(n: string, x: null): this
   on(n: string): ((this: Z, e: any, x: T) => void) | undefined
@@ -1830,7 +1821,7 @@ export interface ZoomBehavior<Z extends Zoomed, T> extends Function {
   touchable(x: boolean): this
   transform(
     x: Selection<Z, T, any, any> | TransitionLike<Z, T>,
-    t: ZoomTransform | ((this: Z, e: any, x: T) => ZoomTransform),
+    t: Zoom.Transform | ((this: Z, e: any, x: T) => Zoom.Transform),
     p?: Point | ((this: Z, e: any, x: T) => Point)
   ): void
   translateBy(
@@ -1849,19 +1840,35 @@ export interface ZoomBehavior<Z extends Zoomed, T> extends Function {
   wheelDelta(): Value<Z, T, number>
   wheelDelta(x: ((e: WheelEvent) => number) | number): this
 }
-export interface ZoomTransform {
-  readonly x: number
-  readonly y: number
-  readonly k: number
-  apply(x: Point): Point
-  applyX(x: number): number
-  applyY(y: number): number
-  invert(x: Point): Point
-  invertX(x: number): number
-  invertY(y: number): number
-  rescaleX<S extends ZoomScale>(x: S): S
-  rescaleY<S extends ZoomScale>(x: S): S
-  scale(k: number): ZoomTransform
-  toString(): string
-  translate(x: number, y: number): ZoomTransform
+export namespace Zoom {
+  export type View = [number, number, number]
+  export interface Interpolator extends Function {
+    (x: number): Zoom.View
+    duration: number
+    rho(x: number): this
+  }
+  export interface Scale {
+    copy(): Scale
+    domain(): number[] | Date[]
+    domain(x: Array<Date | number>): this
+    invert(x: number): number | Date
+    range(): number[]
+    range(x: number[]): this
+  }
+  export interface Transform {
+    readonly x: number
+    readonly y: number
+    readonly k: number
+    apply(x: Point): Point
+    applyX(x: number): number
+    applyY(y: number): number
+    invert(x: Point): Point
+    invertX(x: number): number
+    invertY(y: number): number
+    rescaleX<S extends Zoom.Scale>(x: S): S
+    rescaleY<S extends Zoom.Scale>(x: S): S
+    scale(k: number): Transform
+    toString(): string
+    translate(x: number, y: number): Transform
+  }
 }

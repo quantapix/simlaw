@@ -79,17 +79,17 @@ function local(node) {
 function empty(extent) {
   return extent[0][0] === extent[1][0] || extent[0][1] === extent[1][1]
 }
-export function brushSelection(node: SVGGElement): qt.BrushSelection | null {
+export function brushSelection(node: SVGGElement): qt.Brush.Selection | null {
   const state = node.__brush
   return state ? state.dim.output(state.selection) : null
 }
-export function brushX<T>(): qt.BrushBehavior<T> {
+export function brushX<T>(): qt.Brush<T> {
   return brush(X)
 }
-export function brushY<T>(): qt.BrushBehavior<T> {
+export function brushY<T>(): qt.Brush<T> {
   return brush(Y)
 }
-export function brush<T>(): qt.BrushBehavior<T> {
+export function brush<T>(): qt.Brush<T> {
   return brush(XY)
 }
 function brush(dim) {
@@ -510,8 +510,8 @@ export class Event<T> {
   constructor(
     public type: "start" | "brush" | "end" | string,
     public srcEvent: any,
-    public tgt: qt.BrushBehavior<T>,
-    public selection: qt.BrushSelection | null,
+    public tgt: qt.Brush<T>,
+    public selection: qt.Brush.Selection | null,
     public mode: "drag" | "space" | "handle" | "center",
     public dispatch: any
   ) {}

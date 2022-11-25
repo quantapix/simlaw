@@ -8,13 +8,13 @@ export class Event<Z extends qt.Zoomed, T> {
   constructor(
     public type: "start" | "zoom" | "end" | string,
     public srcEvent: any,
-    public tgt: qt.ZoomBehavior<Z, T>,
-    public transform: qt.ZoomTransform,
+    public tgt: qt.Zoom<Z, T>,
+    public transform: qt.Zoom.Transform,
     public dispatch: any
   ) {}
 }
 
-export class Transform implements qt.ZoomTransform {
+export class Transform implements qt.Zoom.Transform {
   constructor(public k: number, public x: number, public y: number) {}
   apply(point: qt.Point): qt.Point {
     return [point[0] * this.k + this.x, point[1] * this.k + this.y]
@@ -34,10 +34,10 @@ export class Transform implements qt.ZoomTransform {
   invertY(y: number) {
     return (y - this.y) / this.k
   }
-  rescaleX<T extends qt.ZoomScale>(x: T): T {
+  rescaleX<T extends qt.Zoom.Scale>(x: T): T {
     return x.copy().domain(x.range().map(this.invertX, this).map(x.invert, x))
   }
-  rescaleY<T extends qt.ZoomScale>(y: T): T {
+  rescaleY<T extends qt.Zoom.Scale>(y: T): T {
     return y.copy().domain(y.range().map(this.invertY, this).map(y.invert, y))
   }
   scale(k: number) {
@@ -51,9 +51,9 @@ export class Transform implements qt.ZoomTransform {
   }
 }
 
-export const identity: qt.ZoomTransform = new Transform(1, 0, 0)
+export const identity: qt.Zoom.Transform = new Transform(1, 0, 0)
 
-export function transform(x: qt.Zoomed): qt.ZoomTransform {
+export function transform(x: qt.Zoomed): qt.Zoom.Transform {
   while (!x.__zoom) if (!(x = x.parentNode)) return identity
   return x.__zoom
 }
@@ -85,11 +85,11 @@ function defaultConstrain(transform, extent, translateExtent) {
     dy0 = transform.invertY(extent[0][1]) - translateExtent[0][1],
     dy1 = transform.invertY(extent[1][1]) - translateExtent[1][1]
   return transform.translate(
-    dx1 > dx0 ? (dx0 + dx1) / 2 : Math.min(0, dx0) || Math.max(0, dx1),
-    dy1 > dy0 ? (dy0 + dy1) / 2 : Math.min(0, dy0) || Math.max(0, dy1)
+    dx1 > dx0 ? (dx0 + dx1) / 2 : qu.min(0, dx0) || qu.max(0, dx1),
+    dy1 > dy0 ? (dy0 + dy1) / 2 : qu.min(0, dy0) || qu.max(0, dy1)
   )
 }
-export function zoom<B extends qt.Zoomed, T>(): qt.ZoomBehavior<B, T> {
+export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
   let filter = e => (!e.ctrlKey || e.type === "wheel") && !e.button,
     extent = defaultExtent,
     constrain = defaultConstrain,
@@ -209,7 +209,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.ZoomBehavior<B, T> {
     )
   }
   function scale(transform, k) {
-    k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], k))
+    k = qu.max(scaleExtent[0], qu.min(scaleExtent[1], k))
     return k === transform.k ? transform : new Transform(k, transform.x, transform.y)
   }
   function translate(transform, p0, p1) {
@@ -234,7 +234,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.ZoomBehavior<B, T> {
           g = gesture(that, args).event(event),
           e = extent.apply(that, args),
           p = point == null ? centroid(e) : typeof point === "function" ? point.apply(that, args) : point,
-          w = Math.max(e[1][0] - e[0][0], e[1][1] - e[0][1]),
+          w = qu.max(e[1][0] - e[0][0], e[1][1] - e[0][1]),
           a = that.__zoom,
           b = typeof transform === "function" ? transform.apply(that, args) : transform,
           i = interpolate(a.invert(p).concat(w / a.k), b.invert(p).concat(w / b.k))
@@ -296,7 +296,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.ZoomBehavior<B, T> {
     if (!filter.apply(this, arguments)) return
     const g = gesture(this, args).event(event),
       t = this.__zoom,
-      k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], t.k * Math.pow(2, wheelDelta.apply(this, arguments)))),
+      k = qu.max(scaleExtent[0], qu.min(scaleExtent[1], t.k * qu.pow(2, wheelDelta.apply(this, arguments)))),
       p = qu.pointer(event)
     if (g.wheel) {
       if (g.mouse[0][0] !== p[0] || g.mouse[0][1] !== p[1]) {
@@ -414,7 +414,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.ZoomBehavior<B, T> {
         l1 = g.touch1[1],
         dp = (dp = p1[0] - p0[0]) * dp + (dp = p1[1] - p0[1]) * dp,
         dl = (dl = l1[0] - l0[0]) * dl + (dl = l1[1] - l0[1]) * dl
-      t = scale(t, Math.sqrt(dp / dl))
+      t = scale(t, qu.sqrt(dp / dl))
       p = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2]
       l = [(l0[0] + l1[0]) / 2, (l0[1] + l1[1]) / 2]
     } else if (g.touch0) (p = g.touch0[0]), (l = g.touch0[1])
@@ -444,69 +444,52 @@ export function zoom<B extends qt.Zoomed, T>(): qt.ZoomBehavior<B, T> {
       g.end()
       if (g.taps === 2) {
         t = qu.pointer(t, this)
-        if (Math.hypot(touchfirst[0] - t[0], touchfirst[1] - t[1]) < tapDistance) {
+        if (qu.hypot(touchfirst[0] - t[0], touchfirst[1] - t[1]) < tapDistance) {
           const p = select(this).on("dblclick.zoom")
           if (p) p.apply(this, arguments)
         }
       }
     }
   }
-  zoom.wheelDelta = function (_) {
-    return arguments.length ? ((wheelDelta = typeof _ === "function" ? _ : qu.constant(+_)), zoom) : wheelDelta
-  }
-  zoom.filter = function (_) {
-    return arguments.length ? ((filter = typeof _ === "function" ? _ : qu.constant(!!_)), zoom) : filter
-  }
-  zoom.touchable = function (_) {
-    return arguments.length ? ((touchable = typeof _ === "function" ? _ : qu.constant(!!_)), zoom) : touchable
-  }
-  zoom.extent = function (_) {
-    return arguments.length
-      ? ((extent =
-          typeof _ === "function"
-            ? _
+  zoom.wheelDelta = (x: any) =>
+    x === undefined ? wheelDelta : ((wheelDelta = typeof x === "function" ? x : qu.constant(+x)), zoom)
+  zoom.filter = (x: any) =>
+    x === undefined ? filter : ((filter = typeof x === "function" ? x : qu.constant(!!x)), zoom)
+  zoom.touchable = (x: any) =>
+    x === undefined ? touchable : ((touchable = typeof x === "function" ? x : qu.constant(!!x)), zoom)
+  zoom.extent = function (x: any) {
+    return x === undefined
+      ? extent
+      : ((extent =
+          typeof x === "function"
+            ? x
             : qu.constant([
-                [+_[0][0], +_[0][1]],
-                [+_[1][0], +_[1][1]],
+                [+x[0][0], +x[0][1]],
+                [+x[1][0], +x[1][1]],
               ])),
         zoom)
-      : extent
   }
-  zoom.scaleExtent = function (_) {
-    return arguments.length
-      ? ((scaleExtent[0] = +_[0]), (scaleExtent[1] = +_[1]), zoom)
-      : [scaleExtent[0], scaleExtent[1]]
-  }
-  zoom.translateExtent = function (_) {
-    return arguments.length
-      ? ((translateExtent[0][0] = +_[0][0]),
-        (translateExtent[1][0] = +_[1][0]),
-        (translateExtent[0][1] = +_[0][1]),
-        (translateExtent[1][1] = +_[1][1]),
-        zoom)
-      : [
+  zoom.scaleExtent = (x: any) =>
+    x === undefined ? [scaleExtent[0], scaleExtent[1]] : ((scaleExtent[0] = +x[0]), (scaleExtent[1] = +x[1]), zoom)
+  zoom.translateExtent = (x: any) =>
+    x === undefined
+      ? [
           [translateExtent[0][0], translateExtent[0][1]],
           [translateExtent[1][0], translateExtent[1][1]],
         ]
+      : ((translateExtent[0][0] = +x[0][0]),
+        (translateExtent[1][0] = +x[1][0]),
+        (translateExtent[0][1] = +x[0][1]),
+        (translateExtent[1][1] = +x[1][1]),
+        zoom)
+  zoom.constrain = (x: any) => (x === undefined ? constrain : ((constrain = x), zoom))
+  zoom.duration = (x: any) => (x === undefined ? duration : ((duration = +x), zoom))
+  zoom.interpolate = (x: any) => (x === undefined ? interpolate : ((interpolate = x), zoom))
+  zoom.on = (...xs: any) => {
+    const y = listeners.on.apply(listeners, xs)
+    return y === listeners ? zoom : y
   }
-  zoom.constrain = function (_) {
-    return arguments.length ? ((constrain = _), zoom) : constrain
-  }
-  zoom.duration = function (_) {
-    return arguments.length ? ((duration = +_), zoom) : duration
-  }
-  zoom.interpolate = function (_) {
-    return arguments.length ? ((interpolate = _), zoom) : interpolate
-  }
-  zoom.on = function () {
-    const value = listeners.on.apply(listeners, arguments)
-    return value === listeners ? zoom : value
-  }
-  zoom.clickDistance = function (_) {
-    return arguments.length ? ((clickDistance2 = (_ = +_) * _), zoom) : Math.sqrt(clickDistance2)
-  }
-  zoom.tapDistance = function (_) {
-    return arguments.length ? ((tapDistance = +_), zoom) : tapDistance
-  }
+  zoom.clickDistance = (x: any) => (x === undefined ? qu.sqrt(clickDistance2) : ((clickDistance2 = (x = +x) * x), zoom))
+  zoom.tapDistance = (x: any) => (x === undefined ? tapDistance : ((tapDistance = +x), zoom))
   return zoom
 }
