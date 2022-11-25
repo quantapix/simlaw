@@ -1788,87 +1788,79 @@ export interface Timer {
   stop(): void
 }
 
-export type ZoomedElementBaseType = Element
+export type Zoomed = Element
 export interface ZoomScale {
-  domain(): number[] | Date[]
-  domain(domain: Array<Date | number>): this
-  range(): number[]
-  range(range: number[]): this
   copy(): ZoomScale
-  invert(value: number): number | Date
+  domain(): number[] | Date[]
+  domain(x: Array<Date | number>): this
+  invert(x: number): number | Date
+  range(): number[]
+  range(x: number[]): this
 }
-export interface ZoomBehavior<B extends ZoomedElementBaseType, T> extends Function {
-  (selection: Selection<B, T, any, any>, ...xs: any[]): void
-  transform(
-    selection: Selection<B, T, any, any> | TransitionLike<B, T>,
-    transform: ZoomTransform | ((this: B, event: any, x: T) => ZoomTransform),
-    point?: Point | ((this: B, event: any, x: T) => Point)
-  ): void
-  translateBy(
-    selection: Selection<B, T, any, any> | TransitionLike<B, T>,
-    x: number | Value<B, T, number>,
-    y: number | Value<B, T, number>
-  ): void
-  translateTo(
-    selection: Selection<B, T, any, any> | TransitionLike<B, T>,
-    x: number | Value<B, T, number>,
-    y: number | Value<B, T, number>,
-    p?: Point | Value<B, T, Point>
-  ): void
-  scaleBy(
-    selection: Selection<B, T, any, any> | TransitionLike<B, T>,
-    k: number | Value<B, T, number>,
-    p?: Point | Value<B, T, Point>
-  ): void
-  scaleTo(selection: Selection<B, T, any, any> | TransitionLike<B, T>, k: number | Value<B, T, number>, p?: Point): void
-  constrain(): (transform: ZoomTransform, extent: [Point, Span], translateExtent: [Point, Span]) => ZoomTransform
-  constrain(
-    constraint: (transform: ZoomTransform, extent: [Point, Span], translateExtent: [Point, Span]) => ZoomTransform
-  ): this
-  filter(): (this: B, event: any, x: T) => boolean
-  filter(filter: (this: B, event: any, x: T) => boolean): this
-  touchable(): Value<B, T, boolean>
-  touchable(touchable: boolean): this
-  touchable(touchable: Value<B, T, boolean>): this
-  wheelDelta(): Value<B, T, number>
-  wheelDelta(delta: ((event: WheelEvent) => number) | number): this
-  extent(): (this: B, x: T) => [Point, Span]
+export interface ZoomBehavior<Z extends Zoomed, T> extends Function {
+  (x: Selection<Z, T, any, any>, ...xs: any[]): void
+  clickDistance(): number
+  clickDistance(x: number): this
+  constrain(): (t: ZoomTransform, ext: [Point, Span], tExt: [Point, Span]) => ZoomTransform
+  constrain(f: (t: ZoomTransform, ext: [Point, Span], tExt: [Point, Span]) => ZoomTransform): this
+  duration(): number
+  duration(x: number): this
+  extent(): (this: Z, x: T) => [Point, Span]
+  extent(f: (this: Z, x: T) => [Point, Span]): this
   extent(x: [Point, Span]): this
-  extent(f: (this: B, x: T) => [Point, Span]): this
+  filter(): (this: Z, e: any, x: T) => boolean
+  filter(filter: (this: Z, e: any, x: T) => boolean): this
+  interpolate(f: (a: ZoomView, b: ZoomView) => (x: number) => ZoomView): this
+  interpolate<F extends (a: ZoomView, b: ZoomView) => (x: number) => ZoomView>(): F
+  on(n: string, f: (this: Z, e: any, x: T) => void): this
+  on(n: string, x: null): this
+  on(n: string): ((this: Z, e: any, x: T) => void) | undefined
+  scaleBy(
+    s: Selection<Z, T, any, any> | TransitionLike<Z, T>,
+    k: number | Value<Z, T, number>,
+    p?: Point | Value<Z, T, Point>
+  ): void
   scaleExtent(): Span
   scaleExtent(x: Span): this
+  scaleTo(s: Selection<Z, T, any, any> | TransitionLike<Z, T>, k: number | Value<Z, T, number>, p?: Point): void
+  tapDistance(): number
+  tapDistance(x: number): this
+  touchable(): Value<Z, T, boolean>
+  touchable(f: Value<Z, T, boolean>): this
+  touchable(x: boolean): this
+  transform(
+    x: Selection<Z, T, any, any> | TransitionLike<Z, T>,
+    t: ZoomTransform | ((this: Z, e: any, x: T) => ZoomTransform),
+    p?: Point | ((this: Z, e: any, x: T) => Point)
+  ): void
+  translateBy(
+    s: Selection<Z, T, any, any> | TransitionLike<Z, T>,
+    x: number | Value<Z, T, number>,
+    y: number | Value<Z, T, number>
+  ): void
   translateExtent(): [Point, Span]
   translateExtent(x: [Point, Span]): this
-  clickDistance(): number
-  clickDistance(distance: number): this
-  tapDistance(): number
-  tapDistance(distance: number): this
-  duration(): number
-  duration(duration: number): this
-  interpolate<IpolationFac extends (a: ZoomView, b: ZoomView) => (x: number) => ZoomView>(): IpolationFac
-  interpolate(f: (a: ZoomView, b: ZoomView) => (x: number) => ZoomView): this
-  on(typenames: string): ((this: B, event: any, x: T) => void) | undefined
-  on(typenames: string, listener: null): this
-  on(typenames: string, listener: (this: B, event: any, x: T) => void): this
-}
-export interface ZoomEvent<ZoomRefElement extends ZoomedElementBaseType, Datum> {
-  srcEvent: any
-  tgt: ZoomBehavior<ZoomRefElement, Datum>
-  transform: ZoomTransform
-  type: "start" | "zoom" | "end" | string
+  translateTo(
+    s: Selection<Z, T, any, any> | TransitionLike<Z, T>,
+    x: number | Value<Z, T, number>,
+    y: number | Value<Z, T, number>,
+    p?: Point | Value<Z, T, Point>
+  ): void
+  wheelDelta(): Value<Z, T, number>
+  wheelDelta(x: ((e: WheelEvent) => number) | number): this
 }
 export interface ZoomTransform {
   readonly x: number
   readonly y: number
   readonly k: number
-  apply(point: Point): Point
+  apply(x: Point): Point
   applyX(x: number): number
   applyY(y: number): number
-  invert(point: Point): Point
+  invert(x: Point): Point
   invertX(x: number): number
   invertY(y: number): number
-  rescaleX<S extends ZoomScale>(xScale: S): S
-  rescaleY<S extends ZoomScale>(yScale: S): S
+  rescaleX<S extends ZoomScale>(x: S): S
+  rescaleY<S extends ZoomScale>(x: S): S
   scale(k: number): ZoomTransform
   toString(): string
   translate(x: number, y: number): ZoomTransform

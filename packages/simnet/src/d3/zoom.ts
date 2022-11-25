@@ -4,15 +4,16 @@ import { interrupt } from "./transition.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
-export function ZoomEvent(type, { sourceEvent, target, transform, dispatch }) {
-  Object.defineProperties(this, {
-    type: { value: type, enumerable: true, configurable: true },
-    sourceEvent: { value: sourceEvent, enumerable: true, configurable: true },
-    target: { value: target, enumerable: true, configurable: true },
-    transform: { value: transform, enumerable: true, configurable: true },
-    _: { value: dispatch },
-  })
+export class Event<Z extends qt.Zoomed, T> {
+  constructor(
+    public type: "start" | "zoom" | "end" | string,
+    public srcEvent: any,
+    public tgt: qt.ZoomBehavior<Z, T>,
+    public transform: qt.ZoomTransform,
+    public dispatch: any
+  ) {}
 }
+
 export class Transform implements qt.ZoomTransform {
   constructor(public k: number, public x: number, public y: number) {}
   apply(point: qt.Point): qt.Point {
@@ -52,14 +53,11 @@ export class Transform implements qt.ZoomTransform {
 
 export const identity: qt.ZoomTransform = new Transform(1, 0, 0)
 
-export function transform(node: qt.ZoomedElementBaseType): qt.ZoomTransform {
-  while (!node.__zoom) if (!(node = node.parentNode)) return identity
-  return node.__zoom
+export function transform(x: qt.Zoomed): qt.ZoomTransform {
+  while (!x.__zoom) if (!(x = x.parentNode)) return identity
+  return x.__zoom
 }
 
-function defaultFilter(event) {
-  return (!event.ctrlKey || event.type === "wheel") && !event.button
-}
 function defaultExtent() {
   let e = this
   if (e instanceof SVGElement) {
@@ -81,15 +79,6 @@ function defaultExtent() {
     [e.clientWidth, e.clientHeight],
   ]
 }
-function defaultTransform() {
-  return this.__zoom || identity
-}
-function defaultWheelDelta(event) {
-  return -event.deltaY * (event.deltaMode === 1 ? 0.05 : event.deltaMode ? 1 : 0.002) * (event.ctrlKey ? 10 : 1)
-}
-function defaultTouchable() {
-  return navigator.maxTouchPoints || "ontouchstart" in this
-}
 function defaultConstrain(transform, extent, translateExtent) {
   const dx0 = transform.invertX(extent[0][0]) - translateExtent[0][0],
     dx1 = transform.invertX(extent[1][0]) - translateExtent[1][0],
@@ -100,12 +89,14 @@ function defaultConstrain(transform, extent, translateExtent) {
     dy1 > dy0 ? (dy0 + dy1) / 2 : Math.min(0, dy0) || Math.max(0, dy1)
   )
 }
-export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B, T> {
-  let filter = defaultFilter,
+export function zoom<B extends qt.Zoomed, T>(): qt.ZoomBehavior<B, T> {
+  let filter = e => (!e.ctrlKey || e.type === "wheel") && !e.button,
     extent = defaultExtent,
     constrain = defaultConstrain,
-    wheelDelta = defaultWheelDelta,
-    touchable = defaultTouchable,
+    wheelDelta = e => -e.deltaY * (e.deltaMode === 1 ? 0.05 : e.deltaMode ? 1 : 0.002) * (e.ctrlKey ? 10 : 1),
+    touchable = function (this: any) {
+      return navigator.maxTouchPoints || "ontouchstart" in this
+    },
     scaleExtent = [0, Infinity],
     translateExtent = [
       [-Infinity, -Infinity],
@@ -123,7 +114,9 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
     tapDistance = 10
   function zoom(selection) {
     selection
-      .property("__zoom", defaultTransform)
+      .property("__zoom", function (this: any) {
+        return this.__zoom || identity
+      })
       .on("wheel.zoom", wheeled, { passive: false })
       .on("mousedown.zoom", mousedowned)
       .on("dblclick.zoom", dblclicked)
@@ -296,18 +289,7 @@ export function zoom<B extends qt.ZoomedElementBaseType, T>(): qt.ZoomBehavior<B
     }
     emit(type) {
       const d = select(this.that).datum()
-      listeners.call(
-        type,
-        this.that,
-        new ZoomEvent(type, {
-          sourceEvent: this.sourceEvent,
-          target: zoom,
-          type,
-          transform: this.that.__zoom,
-          dispatch: listeners,
-        }),
-        d
-      )
+      listeners.call(type, this.that, new Event(type, this.sourceEvent, zoom, this.that.__zoom, listeners), d)
     }
   }
   function wheeled(event, ...args) {
