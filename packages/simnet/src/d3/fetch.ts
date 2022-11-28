@@ -1,7 +1,7 @@
 import type * as qt from "./types.js"
 
 export function autoType<R extends object | undefined | null, T extends string>(
-  object: qt.DSVRowString<T> | readonly string[]
+  object: qt.DSV.Row<T> | readonly string[]
 ): R {
   for (const key in object) {
     var value = object[key].trim(),
@@ -24,11 +24,11 @@ export function autoType<R extends object | undefined | null, T extends string>(
 }
 const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours()
 const csv = dsvFormat(",")
-export function csvParse<C extends string>(csvString: string): qt.DSVRowArray<C>
+export function csvParse<C extends string>(csvString: string): qt.DSV.RowArray<C>
 export function csvParse<R extends object, T extends string>(
   csvString: string,
-  row: (rawRow: qt.DSVRowString<T>, i: number, columns: T[]) => R | undefined | null
-): qt.DSVParsedArray<R>
+  row: (rawRow: qt.DSV.Row<T>, i: number, columns: T[]) => R | undefined | null
+): qt.DSV.Parsed<R>
 export function csvParse = csv.parse
 export function csvParseRows(csvString: string): string[][]
 export function csvParseRows<R extends object>(
@@ -209,11 +209,11 @@ export function dsvFormat(delimiter: string): qt.DSV {
   }
 }
 const tsv = dsvFormat("\t")
-export function tsvParse<C extends string>(tsvString: string): qt.DSVRowArray<C>
+export function tsvParse<C extends string>(tsvString: string): qt.DSV.RowArray<C>
 export function tsvParse<R extends object, C extends string>(
   tsvString: string,
-  row: (rawRow: qt.DSVRowString<C>, i: number, columns: C[]) => R | undefined | null
-): qt.DSVParsedArray<R>
+  row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
+): qt.DSV.Parsed<R>
 export function tsvParse = tsv.parse
 export function tsvParseRows(tsvString: string): string[][]
 export function tsvParseRows<T extends object>(
@@ -260,45 +260,45 @@ export async function dsv<C extends string>(
   delimiter: string,
   url: string,
   init?: RequestInit
-): Promise<qt.DSVRowArray<C>>
+): Promise<qt.DSV.RowArray<C>>
 export async function dsv<R extends object, T extends string = string>(
   delimiter: string,
   url: string,
-  row: (rawRow: qt.DSVRowString<T>, i: number, columns: T[]) => R | undefined | null
-): Promise<qt.DSVParsedArray<R>>
+  row: (rawRow: qt.DSV.Row<T>, i: number, columns: T[]) => R | undefined | null
+): Promise<qt.DSV.Parsed<R>>
 export function dsv<R extends object, C extends string = string>(
   delimiter: string,
   url: string,
   init: RequestInit,
-  row: (rawRow: qt.DSVRowString<C>, i: number, columns: C[]) => R | undefined | null
-): Promise<qt.DSVParsedArray<R>>
+  row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
+): Promise<qt.DSV.Parsed<R>>
 export async function dsv(delimiter, input, init, row) {
   if (arguments.length === 3 && typeof init === "function") (row = init), (init = undefined)
   const format = dsvFormat(delimiter)
   const response = await text(input, init)
   return format.parse(response, row)
 }
-export function csv<C extends string>(url: string, init?: RequestInit): Promise<qt.DSVRowArray<C>>
+export function csv<C extends string>(url: string, init?: RequestInit): Promise<qt.DSV.RowArray<C>>
 export function csv<R extends object, C extends string = string>(
   url: string,
-  row: (rawRow: qt.DSVRowString<C>, i: number, columns: C[]) => R | undefined | null
-): Promise<qt.DSVParsedArray<R>>
+  row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
+): Promise<qt.DSV.Parsed<R>>
 export function csv<R extends object, T extends string = string>(
   url: string,
   init: RequestInit,
-  row: (rawRow: qt.DSVRowString<T>, i: number, columns: T[]) => R | undefined | null
-): Promise<qt.DSVParsedArray<R>>
+  row: (rawRow: qt.DSV.Row<T>, i: number, columns: T[]) => R | undefined | null
+): Promise<qt.DSV.Parsed<R>>
 export function csv = dsvParse(csvParse)
-export function tsv<C extends string>(url: string, init?: RequestInit): Promise<qt.DSVRowArray<C>>
+export function tsv<C extends string>(url: string, init?: RequestInit): Promise<qt.DSV.RowArray<C>>
 export function tsv<R extends object, C extends string = string>(
   url: string,
-  row: (rawRow: qt.DSVRowString<C>, i: number, columns: C[]) => R | undefined | null
-): Promise<qt.DSVParsedArray<R>>
+  row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
+): Promise<qt.DSV.Parsed<R>>
 export function tsv<R extends object, C extends string = string>(
   url: string,
   init: RequestInit,
-  row: (rawRow: qt.DSVRowString<C>, i: number, columns: C[]) => R | undefined | null
-): Promise<qt.DSVParsedArray<R>>
+  row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
+): Promise<qt.DSV.Parsed<R>>
 export function tsv = dsvParse(tsvParse)
 export function image(url: string, init?: Partial<HTMLImageElement>): Promise<HTMLImageElement> {
   return new Promise(function (resolve, reject) {

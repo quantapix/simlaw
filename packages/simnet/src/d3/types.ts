@@ -1,9 +1,14 @@
 import type { MultiPolygon } from "geojson"
 
-export type Pair<T = number> = [T, T]
-export type Primitive = number | string | boolean | Date
 export type Base = Element | EnterElem | Document | Window | null
+export type Container = HTMLElement | SVGSVGElement | SVGGElement
+export type Primitive = number | string | boolean | Date
+export type Pair<T = number> = [T, T]
+export type Point = Pair<number>
+export type Span = Pair<number>
+
 export type Value<S extends Base, T, R> = (this: S, x: T, i: number, xs: S[] | ArrayLike<S>) => R
+export type CB<T extends object> = (this: T, ...xs: any[]) => void
 
 export interface Numeric {
   valueOf(): number
@@ -78,7 +83,7 @@ export interface Axis<T> {
   tickValues(xs: Iterable<T>): this
 }
 export namespace Axis {
-  export type ContainerElem = SVGSVGElement | SVGGElement
+  export type Container = SVGSVGElement | SVGGElement
   export type Domain = number | string | Date | { valueOf(): number }
   export interface TimeInterval {
     range(start: Date, stop: Date, step?: number): Date[]
@@ -118,7 +123,6 @@ export interface Brush<T> {
 export namespace Brush {
   export type Selection = [Point, Point] | Point
 }
-
 export interface Chord {
   src: Chord.Subgroup
   tgt: Chord.Subgroup
@@ -239,7 +243,6 @@ export interface Cubehelix extends Color {
   l: number
   copy(x?: { h?: number | undefined; s?: number | undefined; l?: number | undefined; alpha?: number | undefined }): this
 }
-
 export interface Contour extends MultiPolygon {
   value: number
 }
@@ -293,13 +296,11 @@ export interface Delaunay<T> {
   update(): this
   voronoi(x?: Delaunay.Bounds): Voronoi<T>
 }
-export type Point = Pair<number>
-export type Span = Pair<number>
 export namespace Delaunay {
   export type Triangle = Point[]
   export type Polygon = Point[]
   export type Bounds = [number, number, number, number]
-  export type GetCoordinate<P, PS> = (point: P, i: number, points: PS) => number
+  export type GetCoordinate<P, PS> = (x: P, i: number, xs: PS) => number
   export interface RectContext {
     rect(x: number, y: number, width: number, height: number): void
   }
@@ -310,7 +311,7 @@ export namespace Delaunay {
     lineTo(x: number, y: number): void
   }
   export interface ArcContext {
-    arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterclockwise?: boolean): void
+    arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, ccw?: boolean): void
   }
   export interface ClosableContext {
     closePath(): void
@@ -331,14 +332,11 @@ export interface Voronoi<T> {
   renderBounds(): string
   renderBounds(x: Delaunay.RectContext): void
   renderCell(x: number): string
-  renderCell(x: number, context: Delaunay.MoveContext & Delaunay.LineContext & Delaunay.ClosableContext): void
+  renderCell(x: number, c: Delaunay.MoveContext & Delaunay.LineContext & Delaunay.ClosableContext): void
   cellPolygons(): IterableIterator<Delaunay.Polygon & { i: number }>
   cellPolygon(x: number): Delaunay.Polygon
   update(): this
 }
-
-export type CB<T extends object> = (this: T, ...xs: any[]) => void
-
 export interface Dispatch<T extends object> {
   apply(n: string, x?: T, ...xs: any[]): void
   call(n: string, x?: T, ...xs: any[]): void
@@ -346,20 +344,14 @@ export interface Dispatch<T extends object> {
   on(n: string, f?: CB<T>): this
   on(n: string): CB<T> | undefined
 }
-
 export type Dragged = Element
-export type DragContainer = HTMLElement | SVGSVGElement | SVGGElement
-export interface SubjectPosition {
-  x: number
-  y: number
-}
-export interface DragBehavior<D extends Dragged, T, Subject> extends Function {
+export interface Drag<D extends Dragged, T, Subject> extends Function {
   (x: Selection<D, T, any, any>, ...xs: any[]): void
   clickDistance(): number
   clickDistance(x: number): this
-  container(): Value<D, T, DragContainer>
-  container(f: Value<D, T, DragContainer>): this
-  container(x: DragContainer): this
+  container(): Value<D, T, Drag.Container>
+  container(f: Value<D, T, Drag.Container>): this
+  container(x: Drag.Container): this
   filter(): (this: D, e: any, x: T) => boolean
   filter(f: (this: D, e: any, x: T) => boolean): this
   on(n: string, f: (this: D, e: any, x: T) => void): this
@@ -371,38 +363,43 @@ export interface DragBehavior<D extends Dragged, T, Subject> extends Function {
   touchable(f: Value<D, T, boolean>): this
   touchable(x: boolean): this
 }
-
-export type DSVRowString<Columns extends string = string> = {
-  [key in Columns]: string | undefined
-}
-export type DSVRaw<T extends object> = {
-  [key in keyof T]: string | undefined
-}
-export interface DSVRowAny {
-  [key: string]: any
-}
-export interface DSVRowArray<Columns extends string = string> extends Array<DSVRowString<Columns>> {
-  columns: Columns[]
-}
-export interface DSVParsedArray<T> extends Array<T> {
-  columns: Array<keyof T>
+export namespace Drag {
+  export type Container = HTMLElement | SVGSVGElement | SVGGElement
+  export interface Position {
+    x: number
+    y: number
+  }
 }
 export interface DSV {
-  parse<Columns extends string>(dsvString: string): DSVRowArray<Columns>
-  parse<ParsedRow extends object, Columns extends string>(
-    dsvString: string,
-    row: (rawRow: DSVRowString<Columns>, i: number, columns: Columns[]) => ParsedRow | undefined | null
-  ): DSVParsedArray<ParsedRow>
-  parseRows(dsvString: string): string[][]
-  parseRows<ParsedRow extends object>(
-    dsvString: string,
-    row: (rawRow: string[], i: number) => ParsedRow | undefined | null
-  ): ParsedRow[]
-  format<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
-  formatBody<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
-  formatRows(rows: readonly string[][]): string
-  formatRow(row: readonly string[]): string
-  formatValue(value: string): string
+  format<T extends object>(rs: readonly T[], cs?: ReadonlyArray<keyof T>): string
+  formatBody<T extends object>(rs: readonly T[], cs?: ReadonlyArray<keyof T>): string
+  formatRow(x: readonly string[]): string
+  formatRows(xs: readonly string[][]): string
+  formatValue(x: string): string
+  parse<C extends string>(x: string): DSV.RowArray<C>
+  parse<R extends object, C extends string>(
+    x: string,
+    f: (x: DSV.Row<C>, i: number, xs: C[]) => R | undefined | null
+  ): DSV.Parsed<R>
+  parseRows(x: string): string[][]
+  parseRows<R extends object>(x: string, f: (x: string[], i: number) => R | undefined | null): R[]
+}
+export namespace DSV {
+  export type Row<C extends string = string> = {
+    [k in C]: string | undefined
+  }
+  export type Raw<T extends object> = {
+    [k in keyof T]: string | undefined
+  }
+  export interface RowAny {
+    [k: string]: any
+  }
+  export interface RowArray<C extends string = string> extends Array<DSV.Row<C>> {
+    columns: C[]
+  }
+  export interface Parsed<C> extends Array<C> {
+    columns: Array<keyof C>
+  }
 }
 
 export interface PolyEasingFac {
@@ -1285,7 +1282,6 @@ export interface EnterElem extends Element {
   querySelector(x: string): Element
   querySelectorAll(x: string): NodeListOf<Element>
 }
-export type ContainerElem = HTMLElement | SVGSVGElement | SVGGElement
 export interface ClientPointEvent {
   clientX: number
   clientY: number

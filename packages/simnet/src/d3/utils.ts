@@ -1067,7 +1067,7 @@ export namespace drag {
       public type: "start" | "drag" | "end" | string,
       public id: "mouse" | number,
       public src: any,
-      public tgt: qt.DragBehavior<D, T, S>,
+      public tgt: qt.Drag<D, T, S>,
       public subject: S,
       public active: number,
       public x: number,
@@ -1085,8 +1085,8 @@ export namespace drag {
     }
   }
 
-  export function drag<B extends qt.Dragged, T>(): qt.DragBehavior<B, T, T | qt.SubjectPosition>
-  export function drag<B extends qt.Dragged, T, U>(): qt.DragBehavior<B, T, U>
+  export function drag<B extends qt.Dragged, T>(): qt.Drag<B, T, T | qt.Drag.Position>
+  export function drag<B extends qt.Dragged, T, U>(): qt.Drag<B, T, U>
   export function drag() {
     const _gestures = {},
       _listeners = dispatch("start", "drag", "end")
