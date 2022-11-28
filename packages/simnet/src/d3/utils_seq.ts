@@ -570,9 +570,9 @@ const array = Array.prototype
 export const slice = array.slice
 export const map = array.map
 
-export function bin(): qt.HistoNumGen<number, number>
-export function bin<T, V extends number | undefined>(): qt.HistoNumGen<T, V>
-export function bin<T, V extends Date | undefined>(): qt.HistoDateGen<T, V>
+export function bin(): qt.HistoNums<number, number>
+export function bin<T, V extends number | undefined>(): qt.HistoNums<T, V>
+export function bin<T, V extends Date | undefined>(): qt.HistoDates<T, V>
 export function bin() {
   let value = qu.identity,
     domain = extent,

@@ -20,44 +20,31 @@ export interface Bin<T, U extends number | Date | undefined> extends Array<T> {
   x0: U | undefined
   x1: U | undefined
 }
-export type ThresholdGen<T extends number | undefined = number | undefined> = (
+export type Threshold<T extends number | undefined = number | undefined> = (
   xs: ArrayLike<T>,
   min: number,
   max: number
 ) => number
-export type ThresholdDatesGen<T extends Date | undefined> = (xs: ArrayLike<T>, min: Date, max: Date) => T[]
-export type ThresholdNumsGen<T extends number | undefined> = (xs: ArrayLike<T>, min: number, max: number) => T[]
-export interface HistogramCommon<T, U extends number | Date | undefined> {
+export type ThresholdDates<T extends Date | undefined> = (xs: ArrayLike<T>, min: Date, max: Date) => T[]
+export type ThresholdNums<T extends number | undefined> = (xs: ArrayLike<T>, min: number, max: number) => T[]
+export interface Histo<T, U extends number | Date | undefined> {
   (xs: ArrayLike<T>): Array<Bin<T, U>>
   value(): (x: T, i: number, xs: ArrayLike<T>) => U
   value(f: (x: T, i: number, xs: ArrayLike<T>) => U): this
 }
-export interface HistoDateGen<T, U extends Date | undefined> extends HistogramCommon<T, Date> {
+export interface HistoDates<T, U extends Date | undefined> extends Histo<T, Date> {
   domain(): (xs: ArrayLike<U>) => [Date, Date]
   domain(x: [Date, Date] | ((xs: ArrayLike<U>) => [Date, Date])): this
-  thresholds(): ThresholdDatesGen<U>
-  thresholds(xs: ArrayLike<U> | ThresholdDatesGen<U>): this
+  thresholds(): ThresholdDates<U>
+  thresholds(xs: ArrayLike<U> | ThresholdDates<U>): this
 }
-export interface HistoNumGen<T, U extends number | undefined> extends HistogramCommon<T, U> {
+export interface HistoNums<T, U extends number | undefined> extends Histo<T, U> {
   domain(): (xs: Iterable<U>) => Pair | Pair<undefined>
   domain(x: Pair | ((xs: Iterable<U>) => Pair | Pair<undefined>)): this
-  thresholds(): ThresholdGen<U> | ThresholdNumsGen<U>
-  thresholds(n: number | ThresholdGen<U>): this
-  thresholds(xs: ArrayLike<U> | ThresholdNumsGen<U>): this
+  thresholds(): Threshold<U> | ThresholdNums<U>
+  thresholds(n: number | Threshold<U>): this
+  thresholds(xs: ArrayLike<U> | ThresholdNums<U>): this
 }
-
-export type AxisDomain = number | string | Date | { valueOf(): number }
-export interface AxisTimeInterval {
-  range(start: Date, stop: Date, step?: number): Date[]
-}
-export interface AxisScale<T> {
-  (x: T): number | undefined
-  bandwidth?(): number
-  copy(): this
-  domain(): T[]
-  range(): number[]
-}
-export type AxisContainerElement = SVGSVGElement | SVGGElement
 export interface Axis<T> {
   (
     x:
@@ -68,8 +55,8 @@ export interface Axis<T> {
   ): void
   offset(): number
   offset(x: number): this
-  scale(x: AxisScale<T>): this
-  scale<A extends AxisScale<T>>(): A
+  scale(x: Axis.Scale<T>): this
+  scale<A extends Axis.Scale<T>>(): A
   tickArgs(): any[]
   tickArgs(xs: any[]): this
   tickFormat(): ((x: T, i: number) => string) | null
@@ -79,7 +66,7 @@ export interface Axis<T> {
   tickPadding(x: number): this
   ticks(n: number, spec?: string): this
   ticks(x: any, ...xs: any[]): this
-  ticks(x: AxisTimeInterval, spec?: string): this
+  ticks(x: Axis.TimeInterval, spec?: string): this
   tickSize(): number
   tickSize(x: number): this
   tickSizeInner(): number
@@ -89,6 +76,20 @@ export interface Axis<T> {
   tickValues(): T[] | null
   tickValues(x: null): this
   tickValues(xs: Iterable<T>): this
+}
+export namespace Axis {
+  export type ContainerElem = SVGSVGElement | SVGGElement
+  export type Domain = number | string | Date | { valueOf(): number }
+  export interface TimeInterval {
+    range(start: Date, stop: Date, step?: number): Date[]
+  }
+  export interface Scale<T> {
+    (x: T): number | undefined
+    bandwidth?(): number
+    copy(): this
+    domain(): T[]
+    range(): number[]
+  }
 }
 export interface Brush<T> {
   (x: Selection<SVGGElement, T, any, any>, ...xs: any[]): void
@@ -150,49 +151,50 @@ export namespace Chord {
 export interface Chords extends Array<Chord> {
   groups: Chord.Group[]
 }
-export interface RibbonSubgroup {
-  endAngle: number
-  radius: number
-  startAngle: number
-}
 export interface Ribbon {
-  src: RibbonSubgroup
-  tgt: RibbonSubgroup
+  src: Ribbon.Subgroup
+  tgt: Ribbon.Subgroup
 }
-export interface RibbonGen<This, T, S> {
-  (this: This, x: T, ...xs: any[]): void
-  (this: This, x: T, ...xs: any[]): string | null
-  source(): (this: This, x: T, ...xs: any[]) => S
-  source(f: (this: This, x: T, ...xs: any[]) => S): this
-  target(): (this: This, x: T, ...xs: any[]) => S
-  target(f: (this: This, x: T, ...xs: any[]) => S): this
-  radius(): (this: This, d: S, ...xs: any[]) => number
-  radius(x: number): this
-  radius(f: (this: This, d: S, ...xs: any[]) => number): this
-  sourceRadius(): (this: This, d: S, ...xs: any[]) => number
-  sourceRadius(x: number): this
-  sourceRadius(f: (this: This, d: S, ...xs: any[]) => number): this
-  targetRadius(): (this: This, d: S, ...xs: any[]) => number
-  targetRadius(x: number): this
-  targetRadius(f: (this: This, d: S, ...xs: any[]) => number): this
-  startAngle(): (this: This, d: S, ...xs: any[]) => number
-  startAngle(x: number): this
-  startAngle(f: (this: This, d: S, ...xs: any[]) => number): this
-  endAngle(): (this: This, d: S, ...xs: any[]) => number
-  endAngle(x: number): this
-  endAngle(f: (this: This, d: S, ...xs: any[]) => number): this
-  padAngle(): (this: This, d: S, ...xs: any[]) => number
-  padAngle(x: number): this
-  padAngle(f: (this: This, d: S, ...xs: any[]) => number): this
-  context(): CanvasRenderingContext2D | null
-  context(x: CanvasRenderingContext2D | null): this
+export namespace Ribbon {
+  export interface Subgroup {
+    endAngle: number
+    radius: number
+    startAngle: number
+  }
+  export interface Gen<This, T, S> {
+    (this: This, x: T, ...xs: any[]): void
+    (this: This, x: T, ...xs: any[]): string | null
+    source(): (this: This, x: T, ...xs: any[]) => S
+    source(f: (this: This, x: T, ...xs: any[]) => S): this
+    target(): (this: This, x: T, ...xs: any[]) => S
+    target(f: (this: This, x: T, ...xs: any[]) => S): this
+    radius(): (this: This, d: S, ...xs: any[]) => number
+    radius(x: number): this
+    radius(f: (this: This, d: S, ...xs: any[]) => number): this
+    sourceRadius(): (this: This, d: S, ...xs: any[]) => number
+    sourceRadius(x: number): this
+    sourceRadius(f: (this: This, d: S, ...xs: any[]) => number): this
+    targetRadius(): (this: This, d: S, ...xs: any[]) => number
+    targetRadius(x: number): this
+    targetRadius(f: (this: This, d: S, ...xs: any[]) => number): this
+    startAngle(): (this: This, d: S, ...xs: any[]) => number
+    startAngle(x: number): this
+    startAngle(f: (this: This, d: S, ...xs: any[]) => number): this
+    endAngle(): (this: This, d: S, ...xs: any[]) => number
+    endAngle(x: number): this
+    endAngle(f: (this: This, d: S, ...xs: any[]) => number): this
+    padAngle(): (this: This, d: S, ...xs: any[]) => number
+    padAngle(x: number): this
+    padAngle(f: (this: This, d: S, ...xs: any[]) => number): this
+    context(): CanvasRenderingContext2D | null
+    context(x: CanvasRenderingContext2D | null): this
+  }
+  export interface ArrowGen<This, T, S> extends Ribbon.Gen<This, T, S> {
+    headRadius(): (this: This, d: S, ...xs: any[]) => number
+    headRadius(x: number): this
+    headRadius(f: (this: This, d: S, ...xs: any[]) => number): this
+  }
 }
-export interface RibbonArrowGen<This, T, S> extends RibbonGen<This, T, S> {
-  headRadius(): (this: This, d: S, ...xs: any[]) => number
-  headRadius(x: number): this
-  headRadius(f: (this: This, d: S, ...xs: any[]) => number): this
-}
-
 export interface Color {
   alpha: number
   brighter(k?: number): Color
@@ -238,29 +240,29 @@ export interface Cubehelix extends Color {
   copy(x?: { h?: number | undefined; s?: number | undefined; l?: number | undefined; alpha?: number | undefined }): this
 }
 
-export interface ContourPoly extends MultiPolygon {
+export interface Contour extends MultiPolygon {
   value: number
 }
 export interface Contours {
-  (xs: number[]): ContourPoly[]
-  contour(xs: number[], threshold: number): ContourPoly
+  (xs: number[]): Contour[]
+  contour(xs: number[], threshold: number): Contour
   size(): Span
   size(x: Span): this
   smooth(): boolean
   smooth(x: boolean): this
-  thresholds(): ThresholdGen<number> | ThresholdNumsGen<number>
-  thresholds(x: number | number[] | ThresholdGen<number> | ThresholdNumsGen<number>): this
+  thresholds(): Threshold<number> | ThresholdNums<number>
+  thresholds(x: number | number[] | Threshold<number> | ThresholdNums<number>): this
 }
 export interface Density<T = Point> {
-  (xs: T[]): ContourPoly[]
+  (xs: T[]): Contour[]
   bandwidth(): number
   bandwidth(x: number): this
   cellSize(): number
   cellSize(x: number): this
   size(): Span
   size(x: Span): this
-  thresholds(): ThresholdGen<number> | ThresholdNumsGen<number>
-  thresholds(x: number | number[] | ThresholdGen<number> | ThresholdNumsGen<number>): this
+  thresholds(): Threshold<number> | ThresholdNums<number>
+  thresholds(x: number | number[] | Threshold<number> | ThresholdNums<number>): this
   weight(): (x: T) => number
   weight(weight: (x: T) => number): this
   x(): (x: T) => number

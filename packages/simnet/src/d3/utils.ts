@@ -335,7 +335,7 @@ function center(scale, offset) {
   if (scale.round()) offset = round(offset)
   return x => +scale(x) + offset
 }
-function axis<T>(orient, scale: qt.AxisScale<T>): qt.Axis<T> {
+function axis<T>(orient, scale: qt.Axis.Scale<T>): qt.Axis<T> {
   let args: any[] = [],
     vals: any[] | null = null,
     format: ((x: T, i: number) => string) | null = null,
@@ -433,16 +433,16 @@ function axis<T>(orient, scale: qt.AxisScale<T>): qt.Axis<T> {
     x === undefined ? vals && vals.slice() : ((vals = x[0] == null ? null : Array.from(x)), f)
   return f
 }
-export function axisTop<T extends qt.AxisDomain>(scale: qt.AxisScale<T>): qt.Axis<T> {
+export function axisTop<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
   return axis(top, scale)
 }
-export function axisRight<T extends qt.AxisDomain>(scale: qt.AxisScale<T>): qt.Axis<T> {
+export function axisRight<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
   return axis(right, scale)
 }
-export function axisBottom<T extends qt.AxisDomain>(scale: qt.AxisScale<T>): qt.Axis<T> {
+export function axisBottom<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
   return axis(bottom, scale)
 }
-export function axisLeft<T extends qt.AxisDomain>(scale: qt.AxisScale<T>): qt.Axis<T> {
+export function axisLeft<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
   return axis(left, scale)
 }
 

@@ -206,13 +206,13 @@ function _ribbon(headRadius?) {
   }
   return f
 }
-export function ribbon(): qt.RibbonGen<any, qt.Ribbon, qt.RibbonSubgroup>
-export function ribbon<T, U>(): qt.RibbonGen<any, T, U>
-export function ribbon<This, T, U>(): qt.RibbonGen<This, T, U> {
+export function ribbon(): qt.Ribbon.Gen<any, qt.Ribbon, qt.Ribbon.Subgroup>
+export function ribbon<T, U>(): qt.Ribbon.Gen<any, T, U>
+export function ribbon<This, T, U>(): qt.Ribbon.Gen<This, T, U> {
   return _ribbon()
 }
-export function ribbonArrow(): qt.RibbonArrowGen<any, qt.Ribbon, qt.RibbonSubgroup>
-export function ribbonArrow<T, U>(): qt.RibbonArrowGen<any, T, U>
-export function ribbonArrow<This, T, U>(): qt.RibbonArrowGen<This, T, U> {
+export function ribbonArrow(): qt.Ribbon.ArrowGen<any, qt.Ribbon, qt.Ribbon.Subgroup>
+export function ribbonArrow<T, U>(): qt.Ribbon.ArrowGen<any, T, U>
+export function ribbonArrow<This, T, U>(): qt.Ribbon.ArrowGen<This, T, U> {
   return _ribbon(() => 10)
 }
