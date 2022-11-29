@@ -375,9 +375,9 @@ export namespace centroid {
     pointCartesian(x0, y0, z0)
   }
 }
-export function circle(): qt.GeoCircleGen
-export function circle<T>(): qt.GeoCircleGen<any, T>
-export function circle<This, T>(): qt.GeoCircleGen<This, T>
+export function circle(): qt.Geo.Circle
+export function circle<T>(): qt.Geo.Circle<any, T>
+export function circle<This, T>(): qt.Geo.Circle<This, T>
 export function circle() {
   let center = qu.constant([0, 0]),
     radius = qu.constant(90),
@@ -547,7 +547,7 @@ export function distance(a: qt.Point, b: qt.Point): number {
   coordinates[1] = b
   return length(object)
 }
-export function graticule(): qt.GeoGraticuleGen {
+export function graticule(): qt.Geo.Graticule {
   let x1,
     x0,
     X1,
@@ -882,7 +882,7 @@ export namespace rotation {
 }
 export function stream(
   object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection,
-  stream: GeoStream
+  stream: Geo.Stream
 ): void {
   if (object && streamObjectType.hasOwnProperty(object.type)) {
     streamObjectType[object.type](object, stream)
@@ -2156,7 +2156,7 @@ export namespace proj {
       .rotate([96, 0])
       .center([-0.6, 38.7])
   }
-  export function albersUsa(): GeoProjection {
+  export function albersUsa(): Geo.Projection {
     let cache,
       cacheStream,
       lower48 = albers(),
@@ -2458,10 +2458,10 @@ export namespace proj {
     }
     return transform
   }
-  export function projection(x: GeoRawProjection): GeoProjection {
+  export function projection(x: GeoRawProjection): Geo.Projection {
     return mutator(() => x)()
   }
-  export function mutator(projectAt: (...xs: any[]) => GeoRawProjection): () => GeoProjection {
+  export function mutator(projectAt: (...xs: any[]) => GeoRawProjection): () => Geo.Projection {
     let project,
       k = 150, // scale
       x = 480,

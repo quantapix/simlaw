@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
-import type { hierarchy as qh } from "./types.js"
+import type { Hierarchy as qh } from "./types.js"
 
 export function hierarchy<T>(data: T, children?: (x: T) => Iterable<T> | null | undefined): qh.Node<T> {
   if (data instanceof Map) {

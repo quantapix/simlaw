@@ -455,31 +455,31 @@ function jiggle(rnd: Function) {
 }
 
 class Quad<T> {
-  n: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined
+  n: qt.Quad.Node<T> | qt.Quad.Leaf<T> | undefined
   ps: qt.Pair<qt.Point>
-  constructor(n: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined, ps: qt.Pair<qt.Point>)
-  constructor(n: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined, ...ps: number[])
-  constructor(n: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined, ps: any) {
+  constructor(n: qt.Quad.Node<T> | qt.Quad.Leaf<T> | undefined, ps: qt.Pair<qt.Point>)
+  constructor(n: qt.Quad.Node<T> | qt.Quad.Leaf<T> | undefined, ...ps: number[])
+  constructor(n: qt.Quad.Node<T> | qt.Quad.Leaf<T> | undefined, ps: any) {
     this.n = n
     this.ps = ps
   }
 }
 
-export function quadtree<T>(xs?: T[]): qt.Quadtree<T>
-export function quadtree<T>(xs: T[], x: (t: T) => number, y: (t: T) => number): qt.Quadtree<T>
+export function quadtree<T>(xs?: T[]): qt.Quad.Tree<T>
+export function quadtree<T>(xs: T[], x: (t: T) => number, y: (t: T) => number): qt.Quad.Tree<T>
 export function quadtree(xs: any, x?: (t: any) => number, y?: (t: any) => number) {
-  const r = new Quadtree(x === undefined ? (t: any) => t[0] : x, y === undefined ? (t: any) => t[1] : y)
+  const r = new Quad.Tree(x === undefined ? (t: any) => t[0] : x, y === undefined ? (t: any) => t[1] : y)
   return xs == undefined ? r : r.addAll(xs)
 }
-class Quadtree<T> implements qt.Quadtree<T> {
+class Quad.Tree<T> implements qt.Quad.Tree<T> {
   _x
   _y
-  _root?: qt.QuadNode<T> | qt.QuadLeaf<T> | undefined
+  _root?: qt.Quad.Node<T> | qt.Quad.Leaf<T> | undefined
   ps: qt.Pair<qt.Point> = [
     [NaN, NaN],
     [NaN, NaN],
   ]
-  constructor(x: Quadtree<T>)
+  constructor(x: Quad.Tree<T>)
   constructor(x: (t: T) => number, y: (t: T) => number, ps?: qt.Pair<qt.Point>)
   constructor(x: any, y?: (t: T) => number, ps?: qt.Pair<qt.Point>) {
     if (typeof x !== "function") (x = x._x), (y = x._y), (ps = x.ps)
@@ -494,7 +494,7 @@ class Quadtree<T> implements qt.Quadtree<T> {
   }
   addOne(x: number, y: number, data: T) {
     if (isNaN(x) || isNaN(y)) return this
-    const leaf = { data } as qt.QuadLeaf<T>
+    const leaf = { data } as qt.Quad.Leaf<T>
     let n = this._root
     if (!n) return (this._root = leaf), this
     let [[x0, y0], [x1, y1]] = this.ps
@@ -503,7 +503,7 @@ class Quadtree<T> implements qt.Quadtree<T> {
       right: number,
       bottom: number,
       i = 0,
-      n2: qt.QuadNode<T> | undefined
+      n2: qt.Quad.Node<T> | undefined
     while (n.length) {
       if ((right = x >= (xm = (x0 + x1) / 2) ? 1 : 0)) x0 = xm
       else x1 = xm
@@ -519,7 +519,7 @@ class Quadtree<T> implements qt.Quadtree<T> {
     if (x === xp && y === yp) return (leaf.next = n), n2 ? (n2[i] = leaf) : (this._root = leaf), this
     let j: number
     do {
-      n2 = n2 ? (n2[i] = new Array(4) as qt.QuadNode<T>) : (this._root = new Array(4) as qt.QuadNode<T>)
+      n2 = n2 ? (n2[i] = new Array(4) as qt.Quad.Node<T>) : (this._root = new Array(4) as qt.Quad.Node<T>)
       if ((right = x >= (xm = (x0 + x1) / 2) ? 1 : 0)) x0 = xm
       else x1 = xm
       if ((bottom = y >= (ym = (y0 + y1) / 2) ? 1 : 0)) y0 = ym
@@ -556,23 +556,23 @@ class Quadtree<T> implements qt.Quadtree<T> {
     return this
   }
   copy() {
-    const r = new Quadtree<T>(this)
+    const r = new Quad.Tree<T>(this)
     const n = this._root
     if (!n) return r
-    function leaf(x?: qt.QuadLeaf<T>) {
-      const r: qt.QuadLeaf<T> = { data: x!.data }
+    function leaf(x?: qt.Quad.Leaf<T>) {
+      const r: qt.Quad.Leaf<T> = { data: x!.data }
       let n = r
       while ((x = x!.next)) n = n.next = { data: x.data }
       return r
     }
     if (!n.length) return (r._root = leaf(n)), r
-    const xs = [{ src: n, tgt: (r._root = new Array(4) as qt.QuadNode<T>) }]
+    const xs = [{ src: n, tgt: (r._root = new Array(4) as qt.Quad.Node<T>) }]
     while (true) {
       const x = xs.pop()
       if (!x) break
       x.src.forEach((c, i) => {
         if (c) {
-          if (c.length) xs.push({ src: c, tgt: (x.tgt[i] = new Array(4) as qt.QuadNode<T>) })
+          if (c.length) xs.push({ src: c, tgt: (x.tgt[i] = new Array(4) as qt.Quad.Node<T>) })
           else x.tgt[i] = leaf(c)
         }
       })
@@ -590,7 +590,7 @@ class Quadtree<T> implements qt.Quadtree<T> {
       let n = this._root
       while (x0 > x || x >= x1 || y0 > y || y >= y1) {
         const i = ((y < y0 ? 1 : 0) << 1) | (x < x0 ? 1 : 0)
-        const n2 = new Array(4) as qt.QuadNode<T>
+        const n2 = new Array(4) as qt.Quad.Node<T>
         n2[i] = n
         n = n2
         z *= 2
@@ -619,9 +619,9 @@ class Quadtree<T> implements qt.Quadtree<T> {
   }
   data() {
     const r: T[] = []
-    this.visit(function (x: qt.QuadNode<T> | qt.QuadLeaf<T>) {
+    this.visit(function (x: qt.Quad.Node<T> | qt.Quad.Leaf<T>) {
       if (!x.length) {
-        let l: qt.QuadLeaf<T> | undefined = x
+        let l: qt.Quad.Leaf<T> | undefined = x
         do r.push(l.data)
         while ((l = l.next))
       }
@@ -738,9 +738,9 @@ class Quadtree<T> implements qt.Quadtree<T> {
   }
   size() {
     let r = 0
-    this.visit(function (x: qt.QuadNode<T> | qt.QuadLeaf<T>) {
+    this.visit(function (x: qt.Quad.Node<T> | qt.Quad.Leaf<T>) {
       if (!x?.length) {
-        let l: qt.QuadLeaf<T> | undefined = x
+        let l: qt.Quad.Leaf<T> | undefined = x
         do ++r
         while ((l = l.next))
       }

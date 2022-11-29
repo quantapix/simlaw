@@ -402,18 +402,18 @@ export namespace DSV {
   }
 }
 
-export interface PolyEasingFac {
-  (normalizedTime: number): number
-  exponent(e: number): PolyEasingFac
+export interface PolyEasing {
+  (time: number): number
+  exponent(x: number): PolyEasing
 }
-export interface BackEasingFac {
-  (normalizedTime: number): number
-  overshoot(s: number): BackEasingFac
+export interface BackEasing {
+  (time: number): number
+  overshoot(x: number): BackEasing
 }
-export interface ElasticEasingFac {
-  (normalizedTime: number): number
-  amplitude(a: number): ElasticEasingFac
-  period(p: number): ElasticEasingFac
+export interface ElasticEasing {
+  (time: number): number
+  amplitude(x: number): ElasticEasing
+  period(x: number): ElasticEasing
 }
 
 export interface SimNode {
@@ -530,46 +530,162 @@ export namespace Force {
   }
 }
 
-export interface FormatLocaleDefinition {
-  decimal: string
-  thousands: string
-  grouping: number[]
-  currency: [string, string]
-  numerals?: string[] | undefined
-  percent?: string | undefined
-  minus?: string | undefined
-  nan?: string | undefined
-}
-export interface FormatLocaleObject {
-  format(spec: string): (n: number | { valueOf(): number }) => string
-  formatPrefix(spec: string, value: number): (n: number | { valueOf(): number }) => string
-}
-export interface FormatSpecifierObject {
-  fill?: string | undefined
-  align?: string | undefined
-  sign?: string | undefined
-  symbol?: string | undefined
-  zero?: string | undefined
-  width?: string | undefined
-  comma?: string | undefined
-  precision?: string | undefined
-  trim?: string | undefined
-  type?: string | undefined
-}
-export interface FormatSpecifier {
-  fill: string
-  align: ">" | "<" | "^" | "="
-  sign: "-" | "+" | "(" | " "
-  symbol: "$" | "#" | ""
-  zero: boolean
-  width: number | undefined
-  comma: boolean
-  precision: number | undefined
-  trim: boolean
-  type: "e" | "f" | "g" | "r" | "s" | "%" | "p" | "b" | "o" | "d" | "x" | "X" | "c" | "" | "n"
-  toString(): string
+export namespace Format {
+  export interface Definition {
+    decimal: string
+    thousands: string
+    grouping: number[]
+    currency: [string, string]
+    numerals?: string[] | undefined
+    percent?: string | undefined
+    minus?: string | undefined
+    nan?: string | undefined
+  }
+  export interface Locale {
+    format(spec: string): (x: number | { valueOf(): number }) => string
+    formatPrefix(spec: string, value: number): (x: number | { valueOf(): number }) => string
+  }
+  export interface Specifier {
+    fill?: string | undefined
+    align?: string | undefined
+    sign?: string | undefined
+    symbol?: string | undefined
+    zero?: string | undefined
+    width?: string | undefined
+    comma?: string | undefined
+    precision?: string | undefined
+    trim?: string | undefined
+    type?: string | undefined
+  }
+  export interface Spec {
+    fill: string
+    align: ">" | "<" | "^" | "="
+    sign: "-" | "+" | "(" | " "
+    symbol: "$" | "#" | ""
+    zero: boolean
+    width: number | undefined
+    comma: boolean
+    precision: number | undefined
+    trim: boolean
+    type: "e" | "f" | "g" | "r" | "s" | "%" | "p" | "b" | "o" | "d" | "x" | "X" | "c" | "" | "n"
+    toString(): string
+  }
 }
 
+export namespace Geo {
+  export interface Circle<This = any, T = any> {
+    (this: This, d?: T, ...xs: any[]): GeoJSON.Polygon
+    center(): (this: This, x: T, ...xs: any[]) => Point
+    center(center: Point | ((this: This, x: T, ...xs: any[]) => Point)): this
+    precision(): (this: This, x: T, ...xs: any[]) => number
+    precision(precision: number | ((this: This, x: T, ...xs: any[]) => number)): this
+    radius(): (this: This, x: T, ...xs: any[]) => number
+    radius(radius: number | ((this: This, x: T, ...xs: any[]) => number)): this
+  }
+  export interface Graticule {
+    (): GeoJSON.MultiLineString
+    extent(): [Point, Point]
+    extent(extent: [Point, Point]): this
+    extentMajor(): [Point, Point]
+    extentMajor(extent: [Point, Point]): this
+    extentMinor(): [Point, Point]
+    extentMinor(extent: [Point, Point]): this
+    lines(): GeoJSON.LineString[]
+    outline(): GeoJSON.Polygon
+    precision(): number
+    precision(angle: number): this
+    step(): Point
+    step(step: Point): this
+    stepMajor(): Point
+    stepMajor(step: Point): this
+    stepMinor(): Point
+    stepMinor(step: Point): this
+  }
+  export interface Stream {
+    lineEnd(): void
+    lineStart(): void
+    point(x: number, y: number, z?: number): void
+    polygonEnd(): void
+    polygonStart(): void
+    sphere?(): void
+  }
+  export interface GeoRawProjection {
+    (lambda: number, phi: number): Point
+    invert?(x: number, y: number): Point
+  }
+  export interface StreamWrapper {
+    stream(x: Stream): Stream
+  }
+  export interface Projection extends Geo.StreamWrapper {
+    (point: Point): Point | null
+    angle(): number
+    angle(angle: number): this
+    center(): Point
+    center(point: Point): this
+    clipAngle(): number | null
+    clipAngle(angle: null | number): this
+    clipExtent(): [Point, Point] | null
+    clipExtent(extent: null | [Point, Point]): this
+    fitExtent(
+      extent: [Point, Point],
+      object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+    ): this
+    fitSize(
+      size: Point,
+      object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+    ): this
+    fitWidth(
+      width: number,
+      object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+    ): this
+    fitHeight(
+      height: number,
+      object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
+    ): this
+    invert?(point: Point): Point | null
+    postclip(): (stream: Geo.Stream) => Geo.Stream
+    postclip(postclip: (stream: Geo.Stream) => Geo.Stream): this
+    precision(): number
+    precision(precision: number): this
+    preclip(): (stream: Geo.Stream) => Geo.Stream
+    preclip(preclip: (stream: Geo.Stream) => Geo.Stream): this
+    reflectX(): boolean
+    reflectX(reflect: boolean): this
+    reflectY(): boolean
+    reflectY(reflect: boolean): this
+    rotate(): [number, number, number]
+    rotate(angles: Point | [number, number, number]): this
+    scale(): number
+    scale(scale: number): this
+    translate(): Point
+    translate(point: Point): this
+  }
+  export interface GeoConicProjection extends Geo.Projection {
+    parallels(): Point
+    parallels(x: Point): this
+  }
+  export interface Context {
+    arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, anticlockwise?: boolean): void
+    beginPath(): void
+    closePath(): void
+    lineTo(x: number, y: number): void
+    moveTo(x: number, y: number): void
+  }
+  export interface Path<This = any, T extends GeoPermissibleObjects = GeoPermissibleObjects> {
+    (this: This, object: T, ...xs: any[]): string | null
+    (this: This, object: T, ...xs: any[]): void
+    area(object: T): number
+    bounds(object: T): [Point, Point]
+    centroid(object: T): Point
+    context(context: null | Context): this
+    context<C extends Context | null>(): C
+    measure(object: T): number
+    pointRadius(): ((this: This, object: T, ...xs: any[]) => number) | number
+    pointRadius(value: number | ((this: This, object: T, ...xs: any[]) => number)): this
+    projection(projection: null | Geo.Projection | Geo.StreamWrapper): this
+    projection<P extends GeoConicProjection | Geo.Projection | Geo.StreamWrapper | null>(): P
+  }
+}
 export interface GeoSphere {
   type: "Sphere"
 }
@@ -606,142 +722,30 @@ export interface GeoRotation {
   (x: Point): Point
   invert(x: Point): Point
 }
-export interface GeoCircleGen<This = any, T = any> {
-  (this: This, d?: T, ...xs: any[]): GeoJSON.Polygon
-  center(): (this: This, x: T, ...xs: any[]) => Point
-  center(center: Point | ((this: This, x: T, ...xs: any[]) => Point)): this
-  radius(): (this: This, x: T, ...xs: any[]) => number
-  radius(radius: number | ((this: This, x: T, ...xs: any[]) => number)): this
-  precision(): (this: This, x: T, ...xs: any[]) => number
-  precision(precision: number | ((this: This, x: T, ...xs: any[]) => number)): this
-}
-export interface GeoGraticuleGen {
-  (): GeoJSON.MultiLineString
-  lines(): GeoJSON.LineString[]
-  outline(): GeoJSON.Polygon
-  extent(): [Point, Point]
-  extent(extent: [Point, Point]): this
-  extentMajor(): [Point, Point]
-  extentMajor(extent: [Point, Point]): this
-  extentMinor(): [Point, Point]
-  extentMinor(extent: [Point, Point]): this
-  step(): Point
-  step(step: Point): this
-  stepMajor(): Point
-  stepMajor(step: Point): this
-  stepMinor(): Point
-  stepMinor(step: Point): this
-  precision(): number
-  precision(angle: number): this
-}
-export interface GeoStream {
-  lineEnd(): void
-  lineStart(): void
-  point(x: number, y: number, z?: number): void
-  polygonEnd(): void
-  polygonStart(): void
-  sphere?(): void
-}
-export interface GeoRawProjection {
-  (lambda: number, phi: number): Point
-  invert?(x: number, y: number): Point
-}
-export interface GeoStreamWrapper {
-  stream(stream: GeoStream): GeoStream
-}
-export interface GeoProjection extends GeoStreamWrapper {
-  (point: Point): Point | null
-  invert?(point: Point): Point | null
-  preclip(): (stream: GeoStream) => GeoStream
-  preclip(preclip: (stream: GeoStream) => GeoStream): this
-  postclip(): (stream: GeoStream) => GeoStream
-  postclip(postclip: (stream: GeoStream) => GeoStream): this
-  clipAngle(): number | null
-  clipAngle(angle: null | number): this
-  clipExtent(): [Point, Point] | null
-  clipExtent(extent: null | [Point, Point]): this
-  scale(): number
-  scale(scale: number): this
-  translate(): Point
-  translate(point: Point): this
-  center(): Point
-  center(point: Point): this
-  angle(): number
-  angle(angle: number): this
-  reflectX(): boolean
-  reflectX(reflect: boolean): this
-  reflectY(): boolean
-  reflectY(reflect: boolean): this
-  rotate(): [number, number, number]
-  rotate(angles: Point | [number, number, number]): this
-  precision(): number
-  precision(precision: number): this
-  fitExtent(
-    extent: [Point, Point],
-    object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
-  ): this
-  fitSize(
-    size: Point,
-    object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
-  ): this
-  fitWidth(
-    width: number,
-    object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
-  ): this
-  fitHeight(
-    height: number,
-    object: ExtendedFeature | ExtendedFeatureCollection | GeoGeometryObjects | ExtendedGeometryCollection
-  ): this
-}
-export interface GeoConicProjection extends GeoProjection {
-  parallels(): Point
-  parallels(value: Point): this
-}
-export interface GeoContext {
-  arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, anticlockwise?: boolean): void
-  beginPath(): void
-  closePath(): void
-  lineTo(x: number, y: number): void
-  moveTo(x: number, y: number): void
-}
-export interface GeoPath<This = any, T extends GeoPermissibleObjects = GeoPermissibleObjects> {
-  (this: This, object: T, ...xs: any[]): string | null
-  (this: This, object: T, ...xs: any[]): void
-  area(object: T): number
-  bounds(object: T): [Point, Point]
-  centroid(object: T): Point
-  measure(object: T): number
-  context<C extends GeoContext | null>(): C
-  context(context: null | GeoContext): this
-  projection<P extends GeoConicProjection | GeoProjection | GeoStreamWrapper | null>(): P
-  projection(projection: null | GeoProjection | GeoStreamWrapper): this
-  pointRadius(): ((this: This, object: T, ...xs: any[]) => number) | number
-  pointRadius(value: number | ((this: This, object: T, ...xs: any[]) => number)): this
-}
-export function geoPath(projection?: GeoProjection | GeoStreamWrapper | null, context?: GeoContext | null): GeoPath
+export function geoPath(projection?: Geo.Projection | Geo.StreamWrapper | null, context?: Geo.Context | null): Geo.Path
 export function geoPath<T extends GeoPermissibleObjects>(
-  projection?: GeoProjection | GeoStreamWrapper | null,
-  context?: GeoContext | null
-): GeoPath<any, T>
+  projection?: Geo.Projection | Geo.StreamWrapper | null,
+  context?: Geo.Context | null
+): Geo.Path<any, T>
 export function geoPath<This, T extends GeoPermissibleObjects>(
-  projection?: GeoProjection | GeoStreamWrapper | null,
-  context?: GeoContext | null
-): GeoPath<This, T>
+  projection?: Geo.Projection | Geo.StreamWrapper | null,
+  context?: Geo.Context | null
+): Geo.Path<This, T>
 export interface GeoTransformPrototype {
-  lineEnd?(this: this & { stream: GeoStream }): void
-  lineStart?(this: this & { stream: GeoStream }): void
-  point?(this: this & { stream: GeoStream }, x: number, y: number, z?: number): void
-  polygonEnd?(this: this & { stream: GeoStream }): void
-  polygonStart?(this: this & { stream: GeoStream }): void
-  sphere?(this: this & { stream: GeoStream }): void
+  lineEnd?(this: this & { stream: Geo.Stream }): void
+  lineStart?(this: this & { stream: Geo.Stream }): void
+  point?(this: this & { stream: Geo.Stream }, x: number, y: number, z?: number): void
+  polygonEnd?(this: this & { stream: Geo.Stream }): void
+  polygonStart?(this: this & { stream: Geo.Stream }): void
+  sphere?(this: this & { stream: Geo.Stream }): void
 }
-export function geoTransform<T extends GeoTransformPrototype>(methods: T): { stream(s: GeoStream): T & GeoStream }
+export function geoTransform<T extends GeoTransformPrototype>(methods: T): { stream(s: Geo.Stream): T & Geo.Stream }
 export type GeoIdentityTranform = GeoIdentityTransform
-export interface GeoIdentityTransform extends GeoStreamWrapper {
+export interface GeoIdentityTransform extends Geo.StreamWrapper {
   (point: Point): Point | null
   invert(point: Point): Point | null
-  postclip(): (stream: GeoStream) => GeoStream
-  postclip(postclip: (stream: GeoStream) => GeoStream): this
+  postclip(): (stream: Geo.Stream) => Geo.Stream
+  postclip(postclip: (stream: Geo.Stream) => Geo.Stream): this
   scale(): number
   scale(scale: number): this
   translate(): Point
@@ -763,11 +767,11 @@ export interface GeoIdentityTransform extends GeoStreamWrapper {
   reflectY(): boolean
   reflectY(reflect: boolean): this
 }
-export const geoClipAntimeridian: (stream: GeoStream) => GeoStream
-export function geoClipCircle(angle: number): (stream: GeoStream) => GeoStream
-export function geoClipRectangle(x0: number, y0: number, x1: number, y1: number): (stream: GeoStream) => GeoStream
+export const geoClipAntimeridian: (stream: Geo.Stream) => Geo.Stream
+export function geoClipCircle(angle: number): (stream: Geo.Stream) => Geo.Stream
+export function geoClipRectangle(x0: number, y0: number, x1: number, y1: number): (stream: Geo.Stream) => Geo.Stream
 
-export namespace hierarchy {
+export namespace Hierarchy {
   export interface Link<T> {
     src: Node<T>
     tgt: Node<T>
@@ -943,33 +947,35 @@ export interface Path {
   toString(): string
 }
 
-export interface QuadLeaf<T> {
-  data: T
-  next?: QuadLeaf<T> | undefined
-  length?: undefined
-}
-export interface QuadNode<T> extends Array<QuadNode<T> | QuadLeaf<T> | undefined> {
-  length: 4
-}
-export interface Quadtree<T> {
-  add(t: T): this
-  addAll(ts: T[]): this
-  copy(): Quadtree<T>
-  cover(x: number, y: number): this
-  data(): T[]
-  extent(): Pair<Point> | undefined
-  extent(x: Pair<Point>): this
-  find(x: number, y: number, r?: number): T | undefined
-  remove(t: T): this
-  removeAll(ts: T[]): this
-  root(): QuadNode<T> | QuadLeaf<T> | undefined
-  size(): number
-  visit(f: (n: QuadNode<T> | QuadLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void | boolean): this
-  visitAfter(f: (n: QuadNode<T> | QuadLeaf<T>, x0: number, y0: number, x1: number, y1: number) => void): this
-  x(): (t: T) => number
-  x(x: (t: T) => number): this
-  y(): (t: T) => number
-  y(y: (t: T) => number): this
+export namespace Quad {
+  export interface Leaf<T> {
+    data: T
+    next?: Leaf<T> | undefined
+    length?: undefined
+  }
+  export interface Node<T> extends Array<Node<T> | Leaf<T> | undefined> {
+    length: 4
+  }
+  export interface Tree<T> {
+    add(t: T): this
+    addAll(ts: T[]): this
+    copy(): Tree<T>
+    cover(x: number, y: number): this
+    data(): T[]
+    extent(): Pair<Point> | undefined
+    extent(x: Pair<Point>): this
+    find(x: number, y: number, r?: number): T | undefined
+    remove(t: T): this
+    removeAll(ts: T[]): this
+    root(): Node<T> | Leaf<T> | undefined
+    size(): number
+    visit(f: (n: Node<T> | Leaf<T>, x0: number, y0: number, x1: number, y1: number) => void | boolean): this
+    visitAfter(f: (n: Node<T> | Leaf<T>, x0: number, y0: number, x1: number, y1: number) => void): this
+    x(): (t: T) => number
+    x(x: (t: T) => number): this
+    y(): (t: T) => number
+    y(y: (t: T) => number): this
+  }
 }
 
 export interface RandomSrc {

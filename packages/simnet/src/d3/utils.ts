@@ -768,7 +768,7 @@ export namespace format {
     currency: ["$", ""],
   })
 
-  export function defaultLocale(definition: qt.FormatLocaleDefinition): qt.FormatLocaleObject {
+  export function defaultLocale(definition: qt.Format.Definition): qt.Format.Locale {
     locale = formatLocale(definition)
     format = locale.format
     formatPrefix = locale.formatPrefix
@@ -858,7 +858,7 @@ export namespace format {
     })
   }
 
-  export class Specifier implements qt.FormatSpecifier {
+  export class Specifier implements qt.Format.Spec {
     fill: string
     align: ">" | "<" | "^" | "="
     sign: "-" | "+" | "(" | " "
@@ -870,7 +870,7 @@ export namespace format {
     trim: boolean
     type: "e" | "f" | "g" | "r" | "s" | "%" | "p" | "b" | "o" | "d" | "x" | "X" | "c" | "" | "n"
 
-    constructor(x: qt.FormatSpecifierObject) {
+    constructor(x: qt.Format.Specifier) {
       this.fill = x.fill === undefined ? " " : x.fill + ""
       this.align = x.align === undefined ? ">" : x.align + ""
       this.sign = x.sign === undefined ? "-" : x.sign + ""
@@ -934,7 +934,7 @@ export namespace format {
 
   const map = Array.prototype.map,
     prefixes = ["y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y"]
-  export function formatLocale(locale: qt.FormatLocaleDefinition): qt.FormatLocaleObject {
+  export function formatLocale(locale: qt.Format.Definition): qt.Format.Locale {
     const group =
         locale.grouping === undefined || locale.thousands === undefined
           ? qu.identity
