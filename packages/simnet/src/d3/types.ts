@@ -978,61 +978,63 @@ export namespace Quad {
   }
 }
 
-export interface RandomSrc {
-  source(f: () => number): this
-}
-export interface RandIrwinHall extends RandomSrc {
-  (n: number): () => number
-}
-export interface RandBates extends RandomSrc {
-  (n: number): () => number
-}
-export interface RandBernoulli extends RandomSrc {
-  (p: number): () => number
-}
-export interface RandNormal extends RandomSrc {
-  (mu?: number, sigma?: number): () => number
-}
-export interface RandGamma extends RandomSrc {
-  (k: number, theta?: number): () => number
-}
-export interface RandBeta extends RandomSrc {
-  (alpha: number, beta: number): () => number
-}
-export interface RandGeometric extends RandomSrc {
-  (p: number): () => number
-}
-export interface RandBinomial extends RandomSrc {
-  (n: number, p: number): () => number
-}
-export interface RandCauchy extends RandomSrc {
-  (a?: number, b?: number): () => number
-}
-export interface RandExponential extends RandomSrc {
-  (lambda: number): () => number
-}
-export interface RandInt extends RandomSrc {
-  (max: number): () => number
-  (min: number, max: number): () => number
-}
-export interface RandLogNormal extends RandomSrc {
-  (mu?: number, sigma?: number): () => number
-}
-export interface RandLogistic extends RandomSrc {
-  (a?: number, b?: number): () => number
-}
-export interface RandPareto extends RandomSrc {
-  (alpha: number): () => number
-}
-export interface RandPoisson extends RandomSrc {
-  (lambda: number): () => number
-}
-export interface RandUniform extends RandomSrc {
-  (max?: number): () => number
-  (min: number, max: number): () => number
-}
-export interface RandWeibull extends RandomSrc {
-  (k: number, a?: number, b?: number): () => number
+export namespace Random {
+  export interface Src {
+    source(f: () => number): this
+  }
+  export interface IrwinHall extends Src {
+    (n: number): () => number
+  }
+  export interface Bates extends Src {
+    (n: number): () => number
+  }
+  export interface Bernoulli extends Src {
+    (p: number): () => number
+  }
+  export interface Normal extends Src {
+    (mu?: number, sigma?: number): () => number
+  }
+  export interface Gamma extends Src {
+    (k: number, theta?: number): () => number
+  }
+  export interface Beta extends Src {
+    (alpha: number, beta: number): () => number
+  }
+  export interface Geometric extends Src {
+    (p: number): () => number
+  }
+  export interface Binomial extends Src {
+    (n: number, p: number): () => number
+  }
+  export interface Cauchy extends Src {
+    (a?: number, b?: number): () => number
+  }
+  export interface Exponential extends Src {
+    (lambda: number): () => number
+  }
+  export interface Int extends Src {
+    (max: number): () => number
+    (min: number, max: number): () => number
+  }
+  export interface LogNormal extends Src {
+    (mu?: number, sigma?: number): () => number
+  }
+  export interface Logistic extends Src {
+    (a?: number, b?: number): () => number
+  }
+  export interface Pareto extends Src {
+    (alpha: number): () => number
+  }
+  export interface Poisson extends Src {
+    (lambda: number): () => number
+  }
+  export interface Uniform extends Src {
+    (max?: number): () => number
+    (min: number, max: number): () => number
+  }
+  export interface Weibull extends Src {
+    (k: number, a?: number, b?: number): () => number
+  }
 }
 
 export interface Interpolator<T, U> {

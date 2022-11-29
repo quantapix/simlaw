@@ -1,8 +1,8 @@
-import type * as qt from "./types.js"
+import type { Random as qr } from "./types.js"
 
 export const src = Math.random
 
-export const irwinHall: qt.RandIrwinHall = (function s(f) {
+export const irwinHall: qr.IrwinHall = (function s(f) {
   function y(n: number) {
     if ((n = +n) <= 0) return () => 0
     return () => {
@@ -16,7 +16,7 @@ export const irwinHall: qt.RandIrwinHall = (function s(f) {
   return y
 })(src)
 
-export const bates: qt.RandBates = (function s(f) {
+export const bates: qr.Bates = (function s(f) {
   const si = irwinHall.source(f)
   function y(n: number) {
     if ((n = +n) === 0) return f
@@ -27,7 +27,7 @@ export const bates: qt.RandBates = (function s(f) {
   return y
 })(src)
 
-export const bernoulli: qt.RandBernoulli = (function s(f) {
+export const bernoulli: qr.Bernoulli = (function s(f) {
   function y(p: number) {
     if ((p = +p) < 0 || p > 1) throw new RangeError("invalid p")
     return () => Math.floor(f() + p)
@@ -36,7 +36,7 @@ export const bernoulli: qt.RandBernoulli = (function s(f) {
   return y
 })(src)
 
-export const normal: qt.RandNormal = (function s(f) {
+export const normal: qr.Normal = (function s(f) {
   function y(mu?: number, sigma?: number) {
     mu = mu === undefined ? 0 : +mu
     sigma = sigma == undefined ? 1 : +sigma
@@ -58,7 +58,7 @@ export const normal: qt.RandNormal = (function s(f) {
   return y
 })(src)
 
-export const gamma: qt.RandGamma = (function s(f) {
+export const gamma: qr.Gamma = (function s(f) {
   const sn = normal.source(f)()
   function y(k: number, theta?: number) {
     if ((k = +k) < 0) throw new RangeError("invalid k")
@@ -85,7 +85,7 @@ export const gamma: qt.RandGamma = (function s(f) {
   return y
 })(src)
 
-export const beta: qt.RandBeta = (function s(f) {
+export const beta: qr.Beta = (function s(f) {
   const sg = gamma.source(f)
   function y(alpha: number, beta: number) {
     const a = sg(alpha)
@@ -99,7 +99,7 @@ export const beta: qt.RandBeta = (function s(f) {
   return y
 })(src)
 
-export const geometric: qt.RandGeometric = (function s(f) {
+export const geometric: qr.Geometric = (function s(f) {
   function y(p: number) {
     if ((p = +p) < 0 || p > 1) throw new RangeError("invalid p")
     if (p === 0) return () => Infinity
@@ -111,7 +111,7 @@ export const geometric: qt.RandGeometric = (function s(f) {
   return y
 })(src)
 
-export const binomial: qt.RandBinomial = (function s(f) {
+export const binomial: qr.Binomial = (function s(f) {
   const sg = geometric.source(f)
   const sb = beta.source(f)
   function y(n: number, p: number) {
@@ -145,7 +145,7 @@ export const binomial: qt.RandBinomial = (function s(f) {
   return y
 })(src)
 
-export const cauchy: qt.RandCauchy = (function s(f) {
+export const cauchy: qr.Cauchy = (function s(f) {
   function y(a?: number, b?: number) {
     a = a == undefined ? 0 : +a
     b = b == undefined ? 1 : +b
@@ -155,7 +155,7 @@ export const cauchy: qt.RandCauchy = (function s(f) {
   return y
 })(src)
 
-export const exponential: qt.RandExponential = (function s(f) {
+export const exponential: qr.Exponential = (function s(f) {
   function y(lambda: number) {
     return () => -Math.log1p(-f()) / lambda
   }
@@ -163,7 +163,7 @@ export const exponential: qt.RandExponential = (function s(f) {
   return y
 })(src)
 
-export const int: qt.RandInt = (function s(f) {
+export const int: qr.Int = (function s(f) {
   function y(min = 0, max?: number) {
     if (max === undefined) (max = min), (min = 0)
     min = Math.floor(min)
@@ -174,7 +174,7 @@ export const int: qt.RandInt = (function s(f) {
   return y
 })(src)
 
-export const logNormal: qt.RandLogNormal = (function s(f) {
+export const logNormal: qr.LogNormal = (function s(f) {
   const sn = normal.source(f)
   function y(...xs: any) {
     const n = sn.apply(xs)
@@ -184,7 +184,7 @@ export const logNormal: qt.RandLogNormal = (function s(f) {
   return y
 })(src)
 
-export const logistic: qt.RandLogistic = (function s(f) {
+export const logistic: qr.Logistic = (function s(f) {
   function y(a?: number, b?: number) {
     a = a == undefined ? 0 : +a
     b = b == undefined ? 1 : +b
@@ -197,7 +197,7 @@ export const logistic: qt.RandLogistic = (function s(f) {
   return y
 })(src)
 
-export const pareto: qt.RandPareto = (function s(f) {
+export const pareto: qr.Pareto = (function s(f) {
   function y(alpha: number) {
     if ((alpha = +alpha) < 0) throw new RangeError("invalid alpha")
     alpha = 1 / -alpha
@@ -207,7 +207,7 @@ export const pareto: qt.RandPareto = (function s(f) {
   return y
 })(src)
 
-export const poisson: qt.RandPoisson = (function s(f) {
+export const poisson: qr.Poisson = (function s(f) {
   const sg = gamma.source(f)
   const sb = binomial.source(f)
   function y(lambda: number) {
@@ -230,7 +230,7 @@ export const poisson: qt.RandPoisson = (function s(f) {
   return y
 })(src)
 
-export const uniform: qt.RandUniform = (function s(f) {
+export const uniform: qr.Uniform = (function s(f) {
   function y(min = 0, max?: number) {
     if (max === undefined) (max = min), (min = 0)
     return () => f() * max! + min
@@ -239,7 +239,7 @@ export const uniform: qt.RandUniform = (function s(f) {
   return y
 })(src)
 
-export const weibull: qt.RandWeibull = (function s(f) {
+export const weibull: qr.Weibull = (function s(f) {
   function y(k: number, a?: number, b?: number) {
     let outer: Function
     if ((k = +k) === 0) outer = (x: number) => -Math.log(x)
