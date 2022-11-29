@@ -820,7 +820,7 @@ export function rotateRadians(deltaLambda, deltaPhi, deltaGamma) {
     ? phiGamma(deltaPhi, deltaGamma)
     : identity
 }
-export function rotation(angles: qt.Pair | [number, number, number]): qt.GeoRotation {
+export function rotation(angles: qt.Pair | [number, number, number]): qt.Geo.Rotation {
   rotate = rotateRadians(rotate[0] * qu.radians, rotate[1] * qu.radians, rotate.length > 2 ? rotate[2] * qu.radians : 0)
   function forward(coordinates) {
     coordinates = rotate(coordinates[0] * qu.radians, coordinates[1] * qu.radians)
@@ -2058,7 +2058,7 @@ export namespace proj {
         .clipAngle(180 - 1e-3)
     }
   }
-  export function conic(projectAt): GeoConicProjection {
+  export function conic(projectAt): Geo.Conic {
     let phi0 = 0,
       phi1 = pi / 3
     const m = mutator(projectAt),
@@ -2147,7 +2147,7 @@ export namespace proj {
       return f
     }
   }
-  export function albers(): GeoConicProjection {
+  export function albers(): Geo.Conic {
     return conic
       .equalArea()
       .parallels([29.5, 45.5])

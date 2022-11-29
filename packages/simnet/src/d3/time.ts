@@ -4,13 +4,13 @@ import type * as qt from "./types.js"
 const t0 = new Date(),
   t1 = new Date()
 
-export function interval(floor: (x: Date) => void, offset: (x: Date, step: number) => void): qt.TimeInterval
+export function interval(floor: (x: Date) => void, offset: (x: Date, step: number) => void): qt.Time.Interval
 export function interval(
   floor: (x: Date) => void,
   offset: (x: Date, step: number) => void,
   count: (start: Date, end: Date) => number,
   field?: (x: Date) => number
-): qt.CountableTimeInterval
+): qt.Time.Countable
 export function interval(floor: Function, offset: Function, count?: Function, field?: Function) {
   function y(x) {
     return floor((x = arguments.length === 0 ? new Date() : new Date(+x))), x
@@ -92,7 +92,7 @@ export const durationWeek = durationDay * 7
 export const durationMonth = durationDay * 30
 export const durationYear = durationDay * 365
 
-export const millisecond: qt.CountableTimeInterval = interval(
+export const millisecond: qt.Time.Countable = interval(
   function () {},
   (x, step) => x.setTime(+x + step),
   (start, end) => end - start
@@ -109,7 +109,7 @@ millisecond.every = function (k) {
 }
 export const milliseconds = millisecond.range
 
-export const second: qt.CountableTimeInterval = interval(
+export const second: qt.Time.Countable = interval(
   x => x.setTime(x - x.getMilliseconds()),
   (x, step) => x.setTime(+x + step * durationSecond),
   (start, end) => (end - start) / durationSecond,
@@ -117,7 +117,7 @@ export const second: qt.CountableTimeInterval = interval(
 )
 export const seconds = second.range
 
-export const minute: qt.CountableTimeInterval = interval(
+export const minute: qt.Time.Countable = interval(
   x => x.setTime(x - x.getMilliseconds() - x.getSeconds() * durationSecond),
   (x, step) => x.setTime(+x + step * durationMinute),
   (start, end) => (end - start) / durationMinute,
@@ -125,7 +125,7 @@ export const minute: qt.CountableTimeInterval = interval(
 )
 export const minutes = minute.range
 
-export const utcMinute: qt.CountableTimeInterval = interval(
+export const utcMinute: qt.Time.Countable = interval(
   x => x.setUTCSeconds(0, 0),
   (x, step) => x.setTime(+x + step * durationMinute),
   (start, end) => (end - start) / durationMinute,
@@ -133,7 +133,7 @@ export const utcMinute: qt.CountableTimeInterval = interval(
 )
 export const utcMinutes = utcMinute.range
 
-export const hour: qt.CountableTimeInterval = interval(
+export const hour: qt.Time.Countable = interval(
   x => x.setTime(x - x.getMilliseconds() - x.getSeconds() * durationSecond - x.getMinutes() * durationMinute),
   (x, step) => x.setTime(+x + step * durationHour),
   (start, end) => (end - start) / durationHour,
@@ -141,7 +141,7 @@ export const hour: qt.CountableTimeInterval = interval(
 )
 export const hours = hour.range
 
-export const utcHour: qt.CountableTimeInterval = interval(
+export const utcHour: qt.Time.Countable = interval(
   x => x.setUTCMinutes(0, 0, 0),
   (x, step) => x.setTime(+x + step * durationHour),
   (start, end) => (end - start) / durationHour,
@@ -149,7 +149,7 @@ export const utcHour: qt.CountableTimeInterval = interval(
 )
 export const utcHours = utcHour.range
 
-export const day: qt.CountableTimeInterval = interval(
+export const day: qt.Time.Countable = interval(
   x => x.setHours(0, 0, 0, 0),
   (x, step) => x.setDate(x.getDate() + step),
   (start, end) => (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationDay,
@@ -157,7 +157,7 @@ export const day: qt.CountableTimeInterval = interval(
 )
 export const days = day.range
 
-export const utcDay: qt.CountableTimeInterval = interval(
+export const utcDay: qt.Time.Countable = interval(
   x => x.setUTCHours(0, 0, 0, 0),
   (x, step) => x.setUTCDate(x.getUTCDate() + step),
   (start, end) => (end - start) / durationDay,
@@ -165,7 +165,7 @@ export const utcDay: qt.CountableTimeInterval = interval(
 )
 export const utcDays = utcDay.range
 
-export const month: qt.CountableTimeInterval = interval(
+export const month: qt.Time.Countable = interval(
   function (x) {
     x.setDate(1)
     x.setHours(0, 0, 0, 0)
@@ -176,7 +176,7 @@ export const month: qt.CountableTimeInterval = interval(
 )
 export const months = month.range
 
-export const utcMonth: qt.CountableTimeInterval = interval(
+export const utcMonth: qt.Time.Countable = interval(
   function (x) {
     x.setUTCDate(1)
     x.setUTCHours(0, 0, 0, 0)
@@ -187,7 +187,7 @@ export const utcMonth: qt.CountableTimeInterval = interval(
 )
 export const utcMonths = utcMonth.range
 
-export const year: qt.CountableTimeInterval = interval(
+export const year: qt.Time.Countable = interval(
   function (x) {
     x.setMonth(0, 1)
     x.setHours(0, 0, 0, 0)
@@ -210,7 +210,7 @@ year.every = function (k) {
 }
 export const years = year.range
 
-export const utcYear: qt.CountableTimeInterval = interval(
+export const utcYear: qt.Time.Countable = interval(
   function (x) {
     x.setUTCMonth(0, 1)
     x.setUTCHours(0, 0, 0, 0)
@@ -244,20 +244,20 @@ function weekday(i) {
       (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationWeek
   )
 }
-export const sunday: qt.CountableTimeInterval = weekday(0)
+export const sunday: qt.Time.Countable = weekday(0)
 export const sundays = sunday.range
-export const week: qt.CountableTimeInterval = sunday
-export const monday: qt.CountableTimeInterval = weekday(1)
+export const week: qt.Time.Countable = sunday
+export const monday: qt.Time.Countable = weekday(1)
 export const mondays = monday.range
-export const tuesday: qt.CountableTimeInterval = weekday(2)
+export const tuesday: qt.Time.Countable = weekday(2)
 export const tuesdays = tuesday.range
-export const wednesday: qt.CountableTimeInterval = weekday(3)
+export const wednesday: qt.Time.Countable = weekday(3)
 export const wednesdays = wednesday.range
-export const thursday: qt.CountableTimeInterval = weekday(4)
+export const thursday: qt.Time.Countable = weekday(4)
 export const thursdays = thursday.range
-export const friday: qt.CountableTimeInterval = weekday(5)
+export const friday: qt.Time.Countable = weekday(5)
 export const fridays = friday.range
-export const saturday: qt.CountableTimeInterval = weekday(6)
+export const saturday: qt.Time.Countable = weekday(6)
 export const saturdays = saturday.range
 
 function utcWeekday(i) {
@@ -270,20 +270,20 @@ function utcWeekday(i) {
     (start, end) => (end - start) / durationWeek
   )
 }
-export const utcSunday: qt.CountableTimeInterval = utcWeekday(0)
+export const utcSunday: qt.Time.Countable = utcWeekday(0)
 export const utcSundays = utcSunday.range
-export const utcWeek: qt.CountableTimeInterval = utcSunday
-export const utcMonday: qt.CountableTimeInterval = utcWeekday(1)
+export const utcWeek: qt.Time.Countable = utcSunday
+export const utcMonday: qt.Time.Countable = utcWeekday(1)
 export const utcMondays = utcMonday.range
-export const utcTuesday: qt.CountableTimeInterval = utcWeekday(2)
+export const utcTuesday: qt.Time.Countable = utcWeekday(2)
 export const utcTuesdays = utcTuesday.range
-export const utcWednesday: qt.CountableTimeInterval = utcWeekday(3)
+export const utcWednesday: qt.Time.Countable = utcWeekday(3)
 export const utcWednesdays = utcWednesday.range
-export const utcThursday: qt.CountableTimeInterval = utcWeekday(4)
+export const utcThursday: qt.Time.Countable = utcWeekday(4)
 export const utcThursdays = utcThursday.range
-export const utcFriday: qt.CountableTimeInterval = utcWeekday(5)
+export const utcFriday: qt.Time.Countable = utcWeekday(5)
 export const utcFridays = utcFriday.range
-export const utcSaturday: qt.CountableTimeInterval = utcWeekday(6)
+export const utcSaturday: qt.Time.Countable = utcWeekday(6)
 export const utcSaturdays = utcSaturday.range
 
 function ticker(year, month, week, day, hour, minute) {
@@ -314,7 +314,7 @@ function ticker(year, month, week, day, hour, minute) {
     const ticks = interval ? interval.range(start, +stop + 1) : [] // inclusive stop
     return reverse ? ticks.reverse() : ticks
   }
-  function interval(start: Date, stop: Date, count: number): qt.TimeInterval | null {
+  function interval(start: Date, stop: Date, count: number): qt.Time.Interval | null {
     const target = Math.abs(stop - start) / count
     const i = bisector(([, , step]) => step).right(tickIntervals, target)
     if (i === tickIntervals.length) return year.every(tickStep(start / durationYear, stop / durationYear, count))
@@ -365,7 +365,7 @@ formatDefaultLocale({
   shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 })
 
-export function formatDefaultLocale(definition: qt.TimeLocaleDefinition): qt.TimeLocaleObject {
+export function formatDefaultLocale(definition: qt.Time.Definition): qt.Time.Locale {
   locale = formatLocale(definition)
   timeFormat = locale.format
   timeParse = locale.parse
@@ -374,7 +374,7 @@ export function formatDefaultLocale(definition: qt.TimeLocaleDefinition): qt.Tim
   return locale
 }
 
-export function formatLocale(locale: qt.TimeLocaleDefinition): qt.TimeLocaleObject {
+export function formatLocale(locale: qt.Time.Definition): qt.Time.Locale {
   const locale_dateTime = locale.dateTime,
     locale_date = locale.date,
     locale_time = locale.time,

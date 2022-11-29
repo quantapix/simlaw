@@ -21,7 +21,7 @@ abstract class Color implements qt.Color {
   formatRgb() {
     return this.rgb().formatRgb()
   }
-  abstract rgb(): qt.RGB
+  abstract rgb(): qt.Color.RGB
   toString = this.formatRgb
   copy(x: any) {
     const C = Object.getPrototypeOf(this).constructor
@@ -32,7 +32,7 @@ abstract class Color implements qt.Color {
 export const darker = 0.7
 export const brighter = 1 / darker
 
-export class RGB extends Color implements qt.RGB {
+export class RGB extends Color implements qt.Color.RGB {
   static from(x?: string | qt.Color): RGB
   static from(r: number, g: number, b: number, alpha?: number): RGB
   static from(x: any, g?: number, b?: number, alpha = 1) {
@@ -88,7 +88,7 @@ export class RGB extends Color implements qt.RGB {
   }
 }
 
-export class HSL extends Color implements qt.HSL {
+export class HSL extends Color implements qt.Color.HSL {
   static from(x?: string | qt.Color): HSL
   static from(h: number, s: number, l: number, alpha?: number): HSL
   static from(x: any, s?: number, l?: number, alpha = 1) {
@@ -174,7 +174,7 @@ const t0 = 4 / 29,
   t2 = 3 * t1 * t1,
   t3 = t1 * t1 * t1
 
-export class LAB extends Color implements qt.LAB {
+export class LAB extends Color implements qt.Color.LAB {
   static from(x?: string | qt.Color): LAB
   static from(r: number, g: number, b: number, alpha?: number): LAB
   static from(x: any, a?: number, b?: number, alpha = 1) {
@@ -230,7 +230,7 @@ export class LAB extends Color implements qt.LAB {
   }
 }
 
-export class HCL extends Color implements qt.HCL {
+export class HCL extends Color implements qt.Color.HCL {
   static from(x?: string | qt.Color): HCL
   static from(h: number, c: number, l: number, alpha?: number): HCL
   static from(x: any, c?: number, l?: number, alpha = 1) {
@@ -277,7 +277,7 @@ const A = -0.14861,
   EB = E * B,
   BC_DA = B * C - D * A
 
-export class Cubehelix extends Color implements qt.Cubehelix {
+export class Cubehelix extends Color implements qt.Color.Cubehelix {
   static from(x?: string | qt.Color): Cubehelix
   static from(h: number, s: number, l: number, alpha?: number): Cubehelix
   static from(x: any, s?: number, l?: number, alpha = 1) {

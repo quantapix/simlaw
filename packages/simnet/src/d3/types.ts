@@ -37,18 +37,20 @@ export interface Histo<T, U extends number | Date | undefined> {
   value(): (x: T, i: number, xs: ArrayLike<T>) => U
   value(f: (x: T, i: number, xs: ArrayLike<T>) => U): this
 }
-export interface HistoDates<T, U extends Date | undefined> extends Histo<T, Date> {
-  domain(): (xs: ArrayLike<U>) => [Date, Date]
-  domain(x: [Date, Date] | ((xs: ArrayLike<U>) => [Date, Date])): this
-  thresholds(): ThresholdDates<U>
-  thresholds(xs: ArrayLike<U> | ThresholdDates<U>): this
-}
-export interface HistoNums<T, U extends number | undefined> extends Histo<T, U> {
-  domain(): (xs: Iterable<U>) => Pair | Pair<undefined>
-  domain(x: Pair | ((xs: Iterable<U>) => Pair | Pair<undefined>)): this
-  thresholds(): Threshold<U> | ThresholdNums<U>
-  thresholds(n: number | Threshold<U>): this
-  thresholds(xs: ArrayLike<U> | ThresholdNums<U>): this
+export namespace Histo {
+  export interface Dates<T, U extends Date | undefined> extends Histo<T, Date> {
+    domain(): (xs: ArrayLike<U>) => [Date, Date]
+    domain(x: [Date, Date] | ((xs: ArrayLike<U>) => [Date, Date])): this
+    thresholds(): ThresholdDates<U>
+    thresholds(xs: ArrayLike<U> | ThresholdDates<U>): this
+  }
+  export interface Nums<T, U extends number | undefined> extends Histo<T, U> {
+    domain(): (xs: Iterable<U>) => Pair | Pair<undefined>
+    domain(x: Pair | ((xs: Iterable<U>) => Pair | Pair<undefined>)): this
+    thresholds(): Threshold<U> | ThresholdNums<U>
+    thresholds(n: number | Threshold<U>): this
+    thresholds(xs: ArrayLike<U> | ThresholdNums<U>): this
+  }
 }
 export interface Axis<T> {
   (
@@ -71,7 +73,7 @@ export interface Axis<T> {
   tickPadding(x: number): this
   ticks(n: number, spec?: string): this
   ticks(x: any, ...xs: any[]): this
-  ticks(x: Axis.TimeInterval, spec?: string): this
+  ticks(x: Axis.Interval, spec?: string): this
   tickSize(): number
   tickSize(x: number): this
   tickSizeInner(): number
@@ -85,7 +87,7 @@ export interface Axis<T> {
 export namespace Axis {
   export type Container = SVGSVGElement | SVGGElement
   export type Domain = number | string | Date | { valueOf(): number }
-  export interface TimeInterval {
+  export interface Interval {
     range(start: Date, stop: Date, step?: number): Date[]
   }
   export interface Scale<T> {
@@ -208,40 +210,67 @@ export interface Color {
   formatHex8(): string
   formatHsl(): string
   formatRgb(): string
-  rgb(): RGB
+  rgb(): Color.RGB
   toString(): string
 }
-export interface RGB extends Color {
-  r: number
-  g: number
-  b: number
-  clamp(): Color
-  copy(x?: { r?: number | undefined; g?: number | undefined; b?: number | undefined; alpha?: number | undefined }): this
-}
-export interface HSL extends Color {
-  h: number
-  s: number
-  l: number
-  clamp(): Color
-  copy(x?: { h?: number | undefined; s?: number | undefined; l?: number | undefined; alpha?: number | undefined }): this
-}
-export interface LAB extends Color {
-  l: number
-  a: number
-  b: number
-  copy(x?: { l?: number | undefined; a?: number | undefined; b?: number | undefined; alpha?: number | undefined }): this
-}
-export interface HCL extends Color {
-  h: number
-  c: number
-  l: number
-  copy(x?: { h?: number | undefined; c?: number | undefined; l?: number | undefined; alpha?: number | undefined }): this
-}
-export interface Cubehelix extends Color {
-  h: number
-  s: number
-  l: number
-  copy(x?: { h?: number | undefined; s?: number | undefined; l?: number | undefined; alpha?: number | undefined }): this
+export namespace Color {
+  export interface RGB extends Color {
+    r: number
+    g: number
+    b: number
+    clamp(): Color
+    copy(x?: {
+      r?: number | undefined
+      g?: number | undefined
+      b?: number | undefined
+      alpha?: number | undefined
+    }): this
+  }
+  export interface HSL extends Color {
+    h: number
+    s: number
+    l: number
+    clamp(): Color
+    copy(x?: {
+      h?: number | undefined
+      s?: number | undefined
+      l?: number | undefined
+      alpha?: number | undefined
+    }): this
+  }
+  export interface LAB extends Color {
+    l: number
+    a: number
+    b: number
+    copy(x?: {
+      l?: number | undefined
+      a?: number | undefined
+      b?: number | undefined
+      alpha?: number | undefined
+    }): this
+  }
+  export interface HCL extends Color {
+    h: number
+    c: number
+    l: number
+    copy(x?: {
+      h?: number | undefined
+      c?: number | undefined
+      l?: number | undefined
+      alpha?: number | undefined
+    }): this
+  }
+  export interface Cubehelix extends Color {
+    h: number
+    s: number
+    l: number
+    copy(x?: {
+      h?: number | undefined
+      s?: number | undefined
+      l?: number | undefined
+      alpha?: number | undefined
+    }): this
+  }
 }
 export interface Contour extends MultiPolygon {
   value: number
@@ -616,7 +645,7 @@ export namespace Geo {
   export interface StreamWrapper {
     stream(x: Stream): Stream
   }
-  export interface Projection extends Geo.StreamWrapper {
+  export interface Projection extends StreamWrapper {
     (point: Point): Point | null
     angle(): number
     angle(angle: number): this
@@ -660,7 +689,7 @@ export namespace Geo {
     translate(): Point
     translate(point: Point): this
   }
-  export interface GeoConicProjection extends Geo.Projection {
+  export interface Conic extends Projection {
     parallels(): Point
     parallels(x: Point): this
   }
@@ -683,13 +712,17 @@ export namespace Geo {
     pointRadius(): ((this: This, object: T, ...xs: any[]) => number) | number
     pointRadius(value: number | ((this: This, object: T, ...xs: any[]) => number)): this
     projection(projection: null | Geo.Projection | Geo.StreamWrapper): this
-    projection<P extends GeoConicProjection | Geo.Projection | Geo.StreamWrapper | null>(): P
+    projection<P extends Geo.Conic | Geo.Projection | Geo.StreamWrapper | null>(): P
+  }
+  export interface Sphere {
+    type: "Sphere"
+  }
+  export interface Rotation {
+    (x: Point): Point
+    invert(x: Point): Point
   }
 }
-export interface GeoSphere {
-  type: "Sphere"
-}
-export type GeoGeometryObjects = GeoJSON.GeometryObject | GeoSphere
+export type GeoGeometryObjects = GeoJSON.GeometryObject | Geo.Sphere
 export interface ExtendedGeometryCollection<GeometryType extends GeoGeometryObjects = GeoGeometryObjects> {
   type: string
   bbox?: number[] | undefined
@@ -718,10 +751,6 @@ export type GeoPermissibleObjects =
   | ExtendedGeometryCollection
   | ExtendedFeature
   | ExtendedFeatureCollection
-export interface GeoRotation {
-  (x: Point): Point
-  invert(x: Point): Point
-}
 export function geoPath(projection?: Geo.Projection | Geo.StreamWrapper | null, context?: Geo.Context | null): Geo.Path
 export function geoPath<T extends GeoPermissibleObjects>(
   projection?: Geo.Projection | Geo.StreamWrapper | null,
@@ -740,7 +769,6 @@ export interface GeoTransformPrototype {
   sphere?(this: this & { stream: Geo.Stream }): void
 }
 export function geoTransform<T extends GeoTransformPrototype>(methods: T): { stream(s: Geo.Stream): T & Geo.Stream }
-export type GeoIdentityTranform = GeoIdentityTransform
 export interface GeoIdentityTransform extends Geo.StreamWrapper {
   (point: Point): Point | null
   invert(point: Point): Point | null
@@ -1059,7 +1087,6 @@ export namespace Scale {
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Identity<U2>
   }
-
   export interface Time<Range, Out, U = never> {
     (x: Date | NumVal): Out | U
     clamp(): boolean
@@ -1072,14 +1099,14 @@ export namespace Scale {
     interpolate<O2>(f: Interpolator<Range, O2>): Time<Range, O2, U>
     invert(x: NumVal): Date
     nice(n?: number): this
-    nice(x: CountableTimeInterval): this
+    nice(x: Time.Countable): this
     range(): Range[]
     range(x: Iterable<Range>): this
     rangeRound(x: Iterable<NumVal>): this
     tickFormat(n?: number, spec?: string): (x: Date) => string
-    tickFormat(x: TimeInterval, spec?: string): (x: Date) => string
+    tickFormat(x: Time.Interval, spec?: string): (x: Date) => string
     ticks(n?: number): Date[]
-    ticks(x: TimeInterval): Date[]
+    ticks(x: Time.Interval): Date[]
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Time<Range, Out, U2>
   }
@@ -1757,39 +1784,39 @@ export interface Stack<This, T, K> {
   offset(offset: (series: Series<T, K>, order: number[]) => void): this
 }
 
-export interface TimeInterval {
-  (date?: Date): Date
-  floor(date: Date): Date
-  round(date: Date): Date
-  ceil(date: Date): Date
-  offset(date: Date, step?: number): Date
-  range(start: Date, stop: Date, step?: number): Date[]
-  filter(test: (date: Date) => boolean): TimeInterval
-}
-
-export interface CountableTimeInterval extends TimeInterval {
-  count(start: Date, end: Date): number
-  every(step: number): TimeInterval | null
-}
-
-export interface TimeLocaleDefinition {
-  dateTime: string
-  date: string
-  time: string
-  periods: [string, string]
-  days: [string, string, string, string, string, string, string]
-  shortDays: [string, string, string, string, string, string, string]
-  months: [string, string, string, string, string, string, string, string, string, string, string, string]
-  shortMonths: [string, string, string, string, string, string, string, string, string, string, string, string]
-}
-export interface TimeLocaleObject {
-  format(spec: string): (date: Date) => string
-  parse(spec: string): (dateString: string) => Date | null
-  utcFormat(spec: string): (date: Date) => string
-  utcParse(spec: string): (dateString: string) => Date | null
+export namespace Time {
+  export interface Interval {
+    (x?: Date): Date
+    ceil(x: Date): Date
+    filter(f: (x: Date) => boolean): Interval
+    floor(x: Date): Date
+    offset(x: Date, step?: number): Date
+    range(start: Date, stop: Date, step?: number): Date[]
+    round(x: Date): Date
+  }
+  export interface Countable extends Interval {
+    count(start: Date, end: Date): number
+    every(x: number): Interval | null
+  }
+  export interface Definition {
+    dateTime: string
+    date: string
+    time: string
+    periods: [string, string]
+    days: [string, string, string, string, string, string, string]
+    shortDays: [string, string, string, string, string, string, string]
+    months: [string, string, string, string, string, string, string, string, string, string, string, string]
+    shortMonths: [string, string, string, string, string, string, string, string, string, string, string, string]
+  }
+  export interface Locale {
+    format(x: string): (x: Date) => string
+    parse(x: string): (x: string) => Date | null
+    utcFormat(x: string): (x: Date) => string
+    utcParse(x: string): (x: string) => Date | null
+  }
 }
 export interface Timer {
-  restart(cb: (x: number) => void, delay?: number, time?: number): void
+  restart(f: (x: number) => void, delay?: number, time?: number): void
   stop(): void
 }
 
