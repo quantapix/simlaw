@@ -2,7 +2,7 @@
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
-export function arc(): qt.Shape.Arc<any, qt.Shape.Base>
+export function arc(): qt.Shape.Arc<any, qt.Shape.BaseArc>
 export function arc<T>(): qt.Shape.Arc<any, T>
 export function arc<This, T>(): qt.Shape.Arc<This, T>
 export function arc() {
@@ -183,7 +183,7 @@ export function area<T = qt.Point>(
   x0?: number | ((x: T, i: number, xs: T[]) => number),
   y0?: number | ((x: T, i: number, xs: T[]) => number),
   y1?: number | ((x: T, i: number, xs: T[]) => number)
-): qt.Area<T> {
+): qt.Shape.Area<T> {
   let x1 = null,
     defined = qu.constant(true),
     context = null,
@@ -269,8 +269,8 @@ export function area<T = qt.Point>(
   }
   return y
 }
-export function areaRadial(): qt.AreaRadial<qt.Point>
-export function areaRadial<T>(): qt.AreaRadial<T>
+export function areaRadial(): qt.Shape.AreaRadial<qt.Point>
+export function areaRadial<T>(): qt.Shape.AreaRadial<T>
 export function areaRadial() {
   const y = area().curve(curveRadialLinear),
     c = y.curve,
@@ -314,7 +314,7 @@ export function array(x) {
 export function line<T = qt.Point>(
   x?: number | ((d: T, i: number, data: T[]) => number),
   y?: number | ((d: T, i: number, data: T[]) => number)
-): qt.Line<T> {
+): qt.Shape.Line<T> {
   let defined = qu.constant(true),
     context = null,
     curve = curveLinear,
@@ -354,8 +354,8 @@ export function line<T = qt.Point>(
   }
   return y
 }
-export function lineRadial(): qt.LineRadial<qt.Point>
-export function lineRadial<T>(): qt.LineRadial<T>
+export function lineRadial(): qt.Shape.LineRadial<qt.Point>
+export function lineRadial<T>(): qt.Shape.LineRadial<T>
 export function lineRadial() {
   function y(l) {
     const c = l.curve
@@ -374,9 +374,9 @@ function linkSource(d) {
 function linkTarget(d) {
   return d.target
 }
-export function link(x: qt.CurveFac): qt.Link<any, qt.DefaultLinkObject, qt.Point>
-export function link<L, N>(x: qt.CurveFac): qt.Link<any, L, N>
-export function link<This, L, N>(x: qt.CurveFac): qt.Link<This, L, N>
+export function link(x: qt.Shape.Curve): qt.Shape.Link<any, qt.Shape.DefaultLink, qt.Point>
+export function link<L, N>(x: qt.Shape.Curve): qt.Shape.Link<any, L, N>
+export function link<This, L, N>(x: qt.Shape.Curve): qt.Shape.Link<This, L, N>
 export function link(curve) {
   let source = linkSource
   let target = linkTarget
@@ -413,21 +413,21 @@ export function link(curve) {
   }
   return f
 }
-export function linkHorizontal(): qt.Link<any, qt.DefaultLinkObject, qt.Point>
-export function linkHorizontal<L, N>(): qt.Link<any, L, N>
-export function linkHorizontal<This, L, N>(): qt.Link<This, L, N>
+export function linkHorizontal(): qt.Shape.Link<any, qt.Shape.DefaultLink, qt.Point>
+export function linkHorizontal<L, N>(): qt.Shape.Link<any, L, N>
+export function linkHorizontal<This, L, N>(): qt.Shape.Link<This, L, N>
 export function linkHorizontal() {
   return link(bumpX)
 }
-export function linkVertical(): qt.Link<any, qt.DefaultLinkObject, qt.Point>
-export function linkVertical<L, N>(): qt.Link<any, L, N>
-export function linkVertical<This, L, N>(): qt.Link<This, L, N>
+export function linkVertical(): qt.Shape.Link<any, qt.Shape.DefaultLink, qt.Point>
+export function linkVertical<L, N>(): qt.Shape.Link<any, L, N>
+export function linkVertical<This, L, N>(): qt.Shape.Link<This, L, N>
 export function linkVertical() {
   return link(bumpY)
 }
-export function linkRadial(): qt.LinkRadial<any, qt.DefaultLinkObject, qt.Point>
-export function linkRadial<L, N>(): qt.LinkRadial<any, L, N>
-export function linkRadial<This, L, N>(): qt.LinkRadial<This, L, N>
+export function linkRadial(): qt.Shape.LinkRadial<any, qt.Shape.DefaultLink, qt.Point>
+export function linkRadial<L, N>(): qt.Shape.LinkRadial<any, L, N>
+export function linkRadial<This, L, N>(): qt.Shape.LinkRadial<This, L, N>
 export function linkRadial() {
   const l = link(bumpRadial)
   ;(l.angle = l.x), delete l.x
@@ -435,9 +435,9 @@ export function linkRadial() {
   return l
 }
 
-export function pie(): qt.Pie<any, number | { valueOf(): number }>
-export function pie<T>(): qt.Pie<any, T>
-export function pie<This, T>(): qt.Pie<This, T>
+export function pie(): qt.Shape.Pie<any, number | { valueOf(): number }>
+export function pie<T>(): qt.Shape.Pie<any, T>
+export function pie<This, T>(): qt.Shape.Pie<This, T>
 export function pie() {
   let value = qu.identity,
     sortValues = qu.descending,
@@ -771,7 +771,7 @@ export class Curve {
     return new Curve.Step(x, 1)
   }
 
-  static bundle: qt.BundleFac = (function f(beta) {
+  static bundle: qt.Shape.Bundle = (function f(beta) {
     function y(x) {
       return beta === 1 ? new Curve.Basis(x) : new Curve.Bundle(x, beta)
     }
@@ -780,7 +780,7 @@ export class Curve {
     }
     return y
   })(0.85)
-  static cardinal: qt.CardinalFac = (function f(tension) {
+  static cardinal: qt.Shape.Cardinal = (function f(tension) {
     function y(x) {
       return new Curve.Cardinal(x, tension)
     }
@@ -789,7 +789,7 @@ export class Curve {
     }
     return y
   })(0)
-  static cardinalClosed: qt.CardinalFac = (function f(tension) {
+  static cardinalClosed: qt.Shape.Cardinal = (function f(tension) {
     function y(x) {
       return new Curve.CardinalClosed(x, tension)
     }
@@ -798,7 +798,7 @@ export class Curve {
     }
     return y
   })(0)
-  static cardinalOpen: qt.CardinalFac = (function f(tension) {
+  static cardinalOpen: qt.Shape.Cardinal = (function f(tension) {
     function y(x) {
       return new Curve.CardinalOpen(x, tension)
     }
@@ -807,7 +807,7 @@ export class Curve {
     }
     return y
   })(0)
-  static catmullRom: qt.CatmullRomFac = (function f(alpha) {
+  static catmullRom: qt.Shape.CatmullRom = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRom(x, alpha) : new Curve.Cardinal(x, 0)
     }
@@ -816,7 +816,7 @@ export class Curve {
     }
     return y
   })(0.5)
-  static catmullRomClosed: qt.CatmullRomFac = (function f(alpha) {
+  static catmullRomClosed: qt.Shape.CatmullRom = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRomClosed(x, alpha) : new Curve.CardinalClosed(x, 0)
     }
@@ -825,7 +825,7 @@ export class Curve {
     }
     return y
   })(0.5)
-  static catmullRomOpen: qt.CatmullRomFac = (function f(alpha) {
+  static catmullRomOpen: qt.Shape.CatmullRom = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRomOpen(x, alpha) : new Curve.CardinalOpen(x, 0)
     }
@@ -854,7 +854,7 @@ export class Curve {
   areaEnd() {}
 }
 export namespace Curve {
-  export class Basis extends Curve implements qt.CurveGen {
+  export class Basis extends Curve implements qt.Shape.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
@@ -900,7 +900,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export class BasisClosed extends Curve implements qt.CurveGen {
+  export class BasisClosed extends Curve implements qt.Shape.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
@@ -953,7 +953,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export class BasisOpen extends Curve implements qt.CurveGen {
+  export class BasisOpen extends Curve implements qt.Shape.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
@@ -996,7 +996,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export class Bump extends Curve implements qt.CurveGen {
+  export class Bump extends Curve implements qt.Shape.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path, public isX: boolean) {
       super(ctx)
     }
@@ -1025,15 +1025,15 @@ export namespace Curve {
         case 1:
           this._point = 2 // falls through
         default: {
-          if (this.isX) this.ctx.bezierCurveTo((this._x0 = (this._x0 + x) / 2), this._y0, this._x0, y, x, y)
-          else this.ctx.bezierCurveTo(this._x0, (this._y0 = (this._y0 + y) / 2), x, this._y0, x, y)
+          if (this.isX) this.ctx.bezierTo((this._x0 = (this._x0 + x) / 2), this._y0, this._x0, y, x, y)
+          else this.ctx.bezierTo(this._x0, (this._y0 = (this._y0 + y) / 2), x, this._y0, x, y)
           break
         }
       }
       ;(this._x0 = x), (this._y0 = y)
     }
   }
-  export class BumpRadial extends Curve implements qt.CurveGen {
+  export class BumpRadial extends Curve implements qt.Shape.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
@@ -1051,7 +1051,7 @@ export namespace Curve {
         const p2 = pointRadial(x, this._y0)
         const p3 = pointRadial(x, y)
         this.ctx.moveTo(...p0)
-        this.ctx.bezierCurveTo(...p1, ...p2, ...p3)
+        this.ctx.bezierTo(...p1, ...p2, ...p3)
       }
     }
   }
@@ -1093,7 +1093,7 @@ export namespace Curve {
       this.ys.push(+y)
     }
   }
-  export class Cardinal extends Curve implements qt.CurveGen {
+  export class Cardinal extends Curve implements qt.Shape.CurveGen {
     _k
     constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
       super(ctx)
@@ -1142,7 +1142,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CardinalClosed extends Curve implements qt.CurveGen {
+  export class CardinalClosed extends Curve implements qt.Shape.CurveGen {
     _k
     constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
       super(ctx)
@@ -1207,7 +1207,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CardinalOpen extends Curve implements qt.CurveGen {
+  export class CardinalOpen extends Curve implements qt.Shape.CurveGen {
     _k
     constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
       super(ctx)
@@ -1250,7 +1250,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CatmullRom extends Curve implements qt.CurveGen {
+  export class CatmullRom extends Curve implements qt.Shape.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
       super(ctx)
     }
@@ -1303,7 +1303,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CatmullRomClosed extends Curve implements qt.CurveGen {
+  export class CatmullRomClosed extends Curve implements qt.Shape.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
       super(ctx)
     }
@@ -1373,7 +1373,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CatmullRomOpen extends Curve implements qt.CurveGen {
+  export class CatmullRomOpen extends Curve implements qt.Shape.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
       super(ctx)
     }
@@ -1421,7 +1421,7 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class Linear extends Curve implements qt.CurveGen {
+  export class Linear extends Curve implements qt.Shape.CurveGen {
     constructor(ctx: CanvasRenderingContext2D | qu.Path) {
       super(ctx)
     }
@@ -1453,7 +1453,7 @@ export namespace Curve {
       }
     }
   }
-  export class LinearClosed extends Curve implements qt.CurveGen {
+  export class LinearClosed extends Curve implements qt.Shape.CurveGen {
     constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
     areaStart = qu.noop
     areaEnd = qu.noop
@@ -1480,11 +1480,11 @@ export namespace Curve {
     lineTo(x, y) {
       this.ctx.lineTo(y, x)
     }
-    bezierCurveTo(x1, y1, x2, y2, x, y) {
-      this.ctx.bezierCurveTo(y1, x1, y2, x2, y, x)
+    bezierTo(x1, y1, x2, y2, x, y) {
+      this.ctx.bezierTo(y1, x1, y2, x2, y, x)
     }
   }
-  export class MonotoneX extends Curve implements qt.CurveGen {
+  export class MonotoneX extends Curve implements qt.Shape.CurveGen {
     constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
     areaStart() {
       this._line = 0
@@ -1533,7 +1533,7 @@ export namespace Curve {
       this._t0 = t1
     }
   }
-  export class MonotoneY extends Curve implements qt.CurveGen {
+  export class MonotoneY extends Curve implements qt.Shape.CurveGen {
     ctx
     constructor(x: CanvasRenderingContext2D | qu.Path) {
       this.ctx = new ReflectContext(x)
@@ -1542,7 +1542,7 @@ export namespace Curve {
       MonotoneX.point.call(this, y, x)
     }
   }
-  export class Natural extends Curve implements qt.CurveGen {
+  export class Natural extends Curve implements qt.Shape.CurveGen {
     constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
     areaStart() {
       this._line = 0
@@ -1566,7 +1566,7 @@ export namespace Curve {
           const px = controlPoints(x),
             py = controlPoints(y)
           for (let i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
-            this.ctx.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1])
+            this.ctx.bezierTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1])
           }
         }
       }
@@ -1607,7 +1607,7 @@ export namespace Curve {
     y._curve = curve
     return y
   }
-  export class Step extends Curve implements qt.CurveGen {
+  export class Step extends Curve implements qt.Shape.CurveGen {
     constructor(public ctx: CanvasRenderingContext2D | qu.Path, public pos = 0.5) {}
     areaStart() {
       this._line = 0
@@ -1666,7 +1666,7 @@ function controlPoints(xs) {
 }
 
 function point(that, x, y) {
-  that.ctx.bezierCurveTo(
+  that.ctx.bezierTo(
     (2 * that._x0 + that._x1) / 3,
     (2 * that._y0 + that._y1) / 3,
     (that._x0 + 2 * that._x1) / 3,
@@ -1676,7 +1676,7 @@ function point(that, x, y) {
   )
 }
 function point2(that, x, y) {
-  that.ctx.bezierCurveTo(
+  that.ctx.bezierTo(
     that._x1 + that._k * (that._x2 - that._x0),
     that._y1 + that._k * (that._y2 - that._y0),
     that._x2 + that._k * (that._x1 - x),
@@ -1703,7 +1703,7 @@ function point3(that, x, y) {
     x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m
     y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m
   }
-  that.ctx.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2)
+  that.ctx.bezierTo(x1, y1, x2, y2, that._x2, that._y2)
 }
 
 function point4(that, t0, t1) {
@@ -1712,7 +1712,7 @@ function point4(that, t0, t1) {
     x1 = that._x1,
     y1 = that._y1,
     dx = (x1 - x0) / 3
-  that.ctx.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1)
+  that.ctx.bezierTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1)
 }
 
 function slope2(that, t) {

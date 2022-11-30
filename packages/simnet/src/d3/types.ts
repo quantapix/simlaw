@@ -1489,35 +1489,46 @@ export interface NS {
 declare global {
   interface CanvasRenderingContext2D {}
 }
-export interface CanvasPath_D3Shape {
-  arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, anticlockwise?: boolean): void
-  arcTo(x1: number, y1: number, x2: number, y2: number, radius: number): void
-  bezierCurveTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number): void
-  closePath(): void
-  ellipse(
-    x: number,
-    y: number,
-    radiusX: number,
-    radiusY: number,
-    rotation: number,
-    startAngle: number,
-    endAngle: number,
-    anticlockwise?: boolean
-  ): void
-  lineTo(x: number, y: number): void
-  moveTo(x: number, y: number): void
-  quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void
-  rect(x: number, y: number, w: number, h: number): void
-}
 export namespace Shape {
-  export interface Base {
+  export interface BaseArc {
     innerRadius: number
     outerRadius: number
     startAngle: number
     endAngle: number
     padAngle?: number | undefined
   }
-
+  export interface DefaultLink {
+    src: Point
+    tgt: Point
+  }
+  export interface PieArc<T> {
+    data: T
+    value: number
+    i: number
+    startAngle: number
+    endAngle: number
+    padAngle: number
+  }
+  export interface LineGen {
+    lineStart(): void
+    lineEnd(): void
+    point(x: number, y: number): void
+  }
+  export interface CurveGen extends LineGen {
+    areaStart(): void
+    areaEnd(): void
+  }
+  export type LineOnly = (x: CanvasRenderingContext2D | Path) => LineGen
+  export type Curve = (x: CanvasRenderingContext2D | Path) => CurveGen
+  export interface Bundle extends LineOnly {
+    beta(x: number): this
+  }
+  export interface Cardinal extends Curve {
+    tension(x: number): this
+  }
+  export interface CatmullRom extends Curve {
+    alpha(x: number): this
+  }
   export interface Arc<This, T> {
     (this: This, x: T, ...xs: any[]): string | null
     (this: This, x: T, ...xs: any[]): void
@@ -1545,198 +1556,182 @@ export namespace Shape {
     startAngle(f: (this: This, x: T, ...xs: any[]) => number): this
     startAngle(x: number): this
   }
+  export interface Area<T> {
+    (x: Iterable<T> | T[]): string | null
+    (x: Iterable<T> | T[]): void
+    context(): CanvasRenderingContext2D | null
+    context(x: CanvasRenderingContext2D | null): this
+    curve(): Curve
+    curve(x: Curve): this
+    curve<C extends Curve>(): C
+    defined(): (x: T, i: number, xs: T[]) => boolean
+    defined(f: (x: T, i: number, xs: T[]) => boolean): this
+    defined(x: boolean): this
+    lineX0(): Shape.Line<T>
+    lineX1(): Shape.Line<T>
+    lineY0(): Shape.Line<T>
+    lineY1(): Shape.Line<T>
+    x(): Op<T>
+    x(f: Op<T>): this
+    x(x: number): this
+    x0(): Op<T>
+    x0(f: Op<T>): this
+    x0(x: number): this
+    x1(): Op<T> | null
+    x1(f: Op<T>): this
+    x1(x: null | number): this
+    y(): Op<T>
+    y(f: Op<T>): this
+    y(x: number): this
+    y0(): Op<T>
+    y0(f: Op<T>): this
+    y0(x: number): this
+    y1(): Op<T> | null
+    y1(f: Op<T>): this
+    y1(x: null | number): this
+  }
+  export interface AreaRadial<T> {
+    (x: Iterable<T> | T[]): string | null
+    (x: Iterable<T> | T[]): void
+    angle(): Op<T>
+    angle(f: Op<T>): this
+    angle(x: number): this
+    context(): CanvasRenderingContext2D | null
+    context(x: CanvasRenderingContext2D | null): this
+    curve(): Curve
+    curve(x: Curve): this
+    curve<C extends Curve>(): C
+    defined(): (x: T, i: number, xs: T[]) => boolean
+    defined(f: (x: T, i: number, xs: T[]) => boolean): this
+    defined(x: boolean): this
+    endAngle(): Op<T> | null
+    endAngle(f: Op<T>): this
+    endAngle(x: null | number): this
+    innerRadius(): Op<T>
+    innerRadius(f: Op<T>): this
+    innerRadius(x: number): this
+    lineEndAngle(): Shape.LineRadial<T>
+    lineInnerRadius(): Shape.LineRadial<T>
+    lineOuterRadius(): Shape.LineRadial<T>
+    lineStartAngle(): Shape.LineRadial<T>
+    outerRadius(): Op<T> | null
+    outerRadius(f: Op<T>): this
+    outerRadius(x: null | number): this
+    radius(): Op<T>
+    radius(f: Op<T>): this
+    radius(x: number): this
+    startAngle(): Op<T>
+    startAngle(f: Op<T>): this
+    startAngle(x: number): this
+  }
+  export interface Line<T> {
+    (x: Iterable<T> | T[]): string | null
+    (x: Iterable<T> | T[]): void
+    context(): CanvasRenderingContext2D | null
+    context(x: CanvasRenderingContext2D | null): this
+    curve(): Curve | LineOnly
+    curve(f: Curve | LineOnly): this
+    curve<C extends Curve | LineOnly>(): C
+    defined(): (x: T, i: number, xs: T[]) => boolean
+    defined(f: (x: T, i: number, xs: T[]) => boolean): this
+    defined(x: boolean): this
+    x(): (x: T, i: number, xs: T[]) => number
+    x(f: (x: T, i: number, xs: T[]) => number): this
+    x(x: number): this
+    y(): (x: T, i: number, xs: T[]) => number
+    y(f: (x: T, i: number, xs: T[]) => number): this
+    y(x: number): this
+  }
+  export interface LineRadial<T> {
+    (x: Iterable<T> | T[]): string | null
+    (x: Iterable<T> | T[]): void
+    angle(): (x: T, i: number, xs: T[]) => number
+    angle(f: (x: T, i: number, xs: T[]) => number): this
+    angle(x: number): this
+    context(): CanvasRenderingContext2D | null
+    context(x: CanvasRenderingContext2D | null): this
+    curve(): Curve | LineOnly
+    curve(f: Curve | LineOnly): this
+    curve<C extends Curve | LineOnly>(): C
+    defined(): (x: T, i: number, xs: T[]) => boolean
+    defined(f: (x: T, i: number, xs: T[]) => boolean): this
+    defined(x: boolean): this
+    radius(): (x: T, i: number, xs: T[]) => number
+    radius(f: (x: T, i: number, xs: T[]) => number): this
+    radius(x: number): this
+  }
+  export interface Pie<This, T> {
+    (this: This, x: T[], ...xs: any[]): Array<Shape.PieArc<T>>
+    endAngle(): (this: This, x: T[], ...xs: any[]) => number
+    endAngle(f: (this: This, x: T[], ...xs: any[]) => number): this
+    endAngle(x: number): this
+    padAngle(): (this: This, x: T[], ...xs: any[]) => number
+    padAngle(f: (this: This, x: T[], ...xs: any[]) => number): this
+    padAngle(x: number): this
+    sort(): ((a: T, b: T) => number) | null
+    sort(f: (a: T, b: T) => number): this
+    sort(x: null): this
+    sortValues(): ((a: number, b: number) => number) | null
+    sortValues(f: ((a: number, b: number) => number) | null): this
+    startAngle(): (this: This, x: T[], ...xs: any[]) => number
+    startAngle(f: (this: This, x: T[], ...xs: any[]) => number): this
+    startAngle(x: number): this
+    value(): (x: T, i: number, xs: T[]) => number
+    value(f: (x: T, i: number, xs: T[]) => number): this
+    value(x: number): this
+  }
+  export interface Link<This, L, N> {
+    (this: This, x: L, ...xs: any[]): string | null
+    (this: This, x: L, ...xs: any[]): void
+    source(): (this: This, x: L, ...xs: any[]) => N
+    source(f: (this: This, x: L, ...xs: any[]) => N): this
+    target(): (this: This, x: L, ...xs: any[]) => N
+    target(f: (this: This, x: L, ...xs: any[]) => N): this
+    x(): (this: This, x: N, ...xs: any[]) => number
+    x(x: (this: This, x: N, ...xs: any[]) => number): this
+    y(): (this: This, x: N, ...xs: any[]) => number
+    y(y: (this: This, x: N, ...xs: any[]) => number): this
+    context(): CanvasRenderingContext2D | null
+    context(x: CanvasRenderingContext2D | null): this
+  }
+  export interface LinkRadial<This, L, N> {
+    (this: This, x: L, ...xs: any[]): string | null
+    (this: This, x: L, ...xs: any[]): void
+    source(): (this: This, x: L, ...xs: any[]) => N
+    source(f: (this: This, x: L, ...xs: any[]) => N): this
+    target(): (this: This, x: L, ...xs: any[]) => N
+    target(f: (this: This, x: L, ...xs: any[]) => N): this
+    angle(): (this: This, x: N, ...xs: any[]) => number
+    angle(f: (this: This, x: N, ...xs: any[]) => number): this
+    radius(): (this: This, x: N, ...xs: any[]) => number
+    radius(f: (this: This, x: N, ...xs: any[]) => number): this
+    context(): CanvasRenderingContext2D | null
+    context(x: CanvasRenderingContext2D | null): this
+  }
+  export interface Path {
+    arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, ccw?: boolean): void
+    arcTo(x1: number, y1: number, x2: number, y2: number, radius: number): void
+    bezierTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number): void
+    closePath(): void
+    ellipse(
+      x: number,
+      y: number,
+      radiusX: number,
+      radiusY: number,
+      rotation: number,
+      startAngle: number,
+      endAngle: number,
+      ccw?: boolean
+    ): void
+    lineTo(x: number, y: number): void
+    moveTo(x: number, y: number): void
+    quadraticTo(cpx: number, cpy: number, x: number, y: number): void
+    rect(x: number, y: number, w: number, h: number): void
+  }
 }
-export interface PieArcDatum<T> {
-  data: T
-  value: number
-  i: number
-  startAngle: number
-  endAngle: number
-  padAngle: number
-}
-export interface Pie<This, T> {
-  (this: This, data: T[], ...xs: any[]): Array<PieArcDatum<T>>
-  endAngle(): (this: This, data: T[], ...xs: any[]) => number
-  endAngle(f: (this: This, data: T[], ...xs: any[]) => number): this
-  endAngle(x: number): this
-  padAngle(): (this: This, data: T[], ...xs: any[]) => number
-  padAngle(f: (this: This, data: T[], ...xs: any[]) => number): this
-  padAngle(x: number): this
-  sort(): ((a: T, b: T) => number) | null
-  sort(f: (a: T, b: T) => number): this
-  sort(x: null): this
-  sortValues(): ((a: number, b: number) => number) | null
-  sortValues(f: ((a: number, b: number) => number) | null): this
-  startAngle(): (this: This, data: T[], ...xs: any[]) => number
-  startAngle(f: (this: This, data: T[], ...xs: any[]) => number): this
-  startAngle(x: number): this
-  value(): (x: T, i: number, data: T[]) => number
-  value(f: (x: T, i: number, data: T[]) => number): this
-  value(x: number): this
-}
-export interface Line<T> {
-  (x: Iterable<T> | T[]): string | null
-  (x: Iterable<T> | T[]): void
-  context(): CanvasRenderingContext2D | null
-  context(x: CanvasRenderingContext2D | null): this
-  curve(): CurveFac | LineOnlyFac
-  curve(f: CurveFac | LineOnlyFac): this
-  curve<C extends CurveFac | LineOnlyFac>(): C
-  defined(): (x: T, i: number, xs: T[]) => boolean
-  defined(f: (x: T, i: number, xs: T[]) => boolean): this
-  defined(x: boolean): this
-  x(): (x: T, i: number, xs: T[]) => number
-  x(f: (x: T, i: number, xs: T[]) => number): this
-  x(x: number): this
-  y(): (x: T, i: number, xs: T[]) => number
-  y(f: (x: T, i: number, xs: T[]) => number): this
-  y(x: number): this
-}
-export interface LineRadial<T> {
-  (data: Iterable<T> | T[]): string | null
-  (data: Iterable<T> | T[]): void
-  angle(): (x: T, i: number, data: T[]) => number
-  angle(f: (x: T, i: number, data: T[]) => number): this
-  angle(x: number): this
-  context(): CanvasRenderingContext2D | null
-  context(x: CanvasRenderingContext2D | null): this
-  curve(): CurveFac | LineOnlyFac
-  curve(f: CurveFac | LineOnlyFac): this
-  curve<C extends CurveFac | LineOnlyFac>(): C
-  defined(): (x: T, i: number, data: T[]) => boolean
-  defined(f: (x: T, i: number, data: T[]) => boolean): this
-  defined(x: boolean): this
-  radius(): (x: T, i: number, data: T[]) => number
-  radius(f: (x: T, i: number, data: T[]) => number): this
-  radius(x: number): this
-}
-
-export interface Area<T> {
-  (xs: Iterable<T> | T[]): string | null
-  (xs: Iterable<T> | T[]): void
-  context(): CanvasRenderingContext2D | null
-  context(x: CanvasRenderingContext2D | null): this
-  curve(): CurveFac
-  curve(x: CurveFac): this
-  curve<C extends CurveFac>(): C
-  defined(): (x: T, i: number, xs: T[]) => boolean
-  defined(f: (x: T, i: number, xs: T[]) => boolean): this
-  defined(x: boolean): this
-  lineX0(): Line<T>
-  lineX1(): Line<T>
-  lineY0(): Line<T>
-  lineY1(): Line<T>
-  x(): Op<T>
-  x(f: Op<T>): this
-  x(x: number): this
-  x0(): Op<T>
-  x0(f: Op<T>): this
-  x0(x: number): this
-  x1(): Op<T> | null
-  x1(f: Op<T>): this
-  x1(x: null | number): this
-  y(): Op<T>
-  y(f: Op<T>): this
-  y(x: number): this
-  y0(): Op<T>
-  y0(f: Op<T>): this
-  y0(x: number): this
-  y1(): Op<T> | null
-  y1(f: Op<T>): this
-  y1(x: null | number): this
-}
-export interface AreaRadial<T> {
-  (xs: Iterable<T> | T[]): string | null
-  (xs: Iterable<T> | T[]): void
-  angle(): Op<T>
-  angle(f: Op<T>): this
-  angle(x: number): this
-  context(): CanvasRenderingContext2D | null
-  context(x: CanvasRenderingContext2D | null): this
-  curve(): CurveFac
-  curve(x: CurveFac): this
-  curve<C extends CurveFac>(): C
-  defined(): (x: T, i: number, xs: T[]) => boolean
-  defined(f: (x: T, i: number, xs: T[]) => boolean): this
-  defined(x: boolean): this
-  endAngle(): Op<T> | null
-  endAngle(f: Op<T>): this
-  endAngle(x: null | number): this
-  innerRadius(): Op<T>
-  innerRadius(f: Op<T>): this
-  innerRadius(x: number): this
-  lineEndAngle(): LineRadial<T>
-  lineInnerRadius(): LineRadial<T>
-  lineOuterRadius(): LineRadial<T>
-  lineStartAngle(): LineRadial<T>
-  outerRadius(): Op<T> | null
-  outerRadius(f: Op<T>): this
-  outerRadius(x: null | number): this
-  radius(): Op<T>
-  radius(f: Op<T>): this
-  radius(x: number): this
-  startAngle(): Op<T>
-  startAngle(f: Op<T>): this
-  startAngle(x: number): this
-}
-
-export interface LineOnlyGen {
-  lineStart(): void
-  lineEnd(): void
-  point(x: number, y: number): void
-}
-export interface CurveGen extends LineOnlyGen {
-  areaStart(): void
-  areaEnd(): void
-}
-export type LineOnlyFac = (x: CanvasRenderingContext2D | Path) => LineOnlyGen
-export type CurveFac = (x: CanvasRenderingContext2D | Path) => CurveGen
-
-export interface BundleFac extends LineOnlyFac {
-  beta(x: number): this
-}
-export interface CardinalFac extends CurveFac {
-  tension(x: number): this
-}
-export interface CatmullRomFac extends CurveFac {
-  alpha(x: number): this
-}
-export interface DefaultLinkObject {
-  src: Point
-  tgt: Point
-}
-export interface Link<This, L, N> {
-  (this: This, d: L, ...xs: any[]): string | null
-  (this: This, d: L, ...xs: any[]): void
-  source(): (this: This, d: L, ...xs: any[]) => N
-  source(f: (this: This, d: L, ...xs: any[]) => N): this
-  target(): (this: This, d: L, ...xs: any[]) => N
-  target(f: (this: This, d: L, ...xs: any[]) => N): this
-  x(): (this: This, node: N, ...xs: any[]) => number
-  x(x: (this: This, node: N, ...xs: any[]) => number): this
-  y(): (this: This, node: N, ...xs: any[]) => number
-  y(y: (this: This, node: N, ...xs: any[]) => number): this
-  context(): CanvasRenderingContext2D | null
-  context(x: CanvasRenderingContext2D | null): this
-}
-export interface LinkRadial<This, L, N> {
-  (this: This, d: L, ...xs: any[]): string | null
-  (this: This, d: L, ...xs: any[]): void
-  source(): (this: This, d: L, ...xs: any[]) => N
-  source(f: (this: This, d: L, ...xs: any[]) => N): this
-  target(): (this: This, d: L, ...xs: any[]) => N
-  target(f: (this: This, d: L, ...xs: any[]) => N): this
-  angle(): (this: This, node: N, ...xs: any[]) => number
-  angle(f: (this: This, node: N, ...xs: any[]) => number): this
-  radius(): (this: This, node: N, ...xs: any[]) => number
-  radius(f: (this: This, node: N, ...xs: any[]) => number): this
-  context(): CanvasRenderingContext2D | null
-  context(x: CanvasRenderingContext2D | null): this
-}
-export type RadialLink<This, L, N> = LinkRadial<This, L, N>
 
 export interface SymbolType {
-  draw(path: CanvasPath_D3Shape, size: number): void
+  draw(path: Shape.Path, size: number): void
 }
 export interface Symbol<This, T> {
   (this: This, x?: T, ...xs: any[]): string | null

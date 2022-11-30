@@ -159,15 +159,15 @@ function _ribbon(headRadius?) {
         let hr = +headRadius.apply(this, arguments),
           tr2 = tr - hr,
           ta2 = (ta0 + ta1) / 2
-        context.quadraticCurveTo(0, 0, tr2 * qu.cos(ta0), tr2 * qu.sin(ta0))
+        context.quadraticTo(0, 0, tr2 * qu.cos(ta0), tr2 * qu.sin(ta0))
         context.lineTo(tr * qu.cos(ta2), tr * qu.sin(ta2))
         context.lineTo(tr2 * qu.cos(ta1), tr2 * qu.sin(ta1))
       } else {
-        context.quadraticCurveTo(0, 0, tr * qu.cos(ta0), tr * qu.sin(ta0))
+        context.quadraticTo(0, 0, tr * qu.cos(ta0), tr * qu.sin(ta0))
         context.arc(0, 0, tr, ta0, ta1)
       }
     }
-    context.quadraticCurveTo(0, 0, sr * qu.cos(sa0), sr * qu.sin(sa0))
+    context.quadraticTo(0, 0, sr * qu.cos(sa0), sr * qu.sin(sa0))
     context.closePath()
     if (buffer) return (context = null), buffer + "" || null
   }
