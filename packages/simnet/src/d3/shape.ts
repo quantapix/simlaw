@@ -1,12 +1,13 @@
 /* eslint-disable no-fallthrough */
-import type * as qt from "./types.js"
 import * as qu from "./utils.js"
+import type { Shape as qs } from "./types.js"
+import type * as qt from "./types.js"
 
-export function arc(): qt.Shape.Arc<any, qt.Shape.BaseArc>
-export function arc<T>(): qt.Shape.Arc<any, T>
-export function arc<This, T>(): qt.Shape.Arc<This, T>
+export function arc(): qs.Arc<any, qs.BaseArc>
+export function arc<T>(): qs.Arc<any, T>
+export function arc<This, T>(): qs.Arc<This, T>
 export function arc() {
-  let context: any = null,
+  let _context: qs.Context | null = null,
     _corner = qu.constant(0),
     _end = (x: any) => x.endAngle,
     _inner = (x: any) => x.innerRadius,
@@ -78,15 +79,15 @@ export function arc() {
       r,
       r0 = +_inner.apply(this, xs),
       r1 = +_outer.apply(this, xs)
-    if (!context) context = buffer = new qu.Path()
+    if (!_context) _context = buffer = new qu.Path()
     if (r1 < r0) (r = r1), (r1 = r0), (r0 = r)
-    if (!(r1 > qu.epsilon2)) context.moveTo(0, 0)
+    if (!(r1 > qu.epsilon2)) _context?.moveTo(0, 0)
     else if (da > qu.tau - qu.epsilon2) {
-      context.moveTo(r1 * qu.cos(a0), r1 * qu.sin(a0))
-      context.arc(0, 0, r1, a0, a1, !cw)
+      _context?.moveTo(r1 * qu.cos(a0), r1 * qu.sin(a0))
+      _context?.arc(0, 0, r1, a0, a1, !cw)
       if (r0 > qu.epsilon2) {
-        context.moveTo(r0 * qu.cos(a1), r0 * qu.sin(a1))
-        context.arc(0, 0, r0, a1, a0, cw)
+        _context?.moveTo(r0 * qu.cos(a1), r0 * qu.sin(a1))
+        _context?.arc(0, 0, r0, a1, a0, cw)
       }
     } else {
       const ap = padAngle.apply(this, xs) / 2,
@@ -132,40 +133,57 @@ export function arc() {
           rc1 = qu.min(rc, (r1 - lc) / (kc + 1))
         }
       }
-      if (!(da1 > qu.epsilon2)) context.moveTo(x01, y01)
+      if (!(da1 > qu.epsilon2)) _context?.moveTo(x01, y01)
       else if (rc1 > qu.epsilon2) {
         t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw)
         t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw)
-        context.moveTo(t0.cx + t0.x01, t0.cy + t0.y01)
-        if (rc1 < rc) context.arc(t0.cx, t0.cy, rc1, qu.atan2(t0.y01, t0.x01), qu.atan2(t1.y01, t1.x01), !cw)
+        _context?.moveTo(t0.cx + t0.x01, t0.cy + t0.y01)
+        if (rc1 < rc) _context?.arc(t0.cx, t0.cy, rc1, qu.atan2(t0.y01, t0.x01), qu.atan2(t1.y01, t1.x01), !cw)
         else {
-          context.arc(t0.cx, t0.cy, rc1, qu.atan2(t0.y01, t0.x01), qu.atan2(t0.y11, t0.x11), !cw)
-          context.arc(0, 0, r1, qu.atan2(t0.cy + t0.y11, t0.cx + t0.x11), qu.atan2(t1.cy + t1.y11, t1.cx + t1.x11), !cw)
-          context.arc(t1.cx, t1.cy, rc1, qu.atan2(t1.y11, t1.x11), qu.atan2(t1.y01, t1.x01), !cw)
+          _context?.arc(t0.cx, t0.cy, rc1, qu.atan2(t0.y01, t0.x01), qu.atan2(t0.y11, t0.x11), !cw)
+          _context?.arc(
+            0,
+            0,
+            r1,
+            qu.atan2(t0.cy + t0.y11, t0.cx + t0.x11),
+            qu.atan2(t1.cy + t1.y11, t1.cx + t1.x11),
+            !cw
+          )
+          _context?.arc(t1.cx, t1.cy, rc1, qu.atan2(t1.y11, t1.x11), qu.atan2(t1.y01, t1.x01), !cw)
         }
-      } else context.moveTo(x01, y01), context.arc(0, 0, r1, a01, a11, !cw)
-      if (!(r0 > qu.epsilon2) || !(da0 > qu.epsilon2)) context.lineTo(x10, y10)
+      } else {
+        _context?.moveTo(x01, y01)
+        _context?.arc(0, 0, r1, a01, a11, !cw)
+      }
+      if (!(r0 > qu.epsilon2) || !(da0 > qu.epsilon2)) _context?.lineTo(x10, y10)
       else if (rc0 > qu.epsilon2) {
         t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw)
         t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw)
-        context.lineTo(t0.cx + t0.x01, t0.cy + t0.y01)
-        if (rc0 < rc) context.arc(t0.cx, t0.cy, rc0, qu.atan2(t0.y01, t0.x01), qu.atan2(t1.y01, t1.x01), !cw)
+        _context?.lineTo(t0.cx + t0.x01, t0.cy + t0.y01)
+        if (rc0 < rc) _context?.arc(t0.cx, t0.cy, rc0, qu.atan2(t0.y01, t0.x01), qu.atan2(t1.y01, t1.x01), !cw)
         else {
-          context.arc(t0.cx, t0.cy, rc0, qu.atan2(t0.y01, t0.x01), qu.atan2(t0.y11, t0.x11), !cw)
-          context.arc(0, 0, r0, qu.atan2(t0.cy + t0.y11, t0.cx + t0.x11), qu.atan2(t1.cy + t1.y11, t1.cx + t1.x11), cw)
-          context.arc(t1.cx, t1.cy, rc0, qu.atan2(t1.y11, t1.x11), qu.atan2(t1.y01, t1.x01), !cw)
+          _context?.arc(t0.cx, t0.cy, rc0, qu.atan2(t0.y01, t0.x01), qu.atan2(t0.y11, t0.x11), !cw)
+          _context?.arc(
+            0,
+            0,
+            r0,
+            qu.atan2(t0.cy + t0.y11, t0.cx + t0.x11),
+            qu.atan2(t1.cy + t1.y11, t1.cx + t1.x11),
+            cw
+          )
+          _context?.arc(t1.cx, t1.cy, rc0, qu.atan2(t1.y11, t1.x11), qu.atan2(t1.y01, t1.x01), !cw)
         }
-      } else context.arc(0, 0, r0, a10, a00, cw)
+      } else _context?.arc(0, 0, r0, a10, a00, cw)
     }
-    context.closePath()
-    if (buffer) return (context = null), buffer + "" || null
+    _context?.closePath()
+    if (buffer) return (_context = null), buffer + "" || null
   }
   f.centroid = (...xs: any) => {
     const r = (+f.innerRadius(xs) + +f.outerRadius(xs)) / 2,
       a = (+f.startAngle(xs) + +f.endAngle(xs)) / 2 - qu.PI / 2
     return [qu.cos(a) * r, qu.sin(a) * r]
   }
-  f.context = (x: any) => (x === undefined ? context : ((context = x === null ? null : x), f))
+  f.context = (x: any) => (x === undefined ? _context : ((_context = x === null ? null : x), f))
   f.cornerRadius = (x: any) =>
     x === undefined ? _corner : ((_corner = typeof x === "function" ? x : qu.constant(+x)), f)
   f.endAngle = (x: any) => (x === undefined ? _end : ((_end = typeof x === "function" ? x : qu.constant(+x)), f))
@@ -183,19 +201,19 @@ export function area<T = qt.Point>(
   x0?: number | ((x: T, i: number, xs: T[]) => number),
   y0?: number | ((x: T, i: number, xs: T[]) => number),
   y1?: number | ((x: T, i: number, xs: T[]) => number)
-): qt.Shape.Area<T> {
+): qs.Area<T> {
   let x1 = null,
     defined = qu.constant(true),
-    context = null,
+    _context: qs.Context | null = null,
     curve = curveLinear,
     output = null
   x0 = typeof x0 === "function" ? x0 : x0 === undefined ? pointX : qu.constant(+x0)
   y0 = typeof y0 === "function" ? y0 : y0 === undefined ? qu.constant(0) : qu.constant(+y0)
   y1 = typeof y1 === "function" ? y1 : y1 === undefined ? pointY : qu.constant(+y1)
-  function y(xs: Iterable<T> | T[]): string | null
-  function y(xs: Iterable<T> | T[]): void
-  function y(xs: any) {
-    const n = (xs = array(xs)).length,
+  function f(x: Iterable<T> | T[]): string | null
+  function f(x: Iterable<T> | T[]): void
+  function f(x: any) {
+    const n = (x = array(x)).length,
       x0z = new Array(n),
       y0z = new Array(n)
     let i,
@@ -204,9 +222,9 @@ export function area<T = qt.Point>(
       d,
       defined0 = false,
       buffer
-    if (context == null) output = curve((buffer = new qu.Path()))
+    if (_context == null) output = curve((buffer = new qu.Path()))
     for (i = 0; i <= n; ++i) {
-      if (!(i < n && defined((d = xs[i]), i, xs)) === defined0) {
+      if (!(i < n && defined((d = x[i]), i, x)) === defined0) {
         if ((defined0 = !defined0)) {
           j = i
           output.areaStart()
@@ -222,55 +240,34 @@ export function area<T = qt.Point>(
         }
       }
       if (defined0) {
-        ;(x0z[i] = +x0(d, i, xs)), (y0z[i] = +y0(d, i, xs))
-        output.point(x1 ? +x1(d, i, xs) : x0z[i], y1 ? +y1(d, i, xs) : y0z[i])
+        x0z[i] = +x0(d, i, x)
+        y0z[i] = +y0(d, i, x)
+        output.point(x1 ? +x1(d, i, x) : x0z[i], y1 ? +y1(d, i, x) : y0z[i])
       }
     }
     if (buffer) return (output = null), buffer + "" || null
   }
-  function arealine() {
-    return line().defined(defined).curve(curve).context(context)
-  }
-  y.x = function (_) {
-    return arguments.length ? ((x0 = typeof _ === "function" ? _ : qu.constant(+_)), (x1 = null), y) : x0
-  }
-  y.x0 = function (...xs: any[]) {
-    return xs.length ? ((x0 = typeof _ === "function" ? _ : qu.constant(+_)), y) : x0
-  }
-  y.x1 = function (_) {
-    return arguments.length ? ((x1 = _ == null ? null : typeof _ === "function" ? _ : qu.constant(+_)), y) : x1
-  }
-  y.y = function (_) {
-    return arguments.length ? ((y0 = typeof _ === "function" ? _ : qu.constant(+_)), (y1 = null), y) : y0
-  }
-  y.y0 = function (_) {
-    return arguments.length ? ((y0 = typeof _ === "function" ? _ : qu.constant(+_)), y) : y0
-  }
-  y.y1 = function (_) {
-    return arguments.length ? ((y1 = _ == null ? null : typeof _ === "function" ? _ : qu.constant(+_)), y) : y1
-  }
-  y.lineX0 = y.lineY0 = function () {
-    return arealine().x(x0).y(y0)
-  }
-  y.lineY1 = function () {
-    return arealine().x(x0).y(y1)
-  }
-  y.lineX1 = function () {
-    return arealine().x(x1).y(y0)
-  }
-  y.defined = function (_) {
-    return arguments.length ? ((defined = typeof _ === "function" ? _ : qu.constant(!!_)), y) : defined
-  }
-  y.curve = function (_) {
-    return arguments.length ? ((curve = _), context != null && (output = curve(context)), y) : curve
-  }
-  y.context = function (_) {
-    return arguments.length ? (_ == null ? (context = output = null) : (output = curve((context = _))), y) : context
-  }
-  return y
+  f.x = (x: any) => (x === undefined ? x0 : ((x0 = typeof x === "function" ? x : qu.constant(+x)), (x1 = null), f))
+  f.x0 = (x: any) => (x === undefined ? x0 : ((x0 = typeof x === "function" ? x : qu.constant(+x)), f))
+  f.x1 = (x: any) =>
+    x === undefined ? x1 : ((x1 = x == null ? null : typeof x === "function" ? x : qu.constant(+x)), f)
+  f.y = (x: any) => (x === undefined ? y0 : ((y0 = typeof x === "function" ? x : qu.constant(+x)), (y1 = null), f))
+  f.y0 = (x: any) => (x === undefined ? y0 : ((y0 = typeof x === "function" ? x : qu.constant(+x)), f))
+  f.y1 = (x: any) =>
+    x === undefined ? y1 : ((y1 = x == null ? null : typeof x === "function" ? x : qu.constant(+x)), f)
+  const arealine = () => line().defined(defined).curve(curve).context(_context)
+  f.lineX0 = () => arealine().x(x0).y(y0)
+  f.lineY0 = f.lineX0
+  f.lineY1 = () => arealine().x(x0).y(y1)
+  f.lineX1 = () => arealine().x(x1).y(y0)
+  f.defined = (x: any) => (x === undefined ? defined : ((defined = typeof x === "function" ? x : qu.constant(!!x)), f))
+  f.curve = (x: any) => (x === undefined ? curve : ((curve = x), _context != null && (output = curve(_context)), f))
+  f.context = (x: any) =>
+    x === undefined ? _context : (x === null ? (_context = output = null) : (output = curve((_context = x))), f)
+  return f
 }
-export function areaRadial(): qt.Shape.AreaRadial<qt.Point>
-export function areaRadial<T>(): qt.Shape.AreaRadial<T>
+export function areaRadial(): qs.AreaRadial<qt.Point>
+export function areaRadial<T>(): qs.AreaRadial<T>
 export function areaRadial() {
   const y = area().curve(curveRadialLinear),
     c = y.curve,
@@ -314,7 +311,7 @@ export function array(x) {
 export function line<T = qt.Point>(
   x?: number | ((d: T, i: number, data: T[]) => number),
   y?: number | ((d: T, i: number, data: T[]) => number)
-): qt.Shape.Line<T> {
+): qs.Line<T> {
   let defined = qu.constant(true),
     context = null,
     curve = curveLinear,
@@ -354,8 +351,8 @@ export function line<T = qt.Point>(
   }
   return y
 }
-export function lineRadial(): qt.Shape.LineRadial<qt.Point>
-export function lineRadial<T>(): qt.Shape.LineRadial<T>
+export function lineRadial(): qs.LineRadial<qt.Point>
+export function lineRadial<T>(): qs.LineRadial<T>
 export function lineRadial() {
   function y(l) {
     const c = l.curve
@@ -374,9 +371,9 @@ function linkSource(d) {
 function linkTarget(d) {
   return d.target
 }
-export function link(x: qt.Shape.Curve): qt.Shape.Link<any, qt.Shape.DefaultLink, qt.Point>
-export function link<L, N>(x: qt.Shape.Curve): qt.Shape.Link<any, L, N>
-export function link<This, L, N>(x: qt.Shape.Curve): qt.Shape.Link<This, L, N>
+export function link(x: qs.Curve): qs.Link<any, qs.DefaultLink, qt.Point>
+export function link<L, N>(x: qs.Curve): qs.Link<any, L, N>
+export function link<This, L, N>(x: qs.Curve): qs.Link<This, L, N>
 export function link(curve) {
   let source = linkSource
   let target = linkTarget
@@ -413,21 +410,21 @@ export function link(curve) {
   }
   return f
 }
-export function linkHorizontal(): qt.Shape.Link<any, qt.Shape.DefaultLink, qt.Point>
-export function linkHorizontal<L, N>(): qt.Shape.Link<any, L, N>
-export function linkHorizontal<This, L, N>(): qt.Shape.Link<This, L, N>
+export function linkHorizontal(): qs.Link<any, qs.DefaultLink, qt.Point>
+export function linkHorizontal<L, N>(): qs.Link<any, L, N>
+export function linkHorizontal<This, L, N>(): qs.Link<This, L, N>
 export function linkHorizontal() {
   return link(bumpX)
 }
-export function linkVertical(): qt.Shape.Link<any, qt.Shape.DefaultLink, qt.Point>
-export function linkVertical<L, N>(): qt.Shape.Link<any, L, N>
-export function linkVertical<This, L, N>(): qt.Shape.Link<This, L, N>
+export function linkVertical(): qs.Link<any, qs.DefaultLink, qt.Point>
+export function linkVertical<L, N>(): qs.Link<any, L, N>
+export function linkVertical<This, L, N>(): qs.Link<This, L, N>
 export function linkVertical() {
   return link(bumpY)
 }
-export function linkRadial(): qt.Shape.LinkRadial<any, qt.Shape.DefaultLink, qt.Point>
-export function linkRadial<L, N>(): qt.Shape.LinkRadial<any, L, N>
-export function linkRadial<This, L, N>(): qt.Shape.LinkRadial<This, L, N>
+export function linkRadial(): qs.LinkRadial<any, qs.DefaultLink, qt.Point>
+export function linkRadial<L, N>(): qs.LinkRadial<any, L, N>
+export function linkRadial<This, L, N>(): qs.LinkRadial<This, L, N>
 export function linkRadial() {
   const l = link(bumpRadial)
   ;(l.angle = l.x), delete l.x
@@ -435,9 +432,9 @@ export function linkRadial() {
   return l
 }
 
-export function pie(): qt.Shape.Pie<any, number | { valueOf(): number }>
-export function pie<T>(): qt.Shape.Pie<any, T>
-export function pie<This, T>(): qt.Shape.Pie<This, T>
+export function pie(): qs.Pie<any, number | { valueOf(): number }>
+export function pie<T>(): qs.Pie<any, T>
+export function pie<This, T>(): qs.Pie<This, T>
 export function pie() {
   let value = qu.identity,
     sortValues = qu.descending,
@@ -771,7 +768,7 @@ export class Curve {
     return new Curve.Step(x, 1)
   }
 
-  static bundle: qt.Shape.Bundle = (function f(beta) {
+  static bundle: qs.Bundle = (function f(beta) {
     function y(x) {
       return beta === 1 ? new Curve.Basis(x) : new Curve.Bundle(x, beta)
     }
@@ -780,7 +777,7 @@ export class Curve {
     }
     return y
   })(0.85)
-  static cardinal: qt.Shape.Cardinal = (function f(tension) {
+  static cardinal: qs.Cardinal = (function f(tension) {
     function y(x) {
       return new Curve.Cardinal(x, tension)
     }
@@ -789,7 +786,7 @@ export class Curve {
     }
     return y
   })(0)
-  static cardinalClosed: qt.Shape.Cardinal = (function f(tension) {
+  static cardinalClosed: qs.Cardinal = (function f(tension) {
     function y(x) {
       return new Curve.CardinalClosed(x, tension)
     }
@@ -798,7 +795,7 @@ export class Curve {
     }
     return y
   })(0)
-  static cardinalOpen: qt.Shape.Cardinal = (function f(tension) {
+  static cardinalOpen: qs.Cardinal = (function f(tension) {
     function y(x) {
       return new Curve.CardinalOpen(x, tension)
     }
@@ -807,7 +804,7 @@ export class Curve {
     }
     return y
   })(0)
-  static catmullRom: qt.Shape.CatmullRom = (function f(alpha) {
+  static catmullRom: qs.CatmullRom = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRom(x, alpha) : new Curve.Cardinal(x, 0)
     }
@@ -816,7 +813,7 @@ export class Curve {
     }
     return y
   })(0.5)
-  static catmullRomClosed: qt.Shape.CatmullRom = (function f(alpha) {
+  static catmullRomClosed: qs.CatmullRom = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRomClosed(x, alpha) : new Curve.CardinalClosed(x, 0)
     }
@@ -825,7 +822,7 @@ export class Curve {
     }
     return y
   })(0.5)
-  static catmullRomOpen: qt.Shape.CatmullRom = (function f(alpha) {
+  static catmullRomOpen: qs.CatmullRom = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRomOpen(x, alpha) : new Curve.CardinalOpen(x, 0)
     }
@@ -849,13 +846,13 @@ export class Curve {
   _y3
   _y4
   _y5
-  constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
+  constructor(public ctx: qs.Context | qu.Path) {}
   areaStart() {}
   areaEnd() {}
 }
 export namespace Curve {
-  export class Basis extends Curve implements qt.Shape.CurveGen {
-    constructor(ctx: CanvasRenderingContext2D | qu.Path) {
+  export class Basis extends Curve implements qs.CurveGen {
+    constructor(ctx: qs.Context | qu.Path) {
       super(ctx)
     }
     override areaStart() {
@@ -900,8 +897,8 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export class BasisClosed extends Curve implements qt.Shape.CurveGen {
-    constructor(ctx: CanvasRenderingContext2D | qu.Path) {
+  export class BasisClosed extends Curve implements qs.CurveGen {
+    constructor(ctx: qs.Context | qu.Path) {
       super(ctx)
     }
     lineStart() {
@@ -953,8 +950,8 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export class BasisOpen extends Curve implements qt.Shape.CurveGen {
-    constructor(ctx: CanvasRenderingContext2D | qu.Path) {
+  export class BasisOpen extends Curve implements qs.CurveGen {
+    constructor(ctx: qs.Context | qu.Path) {
       super(ctx)
     }
     override areaStart() {
@@ -996,8 +993,8 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = y)
     }
   }
-  export class Bump extends Curve implements qt.Shape.CurveGen {
-    constructor(ctx: CanvasRenderingContext2D | qu.Path, public isX: boolean) {
+  export class Bump extends Curve implements qs.CurveGen {
+    constructor(ctx: qs.Context | qu.Path, public isX: boolean) {
       super(ctx)
     }
     override areaStart() {
@@ -1033,8 +1030,8 @@ export namespace Curve {
       ;(this._x0 = x), (this._y0 = y)
     }
   }
-  export class BumpRadial extends Curve implements qt.Shape.CurveGen {
-    constructor(ctx: CanvasRenderingContext2D | qu.Path) {
+  export class BumpRadial extends Curve implements qs.CurveGen {
+    constructor(ctx: qs.Context | qu.Path) {
       super(ctx)
     }
     lineStart() {
@@ -1058,7 +1055,7 @@ export namespace Curve {
   export class Bundle extends Basis {
     xs
     ys
-    constructor(ctx: CanvasRenderingContext2D | qu.Path, public beta: number) {
+    constructor(ctx: qs.Context | qu.Path, public beta: number) {
       super(ctx)
     }
     override lineStart() {
@@ -1093,9 +1090,9 @@ export namespace Curve {
       this.ys.push(+y)
     }
   }
-  export class Cardinal extends Curve implements qt.Shape.CurveGen {
+  export class Cardinal extends Curve implements qs.CurveGen {
     _k
-    constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
+    constructor(ctx: qs.Context | qu.Path, tension: number) {
       super(ctx)
       this._k = (1 - tension) / 6
     }
@@ -1142,9 +1139,9 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CardinalClosed extends Curve implements qt.Shape.CurveGen {
+  export class CardinalClosed extends Curve implements qs.CurveGen {
     _k
-    constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
+    constructor(ctx: qs.Context | qu.Path, tension: number) {
       super(ctx)
       this._k = (1 - tension) / 6
     }
@@ -1207,9 +1204,9 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CardinalOpen extends Curve implements qt.Shape.CurveGen {
+  export class CardinalOpen extends Curve implements qs.CurveGen {
     _k
-    constructor(ctx: CanvasRenderingContext2D | qu.Path, tension: number) {
+    constructor(ctx: qs.Context | qu.Path, tension: number) {
       super(ctx)
       this._k = (1 - tension) / 6
     }
@@ -1250,8 +1247,8 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CatmullRom extends Curve implements qt.Shape.CurveGen {
-    constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
+  export class CatmullRom extends Curve implements qs.CurveGen {
+    constructor(ctx: qs.Context | qu.Path, public alpha: number) {
       super(ctx)
     }
     override areaStart() {
@@ -1303,8 +1300,8 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CatmullRomClosed extends Curve implements qt.Shape.CurveGen {
-    constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
+  export class CatmullRomClosed extends Curve implements qs.CurveGen {
+    constructor(ctx: qs.Context | qu.Path, public alpha: number) {
       super(ctx)
     }
     lineStart() {
@@ -1373,8 +1370,8 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class CatmullRomOpen extends Curve implements qt.Shape.CurveGen {
-    constructor(ctx: CanvasRenderingContext2D | qu.Path, public alpha: number) {
+  export class CatmullRomOpen extends Curve implements qs.CurveGen {
+    constructor(ctx: qs.Context | qu.Path, public alpha: number) {
       super(ctx)
     }
     override areaStart() {
@@ -1421,8 +1418,8 @@ export namespace Curve {
       ;(this._y0 = this._y1), (this._y1 = this._y2), (this._y2 = y)
     }
   }
-  export class Linear extends Curve implements qt.Shape.CurveGen {
-    constructor(ctx: CanvasRenderingContext2D | qu.Path) {
+  export class Linear extends Curve implements qs.CurveGen {
+    constructor(ctx: qs.Context | qu.Path) {
       super(ctx)
     }
     override areaStart() {
@@ -1453,8 +1450,8 @@ export namespace Curve {
       }
     }
   }
-  export class LinearClosed extends Curve implements qt.Shape.CurveGen {
-    constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
+  export class LinearClosed extends Curve implements qs.CurveGen {
+    constructor(public ctx: qs.Context | qu.Path) {}
     areaStart = qu.noop
     areaEnd = qu.noop
     lineStart() {
@@ -1470,7 +1467,7 @@ export namespace Curve {
     }
   }
   class ReflectContext {
-    constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
+    constructor(public ctx: qs.Context | qu.Path) {}
     moveTo(x, y) {
       this.ctx.moveTo(y, x)
     }
@@ -1484,8 +1481,8 @@ export namespace Curve {
       this.ctx.bezierTo(y1, x1, y2, x2, y, x)
     }
   }
-  export class MonotoneX extends Curve implements qt.Shape.CurveGen {
-    constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
+  export class MonotoneX extends Curve implements qs.CurveGen {
+    constructor(public ctx: qs.Context | qu.Path) {}
     areaStart() {
       this._line = 0
     }
@@ -1533,17 +1530,17 @@ export namespace Curve {
       this._t0 = t1
     }
   }
-  export class MonotoneY extends Curve implements qt.Shape.CurveGen {
+  export class MonotoneY extends Curve implements qs.CurveGen {
     ctx
-    constructor(x: CanvasRenderingContext2D | qu.Path) {
+    constructor(x: qs.Context | qu.Path) {
       this.ctx = new ReflectContext(x)
     }
     point(x: number, y: number) {
       MonotoneX.point.call(this, y, x)
     }
   }
-  export class Natural extends Curve implements qt.Shape.CurveGen {
-    constructor(public ctx: CanvasRenderingContext2D | qu.Path) {}
+  export class Natural extends Curve implements qs.CurveGen {
+    constructor(public ctx: qs.Context | qu.Path) {}
     areaStart() {
       this._line = 0
     }
@@ -1607,8 +1604,8 @@ export namespace Curve {
     y._curve = curve
     return y
   }
-  export class Step extends Curve implements qt.Shape.CurveGen {
-    constructor(public ctx: CanvasRenderingContext2D | qu.Path, public pos = 0.5) {}
+  export class Step extends Curve implements qs.CurveGen {
+    constructor(public ctx: qs.Context | qu.Path, public pos = 0.5) {}
     areaStart() {
       this._line = 0
     }

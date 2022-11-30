@@ -1490,6 +1490,7 @@ declare global {
   interface CanvasRenderingContext2D {}
 }
 export namespace Shape {
+  export type Context = CanvasRenderingContext2D
   export interface BaseArc {
     innerRadius: number
     outerRadius: number
@@ -1518,8 +1519,8 @@ export namespace Shape {
     areaStart(): void
     areaEnd(): void
   }
-  export type LineOnly = (x: CanvasRenderingContext2D | Path) => LineGen
-  export type Curve = (x: CanvasRenderingContext2D | Path) => CurveGen
+  export type LineOnly = (x: Context | Path) => LineGen
+  export type Curve = (x: Context | Path) => CurveGen
   export interface Bundle extends LineOnly {
     beta(x: number): this
   }
@@ -1533,8 +1534,8 @@ export namespace Shape {
     (this: This, x: T, ...xs: any[]): string | null
     (this: This, x: T, ...xs: any[]): void
     centroid(x: T, ...xs: any[]): Point
-    context(): CanvasRenderingContext2D | null
-    context(x: CanvasRenderingContext2D | null): this
+    context(): Context | null
+    context(x: Context | null): this
     cornerRadius(): (this: This, x: T, ...xs: any[]) => number
     cornerRadius(f: (this: This, x: T, ...xs: any[]) => number): this
     cornerRadius(x: number): this
@@ -1559,8 +1560,8 @@ export namespace Shape {
   export interface Area<T> {
     (x: Iterable<T> | T[]): string | null
     (x: Iterable<T> | T[]): void
-    context(): CanvasRenderingContext2D | null
-    context(x: CanvasRenderingContext2D | null): this
+    context(): Context | null
+    context(x: Context | null): this
     curve(): Curve
     curve(x: Curve): this
     curve<C extends Curve>(): C
@@ -1596,8 +1597,8 @@ export namespace Shape {
     angle(): Op<T>
     angle(f: Op<T>): this
     angle(x: number): this
-    context(): CanvasRenderingContext2D | null
-    context(x: CanvasRenderingContext2D | null): this
+    context(): Context | null
+    context(x: Context | null): this
     curve(): Curve
     curve(x: Curve): this
     curve<C extends Curve>(): C
@@ -1627,8 +1628,8 @@ export namespace Shape {
   export interface Line<T> {
     (x: Iterable<T> | T[]): string | null
     (x: Iterable<T> | T[]): void
-    context(): CanvasRenderingContext2D | null
-    context(x: CanvasRenderingContext2D | null): this
+    context(): Context | null
+    context(x: Context | null): this
     curve(): Curve | LineOnly
     curve(f: Curve | LineOnly): this
     curve<C extends Curve | LineOnly>(): C
@@ -1648,8 +1649,8 @@ export namespace Shape {
     angle(): (x: T, i: number, xs: T[]) => number
     angle(f: (x: T, i: number, xs: T[]) => number): this
     angle(x: number): this
-    context(): CanvasRenderingContext2D | null
-    context(x: CanvasRenderingContext2D | null): this
+    context(): Context | null
+    context(x: Context | null): this
     curve(): Curve | LineOnly
     curve(f: Curve | LineOnly): this
     curve<C extends Curve | LineOnly>(): C
@@ -1691,8 +1692,8 @@ export namespace Shape {
     x(x: (this: This, x: N, ...xs: any[]) => number): this
     y(): (this: This, x: N, ...xs: any[]) => number
     y(y: (this: This, x: N, ...xs: any[]) => number): this
-    context(): CanvasRenderingContext2D | null
-    context(x: CanvasRenderingContext2D | null): this
+    context(): Context | null
+    context(x: Context | null): this
   }
   export interface LinkRadial<This, L, N> {
     (this: This, x: L, ...xs: any[]): string | null
@@ -1705,8 +1706,8 @@ export namespace Shape {
     angle(f: (this: This, x: N, ...xs: any[]) => number): this
     radius(): (this: This, x: N, ...xs: any[]) => number
     radius(f: (this: This, x: N, ...xs: any[]) => number): this
-    context(): CanvasRenderingContext2D | null
-    context(x: CanvasRenderingContext2D | null): this
+    context(): Context | null
+    context(x: Context | null): this
   }
   export interface Path {
     arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, ccw?: boolean): void
@@ -1736,8 +1737,8 @@ export interface SymbolType {
 export interface Symbol<This, T> {
   (this: This, x?: T, ...xs: any[]): string | null
   (this: This, x?: T, ...xs: any[]): void
-  context(): CanvasRenderingContext2D | null
-  context(x: CanvasRenderingContext2D | null): this
+  context(): Context | null
+  context(x: Context | null): this
   size(): (this: This, x: T, ...xs: any[]) => number
   size(f: (this: This, x: T, ...xs: any[]) => number): this
   size(x: number): this
