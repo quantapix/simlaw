@@ -16,6 +16,11 @@ export interface Numeric {
 export interface Adder extends Numeric {
   add(x: number): Adder
 }
+export interface ArrayLike<T> {
+  length: number
+  item(i: number): T | null
+  [i: number]: T
+}
 export interface Bisector<T, U> {
   left(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
   right(xs: ArrayLike<T>, x: U, lo?: number, hi?: number): number
@@ -974,7 +979,6 @@ export interface Path {
   rect(x: number, y: number, w: number, h: number): void
   toString(): string
 }
-
 export namespace Quad {
   export interface Leaf<T> {
     data: T
@@ -1005,7 +1009,6 @@ export namespace Quad {
     y(y: (t: T) => number): this
   }
 }
-
 export namespace Random {
   export interface Src {
     source(f: () => number): this
@@ -1110,7 +1113,6 @@ export namespace Scale {
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Time<Range, Out, U2>
   }
-
   export interface Diverging<Out, U = never> {
     (x: NumVal): Out | U
     domain(): [number, number, number]
@@ -1126,7 +1128,6 @@ export namespace Scale {
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Diverging<Out, U2>
   }
-
   export interface Quantize<Range, U = never> {
     (x: NumVal): Range | U
     copy(): this
@@ -1142,7 +1143,6 @@ export namespace Scale {
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Quantize<Range, U2>
   }
-
   export interface Quantile<Range, U = never> {
     (x: NumVal): Range | U
     copy(): this
@@ -1155,7 +1155,6 @@ export namespace Scale {
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Quantile<Range, U2>
   }
-
   export interface Ordinal<T extends { toString(): string }, Range, U = never> {
     (x: T): Range | U
     copy(): this
@@ -1166,7 +1165,6 @@ export namespace Scale {
     unknown(): UnknownReturn<U, { name: "implicit" }>
     unknown<U2>(x: U2): U2 extends { name: "implicit" } ? Ordinal<T, Range> : Ordinal<T, Range, U2>
   }
-
   export interface Band<T extends { toString(): string }> {
     (x: T): number | undefined
     align(): number
@@ -1188,25 +1186,23 @@ export namespace Scale {
     round(x: boolean): this
     step(): number
   }
-
-  export interface Point<Domain extends { toString(): string }> {
-    (x: Domain): number | undefined
-    domain(): Domain[]
-    domain(domain: Iterable<Domain>): this
-    range(): Span
-    range(range: Iterable<NumVal>): this
-    rangeRound(range: Iterable<NumVal>): this
-    round(): boolean
-    round(round: boolean): this
-    padding(): number
-    padding(padding: number): this
+  export interface Point<T extends { toString(): string }> {
+    (x: T): number | undefined
     align(): number
-    align(align: number): this
+    align(x: number): this
     bandwidth(): number
-    step(): number
     copy(): this
+    domain(): T[]
+    domain(x: Iterable<T>): this
+    padding(): number
+    padding(x: number): this
+    range(): Span
+    range(x: Iterable<NumVal>): this
+    rangeRound(x: Iterable<NumVal>): this
+    round(): boolean
+    round(x: boolean): this
+    step(): number
   }
-
   export interface Threshold<T extends number | string | Date, Range, U = never> {
     (x: T): Range | U
     copy(): this
@@ -1218,7 +1214,6 @@ export namespace Scale {
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Threshold<T, Range, U2>
   }
-
   export interface Smooth<Range, Out, U = never> {
     (x: NumVal): Out | U
     clamp(): boolean
@@ -1275,7 +1270,6 @@ export namespace Scale {
     unknown(): UnknownReturn<U, undefined>
     unknown<U2>(x: U2): Radial<Range, Out, U2>
   }
-
   export interface Seq<Out, U = never> {
     (x: NumVal): Out | U
     clamp(): boolean
@@ -1304,11 +1298,6 @@ export namespace Scale {
   }
 }
 
-export interface ArrayLike<T> {
-  length: number
-  item(i: number): T | null
-  [i: number]: T
-}
 export interface EnterElem extends Element {
   ownerDocument: Document
   namespaceURI: string
@@ -1352,7 +1341,6 @@ export interface Local<T> {
 // D type of descendent element
 // O type of old selected elements
 // C type of child elements
-
 export interface Selection<S extends Base, T, P extends Base, U> {
   [Symbol.iterator](): Iterator<S>
   append<C extends Base>(f: Value<S, T, C>): Selection<C, T, P, U>
@@ -1521,39 +1509,42 @@ export interface CanvasPath_D3Shape {
   quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void
   rect(x: number, y: number, w: number, h: number): void
 }
-export interface BaseArc {
-  innerRadius: number
-  outerRadius: number
-  startAngle: number
-  endAngle: number
-  padAngle?: number | undefined
-}
-export interface Arc<This, T> {
-  (this: This, x: T, ...xs: any[]): string | null
-  (this: This, x: T, ...xs: any[]): void
-  centroid(x: T, ...xs: any[]): Point
-  context(): CanvasRenderingContext2D | null
-  context(x: CanvasRenderingContext2D | null): this
-  cornerRadius(): (this: This, x: T, ...xs: any[]) => number
-  cornerRadius(f: (this: This, x: T, ...xs: any[]) => number): this
-  cornerRadius(x: number): this
-  endAngle(): (this: This, x: T, ...xs: any[]) => number
-  endAngle(f: (this: This, x: T, ...xs: any[]) => number): this
-  endAngle(x: number): this
-  innerRadius(): (this: This, x: T, ...xs: any[]) => number
-  innerRadius(f: (this: This, x: T, ...xs: any[]) => number): this
-  innerRadius(x: number): this
-  outerRadius(): (this: This, x: T, ...xs: any[]) => number
-  outerRadius(f: (this: This, x: T, ...xs: any[]) => number): this
-  outerRadius(x: number): this
-  padAngle(): (this: This, x: T, ...xs: any[]) => number | undefined
-  padAngle(f: (this: This, x: T, ...xs: any[]) => number | undefined): this
-  padAngle(x: number | undefined): this
-  padRadius(): ((this: This, x: T, ...xs: any[]) => number) | null
-  padRadius(x: null | number | ((this: This, x: T, ...xs: any[]) => number)): this
-  startAngle(): (this: This, x: T, ...xs: any[]) => number
-  startAngle(f: (this: This, x: T, ...xs: any[]) => number): this
-  startAngle(x: number): this
+export namespace Shape {
+  export interface Base {
+    innerRadius: number
+    outerRadius: number
+    startAngle: number
+    endAngle: number
+    padAngle?: number | undefined
+  }
+
+  export interface Arc<This, T> {
+    (this: This, x: T, ...xs: any[]): string | null
+    (this: This, x: T, ...xs: any[]): void
+    centroid(x: T, ...xs: any[]): Point
+    context(): CanvasRenderingContext2D | null
+    context(x: CanvasRenderingContext2D | null): this
+    cornerRadius(): (this: This, x: T, ...xs: any[]) => number
+    cornerRadius(f: (this: This, x: T, ...xs: any[]) => number): this
+    cornerRadius(x: number): this
+    endAngle(): (this: This, x: T, ...xs: any[]) => number
+    endAngle(f: (this: This, x: T, ...xs: any[]) => number): this
+    endAngle(x: number): this
+    innerRadius(): (this: This, x: T, ...xs: any[]) => number
+    innerRadius(f: (this: This, x: T, ...xs: any[]) => number): this
+    innerRadius(x: number): this
+    outerRadius(): (this: This, x: T, ...xs: any[]) => number
+    outerRadius(f: (this: This, x: T, ...xs: any[]) => number): this
+    outerRadius(x: number): this
+    padAngle(): (this: This, x: T, ...xs: any[]) => number | undefined
+    padAngle(f: (this: This, x: T, ...xs: any[]) => number | undefined): this
+    padAngle(x: number | undefined): this
+    padRadius(): ((this: This, x: T, ...xs: any[]) => number) | null
+    padRadius(x: null | number | ((this: This, x: T, ...xs: any[]) => number)): this
+    startAngle(): (this: This, x: T, ...xs: any[]) => number
+    startAngle(f: (this: This, x: T, ...xs: any[]) => number): this
+    startAngle(x: number): this
+  }
 }
 export interface PieArcDatum<T> {
   data: T
@@ -1584,21 +1575,21 @@ export interface Pie<This, T> {
   value(x: number): this
 }
 export interface Line<T> {
-  (data: Iterable<T> | T[]): string | null
-  (data: Iterable<T> | T[]): void
+  (x: Iterable<T> | T[]): string | null
+  (x: Iterable<T> | T[]): void
   context(): CanvasRenderingContext2D | null
   context(x: CanvasRenderingContext2D | null): this
   curve(): CurveFac | LineOnlyFac
   curve(f: CurveFac | LineOnlyFac): this
   curve<C extends CurveFac | LineOnlyFac>(): C
-  defined(): (x: T, i: number, data: T[]) => boolean
-  defined(f: (x: T, i: number, data: T[]) => boolean): this
+  defined(): (x: T, i: number, xs: T[]) => boolean
+  defined(f: (x: T, i: number, xs: T[]) => boolean): this
   defined(x: boolean): this
-  x(): (x: T, i: number, data: T[]) => number
-  x(f: (x: T, i: number, data: T[]) => number): this
+  x(): (x: T, i: number, xs: T[]) => number
+  x(f: (x: T, i: number, xs: T[]) => number): this
   x(x: number): this
-  y(): (x: T, i: number, data: T[]) => number
-  y(f: (x: T, i: number, data: T[]) => number): this
+  y(): (x: T, i: number, xs: T[]) => number
+  y(f: (x: T, i: number, xs: T[]) => number): this
   y(x: number): this
 }
 export interface LineRadial<T> {
