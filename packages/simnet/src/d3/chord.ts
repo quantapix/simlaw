@@ -131,79 +131,66 @@ function _ribbon(headRadius?) {
     targetRadius = x => x.radius,
     startAngle = x => x.startAngle,
     endAngle = x => x.endAngle,
-    padAngle = () => 0,
-    context = null
-  function f() {
+    padAngle = _ => 0,
+    _context = null
+  function f(...xs: any) {
     let buffer,
-      s = source.apply(this, arguments),
-      t = target.apply(this, arguments),
-      ap = padAngle.apply(this, arguments) / 2,
-      argv = slice.call(arguments),
-      sr = +sourceRadius.apply(this, ((argv[0] = s), argv)),
-      sa0 = startAngle.apply(this, argv) - qu.halfPI,
-      sa1 = endAngle.apply(this, argv) - qu.halfPI,
-      tr = +targetRadius.apply(this, ((argv[0] = t), argv)),
-      ta0 = startAngle.apply(this, argv) - qu.halfPI,
-      ta1 = endAngle.apply(this, argv) - qu.halfPI
-    if (!context) context = buffer = new qu.Path()
+      s = source(xs),
+      t = target(xs),
+      ap = padAngle(xs) / 2,
+      argv = slice(xs),
+      sr = +sourceRadius(((argv[0] = s), argv)),
+      sa0 = startAngle(argv) - qu.halfPI,
+      sa1 = endAngle(argv) - qu.halfPI,
+      tr = +targetRadius(((argv[0] = t), argv)),
+      ta0 = startAngle(argv) - qu.halfPI,
+      ta1 = endAngle(argv) - qu.halfPI
+    if (!_context) _context = buffer = new qu.Path()
     if (ap > qu.epsilon2) {
       if (qu.abs(sa1 - sa0) > ap * 2 + qu.epsilon2) sa1 > sa0 ? ((sa0 += ap), (sa1 -= ap)) : ((sa0 -= ap), (sa1 += ap))
       else sa0 = sa1 = (sa0 + sa1) / 2
       if (qu.abs(ta1 - ta0) > ap * 2 + qu.epsilon2) ta1 > ta0 ? ((ta0 += ap), (ta1 -= ap)) : ((ta0 -= ap), (ta1 += ap))
       else ta0 = ta1 = (ta0 + ta1) / 2
     }
-    context.moveTo(sr * qu.cos(sa0), sr * qu.sin(sa0))
-    context.arc(0, 0, sr, sa0, sa1)
+    _context.moveTo(sr * qu.cos(sa0), sr * qu.sin(sa0))
+    _context.arc(0, 0, sr, sa0, sa1)
     if (sa0 !== ta0 || sa1 !== ta1) {
       if (headRadius) {
         let hr = +headRadius.apply(this, arguments),
           tr2 = tr - hr,
           ta2 = (ta0 + ta1) / 2
-        context.quadraticTo(0, 0, tr2 * qu.cos(ta0), tr2 * qu.sin(ta0))
-        context.lineTo(tr * qu.cos(ta2), tr * qu.sin(ta2))
-        context.lineTo(tr2 * qu.cos(ta1), tr2 * qu.sin(ta1))
+        _context.quadraticTo(0, 0, tr2 * qu.cos(ta0), tr2 * qu.sin(ta0))
+        _context.lineTo(tr * qu.cos(ta2), tr * qu.sin(ta2))
+        _context.lineTo(tr2 * qu.cos(ta1), tr2 * qu.sin(ta1))
       } else {
-        context.quadraticTo(0, 0, tr * qu.cos(ta0), tr * qu.sin(ta0))
-        context.arc(0, 0, tr, ta0, ta1)
+        _context.quadraticTo(0, 0, tr * qu.cos(ta0), tr * qu.sin(ta0))
+        _context.arc(0, 0, tr, ta0, ta1)
       }
     }
-    context.quadraticTo(0, 0, sr * qu.cos(sa0), sr * qu.sin(sa0))
-    context.closePath()
-    if (buffer) return (context = null), buffer + "" || null
+    _context.quadraticTo(0, 0, sr * qu.cos(sa0), sr * qu.sin(sa0))
+    _context.closePath()
+    if (buffer) return (_context = null), buffer + "" || null
   }
-  if (headRadius)
-    f.headRadius = function (_) {
-      return arguments.length ? ((headRadius = typeof _ === "function" ? _ : qu.constant(+_)), f) : headRadius
-    }
-  f.radius = function (_) {
-    return arguments.length
-      ? ((sourceRadius = targetRadius = typeof _ === "function" ? _ : qu.constant(+_)), f)
-      : sourceRadius
+  if (headRadius) {
+    f.headRadius = (x: any) =>
+      x === undefined ? headRadius : ((headRadius = typeof x === "function" ? x : qu.constant(+x)), f)
   }
-  f.sourceRadius = function (_) {
-    return arguments.length ? ((sourceRadius = typeof _ === "function" ? _ : qu.constant(+_)), f) : sourceRadius
-  }
-  f.targetRadius = function (_) {
-    return arguments.length ? ((targetRadius = typeof _ === "function" ? _ : qu.constant(+_)), f) : targetRadius
-  }
-  f.startAngle = function (_) {
-    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : qu.constant(+_)), f) : startAngle
-  }
-  f.endAngle = function (_) {
-    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : qu.constant(+_)), f) : endAngle
-  }
-  f.padAngle = function (_) {
-    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : qu.constant(+_)), f) : padAngle
-  }
-  f.source = function (_) {
-    return arguments.length ? ((source = _), f) : source
-  }
-  f.target = function (_) {
-    return arguments.length ? ((target = _), f) : target
-  }
-  f.context = function (_) {
-    return arguments.length ? ((context = _ == null ? null : _), f) : context
-  }
+  f.radius = (x: any) =>
+    x === undefined ? sourceRadius : ((sourceRadius = targetRadius = typeof x === "function" ? x : qu.constant(+x)), f)
+  f.sourceRadius = (x: any) =>
+    x === undefined ? sourceRadius : ((sourceRadius = typeof x === "function" ? x : qu.constant(+x)), f)
+  f.targetRadius = (x: any) =>
+    x === undefined ? targetRadius : ((targetRadius = typeof x === "function" ? x : qu.constant(+x)), f)
+  f.startAngle = (x: any) =>
+    x === undefined ? startAngle : ((startAngle = typeof x === "function" ? x : qu.constant(+x)), f)
+  f.endAngle = (x: any) =>
+    x === undefined ? endAngle : ((endAngle = typeof x === "function" ? x : qu.constant(+x)), f)
+  f.padAngle = (x: any) =>
+    x === undefined ? padAngle : ((padAngle = typeof x === "function" ? x : qu.constant(+x)), f)
+  f.source = (x: any) => (x === undefined ? source : ((source = x), f))
+  f.target = (x: any) => (x === undefined ? target : ((target = x), f))
+  f.context = (x: any) => (x === undefined ? _context : ((_context = x == null ? null : x), f))
+
   return f
 }
 export function ribbon(): qt.Ribbon.Gen<any, qt.Ribbon, qt.Ribbon.Subgroup>

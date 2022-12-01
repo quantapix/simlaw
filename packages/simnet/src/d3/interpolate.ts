@@ -205,8 +205,8 @@ export const zoom: (a: qt.Zoom.View, b: qt.Zoom.View) => qt.Zoom.Interpolator = 
     i.duration = (S * 1000 * rho) / qu.SQRT2
     return i
   }
-  zoom.rho = function (_) {
-    const _1 = qu.max(1e-3, +_),
+  zoom.rho = function (x: any) {
+    const _1 = qu.max(1e-3, +x),
       _2 = _1 * _1,
       _4 = _2 * _2
     return zoomRho(_1, _2, _4)

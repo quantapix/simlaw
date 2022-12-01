@@ -577,7 +577,7 @@ export function bin() {
   let value = qu.identity,
     domain = extent,
     threshold = sturges
-  function histogram(data) {
+  function f(data) {
     if (!Array.isArray(data)) data = Array.from(data)
     let i,
       n = data.length,
@@ -646,19 +646,15 @@ export function bin() {
     }
     return bins
   }
-  histogram.value = function (_) {
-    return arguments.length ? ((value = typeof _ === "function" ? _ : qu.constant(_)), histogram) : value
+  f.value = (x: any) => (x === undefined ? value : ((value = typeof x === "function" ? x : qu.constant(x)), f))
+  f.domain = (x: any) =>
+    x === undefined ? domain : ((domain = typeof x === "function" ? x : qu.constant([x[0], x[1]])), f)
+  f.thresholds = function (x: any) {
+    return x === undefined
+      ? threshold
+      : ((threshold = typeof x === "function" ? x : Array.isArray(x) ? qu.constant(slice.call(x)) : qu.constant(x)), f)
   }
-  histogram.domain = function (_) {
-    return arguments.length ? ((domain = typeof _ === "function" ? _ : qu.constant([_[0], _[1]])), histogram) : domain
-  }
-  histogram.thresholds = function (_) {
-    return arguments.length
-      ? ((threshold = typeof _ === "function" ? _ : Array.isArray(_) ? qu.constant(slice.call(_)) : qu.constant(_)),
-        histogram)
-      : threshold
-  }
-  return histogram
+  return f
 }
 export const histogram = bin
 
@@ -666,15 +662,15 @@ const ascendingBisect = bisector(qu.ascending)
 export function bisectLeft(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
 export function bisectLeft(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number
 export function bisectLeft(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
-//export function bisectLeft = ascendingBisect.left
+export const bisectLeft = ascendingBisect.left
 export function bisectRight(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
 export function bisectRight(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number
 export function bisectRight(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
-//export function bisectRight = ascendingBisect.right
+export const bisectRight = ascendingBisect.right
 export function bisectCenter(xs: ArrayLike<number>, x: number, lo?: number, hi?: number): number
 export function bisectCenter(xs: ArrayLike<string>, x: string, lo?: number, hi?: number): number
 export function bisectCenter(xs: ArrayLike<Date>, x: Date, lo?: number, hi?: number): number
-//export function bisectCenter = bisector(number).center
+export const bisectCenter = bisector(number).center
 //export const bisect: typeof bisectRight
 export function bisector<T, U>(f: (a: T, b: U) => number): qt.Bisector<T, U>
 export function bisector<T, U>(f: (x: T) => U): qt.Bisector<T, U>

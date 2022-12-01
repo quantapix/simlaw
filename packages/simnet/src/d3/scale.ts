@@ -833,40 +833,34 @@ function transformer3() {
     transform,
     interpolator = qu.identity,
     clamp = false,
-    unknown
+    _unk
   function f(x) {
     return x == null || isNaN((x = +x))
-      ? unknown
+      ? _unk
       : interpolator(k10 === 0 ? 0.5 : ((x = (transform(x) - t0) * k10), clamp ? Math.max(0, Math.min(1, x)) : x))
   }
-  f.domain = function (_) {
-    return arguments.length
-      ? (([x0, x1] = _),
+  f.domain = (x: any) => {
+    return x === undefined
+      ? [x0, x1]
+      : (([x0, x1] = x),
         (t0 = transform((x0 = +x0))),
         (t1 = transform((x1 = +x1))),
         (k10 = t0 === t1 ? 0 : 1 / (t1 - t0)),
         f)
-      : [x0, x1]
   }
-  f.clamp = function (_) {
-    return arguments.length ? ((clamp = !!_), f) : clamp
-  }
-  f.interpolator = function (_) {
-    return arguments.length ? ((interpolator = _), f) : interpolator
-  }
+  f.clamp = (x: any) => (x === undefined ? clamp : ((clamp = !!x), f))
+  f.interpolator = (x: any) => (x === undefined ? interpolator : ((interpolator = x), f))
   function range(interpolate) {
-    return function (_) {
+    return function (x: any) {
       let r0, r1
-      return arguments.length
-        ? (([r0, r1] = _), (interpolator = interpolate(r0, r1)), f)
-        : [interpolator(0), interpolator(1)]
+      return x === undefined
+        ? [interpolator(0), interpolator(1)]
+        : (([r0, r1] = x), (interpolator = interpolate(r0, r1)), f)
     }
   }
   f.range = range(interpolate)
   f.rangeRound = range(interpolateRound)
-  f.unknown = function (_) {
-    return arguments.length ? ((unknown = _), f) : unknown
-  }
+  f.unknown = (x: any) => (x === undefined ? _unk : ((_unk = x), f))
   return function (t) {
     ;(transform = t), (t0 = t(x0)), (t1 = t(x1)), (k10 = t0 === t1 ? 0 : 1 / (t1 - t0))
     return f
