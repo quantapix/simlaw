@@ -268,88 +268,73 @@ export function area<T = qt.Point>(
 }
 export function areaRadial(): qs.AreaRadial<qt.Point>
 export function areaRadial<T>(): qs.AreaRadial<T>
-export function areaRadial() {
-  const y = area().curve(curveRadialLinear),
-    c = y.curve,
-    x0 = y.lineX0,
-    x1 = y.lineX1,
-    y0 = y.lineY0,
-    y1 = y.lineY1
-  ;(y.angle = y.x), delete y.x
-  ;(y.startAngle = y.x0), delete y.x0
-  ;(y.endAngle = y.x1), delete y.x1
-  ;(y.radius = y.y), delete y.y
-  ;(y.innerRadius = y.y0), delete y.y0
-  ;(y.outerRadius = y.y1), delete y.y1
-  ;(y.lineStartAngle = function () {
-    return lineRadial(x0())
-  }),
-    delete y.lineX0
-  ;(y.lineEndAngle = function () {
-    return lineRadial(x1())
-  }),
-    delete y.lineX1
-  ;(y.lineInnerRadius = function () {
-    return lineRadial(y0())
-  }),
-    delete y.lineY0
-  ;(y.lineOuterRadius = function () {
-    return lineRadial(y1())
-  }),
-    delete y.lineY1
-  y.curve = function (_) {
-    return arguments.length ? c(curveRadial(_)) : c()._curve
-  }
-  return y
+export function areaRadial(): any {
+  const f: any = area().curve(curveRadialLinear),
+    c = f.curve,
+    x0 = f.lineX0,
+    x1 = f.lineX1,
+    y0 = f.lineY0,
+    y1 = f.lineY1
+  f.angle = f.x
+  delete f.x
+  f.startAngle = f.x0
+  delete f.x0
+  f.endAngle = f.x1
+  delete f.x1
+  f.radius = f.y
+  delete f.y
+  f.innerRadius = f.y0
+  delete f.y0
+  f.outerRadius = f.y1
+  delete f.y1
+  f.lineStartAngle = () => lineRadial(x0())
+  delete f.lineX0
+  f.lineEndAngle = () => lineRadial(x1())
+  delete f.lineX1
+  f.lineInnerRadius = () => lineRadial(y0())
+  delete f.lineY0
+  f.lineOuterRadius = () => lineRadial(y1())
+  delete f.lineY1
+  f.curve = (x: any) => (x === undefined ? c()._curve : c(curveRadial(x)))
+  return f
 }
 export const slice = Array.prototype.slice
-export function array(x) {
-  return typeof x === "object" && "length" in x
-    ? x // Array, TypedArray, NodeList, array-like
-    : Array.from(x) // Map, Set, iterable, string, or anything else
+export function array(x: any) {
+  return typeof x === "object" && "length" in x ? x : Array.from(x)
 }
 export function line<T = qt.Point>(
-  x?: number | ((d: T, i: number, data: T[]) => number),
-  y?: number | ((d: T, i: number, data: T[]) => number)
+  x?: number | ((x: T, i: number, xs: T[]) => number),
+  y?: number | ((x: T, i: number, xs: T[]) => number)
 ): qs.Line<T> {
   let defined = qu.constant(true),
-    context = null,
+    _context: qs.Context | null = null,
     curve = curveLinear,
     output = null
-  x = typeof x === "function" ? x : x === undefined ? pointX : qu.constant(x)
-  y = typeof y === "function" ? y : y === undefined ? pointY : qu.constant(y)
-  function y(data) {
+  let _x = typeof x === "function" ? x : x === undefined ? pointX : qu.constant(x)
+  let _y = typeof y === "function" ? y : y === undefined ? pointY : qu.constant(y)
+  function f(data) {
     let i,
       n = (data = array(data)).length,
       d,
       defined0 = false,
       buffer
-    if (context == null) output = curve((buffer = new qu.Path()))
+    if (_context == null) output = curve((buffer = new qu.Path()))
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined((d = data[i]), i, data)) === defined0) {
         if ((defined0 = !defined0)) output.lineStart()
         else output.lineEnd()
       }
-      if (defined0) output.point(+x(d, i, data), +y(d, i, data))
+      if (defined0) output.point(+_x(d, i, data), +_y(d, i, data))
     }
     if (buffer) return (output = null), buffer + "" || null
   }
-  y.x = function (_) {
-    return arguments.length ? ((x = typeof _ === "function" ? _ : qu.constant(+_)), y) : x
-  }
-  y.y = function (_) {
-    return arguments.length ? ((y = typeof _ === "function" ? _ : qu.constant(+_)), y) : y
-  }
-  y.defined = function (_) {
-    return arguments.length ? ((defined = typeof _ === "function" ? _ : qu.constant(!!_)), y) : defined
-  }
-  y.curve = function (_) {
-    return arguments.length ? ((curve = _), context != null && (output = curve(context)), y) : curve
-  }
-  y.context = function (_) {
-    return arguments.length ? (_ == null ? (context = output = null) : (output = curve((context = _))), y) : context
-  }
-  return y
+  f.x = (x: any) => (x === undefined ? _x : ((_x = typeof x === "function" ? x : qu.constant(+x)), f))
+  f.y = (x: any) => (x === undefined ? _y : ((_y = typeof x === "function" ? x : qu.constant(+x)), f))
+  f.defined = (x: any) => (x === undefined ? defined : ((defined = typeof x === "function" ? x : qu.constant(!!x)), f))
+  f.curve = (x: any) => (x === undefined ? curve : ((curve = x), _context != null && (output = curve(_context)), f))
+  f.context = (x: any) =>
+    x === undefined ? _context : (x == null ? (_context = output = null) : (output = curve((_context = x))), f)
+  return f
 }
 export function lineRadial(): qs.LineRadial<qt.Point>
 export function lineRadial<T>(): qs.LineRadial<T>
