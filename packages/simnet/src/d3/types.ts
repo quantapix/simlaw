@@ -608,32 +608,32 @@ export namespace Format {
 
 export namespace Geo {
   export interface Circle<This = any, T = any> {
-    (this: This, d?: T, ...xs: any[]): GeoJSON.Polygon
+    (this: This, x?: T, ...xs: any[]): GeoJSON.Polygon
     center(): (this: This, x: T, ...xs: any[]) => Point
-    center(center: Point | ((this: This, x: T, ...xs: any[]) => Point)): this
+    center(x: Point | ((this: This, x: T, ...xs: any[]) => Point)): this
     precision(): (this: This, x: T, ...xs: any[]) => number
-    precision(precision: number | ((this: This, x: T, ...xs: any[]) => number)): this
+    precision(x: number | ((this: This, x: T, ...xs: any[]) => number)): this
     radius(): (this: This, x: T, ...xs: any[]) => number
-    radius(radius: number | ((this: This, x: T, ...xs: any[]) => number)): this
+    radius(x: number | ((this: This, x: T, ...xs: any[]) => number)): this
   }
   export interface Graticule {
     (): GeoJSON.MultiLineString
     extent(): [Point, Point]
-    extent(extent: [Point, Point]): this
+    extent(x: [Point, Point]): this
     extentMajor(): [Point, Point]
-    extentMajor(extent: [Point, Point]): this
+    extentMajor(x: [Point, Point]): this
     extentMinor(): [Point, Point]
-    extentMinor(extent: [Point, Point]): this
+    extentMinor(x: [Point, Point]): this
     lines(): GeoJSON.LineString[]
     outline(): GeoJSON.Polygon
     precision(): number
     precision(angle: number): this
     step(): Point
-    step(step: Point): this
+    step(x: Point): this
     stepMajor(): Point
-    stepMajor(step: Point): this
+    stepMajor(x: Point): this
     stepMinor(): Point
-    stepMinor(step: Point): this
+    stepMinor(x: Point): this
   }
   export interface Stream {
     lineEnd(): void

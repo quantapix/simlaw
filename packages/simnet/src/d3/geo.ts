@@ -389,10 +389,10 @@ export function circle() {
     ring.push((x = rotate(x, y)))
     ;(x[0] *= qu.degrees), (x[1] *= qu.degrees)
   }
-  function circle() {
-    let c = center.apply(this, arguments),
-      r = radius.apply(this, arguments) * qu.radians,
-      p = precision.apply(this, arguments) * qu.radians
+  function f(...xs: any) {
+    let c = center(xs),
+      r = radius(xs) * qu.radians,
+      p = precision(xs) * qu.radians
     ring = []
     rotate = rotateRadians(-c[0] * qu.radians, -c[1] * qu.radians, 0).invert
     circleStream(stream, r, p, 1)
@@ -400,16 +400,12 @@ export function circle() {
     ring = rotate = null
     return c
   }
-  circle.center = function (_) {
-    return arguments.length ? ((center = typeof _ === "function" ? _ : qu.constant([+_[0], +_[1]])), circle) : center
-  }
-  circle.radius = function (_) {
-    return arguments.length ? ((radius = typeof _ === "function" ? _ : qu.constant(+_)), circle) : radius
-  }
-  circle.precision = function (_) {
-    return arguments.length ? ((precision = typeof _ === "function" ? _ : qu.constant(+_)), circle) : precision
-  }
-  return circle
+  f.center = (x: any) =>
+    x === undefined ? center : ((center = typeof x === "function" ? x : qu.constant([+x[0], +x[1]])), f)
+  f.radius = (x: any) => (x === undefined ? radius : ((radius = typeof x === "function" ? x : qu.constant(+x)), f))
+  f.precision = (x: any) =>
+    x === undefined ? precision : ((precision = typeof x === "function" ? x : qu.constant(+x)), f)
+  return f
 }
 export namespace circle {
   export function stream(stream, radius, delta, direction, t0, t1) {
@@ -587,59 +583,42 @@ export function graticule(): qt.Geo.Graticule {
           .map(y)
       )
   }
-  f.lines = function () {
-    return lines().map(function (coordinates) {
+  f.lines = () =>
+    lines().map(function (coordinates) {
       return { type: "LineString", coordinates: coordinates }
     })
-  }
-  f.outline = function () {
-    return {
-      type: "Polygon",
-      coordinates: [X(X0).concat(Y(Y1).slice(1), X(X1).reverse().slice(1), Y(Y0).reverse().slice(1))],
-    }
-  }
-  f.extent = function (_) {
-    if (!arguments.length) return f.extentMinor()
-    return f.extentMajor(_).extentMinor(_)
-  }
-  f.extentMajor = function (_) {
-    if (!arguments.length)
+  f.outline = () => ({
+    type: "Polygon",
+    coordinates: [X(X0).concat(Y(Y1).slice(1), X(X1).reverse().slice(1), Y(Y0).reverse().slice(1))],
+  })
+  f.extent = (x: any) => (x === undefined ? f.extentMinor() : f.extentMajor(x).extentMinor(x))
+  f.extentMajor = (x: any) => {
+    if (x === undefined)
       return [
         [X0, Y0],
         [X1, Y1],
       ]
-    ;(X0 = +_[0][0]), (X1 = +_[1][0])
-    ;(Y0 = +_[0][1]), (Y1 = +_[1][1])
-    if (X0 > X1) (_ = X0), (X0 = X1), (X1 = _)
-    if (Y0 > Y1) (_ = Y0), (Y0 = Y1), (Y1 = _)
+    ;(X0 = +x[0][0]), (X1 = +x[1][0])
+    ;(Y0 = +x[0][1]), (Y1 = +x[1][1])
+    if (X0 > X1) (x = X0), (X0 = X1), (X1 = x)
+    if (Y0 > Y1) (x = Y0), (Y0 = Y1), (Y1 = x)
     return f.precision(precision)
   }
-  f.extentMinor = function (_) {
-    if (!arguments.length)
+  f.extentMinor = (x?: any) => {
+    if (x === undefined)
       return [
         [x0, y0],
         [x1, y1],
       ]
-    ;(x0 = +_[0][0]), (x1 = +_[1][0])
-    ;(y0 = +_[0][1]), (y1 = +_[1][1])
-    if (x0 > x1) (_ = x0), (x0 = x1), (x1 = _)
-    if (y0 > y1) (_ = y0), (y0 = y1), (y1 = _)
+    ;(x0 = +x[0][0]), (x1 = +x[1][0])
+    ;(y0 = +x[0][1]), (y1 = +x[1][1])
+    if (x0 > x1) (x = x0), (x0 = x1), (x1 = x)
+    if (y0 > y1) (x = y0), (y0 = y1), (y1 = x)
     return f.precision(precision)
   }
-  f.step = function (_) {
-    if (!arguments.length) return f.stepMinor()
-    return f.stepMajor(_).stepMinor(_)
-  }
-  f.stepMajor = function (_) {
-    if (!arguments.length) return [DX, DY]
-    ;(DX = +_[0]), (DY = +_[1])
-    return f
-  }
-  f.stepMinor = function (_) {
-    if (!arguments.length) return [dx, dy]
-    ;(dx = +_[0]), (dy = +_[1])
-    return f
-  }
+  f.step = (x: any) => (x === undefined ? f.stepMinor() : f.stepMajor(x).stepMinor(x))
+  f.stepMajor = (x: any) => (x === undefined ? [DX, DY] : ((DX = +x[0]), (DY = +x[1]), f))
+  f.stepMinor = (x?: any) => (x === undefined ? [dx, dy] : ((dx = +x[0]), (dy = +x[1]), f))
   function graticuleX(y0, y1, dy) {
     const y = range(y0, y1 - qu.epsilon, dy).concat(y1)
     return function (x) {
@@ -656,9 +635,9 @@ export function graticule(): qt.Geo.Graticule {
       })
     }
   }
-  f.precision = function (_) {
+  f.precision = (x: any) => {
     if (!arguments.length) return precision
-    precision = +_
+    precision = +x
     x = graticuleX(y0, y1, 90)
     y = graticuleY(x0, x1, precision)
     X = graticuleX(Y0, Y1, 90)
@@ -716,7 +695,7 @@ export function length(
   return +lengthSum
 }
 export namespace length {
-  var lengthSum, lambda0, sinPhi0, cosPhi0
+  let lengthSum, lambda0, sinPhi0, cosPhi0
   export const stream = {
     sphere: qu.noop,
     point: qu.noop,
@@ -777,7 +756,7 @@ export function polygonContains(polygon, point) {
   else if (sinPhi === -1) phi = -qu.halfPI - qu.epsilon
   for (let i = 0, n = polygon.length; i < n; ++i) {
     if (!(m = (ring = polygon[i]).length)) continue
-    var ring,
+    let ring,
       m,
       point0 = ring[m - 1],
       lambda0 = longitude(point0),
@@ -785,7 +764,7 @@ export function polygonContains(polygon, point) {
       sinPhi0 = qu.sin(phi0),
       cosPhi0 = qu.cos(phi0)
     for (let j = 0; j < m; ++j, lambda0 = lambda1, sinPhi0 = sinPhi1, cosPhi0 = cosPhi1, point0 = point1) {
-      var point1 = ring[j],
+      let point1 = ring[j],
         lambda1 = longitude(point1),
         phi1 = point1[1] / 2 + qu.quarterPI,
         sinPhi1 = qu.sin(phi1),

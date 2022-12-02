@@ -343,56 +343,39 @@ export function lineRadial() {
     const c = l.curve
     ;(l.angle = l.x), delete l.x
     ;(l.radius = l.y), delete l.y
-    l.curve = function (_) {
-      return arguments.length ? c(curveRadial(_)) : c()._curve
-    }
+    l.curve = (x: any) => (x === undefined ? c()._curve : c(curveRadial(x)))
     return l
   }
   return y(line().curve(curveRadialLinear))
-}
-function linkSource(d) {
-  return d.source
-}
-function linkTarget(d) {
-  return d.target
 }
 export function link(x: qs.Curve): qs.Link<any, qs.DefaultLink, qt.Point>
 export function link<L, N>(x: qs.Curve): qs.Link<any, L, N>
 export function link<This, L, N>(x: qs.Curve): qs.Link<This, L, N>
 export function link(curve) {
-  let source = linkSource
-  let target = linkTarget
-  let x = pointX
-  let y = pointY
-  let context = null
+  let source = x => x.source
+  let target = x => x.target
+  let _x = pointX
+  let _y = pointY
+  let _context = null
   let output = null
-  function f() {
+  function f(...xs: any) {
     let buffer
-    const argv = slice.call(arguments)
-    const s = source.apply(this, argv)
-    const t = target.apply(this, argv)
-    if (context == null) output = curve((buffer = new qu.Path()))
+    const argv = slice.call(xs)
+    const s = source(argv)
+    const t = target(argv)
+    if (_context == null) output = curve((buffer = new qu.Path()))
     output.lineStart()
-    ;(argv[0] = s), output.point(+x.apply(this, argv), +y.apply(this, argv))
-    ;(argv[0] = t), output.point(+x.apply(this, argv), +y.apply(this, argv))
+    ;(argv[0] = s), output.point(+_x(argv), +_y(argv))
+    ;(argv[0] = t), output.point(+_x(argv), +_y(argv))
     output.lineEnd()
     if (buffer) return (output = null), buffer + "" || null
   }
-  f.source = function (_) {
-    return arguments.length ? ((source = _), f) : source
-  }
-  f.target = function (_) {
-    return arguments.length ? ((target = _), f) : target
-  }
-  f.x = function (_) {
-    return arguments.length ? ((x = typeof _ === "function" ? _ : qu.constant(+_)), f) : x
-  }
-  f.y = function (_) {
-    return arguments.length ? ((y = typeof _ === "function" ? _ : qu.constant(+_)), f) : y
-  }
-  f.context = function (_) {
-    return arguments.length ? (_ == null ? (context = output = null) : (output = curve((context = _))), f) : context
-  }
+  f.source = (x: any) => (x === undefined ? source : ((source = x), f))
+  f.target = (x: any) => (x === undefined ? target : ((target = x), f))
+  f.x = (x: any) => (x === undefined ? _x : ((_x = typeof x === "function" ? x : qu.constant(+x)), f))
+  f.y = (x: any) => (x === undefined ? _y : ((_y = typeof x === "function" ? x : qu.constant(+x)), f))
+  f.context = (x: any) =>
+    x === undefined ? _context : (x == null ? (_context = output = null) : (output = curve((_context = x))), f)
   return f
 }
 export function linkHorizontal(): qs.Link<any, qs.DefaultLink, qt.Point>
@@ -410,7 +393,7 @@ export function linkVertical() {
 export function linkRadial(): qs.LinkRadial<any, qs.DefaultLink, qt.Point>
 export function linkRadial<L, N>(): qs.LinkRadial<any, L, N>
 export function linkRadial<This, L, N>(): qs.LinkRadial<This, L, N>
-export function linkRadial() {
+export function linkRadial(): any {
   const l = link(bumpRadial)
   ;(l.angle = l.x), delete l.x
   ;(l.radius = l.y), delete l.y
@@ -469,24 +452,15 @@ export function pie() {
     }
     return arcs
   }
-  y.value = function (_) {
-    return arguments.length ? ((value = typeof _ === "function" ? _ : qu.constant(+_)), y) : value
-  }
-  y.sortValues = function (_) {
-    return arguments.length ? ((sortValues = _), (sort = null), y) : sortValues
-  }
-  y.sort = function (_) {
-    return arguments.length ? ((sort = _), (sortValues = null), y) : sort
-  }
-  y.startAngle = function (_) {
-    return arguments.length ? ((startAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : startAngle
-  }
-  y.endAngle = function (_) {
-    return arguments.length ? ((endAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : endAngle
-  }
-  y.padAngle = function (_) {
-    return arguments.length ? ((padAngle = typeof _ === "function" ? _ : qu.constant(+_)), y) : padAngle
-  }
+  y.value = (x: any) => (x === undefined ? value : ((value = typeof x === "function" ? x : qu.constant(+x)), y))
+  y.sortValues = (x: any) => (x === undefined ? sortValues : ((sortValues = x), (sort = null), y))
+  y.sort = (x: any) => (x === undefined ? sort : ((sort = x), (sortValues = null), y))
+  y.startAngle = (x: any) =>
+    x === undefined ? startAngle : ((startAngle = typeof x === "function" ? x : qu.constant(+x)), y)
+  y.endAngle = (x: any) =>
+    x === undefined ? endAngle : ((endAngle = typeof x === "function" ? x : qu.constant(+x)), y)
+  y.padAngle = (x: any) =>
+    x === undefined ? padAngle : ((padAngle = typeof x === "function" ? x : qu.constant(+x)), y)
   return y
 }
 export function pointX(p) {
@@ -516,7 +490,7 @@ export function stack() {
     offset = offsetNone,
     value = stackValue
   function y(data) {
-    let sz = Array.from(keys.apply(this, arguments), stackSeries),
+    let sz = Array.from(keys(arguments), stackSeries),
       i,
       n = sz.length,
       j = -1,
@@ -532,35 +506,28 @@ export function stack() {
     offset(sz, oz)
     return sz
   }
-  y.keys = function (_) {
-    return arguments.length ? ((keys = typeof _ === "function" ? _ : qu.constant(Array.from(_))), y) : keys
-  }
-  y.value = function (_) {
-    return arguments.length ? ((value = typeof _ === "function" ? _ : qu.constant(+_)), y) : value
-  }
-  y.order = function (_) {
-    return arguments.length
-      ? ((order = _ == null ? orderNone : typeof _ === "function" ? _ : qu.constant(Array.from(_))), y)
-      : order
-  }
-  y.offset = function (_) {
-    return arguments.length ? ((offset = _ == null ? offsetNone : _), y) : offset
-  }
+  y.keys = (x: any) => (x === undefined ? keys : ((keys = typeof x === "function" ? x : qu.constant(Array.from(x))), y))
+  y.value = (x: any) => (x === undefined ? value : ((value = typeof x === "function" ? x : qu.constant(+x)), y))
+  y.order = (x: any) =>
+    x === undefined
+      ? order
+      : ((order = x == null ? orderNone : typeof x === "function" ? x : qu.constant(Array.from(x))), y)
+  y.offset = (x: any) => (x === undefined ? offset : ((offset = x == null ? offsetNone : x), y))
   return y
 }
 
 export function symbol<T = any>(
-  type?: qt.SymbolType | ((this: any, x: T, ...xs: any[]) => qt.SymbolType),
+  x?: qt.SymbolType | ((this: any, x: T, ...xs: any[]) => qt.SymbolType),
   size?: number | ((this: any, x: T, ...xs: any[]) => number)
 ): qt.Symbol<any, T>
 export function symbol<This, T>(
-  type?: qt.SymbolType | ((this: This, x: T, ...xs: any[]) => qt.SymbolType),
+  x?: qt.SymbolType | ((this: This, x: T, ...xs: any[]) => qt.SymbolType),
   size?: number | ((this: This, x: T, ...xs: any[]) => number)
 ): qt.Symbol<This, T>
-export function symbol(...xs: any[]) {
+export function symbol(x: any, ...xs: any[]): any {
   let buffer
   if (!context) context = buffer = new qu.Path()
-  type.apply(this, ...xs).draw(context, +size.apply(this, ...xs))
+  x(...xs).draw(context, +size(...xs))
   if (buffer) return (context = null), buffer + "" || null
 }
 
