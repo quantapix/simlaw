@@ -159,7 +159,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
       function () {
         const e = extent.apply(this, arguments),
           t0 = this.__zoom,
-          p0 = p == null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p,
+          p0 = p === null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p,
           p1 = t0.invert(p0),
           k1 = typeof k === "function" ? k.apply(this, arguments) : k
         return constrain(translate(scale(t0, k1), p0, p1), e, translateExtent)
@@ -191,7 +191,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
       function () {
         const e = extent.apply(this, arguments),
           t = this.__zoom,
-          p0 = p == null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p
+          p0 = p === null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p
         return constrain(
           identity
             .translate(p0[0], p0[1])
@@ -233,7 +233,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
           args = arguments,
           g = gesture(that, args).event(event),
           e = extent.apply(that, args),
-          p = point == null ? centroid(e) : typeof point === "function" ? point.apply(that, args) : point,
+          p = point === null ? centroid(e) : typeof point === "function" ? point.apply(that, args) : point,
           w = qu.max(e[1][0] - e[0][0], e[1][1] - e[0][1]),
           a = that.__zoom,
           b = typeof transform === "function" ? transform.apply(that, args) : transform,

@@ -27,13 +27,13 @@ export function interval(floor: Function, offset: Function, count?: Function, fi
     return x - d0 < d1 - x ? d0 : d1
   }
   y.offset = function (x, step) {
-    return offset((x = new Date(+x)), step == null ? 1 : Math.floor(step)), x
+    return offset((x = new Date(+x)), step === null ? 1 : Math.floor(step)), x
   }
   y.range = function (start, stop, step) {
     let range = [],
       previous
     start = y.ceil(start)
-    step = step == null ? 1 : Math.floor(step)
+    step = step === null ? 1 : Math.floor(step)
     if (!(start < stop) || !(step > 0)) return range
     do range.push((previous = new Date(+start))), offset(start, step), floor(start)
     while (previous < start && start < stop)

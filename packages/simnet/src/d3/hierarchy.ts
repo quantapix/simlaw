@@ -195,7 +195,7 @@ export class Node<T> implements qh.Node<T> {
 }
 
 export function optional(x: any) {
-  return x == null ? null : required(x)
+  return x === null ? null : required(x)
 }
 export function required(x: any) {
   if (typeof x !== "function") throw new Error()

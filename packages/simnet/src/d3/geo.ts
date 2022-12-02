@@ -413,7 +413,7 @@ export namespace circle {
     const cosRadius = qu.cos(radius),
       sinRadius = qu.sin(radius),
       step = direction * delta
-    if (t0 == null) {
+    if (t0 === null) {
       t0 = radius + direction * qu.tau
       t1 = radius - step / 2
     } else {
@@ -1042,7 +1042,7 @@ export namespace clip {
   }
   function clipAntimeridianInterpolate(from, to, direction, stream) {
     let phi
-    if (from == null) {
+    if (from === null) {
       phi = direction * halfPi
       stream.point(-pi, phi)
       stream.point(0, phi)
@@ -1411,7 +1411,7 @@ export namespace clip {
       let a = 0,
         a1 = 0
       if (
-        from == null ||
+        from === null ||
         (a = corner(from, direction)) !== (a1 = corner(to, direction)) ||
         (comparePoint(from, to) < 0) ^ (direction > 0)
       ) {
@@ -1852,46 +1852,45 @@ export namespace path {
     let pointRadius = 4.5,
       projectionStream,
       contextStream
-    function path(object) {
+    function f(object) {
       if (object) {
         if (typeof pointRadius === "function") contextStream.pointRadius(+pointRadius.apply(this, arguments))
         stream(object, projectionStream(contextStream))
       }
       return contextStream.result()
     }
-    path.area = function (object) {
-      stream(object, projectionStream(pathArea))
+    f.area = x => {
+      stream(x, projectionStream(pathArea))
       return pathArea.result()
     }
-    path.measure = function (object) {
-      stream(object, projectionStream(pathMeasure))
+    f.measure = x => {
+      stream(x, projectionStream(pathMeasure))
       return pathMeasure.result()
     }
-    path.bounds = function (object) {
-      stream(object, projectionStream(pathBounds))
+    f.bounds = x => {
+      stream(x, projectionStream(pathBounds))
       return pathBounds.result()
     }
-    path.centroid = function (object) {
-      stream(object, projectionStream(pathCentroid))
+    f.centroid = x => {
+      stream(x, projectionStream(pathCentroid))
       return pathCentroid.result()
     }
-    path.projection = function (_) {
-      return arguments.length
-        ? ((projectionStream = _ == null ? ((projection = null), identity) : (projection = _).stream), path)
-        : projection
-    }
-    path.context = function (_) {
-      if (!arguments.length) return context
-      contextStream = _ == null ? ((context = null), new PathString()) : new PathContext((context = _))
+    f.projection = (x: any) =>
+      x === undefined
+        ? projection
+        : ((projectionStream = x === null ? ((projection = null), identity) : (projection = x).stream), f)
+    f.context = (x: any) => {
+      if (x === undefined) return context
+      contextStream = x === null ? ((context = null), new PathString()) : new PathContext((context = x))
       if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius)
-      return path
+      return f
     }
-    path.pointRadius = function (_) {
-      if (!arguments.length) return pointRadius
-      pointRadius = typeof _ === "function" ? _ : (contextStream.pointRadius(+_), +_)
-      return path
+    f.pointRadius = (x: any) => {
+      if (X === undefined) return pointRadius
+      pointRadius = typeof x === "function" ? x : (contextStream.pointRadius(+x), +x)
+      return f
     }
-    return path.projection(projection).context(context)
+    return f.projection(projection).context(context)
   }
   let lengthSum = new Adder(),
     lengthRing,
@@ -1899,25 +1898,19 @@ export namespace path {
     y00,
     x0,
     y0
-  let lengthStream = {
+  const lengthStream = {
     point: qu.noop,
-    lineStart: function () {
-      lengthStream.point = lengthPointFirst
-    },
-    lineEnd: function () {
+    lineStart: () => (lengthStream.point = lengthPointFirst),
+    lineEnd: () => {
       if (lengthRing) lengthPoint(x00, y00)
       lengthStream.point = qu.noop
     },
-    polygonStart: function () {
-      lengthRing = true
-    },
-    polygonEnd: function () {
-      lengthRing = null
-    },
-    result: function () {
-      const length = +lengthSum
+    polygonStart: () => (lengthRing = true),
+    polygonEnd: () => (lengthRing = null),
+    result: () => {
+      const y = +lengthSum
       lengthSum = new Adder()
-      return length
+      return y
     },
   }
   function lengthPointFirst(x, y) {
@@ -1965,7 +1958,7 @@ export namespace path {
           break
         }
         default: {
-          if (this._circle == null) this._circle = circle(this._radius)
+          if (this._circle === null) this._circle = circle(this._radius)
           this._string.push("M", x, ",", y, this._circle)
           break
         }
@@ -2042,9 +2035,8 @@ export namespace proj {
       phi1 = pi / 3
     const m = mutator(projectAt),
       p = m(phi0, phi1)
-    p.parallels = function (_) {
-      return arguments.length ? m((phi0 = _[0] * radians), (phi1 = _[1] * radians)) : [phi0 * degrees, phi1 * degrees]
-    }
+    p.parallels = (x: any) =>
+      x === undefined ? [phi0 * degrees, phi1 * degrees] : m((phi0 = x[0] * radians), (phi1 = x[1] * radians))
     return p
   }
   export namespace conic {
@@ -2062,7 +2054,7 @@ export namespace proj {
         const r = p / pow(tany(y), n)
         return [r * sin(n * x), p - r * cos(n * x)]
       }
-      f.invert = function (x, y) {
+      f.invert = (x, y) => {
         const py = p - y,
           r = sign(n) * sqrt(x * x + py * py)
         let l = atan2(x, abs(py)) * sign(py)
@@ -2082,7 +2074,7 @@ export namespace proj {
         const r = sqrt(c - 2 * n * sin(y)) / n
         return [r * sin((x *= n)), r0 - r * cos(x)]
       }
-      f.invert = function (x, y) {
+      f.invert = (x, y) => {
         const r0y = r0 - y
         let l = atan2(x, abs(r0y)) * sign(r0y)
         if (r0y * n < 0) l -= pi * sign(x) * sign(r0y)
@@ -2101,7 +2093,7 @@ export namespace proj {
           nx = n * x
         return [gy * sin(nx), g - gy * cos(nx)]
       }
-      f.invert = function (x, y) {
+      f.invert = (x, y) => {
         const gy = g - y
         let l = atan2(x, abs(gy)) * sign(gy)
         if (gy * n < 0) l -= pi * sign(x) * sign(gy)
@@ -2120,9 +2112,7 @@ export namespace proj {
       function f(lambda, phi) {
         return [lambda * cosPhi0, sin(phi) / cosPhi0]
       }
-      f.invert = function (x, y) {
-        return [x / cosPhi0, qu.asin(y * cosPhi0)]
-      }
+      f.invert = (x, y) => [x / cosPhi0, qu.asin(y * cosPhi0)]
       return f
     }
   }
@@ -2136,23 +2126,21 @@ export namespace proj {
       .center([-0.6, 38.7])
   }
   export function albersUsa(): Geo.Projection {
+    const lower48 = albers(),
+      alaska = conic.equalArea().rotate([154, 0]).center([-2, 58.5]).parallels([55, 65]),
+      hawaii = conic.equalArea().rotate([157, 0]).center([-3, 19.9]).parallels([8, 18]),
+      pointStream = {
+        point: (x, y) => (point = [x, y]),
+      }
     let cache,
       cacheStream,
-      lower48 = albers(),
       lower48Point,
-      alaska = conic.equalArea().rotate([154, 0]).center([-2, 58.5]).parallels([55, 65]),
       alaskaPoint, // EPSG:3338
-      hawaii = conic.equalArea().rotate([157, 0]).center([-3, 19.9]).parallels([8, 18]),
       hawaiiPoint, // ESRI:102007
-      point,
-      pointStream = {
-        point: function (x, y) {
-          point = [x, y]
-        },
-      }
-    function f(coordinates) {
-      const x = coordinates[0],
-        y = coordinates[1]
+      point
+    function f(xs) {
+      const x = xs[0],
+        y = xs[1]
       return (
         (point = null),
         (lower48Point.point(x, y), point) || (alaskaPoint.point(x, y), point) || (hawaiiPoint.point(x, y), point)
@@ -2161,61 +2149,64 @@ export namespace proj {
     function multiplex(streams) {
       const n = streams.length
       return {
-        point: function (x, y) {
+        point: (x, y) => {
           let i = -1
           while (++i < n) streams[i].point(x, y)
         },
-        sphere: function () {
+        sphere: () => {
           let i = -1
           while (++i < n) streams[i].sphere()
         },
-        lineStart: function () {
+        lineStart: () => {
           let i = -1
           while (++i < n) streams[i].lineStart()
         },
-        lineEnd: function () {
+        lineEnd: () => {
           let i = -1
           while (++i < n) streams[i].lineEnd()
         },
-        polygonStart: function () {
+        polygonStart: () => {
           let i = -1
           while (++i < n) streams[i].polygonStart()
         },
-        polygonEnd: function () {
+        polygonEnd: () => {
           let i = -1
           while (++i < n) streams[i].polygonEnd()
         },
       }
     }
-    f.invert = function (coordinates) {
+    function reset() {
+      cache = cacheStream = null
+      return f
+    }
+    f.invert = xs => {
       const k = lower48.scale(),
         t = lower48.translate(),
-        x = (coordinates[0] - t[0]) / k,
-        y = (coordinates[1] - t[1]) / k
+        x = (xs[0] - t[0]) / k,
+        y = (xs[1] - t[1]) / k
       return (
         y >= 0.12 && y < 0.234 && x >= -0.425 && x < -0.214
           ? alaska
           : y >= 0.166 && y < 0.234 && x >= -0.214 && x < -0.115
           ? hawaii
           : lower48
-      ).invert(coordinates)
+      ).invert(xs)
     }
-    f.stream = function (stream) {
-      return cache && cacheStream === stream
+    f.stream = x =>
+      cache && cacheStream === x
         ? cache
-        : (cache = multiplex([lower48.stream((cacheStream = stream)), alaska.stream(stream), hawaii.stream(stream)]))
-    }
-    f.precision = function (_) {
-      if (!arguments.length) return lower48.precision()
-      lower48.precision(_), alaska.precision(_), hawaii.precision(_)
+        : (cache = multiplex([lower48.stream((cacheStream = x)), alaska.stream(x), hawaii.stream(x)]))
+    f.precision = (x: any) => {
+      if (x === undefined) return lower48.precision()
+      lower48.precision(x), alaska.precision(x), hawaii.precision(x)
       return reset()
     }
-    f.scale = function (_) {
-      if (!arguments.length) return lower48.scale()
-      lower48.scale(_), alaska.scale(_ * 0.35), hawaii.scale(_)
+    f.scale = (x: any) => {
+      if (x === undefined) return lower48.scale()
+      lower48.scale(x), alaska.scale(x * 0.35), hawaii.scale(x)
       return f.translate(lower48.translate())
     }
-    f.translate = function (_) {
+    f.translate = _ => {
       if (!arguments.length) return lower48.translate()
       const k = lower48.scale(),
         x = +_[0],
@@ -2247,10 +2238,6 @@ export namespace proj {
     f.fitSize = (size, x) => fit.size(f, size, x)
     f.fitWidth = (width, x) => fit.width(f, width, x)
     f.fitHeight = (height, x) => fit.height(f, height, x)
-    function reset() {
-      cache = cacheStream = null
-      return f
-    }
     return f.scale(1070)
   }
   const A1 = 1.340264,
@@ -2273,7 +2260,7 @@ export namespace proj {
     let l = y,
       l2 = l * l,
       l6 = l2 * l2 * l2
-    for (var i = 0, delta, fy, fpy; i < iterations; ++i) {
+    for (let i = 0, delta, fy, fpy; i < iterations; ++i) {
       fy = l * (A1 + A2 * l2 + l6 * (A3 + A4 * l2)) - y
       fpy = A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2)
       ;(l -= delta = fy / fpy), (l2 = l * l), (l6 = l2 * l2 * l2)
@@ -2340,7 +2327,7 @@ export namespace proj {
       }
       return [x + tx, y + ty]
     }
-    f.invert = function (p) {
+    f.invert = p => {
       let x = p[0] - tx,
         y = p[1] - ty
       if (alpha) {
@@ -2350,43 +2337,27 @@ export namespace proj {
       }
       return [x / kx, y / ky]
     }
-    f.stream = function (stream) {
-      return cache && cacheStream === stream ? cache : (cache = transform(postclip((cacheStream = stream))))
-    }
-    f.postclip = function (_) {
-      return arguments.length ? ((postclip = _), (x0 = y0 = x1 = y1 = null), reset()) : postclip
-    }
-    f.clipExtent = function (_) {
-      return arguments.length
+    f.stream = X => (cache && cacheStream === X ? cache : (cache = transform(postclip((cacheStream = X)))))
+    f.postclip = x => (x === undefined ? postclip : ((postclip = x), (x0 = y0 = x1 = y1 = null), reset()))
+    f.clipExtent = x =>
+      x === undefined
         ? ((postclip =
-            _ == null
+            x === null
               ? ((x0 = y0 = x1 = y1 = null), qu.identity)
-              : clipRectangle((x0 = +_[0][0]), (y0 = +_[0][1]), (x1 = +_[1][0]), (y1 = +_[1][1]))),
+              : clipRectangle((x0 = +x[0][0]), (y0 = +x[0][1]), (x1 = +x[1][0]), (y1 = +x[1][1]))),
           reset())
-        : x0 == null
+        : x0 === null
         ? null
         : [
             [x0, y0],
             [x1, y1],
           ]
-    }
-    f.scale = function (_) {
-      return arguments.length ? ((k = +_), reset()) : k
-    }
-    f.translate = function (_) {
-      return arguments.length ? ((tx = +_[0]), (ty = +_[1]), reset()) : [tx, ty]
-    }
-    f.angle = function (_) {
-      return arguments.length
-        ? ((alpha = (_ % 360) * radians), (sa = sin(alpha)), (ca = cos(alpha)), reset())
-        : alpha * degrees
-    }
-    f.reflectX = function (_) {
-      return arguments.length ? ((sx = _ ? -1 : 1), reset()) : sx < 0
-    }
-    f.reflectY = function (_) {
-      return arguments.length ? ((sy = _ ? -1 : 1), reset()) : sy < 0
-    }
+    f.scale = (x: any) => (x === undefined ? k : ((k = +x), reset()))
+    f.translate = (x: any) => (x === undefined ? [tx, ty] : ((tx = +x[0]), (ty = +x[1]), reset()))
+    f.angle = (x: any) =>
+      x === undefined ? alpha * degrees : ((alpha = (x % 360) * radians), (sa = sin(alpha)), (ca = cos(alpha)), reset())
+    f.reflectX = (x: any) => (x === undefined ? sx < 0 : ((sx = x ? -1 : 1), reset()))
+    f.reflectY = (x: any) => (x === undefined ? sy < 0 : ((sy = x ? -1 : 1), reset()))
     f.fitExtent = (extent, x) => fit.extent(f, extent, x)
     f.fitSize = (size, x) => fit.size(f, size, x)
     f.fitWidth = (width, x) => fit.width(f, width, x)
@@ -2467,78 +2438,54 @@ export namespace proj {
       projectRotateTransform,
       cache,
       cacheStream
-    function f(point) {
-      return projectRotateTransform(point[0] * radians, point[1] * radians)
-    }
     function invert(point) {
       point = projectRotateTransform.invert(point[0], point[1])
       return point && [point[0] * degrees, point[1] * degrees]
     }
-    f.stream = function (stream) {
-      return cache && cacheStream === stream
+    function f(point) {
+      return projectRotateTransform(point[0] * radians, point[1] * radians)
+    }
+    f.stream = x =>
+      cache && cacheStream === x
         ? cache
-        : (cache = transformRadians(
-            transformRotate(rotate)(preclip(projectResample(postclip((cacheStream = stream)))))
-          ))
-    }
-    f.preclip = function (_) {
-      return arguments.length ? ((preclip = _), (theta = undefined), reset()) : preclip
-    }
-    f.postclip = function (_) {
-      return arguments.length ? ((postclip = _), (x0 = y0 = x1 = y1 = null), reset()) : postclip
-    }
-    f.clipAngle = function (_) {
-      return arguments.length
-        ? ((preclip = +_ ? clipCircle((theta = _ * radians)) : ((theta = null), clipAntimeridian)), reset())
-        : theta * degrees
-    }
-    f.clipExtent = function (_) {
-      return arguments.length
+        : (cache = transformRadians(transformRotate(rotate)(preclip(projectResample(postclip((cacheStream = x)))))))
+    f.preclip = (x: any) => (x === undefined ? preclip : ((preclip = x), (theta = undefined), reset()))
+    f.postclip = (x: any) => (x === undefined ? postclip : ((postclip = x), (x0 = y0 = x1 = y1 = null), reset()))
+    f.clipAngle = (x: any) =>
+      x === undefined
+        ? theta * degrees
+        : ((preclip = +x ? clipCircle((theta = x * radians)) : ((theta = null), clipAntimeridian)), reset())
+    f.clipExtent = x =>
+      x !== undefined
         ? ((postclip =
-            _ == null
+            x === null
               ? ((x0 = y0 = x1 = y1 = null), qu.identity)
-              : clipRectangle((x0 = +_[0][0]), (y0 = +_[0][1]), (x1 = +_[1][0]), (y1 = +_[1][1]))),
+              : clipRectangle((x0 = +x[0][0]), (y0 = +x[0][1]), (x1 = +x[1][0]), (y1 = +x[1][1]))),
           reset())
-        : x0 == null
+        : x0 === null
         ? null
         : [
             [x0, y0],
             [x1, y1],
           ]
-    }
-    f.scale = function (_) {
-      return arguments.length ? ((k = +_), recenter()) : k
-    }
-    f.translate = function (_) {
-      return arguments.length ? ((x = +_[0]), (y = +_[1]), recenter()) : [x, y]
-    }
-    f.center = function (_) {
-      return arguments.length
-        ? ((lambda = (_[0] % 360) * radians), (phi = (_[1] % 360) * radians), recenter())
-        : [lambda * degrees, phi * degrees]
-    }
-    f.rotate = function (_) {
-      return arguments.length
-        ? ((deltaLambda = (_[0] % 360) * radians),
-          (deltaPhi = (_[1] % 360) * radians),
-          (deltaGamma = _.length > 2 ? (_[2] % 360) * radians : 0),
+    f.scale = (x: any) => (x === undefined ? k : ((k = +x), recenter()))
+    f.translate = (x: any) => (x === undefined ? [x, y] : ((x = +x[0]), (y = +x[1]), recenter()))
+    f.center = (x: any) =>
+      x === undefined
+        ? [lambda * degrees, phi * degrees]
+        : ((lambda = (x[0] % 360) * radians), (phi = (x[1] % 360) * radians), recenter())
+    f.rotate = (x: any) =>
+      x === undefined
+        ? [deltaLambda * degrees, deltaPhi * degrees, deltaGamma * degrees]
+        : ((deltaLambda = (x[0] % 360) * radians),
+          (deltaPhi = (x[1] % 360) * radians),
+          (deltaGamma = x.length > 2 ? (x[2] % 360) * radians : 0),
           recenter())
-        : [deltaLambda * degrees, deltaPhi * degrees, deltaGamma * degrees]
-    }
-    f.angle = function (_) {
-      return arguments.length ? ((alpha = (_ % 360) * radians), recenter()) : alpha * degrees
-    }
-    f.reflectX = function (_) {
-      return arguments.length ? ((sx = _ ? -1 : 1), recenter()) : sx < 0
-    }
-    f.reflectY = function (_) {
-      return arguments.length ? ((sy = _ ? -1 : 1), recenter()) : sy < 0
-    }
-    f.precision = function (_) {
-      return arguments.length
-        ? ((projectResample = resample(projectTransform, (delta2 = _ * _))), reset())
-        : sqrt(delta2)
-    }
+    f.angle = (x: any) => (x === undefined ? alpha * degrees : ((alpha = (x % 360) * radians), recenter()))
+    f.reflectX = (x: any) => (x === undefined ? sx < 0 : ((sx = x ? -1 : 1), recenter()))
+    f.reflectY = (x: any) => (x === undefined ? sy < 0 : ((sy = x ? -1 : 1), recenter()))
+    f.precision = (x: any) =>
+      x === undefined ? sqrt(delta2) : ((projectResample = resample(projectTransform, (delta2 = x * x))), reset())
     f.fitExtent = (extent, x) => fit.extent(f, extent, x)
     f.fitSize = (size, x) => fit.size(f, size, x)
     f.fitWidth = (width, x) => fit.width(f, width, x)
@@ -2586,11 +2533,11 @@ export namespace proj {
     f.center = (xs: number[]) => (xs.length ? (center(xs), reclip()) : center())
     f.clipExtent = function (xs) {
       return xs.length
-        ? (xs == null
+        ? (xs === null
             ? (x0 = y0 = x1 = y1 = null)
             : ((x0 = +xs[0][0]), (y0 = +xs[0][1]), (x1 = +xs[1][0]), (y1 = +xs[1][1])),
           reclip())
-        : x0 == null
+        : x0 === null
         ? null
         : [
             [x0, y0],
@@ -2601,7 +2548,7 @@ export namespace proj {
       const k = pi * scale(),
         t = f(rotation(f.rotate()).invert([0, 0]))
       return clipExtent(
-        x0 == null
+        x0 === null
           ? [
               [t[0] - k, t[1] - k],
               [t[0] + k, t[1] + k],

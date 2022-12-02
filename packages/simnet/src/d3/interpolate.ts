@@ -127,7 +127,7 @@ export function value<T extends object>(a: any, b: T): (t: number) => T
 export function value(a: any, b: any) {
   let t = typeof b,
     c
-  return b == null || t === "boolean"
+  return b === null || t === "boolean"
     ? qu.constant(b)
     : (t === "number"
         ? number
@@ -285,7 +285,7 @@ function parseCss(x: string) {
 }
 let svg: any = undefined
 function parseSvg(x: any) {
-  if (x == null) return identity
+  if (x === null) return identity
   if (!svg) svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
   svg.setAttribute("transform", x)
   if (!(x = svg.transform.baseVal.consolidate())) return identity

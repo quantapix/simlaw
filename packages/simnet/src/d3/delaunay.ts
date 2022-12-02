@@ -152,7 +152,7 @@ export class Delaunay<T> implements qt.Delaunay<T> {
     return c
   }
   render(context) {
-    const buffer = context == null ? (context = new Path()) : undefined
+    const buffer = context === null ? (context = new Path()) : undefined
     const { points, halfedges, triangles } = this
     for (let i = 0, n = halfedges.length; i < n; ++i) {
       const j = halfedges[i]
@@ -167,8 +167,8 @@ export class Delaunay<T> implements qt.Delaunay<T> {
   }
   renderPoints(context, r) {
     if (r === undefined && (!context || typeof context.moveTo !== "function")) (r = context), (context = null)
-    r = r == undefined ? 2 : +r
-    const buffer = context == null ? (context = new Path()) : undefined
+    r = r === undefined ? 2 : +r
+    const buffer = context === null ? (context = new Path()) : undefined
     const { points } = this
     for (let i = 0, n = points.length; i < n; i += 2) {
       const x = points[i],
@@ -179,7 +179,7 @@ export class Delaunay<T> implements qt.Delaunay<T> {
     return buffer && buffer.value()
   }
   renderHull(context) {
-    const buffer = context == null ? (context = new Path()) : undefined
+    const buffer = context === null ? (context = new Path()) : undefined
     const { hull, points } = this
     const h = hull[0] * 2,
       n = hull.length
@@ -197,7 +197,7 @@ export class Delaunay<T> implements qt.Delaunay<T> {
     return polygon.value()
   }
   renderTriangle(i, context) {
-    const buffer = context == null ? (context = new Path()) : undefined
+    const buffer = context === null ? (context = new Path()) : undefined
     const { points, triangles } = this
     const t0 = triangles[(i *= 3)] * 2
     const t1 = triangles[i + 1] * 2
@@ -363,7 +363,7 @@ export class Voronoi<T> implements qt.Voronoi<T> {
     }
   }
   render(context) {
-    const buffer = context == null ? (context = new Path()) : undefined
+    const buffer = context === null ? (context = new Path()) : undefined
     const {
       delaunay: { halfedges, inedges, hull },
       circumcenters,
@@ -395,12 +395,12 @@ export class Voronoi<T> implements qt.Voronoi<T> {
     return buffer && buffer.value()
   }
   renderBounds(context) {
-    const buffer = context == null ? (context = new Path()) : undefined
+    const buffer = context === null ? (context = new Path()) : undefined
     context.rect(this.xmin, this.ymin, this.xmax - this.xmin, this.ymax - this.ymin)
     return buffer && buffer.value()
   }
   renderCell(i, context) {
-    const buffer = context == null ? (context = new Path()) : undefined
+    const buffer = context === null ? (context = new Path()) : undefined
     const points = this._clip(i)
     if (points === null || !points.length) return
     context.moveTo(points[0], points[1])

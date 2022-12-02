@@ -19,7 +19,7 @@ const X = {
   name: "x",
   handles: ["w", "e"].map(type),
   input: function (x, e) {
-    return x == null
+    return x === null
       ? null
       : [
           [+x[0], e[0][1]],
@@ -34,7 +34,7 @@ const Y = {
   name: "y",
   handles: ["n", "s"].map(type),
   input: function (y, e) {
-    return y == null
+    return y === null
       ? null
       : [
           [e[0][0], +y[0]],
@@ -49,7 +49,7 @@ const XY = {
   name: "xy",
   handles: ["n", "w", "e", "s", "nw", "ne", "sw", "se"].map(type),
   input: function (xy) {
-    return xy == null ? null : number2(xy)
+    return xy === null ? null : number2(xy)
   },
   output: function (xy) {
     return xy

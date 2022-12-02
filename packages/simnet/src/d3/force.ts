@@ -77,7 +77,7 @@ export function sim<N extends qt.SimNode>(xs: N[] = []) {
       return res
     },
     force: (x: string, f?: any) =>
-      f === undefined ? _fs.get(x) : (f == null ? _fs.delete(x) : _fs.set(x, initForce(f)), sim),
+      f === undefined ? _fs.get(x) : (f === null ? _fs.delete(x) : _fs.set(x, initForce(f)), sim),
     nodes: (xs?: any[]) => (xs === undefined ? _ns : ((_ns = xs), init(), _fs.forEach(initForce), sim)),
     on: (x: any, f?: any) => (f === undefined ? _event.on(x) : (_event.on(x, f), sim)),
     randomSource: (f?: any) => (f === undefined ? _rnd : ((_rnd = f), _fs.forEach(initForce), sim)),
@@ -469,7 +469,7 @@ export function quadtree<T>(xs?: T[]): qt.Quad.Tree<T>
 export function quadtree<T>(xs: T[], x: (t: T) => number, y: (t: T) => number): qt.Quad.Tree<T>
 export function quadtree(xs: any, x?: (t: any) => number, y?: (t: any) => number) {
   const r = new Quad.Tree(x === undefined ? (t: any) => t[0] : x, y === undefined ? (t: any) => t[1] : y)
-  return xs == undefined ? r : r.addAll(xs)
+  return xs === undefined ? r : r.addAll(xs)
 }
 class Quad.Tree<T> implements qt.Quad.Tree<T> {
   _x

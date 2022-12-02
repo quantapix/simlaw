@@ -161,7 +161,7 @@ export function dsvFormat(delimiter: string): qt.DSV {
     while ((t = token()) !== EOF) {
       let row = []
       while (t !== EOL && t !== EOF) row.push(t), (t = token())
-      if (f && (row = f(row, n++)) == null) continue
+      if (f && (row = f(row, n++)) === null) continue
       rows.push(row)
     }
     return rows
@@ -176,11 +176,11 @@ export function dsvFormat(delimiter: string): qt.DSV {
     })
   }
   function format(rows, columns) {
-    if (columns == null) columns = inferColumns(rows)
+    if (columns === null) columns = inferColumns(rows)
     return [columns.map(formatValue).join(delimiter)].concat(preformatBody(rows, columns)).join("\n")
   }
   function formatBody(rows, columns) {
-    if (columns == null) columns = inferColumns(rows)
+    if (columns === null) columns = inferColumns(rows)
     return preformatBody(rows, columns).join("\n")
   }
   function formatRows(rows) {
@@ -190,7 +190,7 @@ export function dsvFormat(delimiter: string): qt.DSV {
     return row.map(formatValue).join(delimiter)
   }
   function formatValue(value) {
-    return value == null
+    return value === null
       ? ""
       : value instanceof Date
       ? formatDate(value)

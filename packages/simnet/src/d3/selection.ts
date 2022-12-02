@@ -136,7 +136,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
       (k: qt.NS, f: Function) =>
       (...xs: any[]) => {
         const x = f.apply(this, xs)
-        if (x == null) this.removeAttributeNS(k.space, k.local)
+        if (x === null) this.removeAttributeNS(k.space, k.local)
         else this.setAttributeNS(k.space, k.local, x)
       }
     const val = (k: string, v: any) => () => this.setAttribute(k, v)
@@ -361,7 +361,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
   insert(name, before) {
     const constantNull = () => null
     const create = typeof name === "function" ? name : creator(name),
-      select = before == null ? constantNull : typeof before === "function" ? before : selector(before)
+      select = before === null ? constantNull : typeof before === "function" ? before : selector(before)
     return this.select(function () {
       return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null)
     })
@@ -383,7 +383,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
       update = onupdate(update)
       if (update) update = update.selection()
     }
-    if (onexit == null) exit.remove()
+    if (onexit === null) exit.remove()
     else onexit(exit)
     return enter && update ? enter.merge(update).order() : update
   }
@@ -499,11 +499,11 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
       (k, v) =>
       (...xs: any[]) => {
         const x = v.apply(this, xs)
-        if (x == null) delete this[k]
+        if (x === null) delete this[k]
         else this[k] = x
       }
     return arguments.length > 1
-      ? this.each((v == null ? remove : typeof v === "function" ? func : constant)(k, v))
+      ? this.each((v === null ? remove : typeof v === "function" ? func : constant)(k, v))
       : this.node()[k]
   }
   raise() {
@@ -573,14 +573,14 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
     const constant = (k, v, priority) => () => this.style.setProperty(k, v, priority)
     const func = (k, v, priority) => () => {
       const x = v.apply(this, arguments)
-      if (x == null) this.style.removeProperty(k)
+      if (x === null) this.style.removeProperty(k)
       else this.style.setProperty(k, x, priority)
     }
     const value = (x, n: string): string =>
       x.style.getPropertyValue(n) || qu.defaultView(x).getComputedStyle(x, null).getPropertyValue(n)
     return arguments.length > 1
       ? this.each(
-          (v == null ? remove : typeof v === "function" ? func : constant)(k, v, priority == null ? "" : priority)
+          (v === null ? remove : typeof v === "function" ? func : constant)(k, v, priority === null ? "" : priority)
         )
       : value(this.node(), k)
   }
@@ -595,7 +595,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
         duration: 250,
         ease: easeCubicInOut,
       }
-      ;(id = newId()), ((timing = defaultTiming).time = qu.now()), (name = name == null ? null : name + "")
+      ;(id = newId()), ((timing = defaultTiming).time = qu.now()), (name = name === null ? null : name + "")
     }
     function inherit(node, id) {
       let timing
@@ -620,16 +620,16 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
       (v: any) =>
       (...xs: any[]) => {
         const x: string = v.apply(this, ...xs)
-        this.textContent = x == null ? "" : x
+        this.textContent = x === null ? "" : x
       }
     return x === undefined
       ? this.node().textContent
-      : this.each(x == null ? remove : (typeof x === "function" ? func : constant)(x))
+      : this.each(x === null ? remove : (typeof x === "function" ? func : constant)(x))
   }
   selector<T extends Element>(x: string | null): (this: qt.Base) => T | void {
-    return x == null ? () => {} : () => this.querySelector(x)
+    return x === null ? () => {} : () => this.querySelector(x)
   }
   selectorAll<T extends Element>(x: string | null): (this: qt.Base) => NodeListOf<T> {
-    return x == null ? () => ({} as NodeListOf<T>) : () => this.querySelectorAll(x)
+    return x === null ? () => ({} as NodeListOf<T>) : () => this.querySelectorAll(x)
   }
 }

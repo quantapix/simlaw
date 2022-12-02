@@ -84,11 +84,11 @@ export const constant =
     x
 
 export function ascending(a?: qt.Primitive, b?: qt.Primitive) {
-  return a == undefined || b == undefined ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
+  return a === undefined || b === undefined ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
 }
 
 export function descending(a?: qt.Primitive, b?: qt.Primitive) {
-  return a == undefined || b == undefined ? NaN : b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN
+  return a === undefined || b === undefined ? NaN : b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN
 }
 
 export function angle(a: number, b: number) {
@@ -347,8 +347,8 @@ function axis<T>(orient, scale: qt.Axis.Scale<T>): qt.Axis<T> {
     x = orient === left || orient === right ? "x" : "y",
     transform = orient === top || orient === bottom ? translateX : translateY
   function f(context) {
-    let values = values == null ? (scale.ticks ? scale.ticks.apply(scale, args) : scale.domain()) : values,
-      format = format == null ? (scale.tickFormat ? scale.tickFormat.apply(scale, args) : identity) : format,
+    let values = values === null ? (scale.ticks ? scale.ticks.apply(scale, args) : scale.domain()) : values,
+      format = format === null ? (scale.tickFormat ? scale.tickFormat.apply(scale, args) : identity) : format,
       spacing = max(sizeInner, 0) + padding,
       range = scale.range(),
       range0 = +range[0] + _off,
@@ -422,7 +422,7 @@ function axis<T>(orient, scale: qt.Axis.Scale<T>): qt.Axis<T> {
   }
   f.offset = (x: any) => (x === undefined ? _off : ((_off = +x), f))
   f.scale = (x: any) => (x === undefined ? scale : ((scale = x), f))
-  f.tickArgs = (x: any) => (x === undefined ? args.slice() : ((args = x == null ? [] : Array.from(x)), f))
+  f.tickArgs = (x: any) => (x === undefined ? args.slice() : ((args = x === null ? [] : Array.from(x)), f))
   f.tickFormat = (x: any) => (x === undefined ? format : ((format = x), f))
   f.tickPadding = (x: any) => (x === undefined ? padding : ((padding = +x), f))
   f.ticks = (...xs: any[]) => ((args = Array.from(xs)), f)
@@ -430,7 +430,7 @@ function axis<T>(orient, scale: qt.Axis.Scale<T>): qt.Axis<T> {
   f.tickSizeInner = (x: any) => (x === undefined ? sizeInner : ((sizeInner = +x), f))
   f.tickSizeOuter = (x: any) => (x === undefined ? sizeOuter : ((sizeOuter = +x), f))
   f.tickValues = (x: any) =>
-    x === undefined ? vals && vals.slice() : ((vals = x[0] == null ? null : Array.from(x)), f)
+    x === undefined ? vals && vals.slice() : ((vals = x[0] === null ? null : Array.from(x)), f)
   return f
 }
 export function axisTop<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
@@ -512,7 +512,7 @@ export class Dispatch<T extends object> implements qt.Dispatch<T> {
     }
     while (++i < n) {
       if ((t = (types = ts[i]).type)) tgt[t] = set(tgt[t], types.name, f)
-      else if (f == null) for (t in tgt) tgt[t] = set(tgt[t], types.name, null)
+      else if (f === null) for (t in tgt) tgt[t] = set(tgt[t], types.name, null)
     }
     return this
   }
@@ -526,7 +526,7 @@ export class Timer implements qt.Timer {
   time?: number
   next?: any
   restart(cb: (x: number) => void, delay?: number, time?: number) {
-    time = (time == undefined ? now() : +time) + (delay == undefined ? 0 : +delay)
+    time = (time === undefined ? now() : +time) + (delay === undefined ? 0 : +delay)
     if (!this.next && tail !== this) {
       if (tail) tail.next = this
       else head = this
@@ -548,10 +548,10 @@ export class Timer implements qt.Timer {
 export function interval(cb: (x: number) => void, delay?: number, time?: number): Timer {
   const t = new Timer()
   let total = delay
-  if (delay == null) return t.restart(cb, delay, time), t
+  if (delay === null) return t.restart(cb, delay, time), t
   t._restart = t.restart
   t.restart = function (callback, delay, time) {
-    ;(delay = +delay), (time = time == null ? now() : +time)
+    ;(delay = +delay), (time = time === null ? now() : +time)
     t._restart(
       function tick(x) {
         x += total
@@ -1189,7 +1189,7 @@ export namespace drag {
           that,
           new Event("beforestart", id, e, f, undefined, active, p[0], p[1], 0, 0, dispatch),
           d
-        )) == null
+        )) === null
       )
         return
       const dx = s.x - p[0] || 0

@@ -39,7 +39,7 @@ export const bernoulli: qr.Bernoulli = (function s(f) {
 export const normal: qr.Normal = (function s(f) {
   function y(mu?: number, sigma?: number) {
     mu = mu === undefined ? 0 : +mu
-    sigma = sigma == undefined ? 1 : +sigma
+    sigma = sigma === undefined ? 1 : +sigma
     let x: number | undefined
     let r: number
     return () => {
@@ -63,7 +63,7 @@ export const gamma: qr.Gamma = (function s(f) {
   function y(k: number, theta?: number) {
     if ((k = +k) < 0) throw new RangeError("invalid k")
     if (k === 0) return () => 0
-    theta = theta == undefined ? 1 : +theta
+    theta = theta === undefined ? 1 : +theta
     if (k === 1) return () => -Math.log1p(-f()) * theta!
     const d = (k < 1 ? k + 1 : k) - 1 / 3
     const c = 1 / (3 * Math.sqrt(d))
@@ -147,8 +147,8 @@ export const binomial: qr.Binomial = (function s(f) {
 
 export const cauchy: qr.Cauchy = (function s(f) {
   function y(a?: number, b?: number) {
-    a = a == undefined ? 0 : +a
-    b = b == undefined ? 1 : +b
+    a = a === undefined ? 0 : +a
+    b = b === undefined ? 1 : +b
     return () => a! + b! * Math.tan(Math.PI * f())
   }
   y.source = s
@@ -186,8 +186,8 @@ export const logNormal: qr.LogNormal = (function s(f) {
 
 export const logistic: qr.Logistic = (function s(f) {
   function y(a?: number, b?: number) {
-    a = a == undefined ? 0 : +a
-    b = b == undefined ? 1 : +b
+    a = a === undefined ? 0 : +a
+    b = b === undefined ? 1 : +b
     return () => {
       const u = f()
       return a! + b! * Math.log(u / (1 - u))
@@ -247,8 +247,8 @@ export const weibull: qr.Weibull = (function s(f) {
       k = 1 / k
       outer = (x: number) => Math.pow(x, k)
     }
-    a = a == null ? 0 : +a
-    b = b == null ? 1 : +b
+    a = a === null ? 0 : +a
+    b = b === null ? 1 : +b
     return () => a! + b! * outer(-Math.log1p(-f()))
   }
   y.source = s

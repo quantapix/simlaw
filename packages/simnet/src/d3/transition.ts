@@ -70,7 +70,7 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
     if (ns)
       return this.attrTween(
         k,
-        v == null
+        v === null
           ? remNS(ks)
           : typeof v === "function"
           ? funcNS(ks, i, this.tweenValue("attr." + k, v))
@@ -78,7 +78,7 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
       )
     return this.attrTween(
       k,
-      v == null ? rem(ks) : typeof v === "function" ? func(ks, i, this.tweenValue("attr." + k, v)) : val(ks, i, v)
+      v === null ? rem(ks) : typeof v === "function" ? func(ks, i, this.tweenValue("attr." + k, v)) : val(ks, i, v)
     )
   }
   attrTween(k: string, v?: any) {
@@ -310,7 +310,7 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
         let string0 = style(this, name),
           value1 = value(this),
           string1 = value1 + ""
-        if (value1 == null) string1 = value1 = (this.style.removeProperty(name), style(this, name))
+        if (value1 === null) string1 = value1 = (this.style.removeProperty(name), style(this, name))
         return string0 === string1
           ? null
           : string0 === string00 && string1 === string10
@@ -325,13 +325,13 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
       return () => {
         const y = set(this, id),
           on = y.on,
-          listener = y.value[key] == null ? remove || (remove = rem(name)) : undefined
+          listener = y.value[key] === null ? remove || (remove = rem(name)) : undefined
         if (on !== on0 || listener0 !== listener) (on1 = (on0 = on).copy()).on(event, (listener0 = listener))
         y.on = on1
       }
     }
     const i = (name += "") === "transform" ? transformSvg : interpolate
-    return value == null
+    return value === null
       ? this.styleTween(name, styleNull(name, i)).on("end.style." + name, rem(name))
       : typeof value === "function"
       ? this.styleTween(name, func(name, i, this.tweenValue("style." + name, value))).each(maybeRem(this.id, name))
@@ -351,19 +351,19 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
     }
     let key = "style." + (name += "")
     if (arguments.length < 2) return (key = this.tween(key)) && key._value
-    if (value == null) return this.tween(key, null)
+    if (value === null) return this.tween(key, null)
     if (typeof value !== "function") throw new Error()
-    return this.tween(key, tween(name, value, priority == null ? "" : priority))
+    return this.tween(key, tween(name, value, priority === null ? "" : priority))
   }
   text(x: any) {
     const func = (f: Function) => () => {
       const y = f(this)
-      this.textContent = y == null ? "" : y
+      this.textContent = y === null ? "" : y
     }
     const constant = (x: string) => () => (this.textContent = x)
     return this.tween(
       "text",
-      typeof x === "function" ? func(this.tweenValue("text", x)) : constant(x == null ? "" : x + "")
+      typeof x === "function" ? func(this.tweenValue("text", x)) : constant(x === null ? "" : x + "")
     )
   }
   textTween(value) {
@@ -380,7 +380,7 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
     }
     let key = "text"
     if (arguments.length < 1) return (key = this.tween(key)) && key._value
-    if (value == null) return this.tween(key, null)
+    if (value === null) return this.tween(key, null)
     if (typeof value !== "function") throw new Error()
     return this.tween(key, tween(value))
   }
@@ -452,7 +452,7 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
         schedule.tween = t2
       }
     }
-    return this.each((x == null ? rem : func)(id, name, x))
+    return this.each((x === null ? rem : func)(id, name, x))
   }
   tweenValue(name, value) {
     const id = this._id
@@ -488,7 +488,7 @@ function get(node, id) {
 export function interrupt(node: qt.Base, name?: string) {
   const schedules = node.__transition
   if (schedules) {
-    name = name == null ? null : name + ""
+    name = name === null ? null : name + ""
     let schedule,
       active,
       empty = true,
@@ -516,7 +516,7 @@ export function active<B extends qt.Base, T, PElement extends qt.Base, PDatum>(
   const schedules = node.__transition
   let schedule, i
   if (schedules) {
-    name = name == null ? null : name + ""
+    name = name === null ? null : name + ""
     for (i in schedules) {
       if ((schedule = schedules[i]).state > SCHEDULED && schedule.name === name) {
         return new Transition([[node]], root, name, +i)

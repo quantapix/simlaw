@@ -16,7 +16,7 @@ function tickFormat(start: number, stop: number, n: number, x?: string): (x: qt.
   switch (spec.type) {
     case "s": {
       const v = Math.max(Math.abs(start), Math.abs(stop))
-      if (spec.precision == null && !isNaN((precision = precisionPrefix(step, v)))) spec.precision = precision
+      if (spec.precision === null && !isNaN((precision = precisionPrefix(step, v)))) spec.precision = precision
       return formatPrefix(x!, v)
     }
     case "":
@@ -25,7 +25,7 @@ function tickFormat(start: number, stop: number, n: number, x?: string): (x: qt.
     case "p":
     case "r": {
       if (
-        spec.precision == null &&
+        spec.precision === null &&
         !isNaN((precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop)))))
       )
         spec.precision = precision - (spec.type === "e" ? 1 : 0)
@@ -33,7 +33,7 @@ function tickFormat(start: number, stop: number, n: number, x?: string): (x: qt.
     }
     case "f":
     case "%": {
-      if (spec.precision == null && !isNaN((precision = precisionFixed(step))))
+      if (spec.precision === null && !isNaN((precision = precisionFixed(step))))
         spec.precision = precision - (spec.type === "%" ? 1 : 0) * 2
       break
     }
@@ -45,14 +45,14 @@ export function linearish(f: any) {
   const domain = f.domain
   f.tickFormat = (n?: number, spec?: string) => {
     const d = domain()
-    return tickFormat(d[0], d[d.length - 1], n == undefined ? 10 : n, spec)
+    return tickFormat(d[0], d[d.length - 1], n === undefined ? 10 : n, spec)
   }
   f.ticks = (n?: number) => {
     const d = domain()
-    return ticks(d[0], d[d.length - 1], n == undefined ? 10 : n)
+    return ticks(d[0], d[d.length - 1], n === undefined ? 10 : n)
   }
   f.nice = (n?: number) => {
-    if (n == undefined) n = 10
+    if (n === undefined) n = 10
     const d = domain()
     let i0 = 0
     let i1 = d.length - 1
@@ -467,7 +467,7 @@ export function transformer() {
     output,
     input
   function f(x?: qt.NumVal) {
-    return x == undefined || isNaN((x = +x))
+    return x === undefined || isNaN((x = +x))
       ? _unk
       : (output || (output = piecewise(_dom.map(transform), _range, interpolate)))(transform(_clamp(x)))
   }
@@ -612,10 +612,10 @@ export function loggish(xform: Function) {
   f.base = (x?: any) => (x === undefined ? _base : ((_base = +x), rescale()))
   f.domain = (x?: any) => (x === undefined ? domain() : (domain(x), rescale()))
   f.tickFormat = (n: number, spec?: string) => {
-    if (n == undefined) n = 10
-    if (spec == undefined) spec = _base === 10 ? "s" : ","
+    if (n === undefined) n = 10
+    if (spec === undefined) spec = _base === 10 ? "s" : ","
     if (typeof spec !== "function") {
-      if (!(_base % 1) && (spec = formatSpecifier(spec)).precision == null) spec.trim = true
+      if (!(_base % 1) && (spec = formatSpecifier(spec)).precision === null) spec.trim = true
       spec = format(spec)
     }
     if (n === Infinity) return spec
@@ -636,7 +636,7 @@ export function loggish(xform: Function) {
     let j = _logs(v)
     let k
     let t
-    const n = x == undefined ? 10 : +x
+    const n = x === undefined ? 10 : +x
     let z = []
     if (!(_base % 1) && j - i < n) {
       ;(i = Math.floor(i)), (j = Math.ceil(j))
@@ -835,7 +835,7 @@ function transformer3() {
     clamp = false,
     _unk
   function f(x) {
-    return x == null || isNaN((x = +x))
+    return x === null || isNaN((x = +x))
       ? _unk
       : interpolator(k10 === 0 ? 0.5 : ((x = (transform(x) - t0) * k10), clamp ? Math.max(0, Math.min(1, x)) : x))
   }

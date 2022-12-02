@@ -222,7 +222,7 @@ export function area<T = qt.Point>(
       d,
       defined0 = false,
       buffer
-    if (_context == null) output = curve((buffer = new qu.Path()))
+    if (_context === null) output = curve((buffer = new qu.Path()))
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined((d = x[i]), i, x)) === defined0) {
         if ((defined0 = !defined0)) {
@@ -250,11 +250,11 @@ export function area<T = qt.Point>(
   f.x = (x: any) => (x === undefined ? x0 : ((x0 = typeof x === "function" ? x : qu.constant(+x)), (x1 = null), f))
   f.x0 = (x: any) => (x === undefined ? x0 : ((x0 = typeof x === "function" ? x : qu.constant(+x)), f))
   f.x1 = (x: any) =>
-    x === undefined ? x1 : ((x1 = x == null ? null : typeof x === "function" ? x : qu.constant(+x)), f)
+    x === undefined ? x1 : ((x1 = x === null ? null : typeof x === "function" ? x : qu.constant(+x)), f)
   f.y = (x: any) => (x === undefined ? y0 : ((y0 = typeof x === "function" ? x : qu.constant(+x)), (y1 = null), f))
   f.y0 = (x: any) => (x === undefined ? y0 : ((y0 = typeof x === "function" ? x : qu.constant(+x)), f))
   f.y1 = (x: any) =>
-    x === undefined ? y1 : ((y1 = x == null ? null : typeof x === "function" ? x : qu.constant(+x)), f)
+    x === undefined ? y1 : ((y1 = x === null ? null : typeof x === "function" ? x : qu.constant(+x)), f)
   const arealine = () => line().defined(defined).curve(curve).context(_context)
   f.lineX0 = () => arealine().x(x0).y(y0)
   f.lineY0 = f.lineX0
@@ -318,7 +318,7 @@ export function line<T = qt.Point>(
       d,
       defined0 = false,
       buffer
-    if (_context == null) output = curve((buffer = new qu.Path()))
+    if (_context === null) output = curve((buffer = new qu.Path()))
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined((d = data[i]), i, data)) === defined0) {
         if ((defined0 = !defined0)) output.lineStart()
@@ -333,7 +333,7 @@ export function line<T = qt.Point>(
   f.defined = (x: any) => (x === undefined ? defined : ((defined = typeof x === "function" ? x : qu.constant(!!x)), f))
   f.curve = (x: any) => (x === undefined ? curve : ((curve = x), _context != null && (output = curve(_context)), f))
   f.context = (x: any) =>
-    x === undefined ? _context : (x == null ? (_context = output = null) : (output = curve((_context = x))), f)
+    x === undefined ? _context : (x === null ? (_context = output = null) : (output = curve((_context = x))), f)
   return f
 }
 export function lineRadial(): qs.LineRadial<qt.Point>
@@ -363,7 +363,7 @@ export function link(curve) {
     const argv = slice.call(xs)
     const s = source(argv)
     const t = target(argv)
-    if (_context == null) output = curve((buffer = new qu.Path()))
+    if (_context === null) output = curve((buffer = new qu.Path()))
     output.lineStart()
     ;(argv[0] = s), output.point(+_x(argv), +_y(argv))
     ;(argv[0] = t), output.point(+_x(argv), +_y(argv))
@@ -375,7 +375,7 @@ export function link(curve) {
   f.x = (x: any) => (x === undefined ? _x : ((_x = typeof x === "function" ? x : qu.constant(+x)), f))
   f.y = (x: any) => (x === undefined ? _y : ((_y = typeof x === "function" ? x : qu.constant(+x)), f))
   f.context = (x: any) =>
-    x === undefined ? _context : (x == null ? (_context = output = null) : (output = curve((_context = x))), f)
+    x === undefined ? _context : (x === null ? (_context = output = null) : (output = curve((_context = x))), f)
   return f
 }
 export function linkHorizontal(): qs.Link<any, qs.DefaultLink, qt.Point>
@@ -511,8 +511,8 @@ export function stack() {
   y.order = (x: any) =>
     x === undefined
       ? order
-      : ((order = x == null ? orderNone : typeof x === "function" ? x : qu.constant(Array.from(x))), y)
-  y.offset = (x: any) => (x === undefined ? offset : ((offset = x == null ? offsetNone : x), y))
+      : ((order = x === null ? orderNone : typeof x === "function" ? x : qu.constant(Array.from(x))), y)
+  y.offset = (x: any) => (x === undefined ? offset : ((offset = x === null ? offsetNone : x), y))
   return y
 }
 
@@ -540,7 +540,7 @@ export class Symbol<This, T> implements qt.Symbol<This, T> {
     this.type = typeof type === "function" ? type : qu.constant(type || circle)
   }
   context(...xs: any[]) {
-    return xs.length ? ((this.context = xs == null ? null : xs), symbol) : this.context
+    return xs.length ? ((this.context = xs === null ? null : xs), symbol) : this.context
   }
   size(...xs: any[]) {
     return xs.length ? ((this.size = typeof xs === "function" ? xs : qu.constant(+xs)), symbol) : this.size

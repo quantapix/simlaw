@@ -121,7 +121,7 @@ function _chord(directed, transpose): qt.Chord.Layout {
   f.sortChords = (x: any) =>
     x === undefined
       ? sortChords && sortChords._
-      : (x == null ? (sortChords = null) : ((sortChords = compareValue(x))._ = x), f)
+      : (x === null ? (sortChords = null) : ((sortChords = compareValue(x))._ = x), f)
   return f
 }
 function _ribbon(headRadius?) {
@@ -189,7 +189,7 @@ function _ribbon(headRadius?) {
     x === undefined ? padAngle : ((padAngle = typeof x === "function" ? x : qu.constant(+x)), f)
   f.source = (x: any) => (x === undefined ? source : ((source = x), f))
   f.target = (x: any) => (x === undefined ? target : ((target = x), f))
-  f.context = (x: any) => (x === undefined ? _context : ((_context = x == null ? null : x), f))
+  f.context = (x: any) => (x === undefined ? _context : ((_context = x === null ? null : x), f))
 
   return f
 }
