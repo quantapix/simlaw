@@ -468,10 +468,10 @@ class Quad<T> {
 export function quadtree<T>(xs?: T[]): qt.Quad.Tree<T>
 export function quadtree<T>(xs: T[], x: (t: T) => number, y: (t: T) => number): qt.Quad.Tree<T>
 export function quadtree(xs: any, x?: (t: any) => number, y?: (t: any) => number) {
-  const r = new Quad.Tree(x === undefined ? (t: any) => t[0] : x, y === undefined ? (t: any) => t[1] : y)
+  const r = new Tree(x === undefined ? (t: any) => t[0] : x, y === undefined ? (t: any) => t[1] : y)
   return xs === undefined ? r : r.addAll(xs)
 }
-class Quad.Tree<T> implements qt.Quad.Tree<T> {
+class Tree<T> implements qt.Quad.Tree<T> {
   _x
   _y
   _root?: qt.Quad.Node<T> | qt.Quad.Leaf<T> | undefined
@@ -479,7 +479,7 @@ class Quad.Tree<T> implements qt.Quad.Tree<T> {
     [NaN, NaN],
     [NaN, NaN],
   ]
-  constructor(x: Quad.Tree<T>)
+  constructor(x: qt.Quad.Tree<T>)
   constructor(x: (t: T) => number, y: (t: T) => number, ps?: qt.Pair<qt.Point>)
   constructor(x: any, y?: (t: T) => number, ps?: qt.Pair<qt.Point>) {
     if (typeof x !== "function") (x = x._x), (y = x._y), (ps = x.ps)
@@ -556,7 +556,7 @@ class Quad.Tree<T> implements qt.Quad.Tree<T> {
     return this
   }
   copy() {
-    const r = new Quad.Tree<T>(this)
+    const r = new Tree<T>(this)
     const n = this._root
     if (!n) return r
     function leaf(x?: qt.Quad.Leaf<T>) {

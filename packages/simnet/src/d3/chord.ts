@@ -156,7 +156,7 @@ function _ribbon(headRadius?) {
     _context.arc(0, 0, sr, sa0, sa1)
     if (sa0 !== ta0 || sa1 !== ta1) {
       if (headRadius) {
-        let hr = +headRadius.apply(this, arguments),
+        let hr = +headRadius(arguments),
           tr2 = tr - hr,
           ta2 = (ta0 + ta1) / 2
         _context.quadraticTo(0, 0, tr2 * qu.cos(ta0), tr2 * qu.sin(ta0))
@@ -195,11 +195,13 @@ function _ribbon(headRadius?) {
 }
 export function ribbon(): qt.Ribbon.Gen<any, qt.Ribbon, qt.Ribbon.Subgroup>
 export function ribbon<T, U>(): qt.Ribbon.Gen<any, T, U>
-export function ribbon<This, T, U>(): qt.Ribbon.Gen<This, T, U> {
+export function ribbon<This, T, U>(): qt.Ribbon.Gen<This, T, U>
+export function ribbon(): any {
   return _ribbon()
 }
 export function ribbonArrow(): qt.Ribbon.ArrowGen<any, qt.Ribbon, qt.Ribbon.Subgroup>
 export function ribbonArrow<T, U>(): qt.Ribbon.ArrowGen<any, T, U>
-export function ribbonArrow<This, T, U>(): qt.Ribbon.ArrowGen<This, T, U> {
+export function ribbonArrow<This, T, U>(): qt.Ribbon.ArrowGen<This, T, U>
+export function ribbonArrow(): any {
   return _ribbon(() => 10)
 }

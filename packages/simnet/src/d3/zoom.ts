@@ -136,7 +136,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
         gesture(this, arguments)
           .event(event)
           .start()
-          .zoom(null, typeof transform === "function" ? transform.apply(this, arguments) : transform)
+          .zoom(null, typeof transform === "function" ? transform(arguments) : transform)
           .end()
       })
     }
@@ -146,7 +146,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
       selection,
       function () {
         const k0 = this.__zoom.k,
-          k1 = typeof k === "function" ? k.apply(this, arguments) : k
+          k1 = typeof k === "function" ? k(arguments) : k
         return k0 * k1
       },
       p,
@@ -156,12 +156,12 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
   zoom.scaleTo = function (selection, k, p, event) {
     zoom.transform(
       selection,
-      function () {
-        const e = extent.apply(this, arguments),
+      function (...xs: any) {
+        const e = extent(xs),
           t0 = this.__zoom,
-          p0 = p === null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p,
+          p0 = p === null ? centroid(e) : typeof p === "function" ? p(xs) : p,
           p1 = t0.invert(p0),
-          k1 = typeof k === "function" ? k.apply(this, arguments) : k
+          k1 = typeof k === "function" ? k(xs) : k
         return constrain(translate(scale(t0, k1), p0, p1), e, translateExtent)
       },
       p,
@@ -171,13 +171,10 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
   zoom.translateBy = function (selection, x, y, event) {
     zoom.transform(
       selection,
-      function () {
+      function (...xs: any) {
         return constrain(
-          this.__zoom.translate(
-            typeof x === "function" ? x.apply(this, arguments) : x,
-            typeof y === "function" ? y.apply(this, arguments) : y
-          ),
-          extent.apply(this, arguments),
+          this.__zoom.translate(typeof x === "function" ? x(xs) : x, typeof y === "function" ? y(xs) : y),
+          extent(xs),
           translateExtent
         )
       },
@@ -188,18 +185,15 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
   zoom.translateTo = function (selection, x, y, p, event) {
     zoom.transform(
       selection,
-      function () {
-        const e = extent.apply(this, arguments),
+      function (...xs: any) {
+        const e = extent(xs),
           t = this.__zoom,
-          p0 = p === null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p
+          p0 = p === null ? centroid(e) : typeof p === "function" ? p(xs) : p
         return constrain(
           identity
             .translate(p0[0], p0[1])
             .scale(t.k)
-            .translate(
-              typeof x === "function" ? -x.apply(this, arguments) : -x,
-              typeof y === "function" ? -y.apply(this, arguments) : -y
-            ),
+            .translate(typeof x === "function" ? -x(xs) : -x, typeof y === "function" ? -y(xs) : -y),
           e,
           translateExtent
         )
@@ -292,11 +286,11 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
       listeners.call(type, this.that, new Event(type, this.sourceEvent, zoom, this.that.__zoom, listeners), d)
     }
   }
-  function wheeled(event, ...args) {
-    if (!filter.apply(this, arguments)) return
-    const g = gesture(this, args).event(event),
+  function wheeled(event, ...xs: any) {
+    if (!filter(event, xs)) return
+    const g = gesture(this, xs).event(event),
       t = this.__zoom,
-      k = qu.max(scaleExtent[0], qu.min(scaleExtent[1], t.k * qu.pow(2, wheelDelta.apply(this, arguments)))),
+      k = qu.max(scaleExtent[0], qu.min(scaleExtent[1], t.k * qu.pow(2, wheelDelta(xs)))),
       p = qu.pointer(event)
     if (g.wheel) {
       if (g.mouse[0][0] !== p[0] || g.mouse[0][1] !== p[1]) {
@@ -318,7 +312,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
     }
   }
   function mousedowned(event, ...args) {
-    if (touchending || !filter.apply(this, arguments)) return
+    if (touchending || !filter(arguments)) return
     const currentTarget = event.currentTarget,
       g = gesture(this, args, true).event(event),
       v = select(event.view).on("mousemove.zoom", mousemoved, true).on("mouseup.zoom", mouseupped, true),
@@ -353,22 +347,22 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
       g.event(event).end()
     }
   }
-  function dblclicked(event, ...args) {
-    if (!filter.apply(this, arguments)) return
+  function dblclicked(event, ...xs: any) {
+    if (!filter(arguments)) return
     const t0 = this.__zoom,
       p0 = qu.pointer(event.changedTouches ? event.changedTouches[0] : event, this),
       p1 = t0.invert(p0),
       k1 = t0.k * (event.shiftKey ? 0.5 : 2),
-      t1 = constrain(translate(scale(t0, k1), p0, p1), extent.apply(this, args), translateExtent)
+      t1 = constrain(translate(scale(t0, k1), p0, p1), extent(xs), translateExtent)
     qu.noevent(event)
     if (duration > 0) select(this).transition().duration(duration).call(schedule, t1, p0, event)
     else select(this).call(zoom.transform, t1, p0, event)
   }
-  function touchstarted(event, ...args) {
-    if (!filter.apply(this, arguments)) return
+  function touchstarted(event, ...xs: any) {
+    if (!filter(arguments)) return
     let touches = event.touches,
       n = touches.length,
-      g = gesture(this, args, event.changedTouches.length === n).event(event),
+      g = gesture(this, xs, event.changedTouches.length === n).event(event),
       started,
       i,
       t,
@@ -446,7 +440,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
         t = qu.pointer(t, this)
         if (qu.hypot(touchfirst[0] - t[0], touchfirst[1] - t[1]) < tapDistance) {
           const p = select(this).on("dblclick.zoom")
-          if (p) p.apply(this, arguments)
+          if (p) p(arguments)
         }
       }
     }

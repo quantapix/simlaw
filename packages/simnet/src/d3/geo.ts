@@ -1854,7 +1854,7 @@ export namespace path {
       contextStream
     function f(object) {
       if (object) {
-        if (typeof pointRadius === "function") contextStream.pointRadius(+pointRadius.apply(this, arguments))
+        if (typeof pointRadius === "function") contextStream.pointRadius(+pointRadius(arguments))
         stream(object, projectionStream(contextStream))
       }
       return contextStream.result()

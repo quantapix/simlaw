@@ -363,7 +363,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
     const create = typeof name === "function" ? name : creator(name),
       select = before === null ? constantNull : typeof before === "function" ? before : selector(before)
     return this.select(function () {
-      return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null)
+      return this.insertBefore(create(arguments), select(arguments) || null)
     })
   }
   interrupt(name?: string) {
@@ -571,11 +571,13 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
   style(k, v, priority) {
     const remove = k => () => this.style.removeProperty(k)
     const constant = (k, v, priority) => () => this.style.setProperty(k, v, priority)
-    const func = (k, v, priority) => () => {
-      const x = v.apply(this, arguments)
-      if (x === null) this.style.removeProperty(k)
-      else this.style.setProperty(k, x, priority)
-    }
+    const func =
+      (k, v, priority) =>
+      (...xs: any) => {
+        const x = v(xs)
+        if (x === null) this.style.removeProperty(k)
+        else this.style.setProperty(k, x, priority)
+      }
     const value = (x, n: string): string =>
       x.style.getPropertyValue(n) || qu.defaultView(x).getComputedStyle(x, null).getPropertyValue(n)
     return arguments.length > 1

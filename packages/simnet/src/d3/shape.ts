@@ -418,10 +418,10 @@ export function pie() {
       sum = 0,
       index = new Array(n),
       arcs = new Array(n),
-      a0 = +startAngle.apply(this, arguments),
-      da = Math.min(qu.tau, Math.max(-qu.tau, endAngle.apply(this, arguments) - a0)),
+      a0 = +startAngle(arguments),
+      da = Math.min(qu.tau, Math.max(-qu.tau, endAngle(arguments) - a0)),
       a1,
-      p = Math.min(Math.abs(da) / n, padAngle.apply(this, arguments)),
+      p = Math.min(Math.abs(da) / n, padAngle(arguments)),
       pa = p * (da < 0 ? -1 : 1),
       v
     for (i = 0; i < n; ++i) {

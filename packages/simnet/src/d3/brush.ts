@@ -172,10 +172,7 @@ function brush(dim) {
             state = that.__brush,
             emit = emitter(that, arguments),
             selection0 = state.selection,
-            selection1 = dim.input(
-              typeof selection === "function" ? selection.apply(this, arguments) : selection,
-              state.extent
-            ),
+            selection1 = dim.input(typeof selection === "function" ? selection(arguments) : selection, state.extent),
             i = interpolate(selection0, selection1)
           function tween(t) {
             state.selection = t === 1 && selection1 === null ? null : i(t)
@@ -242,7 +239,7 @@ function brush(dim) {
   }
   function started(event) {
     if (touchending && !event.touches) return
-    if (!filter.apply(this, arguments)) return
+    if (!filter(arguments)) return
     let that = this,
       type = event.target.__data__.type,
       mode =
@@ -484,7 +481,7 @@ function brush(dim) {
   }
   function initialize() {
     const state = this.__brush || { selection: null }
-    state.extent = number2(extent.apply(this, arguments))
+    state.extent = number2(extent(arguments))
     state.dim = dim
     return state
   }

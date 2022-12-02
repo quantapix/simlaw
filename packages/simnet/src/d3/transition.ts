@@ -341,8 +341,8 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
     const interpolate = (name, i, priority) => t => this.style.setProperty(name, i.call(this, t), priority)
     const tween = (name, f: Function, priority) => {
       let t, i0
-      function y() {
-        const i = f.apply(this, arguments)
+      function y(...xs: any) {
+        const i = f(xs)
         if (i !== i0) t = (i0 = i) && interpolate(name, i, priority)
         return t
       }
