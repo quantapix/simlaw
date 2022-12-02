@@ -1,30 +1,31 @@
 /* eslint-disable no-inner-declarations */
 import { Adder, range } from "./utils_seq.js"
-import type * as qt from "./types.js"
 import * as qu from "./utils.js"
+import type { Geo as qg } from "./types.js"
+import type * as qt from "./types.js"
 
-export function area(
-  x: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
-): number {
+export function area(x: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection): number {
   area.sum = new Adder()
   stream(x, area.stream)
-  return area.sum * 2
+  return +area.sum * 2
 }
 export namespace area {
-  export const ringSum = new Adder()
-  export const sum = new Adder()
-  let lambda00, phi00, lambda0, cosPhi0, sinPhi0
+  export let ring = new Adder()
+  // eslint-disable-next-line prefer-const
+  export let sum = new Adder()
+  let lambda0: number, cosPhi0: number, sinPhi0: number
+  let lambda00: number, phi00: number
   export const stream = {
     point: qu.noop,
     lineStart: qu.noop,
     lineEnd: qu.noop,
     polygonStart: function () {
-      ringSum = new Adder()
+      ring = new Adder()
       stream.lineStart = ringStart
       stream.lineEnd = ringEnd
     },
     polygonEnd: function () {
-      const y = +ringSum
+      const y = +ring
       sum.add(y < 0 ? qu.tau + y : y)
       this.lineStart = this.lineEnd = this.point = qu.noop
     },
@@ -38,30 +39,29 @@ export namespace area {
   function ringEnd() {
     point(lambda00, phi00)
   }
-  function pointFirst(lambda, phi) {
+  function pointFirst(lambda: number, phi: number) {
     stream.point = point
     ;(lambda00 = lambda), (phi00 = phi)
     ;(lambda *= qu.radians), (phi *= qu.radians)
     ;(lambda0 = lambda), (cosPhi0 = qu.cos((phi = phi / 2 + qu.quarterPI))), (sinPhi0 = qu.sin(phi))
   }
-  function point(lambda, phi) {
-    ;(lambda *= qu.radians), (phi *= qu.radians)
+  function point(lambda: number, phi: number) {
+    lambda *= qu.radians
+    phi *= qu.radians
     phi = phi / 2 + qu.quarterPI
-    const dLambda = lambda - lambda0,
-      sdLambda = dLambda >= 0 ? 1 : -1,
-      adLambda = sdLambda * dLambda,
+    const d = lambda - lambda0,
+      s = d >= 0 ? 1 : -1,
+      adLambda = s * d,
       cosPhi = qu.cos(phi),
       sinPhi = qu.sin(phi),
       k = sinPhi0 * sinPhi,
       u = cosPhi0 * cosPhi + k * qu.cos(adLambda),
-      v = k * sdLambda * qu.sin(adLambda)
-    ringSum.add(qu.atan2(v, u))
+      v = k * s * qu.sin(adLambda)
+    ring.add(qu.atan2(v, u))
     ;(lambda0 = lambda), (cosPhi0 = cosPhi), (sinPhi0 = sinPhi)
   }
 }
-export function bounds(
-  x: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
-): [qt.Point, qt.Span] {
+export function bounds(x: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection): [qt.Point, qt.Span] {
   let i, n, a, b, merged, deltaMax, delta
   const phi1 = (lambda1 = -(lambda0 = phi0 = Infinity))
   let spans: qt.Span[] = []
@@ -117,10 +117,10 @@ export namespace bounds {
       stream.lineStart = ringStart
       stream.lineEnd = ringEnd
       deltaSum = new Adder()
-      areaStream.polygonStart()
+      area.stream.polygonStart()
     },
     polygonEnd: function () {
-      areaStream.polygonEnd()
+      area.stream.polygonEnd()
       stream.point = point
       stream.lineStart = lineStart
       stream.lineEnd = lineEnd
@@ -141,22 +141,22 @@ export namespace bounds {
   function linePoint(lambda: number, phi: number) {
     const p = cartesian([lambda * qu.radians, phi * qu.radians])
     if (p0) {
-      let normal = cartesian.cross(p0, p),
-        equatorial = [normal[1], -normal[0], 0],
-        inflection = cartesian.cross(equatorial, normal)
-      cartesian.normalizeInPlace(inflection)
+      const normal = cartesian.cross(p0, p)
+      const equatorial: qt.Triple = [normal[1], -normal[0], 0]
+      let inflection = cartesian.cross(equatorial, normal)
+      cartesian.normInPlace(inflection)
       inflection = spherical(inflection)
-      let delta = lambda - lambda2,
+      const delta = lambda - lambda2,
         sign = delta > 0 ? 1 : -1,
-        lambdai = inflection[0] * qu.degrees * sign,
-        phii,
-        antimeridian = qu.abs(delta) > 180
-      if (antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda)) {
+        antimeridian = qu.abs(delta) > 180 ? 1 : 0
+      let lambdai = inflection[0] * qu.degrees * sign,
+        phii
+      if (antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda ? 1 : 0)) {
         phii = inflection[1] * qu.degrees
         if (phii > phi1) phi1 = phii
       } else if (
         ((lambdai = ((lambdai + 360) % 360) - 180),
-        antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda))
+        antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda ? 1 : 0))
       ) {
         phii = -inflection[1] * qu.degrees
         if (phii < phi0) phi0 = phii
@@ -182,9 +182,7 @@ export namespace bounds {
           }
         }
       }
-    } else {
-      ranges.push((range = [(lambda0 = lambda), (lambda1 = lambda)]))
-    }
+    } else ranges.push((range = [(lambda0 = lambda), (lambda1 = lambda)]))
     if (phi < phi0) phi0 = phi
     if (phi > phi1) phi1 = phi
     ;(p0 = p), (lambda2 = lambda)
@@ -208,11 +206,11 @@ export namespace bounds {
     linePoint(lambda, phi)
   }
   function ringStart() {
-    areaStream.lineStart()
+    area.stream.lineStart()
   }
   function ringEnd() {
     ringPoint(lambda00, phi00)
-    areaStream.lineEnd()
+    area.stream.lineEnd()
     if (qu.abs(deltaSum) > qu.epsilon) lambda0 = -(lambda1 = 180)
     ;(range[0] = lambda0), (range[1] = lambda1)
     p0 = null
@@ -231,7 +229,7 @@ export namespace cartesian {
   export function dot(a: qt.Triple, b: qt.Triple) {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
   }
-  export function cross(a: qt.Triple, b: qt.Triple) {
+  export function cross(a: qt.Triple, b: qt.Triple): qt.Triple {
     return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
   }
   export function addInPlace(a: qt.Triple, b: qt.Triple) {
@@ -239,19 +237,17 @@ export namespace cartesian {
     a[1] += b[1]
     a[2] += b[2]
   }
-  export function scale(x: qt.Triple, k: number) {
+  export function scale(x: qt.Triple, k: number): qt.Triple {
     return [x[0] * k, x[1] * k, x[2] * k]
   }
-  export function normalizeInPlace(x: qt.Triple) {
+  export function normInPlace(x: qt.Triple) {
     const y = qu.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2])
     x[0] /= y
     x[1] /= y
     x[2] /= y
   }
 }
-export function centroid(
-  object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
-): qt.Point {
+export function centroid(object: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection): qt.Point {
   W0 = W1 = X0 = Y0 = Z0 = X1 = Y1 = Z1 = 0
   X2 = new Adder()
   Y2 = new Adder()
@@ -381,10 +377,10 @@ export namespace centroid {
     pointCartesian(x0, y0, z0)
   }
 }
-export function circle(): qt.Geo.Circle
-export function circle<T>(): qt.Geo.Circle<any, T>
-export function circle<This, T>(): qt.Geo.Circle<This, T>
-export function circle() {
+export function circle(): qg.Circle
+export function circle<T>(): qg.Circle<any, T>
+export function circle<This, T>(): qg.Circle<This, T>
+export function circle(): any {
   let center = qu.constant([0, 0]),
     radius = qu.constant(90),
     precision = qu.constant(6),
@@ -435,7 +431,7 @@ export namespace circle {
   function radius(cosRadius: number, x: qt.Point) {
     const y = cartesian(x)
     y[0] -= cosRadius
-    cartesian.normalizeInPlace(y)
+    cartesian.normInPlace(y)
     const radius = qu.acos(-y[1])
     return ((-y[2] < 0 ? -radius : radius) + qu.tau - qu.epsilon) % qu.tau
   }
@@ -451,7 +447,7 @@ export function compose(a, b) {
   return compose
 }
 export function contains(
-  object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection,
+  object: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection,
   point: qt.Point
 ): boolean {
   return (
@@ -550,7 +546,7 @@ export function distance(a: qt.Point, b: qt.Point): number {
   coordinates[1] = b
   return length(object)
 }
-export function graticule(): qt.Geo.Graticule {
+export function graticule(): qg.Graticule {
   let x1,
     x0,
     X1,
@@ -694,9 +690,7 @@ export function interpolate(a: qt.Point, b: qt.Point): (t: number) => qt.Point {
   interpolate.distance = d
   return interpolate
 }
-export function length(
-  object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
-): number {
+export function length(object: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection): number {
   lengthSum = new Adder()
   stream(object, length.stream)
   return +lengthSum
@@ -785,9 +779,9 @@ export function polygonContains(polygon, point) {
       angle += antimeridian ? delta + sign * qu.tau : delta
       if (antimeridian ^ (lambda0 >= lambda) ^ (lambda1 >= lambda)) {
         const arc = cartesian.cross(cartesian(point0), cartesian(point1))
-        cartesian.normalizeInPlace(arc)
+        cartesian.normInPlace(arc)
         const intersection = cartesian.cross(normal, arc)
-        cartesian.normalizeInPlace(intersection)
+        cartesian.normInPlace(intersection)
         const phiArc = (antimeridian ^ (delta >= 0) ? -1 : 1) * qu.asin(intersection[2])
         if (phi > phiArc || (phi === phiArc && (arc[0] || arc[1]))) {
           winding += antimeridian ^ (delta >= 0) ? 1 : -1
@@ -806,7 +800,7 @@ export function rotateRadians(deltaLambda, deltaPhi, deltaGamma) {
     ? phiGamma(deltaPhi, deltaGamma)
     : identity
 }
-export function rotation(angles: qt.Pair | [number, number, number]): qt.Geo.Rotation {
+export function rotation(angles: qt.Pair | [number, number, number]): qg.Rotation {
   rotate = rotateRadians(rotate[0] * qu.radians, rotate[1] * qu.radians, rotate.length > 2 ? rotate[2] * qu.radians : 0)
   function forward(coordinates) {
     coordinates = rotate(coordinates[0] * qu.radians, coordinates[1] * qu.radians)
@@ -867,8 +861,8 @@ export namespace rotation {
   }
 }
 export function stream(
-  object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection,
-  stream: Geo.Stream
+  object: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection,
+  stream: qg.Stream
 ): void {
   if (object && streamObjectType.hasOwnProperty(object.type)) {
     streamObjectType[object.type](object, stream)
@@ -948,7 +942,7 @@ export namespace stream {
     stream.polygonEnd()
   }
 }
-export function transform(methods) {
+export function transform<T extends qg.TransformProto>(methods: T): { stream(s: qg.Stream): T & qg.Stream } {
   return {
     stream: transformer(methods),
   }
@@ -985,14 +979,16 @@ TransformStream.prototype = {
 }
 
 export namespace clip {
-  export default clip(
-    function () {
-      return true
-    },
-    clipAntimeridianLine,
-    clipAntimeridianInterpolate,
-    [-pi, -halfPi]
-  )
+  export function clipAntimeridian(stream: qg.Stream): qg.Stream {
+    return clip(
+      function () {
+        return true
+      },
+      clipAntimeridianLine,
+      clipAntimeridianInterpolate,
+      [-pi, -halfPi]
+    )
+  }
   function clipAntimeridianLine(stream) {
     let lambda0 = NaN,
       phi0 = NaN,
@@ -1092,7 +1088,7 @@ export namespace clip {
       },
     }
   }
-  export function circle(radius) {
+  export function circle(radius: number): (x: qg.Stream) => qg.Stream {
     const cr = cos(radius),
       delta = 6 * radians,
       smallRadius = cr > 0,
@@ -1256,7 +1252,7 @@ export namespace clip {
         polygon,
         segments,
         ring
-      var clip = {
+      let clip = {
         point: point,
         lineStart: lineStart,
         lineEnd: lineEnd,
@@ -1410,7 +1406,7 @@ export namespace clip {
   }
   const clipMax = 1e9,
     clipMin = -clipMax
-  export function clipRectangle(x0, y0, x1, y1) {
+  export function clipRectangle(x0: number, y0: number, x1: number, y1: number): (x: qg.Stream) => qg.Stream {
     function visible(x, y) {
       return x0 <= x && x <= x1 && y0 <= y && y <= y1
     }
@@ -1679,11 +1675,11 @@ export namespace path {
     lineStart: qu.noop,
     lineEnd: qu.noop,
     polygonStart: function () {
-      areaStream.lineStart = areaRingStart
-      areaStream.lineEnd = areaRingEnd
+      area.stream.lineStart = areaRingStart
+      area.stream.lineEnd = areaRingEnd
     },
     polygonEnd: function () {
-      areaStream.lineStart = areaStream.lineEnd = areaStream.point = qu.noop
+      area.stream.lineStart = area.stream.lineEnd = area.stream.point = qu.noop
       areaSum.add(abs(areaRingSum))
       areaRingSum = new Adder()
     },
@@ -1694,10 +1690,10 @@ export namespace path {
     },
   }
   function areaRingStart() {
-    areaStream.point = areaPointFirst
+    area.stream.point = areaPointFirst
   }
   function areaPointFirst(x, y) {
-    areaStream.point = areaPoint
+    area.stream.point = areaPoint
     ;(x00 = x0 = x), (y00 = y0 = y)
   }
   function areaPoint(x, y) {
@@ -1855,6 +1851,15 @@ export namespace path {
     }
     result = qu.noop
   }
+  export function path(x?: qg.Projection | qg.StreamWrapper | null, context?: qg.Context | null): qg.Path
+  export function path<T extends qg.Permissibles>(
+    projection?: qg.Projection | qg.StreamWrapper | null,
+    context?: qg.Context | null
+  ): qg.Path<any, T>
+  export function path<This, T extends qg.Permissibles>(
+    projection?: qg.Projection | qg.StreamWrapper | null,
+    context?: qg.Context | null
+  ): qg.Path<This, T>
   export function path(projection, context) {
     let pointRadius = 4.5,
       projectionStream,
@@ -2004,7 +2009,7 @@ export namespace path {
 
 export namespace proj {
   export namespace azimuthal {
-    function raw(scale): GeoRawProjection {
+    function raw(scale): qg.RawProjection {
       return function (x, y) {
         const cx = cos(x),
           cy = cos(y),
@@ -2037,7 +2042,7 @@ export namespace proj {
         .clipAngle(180 - 1e-3)
     }
   }
-  export function conic(projectAt): Geo.Conic {
+  export function conic(projectAt): qg.Conic {
     let phi0 = 0,
       phi1 = pi / 3
     const m = mutator(projectAt),
@@ -2047,7 +2052,7 @@ export namespace proj {
     return p
   }
   export namespace conic {
-    export function conformalRaw(y0: number, y1: number): GeoRawProjection {
+    export function conformalRaw(y0: number, y1: number): qg.RawProjection {
       const cy0 = cos(y0),
         n = y0 === y1 ? sin(y0) : log(cy0 / cos(y1)) / log(tany(y1) / tany(y0)),
         p = (cy0 * pow(tany(y0), n)) / n
@@ -2071,7 +2076,7 @@ export namespace proj {
       return f
     }
     export const conformal = () => conic(conformalRaw).scale(109.5).parallels([30, 30])
-    export function equalAreaRaw(y0, y1): GeoRawProjection {
+    export function equalAreaRaw(y0, y1): qg.RawProjection {
       const sy0 = sin(y0),
         n = (sy0 + sin(y1)) / 2
       if (abs(n) < epsilon) return cylindrical.equalAreaRaw(y0)
@@ -2090,7 +2095,7 @@ export namespace proj {
       return f
     }
     export const equalArea = () => conic(equalAreaRaw).scale(155.424).center([0, 33.6442])
-    export function equidistantRaw(y0, y1): GeoRawProjection {
+    export function equidistantRaw(y0, y1): qg.RawProjection {
       const cy0 = cos(y0),
         n = y0 === y1 ? sin(y0) : (cy0 - cos(y1)) / (y1 - y0),
         g = cy0 / n + y0
@@ -2123,7 +2128,7 @@ export namespace proj {
       return f
     }
   }
-  export function albers(): Geo.Conic {
+  export function albers(): qg.Conic {
     return conic
       .equalArea()
       .parallels([29.5, 45.5])
@@ -2132,7 +2137,7 @@ export namespace proj {
       .rotate([96, 0])
       .center([-0.6, 38.7])
   }
-  export function albersUsa(): Geo.Projection {
+  export function albersUsa(): qg.Projection {
     const lower48 = albers(),
       alaska = conic.equalArea().rotate([154, 0]).center([-2, 58.5]).parallels([55, 65]),
       hawaii = conic.equalArea().rotate([157, 0]).center([-3, 19.9]).parallels([8, 18]),
@@ -2254,7 +2259,7 @@ export namespace proj {
     M = sqrt(3) / 2,
     iterations = 12
 
-  export function equalEarthRaw(lambda, phi): GeoRawProjection {
+  export function equalEarthRaw(lambda, phi): qg.RawProjection {
     const l = qu.asin(M * sin(phi)),
       l2 = l * l,
       l6 = l2 * l2 * l2
@@ -2278,14 +2283,14 @@ export namespace proj {
   export function equalEarth() {
     return projection(equalEarthRaw).scale(177.158)
   }
-  export function equirectangularRaw(lambda, phi): GeoRawProjection {
+  export function equirectangularRaw(lambda, phi): qg.RawProjection {
     return [lambda, phi]
   }
   equirectangularRaw.invert = equirectangularRaw
   export function equirectangular() {
     return projection(equirectangularRaw).scale(152.63)
   }
-  export function gnomonicRaw(x, y): qt.GeoRawProjection {
+  export function gnomonicRaw(x, y): qt.qg.RawProjection {
     const cy = cos(y),
       k = cos(x) * cy
     return [(cy * sin(x)) / k, sin(y) / k]
@@ -2415,10 +2420,10 @@ export namespace proj {
     }
     return transform
   }
-  export function projection(x: GeoRawProjection): Geo.Projection {
+  export function projection(x: qg.RawProjection): qg.Projection {
     return mutator(() => x)()
   }
-  export function mutator(projectAt: (...xs: any[]) => GeoRawProjection): () => Geo.Projection {
+  export function mutator(projectAt: (...xs: any[]) => qg.RawProjection): () => qg.Projection {
     let project,
       k = 150, // scale
       x = 480,
@@ -2516,7 +2521,7 @@ export namespace proj {
       return recenter()
     }
   }
-  export function mercatorRaw(lambda, phi): GeoRawProjection {
+  export function mercatorRaw(lambda, phi): qg.RawProjection {
     return [lambda, log(tan((halfPi + phi) / 2))]
   }
   mercatorRaw.invert = function (x, y) {
@@ -2573,7 +2578,7 @@ export namespace proj {
     }
     return reclip()
   }
-  export function naturalEarth1Raw(lambda, phi): GeoRawProjection {
+  export function naturalEarth1Raw(lambda, phi): qg.RawProjection {
     const phi2 = phi * phi,
       phi4 = phi2 * phi2
     return [
@@ -2602,7 +2607,7 @@ export namespace proj {
   export function naturalEarth1() {
     return projection(naturalEarth1Raw).scale(175.295)
   }
-  export function orthographicRaw(x, y): GeoRawProjection {
+  export function orthographicRaw(x, y): qg.RawProjection {
     return [cos(y) * sin(x), sin(y)]
   }
   orthographicRaw.invert = azimuthal.invert(qu.asin)
@@ -2731,7 +2736,7 @@ export namespace proj {
     }
     return +delta2 ? resample(project, delta2) : resampleNone(project)
   }
-  export function stereographicRaw(x, y): GeoRawProjection {
+  export function stereographicRaw(x, y): qg.RawProjection {
     const cy = cos(y),
       k = 1 + cos(x) * cy
     return [(cy * sin(x)) / k, sin(y) / k]
@@ -2742,7 +2747,7 @@ export namespace proj {
   export function stereographic() {
     return projection(stereographicRaw).scale(250).clipAngle(142)
   }
-  export function transverseMercatorRaw(lambda, phi): GeoRawProjection {
+  export function transverseMercatorRaw(lambda, phi): qg.RawProjection {
     return [log(tan((halfPi + phi) / 2)), -lambda]
   }
   transverseMercatorRaw.invert = function (x, y) {

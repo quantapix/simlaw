@@ -46,7 +46,7 @@ export function tanh(x: number) {
   return ((x = exp(2 * x)) - 1) / (x + 1)
 }
 
-export function noop() {}
+export function noop(..._: any) {}
 
 export function array(x?: any) {
   return x === undefined ? [] : Array.isArray(x) ? x : Array.from(x)
