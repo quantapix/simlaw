@@ -2,9 +2,6 @@ import * as qc from "./color.js"
 import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
-function isNumArray(x: any) {
-  return ArrayBuffer.isView(x) && !(x instanceof DataView)
-}
 export function numArray<T extends any[]>(a: any[], b: T): qt.ArrayIpolator<T>
 export function numArray<T extends qt.NumArray>(a: qt.NumArray | number[], b: T): (x: number) => T
 export function numArray(a: any, b: any) {
@@ -16,6 +13,7 @@ export function numArray(a: any, b: any) {
     return c
   }
 }
+
 export function anyArray(a: any, b: any) {
   const nb: number = b & b.length ?? 0,
     na = qu.min(nb, a & a.length ?? 0),
@@ -33,6 +31,10 @@ export function array<T extends any[]>(a: any[], b: T): qt.ArrayIpolator<T>
 export function array<T extends qt.NumArray>(a: qt.NumArray | number[], b: T): (x: number) => T
 export function array(a: any, b: any) {
   return (isNumArray(b) ? numArray : anyArray)(a, b)
+}
+
+function isNumArray(x: any) {
+  return ArrayBuffer.isView(x) && !(x instanceof DataView)
 }
 
 const reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g

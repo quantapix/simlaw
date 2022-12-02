@@ -6,6 +6,7 @@ export type Primitive = number | string | boolean | Date
 export type Pair<T = number> = [T, T]
 export type Point = Pair<number>
 export type Span = Pair<number>
+export type Triple<T = number> = [T, T, T]
 
 export type Value<S extends Base, T, R> = (this: S, x: T, i: number, xs: S[] | ArrayLike<S>) => R
 export type CB<T extends object> = (this: T, ...xs: any[]) => void
@@ -954,6 +955,8 @@ export namespace Hierarchy {
   }
 }
 
+export namespace Array {}
+
 export type TypedArray =
   | Int8Array
   | Uint8Array
@@ -964,6 +967,7 @@ export type TypedArray =
   | Uint8ClampedArray
   | Float32Array
   | Float64Array
+
 export type NumArray = TypedArray | DataView
 
 export type ArrayIpolator<T extends any[]> = (x: number) => T

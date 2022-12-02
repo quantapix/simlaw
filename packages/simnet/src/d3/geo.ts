@@ -141,10 +141,10 @@ export namespace bounds {
   function linePoint(lambda: number, phi: number) {
     const p = cartesian([lambda * qu.radians, phi * qu.radians])
     if (p0) {
-      let normal = cartesianCross(p0, p),
+      let normal = cartesian.cross(p0, p),
         equatorial = [normal[1], -normal[0], 0],
-        inflection = cartesianCross(equatorial, normal)
-      cartesianNormalizeInPlace(inflection)
+        inflection = cartesian.cross(equatorial, normal)
+      cartesian.normalizeInPlace(inflection)
       inflection = spherical(inflection)
       let delta = lambda - lambda2,
         sign = delta > 0 ? 1 : -1,
@@ -218,30 +218,36 @@ export namespace bounds {
     p0 = null
   }
 }
-export function spherical(cartesian) {
+export function spherical(cartesian: qt.Triple): qt.Pair {
   return [qu.atan2(cartesian[1], cartesian[0]), qu.asin(cartesian[2])]
 }
-export function cartesian(spherical) {
+export function cartesian(spherical: qt.Pair): qt.Triple {
   const lambda = spherical[0],
     phi = spherical[1],
     cosPhi = qu.cos(phi)
   return [cosPhi * qu.cos(lambda), cosPhi * qu.sin(lambda), qu.sin(phi)]
 }
-export function cartesianDot(a, b) {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-}
-export function cartesianCross(a, b) {
-  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
-}
-export function cartesianAddInPlace(a, b) {
-  ;(a[0] += b[0]), (a[1] += b[1]), (a[2] += b[2])
-}
-export function cartesianScale(vector, k) {
-  return [vector[0] * k, vector[1] * k, vector[2] * k]
-}
-export function cartesianNormalizeInPlace(d) {
-  const l = qu.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
-  ;(d[0] /= l), (d[1] /= l), (d[2] /= l)
+export namespace cartesian {
+  export function dot(a: qt.Triple, b: qt.Triple) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+  }
+  export function cross(a: qt.Triple, b: qt.Triple) {
+    return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+  }
+  export function addInPlace(a: qt.Triple, b: qt.Triple) {
+    a[0] += b[0]
+    a[1] += b[1]
+    a[2] += b[2]
+  }
+  export function scale(x: qt.Triple, k: number) {
+    return [x[0] * k, x[1] * k, x[2] * k]
+  }
+  export function normalizeInPlace(x: qt.Triple) {
+    const y = qu.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2])
+    x[0] /= y
+    x[1] /= y
+    x[2] /= y
+  }
 }
 export function centroid(
   object: qt.ExtendedFeature | qt.ExtendedFeatureCollection | qt.GeoGeometryObjects | qt.ExtendedGeometryCollection
@@ -421,16 +427,17 @@ export namespace circle {
       t1 = radius(cosRadius, t1)
       if (direction > 0 ? t0 < t1 : t0 > t1) t0 += direction * qu.tau
     }
-    for (var point, t = t0; direction > 0 ? t > t1 : t < t1; t -= step) {
+    for (let point, t = t0; direction > 0 ? t > t1 : t < t1; t -= step) {
       point = spherical([cosRadius, -sinRadius * qu.cos(t), -sinRadius * qu.sin(t)])
       stream.point(point[0], point[1])
     }
   }
-  function radius(cosRadius, point) {
-    ;(point = cartesian(point)), (point[0] -= cosRadius)
-    cartesianNormalizeInPlace(point)
-    const radius = qu.acos(-point[1])
-    return ((-point[2] < 0 ? -radius : radius) + qu.tau - qu.epsilon) % qu.tau
+  function radius(cosRadius: number, x: qt.Point) {
+    const y = cartesian(x)
+    y[0] -= cosRadius
+    cartesian.normalizeInPlace(y)
+    const radius = qu.acos(-y[1])
+    return ((-y[2] < 0 ? -radius : radius) + qu.tau - qu.epsilon) % qu.tau
   }
 }
 export function compose(a, b) {
@@ -777,10 +784,10 @@ export function polygonContains(polygon, point) {
       sum.add(qu.atan2(k * sign * qu.sin(absDelta), cosPhi0 * cosPhi1 + k * qu.cos(absDelta)))
       angle += antimeridian ? delta + sign * qu.tau : delta
       if (antimeridian ^ (lambda0 >= lambda) ^ (lambda1 >= lambda)) {
-        const arc = cartesianCross(cartesian(point0), cartesian(point1))
-        cartesianNormalizeInPlace(arc)
-        const intersection = cartesianCross(normal, arc)
-        cartesianNormalizeInPlace(intersection)
+        const arc = cartesian.cross(cartesian(point0), cartesian(point1))
+        cartesian.normalizeInPlace(arc)
+        const intersection = cartesian.cross(normal, arc)
+        cartesian.normalizeInPlace(intersection)
         const phiArc = (antimeridian ^ (delta >= 0) ? -1 : 1) * qu.asin(intersection[2])
         if (phi > phiArc || (phi === phiArc && (arc[0] || arc[1]))) {
           winding += antimeridian ^ (delta >= 0) ? 1 : -1
@@ -1164,25 +1171,25 @@ export namespace clip {
       const pa = cartesian(a),
         pb = cartesian(b)
       const n1 = [1, 0, 0], // normal
-        n2 = cartesianCross(pa, pb),
-        n2n2 = cartesianDot(n2, n2),
+        n2 = cartesian.cross(pa, pb),
+        n2n2 = cartesian.dot(n2, n2),
         n1n2 = n2[0], // cartesianDot(n1, n2),
         determinant = n2n2 - n1n2 * n1n2
       if (!determinant) return !two && a
       const c1 = (cr * n2n2) / determinant,
         c2 = (-cr * n1n2) / determinant,
-        n1xn2 = cartesianCross(n1, n2),
-        A = cartesianScale(n1, c1),
-        B = cartesianScale(n2, c2)
-      cartesianAddInPlace(A, B)
+        n1xn2 = cartesian.cross(n1, n2),
+        A = scale(n1, c1),
+        B = scale(n2, c2)
+      cartesian.addInPlace(A, B)
       const u = n1xn2,
-        w = cartesianDot(A, u),
-        uu = cartesianDot(u, u),
-        t2 = w * w - uu * (cartesianDot(A, A) - 1)
+        w = cartesian.dot(A, u),
+        uu = cartesian.dot(u, u),
+        t2 = w * w - uu * (cartesian.dot(A, A) - 1)
       if (t2 < 0) return
       let t = sqrt(t2),
-        q = cartesianScale(u, (-w - t) / uu)
-      cartesianAddInPlace(q, A)
+        q = scale(u, (-w - t) / uu)
+      cartesian.addInPlace(q, A)
       q = spherical(q)
       if (!two) return q
       let lambda0 = a[0],
@@ -1202,8 +1209,8 @@ export namespace clip {
             : phi0 <= q[1] && q[1] <= phi1
           : (delta > pi) ^ (lambda0 <= q[0] && q[0] <= lambda1)
       ) {
-        const q1 = cartesianScale(u, (-w + t) / uu)
-        cartesianAddInPlace(q1, A)
+        const q1 = scale(u, (-w + t) / uu)
+        cartesian.addInPlace(q1, A)
         return [q, spherical(q1)]
       }
     }
