@@ -80,7 +80,7 @@ export function quantize<T>(f: (x: number) => T, n: number): T[] {
 export const identity = <T>(x: T) => x
 export const constant =
   <T>(x: T) =>
-  () =>
+  (..._: any) =>
     x
 
 export function ascending(a?: qt.Primitive, b?: qt.Primitive) {

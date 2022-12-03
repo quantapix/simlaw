@@ -264,7 +264,7 @@ export function centroid(object: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | q
   return [qu.atan2(y, x) * qu.degrees, qu.asin(z / m) * qu.degrees]
 }
 export namespace centroid {
-  let lam00: number, phi00: number // first point
+  let lam00: number, phi00: number
   export let w0: number, w1: number
   export let p0: qt.Triple, p1: qt.Triple
   export let X2: Adder, Y2: Adder, Z2: Adder
@@ -364,21 +364,21 @@ export function circle(): qg.Circle
 export function circle<T>(): qg.Circle<any, T>
 export function circle<This, T>(): qg.Circle<This, T>
 export function circle(): any {
-  let center = qu.constant([0, 0]),
+  let center = qu.constant([0, 0] as qt.Point),
     radius = qu.constant(90),
     precision = qu.constant(6),
     ring,
     rotate,
-    stream = { point: point }
+    stream = { point }
   function point(x, y) {
     ring.push((x = rotate(x, y)))
     ;(x[0] *= qu.degrees), (x[1] *= qu.degrees)
   }
   function f(...xs: any) {
-    let c = center(xs),
-      r = radius(xs) * qu.radians,
+    const r = radius(xs) * qu.radians,
       p = precision(xs) * qu.radians
-    ring = []
+    let c = center(xs),
+      ring = []
     rotate = rotateRadians(-c[0] * qu.radians, -c[1] * qu.radians, 0).invert
     circle.stream(stream, r, p, 1)
     c = { type: "Polygon", coordinates: [ring] }
@@ -393,22 +393,22 @@ export function circle(): any {
   return f
 }
 export namespace circle {
-  export function stream(stream, radius, delta, direction, t0?, t1?) {
+  export function stream(stream, r: number, delta: number, dir: number, t0?, t1?) {
     if (!delta) return
-    const cosRadius = qu.cos(radius),
-      sinRadius = qu.sin(radius),
-      step = direction * delta
+    const cos = qu.cos(r),
+      sin = qu.sin(r),
+      step = dir * delta
     if (t0 === undefined) {
-      t0 = radius + direction * qu.tau
-      t1 = radius - step / 2
+      t0 = r + dir * qu.tau
+      t1 = r - step / 2
     } else {
-      t0 = radius(cosRadius, t0)
-      t1 = radius(cosRadius, t1)
-      if (direction > 0 ? t0 < t1 : t0 > t1) t0 += direction * qu.tau
+      t0 = radius(cos, t0)
+      t1 = radius(cos, t1)
+      if (dir > 0 ? t0 < t1 : t0 > t1) t0 += dir * qu.tau
     }
-    for (let point, t = t0; direction > 0 ? t > t1 : t < t1; t -= step) {
-      point = spherical([cosRadius, -sinRadius * qu.cos(t), -sinRadius * qu.sin(t)])
-      stream.point(point[0], point[1])
+    for (let p, t = t0; dir > 0 ? t > t1 : t < t1; t -= step) {
+      p = spherical([cos, -sin * qu.cos(t), -sin * qu.sin(t)])
+      stream.point(...p)
     }
   }
   function radius(cosRadius: number, x: qt.Point) {
@@ -420,24 +420,19 @@ export namespace circle {
   }
 }
 export function compose(a, b) {
-  function compose(x, y) {
+  function f(x, y) {
     return (x = a(x, y)), b(x[0], x[1])
   }
-  if (a.invert && b.invert)
-    compose.invert = function (x, y) {
-      return (x = b.invert(x, y)), x && a.invert(x[0], x[1])
-    }
-  return compose
+  if (a.invert && b.invert) (f.invert = (x, y) => (x = b.invert(x, y))), x && a.invert(x[0], x[1])
+  return f
 }
 export function contains(x: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection, p: qt.Point): boolean {
   return (x && contains.objType.hasOwnProperty(x.type) ? contains.objType[x.type] : containsGeometry)(x, p)
 }
 export namespace contains {
   export const objType = {
-    Feature: function (x, p) {
-      return geo(x.geometry, p)
-    },
-    FeatureCollection: function (x, p) {
+    Feature: (x, p) => geo(x.geometry, p),
+    FeatureCollection: (x, p) => {
       const xs = x.features,
         n = xs.length
       let i = -1
@@ -446,40 +441,32 @@ export namespace contains {
     },
   }
   const geoType = {
-    Sphere: function () {
-      return true
-    },
-    Point: function (x, p) {
-      return p(x.coordinates, p)
-    },
-    MultiPoint: function (x, p) {
+    Sphere: () => true,
+    Point: (x, p) => p(x.coordinates, p),
+    MultiPoint: (x, p) => {
       const xs = x.coordinates,
         n = xs.length
       let i = -1
       while (++i < n) if (p(xs[i], p)) return true
       return false
     },
-    LineString: function (x, p) {
-      return line(x.coordinates, p)
-    },
-    MultiLineString: function (x, p) {
+    LineString: (x, p) => line(x.coordinates, p),
+    MultiLineString: (x, p) => {
       const xs = x.coordinates,
         n = xs.length
       let i = -1
       while (++i < n) if (line(xs[i], p)) return true
       return false
     },
-    Polygon: function (x, p) {
-      return polygon(x.coordinates, p)
-    },
-    MultiPolygon: function (x, p) {
+    Polygon: (x, p) => polygon(x.coordinates, p),
+    MultiPolygon: (x, p) => {
       const xs = x.coordinates,
         n = xs.length
       let i = -1
       while (++i < n) if (polygon(xs[i], p)) return true
       return false
     },
-    GeometryCollection: function (x, p) {
+    GeometryCollection: (x, p) => {
       const xs = x.geometries,
         n = xs.length
       let i = -1
@@ -500,7 +487,7 @@ export namespace contains {
       if (bo === 0) return true
       if (i > 0) {
         ab = distance(xs[i], xs[i - 1])
-        if (ab > 0 && ao <= ab && bo <= ab && (ao + bo - ab) * (1 - Math.pow((ao - bo) / ab, 2)) < qu.epsilon2 * ab)
+        if (ab > 0 && ao <= ab && bo <= ab && (ao + bo - ab) * (1 - qu.pow((ao - bo) / ab, 2)) < qu.epsilon2 * ab)
           return true
       }
       ao = bo
@@ -561,9 +548,10 @@ export function graticule(): qg.Graticule {
       )
   }
   f.lines = () =>
-    lines().map(function (coordinates) {
-      return { type: "LineString", coordinates: coordinates }
-    })
+    lines().map(coordinates => ({
+      type: "LineString",
+      coordinates,
+    }))
   f.outline = () => ({
     type: "Polygon",
     coordinates: [X(X0).concat(Y(Y1).slice(1), X(X1).reverse().slice(1), Y(Y0).reverse().slice(1))],
@@ -599,17 +587,13 @@ export function graticule(): qg.Graticule {
   function graticuleX(y0, y1, dy) {
     const y = range(y0, y1 - qu.epsilon, dy).concat(y1)
     return function (x) {
-      return y.map(function (y) {
-        return [x, y]
-      })
+      return y.map(y => [x, y])
     }
   }
   function graticuleY(x0, x1, dx) {
     const x = range(x0, x1 - qu.epsilon, dx).concat(x1)
     return function (y) {
-      return x.map(function (x) {
-        return [x, y]
-      })
+      return x.map(x => [x, y])
     }
   }
   f.precision = (x: any) => {
@@ -649,7 +633,7 @@ export function interpolate(a: qt.Point, b: qt.Point): (t: number) => qt.Point {
     ky1 = cy1 * qu.sin(x1),
     d = 2 * qu.asin(qu.sqrt(haversin(y1 - y0) + cy0 * cy1 * haversin(x1 - x0))),
     k = qu.sin(d)
-  const interpolate = d
+  const f = d
     ? function (t) {
         const B = qu.sin((t *= d)) / k,
           A = qu.sin(d - t) / k,
@@ -661,16 +645,17 @@ export function interpolate(a: qt.Point, b: qt.Point): (t: number) => qt.Point {
     : function () {
         return [x0 * qu.degrees, y0 * qu.degrees]
       }
-  interpolate.distance = d
-  return interpolate
+  f.distance = d
+  return f
 }
-export function length(object: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection): number {
-  lengthSum = new Adder()
-  stream(object, length.stream)
-  return +lengthSum
+export function length(x: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection): number {
+  length.sum = new Adder()
+  stream(x, length.stream)
+  return +length.sum
 }
 export namespace length {
-  let lengthSum, lam0, sinPhi0, cosPhi0
+  export let sum: Adder
+  let lam0: number, sinPhi0: number, cosPhi0: number
   export const stream = {
     sphere: qu.noop,
     point: qu.noop,
@@ -695,29 +680,24 @@ export namespace length {
     ;(lambda *= qu.radians), (phi *= qu.radians)
     const sinPhi = qu.sin(phi),
       cosPhi = qu.cos(phi),
-      delta = qu.abs(lambda - lam0),
-      cosDelta = qu.cos(delta),
-      sinDelta = qu.sin(delta),
-      x = cosPhi * sinDelta,
-      y = cosPhi0 * sinPhi - sinPhi0 * cosPhi * cosDelta,
-      z = sinPhi0 * sinPhi + cosPhi0 * cosPhi * cosDelta
-    lengthSum.add(qu.atan2(qu.sqrt(x * x + y * y), z))
+      d = qu.abs(lambda - lam0),
+      cosD = qu.cos(d),
+      sinD = qu.sin(d),
+      x = cosPhi * sinD,
+      y = cosPhi0 * sinPhi - sinPhi0 * cosPhi * cosD,
+      z = sinPhi0 * sinPhi + cosPhi0 * cosPhi * cosD
+    sum.add(qu.atan2(qu.sqrt(x * x + y * y), z))
     ;(lam0 = lambda), (sinPhi0 = sinPhi), (cosPhi0 = cosPhi)
   }
 }
-export const sign =
-  Math.sign ||
-  function (x) {
-    return x > 0 ? 1 : x < 0 ? -1 : 0
-  }
-export function haversin(x) {
-  return (x = qu.sin(x / 2)) * x
-}
-export function pointEqual(a, b) {
+export const sign = qu.sign || (x => (x > 0 ? 1 : x < 0 ? -1 : 0))
+export const haversin = (x: number) => (x = qu.sin(x / 2)) * x
+
+export function pointEqual(a: qt.Point, b: qt.Point) {
   return qu.abs(a[0] - b[0]) < qu.epsilon && qu.abs(a[1] - b[1]) < qu.epsilon
 }
-function longitude(point) {
-  return qu.abs(point[0]) <= qu.PI ? point[0] : sign(point[0]) * (((qu.abs(point[0]) + qu.PI) % qu.tau) - qu.PI)
+function longitude(x: qt.Point) {
+  return qu.abs(x[0]) <= qu.PI ? x[0] : sign(x[0]) * (((qu.abs(x[0]) + qu.PI) % qu.tau) - qu.PI)
 }
 export function polygonContains(polygon, point) {
   let lambda = longitude(point),
@@ -765,13 +745,13 @@ export function polygonContains(polygon, point) {
   }
   return (angle < -qu.epsilon || (angle < qu.epsilon && sum < -qu.epsilon2)) ^ (winding & 1)
 }
-export function rotateRadians(deltaLambda, deltaPhi, deltaGamma) {
-  return (deltaLambda %= qu.tau)
-    ? deltaPhi || deltaGamma
-      ? compose(lambda(deltaLambda), phiGamma(deltaPhi, deltaGamma))
-      : lambda(deltaLambda)
-    : deltaPhi || deltaGamma
-    ? phiGamma(deltaPhi, deltaGamma)
+export function rotateRadians(dLam: number, dPhi: number, dGamma: number) {
+  return (dLam %= qu.tau)
+    ? dPhi || dGamma
+      ? compose(lambda(dLam), phiGamma(dPhi, dGamma))
+      : lambda(dLam)
+    : dPhi || dGamma
+    ? phiGamma(dPhi, dGamma)
     : identity
 }
 export function rotation(angles: qt.Pair | [number, number, number]): qg.Rotation {
@@ -787,8 +767,8 @@ export function rotation(angles: qt.Pair | [number, number, number]): qg.Rotatio
   return forward
 }
 export namespace rotation {
-  function identity(lambda, phi) {
-    if (qu.abs(lambda) > qu.PI) lambda -= Math.round(lambda / qu.tau) * qu.tau
+  function identity(lambda: number, phi: number) {
+    if (qu.abs(lambda) > qu.PI) lambda -= qu.round(lambda / qu.tau) * qu.tau
     return [lambda, phi]
   }
   identity.invert = identity
@@ -796,20 +776,20 @@ export namespace rotation {
     function forward(deltaLambda) {
       return function (lambda, phi) {
         lambda += deltaLambda
-        if (qu.abs(lambda) > qu.PI) lambda -= Math.round(lambda / qu.tau) * qu.tau
+        if (qu.abs(lambda) > qu.PI) lambda -= qu.round(lambda / qu.tau) * qu.tau
         return [lambda, phi]
       }
     }
-    const rotation = forward(deltaLambda)
-    rotation.invert = forward(-deltaLambda)
-    return rotation
+    const f = forward(deltaLambda)
+    f.invert = forward(-deltaLambda)
+    return f
   }
-  function phiGamma(deltaPhi, deltaGamma) {
-    const cosDeltaPhi = qu.cos(deltaPhi),
-      sinDeltaPhi = qu.sin(deltaPhi),
-      cosDeltaGamma = qu.cos(deltaGamma),
-      sinDeltaGamma = qu.sin(deltaGamma)
-    function rotation(lambda, phi) {
+  function phiGamma(dPhi: number, dGamma: number) {
+    const cosDeltaPhi = qu.cos(dPhi),
+      sinDeltaPhi = qu.sin(dPhi),
+      cosDeltaGamma = qu.cos(dGamma),
+      sinDeltaGamma = qu.sin(dGamma)
+    function f(lambda: number, phi: number) {
       const cosPhi = qu.cos(phi),
         x = qu.cos(lambda) * cosPhi,
         y = qu.sin(lambda) * cosPhi,
@@ -820,7 +800,7 @@ export namespace rotation {
         qu.asin(k * cosDeltaGamma + y * sinDeltaGamma),
       ]
     }
-    rotation.invert = function (lambda, phi) {
+    f.invert = function (lambda: number, phi: number) {
       const cosPhi = qu.cos(phi),
         x = qu.cos(lambda) * cosPhi,
         y = qu.sin(lambda) * cosPhi,
@@ -831,125 +811,108 @@ export namespace rotation {
         qu.asin(k * cosDeltaPhi - x * sinDeltaPhi),
       ]
     }
-    return rotation
+    return f
   }
 }
-export function stream(
-  object: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection,
-  stream: qg.Stream
-): void {
-  if (object && streamObjectType.hasOwnProperty(object.type)) {
-    streamObjectType[object.type](object, stream)
-  } else {
-    streamGeometry(object, stream)
-  }
+export function stream(x: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection, s: qg.Stream) {
+  if (x && stream.objType.hasOwnProperty(x.type)) stream.objType[x.type](x, s)
+  else stream.geo(x, s)
 }
 export namespace stream {
-  function geo(geometry, stream) {
-    if (geometry && geoType.hasOwnProperty(geometry.type)) {
-      geoType[geometry.type](geometry, stream)
-    }
+  export function geo(x, s: qg.Stream) {
+    if (x && geoType.hasOwnProperty(x.type)) geoType[x.type](x, s)
   }
-  const objType = {
-    Feature: function (object, stream) {
-      geo(object.geometry, stream)
-    },
-    FeatureCollection: function (object, stream) {
-      let features = object.features,
-        i = -1,
-        n = features.length
-      while (++i < n) geo(features[i].geometry, stream)
+  export const objType = {
+    Feature: (x, s) => geo(x.geometry, s),
+    FeatureCollection: (x, s) => {
+      const xs = x.features,
+        n = xs.length
+      let i = -1
+      while (++i < n) geo(xs[i].geometry, s)
     },
   }
   const geoType = {
-    Sphere: function (object, stream) {
-      stream.sphere()
+    Sphere: (_, s) => s.sphere(),
+    Point: (x, s) => {
+      x = x.coordinates
+      s.point(x[0], x[1], x[2])
     },
-    Point: function (object, stream) {
-      object = object.coordinates
-      stream.point(object[0], object[1], object[2])
-    },
-    MultiPoint: function (object, stream) {
-      let coordinates = object.coordinates,
-        i = -1,
+    MultiPoint: (x, s) => {
+      const coordinates = x.coordinates,
         n = coordinates.length
-      while (++i < n) (object = coordinates[i]), stream.point(object[0], object[1], object[2])
+      let i = -1
+      while (++i < n) (x = coordinates[i]), s.point(x[0], x[1], x[2])
     },
-    LineString: function (object, stream) {
-      line(object.coordinates, stream, 0)
+    LineString: (x, s) => line(x.coordinates, s, 0),
+    MultiLineString: (x, s) => {
+      const xs = x.coordinates,
+        n = xs.length
+      let i = -1
+      while (++i < n) line(xs[i], s, 0)
     },
-    MultiLineString: function (object, stream) {
-      let coordinates = object.coordinates,
-        i = -1,
-        n = coordinates.length
-      while (++i < n) line(coordinates[i], stream, 0)
+    Polygon: (x, s) => polygon(x.coordinates, s),
+    MultiPolygon: (x, s) => {
+      const xs = x.coordinates,
+        n = xs.length
+      let i = -1
+      while (++i < n) polygon(xs[i], s)
     },
-    Polygon: function (object, stream) {
-      polygon(object.coordinates, stream)
-    },
-    MultiPolygon: function (object, stream) {
-      let coordinates = object.coordinates,
-        i = -1,
-        n = coordinates.length
-      while (++i < n) polygon(coordinates[i], stream)
-    },
-    GeometryCollection: function (object, stream) {
-      let geometries = object.geometries,
-        i = -1,
-        n = geometries.length
-      while (++i < n) geo(geometries[i], stream)
+    GeometryCollection: (x, s) => {
+      const xs = x.geometries,
+        n = xs.length
+      let i = -1
+      while (++i < n) geo(xs[i], s)
     },
   }
-  function line(coordinates, stream, closed) {
+  function line(xs, stream, closed) {
+    const n = xs.length - closed
     let i = -1,
-      n = coordinates.length - closed,
-      coordinate
+      x
     stream.lineStart()
-    while (++i < n) (coordinate = coordinates[i]), stream.point(coordinate[0], coordinate[1], coordinate[2])
+    while (++i < n) (x = xs[i]), stream.point(x[0], x[1], x[2])
     stream.lineEnd()
   }
-  function polygon(coordinates, stream) {
-    let i = -1,
-      n = coordinates.length
+  function polygon(xs, stream) {
+    const n = xs.length
+    let i = -1
     stream.polygonStart()
-    while (++i < n) line(coordinates[i], stream, 1)
+    while (++i < n) line(xs[i], stream, 1)
     stream.polygonEnd()
   }
 }
-export function transform<T extends qg.TransformProto>(methods: T): { stream(s: qg.Stream): T & qg.Stream } {
+export function transform<T extends qg.TransformProto>(x: T): { stream(s: qg.Stream): T & qg.Stream } {
   return {
-    stream: transformer(methods),
+    stream: transformer(x),
   }
 }
-export function transformer(methods) {
-  return function (stream) {
+export function transformer(xs) {
+  return x => {
     const s = new TransformStream()
-    for (const key in methods) s[key] = methods[key]
-    s.stream = stream
+    for (const k in xs) s[k] = xs[k]
+    s.stream = x
     return s
   }
 }
-function TransformStream() {}
-TransformStream.prototype = {
-  constructor: TransformStream,
-  point: function (x, y) {
+class TransformStream {
+  stream
+  point(x, y) {
     this.stream.point(x, y)
-  },
-  sphere: function () {
+  }
+  sphere() {
     this.stream.sphere()
-  },
-  lineStart: function () {
+  }
+  lineStart() {
     this.stream.lineStart()
-  },
-  lineEnd: function () {
+  }
+  lineEnd() {
     this.stream.lineEnd()
-  },
-  polygonStart: function () {
+  }
+  polygonStart() {
     this.stream.polygonStart()
-  },
-  polygonEnd: function () {
+  }
+  polygonEnd() {
     this.stream.polygonEnd()
-  },
+  }
 }
 
 export namespace clip {
@@ -975,8 +938,8 @@ export namespace clip {
       },
       point: function (lam1, phi1) {
         const sign1 = lam1 > 0 ? pi : -pi,
-          delta = abs(lam1 - lam0)
-        if (abs(delta - pi) < epsilon) {
+          delta = qu.abs(lam1 - lam0)
+        if (qu.abs(delta - pi) < epsilon) {
           stream.point(lam0, (phi0 = (phi0 + phi1) / 2 > 0 ? halfPi : -halfPi))
           stream.point(sign0, phi0)
           stream.lineEnd()
@@ -985,8 +948,8 @@ export namespace clip {
           stream.point(lam1, phi0)
           clean = 0
         } else if (sign0 !== sign1 && delta >= pi) {
-          if (abs(lam0 - sign0) < epsilon) lam0 -= sign0 * epsilon // handle degeneracies
-          if (abs(lam1 - sign1) < epsilon) lam1 -= sign1 * epsilon
+          if (qu.abs(lam0 - sign0) < epsilon) lam0 -= sign0 * epsilon // handle degeneracies
+          if (qu.abs(lam1 - sign1) < epsilon) lam1 -= sign1 * epsilon
           phi0 = clipAntimeridianIntersect(lam0, phi0, lam1, phi1)
           stream.point(sign0, phi0)
           stream.lineEnd()
@@ -1010,7 +973,7 @@ export namespace clip {
     let cosPhi0,
       cosPhi1,
       sinLambda0Lambda1 = sin(lam0 - lam1)
-    return abs(sinLambda0Lambda1) > epsilon
+    return qu.abs(sinLambda0Lambda1) > epsilon
       ? atan(
           (sin(phi0) * (cosPhi1 = cos(phi1)) * sin(lam1) - sin(phi1) * (cosPhi0 = cos(phi0)) * sin(lam0)) /
             (cosPhi0 * cosPhi1 * sinLambda0Lambda1)
@@ -1030,7 +993,7 @@ export namespace clip {
       stream.point(-pi, -phi)
       stream.point(-pi, 0)
       stream.point(-pi, phi)
-    } else if (abs(from[0] - to[0]) > epsilon) {
+    } else if (qu.abs(from[0] - to[0]) > epsilon) {
       const lambda = from[0] < to[0] ? pi : -pi
       phi = (direction * lambda) / 2
       stream.point(-lambda, phi)
@@ -1066,7 +1029,7 @@ export namespace clip {
     const cr = cos(radius),
       delta = 6 * radians,
       smallRadius = cr > 0,
-      notHemisphere = abs(cr) > epsilon // TODO optimise for this common case
+      notHemisphere = qu.abs(cr) > epsilon // TODO optimise for this common case
     function interpolate(from, to, direction, stream) {
       circleStream(stream, radius, delta, direction, from, to)
     }
@@ -1169,13 +1132,13 @@ export namespace clip {
         z
       if (lam1 < lam0) (z = lam0), (lam0 = lam1), (lam1 = z)
       const delta = lam1 - lam0,
-        polar = abs(delta - pi) < epsilon,
+        polar = qu.abs(delta - pi) < epsilon,
         meridian = polar || delta < epsilon
       if (!polar && phi1 < phi0) (z = phi0), (phi0 = phi1), (phi1 = z)
       if (
         meridian
           ? polar
-            ? (phi0 + phi1 > 0) ^ (q[1] < (abs(q[0] - lam0) < epsilon ? phi0 : phi1))
+            ? (phi0 + phi1 > 0) ^ (q[1] < (qu.abs(q[0] - lam0) < epsilon ? phi0 : phi1))
             : phi0 <= q[1] && q[1] <= phi1
           : (delta > pi) ^ (lam0 <= q[0] && q[0] <= lam1)
       ) {
@@ -1399,21 +1362,21 @@ export namespace clip {
       }
     }
     function corner(p, direction) {
-      return abs(p[0] - x0) < epsilon
+      return qu.abs(p[0] - x0) < epsilon
         ? direction > 0
           ? 0
           : 3
-        : abs(p[0] - x1) < epsilon
+        : qu.abs(p[0] - x1) < epsilon
         ? direction > 0
           ? 2
           : 1
-        : abs(p[1] - y0) < epsilon
+        : qu.abs(p[1] - y0) < epsilon
         ? direction > 0
           ? 1
           : 0
         : direction > 0
         ? 3
-        : 2 // abs(p[1] - y1) < epsilon
+        : 2 // qu.abs(p[1] - y1) < epsilon
     }
     function compareIntersection(a, b) {
       return comparePoint(a.x, b.x)
@@ -1523,11 +1486,8 @@ export namespace clip {
         } else {
           if (v && v_) activeStream.point(x, y)
           else {
-            const a = [
-                (x_ = Math.max(clipMin, Math.min(clipMax, x_))),
-                (y_ = Math.max(clipMin, Math.min(clipMax, y_))),
-              ],
-              b = [(x = Math.max(clipMin, Math.min(clipMax, x))), (y = Math.max(clipMin, Math.min(clipMax, y)))]
+            const a = [(x_ = qu.max(clipMin, qu.min(clipMax, x_))), (y_ = qu.max(clipMin, qu.min(clipMax, y_)))],
+              b = [(x = qu.max(clipMin, qu.min(clipMax, x))), (y = qu.max(clipMin, qu.min(clipMax, y)))]
             if (clipLine(a, b, x0, y0, x1, y1)) {
               if (!v_) {
                 activeStream.lineStart()
@@ -1654,7 +1614,7 @@ export namespace path {
     },
     polygonEnd: function () {
       area.stream.lineStart = area.stream.lineEnd = area.stream.point = qu.noop
-      areaSum.add(abs(areaRingSum))
+      areaSum.add(qu.abs(areaRingSum))
       areaRingSum = new Adder()
     },
     result: function () {
@@ -1984,7 +1944,7 @@ export namespace path {
 export namespace proj {
   export namespace azimuthal {
     function raw(scale): qg.RawProjection {
-      return function (x, y) {
+      return (x, y) => {
         const cx = cos(x),
           cy = cos(y),
           k = scale(cx * cy)
@@ -1993,7 +1953,7 @@ export namespace proj {
       }
     }
     export function invert(angle) {
-      return function (x, y) {
+      return (x, y) => {
         const z = sqrt(x * x + y * y),
           c = angle(z),
           sc = sin(c),
@@ -2043,7 +2003,7 @@ export namespace proj {
       f.invert = (x, y) => {
         const py = p - y,
           r = sign(n) * sqrt(x * x + py * py)
-        let l = atan2(x, abs(py)) * sign(py)
+        let l = atan2(x, qu.abs(py)) * sign(py)
         if (py * n < 0) l -= pi * sign(x) * sign(py)
         return [l / n, 2 * atan(pow(p / r, 1 / n)) - halfPi]
       }
@@ -2053,7 +2013,7 @@ export namespace proj {
     export function equalAreaRaw(y0, y1): qg.RawProjection {
       const sy0 = sin(y0),
         n = (sy0 + sin(y1)) / 2
-      if (abs(n) < epsilon) return cylindrical.equalAreaRaw(y0)
+      if (qu.abs(n) < epsilon) return cylindrical.equalAreaRaw(y0)
       const c = 1 + sy0 * (2 * n - sy0),
         r0 = sqrt(c) / n
       function f(x, y) {
@@ -2062,7 +2022,7 @@ export namespace proj {
       }
       f.invert = (x, y) => {
         const r0y = r0 - y
-        let l = atan2(x, abs(r0y)) * sign(r0y)
+        let l = atan2(x, qu.abs(r0y)) * sign(r0y)
         if (r0y * n < 0) l -= pi * sign(x) * sign(r0y)
         return [l / n, qu.asin((c - (x * x + r0y * r0y) * n * n) / (2 * n))]
       }
@@ -2073,7 +2033,7 @@ export namespace proj {
       const cy0 = cos(y0),
         n = y0 === y1 ? sin(y0) : (cy0 - cos(y1)) / (y1 - y0),
         g = cy0 / n + y0
-      if (abs(n) < epsilon) return equirectangularRaw
+      if (qu.abs(n) < epsilon) return equirectangularRaw
       function f(x, y) {
         const gy = g - y,
           nx = n * x
@@ -2081,7 +2041,7 @@ export namespace proj {
       }
       f.invert = (x, y) => {
         const gy = g - y
-        let l = atan2(x, abs(gy)) * sign(gy)
+        let l = atan2(x, qu.abs(gy)) * sign(gy)
         if (gy * n < 0) l -= pi * sign(x) * sign(gy)
         return [l / n, g - sign(n) * sqrt(x * x + gy * gy)]
       }
@@ -2250,7 +2210,7 @@ export namespace proj {
       fy = l * (A1 + A2 * l2 + l6 * (A3 + A4 * l2)) - y
       fpy = A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2)
       ;(l -= delta = fy / fpy), (l2 = l * l), (l6 = l2 * l2 * l2)
-      if (abs(delta) < epsilon2) break
+      if (qu.abs(delta) < epsilon2) break
     }
     return [(M * x * (A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2))) / cos(l), qu.asin(sin(l) / M)]
   }
@@ -2351,28 +2311,24 @@ export namespace proj {
     return f
   }
   const transformRadians = transformer({
-    point: function (x, y) {
-      this.stream.point(x * radians, y * radians)
-    },
+    point: (x, y) => this.stream.point(x * radians, y * radians),
   })
   function transformRotate(rotate) {
     return transformer({
-      point: function (x, y) {
+      point: (x, y) => {
         const r = rotate(x, y)
         return this.stream.point(r[0], r[1])
       },
     })
   }
   function scaleTranslate(k, dx, dy, sx, sy) {
-    function transform(x, y) {
+    function f(x, y) {
       x *= sx
       y *= sy
       return [dx + k * x, dy - k * y]
     }
-    transform.invert = function (x, y) {
-      return [((x - dx) / k) * sx, ((dy - y) / k) * sy]
-    }
-    return transform
+    f.invert = (x, y) => [((x - dx) / k) * sx, ((dy - y) / k) * sy]
+    return f
   }
   function scaleTranslateRotate(k, dx, dy, sx, sy, alpha) {
     if (!alpha) return scaleTranslate(k, dx, dy, sx, sy)
@@ -2384,15 +2340,13 @@ export namespace proj {
       bi = sinAlpha / k,
       ci = (sinAlpha * dy - cosAlpha * dx) / k,
       fi = (sinAlpha * dx + cosAlpha * dy) / k
-    function transform(x, y) {
+    function f(x, y) {
       x *= sx
       y *= sy
       return [a * x - b * y + dx, dy - b * x - a * y]
     }
-    transform.invert = function (x, y) {
-      return [sx * (ai * x - bi * y + ci), sy * (fi - bi * x - ai * y)]
-    }
-    return transform
+    f.invert = (x, y) => [sx * (ai * x - bi * y + ci), sy * (fi - bi * x - ai * y)]
+    return f
   }
   export function projection(x: qg.RawProjection): qg.Projection {
     return mutator(() => x)()
@@ -2424,9 +2378,9 @@ export namespace proj {
       projectRotateTransform,
       cache,
       cacheStream
-    function invert(point) {
-      point = projectRotateTransform.invert(point[0], point[1])
-      return point && [point[0] * degrees, point[1] * degrees]
+    function invert(x) {
+      x = projectRotateTransform.invert(x[0], x[1])
+      return x && [x[0] * degrees, x[1] * degrees]
     }
     function f(point) {
       return projectRotateTransform(point[0] * radians, point[1] * radians)
@@ -2489,7 +2443,7 @@ export namespace proj {
       cache = cacheStream = null
       return f
     }
-    return function (xs: any[]) {
+    return (xs: any[]) => {
       project = projectAt.apply(this, xs)
       f.invert = project.invert && invert
       return recenter()
@@ -2498,9 +2452,7 @@ export namespace proj {
   export function mercatorRaw(lambda, phi): qg.RawProjection {
     return [lambda, log(tan((halfPi + phi) / 2))]
   }
-  mercatorRaw.invert = function (x, y) {
-    return [x, 2 * atan(exp(y)) - halfPi]
-  }
+  mercatorRaw.invert = (x, y) => [x, 2 * atan(exp(y)) - halfPi]
   export function mercator() {
     return mercatorProjection(mercatorRaw).scale(961 / tau)
   }
@@ -2541,12 +2493,12 @@ export namespace proj {
             ]
           : project === mercatorRaw
           ? [
-              [Math.max(t[0] - k, x0), y0],
-              [Math.min(t[0] + k, x1), y1],
+              [qu.max(t[0] - k, x0), y0],
+              [qu.min(t[0] + k, x1), y1],
             ]
           : [
-              [x0, Math.max(t[1] - k, y0)],
-              [x1, Math.min(t[1] + k, y1)],
+              [x0, qu.max(t[1] - k, y0)],
+              [x1, qu.min(t[1] + k, y1)],
             ]
       )
     }
@@ -2560,7 +2512,7 @@ export namespace proj {
       phi * (1.007226 + phi2 * (0.015085 + phi4 * (-0.044475 + 0.028874 * phi2 - 0.005916 * phi4))),
     ]
   }
-  naturalEarth1Raw.invert = function (x, y) {
+  naturalEarth1Raw.invert = (x, y) => {
     let phi = y,
       i = 25,
       delta
@@ -2570,7 +2522,7 @@ export namespace proj {
       phi -= delta =
         (phi * (1.007226 + phi2 * (0.015085 + phi4 * (-0.044475 + 0.028874 * phi2 - 0.005916 * phi4))) - y) /
         (1.007226 + phi2 * (0.015085 * 3 + phi4 * (-0.044475 * 7 + 0.028874 * 9 * phi2 - 0.005916 * 11 * phi4)))
-    } while (abs(delta) > epsilon && --i > 0)
+    } while (qu.abs(delta) > epsilon && --i > 0)
     return [
       x /
         (0.8707 +
@@ -2590,8 +2542,8 @@ export namespace proj {
       .scale(249.5)
       .clipAngle(90 + epsilon)
   }
-  const maxDepth = 16, // maximum depth of subdivision
-    cosMinDistance = cos(30 * radians) // cos(minimum angular distance)
+  const maxDepth = 16,
+    cosMinDistance = cos(30 * radians)
   export function resample(project, delta2) {
     function resampleNone(project) {
       return transformer({
@@ -2612,7 +2564,7 @@ export namespace proj {
             c = c0 + c1,
             m = sqrt(a * a + b * b + c * c),
             phi2 = qu.asin((c /= m)),
-            lam2 = abs(abs(c) - 1) < epsilon || abs(lam0 - lam1) < epsilon ? (lam0 + lam1) / 2 : atan2(b, a),
+            lam2 = qu.abs(qu.abs(c) - 1) < epsilon || qu.abs(lam0 - lam1) < epsilon ? (lam0 + lam1) / 2 : atan2(b, a),
             p = project(lam2, phi2),
             x2 = p[0],
             y2 = p[1],
@@ -2621,7 +2573,7 @@ export namespace proj {
             dz = dy * dx2 - dx * dy2
           if (
             (dz * dz) / d2 > delta2 || // perpendicular projected distance
-            abs((dx * dx2 + dy * dy2) / d2 - 0.5) > 0.3 || // midpoint close to an end
+            qu.abs((dx * dx2 + dy * dy2) / d2 - 0.5) > 0.3 || // midpoint close to an end
             a0 * a1 + b0 * b1 + c0 * c1 < cosMinDistance
           ) {
             resampleLineTo(x0, y0, lam0, a0, b0, c0, x2, y2, lam2, (a /= m), (b /= m), c, depth, stream)
@@ -2643,17 +2595,17 @@ export namespace proj {
           a0,
           b0,
           c0 // previous point
-        var resampleStream = {
+        const resample = {
           point: point,
           lineStart: lineStart,
           lineEnd: lineEnd,
           polygonStart: function () {
             stream.polygonStart()
-            resampleStream.lineStart = ringStart
+            resample.lineStart = ringStart
           },
           polygonEnd: function () {
             stream.polygonEnd()
-            resampleStream.lineStart = lineStart
+            resample.lineStart = lineStart
           },
         }
         function point(x, y) {
@@ -2662,7 +2614,7 @@ export namespace proj {
         }
         function lineStart() {
           x0 = NaN
-          resampleStream.point = linePoint
+          resample.point = linePoint
           stream.lineStart()
         }
         function linePoint(lambda, phi) {
@@ -2687,24 +2639,24 @@ export namespace proj {
           stream.point(x0, y0)
         }
         function lineEnd() {
-          resampleStream.point = point
+          resample.point = point
           stream.lineEnd()
         }
         function ringStart() {
           lineStart()
-          resampleStream.point = ringPoint
-          resampleStream.lineEnd = ringEnd
+          resample.point = ringPoint
+          resample.lineEnd = ringEnd
         }
         function ringPoint(lambda, phi) {
           linePoint((lam00 = lambda), phi), (x00 = x0), (y00 = y0), (a00 = a0), (b00 = b0), (c00 = c0)
-          resampleStream.point = linePoint
+          resample.point = linePoint
         }
         function ringEnd() {
           resampleLineTo(x0, y0, lam0, a0, b0, c0, x00, y00, lam00, a00, b00, c00, maxDepth, stream)
-          resampleStream.lineEnd = lineEnd
+          resample.lineEnd = lineEnd
           lineEnd()
         }
-        return resampleStream
+        return resample
       }
     }
     return +delta2 ? resample(project, delta2) : resampleNone(project)
@@ -2750,15 +2702,15 @@ export namespace proj {
     return f
   }
   namespace fit {
-    export function extent(f, extent, x) {
+    export function extent(f, ext, x) {
       return fit(
         f,
         function (b) {
-          const w = extent[1][0] - extent[0][0],
-            h = extent[1][1] - extent[0][1],
-            k = Math.min(w / (b[1][0] - b[0][0]), h / (b[1][1] - b[0][1])),
-            x = +extent[0][0] + (w - k * (b[1][0] + b[0][0])) / 2,
-            y = +extent[0][1] + (h - k * (b[1][1] + b[0][1])) / 2
+          const w = ext[1][0] - ext[0][0],
+            h = ext[1][1] - ext[0][1],
+            k = qu.min(w / (b[1][0] - b[0][0]), h / (b[1][1] - b[0][1])),
+            x = +ext[0][0] + (w - k * (b[1][0] + b[0][0])) / 2,
+            y = +ext[0][1] + (h - k * (b[1][1] + b[0][1])) / 2
           f.scale(150 * k).translate([x, y])
         },
         x
