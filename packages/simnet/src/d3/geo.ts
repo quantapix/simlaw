@@ -244,18 +244,20 @@ export namespace cartesian {
   }
 }
 export function centroid(object: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | qg.ExtCollection): qt.Point {
-  W0 = W1 = X0 = Y0 = Z0 = X1 = Y1 = Z1 = 0
-  X2 = new Adder()
-  Y2 = new Adder()
-  Z2 = new Adder()
+  centroid.w0 = centroid.w1 = 0
+  centroid.p0 = [0, 0, 0]
+  centroid.p1 = [0, 0, 0]
+  centroid.X2 = new Adder()
+  centroid.Y2 = new Adder()
+  centroid.Z2 = new Adder()
   stream(object, centroid.stream)
-  let x = +X2,
-    y = +Y2,
-    z = +Z2,
+  let x = +centroid.X2,
+    y = +centroid.Y2,
+    z = +centroid.Z2,
     m = qu.hypot(x, y, z)
   if (m < qu.epsilon2) {
-    ;(x = X1), (y = Y1), (z = Z1)
-    if (W1 < qu.epsilon) (x = X0), (y = Y0), (z = Z0)
+    ;[x, y, z] = centroid.p1
+    if (centroid.w1 < qu.epsilon) [x, y, z] = centroid.p0
     m = qu.hypot(x, y, z)
     if (m < qu.epsilon2) return [NaN, NaN]
   }
@@ -263,7 +265,10 @@ export function centroid(object: qg.ExtFeature | qg.ExtFeatureColl | qg.Geos | q
 }
 export namespace centroid {
   let lam00: number, phi00: number // first point
-  let W0, W1, X0, Y0, Z0, X1, Y1, Z1, X2, Y2, Z2, p0: qt.Triple
+  export let w0: number, w1: number
+  export let p0: qt.Triple, p1: qt.Triple
+  export let X2: Adder, Y2: Adder, Z2: Adder
+  let p: qt.Triple
   export const stream = {
     sphere: qu.noop,
     point: point,
@@ -284,10 +289,10 @@ export namespace centroid {
     pointCartesian(cosPhi * qu.cos(lambda), cosPhi * qu.sin(lambda), qu.sin(phi))
   }
   function pointCartesian(x: number, y: number, z: number) {
-    ++W0
-    X0 += (x - X0) / W0
-    Y0 += (y - Y0) / W0
-    Z0 += (z - Z0) / W0
+    ++w0
+    p0[0] += (x - p0[0]) / w0
+    p0[1] += (y - p0[1]) / w0
+    p0[2] += (z - p0[2]) / w0
   }
   function lineStart() {
     stream.point = linePointFirst
@@ -295,9 +300,9 @@ export namespace centroid {
   function linePointFirst(lambda: number, phi: number) {
     ;(lambda *= qu.radians), (phi *= qu.radians)
     const cosPhi = qu.cos(phi)
-    p0 = [cosPhi * qu.cos(lambda), cosPhi * qu.sin(lambda), (p0[2] = qu.sin(phi))]
+    p = [cosPhi * qu.cos(lambda), cosPhi * qu.sin(lambda), (p[2] = qu.sin(phi))]
     stream.point = linePoint
-    pointCartesian(p0[0], p0[1], p0[2])
+    pointCartesian(...p)
   }
   function linePoint(lambda: number, phi: number) {
     ;(lambda *= qu.radians), (phi *= qu.radians)
@@ -306,14 +311,14 @@ export namespace centroid {
       y = cosPhi * qu.sin(lambda),
       z = qu.sin(phi)
     let w = qu.atan2(
-      qu.sqrt((w = p0[1] * z - p0[2] * y) * w + (w = p0[2] * x - p0[0] * z) * w + (w = p0[0] * y - p0[1] * x) * w),
-      p0[0] * x + p0[1] * y + p0[2] * z
+      qu.sqrt((w = p[1] * z - p[2] * y) * w + (w = p[2] * x - p[0] * z) * w + (w = p[0] * y - p[1] * x) * w),
+      p[0] * x + p[1] * y + p[2] * z
     )
-    W1 += w
-    X1 += w * (p0[0] + (p0[0] = x))
-    Y1 += w * (p0[1] + (p0[1] = y))
-    Z1 += w * (p0[2] + (p0[2] = z))
-    pointCartesian(p0[0], p0[1], p0[2])
+    w1 += w
+    p1[0] += w * (p[0] + (p[0] = x))
+    p1[1] += w * (p[1] + (p[1] = y))
+    p1[2] += w * (p[2] + (p[2] = z))
+    pointCartesian(...p)
   }
   function lineEnd() {
     stream.point = point
@@ -330,8 +335,8 @@ export namespace centroid {
     ;(lambda *= qu.radians), (phi *= qu.radians)
     stream.point = ringPoint
     const cosPhi = qu.cos(phi)
-    p0 = [cosPhi * qu.cos(lambda), cosPhi * qu.sin(lambda), qu.sin(phi)]
-    pointCartesian(p0[0], p0[1], p0[2])
+    p = [cosPhi * qu.cos(lambda), cosPhi * qu.sin(lambda), qu.sin(phi)]
+    pointCartesian(...p)
   }
   function ringPoint(lambda: number, phi: number) {
     ;(lambda *= qu.radians), (phi *= qu.radians)
@@ -339,20 +344,20 @@ export namespace centroid {
       x = cosPhi * qu.cos(lambda),
       y = cosPhi * qu.sin(lambda),
       z = qu.sin(phi),
-      cx = p0[1] * z - p0[2] * y,
-      cy = p0[2] * x - p0[0] * z,
-      cz = p0[0] * y - p0[1] * x,
+      cx = p[1] * z - p[2] * y,
+      cy = p[2] * x - p[0] * z,
+      cz = p[0] * y - p[1] * x,
       m = qu.hypot(cx, cy, cz),
       w = qu.asin(m), // line weight = angle
       v = m && -w / m // area weight multiplier
     X2.add(v * cx)
     Y2.add(v * cy)
     Z2.add(v * cz)
-    W1 += w
-    X1 += w * (p0[0] + (p0[0] = x))
-    Y1 += w * (p0[1] + (p0[1] = y))
-    Z1 += w * (p0[2] + (p0[2] = z))
-    pointCartesian(p0[0], p0[1], p0[2])
+    w1 += w
+    p1[0] += w * (p[0] + (p[0] = x))
+    p1[1] += w * (p[1] + (p[1] = y))
+    p1[2] += w * (p[2] + (p[2] = z))
+    pointCartesian(p[0], p[1], p[2])
   }
 }
 export function circle(): qg.Circle
@@ -504,7 +509,7 @@ export namespace contains {
   }
   function polygon(xs, p: qt.Point) {
     const pointRadians = (x: qt.Point) => [x[0] * qu.radians, x[1] * qu.radians]
-    const ringRadians = (x) => (x = xs.map(pointRadians)), xs.pop(), x
+    const ringRadians = x => ((x = xs.map(pointRadians)), xs.pop(), x)
     return !!polygonContains(xs.map(ringRadians), pointRadians(p))
   }
 }
