@@ -1,5 +1,6 @@
 import { bisector, tickStep } from "./utils_seq.js"
 import type * as qt from "./types.js"
+import * as qu from "./utils.js"
 
 const t0 = new Date(),
   t1 = new Date()
@@ -11,29 +12,23 @@ export function interval(
   count: (start: Date, end: Date) => number,
   field?: (x: Date) => number
 ): qt.Time.Countable
-export function interval(floor: Function, offset: Function, count?: Function, field?: Function) {
-  function y(x) {
+export function interval(floor: any, offset: any, count?: any, field?: any) {
+  function y(x: any) {
     return floor((x = arguments.length === 0 ? new Date() : new Date(+x))), x
   }
-  y.floor = function (x) {
-    return floor((x = new Date(+x))), x
-  }
-  y.ceil = function (x) {
-    return floor((x = new Date(x - 1))), offset(x, 1), floor(x), x
-  }
-  y.round = function (x) {
+  y.floor = (x: Date) => (floor((x = new Date(+x))), x)
+  y.ceil = (x: Date) => (floor((x = new Date(+x - 1))), offset(x, 1), floor(x), x)
+  y.round = (x: Date) => {
     const d0 = y(x),
       d1 = y.ceil(x)
     return x - d0 < d1 - x ? d0 : d1
   }
-  y.offset = function (x, step) {
-    return offset((x = new Date(+x)), step === null ? 1 : Math.floor(step)), x
-  }
-  y.range = function (start, stop, step) {
+  y.offset = (x: Date, step: number) => (offset((x = new Date(+x)), step === null ? 1 : qu.floor(step)), x)
+  y.range = (start, stop, step) => {
     let range = [],
       previous
     start = y.ceil(start)
-    step = step === null ? 1 : Math.floor(step)
+    step = step === null ? 1 : qu.floor(step)
     if (!(start < stop) || !(step > 0)) return range
     do range.push((previous = new Date(+start))), offset(start, step), floor(start)
     while (previous < start && start < stop)
@@ -62,10 +57,10 @@ export function interval(floor: Function, offset: Function, count?: Function, fi
     y.count = function (start, end) {
       t0.setTime(+start), t1.setTime(+end)
       floor(t0), floor(t1)
-      return Math.floor(count(t0, t1))
+      return qu.floor(count(t0, t1))
     }
     y.every = function (step) {
-      step = Math.floor(step)
+      step = qu.floor(step)
       return !isFinite(step) || !(step > 0)
         ? null
         : !(step > 1)
@@ -98,11 +93,11 @@ export const millisecond: qt.Time.Countable = interval(
   (start, end) => end - start
 )
 millisecond.every = function (k) {
-  k = Math.floor(k)
+  k = qu.floor(k)
   if (!isFinite(k) || !(k > 0)) return null
   if (!(k > 1)) return millisecond
   return interval(
-    x => x.setTime(Math.floor(x / k) * k),
+    x => x.setTime(qu.floor(x / k) * k),
     (x, step) => x.setTime(+x + step * k),
     (start, end) => (end - start) / k
   )
@@ -197,11 +192,11 @@ export const year: qt.Time.Countable = interval(
   x => x.getFullYear()
 )
 year.every = function (k) {
-  return !isFinite((k = Math.floor(k))) || !(k > 0)
+  return !isFinite((k = qu.floor(k))) || !(k > 0)
     ? null
     : interval(
         function (x) {
-          x.setFullYear(Math.floor(x.getFullYear() / k) * k)
+          x.setFullYear(qu.floor(x.getFullYear() / k) * k)
           x.setMonth(0, 1)
           x.setHours(0, 0, 0, 0)
         },
@@ -220,11 +215,11 @@ export const utcYear: qt.Time.Countable = interval(
   x => x.getUTCFullYear()
 )
 utcYear.every = function (k) {
-  return !isFinite((k = Math.floor(k))) || !(k > 0)
+  return !isFinite((k = qu.floor(k))) || !(k > 0)
     ? null
     : interval(
         function (x) {
-          x.setUTCFullYear(Math.floor(x.getUTCFullYear() / k) * k)
+          x.setUTCFullYear(qu.floor(x.getUTCFullYear() / k) * k)
           x.setUTCMonth(0, 1)
           x.setUTCHours(0, 0, 0, 0)
         },
@@ -315,10 +310,10 @@ function ticker(year, month, week, day, hour, minute) {
     return reverse ? ticks.reverse() : ticks
   }
   function interval(start: Date, stop: Date, count: number): qt.Time.Interval | null {
-    const target = Math.abs(stop - start) / count
+    const target = qu.abs(stop - start) / count
     const i = bisector(([, , step]) => step).right(tickIntervals, target)
     if (i === tickIntervals.length) return year.every(tickStep(start / durationYear, stop / durationYear, count))
-    if (i === 0) return millisecond.every(Math.max(tickStep(start, stop, count), 1))
+    if (i === 0) return millisecond.every(qu.max(tickStep(start, stop, count), 1))
     const [t, step] = tickIntervals[target / tickIntervals[i - 1][2] < tickIntervals[i][2] / target ? i - 1 : i]
     return t.every(step)
   }
@@ -791,7 +786,7 @@ function parseMilliseconds(d, string, i) {
 }
 function parseMicroseconds(d, string, i) {
   const n = numberRe.exec(string.slice(i, i + 6))
-  return n ? ((d.L = Math.floor(n[0] / 1000)), i + n[0].length) : -1
+  return n ? ((d.L = qu.floor(n[0] / 1000)), i + n[0].length) : -1
 }
 function parseLiteralPercent(d, string, i) {
   const n = percentRe.exec(string.slice(i, i + 1))
@@ -945,5 +940,5 @@ function formatUnixTimestamp(d) {
   return +d
 }
 function formatUnixTimestampSeconds(d) {
-  return Math.floor(+d / 1000)
+  return qu.floor(+d / 1000)
 }
