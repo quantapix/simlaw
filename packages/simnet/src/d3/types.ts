@@ -1751,7 +1751,7 @@ export namespace Time {
   }
   export interface Countable extends Interval {
     count(start: Date, end: Date): number
-    every(x: number): Interval | null
+    every(step: number): Interval | null
   }
   export interface Definition {
     dateTime: string

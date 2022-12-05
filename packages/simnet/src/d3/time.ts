@@ -9,74 +9,65 @@ export function interval(floor: (x: Date) => void, offset: (x: Date, step: numbe
 export function interval(
   floor: (x: Date) => void,
   offset: (x: Date, step: number) => void,
-  count: (start: Date, end: Date) => number,
+  count: (start: Date, stop: Date) => number,
   field?: (x: Date) => number
 ): qt.Time.Countable
 export function interval(floor: any, offset: any, count?: any, field?: any) {
-  function y(x: any) {
-    return floor((x = arguments.length === 0 ? new Date() : new Date(+x))), x
+  function f(x?: Date) {
+    return floor((x = x === undefined ? new Date() : new Date(+x))), x
   }
-  y.floor = (x: Date) => (floor((x = new Date(+x))), x)
-  y.ceil = (x: Date) => (floor((x = new Date(+x - 1))), offset(x, 1), floor(x), x)
-  y.round = (x: Date) => {
-    const d0 = y(x),
-      d1 = y.ceil(x)
-    return x - d0 < d1 - x ? d0 : d1
+  f.floor = (x: Date) => (floor((x = new Date(+x))), x)
+  f.ceil = (x: Date) => (floor((x = new Date(+x - 1))), offset(x, 1), floor(x), x)
+  f.round = (x: Date) => {
+    const d0 = f(x),
+      d1 = f.ceil(x)
+    return +x - +d0 < +d1 - +x ? d0 : d1
   }
-  y.offset = (x: Date, step: number) => (offset((x = new Date(+x)), step === null ? 1 : qu.floor(step)), x)
-  y.range = (start, stop, step) => {
-    let range = [],
-      previous
-    start = y.ceil(start)
+  f.offset = (x: Date, step: number) => (offset((x = new Date(+x)), step === null ? 1 : qu.floor(step)), x)
+  f.range = (start: Date, stop: Date, step: number) => {
+    const y: Date[] = []
+    start = f.ceil(start)
     step = step === null ? 1 : qu.floor(step)
-    if (!(start < stop) || !(step > 0)) return range
-    do range.push((previous = new Date(+start))), offset(start, step), floor(start)
-    while (previous < start && start < stop)
-    return range
+    if (!(start < stop) || !(step > 0)) return y
+    let prev
+    do y.push((prev = new Date(+start))), offset(start, step), floor(start)
+    while (prev < start && start < stop)
+    return y
   }
-  y.filter = function (test) {
-    return interval(
-      function (x) {
-        if (x >= x) while ((floor(x), !test(x))) x.setTime(x - 1)
+  f.filter = (p: any) =>
+    interval(
+      x => {
+        if (x >= x) while ((floor(x), !p(x))) x.setTime(+x - 1)
       },
-      function (x, step) {
+      (x, step) => {
         if (x >= x) {
           if (step < 0)
             while (++step <= 0) {
-              while ((offset(x, -1), !test(x))) {}
+              while ((offset(x, -1), !p(x))) {}
             }
           else
             while (--step >= 0) {
-              while ((offset(x, +1), !test(x))) {}
+              while ((offset(x, +1), !p(x))) {}
             }
         }
       }
     )
-  }
   if (count) {
-    y.count = function (start, end) {
-      t0.setTime(+start), t1.setTime(+end)
+    f.count = (start: Date, stop: Date) => {
+      t0.setTime(+start), t1.setTime(+stop)
       floor(t0), floor(t1)
       return qu.floor(count(t0, t1))
     }
-    y.every = function (step) {
+    f.every = (step: number) => {
       step = qu.floor(step)
       return !isFinite(step) || !(step > 0)
         ? null
         : !(step > 1)
-        ? y
-        : y.filter(
-            field
-              ? function (d) {
-                  return field(d) % step === 0
-                }
-              : function (d) {
-                  return y.count(0, d) % step === 0
-                }
-          )
+        ? f
+        : f.filter(field ? (x: Date) => field(x) % step === 0 : (x: Date) => f.count(new Date(0), x) % step === 0)
     }
   }
-  return y
+  return f
 }
 
 export const durationSecond = 1000
@@ -88,34 +79,34 @@ export const durationMonth = durationDay * 30
 export const durationYear = durationDay * 365
 
 export const millisecond: qt.Time.Countable = interval(
-  function () {},
+  () => {},
   (x, step) => x.setTime(+x + step),
-  (start, end) => end - start
+  (start, end) => +end - +start
 )
-millisecond.every = function (k) {
+millisecond.every = k => {
   k = qu.floor(k)
   if (!isFinite(k) || !(k > 0)) return null
   if (!(k > 1)) return millisecond
   return interval(
-    x => x.setTime(qu.floor(x / k) * k),
+    x => x.setTime(qu.floor(+x / k) * k),
     (x, step) => x.setTime(+x + step * k),
-    (start, end) => (end - start) / k
+    (start, end) => (+end - +start) / k
   )
 }
 export const milliseconds = millisecond.range
 
 export const second: qt.Time.Countable = interval(
-  x => x.setTime(x - x.getMilliseconds()),
+  x => x.setTime(+x - x.getMilliseconds()),
   (x, step) => x.setTime(+x + step * durationSecond),
-  (start, end) => (end - start) / durationSecond,
+  (start, end) => (+end - +start) / durationSecond,
   x => x.getUTCSeconds()
 )
 export const seconds = second.range
 
 export const minute: qt.Time.Countable = interval(
-  x => x.setTime(x - x.getMilliseconds() - x.getSeconds() * durationSecond),
+  x => x.setTime(+x - x.getMilliseconds() - x.getSeconds() * durationSecond),
   (x, step) => x.setTime(+x + step * durationMinute),
-  (start, end) => (end - start) / durationMinute,
+  (start, end) => (+end - +start) / durationMinute,
   x => x.getMinutes()
 )
 export const minutes = minute.range
@@ -123,15 +114,15 @@ export const minutes = minute.range
 export const utcMinute: qt.Time.Countable = interval(
   x => x.setUTCSeconds(0, 0),
   (x, step) => x.setTime(+x + step * durationMinute),
-  (start, end) => (end - start) / durationMinute,
+  (start, end) => (+end - +start) / durationMinute,
   x => x.getUTCMinutes()
 )
 export const utcMinutes = utcMinute.range
 
 export const hour: qt.Time.Countable = interval(
-  x => x.setTime(x - x.getMilliseconds() - x.getSeconds() * durationSecond - x.getMinutes() * durationMinute),
+  x => x.setTime(+x - x.getMilliseconds() - x.getSeconds() * durationSecond - x.getMinutes() * durationMinute),
   (x, step) => x.setTime(+x + step * durationHour),
-  (start, end) => (end - start) / durationHour,
+  (start, end) => (+end - +start) / durationHour,
   x => x.getHours()
 )
 export const hours = hour.range
@@ -139,7 +130,7 @@ export const hours = hour.range
 export const utcHour: qt.Time.Countable = interval(
   x => x.setUTCMinutes(0, 0, 0),
   (x, step) => x.setTime(+x + step * durationHour),
-  (start, end) => (end - start) / durationHour,
+  (start, end) => (+end - +start) / durationHour,
   x => x.getUTCHours()
 )
 export const utcHours = utcHour.range
@@ -147,7 +138,8 @@ export const utcHours = utcHour.range
 export const day: qt.Time.Countable = interval(
   x => x.setHours(0, 0, 0, 0),
   (x, step) => x.setDate(x.getDate() + step),
-  (start, end) => (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationDay,
+  (start, end) =>
+    (+end - +start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationDay,
   x => x.getDate() - 1
 )
 export const days = day.range
@@ -155,13 +147,13 @@ export const days = day.range
 export const utcDay: qt.Time.Countable = interval(
   x => x.setUTCHours(0, 0, 0, 0),
   (x, step) => x.setUTCDate(x.getUTCDate() + step),
-  (start, end) => (end - start) / durationDay,
+  (start, end) => (+end - +start) / durationDay,
   x => x.getUTCDate() - 1
 )
 export const utcDays = utcDay.range
 
 export const month: qt.Time.Countable = interval(
-  function (x) {
+  x => {
     x.setDate(1)
     x.setHours(0, 0, 0, 0)
   },
@@ -172,7 +164,7 @@ export const month: qt.Time.Countable = interval(
 export const months = month.range
 
 export const utcMonth: qt.Time.Countable = interval(
-  function (x) {
+  x => {
     x.setUTCDate(1)
     x.setUTCHours(0, 0, 0, 0)
   },
@@ -183,7 +175,7 @@ export const utcMonth: qt.Time.Countable = interval(
 export const utcMonths = utcMonth.range
 
 export const year: qt.Time.Countable = interval(
-  function (x) {
+  x => {
     x.setMonth(0, 1)
     x.setHours(0, 0, 0, 0)
   },
@@ -191,8 +183,8 @@ export const year: qt.Time.Countable = interval(
   (start, end) => end.getFullYear() - start.getFullYear(),
   x => x.getFullYear()
 )
-year.every = function (k) {
-  return !isFinite((k = qu.floor(k))) || !(k > 0)
+year.every = k =>
+  !isFinite((k = qu.floor(k))) || !(k > 0)
     ? null
     : interval(
         function (x) {
@@ -202,11 +194,10 @@ year.every = function (k) {
         },
         (x, step) => x.setFullYear(x.getFullYear() + step * k)
       )
-}
 export const years = year.range
 
 export const utcYear: qt.Time.Countable = interval(
-  function (x) {
+  x => {
     x.setUTCMonth(0, 1)
     x.setUTCHours(0, 0, 0, 0)
   },
@@ -214,8 +205,8 @@ export const utcYear: qt.Time.Countable = interval(
   (start, end) => end.getUTCFullYear() - start.getUTCFullYear(),
   x => x.getUTCFullYear()
 )
-utcYear.every = function (k) {
-  return !isFinite((k = qu.floor(k))) || !(k > 0)
+utcYear.every = k =>
+  !isFinite((k = qu.floor(k))) || !(k > 0)
     ? null
     : interval(
         function (x) {
@@ -225,18 +216,17 @@ utcYear.every = function (k) {
         },
         (x, step) => x.setUTCFullYear(x.getUTCFullYear() + step * k)
       )
-}
 export const utcYears = utcYear.range
 
-function weekday(i) {
+function weekday(i: number) {
   return interval(
-    function (x) {
+    x => {
       x.setDate(x.getDate() - ((x.getDay() + 7 - i) % 7))
       x.setHours(0, 0, 0, 0)
     },
     (x, step) => x.setDate(x.getDate() + step * 7),
     (start, end) =>
-      (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationWeek
+      (+end - +start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationWeek
   )
 }
 export const sunday: qt.Time.Countable = weekday(0)
@@ -255,14 +245,14 @@ export const fridays = friday.range
 export const saturday: qt.Time.Countable = weekday(6)
 export const saturdays = saturday.range
 
-function utcWeekday(i) {
+function utcWeekday(i: number) {
   return interval(
-    function (x) {
+    x => {
       x.setUTCDate(x.getUTCDate() - ((x.getUTCDay() + 7 - i) % 7))
       x.setUTCHours(0, 0, 0, 0)
     },
     (x, step) => x.setUTCDate(x.getUTCDate() + step * 7),
-    (start, end) => (end - start) / durationWeek
+    (start, end) => (+end - +start) / durationWeek
   )
 }
 export const utcSunday: qt.Time.Countable = utcWeekday(0)
@@ -306,7 +296,7 @@ function ticker(year, month, week, day, hour, minute) {
     const reverse = stop < start
     if (reverse) [start, stop] = [stop, start]
     const interval = count && typeof count.range === "function" ? count : tickInterval(start, stop, count)
-    const ticks = interval ? interval.range(start, +stop + 1) : [] // inclusive stop
+    const ticks = interval ? interval.range(start, +stop + 1) : []
     return reverse ? ticks.reverse() : ticks
   }
   function interval(start: Date, stop: Date, count: number): qt.Time.Interval | null {
@@ -393,7 +383,7 @@ export function formatLocale(locale: qt.Time.Definition): qt.Time.Locale {
     A: formatWeekday,
     b: formatShortMonth,
     B: formatMonth,
-    c: null,
+    c: unknown,
     d: formatDayOfMonth,
     e: formatDayOfMonth,
     f: formatMicroseconds,
@@ -496,36 +486,35 @@ export function formatLocale(locale: qt.Time.Definition): qt.Time.Locale {
   utcFormats.x = newFormat(locale_date, utcFormats)
   utcFormats.X = newFormat(locale_time, utcFormats)
   utcFormats.c = newFormat(locale_dateTime, utcFormats)
-  function newFormat(specifier, formats) {
-    return function (date) {
-      const string = []
+  function newFormat(spec: string, formats) {
+    return (x: any) => {
+      const ys = [],
+        n = spec.length
       let i = -1,
         j = 0,
-        n = specifier.length,
         c,
         pad,
         format
-      if (!(date instanceof Date)) date = new Date(+date)
+      if (!(x instanceof Date)) x = new Date(+x)
       while (++i < n) {
-        if (specifier.charCodeAt(i) === 37) {
-          string.push(specifier.slice(j, i))
-          if ((pad = pads[(c = specifier.charAt(++i))]) != null) c = specifier.charAt(++i)
+        if (spec.charCodeAt(i) === 37) {
+          ys.push(spec.slice(j, i))
+          if ((pad = pads[(c = spec.charAt(++i))]) != null) c = spec.charAt(++i)
           else pad = c === "e" ? " " : "0"
-          if ((format = formats[c])) c = format(date, pad)
-          string.push(c)
+          if ((format = formats[c])) c = format(x, pad)
+          ys.push(c)
           j = i + 1
         }
       }
-      string.push(specifier.slice(j, i))
-      return string.join("")
+      ys.push(spec.slice(j, i))
+      return ys.join("")
     }
   }
-  function newParse(specifier, Z) {
-    return function (string) {
-      let d = newDate(1900, undefined, 1),
-        i = parseSpecifier(d, specifier, (string += ""), 0),
-        week,
-        day
+  function newParse(spec: string, Z) {
+    return string => {
+      const d = newDate(1900, undefined, 1),
+        i = parseSpecifier(d, spec, (string += ""), 0)
+      let week, day
       if (i != string.length) return null
       if ("Q" in d) return new Date(d.Q)
       if ("s" in d) return new Date(d.s * 1000 + ("L" in d ? d.L : 0))
@@ -564,18 +553,18 @@ export function formatLocale(locale: qt.Time.Definition): qt.Time.Locale {
       return localDate(d)
     }
   }
-  function parseSpecifier(d, specifier, string, j) {
+  function parseSpecifier(d, spec, string, j) {
     let i = 0,
-      n = specifier.length,
+      n = spec.length,
       m = string.length,
       c,
       parse
     while (i < n) {
       if (j >= m) return -1
-      c = specifier.charCodeAt(i++)
+      c = spec.charCodeAt(i++)
       if (c === 37) {
-        c = specifier.charAt(i++)
-        parse = parses[c in pads ? specifier.charAt(i++) : c]
+        c = spec.charAt(i++)
+        parse = parses[c in pads ? spec.charAt(i++) : c]
         if (!parse || (j = parse(d, string, j)) < 0) return -1
       } else if (c != string.charCodeAt(j++)) {
         return -1
