@@ -5,7 +5,7 @@ import { interpolate as interpolateValue, interpolateNumber, interpolateRound } 
 import { interpolate, piecewise } from "./interpolate.js"
 import { timeFormat, utcFormat } from "./time.js"
 import { utcYear, utcMonth, utcWeek, utcDay, utcHour, utcMinute, utcSecond, utcTicks, utcTickInterval } from "./time.js"
-import { year, month, week, day, hour, minute, second, timeTicks, timeTickInterval } from "./time.js"
+import { year, month, week, day, hour, minute, second, ticks, tickInterval } from "./time.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
@@ -185,7 +185,7 @@ export function time<Range, Out = Range, U = never>(
 ): qt.Scale.Time<Range, Out, U>
 export function time(...xs: any[]) {
   return initRange.apply(
-    calendar(timeTicks, timeTickInterval, year, month, week, day, hour, minute, second, timeFormat).domain([
+    calendar(ticks, tickInterval, year, month, week, day, hour, minute, second, timeFormat).domain([
       new Date(2000, 0, 1),
       new Date(2000, 0, 2),
     ]),

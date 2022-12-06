@@ -272,7 +272,7 @@ export const utcSaturday: qt.Time.Countable = utcWeekday(6)
 export const utcSaturdays = utcSaturday.range
 
 function ticker(year, month, week, day, hour, minute) {
-  const tickIntervals = [
+  const intervals = [
     [second, 1, durationSecond],
     [second, 5, 5 * durationSecond],
     [second, 15, 15 * durationSecond],
@@ -292,28 +292,27 @@ function ticker(year, month, week, day, hour, minute) {
     [month, 3, 3 * durationMonth],
     [year, 1, durationYear],
   ]
-  function ticks(start: Date, stop: Date, count: number): Date[] {
+  function ticks(start: Date, stop: Date, count: any): Date[] {
     const reverse = stop < start
     if (reverse) [start, stop] = [stop, start]
-    const interval = count && typeof count.range === "function" ? count : tickInterval(start, stop, count)
-    const ticks = interval ? interval.range(start, +stop + 1) : []
-    return reverse ? ticks.reverse() : ticks
+    const x = count && typeof count.range === "function" ? count : tickInterval(start, stop, count)
+    const y = x ? x.range(start, +stop + 1) : []
+    return reverse ? y.reverse() : y
   }
   function interval(start: Date, stop: Date, count: number): qt.Time.Interval | null {
-    const target = qu.abs(stop - start) / count
-    const i = bisector(([, , step]) => step).right(tickIntervals, target)
-    if (i === tickIntervals.length) return year.every(tickStep(start / durationYear, stop / durationYear, count))
-    if (i === 0) return millisecond.every(qu.max(tickStep(start, stop, count), 1))
-    const [t, step] = tickIntervals[target / tickIntervals[i - 1][2] < tickIntervals[i][2] / target ? i - 1 : i]
+    const target = qu.abs(+stop - +start) / count
+    const i = bisector(([, , step]) => step).right(intervals, target)
+    if (i === intervals.length) return year.every(tickStep(+start / durationYear, +stop / durationYear, count))
+    if (i === 0) return millisecond.every(qu.max(tickStep(+start, +stop, count), 1))
+    const [t, step] = intervals[target / intervals[i - 1]![2] < intervals[i]![2] / target ? i - 1 : i]
     return t.every(step)
   }
   return [ticks, interval] as [typeof ticks, typeof interval]
 }
 
+export const [ticks, tickInterval] = ticker(year, month, week, day, hour, minute)
 export const [utcTicks, utcTickInterval] = ticker(utcYear, utcMonth, utcWeek, utcDay, utcHour, utcMinute)
-export const [timeTicks, timeTickInterval] = ticker(year, month, week, day, hour, minute)
 
-let locale
 export let timeFormat: (x: string) => (x: Date) => string
 export let timeParse: (x: string) => (x: string) => Date | null
 export let utcFormat: (x: string) => (x: Date) => string
@@ -350,6 +349,7 @@ formatDefaultLocale({
   shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 })
 
+let locale
 export function formatDefaultLocale(definition: qt.Time.Definition): qt.Time.Locale {
   locale = formatLocale(definition)
   timeFormat = locale.format
@@ -379,72 +379,89 @@ export function formatLocale(locale: qt.Time.Definition): qt.Time.Locale {
     shortMonthRe = formatRe(locale_shortMonths),
     shortMonthLookup = formatLookup(locale_shortMonths)
   const formats = {
-    a: formatShortWeekday,
-    A: formatWeekday,
-    b: formatShortMonth,
-    B: formatMonth,
+    a: d => locale_shortWeekdays[d.getDay()],
+    A: d => locale_weekdays[d.getDay()],
+    b: d => locale_shortMonths[d.getMonth()],
+    B: d => locale_months[d.getMonth()],
     c: unknown,
-    d: formatDayOfMonth,
-    e: formatDayOfMonth,
-    f: formatMicroseconds,
-    g: formatYearISO,
-    G: formatFullYearISO,
-    H: formatHour24,
-    I: formatHour12,
-    j: formatDayOfYear,
-    L: formatMilliseconds,
-    m: formatMonthNumber,
-    M: formatMinutes,
-    p: formatPeriod,
-    q: formatQuarter,
-    Q: formatUnixTimestamp,
-    s: formatUnixTimestampSeconds,
-    S: formatSeconds,
-    u: formatWeekdayNumberMonday,
-    U: formatWeekNumberSunday,
-    V: formatWeekNumberISO,
-    w: formatWeekdayNumberSunday,
-    W: formatWeekNumberMonday,
+    d: (d, p) => pad(d.getDate(), p, 2),
+    e: (d, p) => pad(d.getDate(), p, 2),
+    f: (d, p) => pad(d.getMilliseconds(), p, 3) + "000",
+    g: (d, p) => ((d = dISO(d)), pad(d.getFullYear() % 100, p, 2)),
+    G: (d, p) => {
+      const day = d.getDay()
+      d = day >= 4 || day === 0 ? thursday(d) : thursday.ceil(d)
+      return pad(d.getFullYear() % 10000, p, 4)
+    },
+    H: (d, p) => pad(d.getHours(), p, 2),
+    I: (d, p) => pad(d.getHours() % 12 || 12, p, 2),
+    j: (d, p) => pad(1 + day.count(year(d), d), p, 3),
+    L: (d, p) => pad(d.getMilliseconds(), p, 3),
+    m: (d, p) => pad(d.getMonth() + 1, p, 2),
+    M: (d, p) => pad(d.getMinutes(), p, 2),
+    p: d => locale_periods[+(d.getHours() >= 12)],
+    q: d => 1 + ~~(d.getMonth() / 3),
+    Q: d => +d,
+    s: d => qu.floor(+d / 1000),
+    S: (d, p) => pad(d.getSeconds(), p, 2),
+    u: d => {
+      const y = d.getDay()
+      return y === 0 ? 7 : y
+    },
+    U: (d, p) => pad(sunday.count(year(d) - 1, d), p, 2),
+    V: (d, p) => ((d = dISO(d)), pad(thursday.count(timeYear(d), d) + (year(d).getDay() === 4), p, 2)),
+    w: d => d.getDay(),
+    W: (d, p) => pad(monday.count(year(d) - 1, d), p, 2),
     x: null,
     X: null,
-    y: formatYear,
-    Y: formatFullYear,
-    Z: formatZone,
-    "%": formatLiteralPercent,
+    y: (d, p) => pad(d.getFullYear() % 100, p, 2),
+    Y: (d, p) => pad(d.getFullYear() % 10000, p, 4),
+    Z: d => {
+      let y = d.getTimezoneOffset()
+      return (y > 0 ? "-" : ((y *= -1), "+")) + pad((y / 60) | 0, "0", 2) + pad(y % 60, "0", 2)
+    },
+    "%": () => "%",
   }
   const utcFormats = {
-    a: formatUTCShortWeekday,
-    A: formatUTCWeekday,
-    b: formatUTCShortMonth,
-    B: formatUTCMonth,
+    a: d => locale_shortWeekdays[d.getUTCDay()],
+    A: d => locale_weekdays[d.getUTCDay()],
+    b: d => locale_shortMonths[d.getUTCMonth()],
+    B: d => locale_months[d.getUTCMonth()],
     c: null,
-    d: formatUTCDayOfMonth,
-    e: formatUTCDayOfMonth,
-    f: formatUTCMicroseconds,
-    g: formatUTCYearISO,
-    G: formatUTCFullYearISO,
-    H: formatUTCHour24,
-    I: formatUTCHour12,
-    j: formatUTCDayOfYear,
-    L: formatUTCMilliseconds,
-    m: formatUTCMonthNumber,
-    M: formatUTCMinutes,
-    p: formatUTCPeriod,
-    q: formatUTCQuarter,
-    Q: formatUnixTimestamp,
-    s: formatUnixTimestampSeconds,
-    S: formatUTCSeconds,
-    u: formatUTCWeekdayNumberMonday,
-    U: formatUTCWeekNumberSunday,
-    V: formatUTCWeekNumberISO,
-    w: formatUTCWeekdayNumberSunday,
-    W: formatUTCWeekNumberMonday,
+    d: (d, p) => pad(d.getUTCDate(), p, 2),
+    e: (d, p) => pad(d.getUTCDate(), p, 2),
+    f: (d, p) => pad(d.getUTCMilliseconds(), p, 3) + "000",
+    g: (d, p) => ((d = UTCdISO(d)), pad(d.getUTCFullYear() % 100, p, 2)),
+    G: (d, p) => {
+      const y = d.getUTCDay()
+      d = y >= 4 || y === 0 ? utcThursday(d) : utcThursday.ceil(d)
+      return pad(d.getUTCFullYear() % 10000, p, 4)
+    },
+    H: (d, p) => pad(d.getUTCHours(), p, 2),
+    I: (d, p) => pad(d.getUTCHours() % 12 || 12, p, 2),
+    j: (d, p) => pad(1 + utcDay.count(utcYear(d), d), p, 3),
+    L: (d, p) => pad(d.getUTCMilliseconds(), p, 3),
+    m: (d, p) => pad(d.getUTCMonth() + 1, p, 2),
+    M: (d, p) => pad(d.getUTCMinutes(), p, 2),
+    p: d => locale_periods[+(d.getUTCHours() >= 12)],
+    q: d => 1 + ~~(d.getUTCMonth() / 3),
+    Q: d => +d,
+    s: d => qu.floor(+d / 1000),
+    S: (d, p) => pad(d.getUTCSeconds(), p, 2),
+    u: d => {
+      const y = d.getUTCDay()
+      return y === 0 ? 7 : y
+    },
+    U: (d, p) => pad(utcSunday.count(utcYear(d) - 1, d), p, 2),
+    V: (d, p) => ((d = UTCdISO(d)), pad(utcThursday.count(utcYear(d), d) + (utcYear(d).getUTCDay() === 4), p, 2)),
+    w: d => d.getUTCDay(),
+    W: (d, p) => pad(utcMonday.count(utcYear(d) - 1, d), p, 2),
     x: null,
     X: null,
-    y: formatUTCYear,
-    Y: formatUTCFullYear,
-    Z: formatUTCZone,
-    "%": formatLiteralPercent,
+    y: (d, p) => pad(d.getUTCFullYear() % 100, p, 2),
+    Y: (d, p) => pad(d.getUTCFullYear() % 10000, p, 4),
+    Z: () => "+0000",
+    "%": () => "%",
   }
   const parses = {
     a: parseShortWeekday,
@@ -601,42 +618,6 @@ export function formatLocale(locale: qt.Time.Definition): qt.Time.Locale {
   function parseLocaleTime(d, string, i) {
     return parseSpecifier(d, locale_time, string, i)
   }
-  function formatShortWeekday(d) {
-    return locale_shortWeekdays[d.getDay()]
-  }
-  function formatWeekday(d) {
-    return locale_weekdays[d.getDay()]
-  }
-  function formatShortMonth(d) {
-    return locale_shortMonths[d.getMonth()]
-  }
-  function formatMonth(d) {
-    return locale_months[d.getMonth()]
-  }
-  function formatPeriod(d) {
-    return locale_periods[+(d.getHours() >= 12)]
-  }
-  function formatQuarter(d) {
-    return 1 + ~~(d.getMonth() / 3)
-  }
-  function formatUTCShortWeekday(d) {
-    return locale_shortWeekdays[d.getUTCDay()]
-  }
-  function formatUTCWeekday(d) {
-    return locale_weekdays[d.getUTCDay()]
-  }
-  function formatUTCShortMonth(d) {
-    return locale_shortMonths[d.getUTCMonth()]
-  }
-  function formatUTCMonth(d) {
-    return locale_months[d.getUTCMonth()]
-  }
-  function formatUTCPeriod(d) {
-    return locale_periods[+(d.getUTCHours() >= 12)]
-  }
-  function formatUTCQuarter(d) {
-    return 1 + ~~(d.getUTCMonth() / 3)
-  }
   return {
     format: function (specifier) {
       const f = newFormat((specifier += ""), formats)
@@ -789,145 +770,11 @@ function parseUnixTimestampSeconds(d, string, i) {
   const n = numberRe.exec(string.slice(i))
   return n ? ((d.s = +n[0]), i + n[0].length) : -1
 }
-function formatDayOfMonth(d, p) {
-  return pad(d.getDate(), p, 2)
-}
-function formatHour24(d, p) {
-  return pad(d.getHours(), p, 2)
-}
-function formatHour12(d, p) {
-  return pad(d.getHours() % 12 || 12, p, 2)
-}
-function formatDayOfYear(d, p) {
-  return pad(1 + day.count(year(d), d), p, 3)
-}
-function formatMilliseconds(d, p) {
-  return pad(d.getMilliseconds(), p, 3)
-}
-function formatMicroseconds(d, p) {
-  return formatMilliseconds(d, p) + "000"
-}
-function formatMonthNumber(d, p) {
-  return pad(d.getMonth() + 1, p, 2)
-}
-function formatMinutes(d, p) {
-  return pad(d.getMinutes(), p, 2)
-}
-function formatSeconds(d, p) {
-  return pad(d.getSeconds(), p, 2)
-}
-function formatWeekdayNumberMonday(d) {
-  const day = d.getDay()
-  return day === 0 ? 7 : day
-}
-function formatWeekNumberSunday(d, p) {
-  return pad(sunday.count(year(d) - 1, d), p, 2)
-}
 function dISO(d) {
   const day = d.getDay()
   return day >= 4 || day === 0 ? thursday(d) : thursday.ceil(d)
 }
-function formatWeekNumberISO(d, p) {
-  d = dISO(d)
-  return pad(thursday.count(timeYear(d), d) + (year(d).getDay() === 4), p, 2)
-}
-function formatWeekdayNumberSunday(d) {
-  return d.getDay()
-}
-function formatWeekNumberMonday(d, p) {
-  return pad(monday.count(year(d) - 1, d), p, 2)
-}
-function formatYear(d, p) {
-  return pad(d.getFullYear() % 100, p, 2)
-}
-function formatYearISO(d, p) {
-  d = dISO(d)
-  return pad(d.getFullYear() % 100, p, 2)
-}
-function formatFullYear(d, p) {
-  return pad(d.getFullYear() % 10000, p, 4)
-}
-function formatFullYearISO(d, p) {
-  const day = d.getDay()
-  d = day >= 4 || day === 0 ? thursday(d) : thursday.ceil(d)
-  return pad(d.getFullYear() % 10000, p, 4)
-}
-function formatZone(d) {
-  let z = d.getTimezoneOffset()
-  return (z > 0 ? "-" : ((z *= -1), "+")) + pad((z / 60) | 0, "0", 2) + pad(z % 60, "0", 2)
-}
-function formatUTCDayOfMonth(d, p) {
-  return pad(d.getUTCDate(), p, 2)
-}
-function formatUTCHour24(d, p) {
-  return pad(d.getUTCHours(), p, 2)
-}
-function formatUTCHour12(d, p) {
-  return pad(d.getUTCHours() % 12 || 12, p, 2)
-}
-function formatUTCDayOfYear(d, p) {
-  return pad(1 + utcDay.count(utcYear(d), d), p, 3)
-}
-function formatUTCMilliseconds(d, p) {
-  return pad(d.getUTCMilliseconds(), p, 3)
-}
-function formatUTCMicroseconds(d, p) {
-  return formatUTCMilliseconds(d, p) + "000"
-}
-function formatUTCMonthNumber(d, p) {
-  return pad(d.getUTCMonth() + 1, p, 2)
-}
-function formatUTCMinutes(d, p) {
-  return pad(d.getUTCMinutes(), p, 2)
-}
-function formatUTCSeconds(d, p) {
-  return pad(d.getUTCSeconds(), p, 2)
-}
-function formatUTCWeekdayNumberMonday(d) {
-  const dow = d.getUTCDay()
-  return dow === 0 ? 7 : dow
-}
-function formatUTCWeekNumberSunday(d, p) {
-  return pad(utcSunday.count(utcYear(d) - 1, d), p, 2)
-}
 function UTCdISO(d) {
   const day = d.getUTCDay()
   return day >= 4 || day === 0 ? utcThursday(d) : utcThursday.ceil(d)
-}
-function formatUTCWeekNumberISO(d, p) {
-  d = UTCdISO(d)
-  return pad(utcThursday.count(utcYear(d), d) + (utcYear(d).getUTCDay() === 4), p, 2)
-}
-function formatUTCWeekdayNumberSunday(d) {
-  return d.getUTCDay()
-}
-function formatUTCWeekNumberMonday(d, p) {
-  return pad(utcMonday.count(utcYear(d) - 1, d), p, 2)
-}
-function formatUTCYear(d, p) {
-  return pad(d.getUTCFullYear() % 100, p, 2)
-}
-function formatUTCYearISO(d, p) {
-  d = UTCdISO(d)
-  return pad(d.getUTCFullYear() % 100, p, 2)
-}
-function formatUTCFullYear(d, p) {
-  return pad(d.getUTCFullYear() % 10000, p, 4)
-}
-function formatUTCFullYearISO(d, p) {
-  const day = d.getUTCDay()
-  d = day >= 4 || day === 0 ? utcThursday(d) : utcThursday.ceil(d)
-  return pad(d.getUTCFullYear() % 10000, p, 4)
-}
-function formatUTCZone() {
-  return "+0000"
-}
-function formatLiteralPercent() {
-  return "%"
-}
-function formatUnixTimestamp(d) {
-  return +d
-}
-function formatUnixTimestampSeconds(d) {
-  return qu.floor(+d / 1000)
 }
