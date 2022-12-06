@@ -318,14 +318,24 @@ export let timeParse: (x: string) => (x: string) => Date | null
 export let utcFormat: (x: string) => (x: Date) => string
 export let utcParse: (x: string) => (x: string) => Date | null
 
-export const isoSpecifier = "%Y-%m-%dT%H:%M:%S.%LZ"
+export const isoSpec = "%Y-%m-%dT%H:%M:%S.%LZ"
 export const isoFormat = (x: Date) => x.toISOString()
 export function isoParse(x: string) {
   const y = new Date(x)
-  return isNaN(y) ? null : y
+  return isNaN(+y) ? null : y
 }
 
-formatDefaultLocale({
+let locale
+export function formatDefault(x: qt.Time.Definition): qt.Time.Locale {
+  locale = formatLocale(x)
+  timeFormat = locale.format
+  timeParse = locale.parse
+  utcFormat = locale.utcFormat
+  utcParse = locale.utcParse
+  return locale
+}
+
+formatDefault({
   dateTime: "%x, %X",
   date: "%-m/%-d/%Y",
   time: "%-I:%M:%S %p",
@@ -349,160 +359,259 @@ formatDefaultLocale({
   shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 })
 
-let locale
-export function formatDefaultLocale(definition: qt.Time.Definition): qt.Time.Locale {
-  locale = formatLocale(definition)
-  timeFormat = locale.format
-  timeParse = locale.parse
-  utcFormat = locale.utcFormat
-  utcParse = locale.utcParse
-  return locale
-}
-
-export function formatLocale(locale: qt.Time.Definition): qt.Time.Locale {
-  const locale_dateTime = locale.dateTime,
-    locale_date = locale.date,
-    locale_time = locale.time,
-    locale_periods = locale.periods,
-    locale_weekdays = locale.days,
-    locale_shortWeekdays = locale.shortDays,
-    locale_months = locale.months,
-    locale_shortMonths = locale.shortMonths
-  const periodRe = formatRe(locale_periods),
-    periodLookup = formatLookup(locale_periods),
-    weekdayRe = formatRe(locale_weekdays),
-    weekdayLookup = formatLookup(locale_weekdays),
-    shortWeekdayRe = formatRe(locale_shortWeekdays),
-    shortWeekdayLookup = formatLookup(locale_shortWeekdays),
-    monthRe = formatRe(locale_months),
-    monthLookup = formatLookup(locale_months),
-    shortMonthRe = formatRe(locale_shortMonths),
-    shortMonthLookup = formatLookup(locale_shortMonths)
+export function formatLocale(x: qt.Time.Definition): qt.Time.Locale {
+  const _dateTime = x.dateTime,
+    _date = x.date,
+    _time = x.time,
+    _periods = x.periods,
+    _weekdays = x.days,
+    _shortWeekdays = x.shortDays,
+    _months = x.months,
+    _shortMonths = x.shortMonths
+  const formatRe = (xs: string[]) => new RegExp("^(?:" + xs.map(x => x.replace(requoteRe, "\\$&")).join("|") + ")", "i")
+  const formatLookup = (xs: string[]) => new Map(xs.map((x, i) => [x.toLowerCase(), i]))
+  const periodRe = formatRe(_periods),
+    periodLookup = formatLookup(_periods),
+    weekdayRe = formatRe(_weekdays),
+    weekdayLookup = formatLookup(_weekdays),
+    shortWeekdayRe = formatRe(_shortWeekdays),
+    shortWeekdayLookup = formatLookup(_shortWeekdays),
+    monthRe = formatRe(_months),
+    monthLookup = formatLookup(_months),
+    shortMonthRe = formatRe(_shortMonths),
+    shortMonthLookup = formatLookup(_shortMonths)
+  function pad(x: number, fill: string, width: number) {
+    const s = x < 0 ? "-" : "",
+      y = (s ? -x : x) + "",
+      n = y.length
+    return s + (n < width ? new Array(width - n + 1).join(fill) + y : y)
+  }
+  const dISO = (d: Date) => {
+    const y = d.getDay()
+    return y >= 4 || y === 0 ? thursday(d) : thursday.ceil(d)
+  }
   const formats = {
-    a: d => locale_shortWeekdays[d.getDay()],
-    A: d => locale_weekdays[d.getDay()],
-    b: d => locale_shortMonths[d.getMonth()],
-    B: d => locale_months[d.getMonth()],
+    a: (d: Date) => _shortWeekdays[d.getDay()],
+    A: (d: Date) => _weekdays[d.getDay()],
+    b: (d: Date) => _shortMonths[d.getMonth()],
+    B: (d: Date) => _months[d.getMonth()],
     c: unknown,
-    d: (d, p) => pad(d.getDate(), p, 2),
-    e: (d, p) => pad(d.getDate(), p, 2),
-    f: (d, p) => pad(d.getMilliseconds(), p, 3) + "000",
-    g: (d, p) => ((d = dISO(d)), pad(d.getFullYear() % 100, p, 2)),
-    G: (d, p) => {
-      const day = d.getDay()
-      d = day >= 4 || day === 0 ? thursday(d) : thursday.ceil(d)
+    d: (d: Date, p: string) => pad(d.getDate(), p, 2),
+    e: (d: Date, p: string) => pad(d.getDate(), p, 2),
+    f: (d: Date, p: string) => pad(d.getMilliseconds(), p, 3) + "000",
+    g: (d: Date, p: string) => ((d = dISO(d)), pad(d.getFullYear() % 100, p, 2)),
+    G: (d: Date, p: string) => {
+      const y = d.getDay()
+      d = y >= 4 || y === 0 ? thursday(d) : thursday.ceil(d)
       return pad(d.getFullYear() % 10000, p, 4)
     },
-    H: (d, p) => pad(d.getHours(), p, 2),
-    I: (d, p) => pad(d.getHours() % 12 || 12, p, 2),
-    j: (d, p) => pad(1 + day.count(year(d), d), p, 3),
-    L: (d, p) => pad(d.getMilliseconds(), p, 3),
-    m: (d, p) => pad(d.getMonth() + 1, p, 2),
-    M: (d, p) => pad(d.getMinutes(), p, 2),
-    p: d => locale_periods[+(d.getHours() >= 12)],
-    q: d => 1 + ~~(d.getMonth() / 3),
-    Q: d => +d,
-    s: d => qu.floor(+d / 1000),
-    S: (d, p) => pad(d.getSeconds(), p, 2),
-    u: d => {
+    H: (d: Date, p: string) => pad(d.getHours(), p, 2),
+    I: (d: Date, p: string) => pad(d.getHours() % 12 || 12, p, 2),
+    j: (d: Date, p: string) => pad(1 + day.count(year(d), d), p, 3),
+    L: (d: Date, p: string) => pad(d.getMilliseconds(), p, 3),
+    m: (d: Date, p: string) => pad(d.getMonth() + 1, p, 2),
+    M: (d: Date, p: string) => pad(d.getMinutes(), p, 2),
+    p: (d: Date) => _periods[+(d.getHours() >= 12)],
+    q: (d: Date) => 1 + ~~(d.getMonth() / 3),
+    Q: (d: Date) => +d,
+    s: (d: Date) => qu.floor(+d / 1000),
+    S: (d: Date, p: string) => pad(d.getSeconds(), p, 2),
+    u: (d: Date) => {
       const y = d.getDay()
       return y === 0 ? 7 : y
     },
-    U: (d, p) => pad(sunday.count(year(d) - 1, d), p, 2),
-    V: (d, p) => ((d = dISO(d)), pad(thursday.count(timeYear(d), d) + (year(d).getDay() === 4), p, 2)),
-    w: d => d.getDay(),
-    W: (d, p) => pad(monday.count(year(d) - 1, d), p, 2),
+    U: (d: Date, p: string) => pad(sunday.count(year(d) - 1, d), p, 2),
+    V: (d: Date, p: string) => ((d = dISO(d)), pad(thursday.count(timeYear(d), d) + (year(d).getDay() === 4), p, 2)),
+    w: (d: Date) => d.getDay(),
+    W: (d: Date, p: string) => pad(monday.count(year(d) - 1, d), p, 2),
     x: null,
     X: null,
-    y: (d, p) => pad(d.getFullYear() % 100, p, 2),
-    Y: (d, p) => pad(d.getFullYear() % 10000, p, 4),
-    Z: d => {
+    y: (d: Date, p: string) => pad(d.getFullYear() % 100, p, 2),
+    Y: (d: Date, p: string) => pad(d.getFullYear() % 10000, p, 4),
+    Z: (d: Date) => {
       let y = d.getTimezoneOffset()
       return (y > 0 ? "-" : ((y *= -1), "+")) + pad((y / 60) | 0, "0", 2) + pad(y % 60, "0", 2)
     },
     "%": () => "%",
   }
+  const UTCdISO = (d: Date) => {
+    const y = d.getUTCDay()
+    return y >= 4 || y === 0 ? utcThursday(d) : utcThursday.ceil(d)
+  }
   const utcFormats = {
-    a: d => locale_shortWeekdays[d.getUTCDay()],
-    A: d => locale_weekdays[d.getUTCDay()],
-    b: d => locale_shortMonths[d.getUTCMonth()],
-    B: d => locale_months[d.getUTCMonth()],
+    a: (d: Date) => _shortWeekdays[d.getUTCDay()],
+    A: (d: Date) => _weekdays[d.getUTCDay()],
+    b: (d: Date) => _shortMonths[d.getUTCMonth()],
+    B: (d: Date) => _months[d.getUTCMonth()],
     c: null,
-    d: (d, p) => pad(d.getUTCDate(), p, 2),
-    e: (d, p) => pad(d.getUTCDate(), p, 2),
-    f: (d, p) => pad(d.getUTCMilliseconds(), p, 3) + "000",
-    g: (d, p) => ((d = UTCdISO(d)), pad(d.getUTCFullYear() % 100, p, 2)),
-    G: (d, p) => {
+    d: (d: Date, p: string) => pad(d.getUTCDate(), p, 2),
+    e: (d: Date, p: string) => pad(d.getUTCDate(), p, 2),
+    f: (d: Date, p: string) => pad(d.getUTCMilliseconds(), p, 3) + "000",
+    g: (d: Date, p: string) => ((d = UTCdISO(d)), pad(d.getUTCFullYear() % 100, p, 2)),
+    G: (d: Date, p: string) => {
       const y = d.getUTCDay()
       d = y >= 4 || y === 0 ? utcThursday(d) : utcThursday.ceil(d)
       return pad(d.getUTCFullYear() % 10000, p, 4)
     },
-    H: (d, p) => pad(d.getUTCHours(), p, 2),
-    I: (d, p) => pad(d.getUTCHours() % 12 || 12, p, 2),
-    j: (d, p) => pad(1 + utcDay.count(utcYear(d), d), p, 3),
-    L: (d, p) => pad(d.getUTCMilliseconds(), p, 3),
-    m: (d, p) => pad(d.getUTCMonth() + 1, p, 2),
-    M: (d, p) => pad(d.getUTCMinutes(), p, 2),
-    p: d => locale_periods[+(d.getUTCHours() >= 12)],
-    q: d => 1 + ~~(d.getUTCMonth() / 3),
-    Q: d => +d,
-    s: d => qu.floor(+d / 1000),
-    S: (d, p) => pad(d.getUTCSeconds(), p, 2),
-    u: d => {
+    H: (d: Date, p: string) => pad(d.getUTCHours(), p, 2),
+    I: (d: Date, p: string) => pad(d.getUTCHours() % 12 || 12, p, 2),
+    j: (d: Date, p: string) => pad(1 + utcDay.count(utcYear(d), d), p, 3),
+    L: (d: Date, p: string) => pad(d.getUTCMilliseconds(), p, 3),
+    m: (d: Date, p: string) => pad(d.getUTCMonth() + 1, p, 2),
+    M: (d: Date, p: string) => pad(d.getUTCMinutes(), p, 2),
+    p: (d: Date) => _periods[+(d.getUTCHours() >= 12)],
+    q: (d: Date) => 1 + ~~(d.getUTCMonth() / 3),
+    Q: (d: Date) => +d,
+    s: (d: Date) => qu.floor(+d / 1000),
+    S: (d: Date, p: string) => pad(d.getUTCSeconds(), p, 2),
+    u: (d: Date) => {
       const y = d.getUTCDay()
       return y === 0 ? 7 : y
     },
-    U: (d, p) => pad(utcSunday.count(utcYear(d) - 1, d), p, 2),
-    V: (d, p) => ((d = UTCdISO(d)), pad(utcThursday.count(utcYear(d), d) + (utcYear(d).getUTCDay() === 4), p, 2)),
-    w: d => d.getUTCDay(),
-    W: (d, p) => pad(utcMonday.count(utcYear(d) - 1, d), p, 2),
+    U: (d: Date, p: string) => pad(utcSunday.count(utcYear(d) - 1, d), p, 2),
+    V: (d: Date, p: string) => (
+      (d = UTCdISO(d)), pad(utcThursday.count(utcYear(d), d) + (utcYear(d).getUTCDay() === 4), p, 2)
+    ),
+    w: (d: Date) => d.getUTCDay(),
+    W: (d: Date, p: string) => pad(utcMonday.count(utcYear(d) - 1, d), p, 2),
     x: null,
     X: null,
-    y: (d, p) => pad(d.getUTCFullYear() % 100, p, 2),
-    Y: (d, p) => pad(d.getUTCFullYear() % 10000, p, 4),
+    y: (d: Date, p: string) => pad(d.getUTCFullYear() % 100, p, 2),
+    Y: (d: Date, p: string) => pad(d.getUTCFullYear() % 10000, p, 4),
     Z: () => "+0000",
     "%": () => "%",
   }
+  const numberRe = /^\s*\d+/,
+    percentRe = /^%/,
+    requoteRe = /[\\^$*+?|[\]().{}]/g
   const parses = {
-    a: parseShortWeekday,
-    A: parseWeekday,
-    b: parseShortMonth,
-    B: parseMonth,
-    c: parseLocaleDateTime,
-    d: parseDayOfMonth,
-    e: parseDayOfMonth,
-    f: parseMicroseconds,
-    g: parseYear,
-    G: parseFullYear,
-    H: parseHour24,
-    I: parseHour24,
-    j: parseDayOfYear,
-    L: parseMilliseconds,
-    m: parseMonthNumber,
-    M: parseMinutes,
-    p: parsePeriod,
-    q: parseQuarter,
-    Q: parseUnixTimestamp,
-    s: parseUnixTimestampSeconds,
-    S: parseSeconds,
-    u: parseWeekdayNumberMonday,
-    U: parseWeekNumberSunday,
-    V: parseWeekNumberISO,
-    w: parseWeekdayNumberSunday,
-    W: parseWeekNumberMonday,
-    x: parseLocaleDate,
-    X: parseLocaleTime,
-    y: parseYear,
-    Y: parseFullYear,
-    Z: parseZone,
-    "%": parseLiteralPercent,
+    a: (d, x, i) => {
+      const y = shortWeekdayRe.exec(x.slice(i))
+      return y ? ((d.w = shortWeekdayLookup.get(y[0].toLowerCase())), i + y[0].length) : -1
+    },
+    A: (d, x, i) => {
+      const y = weekdayRe.exec(x.slice(i))
+      return y ? ((d.w = weekdayLookup.get(y[0].toLowerCase())), i + y[0].length) : -1
+    },
+    b: (d, x, i) => {
+      const y = shortMonthRe.exec(x.slice(i))
+      return y ? ((d.m = shortMonthLookup.get(y[0].toLowerCase())), i + y[0].length) : -1
+    },
+    B: (d, x, i) => {
+      const y = monthRe.exec(x.slice(i))
+      return y ? ((d.m = monthLookup.get(y[0].toLowerCase())), i + y[0].length) : -1
+    },
+    c: (d, x, i) => parseSpec(d, _dateTime, x, i),
+    d: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.d = +y[0]), i + y[0].length) : -1
+    },
+    e: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.d = +y[0]), i + y[0].length) : -1
+    },
+    f: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 6))
+      return y ? ((d.L = qu.floor(y[0] / 1000)), i + y[0].length) : -1
+    },
+    g: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.y = +y[0] + (+y[0] > 68 ? 1900 : 2000)), i + y[0].length) : -1
+    },
+    G: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 4))
+      return y ? ((d.y = +y[0]), i + y[0].length) : -1
+    },
+    H: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.H = +y[0]), i + y[0].length) : -1
+    },
+    I: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.H = +y[0]), i + y[0].length) : -1
+    },
+    j: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 3))
+      return y ? ((d.m = 0), (d.d = +y[0]), i + y[0].length) : -1
+    },
+    L: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 3))
+      return y ? ((d.L = +y[0]), i + y[0].length) : -1
+    },
+    m: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.m = y[0] - 1), i + y[0].length) : -1
+    },
+    M: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.M = +y[0]), i + y[0].length) : -1
+    },
+    p: (d, x, i) => {
+      const y = periodRe.exec(x.slice(i))
+      return y ? ((d.p = periodLookup.get(y[0].toLowerCase())), i + y[0].length) : -1
+    },
+    q: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 1))
+      return y ? ((d.q = y[0] * 3 - 3), i + y[0].length) : -1
+    },
+    Q: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i))
+      return y ? ((d.Q = +y[0]), i + y[0].length) : -1
+    },
+    s: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i))
+      return y ? ((d.s = +y[0]), i + y[0].length) : -1
+    },
+    S: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.S = +y[0]), i + y[0].length) : -1
+    },
+    u: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 1))
+      return y ? ((d.u = +y[0]), i + y[0].length) : -1
+    },
+    U: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.U = +y[0]), i + y[0].length) : -1
+    },
+    V: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.V = +y[0]), i + y[0].length) : -1
+    },
+    w: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 1))
+      return y ? ((d.w = +y[0]), i + y[0].length) : -1
+    },
+    W: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.W = +y[0]), i + y[0].length) : -1
+    },
+    x: (d, x, i) => parseSpec(d, _date, x, i),
+    X: (d, x, i) => parseSpec(d, _time, x, i),
+    y: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 2))
+      return y ? ((d.y = +y[0] + (+y[0] > 68 ? 1900 : 2000)), i + y[0].length) : -1
+    },
+    Y: (d, x, i) => {
+      const y = numberRe.exec(x.slice(i, i + 4))
+      return y ? ((d.y = +y[0]), i + y[0].length) : -1
+    },
+    Z: (d, x, i) => {
+      const y = /^(Z)|([+-]\d\d)(?::?(\d\d))?/.exec(x.slice(i, i + 6))
+      return y ? ((d.Z = y[1] ? 0 : -(y[2] + (y[3] || "00"))), i + y[0].length) : -1
+    },
+    "%": (d, x, i) => {
+      const y = percentRe.exec(x.slice(i, i + 1))
+      return y ? i + y[0].length : -1
+    },
   }
-  formats.x = newFormat(locale_date, formats)
-  formats.X = newFormat(locale_time, formats)
-  formats.c = newFormat(locale_dateTime, formats)
-  utcFormats.x = newFormat(locale_date, utcFormats)
-  utcFormats.X = newFormat(locale_time, utcFormats)
-  utcFormats.c = newFormat(locale_dateTime, utcFormats)
+  formats.x = newFormat(_date, formats)
+  formats.X = newFormat(_time, formats)
+  formats.c = newFormat(_dateTime, formats)
+  utcFormats.x = newFormat(_date, utcFormats)
+  utcFormats.X = newFormat(_time, utcFormats)
+  utcFormats.c = newFormat(_dateTime, utcFormats)
+  const pads = { "-": "", _: " ", "0": "0" }
   function newFormat(spec: string, formats) {
     return (x: any) => {
       const ys = [],
@@ -528,9 +637,28 @@ export function formatLocale(locale: qt.Time.Definition): qt.Time.Locale {
     }
   }
   function newParse(spec: string, Z) {
+    function newDate(y, m, d) {
+      return { y: y, m: m, d: d, H: 0, M: 0, S: 0, L: 0 }
+    }
+    function localDate(d) {
+      if (0 <= d.y && d.y < 100) {
+        const y = new Date(-1, d.m, d.d, d.H, d.M, d.S, d.L)
+        y.setFullYear(d.y)
+        return y
+      }
+      return new Date(d.y, d.m, d.d, d.H, d.M, d.S, d.L)
+    }
+    function utcDate(d) {
+      if (0 <= d.y && d.y < 100) {
+        const y = new Date(Date.UTC(-1, d.m, d.d, d.H, d.M, d.S, d.L))
+        y.setUTCFullYear(d.y)
+        return y
+      }
+      return new Date(Date.UTC(d.y, d.m, d.d, d.H, d.M, d.S, d.L))
+    }
     return string => {
       const d = newDate(1900, undefined, 1),
-        i = parseSpecifier(d, spec, (string += ""), 0)
+        i = parseSpec(d, spec, (string += ""), 0)
       let week, day
       if (i != string.length) return null
       if ("Q" in d) return new Date(d.Q)
@@ -570,10 +698,10 @@ export function formatLocale(locale: qt.Time.Definition): qt.Time.Locale {
       return localDate(d)
     }
   }
-  function parseSpecifier(d, spec, string, j) {
+  function parseSpec(d, spec, string, j) {
+    const n = spec.length,
+      m = string.length
     let i = 0,
-      n = spec.length,
-      m = string.length,
       c,
       parse
     while (i < n) {
@@ -583,198 +711,30 @@ export function formatLocale(locale: qt.Time.Definition): qt.Time.Locale {
         c = spec.charAt(i++)
         parse = parses[c in pads ? spec.charAt(i++) : c]
         if (!parse || (j = parse(d, string, j)) < 0) return -1
-      } else if (c != string.charCodeAt(j++)) {
-        return -1
-      }
+      } else if (c != string.charCodeAt(j++)) return -1
     }
     return j
   }
-  function parsePeriod(d, string, i) {
-    const n = periodRe.exec(string.slice(i))
-    return n ? ((d.p = periodLookup.get(n[0].toLowerCase())), i + n[0].length) : -1
-  }
-  function parseShortWeekday(d, string, i) {
-    const n = shortWeekdayRe.exec(string.slice(i))
-    return n ? ((d.w = shortWeekdayLookup.get(n[0].toLowerCase())), i + n[0].length) : -1
-  }
-  function parseWeekday(d, string, i) {
-    const n = weekdayRe.exec(string.slice(i))
-    return n ? ((d.w = weekdayLookup.get(n[0].toLowerCase())), i + n[0].length) : -1
-  }
-  function parseShortMonth(d, string, i) {
-    const n = shortMonthRe.exec(string.slice(i))
-    return n ? ((d.m = shortMonthLookup.get(n[0].toLowerCase())), i + n[0].length) : -1
-  }
-  function parseMonth(d, string, i) {
-    const n = monthRe.exec(string.slice(i))
-    return n ? ((d.m = monthLookup.get(n[0].toLowerCase())), i + n[0].length) : -1
-  }
-  function parseLocaleDateTime(d, string, i) {
-    return parseSpecifier(d, locale_dateTime, string, i)
-  }
-  function parseLocaleDate(d, string, i) {
-    return parseSpecifier(d, locale_date, string, i)
-  }
-  function parseLocaleTime(d, string, i) {
-    return parseSpecifier(d, locale_time, string, i)
-  }
   return {
-    format: function (specifier) {
-      const f = newFormat((specifier += ""), formats)
-      f.toString = function () {
-        return specifier
-      }
-      return f
+    format: x => {
+      const y = newFormat((x += ""), formats)
+      y.toString = () => x
+      return y
     },
-    parse: function (specifier) {
-      const p = newParse((specifier += ""), false)
-      p.toString = function () {
-        return specifier
-      }
-      return p
+    parse: x => {
+      const y = newParse((x += ""), false)
+      y.toString = () => x
+      return y
     },
-    utcFormat: function (specifier) {
-      const f = newFormat((specifier += ""), utcFormats)
-      f.toString = function () {
-        return specifier
-      }
-      return f
+    utcFormat: x => {
+      const y = newFormat((x += ""), utcFormats)
+      y.toString = () => x
+      return y
     },
-    utcParse: function (specifier) {
-      const p = newParse((specifier += ""), true)
-      p.toString = function () {
-        return specifier
-      }
-      return p
+    utcParse: x => {
+      const y = newParse((x += ""), true)
+      y.toString = () => x
+      return y
     },
   }
-}
-
-function localDate(d) {
-  if (0 <= d.y && d.y < 100) {
-    const date = new Date(-1, d.m, d.d, d.H, d.M, d.S, d.L)
-    date.setFullYear(d.y)
-    return date
-  }
-  return new Date(d.y, d.m, d.d, d.H, d.M, d.S, d.L)
-}
-function utcDate(d) {
-  if (0 <= d.y && d.y < 100) {
-    const date = new Date(Date.UTC(-1, d.m, d.d, d.H, d.M, d.S, d.L))
-    date.setUTCFullYear(d.y)
-    return date
-  }
-  return new Date(Date.UTC(d.y, d.m, d.d, d.H, d.M, d.S, d.L))
-}
-function newDate(y, m, d) {
-  return { y: y, m: m, d: d, H: 0, M: 0, S: 0, L: 0 }
-}
-
-const pads = { "-": "", _: " ", "0": "0" },
-  numberRe = /^\s*\d+/,
-  percentRe = /^%/,
-  requoteRe = /[\\^$*+?|[\]().{}]/g
-
-function pad(value, fill, width) {
-  const sign = value < 0 ? "-" : "",
-    string = (sign ? -value : value) + "",
-    length = string.length
-  return sign + (length < width ? new Array(width - length + 1).join(fill) + string : string)
-}
-function requote(s) {
-  return s.replace(requoteRe, "\\$&")
-}
-function formatRe(names) {
-  return new RegExp("^(?:" + names.map(requote).join("|") + ")", "i")
-}
-function formatLookup(names) {
-  return new Map(names.map((name, i) => [name.toLowerCase(), i]))
-}
-function parseWeekdayNumberSunday(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 1))
-  return n ? ((d.w = +n[0]), i + n[0].length) : -1
-}
-function parseWeekdayNumberMonday(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 1))
-  return n ? ((d.u = +n[0]), i + n[0].length) : -1
-}
-function parseWeekNumberSunday(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 2))
-  return n ? ((d.U = +n[0]), i + n[0].length) : -1
-}
-function parseWeekNumberISO(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 2))
-  return n ? ((d.V = +n[0]), i + n[0].length) : -1
-}
-function parseWeekNumberMonday(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 2))
-  return n ? ((d.W = +n[0]), i + n[0].length) : -1
-}
-function parseFullYear(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 4))
-  return n ? ((d.y = +n[0]), i + n[0].length) : -1
-}
-function parseYear(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 2))
-  return n ? ((d.y = +n[0] + (+n[0] > 68 ? 1900 : 2000)), i + n[0].length) : -1
-}
-function parseZone(d, string, i) {
-  const n = /^(Z)|([+-]\d\d)(?::?(\d\d))?/.exec(string.slice(i, i + 6))
-  return n ? ((d.Z = n[1] ? 0 : -(n[2] + (n[3] || "00"))), i + n[0].length) : -1
-}
-function parseQuarter(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 1))
-  return n ? ((d.q = n[0] * 3 - 3), i + n[0].length) : -1
-}
-function parseMonthNumber(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 2))
-  return n ? ((d.m = n[0] - 1), i + n[0].length) : -1
-}
-function parseDayOfMonth(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 2))
-  return n ? ((d.d = +n[0]), i + n[0].length) : -1
-}
-function parseDayOfYear(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 3))
-  return n ? ((d.m = 0), (d.d = +n[0]), i + n[0].length) : -1
-}
-function parseHour24(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 2))
-  return n ? ((d.H = +n[0]), i + n[0].length) : -1
-}
-function parseMinutes(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 2))
-  return n ? ((d.M = +n[0]), i + n[0].length) : -1
-}
-function parseSeconds(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 2))
-  return n ? ((d.S = +n[0]), i + n[0].length) : -1
-}
-function parseMilliseconds(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 3))
-  return n ? ((d.L = +n[0]), i + n[0].length) : -1
-}
-function parseMicroseconds(d, string, i) {
-  const n = numberRe.exec(string.slice(i, i + 6))
-  return n ? ((d.L = qu.floor(n[0] / 1000)), i + n[0].length) : -1
-}
-function parseLiteralPercent(d, string, i) {
-  const n = percentRe.exec(string.slice(i, i + 1))
-  return n ? i + n[0].length : -1
-}
-function parseUnixTimestamp(d, string, i) {
-  const n = numberRe.exec(string.slice(i))
-  return n ? ((d.Q = +n[0]), i + n[0].length) : -1
-}
-function parseUnixTimestampSeconds(d, string, i) {
-  const n = numberRe.exec(string.slice(i))
-  return n ? ((d.s = +n[0]), i + n[0].length) : -1
-}
-function dISO(d) {
-  const day = d.getDay()
-  return day >= 4 || day === 0 ? thursday(d) : thursday.ceil(d)
-}
-function UTCdISO(d) {
-  const day = d.getUTCDay()
-  return day >= 4 || day === 0 ? utcThursday(d) : utcThursday.ceil(d)
 }
