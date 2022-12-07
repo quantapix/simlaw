@@ -192,8 +192,8 @@ export function area<T = qt.Point>(
   let x1 = null,
     defined = qu.constant(true),
     _ctx: qs.Context | qu.Path | null = null,
-    curve = Curve.linear,
-    out = null
+    _curve = Curve.linear,
+    _out: Curve.Linear | null = null
   x0 = typeof x0 === "function" ? x0 : x0 === undefined ? pointX : qu.constant(+x0)
   y0 = typeof y0 === "function" ? y0 : y0 === undefined ? qu.constant(0) : qu.constant(+y0)
   y1 = typeof y1 === "function" ? y1 : y1 === undefined ? pointY : qu.constant(+y1)
@@ -209,30 +209,30 @@ export function area<T = qt.Point>(
       d,
       defined0 = false,
       buffer
-    if (_ctx === null) out = curve((buffer = new qu.Path()))
+    if (_ctx === null) _out = _curve((buffer = new qu.Path()))
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined((d = x[i]), i, x)) === defined0) {
         if ((defined0 = !defined0)) {
           j = i
-          out.areaStart()
-          out.lineStart()
+          _out?.areaStart()
+          _out?.lineStart()
         } else {
-          out.lineEnd()
-          out.lineStart()
+          _out?.lineEnd()
+          _out?.lineStart()
           for (k = i - 1; k >= j; --k) {
-            out.point(x0z[k], y0z[k])
+            _out?.point(x0z[k], y0z[k])
           }
-          out.lineEnd()
-          out.areaEnd()
+          _out?.lineEnd()
+          _out?.areaEnd()
         }
       }
       if (defined0) {
         x0z[i] = +x0(d, i, x)
         y0z[i] = +y0(d, i, x)
-        out.point(x1 ? +x1(d, i, x) : x0z[i], y1 ? +y1(d, i, x) : y0z[i])
+        _out?.point(x1 ? +x1(d, i, x) : x0z[i], y1 ? +y1(d, i, x) : y0z[i])
       }
     }
-    if (buffer) return (out = null), buffer + "" || null
+    if (buffer) return (_out = null), buffer + "" || null
   }
   f.x = (x: any) => (x === undefined ? x0 : ((x0 = typeof x === "function" ? x : qu.constant(+x)), (x1 = null), f))
   f.x0 = (x: any) => (x === undefined ? x0 : ((x0 = typeof x === "function" ? x : qu.constant(+x)), f))
@@ -242,14 +242,15 @@ export function area<T = qt.Point>(
   f.y0 = (x: any) => (x === undefined ? y0 : ((y0 = typeof x === "function" ? x : qu.constant(+x)), f))
   f.y1 = (x: any) =>
     x === undefined ? y1 : ((y1 = x === null ? null : typeof x === "function" ? x : qu.constant(+x)), f)
-  const arealine = () => line().defined(defined).curve(curve).context(_ctx)
+  const arealine = () => line().defined(defined).curve(_curve).context(_ctx)
   f.lineX0 = () => arealine().x(x0).y(y0)
   f.lineY0 = f.lineX0
   f.lineY1 = () => arealine().x(x0).y(y1)
   f.lineX1 = () => arealine().x(x1).y(y0)
   f.defined = (x: any) => (x === undefined ? defined : ((defined = typeof x === "function" ? x : qu.constant(!!x)), f))
-  f.curve = (x: any) => (x === undefined ? curve : ((curve = x), _ctx != null && (out = curve(_ctx)), f))
-  f.context = (x: any) => (x === undefined ? _ctx : (x === null ? (_ctx = out = null) : (out = curve((_ctx = x))), f))
+  f.curve = (x: any) => (x === undefined ? _curve : ((_curve = x), _ctx != null && (_out = _curve(_ctx)), f))
+  f.context = (x: any) =>
+    x === undefined ? _ctx : (x === null ? (_ctx = _out = null) : (_out = _curve((_ctx = x))), f)
   return f
 }
 export function areaRadial(): qs.AreaRadial<qt.Point>
@@ -273,15 +274,15 @@ export function areaRadial(): any {
   delete f.y0
   f.outerRadius = f.y1
   delete f.y1
-  f.lineStartAngle = () => lineRadial(x0())
+  f.lineStartAngle = () => line.radial(x0())
   delete f.lineX0
-  f.lineEndAngle = () => lineRadial(x1())
+  f.lineEndAngle = () => line.radial(x1())
   delete f.lineX1
-  f.lineInnerRadius = () => lineRadial(y0())
+  f.lineInnerRadius = () => line.radial(y0())
   delete f.lineY0
-  f.lineOuterRadius = () => lineRadial(y1())
+  f.lineOuterRadius = () => line.radial(y1())
   delete f.lineY1
-  f.curve = (x: any) => (x === undefined ? c()._curve : c(curveRadial(x)))
+  f.curve = (x: any) => (x === undefined ? c()._curve : c(Curve.radial(x)))
   return f
 }
 export const slice = Array.prototype.slice
@@ -294,31 +295,32 @@ export function line<T = qt.Point>(
 ): qs.Line<T> {
   let defined = qu.constant(true),
     _ctx: qs.Context | qu.Path | null = null,
-    curve = Curve.linear,
-    _out = null
+    _curve = Curve.linear,
+    _out: Curve.Linear | null = null
   let _x = typeof x === "function" ? x : x === undefined ? pointX : qu.constant(x)
   let _y = typeof y === "function" ? y : y === undefined ? pointY : qu.constant(y)
   function f(data) {
+    const n = (data = array(data)).length
     let i,
-      n = (data = array(data)).length,
       d,
       defined0 = false,
       buffer
-    if (_ctx === null) _out = curve((buffer = new qu.Path()))
+    if (_ctx === null) _out = _curve((buffer = new qu.Path()))
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined((d = data[i]), i, data)) === defined0) {
-        if ((defined0 = !defined0)) _out.lineStart()
-        else _out.lineEnd()
+        if ((defined0 = !defined0)) _out?.lineStart()
+        else _out?.lineEnd()
       }
-      if (defined0) _out.point(+_x(d, i, data), +_y(d, i, data))
+      if (defined0) _out?.point(+_x(d, i, data), +_y(d, i, data))
     }
     if (buffer) return (_out = null), buffer + "" || null
   }
   f.x = (x: any) => (x === undefined ? _x : ((_x = typeof x === "function" ? x : qu.constant(+x)), f))
   f.y = (x: any) => (x === undefined ? _y : ((_y = typeof x === "function" ? x : qu.constant(+x)), f))
   f.defined = (x: any) => (x === undefined ? defined : ((defined = typeof x === "function" ? x : qu.constant(!!x)), f))
-  f.curve = (x: any) => (x === undefined ? curve : ((curve = x), _ctx != null && (_out = curve(_ctx)), f))
-  f.context = (x: any) => (x === undefined ? _ctx : (x === null ? (_ctx = _out = null) : (_out = curve((_ctx = x))), f))
+  f.curve = (x: any) => (x === undefined ? _curve : ((_curve = x), _ctx != null && (_out = _curve(_ctx)), f))
+  f.context = (x: any) =>
+    x === undefined ? _ctx : (x === null ? (_ctx = _out = null) : (_out = _curve((_ctx = x))), f)
   return f
 }
 export namespace line {
@@ -399,13 +401,13 @@ export function pie() {
     endAngle = qu.constant(qu.tau),
     padAngle = qu.constant(0)
   function y(data) {
+    const n = (data = array(data)).length,
+      index = new Array(n),
+      arcs = new Array(n)
     let i,
-      n = (data = array(data)).length,
       j,
       k,
       sum = 0,
-      index = new Array(n),
-      arcs = new Array(n),
       a0 = +startAngle(arguments),
       da = qu.min(qu.tau, qu.max(-qu.tau, endAngle(arguments) - a0)),
       a1,
@@ -743,20 +745,20 @@ export class Curve {
     return y
   })(0.5)
 
-  _line
-  _point
-  _x0
-  _x1
-  _x2
-  _x3
-  _x4
-  _x5
-  _y0
-  _y1
-  _y2
-  _y3
-  _y4
-  _y5
+  _line = NaN
+  _point = 0
+  _x0 = NaN
+  _x1 = NaN
+  _x2 = NaN
+  _x3 = NaN
+  _x4 = NaN
+  _x5 = NaN
+  _y0 = NaN
+  _y1 = NaN
+  _y2 = NaN
+  _y3 = NaN
+  _y4 = NaN
+  _y5 = NaN
   constructor(public ctx: qs.Context | qu.Path) {}
   areaStart() {}
   areaEnd() {}
@@ -1608,7 +1610,7 @@ function controlPoints(xs) {
   return [a, b]
 }
 
-function point(that, x, y) {
+function point(that, x: number, y: number) {
   that.ctx.bezierCurveTo(
     (2 * that._x0 + that._x1) / 3,
     (2 * that._y0 + that._y1) / 3,
@@ -1618,7 +1620,7 @@ function point(that, x, y) {
     (that._y0 + 4 * that._y1 + y) / 6
   )
 }
-function point2(that, x, y) {
+function point2(that, x: number, y: number) {
   that.ctx.bezierCurveTo(
     that._x1 + that._k * (that._x2 - that._x0),
     that._y1 + that._k * (that._y2 - that._y0),
@@ -1629,7 +1631,7 @@ function point2(that, x, y) {
   )
 }
 
-function point3(that, x, y) {
+function point3(that, x: number, y: number) {
   let x1 = that._x1,
     y1 = that._y1,
     x2 = that._x2,
@@ -1649,7 +1651,7 @@ function point3(that, x, y) {
   that.ctx.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2)
 }
 
-function point4(that, t0, t1) {
+function point4(that, t0: number, t1: number) {
   const x0 = that._x0,
     y0 = that._y0,
     x1 = that._x1,
@@ -1658,20 +1660,18 @@ function point4(that, t0, t1) {
   that.ctx.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1)
 }
 
-function slope2(that, t) {
+function slope2(that, t: number) {
   const h = that._x1 - that._x0
   return h ? ((3 * (that._y1 - that._y0)) / h - t) / 2 : t
 }
 
-function slope3(that, x2, y2) {
+function slope3(that, x2: number, y2: number) {
   const h0 = that._x1 - that._x0,
     h1 = x2 - that._x1,
     s0 = (that._y1 - that._y0) / (h0 || (h1 < 0 && -0)),
     s1 = (y2 - that._y1) / (h1 || (h0 < 0 && -0)),
     p = (s0 * h1 + s1 * h0) / (h0 + h1)
-  function sign(x: number) {
-    return x < 0 ? -1 : 1
-  }
+  const sign = (x: number) => (x < 0 ? -1 : 1)
   return (sign(s0) + sign(s1)) * qu.min(qu.abs(s0), qu.abs(s1), 0.5 * qu.abs(p)) || 0
 }
 
