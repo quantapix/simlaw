@@ -7,7 +7,7 @@ export function arc(): qs.Arc<any, qs.BaseArc>
 export function arc<T>(): qs.Arc<any, T>
 export function arc<This, T>(): qs.Arc<This, T>
 export function arc() {
-  let _context: qs.Context | null = null,
+  let _context: qs.Context | qu.Path | null = null,
     _corner = qu.constant(0),
     _end = (x: any) => x.endAngle,
     _inner = (x: any) => x.innerRadius,
@@ -204,7 +204,7 @@ export function area<T = qt.Point>(
 ): qs.Area<T> {
   let x1 = null,
     defined = qu.constant(true),
-    _context: qs.Context | null = null,
+    _context: qs.Context | qu.Path | null = null,
     curve = curveLinear,
     output = null
   x0 = typeof x0 === "function" ? x0 : x0 === undefined ? pointX : qu.constant(+x0)
@@ -307,7 +307,7 @@ export function line<T = qt.Point>(
   y?: number | ((x: T, i: number, xs: T[]) => number)
 ): qs.Line<T> {
   let defined = qu.constant(true),
-    _context: qs.Context | null = null,
+    _context: qs.Context | qu.Path | null = null,
     curve = curveLinear,
     output = null
   let _x = typeof x === "function" ? x : x === undefined ? pointX : qu.constant(x)
@@ -429,14 +429,8 @@ export function pie() {
         sum += v
       }
     }
-    if (sortValues != null)
-      index.sort(function (i, j) {
-        return sortValues(arcs[i], arcs[j])
-      })
-    else if (sort != null)
-      index.sort(function (i, j) {
-        return sort(data[i], data[j])
-      })
+    if (sortValues != null) index.sort((i, j) => sortValues(arcs[i], arcs[j]))
+    else if (sort != null) index.sort((i, j) => sort(data[i], data[j]))
     for (i = 0, k = sum ? (da - n * pa) / sum : 0; i < n; ++i, a0 = a1) {
       ;(j = index[i]),
         (v = arcs[j]),
@@ -476,9 +470,9 @@ function stackValue(d, key) {
   return d[key]
 }
 function stackSeries(key) {
-  const series = []
-  series.key = key
-  return series
+  const ys = []
+  ys.key = key
+  return ys
 }
 export function stack(): qt.Stack<any, { [k: string]: number }, string>
 export function stack<T>(): qt.Stack<any, T, string>

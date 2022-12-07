@@ -290,10 +290,10 @@ export class Path implements qt.Path {
         (this.y1 = y1 + t21 * y21)
     }
   }
-  bezierTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number) {
+  bezierCurveTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number) {
     this.v += "C" + +x1 + "," + +y1 + "," + +x2 + "," + +y2 + "," + (this.x1 = +x) + "," + (this.y1 = +y)
   }
-  close() {
+  closePath() {
     if (this.x1 !== undefined) {
       ;(this.x1 = this.x0), (this.y1 = this.y0)
       this.v += "Z"
@@ -305,7 +305,7 @@ export class Path implements qt.Path {
   moveTo(x: number, y: number) {
     this.v += "M" + (this.x0 = this.x1 = +x) + "," + (this.y0 = this.y1 = +y)
   }
-  quadraticTo(x1: number, y1: number, x: number, y: number) {
+  quadraticCurveTo(x1: number, y1: number, x: number, y: number) {
     this.v += "Q" + +x1 + "," + +y1 + "," + (this.x1 = +x) + "," + (this.y1 = +y)
   }
   rect(x: number, y: number, w: number, h: number) {

@@ -939,11 +939,11 @@ export type ArrayIpolator<T extends any[]> = (x: number) => T
 export interface Path {
   arc(x: number, y: number, r: number, a0: number, a1: number, ccw?: boolean): void
   arcTo(x1: number, y1: number, x2: number, y2: number, r: number): void
-  bezierTo(cpx1: number, cpy1: number, cpx2: number, cpy2: number, x: number, y: number): void
-  close(): void
+  bezierCurveTo(cpx1: number, cpy1: number, cpx2: number, cpy2: number, x: number, y: number): void
+  closePath(): void
   lineTo(x: number, y: number): void
   moveTo(x: number, y: number): void
-  quadraticTo(cpx: number, cpy: number, x: number, y: number): void
+  quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void
   rect(x: number, y: number, w: number, h: number): void
   toString(): string
 }
@@ -1680,7 +1680,7 @@ export namespace Shape {
   export interface Path {
     arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, ccw?: boolean): void
     arcTo(x1: number, y1: number, x2: number, y2: number, radius: number): void
-    bezierTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number): void
+    bezierCurveTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number): void
     closePath(): void
     ellipse(
       x: number,
@@ -1694,7 +1694,7 @@ export namespace Shape {
     ): void
     lineTo(x: number, y: number): void
     moveTo(x: number, y: number): void
-    quadraticTo(cpx: number, cpy: number, x: number, y: number): void
+    quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void
     rect(x: number, y: number, w: number, h: number): void
   }
 }
