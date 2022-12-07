@@ -466,47 +466,43 @@ export function pointY(p) {
 export function pointRadial(a: number, r: number): qt.Point {
   return [(r = +r) * Math.cos((a -= Math.PI / 2)), r * Math.sin(a)]
 }
-function stackValue(d, key) {
-  return d[key]
-}
-function stackSeries(key) {
-  const ys = []
-  ys.key = key
-  return ys
-}
 export function stack(): qt.Stack<any, { [k: string]: number }, string>
 export function stack<T>(): qt.Stack<any, T, string>
 export function stack<T, K>(): qt.Stack<any, T, K>
 export function stack<This, T, K>(): qt.Stack<This, T, K>
 export function stack() {
-  let keys = qu.constant([]),
-    order = orderNone,
-    offset = offsetNone,
-    value = stackValue
-  function y(data) {
-    let sz = Array.from(keys(arguments), stackSeries),
-      i,
-      n = sz.length,
+  let _ks = qu.constant([]),
+    _ord = order.none,
+    _off = offset.none,
+    _v = (d, k) => d[k]
+  function y(...xs: any[]) {
+    const sz = Array.from(_ks(xs), x => {
+        const ys = []
+        ys.k = x
+        return ys
+      }),
+      n = sz.length
+    let i,
       j = -1,
       oz
-    for (const d of data) {
+    for (const x of xs) {
       for (i = 0, ++j; i < n; ++i) {
-        ;(sz[i][j] = [0, +value(d, sz[i].key, j, data)]).data = d
+        ;(sz[i]![j] = [0, +_v(x, sz[i].key, j, xs)]).data = x
       }
     }
-    for (i = 0, oz = array(order(sz)); i < n; ++i) {
+    for (i = 0, oz = array(_ord(sz)); i < n; ++i) {
       sz[oz[i]].index = i
     }
-    offset(sz, oz)
+    _off(sz, oz)
     return sz
   }
-  y.keys = (x: any) => (x === undefined ? keys : ((keys = typeof x === "function" ? x : qu.constant(Array.from(x))), y))
-  y.value = (x: any) => (x === undefined ? value : ((value = typeof x === "function" ? x : qu.constant(+x)), y))
+  y.keys = (x: any) => (x === undefined ? _ks : ((_ks = typeof x === "function" ? x : qu.constant(Array.from(x))), y))
+  y.value = (x: any) => (x === undefined ? _v : ((_v = typeof x === "function" ? x : qu.constant(+x)), y))
   y.order = (x: any) =>
     x === undefined
-      ? order
-      : ((order = x === null ? orderNone : typeof x === "function" ? x : qu.constant(Array.from(x))), y)
-  y.offset = (x: any) => (x === undefined ? offset : ((offset = x === null ? offsetNone : x), y))
+      ? _ord
+      : ((_ord = x === null ? order.none : typeof x === "function" ? x : qu.constant(Array.from(x))), y)
+  y.offset = (x: any) => (x === undefined ? _off : ((_off = x === null ? offset.none : x), y))
   return y
 }
 
@@ -714,63 +710,49 @@ export class Curve {
     function y(x) {
       return beta === 1 ? new Curve.Basis(x) : new Curve.Bundle(x, beta)
     }
-    y.beta = function (x: number) {
-      return f(+x)
-    }
+    y.beta = (x: number) => f(+x)
     return y
   })(0.85)
   static cardinal: qs.Cardinal = (function f(tension) {
     function y(x) {
       return new Curve.Cardinal(x, tension)
     }
-    y.tension = function (x: number) {
-      return f(+x)
-    }
+    y.tension = (x: number) => f(+x)
     return y
   })(0)
   static cardinalClosed: qs.Cardinal = (function f(tension) {
     function y(x) {
       return new Curve.CardinalClosed(x, tension)
     }
-    y.tension = function (x: number) {
-      return f(+x)
-    }
+    y.tension = (x: number) => f(+x)
     return y
   })(0)
   static cardinalOpen: qs.Cardinal = (function f(tension) {
     function y(x) {
       return new Curve.CardinalOpen(x, tension)
     }
-    y.tension = function (x: number) {
-      return f(+x)
-    }
+    y.tension = (x: number) => f(+x)
     return y
   })(0)
   static catmullRom: qs.CatmullRom = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRom(x, alpha) : new Curve.Cardinal(x, 0)
     }
-    y.alpha = function (x: number) {
-      return f(+x)
-    }
+    y.alpha = (x: number) => f(+x)
     return y
   })(0.5)
   static catmullRomClosed: qs.CatmullRom = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRomClosed(x, alpha) : new Curve.CardinalClosed(x, 0)
     }
-    y.alpha = function (x: number) {
-      return f(+x)
-    }
+    y.alpha = (x: number) => f(+x)
     return y
   })(0.5)
   static catmullRomOpen: qs.CatmullRom = (function f(alpha) {
     function y(x) {
       return alpha ? new Curve.CatmullRomOpen(x, alpha) : new Curve.CardinalOpen(x, 0)
     }
-    y.alpha = function (x: number) {
-      return f(+x)
-    }
+    y.alpha = (x: number) => f(+x)
     return y
   })(0.5)
 
@@ -921,7 +903,7 @@ export namespace Curve {
           break
         case 2:
           this._point = 3
-          var x0 = (this._x0 + 4 * this._x1 + x) / 6,
+          const x0 = (this._x0 + 4 * this._x1 + x) / 6,
             y0 = (this._y0 + 4 * this._y1 + y) / 6
           this._line ? this.ctx.lineTo(x0, y0) : this.ctx.moveTo(x0, y0)
           break
@@ -964,8 +946,8 @@ export namespace Curve {
         case 1:
           this._point = 2 // falls through
         default: {
-          if (this.isX) this.ctx.bezierTo((this._x0 = (this._x0 + x) / 2), this._y0, this._x0, y, x, y)
-          else this.ctx.bezierTo(this._x0, (this._y0 = (this._y0 + y) / 2), x, this._y0, x, y)
+          if (this.isX) this.ctx.bezierCurveTo((this._x0 = (this._x0 + x) / 2), this._y0, this._x0, y, x, y)
+          else this.ctx.bezierCurveTo(this._x0, (this._y0 = (this._y0 + y) / 2), x, this._y0, x, y)
           break
         }
       }
@@ -990,7 +972,7 @@ export namespace Curve {
         const p2 = pointRadial(x, this._y0)
         const p3 = pointRadial(x, y)
         this.ctx.moveTo(...p0)
-        this.ctx.bezierTo(...p1, ...p2, ...p3)
+        this.ctx.bezierCurveTo(...p1, ...p2, ...p3)
       }
     }
   }
@@ -1393,9 +1375,11 @@ export namespace Curve {
     }
   }
   export class LinearClosed extends Curve implements qs.CurveGen {
-    constructor(public ctx: qs.Context | qu.Path) {}
-    areaStart = qu.noop
-    areaEnd = qu.noop
+    constructor(public override ctx: qs.Context | qu.Path) {
+      super()
+    }
+    override areaStart = qu.noop
+    override areaEnd = qu.noop
     lineStart() {
       this._point = 0
     }
@@ -1419,16 +1403,18 @@ export namespace Curve {
     lineTo(x, y) {
       this.ctx.lineTo(y, x)
     }
-    bezierTo(x1, y1, x2, y2, x, y) {
-      this.ctx.bezierTo(y1, x1, y2, x2, y, x)
+    bezierCurveTo(x1, y1, x2, y2, x, y) {
+      this.ctx.bezierCurveTo(y1, x1, y2, x2, y, x)
     }
   }
   export class MonotoneX extends Curve implements qs.CurveGen {
-    constructor(public ctx: qs.Context | qu.Path) {}
-    areaStart() {
+    constructor(public override ctx: qs.Context | qu.Path) {
+      super()
+    }
+    override areaStart() {
       this._line = 0
     }
-    areaEnd() {
+    override areaEnd() {
       this._line = NaN
     }
     lineStart() {
@@ -1473,8 +1459,9 @@ export namespace Curve {
     }
   }
   export class MonotoneY extends Curve implements qs.CurveGen {
-    ctx
+    override ctx
     constructor(x: qs.Context | qu.Path) {
+      super()
       this.ctx = new ReflectContext(x)
     }
     point(x: number, y: number) {
@@ -1482,11 +1469,13 @@ export namespace Curve {
     }
   }
   export class Natural extends Curve implements qs.CurveGen {
-    constructor(public ctx: qs.Context | qu.Path) {}
-    areaStart() {
+    constructor(public override ctx: qs.Context | qu.Path) {
+      super()
+    }
+    override areaStart() {
       this._line = 0
     }
-    areaEnd() {
+    override areaEnd() {
       this._line = NaN
     }
     lineStart() {
@@ -1505,7 +1494,7 @@ export namespace Curve {
           const px = controlPoints(x),
             py = controlPoints(y)
           for (let i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
-            this.ctx.bezierTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1])
+            this.ctx.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1])
           }
         }
       }
@@ -1547,11 +1536,13 @@ export namespace Curve {
     return y
   }
   export class Step extends Curve implements qs.CurveGen {
-    constructor(public ctx: qs.Context | qu.Path, public pos = 0.5) {}
-    areaStart() {
+    constructor(public override ctx: qs.Context | qu.Path, public pos = 0.5) {
+      super()
+    }
+    override areaStart() {
       this._line = 0
     }
-    areaEnd() {
+    override areaEnd() {
       this._line = NaN
     }
     lineStart() {
@@ -1605,7 +1596,7 @@ function controlPoints(xs) {
 }
 
 function point(that, x, y) {
-  that.ctx.bezierTo(
+  that.ctx.bezierCurveTo(
     (2 * that._x0 + that._x1) / 3,
     (2 * that._y0 + that._y1) / 3,
     (that._x0 + 2 * that._x1) / 3,
@@ -1615,7 +1606,7 @@ function point(that, x, y) {
   )
 }
 function point2(that, x, y) {
-  that.ctx.bezierTo(
+  that.ctx.bezierCurveTo(
     that._x1 + that._k * (that._x2 - that._x0),
     that._y1 + that._k * (that._y2 - that._y0),
     that._x2 + that._k * (that._x1 - x),
@@ -1642,7 +1633,7 @@ function point3(that, x, y) {
     x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m
     y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m
   }
-  that.ctx.bezierTo(x1, y1, x2, y2, that._x2, that._y2)
+  that.ctx.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2)
 }
 
 function point4(that, t0, t1) {
@@ -1651,7 +1642,7 @@ function point4(that, t0, t1) {
     x1 = that._x1,
     y1 = that._y1,
     dx = (x1 - x0) / 3
-  that.ctx.bezierTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1)
+  that.ctx.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1)
 }
 
 function slope2(that, t) {

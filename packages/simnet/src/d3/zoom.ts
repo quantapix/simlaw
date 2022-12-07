@@ -25,8 +25,8 @@ export class Transform implements qt.Zoom.Transform {
   applyY(y: number) {
     return y * this.k + this.y
   }
-  invert(point: qt.Point): qt.Point {
-    return [(point[0] - this.x) / this.k, (point[1] - this.y) / this.k]
+  invert(x: qt.Point): qt.Point {
+    return [(x[0] - this.x) / this.k, (x[1] - this.y) / this.k]
   }
   invertX(x: number) {
     return (x - this.x) / this.k
