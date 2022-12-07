@@ -615,33 +615,29 @@ export namespace offset {
 
 export namespace order {
   export function appearance(xs: qt.Series<any, any>): number[] {
-    function peak(series) {
-      const n = series.length
+    function peak(xs) {
+      const n = xs.length
       let i = -1,
         j = 0,
         vi,
         vj = -Infinity
-      while (++i < n) if ((vi = +series[i][1]) > vj) (vj = vi), (j = i)
+      while (++i < n) if ((vi = +xs[i][1]) > vj) (vj = vi), (j = i)
       return j
     }
-    const peaks = xs.map(peak)
-    return none(xs).sort(function (a, b) {
-      return peaks[a] - peaks[b]
-    })
+    const ys = xs.map(peak)
+    return none(xs).sort((a, b) => ys[a]! - ys[b]!)
   }
   export function ascending(xs: qt.Series<any, any>): number[] {
-    const sums = xs.map(sum)
-    return none(xs).sort(function (a, b) {
-      return sums[a] - sums[b]
-    })
+    const ys = xs.map(sum)
+    return none(xs).sort((a, b) => ys[a]! - ys[b]!)
   }
   export function sum(xs) {
     const n = xs.length
-    let s = 0,
+    let y = 0,
       i = -1,
       v
-    while (++i < n) if ((v = +xs[i][1])) s += v
-    return s
+    while (++i < n) if ((v = +xs[i][1])) y += v
+    return y
   }
   export function descending(xs: qt.Series<any, any>): number[] {
     return ascending(xs).reverse()
@@ -670,9 +666,9 @@ export namespace order {
   }
   export function none(xs: qt.Series<any, any>): number[] {
     let n = xs.length
-    const o = new Array(n)
-    while (--n >= 0) o[n] = n
-    return o
+    const ys = new Array(n)
+    while (--n >= 0) ys[n] = n
+    return ys
   }
   export function reverse(xs: qt.Series<any, any>): number[] {
     return none(xs).reverse()

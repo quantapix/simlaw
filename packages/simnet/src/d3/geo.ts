@@ -585,16 +585,12 @@ export function graticule(): qg.Graticule {
   f.stepMajor = (x: any) => (x === undefined ? [DX, DY] : ((DX = +x[0]), (DY = +x[1]), f))
   f.stepMinor = (x?: any) => (x === undefined ? [dx, dy] : ((dx = +x[0]), (dy = +x[1]), f))
   function graticuleX(y0, y1, dy) {
-    const y = range(y0, y1 - qu.epsilon, dy).concat(y1)
-    return function (x) {
-      return y.map(y => [x, y])
-    }
+    const ys = range(y0, y1 - qu.epsilon, dy).concat(y1)
+    return x => ys.map(y => [x, y])
   }
   function graticuleY(x0, x1, dx) {
-    const x = range(x0, x1 - qu.epsilon, dx).concat(x1)
-    return function (y) {
-      return x.map(x => [x, y])
-    }
+    const ys = range(x0, x1 - qu.epsilon, dx).concat(x1)
+    return y => ys.map(x => [x, y])
   }
   f.precision = (x: any) => {
     if (!arguments.length) return precision

@@ -437,10 +437,6 @@ export namespace DSV {
   }
 }
 
-export interface PolyEasing {
-  (time: number): number
-  exponent(x: number): PolyEasing
-}
 export interface BackEasing {
   (time: number): number
   overshoot(x: number): BackEasing
@@ -449,6 +445,10 @@ export interface ElasticEasing {
   (time: number): number
   amplitude(x: number): ElasticEasing
   period(x: number): ElasticEasing
+}
+export interface PolyEasing {
+  (time: number): number
+  exponent(x: number): PolyEasing
 }
 
 export interface SimNode {
@@ -1725,18 +1725,18 @@ export interface Series<T, K> extends Array<SeriesPoint<T>> {
   i: number
 }
 export interface Stack<This, T, K> {
-  (data: Iterable<T>, ...xs: any[]): Array<Series<T, K>>
-  keys(): (this: This, data: T[], ...xs: any[]) => K[]
-  keys(keys: Iterable<K> | ((this: This, data: T[], ...xs: any[]) => K[])): this
-  value(): (x: T, key: K, i: number, data: T[]) => number
-  value(value: number): this
-  value(value: (x: T, key: K, i: number, data: T[]) => number): this
-  order(): (series: Series<T, K>) => Iterable<number>
-  order(order: null | Iterable<number>): this
-  order(order: (series: Series<T, K>) => Iterable<number>): this
-  offset(): (series: Series<T, K>, order: number[]) => void
-  offset(offset: null): this
-  offset(offset: (series: Series<T, K>, order: number[]) => void): this
+  (x: Iterable<T>, ...xs: any[]): Array<Series<T, K>>
+  keys(): (this: This, x: T[], ...xs: any[]) => K[]
+  keys(x: Iterable<K> | ((this: This, x: T[], ...xs: any[]) => K[])): this
+  value(): (x: T, k: K, i: number, xs: T[]) => number
+  value(x: number): this
+  value(f: (x: T, k: K, i: number, xs: T[]) => number): this
+  order(): (xs: Series<T, K>) => Iterable<number>
+  order(x: null | Iterable<number>): this
+  order(f: (xs: Series<T, K>) => Iterable<number>): this
+  offset(): (xs: Series<T, K>, order: number[]) => void
+  offset(x: null): this
+  offset(f: (xs: Series<T, K>, order: number[]) => void): this
 }
 
 export namespace Time {

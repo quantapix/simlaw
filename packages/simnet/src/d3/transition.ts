@@ -191,7 +191,7 @@ export class Transition<S extends qt.Base, T, P extends qt.Base, U>
     const gs = this.groups,
       gs2 = x.groups,
       n = gs.length,
-      min = Math.min(n, gs2.length),
+      min = qu.min(n, gs2.length),
       ys = new Array(n)
     gs.forEach((g, j) => {
       if (j < min) {
@@ -642,28 +642,28 @@ export function schedule(node, name, id, index, group, timing) {
 
 export namespace ease {
   const overshoot = 1.70158
-  export const backIn: qt.BackEasing = (function custom(s) {
+  export const backIn: qt.BackEasing = (function f(s) {
     s = +s
     function y(x: number) {
       return (x = +x) * x * (s * (x - 1) + x)
     }
-    y.overshoot = custom
+    y.overshoot = f
     return y
   })(overshoot)
-  export const backOut: qt.BackEasing = (function custom(s) {
+  export const backOut: qt.BackEasing = (function f(s) {
     s = +s
     function y(x: number) {
       return --x * x * ((x + 1) * s + x) + 1
     }
-    y.overshoot = custom
+    y.overshoot = f
     return y
   })(overshoot)
-  export const back: qt.BackEasing = (function custom(s) {
+  export const back: qt.BackEasing = (function f(s) {
     s = +s
     function y(x: number) {
       return ((x *= 2) < 1 ? x * x * ((s + 1) * x - s) : (x -= 2) * x * ((s + 1) * x + s) + 2) / 2
     }
-    y.overshoot = custom
+    y.overshoot = f
     return y
   })(overshoot)
 
@@ -677,9 +677,7 @@ export namespace ease {
     b8 = 21 / 22,
     b9 = 63 / 64,
     b0 = 1 / b1 / b1
-  export function bounceIn(x: number) {
-    return 1 - bounceOut(1 - x)
-  }
+  export const bounceIn = (x: number) => 1 - bounceOut(1 - x)
   export function bounceOut(x: number) {
     return (x = +x) < b1
       ? b0 * x * x
@@ -689,131 +687,85 @@ export namespace ease {
       ? b0 * (x -= b5) * x + b7
       : b0 * (x -= b8) * x + b9
   }
-  export function bounce(x: number) {
-    return ((x *= 2) <= 1 ? 1 - bounceOut(1 - x) : bounceOut(x - 1) + 1) / 2
-  }
+  export const bounce = (x: number) => ((x *= 2) <= 1 ? 1 - bounceOut(1 - x) : bounceOut(x - 1) + 1) / 2
 
-  export function circleIn(x: number) {
-    return 1 - Math.sqrt(1 - x * x)
-  }
-  export function circleOut(x: number) {
-    return Math.sqrt(1 - --x * x)
-  }
-  export function circle(x: number) {
-    return ((x *= 2) <= 1 ? 1 - Math.sqrt(1 - x * x) : Math.sqrt(1 - (x -= 2) * x) + 1) / 2
-  }
+  export const circleIn = (x: number) => 1 - qu.sqrt(1 - x * x)
+  export const circleOut = (x: number) => qu.sqrt(1 - --x * x)
+  export const circle = (x: number) => ((x *= 2) <= 1 ? 1 - qu.sqrt(1 - x * x) : qu.sqrt(1 - (x -= 2) * x) + 1) / 2
 
-  export function cubicIn(x: number) {
-    return x * x * x
-  }
-  export function cubicOut(x: number) {
-    return --x * x * x + 1
-  }
-  export function cubic(x: number) {
-    return ((x *= 2) <= 1 ? x * x * x : (x -= 2) * x * x + 2) / 2
-  }
+  export const cubicIn = (x: number) => x * x * x
+  export const cubicOut = (x: number) => --x * x * x + 1
+  export const cubic = (x: number) => ((x *= 2) <= 1 ? x * x * x : (x -= 2) * x * x + 2) / 2
+
+  export const tpmt = (x: number) => (qu.pow(2, -10 * x) - 0.0009765625) * 1.0009775171065494
 
   const amplitude = 1
   const period = 0.3
-  export const elasticIn: qt.ElasticEasing = (function custom(a, p) {
-    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= qu.tau)
+  export const elasticIn: qt.ElasticEasing = (function f(a, p) {
+    const s = qu.asin(1 / (a = qu.max(1, a))) * (p /= qu.tau)
     function y(x: number) {
-      return a * tpmt(-(--x)) * Math.sin((s - x) / p)
+      return a * tpmt(-(--x)) * qu.sin((s - x) / p)
     }
-    y.amplitude = function (x: number) {
-      return custom(x, p * qu.tau)
-    }
-    y.period = function (x: number) {
-      return custom(a, x)
-    }
+    y.amplitude = (x: number) => f(x, p * qu.tau)
+    y.period = (x: number) => f(a, x)
     return y
   })(amplitude, period)
-  export const elasticOut: qt.ElasticEasing = (function custom(a, p) {
-    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= qu.tau)
+  export const elasticOut: qt.ElasticEasing = (function f(a, p) {
+    const s = qu.asin(1 / (a = qu.max(1, a))) * (p /= qu.tau)
     function y(x: number) {
-      return 1 - a * tpmt((x = +x)) * Math.sin((x + s) / p)
+      return 1 - a * tpmt((x = +x)) * qu.sin((x + s) / p)
     }
-    y.amplitude = function (x: number) {
-      return custom(x, p * qu.tau)
-    }
-    y.period = function (x: number) {
-      return custom(a, x)
-    }
+    y.amplitude = (x: number) => f(x, p * qu.tau)
+    y.period = (x: number) => f(a, x)
     return y
   })(amplitude, period)
-  export const elastic: qt.ElasticEasing = (function custom(a, p) {
-    const s = Math.asin(1 / (a = Math.max(1, a))) * (p /= qu.tau)
+  export const elastic: qt.ElasticEasing = (function f(a, p) {
+    const s = qu.asin(1 / (a = qu.max(1, a))) * (p /= qu.tau)
     function y(x: number) {
-      return ((x = x * 2 - 1) < 0 ? a * tpmt(-x) * Math.sin((s - x) / p) : 2 - a * tpmt(x) * Math.sin((s + x) / p)) / 2
+      return ((x = x * 2 - 1) < 0 ? a * tpmt(-x) * qu.sin((s - x) / p) : 2 - a * tpmt(x) * qu.sin((s + x) / p)) / 2
     }
-    y.amplitude = function (x: number) {
-      return custom(x, p * qu.tau)
-    }
-    y.period = function (x: number) {
-      return custom(a, x)
-    }
+    y.amplitude = (x: number) => f(x, p * qu.tau)
+    y.period = (x: number) => f(a, x)
     return y
   })(amplitude, period)
 
-  export function expIn(x: number) {
-    return tpmt(1 - +x)
-  }
-  export function expOut(x: number) {
-    return 1 - tpmt(x)
-  }
-  export function exp(x: number) {
-    return ((x *= 2) <= 1 ? tpmt(1 - x) : 2 - tpmt(x - 1)) / 2
-  }
+  export const expIn = (x: number) => tpmt(1 - +x)
+  export const expOut = (x: number) => 1 - tpmt(x)
+  export const exp = (x: number) => ((x *= 2) <= 1 ? tpmt(1 - x) : 2 - tpmt(x - 1)) / 2
 
   export const linear = (x: number) => +x
 
-  export function tpmt(x: number) {
-    return (Math.pow(2, -10 * x) - 0.0009765625) * 1.0009775171065494
-  }
-
   const exponent = 3
-  export const polyIn: qt.PolyEasing = (function custom(e) {
+  export const polyIn: qt.PolyEasing = (function f(e) {
     e = +e
     function y(x: number) {
-      return Math.pow(x, e)
+      return qu.pow(x, e)
     }
-    y.exponent = custom
+    y.exponent = f
     return y
   })(exponent)
-  export const polyOut: qt.PolyEasing = (function custom(e) {
+  export const polyOut: qt.PolyEasing = (function f(e) {
     e = +e
     function y(x: number) {
-      return 1 - Math.pow(1 - x, e)
+      return 1 - qu.pow(1 - x, e)
     }
-    y.exponent = custom
+    y.exponent = f
     return y
   })(exponent)
-  export const poly: qt.PolyEasing = (function custom(e) {
+  export const poly: qt.PolyEasing = (function f(e) {
     e = +e
     function y(x: number) {
-      return ((x *= 2) <= 1 ? Math.pow(x, e) : 2 - Math.pow(2 - x, e)) / 2
+      return ((x *= 2) <= 1 ? qu.pow(x, e) : 2 - qu.pow(2 - x, e)) / 2
     }
-    y.exponent = custom
+    y.exponent = f
     return y
   })(exponent)
 
-  export function quadIn(x: number) {
-    return x * x
-  }
-  export function quadOut(x: number) {
-    return x * (2 - x)
-  }
-  export function quad(x: number) {
-    return ((x *= 2) <= 1 ? x * x : --x * (2 - x) + 1) / 2
-  }
+  export const quadIn = (x: number) => x * x
+  export const quadOut = (x: number) => x * (2 - x)
+  export const quad = (x: number) => ((x *= 2) <= 1 ? x * x : --x * (2 - x) + 1) / 2
 
-  export function sinIn(x: number) {
-    return +x === 1 ? 1 : 1 - Math.cos(x * qu.halfPI)
-  }
-  export function sinOut(x: number) {
-    return Math.sin(x * qu.halfPI)
-  }
-  export function sin(x: number) {
-    return (1 - Math.cos(qu.PI * x)) / 2
-  }
+  export const sinIn = (x: number) => (+x === 1 ? 1 : 1 - qu.cos(x * qu.halfPI))
+  export const sinOut = (x: number) => qu.sin(x * qu.halfPI)
+  export const sin = (x: number) => (1 - qu.cos(qu.PI * x)) / 2
 }
