@@ -203,9 +203,6 @@ export function required(x: any) {
   if (typeof x !== "function") throw new Error()
   return x
 }
-export function array(x: any) {
-  return typeof x === "object" && "length" in x ? x : Array.from(x)
-}
 export function cluster<T>(): qh.Cluster<T> {
   let separation = (a: qh.Node<T>, b: qh.Node<T>) => (a.parent === b.parent ? 1 : 2),
     dx = 1,
@@ -312,15 +309,9 @@ export function partition<T>(): qh.Partition<T> {
 let preroot = { depth: -1 },
   ambiguous = {},
   imputed = {}
-function defaultId(d) {
-  return d.id
-}
-function defaultParentId(d) {
-  return d.parentId
-}
 export function stratify<T>(): qh.StratifyOp<T> {
-  let id = defaultId,
-    parentId = defaultParentId,
+  let id = x => x.id,
+    parentId = x => x.parentId,
     path
   function f(data) {
     const nodes = Array.from(data),
@@ -421,6 +412,7 @@ export function stratify<T>(): qh.StratifyOp<T> {
   f.path = (x: any) => (x === undefined ? path : ((path = optional(x)), f))
   return f
 }
+
 class TreeNode {
   parent = null
   children = null
@@ -978,7 +970,7 @@ export namespace pack {
     }
   }
   export function siblingsRandom(circles, random) {
-    if (!(n = (circles = array(circles)).length)) return 0
+    if (!(n = (circles = qu.arraylike(circles)).length)) return 0
     let a, b, c, n, aa, ca, i, j, k, sj, sk
     ;(a = circles[0]), (a.x = 0), (a.y = 0)
     if (!(n > 1)) return a.r

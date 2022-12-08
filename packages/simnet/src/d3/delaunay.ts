@@ -2,12 +2,6 @@ import Delaunator from "delaunator"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
-function pointX(x) {
-  return x[0]
-}
-function pointY(x) {
-  return x[1]
-}
 function collinear(d) {
   const { triangles, coords } = d
   for (let i = 0; i < triangles.length; i += 3) {
@@ -21,26 +15,47 @@ function collinear(d) {
   }
   return true
 }
-function jitter(x, y, r) {
-  return [x + Math.sin(x + y) * r, y + Math.cos(x - y) * r]
-}
 export class Delaunay<T> implements qt.Delaunay<T> {
-  static from(points: ArrayLike<qt.Delaunay.Point> | Iterable<qt.Delaunay.Point>): Delaunay<qt.Delaunay.Point>
+  static from(xs: ArrayLike<qt.Point> | Iterable<qt.Point>): Delaunay<qt.Point>
   static from<T>(
-    points: ArrayLike<T> | Iterable<T>,
+    xs: ArrayLike<T> | Iterable<T>,
     fx: qt.Delaunay.GetCoordinate<T, ArrayLike<T> | Iterable<T>>,
     fy: qt.Delaunay.GetCoordinate<T, ArrayLike<T> | Iterable<T>>,
     that?: any
   ): Delaunay<T>
-  static from(points: any, fx = pointX, fy = pointY, that?: any) {
-    return new Delaunay(
-      "length" in points ? flatArray(points, fx, fy, that) : Float64Array.from(flatIterable(points, fx, fy, that))
-    )
+  static from(xs: any, fx: Function = (x: any) => x[0], fy: Function = (x: any) => x[1], that?: any): any {
+    function flatArray() {
+      const n = xs.length
+      const ys = new Float64Array(n * 2)
+      for (let i = 0; i < n; ++i) {
+        const x = xs[i]
+        ys[i * 2] = fx.call(that, x, i, xs)
+        ys[i * 2 + 1] = fy.call(that, x, i, xs)
+      }
+      return ys
+    }
+    function* flatIterable() {
+      let i = 0
+      for (const x of xs) {
+        yield fx.call(that, x, i, xs)
+        yield fy.call(that, x, i, xs)
+        ++i
+      }
+    }
+    return new Delaunay("length" in xs ? flatArray() : Float64Array.from(flatIterable()))
   }
-  constructor(points: ArrayLike<number>) {
-    this._delaunator = new Delaunator(points)
-    this.inedges = new Int32Array(points.length / 2)
-    this._hullIndex = new Int32Array(points.length / 2)
+  _delaunator
+  inedges
+  _hullIndex
+  points
+  collinear
+  halfedges
+  hull
+  triangles
+  constructor(xs: ArrayLike<number>) {
+    this._delaunator = new Delaunator(xs)
+    this.inedges = new Int32Array(xs.length / 2)
+    this._hullIndex = new Int32Array(xs.length / 2)
     this.points = this._delaunator.coords
     this._init()
   }
@@ -51,24 +66,23 @@ export class Delaunay<T> implements qt.Delaunay<T> {
   }
   _init() {
     const d = this._delaunator,
-      points = this.points
+      ps = this.points
+    const jitter = (x, y, r) => [x + qu.sin(x + y) * r, y + qu.cos(x - y) * r]
     if (d.hull && d.hull.length > 2 && collinear(d)) {
-      this.collinear = Int32Array.from({ length: points.length / 2 }, (_, i) => i).sort(
-        (i, j) => points[2 * i] - points[2 * j] || points[2 * i + 1] - points[2 * j + 1]
-      ) // for exact neighbors
+      this.collinear = Int32Array.from({ length: ps.length / 2 }, (_, i) => i).sort(
+        (i, j) => ps[2 * i] - ps[2 * j] || ps[2 * i + 1] - ps[2 * j + 1]
+      )
       const e = this.collinear[0],
         f = this.collinear[this.collinear.length - 1],
-        bounds = [points[2 * e], points[2 * e + 1], points[2 * f], points[2 * f + 1]],
-        r = 1e-8 * Math.hypot(bounds[3] - bounds[1], bounds[2] - bounds[0])
-      for (let i = 0, n = points.length / 2; i < n; ++i) {
-        const p = jitter(points[2 * i], points[2 * i + 1], r)
-        points[2 * i] = p[0]
-        points[2 * i + 1] = p[1]
+        bounds = [ps[2 * e], ps[2 * e + 1], ps[2 * f], ps[2 * f + 1]],
+        r = 1e-8 * qu.hypot(bounds[3] - bounds[1], bounds[2] - bounds[0])
+      for (let i = 0, n = ps.length / 2; i < n; ++i) {
+        const p = jitter(ps[2 * i], ps[2 * i + 1], r)
+        ps[2 * i] = p[0]
+        ps[2 * i + 1] = p[1]
       }
-      this._delaunator = new Delaunator(points)
-    } else {
-      delete this.collinear
-    }
+      this._delaunator = new Delaunator(ps)
+    } else delete this.collinear
     const halfedges = (this.halfedges = this._delaunator.halfedges)
     const hull = (this.hull = this._delaunator.hull)
     const triangles = (this.triangles = this._delaunator.triangles)
@@ -93,10 +107,10 @@ export class Delaunay<T> implements qt.Delaunay<T> {
       }
     }
   }
-  voronoi(bounds) {
-    return new Voronoi(this, bounds)
+  voronoi(xs: any) {
+    return new Voronoi<T>(this, xs)
   }
-  *neighbors(i) {
+  *neighbors(i: number) {
     const { inedges, hull, _hullIndex, halfedges, triangles, collinear } = this
     if (collinear) {
       const l = collinear.indexOf(i)
@@ -105,44 +119,44 @@ export class Delaunay<T> implements qt.Delaunay<T> {
       return
     }
     const e0 = inedges[i]
-    if (e0 === -1) return // coincident point
+    if (e0 === -1) return
     let e = e0,
       p0 = -1
     do {
       yield (p0 = triangles[e])
       e = e % 3 === 2 ? e - 2 : e + 1
-      if (triangles[e] !== i) return // bad triangulation
+      if (triangles[e] !== i) return
       e = halfedges[e]
       if (e === -1) {
-        const p = hull[(_hullIndex[i] + 1) % hull.length]
+        const p = hull[(_hullIndex[i]! + 1) % hull.length]
         if (p !== p0) yield p
         return
       }
     } while (e !== e0)
   }
-  find(x, y, i = 0) {
+  find(x: number, y: number, i = 0) {
     if (((x = +x), x !== x) || ((y = +y), y !== y)) return -1
     const i0 = i
     let c
     while ((c = this._step(i, x, y)) >= 0 && c !== i && c !== i0) i = c
     return c
   }
-  _step(i, x, y) {
+  _step(i: number, x: number, y: number) {
     const { inedges, hull, _hullIndex, halfedges, triangles, points } = this
     if (inedges[i] === -1 || !points.length) return (i + 1) % (points.length >> 1)
     let c = i
     let dc = qu.pow(x - points[i * 2], 2) + qu.pow(y - points[i * 2 + 1], 2)
-    const e0 = inedges[i]
+    const e0 = inedges[i]!
     let e = e0
     do {
-      let t = triangles[e]
+      const t = triangles[e]
       const dt = qu.pow(x - points[t * 2], 2) + qu.pow(y - points[t * 2 + 1], 2)
       if (dt < dc) (dc = dt), (c = t)
       e = e % 3 === 2 ? e - 2 : e + 1
-      if (triangles[e] !== i) break // bad triangulation
+      if (triangles[e] !== i) break
       e = halfedges[e]
       if (e === -1) {
-        e = hull[(_hullIndex[i] + 1) % hull.length]
+        e = hull[(_hullIndex[i]! + 1) % hull.length]
         if (e !== t) {
           if (qu.pow(x - points[e * 2], 2) + qu.pow(y - points[e * 2 + 1], 2) < dc) return e
         }
@@ -151,61 +165,61 @@ export class Delaunay<T> implements qt.Delaunay<T> {
     } while (e !== e0)
     return c
   }
-  render(context) {
-    const buffer = context === null ? (context = new Path()) : undefined
+  render(ctx?: any) {
+    const buffer = ctx === null ? (ctx = new Path()) : undefined
     const { points, halfedges, triangles } = this
     for (let i = 0, n = halfedges.length; i < n; ++i) {
       const j = halfedges[i]
       if (j < i) continue
       const ti = triangles[i] * 2
       const tj = triangles[j] * 2
-      context.moveTo(points[ti], points[ti + 1])
-      context.lineTo(points[tj], points[tj + 1])
+      ctx.moveTo(points[ti], points[ti + 1])
+      ctx.lineTo(points[tj], points[tj + 1])
     }
-    this.renderHull(context)
+    this.renderHull(ctx)
     return buffer && buffer.value()
   }
-  renderPoints(context, r) {
-    if (r === undefined && (!context || typeof context.moveTo !== "function")) (r = context), (context = null)
+  renderPoints(ctx?: any, r?: number) {
+    if (r === undefined && (!ctx || typeof ctx.moveTo !== "function")) (r = ctx), (ctx = null)
     r = r === undefined ? 2 : +r
-    const buffer = context === null ? (context = new Path()) : undefined
+    const buffer = ctx === null ? (ctx = new Path()) : undefined
     const { points } = this
     for (let i = 0, n = points.length; i < n; i += 2) {
       const x = points[i],
         y = points[i + 1]
-      context.moveTo(x + r, y)
-      context.arc(x, y, r, 0, qu.tau)
+      ctx.moveTo(x + r, y)
+      ctx.arc(x, y, r, 0, qu.tau)
     }
     return buffer && buffer.value()
   }
-  renderHull(context) {
-    const buffer = context === null ? (context = new Path()) : undefined
+  renderHull(ctx?: any) {
+    const buffer = ctx === null ? (ctx = new Path()) : undefined
     const { hull, points } = this
     const h = hull[0] * 2,
       n = hull.length
-    context.moveTo(points[h], points[h + 1])
+    ctx.moveTo(points[h], points[h + 1])
     for (let i = 1; i < n; ++i) {
       const h = 2 * hull[i]
-      context.lineTo(points[h], points[h + 1])
+      ctx.lineTo(points[h], points[h + 1])
     }
-    context.closePath()
+    ctx.closePath()
     return buffer && buffer.value()
   }
   hullPolygon() {
-    const polygon = new Polygon()
-    this.renderHull(polygon)
-    return polygon.value()
+    const y = new Polygon()
+    this.renderHull(y)
+    return y.value()
   }
-  renderTriangle(i, context) {
-    const buffer = context === null ? (context = new Path()) : undefined
+  renderTriangle(i: number, ctx?: any) {
+    const buffer = ctx === null ? (ctx = new Path()) : undefined
     const { points, triangles } = this
     const t0 = triangles[(i *= 3)] * 2
     const t1 = triangles[i + 1] * 2
     const t2 = triangles[i + 2] * 2
-    context.moveTo(points[t0], points[t0 + 1])
-    context.lineTo(points[t1], points[t1 + 1])
-    context.lineTo(points[t2], points[t2 + 1])
-    context.closePath()
+    ctx.moveTo(points[t0], points[t0 + 1])
+    ctx.lineTo(points[t1], points[t1 + 1])
+    ctx.lineTo(points[t2], points[t2 + 1])
+    ctx.closePath()
     return buffer && buffer.value()
   }
   *trianglePolygons() {
@@ -214,41 +228,24 @@ export class Delaunay<T> implements qt.Delaunay<T> {
       yield this.trianglePolygon(i)
     }
   }
-  trianglePolygon(i) {
-    const polygon = new Polygon()
-    this.renderTriangle(i, polygon)
-    return polygon.value()
-  }
-}
-function flatArray(points, fx, fy, that) {
-  const n = points.length
-  const array = new Float64Array(n * 2)
-  for (let i = 0; i < n; ++i) {
-    const p = points[i]
-    array[i * 2] = fx.call(that, p, i, points)
-    array[i * 2 + 1] = fy.call(that, p, i, points)
-  }
-  return array
-}
-function* flatIterable(points, fx, fy, that) {
-  let i = 0
-  for (const p of points) {
-    yield fx.call(that, p, i, points)
-    yield fy.call(that, p, i, points)
-    ++i
+  trianglePolygon(i: number) {
+    const y = new Polygon()
+    this.renderTriangle(i, y)
+    return y.value()
   }
 }
 const epsilon = 1e-6
 export class Path {
+  _x0
+  _y0
+  _x1
+  _y1
+  _
   constructor() {
-    this._x0 =
-      this._y0 = // start of current subpath
-      this._x1 =
-      this._y1 =
-        null // end of current subpath
+    this._x0 = this._y0 = this._x1 = this._y1 = null
     this._ = ""
   }
-  moveTo(x, y) {
+  moveTo(x: number, y: number) {
     this._ += `M${(this._x0 = this._x1 = +x)},${(this._y0 = this._y1 = +y)}`
   }
   closePath() {
@@ -257,20 +254,20 @@ export class Path {
       this._ += "Z"
     }
   }
-  lineTo(x, y) {
+  lineTo(x: number, y: number) {
     this._ += `L${(this._x1 = +x)},${(this._y1 = +y)}`
   }
-  arc(x, y, r) {
+  arc(x: number, y: number, r: number) {
     ;(x = +x), (y = +y), (r = +r)
     const x0 = x + r
     const y0 = y
     if (r < 0) throw new Error("negative radius")
     if (this._x1 === null) this._ += `M${x0},${y0}`
-    else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) this._ += "L" + x0 + "," + y0
+    else if (qu.abs(this._x1 - x0) > epsilon || qu.abs(this._y1 - y0) > epsilon) this._ += "L" + x0 + "," + y0
     if (!r) return
     this._ += `A${r},${r},0,1,1,${x - r},${y}A${r},${r},0,1,1,${(this._x1 = x0)},${(this._y1 = y0)}`
   }
-  rect(x, y, w, h) {
+  rect(x: number, y: number, w: number, h: number) {
     this._ += `M${(this._x0 = this._x1 = +x)},${(this._y0 = this._y1 = +y)}h${+w}v${+h}h${-w}Z`
   }
   value() {
@@ -278,16 +275,17 @@ export class Path {
   }
 }
 export class Polygon {
+  _
   constructor() {
     this._ = []
   }
-  moveTo(x, y) {
+  moveTo(x: number, y: number) {
     this._.push([x, y])
   }
   closePath() {
     this._.push(this._[0].slice())
   }
-  lineTo(x, y) {
+  lineTo(x: number, y: number) {
     this._.push([x, y])
   }
   value() {
@@ -295,6 +293,13 @@ export class Polygon {
   }
 }
 export class Voronoi<T> implements qt.Voronoi<T> {
+  delaunay
+  _circumcenters
+  vectors
+  xmax
+  ymax
+  xmin
+  ymin
   constructor(delaunay, [xmin, ymin, xmax, ymax] = [0, 0, 960, 500]) {
     if (!((xmax = +xmax) >= (xmin = +xmin)) || !((ymax = +ymax) >= (ymin = +ymin))) throw new Error("invalid bounds")
     this.delaunay = delaunay
@@ -330,10 +335,10 @@ export class Voronoi<T> implements qt.Voronoi<T> {
       const ex = x3 - x1
       const ey = y3 - y1
       const ab = (dx * ey - dy * ex) * 2
-      if (Math.abs(ab) < 1e-9) {
+      if (qu.abs(ab) < 1e-9) {
         let a = 1e9
         const r = triangles[0] * 2
-        a *= Math.sign((points[r] - x1) * ey - (points[r + 1] - y1) * ex)
+        a *= qu.sign((points[r] - x1) * ey - (points[r + 1] - y1) * ex)
         x = (x1 + x3) / 2 - a * ey
         y = (y1 + y3) / 2 + a * ex
       } else {
@@ -362,8 +367,8 @@ export class Voronoi<T> implements qt.Voronoi<T> {
       vectors[p0 + 3] = vectors[p1 + 1] = x1 - x0
     }
   }
-  render(context) {
-    const buffer = context === null ? (context = new Path()) : undefined
+  render(ctx?: any): any {
+    const buffer = ctx === null ? (ctx = new Path()) : undefined
     const {
       delaunay: { halfedges, inedges, hull },
       circumcenters,
@@ -373,43 +378,43 @@ export class Voronoi<T> implements qt.Voronoi<T> {
     for (let i = 0, n = halfedges.length; i < n; ++i) {
       const j = halfedges[i]
       if (j < i) continue
-      const ti = Math.floor(i / 3) * 2
-      const tj = Math.floor(j / 3) * 2
+      const ti = qu.floor(i / 3) * 2
+      const tj = qu.floor(j / 3) * 2
       const xi = circumcenters[ti]
       const yi = circumcenters[ti + 1]
       const xj = circumcenters[tj]
       const yj = circumcenters[tj + 1]
-      this._renderSegment(xi, yi, xj, yj, context)
+      this._renderSegment(xi, yi, xj, yj, ctx)
     }
     let h0,
       h1 = hull[hull.length - 1]
     for (let i = 0; i < hull.length; ++i) {
       ;(h0 = h1), (h1 = hull[i])
-      const t = Math.floor(inedges[h1] / 3) * 2
+      const t = qu.floor(inedges[h1] / 3) * 2
       const x = circumcenters[t]
       const y = circumcenters[t + 1]
       const v = h0 * 4
       const p = this._project(x, y, vectors[v + 2], vectors[v + 3])
-      if (p) this._renderSegment(x, y, p[0], p[1], context)
+      if (p) this._renderSegment(x, y, p[0], p[1], ctx)
     }
     return buffer && buffer.value()
   }
-  renderBounds(context) {
-    const buffer = context === null ? (context = new Path()) : undefined
-    context.rect(this.xmin, this.ymin, this.xmax - this.xmin, this.ymax - this.ymin)
+  renderBounds(ctx?: any): any {
+    const buffer = ctx === null ? (ctx = new Path()) : undefined
+    ctx.rect(this.xmin, this.ymin, this.xmax - this.xmin, this.ymax - this.ymin)
     return buffer && buffer.value()
   }
-  renderCell(i, context) {
-    const buffer = context === null ? (context = new Path()) : undefined
-    const points = this._clip(i)
-    if (points === null || !points.length) return
-    context.moveTo(points[0], points[1])
-    let n = points.length
-    while (points[0] === points[n - 2] && points[1] === points[n - 1] && n > 1) n -= 2
+  renderCell(i: number, ctx?: any): any {
+    const buffer = ctx === null ? (ctx = new Path()) : undefined
+    const xs = this._clip(i)
+    if (xs === null || !xs.length) return
+    ctx.moveTo(xs[0], xs[1])
+    let n = xs.length
+    while (xs[0] === xs[n - 2] && xs[1] === xs[n - 1] && n > 1) n -= 2
     for (let i = 2; i < n; i += 2) {
-      if (points[i] !== points[i - 2] || points[i + 1] !== points[i - 1]) context.lineTo(points[i], points[i + 1])
+      if (xs[i] !== xs[i - 2] || xs[i + 1] !== xs[i - 1]) ctx.lineTo(xs[i], xs[i + 1])
     }
-    context.closePath()
+    ctx.closePath()
     return buffer && buffer.value()
   }
   *cellPolygons() {
@@ -421,28 +426,28 @@ export class Voronoi<T> implements qt.Voronoi<T> {
       if (cell) (cell.index = i), yield cell
     }
   }
-  cellPolygon(i) {
-    const polygon = new Polygon()
-    this.renderCell(i, polygon)
-    return polygon.value()
+  cellPolygon(i: number) {
+    const y = new Polygon()
+    this.renderCell(i, y)
+    return y.value()!
   }
-  _renderSegment(x0, y0, x1, y1, context) {
+  _renderSegment(x0: number, y0: number, x1: number, y1: number, ctx) {
     let S
     const c0 = this._regioncode(x0, y0)
     const c1 = this._regioncode(x1, y1)
     if (c0 === 0 && c1 === 0) {
-      context.moveTo(x0, y0)
-      context.lineTo(x1, y1)
+      ctx.moveTo(x0, y0)
+      ctx.lineTo(x1, y1)
     } else if ((S = this._clipSegment(x0, y0, x1, y1, c0, c1))) {
-      context.moveTo(S[0], S[1])
-      context.lineTo(S[2], S[3])
+      ctx.moveTo(S[0], S[1])
+      ctx.lineTo(S[2], S[3])
     }
   }
-  contains(i, x, y) {
+  contains(i: number, x: number, y: number) {
     if (((x = +x), x !== x) || ((y = +y), y !== y)) return false
     return this.delaunay._step(i, x, y) === i
   }
-  *neighbors(i) {
+  *neighbors(i: number) {
     const ci = this._clip(i)
     if (ci)
       for (const j of this.delaunay.neighbors(i)) {
@@ -463,25 +468,25 @@ export class Voronoi<T> implements qt.Voronoi<T> {
           }
       }
   }
-  _cell(i) {
+  _cell(i: number) {
     const {
       circumcenters,
       delaunay: { inedges, halfedges, triangles },
     } = this
     const e0 = inedges[i]
-    if (e0 === -1) return null // coincident point
+    if (e0 === -1) return null
     const points = []
     let e = e0
     do {
-      const t = Math.floor(e / 3)
+      const t = qu.floor(e / 3)
       points.push(circumcenters[t * 2], circumcenters[t * 2 + 1])
       e = e % 3 === 2 ? e - 2 : e + 1
-      if (triangles[e] !== i) break // bad triangulation
+      if (triangles[e] !== i) break
       e = halfedges[e]
     } while (e !== e0 && e !== -1)
     return points
   }
-  _clip(i) {
+  _clip(i: number) {
     if (i === 0 && this.delaunay.hull.length === 1) {
       return [this.xmax, this.ymin, this.xmax, this.ymax, this.xmin, this.ymax, this.xmin, this.ymin]
     }
@@ -493,7 +498,7 @@ export class Voronoi<T> implements qt.Voronoi<T> {
       ? this._clipInfinite(i, points, V[v], V[v + 1], V[v + 2], V[v + 3])
       : this._clipFinite(i, points)
   }
-  _clipFinite(i, points) {
+  _clipFinite(i: number, points) {
     const n = points.length
     let P = null
     let x0,
@@ -553,7 +558,7 @@ export class Voronoi<T> implements qt.Voronoi<T> {
       else (x1 = x), (y1 = y), (c1 = this._regioncode(x1, y1))
     }
   }
-  _clipInfinite(i, points, vx0, vy0, vxn, vyn) {
+  _clipInfinite(i: number, points, vx0, vy0, vxn, vyn) {
     let P = Array.from(points),
       p
     if ((p = this._project(P[0], P[1], vx0, vy0))) P.unshift(p[0], p[1])
@@ -568,7 +573,7 @@ export class Voronoi<T> implements qt.Voronoi<T> {
     }
     return P
   }
-  _edge(i, e0, e1, P, j) {
+  _edge(i: number, e0, e1, P, j) {
     while (e0 !== e1) {
       let x, y
       switch (e0) {
@@ -632,13 +637,13 @@ export class Voronoi<T> implements qt.Voronoi<T> {
     }
     return [x, y]
   }
-  _edgecode(x, y) {
+  _edgecode(x: number, y: number) {
     return (
       (x === this.xmin ? 0b0001 : x === this.xmax ? 0b0010 : 0b0000) |
       (y === this.ymin ? 0b0100 : y === this.ymax ? 0b1000 : 0b0000)
     )
   }
-  _regioncode(x, y) {
+  _regioncode(x: number, y: number) {
     return (
       (x < this.xmin ? 0b0001 : x > this.xmax ? 0b0010 : 0b0000) |
       (y < this.ymin ? 0b0100 : y > this.ymax ? 0b1000 : 0b0000)

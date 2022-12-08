@@ -315,18 +315,18 @@ export interface Delaunay<T> {
   triangles: Uint32Array
   inedges: Int32Array
   find(x: number, y: number, i?: number): number
-  neighbors(x: number): IterableIterator<number>
+  neighbors(i: number): IterableIterator<number>
   render(): string
   render(x: Delaunay.MoveContext & Delaunay.LineContext): void
   renderHull(): string
   renderHull(x: Delaunay.MoveContext & Delaunay.LineContext): void
-  renderTriangle(x: number): string
-  renderTriangle(x: number, context: Delaunay.MoveContext & Delaunay.LineContext & Delaunay.ClosableContext): void
+  renderTriangle(i: number): string
+  renderTriangle(i: number, x: Delaunay.MoveContext & Delaunay.LineContext & Delaunay.ClosableContext): void
   renderPoints(): string
   renderPoints(x: undefined, radius: number): string
   renderPoints(x: Delaunay.MoveContext & Delaunay.ArcContext, radius?: number): void
   hullPolygon(): Delaunay.Polygon
-  trianglePolygon(x: number): Delaunay.Triangle
+  trianglePolygon(i: number): Delaunay.Triangle
   trianglePolygons(): IterableIterator<Delaunay.Triangle>
   update(): this
   voronoi(x?: Delaunay.Bounds): Voronoi<T>
@@ -366,10 +366,10 @@ export interface Voronoi<T> {
   render(x: Delaunay.MoveContext & Delaunay.LineContext): void
   renderBounds(): string
   renderBounds(x: Delaunay.RectContext): void
-  renderCell(x: number): string
-  renderCell(x: number, c: Delaunay.MoveContext & Delaunay.LineContext & Delaunay.ClosableContext): void
+  renderCell(i: number): string
+  renderCell(i: number, x: Delaunay.MoveContext & Delaunay.LineContext & Delaunay.ClosableContext): void
   cellPolygons(): IterableIterator<Delaunay.Polygon & { i: number }>
-  cellPolygon(x: number): Delaunay.Polygon
+  cellPolygon(i: number): Delaunay.Polygon
   update(): this
 }
 export interface Dispatch<T extends object> {
