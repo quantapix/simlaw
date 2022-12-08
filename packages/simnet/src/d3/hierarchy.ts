@@ -217,7 +217,7 @@ function maxY(xs) {
   return 1 + xs.reduce(maxYReduce, 0)
 }
 function maxYReduce(y, c) {
-  return Math.max(y, c.y)
+  return qu.max(y, c.y)
 }
 function leafLeft(x) {
   let cs
@@ -507,7 +507,7 @@ export function tree<T>(): qh.Tree<T> {
     dx = 1,
     dy = 1,
     nodeSize = null
-  function tree(root) {
+  function f(root) {
     let t = treeRoot(root)
     t.eachAfter(firstWalk), (t.parent.m = -t.z)
     t.eachBefore(secondWalk)
@@ -516,16 +516,16 @@ export function tree<T>(): qh.Tree<T> {
       let left = root,
         right = root,
         bottom = root
-      root.eachBefore(function (node) {
+      root.eachBefore(node => {
         if (node.x < left.x) left = node
         if (node.x > right.x) right = node
         if (node.depth > bottom.depth) bottom = node
       })
-      let s = left === right ? 1 : separation(left, right) / 2,
+      const s = left === right ? 1 : separation(left, right) / 2,
         tx = s - left.x,
         kx = dx / (right.x + s + tx),
         ky = dy / (bottom.depth || 1)
-      root.eachBefore(function (node) {
+      root.eachBefore(node => {
         node.x = (node.x + tx) * kx
         node.y = node.depth * ky
       })
@@ -533,18 +533,16 @@ export function tree<T>(): qh.Tree<T> {
     return root
   }
   function firstWalk(v) {
-    let children = v.children,
+    const children = v.children,
       siblings = v.parent.children,
       w = v.i ? siblings[v.i - 1] : null
     if (children) {
       executeShifts(v)
-      let midpoint = (children[0].z + children[children.length - 1].z) / 2
+      const midpoint = (children[0].z + children[children.length - 1].z) / 2
       if (w) {
         v.z = w.z + separation(v._, w._)
         v.m = v.z - midpoint
-      } else {
-        v.z = midpoint
-      }
+      } else v.z = midpoint
     } else if (w) {
       v.z = w.z + separation(v._, w._)
     }
@@ -596,66 +594,61 @@ export function tree<T>(): qh.Tree<T> {
     node.x *= dx
     node.y = node.depth * dy
   }
-  tree.separation = function (x) {
-    return arguments.length ? ((separation = x), tree) : separation
-  }
-  tree.size = function (x) {
-    return arguments.length ? ((nodeSize = false), (dx = +x[0]), (dy = +x[1]), tree) : nodeSize ? null : [dx, dy]
-  }
-  tree.nodeSize = function (x) {
-    return arguments.length ? ((nodeSize = true), (dx = +x[0]), (dy = +x[1]), tree) : nodeSize ? [dx, dy] : null
-  }
-  return tree
+  f.separation = (x: any) => (x === undefined ? separation : ((separation = x), f))
+  f.size = (x: any) =>
+    x === undefined ? (nodeSize ? null : [dx, dy]) : ((nodeSize = false), (dx = +x[0]), (dy = +x[1]), f)
+  f.nodeSize = (x: any) =>
+    x === undefined ? (nodeSize ? [dx, dy] : null) : ((nodeSize = true), (dx = +x[0]), (dy = +x[1]), f)
+  return f
 }
 
-export const phi = (1 + Math.sqrt(5)) / 2
+export const phi = (1 + qu.sqrt(5)) / 2
 
 export function treemapBinary(parent: qh.RectNode<any>, x0: number, y0: number, x1: number, y1: number): void {
-  let nodes = parent.children,
-    i,
+  const nodes = parent.children,
     n = nodes.length,
-    sum,
     sums = new Array(n + 1)
+  let i, sum
   for (sums[0] = sum = i = 0; i < n; ++i) {
     sums[i + 1] = sum += nodes[i].value
   }
   partition(0, n, parent.value, x0, y0, x1, y1)
   function partition(i, j, value, x0, y0, x1, y1) {
     if (i >= j - 1) {
-      let node = nodes[i]
+      const node = nodes[i]!
       ;(node.x0 = x0), (node.y0 = y0)
       ;(node.x1 = x1), (node.y1 = y1)
       return
     }
-    let valueOffset = sums[i],
-      valueTarget = value / 2 + valueOffset,
-      k = i + 1,
+    const valueOffset = sums[i],
+      valueTarget = value / 2 + valueOffset
+    let k = i + 1,
       hi = j - 1
     while (k < hi) {
-      let mid = (k + hi) >>> 1
+      const mid = (k + hi) >>> 1
       if (sums[mid] < valueTarget) k = mid + 1
       else hi = mid
     }
     if (valueTarget - sums[k - 1] < sums[k] - valueTarget && i + 1 < k) --k
-    let valueLeft = sums[k] - valueOffset,
+    const valueLeft = sums[k] - valueOffset,
       valueRight = value - valueLeft
     if (x1 - x0 > y1 - y0) {
-      let xk = value ? (x0 * valueRight + x1 * valueLeft) / value : x1
+      const xk = value ? (x0 * valueRight + x1 * valueLeft) / value : x1
       partition(i, k, valueLeft, x0, y0, xk, y1)
       partition(k, j, valueRight, xk, y0, x1, y1)
     } else {
-      let yk = value ? (y0 * valueRight + y1 * valueLeft) / value : y1
+      const yk = value ? (y0 * valueRight + y1 * valueLeft) / value : y1
       partition(i, k, valueLeft, x0, y0, x1, yk)
       partition(k, j, valueRight, x0, yk, x1, y1)
     }
   }
 }
 export function treemapDice(parent: qh.RectNode<any>, x0: number, y0: number, x1: number, y1: number): void {
-  const ys = parent.children
-  let node,
-    i = -1,
+  const ys = parent.children,
     n = ys.length,
     k = parent.value && (x1 - x0) / parent.value
+  let node,
+    i = -1
   while (++i < n) {
     ;(node = ys[i]), (node.y0 = y0), (node.y1 = y1)
     ;(node.x0 = x0), (node.x1 = x0 += node.value * k)
@@ -673,7 +666,7 @@ export function treemap<T>(): qh.Treemap<T> {
     paddingRight = qu.constant(0),
     paddingBottom = qu.constant(0),
     paddingLeft = qu.constant(0)
-  function treemap(root) {
+  function f(root) {
     root.x0 = root.y0 = 0
     root.x1 = dx
     root.y1 = dy
@@ -705,39 +698,23 @@ export function treemap<T>(): qh.Treemap<T> {
       tile(node, x0, y0, x1, y1)
     }
   }
-  treemap.round = function (x) {
-    return arguments.length ? ((round = !!x), treemap) : round
-  }
-  treemap.size = function (x) {
-    return arguments.length ? ((dx = +x[0]), (dy = +x[1]), treemap) : [dx, dy]
-  }
-  treemap.tile = function (x) {
-    return arguments.length ? ((tile = required(x)), treemap) : tile
-  }
-  treemap.padding = function (x) {
-    return arguments.length ? treemap.paddingInner(x).paddingOuter(x) : treemap.paddingInner()
-  }
-  treemap.paddingInner = function (x) {
-    return arguments.length ? ((paddingInner = typeof x === "function" ? x : qu.constant(+x)), treemap) : paddingInner
-  }
-  treemap.paddingOuter = function (x) {
-    return arguments.length
-      ? treemap.paddingTop(x).paddingRight(x).paddingBottom(x).paddingLeft(x)
-      : treemap.paddingTop()
-  }
-  treemap.paddingTop = function (x) {
-    return arguments.length ? ((paddingTop = typeof x === "function" ? x : qu.constant(+x)), treemap) : paddingTop
-  }
-  treemap.paddingRight = function (x) {
-    return arguments.length ? ((paddingRight = typeof x === "function" ? x : qu.constant(+x)), treemap) : paddingRight
-  }
-  treemap.paddingBottom = function (x) {
-    return arguments.length ? ((paddingBottom = typeof x === "function" ? x : qu.constant(+x)), treemap) : paddingBottom
-  }
-  treemap.paddingLeft = function (x) {
-    return arguments.length ? ((paddingLeft = typeof x === "function" ? x : qu.constant(+x)), treemap) : paddingLeft
-  }
-  return treemap
+  f.round = (x: any) => (x === undefined ? round : ((round = !!x), f))
+  f.size = (x: any) => (x === undefined ? [dx, dy] : ((dx = +x[0]), (dy = +x[1]), f))
+  f.tile = (x: any) => (x === undefined ? tile : ((tile = required(x)), f))
+  f.padding = (x: any) => (x === undefined ? f.paddingInner() : f.paddingInner(x).paddingOuter(x))
+  f.paddingInner = (x: any) =>
+    x === undefined ? paddingInner : ((paddingInner = typeof x === "function" ? x : qu.constant(+x)), f)
+  f.paddingOuter = (x: any) =>
+    x === undefined ? f.paddingTop() : f.paddingTop(x).paddingRight(x).paddingBottom(x).paddingLeft(x)
+  f.paddingTop = (x: any) =>
+    x === undefined ? paddingTop : ((paddingTop = typeof x === "function" ? x : qu.constant(+x)), f)
+  f.paddingRight = (x: any) =>
+    x === undefined ? paddingRight : ((paddingRight = typeof x === "function" ? x : qu.constant(+x)), f)
+  f.paddingBottom = (x: any) =>
+    x === undefined ? paddingBottom : ((paddingBottom = typeof x === "function" ? x : qu.constant(+x)), f)
+  f.paddingLeft = (x: any) =>
+    x === undefined ? paddingLeft : ((paddingLeft = typeof x === "function" ? x : qu.constant(+x)), f)
+  return f
 }
 
 export const treemapResquarify: qh.RatioFac = (function f(ratio) {
@@ -768,18 +745,18 @@ export const treemapResquarify: qh.RatioFac = (function f(ratio) {
 })(phi)
 
 export function roundNode(x) {
-  x.x0 = Math.round(x.x0)
-  x.y0 = Math.round(x.y0)
-  x.x1 = Math.round(x.x1)
-  x.y1 = Math.round(x.y1)
+  x.x0 = qu.round(x.x0)
+  x.y0 = qu.round(x.y0)
+  x.x1 = qu.round(x.x1)
+  x.y1 = qu.round(x.y1)
 }
 
 export function treemapSlice(parent: qh.RectNode<any>, x0: number, y0: number, x1: number, y1: number): void {
-  let ys = parent.children,
-    node,
-    i = -1,
+  const ys = parent.children,
     n = ys.length,
     k = parent.value && (y1 - y0) / parent.value
+  let node,
+    i = -1
   while (++i < n) {
     ;(node = ys[i]), (node.x0 = x0), (node.x1 = x1)
     ;(node.y0 = y0), (node.y1 = y0 += node.value * k)
@@ -791,13 +768,13 @@ export function treemapSliceDice(parent: qh.RectNode<any>, x0: number, y0: numbe
 }
 
 function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
-  let rows = [],
+  const rows = [],
     nodes = parent.children,
-    row,
+    n = nodes.length
+  let row,
     nodeValue,
     i0 = 0,
     i1 = 0,
-    n = nodes.length,
     dx,
     dy,
     value = parent.value,
@@ -813,15 +790,15 @@ function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
     do sumValue = nodes[i1++].value
     while (!sumValue && i1 < n)
     minValue = maxValue = sumValue
-    alpha = Math.max(dy / dx, dx / dy) / (value * ratio)
+    alpha = qu.max(dy / dx, dx / dy) / (value * ratio)
     beta = sumValue * sumValue * alpha
-    minRatio = Math.max(maxValue / beta, beta / minValue)
+    minRatio = qu.max(maxValue / beta, beta / minValue)
     for (; i1 < n; ++i1) {
       sumValue += nodeValue = nodes[i1].value
       if (nodeValue < minValue) minValue = nodeValue
       if (nodeValue > maxValue) maxValue = nodeValue
       beta = sumValue * sumValue * alpha
-      newRatio = Math.max(maxValue / beta, beta / minValue)
+      newRatio = qu.max(maxValue / beta, beta / minValue)
       if (newRatio > minRatio) {
         sumValue -= nodeValue
         break
@@ -849,7 +826,7 @@ export function packEnclose<T extends qh.PackCircle>(xs: T[]): qh.PackCircle | u
 }
 export function packRandom(xs: qh.PackCircle[], rnd: () => number) {
   function weak(a: qh.PackCircle, b: qh.PackCircle) {
-    const dr = a.r - b.r + Math.max(a.r, b.r, 1) * 1e-9
+    const dr = a.r - b.r + qu.max(a.r, b.r, 1) * 1e-9
     const dx = b.x - a.x
     const dy = b.y - a.y
     return dr > 0 && dr * dr > dx * dx + dy * dy
@@ -866,7 +843,7 @@ export function packRandom(xs: qh.PackCircle[], rnd: () => number) {
     const x21 = x2 - x1,
       y21 = y2 - y1,
       r21 = r2 - r1,
-      l = Math.sqrt(x21 * x21 + y21 * y21)
+      l = qu.sqrt(x21 * x21 + y21 * y21)
     return {
       r: (l + r1 + r2) / 2,
       x: (x1 + x2 + (x21 / l) * r21) / 2,
@@ -894,7 +871,7 @@ export function packRandom(xs: qh.PackCircle[], rnd: () => number) {
     const A = xb * xb + yb * yb - 1,
       B = 2 * (r1 + xa * xb + ya * yb),
       C = xa * xa + ya * ya - r1 * r1,
-      r = -(Math.abs(A) > 1e-6 ? (B + Math.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B)
+      r = -(qu.abs(A) > 1e-6 ? (B + qu.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B)
     return {
       r: r,
       x: x1 + xa + xb * r,
@@ -960,9 +937,9 @@ export function pack<T>(): qh.Pack<T> {
   function f(root: Node<T>) {
     const rnd = lcg()
     ;(root.x = dx / 2), (root.y = dy / 2)
-    function radiusLeaf(f = (x: Node<T>) => Math.sqrt(x.value)) {
+    function radiusLeaf(f = (x: Node<T>) => qu.sqrt(x.value)) {
       return function (x: Node<T>) {
-        if (!x.children) x.r = Math.max(0, +f(x) || 0)
+        if (!x.children) x.r = qu.max(0, +f(x) || 0)
       }
     }
     function random(padding, k, random) {
@@ -996,8 +973,8 @@ export function pack<T>(): qh.Pack<T> {
       root
         .eachBefore(radiusLeaf())
         .eachAfter(random(qu.constant(0), 1, rnd))
-        .eachAfter(random(padding, root.r / Math.min(dx, dy), rnd))
-        .eachBefore(translate(Math.min(dx, dy) / (2 * root.r)))
+        .eachAfter(random(padding, root.r / qu.min(dx, dy), rnd))
+        .eachBefore(translate(qu.min(dx, dy) / (2 * root.r)))
     }
     return root
   }
@@ -1019,12 +996,12 @@ function place(b, a, c) {
     ;(b2 = b.r + c.r), (b2 *= b2)
     if (a2 > b2) {
       x = (d2 + b2 - a2) / (2 * d2)
-      y = Math.sqrt(Math.max(0, b2 / d2 - x * x))
+      y = qu.sqrt(qu.max(0, b2 / d2 - x * x))
       c.x = b.x - x * dx - y * dy
       c.y = b.y - x * dy + y * dx
     } else {
       x = (d2 + a2 - b2) / (2 * d2)
-      y = Math.sqrt(Math.max(0, a2 / d2 - x * x))
+      y = qu.sqrt(qu.max(0, a2 / d2 - x * x))
       c.x = a.x + x * dx - y * dy
       c.y = a.y + x * dy + y * dx
     }
