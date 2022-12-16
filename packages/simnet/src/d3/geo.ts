@@ -1,5 +1,5 @@
 /* eslint-disable no-inner-declarations */
-import { Adder, range } from "./utils_seq.js"
+import { Adder, range } from "./sequence.js"
 import * as qu from "./utils.js"
 import type { Geo as qg } from "./types.js"
 import type * as qt from "./types.js"

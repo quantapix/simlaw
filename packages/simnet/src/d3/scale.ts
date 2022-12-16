@@ -1,5 +1,5 @@
 /* eslint-disable no-inner-declarations */
-import { range, ticks, tickIncrement, tickStep, bisect, quantile, quantileSorted as threshold } from "./utils_seq.js"
+import { range, ticks, tickIncrement, tickStep, bisect, quantile, quantileSorted as threshold } from "./sequence.js"
 import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix, precisionRound } from "./format.js"
 import { interpolate as interpolateValue, interpolateNumber, interpolateRound } from "./interpolate.js"
 import { interpolate, piecewise } from "./interpolate.js"

@@ -1,4 +1,4 @@
-import { slice } from "./utils_seq.js"
+import { slice } from "./sequence.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 

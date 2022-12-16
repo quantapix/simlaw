@@ -1,5 +1,5 @@
-import { thresholdSturges, ticks, tickStep } from "./utils_seq.js"
-import { each, slice, blur2 } from "./utils_seq.js"
+import { thresholdSturges, ticks, tickStep } from "./sequence.js"
+import { each, slice, blur2 } from "./sequence.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 

@@ -1,4 +1,4 @@
-import { bisector, tickStep } from "./utils_seq.js"
+import { bisector, tickStep } from "./sequence.js"
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
 
