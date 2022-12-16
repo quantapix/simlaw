@@ -1652,6 +1652,8 @@ export namespace Shape {
   export interface Link<This, L, N> {
     (this: This, x: L, ...xs: any[]): string | null
     (this: This, x: L, ...xs: any[]): void
+    context(): Context | null
+    context(x: Context | null): this
     source(): (this: This, x: L, ...xs: any[]) => N
     source(f: (this: This, x: L, ...xs: any[]) => N): this
     target(): (this: This, x: L, ...xs: any[]) => N
@@ -1660,22 +1662,20 @@ export namespace Shape {
     x(x: (this: This, x: N, ...xs: any[]) => number): this
     y(): (this: This, x: N, ...xs: any[]) => number
     y(y: (this: This, x: N, ...xs: any[]) => number): this
-    context(): Context | null
-    context(x: Context | null): this
   }
   export interface LinkRadial<This, L, N> {
     (this: This, x: L, ...xs: any[]): string | null
     (this: This, x: L, ...xs: any[]): void
+    angle(): (this: This, x: N, ...xs: any[]) => number
+    angle(f: (this: This, x: N, ...xs: any[]) => number): this
+    context(): Context | null
+    context(x: Context | null): this
+    radius(): (this: This, x: N, ...xs: any[]) => number
+    radius(f: (this: This, x: N, ...xs: any[]) => number): this
     source(): (this: This, x: L, ...xs: any[]) => N
     source(f: (this: This, x: L, ...xs: any[]) => N): this
     target(): (this: This, x: L, ...xs: any[]) => N
     target(f: (this: This, x: L, ...xs: any[]) => N): this
-    angle(): (this: This, x: N, ...xs: any[]) => number
-    angle(f: (this: This, x: N, ...xs: any[]) => number): this
-    radius(): (this: This, x: N, ...xs: any[]) => number
-    radius(f: (this: This, x: N, ...xs: any[]) => number): this
-    context(): Context | null
-    context(x: Context | null): this
   }
   export interface Path {
     arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, ccw?: boolean): void
@@ -1697,22 +1697,21 @@ export namespace Shape {
     quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void
     rect(x: number, y: number, w: number, h: number): void
   }
-}
-
-export interface SymbolType {
-  draw(path: Shape.Path, size: number): void
-}
-export interface Symbol<This, T> {
-  (this: This, x?: T, ...xs: any[]): string | null
-  (this: This, x?: T, ...xs: any[]): void
-  context(): Context | null
-  context(x: Context | null): this
-  size(): (this: This, x: T, ...xs: any[]) => number
-  size(f: (this: This, x: T, ...xs: any[]) => number): this
-  size(x: number): this
-  type(): (this: This, x: T, ...xs: any[]) => SymbolType
-  type(f: (this: This, x: T, ...xs: any[]) => SymbolType): this
-  type(x: SymbolType): this
+  export interface SymType {
+    draw(path: Shape.Path, size: number): void
+  }
+  export interface Symbol<This, T> {
+    (this: This, x?: T, ...xs: any[]): string | null
+    (this: This, x?: T, ...xs: any[]): void
+    context(): Context | null
+    context(x: Context | null): this
+    size(): (this: This, x: T, ...xs: any[]) => number
+    size(f: (this: This, x: T, ...xs: any[]) => number): this
+    size(x: number): this
+    type(): (this: This, x: T, ...xs: any[]) => SymType
+    type(f: (this: This, x: T, ...xs: any[]) => SymType): this
+    type(x: SymType): this
+  }
 }
 
 export interface SeriesPoint<T> extends Array<number> {

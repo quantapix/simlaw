@@ -497,13 +497,13 @@ export function stack() {
 }
 
 export function symbol<T = any>(
-  x?: qt.SymbolType | ((this: any, x: T, ...xs: any[]) => qt.SymbolType),
+  x?: qs.SymType | ((this: any, x: T, ...xs: any[]) => qs.SymType),
   size?: number | ((this: any, x: T, ...xs: any[]) => number)
-): qt.Symbol<any, T>
+): qs.Symbol<any, T>
 export function symbol<This, T>(
-  x?: qt.SymbolType | ((this: This, x: T, ...xs: any[]) => qt.SymbolType),
+  x?: qs.SymType | ((this: This, x: T, ...xs: any[]) => qs.SymType),
   size?: number | ((this: This, x: T, ...xs: any[]) => number)
-): qt.Symbol<This, T>
+): qs.Symbol<This, T>
 export function symbol(x: any, ...xs: any[]): any {
   let buffer
   if (!context) context = buffer = new qu.Path()
@@ -511,7 +511,7 @@ export function symbol(x: any, ...xs: any[]): any {
   if (buffer) return (context = null), buffer + "" || null
 }
 
-export class Symbol<This, T> implements qt.Symbol<This, T> {
+export class Symbol<This, T> implements qs.Symbol<This, T> {
   context = null
   size: any
   type: any
@@ -1677,7 +1677,7 @@ function slope3(that, x2: number, y2: number) {
 
 export namespace symbol {
   const sqrt3 = qu.sqrt(3)
-  export const asterisk: qt.SymbolType = {
+  export const asterisk: qs.SymType = {
     draw(p, size) {
       const r = qu.sqrt(size + qu.min(size / 28, 0.75)) * 0.59436
       const t = r / 2
@@ -1690,14 +1690,14 @@ export namespace symbol {
       p.lineTo(u, -t)
     },
   }
-  export const circle: qt.SymbolType = {
+  export const circle: qs.SymType = {
     draw(p, size) {
       const r = qu.sqrt(size / qu.PI)
       p.moveTo(r, 0)
       p.arc(0, 0, r, 0, qu.tau)
     },
   }
-  export const cross: qt.SymbolType = {
+  export const cross: qs.SymType = {
     draw(p, size) {
       const r = qu.sqrt(size / 5) / 2
       p.moveTo(-3 * r, -r)
@@ -1717,7 +1717,7 @@ export namespace symbol {
   }
   const tan30 = qu.sqrt(1 / 3)
   const tan30_2 = tan30 * 2
-  export const diamond: qt.SymbolType = {
+  export const diamond: qs.SymType = {
     draw(p, size) {
       const y = qu.sqrt(size / tan30_2)
       const x = y * tan30
@@ -1728,7 +1728,7 @@ export namespace symbol {
       p.closePath()
     },
   }
-  export const diamond2: qt.SymbolType = {
+  export const diamond2: qs.SymType = {
     draw(p, size) {
       const r = qu.sqrt(size) * 0.62625
       p.moveTo(0, -r)
@@ -1738,7 +1738,7 @@ export namespace symbol {
       p.closePath()
     },
   }
-  export const plus: qt.SymbolType = {
+  export const plus: qs.SymType = {
     draw(p, size) {
       const r = qu.sqrt(size - qu.min(size / 7, 2)) * 0.87559
       p.moveTo(-r, 0)
@@ -1747,14 +1747,14 @@ export namespace symbol {
       p.lineTo(0, -r)
     },
   }
-  export const square: qt.SymbolType = {
+  export const square: qs.SymType = {
     draw(p, size) {
       const w = qu.sqrt(size)
       const x = -w / 2
       p.rect(x, x, w, w)
     },
   }
-  export const square2: qt.SymbolType = {
+  export const square2: qs.SymType = {
     draw(p, size) {
       const r = qu.sqrt(size) * 0.4431
       p.moveTo(r, r)
@@ -1768,7 +1768,7 @@ export namespace symbol {
   const kr = qu.sin(qu.PI / 10) / qu.sin((7 * qu.PI) / 10)
   const kx = qu.sin(qu.tau / 10) * kr
   const ky = -qu.cos(qu.tau / 10) * kr
-  export const star: qt.SymbolType = {
+  export const star: qs.SymType = {
     draw(p, size) {
       const r = qu.sqrt(size * ka)
       const x = kx * r
@@ -1785,7 +1785,7 @@ export namespace symbol {
       p.closePath()
     },
   }
-  export const triangle: qt.SymbolType = {
+  export const triangle: qs.SymType = {
     draw(p, size) {
       const y = -qu.sqrt(size / (sqrt3 * 3))
       p.moveTo(0, y * 2)
@@ -1794,7 +1794,7 @@ export namespace symbol {
       p.closePath()
     },
   }
-  export const triangle2: qt.SymbolType = {
+  export const triangle2: qs.SymType = {
     draw(p, size) {
       const s = qu.sqrt(size) * 0.6824
       const t = s / 2
@@ -1809,7 +1809,7 @@ export namespace symbol {
   const s = qu.sqrt(3) / 2
   const k = 1 / qu.sqrt(12)
   const a = (k / 2 + 1) * 3
-  export const wye: qt.SymbolType = {
+  export const wye: qs.SymType = {
     draw(p, size) {
       const r = qu.sqrt(size / a)
       const x0 = r / 2,
@@ -1830,7 +1830,7 @@ export namespace symbol {
       p.closePath()
     },
   }
-  export const x: qt.SymbolType = {
+  export const x: qs.SymType = {
     draw(p, size) {
       const r = qu.sqrt(size - qu.min(size / 6, 1.7)) * 0.6189
       p.moveTo(-r, -r)
@@ -1839,6 +1839,6 @@ export namespace symbol {
       p.lineTo(r, -r)
     },
   }
-  export const fills: qt.SymbolType[] = [circle, cross, diamond, square, star, triangle, wye]
-  export const strokes: qt.SymbolType[] = [circle, plus, x, triangle2, asterisk, square2, diamond2]
+  export const fills: qs.SymType[] = [circle, cross, diamond, square, star, triangle, wye]
+  export const strokes: qs.SymType[] = [circle, plus, x, triangle2, asterisk, square2, diamond2]
 }
