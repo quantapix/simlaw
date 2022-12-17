@@ -1,3 +1,4 @@
+/* eslint-disable no-inner-declarations */
 /* eslint-disable @typescript-eslint/no-this-alias */
 import type * as qt from "./types.js"
 
@@ -32,7 +33,10 @@ export const tauEpsilon = tau - epsilon
 
 export function noop(..._: any) {}
 export const identity = <T>(x: T) => x
-export const constant =  <T>(x: T) =>  (..._: any) =>    x
+export const constant =
+  <T>(x: T) =>
+  (..._: any) =>
+    x
 
 export function asin(x: number) {
   return x >= 1 ? halfPI : x <= -1 ? -halfPI : Math.asin(x)
@@ -535,115 +539,113 @@ export function timer(f: (x: number) => void, delay?: number, time?: number): Ti
   t.restart(f, delay, time)
   return t
 }
-export function interval(f: (x: number) => void, delay?: number, time?: number): Timer {
-  const t = new Timer()
-  let total = delay
-  if (delay === null) return t.restart(f, delay, time), t
-  t._restart = t.restart
-  t.restart = function (callback, delay, time) {
-    ;(delay = +delay), (time = time === null ? now() : +time)
-    t._restart(
-      function tick(x) {
-        x += total
-        t._restart(tick, (total += delay), time)
-        callback(x)
+export namespace timer {
+  export function interval(f: (x: number) => void, delay?: number, time?: number): Timer {
+    const t = new Timer()
+    let total = delay
+    if (delay === null) return t.restart(f, delay, time), t
+    t._restart = t.restart
+    t.restart = function (callback, delay, time) {
+      ;(delay = +delay), (time = time === null ? now() : +time)
+      t._restart(
+        function tick(x) {
+          x += total
+          t._restart(tick, (total += delay), time)
+          callback(x)
+        },
+        delay,
+        time
+      )
+    }
+    t.restart(f, delay, time)
+    return t
+  }
+  export function timeout(cb: (x: number) => void, delay?: number, time?: number): Timer {
+    const t = new Timer()
+    delay = delay ?? 0
+    t.restart(
+      x => {
+        t.stop()
+        cb(x + delay!)
       },
       delay,
       time
     )
+    return t
   }
-  t.restart(f, delay, time)
-  return t
-}
-export function timeout(cb: (x: number) => void, delay?: number, time?: number): Timer {
-  const t = new Timer()
-  delay = delay ?? 0
-  t.restart(
-    x => {
-      t.stop()
-      cb(x + delay!)
-    },
-    delay,
-    time
-  )
-  return t
-}
-
-const pokeDelay = 1000,
-  clock = typeof performance === "object" ? performance : Date,
-  setFrame =
-    typeof window === "object" && window.requestAnimationFrame
-      ? window.requestAnimationFrame.bind(window)
-      : function (f) {
-          setTimeout(f, 17)
-        }
-let frame = 0,
-  clockTimeout: any = 0,
-  clockInterval: any = 0,
-  clockLast = 0,
-  clockNow = 0,
-  clockSkew = 0
-
-export function now(): number {
-  return clockNow || (setFrame(clearNow), (clockNow = clock.now() + clockSkew))
-}
-function clearNow() {
-  clockNow = 0
-}
-export function timerFlush() {
-  now()
-  ++frame
-  let t = head,
-    e
-  while (t) {
-    if ((e = clockNow - t._time) >= 0) t._call.call(undefined, e)
-    t = t._next
+  const pokeDelay = 1000,
+    clock = typeof performance === "object" ? performance : Date,
+    setFrame =
+      typeof window === "object" && window.requestAnimationFrame
+        ? window.requestAnimationFrame.bind(window)
+        : f => setTimeout(f, 17)
+  let frame = 0,
+    clockTimeout: any = 0,
+    clockInterval: any = 0,
+    clockLast = 0,
+    clockNow = 0,
+    clockSkew = 0
+  export function now(): number {
+    return clockNow || (setFrame(clear), (clockNow = clock.now() + clockSkew))
   }
-  --frame
-}
-function wake() {
-  clockNow = (clockLast = clock.now()) + clockSkew
-  frame = clockTimeout = 0
-  try {
-    timerFlush()
-  } finally {
-    frame = 0
-    nap()
+  function clear() {
     clockNow = 0
   }
-}
-function poke() {
-  const now = clock.now(),
-    delay = now - clockLast
-  if (delay > pokeDelay) (clockSkew -= delay), (clockLast = now)
-}
-function nap() {
-  let t0,
-    t1 = head,
-    t2,
-    time = Infinity
-  while (t1) {
-    if (t1._call) {
-      if (time > t1._time) time = t1._time
-      ;(t0 = t1), (t1 = t1._next)
-    } else {
-      ;(t2 = t1._next), (t1._next = null)
-      t1 = t0 ? (t0._next = t2) : (head = t2)
+  export function flush() {
+    now()
+    ++frame
+    let t = head,
+      e
+    while (t) {
+      if ((e = clockNow - t._time) >= 0) t._call.call(undefined, e)
+      t = t._next
+    }
+    --frame
+  }
+  function wake() {
+    clockNow = (clockLast = clock.now()) + clockSkew
+    frame = clockTimeout = 0
+    try {
+      timerFlush()
+    } finally {
+      frame = 0
+      nap()
+      clockNow = 0
     }
   }
-  tail = t0
-  sleep(time)
-}
-function sleep(time?) {
-  if (frame) return
-  if (clockTimeout) clockTimeout = clearTimeout(clockTimeout)
-  const delay = time - clockNow
-  if (delay > 24) {
-    if (time < Infinity) clockTimeout = setTimeout(wake, time - clock.now() - clockSkew)
-    if (clockInterval) clockInterval = clearInterval(clockInterval)
-  } else {
-    if (!interval) (clockLast = clock.now()), (clockInterval = setInterval(poke, pokeDelay))
-    ;(frame = 1), setFrame(wake)
+  function poke() {
+    const now = clock.now(),
+      delay = now - clockLast
+    if (delay > pokeDelay) (clockSkew -= delay), (clockLast = now)
+  }
+  function nap() {
+    let t0,
+      t1 = head,
+      t2,
+      time = Infinity
+    while (t1) {
+      if (t1._call) {
+        if (time > t1._time) time = t1._time
+        ;(t0 = t1), (t1 = t1._next)
+      } else {
+        ;(t2 = t1._next), (t1._next = null)
+        t1 = t0 ? (t0._next = t2) : (head = t2)
+      }
+    }
+    tail = t0
+    sleep(time)
+  }
+  function sleep(time?) {
+    if (frame) return
+    if (clockTimeout) clockTimeout = clearTimeout(clockTimeout)
+    const delay = time - clockNow
+    if (delay > 24) {
+      if (time < Infinity) clockTimeout = setTimeout(wake, time - clock.now() - clockSkew)
+      if (clockInterval) clockInterval = clearInterval(clockInterval)
+    } else {
+      if (!interval) (clockLast = clock.now()), (clockInterval = setInterval(poke, pokeDelay))
+      ;(frame = 1), setFrame(wake)
+    }
   }
 }
 
@@ -1238,15 +1240,10 @@ export namespace fetch {
   export class DSV implements qt.DSV {
     reFormat
     constructor(public delimiter: string) {
-      this.reFormat = new RegExp('["' + delimiter + "\n\r]"),
-      DELIMITER = delimiter.charCodeAt(0)
+      ;(this.reFormat = new RegExp('["' + delimiter + "\n\r]")), (DELIMITER = delimiter.charCodeAt(0))
     }
     preformat(rs: any[], cs: any[]) {
-      return rs.map( (r) => cs
-          .map( (c) => this.formatValue(r[c])
-          )
-          .join(this.delimiter)
-      )
+      return rs.map(r => cs.map(c => this.formatValue(r[c])).join(this.delimiter))
     }
     format(rs: any, cs?: any) {
       cs = cs ?? inferColumns(rs)
@@ -1268,12 +1265,12 @@ export namespace fetch {
           minutes = x.getUTCMinutes(),
           seconds = x.getUTCSeconds(),
           millis = x.getUTCMilliseconds()
-        const pad = (x, width:number) => {
-            const y = x + "",
-              length = y.length
-            return length < width ? new Array(width - length + 1).join(0) + y : y
-          }
-        const year = (x) => x < 0 ? "-" + pad(-x, 6) : x > 9999 ? "+" + pad(x, 6) : pad(x, 4)
+        const pad = (x, width: number) => {
+          const y = x + "",
+            length = y.length
+          return length < width ? new Array(width - length + 1).join(0) + y : y
+        }
+        const year = x => (x < 0 ? "-" + pad(-x, 6) : x > 9999 ? "+" + pad(x, 6) : pad(x, 4))
         return isNaN(+x)
           ? "Invalid Date"
           : year(x.getUTCFullYear()) +
@@ -1288,7 +1285,7 @@ export namespace fetch {
                 : minutes || hours
                 ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + "Z"
                 : "")
-      }    
+      }
       return x === undefined
         ? ""
         : x instanceof Date
@@ -1351,7 +1348,6 @@ export namespace fetch {
       }
       return ys
     }
-
   }
 
   const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours()
@@ -1377,29 +1373,11 @@ export namespace fetch {
     }
     return x
   }
-  const csv = dsvFormat(",")
-  export function csvParse<C extends string>(csvString: string): qt.DSV.RowArray<C>
-  export function csvParse<R extends object, T extends string>(
-    csvString: string,
-    row: (rawRow: qt.DSV.Row<T>, i: number, columns: T[]) => R | undefined | null
-  ): qt.DSV.Parsed<R>
-  export function csvParse = csv.parse
-  export function csvParseRows(csvString: string): string[][]
-  export function csvParseRows<R extends object>(
-    csvString: string,
-    row: (rawRow: string[], i: number) => R | undefined | null
-  ): R[]
-  export function csvParseRows = csv.parseRows
-  export function csvFormat<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
-  export function csvFormat = csv.format
-  export function csvFormatBody<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
-  export function csvFormatBody = csv.formatBody
-  export function csvFormatRows(xs: readonly string[][]): string
-  export function csvFormatRows = csv.formatRows
-  export function csvFormatRow(x: readonly string[]): string
-  export function csvFormatRow = csv.formatRow
-  export function csvFormatValue(x: string): string
-  export function csvFormatValue = csv.formatValue
+  export class CSV extends DSV {
+    constructor() {
+      super(",")
+    }
+  }
   const EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -1435,30 +1413,11 @@ export namespace fetch {
     })
     return columns
   }
-  const tsv = dsvFormat("\t")
-  export function tsvParse<C extends string>(tsvString: string): qt.DSV.RowArray<C>
-  export function tsvParse<R extends object, C extends string>(
-    tsvString: string,
-    row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
-  ): qt.DSV.Parsed<R>
-  export function tsvParse = tsv.parse
-  export function tsvParseRows(tsvString: string): string[][]
-  export function tsvParseRows<T extends object>(
-    tsvString: string,
-    row: (rawRow: string[], i: number) => T | undefined | null
-  ): T[]
-  export function tsvParseRows = tsv.parseRows
-  export function tsvFormat<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
-  export function tsvFormat = tsv.format
-  export function tsvFormatBody<T extends object>(rows: readonly T[], columns?: ReadonlyArray<keyof T>): string
-  export function tsvFormatBody = tsv.formatBody
-  export function tsvFormatRows(xs: readonly string[][]): string
-  export function tsvFormatRows = tsv.formatRows
-  export function tsvFormatRow(x: readonly string[]): string
-  export function tsvFormatRow = tsv.formatRow
-  export function tsvFormatValue(x: string): string
-  export function tsvFormatValue = tsv.formatValue
-  
+  export class TSV extends DSV {
+    constructor() {
+      super("\t")
+    }
+  }
   function responseBlob(response) {
     if (!response.ok) throw new Error(response.status + " " + response.statusText)
     return response.blob()
@@ -1515,7 +1474,7 @@ export namespace fetch {
     init: RequestInit,
     row: (rawRow: qt.DSV.Row<T>, i: number, columns: T[]) => R | undefined | null
   ): Promise<qt.DSV.Parsed<R>>
-  export function csv = dsvParse(csvParse)
+  export function csv() {} // = dsvParse(csvParse)
   export function tsv<C extends string>(url: string, init?: RequestInit): Promise<qt.DSV.RowArray<C>>
   export function tsv<R extends object, C extends string = string>(
     url: string,
@@ -1526,7 +1485,7 @@ export namespace fetch {
     init: RequestInit,
     row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
   ): Promise<qt.DSV.Parsed<R>>
-  export function tsv = dsvParse(tsvParse)
+  export function tsv() {} // = dsvParse(tsvParse)
   export function image(url: string, init?: Partial<HTMLImageElement>): Promise<HTMLImageElement> {
     return new Promise(function (resolve, reject) {
       const image = new Image()
@@ -1559,16 +1518,14 @@ export namespace fetch {
     return (input, init) => text(input, init).then(text => new DOMParser().parseFromString(text, type))
   }
   export function xml(url: string, init?: RequestInit): Promise<XMLDocument>
-  export function xml = parser("application/xml")
+  export function xml() {} // = parser("application/xml")
   export function html(url: string, init?: RequestInit): Promise<Document>
-  export function html = parser("text/html")
+  export function html() {} //= parser("text/html")
   export function svg(url: string, init?: RequestInit): Promise<Document>
-  export function svg = parser("image/svg+xml")
-  
+  export function svg() {} // = parser("image/svg+xml")
 }
 
 export namespace interpolate {
-
   export function numArray<T extends any[]>(a: any[], b: T): qt.ArrayIpolator<T>
   export function numArray<T extends qt.NumArray>(a: qt.NumArray | number[], b: T): (x: number) => T
   export function numArray(a: any, b: any) {
@@ -1580,7 +1537,7 @@ export namespace interpolate {
       return c
     }
   }
-  
+
   export function anyArray(a: any, b: any) {
     const nb: number = b & b.length ?? 0,
       na = min(nb, a & a.length ?? 0),
@@ -1599,14 +1556,14 @@ export namespace interpolate {
   export function array(a: any, b: any) {
     return (isNumArray(b) ? numArray : anyArray)(a, b)
   }
-  
+
   function isNumArray(x: any) {
     return ArrayBuffer.isView(x) && !(x instanceof DataView)
   }
-  
+
   const reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g
   const reB = new RegExp(reA.source, "g")
-  
+
   function zero(x: any) {
     return () => x
   }
@@ -1629,7 +1586,10 @@ export namespace interpolate {
     b = +b
     return x => round(a * (1 - x) + b * x)
   }
-  export function string(a: string | { toString(): string }, b: string | { toString(): string }): (x: number) => string {
+  export function string(
+    a: string | { toString(): string },
+    b: string | { toString(): string }
+  ): (x: number) => string {
     let bi = (reA.lastIndex = reB.lastIndex = 0),
       am,
       bm,
@@ -1683,7 +1643,7 @@ export namespace interpolate {
       return c
     }
   }
-  
+
   export function value(a: any, b: null): (t: number) => null
   export function value(a: any, b: boolean): (t: number) => boolean
   export function value(a: string | qt.Color, b: qt.Color): (t: number) => string
@@ -1716,7 +1676,7 @@ export namespace interpolate {
           ? object
           : number)(a, b)
   }
-  
+
   export function piecewise(vs: qt.Zoom.View[]): qt.Zoom.Interpolator
   export function piecewise(
     f: (a: qt.Zoom.View, b: qt.Zoom.View) => qt.Zoom.Interpolator,
@@ -1738,7 +1698,7 @@ export namespace interpolate {
       return ys[i](x - i)
     }
   }
-  
+
   export const zoom: (a: qt.Zoom.View, b: qt.Zoom.View) => qt.Zoom.Interpolator = (function zoomRho(rho, rho2, rho4) {
     function zoom(p0, p1) {
       let ux0 = p0[0],
@@ -1782,7 +1742,7 @@ export namespace interpolate {
     }
     return zoom
   })(SQRT2, 2, 4)
-  
+
   function transform(parse, pxComma, pxParen, degParen) {
     function pop(s) {
       return s.length ? s.pop() + " " : ""
@@ -1837,9 +1797,14 @@ export namespace interpolate {
       }
     }
   }
-  export const transformCss: (a: string, b: string) => (x: number) => string = transform(parseCss, "px, ", "px)", "deg)")
+  export const transformCss: (a: string, b: string) => (x: number) => string = transform(
+    parseCss,
+    "px, ",
+    "px)",
+    "deg)"
+  )
   export const transformSvg: (a: string, b: string) => (x: number) => string = transform(parseSvg, ", ", ")", ")")
-  
+
   export const identity = {
     translateX: 0,
     translateY: 0,
@@ -1876,5 +1841,4 @@ export namespace interpolate {
       scaleY: scaleY,
     }
   }
-  
 }
