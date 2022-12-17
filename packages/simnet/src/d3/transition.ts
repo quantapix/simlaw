@@ -1,6 +1,6 @@
 import type * as qt from "./types.js"
 import * as qu from "./utils.js"
-import { color } from "./color.js"
+import { toColor } from "./color.js"
 
 import { interpolate, interpolateNumber, interpolateRgb, interpolateString } from "./interpolate.js"
 import { transformSvg } from "./interpolate.js"
@@ -531,9 +531,9 @@ export function interpolate(a, b) {
   return (
     typeof b === "number"
       ? interpolateNumber
-      : b instanceof color
+      : b instanceof toColor
       ? interpolateRgb
-      : (c = color(b))
+      : (c = toColor(b))
       ? ((b = c), interpolateRgb)
       : interpolateString
   )(a, b)
