@@ -9,79 +9,47 @@ const MODE_DRAG = { name: "drag" },
   MODE_HANDLE = { name: "handle" },
   MODE_CENTER = { name: "center" }
 
-function number1(e) {
-  return [+e[0], +e[1]]
-}
-function number2(e) {
-  return [number1(e[0]), number1(e[1])]
+function toNum2(x: [any, any]) {
+  const toNum = (x: [any, any]) => [+x[0], +x[1]]
+  return [toNum(x[0]), toNum(x[1])]
 }
 const X = {
   name: "x",
-  handles: ["w", "e"].map(type),
-  input: function (x, e) {
-    return x === null
+  handles: ["w", "e"].map(type => ({ type })),
+  input: (x, e) =>
+    x === null
       ? null
       : [
           [+x[0], e[0][1]],
           [+x[1], e[1][1]],
-        ]
-  },
-  output: function (xy) {
-    return xy && [xy[0][0], xy[1][0]]
-  },
+        ],
+  output: x => x && [x[0][0], x[1][0]],
 }
 const Y = {
   name: "y",
-  handles: ["n", "s"].map(type),
-  input: function (y, e) {
-    return y === null
+  handles: ["n", "s"].map(type => ({ type })),
+  input: (x, e) =>
+    x === null
       ? null
       : [
-          [e[0][0], +y[0]],
-          [e[1][0], +y[1]],
-        ]
-  },
-  output: function (xy) {
-    return xy && [xy[0][1], xy[1][1]]
-  },
+          [e[0][0], +x[0]],
+          [e[1][0], +x[1]],
+        ],
+  output: x => x && [x[0][1], x[1][1]],
 }
 const XY = {
   name: "xy",
-  handles: ["n", "w", "e", "s", "nw", "ne", "sw", "se"].map(type),
-  input: function (xy) {
-    return xy === null ? null : number2(xy)
-  },
-  output: function (xy) {
-    return xy
-  },
+  handles: ["n", "w", "e", "s", "nw", "ne", "sw", "se"].map(type => ({ type })),
+  input: x => (x === null ? null : toNum2(x)),
+  output: x => x,
 }
-function type(t) {
-  return { type: t }
+function local(x) {
+  while (!x.__brush) if (!(x = x.parentNode)) return
+  return x.__brush
 }
-function defaultExtent() {
-  let svg = this.ownerSVGElement || this
-  if (svg.hasAttribute("viewBox")) {
-    svg = svg.viewBox.baseVal
-    return [
-      [svg.x, svg.y],
-      [svg.x + svg.width, svg.y + svg.height],
-    ]
-  }
-  return [
-    [0, 0],
-    [svg.width.baseVal.value, svg.height.baseVal.value],
-  ]
-}
-function local(node) {
-  while (!node.__brush) if (!(node = node.parentNode)) return
-  return node.__brush
-}
-function empty(extent) {
-  return extent[0][0] === extent[1][0] || extent[0][1] === extent[1][1]
-}
-export function brushSelection(node: SVGGElement): qt.Brush.Selection | null {
-  const state = node.__brush
-  return state ? state.dim.output(state.selection) : null
+export function brushSelection(x: SVGGElement): qt.Brush.Selection | null {
+  const y = x.__brush
+  return y ? y.dim.output(y.selection) : null
 }
 export function brushX<T>(): qt.Brush<T> {
   return brush(X)
@@ -89,24 +57,35 @@ export function brushX<T>(): qt.Brush<T> {
 export function brushY<T>(): qt.Brush<T> {
   return brush(Y)
 }
-export function brush<T>(): qt.Brush<T> {
-  return brush(XY)
-}
-function brush(dim) {
+export function brush<T>(dim = XY): qt.Brush<T> {
+  function defaultExtent(this: any) {
+    let y = this.ownerSVGElement || this
+    if (y.hasAttribute("viewBox")) {
+      y = y.viewBox.baseVal
+      return [
+        [y.x, y.y],
+        [y.x + y.width, y.y + y.height],
+      ]
+    }
+    return [
+      [0, 0],
+      [y.width.baseVal.value, y.height.baseVal.value],
+    ]
+  }
+  const listeners = qu.dispatch("start", "brush", "end")
   let extent = defaultExtent,
-    filter = e => !e.ctrlKey && !e.button,
+    filter = x => !x.ctrlKey && !x.button,
     touchable = function (this: any) {
       return navigator.maxTouchPoints || "ontouchstart" in this
     },
     keys = true,
-    listeners = qu.dispatch("start", "brush", "end"),
     handleSize = 6,
     touchending
   function f(group) {
     const overlay = group
       .property("__brush", initialize)
       .selectAll(".overlay")
-      .data([type("overlay")])
+      .data([{ type: "overlay" }])
     overlay
       .enter()
       .append("rect")
@@ -124,7 +103,7 @@ function brush(dim) {
       })
     group
       .selectAll(".selection")
-      .data([type("selection")])
+      .data([{ type: "selection" }])
       .enter()
       .append("rect")
       .attr("class", "selection")
@@ -133,19 +112,13 @@ function brush(dim) {
       .attr("fill-opacity", 0.3)
       .attr("stroke", "#fff")
       .attr("shape-rendering", "crispEdges")
-    const handle = group.selectAll(".handle").data(dim.handles, function (d) {
-      return d.type
-    })
+    const handle = group.selectAll(".handle").data(dim.handles, x => x.type)
     handle.exit().remove()
     handle
       .enter()
       .append("rect")
-      .attr("class", function (d) {
-        return "handle handle--" + d.type
-      })
-      .attr("cursor", function (d) {
-        return cursors[d.type]
-      })
+      .attr("class", x => "handle handle--" + x.type)
+      .attr("cursor", x => cursors[x.type])
     group
       .each(redraw)
       .attr("fill", "none")
@@ -199,33 +172,24 @@ function brush(dim) {
     }
   }
   f.clear = (group, event) => f.move(group, null, event)
-  function redraw() {
-    const group = select(this),
-      selection = local(this).selection
-    if (selection) {
-      group
-        .selectAll(".selection")
+  function redraw(this: any) {
+    const y = select(this),
+      s = local(this).selection
+    if (s) {
+      y.selectAll(".selection")
         .style("display", null)
-        .attr("x", selection[0][0])
-        .attr("y", selection[0][1])
-        .attr("width", selection[1][0] - selection[0][0])
-        .attr("height", selection[1][1] - selection[0][1])
-      group
-        .selectAll(".handle")
+        .attr("x", s[0][0])
+        .attr("y", s[0][1])
+        .attr("width", s[1][0] - s[0][0])
+        .attr("height", s[1][1] - s[0][1])
+      y.selectAll(".handle")
         .style("display", null)
-        .attr("x", d =>
-          d.type[d.type.length - 1] === "e" ? selection[1][0] - handleSize / 2 : selection[0][0] - handleSize / 2
-        )
-        .attr("y", d => (d.type[0] === "s" ? selection[1][1] - handleSize / 2 : selection[0][1] - handleSize / 2))
-        .attr("width", d =>
-          d.type === "n" || d.type === "s" ? selection[1][0] - selection[0][0] + handleSize : handleSize
-        )
-        .attr("height", d =>
-          d.type === "e" || d.type === "w" ? selection[1][1] - selection[0][1] + handleSize : handleSize
-        )
+        .attr("x", x => (x.type[x.type.length - 1] === "e" ? s[1][0] - handleSize / 2 : s[0][0] - handleSize / 2))
+        .attr("y", x => (x.type[0] === "s" ? s[1][1] - handleSize / 2 : s[0][1] - handleSize / 2))
+        .attr("width", x => (x.type === "n" || x.type === "s" ? s[1][0] - s[0][0] + handleSize : handleSize))
+        .attr("height", x => (x.type === "e" || x.type === "w" ? s[1][1] - s[0][1] + handleSize : handleSize))
     } else {
-      group
-        .selectAll(".selection,.handle")
+      y.selectAll(".selection,.handle")
         .style("display", "none")
         .attr("x", null)
         .attr("y", null)
@@ -304,7 +268,7 @@ function brush(dim) {
       emit.moved = moved
       emit.ended = ended
     } else {
-      var view = select(event.view).on("mousemove.brush", moved, true).on("mouseup.brush", ended, true)
+      const view = select(event.view).on("mousemove.brush", moved, true).on("mouseup.brush", ended, true)
       if (keys) view.on("keydown.brush", keydowned, true).on("keyup.brush", keyupped, true)
       qu.drag.disable(event.view)
     }
@@ -393,7 +357,8 @@ function brush(dim) {
       }
       group.attr("pointer-events", "all")
       overlay.attr("cursor", cursors.overlay)
-      if (state.selection) selection = state.selection // May be set by brush.move (on start)!
+      if (state.selection) selection = state.selection
+      const empty = x => x[0][0] === x[1][0] || x[0][1] === x[1][1]
       if (empty(selection)) (state.selection = null), redraw.call(that)
       emit.end(event, mode.name)
     }
@@ -481,12 +446,12 @@ function brush(dim) {
   }
   function initialize() {
     const state = this.__brush || { selection: null }
-    state.extent = number2(extent(arguments))
+    state.extent = toNum2(extent(arguments))
     state.dim = dim
     return state
   }
   f.extent = (x: any) =>
-    x === undefined ? extent : ((extent = typeof x === "function" ? x : qu.constant(number2(x))), f)
+    x === undefined ? extent : ((extent = typeof x === "function" ? x : qu.constant(toNum2(x))), f)
   f.filter = (x: any) => (x === undefined ? filter : ((filter = typeof x === "function" ? x : qu.constant(!!x)), f))
   f.touchable = (x: any) =>
     x === undefined ? touchable : ((touchable = typeof x === "function" ? x : qu.constant(!!x)), f)
