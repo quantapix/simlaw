@@ -949,7 +949,7 @@ function rampClosed(xs: any) {
   return y
 }
 
-export namespace interpolated {
+export namespace gradient {
   export const BrBG = ramp(scheme.BrBG)
   export const PRGn = ramp(scheme.PRGn)
   export const PiYG = ramp(scheme.PiYG)

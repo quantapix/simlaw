@@ -1,8 +1,8 @@
-import { interpolate } from "./interpolate.js"
-import { select } from "./selection.js"
+import { interpolate as qi } from "./utils.js"
 import { interrupt } from "./transition.js"
-import type * as qt from "./types.js"
+import { select } from "./selection.js"
 import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 
 const MODE_DRAG = { name: "drag" },
   MODE_SPACE = { name: "space" },
@@ -146,7 +146,7 @@ export function brush<T>(dim = XY): qt.Brush<T> {
             emit = emitter(that, arguments),
             selection0 = state.selection,
             selection1 = dim.input(typeof selection === "function" ? selection(arguments) : selection, state.extent),
-            i = interpolate(selection0, selection1)
+            i = qi.value(selection0, selection1)
           function tween(t) {
             state.selection = t === 1 && selection1 === null ? null : i(t)
             redraw.call(that)

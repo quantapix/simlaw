@@ -1,13 +1,12 @@
 /* eslint-disable no-inner-declarations */
-import { range, ticks, tickIncrement, tickStep, bisect, quantile, quantileSorted as threshold } from "./sequence.js"
 import { format, formatPrefix, formatSpecifier, precisionFixed, precisionPrefix, precisionRound } from "./format.js"
-import { interpolate as interpolateValue, interpolateNumber, interpolateRound } from "./interpolate.js"
-import { interpolate, piecewise } from "./interpolate.js"
+import { interpolate as qi } from "./utils.js"
+import { range, ticks, tickIncrement, tickStep, bisect, quantile, quantileSorted as threshold } from "./sequence.js"
 import { timeFormat, utcFormat } from "./time.js"
 import { utcYear, utcMonth, utcWeek, utcDay, utcHour, utcMinute, utcSecond, utcTicks, utcTickInterval } from "./time.js"
 import { year, month, week, day, hour, minute, second, ticks, tickInterval } from "./time.js"
-import type * as qt from "./types.js"
 import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 
 function tickFormat(start: number, stop: number, n: number, x?: string): (x: qt.NumVal) => string {
   const step = tickStep(start, stop, n)
@@ -458,7 +457,7 @@ export function copy(source, target) {
 export function transformer() {
   let _dom = unit,
     _range = unit,
-    interpolate = interpolateValue,
+    interpolate = qi.value,
     transform,
     untransform,
     _unk: any = undefined,
@@ -523,10 +522,9 @@ export function transformer() {
   }
   f.clamp = (x?: any) => (x === undefined ? _clamp !== qu.identity : ((_clamp = x ? true : qu.identity), rescale()))
   f.domain = (x?: any) => (x === undefined ? _dom.slice() : ((_dom = Array.from(x, number)), rescale()))
-  f.invert = (x: any) =>
-    _clamp(untransform((input || (input = piecewise(_range, _dom.map(transform), interpolateNumber)))(x)))
+  f.invert = (x: any) => _clamp(untransform((input || (input = piecewise(_range, _dom.map(transform), qi.number)))(x)))
   f.range = (x?: any) => (x === undefined ? _range.slice() : ((_range = Array.from(x)), rescale()))
-  ;(f.rangeRound = (x: any) => (_range = Array.from(x))), (interpolate = interpolateRound), rescale()
+  ;(f.rangeRound = (x: any) => (_range = Array.from(x))), (interpolate = qi.round), rescale()
   f.interpolate = (x?: any) => (x === undefined ? interpolate : ((interpolate = x), rescale()))
   f.unknown = (x?: any) => (x === undefined ? _unk : ((_unk = x), f))
   return (t, u) => {
@@ -775,11 +773,11 @@ export namespace diverging {
         let r0, r1, r2
         return x2 === undefined
           ? [interpolator(0), interpolator(0.5), interpolator(1)]
-          : (([r0, r1, r2] = x2), (interpolator = piecewise(x, [r0, r1, r2])), f)
+          : (([r0, r1, r2] = x2), (interpolator = qi.piecewise(x, [r0, r1, r2])), f)
       }
     }
     f.range = range(interpolate)
-    f.rangeRound = range(interpolateRound)
+    f.rangeRound = range(qi.round)
     f.unknown = (x?: any) => (x === undefined ? _unk : ((_unk = x), f))
     return x => {
       ;(transform = x),
@@ -859,7 +857,7 @@ function transformer3() {
     }
   }
   f.range = range(interpolate)
-  f.rangeRound = range(interpolateRound)
+  f.rangeRound = range(qi.round)
   f.unknown = (x: any) => (x === undefined ? _unk : ((_unk = x), f))
   return function (t) {
     ;(transform = t), (t0 = t(x0)), (t1 = t(x1)), (k10 = t0 === t1 ? 0 : 1 / (t1 - t0))
