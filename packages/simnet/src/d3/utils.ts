@@ -30,6 +30,10 @@ export const radians = PI / 180
 export const tau = 2 * PI
 export const tauEpsilon = tau - epsilon
 
+export function noop(..._: any) {}
+export const identity = <T>(x: T) => x
+export const constant =  <T>(x: T) =>  (..._: any) =>    x
+
 export function asin(x: number) {
   return x >= 1 ? halfPI : x <= -1 ? -halfPI : Math.asin(x)
 }
@@ -45,16 +49,12 @@ export function cosh(x: number) {
 export function tanh(x: number) {
   return ((x = exp(2 * x)) - 1) / (x + 1)
 }
-
-export function noop(..._: any) {}
-
 export function array(x?: any) {
   return x === undefined ? [] : Array.isArray(x) ? x : Array.from(x)
 }
 export function arraylike(x: any) {
   return typeof x === "object" && "length" in x ? x : Array.from(x)
 }
-
 export function shuffle(xs: any[], rnd: () => number) {
   let n = xs.length
   while (n) {
@@ -65,36 +65,24 @@ export function shuffle(xs: any[], rnd: () => number) {
   }
   return xs
 }
-
 export function discrete<T>(xs: T[]): (x: number) => T {
   const n = xs.length
   return x => xs[max(0, min(n - 1, floor(x * n)))]!
 }
-
 export function quantize<T>(f: (x: number) => T, n: number): T[] {
   const y = new Array(n)
   for (let i = 0; i < n; ++i) y[i] = f(i / (n - 1))
   return y
 }
-
-export const identity = <T>(x: T) => x
-export const constant =
-  <T>(x: T) =>
-  (..._: any) =>
-    x
-
 export function ascending(a?: qt.Primitive, b?: qt.Primitive) {
   return a === undefined || b === undefined ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN
 }
-
 export function descending(a?: qt.Primitive, b?: qt.Primitive) {
   return a === undefined || b === undefined ? NaN : b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN
 }
-
 export function angle(a: number, b: number) {
   return (b -= a) < 0 ? b + 360 : b
 }
-
 export function area(xs: Array<qt.Point>): number {
   const n = xs.length
   let r = 0,
@@ -108,7 +96,6 @@ export function area(xs: Array<qt.Point>): number {
   }
   return r / 2
 }
-
 export function centroid(xs: Array<qt.Point>): qt.Point {
   const n = xs.length
   let r = 0,
@@ -127,7 +114,6 @@ export function centroid(xs: Array<qt.Point>): qt.Point {
   }
   return (r *= 3), [x / r, y / r]
 }
-
 export function contains(xs: Array<qt.Point>, p0: qt.Point): boolean {
   const n = xs.length,
     [x0, y0] = p0
@@ -140,7 +126,6 @@ export function contains(xs: Array<qt.Point>, p0: qt.Point): boolean {
   }
   return r
 }
-
 export function hull(xs: Array<qt.Point>): Array<qt.Point> | undefined {
   const n = xs.length
   if (n < 3) return undefined
@@ -171,7 +156,6 @@ export function hull(xs: Array<qt.Point>): Array<qt.Point> | undefined {
   for (let i = +skipLeft; i < ls.length - skipRight; ++i) r.push(xs[sorted[ls[i]!][2]]!)
   return r
 }
-
 export function length(xs: Array<qt.Point>): number {
   const n = xs.length
   let r = 0,
@@ -335,7 +319,7 @@ function center(scale, offset) {
   if (scale.round()) offset = round(offset)
   return x => +scale(x) + offset
 }
-function axis<T>(orient, scale: qt.Axis.Scale<T>): qt.Axis<T> {
+export function axis<T>(orient, scale: qt.Axis.Scale<T>): qt.Axis<T> {
   let args: any[] = [],
     vals: any[] | null = null,
     format: ((x: T, i: number) => string) | null = null,
@@ -433,17 +417,19 @@ function axis<T>(orient, scale: qt.Axis.Scale<T>): qt.Axis<T> {
     x === undefined ? vals && vals.slice() : ((vals = x[0] === null ? null : Array.from(x)), f)
   return f
 }
-export function axisTop<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
-  return axis(top, scale)
-}
-export function axisRight<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
-  return axis(right, scale)
-}
-export function axisBottom<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
-  return axis(bottom, scale)
-}
-export function axisLeft<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
-  return axis(left, scale)
+export namespace axis {
+  export function top<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
+    return axis(top, scale)
+  }
+  export function right<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
+    return axis(right, scale)
+  }
+  export function bottom<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
+    return axis(bottom, scale)
+  }
+  export function left<T extends qt.Axis.Domain>(scale: qt.Axis.Scale<T>): qt.Axis<T> {
+    return axis(left, scale)
+  }
 }
 
 class DispatchMap<T extends object> extends Map<string, (qt.CB<T> | undefined)[]> {}
@@ -544,11 +530,15 @@ export class Timer implements qt.Timer {
     }
   }
 }
-
-export function interval(cb: (x: number) => void, delay?: number, time?: number): Timer {
+export function timer(f: (x: number) => void, delay?: number, time?: number): Timer {
+  const t = new Timer()
+  t.restart(f, delay, time)
+  return t
+}
+export function interval(f: (x: number) => void, delay?: number, time?: number): Timer {
   const t = new Timer()
   let total = delay
-  if (delay === null) return t.restart(cb, delay, time), t
+  if (delay === null) return t.restart(f, delay, time), t
   t._restart = t.restart
   t.restart = function (callback, delay, time) {
     ;(delay = +delay), (time = time === null ? now() : +time)
@@ -562,10 +552,9 @@ export function interval(cb: (x: number) => void, delay?: number, time?: number)
       time
     )
   }
-  t.restart(cb, delay, time)
+  t.restart(f, delay, time)
   return t
 }
-
 export function timeout(cb: (x: number) => void, delay?: number, time?: number): Timer {
   const t = new Timer()
   delay = delay ?? 0
@@ -598,17 +587,9 @@ let frame = 0,
 export function now(): number {
   return clockNow || (setFrame(clearNow), (clockNow = clock.now() + clockSkew))
 }
-
 function clearNow() {
   clockNow = 0
 }
-
-export function timer(cb: (x: number) => void, delay?: number, time?: number): Timer {
-  const t = new Timer()
-  t.restart(cb, delay, time)
-  return t
-}
-
 export function timerFlush() {
   now()
   ++frame
@@ -620,7 +601,6 @@ export function timerFlush() {
   }
   --frame
 }
-
 function wake() {
   clockNow = (clockLast = clock.now()) + clockSkew
   frame = clockTimeout = 0
@@ -632,13 +612,11 @@ function wake() {
     clockNow = 0
   }
 }
-
 function poke() {
   const now = clock.now(),
     delay = now - clockLast
   if (delay > pokeDelay) (clockSkew -= delay), (clockLast = now)
 }
-
 function nap() {
   let t0,
     t1 = head,
@@ -656,7 +634,6 @@ function nap() {
   tail = t0
   sleep(time)
 }
-
 function sleep(time?) {
   if (frame) return
   if (clockTimeout) clockTimeout = clearTimeout(clockTimeout)
@@ -1258,29 +1235,148 @@ export namespace drag {
 }
 
 export namespace fetch {
+  export class DSV implements qt.DSV {
+    reFormat
+    constructor(public delimiter: string) {
+      this.reFormat = new RegExp('["' + delimiter + "\n\r]"),
+      DELIMITER = delimiter.charCodeAt(0)
+    }
+    preformat(rs: any[], cs: any[]) {
+      return rs.map( (r) => cs
+          .map( (c) => this.formatValue(r[c])
+          )
+          .join(this.delimiter)
+      )
+    }
+    format(rs: any, cs?: any) {
+      cs = cs ?? inferColumns(rs)
+      return [cs.map(this.formatValue).join(this.delimiter)].concat(this.preformat(rs, cs)).join("\n")
+    }
+    formatBody(rs: any[], cs?: any[]) {
+      cs = cs ?? inferColumns(rs)
+      return this.preformat(rs, cs).join("\n")
+    }
+    formatRows(xs: any[]) {
+      return xs.map(this.formatRow).join("\n")
+    }
+    formatRow(xs: any[]) {
+      return xs.map(this.formatValue).join(this.delimiter)
+    }
+    formatValue(x?: any) {
+      function date(x: Date) {
+        const hours = x.getUTCHours(),
+          minutes = x.getUTCMinutes(),
+          seconds = x.getUTCSeconds(),
+          millis = x.getUTCMilliseconds()
+        const pad = (x, width:number) => {
+            const y = x + "",
+              length = y.length
+            return length < width ? new Array(width - length + 1).join(0) + y : y
+          }
+        const year = (x) => x < 0 ? "-" + pad(-x, 6) : x > 9999 ? "+" + pad(x, 6) : pad(x, 4)
+        return isNaN(+x)
+          ? "Invalid Date"
+          : year(x.getUTCFullYear()) +
+              "-" +
+              pad(x.getUTCMonth() + 1, 2) +
+              "-" +
+              pad(x.getUTCDate(), 2) +
+              (millis
+                ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "." + pad(millis, 3) + "Z"
+                : seconds
+                ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "Z"
+                : minutes || hours
+                ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + "Z"
+                : "")
+      }    
+      return x === undefined
+        ? ""
+        : x instanceof Date
+        ? date(x)
+        : this.reFormat.test((x += ""))
+        ? '"' + x.replace(/"/g, '""') + '"'
+        : x
+    }
+    parse(text, f) {
+      let convert,
+        cs,
+        rs = this.parseRows(text, (row, i) => {
+          if (convert) return convert(row, i - 1)
+          ;(cs = row), (convert = f ? customConverter(row, f) : objectConverter(row))
+        })
+      rs.columns = cs || []
+      return rs
+    }
+    parseRows(x: any, f?: Function): any {
+      let ys = [],
+        N = x.length,
+        I = 0,
+        n = 0,
+        t,
+        eof = N <= 0,
+        eol = false
+      if (x.charCodeAt(N - 1) === NEWLINE) --N
+      if (x.charCodeAt(N - 1) === RETURN) --N
+      function token() {
+        if (eof) return EOF
+        if (eol) return (eol = false), EOL
+        let i,
+          j = I,
+          c
+        if (x.charCodeAt(j) === QUOTE) {
+          while ((I++ < N && x.charCodeAt(I) !== QUOTE) || x.charCodeAt(++I) === QUOTE);
+          if ((i = I) >= N) eof = true
+          else if ((c = x.charCodeAt(I++)) === NEWLINE) eol = true
+          else if (c === RETURN) {
+            eol = true
+            if (x.charCodeAt(I) === NEWLINE) ++I
+          }
+          return x.slice(j + 1, i - 1).replace(/""/g, '"')
+        }
+        while (I < N) {
+          if ((c = x.charCodeAt((i = I++))) === NEWLINE) eol = true
+          else if (c === RETURN) {
+            eol = true
+            if (x.charCodeAt(I) === NEWLINE) ++I
+          } else if (c !== this.DELIMITER) continue
+          return x.slice(j, i)
+        }
+        return (eof = true), x.slice(j, N)
+      }
+      while ((t = token()) !== EOF) {
+        let y = []
+        while (t !== EOL && t !== EOF) y.push(t), (t = token())
+        if (f && (y = f(y, n++)) === null) continue
+        ys.push(y)
+      }
+      return ys
+    }
+
+  }
+
+  const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours()
   export function autoType<R extends object | undefined | null, T extends string>(
-    object: qt.DSV.Row<T> | readonly string[]
+    x: qt.DSV.Row<T> | readonly string[]
   ): R {
-    for (const key in object) {
-      var value = object[key].trim(),
+    for (const k in x) {
+      let y = x[k].trim(),
         number,
         m
-      if (!value) value = null
-      else if (value === "true") value = true
-      else if (value === "false") value = false
-      else if (value === "NaN") value = NaN
-      else if (!isNaN((number = +value))) value = number
+      if (!y) y = null
+      else if (y === "true") y = true
+      else if (y === "false") y = false
+      else if (y === "NaN") y = NaN
+      else if (!isNaN((number = +y))) y = number
       else if (
-        (m = value.match(/^([-+]\d{2})?\d{4}(-\d{2}(-\d{2})?)?(T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?(Z|[-+]\d{2}:\d{2})?)?$/))
+        (m = y.match(/^([-+]\d{2})?\d{4}(-\d{2}(-\d{2})?)?(T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?(Z|[-+]\d{2}:\d{2})?)?$/))
       ) {
-        if (fixtz && !!m[4] && !m[7]) value = value.replace(/-/g, "/").replace(/T/, " ")
-        value = new Date(value)
+        if (fixtz && !!m[4] && !m[7]) y = y.replace(/-/g, "/").replace(/T/, " ")
+        y = new Date(y)
       } else continue
-      object[key] = value
+      x[k] = y
     }
-    return object
+    return x
   }
-  const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours()
   const csv = dsvFormat(",")
   export function csvParse<C extends string>(csvString: string): qt.DSV.RowArray<C>
   export function csvParse<R extends object, T extends string>(
@@ -1338,133 +1434,6 @@ export namespace fetch {
       }
     })
     return columns
-  }
-  function pad(value, width) {
-    const s = value + "",
-      length = s.length
-    return length < width ? new Array(width - length + 1).join(0) + s : s
-  }
-  function formatYear(year) {
-    return year < 0 ? "-" + pad(-year, 6) : year > 9999 ? "+" + pad(year, 6) : pad(year, 4)
-  }
-  function formatDate(date) {
-    const hours = date.getUTCHours(),
-      minutes = date.getUTCMinutes(),
-      seconds = date.getUTCSeconds(),
-      milliseconds = date.getUTCMilliseconds()
-    return isNaN(date)
-      ? "Invalid Date"
-      : formatYear(date.getUTCFullYear(), 4) +
-          "-" +
-          pad(date.getUTCMonth() + 1, 2) +
-          "-" +
-          pad(date.getUTCDate(), 2) +
-          (milliseconds
-            ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "." + pad(milliseconds, 3) + "Z"
-            : seconds
-            ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "Z"
-            : minutes || hours
-            ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + "Z"
-            : "")
-  }
-  export function dsvFormat(delimiter: string): qt.DSV {
-    const reFormat = new RegExp('["' + delimiter + "\n\r]"),
-      DELIMITER = delimiter.charCodeAt(0)
-    function parse(text, f) {
-      let convert,
-        columns,
-        rows = parseRows(text, function (row, i) {
-          if (convert) return convert(row, i - 1)
-          ;(columns = row), (convert = f ? customConverter(row, f) : objectConverter(row))
-        })
-      rows.columns = columns || []
-      return rows
-    }
-    function parseRows(text, f) {
-      let rows = [],
-        N = text.length,
-        I = 0,
-        n = 0,
-        t,
-        eof = N <= 0,
-        eol = false
-      if (text.charCodeAt(N - 1) === NEWLINE) --N
-      if (text.charCodeAt(N - 1) === RETURN) --N
-      function token() {
-        if (eof) return EOF
-        if (eol) return (eol = false), EOL
-        let i,
-          j = I,
-          c
-        if (text.charCodeAt(j) === QUOTE) {
-          while ((I++ < N && text.charCodeAt(I) !== QUOTE) || text.charCodeAt(++I) === QUOTE);
-          if ((i = I) >= N) eof = true
-          else if ((c = text.charCodeAt(I++)) === NEWLINE) eol = true
-          else if (c === RETURN) {
-            eol = true
-            if (text.charCodeAt(I) === NEWLINE) ++I
-          }
-          return text.slice(j + 1, i - 1).replace(/""/g, '"')
-        }
-        while (I < N) {
-          if ((c = text.charCodeAt((i = I++))) === NEWLINE) eol = true
-          else if (c === RETURN) {
-            eol = true
-            if (text.charCodeAt(I) === NEWLINE) ++I
-          } else if (c !== DELIMITER) continue
-          return text.slice(j, i)
-        }
-        return (eof = true), text.slice(j, N)
-      }
-      while ((t = token()) !== EOF) {
-        let row = []
-        while (t !== EOL && t !== EOF) row.push(t), (t = token())
-        if (f && (row = f(row, n++)) === null) continue
-        rows.push(row)
-      }
-      return rows
-    }
-    function preformatBody(rows, columns) {
-      return rows.map(function (row) {
-        return columns
-          .map(function (column) {
-            return formatValue(row[column])
-          })
-          .join(delimiter)
-      })
-    }
-    function format(rows, columns) {
-      if (columns === null) columns = inferColumns(rows)
-      return [columns.map(formatValue).join(delimiter)].concat(preformatBody(rows, columns)).join("\n")
-    }
-    function formatBody(rows, columns) {
-      if (columns === null) columns = inferColumns(rows)
-      return preformatBody(rows, columns).join("\n")
-    }
-    function formatRows(rows) {
-      return rows.map(formatRow).join("\n")
-    }
-    function formatRow(row) {
-      return row.map(formatValue).join(delimiter)
-    }
-    function formatValue(value) {
-      return value === null
-        ? ""
-        : value instanceof Date
-        ? formatDate(value)
-        : reFormat.test((value += ""))
-        ? '"' + value.replace(/"/g, '""') + '"'
-        : value
-    }
-    return {
-      parse: parse,
-      parseRows: parseRows,
-      format: format,
-      formatBody: formatBody,
-      formatRows: formatRows,
-      formatRow: formatRow,
-      formatValue: formatValue,
-    }
   }
   const tsv = dsvFormat("\t")
   export function tsvParse<C extends string>(tsvString: string): qt.DSV.RowArray<C>

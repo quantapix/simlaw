@@ -409,12 +409,12 @@ export interface DSV {
   format<T extends object>(rs: readonly T[], cs?: ReadonlyArray<keyof T>): string
   formatBody<T extends object>(rs: readonly T[], cs?: ReadonlyArray<keyof T>): string
   formatRow(x: readonly string[]): string
-  formatRows(xs: readonly string[][]): string
+  formatRows(x: readonly string[][]): string
   formatValue(x: string): string
-  parse<C extends string>(x: string): DSV.RowArray<C>
-  parse<R extends object, C extends string>(
+  parse<T extends string>(x: string): DSV.RowArray<T>
+  parse<R extends object, T extends string>(
     x: string,
-    f: (x: DSV.Row<C>, i: number, xs: C[]) => R | undefined | null
+    f: (x: DSV.Row<T>, i: number, xs: T[]) => R | undefined | null
   ): DSV.Parsed<R>
   parseRows(x: string): string[][]
   parseRows<R extends object>(x: string, f: (x: string[], i: number) => R | undefined | null): R[]
