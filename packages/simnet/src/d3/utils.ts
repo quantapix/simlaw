@@ -1236,7 +1236,12 @@ export namespace drag {
   }
 }
 
-export namespace fetch {
+export namespace fetcher {
+  const EOL = {},
+    EOF = {},
+    QUOTE = 34,
+    NEWLINE = 10,
+    RETURN = 13
   export class DSV implements qt.DSV {
     reFormat
     constructor(public delimiter: string) {
@@ -1245,12 +1250,25 @@ export namespace fetch {
     preformat(rs: any[], cs: any[]) {
       return rs.map(r => cs.map(c => this.formatValue(r[c])).join(this.delimiter))
     }
+    inferColumns(rs) {
+      const ys = []
+      const cs = new Set()
+      rs.forEach(r => {
+        for (const x in r) {
+          if (!(x in cs)) {
+            ys.push(x)
+            cs.add(x)
+          }
+        }
+      })
+      return ys
+    }
     format(rs: any, cs?: any) {
-      cs = cs ?? inferColumns(rs)
+      cs = cs ?? this.inferColumns(rs)
       return [cs.map(this.formatValue).join(this.delimiter)].concat(this.preformat(rs, cs)).join("\n")
     }
     formatBody(rs: any[], cs?: any[]) {
-      cs = cs ?? inferColumns(rs)
+      cs = cs ?? this.inferColumns(rs)
       return this.preformat(rs, cs).join("\n")
     }
     formatRows(xs: any[]) {
@@ -1295,18 +1313,23 @@ export namespace fetch {
         : x
     }
     parse(text, f) {
-      let convert,
-        cs,
-        rs = this.parseRows(text, (row, i) => {
-          if (convert) return convert(row, i - 1)
-          ;(cs = row), (convert = f ? customConverter(row, f) : objectConverter(row))
-        })
+      const objConverter = (cs: any[]) =>
+        new Function(
+          "d",
+          "return {" + cs.map((x: any, i: number) => JSON.stringify(x) + ": d[" + i + '] || ""').join(",") + "}"
+        )
+      const converter = (cs: any[], f: Function) => (x: any, i: number) => f(objConverter(cs)(x), i, cs)
+      let convert, cs
+      const rs = this.parseRows(text, (r: any[], i: number) => {
+        if (convert) return convert(r, i - 1)
+        ;(cs = r), (convert = f ? converter(r, f) : objConverter(r))
+      })
       rs.columns = cs || []
       return rs
     }
-    parseRows(x: any, f?: Function): any {
-      let ys = [],
-        N = x.length,
+    parseRows(x: any, f?: Function) {
+      const ys = []
+      let N = x.length,
         I = 0,
         n = 0,
         t,
@@ -1349,11 +1372,64 @@ export namespace fetch {
       return ys
     }
   }
-
-  const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours()
+  export function dsv<T extends string>(del: string, url: string, init?: RequestInit): Promise<qt.DSV.RowArray<T>>
+  export function dsv<T extends object, U extends string = string>(
+    del: string,
+    url: string,
+    f: (x: qt.DSV.Row<U>, i: number, xs: U[]) => T | undefined | null
+  ): Promise<qt.DSV.Parsed<T>>
+  export function dsv<T extends object, U extends string = string>(
+    del: string,
+    url: string,
+    init: RequestInit,
+    f: (x: qt.DSV.Row<U>, i: number, xs: U[]) => T | undefined | null
+  ): Promise<qt.DSV.Parsed<T>>
+  export async function dsv(del: string, url: string, init?: any, row?: any) {
+    if (arguments.length === 3 && typeof init === "function") (row = init), (init = undefined)
+    return new DSV(del).parse(await text(url, init), row)
+  }
+  export class CSV extends DSV {
+    constructor() {
+      super(",")
+    }
+  }
+  export function csv<T extends string>(url: string, init?: RequestInit): Promise<qt.DSV.RowArray<T>>
+  export function csv<T extends object, U extends string = string>(
+    url: string,
+    f: (x: qt.DSV.Row<U>, i: number, xs: U[]) => T | undefined | null
+  ): Promise<qt.DSV.Parsed<T>>
+  export function csv<T extends object, U extends string = string>(
+    url: string,
+    init: RequestInit,
+    f: (x: qt.DSV.Row<U>, i: number, xs: U[]) => T | undefined | null
+  ): Promise<qt.DSV.Parsed<T>>
+  export async function csv(url: string, init?: any, row?: any) {
+    if (arguments.length === 2 && typeof init === "function") (row = init), (init = undefined)
+    return new CSV().parse(await text(url, init), row)
+  }
+  export class TSV extends DSV {
+    constructor() {
+      super("\t")
+    }
+  }
+  export function tsv<T extends string>(url: string, init?: RequestInit): Promise<qt.DSV.RowArray<T>>
+  export function tsv<T extends object, U extends string = string>(
+    url: string,
+    f: (x: qt.DSV.Row<U>, i: number, xs: U[]) => T | undefined | null
+  ): Promise<qt.DSV.Parsed<T>>
+  export function tsv<T extends object, U extends string = string>(
+    url: string,
+    init: RequestInit,
+    f: (x: qt.DSV.Row<U>, i: number, xs: U[]) => T | undefined | null
+  ): Promise<qt.DSV.Parsed<T>>
+  export async function tsv(url: string, init?: any, row?: any) {
+    if (arguments.length === 2 && typeof init === "function") (row = init), (init = undefined)
+    return new TSV().parse(await text(url, init), row)
+  }
   export function autoType<R extends object | undefined | null, T extends string>(
     x: qt.DSV.Row<T> | readonly string[]
   ): R {
+    const fix = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours()
     for (const k in x) {
       let y = x[k].trim(),
         number,
@@ -1366,163 +1442,60 @@ export namespace fetch {
       else if (
         (m = y.match(/^([-+]\d{2})?\d{4}(-\d{2}(-\d{2})?)?(T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?(Z|[-+]\d{2}:\d{2})?)?$/))
       ) {
-        if (fixtz && !!m[4] && !m[7]) y = y.replace(/-/g, "/").replace(/T/, " ")
+        if (fix && !!m[4] && !m[7]) y = y.replace(/-/g, "/").replace(/T/, " ")
         y = new Date(y)
       } else continue
       x[k] = y
     }
     return x
   }
-  export class CSV extends DSV {
-    constructor() {
-      super(",")
+  export async function blob(x: RequestInfo | URL, init?: RequestInit): Promise<Blob> {
+    function check(x: Response) {
+      if (!x.ok) throw new Error(x.status + " " + x.statusText)
+      return x.blob()
     }
+    return check(await fetch(x, init))
   }
-  const EOL = {},
-    EOF = {},
-    QUOTE = 34,
-    NEWLINE = 10,
-    RETURN = 13
-  function objectConverter(columns) {
-    return new Function(
-      "d",
-      "return {" +
-        columns
-          .map(function (name, i) {
-            return JSON.stringify(name) + ": d[" + i + '] || ""'
-          })
-          .join(",") +
-        "}"
-    )
-  }
-  function customConverter(columns, f) {
-    const object = objectConverter(columns)
-    return function (row, i) {
-      return f(object(row), i, columns)
+  export async function buffer(x: RequestInfo | URL, init?: RequestInit): Promise<ArrayBuffer> {
+    function check(x: Response) {
+      if (!x.ok) throw new Error(x.status + " " + x.statusText)
+      return x.arrayBuffer()
     }
+    return check(await fetch(x, init))
   }
-  function inferColumns(rows) {
-    const columnSet = Object.create(null),
-      columns = []
-    rows.forEach(function (row) {
-      for (const column in row) {
-        if (!(column in columnSet)) {
-          columns.push((columnSet[column] = column))
-        }
-      }
-    })
-    return columns
-  }
-  export class TSV extends DSV {
-    constructor() {
-      super("\t")
-    }
-  }
-  function responseBlob(response) {
-    if (!response.ok) throw new Error(response.status + " " + response.statusText)
-    return response.blob()
-  }
-  export async function blob(url: string, init?: RequestInit): Promise<Blob> {
-    const response = await fetch(url, init)
-    return responseBlob(response)
-  }
-  function responseArrayBuffer(response) {
-    if (!response.ok) throw new Error(response.status + " " + response.statusText)
-    return response.arrayBuffer()
-  }
-  export async function buffer(url: string, init?: RequestInit): Promise<ArrayBuffer> {
-    const response = await fetch(url, init)
-    return responseArrayBuffer(response)
-  }
-  function dsvParse(parse) {
-    return function (input, init, row) {
-      if (arguments.length === 2 && typeof init === "function") (row = init), (init = undefined)
-      return text(input, init).then(function (response) {
-        return parse(response, row)
-      })
-    }
-  }
-  export async function dsv<C extends string>(
-    delimiter: string,
-    url: string,
-    init?: RequestInit
-  ): Promise<qt.DSV.RowArray<C>>
-  export async function dsv<R extends object, T extends string = string>(
-    delimiter: string,
-    url: string,
-    row: (rawRow: qt.DSV.Row<T>, i: number, columns: T[]) => R | undefined | null
-  ): Promise<qt.DSV.Parsed<R>>
-  export function dsv<R extends object, C extends string = string>(
-    delimiter: string,
-    url: string,
-    init: RequestInit,
-    row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
-  ): Promise<qt.DSV.Parsed<R>>
-  export async function dsv(delimiter, input, init, row) {
-    if (arguments.length === 3 && typeof init === "function") (row = init), (init = undefined)
-    const format = dsvFormat(delimiter)
-    const response = await text(input, init)
-    return format.parse(response, row)
-  }
-  export function csv<C extends string>(url: string, init?: RequestInit): Promise<qt.DSV.RowArray<C>>
-  export function csv<R extends object, C extends string = string>(
-    url: string,
-    row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
-  ): Promise<qt.DSV.Parsed<R>>
-  export function csv<R extends object, T extends string = string>(
-    url: string,
-    init: RequestInit,
-    row: (rawRow: qt.DSV.Row<T>, i: number, columns: T[]) => R | undefined | null
-  ): Promise<qt.DSV.Parsed<R>>
-  export function csv() {} // = dsvParse(csvParse)
-  export function tsv<C extends string>(url: string, init?: RequestInit): Promise<qt.DSV.RowArray<C>>
-  export function tsv<R extends object, C extends string = string>(
-    url: string,
-    row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
-  ): Promise<qt.DSV.Parsed<R>>
-  export function tsv<R extends object, C extends string = string>(
-    url: string,
-    init: RequestInit,
-    row: (rawRow: qt.DSV.Row<C>, i: number, columns: C[]) => R | undefined | null
-  ): Promise<qt.DSV.Parsed<R>>
-  export function tsv() {} // = dsvParse(tsvParse)
-  export function image(url: string, init?: Partial<HTMLImageElement>): Promise<HTMLImageElement> {
-    return new Promise(function (resolve, reject) {
-      const image = new Image()
-      for (const key in init) image[key] = init[key]
-      image.onerror = reject
-      image.onload = function () {
-        resolve(image)
-      }
-      image.src = url
+  export function image(x: RequestInfo | URL, init?: Partial<HTMLImageElement>): Promise<HTMLImageElement> {
+    return new Promise(function (res, rej) {
+      const y = new Image()
+      for (const k in init) y[k] = init[k]
+      y.onerror = rej
+      y.onload = () => res(y)
+      y.src = x
     })
   }
-  function responseJson(response) {
-    if (!response.ok) throw new Error(response.status + " " + response.statusText)
-    if (response.status === 204 || response.status === 205) return
-    return response.json()
+  export async function json<T>(x: RequestInfo | URL, init?: RequestInit): Promise<T | undefined> {
+    function check(x: Response) {
+      if (!x.ok) throw new Error(x.status + " " + x.statusText)
+      if (x.status === 204 || x.status === 205) return
+      return x.json()
+    }
+    return check(await fetch(x, init))
   }
-  export async function json<T>(url: string, init?: RequestInit): Promise<T | undefined> {
-    const response = await fetch(url, init)
-    return responseJson(response)
+  export async function text(x: RequestInfo | URL, init?: RequestInit): Promise<string> {
+    function check(x: Response) {
+      if (!x.ok) throw new Error(x.status + " " + x.statusText)
+      return x.text()
+    }
+    return check(await fetch(x, init))
   }
-  function responseText(response) {
-    if (!response.ok) throw new Error(response.status + " " + response.statusText)
-    return response.text()
+  export async function xml(x: RequestInfo | URL, init?: RequestInit): Promise<XMLDocument> {
+    return new DOMParser().parseFromString(await text(x, init), "application/xml")
   }
-  export async function text(url: string, init?: RequestInit): Promise<string> {
-    const response = await fetch(url, init)
-    return responseText(response)
+  export async function html(x: RequestInfo | URL, init?: RequestInit): Promise<Document> {
+    return new DOMParser().parseFromString(await text(x, init), "text/html")
   }
-  function parser(type) {
-    return (input, init) => text(input, init).then(text => new DOMParser().parseFromString(text, type))
+  export async function svg(x: RequestInfo | URL, init?: RequestInit): Promise<Document> {
+    return new DOMParser().parseFromString(await text(x, init), "image/svg+xml")
   }
-  export function xml(url: string, init?: RequestInit): Promise<XMLDocument>
-  export function xml() {} // = parser("application/xml")
-  export function html(url: string, init?: RequestInit): Promise<Document>
-  export function html() {} //= parser("text/html")
-  export function svg(url: string, init?: RequestInit): Promise<Document>
-  export function svg() {} // = parser("image/svg+xml")
 }
 
 export namespace interpolate {

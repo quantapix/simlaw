@@ -412,16 +412,16 @@ export interface DSV {
   formatRows(x: readonly string[][]): string
   formatValue(x: string): string
   parse<T extends string>(x: string): DSV.RowArray<T>
-  parse<R extends object, T extends string>(
+  parse<T extends object, U extends string>(
     x: string,
-    f: (x: DSV.Row<T>, i: number, xs: T[]) => R | undefined | null
-  ): DSV.Parsed<R>
+    f: (x: DSV.Row<U>, i: number, xs: U[]) => T | undefined | null
+  ): DSV.Parsed<T>
   parseRows(x: string): string[][]
-  parseRows<R extends object>(x: string, f: (x: string[], i: number) => R | undefined | null): R[]
+  parseRows<T extends object>(x: string, f: (x: string[], i: number) => T | undefined | null): T[]
 }
 export namespace DSV {
-  export type Row<C extends string = string> = {
-    [k in C]: string | undefined
+  export type Row<T extends string = string> = {
+    [k in T]: string | undefined
   }
   export type Raw<T extends object> = {
     [k in keyof T]: string | undefined
@@ -429,11 +429,11 @@ export namespace DSV {
   export interface RowAny {
     [k: string]: any
   }
-  export interface RowArray<C extends string = string> extends Array<DSV.Row<C>> {
-    columns: C[]
+  export interface RowArray<T extends string = string> extends Array<DSV.Row<T>> {
+    columns: T[]
   }
-  export interface Parsed<C> extends Array<C> {
-    columns: Array<keyof C>
+  export interface Parsed<T> extends Array<T> {
+    columns: Array<keyof T>
   }
 }
 
