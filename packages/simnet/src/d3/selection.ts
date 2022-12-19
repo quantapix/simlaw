@@ -492,19 +492,19 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
     }
     return this
   }
-  property(k: any, v?: any) {
+  property(n: any, v?: any) {
     const remove = k => () => delete this[k]
     const constant = (k, v) => () => (this[k] = v)
     const func =
       (k, v) =>
       (...xs: any[]) => {
-        const x = v.apply(this, xs)
-        if (x === null) delete this[k]
-        else this[k] = x
+        const y = v.apply(this, xs)
+        if (y === null) delete this[k]
+        else this[k] = y
       }
-    return arguments.length > 1
-      ? this.each((v === null ? remove : typeof v === "function" ? func : constant)(k, v))
-      : this.node()[k]
+    return v === undefined
+      ? this.node()[n]
+      : this.each((v === null ? remove : typeof v === "function" ? func : constant)(n, v))
   }
   raise() {
     const raise = () => {

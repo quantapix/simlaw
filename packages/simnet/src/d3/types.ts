@@ -1787,7 +1787,7 @@ export interface Zoom<B extends Zoomed, T> extends Function {
   extent(f: (this: B, x: T) => [Point, Span]): this
   extent(x: [Point, Span]): this
   filter(): (this: B, e: any, x: T) => boolean
-  filter(filter: (this: B, e: any, x: T) => boolean): this
+  filter(f: (this: B, e: any, x: T) => boolean): this
   interpolate(f: (a: Zoom.View, b: Zoom.View) => (x: number) => Zoom.View): this
   interpolate<F extends (a: Zoom.View, b: Zoom.View) => (x: number) => Zoom.View>(): F
   on(n: string, f: (this: B, e: any, x: T) => void): this
@@ -1835,7 +1835,7 @@ export namespace Zoom {
     rho(x: number): this
   }
   export interface Scale {
-    copy(): Scale
+    copy(): this
     domain(): number[] | Date[]
     domain(x: Array<Date | number>): this
     invert(x: number): number | Date
@@ -1843,17 +1843,17 @@ export namespace Zoom {
     range(x: number[]): this
   }
   export interface Transform {
+    readonly k: number
     readonly x: number
     readonly y: number
-    readonly k: number
     apply(x: Point): Point
     applyX(x: number): number
     applyY(y: number): number
     invert(x: Point): Point
     invertX(x: number): number
     invertY(y: number): number
-    rescaleX<S extends Zoom.Scale>(x: S): S
-    rescaleY<S extends Zoom.Scale>(x: S): S
+    rescaleX<T extends Zoom.Scale>(x: T): T
+    rescaleY<T extends Zoom.Scale>(x: T): T
     scale(k: number): Transform
     toString(): string
     translate(x: number, y: number): Transform
