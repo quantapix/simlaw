@@ -88,6 +88,8 @@ export abstract class Base<S extends qt.Base, P extends qt.Base> extends Element
   nodes() {
     return Array.from(this)
   }
+  abstract select(x: any): any
+  abstract selectAll(x: any): any
   selectChild(x: any) {
     const first = () => this.firstElementChild
     const f = Array.prototype.find
@@ -244,44 +246,48 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
         return this.parent.querySelectorAll(x)
       }
     }
-    function index(parent, group, enter, update, exit, data) {
-      const groupLength = group.length,
-        dataLength = data.length
-      let i = 0,
-        node
-      for (; i < dataLength; ++i) {
-        if ((node = group[i])) {
-          node.__data__ = data[i]
-          update[i] = node
-        } else enter[i] = new EnterElem(parent, data[i])
+    function index(parent, xs, enter, update, exit, ds) {
+      let i = 0
+      const dn = ds.length
+      for (; i < dn; ++i) {
+        const x = xs[i]
+        if (x) {
+          x.__data__ = ds[i]
+          update[i] = x
+        } else enter[i] = new EnterElem(parent, ds[i])
       }
-      for (; i < groupLength; ++i) {
-        if ((node = group[i])) exit[i] = node
+      const xn = xs.length
+      for (; i < xn; ++i) {
+        const x = xs[i]
+        if (x) exit[i] = x
       }
     }
-    function key(parent, group, enter, update, exit, data, key) {
-      const nodeByKeyValue = new Map(),
-        groupLength = group.length,
-        dataLength = data.length,
-        keyValues = new Array(groupLength)
-      let i, node, keyValue
-      for (i = 0; i < groupLength; ++i) {
-        if ((node = group[i])) {
-          keyValues[i] = keyValue = key.call(node, node.__data__, i, group) + ""
-          if (nodeByKeyValue.has(keyValue)) exit[i] = node
-          else nodeByKeyValue.set(keyValue, node)
+    function key(parent, xs, enter, update, exit, ds, key) {
+      const m = new Map()
+      const xn = xs.length
+      const vs = new Array(xn)
+      for (let i = 0; i < xn; ++i) {
+        const x = xs[i]
+        if (x) {
+          const v = key.call(x, x.__data__, i, xs) + ""
+          vs[i] = v
+          if (m.has(v)) exit[i] = x
+          else m.set(v, x)
         }
       }
-      for (i = 0; i < dataLength; ++i) {
-        keyValue = key.call(parent, data[i], i, data) + ""
-        if ((node = nodeByKeyValue.get(keyValue))) {
-          update[i] = node
-          node.__data__ = data[i]
-          nodeByKeyValue.delete(keyValue)
-        } else enter[i] = new EnterElem(parent, data[i])
+      const dn = ds.length
+      for (let i = 0; i < dn; ++i) {
+        const v = key.call(parent, ds[i], i, ds) + ""
+        const x = m.get(v)
+        if (x) {
+          update[i] = x
+          x.__data__ = ds[i]
+          m.delete(v)
+        } else enter[i] = new EnterElem(parent, ds[i])
       }
-      for (i = 0; i < groupLength; ++i) {
-        if ((node = group[i]) && nodeByKeyValue.get(keyValues[i]) === node) exit[i] = node
+      for (let i = 0; i < xn; ++i) {
+        const x = xs[i]
+        if (x && m.get(vs[i]) === x) exit[i] = x
       }
     }
     const bind = f ? f : index,
