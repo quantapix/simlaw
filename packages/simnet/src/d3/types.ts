@@ -1775,56 +1775,56 @@ export interface Timer {
 }
 
 export type Zoomed = Element
-export interface Zoom<Z extends Zoomed, T> extends Function {
-  (x: Selection<Z, T, any, any>, ...xs: any[]): void
+export interface Zoom<B extends Zoomed, T> extends Function {
+  (x: Selection<B, T, any, any>, ...xs: any[]): void
   clickDistance(): number
   clickDistance(x: number): this
   constrain(): (t: Zoom.Transform, ext: [Point, Span], tExt: [Point, Span]) => Zoom.Transform
   constrain(f: (t: Zoom.Transform, ext: [Point, Span], tExt: [Point, Span]) => Zoom.Transform): this
   duration(): number
   duration(x: number): this
-  extent(): (this: Z, x: T) => [Point, Span]
-  extent(f: (this: Z, x: T) => [Point, Span]): this
+  extent(): (this: B, x: T) => [Point, Span]
+  extent(f: (this: B, x: T) => [Point, Span]): this
   extent(x: [Point, Span]): this
-  filter(): (this: Z, e: any, x: T) => boolean
-  filter(filter: (this: Z, e: any, x: T) => boolean): this
+  filter(): (this: B, e: any, x: T) => boolean
+  filter(filter: (this: B, e: any, x: T) => boolean): this
   interpolate(f: (a: Zoom.View, b: Zoom.View) => (x: number) => Zoom.View): this
   interpolate<F extends (a: Zoom.View, b: Zoom.View) => (x: number) => Zoom.View>(): F
-  on(n: string, f: (this: Z, e: any, x: T) => void): this
+  on(n: string, f: (this: B, e: any, x: T) => void): this
   on(n: string, x: null): this
-  on(n: string): ((this: Z, e: any, x: T) => void) | undefined
+  on(n: string): ((this: B, e: any, x: T) => void) | undefined
   scaleBy(
-    s: Selection<Z, T, any, any> | TransitionLike<Z, T>,
-    k: number | Value<Z, T, number>,
-    p?: Point | Value<Z, T, Point>
+    s: Selection<B, T, any, any> | TransitionLike<B, T>,
+    k: number | Value<B, T, number>,
+    p?: Point | Value<B, T, Point>
   ): void
   scaleExtent(): Span
   scaleExtent(x: Span): this
-  scaleTo(s: Selection<Z, T, any, any> | TransitionLike<Z, T>, k: number | Value<Z, T, number>, p?: Point): void
+  scaleTo(s: Selection<B, T, any, any> | TransitionLike<B, T>, k: number | Value<B, T, number>, p?: Point): void
   tapDistance(): number
   tapDistance(x: number): this
-  touchable(): Value<Z, T, boolean>
-  touchable(f: Value<Z, T, boolean>): this
+  touchable(): Value<B, T, boolean>
+  touchable(f: Value<B, T, boolean>): this
   touchable(x: boolean): this
   transform(
-    x: Selection<Z, T, any, any> | TransitionLike<Z, T>,
-    t: Zoom.Transform | ((this: Z, e: any, x: T) => Zoom.Transform),
-    p?: Point | ((this: Z, e: any, x: T) => Point)
+    x: Selection<B, T, any, any> | TransitionLike<B, T>,
+    t: Zoom.Transform | ((this: B, e: any, x: T) => Zoom.Transform),
+    p?: Point | ((this: B, e: any, x: T) => Point)
   ): void
   translateBy(
-    s: Selection<Z, T, any, any> | TransitionLike<Z, T>,
-    x: number | Value<Z, T, number>,
-    y: number | Value<Z, T, number>
+    s: Selection<B, T, any, any> | TransitionLike<B, T>,
+    x: number | Value<B, T, number>,
+    y: number | Value<B, T, number>
   ): void
   translateExtent(): [Point, Span]
   translateExtent(x: [Point, Span]): this
   translateTo(
-    s: Selection<Z, T, any, any> | TransitionLike<Z, T>,
-    x: number | Value<Z, T, number>,
-    y: number | Value<Z, T, number>,
-    p?: Point | Value<Z, T, Point>
+    s: Selection<B, T, any, any> | TransitionLike<B, T>,
+    x: number | Value<B, T, number>,
+    y: number | Value<B, T, number>,
+    p?: Point | Value<B, T, Point>
   ): void
-  wheelDelta(): Value<Z, T, number>
+  wheelDelta(): Value<B, T, number>
   wheelDelta(x: ((e: WheelEvent) => number) | number): this
 }
 export namespace Zoom {

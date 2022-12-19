@@ -1,23 +1,23 @@
-import { interpolateZoom } from "./interpolate.js"
-import { select } from "./selection.js"
+import { interpolate as qi } from "./utils.js"
 import { interrupt } from "./transition.js"
-import type * as qt from "./types.js"
+import { select } from "./selection.js"
 import * as qu from "./utils.js"
+import type * as qt from "./types.js"
 
 export class Event<Z extends qt.Zoomed, T> {
   constructor(
     public type: "start" | "zoom" | "end" | string,
-    public srcEvent: any,
+    public src: any,
     public tgt: qt.Zoom<Z, T>,
-    public transform: qt.Zoom.Transform,
+    public trafo: qt.Zoom.Transform,
     public dispatch: any
   ) {}
 }
 
 export class Transform implements qt.Zoom.Transform {
   constructor(public k: number, public x: number, public y: number) {}
-  apply(point: qt.Point): qt.Point {
-    return [point[0] * this.k + this.x, point[1] * this.k + this.y]
+  apply(p: qt.Point): qt.Point {
+    return [p[0] * this.k + this.x, p[1] * this.k + this.y]
   }
   applyX(x: number) {
     return x * this.k + this.x
@@ -25,8 +25,8 @@ export class Transform implements qt.Zoom.Transform {
   applyY(y: number) {
     return y * this.k + this.y
   }
-  invert(x: qt.Point): qt.Point {
-    return [(x[0] - this.x) / this.k, (x[1] - this.y) / this.k]
+  invert(p: qt.Point): qt.Point {
+    return [(p[0] - this.x) / this.k, (p[1] - this.y) / this.k]
   }
   invertX(x: number) {
     return (x - this.x) / this.k
@@ -104,7 +104,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
       return navigator.maxTouchPoints || "ontouchstart" in this
     },
     duration = 250,
-    interpolate = interpolateZoom,
+    interpolate = qi.zoom,
     touchstarting,
     touchfirst,
     touchending,
@@ -126,33 +126,32 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
       .on("touchend.zoom touchcancel.zoom", touchended)
       .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)")
   }
-  f.transform = (collection, transform, point, event) => {
-    const selection = collection.selection ? collection.selection() : collection
-    selection.property("__zoom", defaultTransform)
-    if (collection !== selection) {
-      schedule(collection, transform, point, event)
-    } else {
-      selection.interrupt().each(function (this: any, ...xs: any) {
-        gesture(this, xs)
-          .event(event)
-          .start()
-          .zoom(null, typeof transform === "function" ? transform(xs) : transform)
-          .end()
-      })
-    }
-  }
-  f.scaleBy = (selection, k, p, event) =>
+  f.scaleBy = (s: any, k: any, p?: any, e) =>
     f.scaleTo(
-      selection,
+      s,
       function (this: any, ...xs: any) {
         return this.__zoom.k * (typeof k === "function" ? k(xs) : k)
       },
       p,
-      event
+      e
     )
-  f.scaleTo = (selection, k, p, event) =>
+  f.transform = (s: any, t: any, p?: any, e) => {
+    const y = s.selection ? s.selection() : s
+    y.property("__zoom", defaultTransform)
+    if (s !== y) schedule(s, t, p, e)
+    else {
+      y.interrupt().each(function (this: any, ...xs: any) {
+        gesture(this, xs)
+          .event(e)
+          .start()
+          .zoom(null, typeof t === "function" ? t(xs) : t)
+          .end()
+      })
+    }
+  }
+  f.scaleTo = (s: any, k: any, p?: any, e) =>
     f.transform(
-      selection,
+      s,
       function (this: any, ...xs: any) {
         const e = extent(xs),
           t0 = this.__zoom,
@@ -162,11 +161,11 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
         return constrain(translate(scale(t0, k1), p0, p1), e, translateExtent)
       },
       p,
-      event
+      e
     )
-  f.translateBy = (selection, x, y, event) =>
+  f.translateBy = (s: any, x: any, y: any, e) =>
     f.transform(
-      selection,
+      s,
       function (this: any, ...xs: any) {
         return constrain(
           this.__zoom.translate(typeof x === "function" ? x(xs) : x, typeof y === "function" ? y(xs) : y),
@@ -175,7 +174,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
         )
       },
       null,
-      event
+      e
     )
   f.translateTo = (selection, x, y, p, event) => {
     f.transform(
@@ -197,14 +196,14 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
       event
     )
   }
-  function scale(transform, k) {
+  function scale(t, k) {
     k = qu.max(scaleExtent[0], qu.min(scaleExtent[1], k))
-    return k === transform.k ? transform : new Transform(k, transform.x, transform.y)
+    return k === t.k ? t : new Transform(k, t.x, t.y)
   }
-  function translate(transform, p0, p1) {
-    const x = p0[0] - p1[0] * transform.k,
-      y = p0[1] - p1[1] * transform.k
-    return x === transform.x && y === transform.y ? transform : new Transform(transform.k, x, y)
+  function translate(t, p0, p1) {
+    const x = p0[0] - p1[0] * t.k,
+      y = p0[1] - p1[1] * t.k
+    return x === t.x && y === t.y ? t : new Transform(t.k, x, y)
   }
   function centroid(extent) {
     return [(+extent[0][0] + +extent[1][0]) / 2, (+extent[0][1] + +extent[1][1]) / 2]
@@ -397,7 +396,7 @@ export function zoom<B extends qt.Zoomed, T>(): qt.Zoom<B, T> {
     }
     t = g.that.__zoom
     if (g.touch1) {
-      var p0 = g.touch0[0],
+      let p0 = g.touch0[0],
         l0 = g.touch0[1],
         p1 = g.touch1[0],
         l1 = g.touch1[1],

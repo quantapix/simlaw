@@ -1040,7 +1040,6 @@ export namespace format {
 export namespace drag {
   const nonpassive = { passive: false }
   const capture = { capture: true, passive: false }
-
   export class Event<D extends qt.Dragged, T, S> {
     constructor(
       public type: "start" | "drag" | "end" | string,
@@ -1063,7 +1062,6 @@ export namespace drag {
       return y === this.dispatch ? this : y
     }
   }
-
   export function drag<B extends qt.Dragged, T>(): qt.Drag<B, T, T | qt.Drag.Position>
   export function drag<B extends qt.Dragged, T, U>(): qt.Drag<B, T, U>
   export function drag() {
