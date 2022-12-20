@@ -1,5 +1,14 @@
 import type { MultiPolygon } from "geojson"
 
+export interface EnterElem extends Element {
+  ownerDocument: Document
+  namespaceURI: string
+  appendChild<T extends Node>(x: T): T
+  insertBefore<T extends Node>(x: T, next: Node | null): T
+  querySelector(x: string): Element
+  querySelectorAll(x: string): NodeListOf<Element>
+}
+
 export type Base = Element | EnterElem | Document | Window | null
 export type Container = HTMLElement | SVGSVGElement | SVGGElement
 export type Primitive = number | string | boolean | Date
@@ -1266,14 +1275,6 @@ export namespace Scale {
   }
 }
 
-export interface EnterElem extends Element {
-  ownerDocument: Document
-  namespaceURI: string
-  appendChild<T extends Node>(x: T): T
-  insertBefore<T extends Node>(x: T, next: Node | null): T
-  querySelector(x: string): Element
-  querySelectorAll(x: string): NodeListOf<Element>
-}
 export interface ClientPointEvent {
   clientX: number
   clientY: number

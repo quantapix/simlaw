@@ -3,6 +3,7 @@ import * as qu from "./utils.js"
 import type * as qt from "./types.js"
 
 const root = [null]
+
 export function selection() {
   return new Selection([[document.documentElement]], root)
 }
@@ -19,14 +20,8 @@ export function selectAll<S extends qt.Base, T>(x: string): Selection<S, T, HTML
 export function selectAll<S extends qt.Base, T>(x: S[] | ArrayLike<S> | Iterable<S>): Selection<S, T, null, undefined>
 export function selectAll(x: any) {
   return typeof x === "string"
-    ? new Selection([document.querySelectorAll(x)], [document.documentElement])
+    ? new Selection([Array.from(document.querySelectorAll(x))], [document.documentElement])
     : new Selection([qu.array(x)], root)
-}
-
-export function create<T extends keyof qt.TM>(x: T): qt.Selection<qt.TM[T], undefined, null, undefined>
-export function create<T extends Element>(x: string): qt.Selection<T, undefined, null, undefined>
-export function create(x: any): any {
-  return select(creator(x).call(document.documentElement))
 }
 
 function creator<T extends keyof qt.TM>(x: T): (this: qt.Base) => qt.TM[T]
@@ -50,6 +45,12 @@ function creator(x: any) {
   return (n.local ? fixed : inherit)(n)
 }
 
+export function create<T extends keyof qt.TM>(x: T): qt.Selection<qt.TM[T], undefined, null, undefined>
+export function create<T extends Element>(x: string): qt.Selection<T, undefined, null, undefined>
+export function create(x: any): any {
+  return select(creator(x).call(document.documentElement))
+}
+
 export abstract class Base<S extends qt.Base, P extends qt.Base> extends Element {
   constructor(public groups: S[][], public parents: P[]) {
     super()
@@ -61,8 +62,8 @@ export abstract class Base<S extends qt.Base, P extends qt.Base> extends Element
   }
   each(f: Function) {
     this.groups.forEach(g => {
-      g.forEach((n, i) => {
-        if (n) f.call(n, n.__data__, i, g)
+      g.forEach((x, i) => {
+        if (x) f.call(x, x.__data__, i, g)
       })
     })
     return this
@@ -72,15 +73,15 @@ export abstract class Base<S extends qt.Base, P extends qt.Base> extends Element
   }
   *iterator() {
     for (const g of this.groups) {
-      for (const n of g) {
-        if (n) yield n
+      for (const x of g) {
+        if (x) yield x
       }
     }
   }
   node() {
     for (const g of this.groups) {
-      for (const n of g) {
-        if (n) return n
+      for (const x of g) {
+        if (x) return x
       }
     }
     return null
@@ -91,16 +92,14 @@ export abstract class Base<S extends qt.Base, P extends qt.Base> extends Element
   abstract select(x: any): any
   abstract selectAll(x: any): any
   selectChild(x: any) {
+    const find = (x: any) => () => Array.prototype.find.call(this.children, x)
     const first = () => this.firstElementChild
-    const f = Array.prototype.find
-    const find = x => () => f.call(this.children, x)
     const matcher = (x: string) => (e: Element) => e.matches(x)
     return this.select(x === undefined ? first : find(typeof x === "function" ? x : matcher(x)))
   }
   selectChildren(x: any) {
+    const filter = (x: any) => () => Array.prototype.filter.call(this.children, x)
     const children = () => Array.from(this.children)
-    const f = Array.prototype.filter
-    const filter = x => () => f.call(this.children, x)
     const matcher = (x: string) => (e: Element) => e.matches(x)
     return this.selectAll(x === undefined ? children : filter(typeof x === "function" ? x : matcher(x)))
   }
@@ -124,7 +123,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
     const create = typeof x === "function" ? x : creator(x)
     return this.select((...xs: any[]) => this.appendChild(create.apply(this, xs)))
   }
-  attr(k: string, v?: any) {
+  attr(k: string, v?: any): any {
     const rem = (k: string) => () => this.removeAttribute(k)
     const remNS = (k: qt.NS) => () => this.removeAttributeNS(k.space, k.local)
     const func =
@@ -146,8 +145,11 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
     const ks = qu.space(k)
     const ns = typeof ks !== "string"
     if (v === undefined) {
-      const n = this.node()
-      return ns ? n.getAttributeNS(ks.space, ks.local) : n.getAttribute(ks)
+      const y = this.node()
+      if (y && !(y instanceof Document || y instanceof Window)) {
+        return ns ? y.getAttributeNS(ks.space, ks.local) : y.getAttribute(ks)
+      }
+      return
     }
     if (ns) return this.each((v === null ? remNS : typeof v === "function" ? funcNS : valNS)(ks, v))
     return this.each((v === null ? rem : typeof v === "function" ? func : val)(ks, v))
@@ -177,7 +179,7 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
         return this.ns.indexOf(x) >= 0
       }
     }
-    const list = (x: Element) => x.classList || new List(x)
+    const list = (x: any) => x.classList || new List(x)
     const add = (x: Element, ns: string[]) => {
       const cs = list(x)
       ns.forEach(n => {
@@ -199,7 +201,8 @@ export class Selection<S extends qt.Base, T, P extends qt.Base, U>
       }
     const ks = split(k + "")
     if (v === undefined) {
-      const cs = list(this.node())
+      const y = this.node()
+      const cs = y ? list(y) : []
       for (const k of ks) {
         if (!cs.contains(k)) return false
       }
